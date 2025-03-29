@@ -1,6 +1,7 @@
 library draggable_home;
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'app_bar.dart';
@@ -141,10 +142,10 @@ class _DraggableHomeState extends State<DraggableHome> {
     final double topPadding = MediaQuery.of(context).padding.top;
 
     final double expandedHeight =
-        MediaQuery.of(context).size.height * widget.headerExpandedHeight;
+        context.height * widget.headerExpandedHeight;
 
     final double fullyExpandedHeight =
-        MediaQuery.of(context).size.height * (widget.stretchMaxHeight);
+        context.height * (widget.stretchMaxHeight);
 
     return Scaffold(
       backgroundColor:
@@ -253,7 +254,7 @@ class _DraggableHomeState extends State<DraggableHome> {
                           : fullyExpanded
                               ? 0
                               : kToolbarHeight,
-                      width: MediaQuery.of(context).size.width,
+                      width: context.width,
                       child: fullyCollapsed
                           ? const SizedBox()
                           : fullyExpanded
@@ -299,7 +300,7 @@ class _DraggableHomeState extends State<DraggableHome> {
           Stack(
             children: [
               Container(
-                height: MediaQuery.of(context).size.height -
+                height: context.height -
                     topHeight -
                     bottomPadding,
                 color: widget.backgroundColor ??
@@ -326,7 +327,7 @@ class _DraggableHomeState extends State<DraggableHome> {
         return AnimatedContainer(
           duration: const Duration(milliseconds: 500),
           height: (snapshot.data ?? false) ? 25 : 0,
-          width: MediaQuery.of(context).size.width,
+          width: context.width,
           child: Center(
             child: Icon(
               Icons.keyboard_arrow_up_rounded,

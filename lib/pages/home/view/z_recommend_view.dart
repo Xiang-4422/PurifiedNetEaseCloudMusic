@@ -308,7 +308,7 @@ class RecommendView extends GetView<Home> {
   Widget _buildPlayListItem(Play play, int index, BuildContext context) {
     return InkWell(
       child: Obx(() => SizedBox(
-            width: Get.width,
+            width: context.width,
             height: 110.w,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,

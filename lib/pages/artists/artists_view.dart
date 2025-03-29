@@ -100,7 +100,7 @@ class _ArtistsViewState extends State<ArtistsView> with SingleTickerProviderStat
                   alignment: Alignment.topCenter,
                   children: [
                     Container(
-                      width: Get.width,
+                      width: context.width,
                       margin: EdgeInsets.only(top: 150.w),
                       padding: EdgeInsets.only(left: 15.w, right: 15.w, bottom: 25.w, top: 80.w),
                       decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(25.w)),

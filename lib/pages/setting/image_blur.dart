@@ -43,7 +43,7 @@ class _ImageBlurState extends State<ImageBlur> {
                   File(widget.path),
                   fit: BoxFit.cover,
                   width: 750.w,
-                  height: Get.height,
+                  height: context.height,
                 ),
                 BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),

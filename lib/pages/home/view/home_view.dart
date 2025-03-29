@@ -35,12 +35,12 @@ class HomeView extends GetView<Home> {
                   Obx(() => SimpleExtendedImage(
                         Home.to.mediaItem.value.extras?['image'] ?? '',
                         fit: BoxFit.cover,
-                        width: Get.width,
-                        height: Get.height,
+                        width: context.width,
+                        height: context.height,
                       )),
                   Container(
-                    width: Get.width,
-                    height: Get.height,
+                    width: context.width,
+                    height: context.height,
                     color: Theme.of(context).scaffoldBackgroundColor.withOpacity(.7),
                   ),
                   Obx(() => AnimatedContainer(
@@ -90,15 +90,15 @@ class HomeView extends GetView<Home> {
                   panel: const PanelView(),
                   body: const BodyView(),
                   minHeight: controller.panelMobileMinSize + bottomHeight + controller.panelAlbumPadding * 2,
-                  maxHeight: Get.height,
+                  maxHeight: context.height,
                   header: _buildHeader(context, bottomHeight),
                 ),
                 dragOffset: 260.w,
                 // angle: -11,
                 menuBackgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(.1),
-                slideWidth: Get.width * .6,
-                menuScreenWidth: Get.width * .6,
-                mainScreenScale: 0.2,
+                slideWidth: context.width * 0.6,
+                menuScreenWidth: context.width * 0.6,
+                mainScreenScale: 0,
                 duration: const Duration(milliseconds: 200),
                 reverseDuration: const Duration(milliseconds: 200),
                 showShadow: true,
@@ -245,14 +245,14 @@ class HomeView extends GetView<Home> {
     //           return Container(
     //             height: controller.panelMobileMinSize +
     //                 controller.panelAlbumPadding * 2 +
-    //                 (Get.width/8*3*.86 - controller.panelMobileMinSize + controller.panelAlbumPadding * 2) * controller.animationController.value,
+    //                 (context.width/8*3*.86 - controller.panelMobileMinSize + controller.panelAlbumPadding * 2) * controller.animationController.value,
     //             alignment: Alignment.centerLeft,
     //             child: child,
     //           );
     //         },
     //         child: InkWell(
     //           child: Container(
-    //             width: Get.width,
+    //             width: context.width,
     //             padding: EdgeInsets.symmetric(horizontal: controller.panelAlbumPadding),
     //             child: Stack(
     //               alignment: Alignment.centerLeft,
@@ -276,20 +276,20 @@ class HomeView extends GetView<Home> {
               return Container(
                 height: controller.panelMobileMinSize +
                     controller.panelAlbumPadding * 2 +
-                    (Get.width / 8 * 3 * .86 - controller.panelMobileMinSize + controller.panelAlbumPadding * 2) * controller.animationController.value,
+                    (context.width / 8 * 3 * .86 - controller.panelMobileMinSize + controller.panelAlbumPadding * 2) * controller.animationController.value,
                 alignment: Alignment.centerLeft,
                 child: child,
               );
             },
             child: InkWell(
               child: Container(
-                width: Get.width,
+                width: context.width,
                 padding: EdgeInsets.symmetric(horizontal: controller.panelAlbumPadding),
                 child: Stack(
                   alignment: Alignment.centerLeft,
                   children: [
                     _buildMediaTitleL(context),
-                    _buildAlbumL(),
+                    _buildAlbumL(context),
                   ],
                 ),
               ),
@@ -345,9 +345,9 @@ class HomeView extends GetView<Home> {
   }
 
   //构建歌曲专辑
-  Widget _buildAlbumL() {
-    double albumWidth = Get.width / 8 * 3 * .86;
-    double leftWidth = Get.width / 8 * 3;
+  Widget _buildAlbumL(context) {
+    double albumWidth = context.width / 8 * 3 * .86;
+    double leftWidth = context.width / 8 * 3;
     return AnimatedBuilder(
       animation: controller.animationController,
       builder: (context, index) {

@@ -17,7 +17,7 @@ class MenuView extends GetView<Home> {
   Widget build(BuildContext context) {
     return SafeArea(
         child: Container(
-      margin: EdgeInsets.only(right: Get.width * .3),
+      margin: EdgeInsets.only(right: context.width * .3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,

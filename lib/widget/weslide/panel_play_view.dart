@@ -241,7 +241,7 @@
 //   @override
 //   void initState() {
 //     super.initState();
-//     _width = Get.width;
+//     _width = context.width;
 //     _imageMaxSize = _width / 1.2;
 //     _imageMinSize = _width/ 9.375;
 //     _ac = AnimationController(
@@ -305,7 +305,7 @@
 //                 Positioned(
 //                     top: widget.slideDirection == SlideDirection.UP ? 0.0 : null,
 //                     bottom: widget.slideDirection == SlideDirection.DOWN ? 0.0 : null,
-//                     width: MediaQuery.of(context).size.width - (widget.margin != null ? widget.margin!.horizontal : 0) - (widget.padding != null ? widget.padding!.horizontal : 0),
+//                     width: context.width - (widget.margin != null ? widget.margin!.horizontal : 0) - (widget.padding != null ? widget.padding!.horizontal : 0),
 //                     child: MyGetView(
 //                       child: SizedBox(
 //                         height: widget.maxHeight,
@@ -362,7 +362,7 @@
 //                               ],
 //                             ),
 //                           ),
-//                           maxHeight: Get.height - 130.w - MediaQuery.of(context).padding.bottom,
+//                           maxHeight: context.height - 130.w - MediaQuery.of(context).padding.bottom,
 //                           minHeight: 130.w + MediaQuery.of(context).padding.bottom,
 //                         ),
 //                       ),

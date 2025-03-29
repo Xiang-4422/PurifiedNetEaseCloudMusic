@@ -5,6 +5,7 @@ import 'package:bujuan/widget/custom_filed.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:get/get.dart';
 
 import '../../common/netease_api/src/api/event/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
@@ -310,7 +311,7 @@ class _FoolTalkState extends State<FoolTalk> {
       padding: MediaQuery.of(context).viewInsets,
       child: Container(
         color: Theme.of(context).scaffoldBackgroundColor,
-        height: MediaQuery.of(context).size.height/1.3,
+        height: context.height/1.3,
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.w),
         child: Column(
           children: [

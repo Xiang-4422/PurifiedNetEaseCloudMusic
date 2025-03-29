@@ -45,7 +45,7 @@ class FlashyNavbar extends StatelessWidget {
       height: height,
       color: Colors.transparent,
       child: SizedBox(
-        width: Get.width,
+        width: context.width,
         height: height,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

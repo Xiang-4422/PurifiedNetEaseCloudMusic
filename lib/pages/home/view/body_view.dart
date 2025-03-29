@@ -26,8 +26,8 @@ class BodyView extends GetView<Home> {
                 child: SimpleExtendedImage(
                   controller.background.value ?? '',
                   fit: BoxFit.cover,
-                  width: Get.width,
-                  height: Get.height,
+                  width: context.width,
+                  height: context.height,
                 ),
               )),
           Padding(
@@ -58,8 +58,8 @@ class BodyViewL extends GetView<Home> {
                 child: SimpleExtendedImage(
                   Home.to.mediaItem.value.extras?['image'] ?? '',
                   fit: BoxFit.cover,
-                  width: Get.width,
-                  height: Get.height,
+                  width: context.width,
+                  height: context.height,
                 ),
               )),
           Padding(

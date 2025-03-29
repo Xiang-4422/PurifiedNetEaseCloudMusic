@@ -22,7 +22,7 @@ class CoffeePage extends StatelessWidget {
               borderRadius: BorderRadius.circular(30.w),
               child: Image.asset(
                 'assets/images/coffee.jpg',
-                width: Get.width,
+                width: context.width,
                 fit: BoxFit.fitWidth,
               ),
             ),

@@ -81,8 +81,8 @@ class UserViewP extends GetView<UserController> {
               //           children: [
               //             Container(
               //               margin: EdgeInsets.only(top: 35.w),
-              //               width: Get.width / 1.35,
-              //               height: Get.width / 1.6,
+              //               width: context.width / 1.35,
+              //               height: context.width / 1.6,
               //               decoration: BoxDecoration(
               //                 borderRadius: BorderRadius.circular(65.w),
               //                 color: const Color(0xFFBEBBBB).withAlpha(60),
@@ -90,8 +90,8 @@ class UserViewP extends GetView<UserController> {
               //             ),
               //             Container(
               //               margin: EdgeInsets.only(top: 18.w),
-              //               width: Get.width / 1.2,
-              //               height: Get.width / 1.6,
+              //               width: context.width / 1.2,
+              //               height: context.width / 1.6,
               //               decoration: BoxDecoration(
               //                 borderRadius: BorderRadius.circular(65.w),
               //                 color: const Color(0xFFBEBBBB).withAlpha(160),
@@ -101,8 +101,8 @@ class UserViewP extends GetView<UserController> {
               //                   margin: EdgeInsets.symmetric(horizontal: 30.w),
               //                   child: SimpleExtendedImage(
               //                     '${controller.play.value.coverImgUrl ?? ''}?param=800y800',
-              //                     width: Get.width,
-              //                     height: Get.width / 1.6,
+              //                     width: context.width,
+              //                     height: context.width / 1.6,
               //                     borderRadius: BorderRadius.circular(65.w),
               //                   ),
               //                 )),
@@ -113,7 +113,7 @@ class UserViewP extends GetView<UserController> {
               //                   borderRadius: BorderRadius.only(bottomLeft: Radius.circular(65.w), bottomRight: Radius.circular(65.w)),
               //                   color: Theme.of(context).scaffoldBackgroundColor.withOpacity(.6),
               //                 ),
-              //                 width: Get.width - 60.w,
+              //                 width: context.width - 60.w,
               //                 child: ClipRRect(
               //                   borderRadius: BorderRadius.only(bottomLeft: Radius.circular(65.w), bottomRight: Radius.circular(65.w)),
               //                   child: BackdropFilter(
@@ -350,7 +350,7 @@ class UserViewP extends GetView<UserController> {
               ),
             ),
             SizedBox(
-              width: Get.width,
+              width: MediaQuery.of(context).size.width,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -654,7 +654,7 @@ class UserViewL extends GetView<UserController> {
               ),
             ),
             SizedBox(
-              width: Get.width,
+              width: context.width,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

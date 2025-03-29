@@ -60,14 +60,14 @@ class SplashPageState extends State<SplashPage> {
         visible: splashBg.isEmpty,
         replacement: SimpleExtendedImage(
           splashBg,
-          width: Get.width,
-          height: Get.height,
+          width: context.width,
+          height: context.height,
           fit: BoxFit.cover,
         ),
         child: Center(
           child: SvgPicture.asset(
             'assets/images/splash.svg',
-            width: Get.width / 1.8,
+            width: context.width / 1.8,
             fit: BoxFit.fitWidth,
           ),
         ),

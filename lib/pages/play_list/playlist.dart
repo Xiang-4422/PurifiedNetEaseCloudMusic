@@ -21,7 +21,7 @@
 //         children: [
 //           SimpleExtendedImage(
 //             (context.routeData.args as Play).coverImgUrl ?? '',
-//             width: Get.width,
+//             width: context.width,
 //           ),
 //           Scaffold(
 //       backgroundColor: Colors.transparent,

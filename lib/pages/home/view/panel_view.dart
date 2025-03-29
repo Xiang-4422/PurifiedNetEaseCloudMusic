@@ -44,7 +44,7 @@ class PanelView extends GetView<Home> {
       ),
       header: _buildBottom(bottomHeight, context),
       boxShadow: const [BoxShadow(blurRadius: 8.0, color: Color.fromRGBO(0, 0, 0, 0.05))],
-      maxHeight: Get.height - (controller.panelMobileMinSize + MediaQuery.of(context).padding.top + controller.panelAlbumPadding * 4),
+      maxHeight: context.height - (controller.panelMobileMinSize + MediaQuery.of(context).padding.top + controller.panelAlbumPadding * 4),
       minHeight: controller.panelMobileMinSize + controller.panelAlbumPadding * 2 + bottomHeight,
     ));
   }
@@ -232,7 +232,7 @@ class PanelView extends GetView<Home> {
 
   Widget _buildDefaultBody(BuildContext context) {
     return SizedBox(
-      height: Get.height,
+      height: context.height,
       child: Stack(
         children: [
           Obx(() => Visibility(
@@ -343,7 +343,7 @@ class PanelViewL extends GetView<Home> {
 
   Widget _buildDefaultBody(BuildContext context) {
     return SizedBox(
-      height: Get.height,
+      height: context.height,
       child: Stack(
         children: [
           Obx(() => Visibility(
@@ -351,8 +351,8 @@ class PanelViewL extends GetView<Home> {
                 child: SimpleExtendedImage(
                   Home.to.mediaItem.value.extras?['image'] ?? '',
                   fit: BoxFit.cover,
-                  width: Get.width,
-                  height: Get.height,
+                  width: context.width,
+                  height: context.height,
                 ),
               )),
           Obx(() => AnimatedContainer(

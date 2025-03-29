@@ -1459,7 +1459,7 @@ class PlaybackEvent {
       );
 
   @override
-  int get hashCode => hashValues(
+  int get hashCode => (
         processingState,
         updateTime,
         updatePosition,
@@ -1468,7 +1468,7 @@ class PlaybackEvent {
         icyMetadata,
         currentIndex,
         androidAudioSessionId,
-      );
+      ).hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -1524,7 +1524,7 @@ class PlayerState {
   String toString() => 'playing=$playing,processingState=$processingState';
 
   @override
-  int get hashCode => hashValues(playing, processingState);
+  int get hashCode => (playing, processingState).hashCode;
 
   @override
   bool operator ==(Object other) => other.runtimeType == runtimeType && other is PlayerState && other.playing == playing && other.processingState == processingState;
@@ -1545,7 +1545,7 @@ class IcyInfo {
   String toString() => 'title=$title,url=$url';
 
   @override
-  int get hashCode => hashValues(title, url);
+  int get hashCode => (title, url).hashCode;
 
   @override
   bool operator ==(Object other) => other.runtimeType == runtimeType && other is IcyInfo && other.title == title && other.url == url;
@@ -1607,7 +1607,7 @@ class IcyMetadata {
   IcyMetadata({required this.info, required this.headers});
 
   @override
-  int get hashCode => hashValues(info, headers);
+  int get hashCode => (info, headers).hashCode;
 
   @override
   bool operator ==(Object other) => other.runtimeType == runtimeType && other is IcyMetadata && other.info == info && other.headers == headers;

@@ -34,9 +34,8 @@ class AppTheme {
         headlineMedium:TextStyle(color: Color(0xFF4D4D4D)) ,
         headlineSmall:TextStyle(color: Color(0xFF4D4D4D)) ,
       ),
-      bottomAppBarColor: onPrimaryDark,
       scaffoldBackgroundColor: const Color(0xFFF5F3F3),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFF5F3F3), foregroundColor: primaryDark, elevation: 0));
+      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFF5F3F3), foregroundColor: primaryDark, elevation: 0), bottomAppBarTheme: BottomAppBarTheme(color: onPrimaryDark));
 
   static ThemeData dark = ThemeData.dark().copyWith(
       colorScheme: ThemeData.dark().colorScheme.copyWith(
@@ -54,13 +53,12 @@ class AppTheme {
       }),
       cardColor: const Color(0xFFECEBEB),
       primaryColor: const Color(0xffe56260),
-      bottomAppBarColor: onSurfaceDark,
       scaffoldBackgroundColor: const Color(0xFF2C2B2B),
       appBarTheme: const AppBarTheme(
           systemOverlayStyle: SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light),
           backgroundColor: Color(0xFF2C2B2B),
           foregroundColor: primary,
-          elevation: 0));
+          elevation: 0), bottomAppBarTheme: BottomAppBarTheme(color: onSurfaceDark));
 
   //right background
   static const primaryDark = Color(0xFF1c1d1f);

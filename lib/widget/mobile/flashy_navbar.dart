@@ -39,7 +39,7 @@ class FlashyNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = (backgroundColor == null) ? Theme.of(context).bottomAppBarColor : backgroundColor;
+    final bg = (backgroundColor == null) ? Theme.of(context).bottomAppBarTheme.color : backgroundColor;
     return Container(
       padding: padding,
       height: height,

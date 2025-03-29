@@ -783,15 +783,15 @@ class _MyAppBarState extends State<MyAppBar> {
         ?? overallIconTheme;
 
     TextStyle? toolbarTextStyle = backwardsCompatibility
-        ? widget.textTheme?.bodyText2
-        ?? theme.primaryTextTheme.bodyText2
+        ? widget.textTheme?.bodyMedium
+        ?? theme.primaryTextTheme.bodyMedium
         : widget.toolbarTextStyle
         ?? appBarTheme.toolbarTextStyle
         ?? defaults.toolbarTextStyle?.copyWith(color: foregroundColor);
 
     TextStyle? titleTextStyle = backwardsCompatibility
-        ? widget.textTheme?.headline6
-        ?? theme.primaryTextTheme.headline6
+        ? widget.textTheme?.titleLarge
+        ?? theme.primaryTextTheme.titleLarge
         : widget.titleTextStyle
         ?? appBarTheme.titleTextStyle
         ?? defaults.titleTextStyle?.copyWith(color: foregroundColor);
@@ -1084,10 +1084,10 @@ class _AppBarDefaultsM2 extends AppBarTheme {
   IconThemeData? get iconTheme => _theme.iconTheme;
 
   @override
-  TextStyle? get toolbarTextStyle => _theme.textTheme.bodyText2;
+  TextStyle? get toolbarTextStyle => _theme.textTheme.bodyMedium;
 
   @override
-  TextStyle? get titleTextStyle => _theme.textTheme.headline6;
+  TextStyle? get titleTextStyle => _theme.textTheme.titleLarge;
 }
 
 // BEGIN GENERATED TOKEN PROPERTIES - AppBar
@@ -1135,7 +1135,7 @@ class _AppBarDefaultsM3 extends AppBarTheme {
   );
 
   @override
-  TextStyle? get toolbarTextStyle => _textTheme.bodyText2;
+  TextStyle? get toolbarTextStyle => _textTheme.bodyMedium;
 
   @override
   TextStyle? get titleTextStyle => _textTheme.titleLarge;

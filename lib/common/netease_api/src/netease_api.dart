@@ -32,18 +32,15 @@ class NeteaseMusicApi
         ApiSearch,
         ApiUncategorized {
   static NeteaseMusicApi? _neteaseMusicApi;
-
   static late CookieManager cookieManager;
   static late PathProvider pathProvider;
+  UserLoginStateController usc = UserLoginStateController();
 
   static Future<bool> init({PathProvider? provider, bool debug = false}) async {
-    provider ??= PathProvider();
-    pathProvider = provider;
 
-    await provider.init();
-
-    cookieManager = CookieManager(
-        PersistCookieJar(storage: FileStorage(provider.getCookieSavedPath())));
+    pathProvider = provider == null ? PathProvider() : provider;
+    await pathProvider.init();
+    cookieManager = CookieManager(PersistCookieJar(storage: FileStorage(pathProvider.getCookieSavedPath())));
 
     _initDio(Https.dio, debug, true);
 
@@ -51,8 +48,8 @@ class NeteaseMusicApi
   }
 
   static Dio _initDio(Dio dio, bool debug, bool refreshToken) {
-    dio.interceptors.add(cookieManager);
 
+    dio.interceptors.add(cookieManager);
     dio.interceptors.add(InterceptorsWrapper(
         onRequest: neteaseInterceptor,
         onResponse:
@@ -64,9 +61,9 @@ class NeteaseMusicApi
               response.data = jsonDecode(response.data);
             } catch (e) {}
           }
-          if (refreshToken &&
-              NeteaseMusicApi().usc.isLogined &&
-              response.data is Map) {
+          if (refreshToken
+              && NeteaseMusicApi().usc.isLogined
+              && response.data is Map) {
             var result = ServerStatusBean.fromJson(response.data);
             // 1. token已经更新，请求重试
             // 2. token未更新
@@ -100,6 +97,7 @@ class NeteaseMusicApi
           handler.next(response);
         }));
 
+    // Dio日志拦截器
     if (debug) {
       dio.interceptors.add(PrettyDioLogger(
           requestHeader: true,
@@ -109,16 +107,11 @@ class NeteaseMusicApi
           error: true,
           compact: true,
           maxWidth: 90,
-          logPrint: (object) {
-            if (object is String) {
-              print(object.replaceAll('║', ''));
-            }
-          }));
+      ));
     }
+
     return dio;
   }
-
-  UserLoginStateController usc = UserLoginStateController();
 
   NeteaseMusicApi._internal() {
     usc.init();
@@ -230,11 +223,6 @@ class UserLoginStateController {
   }
 }
 
-enum LoginState {
-  Logined,
-  Logout,
-}
-
 class PathProvider {
   var _cookiePath = '';
   var _dataPath = '';
@@ -253,3 +241,9 @@ class PathProvider {
     return _dataPath;
   }
 }
+
+enum LoginState {
+  Logined,
+  Logout,
+}
+

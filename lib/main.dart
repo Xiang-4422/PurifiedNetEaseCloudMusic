@@ -13,6 +13,7 @@ import 'package:bujuan/pages/playlist_manager/playlist_manager_controller.dart';
 import 'package:bujuan/pages/playlist_manager/playlist_manager_view.dart';
 import 'package:bujuan/pages/user/user_controller.dart';
 import 'package:bujuan/routes/router.gr.dart';
+import 'package:bujuan/widget/app_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
@@ -28,45 +29,16 @@ import 'common/constants/colors.dart';
 import 'common/netease_api/src/netease_api.dart';
 
 main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  bool land = PlatformUtils.isMacOS || PlatformUtils.isWindows || OtherUtils.isPad();
-  final getIt = GetIt.instance;
-  await _initAudioServer(getIt);
-  final rootRouter = getIt<RootRouter>();
-  if (PlatformUtils.isAndroid) {
-    await FlutterDisplayMode.setHighRefreshRate();
-    SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarContrastEnforced: false,
-    );
-    SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
-  }
-  //如果满足横屏条件，强制屏幕为横屏
-  if (land) {
-    SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
-  }
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge).then((value) => runApp(ScreenUtilInit(
-        designSize: !land ? const Size(750, 1334) : const Size(2339, 1080),
-        minTextAdapt: true,
-        splitScreenMode: true,
-        builder: (BuildContext context, Widget? child) {
-          HomeBinding().dependencies();
-          return GetMaterialApp.router(
-            title: "Bujuan",
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            // showPerformanceOverlay: true,
-            // checkerboardOffscreenLayers: true,
-            // checkerboardRasterCacheImages: true,
-            themeMode: ThemeMode.system,
-            routerDelegate: rootRouter.delegate(navigatorObservers: () => [MyObserver()]),
-            routeInformationParser: rootRouter.defaultRouteParser(),
-            debugShowCheckedModeBanner: false,
-            builder: (_, router) => MediaQuery(data: MediaQuery.of(_).copyWith(textScaleFactor: 1.0), child: router!),
-          );
-        },
-      )));
+  // mac/windows/pad为横屏
+  bool island = PlatformUtils.isMacOS || PlatformUtils.isWindows || OtherUtils.isPad();
+
+  await _initSingleton();
+  await _initAudioServer();
+  await _initUI(island);
+
+  runApp(
+      AppWidget(isLandscape: island)
+     );
 }
 
 class MyObserver extends AutoRouterObserver {
@@ -128,13 +100,46 @@ class MyObserver extends AutoRouterObserver {
   void didChangeTabRoute(TabPageRoute route, TabPageRoute previousRoute) {}
 }
 
-Future<void> _initAudioServer(getIt) async {
-  getIt.registerSingleton<RootRouter>(RootRouter());
-  getIt.registerSingleton<AudioPlayer>(AudioPlayer());
+Future<void> _initUI(island) async {
+  // 安卓平台配置
+  if (PlatformUtils.isAndroid) {
+    // 高刷
+    await FlutterDisplayMode.setHighRefreshRate();
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      // 状态栏透明
+      statusBarColor: Colors.transparent,
+      // 底部导航栏透明
+      systemNavigationBarColor: Colors.transparent,
+      // 关闭底部导航栏的阴影
+      systemNavigationBarContrastEnforced: false,
+    ));
+  }
+
+  if (island) {
+    // 强制只能横屏显示
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+  }
+
+  // 应用全屏（UI延伸到状态栏和导航栏下）
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+}
+
+Future<void> _initSingleton() async {
+  final getIt = GetIt.instance;
+  // 注册侧边抽屉控制器
   getIt.registerSingleton<ZoomDrawerController>(ZoomDrawerController());
+  // 初始化Hive存储
   await Hive.initFlutter('BuJuan');
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));
+}
+
+Future<void> _initAudioServer() async {
+  final getIt = GetIt.instance;
+  // 注册音频播放器
+  getIt.registerSingleton<AudioPlayer>(AudioPlayer());
+  // 初始化网易云API
   await NeteaseMusicApi.init(debug: false);
+  // 初始化音频后台服务
   getIt.registerSingleton<BujuanAudioHandler>(await AudioService.init<BujuanAudioHandler>(
     builder: () => BujuanAudioHandler(),
     config: const AudioServiceConfig(

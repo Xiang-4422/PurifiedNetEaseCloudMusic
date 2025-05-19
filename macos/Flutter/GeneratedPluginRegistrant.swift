@@ -17,7 +17,7 @@ import package_info_plus
 import path_provider_foundation
 import rive_common
 import screen_retriever
-import sqflite_darwin
+import sqflite
 import url_launcher_macos
 import video_player_avfoundation
 import window_manager

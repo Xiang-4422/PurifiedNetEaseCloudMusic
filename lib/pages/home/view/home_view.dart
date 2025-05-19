@@ -15,6 +15,9 @@ import '../../../widget/simple_extended_image.dart';
 import '../../../widget/weslide/panel.dart';
 import 'menu_view.dart';
 
+/**
+ * 主页
+ */
 class HomeView extends GetView<Home> {
   final Widget? body;
 
@@ -78,7 +81,7 @@ class HomeView extends GetView<Home> {
                 ],
               )
             : ZoomDrawer(
-                moveMenuScreen: false,
+                moveMenuScreen: true,
                 menuScreen: const MenuView(),
                 mainScreen: SlidingUpPanel(
                   color: Colors.transparent,
@@ -87,21 +90,21 @@ class HomeView extends GetView<Home> {
                   controller: controller.panelControllerHome,
                   onPanelSlide: (value) => controller.changeSlidePosition(value),
                   boxShadow: const [BoxShadow(blurRadius: 8.0, color: Color.fromRGBO(0, 0, 0, 0.05))],
-                  panel: const PanelView(),
-                  body: const BodyView(),
                   minHeight: controller.panelMobileMinSize + bottomHeight + controller.panelAlbumPadding * 2,
                   maxHeight: context.height,
+                  body: const BodyView(),
                   header: _buildHeader(context, bottomHeight),
+                  panel: const PanelView(),
                 ),
-                dragOffset: 260.w,
-                // angle: -11,
+                dragOffset: context.width,
+                angle: 0,
                 menuBackgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(.1),
-                slideWidth: context.width * 0.6,
+                slideWidth: context.width * 0.3,
                 menuScreenWidth: context.width * 0.6,
                 mainScreenScale: 0,
                 duration: const Duration(milliseconds: 200),
                 reverseDuration: const Duration(milliseconds: 200),
-                showShadow: true,
+                // showShadow: true,
                 mainScreenTapClose: true,
                 menuScreenTapClose: true,
                 androidCloseOnBackTap: true,
@@ -110,17 +113,46 @@ class HomeView extends GetView<Home> {
               ));
   }
 
+  // 底部播放状态栏
   Widget _buildHeader(context, bottomHeight) {
     return AnimatedBuilder(
       animation: controller.animationController,
       builder: (context, child) {
         return Stack(
           children: [
+            // 展开前
             Container(
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top * controller.slideSecondPosition.value),
-              child: child,
+              child: Obx(() => GestureDetector(
+                onVerticalDragEnd: (controller.second.value) ? (e) {} : null,
+                child: Swipeable(
+                    background: const SizedBox.shrink(),
+                    child: InkWell(
+                      child: Container(
+                        width: 750.w,
+                        padding: EdgeInsets.all(controller.panelAlbumPadding),
+                        child: Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            _buildMediaTitle(context),
+                            _buildAlbum(),
+                          ],
+                        ),
+                      ),
+                      onTap: () {
+                        if (controller.panelControllerHome.isPanelClosed) {
+                          controller.panelControllerHome.open();
+                        } else {
+                          if (controller.panelController.isPanelOpen) controller.panelController.close();
+                        }
+                      },
+                    ),
+                    onSwipeLeft: () => controller.audioServeHandler.skipToPrevious(),
+                    onSwipeRight: () => controller.audioServeHandler.skipToNext()),
+              )),
             ),
+            // 展开后
             Container(
               padding: EdgeInsets.symmetric(horizontal: controller.panelAlbumPadding),
               margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
@@ -133,9 +165,8 @@ class HomeView extends GetView<Home> {
                   children: [
                     IconButton(
                       onPressed: () => controller.panelControllerHome.close(),
-                      icon: Obx(() => Icon(Icons.keyboard_arrow_down_sharp, color: controller.bodyColor.value)),
-                    ),
-                     Text('Now Playing',style: TextStyle(color: controller.bodyColor.value,fontSize: 28.sp),),
+                      icon: Obx(() => Icon(Icons.keyboard_arrow_down_sharp, color: controller.bodyColor.value)),),
+                    Text('Now Playing',style: TextStyle(color: controller.bodyColor.value,fontSize: 28.sp),),
                     IconButton(onPressed: () {}, icon: Obx(() => Icon(Icons.more_horiz, color: controller.bodyColor.value))),
                   ],
                 ),
@@ -144,37 +175,12 @@ class HomeView extends GetView<Home> {
           ],
         );
       },
-      child: Obx(() => GestureDetector(
-        onVerticalDragEnd: (controller.second.value) ? (e) {} : null,
-        child: Swipeable(
-            background: const SizedBox.shrink(),
-            child: InkWell(
-              child: Container(
-                width: 750.w,
-                padding: EdgeInsets.all(controller.panelAlbumPadding),
-                child: Stack(
-                  alignment: Alignment.centerLeft,
-                  children: [
-                    _buildMediaTitle(context),
-                    _buildAlbum(),
-                  ],
-                ),
-              ),
-              onTap: () {
-                if (controller.panelControllerHome.isPanelClosed) {
-                  controller.panelControllerHome.open();
-                } else {
-                  if (controller.panelController.isPanelOpen) controller.panelController.close();
-                }
-              },
-            ),
-            onSwipeLeft: () => controller.audioServeHandler.skipToPrevious(),
-            onSwipeRight: () => controller.audioServeHandler.skipToNext()),
-      )),
     );
   }
 
-  //构建歌曲标题和播放按钮
+  /**
+   * 构建歌曲标题和播放按钮
+   */
   Widget _buildMediaTitle(context) {
     return Obx(() => Visibility(
           visible: !controller.panelOpenPositionThan1.value,
@@ -211,7 +217,9 @@ class HomeView extends GetView<Home> {
         ));
   }
 
-  //构建歌曲专辑
+  /**
+   * 构建歌曲专辑图片
+   */
   Widget _buildAlbum() {
     return AnimatedBuilder(
       animation: controller.animationController,
@@ -300,7 +308,6 @@ class HomeView extends GetView<Home> {
           ),
         ));
   }
-
   //构建歌曲标题和播放按钮
   Widget _buildMediaTitleL(context) {
     return Obx(() => Visibility(
@@ -343,7 +350,6 @@ class HomeView extends GetView<Home> {
           ),
         ));
   }
-
   //构建歌曲专辑
   Widget _buildAlbumL(context) {
     double albumWidth = context.width / 8 * 3 * .86;

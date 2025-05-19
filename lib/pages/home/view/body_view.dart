@@ -13,9 +13,11 @@ class BodyView extends GetView<Home> {
 
   @override
   Widget build(BuildContext context) {
+
     controller.buildContext = context;
     double bottomHeight = MediaQuery.of(controller.buildContext).padding.bottom * (PlatformUtils.isIOS ? 0.6 : .85);
     if (bottomHeight == 0 && PlatformUtils.isAndroid || PlatformUtils.isIOS) bottomHeight = 32.w;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: Home.to.landscape ? Colors.transparent : null,
@@ -31,7 +33,9 @@ class BodyView extends GetView<Home> {
                 ),
               )),
           Padding(
-            padding: EdgeInsets.only(bottom: controller.landscape ? 0 : controller.panelMobileMinSize + bottomHeight + controller.panelAlbumPadding * 2),
+            padding: EdgeInsets.only(bottom: controller.landscape
+                ? 0
+                : controller.panelMobileMinSize + bottomHeight + controller.panelAlbumPadding * 2),
             child: const AutoRouter(),
           )
         ],

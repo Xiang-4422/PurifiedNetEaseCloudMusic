@@ -96,21 +96,26 @@ abstract class _Paths {
 @MaterialAutoRouter(
   replaceInRouteName: 'Page,Route',
   routes: <AutoRoute>[
+    AutoRoute(path: Routes.splash, page: SplashPage, initial: true, deferredLoading: true),
+    // home包括侧边抽屉、底部播放控制、以及其中三个对应页面：个人、发现、设置
     AutoRoute(path: Routes.home, page: HomeView, deferredLoading: true, children: [
+      // 个人收藏
       AutoRoute(path: Routes.user, page: UserView, initial: true, deferredLoading: true),
+      // 每日发现
+      AutoRoute(path: Routes.today, page: TodayView),
+      // 设置
+      AutoRoute(path: Routes.settingL, page: SettingViewL),
+
       AutoRoute(path: Routes.cloud, page: AlbumView),
       AutoRoute(path: Routes.playlist, page: PlayListView),
       AutoRoute(path: Routes.index, page: MainView),
-      AutoRoute(path: Routes.today, page: TodayView),
       AutoRoute(path: Routes.search, page: SearchView),
       AutoRoute(path: Routes.artists, page: ArtistsView),
       AutoRoute(path: Routes.myRadio, page: MyRadioView),
       AutoRoute(path: Routes.radioDetails, page: RadioDetailsView),
       AutoRoute(path: Routes.albumDetails, page: AlbumDetails),
-      AutoRoute(path: Routes.settingL, page: SettingViewL),
       AutoRoute(path: Routes.playlistManager, page: PlaylistManagerView),
     ]),
-    AutoRoute(path: Routes.splash, page: SplashPage, initial: true, deferredLoading: true),
     AutoRoute(path: Routes.login, page: LoginView),
     AutoRoute(path: Routes.talk, page: TalkView),
     AutoRoute(path: Routes.setting, page: SettingView),

@@ -223,7 +223,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
     // panelAlbumPadding = landscape ? 20.h : 15.w;
     animationController = AnimationController(vsync: this, value: 0);
     animationPanel = Tween(begin: 0.0, end: 1.0).animate(animationController);
-    animationScalePanel = Tween(begin: 1.1, end: 1.0).animate(animationController);
+    animationScalePanel = Tween(begin: 2.0, end: 1.0).animate(animationController);
     var rng = Random();
     for (double i = 0; i < (landscape ? 100 : 50); i++) {
       mEffects.add({"percent": i, "size": 3 + rng.nextInt(30 - 2).toDouble()});

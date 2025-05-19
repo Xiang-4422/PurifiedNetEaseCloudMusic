@@ -20,48 +20,6 @@ import 'constants/platform_utils.dart';
 import 'netease_api/src/api/play/bean.dart';
 import 'netease_api/src/netease_api.dart';
 
-Future<List<MediaItem>> getCachePlayList(RootIsolateData data) async {
-  BackgroundIsolateBinaryMessenger.ensureInitialized(data.rootIsolateToken);
-  List<MediaItem> items = data.playlist?.map((e) {
-        var map = MediaItemMessage.fromMap(jsonDecode(e));
-        return MediaItem(
-          id: map.id,
-          duration: map.duration,
-          artUri: map.artUri,
-          extras: map.extras,
-          title: map.title,
-          artist: map.artist,
-          album: map.album,
-        );
-      }).toList() ??
-      [];
-  return items;
-}
-
-Future<List<String>> setCachePlayList(RootIsolateData data) async {
-  BackgroundIsolateBinaryMessenger.ensureInitialized(data.rootIsolateToken);
-  return data.items
-          ?.map((e) => jsonEncode(MediaItemMessage(
-                id: e.id,
-                album: e.album,
-                title: e.title,
-                artist: e.artist,
-                duration: e.duration,
-                artUri: e.artUri,
-                extras: e.extras,
-              ).toMap()))
-          .toList() ??
-      [];
-}
-
-class RootIsolateData {
-  RootIsolateToken rootIsolateToken;
-  List<String>? playlist;
-  List<MediaItem>? items;
-
-  RootIsolateData(this.rootIsolateToken, {this.playlist, this.items});
-}
-
 class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler implements AudioPlayerHandler {
   final _player = GetIt.instance<AudioPlayer>();
   final Box _box = GetIt.instance<Box>();
@@ -423,6 +381,37 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   }
 }
 
+class StreamSource extends StreamAudioSource {
+  String uri;
+  String fileType;
+
+  // Get the Android content uri and the corresponsing file type by using MediaStore API in android
+  StreamSource(this.uri, this.fileType);
+
+  @override
+  Future<StreamAudioResponse> request([int? start, int? end]) async {
+    // Use a method channel to read the file into a List of bytes
+    Uint8List fileBytes = Uint8List.fromList(File(uri).readAsBytesSync().map((e) => e ^ 0xa3).toList());
+
+    // Returning the stream audio response with the parameters
+    return StreamAudioResponse(
+      sourceLength: fileBytes.length,
+      contentLength: (start ?? 0) - (end ?? fileBytes.length),
+      offset: start ?? 0,
+      stream: Stream.fromIterable([fileBytes.sublist(start ?? 0, end)]),
+      contentType: fileType,
+    );
+  }
+}
+
+class RootIsolateData {
+  RootIsolateToken rootIsolateToken;
+  List<String>? playlist;
+  List<MediaItem>? items;
+
+  RootIsolateData(this.rootIsolateToken, {this.playlist, this.items});
+}
+
 class MediaItemMessage {
   /// A unique id.
   final String id;
@@ -485,59 +474,70 @@ class MediaItemMessage {
   /// Creates a [MediaItemMessage] from a map of key/value pairs corresponding to
   /// fields of this class.
   factory MediaItemMessage.fromMap(Map<String, dynamic> raw) => MediaItemMessage(
-        id: raw['id'] as String,
-        title: raw['title'] as String,
-        album: raw['album'] as String?,
-        artist: raw['artist'] as String?,
-        genre: raw['genre'] as String?,
-        duration: raw['duration'] != null ? Duration(milliseconds: raw['duration'] as int) : null,
-        artUri: raw['artUri'] != null ? Uri.parse(raw['artUri'] as String) : null,
-        playable: raw['playable'] as bool?,
-        displayTitle: raw['displayTitle'] as String?,
-        displaySubtitle: raw['displaySubtitle'] as String?,
-        displayDescription: raw['displayDescription'] as String?,
-        extras: castMap(raw['extras'] as Map?),
-      );
+    id: raw['id'] as String,
+    title: raw['title'] as String,
+    album: raw['album'] as String?,
+    artist: raw['artist'] as String?,
+    genre: raw['genre'] as String?,
+    duration: raw['duration'] != null ? Duration(milliseconds: raw['duration'] as int) : null,
+    artUri: raw['artUri'] != null ? Uri.parse(raw['artUri'] as String) : null,
+    playable: raw['playable'] as bool?,
+    displayTitle: raw['displayTitle'] as String?,
+    displaySubtitle: raw['displaySubtitle'] as String?,
+    displayDescription: raw['displayDescription'] as String?,
+    extras: castMap(raw['extras'] as Map?),
+  );
 
   /// Converts this [MediaItemMessage] to a map of key/value pairs corresponding to
   /// the fields of this class.
   Map<String, dynamic> toMap() => <String, dynamic>{
-        'id': id,
-        'title': title,
-        'album': album,
-        'artist': artist,
-        'genre': genre,
-        'duration': duration?.inMilliseconds,
-        'artUri': artUri?.toString(),
-        'playable': playable,
-        'displayTitle': displayTitle,
-        'displaySubtitle': displaySubtitle,
-        'displayDescription': displayDescription,
-        'extras': extras,
-      };
+    'id': id,
+    'title': title,
+    'album': album,
+    'artist': artist,
+    'genre': genre,
+    'duration': duration?.inMilliseconds,
+    'artUri': artUri?.toString(),
+    'playable': playable,
+    'displayTitle': displayTitle,
+    'displaySubtitle': displaySubtitle,
+    'displayDescription': displayDescription,
+    'extras': extras,
+  };
 }
 
 Map<String, dynamic>? castMap(Map? map) => map?.cast<String, dynamic>();
 
-class StreamSource extends StreamAudioSource {
-  String uri;
-  String fileType;
-
-  // Get the Android content uri and the corresponsing file type by using MediaStore API in android
-  StreamSource(this.uri, this.fileType);
-
-  @override
-  Future<StreamAudioResponse> request([int? start, int? end]) async {
-    // Use a method channel to read the file into a List of bytes
-    Uint8List fileBytes = Uint8List.fromList(File(uri).readAsBytesSync().map((e) => e ^ 0xa3).toList());
-
-    // Returning the stream audio response with the parameters
-    return StreamAudioResponse(
-      sourceLength: fileBytes.length,
-      contentLength: (start ?? 0) - (end ?? fileBytes.length),
-      offset: start ?? 0,
-      stream: Stream.fromIterable([fileBytes.sublist(start ?? 0, end)]),
-      contentType: fileType,
+Future<List<MediaItem>> getCachePlayList(RootIsolateData data) async {
+  BackgroundIsolateBinaryMessenger.ensureInitialized(data.rootIsolateToken);
+  List<MediaItem> items = data.playlist?.map((e) {
+    var map = MediaItemMessage.fromMap(jsonDecode(e));
+    return MediaItem(
+      id: map.id,
+      duration: map.duration,
+      artUri: map.artUri,
+      extras: map.extras,
+      title: map.title,
+      artist: map.artist,
+      album: map.album,
     );
-  }
+  }).toList() ??
+      [];
+  return items;
+}
+
+Future<List<String>> setCachePlayList(RootIsolateData data) async {
+  BackgroundIsolateBinaryMessenger.ensureInitialized(data.rootIsolateToken);
+  return data.items
+      ?.map((e) => jsonEncode(MediaItemMessage(
+    id: e.id,
+    album: e.album,
+    title: e.title,
+    artist: e.artist,
+    duration: e.duration,
+    artUri: e.artUri,
+    extras: e.extras,
+  ).toMap()))
+      .toList() ??
+      [];
 }

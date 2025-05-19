@@ -24,29 +24,29 @@ class PanelView extends GetView<Home> {
     if (bottomHeight == 0) bottomHeight = 30.w;
     return MyGetView(
         child: SlidingUpPanel(
-      controller: controller.panelController,
-      onPanelSlide: (value) {
-        controller.changeSlidePosition(1 - value, status: false);
-        controller.slideSecondPosition.value = value;
-        if (controller.second.value != value >= 0.01) {
-          controller.second.value = value > 0.01;
-        }
-      },
-      color: Colors.transparent,
-      body: _buildDefaultBody(context),
-      panel: Container(
-        width: 750.w,
-        padding: EdgeInsets.only(top: controller.panelMobileMinSize + controller.panelAlbumPadding * 2 + bottomHeight),
-        child: Obx(() => IndexedStack(
+          controller: controller.panelController,
+          onPanelSlide: (value) {
+            controller.changeSlidePosition(1 - value, status: false);
+            controller.slideSecondPosition.value = value;
+            if (controller.second.value != value >= 0.01) {
+              controller.second.value = value > 0.01;
+            }
+          },
+          color: Colors.transparent,
+          boxShadow: const [BoxShadow(blurRadius: 8.0, color: Color.fromRGBO(0, 0, 0, 0.05))],
+          maxHeight: context.height - (controller.panelMobileMinSize + MediaQuery.of(context).padding.top + controller.panelAlbumPadding * 4),
+          minHeight: controller.panelMobileMinSize + controller.panelAlbumPadding * 2 + bottomHeight,
+          body: _buildDefaultBody(context),
+          header: _buildBottom(bottomHeight, context),
+          panel: Container(
+            width: 750.w,
+            padding: EdgeInsets.only(top: controller.panelMobileMinSize + controller.panelAlbumPadding * 2 + bottomHeight),
+            child: Obx(() => IndexedStack(
               index: controller.selectIndex.value,
               children: controller.pages,
             )),
-      ),
-      header: _buildBottom(bottomHeight, context),
-      boxShadow: const [BoxShadow(blurRadius: 8.0, color: Color.fromRGBO(0, 0, 0, 0.05))],
-      maxHeight: context.height - (controller.panelMobileMinSize + MediaQuery.of(context).padding.top + controller.panelAlbumPadding * 4),
-      minHeight: controller.panelMobileMinSize + controller.panelAlbumPadding * 2 + bottomHeight,
-    ));
+          ),
+        ));
   }
 
   Widget _buildSlide(BuildContext context) {
@@ -235,34 +235,38 @@ class PanelView extends GetView<Home> {
       height: context.height,
       child: Stack(
         children: [
+          // 默认背景层
           Obx(() => Visibility(
                 visible: controller.background.value.isEmpty,
                 child: Container(
                   decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
                 ),
               )),
+          // 专辑取色背景层
           Obx(() => AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [
-                  !controller.panelOpenPositionThan1.value && !controller.second.value
-                      ? Theme.of(context).scaffoldBackgroundColor.withOpacity(controller.background.value.isNotEmpty ? 0.2 : .85)
-                      : !controller.gradientBackground.value
-                          ? controller.rx.value.darkVibrantColor?.color.withOpacity(.85) ?? controller.rx.value.darkMutedColor?.color.withOpacity(.85) ?? Colors.transparent
-                          : controller.rx.value.lightVibrantColor?.color.withOpacity(.85) ??
-                              controller.rx.value.lightVibrantColor?.color.withOpacity(.85) ??
-                              controller.rx.value.lightMutedColor?.color.withOpacity(.85) ??
-                              Colors.transparent,
-                  controller.rx.value.darkVibrantColor?.color.withOpacity(.85) ??
-                      controller.rx.value.darkMutedColor?.color.withOpacity(.85) ??
-                      controller.rx.value.lightVibrantColor?.color.withOpacity(.85) ??
-                      Colors.transparent,
-                ], begin: Alignment.topLeft, end: Alignment.bottomCenter)),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        !controller.panelOpenPositionThan1.value && !controller.second.value
+                            ? Theme.of(context).scaffoldBackgroundColor.withOpacity(controller.background.value.isNotEmpty ? 0.2 : .85)
+                            : !controller.gradientBackground.value
+                                ? controller.rx.value.darkVibrantColor?.color.withOpacity(.85) ?? controller.rx.value.darkMutedColor?.color.withOpacity(.85) ?? Colors.transparent
+                                : controller.rx.value.lightVibrantColor?.color.withOpacity(.85) ?? controller.rx.value.lightVibrantColor?.color.withOpacity(.85) ?? controller.rx.value.lightMutedColor?.color.withOpacity(.85) ?? Colors.transparent,
+                        controller.rx.value.darkVibrantColor?.color.withOpacity(.85) ??
+                            controller.rx.value.darkMutedColor?.color.withOpacity(.85) ??
+                            controller.rx.value.lightVibrantColor?.color.withOpacity(.85) ??
+                            Colors.transparent,
+                      ],)),
               )),
+          // 磨砂层
           Obx(() => Visibility(
                 visible: controller.background.value.isNotEmpty,
                 child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12), child: Container()),
               )),
+          // 控制组件
           FadeTransition(
             opacity: controller.animationPanel,
             child: ScaleTransition(
@@ -286,33 +290,36 @@ class PanelView extends GetView<Home> {
         Container(
           height: 630.w,
         ),
+        // 歌名 & 歌手
         Expanded(
             child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Obx(() => Text(
-                  controller.mediaItem.value.title.fixAutoLines(),
-                  style: TextStyle(fontSize: 38.sp, fontWeight: FontWeight.bold, color: controller.bodyColor.value),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                )),
-            Padding(padding: EdgeInsets.symmetric(vertical: 10.w)),
-            Obx(() => Text(
-                  (controller.mediaItem.value.artist ?? '').fixAutoLines(),
-                  style: TextStyle(fontSize: 28.sp, color: controller.bodyColor.value),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ))
-          ],
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Obx(() => Text(
+                      controller.mediaItem.value.title.fixAutoLines(),
+                      style: TextStyle(fontSize: 38.sp, fontWeight: FontWeight.bold, color: controller.bodyColor.value),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    )),
+                Padding(padding: EdgeInsets.symmetric(vertical: 10.w)),
+                Obx(() => Text(
+                      (controller.mediaItem.value.artist ?? '').fixAutoLines(),
+                      style: TextStyle(fontSize: 28.sp, color: controller.bodyColor.value),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ))
+              ],
         )),
-        // //操控区域
+        // 播放控制
         _buildPlayController(context),
-        //进度条
+        // 播放进度条
         _buildSlide(context),
         // 功能按钮
         SizedBox(
-          height: controller.panelMobileMinSize + controller.panelAlbumPadding * 4 + MediaQuery.of(context).padding.bottom,
+          height: controller.panelMobileMinSize
+              + controller.panelAlbumPadding * 4
+              + MediaQuery.of(context).padding.bottom,
         ),
       ],
     );

@@ -199,6 +199,9 @@ class UserViewP extends GetView<UserController> {
                 backgroundColor: Colors.transparent,
                 appBarColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(Home.to.background.value.isEmpty ? 1 : 0),
                 curvedBodyRadius: 0,
+                headerExpandedHeight: .23,
+                centerTitle: false,
+                alwaysShowLeadingAndAction: true,
                 leading: IconButton(
                     onPressed: () {
                       if (Home.to.loginStatus.value == LoginStatus.login) {
@@ -208,11 +211,19 @@ class UserViewP extends GetView<UserController> {
                       AutoRouter.of(context).pushNamed(Routes.login);
                     },
                     icon: Obx(() => SimpleExtendedImage.avatar(
-                          Home.to.userData.value.profile?.avatarUrl ?? '',
-                          width: 80.w,
-                        ))),
-                headerExpandedHeight: .23,
-                centerTitle: false,
+                      Home.to.userData.value.profile?.avatarUrl ?? '',
+                      width: 80.w,
+                    ))),
+                title: ClassStatelessWidget(
+                    child: RichText(
+                        text: TextSpan(
+                            style: TextStyle(fontSize: 42.sp, color: Colors.grey, fontWeight: FontWeight.bold),
+                            text: 'Hi  ',
+                            children: [
+                              TextSpan(
+                                  text: '${Home.to.userData.value.profile?.nickname}～',
+                                  style: TextStyle(color: Theme.of(context).primaryColor.withOpacity(.9))),
+                            ]))),
                 actions: [
                   IconButton(
                       onPressed: () {
@@ -220,13 +231,9 @@ class UserViewP extends GetView<UserController> {
                       },
                       icon: const Icon(TablerIcons.search))
                 ],
-                alwaysShowLeadingAndAction: true,
-                title: ClassStatelessWidget(
-                    child: RichText(
-                        text: TextSpan(style: TextStyle(fontSize: 42.sp, color: Colors.grey, fontWeight: FontWeight.bold), text: 'Hi  ', children: [
-                  TextSpan(text: '${Home.to.userData.value.profile?.nickname}～', style: TextStyle(color: Theme.of(context).primaryColor.withOpacity(.9))),
-                ]))),
+                headerWidget: _buildMeInfo(context),
                 body: [
+                  // 每日 FM 播客 云盘
                   GridView.count(
                     padding: const EdgeInsets.only(top: 0),
                     shrinkWrap: true,
@@ -264,6 +271,7 @@ class UserViewP extends GetView<UserController> {
                             ))
                         .toList(),
                   ),
+                  // 喜欢的音乐
                   _buildHeader('喜欢的音乐', context),
                   ListTile(
                     leading: Obx(() => SimpleExtendedImage(
@@ -283,6 +291,7 @@ class UserViewP extends GetView<UserController> {
                         )),
                     onTap: () => context.router.push(const gr.PlayListView().copyWith(args: controller.play.value)),
                   ),
+                  // 收藏的歌单
                   _buildHeader('我的歌单', context, actionStr: '查看/管理'),
                   Obx(() => ListView.builder(
                         padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -295,11 +304,13 @@ class UserViewP extends GetView<UserController> {
                         itemExtent: 120.w,
                       )),
                 ],
-                headerWidget: _buildMeInfo(context),
               ),
             ))));
   }
 
+  /**
+   * 喜欢的音乐/我的歌单标题栏
+   */
   Widget _buildHeader(String title, context, {String? actionStr}) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 10.w),
@@ -330,46 +341,54 @@ class UserViewP extends GetView<UserController> {
     );
   }
 
+  /**
+   * 用户名/登陆提醒
+   */
   Widget _buildMeInfo(context) {
     return SafeArea(
         child: GestureDetector(
-      child: Container(
-        padding: EdgeInsets.only(left: 30.w, top: 30.w, right: 30.w),
-        margin: EdgeInsets.only(bottom: 16.w, top: 120.w),
-        height: 240.w,
-        child: Stack(
-          alignment: Alignment.centerRight,
-          children: [
-            AnimatedScale(
-              scale: 1.13,
-              duration: Duration.zero,
-              child: SvgPicture.asset(
-                AppIcons.meTop,
-                height: 240.w,
-                fit: BoxFit.fitHeight,
-              ),
+          child: Container(
+            padding: EdgeInsets.only(left: 30.w, top: 30.w, right: 30.w),
+            margin: EdgeInsets.only(bottom: 16.w, top: 120.w),
+            height: 240.w,
+            child: Stack(
+              alignment: Alignment.centerRight,
+              children: [
+                AnimatedScale(
+                  scale: 1.13,
+                  duration: Duration.zero,
+                  child: SvgPicture.asset(
+                    AppIcons.meTop,
+                    height: 240.w,
+                    fit: BoxFit.fitHeight,
+                  ),
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Hi', style: TextStyle(fontSize: 52.sp, color: Colors.grey, fontWeight: FontWeight.bold)),
+                      Padding(padding: EdgeInsets.symmetric(vertical: 8.w)),
+                      Obx(() =>
+                          Text('${Home.to.loginStatus.value == LoginStatus.login
+                              ? Home.to.userData.value.profile?.nickname
+                              : '请登录'}～',
+                              style: TextStyle(fontSize: 52.sp,
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.bold))),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Hi', style: TextStyle(fontSize: 52.sp, color: Colors.grey, fontWeight: FontWeight.bold)),
-                  Padding(padding: EdgeInsets.symmetric(vertical: 8.w)),
-                  Obx(() => Text('${Home.to.loginStatus.value == LoginStatus.login ? Home.to.userData.value.profile?.nickname : '请登录'}～',
-                      style: TextStyle(fontSize: 52.sp, color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold))),
-                ],
-              ),
-            ),
-          ],
         ),
-      ),
-      onTap: () {
-        if (Home.to.loginStatus.value == LoginStatus.login) {
-          return;
-        }
-        AutoRouter.of(context).pushNamed(Routes.login);
-      },
+          onTap: () {
+            if (Home.to.loginStatus.value == LoginStatus.login) {
+              return;
+            }
+            AutoRouter.of(context).pushNamed(Routes.login);
+          },
     ));
   }
 }

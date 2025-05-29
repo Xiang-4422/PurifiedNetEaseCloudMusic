@@ -8,7 +8,6 @@
 // import 'package:flutter_screenutil/flutter_screenutil.dart';
 // import 'package:get/get.dart';
 //
-// import '../../widget/app_bar.dart';
 //
 // class PlayListA extends GetView<PlayListController> {
 //   const PlayListA({super.key});
@@ -25,7 +24,7 @@
 //           ),
 //           Scaffold(
 //       backgroundColor: Colors.transparent,
-//             appBar: MyAppBar(
+//             appBar: AppBar(
 //               title: const Text('Song Sheet'),
 //               backgroundColor: Colors.transparent,
 //             ),

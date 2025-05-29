@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -66,6 +66,7 @@ class _LoginViewStateP extends State<LoginView> {
     String codeUrl = NeteaseMusicApi().loginQrCodeUrl(qrCodeLoginKey.unikey);
     print('object=========$codeUrl');
     setState(() => qrCodeUrl = codeUrl);
+    // 不停获取二维码状态（已经登录/二维码过期）
     timer = Timer.periodic(const Duration(seconds: 3), (Timer t) async {
       ServerStatusBean serverStatusBean = await NeteaseMusicApi().loginQrCodeCheck(qrCodeLoginKey.unikey);
       if (serverStatusBean.code == 800) {
@@ -94,9 +95,8 @@ class _LoginViewStateP extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-   return Home.to.landscape? _loginL():_loginP();
+   return RootController.to.landscape? _loginL():_loginP();
   }
-
 
   Widget _loginP(){
     return Scaffold(

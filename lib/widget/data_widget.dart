@@ -6,7 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 
-import '../pages/home/home_controller.dart';
+import '../pages/home/root_controller.dart';
 
 typedef RequestChildBuilder<T> = Widget Function(T data);
 
@@ -65,7 +65,7 @@ class LoadingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Home.to.landscape || Home.to.background.value.isNotEmpty ? Colors.transparent : Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: RootController.to.landscape || RootController.to.customBackgroundPath.value.isNotEmpty ? Colors.transparent : Theme.of(context).scaffoldBackgroundColor,
       body: SizedBox(
         width: context.width,
         height: context.height,
@@ -74,7 +74,7 @@ class LoadingView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // SvgPicture.asset(AppIcons.loading,width: context.width/2.9,),
-            Lottie.asset('assets/lottie/empty_status.json', height: Home.to.landscape ? 250.w : context.width / 3.5, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
+            Lottie.asset('assets/lottie/empty_status.json', height: RootController.to.landscape ? 250.w : context.width / 3.5, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
             Text(tips ?? '加载中...', style: TextStyle(fontSize: 28.sp)),
           ],
         ),

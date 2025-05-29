@@ -10,7 +10,6 @@ import 'package:get/get.dart';
 import '../../common/netease_api/src/api/event/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
-import '../../widget/app_bar.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
 
@@ -63,7 +62,7 @@ class _TalkViewState extends State<TalkView> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: MyAppBar(
+      appBar: AppBar(
         title: Text(context.routeData.queryParams.getString('name')),
         bottom: TabBar(
           tabs: _tabs

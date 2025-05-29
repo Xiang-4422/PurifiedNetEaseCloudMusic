@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_view.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
@@ -13,7 +13,6 @@ import 'package:get/get.dart';
 
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
-import '../../widget/app_bar.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
 
@@ -66,7 +65,7 @@ class _ArtistsViewState extends State<ArtistsView> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     return MyGetView(child: Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: MyAppBar(
+      appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: Text(artists?.name ?? ''),
         bottom: TabBar(
@@ -140,14 +139,14 @@ class _ArtistsViewState extends State<ArtistsView> with SingleTickerProviderStat
         childBuilder: (artistDetails) {
           _items
             ..clear()
-            ..addAll(Home.to.song2ToMedia(artistDetails.songs ?? []));
+            ..addAll(RootController.to.song2ToMedia(artistDetails.songs ?? []));
           return ListView.builder(
             itemExtent: 130.w,
             itemBuilder: (context, index) => SongItem(
               index: index,
               mediaItem: _items[index],
               onTap: () {
-                Home.to.playByIndex(index, 'queueTitle', mediaItem: _items);
+                RootController.to.playByIndex(index, 'queueTitle', mediaItem: _items);
               },
             ),
             itemCount: _items.length,

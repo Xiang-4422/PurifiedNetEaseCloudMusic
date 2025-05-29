@@ -15,12 +15,10 @@ import 'package:bujuan/pages/home/view/z_comment_view.dart';
 import 'package:bujuan/pages/home/view/z_lyric_view.dart';
 import 'package:bujuan/pages/home/view/z_playlist_view.dart';
 import 'package:bujuan/pages/home/view/z_recommend_view.dart';
-import 'package:bujuan/pages/user/user_controller.dart';
 import 'package:bujuan/widget/weslide/panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -33,23 +31,23 @@ import '../../common/lyric_parser/lyrics_reader_model.dart';
 import '../../common/netease_api/src/api/bean.dart';
 import '../../common/bujuan_audio_handler.dart';
 import '../../routes/router.dart';
+import '../../widget/custom_zoom_drawer/src/drawer_controller.dart';
 import '../../widget/wheel_slider.dart';
-import 'view/home_view.dart';
+import '../user/user_controller.dart';
+import 'view/root_page_view.dart';
 import 'package:auto_route/auto_route.dart';
 
-Future<PaletteGenerator> getColor(MediaItem mediaItem) async {
-  return await OtherUtils.getImageColor('${mediaItem.extras?['image'] ?? ''}?param=500y500');
-}
-
-class Home extends SuperController with GetSingleTickerProviderStateMixin {
+/// 所有Controller都放在HomeContoller中统一控制
+class RootController extends SuperController with GetSingleTickerProviderStateMixin {
   double panelHeaderSize = 100.w;
   double panelMobileMinSize = 85.w; //折叠起来时播放栏的高度
   double panelTopSize = 110.w; //折叠起来时播放栏的高度
   double panelAlbumPadding = 15.w; //专辑图片左右上下的边距
 
-  //是否是横屏
+  /// 大屏横屏设备
   bool landscape = PlatformUtils.isMacOS || PlatformUtils.isWindows || OtherUtils.isPad();
 
+  // 侧边抽屉Beans
   final List<LeftMenu> leftMenus = [
     LeftMenu('个人中心', TablerIcons.user, Routes.user, '/home/user'),
     LeftMenu('推荐歌单', TablerIcons.smart_home, Routes.index, '/home/index'),
@@ -58,29 +56,31 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
     LeftMenu('捐赠', TablerIcons.coffee, Routes.coffee, ''),
   ];
 
+  // 抽屉开启状态
+  RxDouble drawerOpenDegree  = 0.0.obs;
+  RxBool isDrawerClosed = true.obs;
+
+  // pageView的页面位置
+  RxInt pageIndex = 0.obs;
+
+  // 播放控制展开后的底栏页面
   List<Widget> pages = [
     const RecommendView(),
     const ZPlayListView(),
     const LyricView(),
     const CommentView(),
   ];
-
-  RxString currPathUrl = '/home/user'.obs;
-
-  RxString currLyric = ''.obs;
-
   //歌词、播放列表PageView的下标
   RxInt selectIndex = 0.obs;
 
-  //歌词、播放列表PageView控制器
-  PageController pageController = PageController();
+  RxString currPathUrl = '/home/user'.obs;
+
   Box box = GetIt.instance<Box>();
 
-  //第一层滑动高度0-1
-  RxDouble slidePosition = 0.0.obs;
-
-  //第一层滑动高度0-1
-  RxDouble slideSecondPosition = 0.0.obs;
+  //第一层滑动面板展开程度（0-1，1表示完全展开）
+  RxDouble firstSlidePanelPosition = 0.0.obs;
+  //第二层滑动面板展开程度
+  RxDouble secondSlidePanelPosition = 0.0.obs;
 
   //专辑颜色数据
   Rx<PaletteGenerator> rx = PaletteGenerator.fromColors([]).obs;
@@ -94,34 +94,27 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
   //是否第二层
   RxBool panelOpenPositionThan8 = false.obs;
 
+  //当前播放列表
+  RxList<MediaItem> mediaItems = <MediaItem>[].obs;
   //当前播放歌曲
   Rx<MediaItem> mediaItem = const MediaItem(id: '', title: '暂无', duration: Duration(seconds: 10)).obs;
 
-  //当前播放列表
-  RxList<MediaItem> mediaItems = <MediaItem>[].obs;
-
   //是否播放中
-  RxBool playing = false.obs;
+  RxBool isPlaying = false.obs;
+  RxBool isFmMode = false.obs;
 
-  RxBool fm = false.obs;
-
-  //是否渐变播放背景
-  RxBool gradientBackground = false.obs;
-
-  //是否开启顶部歌词
-  RxBool topLyric = true.obs;
-
-  //是否开启圆形专辑
-  RxBool roundAlbum = false.obs;
-
-  //是否开启缓存
-  RxBool cache = false.obs;
-
-  //是否开启高音质
-  RxBool high = false.obs;
-
-  //是否开启高音质
-  RxString background = ''.obs;
+  // 是否渐变播放背景
+  RxBool isGradientBackground = false.obs;
+  // 是否开启顶部歌词
+  RxBool isTopLyricOpen = true.obs;
+  // 是否开启圆形专辑
+  RxBool isRoundAlbumOpen = false.obs;
+  // 是否开启缓存
+  RxBool isCacheOpen = false.obs;
+  // 是否开启高音质
+  RxBool isHighSoundQualityOpen = false.obs;
+  // 自定义背景路径（空表示未设置自定义背景）
+  RxString customBackgroundPath = ''.obs;
 
   //上下文
   late BuildContext buildContext;
@@ -129,72 +122,67 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
   //播放器handler
   final BujuanAudioHandler audioServeHandler = GetIt.instance<BujuanAudioHandler>();
 
+  //第一层
+  PanelController firstPanelController = PanelController();
+  //第二层
+  PanelController secondPanelController = PanelController();
+
+  //循环方式
+  Rx<AudioServiceRepeatMode> audioServiceRepeatMode = AudioServiceRepeatMode.all.obs;
+  //进度条数组
+  List<Map<dynamic, dynamic>> mEffects = [];
   //当前播放进度
   Rx<Duration> duration = Duration.zero.obs;
   Duration lastDuration = Duration.zero;
 
-  //第一层
-  PanelController panelControllerHome = PanelController();
-
-  //第二层
-  PanelController panelController = PanelController();
-
-  //循环方式
-  Rx<AudioServiceRepeatMode> audioServiceRepeatMode = AudioServiceRepeatMode.all.obs;
-
-  //进度条数组
-  List<Map<dynamic, dynamic>> mEffects = [];
-
-  //歌词滚动控制器
+  /// 歌词滚动控制器
   FixedExtentScrollController lyricScrollController = FixedExtentScrollController();
-
-  //播放列表滚动控制器
+  /// 播放列表滚动控制器
   ScrollController playListScrollController = ScrollController();
-
-  //侧滑控制器
-  ZoomDrawerController myDrawerController = GetIt.instance<ZoomDrawerController>();
+  /// Home页面侧滑抽屉
+  ZoomDrawerController zoomDrawerController = GetIt.instance<ZoomDrawerController>();
+  /// Home页面PageView
+  PageController pageViewController = GetIt.instance<PageController>();
 
   //解析后的歌词数组
   List<LyricsLineModel> lyricsLineModels = <LyricsLineModel>[].obs;
-
   //是否有翻译歌词
-  RxBool hasTran = false.obs;
-
+  RxBool hasTransLyrics = false.obs;
   //歌词是否被用户滚动中
-  RxBool onMove = false.obs;
-
-  //当前歌词下标
-  int lastIndex = 0;
-
+  RxBool isLyricsMoving = false.obs;
+  /// 当前歌词下标
+  int lastLyricsIndex = 0;
+  /// 当前歌词下标
   RxInt currLyricIndex = 0.obs;
+  /// 当前歌词（整行）
+  RxString currLyric = ''.obs;
 
   //相似歌单
-  RxList<Play> simiSongs = <Play>[].obs;
-
+  RxList<Play> simiSongsList = <Play>[].obs;
   //歌曲评论
-  RxList<CommentItem> comments = <CommentItem>[].obs;
+  RxList<CommentItem> commentsList = <CommentItem>[].obs;
 
   //路由相关
   AutoRouterDelegate? autoRouterDelegate;
 
   Rx<Color> bodyColor = Colors.white.obs;
 
+  // 睡眠倒计时
   RxInt sleepMin = 0.obs;
   int sleepMinTo = 0;
-
-  var lastPopTime = DateTime.now();
-
-  var lastSleepTime = DateTime.now();
-
+  /// 上次弹出时间（防止多次快速点击跳出多个dialog）
+  var _lastPopTime = DateTime.now();
+  var _lastSleepTime = DateTime.now();
   RxBool sleepSlide = false.obs;
+
   late AnimationController animationController;
   late Animation<double> animationPanel;
   late Animation<double> animationScalePanel;
 
   bool intervalClick(int needTime) {
     // 防重复提交
-    if (DateTime.now().difference(lastPopTime) > const Duration(milliseconds: 800)) {
-      lastPopTime = DateTime.now();
+    if (DateTime.now().difference(_lastPopTime) > const Duration(milliseconds: 800)) {
+      _lastPopTime = DateTime.now();
       return true;
     } else {
       return false;
@@ -229,13 +217,13 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
       mEffects.add({"percent": i, "size": 3 + rng.nextInt(30 - 2).toDouble()});
     }
     box.get(noFirstOpen, defaultValue: false);
-    background.value = box.get(backgroundSp, defaultValue: '');
-    cache.value = box.get(cacheSp, defaultValue: false);
-    gradientBackground.value = box.get(gradientBackgroundSp, defaultValue: true);
-    topLyric.value = box.get(topLyricSp, defaultValue: false);
-    fm.value = box.get(fmSp, defaultValue: false);
-    high.value = box.get(highSong, defaultValue: false);
-    roundAlbum.value = box.get(roundAlbumSp, defaultValue: false);
+    customBackgroundPath.value = box.get(backgroundSp, defaultValue: '');
+    isCacheOpen.value = box.get(cacheSp, defaultValue: false);
+    isGradientBackground.value = box.get(gradientBackgroundSp, defaultValue: true);
+    isTopLyricOpen.value = box.get(topLyricSp, defaultValue: false);
+    isFmMode.value = box.get(fmSp, defaultValue: false);
+    isHighSoundQualityOpen.value = box.get(highSong, defaultValue: false);
+    isRoundAlbumOpen.value = box.get(roundAlbumSp, defaultValue: false);
     String repeatMode = box.get(repeatModeSp, defaultValue: 'all');
     audioServiceRepeatMode.value = AudioServiceRepeatMode.values.firstWhereOrNull((element) => element.name == repeatMode) ?? AudioServiceRepeatMode.all;
     // audioServeHandler.setRepeatMode(audioServiceRepeatMode.value);
@@ -265,6 +253,18 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
     //监听路由变化
     autoRouterDelegate?.addListener(listenRouter);
 
+    // 监听抽屉展开程度
+    zoomDrawerController.addListener!((drawerOpenDegree) {
+      isDrawerClosed.value = drawerOpenDegree == 0.0;
+    });
+
+    pageViewController.addListener(() {
+      int curPage = (pageViewController.page! + 0.5).toInt();
+      if (curPage != pageIndex.value) {
+        pageIndex.value = curPage;
+      }
+    });
+
     // if (leftImage.value) {
     //   bodyColor.value = Theme.of(buildContext).cardColor.withOpacity(.7);
     // }
@@ -282,13 +282,13 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
       _getLyric();
       _setPlayListOffset();
       if (value.extras?['type'] == MediaType.playlist.name) {
-        _getSongTalk();
+        _getComments();
       }
     });
     //监听实时进度变化
     AudioService.createPositionStream(minPeriod: const Duration(microseconds: 800), steps: 1000).listen((event) {
       //如果没有展示播放页面就先不监听（节省资源）
-      if (!landscape && !second.value && slidePosition.value != 1) return;
+      if (!landscape && !second.value && firstSlidePanelPosition.value != 1) return;
       //如果监听到的毫秒大于歌曲的总时长 置0并stop
       if (event.inMilliseconds > (mediaItem.value.duration?.inMilliseconds ?? 0)) {
         duration.value = Duration.zero;
@@ -298,17 +298,17 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
       duration.value = event;
       // }
       //   lastDuration = event;
-      if (!onMove.value && lyricsLineModels.isNotEmpty) {
+      if (!isLyricsMoving.value && lyricsLineModels.isNotEmpty) {
         int index = lyricsLineModels.indexOf(lyricsLineModels.firstWhere((element) => element.startTime! >= duration.value.inMilliseconds));
-        if (index != -1 && index != lastIndex) {
+        if (index != -1 && index != lastLyricsIndex) {
           lyricScrollController.animateToItem((index > 0 ? index - 1 : index), duration: const Duration(milliseconds: 500), curve: Curves.linear);
-          lastIndex = index;
-          if (topLyric.value) currLyric.value = lyricsLineModels[(index > 0 ? index - 1 : index)].mainText ?? '';
+          lastLyricsIndex = index;
+          if (isTopLyricOpen.value) currLyric.value = lyricsLineModels[(index > 0 ? index - 1 : index)].mainText ?? '';
         }
       }
     });
     audioServeHandler.playbackState.listen((value) {
-      playing.value = value.playing;
+      isPlaying.value = value.playing;
     });
   }
 
@@ -317,7 +317,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
   //获取歌词
   _getLyric() async {
     //获取歌词
-    hasTran.value = false;
+    hasTransLyrics.value = false;
     String lyric = box.get('lyric_${mediaItem.value.id}') ?? '';
     String lyricTran = box.get('lyricTran_${mediaItem.value.id}') ?? '';
     if (lyric.isEmpty) {
@@ -331,7 +331,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
       var list = ParserLrc(lyric).parseLines();
       var listTran = ParserLrc(lyricTran).parseLines();
       if (lyricTran.isNotEmpty) {
-        hasTran.value = true;
+        hasTransLyrics.value = true;
         lyricsLineModels.addAll(list.map((e) {
           int index = listTran.indexWhere((element) => element.startTime == e.startTime);
           if (index != -1) e.extText = listTran[index].mainText;
@@ -347,7 +347,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
   _getAlbumColor() async {
     OtherUtils.getImageColor('${mediaItem.value.extras?['image'] ?? ''}?param=500y500').then((value) {
       rx.value = value;
-      if (slidePosition.value == 1 || second.value) {
+      if (firstSlidePanelPosition.value == 1 || second.value) {
         changeStatusIconColor(true);
       } else {
         _getColor();
@@ -390,10 +390,10 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
   // }
 
   //获取歌曲评论
-  _getSongTalk() async {
+  _getComments() async {
     CommentList2Wrap commentListWrap = await NeteaseMusicApi().commentList2(mediaItem.value.id, 'song', pageSize: 3, sortType: 2);
     if (commentListWrap.code == 200) {
-      comments
+      commentsList
         ..clear()
         ..addAll(commentListWrap.data.comments ?? []);
     }
@@ -406,7 +406,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
     }
   }
 
-  static Home get to => Get.find();
+  static RootController get to => Get.find();
 
   //改变循环模式
   changeRepeatMode() {
@@ -446,7 +446,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
 
   //播放 or 暂停
   void playOrPause() async {
-    if (playing.value) {
+    if (isPlaying.value) {
       await audioServeHandler.pause();
     } else {
       await audioServeHandler.play();
@@ -469,7 +469,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
                 ? const MediaControl(label: 'fastForward', action: MediaAction.fastForward, androidIcon: 'drawable/audio_service_like')
                 : const MediaControl(label: 'rewind', action: MediaAction.rewind, androidIcon: 'drawable/audio_service_unlike'),
             MediaControl.skipToPrevious,
-            if (playing.value) MediaControl.pause else MediaControl.play,
+            if (isPlaying.value) MediaControl.pause else MediaControl.play,
             MediaControl.skipToNext,
             MediaControl.stop
           ],
@@ -493,7 +493,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
       return;
     }
     animationController.value = value;
-    slidePosition.value = value;
+    firstSlidePanelPosition.value = value;
     if (value > 0.1) {
       if (!panelOpenPositionThan1.value) {
         panelOpenPositionThan1.value = true;
@@ -519,8 +519,8 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
 
   //设置歌词列表偏移量
   Future<void> _setPlayListOffset() async {
-    if (fm.value) return;
-    if (slidePosition.value < 1 && !second.value) return;
+    if (isFmMode.value) return;
+    if (firstSlidePanelPosition.value < 1 && !second.value) return;
     // bool maxOffset = playListScrollController.position.pixels >= playListScrollController.position.maxScrollExtent;
     // int index = mediaItems.indexWhere((element) => element.id == mediaItem.value.id);
     // if (index != -1 && !maxOffset) {
@@ -534,16 +534,16 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
   //当按下返回键
   Future<bool> onWillPop() async {
     if (!landscape) {
-      if (panelController.isPanelOpen) {
-        panelController.close();
+      if (secondPanelController.isPanelOpen) {
+        secondPanelController.close();
         return false;
       }
-      if (panelControllerHome.isPanelOpen) {
-        panelControllerHome.close();
+      if (firstPanelController.isPanelOpen) {
+        firstPanelController.close();
         return false;
       }
-      if (myDrawerController.isOpen!()) {
-        myDrawerController.close!();
+      if (zoomDrawerController.isOpen!()) {
+        zoomDrawerController.close!();
         return false;
       }
     }
@@ -639,7 +639,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
     // if (leftImage.value) {
     //   bodyColor.value = Get.isPlatformDarkMode ? Colors.white : Colors.black;
     // }
-    if (second.value || slidePosition.value == 1) return;
+    if (second.value || firstSlidePanelPosition.value == 1) return;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       systemNavigationBarIconBrightness: isDarkMode ? Brightness.dark : Brightness.light,
       statusBarBrightness: isDarkMode ? Brightness.light : Brightness.dark,
@@ -682,7 +682,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
   // }
 
   void sleep(BuildContext context) {
-    if (lastSleepTime.add(Duration(minutes: sleepMinTo)).difference(DateTime.now()).abs().inSeconds > 0) sleepSlide.value = false;
+    if (_lastSleepTime.add(Duration(minutes: sleepMinTo)).difference(DateTime.now()).abs().inSeconds > 0) sleepSlide.value = false;
     sleepMin.value = sleepMinTo;
     showDialog(
         context: context,
@@ -733,7 +733,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
                             decoration: const BoxDecoration(color: Colors.white),
                             icon: const Text('剩余 '),
                             textStyle: const TextStyle(color: Colors.black),
-                            duration: lastSleepTime.add(Duration(minutes: sleepMinTo)).difference(DateTime.now()).abs(),
+                            duration: _lastSleepTime.add(Duration(minutes: sleepMinTo)).difference(DateTime.now()).abs(),
                           ),
                         ))),
                     Row(
@@ -757,7 +757,7 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
                                 return;
                               }
                               sleepMinTo = sleepMin.value;
-                              lastSleepTime = DateTime.now();
+                              _lastSleepTime = DateTime.now();
                               audioServeHandler.customAction('sleep', {'time': sleepMinTo * 60 - 2}).then((value) {
                                 sleepSlide.value = false;
                                 Navigator.of(context).pop();
@@ -798,11 +798,4 @@ class Home extends SuperController with GetSingleTickerProviderStateMixin {
   void onHidden() {
     // TODO: implement onHidden
   }
-}
-
-class SleepDate {
-  String title;
-  int value;
-
-  SleepDate(this.title, this.value);
 }

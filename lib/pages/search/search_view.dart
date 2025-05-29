@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +10,6 @@ import '../../common/netease_api/src/api/play/bean.dart';
 import '../../common/netease_api/src/api/search/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
-import '../../widget/app_bar.dart';
 import '../../widget/custom_filed.dart';
 import '../../widget/mobile/flashy_navbar.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
@@ -90,7 +89,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
     return MyGetView(child: Scaffold(
       backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: false,
-      appBar: MyAppBar(
+      appBar: AppBar(
         backgroundColor: Colors.transparent,
         leadingWidth: 0.w,
         leading: const SizedBox.shrink(),
@@ -173,7 +172,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
     return RequestLoadMoreWidget<SearchSongWrapX, Song2>(
       dioMetaData: searchSongDioMetaData(searchContent, 1),
       childBuilder: (List<Song2> songs) {
-        var list = Home.to.song2ToMedia(songs);
+        var list = RootController.to.song2ToMedia(songs);
         return ListView.builder(
           itemExtent: 120.w,
           padding: EdgeInsets.symmetric(horizontal: 10.w),
@@ -181,7 +180,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
             index: index,
             mediaItem: list[index],
             onTap: () {
-              Home.to.playByIndex(index, '', mediaItem: list);
+              RootController.to.playByIndex(index, '', mediaItem: list);
             },
           ),
           itemCount: list.length,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class AppTheme {
+  /// 亮色主题
   static ThemeData light = ThemeData.light().copyWith(
       colorScheme: ThemeData.light().colorScheme.copyWith(
             primary: primary,
@@ -35,8 +36,9 @@ class AppTheme {
         headlineSmall:TextStyle(color: Color(0xFF4D4D4D)) ,
       ),
       scaffoldBackgroundColor: const Color(0xFFF5F3F3),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFFF5F3F3), foregroundColor: primaryDark, elevation: 0), bottomAppBarTheme: BottomAppBarTheme(color: onPrimaryDark));
+  );
 
+  /// 黑暗模式主题
   static ThemeData dark = ThemeData.dark().copyWith(
       colorScheme: ThemeData.dark().colorScheme.copyWith(
             primary: primaryDark,
@@ -46,19 +48,18 @@ class AppTheme {
             surface: surfaceDark,
             onSurface: onSurfaceDark,
           ),
+      // 页面切换动画
       pageTransitionsTheme: const PageTransitionsTheme(builders: {
         TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
         TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
         TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
       }),
       cardColor: const Color(0xFFECEBEB),
-      primaryColor: const Color(0xffe56260),
-      scaffoldBackgroundColor: const Color(0xFF2C2B2B),
-      appBarTheme: const AppBarTheme(
-          systemOverlayStyle: SystemUiOverlayStyle(statusBarBrightness: Brightness.light, statusBarIconBrightness: Brightness.light),
-          backgroundColor: Color(0xFF2C2B2B),
-          foregroundColor: primary,
-          elevation: 0), bottomAppBarTheme: BottomAppBarTheme(color: onSurfaceDark));
+      // 网易云红色
+      primaryColor: const Color(0xffE20000),
+      // 网易云主页背景色
+      scaffoldBackgroundColor: const Color(0xFFF4F7F9),
+  );
 
   //right background
   static const primaryDark = Color(0xFF1c1d1f);

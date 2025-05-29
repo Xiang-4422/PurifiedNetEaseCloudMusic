@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/pages/user/user_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,6 +10,7 @@ import 'package:get/get.dart';
 import '../../common/netease_api/src/api/bean.dart';
 import '../../common/netease_api/src/api/login/bean.dart';
 import '../../common/netease_api/src/netease_api.dart';
+import '../user/user_controller.dart';
 
 class LoginController extends GetxController {
   final TextEditingController phone = TextEditingController();

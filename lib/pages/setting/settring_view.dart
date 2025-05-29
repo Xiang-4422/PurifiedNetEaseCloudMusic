@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
-import 'package:bujuan/widget/app_bar.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/widget/commen_widget/my_appbar_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -99,13 +99,13 @@ class _SettingViewState extends State<SettingView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.gradientBackground.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isGradientBackground.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.gradientBackground.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isGradientBackground.value ? 0.7 : .4),
                 )),
             onTap: () {
-              Home.to.gradientBackground.value = !Home.to.gradientBackground.value;
-              Home.to.box.put(gradientBackgroundSp, Home.to.gradientBackground.value);
+              RootController.to.isGradientBackground.value = !RootController.to.isGradientBackground.value;
+              RootController.to.box.put(gradientBackgroundSp, RootController.to.isGradientBackground.value);
             },
           ),
           ListTile(
@@ -114,13 +114,13 @@ class _SettingViewState extends State<SettingView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.topLyric.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isTopLyricOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.topLyric.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isTopLyricOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              Home.to.topLyric.value = !Home.to.topLyric.value;
-              Home.to.box.put(topLyricSp, Home.to.topLyric.value);
+              RootController.to.isTopLyricOpen.value = !RootController.to.isTopLyricOpen.value;
+              RootController.to.box.put(topLyricSp, RootController.to.isTopLyricOpen.value);
             },
           ),
           ListTile(
@@ -129,13 +129,13 @@ class _SettingViewState extends State<SettingView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.roundAlbum.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isRoundAlbumOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.roundAlbum.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isRoundAlbumOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              Home.to.roundAlbum.value = !Home.to.roundAlbum.value;
-              Home.to.box.put(roundAlbumSp, Home.to.roundAlbum.value);
+              RootController.to.isRoundAlbumOpen.value = !RootController.to.isRoundAlbumOpen.value;
+              RootController.to.box.put(roundAlbumSp, RootController.to.isRoundAlbumOpen.value);
             },
           ),
           ListTile(
@@ -166,12 +166,12 @@ class _SettingViewState extends State<SettingView> {
             //   color: Theme.of(context).cardColor.withOpacity(.6),
             // ),
             onTap: () async {
-              if (Home.to.background.value.isEmpty) {
+              if (RootController.to.customBackgroundPath.value.isEmpty) {
                 WidgetUtil.showToast('没有设置背景');
                 return;
               }
-              Home.to.background.value = '';
-              Home.to.box.put(backgroundSp, '');
+              RootController.to.customBackgroundPath.value = '';
+              RootController.to.box.put(backgroundSp, '');
               WidgetUtil.showToast('清除成功');
             },
           ),
@@ -188,7 +188,7 @@ class _SettingViewState extends State<SettingView> {
             onTap: () async {
               XFile? x = await _picker.pickImage(source: ImageSource.gallery, requestFullMetadata: false);
               if (x != null && mounted) {
-                Home.to.box.put(splashBackgroundSp, x.path);
+                RootController.to.box.put(splashBackgroundSp, x.path);
               }
             },
           ),
@@ -198,7 +198,7 @@ class _SettingViewState extends State<SettingView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             onTap: () async {
-              Home.to.box.put(splashBackgroundSp, '');
+              RootController.to.box.put(splashBackgroundSp, '');
               WidgetUtil.showToast('清除成功');
             },
           )
@@ -228,13 +228,13 @@ class _SettingViewState extends State<SettingView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.high.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isHighSoundQualityOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.high.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isHighSoundQualityOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              Home.to.high.value = !Home.to.high.value;
-              Home.to.box.put(highSong, Home.to.high.value);
+              RootController.to.isHighSoundQualityOpen.value = !RootController.to.isHighSoundQualityOpen.value;
+              RootController.to.box.put(highSong, RootController.to.isHighSoundQualityOpen.value);
             },
           ),
           ListTile(
@@ -243,13 +243,13 @@ class _SettingViewState extends State<SettingView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.cache.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isCacheOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.cache.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isCacheOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              Home.to.cache.value = !Home.to.cache.value;
-              Home.to.box.put(cacheSp, Home.to.cache.value);
+              RootController.to.isCacheOpen.value = !RootController.to.isCacheOpen.value;
+              RootController.to.box.put(cacheSp, RootController.to.isCacheOpen.value);
             },
           ),
           // ListTile(
@@ -292,8 +292,8 @@ class SettingViewL extends StatefulWidget {
 class _SettingViewStateL extends State<SettingViewL> {
   String version = '1.0.0';
   final ImagePicker _picker = ImagePicker();
-  bool unblock = Home.to.box.get(unblockSp, defaultValue: false);
-  bool unblockVip = Home.to.box.get(unblockVipSp, defaultValue: false);
+  bool unblock = RootController.to.box.get(unblockSp, defaultValue: false);
+  bool unblockVip = RootController.to.box.get(unblockVipSp, defaultValue: false);
 
   @override
   void initState() {
@@ -334,21 +334,21 @@ class _SettingViewStateL extends State<SettingViewL> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: Home.to.landscape
+      appBar: RootController.to.landscape
           ? null
-          : MyAppBar(
+          : AppBar(
               backgroundColor: Colors.transparent,
               centerTitle: false,
               leading: IconButton(
                   onPressed: () {
-                    if (Home.to.loginStatus.value == LoginStatus.login) {
-                      Home.to.myDrawerController.open!();
+                    if (RootController.to.loginStatus.value == LoginStatus.login) {
+                      RootController.to.zoomDrawerController.open!();
                       return;
                     }
                     AutoRouter.of(context).pushNamed(Routes.login);
                   },
                   icon: Obx(() => SimpleExtendedImage.avatar(
-                        Home.to.userData.value.profile?.avatarUrl ?? '',
+                        RootController.to.userData.value.profile?.avatarUrl ?? '',
                         width: 80.w,
                       ))),
               title: RichText(
@@ -386,13 +386,13 @@ class _SettingViewStateL extends State<SettingViewL> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.gradientBackground.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isGradientBackground.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.gradientBackground.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isGradientBackground.value ? 0.7 : .4),
                 )),
             onTap: () {
-              Home.to.gradientBackground.value = !Home.to.gradientBackground.value;
-              Home.to.box.put(gradientBackgroundSp, Home.to.gradientBackground.value);
+              RootController.to.isGradientBackground.value = !RootController.to.isGradientBackground.value;
+              RootController.to.box.put(gradientBackgroundSp, RootController.to.isGradientBackground.value);
             },
           ),
           ListTile(
@@ -401,13 +401,13 @@ class _SettingViewStateL extends State<SettingViewL> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.topLyric.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isTopLyricOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.topLyric.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isTopLyricOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              Home.to.topLyric.value = !Home.to.topLyric.value;
-              Home.to.box.put(topLyricSp, Home.to.topLyric.value);
+              RootController.to.isTopLyricOpen.value = !RootController.to.isTopLyricOpen.value;
+              RootController.to.box.put(topLyricSp, RootController.to.isTopLyricOpen.value);
             },
           ),
           ListTile(
@@ -416,13 +416,13 @@ class _SettingViewStateL extends State<SettingViewL> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.roundAlbum.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isRoundAlbumOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.roundAlbum.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isRoundAlbumOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              Home.to.roundAlbum.value = !Home.to.roundAlbum.value;
-              Home.to.box.put(roundAlbumSp, Home.to.roundAlbum.value);
+              RootController.to.isRoundAlbumOpen.value = !RootController.to.isRoundAlbumOpen.value;
+              RootController.to.box.put(roundAlbumSp, RootController.to.isRoundAlbumOpen.value);
             },
           ),
           ListTile(
@@ -453,12 +453,12 @@ class _SettingViewStateL extends State<SettingViewL> {
             //   color: Theme.of(context).cardColor.withOpacity(.6),
             // ),
             onTap: () async {
-              if (Home.to.background.value.isEmpty) {
+              if (RootController.to.customBackgroundPath.value.isEmpty) {
                 WidgetUtil.showToast('没有设置背景');
                 return;
               }
-              Home.to.background.value = '';
-              Home.to.box.put(backgroundSp, '');
+              RootController.to.customBackgroundPath.value = '';
+              RootController.to.box.put(backgroundSp, '');
               WidgetUtil.showToast('清除成功');
             },
           ),
@@ -475,7 +475,7 @@ class _SettingViewStateL extends State<SettingViewL> {
             onTap: () async {
               XFile? x = await _picker.pickImage(source: ImageSource.gallery, requestFullMetadata: false);
               if (x != null && mounted) {
-                Home.to.box.put(splashBackgroundSp, x.path);
+                RootController.to.box.put(splashBackgroundSp, x.path);
               }
             },
           ),
@@ -485,7 +485,7 @@ class _SettingViewStateL extends State<SettingViewL> {
               style: TextStyle(fontSize: 30.sp),
             ),
             onTap: () async {
-              Home.to.box.put(splashBackgroundSp, '');
+              RootController.to.box.put(splashBackgroundSp, '');
               WidgetUtil.showToast('清除成功');
             },
           )
@@ -515,9 +515,9 @@ class _SettingViewStateL extends State<SettingViewL> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.high.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isHighSoundQualityOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.high.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isHighSoundQualityOpen.value ? 0.7 : .4),
                 )),
             onTap: () {},
           ),
@@ -527,13 +527,13 @@ class _SettingViewStateL extends State<SettingViewL> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.high.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isHighSoundQualityOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.high.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isHighSoundQualityOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              Home.to.high.value = !Home.to.high.value;
-              Home.to.box.put(highSong, Home.to.high.value);
+              RootController.to.isHighSoundQualityOpen.value = !RootController.to.isHighSoundQualityOpen.value;
+              RootController.to.box.put(highSong, RootController.to.isHighSoundQualityOpen.value);
             },
           ),
           ListTile(
@@ -542,13 +542,13 @@ class _SettingViewStateL extends State<SettingViewL> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  Home.to.cache.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  RootController.to.isCacheOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(Home.to.cache.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(RootController.to.isCacheOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              Home.to.cache.value = !Home.to.cache.value;
-              Home.to.box.put(cacheSp, Home.to.cache.value);
+              RootController.to.isCacheOpen.value = !RootController.to.isCacheOpen.value;
+              RootController.to.box.put(cacheSp, RootController.to.isCacheOpen.value);
             },
           ),
           // ListTile(
@@ -609,7 +609,7 @@ class _SettingViewStateL extends State<SettingViewL> {
               setState(() {
                 unblock = !unblock;
               });
-              Home.to.box.put(unblockSp, unblock);
+              RootController.to.box.put(unblockSp, unblock);
             },
           ),
           ListTile(
@@ -626,7 +626,7 @@ class _SettingViewStateL extends State<SettingViewL> {
               setState(() {
                 unblockVip = !unblockVip;
               });
-              Home.to.box.put(unblockVipSp, unblockVip);
+              RootController.to.box.put(unblockVipSp, unblockVip);
             },
           ),
         ],

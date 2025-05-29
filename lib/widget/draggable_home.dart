@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'app_bar.dart';
 
 class DraggableHome extends StatefulWidget {
   @override
@@ -200,7 +199,7 @@ class _DraggableHomeState extends State<DraggableHome> {
             final bool fullyCollapsed = streams[0];
             final bool fullyExpanded = streams[1];
 
-            return MySliverAppBar(
+            return SliverAppBar(
               backgroundColor:
                   !fullyCollapsed ? widget.backgroundColor : widget.appBarColor,
               leading: widget.alwaysShowLeadingAndAction

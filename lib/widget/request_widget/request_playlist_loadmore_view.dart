@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/generated/json/base/json_convert_content.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,7 +16,6 @@ import '../../common/netease_api/src/api/play/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 import '../../pages/home/view/panel_view.dart';
-import '../../pages/user/user_controller.dart';
 
 typedef RequestChildBuilder<T> = Widget Function(List<T> data);
 typedef OnData<T> = Function(T data);
@@ -105,9 +104,7 @@ class RequestPlaylistLoadMoreWidgetState extends State<RequestPlaylistLoadMoreWi
   @override
   Widget build(BuildContext context) {
     return _loading
-        ? const ClassStatelessWidget(
-            child: LoadingView(),
-          )
+        ? LoadingView()
         : _empty
             ? const EmptyView()
             : _error
@@ -177,7 +174,7 @@ class RequestPlaylistLoadMoreWidgetState extends State<RequestPlaylistLoadMoreWi
       }
       if (pageNum == 0) list.clear();
       setState(() {
-        list.addAll(Home.to.song2ToMedia(data.songs ?? []));
+        list.addAll(RootController.to.song2ToMedia(data.songs ?? []));
         _empty = list.isEmpty;
       });
       if (pageNum == 0) {
@@ -204,7 +201,7 @@ class RequestPlaylistLoadMoreWidgetState extends State<RequestPlaylistLoadMoreWi
             extras: {
               'type': MediaType.playlist.name,
               'image': e.al?.picUrl ?? '',
-              'liked': Home.to.likeIds.contains(int.tryParse(e.id)),
+              'liked': RootController.to.likeIds.contains(int.tryParse(e.id)),
               'artist': (e.ar ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / '),
               'mv': e.mv
             },

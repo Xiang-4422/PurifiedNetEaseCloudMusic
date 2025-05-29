@@ -5,7 +5,6 @@ import 'dart:ui' as ui;
 import 'dart:ui';
 
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/widget/app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,7 +13,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../common/constants/key.dart';
 import '../../common/storage.dart';
-import '../home/home_controller.dart';
+import '../home/root_controller.dart';
 
 class ImageBlur extends StatefulWidget {
   final String path;
@@ -32,7 +31,7 @@ class _ImageBlurState extends State<ImageBlur> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MyAppBar(),
+      appBar: AppBar(),
       body: Stack(
         children: [
           RepaintBoundary(
@@ -96,7 +95,7 @@ class _ImageBlurState extends State<ImageBlur> {
     WidgetUtil.showLoadingDialog(context);
     Uint8List data = await widgetToImage();
     var directory = await getApplicationSupportDirectory();
-    File oldFile = File(Home.to.background.value);
+    File oldFile = File(RootController.to.customBackgroundPath.value);
     if (oldFile.existsSync()) oldFile.deleteSync();
     String path = '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpeg';
     File file = File(path);
@@ -104,8 +103,8 @@ class _ImageBlurState extends State<ImageBlur> {
       file.delete();
     }
     await file.writeAsBytes(data);
-    Home.to.background.value = path;
-    Home.to.box.put(backgroundSp, path);
+    RootController.to.customBackgroundPath.value = path;
+    RootController.to.box.put(backgroundSp, path);
     if (mounted) Navigator.of(context).pop();
     if (mounted) Navigator.of(context).pop();
   }

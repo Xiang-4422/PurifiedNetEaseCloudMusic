@@ -10,7 +10,7 @@
 // import 'dart:ui';
 //
 // import 'package:bujuan/common/constants/enmu.dart';
-// import 'package:bujuan/pages/home/home_controller.dart';
+// import 'package:bujuan/pages/home/root_controller.dart';
 // import 'package:bujuan/pages/home/view/panel_view.dart';
 // import 'package:bujuan/widget/my_get_view.dart';
 // import 'package:bujuan/widget/play_more_info.dart';

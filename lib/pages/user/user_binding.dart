@@ -6,5 +6,4 @@ class UserBinding extends Bindings{
   void dependencies() {
     Get.lazyPut(() => UserController());
   }
-
 }

@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
-import 'package:bujuan/pages/user/user_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,7 @@ import 'package:get/get.dart';
 import '../../common/netease_api/src/api/user/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
-import '../../widget/app_bar.dart';
+import '../user/user_controller.dart';
 
 class UserSettingView extends StatefulWidget {
   const UserSettingView({Key? key}) : super(key: key);
@@ -27,9 +26,9 @@ class _UserSettingViewState extends State<UserSettingView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MyAppBar(title: const Text('个人信息'),),
+      appBar: AppBar(title: const Text('个人信息'),),
       body: RequestWidget<NeteaseUserDetail>(
-        dioMetaData: userDetailDioMetaData(Home.to.userData.value.profile?.userId ?? ''),
+        dioMetaData: userDetailDioMetaData(RootController.to.userData.value.profile?.userId ?? ''),
         childBuilder: (userData) => Column(
           children: [
             Expanded(
@@ -71,7 +70,7 @@ class _UserSettingViewState extends State<UserSettingView> {
                             ),
                           ),
                           SimpleExtendedImage.avatar(
-                            Home.to.userData.value.profile?.avatarUrl ?? '',
+                            RootController.to.userData.value.profile?.avatarUrl ?? '',
                             width: 260.w,
                           ),
                         ],
@@ -80,7 +79,7 @@ class _UserSettingViewState extends State<UserSettingView> {
                   ),
                 )),
             Obx(() => Visibility(
-              visible: Home.to.loginStatus.value == LoginStatus.login,
+              visible: RootController.to.loginStatus.value == LoginStatus.login,
               child: GestureDetector(
                 child: SafeArea(
                     child: Container(

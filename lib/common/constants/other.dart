@@ -50,9 +50,10 @@ class OtherUtils {
     return formatDate(DateTime.fromMillisecondsSinceEpoch(time), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn]);
   }
 
+  /// 最短边，逻辑宽度大于600，判定为平板
   static bool isPad(){
-      final data = MediaQueryData.fromView(PlatformDispatcher.instance.implicitView!);
-      return data.size.shortestSide >= 600;
+    double deviceShortestSideLength = MediaQueryData.fromView(PlatformDispatcher.instance.implicitView!).size.shortestSide;
+    return  deviceShortestSideLength >= 600;
   }
 }
 

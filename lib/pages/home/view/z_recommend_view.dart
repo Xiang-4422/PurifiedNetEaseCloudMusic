@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:bujuan/pages/home/view/panel_view.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +14,8 @@ import 'package:get/get.dart';
 
 import '../../../common/netease_api/src/api/play/bean.dart';
 
-class RecommendView extends GetView<Home> {
+/// 相似歌曲列表（废弃）
+class RecommendView extends GetView<RootController> {
   const RecommendView({super.key});
 
   @override
@@ -30,7 +31,7 @@ class RecommendView extends GetView<Home> {
         ClipRRect(
           borderRadius: BorderRadius.circular(controller.panelMobileMinSize / 2),
           child: Obx(() => SimpleExtendedImage(
-            '${Home.to.mediaItem.value.extras?['image'] ?? ''}?param=500y500',
+            '${RootController.to.mediaItem.value.extras?['image'] ?? ''}?param=500y500',
             width: 630.w,
             height: 630.w,
           )),
@@ -170,7 +171,7 @@ class RecommendView extends GetView<Home> {
               icon: Obx(() => Icon(controller.likeIds.contains(int.tryParse(controller.mediaItem.value.id)) ? TablerIcons.heartbeat : TablerIcons.heart, size: 46.w))),
           IconButton(
               onPressed: () {
-                if (controller.fm.value) {
+                if (controller.isFmMode.value) {
                   return;
                 }
                 if (controller.intervalClick(1)) {
@@ -193,7 +194,7 @@ class RecommendView extends GetView<Home> {
                 color: (Theme.of(context).iconTheme.color ?? Colors.black).withOpacity(0.06),
               ),
               child: Icon(
-                controller.playing.value ? TablerIcons.player_pause : TablerIcons.player_play,
+                controller.isPlaying.value ? TablerIcons.player_pause : TablerIcons.player_play,
                 size: 54.w,
               ),
             )),
@@ -211,7 +212,7 @@ class RecommendView extends GetView<Home> {
               )),
           IconButton(
               onPressed: () {
-                if (controller.fm.value) {
+                if (controller.isFmMode.value) {
                   return;
                 }
                 controller.changeRepeatMode();
@@ -249,8 +250,8 @@ class RecommendView extends GetView<Home> {
             )),
           ),
           onTap: () {
-            controller.panelController.close().then((value) {
-              controller.panelControllerHome.close();
+            controller.secondPanelController.close().then((value) {
+              controller.firstPanelController.close();
               context.router.push(const ArtistsView()
                   .copyWith(args: (controller.mediaItem.value.extras!['artist']?.split(' / ').map((e) => Artists.fromJson(jsonDecode(e))).toList() ?? [])[index]));
             });
@@ -300,8 +301,8 @@ class RecommendView extends GetView<Home> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemExtent: 110.w,
-          itemBuilder: (context, index) => _buildPlayListItem(controller.simiSongs[index], index, context),
-          itemCount: controller.simiSongs.length,
+          itemBuilder: (context, index) => _buildPlayListItem(controller.simiSongsList[index], index, context),
+          itemCount: controller.simiSongsList.length,
         ));
   }
 
@@ -341,8 +342,8 @@ class RecommendView extends GetView<Home> {
             ),
           )),
       onTap: () {
-        controller.panelController.close();
-        controller.panelControllerHome.close();
+        controller.secondPanelController.close();
+        controller.firstPanelController.close();
         // context.router.push(const PlayListView().copyWith(args: play));
       },
     );

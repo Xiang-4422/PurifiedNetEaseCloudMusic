@@ -1,8 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_view.dart';
-import 'package:bujuan/widget/app_bar.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +10,6 @@ import '../../common/constants/enmu.dart';
 import '../../common/netease_api/src/api/dj/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
-import '../user/user_controller.dart';
 
 class RadioDetailsView extends StatefulWidget {
   const RadioDetailsView({Key? key}) : super(key: key);
@@ -30,7 +28,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
   Widget build(BuildContext context) {
     return MyGetView(child: Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: MyAppBar(
+      appBar: AppBar(
         title: Text((context.routeData.args as DjRadio).name),
         backgroundColor: Colors.transparent,
       ),
@@ -48,7 +46,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
               extras: {
                 'type': MediaType.playlist.name,
                 'image': e.coverUrl ?? '',
-                'liked': Home.to.likeIds.contains(int.tryParse(e.id)),
+                'liked': RootController.to.likeIds.contains(int.tryParse(e.id)),
                 'mv': 0,
               },
             ))
@@ -59,7 +57,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
                   index: index,
                   mediaItem: mediaItems[index],
                   onTap: () {
-                    Home.to.playByIndex(index, 'queueTitle', mediaItem: mediaItems);
+                    RootController.to.playByIndex(index, 'queueTitle', mediaItem: mediaItems);
                   },
                 );
               },

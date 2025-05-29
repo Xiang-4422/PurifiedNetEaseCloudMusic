@@ -1,8 +1,7 @@
+import 'package:bujuan/widget/commen_widget/my_appbar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-
-import '../../widget/app_bar.dart';
 
 class CoffeePage extends StatelessWidget {
   const CoffeePage({Key? key}) : super(key: key);

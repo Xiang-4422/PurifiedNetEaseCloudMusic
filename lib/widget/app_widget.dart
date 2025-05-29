@@ -8,47 +8,47 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 import '../common/constants/colors.dart';
-import '../main.dart';
 import '../pages/album/controller.dart';
 import '../pages/home/home_binding.dart';
-import '../pages/index/cound_controller.dart';
-import '../pages/index/index_controller.dart';
+import '../pages/index/cloud_controller.dart';
+import '../pages/index/explore_controller.dart';
 import '../pages/play_list/playlist_controller.dart';
 import '../pages/playlist_manager/playlist_manager_controller.dart';
 import '../pages/user/user_controller.dart';
 import '../routes/router.gr.dart';
 
+/// 应用主体
 class AppWidget extends StatelessWidget {
-  final bool isLandscape;
   final _rootRouter = RootRouter();
 
-  AppWidget({Key? key, required this.isLandscape}) : super(key: key);
+  AppWidget({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return  ScreenUtilInit(
-      designSize: isLandscape ? const Size(2339, 1080) : const Size(750, 1334),
+      // designSize: const Size(360, 640),
+      designSize: const Size(750, 1334),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (BuildContext context, Widget? child) {
         // GetX初始化依赖
         HomeBinding().dependencies();
         return GetMaterialApp.router(
-          title: "Bujuan",
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
           // showPerformanceOverlay: true,
           // checkerboardOffscreenLayers: true,
           // checkerboardRasterCacheImages: true,
+          debugShowCheckedModeBanner: false,
+          // 渲染时间显示
+          showPerformanceOverlay: false,
+
+          title: "Bujuan",
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
           themeMode: ThemeMode.system,
+
           // auto_route路由代理
           routerDelegate: _rootRouter.delegate(navigatorObservers: () => [MyObserver()]),
           routeInformationParser: _rootRouter.defaultRouteParser(),
-          debugShowCheckedModeBanner: false,
-          // 禁止字体缩放
-          builder: (_, router) => MediaQuery(
-              data: MediaQuery.of(_).copyWith(textScaleFactor: 1.0),
-              child: router!),
         );
       },
     );
@@ -56,7 +56,9 @@ class AppWidget extends StatelessWidget {
 
 }
 
+// 路由监听，管理页面的Controller
 class MyObserver extends AutoRouterObserver {
+
   _clearOrPutController(String name, {bool del = false}) {
     if (name.isEmpty) return;
     switch (name) {
@@ -64,7 +66,7 @@ class MyObserver extends AutoRouterObserver {
         del ? Get.delete<CloudController>() : Get.lazyPut<CloudController>(() => CloudController());
         break;
       case 'MainView':
-        del ? Get.delete<IndexController>() : Get.lazyPut<IndexController>(() => IndexController());
+        del ? Get.delete<ExploreController>() : Get.lazyPut<ExploreController>(() => ExploreController());
         break;
       case 'UserView':
         del ? Get.delete<UserController>() : Get.lazyPut<UserController>(() => UserController());

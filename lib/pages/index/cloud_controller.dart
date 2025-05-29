@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 
+
 class CloudController extends GetxController {
   final List<MediaItem> mediaItems = [];
 

@@ -1,8 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/pages/guide/guide_view.dart';
-import 'package:bujuan/pages/home/view/home_view.dart';
-import 'package:bujuan/pages/index/cloud_view.dart';
-import 'package:bujuan/pages/index/main_view.dart';
+import 'package:bujuan/pages/home/view/root_page_view.dart';
 import 'package:bujuan/pages/mv/mv_view.dart';
 import 'package:bujuan/pages/playlist_manager/playlist_manager_view.dart';
 import 'package:bujuan/pages/radio/my_radio_view.dart';
@@ -12,10 +10,12 @@ import 'package:bujuan/pages/setting/settring_view.dart';
 import 'package:bujuan/pages/setting/user_setting_view.dart';
 import 'package:bujuan/pages/talk/talk_view.dart';
 import 'package:bujuan/pages/today/today_view.dart';
-import 'package:bujuan/pages/user/user_view.dart';
+import 'package:bujuan/pages/user/personal_page_view.dart';
 
 import '../pages/album/album_details.dart';
 import '../pages/artists/artists_view.dart';
+import '../pages/index/cloud_view.dart';
+import '../pages/index/explore_page_view.dart';
 import '../pages/login/login.dart';
 import '../pages/play_list/playlist_view.dart';
 import '../pages/search/search_view.dart';
@@ -98,17 +98,18 @@ abstract class _Paths {
   routes: <AutoRoute>[
     AutoRoute(path: Routes.splash, page: SplashPage, initial: true, deferredLoading: true),
     // home包括侧边抽屉、底部播放控制、以及其中三个对应页面：个人、发现、设置
-    AutoRoute(path: Routes.home, page: HomeView, deferredLoading: true, children: [
-      // 个人收藏
-      AutoRoute(path: Routes.user, page: UserView, initial: true, deferredLoading: true),
-      // 每日发现
+    AutoRoute(path: Routes.home, page: RootPageView, deferredLoading: true, children: [
+      // 收藏页
+      AutoRoute(path: Routes.user, page: PersonalPageView, initial: true, deferredLoading: true),
+      // 发现页
       AutoRoute(path: Routes.today, page: TodayView),
       // 设置
       AutoRoute(path: Routes.settingL, page: SettingViewL),
 
       AutoRoute(path: Routes.cloud, page: AlbumView),
       AutoRoute(path: Routes.playlist, page: PlayListView),
-      AutoRoute(path: Routes.index, page: MainView),
+      // 发现页
+      AutoRoute(path: Routes.index, page: ExplorePageView),
       AutoRoute(path: Routes.search, page: SearchView),
       AutoRoute(path: Routes.artists, page: ArtistsView),
       AutoRoute(path: Routes.myRadio, page: MyRadioView),
@@ -124,6 +125,7 @@ abstract class _Paths {
     AutoRoute(path: Routes.mv, page: MvView),
     AutoRoute(path: Routes.update, page: UpdateView),
     AutoRoute(path: Routes.imageBlur, page: ImageBlur),
+    // 赞助页
     AutoRoute(path: Routes.coffee, page: CoffeePage),
   ],
 )

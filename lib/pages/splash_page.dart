@@ -10,7 +10,6 @@ import 'package:hive_flutter/adapters.dart';
 
 import '../common/constants/key.dart';
 import '../routes/router.dart';
-import 'home/home_controller.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
@@ -22,29 +21,24 @@ class SplashPage extends StatefulWidget {
 }
 
 class SplashPageState extends State<SplashPage> {
-  double opacity = 0;
-  double scale = 1;
-  Duration duration = const Duration(milliseconds: 1000);
-  Duration durationFinish = const Duration(milliseconds: 1000);
-  bool isFinish = false;
-  Map<String, dynamic>? mapData;
-  bool noFirst = false;
-  String splashBg = '';
-  Box box = GetIt.instance<Box>();
 
-  // final OnAudioQuery onAudioQuery = GetIt.instance<OnAudioQuery>();
+  Duration splashPageShowTime = const Duration(milliseconds: 1000);
+  late String splashBg;
 
   @override
   void initState() {
     super.initState();
-    splashBg = box.get(splashBackgroundSp, defaultValue: '');
-    // noFirst = Home.to.box.get(noFirstOpen);
+
+    splashBg = GetIt.instance<Box>().get(splashBackgroundSp, defaultValue: '');
+
+    Brightness statusBarBrightness = Get.isPlatformDarkMode ? Brightness.dark : Brightness.light;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarBrightness: statusBarBrightness,
+      statusBarIconBrightness: statusBarBrightness,
+    ));
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-        statusBarBrightness: Get.isPlatformDarkMode ? Brightness.dark : Brightness.light,
-        statusBarIconBrightness: Get.isPlatformDarkMode ? Brightness.light : Brightness.dark,
-      ));
-      Future.delayed(const Duration(milliseconds: 1300), () => AutoRouter.of(context).replaceNamed(Routes.home));
+      Future.delayed(splashPageShowTime, () => AutoRouter.of(context).replaceNamed(Routes.home));
     });
   }
 

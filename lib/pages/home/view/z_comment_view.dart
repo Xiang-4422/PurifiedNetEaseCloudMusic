@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 
 import '../../../common/netease_api/src/api/event/bean.dart';
 
-class CommentView extends GetView<Home> {
+class CommentView extends GetView<RootController> {
   const CommentView({super.key});
 
   @override
@@ -42,8 +42,8 @@ class CommentView extends GetView<Home> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.all(0),
-            itemBuilder: (context1, index) => _buildItem(controller.comments[index], context),
-            itemCount: controller.comments.length,
+            itemBuilder: (context1, index) => _buildItem(controller.commentsList[index], context),
+            itemCount: controller.commentsList.length,
           )),
         ],
       ),

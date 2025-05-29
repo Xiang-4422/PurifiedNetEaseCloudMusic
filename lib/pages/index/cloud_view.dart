@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
-import 'package:bujuan/pages/index/cound_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +9,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../common/netease_api/src/api/play/bean.dart';
-import '../../widget/app_bar.dart';
 import '../play_list/playlist_view.dart';
+import 'cloud_controller.dart';
 
 class AlbumView extends GetWidget<CloudController> {
   const AlbumView({Key? key}) : super(key: key);
@@ -20,7 +19,7 @@ class AlbumView extends GetWidget<CloudController> {
   Widget build(BuildContext context) {
     return MyGetView(child: Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: MyAppBar(
+      appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: RichText(
             text: TextSpan(style: TextStyle(fontSize: 42.sp, color: Colors.grey, fontWeight: FontWeight.bold), text: 'Here  ', children: [
@@ -42,7 +41,7 @@ class AlbumView extends GetWidget<CloudController> {
                     'url': '',
                     'image': e.simpleSong.al?.picUrl ?? '',
                     'type': '',
-                    'liked': Home.to.likeIds.contains(int.tryParse(e.simpleSong.id)),
+                    'liked': RootController.to.likeIds.contains(int.tryParse(e.simpleSong.id)),
                     'artist': (e.simpleSong.ar ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / ')
                   },
                   title: e.simpleSong.name ?? "",
@@ -57,7 +56,7 @@ class AlbumView extends GetWidget<CloudController> {
                 index: index,
                 mediaItem: controller.mediaItems[index],
                 onTap: () {
-                  Home.to.playByIndex(index, 'queueTitle', mediaItem: controller.mediaItems);
+                  RootController.to.playByIndex(index, 'queueTitle', mediaItem: controller.mediaItems);
                 },
               ),
               itemCount: controller.mediaItems.length,

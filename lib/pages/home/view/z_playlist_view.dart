@@ -1,11 +1,11 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/pages/home/home_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
-class ZPlayListView extends GetView<Home> {
+class ZPlayListView extends GetView<RootController> {
   const ZPlayListView({super.key});
 
   @override
@@ -17,7 +17,7 @@ class ZPlayListView extends GetView<Home> {
   Widget buildPlayList(BuildContext context) {
     return Obx(() {
       return Visibility(
-        visible: !controller.fm.value,
+        visible: !controller.isFmMode.value,
         child: Listener(
           onPointerMove: (event) {
             if (event.position.dy > controller.scrollDown.value && controller.playListScrollController.offset == 0) {

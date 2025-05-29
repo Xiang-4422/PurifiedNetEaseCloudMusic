@@ -9,7 +9,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../common/netease_api/src/api/dj/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
-import '../../widget/app_bar.dart';
 import '../../widget/simple_extended_image.dart';
 
 class MyRadioView extends StatefulWidget {
@@ -29,7 +28,7 @@ class _MyRadioViewState extends State<MyRadioView> {
   Widget build(BuildContext context) {
     return MyGetView(child: Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: MyAppBar(
+      appBar: AppBar(
         backgroundColor: Colors.transparent,
       ),
       body: RequestLoadMoreWidget<DjRadioListWrap, DjRadio>(

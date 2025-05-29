@@ -1,4 +1,4 @@
-import 'package:bujuan/pages/home/home_controller.dart';
+import 'package:bujuan/pages/home/root_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -58,7 +58,7 @@ class FlashyNavbar extends StatelessWidget {
                       item: item,
                       tabBarHeight: height,
                       iconSize: iconSize,
-                      isSelected: index == Home.to.selectIndex.value,
+                      isSelected: index == RootController.to.selectIndex.value,
                       backgroundColor: bg!,
                       color: backgroundColor!,
                       animationDuration: animationDuration,
@@ -126,11 +126,11 @@ class _FlashyNavbarItem extends StatelessWidget {
             AnimatedAlign(
               duration: animationDuration,
               alignment: Alignment.center,
-              child: Home.to.landscape?IconTheme(
+              child: RootController.to.landscape?IconTheme(
                 data: IconThemeData(size: iconSize, color: (Theme.of(context).iconTheme.color??Colors.black).withOpacity(isSelected ? 1 : 0.6)),
                 child: item.icon,
               ):Obx(() => IconTheme(
-                data: IconThemeData(size: iconSize, color: Home.to.bodyColor.value.withOpacity(isSelected ? 1 : 0.6)),
+                data: IconThemeData(size: iconSize, color: RootController.to.bodyColor.value.withOpacity(isSelected ? 1 : 0.6)),
                 child: item.icon,
               )),
             ),

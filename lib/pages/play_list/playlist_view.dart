@@ -13,10 +13,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
-import '../../widget/app_bar.dart';
 import '../../widget/simple_extended_image.dart';
 import 'package:bujuan/common/constants/enmu.dart' as type;
-import '../home/home_controller.dart';
+import '../home/root_controller.dart';
 
 class PlayListView extends GetView<PlayListController> {
   const PlayListView({super.key});
@@ -34,8 +33,8 @@ class PlayListView extends GetView<PlayListController> {
             replacement: const LoadingView(),
             child: CustomScrollView(
               slivers: [
-                MySliverAppBar(
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(Home.to.background.value.isEmpty ? 1 : 0),
+                SliverAppBar(
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(RootController.to.customBackgroundPath.value.isEmpty ? 1 : 0),
                   pinned: true,
                   leading: IconButton(
                       padding: EdgeInsets.only(left: 20.w),
@@ -77,7 +76,7 @@ class PlayListView extends GetView<PlayListController> {
                                   if (controller.isSearch.value) {
                                     index = controller.mediaItems.indexOf(controller.searchItems[index]);
                                   }
-                                  Home.to.playByIndex(index, 'queueTitle', mediaItem: controller.mediaItems);
+                                  RootController.to.playByIndex(index, 'queueTitle', mediaItem: controller.mediaItems);
                                 },
                               ),
                           childCount: controller.isSearch.value ? controller.searchItems.length : controller.mediaItems.length,
@@ -177,8 +176,8 @@ class SongItem extends StatelessWidget {
               if (value != null) {
                 switch (value) {
                   case ActionType.next:
-                    if (Home.to.audioServeHandler.playbackState.value.queueIndex != 0) {
-                      Home.to.audioServeHandler.insertQueueItem(Home.to.audioServeHandler.playbackState.value.queueIndex! + 1, mediaItem);
+                    if (RootController.to.audioServeHandler.playbackState.value.queueIndex != 0) {
+                      RootController.to.audioServeHandler.insertQueueItem(RootController.to.audioServeHandler.playbackState.value.queueIndex! + 1, mediaItem);
                       WidgetUtil.showToast('已添加到下一曲');
                     } else {
                       WidgetUtil.showToast('未知错误');
@@ -256,8 +255,8 @@ class SongItemShowImage extends StatelessWidget {
               if (value != null) {
                 switch (value) {
                   case ActionType.next:
-                    if (Home.to.audioServeHandler.playbackState.value.queueIndex != 0) {
-                      Home.to.audioServeHandler.insertQueueItem(Home.to.audioServeHandler.playbackState.value.queueIndex! + 1, mediaItem);
+                    if (RootController.to.audioServeHandler.playbackState.value.queueIndex != 0) {
+                      RootController.to.audioServeHandler.insertQueueItem(RootController.to.audioServeHandler.playbackState.value.queueIndex! + 1, mediaItem);
                       WidgetUtil.showToast('已添加到下一曲');
                     } else {
                       WidgetUtil.showToast('未知错误');

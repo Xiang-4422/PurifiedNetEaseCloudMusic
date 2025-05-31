@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -15,7 +15,7 @@ import '../../common/netease_api/src/api/bean.dart';
 import '../../common/netease_api/src/api/login/bean.dart';
 import '../../common/netease_api/src/netease_api.dart';
 import '../../widget/custom_filed.dart';
-import '../user/user_controller.dart';
+import '../user/personal_page_controller.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -53,7 +53,7 @@ class _LoginViewStateP extends State<LoginView> {
       WidgetUtil.showToast(neteaseAccountInfoWrap.message ?? '未知错误');
       return;
     }
-    UserController.to.getUserState();
+    PersonalPageController.to.getUserState();
     AutoRouter.of(context).pop();
   }
 
@@ -77,7 +77,7 @@ class _LoginViewStateP extends State<LoginView> {
       }
       if (serverStatusBean.code == 803) {
         WidgetUtil.showToast('授权成功！');
-        UserController.to.getUserState();
+        PersonalPageController.to.getUserState();
         AutoRouter.of(context).pop();
         timer?.cancel();
         timer = null;
@@ -95,7 +95,7 @@ class _LoginViewStateP extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-   return RootController.to.landscape? _loginL():_loginP();
+   return HomePageController.to.landscape? _loginL():_loginP();
   }
 
   Widget _loginP(){

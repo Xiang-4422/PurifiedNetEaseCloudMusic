@@ -1,7 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,12 +13,12 @@ import '../../routes/router.gr.dart' as gr;
 import '../../widget/commen_widget/my_appbar_widget.dart';
 import '../../widget/simple_extended_image.dart';
 import '../play_list/playlist_view.dart';
-import '../user/user_controller.dart';
+import '../user/personal_page_controller.dart';
 import 'explore_binding.dart';
-import 'explore_controller.dart';
+import 'explore_page_controller.dart';
 
 /// 发现页
-class ExplorePageView extends GetView<ExploreController> {
+class ExplorePageView extends GetView<ExplorePageController> {
   const ExplorePageView({Key? key}) : super(key: key);
 
   @override
@@ -30,18 +30,6 @@ class ExplorePageView extends GetView<ExploreController> {
             child: Scaffold(
               resizeToAvoidBottomInset: false,
               extendBodyBehindAppBar: true,
-              appBar: MyAppBar(
-                title: RichText(
-                    text: TextSpan(
-                        style: TextStyle(fontSize: 36.sp, color: Colors.grey, fontWeight: FontWeight.bold),
-                        text: 'Here  ',
-                        children: [
-                          TextSpan(
-                              text: '每日发现～',
-                              style: TextStyle(color: Theme.of(context).primaryColor.withOpacity(.9))),
-                        ])),
-              ),
-
               body: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
@@ -77,7 +65,7 @@ class ExplorePageView extends GetView<ExploreController> {
                               index: index,
                               mediaItem: controller.newSong[index],
                               onTap: () {
-                                RootController.to.playByIndex(index, 'queueTitle', mediaItem: controller.newSong);
+                                HomePageController.to.playByIndex(index, 'queueTitle', mediaItem: controller.newSong);
                               },
                             ),
                             childCount: controller.newSong.length,

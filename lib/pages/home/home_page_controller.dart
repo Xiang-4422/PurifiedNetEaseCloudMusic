@@ -33,16 +33,19 @@ import '../../common/bujuan_audio_handler.dart';
 import '../../routes/router.dart';
 import '../../widget/custom_zoom_drawer/src/drawer_controller.dart';
 import '../../widget/wheel_slider.dart';
-import '../user/user_controller.dart';
-import 'view/root_page_view.dart';
+import '../user/personal_page_controller.dart';
+import 'view/home_page_view.dart';
 import 'package:auto_route/auto_route.dart';
 
 /// 所有Controller都放在HomeContoller中统一控制
-class RootController extends SuperController with GetSingleTickerProviderStateMixin {
+class HomePageController extends SuperController with GetSingleTickerProviderStateMixin {
   double panelHeaderSize = 100.w;
   double panelMobileMinSize = 85.w; //折叠起来时播放栏的高度
   double panelTopSize = 110.w; //折叠起来时播放栏的高度
   double panelAlbumPadding = 15.w; //专辑图片左右上下的边距
+
+  RxString curTitle = "".obs;
+  RxString titleBeforePanelOpen = "".obs;
 
   /// 大屏横屏设备
   bool landscape = PlatformUtils.isMacOS || PlatformUtils.isWindows || OtherUtils.isPad();
@@ -61,7 +64,8 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
   RxBool isDrawerClosed = true.obs;
 
   // pageView的页面位置
-  RxInt pageIndex = 0.obs;
+  RxInt curPageIndex = 0.obs;
+  RxInt lastPageIndex = 0.obs;
 
   // 播放控制展开后的底栏页面
   List<Widget> pages = [
@@ -77,9 +81,16 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
 
   Box box = GetIt.instance<Box>();
 
-  //第一层滑动面板展开程度（0-1，1表示完全展开）
+  /// 第一层滑动面板展开程度（0-1，1表示完全展开）
   RxDouble firstSlidePanelPosition = 0.0.obs;
-  //第二层滑动面板展开程度
+  /// 首层打开10%
+  RxBool panelOpened10 = false.obs;
+  /// 首层打开50%
+  RxBool panelOpened50 = false.obs;
+  /// 首层打开80%
+  RxBool panelOpened80 = false.obs;
+
+  /// 第二层滑动面板展开程度
   RxDouble secondSlidePanelPosition = 0.0.obs;
 
   //专辑颜色数据
@@ -87,12 +98,6 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
 
   //是否第二层
   RxBool second = false.obs;
-
-  //是否第二层
-  RxBool panelOpenPositionThan1 = false.obs;
-
-  //是否第二层
-  RxBool panelOpenPositionThan8 = false.obs;
 
   //当前播放列表
   RxList<MediaItem> mediaItems = <MediaItem>[].obs;
@@ -140,9 +145,9 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
   /// 播放列表滚动控制器
   ScrollController playListScrollController = ScrollController();
   /// Home页面侧滑抽屉
-  ZoomDrawerController zoomDrawerController = GetIt.instance<ZoomDrawerController>();
+  ZoomDrawerController zoomDrawerController = ZoomDrawerController();
   /// Home页面PageView
-  PageController pageViewController = GetIt.instance<PageController>();
+  PageController pageViewController = PageController();
 
   //解析后的歌词数组
   List<LyricsLineModel> lyricsLineModels = <LyricsLineModel>[].obs;
@@ -175,9 +180,7 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
   var _lastSleepTime = DateTime.now();
   RxBool sleepSlide = false.obs;
 
-  late AnimationController animationController;
-  late Animation<double> animationPanel;
-  late Animation<double> animationScalePanel;
+  late AnimationController firstPanelAnimationController;
 
   bool intervalClick(int needTime) {
     // 防重复提交
@@ -204,14 +207,14 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
   RxDouble scrollDown = 0.0.obs;
   RxBool canScroll = true.obs;
 
+  double _timerCounter = 0.0;
+
   //进度
   @override
   void onInit() async {
     // panelMobileMinSize = landscape ? 58.h : 85.w;
     // panelAlbumPadding = landscape ? 20.h : 15.w;
-    animationController = AnimationController(vsync: this, value: 0);
-    animationPanel = Tween(begin: 0.0, end: 1.0).animate(animationController);
-    animationScalePanel = Tween(begin: 2.0, end: 1.0).animate(animationController);
+    firstPanelAnimationController = AnimationController(vsync: this, value: 0);
     var rng = Random();
     for (double i = 0; i < (landscape ? 100 : 50); i++) {
       mEffects.add({"percent": i, "size": 3 + rng.nextInt(30 - 2).toDouble()});
@@ -244,24 +247,60 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
     if (userDataStr.isNotEmpty) {
       loginStatus.value = LoginStatus.login;
       userData.value = NeteaseAccountInfoWrap.fromJson(jsonDecode(userDataStr));
+      curTitle.value = userData.value.profile?.nickname ?? "";
     }
   }
 
   _initHomeData() {
     autoRouterDelegate = AutoRouterDelegate.of(buildContext);
 
-    //监听路由变化
+    // 监听路由变化
     autoRouterDelegate?.addListener(listenRouter);
 
     // 监听抽屉展开程度
     zoomDrawerController.addListener!((drawerOpenDegree) {
-      isDrawerClosed.value = drawerOpenDegree == 0.0;
+      //  抽屉状态改变
+      if ((drawerOpenDegree == 0.0) != isDrawerClosed.value) {
+        // 刷新抽屉状态
+        isDrawerClosed.value = drawerOpenDegree == 0.0;
+        if (!isDrawerClosed.value) {
+          // 启动倒计时器关闭抽屉
+          _updateCloseDrawerTimer(3000);
+        } else {
+          _updateCloseDrawerTimer(0);
+        }
+
+      }
     });
 
+    // 监听页面切换
     pageViewController.addListener(() {
-      int curPage = (pageViewController.page! + 0.5).toInt();
-      if (curPage != pageIndex.value) {
-        pageIndex.value = curPage;
+      int updatedPageIndex = (pageViewController.page! + 0.5).toInt();
+
+      // 页面切换了
+      if (updatedPageIndex != curPageIndex.value) {
+        // 启动倒计时器关闭抽屉
+        _updateCloseDrawerTimer(1000);
+
+        // 更新变量
+        lastPageIndex.value = curPageIndex.value;
+        curPageIndex.value = updatedPageIndex;
+
+        // 更新appbar标题
+        switch(updatedPageIndex)  {
+          case 0:
+            curTitle.value = userData.value.profile?.nickname ?? "";
+            break;
+          case 1:
+            curTitle.value = '每日发现';
+            break;
+          case 2:
+            curTitle.value = '设置';
+            break;
+          case 3:
+            curTitle.value = '赞助开发者';
+            break;
+         }
       }
     });
 
@@ -273,6 +312,9 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
       ..clear()
       ..addAll(value));
     audioServeHandler.mediaItem.listen((value) async {
+      if (firstSlidePanelPosition.value == 1) {
+        curTitle.value = value!.title;
+      }
       lyricsLineModels.clear();
       duration.value = Duration.zero;
       currLyric.value = '';
@@ -310,6 +352,24 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
     audioServeHandler.playbackState.listen((value) {
       isPlaying.value = value.playing;
     });
+  }
+
+  _updateCloseDrawerTimer (double  timeValue) {
+    if (_timerCounter == 0) {
+      _timerCounter = timeValue;
+      Timer.periodic(const Duration(milliseconds: 50), (timer) {
+        _timerCounter -= 50;
+        if (_timerCounter <= 0) {
+          _timerCounter = 0;
+          timer.cancel();
+          if (zoomDrawerController.isOpen!()) {
+            zoomDrawerController.close!();
+          }
+        }
+      });
+    } else {
+      _timerCounter = timeValue;
+    }
   }
 
   jumpLyric({bool animate = true}) {}
@@ -406,7 +466,7 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
     }
   }
 
-  static RootController get to => Get.find();
+  static HomePageController get to => Get.find();
 
   //改变循环模式
   changeRepeatMode() {
@@ -492,29 +552,32 @@ class RootController extends SuperController with GetSingleTickerProviderStateMi
     if (value == 2.086162576020456e-9) {
       return;
     }
-    animationController.value = value;
+    firstPanelAnimationController.value = value;
     firstSlidePanelPosition.value = value;
-    if (value > 0.1) {
-      if (!panelOpenPositionThan1.value) {
-        panelOpenPositionThan1.value = true;
-        if (status) changeStatusIconColor(true);
-      }
-    } else {
-      if (panelOpenPositionThan1.value) {
-        panelOpenPositionThan1.value = false;
-        if (status) changeStatusIconColor(false);
-      }
-    }
-    if (value >= .8) {
-      if (!panelOpenPositionThan8.value) {
-        panelOpenPositionThan8.value = true;
-      }
-    } else {
-      if (panelOpenPositionThan8.value) {
-        panelOpenPositionThan8.value = false;
+
+    // 如果当前的状态改变
+    if (panelOpened10.value != (value > 0.1)){
+      // 更新状态
+      panelOpened10.value = value > 0.1;
+      // 根据状态变更图标颜色
+      if (status) {
+        changeStatusIconColor(panelOpened10.value);
       }
     }
-    // _setPlayListOffset();
+    if (panelOpened50.value != (value > 0.5)) {
+      panelOpened50.value = value > 0.5;
+      if (panelOpened50.value) {
+        titleBeforePanelOpen.value = curTitle.value;
+        curTitle.value =  mediaItem.value.title;
+      } else {
+        curTitle.value = titleBeforePanelOpen.value;
+      }
+    }
+
+    if (panelOpened80.value == (value > 0.8)) {
+      panelOpened80.value = value > 0.8;
+    };
+
   }
 
   //设置歌词列表偏移量

@@ -1,7 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
@@ -20,7 +20,7 @@ class AlbumController extends GetxController {
         AlbumDetailWrap albumDetailWrap = await NeteaseMusicApi().albumDetail(album?.id ?? '');
         mediaItems
           ..clear()
-          ..addAll(RootController.to.song2ToMedia(albumDetailWrap.songs ?? []));
+          ..addAll(HomePageController.to.song2ToMedia(albumDetailWrap.songs ?? []));
         loading.value = false;
       }
     });

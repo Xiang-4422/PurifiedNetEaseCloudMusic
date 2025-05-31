@@ -13,7 +13,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../common/constants/key.dart';
 import '../../common/storage.dart';
-import '../home/root_controller.dart';
+import '../home/home_page_controller.dart';
 
 class ImageBlur extends StatefulWidget {
   final String path;
@@ -95,7 +95,7 @@ class _ImageBlurState extends State<ImageBlur> {
     WidgetUtil.showLoadingDialog(context);
     Uint8List data = await widgetToImage();
     var directory = await getApplicationSupportDirectory();
-    File oldFile = File(RootController.to.customBackgroundPath.value);
+    File oldFile = File(HomePageController.to.customBackgroundPath.value);
     if (oldFile.existsSync()) oldFile.deleteSync();
     String path = '${directory.path}/${DateTime.now().millisecondsSinceEpoch}.jpeg';
     File file = File(path);
@@ -103,8 +103,8 @@ class _ImageBlurState extends State<ImageBlur> {
       file.delete();
     }
     await file.writeAsBytes(data);
-    RootController.to.customBackgroundPath.value = path;
-    RootController.to.box.put(backgroundSp, path);
+    HomePageController.to.customBackgroundPath.value = path;
+    HomePageController.to.box.put(backgroundSp, path);
     if (mounted) Navigator.of(context).pop();
     if (mounted) Navigator.of(context).pop();
   }

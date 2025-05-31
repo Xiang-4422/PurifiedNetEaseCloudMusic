@@ -2,8 +2,8 @@
 import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
-import 'package:bujuan/pages/home/view/root_page_view.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/view/home_page_view.dart';
 import 'package:bujuan/pages/setting/coffee.dart';
 import 'package:bujuan/pages/setting/settring_view.dart';
 import 'package:bujuan/pages/user/personal_page_view.dart';
@@ -19,7 +19,7 @@ import '../../../common/constants/platform_utils.dart';
 import '../../../widget/simple_extended_image.dart';
 import '../../index/explore_page_view.dart';
 
-class DrawerMainScreenView extends GetView<RootController> {
+class DrawerMainScreenView extends GetView<HomePageController> {
   const DrawerMainScreenView({Key? key}) : super(key: key);
 
   @override
@@ -36,10 +36,10 @@ class DrawerMainScreenView extends GetView<RootController> {
           controller: controller.pageViewController,
           scrollDirection: Axis.vertical,
           children: [
-            _buildPage(const PersonalPageView(), true, true),
-            _buildPage(const ExplorePageView(), true, true),
-            _buildPage(const SettingView(), true, true),
-            _buildPage(const CoffeePage(), true, true),
+            _buildPage(const PersonalPageView(), true, false),
+            _buildPage(const ExplorePageView(), false, false),
+            _buildPage(const SettingView(), false, false),
+            _buildPage(const CoffeePage(), false, true),
           ],
         ),
       ),

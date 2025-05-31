@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 
 import '../../../common/netease_api/src/api/event/bean.dart';
 
-class CommentView extends GetView<RootController> {
+class CommentView extends GetView<HomePageController> {
   const CommentView({super.key});
 
   @override

@@ -16,10 +16,10 @@ import 'package:flutter/material.dart' as _i24;
 
 import '../pages/album/album_details.dart' as _i21;
 import '../pages/artists/artists_view.dart' as _i18;
-import '../pages/index/cloud_view.dart' as _i14;
+import '../pages/index/cloud_drive_view.dart' as _i14;
 import '../pages/index/explore_page_view.dart' as _i16;
 import '../pages/guide/guide_view.dart' as _i6;
-import '../pages/home/view/root_page_view.dart' deferred as _i2;
+import '../pages/home/view/home_page_view.dart' deferred as _i2;
 import '../pages/login/login.dart' as _i3;
 import '../pages/mv/mv_view.dart' as _i8;
 import '../pages/play_list/playlist_view.dart' as _i15;
@@ -59,7 +59,7 @@ class RootRouter extends _i23.RootStackRouter {
         routeData: routeData,
         child: _i23.DeferredWidget(
           _i2.loadLibrary,
-          () => _i2.RootPageView(
+          () => _i2.HomePageView(
             key: args.key,
             body: args.body,
           ),
@@ -148,7 +148,7 @@ class RootRouter extends _i23.RootStackRouter {
     AlbumView.name: (routeData) {
       return _i23.MaterialPageX<dynamic>(
         routeData: routeData,
-        child: const _i14.AlbumView(),
+        child: const _i14.CloudDriveView(),
       );
     },
     PlayListView.name: (routeData) {
@@ -341,7 +341,7 @@ class SplashRoute extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.RootPageView]
+/// [_i2.HomePageView]
 class RootRouteView extends _i23.PageRouteInfo<RootRouteViewArgs> {
   RootRouteView({
     _i24.Key? key,
@@ -543,7 +543,7 @@ class SettingViewL extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i14.AlbumView]
+/// [_i14.CloudDriveView]
 class AlbumView extends _i23.PageRouteInfo<void> {
   const AlbumView()
       : super(

@@ -1,6 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
@@ -57,7 +57,7 @@ class PlayListController<E, T> extends GetxController {
   callRefresh(List<String> ids, {bool clear = true}) async {
     SongDetailWrap songDetailWrap = await NeteaseMusicApi().songDetail(ids);
     if (clear) mediaItems.clear();
-    mediaItems.addAll(RootController.to.song2ToMedia(songDetailWrap.songs ?? []));
+    mediaItems.addAll(HomePageController.to.song2ToMedia(songDetailWrap.songs ?? []));
     if (loading.value) {
       loading.value = false;
     }

@@ -15,7 +15,7 @@ import 'package:get/get.dart';
 
 import '../../widget/simple_extended_image.dart';
 import 'package:bujuan/common/constants/enmu.dart' as type;
-import '../home/root_controller.dart';
+import '../home/home_page_controller.dart';
 
 class PlayListView extends GetView<PlayListController> {
   const PlayListView({super.key});
@@ -34,7 +34,7 @@ class PlayListView extends GetView<PlayListController> {
             child: CustomScrollView(
               slivers: [
                 SliverAppBar(
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(RootController.to.customBackgroundPath.value.isEmpty ? 1 : 0),
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(HomePageController.to.customBackgroundPath.value.isEmpty ? 1 : 0),
                   pinned: true,
                   leading: IconButton(
                       padding: EdgeInsets.only(left: 20.w),
@@ -76,7 +76,7 @@ class PlayListView extends GetView<PlayListController> {
                                   if (controller.isSearch.value) {
                                     index = controller.mediaItems.indexOf(controller.searchItems[index]);
                                   }
-                                  RootController.to.playByIndex(index, 'queueTitle', mediaItem: controller.mediaItems);
+                                  HomePageController.to.playByIndex(index, 'queueTitle', mediaItem: controller.mediaItems);
                                 },
                               ),
                           childCount: controller.isSearch.value ? controller.searchItems.length : controller.mediaItems.length,
@@ -176,8 +176,8 @@ class SongItem extends StatelessWidget {
               if (value != null) {
                 switch (value) {
                   case ActionType.next:
-                    if (RootController.to.audioServeHandler.playbackState.value.queueIndex != 0) {
-                      RootController.to.audioServeHandler.insertQueueItem(RootController.to.audioServeHandler.playbackState.value.queueIndex! + 1, mediaItem);
+                    if (HomePageController.to.audioServeHandler.playbackState.value.queueIndex != 0) {
+                      HomePageController.to.audioServeHandler.insertQueueItem(HomePageController.to.audioServeHandler.playbackState.value.queueIndex! + 1, mediaItem);
                       WidgetUtil.showToast('已添加到下一曲');
                     } else {
                       WidgetUtil.showToast('未知错误');
@@ -255,8 +255,8 @@ class SongItemShowImage extends StatelessWidget {
               if (value != null) {
                 switch (value) {
                   case ActionType.next:
-                    if (RootController.to.audioServeHandler.playbackState.value.queueIndex != 0) {
-                      RootController.to.audioServeHandler.insertQueueItem(RootController.to.audioServeHandler.playbackState.value.queueIndex! + 1, mediaItem);
+                    if (HomePageController.to.audioServeHandler.playbackState.value.queueIndex != 0) {
+                      HomePageController.to.audioServeHandler.insertQueueItem(HomePageController.to.audioServeHandler.playbackState.value.queueIndex! + 1, mediaItem);
                       WidgetUtil.showToast('已添加到下一曲');
                     } else {
                       WidgetUtil.showToast('未知错误');

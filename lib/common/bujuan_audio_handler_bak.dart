@@ -8,7 +8,7 @@
 // import 'package:bujuan/common/constants/enmu.dart';
 // import 'package:bujuan/common/constants/other.dart';
 // import 'package:bujuan/common/storage.dart';
-// import 'package:bujuan/pages/home/root_controller.dart';
+// import 'package:bujuan/pages/home/home_page_controller.dart';
 // import 'package:get_it/get_it.dart';
 // import 'package:audio_session/audio_session.dart';
 // import 'package:media_cache_manager/media_cache_manager.dart';

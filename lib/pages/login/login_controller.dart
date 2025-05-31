@@ -10,7 +10,7 @@ import 'package:get/get.dart';
 import '../../common/netease_api/src/api/bean.dart';
 import '../../common/netease_api/src/api/login/bean.dart';
 import '../../common/netease_api/src/netease_api.dart';
-import '../user/user_controller.dart';
+import '../user/personal_page_controller.dart';
 
 class LoginController extends GetxController {
   final TextEditingController phone = TextEditingController();
@@ -30,7 +30,7 @@ class LoginController extends GetxController {
         WidgetUtil.showToast(neteaseAccountInfoWrap.message ?? '未知错误');
         return;
       }
-      UserController.to.getUserState();
+      PersonalPageController.to.getUserState();
       Get.back();
     });
   }
@@ -53,7 +53,7 @@ class LoginController extends GetxController {
       }
       if (serverStatusBean.code == 803) {
         WidgetUtil.showToast('授权成功！');
-        UserController.to.getUserState();
+        PersonalPageController.to.getUserState();
         Get.back();
         timer?.cancel();
         timer = null;

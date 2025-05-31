@@ -10,7 +10,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
     this.title,
     this.actions,
     this.bottom,
-    this.appBarHeight = 80,
+    this.appBarHeight = 70,
   }) : super(key: key);
 
   // 可定制参数
@@ -32,6 +32,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget{
       borderRadius: BorderRadius.circular(0),
       child: AppBar(
         title: title,
+        centerTitle: true,
         toolbarHeight: appBarHeight,
         leading: leadingWidget,
         leadingWidth: 80,

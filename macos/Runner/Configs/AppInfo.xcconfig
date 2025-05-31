@@ -8,7 +8,7 @@
 PRODUCT_NAME = bujuan
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.sixbugs.bujuan
+PRODUCT_BUNDLE_IDENTIFIER = com.yu4422.purrr
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2022 com.sixbugs. All rights reserved.

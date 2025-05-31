@@ -2,22 +2,20 @@ import 'package:audio_service/audio_service.dart';
 
 import 'package:bujuan/common/bujuan_audio_handler.dart';
 import 'package:bujuan/common/constants/platform_utils.dart';
-import 'package:bujuan/pages/user/user_controller.dart';
+import 'package:bujuan/pages/user/personal_page_controller.dart';
 import 'package:bujuan/widget/app_widget.dart';
-import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'common/netease_api/src/netease_api.dart';
 
+/// 应用启动入口
 main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +25,7 @@ main() async {
   await _initUI();
   // 在runApp前必须完成的初始化操作
   await _initSingleton();
-  Get.lazyPut<UserController>(() => UserController());
+  Get.lazyPut<PersonalPageController>(() => PersonalPageController());
 
   runApp(
       AppWidget()
@@ -54,10 +52,6 @@ Future<void> _initUI() async {
 
 Future<void> _initSingleton() async {
   final getIt = GetIt.instance;
-  // 注册侧边抽屉控制器
-  getIt.registerSingleton<ZoomDrawerController>(ZoomDrawerController());
-  // 注册PageView控制器
-  getIt.registerSingleton<PageController>(PageController(viewportFraction: 0.8));
   // 初始化Hive存储
   await Hive.initFlutter('BuJuan');
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));
@@ -66,13 +60,15 @@ Future<void> _initSingleton() async {
   // 初始化网易云API
   await NeteaseMusicApi.init(debug: false);
   // 初始化音频后台服务
-  getIt.registerSingleton<BujuanAudioHandler>(await AudioService.init<BujuanAudioHandler>(
-    builder: () => BujuanAudioHandler(),
-    config: const AudioServiceConfig(
-      androidStopForegroundOnPause: false,
-      androidNotificationChannelId: 'com.sixbugs.bujuan.channel.audio',
-      androidNotificationChannelName: 'Music playback',
-      androidNotificationIcon: 'drawable/audio_service_icon',
-    ),
-  ));
+  getIt.registerSingleton<BujuanAudioHandler>(
+      await AudioService.init<BujuanAudioHandler>(
+        builder: () => BujuanAudioHandler(),
+        config: const AudioServiceConfig(
+          androidStopForegroundOnPause: false,
+          androidNotificationChannelId: 'com.yu4422.purrr.channel.audio',
+          androidNotificationChannelName: 'Music playback',
+          androidNotificationIcon: 'drawable/audio_service_icon',
+        ),
+      )
+  );
 }

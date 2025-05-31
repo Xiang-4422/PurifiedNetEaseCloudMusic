@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/pages/home/view/panel_view.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +15,7 @@ import 'package:get/get.dart';
 import '../../../common/netease_api/src/api/play/bean.dart';
 
 /// 相似歌曲列表（废弃）
-class RecommendView extends GetView<RootController> {
+class RecommendView extends GetView<HomePageController> {
   const RecommendView({super.key});
 
   @override
@@ -31,7 +31,7 @@ class RecommendView extends GetView<RootController> {
         ClipRRect(
           borderRadius: BorderRadius.circular(controller.panelMobileMinSize / 2),
           child: Obx(() => SimpleExtendedImage(
-            '${RootController.to.mediaItem.value.extras?['image'] ?? ''}?param=500y500',
+            '${HomePageController.to.mediaItem.value.extras?['image'] ?? ''}?param=500y500',
             width: 630.w,
             height: 630.w,
           )),

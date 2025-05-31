@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/generated/json/base/json_convert_content.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -174,7 +174,7 @@ class RequestPlaylistLoadMoreWidgetState extends State<RequestPlaylistLoadMoreWi
       }
       if (pageNum == 0) list.clear();
       setState(() {
-        list.addAll(RootController.to.song2ToMedia(data.songs ?? []));
+        list.addAll(HomePageController.to.song2ToMedia(data.songs ?? []));
         _empty = list.isEmpty;
       });
       if (pageNum == 0) {
@@ -201,7 +201,7 @@ class RequestPlaylistLoadMoreWidgetState extends State<RequestPlaylistLoadMoreWi
             extras: {
               'type': MediaType.playlist.name,
               'image': e.al?.picUrl ?? '',
-              'liked': RootController.to.likeIds.contains(int.tryParse(e.id)),
+              'liked': HomePageController.to.likeIds.contains(int.tryParse(e.id)),
               'artist': (e.ar ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / '),
               'mv': e.mv
             },

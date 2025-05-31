@@ -1,5 +1,5 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:flutter/material.dart';
@@ -37,14 +37,14 @@ class _TodayViewState extends State<TodayView> {
           childBuilder: (playlist) {
             _mediaItem
               ..clear()
-              ..addAll(RootController.to.song2ToMedia((playlist.data.dailySongs ?? [])));
+              ..addAll(HomePageController.to.song2ToMedia((playlist.data.dailySongs ?? [])));
             return ListView.builder(
               itemExtent: 130.w,
               itemBuilder: (context, index) => SongItem(
                 index: index,
                 mediaItem: _mediaItem[index],
                 onTap: () {
-                  RootController.to.playByIndex(index, 'queueTitle', mediaItem: _mediaItem);
+                  HomePageController.to.playByIndex(index, 'queueTitle', mediaItem: _mediaItem);
                 },
               ),
               itemCount: _mediaItem.length,

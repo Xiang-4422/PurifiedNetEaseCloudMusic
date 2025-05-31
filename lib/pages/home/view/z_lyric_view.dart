@@ -1,4 +1,4 @@
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/pages/home/view/panel_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 
 import '../../../widget/list_wheel/clickable_list_wheel_widget.dart';
 
-class LyricView extends GetView<RootController> {
+class LyricView extends GetView<HomePageController> {
   const LyricView({super.key});
 
   @override

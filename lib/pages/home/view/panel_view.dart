@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/pages/home/view/z_lyric_view.dart';
 import 'package:bujuan/widget/mobile/flashy_navbar.dart';
 import 'package:bujuan/widget/my_get_view.dart';
@@ -15,7 +15,8 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import '../../../common/constants/platform_utils.dart';
 import '../../../widget/music_visualizer.dart';
 
-class PanelView extends GetView<RootController> {
+// 展开后的第一层panel
+class PanelView extends GetView<HomePageController> {
   const PanelView({Key? key}) : super(key: key);
 
   @override
@@ -250,7 +251,7 @@ class PanelView extends GetView<RootController> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomCenter,
                       colors: [
-                        !controller.panelOpenPositionThan1.value && !controller.second.value
+                        !controller.panelOpened10.value && !controller.second.value
                             ? Theme.of(context).scaffoldBackgroundColor.withOpacity(controller.customBackgroundPath.value.isNotEmpty ? 0.2 : .85)
                             : !controller.isGradientBackground.value
                                 ? controller.rx.value.darkVibrantColor?.color.withOpacity(.85) ?? controller.rx.value.darkMutedColor?.color.withOpacity(.85) ?? Colors.transparent
@@ -268,9 +269,9 @@ class PanelView extends GetView<RootController> {
               )),
           // 控制组件
           FadeTransition(
-            opacity: controller.animationPanel,
+            opacity: Tween(begin: 0.0, end: 1.0).animate(controller.firstPanelAnimationController),
             child: ScaleTransition(
-              scale: controller.animationScalePanel,
+              scale: Tween(begin: 2.0, end: 1.0).animate(controller.firstPanelAnimationController),
               child: _buildBodyContent(context),
             ),
           )

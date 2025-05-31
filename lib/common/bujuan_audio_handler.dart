@@ -6,7 +6,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
 
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -121,7 +121,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
 
   @override
   Future<void> addFmItems(List<MediaItem> mediaItems, bool isAddcurIndex) async {
-    if (RootController.to.isFmMode.value && _playList.length >= 3) {
+    if (HomePageController.to.isFmMode.value && _playList.length >= 3) {
       _playList.removeRange(0, queue.value.length - 1);
       updateQueue(_playList);
       addQueueItems(mediaItems);
@@ -133,7 +133,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     _curIndex = 0;
     _playList.addAll(mediaItems);
     if (isAddcurIndex) _curIndex++;
-    if (!RootController.to.isFmMode.value) RootController.to.isFmMode.value = true;
+    if (!HomePageController.to.isFmMode.value) HomePageController.to.isFmMode.value = true;
     playIndex(_curIndex);
     List<String> playList = await compute(setCachePlayList, RootIsolateData(rootIsolateToken, items: mediaItems));
     queueTitle.value = 'Fm';
@@ -144,19 +144,19 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   @override
   Future<void> fastForward() async {
     // updateMediaItem(mediaItem.value?.copyWith(extras: {'liked':'true'})??const MediaItem(id: 'id', title: 'title'));
-    RootController.to.likeSong(liked: true);
+    HomePageController.to.likeSong(liked: true);
   }
 
   //更改为喜欢按钮
   @override
   Future<void> rewind() async {
-    RootController.to.likeSong(liked: false);
+    HomePageController.to.likeSong(liked: false);
   }
 
   @override
   Future<void> changeQueueLists(List<MediaItem> list, {int index = 0, bool init = false}) async {
-    if (!init && RootController.to.isFmMode.value) {
-      RootController.to.isFmMode.value = false;
+    if (!init && HomePageController.to.isFmMode.value) {
+      HomePageController.to.isFmMode.value = false;
       _box.put(fmSp, false);
     }
     _curIndex = index;
@@ -203,8 +203,8 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
 
   @override
   Future<void> readySongUrl({bool isNext = true, bool playIt = true}) async {
-    bool high = !playIt ? _box.get(highSong) ?? false : RootController.to.isHighSoundQualityOpen.value;
-    bool cache = !playIt ? _box.get(cacheSp) ?? false : RootController.to.isCacheOpen.value;
+    bool high = !playIt ? _box.get(highSong) ?? false : HomePageController.to.isHighSoundQualityOpen.value;
+    bool cache = !playIt ? _box.get(cacheSp) ?? false : HomePageController.to.isCacheOpen.value;
     // 这里是获取歌曲url
     if (queue.value.isEmpty) return;
     var song = queue.value[_curIndex];
@@ -293,11 +293,11 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     _setCurrIndex(next: true);
     print('下一首=======$_curIndex');
     await readySongUrl();
-    if (RootController.to.isFmMode.value) {
+    if (HomePageController.to.isFmMode.value) {
       // 如果是私人fm
       if (_curIndex == queue.value.length - 1) {
         // 判断如果是最后一首
-        RootController.to.getFmSongList();
+        HomePageController.to.getFmSongList();
       }
     }
   }
@@ -341,8 +341,8 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
       //记录一下当前时间
       _sleepTimer = Timer(Duration(seconds: extras?['time'] ?? 0), () {
         _player.pause();
-        RootController.to.sleepMinTo = 0;
-        RootController.to.sleepSlide.value = true;
+        HomePageController.to.sleepMinTo = 0;
+        HomePageController.to.sleepSlide.value = true;
       });
     }
 

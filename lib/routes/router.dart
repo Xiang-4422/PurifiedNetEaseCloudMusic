@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/pages/guide/guide_view.dart';
-import 'package:bujuan/pages/home/view/root_page_view.dart';
+import 'package:bujuan/pages/home/view/home_page_view.dart';
 import 'package:bujuan/pages/mv/mv_view.dart';
 import 'package:bujuan/pages/playlist_manager/playlist_manager_view.dart';
 import 'package:bujuan/pages/radio/my_radio_view.dart';
@@ -14,7 +14,7 @@ import 'package:bujuan/pages/user/personal_page_view.dart';
 
 import '../pages/album/album_details.dart';
 import '../pages/artists/artists_view.dart';
-import '../pages/index/cloud_view.dart';
+import '../pages/index/cloud_drive_view.dart';
 import '../pages/index/explore_page_view.dart';
 import '../pages/login/login.dart';
 import '../pages/play_list/playlist_view.dart';
@@ -96,9 +96,10 @@ abstract class _Paths {
 @MaterialAutoRouter(
   replaceInRouteName: 'Page,Route',
   routes: <AutoRoute>[
+    // 开屏页
     AutoRoute(path: Routes.splash, page: SplashPage, initial: true, deferredLoading: true),
     // home包括侧边抽屉、底部播放控制、以及其中三个对应页面：个人、发现、设置
-    AutoRoute(path: Routes.home, page: RootPageView, deferredLoading: true, children: [
+    AutoRoute(path: Routes.home, page: HomePageView, deferredLoading: true, children: [
       // 收藏页
       AutoRoute(path: Routes.user, page: PersonalPageView, initial: true, deferredLoading: true),
       // 发现页
@@ -106,7 +107,7 @@ abstract class _Paths {
       // 设置
       AutoRoute(path: Routes.settingL, page: SettingViewL),
 
-      AutoRoute(path: Routes.cloud, page: AlbumView),
+      AutoRoute(path: Routes.cloud, page: CloudDriveView),
       AutoRoute(path: Routes.playlist, page: PlayListView),
       // 发现页
       AutoRoute(path: Routes.index, page: ExplorePageView),
@@ -117,39 +118,23 @@ abstract class _Paths {
       AutoRoute(path: Routes.albumDetails, page: AlbumDetails),
       AutoRoute(path: Routes.playlistManager, page: PlaylistManagerView),
     ]),
+    // 登录
     AutoRoute(path: Routes.login, page: LoginView),
+    // 评论
     AutoRoute(path: Routes.talk, page: TalkView),
+    // 设置
     AutoRoute(path: Routes.setting, page: SettingView),
+    // 引导
     AutoRoute(path: Routes.guide, page: GuideView),
+    // 用户设置（注销登录）
     AutoRoute(path: Routes.userSetting, page: UserSettingView),
     AutoRoute(path: Routes.mv, page: MvView),
+    // 升级
     AutoRoute(path: Routes.update, page: UpdateView),
+
     AutoRoute(path: Routes.imageBlur, page: ImageBlur),
     // 赞助页
     AutoRoute(path: Routes.coffee, page: CoffeePage),
   ],
 )
 class $RootRouter {}
-
-// final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-// final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
-// GoRouter goRouter = GoRouter(
-//   navigatorKey: _rootNavigatorKey,
-//   initialLocation: '/a',
-//   routes: [
-//     ShellRoute(
-//       navigatorKey: _shellNavigatorKey,
-//       builder: (BuildContext context, GoRouterState state, Widget child) {
-//         return HomeView(body: child);
-//       },
-//       routes: [
-//         GoRoute(
-//           path: '/a',
-//           builder: (BuildContext context, GoRouterState state) {
-//             return const UserView();
-//           },
-//         ),
-//       ]
-//     )
-//   ],
-// );

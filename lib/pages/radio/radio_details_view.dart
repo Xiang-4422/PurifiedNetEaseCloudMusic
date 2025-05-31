@@ -1,6 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_view.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
@@ -46,7 +46,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
               extras: {
                 'type': MediaType.playlist.name,
                 'image': e.coverUrl ?? '',
-                'liked': RootController.to.likeIds.contains(int.tryParse(e.id)),
+                'liked': HomePageController.to.likeIds.contains(int.tryParse(e.id)),
                 'mv': 0,
               },
             ))
@@ -57,7 +57,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
                   index: index,
                   mediaItem: mediaItems[index],
                   onTap: () {
-                    RootController.to.playByIndex(index, 'queueTitle', mediaItem: mediaItems);
+                    HomePageController.to.playByIndex(index, 'queueTitle', mediaItem: mediaItems);
                   },
                 );
               },

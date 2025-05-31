@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/pages/home/root_controller.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +12,8 @@ import '../../common/netease_api/src/api/play/bean.dart';
 import '../play_list/playlist_view.dart';
 import 'cloud_controller.dart';
 
-class AlbumView extends GetWidget<CloudController> {
-  const AlbumView({Key? key}) : super(key: key);
+class CloudDriveView extends GetWidget<CloudController> {
+  const CloudDriveView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +41,7 @@ class AlbumView extends GetWidget<CloudController> {
                     'url': '',
                     'image': e.simpleSong.al?.picUrl ?? '',
                     'type': '',
-                    'liked': RootController.to.likeIds.contains(int.tryParse(e.simpleSong.id)),
+                    'liked': HomePageController.to.likeIds.contains(int.tryParse(e.simpleSong.id)),
                     'artist': (e.simpleSong.ar ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / ')
                   },
                   title: e.simpleSong.name ?? "",
@@ -56,7 +56,7 @@ class AlbumView extends GetWidget<CloudController> {
                 index: index,
                 mediaItem: controller.mediaItems[index],
                 onTap: () {
-                  RootController.to.playByIndex(index, 'queueTitle', mediaItem: controller.mediaItems);
+                  HomePageController.to.playByIndex(index, 'queueTitle', mediaItem: controller.mediaItems);
                 },
               ),
               itemCount: controller.mediaItems.length,

@@ -3,7 +3,7 @@ import 'package:bujuan/widget/share_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
-import '../pages/home/root_controller.dart';
+import '../pages/home/home_page_controller.dart';
 
 class PlayMoreInfo extends StatelessWidget {
   const PlayMoreInfo({Key? key}) : super(key: key);
@@ -26,7 +26,7 @@ class PlayMoreInfo extends StatelessWidget {
             ),
             onTap: () {
               Navigator.of(context).pop();
-              RootController.to.sleep(context);
+              HomePageController.to.sleep(context);
             },
           ),
           ListTile(

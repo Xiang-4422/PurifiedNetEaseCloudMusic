@@ -11,13 +11,13 @@ import '../common/constants/colors.dart';
 import '../pages/album/controller.dart';
 import '../pages/home/home_binding.dart';
 import '../pages/index/cloud_controller.dart';
-import '../pages/index/explore_controller.dart';
+import '../pages/index/explore_page_controller.dart';
 import '../pages/play_list/playlist_controller.dart';
 import '../pages/playlist_manager/playlist_manager_controller.dart';
-import '../pages/user/user_controller.dart';
+import '../pages/user/personal_page_controller.dart';
 import '../routes/router.gr.dart';
 
-/// 应用主体
+/// 应用配置
 class AppWidget extends StatelessWidget {
   final _rootRouter = RootRouter();
 
@@ -53,7 +53,6 @@ class AppWidget extends StatelessWidget {
       },
     );
   }
-
 }
 
 // 路由监听，管理页面的Controller
@@ -66,10 +65,10 @@ class MyObserver extends AutoRouterObserver {
         del ? Get.delete<CloudController>() : Get.lazyPut<CloudController>(() => CloudController());
         break;
       case 'MainView':
-        del ? Get.delete<ExploreController>() : Get.lazyPut<ExploreController>(() => ExploreController());
+        del ? Get.delete<ExplorePageController>() : Get.lazyPut<ExplorePageController>(() => ExplorePageController());
         break;
       case 'UserView':
-        del ? Get.delete<UserController>() : Get.lazyPut<UserController>(() => UserController());
+        del ? Get.delete<PersonalPageController>() : Get.lazyPut<PersonalPageController>(() => PersonalPageController());
         break;
       case 'PlayListView':
         del ? Get.delete<PlayListController>() : Get.lazyPut<PlayListController>(() => PlayListController());

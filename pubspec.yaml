@@ -83,6 +83,8 @@ dependencies:
   flutter_displaymode: ^0.6.0
   # 磨砂容器
   blurrycontainer: ^2.1.0
+  # 约束布局
+  flutter_constraintlayout: ^1.7.0-stable
 
 #  flutter_rust_bridge: ^1.77.1
 #  ffi: ^2.0.2

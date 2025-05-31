@@ -6,7 +6,7 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/icon.dart';
 import 'package:bujuan/pages/play_list/playlist_view.dart';
 import 'package:bujuan/pages/playlist_manager/playlist_mananger_binding.dart';
-import 'package:bujuan/pages/user/user_controller.dart';
+import 'package:bujuan/pages/user/personal_page_controller.dart';
 import 'package:bujuan/widget/commen_widget/my_appbar_widget.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -21,11 +21,11 @@ import '../../common/netease_api/src/api/play/bean.dart';
 import '../../routes/router.dart';
 import '../../routes/router.gr.dart' as gr;
 import '../../widget/draggable_home.dart';
-import '../home/root_controller.dart';
+import '../home/home_page_controller.dart';
 import '../home/view/panel_view.dart';
 
 /// 收藏页
-class PersonalPageView extends GetView<UserController> {
+class PersonalPageView extends GetView<PersonalPageController> {
   const PersonalPageView({Key? key}) : super(key: key);
 
   @override
@@ -33,7 +33,7 @@ class PersonalPageView extends GetView<UserController> {
     // controller.context = context;
     UserBinding().dependencies();
     return Obx(() => Visibility(
-        visible: RootController.to.loginStatus.value == LoginStatus.login,
+        visible: HomePageController.to.loginStatus.value == LoginStatus.login,
         replacement: _buildMeInfo(context), // 未登录页面
         child: Obx(() => Visibility(
               visible: !controller.loading.value,
@@ -41,21 +41,9 @@ class PersonalPageView extends GetView<UserController> {
               child: Scaffold(
                 resizeToAvoidBottomInset: false,
                 extendBodyBehindAppBar: true,
-                appBar: MyAppBar(
-                  title: RichText(
-                      text: TextSpan(
-                          style: TextStyle(fontSize: 42.sp, color: Colors.grey, fontWeight: FontWeight.bold),
-                          text: 'Hi  ',
-                          children: [
-                            TextSpan(
-                                text: '${RootController.to.userData.value.profile?.nickname}～',
-                                style: TextStyle(color: Theme.of(context).primaryColor.withOpacity(.9))),
-                          ])),
-                ),
-                body: Container(
-                  child: ListView(
-                    physics: const BouncingScrollPhysics(),
-                    children:[
+                body: ListView(
+                  physics: const BouncingScrollPhysics(),
+                  children:[
                     // 每日 FM 播客 云盘
                     GridView.count(
                       shrinkWrap: true,
@@ -74,10 +62,10 @@ class PersonalPageView extends GetView<UserController> {
                           IconButton(
                             onPressed: () {
                               if ((userItem.routes ?? '') == 'playFm') {
-                                RootController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
-                                RootController.to.audioServiceRepeatMode.value = AudioServiceRepeatMode.all;
-                                RootController.to.box.put(repeatModeSp, AudioServiceRepeatMode.all.name);
-                                RootController.to.getFmSongList();
+                                HomePageController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                HomePageController.to.audioServiceRepeatMode.value = AudioServiceRepeatMode.all;
+                                HomePageController.to.box.put(repeatModeSp, AudioServiceRepeatMode.all.name);
+                                HomePageController.to.getFmSongList();
                                 return;
                               }
                               AutoRouter.of(context).pushNamed(userItem.routes ?? '');
@@ -126,9 +114,9 @@ class PersonalPageView extends GetView<UserController> {
                       itemExtent: 120.w,
                     )),
                   ],
-                                ),
                 ),
-            )))));
+            )
+        ))));
   }
 
   /// 喜欢的音乐/我的歌单标题栏
@@ -180,8 +168,8 @@ class PersonalPageView extends GetView<UserController> {
                   Text('Hi', style: TextStyle(fontSize: 52.sp, color: Colors.grey, fontWeight: FontWeight.bold)),
                   Padding(padding: EdgeInsets.symmetric(vertical: 8.w)),
                   Obx(() =>
-                      Text('${RootController.to.loginStatus.value == LoginStatus.login
-                          ? RootController.to.userData.value.profile?.nickname
+                      Text('${HomePageController.to.loginStatus.value == LoginStatus.login
+                          ? HomePageController.to.userData.value.profile?.nickname
                           : '请登录'}～',
                           style: TextStyle(fontSize: 52.sp,
                           color: Theme.of(context).primaryColor,
@@ -193,7 +181,7 @@ class PersonalPageView extends GetView<UserController> {
         ),
     ),
       onTap: () {
-        if (RootController.to.loginStatus.value == LoginStatus.login) {
+        if (HomePageController.to.loginStatus.value == LoginStatus.login) {
           return;
         }
         AutoRouter.of(context).pushNamed(Routes.login);

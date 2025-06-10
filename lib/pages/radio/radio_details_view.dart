@@ -57,7 +57,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
                   index: index,
                   mediaItem: mediaItems[index],
                   onTap: () {
-                    HomePageController.to.playByIndex(index, 'queueTitle', mediaItem: mediaItems);
+                    HomePageController.to.playByIndex(index, 'queueTitle', playList: mediaItems);
                   },
                 );
               },

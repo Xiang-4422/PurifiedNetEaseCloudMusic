@@ -1,10 +1,8 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/common/storage.dart';
 import 'package:just_audio/just_audio.dart';
 
 import 'audio_player_handler.dart';
-import 'constants/key.dart';
 
 class MyAudioHandler extends BaseAudioHandler with SeekHandler implements AudioPlayerHandler {
   final _player = AudioPlayer(); // 播放器

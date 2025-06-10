@@ -14,6 +14,7 @@ import '../../common/constants/other.dart';
 import '../../common/netease_api/src/api/bean.dart';
 import '../../common/netease_api/src/api/login/bean.dart';
 import '../../common/netease_api/src/netease_api.dart';
+import '../../routes/router.dart';
 import '../../widget/custom_filed.dart';
 import '../user/personal_page_controller.dart';
 

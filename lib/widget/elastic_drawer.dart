@@ -1,7 +1,6 @@
 library elastic_drawer;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 const borderWidth = 0.0;
 const lineWidth = 0.0;

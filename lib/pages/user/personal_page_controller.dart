@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:palette_generator/palette_generator.dart';
 
 import '../../common/netease_api/src/api/login/bean.dart';
 import '../../common/netease_api/src/api/play/bean.dart';
@@ -20,9 +19,13 @@ import '../../common/netease_api/src/netease_api.dart';
 enum LoginStatus { login, noLogin }
 
 class PersonalPageController extends GetxController {
-  List<Play> playlist = <Play>[].obs;
-  Rx<Play> play = Play().obs;
-  Rx<PaletteGenerator> palette = PaletteGenerator.fromColors([]).obs;
+  /// 喜欢歌单
+  Rx<Play> userLikedSongCollection = Play().obs;
+  /// 创建歌单列表
+  List<Play> userMadeSongCollectionList = <Play>[].obs;
+  /// 收藏歌单列表
+  List<Play> userFavoritedSongCollectionList = <Play>[].obs;
+
   RxBool loading = true.obs;
   late BuildContext context;
   final List<UserItem> userItems = [
@@ -37,13 +40,17 @@ class PersonalPageController extends GetxController {
   void onInit() {
     super.onInit();
   }
-
   @override
   void onReady() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       getUserState();
       _update();
     });
+  }
+  @override
+  void onClose() {
+    // userScrollController.dispose();
+    super.onClose();
   }
 
   _update() {
@@ -73,10 +80,12 @@ class PersonalPageController extends GetxController {
     try {
       NeteaseAccountInfoWrap neteaseAccountInfoWrap = await NeteaseMusicApi().loginAccountInfo();
       if (neteaseAccountInfoWrap.code == 200 && neteaseAccountInfoWrap.profile != null) {
+
         HomePageController.to.userData.value = neteaseAccountInfoWrap;
         HomePageController.to.loginStatus.value = LoginStatus.login;
         HomePageController.to.box.put(loginData, jsonEncode(neteaseAccountInfoWrap.toJson()));
-        getUserPlayList();
+
+        _getUserPlayList();
         _getUserLikeSongIds();
       } else {
         WidgetUtil.showToast('登录失效,请重新登录');
@@ -99,15 +108,23 @@ class PersonalPageController extends GetxController {
     });
   }
 
-  getUserPlayList() {
-    NeteaseMusicApi().userPlayList(HomePageController.to.userData.value.profile?.userId ?? '-1').then((MultiPlayListWrap2 multiPlayListWrap2) async {
+  _getUserPlayList() {
+    NeteaseMusicApi().userPlayList(HomePageController.to.userData.value.profile?.userId ?? '-1')
+        .then((MultiPlayListWrap2 multiPlayListWrap2) async {
       List<Play> list = (multiPlayListWrap2.playlist ?? []);
       if (list.isNotEmpty) {
-        play.value = list.first;
-        palette.value = await OtherUtils.getImageColor('${play.value.coverImgUrl ?? ''}?param=500y500');
-        playlist
-          ..clear()
-          ..addAll(list..removeAt(0));
+        userLikedSongCollection.value = list.first;
+        list.removeAt(0);
+        userFavoritedSongCollectionList.clear();
+        userMadeSongCollectionList.clear();
+        for(var collection in list) {
+          if (collection.creator?.userId == HomePageController.to.userData.value.profile?.userId) {
+            userMadeSongCollectionList.add(collection);
+            userFavoritedSongCollectionList.remove(collection);
+          } else {
+            userFavoritedSongCollectionList.add(collection);
+          }
+        }
       }
       loading.value = false;
     });
@@ -122,9 +139,5 @@ class PersonalPageController extends GetxController {
     }
   }
 
-  @override
-  void onClose() {
-    // userScrollController.dispose();
-    super.onClose();
-  }
+
 }

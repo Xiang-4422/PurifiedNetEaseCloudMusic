@@ -39,8 +39,8 @@ class ZPlayListView extends GetView<HomePageController> {
                 controller: controller.playListScrollController,
                 padding: EdgeInsets.symmetric(horizontal: 50.w),
                 itemExtent: 110.w,
-                itemBuilder: (context, index) => _buildPlayListItem(controller.mediaItems[index], index, context),
-                itemCount: controller.mediaItems.length,
+                itemBuilder: (context, index) => _buildPlayListItem(controller.curPlayList[index], index, context),
+                itemCount: controller.curPlayList.length,
               )),
         ),
       );
@@ -96,7 +96,7 @@ class ZPlayListView extends GetView<HomePageController> {
             ],
           )),
           Obx(() => Visibility(
-                visible: controller.mediaItem.value.id == mediaItem.id,
+                visible: controller.curMediaItem.value.id == mediaItem.id,
                 child: Icon(
                   TablerIcons.circle_letter_p,
                   color: controller.landscape ? (Theme.of(context).iconTheme.color ?? Colors.black) : controller.bodyColor.value,

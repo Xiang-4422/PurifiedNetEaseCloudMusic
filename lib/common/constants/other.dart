@@ -1,14 +1,12 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:bujuan/common/constants/icon.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:date_format/date_format.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:palette_generator/palette_generator.dart';
 

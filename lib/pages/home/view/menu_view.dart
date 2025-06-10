@@ -5,10 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../../../common/constants/colors.dart';
 import '../../../widget/simple_extended_image.dart';
-import 'package:rive/rive.dart';
-
 import '../../user/personal_page_controller.dart';
 
 class MenuView extends GetView<HomePageController> {
@@ -18,43 +15,69 @@ class MenuView extends GetView<HomePageController> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // 头像
           Expanded(
               child: Container(
-                alignment: Alignment.topCenter,
-                child: ListView.builder(
-              itemCount: controller.leftMenus.length,
-              padding: EdgeInsets.zero,
-              shrinkWrap: true,
-              itemBuilder: (_, index) => Container(
-                padding: EdgeInsets.zero,
-                child: IconButton(
-                  onPressed: () {
-                    controller.zoomDrawerController.close!();
-                    Future.delayed(const Duration(milliseconds: 200), () {
-                      int onePageAnimationTime = 100;
-                      Duration animationTime = Duration(milliseconds: onePageAnimationTime  * (controller.pageViewController.page! - index).abs().toInt());
-                      controller.pageViewController.animateToPage(index, duration: animationTime, curve:Curves.linear);
-
-                    });
-                  },
-                  icon: Obx(() => Container(
-                    child: Icon(
-                        controller.leftMenus[index].icon,
-                        size: 52.sp,
-                        color: controller.curPageIndex.value == index
-                            ? Theme.of(context).primaryColor
-                            : Theme.of(context).iconTheme.color),
-                  )),
+                alignment: Alignment.center,
+                child: ListView.separated(
+                  itemCount: controller.leftMenus.length + 1,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  shrinkWrap: true,
+                  itemBuilder: (_, index) {
+                    if (index == controller.leftMenus.length / 2) {
+                      return Container(
+                        // padding: EdgeInsets.symmetric(vertical: 80),
+                        child: IconButton(
+                          icon: Obx(() => SimpleExtendedImage.avatar(
+                            '${controller.userData.value.profile?.avatarUrl ?? ''}?param=300y300',
+                            shape: BoxShape.circle,
+                            width: 50,
+                          ),),
+                          onPressed: () {
+                            if (controller.loginStatus.value == LoginStatus.noLogin) {
+                              context.router.pushNamed(Routes.login);
+                              return;
+                            }
+                            controller.homeZoomDrawerController.close!();
+                            Future.delayed(const Duration(milliseconds: 200), () {
+                              context.router.pushNamed(Routes.userSetting);
+                            });
+                          },
+                        ),
+                      );
+                    } else {
+                      int menuIndex = index > controller.leftMenus.length / 2 ? index - 1 : index;
+                      return IconButton(
+                        onPressed: () {
+                          controller.homeZoomDrawerController.close!();
+                          Future.delayed(const Duration(milliseconds: 200), () {
+                            int onePageAnimationTime = 200;
+                            Duration animationTime = Duration(milliseconds: onePageAnimationTime  * (controller.homePageController!.page! - menuIndex).abs().toInt());
+                            controller.homePageController.animateToPage(menuIndex, duration: animationTime, curve:Curves.linear);
+                            // AutoTabsRouter.of(context).setActiveIndex(menuIndex);
+                          });
+                        },
+                        icon: Obx(() => Icon(
+                            controller.leftMenus[menuIndex].icon,
+                            size: 52.sp,
+                            color: controller.curPageIndex.value == menuIndex
+                                ? Theme.of(context).primaryColor
+                                : Theme.of(context).iconTheme.color)),
+                      );
+                    }
+                  }, separatorBuilder: (BuildContext context, int index) {
+                    return Container(
+                      height: 15,
+                    );
+                },
                 ),
-              ),
-            ),
-          )
+              )
           ),
-          //  菜单
+          Container(
+              height: MediaQuery.of(context).padding.top,
+          )
         ],
       ),
     );

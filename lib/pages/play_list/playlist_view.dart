@@ -1,6 +1,7 @@
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/common/appConstants.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/pages/play_list/playlist_controller.dart';
@@ -8,6 +9,7 @@ import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/custom_filed.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/my_get_view.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -20,52 +22,17 @@ import '../home/home_page_controller.dart';
 class PlayListView extends GetView<PlayListController> {
   const PlayListView({super.key});
 
+
   @override
   Widget build(BuildContext context) {
     controller.context = context;
-    return Scaffold(
-        backgroundColor: Colors.transparent,
-        resizeToAvoidBottomInset: false,
-        body: MyGetView(
-            child: Obx(
-          () => Visibility(
+    return MyGetView(
+          child: Obx(() => Visibility(
             visible: !controller.loading.value,
             replacement: const LoadingView(),
             child: CustomScrollView(
               slivers: [
-                SliverAppBar(
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(HomePageController.to.customBackgroundPath.value.isEmpty ? 1 : 0),
-                  pinned: true,
-                  leading: IconButton(
-                      padding: EdgeInsets.only(left: 20.w),
-                      onPressed: () => AutoRouter.of(context).pop(),
-                      icon: SimpleExtendedImage.avatar(
-                        '${(context.routeData.args as Play).picUrl ?? (context.routeData.args as Play).coverImgUrl}?param=100y100',
-                        width: 75.w,
-                        height: 75.w,
-                      )),
-                  title: Obx(() => Visibility(
-                        visible: !controller.search.value,
-                        replacement: CustomFiled(
-                          textEditingController: controller.textEditingController,
-                          autoFocus: true,
-                          hitText: '请输入关键字',
-                        ),
-                        child: Text((context.routeData.args as Play).name ?? ''),
-                        // child: AutoSizeText(
-                        //   (context.routeData.args as Play).name ?? '',
-                        //   maxLines: 1,
-                        // ),
-                      )),
-                  actions: [
-                    IconButton(
-                        onPressed: () {
-                          controller.search.value = !controller.search.value;
-                          if (!controller.search.value) controller.textEditingController.text = '';
-                        },
-                        icon: Obx(() => Icon(!controller.search.value ? TablerIcons.search : TablerIcons.x)))
-                  ],
-                ),
+                SliverPadding(padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + AppDimensions.appBarHeight,),),
                 _buildTopItem(context),
                 Obx(() => SliverFixedExtentList(
                       delegate: SliverChildBuilderDelegate(
@@ -76,25 +43,26 @@ class PlayListView extends GetView<PlayListController> {
                                   if (controller.isSearch.value) {
                                     index = controller.mediaItems.indexOf(controller.searchItems[index]);
                                   }
-                                  HomePageController.to.playByIndex(index, 'queueTitle', mediaItem: controller.mediaItems);
+                                  HomePageController.to.playByIndex(index, 'queueTitle', playList: controller.mediaItems);
                                 },
                               ),
                           childCount: controller.isSearch.value ? controller.searchItems.length : controller.mediaItems.length,
                           addAutomaticKeepAlives: false,
                           addRepaintBoundaries: false),
                       itemExtent: 130.w,
-                    ))
+                    )),
+                SliverPadding(padding: EdgeInsets.only(bottom: HomePageController.to.panelHeaderHeight),),
               ],
             ),
-          ),
-        )));
+          ),)
+        );
   }
 
   Widget _buildTopItem(BuildContext context) {
     return SliverToBoxAdapter(
       child: Container(
-        margin: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 10.w),
-        padding: EdgeInsets.only(left: 15.w, right: 15.w, top: 10.w, bottom: 25.w),
+        margin: EdgeInsets.all(10.w),
+        padding: EdgeInsets.all(10.w),
         alignment: Alignment.center,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,15 +90,17 @@ class PlayListView extends GetView<PlayListController> {
                     icon: const Icon(TablerIcons.message_2)),
               ],
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: Text(
-                ((context.routeData.args as Play).description ?? '暂无描述').replaceAll('\n', ''),
-                maxLines: 5,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 24.sp, height: 1.6, color: Theme.of(context).cardColor.withOpacity(.6)),
-              ),
-            ),
+            (context.routeData.args as Play).description == null
+                ? Container()
+                : Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    child: Text(
+                      ((context.routeData.args as Play).description ?? '').replaceAll('\n', ''),
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 24.sp, height: 1.6, color: Theme.of(context).cardColor.withOpacity(.6)),
+                    ),
+                ),
           ],
         ),
       ),
@@ -301,7 +271,7 @@ class AlbumItem extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        '${album.size} 单曲',
+        '${album.size}首',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -312,6 +282,7 @@ class AlbumItem extends StatelessWidget {
   }
 }
 
+/// 歌单列表子项
 class PlayListItem extends StatelessWidget {
   final Play play;
 
@@ -333,11 +304,13 @@ class PlayListItem extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        '${play.trackCount} 单曲',
+        '${play.trackCount}首',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
       onTap: () {
+        HomePageController.to.changeAppBarTitle(title: play.name ?? "", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
+
         context.router.push(const gr.PlayListView().copyWith(args: play));
       },
     );

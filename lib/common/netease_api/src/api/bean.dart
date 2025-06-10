@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+
 import '../../src/netease_bean.dart';
 
 part 'bean.g.dart';

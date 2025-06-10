@@ -1,17 +1,15 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/common/storage.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
 import 'package:notification_permissions/notification_permissions.dart';
-import 'dart:math' as math;
 
-
+// TODO YU4422 待重写首次启动时的引导界面
 class GuideView extends StatefulWidget {
   const GuideView({Key? key}) : super(key: key);
 

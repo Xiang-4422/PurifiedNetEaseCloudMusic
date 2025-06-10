@@ -7,7 +7,6 @@ import 'package:bujuan/widget/data_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
@@ -15,7 +14,6 @@ import '../../common/constants/enmu.dart';
 import '../../common/netease_api/src/api/play/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
-import '../../pages/home/view/panel_view.dart';
 
 typedef RequestChildBuilder<T> = Widget Function(List<T> data);
 typedef OnData<T> = Function(T data);

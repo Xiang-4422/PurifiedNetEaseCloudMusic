@@ -1,7 +1,8 @@
 library bottom_bar_page_transition;
 
-import 'package:flutter/material.dart';
 import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
 
 class BottomBarPageTransition extends StatefulWidget {
   final IndexedWidgetBuilder builder;

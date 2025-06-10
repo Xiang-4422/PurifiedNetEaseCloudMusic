@@ -1,10 +1,12 @@
 
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/common/appConstants.dart';
 import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
 import '../../common/netease_api/src/api/dj/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
@@ -26,22 +28,30 @@ class _MyRadioViewState extends State<MyRadioView> {
 
   @override
   Widget build(BuildContext context) {
-    return MyGetView(child: Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
+    return MyGetView(
+      child: Column(
+        children: [
+          Container(
+            height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
+          ),
+          Expanded(
+            child: RequestLoadMoreWidget<DjRadioListWrap, DjRadio>(
+                listKey: const ['djRadios'],
+                dioMetaData: djRadioSubListDioMetaData(),
+                childBuilder: (List<DjRadio> list) {
+                  return ListView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    itemBuilder: (context, index) => _buildItem(list[index]),
+                    itemCount: list.length,
+                  );
+                }),
+          ),
+          Container(
+            height: AppDimensions.bottomPanelHeaderHeight,
+          ),
+        ],
       ),
-      body: RequestLoadMoreWidget<DjRadioListWrap, DjRadio>(
-          listKey: const ['djRadios'],
-          dioMetaData: djRadioSubListDioMetaData(),
-          childBuilder: (List<DjRadio> list) {
-            return ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              itemBuilder: (context, index) => _buildItem(list[index]),
-              itemCount: list.length,
-            );
-          }),
-    ));
+    );
   }
 
   Widget _buildItem(DjRadio data) {

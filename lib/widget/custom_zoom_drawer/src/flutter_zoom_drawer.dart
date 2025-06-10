@@ -4,11 +4,8 @@ import 'dart:ui';
 import 'package:bujuan/widget/custom_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'drawer_controller.dart';
+
 import 'drawer_styles/drawer_styles.dart';
-import 'enum/drawer_last_action.dart';
-import 'enum/drawer_state.dart';
-import 'enum/drawer_style.dart';
 
 /// Build custom style with (context, animationValue, slideWidth, menuScreen, mainScreen) {}
 typedef DrawerStyleBuilder = Widget Function(

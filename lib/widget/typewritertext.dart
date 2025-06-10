@@ -2,6 +2,7 @@
 library typewritertext;
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 /// A simple typewriter text animation wrapper for flutter.

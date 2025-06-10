@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+
 import '../../../src/api/bean.dart';
 import '../../../src/api/login/bean.dart';
 import '../../../src/api/play/bean.dart';

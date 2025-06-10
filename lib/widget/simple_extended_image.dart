@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:bujuan/common/constants/images.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:flutter/material.dart';
 
 class SimpleExtendedImage extends StatefulWidget {
   final String url;

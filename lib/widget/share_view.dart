@@ -10,7 +10,7 @@ class ShareView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       child: SingleChildScrollView(
-        child: SimpleExtendedImage(HomePageController.to.mediaItem.value.extras?['image']),
+        child: SimpleExtendedImage(HomePageController.to.curMediaItem.value.extras?['image']),
       ),
     );
   }

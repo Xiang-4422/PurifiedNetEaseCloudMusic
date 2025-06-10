@@ -7,8 +7,6 @@ import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:encrypt/encrypt.dart';
-import 'package:flutter/cupertino.dart' hide Key;
-import 'package:pointycastle/digests/md5.dart';
 import 'package:pointycastle/export.dart' hide Algorithm;
 
 import 'encrypt_ext.dart';

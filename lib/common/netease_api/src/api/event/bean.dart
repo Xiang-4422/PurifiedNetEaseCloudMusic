@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
+
 import '../../../netease_music_api.dart';
 import '../../../src/api/bean.dart';
-import '../../../src/api/login/bean.dart';
 
 part 'bean.g.dart';
 

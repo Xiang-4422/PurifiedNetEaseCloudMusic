@@ -1,4 +1,3 @@
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/netease_api/src/api/bean.dart';
 import 'package:bujuan/generated/json/base/json_convert_content.dart';
 import 'package:bujuan/widget/data_widget.dart';

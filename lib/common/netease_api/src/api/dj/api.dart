@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
+
 import '../../../src/api/uncategorized/bean.dart';
 import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
-
 import 'bean.dart';
 
 mixin ApiDj {

@@ -1,27 +1,22 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+
 import '../../../netease_music_api.dart';
 import '../../../src/api/bean.dart';
 import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 
 mixin ApiPlay {
-  DioMetaData playlistSubscribersDioMetaData(String pid, {int offset = 0, int limit = 30}) {
-    var params = {'id': pid, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/playlist/subscribers'), data: params, options: joinOptions());
-  }
-
   /// 歌单收藏者
   Future<PlaylistSubscribersWrap> playlistSubscribers(String pid, {int offset = 0, int limit = 30}) {
     return Https.dioProxy.postUri(playlistSubscribersDioMetaData(pid, offset: offset, limit: limit)).then((Response value) {
       return PlaylistSubscribersWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData subscribePlayListDioMetaData(String pid, {bool subscribe = true}) {
-    var params = {'id': pid};
-    return DioMetaData(joinUri('/weapi/playlist/${subscribe ? 'subscribe' : 'unsubscribe'}'), data: params, options: joinOptions());
+  DioMetaData playlistSubscribersDioMetaData(String pid, {int offset = 0, int limit = 30}) {
+    var params = {'id': pid, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/weapi/playlist/subscribers'), data: params, options: joinOptions());
   }
 
   /// 歌单收藏
@@ -30,9 +25,9 @@ mixin ApiPlay {
       return ServerStatusBean.fromJson(value.data);
     });
   }
-
-  DioMetaData playlistCatalogueDioMetaData() {
-    return DioMetaData(joinUri('/weapi/playlist/catalogue'), data: {}, options: joinOptions());
+  DioMetaData subscribePlayListDioMetaData(String pid, {bool subscribe = true}) {
+    var params = {'id': pid};
+    return DioMetaData(joinUri('/weapi/playlist/${subscribe ? 'subscribe' : 'unsubscribe'}'), data: params, options: joinOptions());
   }
 
   /// 歌单分类
@@ -41,9 +36,8 @@ mixin ApiPlay {
       return PlaylistCatalogueWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData playlistHotTagsDioMetaData() {
-    return DioMetaData(joinUri('/weapi/playlist/hottags'), data: {}, options: joinOptions());
+  DioMetaData playlistCatalogueDioMetaData() {
+    return DioMetaData(joinUri('/weapi/playlist/catalogue'), data: {}, options: joinOptions());
   }
 
   /// 热门歌单tags
@@ -52,9 +46,8 @@ mixin ApiPlay {
       return PlaylistHotTagsWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData highqualityPlaylistHotTagsDioMetaData() {
-    return DioMetaData(joinUri('/api/playlist/highquality/tags'), data: {}, options: joinOptions());
+  DioMetaData playlistHotTagsDioMetaData() {
+    return DioMetaData(joinUri('/weapi/playlist/hottags'), data: {}, options: joinOptions());
   }
 
   /// 精品歌单tags
@@ -63,10 +56,8 @@ mixin ApiPlay {
       return PlaylistHotTagsWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData highqualityPlayListDioMetaData({String category = '全部', int limit = 30, bool total = true, int lastTime = 0}) {
-    var params = {'cat': category, 'limit': limit, 'lastTime': lastTime, 'total': total};
-    return DioMetaData(joinUri('/weapi/playlist/highquality/list'), data: params, options: joinOptions());
+  DioMetaData highqualityPlaylistHotTagsDioMetaData() {
+    return DioMetaData(joinUri('/api/playlist/highquality/tags'), data: {}, options: joinOptions());
   }
 
   /// 精品歌单
@@ -76,9 +67,9 @@ mixin ApiPlay {
       return MultiPlayListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData relatedPlayListDioMetaData(String songId) {
-    return DioMetaData(joinUri('/playlist?id=$songId'), options: joinOptions(userAgent: UserAgent.Pc));
+  DioMetaData highqualityPlayListDioMetaData({String category = '全部', int limit = 30, bool total = true, int lastTime = 0}) {
+    var params = {'cat': category, 'limit': limit, 'lastTime': lastTime, 'total': total};
+    return DioMetaData(joinUri('/weapi/playlist/highquality/list'), data: params, options: joinOptions());
   }
 
   /// 歌曲相关歌单列表
@@ -110,10 +101,8 @@ mixin ApiPlay {
       return listWrap;
     });
   }
-
-  DioMetaData personalizedPlaylistDioMetaData({int offset = 0, int limit = 30}) {
-    var params = {'limit': limit, 'offset': offset, 'n': 1000};
-    return DioMetaData(joinUri('/weapi/personalized/playlist'), data: params, options: joinOptions());
+  DioMetaData relatedPlayListDioMetaData(String songId) {
+    return DioMetaData(joinUri('/playlist?id=$songId'), options: joinOptions(userAgent: UserAgent.Pc));
   }
 
   /// 推荐歌单
@@ -122,9 +111,9 @@ mixin ApiPlay {
       return PersonalizedPlayListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData recommendPlaylistDioMetaData() {
-    return DioMetaData(joinUri('/weapi/v1/discovery/recommend/resource'), data: {}, options: joinOptions());
+  DioMetaData personalizedPlaylistDioMetaData({int offset = 0, int limit = 30}) {
+    var params = {'limit': limit, 'offset': offset, 'n': 1000};
+    return DioMetaData(joinUri('/weapi/personalized/playlist'), data: params, options: joinOptions());
   }
 
   /// 每日推荐歌单
@@ -134,10 +123,8 @@ mixin ApiPlay {
       return RecommendPlayListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData playmodeIntelligenceListDioMetaData(String songId, String playlistId, {String? startMusicId, int count = 1}) {
-    var params = {'songId': songId, 'type': 'fromPlayOne', 'playlistId': playlistId, 'startMusicId': startMusicId ?? songId, 'count': count};
-    return DioMetaData(joinUri('/weapi/playmode/intelligence/list'), data: params, options: joinOptions());
+  DioMetaData recommendPlaylistDioMetaData() {
+    return DioMetaData(joinUri('/weapi/v1/discovery/recommend/resource'), data: {}, options: joinOptions());
   }
 
   /// 心动模式/智能播放
@@ -149,10 +136,9 @@ mixin ApiPlay {
       return PlaymodeIntelligenceListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData playListSimiListDioMetaData(String songId, {int offset = 0, int limit = 30}) {
-    var params = {'songid': songId, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/discovery/simiPlaylist'), data: params, options: joinOptions());
+  DioMetaData playmodeIntelligenceListDioMetaData(String songId, String playlistId, {String? startMusicId, int count = 1}) {
+    var params = {'songId': songId, 'type': 'fromPlayOne', 'playlistId': playlistId, 'startMusicId': startMusicId ?? songId, 'count': count};
+    return DioMetaData(joinUri('/weapi/playmode/intelligence/list'), data: params, options: joinOptions());
   }
 
   /// 相似歌单
@@ -162,10 +148,9 @@ mixin ApiPlay {
       return MultiPlayListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData playListDetailDioMetaData(String categoryId, {int subCount = 5}) {
-    var params = {'id': categoryId, 'n': 1000, 's': '$subCount', 'shareUserId': '0'};
-    return DioMetaData(Uri.parse('https://music.163.com/api/v6/playlist/detail'), data: params, options: joinOptions());
+  DioMetaData playListSimiListDioMetaData(String songId, {int offset = 0, int limit = 30}) {
+    var params = {'songid': songId, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/weapi/discovery/simiPlaylist'), data: params, options: joinOptions());
   }
 
   /// 歌单详情
@@ -176,10 +161,9 @@ mixin ApiPlay {
       return SinglePlayListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData playListDetailDynamicDioMetaData(String playlistId, {int subCount = 8}) {
-    var params = {'id': playlistId, 'n': 1000, 's': '$subCount'};
-    return DioMetaData(joinUri('/api/playlist/detail/dynamic'), data: params, options: joinOptions(userAgent: UserAgent.Pc, cookies: {'os': 'android'}));
+  DioMetaData playListDetailDioMetaData(String categoryId, {int subCount = 5}) {
+    var params = {'id': categoryId, 'n': 1000, 's': '$subCount', 'shareUserId': '0'};
+    return DioMetaData(Uri.parse('https://music.163.com/api/v6/playlist/detail'), data: params, options: joinOptions());
   }
 
   /// 歌单详情 获取歌单详情动态部分,如评论数,是否收藏,播放数
@@ -188,16 +172,9 @@ mixin ApiPlay {
       return PlayListDetailDynamicWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData categorySongListDioMetaData({
-    String category = '全部',
-    String order = 'hot',
-    int offset = 0,
-    int limit = 30,
-    bool total = true,
-  }) {
-    var params = {'cat': category, 'order': order, 'total': total, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/playlist/list'), data: params, options: joinOptions());
+  DioMetaData playListDetailDynamicDioMetaData(String playlistId, {int subCount = 8}) {
+    var params = {'id': playlistId, 'n': 1000, 's': '$subCount'};
+    return DioMetaData(joinUri('/api/playlist/detail/dynamic'), data: params, options: joinOptions(userAgent: UserAgent.Pc, cookies: {'os': 'android'}));
   }
 
   /// 分类歌单歌曲列表
@@ -214,10 +191,18 @@ mixin ApiPlay {
       return MultiPlayListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData recommendSongListDioMetaData() {
-    return DioMetaData(joinUri('/api/v3/discovery/recommend/songs'), data: {}, options: joinOptions(cookies: {'os': 'ios'}));
+  DioMetaData categorySongListDioMetaData({
+    String category = '全部',
+    String order = 'hot',
+    int offset = 0,
+    int limit = 30,
+    bool total = true,
+  }) {
+    var params = {'cat': category, 'order': order, 'total': total, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/weapi/playlist/list'), data: params, options: joinOptions());
   }
+
+
 
   /// 推荐音乐列表
   /// !需要登录
@@ -226,9 +211,8 @@ mixin ApiPlay {
       return RecommendSongListWrapX.fromJson(value.data);
     });
   }
-
-  DioMetaData recommendSongListHistoryDioMetaData() {
-    return DioMetaData(joinUri('/api/discovery/recommend/songs/history/recent'), data: {}, options: joinOptions(cookies: {'os': 'ios'}));
+  DioMetaData recommendSongListDioMetaData() {
+    return DioMetaData(joinUri('/api/v3/discovery/recommend/songs'), data: {}, options: joinOptions(cookies: {'os': 'ios'}));
   }
 
   /// 历史推荐音乐列表 可用日期列表
@@ -238,10 +222,8 @@ mixin ApiPlay {
       return RecommendSongListHistoryWrapX.fromJson(value.data);
     });
   }
-
-  DioMetaData recommendSongListHistoryDetailDioMetaData({String date = ''}) {
-    var params = {'date': date};
-    return DioMetaData(joinUri('/api/discovery/recommend/songs/history/detail'), data: params, options: joinOptions(cookies: {'os': 'ios'}));
+  DioMetaData recommendSongListHistoryDioMetaData() {
+    return DioMetaData(joinUri('/api/discovery/recommend/songs/history/recent'), data: {}, options: joinOptions(cookies: {'os': 'ios'}));
   }
 
   /// 历史推荐音乐列表 详细音乐列表数据
@@ -251,7 +233,18 @@ mixin ApiPlay {
       return RecommendSongListHistoryWrapX.fromJson(value.data);
     });
   }
+  DioMetaData recommendSongListHistoryDetailDioMetaData({String date = ''}) {
+    var params = {'date': date};
+    return DioMetaData(joinUri('/api/discovery/recommend/songs/history/detail'), data: params, options: joinOptions(cookies: {'os': 'ios'}));
+  }
 
+  /// 云贝推歌
+  /// !需要登录
+  Future<ServerStatusBean> yunbeiRecommendSong(String songId, {String reason = '好歌献给你', String fromUserId = '-1'}) {
+    return Https.dioProxy.postUri(yunbeiRecommendSongDioMetaData(songId, reason: reason, fromUserId: fromUserId)).then((Response value) {
+      return ServerStatusBean.fromJson(value.data);
+    });
+  }
   DioMetaData yunbeiRecommendSongDioMetaData(String songId, {String reason = '好歌献给你', String fromUserId = '-1'}) {
     return DioMetaData(joinUri('/weapi/yunbei/rcmd/song/submit'),
         data: {
@@ -263,14 +256,13 @@ mixin ApiPlay {
         options: joinOptions());
   }
 
-  /// 云贝推歌
+  /// 云贝推歌历史记录
   /// !需要登录
-  Future<ServerStatusBean> yunbeiRecommendSong(String songId, {String reason = '好歌献给你', String fromUserId = '-1'}) {
-    return Https.dioProxy.postUri(yunbeiRecommendSongDioMetaData(songId, reason: reason, fromUserId: fromUserId)).then((Response value) {
+  Future<ServerStatusBean> yunbeiRecommendSongHistoryList({int size = 20, String cursor = ''}) {
+    return Https.dioProxy.postUri(yunbeiRecommendSongHistoryListDioMetaData(size: size, cursor: cursor)).then((Response value) {
       return ServerStatusBean.fromJson(value.data);
     });
   }
-
   DioMetaData yunbeiRecommendSongHistoryListDioMetaData({int size = 20, String cursor = ''}) {
     return DioMetaData(joinUri('/weapi/yunbei/rcmd/song/history/list'),
         data: {
@@ -280,18 +272,6 @@ mixin ApiPlay {
         options: joinOptions());
   }
 
-  /// 云贝推歌历史记录
-  /// !需要登录
-  Future<ServerStatusBean> yunbeiRecommendSongHistoryList({int size = 20, String cursor = ''}) {
-    return Https.dioProxy.postUri(yunbeiRecommendSongHistoryListDioMetaData(size: size, cursor: cursor)).then((Response value) {
-      return ServerStatusBean.fromJson(value.data);
-    });
-  }
-
-  DioMetaData userRadioDioMetaData() {
-    return DioMetaData(joinUri('/weapi/v1/radio/get'), data: {}, options: joinOptions());
-  }
-
   /// 私人FM
   /// !需要登录
   Future<SongListWrap2> userRadio() {
@@ -299,10 +279,8 @@ mixin ApiPlay {
       return SongListWrap2.fromJson(value.data);
     });
   }
-
-  DioMetaData userRadioTrashDioMetaData(String songId, {int time = 3, String alg = 'RT'}) {
-    var params = {'songId': songId};
-    return DioMetaData(joinUri('/weapi/radio/trash/add?alg=$alg&songId=$songId&time=$time'), data: params, options: joinOptions());
+  DioMetaData userRadioDioMetaData() {
+    return DioMetaData(joinUri('/weapi/v1/radio/get'), data: {}, options: joinOptions());
   }
 
   /// 私人FM 垃圾桶
@@ -312,10 +290,9 @@ mixin ApiPlay {
       return SongListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData personalizedSongListDioMetaData() {
-    var params = {'type': 'recommend'};
-    return DioMetaData(joinUri('/api/personalized/newsong'), data: params, options: joinOptions(cookies: {'os': 'pc'}));
+  DioMetaData userRadioTrashDioMetaData(String songId, {int time = 3, String alg = 'RT'}) {
+    var params = {'songId': songId};
+    return DioMetaData(joinUri('/weapi/radio/trash/add?alg=$alg&songId=$songId&time=$time'), data: params, options: joinOptions());
   }
 
   /// 推荐新歌
@@ -324,10 +301,9 @@ mixin ApiPlay {
       return PersonalizedSongListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData newSongListDioMetaData({String areaId = '0'}) {
-    var params = {'areaId': areaId, 'total': true};
-    return DioMetaData(joinUri('/weapi/v1/discovery/new/songs'), data: params, options: joinOptions());
+  DioMetaData personalizedSongListDioMetaData() {
+    var params = {'type': 'recommend'};
+    return DioMetaData(joinUri('/api/personalized/newsong'), data: params, options: joinOptions(cookies: {'os': 'pc'}));
   }
 
   /// 新歌速递
@@ -337,10 +313,9 @@ mixin ApiPlay {
       return SongListWrap2.fromJson(value.data);
     });
   }
-
-  DioMetaData userSongSimiListDioMetaData(String songId) {
-    var params = {'songid': songId};
-    return DioMetaData(joinUri('/weapi/discovery/simiUser'), data: params, options: joinOptions());
+  DioMetaData newSongListDioMetaData({String areaId = '0'}) {
+    var params = {'areaId': areaId, 'total': true};
+    return DioMetaData(joinUri('/weapi/v1/discovery/new/songs'), data: params, options: joinOptions());
   }
 
   /// 最近5个听了这首歌的用户
@@ -349,10 +324,9 @@ mixin ApiPlay {
       return UserListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData songSimiListDioMetaData(String songId, {int offset = 0, int limit = 30}) {
-    var params = {'songid': songId, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/v1/discovery/simiSong'), data: params, options: joinOptions());
+  DioMetaData userSongSimiListDioMetaData(String songId) {
+    var params = {'songid': songId};
+    return DioMetaData(joinUri('/weapi/discovery/simiUser'), data: params, options: joinOptions());
   }
 
   /// 相似mv
@@ -361,10 +335,9 @@ mixin ApiPlay {
       return SongListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData likeSongListDioMetaData(String userId) {
-    var params = {'uid': userId};
-    return DioMetaData(joinUri('/weapi/song/like/get'), data: params, options: joinOptions());
+  DioMetaData songSimiListDioMetaData(String songId, {int offset = 0, int limit = 30}) {
+    var params = {'songid': songId, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/weapi/v1/discovery/simiSong'), data: params, options: joinOptions());
   }
 
   /// 喜欢的歌曲(无序)
@@ -373,10 +346,9 @@ mixin ApiPlay {
       return LikeSongListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData cloudSongDioMetaData({int offset = 0, int limit = 30}) {
-    var params = {'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/v1/cloud/get'), data: params, options: joinOptions());
+  DioMetaData likeSongListDioMetaData(String userId) {
+    var params = {'uid': userId};
+    return DioMetaData(joinUri('/weapi/song/like/get'), data: params, options: joinOptions());
   }
 
   /// 获取云盘?音乐?
@@ -386,10 +358,9 @@ mixin ApiPlay {
       return CloudSongListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData cloudSongDetailDioMetaData(List<String> songIds) {
-    var params = {'songIds': songIds};
-    return DioMetaData(joinUri('/weapi/v1/cloud/get/byids'), data: params, options: joinOptions());
+  DioMetaData cloudSongDioMetaData({int offset = 0, int limit = 30}) {
+    var params = {'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/weapi/v1/cloud/get'), data: params, options: joinOptions());
   }
 
   /// 获取云盘?音乐?详情
@@ -399,10 +370,9 @@ mixin ApiPlay {
       return ServerStatusBean.fromJson(value.data);
     });
   }
-
-  DioMetaData cloudSongDeleteDioMetaData(List<String> songIds) {
+  DioMetaData cloudSongDetailDioMetaData(List<String> songIds) {
     var params = {'songIds': songIds};
-    return DioMetaData(joinUri('/weapi/cloud/del'), data: params, options: joinOptions());
+    return DioMetaData(joinUri('/weapi/v1/cloud/get/byids'), data: params, options: joinOptions());
   }
 
   /// 删除云盘?音乐?
@@ -412,14 +382,9 @@ mixin ApiPlay {
       return CloudSongListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData cloudUserSongMatchDioMetaData(String userId, String songId, String adjustSongId) {
-    var params = {
-      'userId': userId,
-      'songId': songId,
-      'adjustSongId': adjustSongId,
-    };
-    return DioMetaData(joinUri('/api/cloud/user/song/match'), data: params, options: joinOptions(cookies: {'os': 'ios', 'appver': '8.0.00'}));
+  DioMetaData cloudSongDeleteDioMetaData(List<String> songIds) {
+    var params = {'songIds': songIds};
+    return DioMetaData(joinUri('/weapi/cloud/del'), data: params, options: joinOptions());
   }
 
   /// 云盘歌曲信息匹配纠正,如需取消匹配,adjustSongId需要传0
@@ -430,7 +395,21 @@ mixin ApiPlay {
       return ServerStatusBean.fromJson(value.data);
     });
   }
+  DioMetaData cloudUserSongMatchDioMetaData(String userId, String songId, String adjustSongId) {
+    var params = {
+      'userId': userId,
+      'songId': songId,
+      'adjustSongId': adjustSongId,
+    };
+    return DioMetaData(joinUri('/api/cloud/user/song/match'), data: params, options: joinOptions(cookies: {'os': 'ios', 'appver': '8.0.00'}));
+  }
 
+  /// 歌曲 红心与取消红心
+  Future<ServerStatusBean> likeSong(String songId, bool like, {int time = 3, String alg = 'itembased'}) {
+    return Https.dioProxy.postUri(likeSongDioMetaData(songId, like, time: time, alg: alg)).then((Response value) {
+      return ServerStatusBean.fromJson(value.data);
+    });
+  }
   DioMetaData likeSongDioMetaData(String songId, bool like, {int time = 3, String alg = 'itembased'}) {
     var params = {'trackId': songId, 'like': like};
     return DioMetaData(joinUri('/weapi/radio/like?alg=$alg&trackId=$songId&time=$time'),
@@ -441,26 +420,11 @@ mixin ApiPlay {
         ));
   }
 
-  /// 歌曲 红心与取消红心
-  Future<ServerStatusBean> likeSong(String songId, bool like, {int time = 3, String alg = 'itembased'}) {
-    return Https.dioProxy.postUri(likeSongDioMetaData(songId, like, time: time, alg: alg)).then((Response value) {
-      return ServerStatusBean.fromJson(value.data);
-    });
-  }
-
   /// 听歌打卡
   /// [id] 歌单或专辑 id
   /// [time] 歌曲播放时间,单位为秒
   Future<ServerStatusBean> punchSong(String songId, String id, {int time = 0}) {
     return NeteaseMusicApi().weblog(songId, id, 'play', 'song', 'playend');
-  }
-
-  DioMetaData songDetailDioMetaData(List<String> songIds) {
-    var params = {
-      // 'ids': songIds,
-      'c': songIds.map((e) => jsonEncode({'id': e})).toList()
-    };
-    return DioMetaData(joinUri('/api/v3/song/detail'), data: params, options: joinOptions());
   }
 
   /// 音乐详情
@@ -469,11 +433,12 @@ mixin ApiPlay {
       return SongDetailWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData songUrlDioMetaData(List<String> songIds, {int br = 999000}) {
-    var params = {'ids': songIds, 'br': br};
-    return DioMetaData(Uri.parse('https://interface3.music.163.com/eapi/song/enhance/player/url'),
-        data: params, options: joinOptions(encryptType: EncryptType.EApi, cookies: {'os': 'pc'}, eApiUrl: '/api/song/enhance/player/url'));
+  DioMetaData songDetailDioMetaData(List<String> songIds) {
+    var params = {
+      // 'ids': songIds,
+      'c': songIds.map((e) => jsonEncode({'id': e})).toList()
+    };
+    return DioMetaData(joinUri('/api/v3/song/detail'), data: params, options: joinOptions());
   }
 
   /// 音乐url
@@ -486,15 +451,10 @@ mixin ApiPlay {
       return SongUrlListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData songDownloadUrlDioMetaData(List<String> songIds, {String level = 'exhigh'}) {
-    var params = {
-      'ids': songIds,
-      'level': level,
-      'encodeType': 'flac',
-    };
-    return DioMetaData(Uri.parse('https://interface.music.163.com/eapi/song/enhance/player/url/v1'),
-        data: params, options: joinOptions(encryptType: EncryptType.EApi, eApiUrl: '/api/song/enhance/player/url/v1'));
+  DioMetaData songUrlDioMetaData(List<String> songIds, {int br = 999000}) {
+    var params = {'ids': songIds, 'br': br};
+    return DioMetaData(Uri.parse('https://interface3.music.163.com/eapi/song/enhance/player/url'),
+        data: params, options: joinOptions(encryptType: EncryptType.EApi, cookies: {'os': 'pc'}, eApiUrl: '/api/song/enhance/player/url'));
   }
 
   /// 音乐url
@@ -507,10 +467,14 @@ mixin ApiPlay {
       return SongUrlListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData songLyricDioMetaData(String songId) {
-    var params = {'id': songId, 'lv': -1, 'kv': -1, 'tv': -1};
-    return DioMetaData(joinUri('/api/song/lyric'), data: params, options: joinOptions(encryptType: EncryptType.WeApi, cookies: {'os': 'pc'}));
+  DioMetaData songDownloadUrlDioMetaData(List<String> songIds, {String level = 'exhigh'}) {
+    var params = {
+      'ids': songIds,
+      'level': level,
+      'encodeType': 'flac',
+    };
+    return DioMetaData(Uri.parse('https://interface.music.163.com/eapi/song/enhance/player/url/v1'),
+        data: params, options: joinOptions(encryptType: EncryptType.EApi, eApiUrl: '/api/song/enhance/player/url/v1'));
   }
 
   /// 音乐歌词
@@ -519,10 +483,9 @@ mixin ApiPlay {
       return SongLyricWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData songAvailableCheckDioMetaData(List<String> songIds, {int br = 999000}) {
-    var params = {'ids': songIds, 'br': br};
-    return DioMetaData(joinUri('/weapi/song/enhance/player/url'), data: params, options: joinOptions());
+  DioMetaData songLyricDioMetaData(String songId) {
+    var params = {'id': songId, 'lv': -1, 'kv': -1, 'tv': -1};
+    return DioMetaData(joinUri('/api/song/lyric'), data: params, options: joinOptions(encryptType: EncryptType.WeApi, cookies: {'os': 'pc'}));
   }
 
   /// 音乐是否可用
@@ -533,10 +496,9 @@ mixin ApiPlay {
       return SongUrlListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistListDioMetaData(int initial, {int offset = 0, int limit = 30, bool total = true, int type = 1, int area = -1}) {
-    var params = {'initial': initial, 'type': type, 'area': area, 'total': total, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/api/v1/artist/list'), data: params, options: joinOptions());
+  DioMetaData songAvailableCheckDioMetaData(List<String> songIds, {int br = 999000}) {
+    var params = {'ids': songIds, 'br': br};
+    return DioMetaData(joinUri('/weapi/song/enhance/player/url'), data: params, options: joinOptions());
   }
 
   /// 分类 歌手列表
@@ -548,10 +510,9 @@ mixin ApiPlay {
       return ArtistsListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData topArtistDioMetaData({int offset = 0, int limit = 30, bool total = true}) {
-    var params = {'total': total, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/artist/top'), data: params, options: joinOptions());
+  DioMetaData artistListDioMetaData(int initial, {int offset = 0, int limit = 30, bool total = true, int type = 1, int area = -1}) {
+    var params = {'initial': initial, 'type': type, 'area': area, 'total': total, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/api/v1/artist/list'), data: params, options: joinOptions());
   }
 
   /// 热门歌手
@@ -560,10 +521,9 @@ mixin ApiPlay {
       return ArtistsListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistTopListDioMetaData({int type = 1, int offset = 0, int limit = 30, bool total = true}) {
-    var params = {'type': type, 'total': total, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/toplist/artist'), data: params, options: joinOptions());
+  DioMetaData topArtistDioMetaData({int offset = 0, int limit = 30, bool total = true}) {
+    var params = {'total': total, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/weapi/artist/top'), data: params, options: joinOptions());
   }
 
   /// 歌手排行榜
@@ -573,10 +533,9 @@ mixin ApiPlay {
       return ArtistsTopListWrapX.fromJson(value.data);
     });
   }
-
-  DioMetaData artistSimiListDioMetaData(String artistId) {
-    var params = {'artistid': artistId};
-    return DioMetaData(joinUri('/weapi/discovery/simiArtist'), data: params, options: joinOptions());
+  DioMetaData artistTopListDioMetaData({int type = 1, int offset = 0, int limit = 30, bool total = true}) {
+    var params = {'type': type, 'total': total, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/weapi/toplist/artist'), data: params, options: joinOptions());
   }
 
   /// 相似歌手
@@ -585,10 +544,9 @@ mixin ApiPlay {
       return ArtistsListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistDescDioMetaData(String artistId) {
-    var params = {'id': artistId};
-    return DioMetaData(joinUri('/weapi/artist/introduction'), data: params, options: joinOptions());
+  DioMetaData artistSimiListDioMetaData(String artistId) {
+    var params = {'artistid': artistId};
+    return DioMetaData(joinUri('/weapi/discovery/simiArtist'), data: params, options: joinOptions());
   }
 
   /// 歌手介绍
@@ -597,10 +555,9 @@ mixin ApiPlay {
       return ArtistDescWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistDetailDioMetaData(String artistId) {
+  DioMetaData artistDescDioMetaData(String artistId) {
     var params = {'id': artistId};
-    return DioMetaData(joinUri('/api/artist/head/info/get'), data: params, options: joinOptions());
+    return DioMetaData(joinUri('/weapi/artist/introduction'), data: params, options: joinOptions());
   }
 
   /// 歌手详情
@@ -609,10 +566,9 @@ mixin ApiPlay {
       return ArtistDetailWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistTopSongListDioMetaData(String artistId) {
+  DioMetaData artistDetailDioMetaData(String artistId) {
     var params = {'id': artistId};
-    return DioMetaData(joinUri('/api/artist/top/song'), data: params, options: joinOptions());
+    return DioMetaData(joinUri('/api/artist/head/info/get'), data: params, options: joinOptions());
   }
 
   /// 歌手热门50首歌曲
@@ -621,17 +577,9 @@ mixin ApiPlay {
       return ArtistSongListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistALLSongListDioMetaData(
-    String artistId, {
-    bool privateCloud = true,
-    int workType = 1,
-    order = 'hot',
-    int offset = 0,
-    int limit = 100,
-  }) {
-    var params = {'id': artistId, 'private_cloud': privateCloud, 'work_type': workType, 'order': order, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/api/v1/artist/songs'), data: params, options: joinOptions());
+  DioMetaData artistTopSongListDioMetaData(String artistId) {
+    var params = {'id': artistId};
+    return DioMetaData(joinUri('/api/artist/top/song'), data: params, options: joinOptions());
   }
 
   /// 歌手全部歌曲
@@ -648,10 +596,16 @@ mixin ApiPlay {
       return ArtistSongListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistFollowedNewSongListDioMetaData({int before = 0, int limit = 20}) {
-    var params = {'limit': limit, 'startTimestamp': before};
-    return DioMetaData(joinUri('/api/sub/artist/new/works/song/list'), data: params, options: joinOptions(cookies: {'os': 'ios', 'appver': '8.0.00'}));
+  DioMetaData artistALLSongListDioMetaData(
+      String artistId, {
+        bool privateCloud = true,
+        int workType = 1,
+        order = 'hot',
+        int offset = 0,
+        int limit = 100,
+      }) {
+    var params = {'id': artistId, 'private_cloud': privateCloud, 'work_type': workType, 'order': order, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/api/v1/artist/songs'), data: params, options: joinOptions());
   }
 
   /// 已关注的歌手新歌曲
@@ -661,9 +615,9 @@ mixin ApiPlay {
       return ArtistNewSongListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistDetailAndSongListDioMetaData(String artistId) {
-    return DioMetaData(joinUri('/weapi/v1/artist/$artistId'), data: {}, options: joinOptions());
+  DioMetaData artistFollowedNewSongListDioMetaData({int before = 0, int limit = 20}) {
+    var params = {'limit': limit, 'startTimestamp': before};
+    return DioMetaData(joinUri('/api/sub/artist/new/works/song/list'), data: params, options: joinOptions(cookies: {'os': 'ios', 'appver': '8.0.00'}));
   }
 
   /// 歌手信息+歌曲
@@ -672,15 +626,8 @@ mixin ApiPlay {
       return ArtistDetailAndSongListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData allMvListDioMetaData({String area = '全部', String type = '全部', String order = '上升最快', int offset = 0, int limit = 30, bool total = true}) {
-    var params = {
-      'tags': jsonEncode({'地区': area, '类型': type, '排序': order}),
-      'total': total,
-      'limit': limit,
-      'offset': offset
-    };
-    return DioMetaData(Uri.parse('https://interface.music.163.com/api/mv/all'), data: params, options: joinOptions());
+  DioMetaData artistDetailAndSongListDioMetaData(String artistId) {
+    return DioMetaData(joinUri('/weapi/v1/artist/$artistId'), data: {}, options: joinOptions());
   }
 
   /// 全部MV
@@ -692,7 +639,23 @@ mixin ApiPlay {
       return MvListWrap2.fromJson(value.data);
     });
   }
+  DioMetaData allMvListDioMetaData({String area = '全部', String type = '全部', String order = '上升最快', int offset = 0, int limit = 30, bool total = true}) {
+    var params = {
+      'tags': jsonEncode({'地区': area, '类型': type, '排序': order}),
+      'total': total,
+      'limit': limit,
+      'offset': offset
+    };
+    return DioMetaData(Uri.parse('https://interface.music.163.com/api/mv/all'), data: params, options: joinOptions());
+  }
 
+  /// 最新MV
+  /// [area] 全部:'',内地,港台,欧美,日本,韩国  默认全部
+  Future<MvListWrap2> newestMvList({String area = '', int offset = 0, int limit = 30, bool total = true}) {
+    return Https.dioProxy.postUri(newestMvListDioMetaData(area: area, offset: offset, limit: limit, total: total)).then((Response value) {
+      return MvListWrap2.fromJson(value.data);
+    });
+  }
   DioMetaData topMvListDioMetaData({String area = '', int offset = 0, int limit = 30, bool total = true}) {
     var params = {'area': area, 'total': total, 'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/weapi/mv/toplist'), data: params, options: joinOptions());
@@ -711,28 +674,15 @@ mixin ApiPlay {
     return DioMetaData(Uri.parse('https://interface.music.163.com/weapi/mv/first'), data: params, options: joinOptions());
   }
 
-  /// 最新MV
-  /// [area] 全部:'',内地,港台,欧美,日本,韩国  默认全部
-  Future<MvListWrap2> newestMvList({String area = '', int offset = 0, int limit = 30, bool total = true}) {
-    return Https.dioProxy.postUri(newestMvListDioMetaData(area: area, offset: offset, limit: limit, total: total)).then((Response value) {
-      return MvListWrap2.fromJson(value.data);
-    });
-  }
-
-  DioMetaData neteaseMvListDioMetaData({int offset = 0, int limit = 30, bool total = true}) {
-    var params = {'total': total, 'limit': limit, 'offset': offset};
-    return DioMetaData(Uri.parse('https://interface.music.163.com/api/mv/exclusive/rcmd'), data: params, options: joinOptions());
-  }
-
   /// 网易出品MV
   Future<MvListWrap2> neteaseMvList({int offset = 0, int limit = 30, bool total = true}) {
     return Https.dioProxy.postUri(neteaseMvListDioMetaData(offset: offset, limit: limit, total: total)).then((Response value) {
       return MvListWrap2.fromJson(value.data);
     });
   }
-
-  DioMetaData personalizedMvListDioMetaData() {
-    return DioMetaData(joinUri('/weapi/personalized/mv'), data: {}, options: joinOptions());
+  DioMetaData neteaseMvListDioMetaData({int offset = 0, int limit = 30, bool total = true}) {
+    var params = {'total': total, 'limit': limit, 'offset': offset};
+    return DioMetaData(Uri.parse('https://interface.music.163.com/api/mv/exclusive/rcmd'), data: params, options: joinOptions());
   }
 
   /// 推荐MV
@@ -741,10 +691,8 @@ mixin ApiPlay {
       return PersonalizedMvListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistMvListDioMetaData(String artistId, {int offset = 0, int limit = 30, bool total = true}) {
-    var params = {'artistId': artistId, 'total': total, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/artist/mvs'), data: params, options: joinOptions());
+  DioMetaData personalizedMvListDioMetaData() {
+    return DioMetaData(joinUri('/weapi/personalized/mv'), data: {}, options: joinOptions());
   }
 
   /// 歌手MV列表
@@ -753,13 +701,9 @@ mixin ApiPlay {
       return ArtistMvListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistFollowedNewMvListDioMetaData({int before = 0, int limit = 20}) {
-    if (before == 0) {
-      before = DateTime.now().millisecondsSinceEpoch;
-    }
-    var params = {'limit': limit, 'startTimestamp': before};
-    return DioMetaData(joinUri('/api/sub/artist/new/works/mv/list'), data: params, options: joinOptions(cookies: {'os': 'ios', 'appver': '8.0.00'}));
+  DioMetaData artistMvListDioMetaData(String artistId, {int offset = 0, int limit = 30, bool total = true}) {
+    var params = {'artistId': artistId, 'total': total, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/weapi/artist/mvs'), data: params, options: joinOptions());
   }
 
   /// 已关注歌手新MV列表
@@ -769,10 +713,12 @@ mixin ApiPlay {
       return ArtistNewMvListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData mvSimiListDioMetaData(String mvId) {
-    var params = {'mvid': mvId};
-    return DioMetaData(joinUri('/weapi/discovery/simiMV'), data: params, options: joinOptions());
+  DioMetaData artistFollowedNewMvListDioMetaData({int before = 0, int limit = 20}) {
+    if (before == 0) {
+      before = DateTime.now().millisecondsSinceEpoch;
+    }
+    var params = {'limit': limit, 'startTimestamp': before};
+    return DioMetaData(joinUri('/api/sub/artist/new/works/mv/list'), data: params, options: joinOptions(cookies: {'os': 'ios', 'appver': '8.0.00'}));
   }
 
   /// 相似MV
@@ -781,11 +727,11 @@ mixin ApiPlay {
       return MvListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData mvDetailDioMetaData(String mvId) {
-    var params = {'id': mvId};
-    return DioMetaData(joinUri('/weapi/mv/detail'), data: params, options: joinOptions());
+  DioMetaData mvSimiListDioMetaData(String mvId) {
+    var params = {'mvid': mvId};
+    return DioMetaData(joinUri('/weapi/discovery/simiMV'), data: params, options: joinOptions());
   }
+
 
   /// MV详情
   Future<MvDetailWrap> mvDetail(String mvId) {
@@ -793,11 +739,11 @@ mixin ApiPlay {
       return MvDetailWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData mvDetailInfoDioMetaData(String mvId) {
-    var params = {'threadid': 'R_MV_5_$mvId', 'composeliked': true};
-    return DioMetaData(joinUri('/api/comment/commentthread/info'), data: params, options: joinOptions());
+  DioMetaData mvDetailDioMetaData(String mvId) {
+    var params = {'id': mvId};
+    return DioMetaData(joinUri('/weapi/mv/detail'), data: params, options: joinOptions());
   }
+
 
   /// MV 点赞转发评论数数据
   Future<MvDetailInfoWrap> mvDetailInfo(String mvId) {
@@ -805,11 +751,11 @@ mixin ApiPlay {
       return MvDetailInfoWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData mvUrlDioMetaData(String mvId, {int resolution = 1080}) {
-    var params = {'id': mvId, 'r': resolution};
-    return DioMetaData(joinUri('/weapi/song/enhance/play/mv/url'), data: params, options: joinOptions());
+  DioMetaData mvDetailInfoDioMetaData(String mvId) {
+    var params = {'threadid': 'R_MV_5_$mvId', 'composeliked': true};
+    return DioMetaData(joinUri('/api/comment/commentthread/info'), data: params, options: joinOptions());
   }
+
 
   /// MV链接
   Future<MvUrlWrap> mvUrl(String mvId, {int resolution = 1080}) {
@@ -817,11 +763,11 @@ mixin ApiPlay {
       return MvUrlWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData videoCategoryListDioMetaData({int offset = 0, int limit = 99, bool total = true}) {
-    var params = {'total': total, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/api/cloudvideo/category/list'), data: params, options: joinOptions());
+  DioMetaData mvUrlDioMetaData(String mvId, {int resolution = 1080}) {
+    var params = {'id': mvId, 'r': resolution};
+    return DioMetaData(joinUri('/weapi/song/enhance/play/mv/url'), data: params, options: joinOptions());
   }
+
 
   /// 视频分类列表
   Future<VideoMetaListWrap> videoCategoryList({int offset = 0, int limit = 99, bool total = true}) {
@@ -829,10 +775,11 @@ mixin ApiPlay {
       return VideoMetaListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData videoGroupListDioMetaData() {
-    return DioMetaData(joinUri('/api/cloudvideo/group/list'), data: {}, options: joinOptions());
+  DioMetaData videoCategoryListDioMetaData({int offset = 0, int limit = 99, bool total = true}) {
+    var params = {'total': total, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/api/cloudvideo/category/list'), data: params, options: joinOptions());
   }
+
 
   /// 视频标签列表
   Future<VideoMetaListWrap> videoGroupList() {
@@ -840,11 +787,10 @@ mixin ApiPlay {
       return VideoMetaListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData videoListByGroupDioMetaData(String groupId, {int offset = 0, bool total = true}) {
-    var params = {'groupId': groupId, 'offset': offset, 'need_preview_url': true, 'total': total};
-    return DioMetaData(joinUri('/api/videotimeline/videogroup/otherclient/get'), data: params, options: joinOptions());
+  DioMetaData videoGroupListDioMetaData() {
+    return DioMetaData(joinUri('/api/cloudvideo/group/list'), data: {}, options: joinOptions());
   }
+
 
   /// 视频标签下的视频
   /// groupId 从[videoGroupList]获取
@@ -853,11 +799,11 @@ mixin ApiPlay {
       return VideoListWrapX.fromJson(value.data);
     });
   }
-
-  DioMetaData videoListOtherDioMetaData(String groupId, {int offset = 0, bool total = true}) {
-    var params = {"groupId": 0, "offset": offset, "need_preview_url": 'true', "total": total};
-    return DioMetaData(joinUri('/api/videotimeline/otherclient/get'), data: params, options: joinOptions());
+  DioMetaData videoListByGroupDioMetaData(String groupId, {int offset = 0, bool total = true}) {
+    var params = {'groupId': groupId, 'offset': offset, 'need_preview_url': true, 'total': total};
+    return DioMetaData(joinUri('/api/videotimeline/videogroup/otherclient/get'), data: params, options: joinOptions());
   }
+
 
   /// 视频列表
   Future<VideoListWrapX> videoListOther(String groupId, {int offset = 0, bool total = true}) {
@@ -865,11 +811,11 @@ mixin ApiPlay {
       return VideoListWrapX.fromJson(value.data);
     });
   }
-
-  DioMetaData videoListDioMetaData({int offset = 0}) {
-    var params = {"offset": offset, "filterLives": '[]', "withProgramInfo": 'true', "needUrl": 'true', "resolution": '480'};
-    return DioMetaData(joinUri('/api/videotimeline/get'), data: params, options: joinOptions(encryptType: EncryptType.EApi, eApiUrl: '/api/videotimeline/get'));
+  DioMetaData videoListOtherDioMetaData(String groupId, {int offset = 0, bool total = true}) {
+    var params = {"groupId": 0, "offset": offset, "need_preview_url": 'true', "total": total};
+    return DioMetaData(joinUri('/api/videotimeline/otherclient/get'), data: params, options: joinOptions());
   }
+
 
   /// 视频列表
   Future<VideoListWrapX> videoList({int offset = 0}) {
@@ -877,11 +823,11 @@ mixin ApiPlay {
       return VideoListWrapX.fromJson(value.data);
     });
   }
-
-  DioMetaData relatedVideoListDioMetaData(String videoId) {
-    var params = {'id': videoId, 'type': RegExp(r'^\d+$').hasMatch(videoId) ? 0 : 1};
-    return DioMetaData(joinUri('/weapi/cloudvideo/v1/allvideo/rcmd'), data: params, options: joinOptions());
+  DioMetaData videoListDioMetaData({int offset = 0}) {
+    var params = {"offset": offset, "filterLives": '[]', "withProgramInfo": 'true', "needUrl": 'true', "resolution": '480'};
+    return DioMetaData(joinUri('/api/videotimeline/get'), data: params, options: joinOptions(encryptType: EncryptType.EApi, eApiUrl: '/api/videotimeline/get'));
   }
+
 
   /// 相关视频
   Future<VideoListWrap> relatedVideoList(String videoId) {
@@ -889,11 +835,11 @@ mixin ApiPlay {
       return VideoListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData videoDetailDioMetaData(String videoId) {
-    var params = {'id': videoId};
-    return DioMetaData(joinUri('/weapi/cloudvideo/v1/video/detail'), data: params, options: joinOptions());
+  DioMetaData relatedVideoListDioMetaData(String videoId) {
+    var params = {'id': videoId, 'type': RegExp(r'^\d+$').hasMatch(videoId) ? 0 : 1};
+    return DioMetaData(joinUri('/weapi/cloudvideo/v1/allvideo/rcmd'), data: params, options: joinOptions());
   }
+
 
   /// 视频详情
   Future<VideoDetailWrap> videoDetail(String videoId) {
@@ -901,11 +847,11 @@ mixin ApiPlay {
       return VideoDetailWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData videoDetailInfoDioMetaData(String videoId) {
-    var params = {'threadid': 'R_VI_62_$videoId', 'composeliked': true};
-    return DioMetaData(joinUri('/api/comment/commentthread/info'), data: params, options: joinOptions());
+  DioMetaData videoDetailDioMetaData(String videoId) {
+    var params = {'id': videoId};
+    return DioMetaData(joinUri('/weapi/cloudvideo/v1/video/detail'), data: params, options: joinOptions());
   }
+
 
   /// 视频点赞转发评论数数据
   Future<VideoDetailInfoWrap> videoDetailInfo(String videoId) {
@@ -913,11 +859,11 @@ mixin ApiPlay {
       return VideoDetailInfoWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData videoUrlDioMetaData(List<String> videoIds, {int resolution = 1080}) {
-    var params = {'ids': jsonEncode(videoIds), 'resolution': resolution};
-    return DioMetaData(joinUri('/weapi/cloudvideo/playurl'), data: params, options: joinOptions());
+  DioMetaData videoDetailInfoDioMetaData(String videoId) {
+    var params = {'threadid': 'R_VI_62_$videoId', 'composeliked': true};
+    return DioMetaData(joinUri('/api/comment/commentthread/info'), data: params, options: joinOptions());
   }
+
 
   /// 视频url
   Future<VideoUrlWrap> videoUrl(List<String> videoIds, {int resolution = 1080}) {
@@ -925,11 +871,11 @@ mixin ApiPlay {
       return VideoUrlWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData mlogMylikeDioMetaData({int time = -1, int limit = 12}) {
-    var params = {'time': time, 'limit': limit};
-    return DioMetaData(joinUri('/api/mlog/playlist/mylike/bytime/get'), data: params, options: joinOptions());
+  DioMetaData videoUrlDioMetaData(List<String> videoIds, {int resolution = 1080}) {
+    var params = {'ids': jsonEncode(videoIds), 'resolution': resolution};
+    return DioMetaData(joinUri('/weapi/cloudvideo/playurl'), data: params, options: joinOptions());
   }
+
 
   /// 获取点赞过的视频
   Future<MyLogMyLikeWrap> mlogMylike({int time = -1, int limit = 12}) {
@@ -937,11 +883,11 @@ mixin ApiPlay {
       return MyLogMyLikeWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData artistAlbumListDioMetaData(String artistId, {int offset = 0, int limit = 30, bool total = true}) {
-    var params = {'total': total, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/artist/albums/$artistId'), data: params, options: joinOptions());
+  DioMetaData mlogMylikeDioMetaData({int time = -1, int limit = 12}) {
+    var params = {'time': time, 'limit': limit};
+    return DioMetaData(joinUri('/api/mlog/playlist/mylike/bytime/get'), data: params, options: joinOptions());
   }
+
 
   /// 歌手专辑列表
   Future<ArtistAlbumListWrap> artistAlbumList(String artistId, {int offset = 0, int limit = 30, bool total = true}) {
@@ -949,11 +895,11 @@ mixin ApiPlay {
       return ArtistAlbumListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData newAlbumListDioMetaData({int offset = 0, int limit = 30, bool total = true}) {
+  DioMetaData artistAlbumListDioMetaData(String artistId, {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/album/new'), data: params, options: joinOptions());
+    return DioMetaData(joinUri('/weapi/artist/albums/$artistId'), data: params, options: joinOptions());
   }
+
 
   /// 新碟上架
   Future<AlbumListWrap> newAlbumList({int offset = 0, int limit = 30, bool total = true}) {
@@ -961,10 +907,9 @@ mixin ApiPlay {
       return AlbumListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData newAlbumListByAreaDioMetaData({String area = 'ALL', String type = "new", String year = "", String month = "", int offset = 0, int limit = 30}) {
-    var params = {'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/api/discovery/new/albums/area'), data: params, options: joinOptions());
+  DioMetaData newAlbumListDioMetaData({int offset = 0, int limit = 30, bool total = true}) {
+    var params = {'total': total, 'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/weapi/album/new'), data: params, options: joinOptions());
   }
 
   /// 新碟上架 筛选
@@ -977,38 +922,40 @@ mixin ApiPlay {
       return AlbumListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData newestAlbumListDioMetaData() {
-    return DioMetaData(joinUri('/api/discovery/newAlbum'), data: {}, options: joinOptions());
+  DioMetaData newAlbumListByAreaDioMetaData({String area = 'ALL', String type = "new", String year = "", String month = "", int offset = 0, int limit = 30}) {
+    var params = {'limit': limit, 'offset': offset};
+    return DioMetaData(joinUri('/api/discovery/new/albums/area'), data: params, options: joinOptions());
   }
 
   /// 最新专辑
   Future<AlbumListWrap> newestAlbumList() {
-    return Https.dioProxy.postUri(newestAlbumListDioMetaData()).then((Response value) {
+    return Https.dioProxy.postUri(_newestAlbumListDioMetaData()).then((Response value) {
       return AlbumListWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData albumDetailDioMetaData(String albumId) {
-    return DioMetaData(joinUri('/weapi/v1/album/$albumId'), data: {}, options: joinOptions());
+  DioMetaData _newestAlbumListDioMetaData() {
+    return DioMetaData(joinUri('/api/discovery/newAlbum'), data: {}, options: joinOptions());
   }
 
   /// 专辑详情
   Future<AlbumDetailWrap> albumDetail(String albumId) {
-    return Https.dioProxy.postUri(albumDetailDioMetaData(albumId)).then((Response value) {
+    return Https.dioProxy.postUri(_albumDetailDioMetaData(albumId)).then((Response value) {
       return AlbumDetailWrap.fromJson(value.data);
     });
   }
-
-  DioMetaData albumDetailDynamicDioMetaData(String albumId) {
-    var params = {'id': albumId};
-    return DioMetaData(joinUri('/api/album/detail/dynamic'), data: params, options: joinOptions());
+  DioMetaData _albumDetailDioMetaData(String albumId) {
+    return DioMetaData(joinUri('/weapi/v1/album/$albumId'), data: {}, options: joinOptions());
   }
 
   /// 专辑动态信息
   Future<AlbumDetailDynamicWrap> albumDetailDynamic(String albumId) {
-    return Https.dioProxy.postUri(albumDetailDynamicDioMetaData(albumId)).then((Response value) {
+    return Https.dioProxy.postUri(_albumDetailDynamicDioMetaData(albumId)).then((Response value) {
       return AlbumDetailDynamicWrap.fromJson(value.data);
     });
   }
+  DioMetaData _albumDetailDynamicDioMetaData(String albumId) {
+    var params = {'id': albumId};
+    return DioMetaData(joinUri('/api/album/detail/dynamic'), data: params, options: joinOptions());
+  }
+
 }

@@ -12,7 +12,6 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../common/constants/key.dart';
-import '../../common/storage.dart';
 import '../home/home_page_controller.dart';
 
 class ImageBlur extends StatefulWidget {

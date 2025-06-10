@@ -29,7 +29,7 @@ class CommentView extends GetView<HomePageController> {
                 )),
                 TextButton(
                     onPressed: () {
-                      context.router.push(const TalkView().copyWith(queryParams: {'id': controller.mediaItem.value.id, 'type': 'song','name':controller.mediaItem.value.title}));
+                      context.router.push(const TalkView().copyWith(queryParams: {'id': controller.curMediaItem.value.id, 'type': 'song','name':controller.curMediaItem.value.title}));
                     },
                     child: Obx(() => Text(
                       '查看更多>',
@@ -85,7 +85,7 @@ class CommentView extends GetView<HomePageController> {
         }),
       ),
       onTap: () {
-          context.router.push(const TalkView().copyWith(queryParams: {'id': controller.mediaItem.value.id, 'type': 'song','name':controller.mediaItem.value.title}));
+          context.router.push(const TalkView().copyWith(queryParams: {'id': controller.curMediaItem.value.id, 'type': 'song','name':controller.curMediaItem.value.title}));
       },
     );
   }

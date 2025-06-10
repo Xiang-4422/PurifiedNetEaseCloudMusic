@@ -13,7 +13,6 @@ import 'api/bean.dart';
 import 'api/dj/api.dart';
 import 'api/event/api.dart';
 import 'api/login/api.dart';
-import 'api/login/bean.dart';
 import 'api/play/api.dart';
 import 'api/search/api.dart';
 import 'api/uncategorized/api.dart';

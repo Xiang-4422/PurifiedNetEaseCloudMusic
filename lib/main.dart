@@ -1,5 +1,4 @@
 import 'package:audio_service/audio_service.dart';
-
 import 'package:bujuan/common/bujuan_audio_handler.dart';
 import 'package:bujuan/common/constants/platform_utils.dart';
 import 'package:bujuan/pages/user/personal_page_controller.dart';

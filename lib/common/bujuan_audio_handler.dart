@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
-
 import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -24,10 +24,15 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   final _player = GetIt.instance<AudioPlayer>();
   final Box _box = GetIt.instance<Box>();
   RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
+  /// 播放模式（none表示随机模式）
   AudioServiceRepeatMode _audioServiceRepeatMode = AudioServiceRepeatMode.all;
+  /// 当前播放列表
   final _playList = <MediaItem>[];
+  /// 随机打乱后的当前播放列表
   final _playListShut = <MediaItem>[];
-  int _curIndex = 0; // 播放列表索引
+  /// 播放列表索引
+  int _curIndex = -1;
+  
   bool playInterrupted = false;
   Timer? _sleepTimer;
 
@@ -41,7 +46,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   void _loadPlaylistByStorage() async {
     String repeatMode = _box.get(repeatModeSp, defaultValue: 'all');
     _audioServiceRepeatMode = AudioServiceRepeatMode.values.firstWhereOrNull((element) => element.name == repeatMode) ?? AudioServiceRepeatMode.all;
-    _curIndex = _box.get(playByIndex) ?? 0;
+     _updateCurIndex(_box.get(playByIndex) ?? 0);
     List<String> playList = _box.get(playQueue, defaultValue: <String>[]);
     if (playList.isNotEmpty) {
       List<MediaItem> items = await compute(getCachePlayList, RootIsolateData(rootIsolateToken, playlist: playList));
@@ -130,7 +135,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
       updateQueue(mediaItems);
       _box.put(fmSp, true);
     }
-    _curIndex = 0;
+    _updateCurIndex(0);
     _playList.addAll(mediaItems);
     if (isAddcurIndex) _curIndex++;
     if (!HomePageController.to.isFmMode.value) HomePageController.to.isFmMode.value = true;
@@ -159,7 +164,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
       HomePageController.to.isFmMode.value = false;
       _box.put(fmSp, false);
     }
-    _curIndex = index;
+    _updateCurIndex(index);
     _playList
       ..clear()
       ..addAll(list);
@@ -174,7 +179,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
       if (init) songId = _box.get(playById, defaultValue: '');
       int indexBy = _playListShut.indexWhere((element) => element.id == songId);
       if (indexBy != -1) {
-        _curIndex = indexBy;
+        _updateCurIndex(indexBy);
       }
     } else {
       await updateQueue(_playList);
@@ -196,7 +201,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   @override
   Future<void> playIndex(int index, {bool playIt = true}) async {
     // 接收到下标
-    _curIndex = index;
+    _updateCurIndex(index);
     _box.put(playByIndex, _curIndex);
     await readySongUrl(playIt: playIt);
   }
@@ -290,13 +295,13 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
 
   @override
   Future<void> skipToNext() async {
-    _setCurrIndex(next: true);
+    _updateCurIndexWhenSkip(isSkipToNext: true);
     print('下一首=======$_curIndex');
     await readySongUrl();
+
+    // 私人FM模式 最后一首切割拉取新的FM歌曲列表
     if (HomePageController.to.isFmMode.value) {
-      // 如果是私人fm
       if (_curIndex == queue.value.length - 1) {
-        // 判断如果是最后一首
         HomePageController.to.getFmSongList();
       }
     }
@@ -304,28 +309,10 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
 
   @override
   Future<void> skipToPrevious() async {
-    await stop();
-    _setCurrIndex();
+    _updateCurIndexWhenSkip();
     await readySongUrl(isNext: false);
   }
 
-  void _setCurrIndex({bool next = false}) {
-   if (_audioServiceRepeatMode == AudioServiceRepeatMode.one) return;
-
-  var list = _audioServiceRepeatMode == AudioServiceRepeatMode.none ? _playListShut : _playList;
-
-  // 计算新的索引值
-  _curIndex = next ? _curIndex + 1 : _curIndex - 1;
-
-  // 如果超出索引范围，循环到列表的开始或结尾
-  if (_curIndex >= list.length) {
-    _curIndex = 0;
-  } else if (_curIndex < 0) {
-    _curIndex = list.length - 1;
-  }
-
-  _box.put(playByIndex, _curIndex);
-  }
 
   @override
   Future<void> stop() async {
@@ -359,14 +346,15 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
       //none当作随机播放吧
       _playListShut
         ..clear()
+        ..clear()
         ..addAll(_playList)
         ..shuffle();
       int index = _playListShut.indexWhere((element) => element.id == m.id);
-      if (index != -1) _curIndex = index;
+      if (index != -1) _updateCurIndex(index);
       await updateQueue(_playListShut);
     } else {
       int index = _playList.indexWhere((element) => element.id == m.id);
-      if (index != -1) _curIndex = index;
+      if (index != -1) _updateCurIndex(index);
       await updateQueue(_playList);
     }
     _audioServiceRepeatMode = repeatMode;
@@ -378,6 +366,46 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   Future<void> onTaskRemoved() async {
     await stop();
     await _player.dispose();
+  }
+
+  void _updateCurIndexWhenSkip({bool isSkipToNext = false}) {
+    // 单曲循环模式直接返回
+    if (_audioServiceRepeatMode == AudioServiceRepeatMode.one) return;
+
+    var list = _audioServiceRepeatMode == AudioServiceRepeatMode.none
+        ? _playListShut
+        : _playList;
+
+    // 计算新的索引值
+    _updateCurIndex(isSkipToNext ? _curIndex + 1 : _curIndex - 1);
+
+    // 如果超出索引范围，循环到列表的开始或结尾
+    if (_curIndex >= list.length) {
+      _updateCurIndex(0);
+    } else if (_curIndex < 0) {
+      _updateCurIndex(list.length - 1);
+    }
+
+    _box.put(playByIndex, _curIndex);
+
+    if (HomePageController.to.panelOpened50.value) {
+      HomePageController.to.changeAppBarTitle(title: queue.value[_curIndex].title, subTitle: queue.value[_curIndex].artist ?? "", direction: isSkipToNext ? NewAppBarTitleComingDirection.right : NewAppBarTitleComingDirection.left);
+    }
+  }
+
+  void _updateCurIndex(int newIndex) {
+    if (_curIndex != newIndex) {
+      _curIndex = newIndex;
+      HomePageController.to.lastPlayIndex.value = HomePageController.to.curPlayIndex.value;
+      HomePageController.to.curPlayIndex.value = newIndex;
+      if (!HomePageController.to.isAlbumPageViewScrolling.value ) {
+        if((HomePageController.to.lastPlayIndex.value - HomePageController.to.curPlayIndex.value).abs() == 1) {
+          HomePageController.to.albumPageController.animateToPage(newIndex, duration: Duration(milliseconds: 500), curve: Curves.linear);
+        } else {
+          HomePageController.to.albumPageController.jumpToPage(newIndex);
+        }
+      }
+    }
   }
 }
 

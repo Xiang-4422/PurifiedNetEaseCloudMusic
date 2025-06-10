@@ -4,12 +4,11 @@ import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/pages/home/home_page_controller.dart';
-import 'package:bujuan/pages/home/view/panel_view.dart';
+import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
-import 'package:bujuan/routes/router.gr.dart';
 import 'package:get/get.dart';
 
 import '../../../common/netease_api/src/api/play/bean.dart';
@@ -29,9 +28,9 @@ class RecommendView extends GetView<HomePageController> {
       children: [
         Padding(padding: EdgeInsets.symmetric(vertical: 20.w)),
         ClipRRect(
-          borderRadius: BorderRadius.circular(controller.panelMobileMinSize / 2),
+          borderRadius: BorderRadius.circular(controller.panelAlbumMinSize / 2),
           child: Obx(() => SimpleExtendedImage(
-            '${HomePageController.to.mediaItem.value.extras?['image'] ?? ''}?param=500y500',
+            '${HomePageController.to.curMediaItem.value.extras?['image'] ?? ''}?param=500y500',
             width: 630.w,
             height: 630.w,
           )),
@@ -43,14 +42,14 @@ class RecommendView extends GetView<HomePageController> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Obx(() => Text(
-                controller.mediaItem.value.title.fixAutoLines(),
+                controller.curMediaItem.value.title,
                 style: TextStyle(fontSize: 38.sp, fontWeight: FontWeight.bold),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               )),
               Padding(padding: EdgeInsets.symmetric(vertical: 10.w)),
               Obx(() => Text(
-                (controller.mediaItem.value.artist ?? '').fixAutoLines(),
+                controller.curMediaItem.value.artist ?? '',
                 style: TextStyle(fontSize: 28.sp),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -64,13 +63,13 @@ class RecommendView extends GetView<HomePageController> {
         _buildSlide(context),
         // 功能按钮
         SizedBox(
-          height: controller.panelMobileMinSize + MediaQuery.of(context).padding.bottom,
+          height: controller.panelAlbumMinSize + MediaQuery.of(context).padding.bottom,
         ),
       ],
     )
         : Obx(() {
             return Visibility(
-              visible: controller.mediaItem.value.extras?['type'] != MediaType.local.name,
+              visible: controller.curMediaItem.value.extras?['type'] != MediaType.local.name,
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(horizontal: 50.w, vertical: 20.w),
                 child: Column(
@@ -138,7 +137,7 @@ class RecommendView extends GetView<HomePageController> {
           Obx(() => ProgressBar(
                 progress: controller.duration.value,
                 buffered: controller.duration.value,
-                total: controller.mediaItem.value.duration ?? const Duration(seconds: 10),
+                total: controller.curMediaItem.value.duration ?? const Duration(seconds: 10),
                 progressBarColor: Colors.transparent,
                 baseBarColor: Colors.transparent,
                 bufferedBarColor: Colors.transparent,
@@ -168,7 +167,7 @@ class RecommendView extends GetView<HomePageController> {
         children: [
           IconButton(
               onPressed: () => controller.likeSong(),
-              icon: Obx(() => Icon(controller.likeIds.contains(int.tryParse(controller.mediaItem.value.id)) ? TablerIcons.heartbeat : TablerIcons.heart, size: 46.w))),
+              icon: Obx(() => Icon(controller.likeIds.contains(int.tryParse(controller.curMediaItem.value.id)) ? TablerIcons.heartbeat : TablerIcons.heart, size: 46.w))),
           IconButton(
               onPressed: () {
                 if (controller.isFmMode.value) {
@@ -229,7 +228,7 @@ class RecommendView extends GetView<HomePageController> {
   Widget _buildArtistsList() {
     return SizedBox();
     return Obx(() {
-      return controller.mediaItem.value.extras!['artist'] != null?ListView.builder(
+      return controller.curMediaItem.value.extras!['artist'] != null?ListView.builder(
         itemBuilder: (context, index) => InkWell(
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 20.w),
@@ -237,7 +236,7 @@ class RecommendView extends GetView<HomePageController> {
               children: [
                 Expanded(
                     child: Text(
-                      (controller.mediaItem.value.extras!['artist']?.split(' / ').map((e) => Artists.fromJson(jsonDecode(e))).toList() ?? [])[index].name ?? '',
+                      (controller.curMediaItem.value.extras!['artist']?.split(' / ').map((e) => Artists.fromJson(jsonDecode(e))).toList() ?? [])[index].name ?? '',
                       maxLines: 1,
                       style: TextStyle(fontSize: 30.sp, color: controller.bodyColor.value),
                     )),
@@ -253,11 +252,11 @@ class RecommendView extends GetView<HomePageController> {
             controller.secondPanelController.close().then((value) {
               controller.firstPanelController.close();
               context.router.push(const ArtistsView()
-                  .copyWith(args: (controller.mediaItem.value.extras!['artist']?.split(' / ').map((e) => Artists.fromJson(jsonDecode(e))).toList() ?? [])[index]));
+                  .copyWith(args: (controller.curMediaItem.value.extras!['artist']?.split(' / ').map((e) => Artists.fromJson(jsonDecode(e))).toList() ?? [])[index]));
             });
           },
         ),
-        itemCount: (controller.mediaItem.value.extras!['artist']?.split(' / ').map((e) => Artists.fromJson(jsonDecode(e))).toList() ?? []).length,
+        itemCount: (controller.curMediaItem.value.extras!['artist']?.split(' / ').map((e) => Artists.fromJson(jsonDecode(e))).toList() ?? []).length,
         shrinkWrap: true,
         padding: const EdgeInsets.all(0),
         physics: const NeverScrollableScrollPhysics(),
@@ -269,18 +268,18 @@ class RecommendView extends GetView<HomePageController> {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 20.w),
       child: Obx(() {
-        if ((controller.mediaItem.value.extras?['album'] ?? '').isEmpty) return const SizedBox.shrink();
+        if ((controller.curMediaItem.value.extras?['album'] ?? '').isEmpty) return const SizedBox.shrink();
         return Row(
           children: [
             SimpleExtendedImage.avatar(
-              '${Album.fromJson(jsonDecode(controller.mediaItem.value.album ?? '')).picUrl ?? ''}?param=100y100',
+              '${Album.fromJson(jsonDecode(controller.curMediaItem.value.album ?? '')).picUrl ?? ''}?param=100y100',
               width: 60.w,
               height: 60.w,
             ),
             Padding(padding: EdgeInsets.symmetric(horizontal: 8.w)),
             Expanded(
                 child: Text(
-              Album.fromJson(jsonDecode(controller.mediaItem.value.album ?? '')).name ?? '',
+              Album.fromJson(jsonDecode(controller.curMediaItem.value.album ?? '')).name ?? '',
               maxLines: 1,
               style: TextStyle(fontSize: 30.sp, color: controller.bodyColor.value),
             )),

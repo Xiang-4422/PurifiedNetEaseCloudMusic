@@ -1,11 +1,8 @@
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 import '../common/constants/colors.dart';
 import '../pages/album/controller.dart';
@@ -60,8 +57,9 @@ class MyObserver extends AutoRouterObserver {
 
   _clearOrPutController(String name, {bool del = false}) {
     if (name.isEmpty) return;
+    print("XY4422" + name);
     switch (name) {
-      case 'AlbumView':
+      case 'CloudDriveView':
         del ? Get.delete<CloudController>() : Get.lazyPut<CloudController>(() => CloudController());
         break;
       case 'MainView':

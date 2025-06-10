@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/common/appConstants.dart';
 import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
@@ -21,115 +22,41 @@ class _TodayViewState extends State<TodayView> {
   DioMetaData recommendSongListDioMetaData() {
     return DioMetaData(joinUri('/api/v3/discovery/recommend/songs'), data: {}, options: joinOptions(cookies: {'os': 'ios'}));
   }
-
   final List<MediaItem> _mediaItem = [];
 
   @override
   Widget build(BuildContext context) {
-    return MyGetView(child: Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('每日'),
-        backgroundColor: Colors.transparent,
-      ),
-      body: RequestWidget<RecommendSongListWrapX>(
-          dioMetaData: recommendSongListDioMetaData(),
-          childBuilder: (playlist) {
-            _mediaItem
-              ..clear()
-              ..addAll(HomePageController.to.song2ToMedia((playlist.data.dailySongs ?? [])));
-            return ListView.builder(
-              itemExtent: 130.w,
-              itemBuilder: (context, index) => SongItem(
-                index: index,
-                mediaItem: _mediaItem[index],
-                onTap: () {
-                  HomePageController.to.playByIndex(index, 'queueTitle', mediaItem: _mediaItem);
-                },
-              ),
-              itemCount: _mediaItem.length,
-            );
-          }),
-    ));
+    return MyGetView(
+      child: Column(
+          children: [
+            Container(
+              height: AppDimensions.appBarHeight,
+            ),
+            Expanded(
+              child: RequestWidget<RecommendSongListWrapX>(
+                  dioMetaData: recommendSongListDioMetaData(),
+                  childBuilder: (playlist) {
+                    _mediaItem
+                      ..clear()
+                      ..addAll(HomePageController.to.song2ToMedia((playlist.data.dailySongs ?? [])));
+                    return ListView.builder(
+                      itemExtent: 130.w,
+                      itemBuilder: (context, index) => SongItem(
+                        index: index,
+                        mediaItem: _mediaItem[index],
+                        onTap: () {
+                          HomePageController.to.playByIndex(index, 'queueTitle', playList: _mediaItem);
+                        },
+                      ),
+                      itemCount: _mediaItem.length,
+                    );
+                  }),
+            ),
+            Container(
+              height: HomePageController.to.panelHeaderHeight,
+            ),
+          ],
+        ),
+    );
   }
-
-// Widget _buildItem(MediaItem data, int index) {
-//   return FrameSeparateWidget(
-//     index: index,
-//     child: InkWell(
-//       key: Key(data.id),
-//       child: Container(
-//         padding: EdgeInsets.symmetric(horizontal: 30.w),
-//         height: 120.w,
-//         child: Row(
-//           children: [
-//             Expanded(
-//                 child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 Text(
-//                   data.title,
-//                   maxLines: 1,
-//                   style: TextStyle(fontSize: 30.sp),
-//                 ),
-//                 Padding(padding: EdgeInsets.symmetric(vertical: 3.w)),
-//                 Text(
-//                   data.artist ?? '',
-//                   maxLines: 1,
-//                   style: TextStyle(fontSize: 24.sp, color: Colors.grey),
-//                 )
-//               ],
-//             )),
-//             Visibility(
-//               visible: (data.extras!['mv'] ?? 0) != 0,
-//               child: IconButton(
-//                   onPressed: () {
-//                     context.router.push(const MvView().copyWith(queryParams: {'mvId': data.extras?['mv'] ?? 0}));
-//                   },
-//                   icon: const Icon(
-//                     TablerIcons.brand_youtube,
-//                     color: Colors.grey,
-//                   )),
-//             ),
-//             Visibility(
-//               visible: index != null,
-//               replacement: IconButton(
-//                   onPressed: () {},
-//                   icon: const Icon(
-//                     TablerIcons.arrows_move_vertical,
-//                     color: Colors.grey,
-//                   )),
-//               child: IconButton(
-//                   onPressed: () {
-//                     showModalActionSheet(
-//                       context: context,
-//                       title: data.title,
-//                       message: data.artist,
-//                       actions: [const SheetAction<String>(label: '下一首播放', icon: TablerIcons.player_play, key: 'next')],
-//                     ).then((value) {
-//                       if (value != null) {
-//                         if (HomeController.to.audioServeHandler.playbackState.value.queueIndex != 0) {
-//                           HomeController.to.audioServeHandler.insertQueueItem(HomeController.to.audioServeHandler.playbackState.value.queueIndex! + 1, data);
-//                           WidgetUtil.showToast('已添加到下一曲');
-//                         } else {
-//                           WidgetUtil.showToast('未知错误');
-//                         }
-//                       }
-//                     });
-//                   },
-//                   icon: const Icon(
-//                     TablerIcons.dots_vertical,
-//                     color: Colors.grey,
-//                   )),
-//             ),
-//           ],
-//         ),
-//       ),
-//       onTap: () {
-//         HomeController.to.playByIndex(index, (context.routeData.args as Play).id, mediaItem: _mediaItem);
-//       },
-//     ),
-//   );
-// }
 }

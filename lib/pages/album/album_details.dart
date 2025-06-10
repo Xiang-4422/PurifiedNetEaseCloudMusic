@@ -23,7 +23,7 @@ class AlbumDetails extends GetView<AlbumController> {
       ),
       body: Obx(() => Visibility(visible:! controller.loading.value,replacement: const LoadingView(),child: ListView.builder(
         itemBuilder: (context, index) => SongItem(index: index, mediaItem: controller.mediaItems[index],onTap: (){
-          HomePageController.to.playByIndex(index, 'queueTitle',mediaItem: controller.mediaItems);
+          HomePageController.to.playByIndex(index, 'queueTitle',playList: controller.mediaItems);
         },),
         itemCount: controller.mediaItems.length,
         itemExtent: 130.w,

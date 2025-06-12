@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/pages/login/login.dart';
 import 'package:bujuan/pages/play_list/playlist_view.dart';
 import 'package:bujuan/pages/playlist_manager/playlist_mananger_binding.dart';
 import 'package:bujuan/pages/user/personal_page_controller.dart';
@@ -57,10 +58,14 @@ class PersonalPageView extends GetView<PersonalPageController> {
                             IconButton(
                               onPressed: () {
                                   if ((userItem.routes ?? '') == 'playFm') {
-                                    HomePageController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
-                                    HomePageController.to.audioServiceRepeatMode.value = AudioServiceRepeatMode.all;
-                                    HomePageController.to.box.put(repeatModeSp, AudioServiceRepeatMode.all.name);
-                                    HomePageController.to.getFmSongList();
+                                    if(HomePageController.to.isFmMode.value) {
+                                      // TODO YU4422 打开播放页面，避免重复加载
+                                    } else {
+                                      HomePageController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                      HomePageController.to.audioServiceRepeatMode.value = AudioServiceRepeatMode.all;
+                                      HomePageController.to.box.put(repeatModeSp, AudioServiceRepeatMode.all.name);
+                                      HomePageController.to.getFmSongList();
+                                    }
                                     return;
                                   }
                                   HomePageController.to.changeAppBarTitle(title: userItem.title, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
@@ -131,7 +136,8 @@ class PersonalPageView extends GetView<PersonalPageController> {
                       ),
                     ],
                   ),
-          ))),
+          ))
+      ),
     ));
   }
 
@@ -171,41 +177,34 @@ class PersonalPageView extends GetView<PersonalPageController> {
   Widget _buildMeInfo(context) {
     return GestureDetector(
       onTap: () => AutoRouter.of(context).pushNamed(Routes.login),
-      child: GestureDetector(
-        child: Container(
-          padding: EdgeInsets.only(left: 30.w, top: 30.w, right: 30.w),
-          margin: EdgeInsets.only(bottom: 16.w, top: 120.w),
-          height: 240.w,
-          child: Stack(
-            alignment: Alignment.centerRight,
-            children: [
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Hi', style: TextStyle(fontSize: 52.sp, color: Colors.grey, fontWeight: FontWeight.bold)),
-                    Padding(padding: EdgeInsets.symmetric(vertical: 8.w)),
-                    Obx(() =>
-                        Text('${HomePageController.to.loginStatus.value == LoginStatus.login
-                            ? HomePageController.to.userData.value.profile?.nickname
-                            : '请登录'}～',
-                            style: TextStyle(fontSize: 52.sp,
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.bold))),
-                  ],
-                ),
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        padding: EdgeInsets.only(left: 30.w, top: 30.w, right: 30.w),
+        margin: EdgeInsets.only(bottom: 16.w, top: 120.w),
+        child: Stack(
+          alignment: Alignment.centerRight,
+          children: [
+            SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Hi', style: TextStyle(fontSize: 52.sp, color: Colors.grey, fontWeight: FontWeight.bold)),
+                  Padding(padding: EdgeInsets.symmetric(vertical: 8.w)),
+                  Obx(() =>
+                      Text('${HomePageController.to.loginStatus.value == LoginStatus.login
+                          ? HomePageController.to.userData.value.profile?.nickname
+                          : '请登录'}～',
+                          style: TextStyle(fontSize: 52.sp,
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.bold))),
+                ],
               ),
-            ],
-          ),
-      ),
-        onTap: () {
-          if (HomePageController.to.loginStatus.value == LoginStatus.login) {
-            return;
-          }
-          AutoRouter.of(context).pushNamed(Routes.login);
-        },
-          ),
+            ),
+          ],
+        ),
+            ),
     );
   }
 }

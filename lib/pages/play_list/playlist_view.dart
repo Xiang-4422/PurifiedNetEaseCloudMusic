@@ -51,7 +51,7 @@ class PlayListView extends GetView<PlayListController> {
                           addRepaintBoundaries: false),
                       itemExtent: 130.w,
                     )),
-                SliverPadding(padding: EdgeInsets.only(bottom: HomePageController.to.panelHeaderHeight),),
+                const SliverPadding(padding: EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight),),
               ],
             ),
           ),)
@@ -84,8 +84,10 @@ class PlayListView extends GetView<PlayListController> {
                 IconButton(onPressed: () => controller.subscribePlayList(), icon: Obx(() => Icon(controller.sub.value ? TablerIcons.hearts : TablerIcons.heart))),
                 IconButton(
                     onPressed: () {
-                      context.router.push(const gr.TalkView()
-                          .copyWith(queryParams: {'id': (context.routeData.args as Play).id, 'type': 'playlist', 'name': (context.routeData.args as Play).name}));
+                      context.router.push(gr.TalkView()
+                          .copyWith(queryParams: {'id': (context.routeData.args as Play).id,
+                        'type': 'playlist',
+                        'name': (context.routeData.args as Play).name}));
                     },
                     icon: const Icon(TablerIcons.message_2)),
               ],
@@ -156,7 +158,7 @@ class SongItem extends StatelessWidget {
                   case ActionType.edit:
                     break;
                   case ActionType.talk:
-                    context.router.push(const gr.TalkView().copyWith(queryParams: {'id': mediaItem.id, 'type': 'song', 'name': mediaItem.title}));
+                    context.router.push(gr.TalkView().copyWith(queryParams: {'id': mediaItem.id, 'type': 'song', 'name': mediaItem.title}));
                     break;
                 }
               }
@@ -235,7 +237,7 @@ class SongItemShowImage extends StatelessWidget {
                   case ActionType.edit:
                     break;
                   case ActionType.talk:
-                    context.router.push(const gr.TalkView().copyWith(queryParams: {'id': mediaItem.id, 'type': 'song', 'name': mediaItem.title}));
+                    context.router.push(gr.TalkView().copyWith(queryParams: {'id': mediaItem.id, 'type': 'song', 'name': mediaItem.title}));
                     break;
                 }
               }

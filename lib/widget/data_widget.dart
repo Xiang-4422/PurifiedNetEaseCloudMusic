@@ -62,7 +62,7 @@ class LoadingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: HomePageController.to.landscape || HomePageController.to.customBackgroundPath.value.isNotEmpty ? Colors.transparent : Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SizedBox(
         width: context.width,
         height: context.height,
@@ -71,7 +71,7 @@ class LoadingView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // SvgPicture.asset(AppIcons.loading,width: context.width/2.9,),
-            Lottie.asset('assets/lottie/empty_status.json', height: HomePageController.to.landscape ? 250.w : context.width / 3.5, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
+            Lottie.asset('assets/lottie/empty_status.json', height: context.width / 3.5, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
             Text(tips ?? '加载中...', style: TextStyle(fontSize: 28.sp)),
           ],
         ),

@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/bujuan_audio_handler.dart';
 import 'package:bujuan/common/constants/platform_utils.dart';
+import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/pages/user/personal_page_controller.dart';
 import 'package:bujuan/widget/app_widget.dart';
 import 'package:flutter/material.dart';
@@ -20,11 +21,11 @@ main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 启用显示 widget 尺寸和边界
   debugPaintSizeEnabled = false;
-
   await _initUI();
   // 在runApp前必须完成的初始化操作
   await _initSingleton();
   Get.lazyPut<PersonalPageController>(() => PersonalPageController());
+
 
   runApp(
       AppWidget()
@@ -51,10 +52,10 @@ Future<void> _initUI() async {
 
 Future<void> _initSingleton() async {
   final getIt = GetIt.instance;
-  // 初始化Hive存储
+  // 初始化Hive本地存储
   await Hive.initFlutter('BuJuan');
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));
-  // 注册音频播放器
+  // 注册音频播放器（要在 BujuanAudioHandler 前注册）
   getIt.registerSingleton<AudioPlayer>(AudioPlayer());
   // 初始化网易云API
   await NeteaseMusicApi.init(debug: false);

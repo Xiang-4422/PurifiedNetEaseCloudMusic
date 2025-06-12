@@ -40,7 +40,7 @@ class MenuView extends GetView<HomePageController> {
                               context.router.pushNamed(Routes.login);
                               return;
                             }
-                            controller.homeZoomDrawerController.close!();
+                            controller.zoomDrawerController.close!();
                             Future.delayed(const Duration(milliseconds: 200), () {
                               context.router.pushNamed(Routes.userSetting);
                             });
@@ -51,7 +51,7 @@ class MenuView extends GetView<HomePageController> {
                       int menuIndex = index > controller.leftMenus.length / 2 ? index - 1 : index;
                       return IconButton(
                         onPressed: () {
-                          controller.homeZoomDrawerController.close!();
+                          controller.zoomDrawerController.close!();
                           Future.delayed(const Duration(milliseconds: 200), () {
                             int onePageAnimationTime = 200;
                             Duration animationTime = Duration(milliseconds: onePageAnimationTime  * (controller.homePageController!.page! - menuIndex).abs().toInt());
@@ -62,7 +62,7 @@ class MenuView extends GetView<HomePageController> {
                         icon: Obx(() => Icon(
                             controller.leftMenus[menuIndex].icon,
                             size: 52.sp,
-                            color: controller.curPageIndex.value == menuIndex
+                            color: controller.curHomePageIndex.value == menuIndex
                                 ? Theme.of(context).primaryColor
                                 : Theme.of(context).iconTheme.color)),
                       );
@@ -82,4 +82,14 @@ class MenuView extends GetView<HomePageController> {
       ),
     );
   }
+}
+
+/// 左侧菜单栏bean
+class LeftMenuBean {
+  String title;
+  IconData icon;
+  String path;
+  String pathUrl;
+
+  LeftMenuBean(this.title, this.icon, this.path, this.pathUrl);
 }

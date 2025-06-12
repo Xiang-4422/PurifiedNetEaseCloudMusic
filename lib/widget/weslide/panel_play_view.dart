@@ -13,7 +13,6 @@
 // import 'package:bujuan/pages/home/home_page_controller.dart';
 // import 'package:bujuan/pages/home/view/panel_view.dart';
 // import 'package:bujuan/widget/my_get_view.dart';
-// import 'package:bujuan/widget/play_more_info.dart';
 // import 'package:bujuan/widget/swipeable.dart';
 // import 'package:bujuan/widget/weslide/panel.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
@@ -28,7 +27,6 @@
 // import 'package:get/get.dart';
 //
 // import '../../common/constants/images.dart';
-// import '../mobile/flashy_navbar.dart';
 //
 // enum SlideDirection {
 //   UP,

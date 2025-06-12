@@ -53,7 +53,7 @@ class _TodayViewState extends State<TodayView> {
                   }),
             ),
             Container(
-              height: HomePageController.to.panelHeaderHeight,
+              height: AppDimensions.bottomPanelHeaderHeight,
             ),
           ],
         ),

@@ -11,10 +11,10 @@ import '../../common/netease_api/src/api/search/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/custom_filed.dart';
-import '../../widget/mobile/flashy_navbar.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
 import '../play_list/playlist_view.dart';
 
+// TODO YU4422 待重写
 class SearchView extends StatefulWidget {
   const SearchView({Key? key}) : super(key: key);
 
@@ -25,12 +25,12 @@ class SearchView extends StatefulWidget {
 class _SearchViewState extends State<SearchView> with SingleTickerProviderStateMixin {
   final TextEditingController _search = TextEditingController();
   final PageController _pageController = PageController();
-  List<FlashyNavbarItem> items = [
-    FlashyNavbarItem(icon: const Icon(TablerIcons.brand_tiktok)),
-    FlashyNavbarItem(icon: const Icon(TablerIcons.playlist)),
-    FlashyNavbarItem(icon: const Icon(TablerIcons.disc)),
-    FlashyNavbarItem(icon: const Icon(TablerIcons.users)),
-  ];
+  // List<FlashyNavbarItem> items = [
+  //   FlashyNavbarItem(icon: const Icon(TablerIcons.brand_tiktok)),
+  //   FlashyNavbarItem(icon: const Icon(TablerIcons.playlist)),
+  //   FlashyNavbarItem(icon: const Icon(TablerIcons.disc)),
+  //   FlashyNavbarItem(icon: const Icon(TablerIcons.users)),
+  // ];
   final List<Tab> tabs = [
     const Tab(
       text: '单曲',

@@ -67,7 +67,7 @@ class CloudDriveView extends GetWidget<CloudController> {
                 }),
           ),
           Container(
-            height: HomePageController.to.panelHeaderHeight,
+            height: AppDimensions.bottomPanelHeaderHeight,
           ),
         ],
       )

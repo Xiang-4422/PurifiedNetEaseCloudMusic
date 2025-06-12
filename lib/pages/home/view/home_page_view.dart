@@ -29,7 +29,7 @@ class HomePageView extends GetView<HomePageController>{
   @override
   Widget build(BuildContext context) {
     controller.buildContext = context;
-    return Material(
+     return Material(
         child: ScreenUtil().orientation == Orientation.portrait
               // 竖屏
               ? _buildPortraitApp(context)
@@ -67,6 +67,7 @@ class HomePageView extends GetView<HomePageController>{
 
   Widget _buildAppBar(BuildContext context) {
     return Container(
+      height: context.height,
       alignment: Alignment.topCenter,
       child: Obx(() => BlurryContainer(
           height: appBarHeight + context.mediaQueryPadding.top,
@@ -218,17 +219,15 @@ class HomePageView extends GetView<HomePageController>{
 
   Widget _buildBody (BuildContext context) {
     return SlidingUpPanel(
-      controller: controller.firstPanelController,
+      controller: controller.panelController,
       color: Colors.transparent,
       onPanelSlide: (value) => controller.changeSlidePosition(value),
       // boxShadow: const [BoxShadow(blurRadius: 8.0, color: Color.fromRGBO(0, 0, 0, 0.05))],
       boxShadow: null,
-      minHeight: controller.panelAlbumMinSize
-          + controller.panelHeaderPadding * 2
-          + MediaQuery.of(context).padding.bottom,
+      minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
       maxHeight: context.height,
       body: ZoomDrawer(
-        controller: controller.homeZoomDrawerController,
+        controller: controller.zoomDrawerController,
         // 侧边抽屉配置
         menuScreenTapClose: true,
         slideWidth: context.width * _manuPanelWidth,
@@ -275,7 +274,7 @@ class HomePageView extends GetView<HomePageController>{
           return GestureDetector(
             onTap: controller.panelFullyOpened.value
                 ? () => controller.isAlbumVisible.value = !controller.isAlbumVisible.value
-                : () => controller.firstPanelController.open(),
+                : () => controller.panelController.open(),
             child: Stack(
               alignment: Alignment.centerLeft,
               children: [
@@ -295,7 +294,7 @@ class HomePageView extends GetView<HomePageController>{
         child: Row(
           children: [
             Container(
-              width: controller.panelHeaderPadding * 2 + controller.panelAlbumMinSize,
+              width: AppDimensions.bottomPanelHeaderHeight,
             ),
             Expanded(
               child: Swipeable(
@@ -303,7 +302,7 @@ class HomePageView extends GetView<HomePageController>{
                 onSwipeLeft: () => controller.audioServeHandler.skipToPrevious(),
                 onSwipeRight: () => controller.audioServeHandler.skipToNext(),
                 child: Container(
-                  height: controller.panelHeaderHeight,
+                  height: AppDimensions.bottomPanelHeaderHeight,
                   alignment: Alignment.centerLeft,
                   child: Obx(() => Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -336,13 +335,13 @@ class HomePageView extends GetView<HomePageController>{
             ),
             Container(
               alignment: Alignment.center,
-              width: controller.panelHeaderPadding * 2 + controller.panelAlbumMinSize,
-              height: controller.panelHeaderPadding * 2 + controller.panelAlbumMinSize,
+              width: AppDimensions.bottomPanelHeaderHeight,
+              height: AppDimensions.bottomPanelHeaderHeight,
               child: IconButton(
                   onPressed: () => controller.playOrPause(),
                   icon: Obx(() => Icon(
                     controller.isPlaying.value ? TablerIcons.player_pause : TablerIcons.player_play,
-                    color: controller.isSecondPanel.value ? controller.bodyColor.value : controller.getLightTextColor(context),
+                    color: Theme.of(context).cardColor.withOpacity(.7),
                     size: 65.sp,
                   ))),
             ),
@@ -362,7 +361,9 @@ class HomePageView extends GetView<HomePageController>{
     double albumWidth = AppDimensions.albumMinWidth + (panelAlbumMaxWidth - AppDimensions.albumMinWidth) * controller.panelAnimationController.value;
     double albumPadding = AppDimensions.panelHeaderPadding +  (maxMarginLeft - AppDimensions.panelHeaderPadding) * controller.panelAnimationController.value;
     double appBarPadding = (context.mediaQueryPadding.top + 60) * controller.panelAnimationController.value;
+    double albumBorderRadius = AppDimensions.albumMinWidth * (1 - controller.panelAnimationController.value);
 
+    print('albumWidth: $albumWidth');
     return Obx(() => IgnorePointer(
         ignoring: !controller.isAlbumVisible.value,
         child: SizedBox(
@@ -375,11 +376,11 @@ class HomePageView extends GetView<HomePageController>{
               controller: controller.albumPageController,
               itemCount: controller.curPlayList.length,
               physics: controller.panelFullyClosed.value ? NeverScrollableScrollPhysics() : PageScrollPhysics(),
-              onPageChanged: (index) {
+              onPageChanged: (index) async {
                 if (index != controller.curPlayIndex.value) {
                   index > controller.curPlayIndex.value
-                      ? controller.audioServeHandler.skipToNext()
-                      : controller.audioServeHandler.skipToPrevious();
+                      ? await controller.audioServeHandler.skipToNext()
+                      : await controller.audioServeHandler.skipToPrevious();
                 }
               },
               itemBuilder: (BuildContext context, int index) {
@@ -407,14 +408,14 @@ class HomePageView extends GetView<HomePageController>{
                       child: Container(
                         clipBehavior: Clip.hardEdge,
                         decoration: BoxDecoration(
-                          borderRadius: controller.panelOpened50.value ? BorderRadius.circular(0) : BorderRadius.circular(controller.panelAlbumMinSize / 2),
+                          borderRadius: BorderRadius.circular(albumBorderRadius),
                           boxShadow: [
-                            controller.panelOpened50.value
+                            controller.panelFullyOpened.value
                                 ? BoxShadow(
-                              color: Colors.black.withOpacity(0.4), // 阴影颜色
-                              blurRadius: 12, // 模糊半径
-                              spreadRadius: 2, // 扩散半径
-                            )
+                                  color: Colors.black.withOpacity(0.4), // 阴影颜色
+                                  blurRadius: 12, // 模糊半径
+                                  spreadRadius: 2, // 扩散半径
+                                )
                                 : const BoxShadow()
                           ],
                         ),
@@ -430,20 +431,9 @@ class HomePageView extends GetView<HomePageController>{
             ),
             ),
           ),
-
         ),
       ),
     );
   }
 
-}
-
-/// 左侧菜单栏bean
-class LeftMenu {
-  String title;
-  IconData icon;
-  String path;
-  String pathUrl;
-
-  LeftMenu(this.title, this.icon, this.path, this.pathUrl);
 }

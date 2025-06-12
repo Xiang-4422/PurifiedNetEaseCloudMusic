@@ -3,166 +3,113 @@ import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/netease_api/src/netease_api.dart';
 import 'package:bujuan/widget/custom_filed.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
+import '../../common/appConstants.dart';
 import '../../common/netease_api/src/api/event/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
+import '../home/home_page_controller.dart';
 
-class TalkView extends StatefulWidget {
-  const TalkView({Key? key}) : super(key: key);
-
-  @override
-  State<TalkView> createState() => _TalkViewState();
-}
-
-class _TalkViewState extends State<TalkView> with SingleTickerProviderStateMixin {
+class TalkView extends GetView<HomePageController>{
   final TextEditingController _textEditingController = TextEditingController();
+
+  late String id;
+  late String type;
   final List<TalkItem> _tabs = [
     TalkItem('热门', 2),
     TalkItem('最新', 3),
   ];
+  late bool isPage = false;
 
-  TabController? _tabController;
+  TalkView({Key? key, this.id = "", this.type = ""}) : super(key: key);
 
   @override
-  void initState() {
-    _tabController = TabController(length: _tabs.length, vsync: this);
-    super.initState();
+  Widget build(BuildContext context) {
+    if(id.isEmpty) {
+      isPage = true;
+      id = context.routeData.queryParams.getString('id');
+      type = context.routeData.queryParams.getString('type');
+    }
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Column(
+        children: [
+          Container(
+            height: isPage ? AppDimensions.appBarHeight + context.mediaQueryPadding.top : 0,
+          ),
+          Expanded(
+            child: TabBarView(
+                controller: controller.panelCommentTabController,
+                children: _tabs.map((talkItem) {
+                  return ListWidget(id: id, idType: type, commentType: talkItem.type, context: context,);
+                }).toList()
+            ),
+          ),
+        ],
+      ),
+      // bottomSheet: Row(
+      //   children: [
+      //     Padding(padding: EdgeInsets.only(left: 20.w)),
+      //     Expanded(
+      //         child: CustomFiled(
+      //           iconData: TablerIcons.message_2,
+      //           textEditingController: _textEditingController,
+      //           hitText: '请输入想说的话',
+      //         )
+      //     ),
+      //     IconButton(onPressed: () => _sendMessage(context), icon: const Icon(TablerIcons.brand_telegram))
+      //   ],
+      // ),
+    );
   }
 
-  _sendMessage() async {
+  _sendMessage(BuildContext context) async {
     if (_textEditingController.text.isEmpty) {
       WidgetUtil.showToast('请输入评论');
       return;
     }
-    CommentWrap commentWrap = await NeteaseMusicApi()
-        .comment(context.routeData.queryParams.getString('id'), context.routeData.queryParams.getString('type'), 'add', content: _textEditingController.text);
+    CommentWrap commentWrap = await NeteaseMusicApi().comment(id, type, 'add', content: _textEditingController.text);
     if (commentWrap.code == 200) {
       _textEditingController.text = '';
-      if (mounted) Focus.of(context).unfocus();
+      if(context.mounted) Focus.of(context).unfocus();
       WidgetUtil.showToast('评论成功');
     } else {
       WidgetUtil.showToast(commentWrap.message ?? '评论失败');
     }
   }
 
-  @override
-  void dispose() {
-    _textEditingController.dispose();
-    _tabController?.dispose();
-    super.dispose();
-  }
+}
+
+class ListWidget extends StatelessWidget {
+  final int commentType; // 热门、最新
+  final String id;  // 歌曲或歌单ID
+  final String idType;  // 歌曲、歌单
+  final BuildContext context;
+
+  ListWidget({Key? key, required this.id, required this.idType, required this.commentType, required this.context}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: Text(context.routeData.queryParams.getString('name')),
-        bottom: TabBar(
-          tabs: _tabs
-              .map((e) => Container(
-                    padding: EdgeInsets.symmetric(vertical: 15.w, horizontal: 18.w),
-                    child: Text(e.title),
-                  ))
-              .toList(),
-          labelStyle: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
-          unselectedLabelStyle: TextStyle(fontSize: 28.sp),
-          unselectedLabelColor: Colors.grey,
-          labelColor: Theme.of(context).primaryColor,
-          indicator: const BoxDecoration(),
-          controller: _tabController,
-        ),
-      ),
-      body: TabBarView(controller: _tabController, children: _tabs.map((e) => ListWidget(type: e.type,context: context,)).toList()),
-      bottomSheet: Row(
-        children: [
-          Padding(padding: EdgeInsets.only(left: 20.w)),
-          Expanded(
-              child: CustomFiled(
-            iconData: TablerIcons.message_2,
-            textEditingController: _textEditingController,
-            hitText: '请输入想说的话',
-          )),
-          IconButton(onPressed: () => _sendMessage(), icon: const Icon(TablerIcons.brand_telegram))
-        ],
-      ),
-    );
-  }
-}
-
-class ListWidget extends StatefulWidget {
-  final int type;
-  final BuildContext context;
-
-  const ListWidget({Key? key, required this.type, required this.context}) : super(key: key);
-
-  @override
-  State<ListWidget> createState() => _ListWidgetState();
-}
-
-class _ListWidgetState extends State<ListWidget> {
-  int pageNum = 1;
-
-  String _type2key(String type) {
-    String typeKey = 'R_SO_4_';
-    switch (type) {
-      case 'song':
-        typeKey = 'R_SO_4_';
-        break;
-      case 'mv':
-        typeKey = 'R_MV_5_';
-        break;
-      case 'playlist':
-        typeKey = 'A_PL_0_';
-        break;
-      case 'album':
-        typeKey = 'R_AL_3_';
-        break;
-      case 'dj':
-        typeKey = 'A_DJ_1_';
-        break;
-      case 'video':
-        typeKey = 'R_VI_62_';
-        break;
-      case 'event':
-        typeKey = 'A_EV_2_';
-        break;
-    }
-    return typeKey;
-  }
-
-  DioMetaData commentListDioMetaData2(String id, String type, {int pageNo = 1, int pageSize = 20, bool showInner = false, int? sortType}) {
-    String typeKey = _type2key(type) + id;
-    var params = {
-      'threadId': typeKey,
-      'pageNo': pageNo,
-      'pageSize': pageSize,
-      'showInner': showInner,
-      'sortType': sortType ?? 99,
-      'cursor': (pageNum - 1) * pageSize,
-    };
-    return DioMetaData(joinUri('/api/v2/resource/comments'),
-        data: params, options: joinOptions(encryptType: EncryptType.EApi, eApiUrl: '/api/v2/resource/comments', cookies: {'os': 'pc'}));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: RequestLoadMoreWidget<CommentList2Wrap, CommentItem>(
-        listKey: const ['data', 'comments'],
-        isPageNmu: true,
-        lastField: 'cursor',
-        pageSize: 20,
-        dioMetaData: commentListDioMetaData2(context.routeData.queryParams.getString('id'), context.routeData.queryParams.getString('type'), sortType: widget.type),
-        childBuilder: (List<CommentItem> comments) => ListView.builder(
-          itemBuilder: (BuildContext context, int index) => _buildItem(comments[index]),
-          itemCount: comments.length,
+      body: Container(
+        padding: EdgeInsets.symmetric(horizontal: context.width * (1 - AppDimensions.albumMaxWidth) / 2),
+        child: RequestLoadMoreWidget<CommentList2Wrap, CommentItem>(
+          listKey: const ['data', 'comments'],
+          isPageNmu: true,
+          lastField: 'cursor',
+          pageSize: 20,
+          dioMetaData: commentListDioMetaData2(id, idType, sortType: commentType),
+          childBuilder: (List<CommentItem> comments) => ListView.builder(
+            itemBuilder: (BuildContext context, int index) => _buildItem(comments[index]),
+            itemCount: comments.length,
+          ),
         ),
       ),
     );
@@ -170,26 +117,34 @@ class _ListWidgetState extends State<ListWidget> {
 
   Widget _buildItem(CommentItem comment) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 20.w, horizontal: 30.w),
+      padding: EdgeInsets.symmetric(vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
+              // 头像
               SimpleExtendedImage.avatar(
                 '${comment.user.avatarUrl ?? ''}?param=150y150',
                 width: 60.w,
                 height: 60.w,
-              ),
-              Padding(padding: EdgeInsets.symmetric(horizontal: 8.w)),
+              ).paddingOnly(right: 10),
               Expanded(
                   child: RichText(
-                      text: TextSpan(text: comment.user.nickname ?? '', style: TextStyle(fontSize: 28.sp, color: Theme.of(context).cardColor), children: [
-                TextSpan(
-                  text: ' (${OtherUtils.formatDate2Str(comment.time ?? 0)}) ',
-                  style: TextStyle(fontSize: 22.sp, color: Colors.grey),
-                )
-              ]))),
+                      text: TextSpan(
+                          text: comment.user.nickname ?? '',
+                          style: TextStyle(
+                              fontSize: 28.sp,
+                              color: Theme.of(context).cardColor),
+                          children: [
+                            TextSpan(
+                              text: '\n${OtherUtils.formatDate2Str(comment.time ?? 0)}',
+                              style: TextStyle(fontSize: 22.sp, color: Colors.grey),
+                        )
+                      ]
+                      )
+                  )
+              ),
             ],
           ),
           Padding(
@@ -223,13 +178,47 @@ class _ListWidgetState extends State<ListWidget> {
       ),
     );
   }
-}
 
-class TalkItem {
-  String title;
-  int type;
-
-  TalkItem(this.title, this.type);
+  DioMetaData commentListDioMetaData2(String id, String type, {int pageNo = 1, int pageSize = 20, bool showInner = false, int? sortType}) {
+    String typeKey = _type2key(type) + id;
+    var params = {
+      'threadId': typeKey,
+      'pageNo': pageNo,
+      'pageSize': pageSize,
+      'showInner': showInner,
+      'sortType': sortType ?? 99,
+      'cursor': 0,
+    };
+    return DioMetaData(joinUri('/api/v2/resource/comments'),
+        data: params, options: joinOptions(encryptType: EncryptType.EApi, eApiUrl: '/api/v2/resource/comments', cookies: {'os': 'pc'}));
+  }
+  String _type2key(String type) {
+    String typeKey = 'R_SO_4_';
+    switch (type) {
+      case 'song':
+        typeKey = 'R_SO_4_';
+        break;
+      case 'mv':
+        typeKey = 'R_MV_5_';
+        break;
+      case 'playlist':
+        typeKey = 'A_PL_0_';
+        break;
+      case 'album':
+        typeKey = 'R_AL_3_';
+        break;
+      case 'dj':
+        typeKey = 'A_DJ_1_';
+        break;
+      case 'video':
+        typeKey = 'R_VI_62_';
+        break;
+      case 'event':
+        typeKey = 'A_EV_2_';
+        break;
+    }
+    return typeKey;
+  }
 }
 
 class FoolTalk extends StatefulWidget {
@@ -242,7 +231,6 @@ class FoolTalk extends StatefulWidget {
   @override
   State<FoolTalk> createState() => _FoolTalkState();
 }
-
 class _FoolTalkState extends State<FoolTalk> {
   final TextEditingController _textEditingController= TextEditingController();
   DioMetaData floorCommentsDioMetaData(String id, String type, String parentCommentId, {int time = -1, int limit = 20}) {
@@ -434,4 +422,11 @@ class _FoolTalkState extends State<FoolTalk> {
       ),
     );
   }
+}
+
+class TalkItem {
+  String title;
+  int type;
+
+  TalkItem(this.title, this.type);
 }

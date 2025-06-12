@@ -87,6 +87,8 @@ dependencies:
   flutter_constraintlayout: ^1.7.0-stable
   # 震动
   vibration: ^3.1.3
+  flutter_lyric: ^2.0.4+6
+  scrollable_positioned_list: ^0.3.8
 
 #  flutter_rust_bridge: ^1.77.1
 #  ffi: ^2.0.2

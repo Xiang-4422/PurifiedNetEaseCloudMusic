@@ -70,7 +70,7 @@ abstract class _Paths {
   static const setting = 'setting';
   static const splash = '/splash';
   static const login = 'login';
-  static const talk = '/talk';
+  static const talk = 'talk';
   static const today = 'today';
   static const cloud = 'cloud';
   static const artists = 'artists';
@@ -117,12 +117,16 @@ abstract class _Paths {
         AutoRoute(path: Routes.playlist, page: PlayListView),
         // 歌单管理
         AutoRoute(path: Routes.playlistManager, page: PlaylistManagerView),
+        // 评论
+        AutoRoute(path: Routes.talk, page: TalkView),
       ]),
       AutoRoute(path: "page_two", page: PageTwo, children: [
         // 发现页
         AutoRoute(path: Routes.index, page: ExplorePageView, initial: true),
         // 歌单
         AutoRoute(path: Routes.playlist, page: PlayListView),
+        // 评论
+        AutoRoute(path: Routes.talk, page: TalkView),
       ]),
       // 设置
       AutoRoute(path: Routes.setting, page: SettingPageView),
@@ -137,8 +141,6 @@ abstract class _Paths {
     AutoRoute(path: Routes.albumDetails, page: AlbumDetails),
     // 歌手主页
     AutoRoute(path: Routes.artists, page: ArtistsView),
-    // 评论
-    AutoRoute(path: Routes.talk, page: TalkView),
     // MV
     AutoRoute(path: Routes.mv, page: MvView),
 

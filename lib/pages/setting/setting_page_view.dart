@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/common/appConstants.dart';
+import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/pages/home/home_page_controller.dart';

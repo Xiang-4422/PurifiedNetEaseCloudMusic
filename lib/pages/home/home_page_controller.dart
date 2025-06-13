@@ -64,13 +64,16 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   RxInt curHomePageIndex = 0.obs;
   int _lastHomePageIndex = 0;
 
+  /// panelTab的页面位置
+  RxInt curPanelPageIndex = 0.obs;
+
   // --- 滑动面板 ---
   /// 展开程度（0-1，1表示完全展开）
   RxDouble firstSlidePanelPosition = 0.0.obs;
   RxBool panelFullyClosed = true.obs;
   RxBool panelOpened10 = false.obs;
   RxBool panelOpened50 = false.obs;
-  RxBool panelOpened80 = false.obs;
+  RxBool panelOpened90 = false.obs;
   RxBool panelFullyOpened = false.obs;
 
   // --- 专辑 ---
@@ -105,9 +108,12 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   late AnimationController panelAnimationController;
   /// Home页面底部Panel中专辑封面的PageView
   PageController albumPageController = PageController(viewportFraction: 1/3);
-  late TabController panelCommentTabController;
-  late TabController panelPlaylistTabController;
+
+  late PageController panelPageController;
   late TabController panelTabController;
+  late TabController panelCommentTabController;
+
+
 
   /// 歌词滚动控制器
   ItemScrollController lyricScrollController = ItemScrollController();
@@ -142,7 +148,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   /// 歌词是否被用户滚动中
   RxBool isLyricsMoving = false.obs;
   /// 当前歌词下标
-  RxInt currLyricIndex = 0.obs;
+  RxInt currLyricIndex = (-2).obs;    // -2表示currLyricIndex未配置，-1表示前奏阶段无歌词
   /// 当前歌词（整行）
   RxString currLyric = ''.obs;
   /// 当前播放进度
@@ -163,8 +169,43 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   @override
   void onInit() async {
     panelAnimationController = AnimationController(vsync: this, value: 0);
+
+    panelTabController = TabController(
+        length: 3,
+        initialIndex: 1,
+        vsync: this
+    );
+    panelTabController.addListener(() {
+      if (panelTabController.indexIsChanging) {
+        print('2page: ${panelTabController.indexIsChanging}');
+        panelPageController.animateToPage(panelTabController.index, duration: Duration(milliseconds: 300), curve: Curves.linear);
+      }
+    });
+
     panelCommentTabController = TabController(length: 2, vsync: this);
-    panelTabController = TabController(length: 3, vsync: this);
+    panelCommentTabController.addListener(() {
+      if (panelCommentTabController.indexIsChanging) {
+        print('2page: ${panelTabController.indexIsChanging}');
+        panelPageController.animateToPage(panelCommentTabController.index + 2, duration: Duration(milliseconds: 300), curve: Curves.linear);
+      }
+    });
+
+    panelPageController = PageController(initialPage: 1);
+    panelPageController.addListener(() {
+      int curPage = (panelPageController.page! + 0.5).toInt();
+      curPanelPageIndex.value = curPage;
+
+      // 避免循环监听
+      if (panelTabController.indexIsChanging || panelCommentTabController.indexIsChanging) return;
+
+      if (panelPageController.page! <= 2) {
+        panelTabController.index = curPage;
+        panelTabController.offset = panelPageController.page! - curPage;
+      } else {
+        panelCommentTabController.index = curPage - 2;
+        panelCommentTabController.offset = panelPageController.page! - curPage;
+      }
+    });
 
     box.get(noFirstOpen, defaultValue: false);
     customBackgroundPath.value = box.get(backgroundSp, defaultValue: '');
@@ -417,9 +458,6 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     }
     if (panelOpened50.value != (value > 0.5)) {
       panelOpened50.value = value > 0.5;
-
-      // 根据状态变更图标颜色
-      _changeStatusIconColor(panelOpened50.value);
       if (panelOpened50.value) {
         _pageTitleBeforePanelOpen = curPageTitle.value;
         changeAppBarTitle(title: curMediaItem.value.title, subTitle: curMediaItem.value.artist ?? '', direction: NewAppBarTitleComingDirection.down);
@@ -427,12 +465,14 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
         changeAppBarTitle(title: _pageTitleBeforePanelOpen, direction: NewAppBarTitleComingDirection.up);
       }
     }
-    if (panelOpened80.value == (value > 0.8)) {
-      panelOpened80.value = value > 0.8;
+    if (panelOpened90.value != (value > 0.9)) {
+      panelOpened90.value = value > 0.9;
     }
     if (panelFullyOpened.value != (value == 1.0)){
       // 更新状态
       panelFullyOpened.value = (value == 1.0);
+      // 根据状态变更图标颜色
+      _changeStatusIconColor(panelFullyOpened.value);
     }
 
   }
@@ -537,6 +577,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       // 状态清空
       lyricsLineModels.clear();
       curPlayDuration.value = Duration.zero;
+      currLyricIndex.value = -2;
       currLyric.value = '';
 
       // 更新当前歌曲信息
@@ -561,11 +602,13 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
         return;
       }
       curPlayDuration.value = newCurPlayingDuration;
-      if (!isLyricsMoving.value && lyricsLineModels.isNotEmpty) {
-        int index = lyricsLineModels.indexOf(lyricsLineModels.firstWhere((element) => element.startTime! >= curPlayDuration.value.inMilliseconds));
-        if (index != -1 && index != currLyricIndex.value) {
-          currLyricIndex.value = index > 0 ? index - 1 : index;
-          lyricScrollController.scrollTo(index: currLyricIndex.value, alignment: 0.4, duration: const Duration(milliseconds: 500));
+      if (!isLyricsMoving.value && lyricsLineModels.isNotEmpty && !isAlbumVisible.value) {
+        // 找不到当前时间对应的歌词，此时realTimeLyricIndex为-1，表示为前奏阶段，刚好显示空白
+        int realTimeLyricIndex = lyricsLineModels.lastIndexWhere((element) => element.startTime! <= curPlayDuration.value.inMilliseconds);
+        print('realTimeLyricIndex: $realTimeLyricIndex');
+        if (realTimeLyricIndex != currLyricIndex.value) {
+          currLyricIndex.value = realTimeLyricIndex;
+          lyricScrollController.scrollTo(index: realTimeLyricIndex == -1 ? 1 : realTimeLyricIndex + 1, alignment: 0.4, duration: const Duration(milliseconds: 500));
           if (isTopLyricOpen.value) currLyric.value = lyricsLineModels[currLyricIndex.value].mainText ?? '';
         }
       }
@@ -573,13 +616,15 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   }
   /// 滚动播放列表到当前播放歌曲
   _animatePlayListToCurPlayIndex() async {
-    bool maxOffset = playListScrollController.position.pixels >= playListScrollController.position.maxScrollExtent;
+    bool isScrolledToBottom = playListScrollController.position.pixels >= playListScrollController.position.maxScrollExtent;
     int index = curPlayList.indexWhere((element) => element.id == curMediaItem.value.id);
-    if (index != -1 && !maxOffset) {
+    if (index != -1 && !isScrolledToBottom) {
       double offset = 110.w * index;
+      print('XYXYoffset: $offset');
       await playListScrollController.animateTo(offset, duration: const Duration(milliseconds: 300), curve: Curves.linear);
     }
   }
+
   _updateCloseDrawerTimer(double timeValue) {
     if (_timerCounter == 0) {
       _timerCounter = timeValue;
@@ -627,6 +672,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       } else {
         lyricsLineModels.addAll(list);
       }
+      lyricScrollController.jumpTo(index: 1, alignment: 0.4);
     }
   }
   /// 获取专辑颜色

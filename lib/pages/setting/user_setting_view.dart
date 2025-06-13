@@ -3,9 +3,11 @@ import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../common/constants/appConstants.dart';
 import '../../common/netease_api/src/api/user/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
@@ -26,80 +28,74 @@ class _UserSettingViewState extends State<UserSettingView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('个人信息'),),
       body: RequestWidget<NeteaseUserDetail>(
         dioMetaData: userDetailDioMetaData(HomePageController.to.userData.value.profile?.userId ?? ''),
-        childBuilder: (userData) => Column(
-          children: [
-            Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(horizontal: 30.w),
-                  child: Column(
-                    children: [
-                      Padding(padding: EdgeInsets.only(top: 30.w)),
-                      Stack(
-                        alignment: Alignment.topCenter,
-                        children: [
-                          Container(
-                            width: context.width,
-                            margin: EdgeInsets.only(top: 200.w),
-                            padding: EdgeInsets.only(left: 15.w, right: 15.w, bottom: 25.w, top: 80.w),
-                            decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(25.w)),
-                            child: Column(
-                              children: [
-                                Text(
-                                  userData.profile.nickname ?? '',
-                                  style: TextStyle(fontSize: 56.sp),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 10.w),
-                                  child: Text(
-                                    userData.profile.signature ?? '',
-                                    style: TextStyle(fontSize: 32.sp, color: Colors.grey),
-                                  ),
-                                ),
-                                Padding(padding: EdgeInsets.symmetric(vertical: 20.w,horizontal: 20.w),child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Text('${userData.profile.follows} 关注'),
-                                    Text('${userData.profile.followeds} 粉丝'),
-                                    Text('${userData.profile.playlistCount} 歌单'),
-                                  ],
-                                ),)
-                              ],
-                            ),
-                          ),
-                          SimpleExtendedImage.avatar(
-                            HomePageController.to.userData.value.profile?.avatarUrl ?? '',
-                            width: 260.w,
-                          ),
-                        ],
-                      )
-                    ],
-                  ),
-                )),
-            Obx(() => Visibility(
-              visible: HomePageController.to.loginStatus.value == LoginStatus.login,
-              child: GestureDetector(
-                child: SafeArea(
-                    child: Container(
-                      height: 88.w,
-                      alignment: Alignment.center,
-                      width: context.width,
-                      margin: EdgeInsets.symmetric(vertical: 40.w, horizontal: 35.w),
-                      decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(20.w)),
+        childBuilder: (userData) => Container(
+          padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top, bottom: AppDimensions.bottomPanelHeaderHeight),
+          child: Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              Container(
+                width: context.width,
+                margin: EdgeInsets.only(top: 200.w),
+                padding: EdgeInsets.only(left: 15.w, right: 15.w, bottom: 25.w, top: 80.w),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(25.w)),
+                child: Column(
+                  children: [
+                    Text(
+                      userData.profile.nickname ?? '',
+                      style: TextStyle(fontSize: 56.sp),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10.w),
                       child: Text(
-                        '注销登录',
-                        style: TextStyle(fontSize: 28.sp, color: Colors.white),
+                        userData.profile.signature ?? '',
+                        style: TextStyle(fontSize: 32.sp, color: Colors.grey),
                       ),
-                    )),
-                onTap: () {
-                  PersonalPageController.to.clearUser();
-                  AutoRouter.of(context).pop();
-                },
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20.w,horizontal: 20.w),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Text('${userData.profile.follows} 关注'),
+                          Text('${userData.profile.followeds} 粉丝'),
+                          Text('${userData.profile.playlistCount} 歌单'),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(),
+                    ),
+                    Obx(() => Visibility(
+                      visible: HomePageController.to.loginStatus.value == LoginStatus.login,
+                      child: GestureDetector(
+                        child: Container(
+                          height: 88.w,
+                          alignment: Alignment.center,
+                          width: context.width,
+                          margin: EdgeInsets.symmetric(vertical: 40.w, horizontal: 35.w),
+                          decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(20.w)),
+                          child: Text(
+                            '注销登录',
+                            style: TextStyle(fontSize: 28.sp, color: Colors.white),
+                          ),
+                        ),
+                        onTap: () {
+                          PersonalPageController.to.clearUser();
+                          AutoRouter.of(context).pop();
+                        },
+                      ),
+                    ))
+                  ],
+                ),
               ),
-            ))
-          ],
+              SimpleExtendedImage.avatar(
+                HomePageController.to.userData.value.profile?.avatarUrl ?? '',
+                width: 260.w,
+              ),
+            ],
+          ),
         ),),
     );
   }

@@ -394,7 +394,7 @@ class BujuanAudioHandler extends BaseAudioHandler
         }
       }
       // 切换标题
-      if (HomePageController.to.panelOpened50.value) {
+      if (HomePageController.to.panelFullyOpened.value) {
         HomePageController.to.changeAppBarTitle(title: HomePageController.to.curPlayList[_curIndex].title, subTitle: HomePageController.to.curPlayList[_curIndex].artist ?? "", direction: isSkipToNext ? NewAppBarTitleComingDirection.right : NewAppBarTitleComingDirection.left);
       }
     }

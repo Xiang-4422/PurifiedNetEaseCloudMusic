@@ -27,25 +27,22 @@ class MenuView extends GetView<HomePageController> {
                   shrinkWrap: true,
                   itemBuilder: (_, index) {
                     if (index == controller.leftMenus.length / 2) {
-                      return Container(
-                        // padding: EdgeInsets.symmetric(vertical: 80),
-                        child: IconButton(
-                          icon: Obx(() => SimpleExtendedImage.avatar(
-                            '${controller.userData.value.profile?.avatarUrl ?? ''}?param=300y300',
-                            shape: BoxShape.circle,
-                            width: 50,
-                          ),),
-                          onPressed: () {
-                            if (controller.loginStatus.value == LoginStatus.noLogin) {
-                              context.router.pushNamed(Routes.login);
-                              return;
-                            }
-                            controller.zoomDrawerController.close!();
-                            Future.delayed(const Duration(milliseconds: 200), () {
-                              context.router.pushNamed(Routes.userSetting);
-                            });
-                          },
-                        ),
+                      return IconButton(
+                        icon: Obx(() => SimpleExtendedImage.avatar(
+                          '${controller.userData.value.profile?.avatarUrl ?? ''}?param=300y300',
+                          shape: BoxShape.circle,
+                          width: 50,
+                        ),),
+                        onPressed: () {
+                          if (controller.loginStatus.value == LoginStatus.noLogin) {
+                            context.router.pushNamed(Routes.login);
+                            return;
+                          }
+                          controller.zoomDrawerController.close!();
+                          Future.delayed(const Duration(milliseconds: 200), () {
+                            context.router.pushNamed(Routes.userSetting);
+                          });
+                        },
                       );
                     } else {
                       int menuIndex = index > controller.leftMenus.length / 2 ? index - 1 : index;

@@ -18,24 +18,24 @@ import '../pages/album/album_details.dart' as _i4;
 import '../pages/artists/artists_view.dart' as _i5;
 import '../pages/guide/guide_view.dart' as _i7;
 import '../pages/home/view/home_page_view.dart' as _i2;
-import '../pages/index/cloud_drive_view.dart' as _i18;
-import '../pages/index/explore_page_view.dart' as _i12;
-import '../pages/login/login.dart' as _i19;
+import '../pages/index/cloud_drive_view.dart' as _i17;
+import '../pages/index/explore_page_view.dart' as _i11;
+import '../pages/login/login.dart' as _i18;
 import '../pages/mv/mv_view.dart' as _i6;
 import '../pages/play_list/playlist_view.dart' as _i20;
 import '../pages/playlist_manager/playlist_manager_view.dart' as _i21;
-import '../pages/radio/my_radio_view.dart' as _i16;
-import '../pages/radio/radio_details_view.dart' as _i17;
+import '../pages/radio/my_radio_view.dart' as _i15;
+import '../pages/radio/radio_details_view.dart' as _i16;
 import '../pages/search/search_view.dart' as _i3;
-import '../pages/setting/coffee.dart' as _i14;
-import '../pages/setting/image_blur.dart' as _i10;
-import '../pages/setting/setting_page_view.dart' as _i13;
-import '../pages/setting/user_setting_view.dart' as _i8;
+import '../pages/setting/coffee.dart' as _i13;
+import '../pages/setting/image_blur.dart' as _i9;
+import '../pages/setting/setting_page_view.dart' as _i12;
+import '../pages/setting/user_setting_view.dart' as _i19;
 import '../pages/splash_page.dart' as _i1;
-import '../pages/talk/talk_view.dart' as _i22;
-import '../pages/today/today_view.dart' as _i15;
-import '../pages/update/update_view.dart' as _i9;
-import '../pages/user/personal_page_view.dart' as _i11;
+import '../pages/talk/comment_page_view.dart' as _i22;
+import '../pages/today/today_view.dart' as _i14;
+import '../pages/update/update_view.dart' as _i8;
+import '../pages/user/personal_page_view.dart' as _i10;
 
 class RootRouter extends _i23.RootStackRouter {
   RootRouter([_i24.GlobalKey<_i24.NavigatorState>? navigatorKey])
@@ -90,23 +90,17 @@ class RootRouter extends _i23.RootStackRouter {
         child: const _i7.GuideView(),
       );
     },
-    UserSettingView.name: (routeData) {
-      return _i23.CupertinoPageX<dynamic>(
-        routeData: routeData,
-        child: const _i8.UserSettingView(),
-      );
-    },
     UpdateView.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i9.UpdateView(),
+        child: const _i8.UpdateView(),
       );
     },
     ImageBlur.name: (routeData) {
       final args = routeData.argsAs<ImageBlurArgs>();
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: _i10.ImageBlur(
+        child: _i9.ImageBlur(
           key: args.key,
           path: args.path,
         ),
@@ -115,61 +109,67 @@ class RootRouter extends _i23.RootStackRouter {
     RouteOne.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i11.PageOne(),
+        child: const _i10.PageOne(),
       );
     },
     RouteTwo.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i12.PageTwo(),
+        child: const _i11.PageTwo(),
       );
     },
     SettingRouteView.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i13.SettingPageView(),
+        child: const _i12.SettingPageView(),
       );
     },
     CoffeeRoute.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i14.CoffeePage(),
+        child: const _i13.CoffeePage(),
       );
     },
     PersonalRouteView.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i11.PersonalPageView(),
+        child: const _i10.PersonalPageView(),
       );
     },
     TodayView.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i15.TodayView(),
+        child: const _i14.TodayView(),
       );
     },
     MyRadioView.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i16.MyRadioView(),
+        child: const _i15.MyRadioView(),
       );
     },
     RadioDetailsView.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i17.RadioDetailsView(),
+        child: const _i16.RadioDetailsView(),
       );
     },
     CloudDriveView.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i18.CloudDriveView(),
+        child: const _i17.CloudDriveView(),
       );
     },
     LoginView.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i19.LoginView(),
+        child: const _i18.LoginView(),
+      );
+    },
+    UserSettingView.name: (routeData) {
+      return _i23.CupertinoPageX<dynamic>(
+        routeData: routeData,
+        child: const _i19.UserSettingView(),
       );
     },
     PlayListView.name: (routeData) {
@@ -189,7 +189,7 @@ class RootRouter extends _i23.RootStackRouter {
           routeData.argsAs<TalkViewArgs>(orElse: () => const TalkViewArgs());
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: _i22.TalkView(
+        child: _i22.CommentPageView(
           key: args.key,
           id: args.id,
           type: args.type,
@@ -199,7 +199,7 @@ class RootRouter extends _i23.RootStackRouter {
     ExploreRouteView.name: (routeData) {
       return _i23.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i12.ExplorePageView(),
+        child: const _i11.ExplorePageView(),
       );
     },
   };
@@ -260,6 +260,11 @@ class RootRouter extends _i23.RootStackRouter {
                 _i23.RouteConfig(
                   LoginView.name,
                   path: 'login',
+                  parent: RouteOne.name,
+                ),
+                _i23.RouteConfig(
+                  UserSettingView.name,
+                  path: 'userSetting',
                   parent: RouteOne.name,
                 ),
                 _i23.RouteConfig(
@@ -339,10 +344,6 @@ class RootRouter extends _i23.RootStackRouter {
         _i23.RouteConfig(
           GuideView.name,
           path: '/guide',
-        ),
-        _i23.RouteConfig(
-          UserSettingView.name,
-          path: '/userSetting',
         ),
         _i23.RouteConfig(
           UpdateView.name,
@@ -464,19 +465,7 @@ class GuideView extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i8.UserSettingView]
-class UserSettingView extends _i23.PageRouteInfo<void> {
-  const UserSettingView()
-      : super(
-          UserSettingView.name,
-          path: '/userSetting',
-        );
-
-  static const String name = 'UserSettingView';
-}
-
-/// generated route for
-/// [_i9.UpdateView]
+/// [_i8.UpdateView]
 class UpdateView extends _i23.PageRouteInfo<void> {
   const UpdateView()
       : super(
@@ -488,7 +477,7 @@ class UpdateView extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i10.ImageBlur]
+/// [_i9.ImageBlur]
 class ImageBlur extends _i23.PageRouteInfo<ImageBlurArgs> {
   ImageBlur({
     _i24.Key? key,
@@ -522,7 +511,7 @@ class ImageBlurArgs {
 }
 
 /// generated route for
-/// [_i11.PageOne]
+/// [_i10.PageOne]
 class RouteOne extends _i23.PageRouteInfo<void> {
   const RouteOne({List<_i23.PageRouteInfo>? children})
       : super(
@@ -535,7 +524,7 @@ class RouteOne extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i12.PageTwo]
+/// [_i11.PageTwo]
 class RouteTwo extends _i23.PageRouteInfo<void> {
   const RouteTwo({List<_i23.PageRouteInfo>? children})
       : super(
@@ -548,7 +537,7 @@ class RouteTwo extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i13.SettingPageView]
+/// [_i12.SettingPageView]
 class SettingRouteView extends _i23.PageRouteInfo<void> {
   const SettingRouteView()
       : super(
@@ -560,7 +549,7 @@ class SettingRouteView extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i14.CoffeePage]
+/// [_i13.CoffeePage]
 class CoffeeRoute extends _i23.PageRouteInfo<void> {
   const CoffeeRoute()
       : super(
@@ -572,7 +561,7 @@ class CoffeeRoute extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i11.PersonalPageView]
+/// [_i10.PersonalPageView]
 class PersonalRouteView extends _i23.PageRouteInfo<void> {
   const PersonalRouteView()
       : super(
@@ -584,7 +573,7 @@ class PersonalRouteView extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i15.TodayView]
+/// [_i14.TodayView]
 class TodayView extends _i23.PageRouteInfo<void> {
   const TodayView()
       : super(
@@ -596,7 +585,7 @@ class TodayView extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i16.MyRadioView]
+/// [_i15.MyRadioView]
 class MyRadioView extends _i23.PageRouteInfo<void> {
   const MyRadioView()
       : super(
@@ -608,7 +597,7 @@ class MyRadioView extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i17.RadioDetailsView]
+/// [_i16.RadioDetailsView]
 class RadioDetailsView extends _i23.PageRouteInfo<void> {
   const RadioDetailsView()
       : super(
@@ -620,7 +609,7 @@ class RadioDetailsView extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i18.CloudDriveView]
+/// [_i17.CloudDriveView]
 class CloudDriveView extends _i23.PageRouteInfo<void> {
   const CloudDriveView()
       : super(
@@ -632,7 +621,7 @@ class CloudDriveView extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i19.LoginView]
+/// [_i18.LoginView]
 class LoginView extends _i23.PageRouteInfo<void> {
   const LoginView()
       : super(
@@ -641,6 +630,18 @@ class LoginView extends _i23.PageRouteInfo<void> {
         );
 
   static const String name = 'LoginView';
+}
+
+/// generated route for
+/// [_i19.UserSettingView]
+class UserSettingView extends _i23.PageRouteInfo<void> {
+  const UserSettingView()
+      : super(
+          UserSettingView.name,
+          path: 'userSetting',
+        );
+
+  static const String name = 'UserSettingView';
 }
 
 /// generated route for
@@ -668,7 +669,7 @@ class PlaylistManagerView extends _i23.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i22.TalkView]
+/// [_i22.CommentPageView]
 class TalkView extends _i23.PageRouteInfo<TalkViewArgs> {
   TalkView({
     _i24.Key? key,
@@ -707,7 +708,7 @@ class TalkViewArgs {
 }
 
 /// generated route for
-/// [_i12.ExplorePageView]
+/// [_i11.ExplorePageView]
 class ExploreRouteView extends _i23.PageRouteInfo<void> {
   const ExploreRouteView()
       : super(

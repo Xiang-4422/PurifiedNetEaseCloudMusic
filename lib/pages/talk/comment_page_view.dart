@@ -8,7 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
-import '../../common/appConstants.dart';
+import '../../common/constants/appConstants.dart';
 import '../../common/netease_api/src/api/event/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
@@ -16,7 +16,8 @@ import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
 import '../home/home_page_controller.dart';
 
-class TalkView extends GetView<HomePageController>{
+// 可以作为单独Page打开，还可以作为播放页面中的一个子widget
+class CommentPageView extends GetView<HomePageController>{
   final TextEditingController _textEditingController = TextEditingController();
 
   late String id;
@@ -27,7 +28,7 @@ class TalkView extends GetView<HomePageController>{
   ];
   late bool isPage = false;
 
-  TalkView({Key? key, this.id = "", this.type = ""}) : super(key: key);
+  CommentPageView({Key? key, this.id = "", this.type = ""}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -38,17 +39,21 @@ class TalkView extends GetView<HomePageController>{
     }
     return Scaffold(
       backgroundColor: Colors.transparent,
+
       body: Column(
         children: [
-          Container(
-            height: isPage ? AppDimensions.appBarHeight + context.mediaQueryPadding.top : 0,
-          ),
           Expanded(
             child: TabBarView(
-                controller: controller.panelCommentTabController,
-                children: _tabs.map((talkItem) {
-                  return ListWidget(id: id, idType: type, commentType: talkItem.type, context: context,);
-                }).toList()
+              controller: controller.panelCommentTabController,
+              children: _tabs.map((talkItem) {
+                return ListWidget(
+                  id: id,
+                  idType: type,
+                  commentType: talkItem.type,
+                  ListPaddingTop: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
+                  context: context,
+                );
+              }).toList()
             ),
           ),
         ],
@@ -87,29 +92,35 @@ class TalkView extends GetView<HomePageController>{
 }
 
 class ListWidget extends StatelessWidget {
-  final int commentType; // 热门、最新
-  final String id;  // 歌曲或歌单ID
-  final String idType;  // 歌曲、歌单
   final BuildContext context;
+  final int commentType;      // 热门、最新
+  final String id;            // 歌曲或歌单ID
+  final String idType;        // 歌曲、歌单
+  final double ListPaddingTop;
 
-  ListWidget({Key? key, required this.id, required this.idType, required this.commentType, required this.context}) : super(key: key);
+  ListWidget({Key? key, required this.id, required this.idType, required this.commentType, required this.ListPaddingTop, required this.context}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: context.width * (1 - AppDimensions.albumMaxWidth) / 2),
-        child: RequestLoadMoreWidget<CommentList2Wrap, CommentItem>(
-          listKey: const ['data', 'comments'],
-          isPageNmu: true,
-          lastField: 'cursor',
-          pageSize: 20,
-          dioMetaData: commentListDioMetaData2(id, idType, sortType: commentType),
-          childBuilder: (List<CommentItem> comments) => ListView.builder(
-            itemBuilder: (BuildContext context, int index) => _buildItem(comments[index]),
-            itemCount: comments.length,
-          ),
+      body: RequestLoadMoreWidget<CommentList2Wrap, CommentItem>(
+        listKey: const ['data', 'comments'],
+        isPageNmu: true,
+        lastField: 'cursor',
+        pageSize: 10,
+        dioMetaData: commentListDioMetaData2(id, idType, sortType: commentType),
+        childBuilder: (List<CommentItem> comments) => ListView.builder(
+          itemBuilder: (BuildContext context, int index) {
+            if (index == 0) {
+              return Container(
+                height: ListPaddingTop,
+              );
+            } else {
+              return _buildItem(comments[index - 1]);
+            }
+          },
+          itemCount: comments.length,
         ),
       ),
     );

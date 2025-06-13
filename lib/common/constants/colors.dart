@@ -13,7 +13,7 @@ class AppTheme {
             onSurface: onSurface,
           ),
       pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: NoShadowCupertinoPageTransitionsBuilder(),
+        TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
         TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
         TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
       }),

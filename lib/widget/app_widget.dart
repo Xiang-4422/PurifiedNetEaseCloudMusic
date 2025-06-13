@@ -42,10 +42,9 @@ class AppWidget extends StatelessWidget {
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: ThemeMode.system,
-
           // auto_route路由代理
-          routerDelegate: _rootRouter.delegate(navigatorObservers: () => [MyObserver()]),
           routeInformationParser: _rootRouter.defaultRouteParser(),
+          routerDelegate: _rootRouter.delegate(navigatorObservers: () => [MyObserver()]),
         );
       },
     );

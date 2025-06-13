@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../../common/appConstants.dart';
+import '../../common/constants/appConstants.dart';
 import '../../common/constants/key.dart';
 import '../../routes/router.dart';
 import '../../routes/router.gr.dart' as gr;

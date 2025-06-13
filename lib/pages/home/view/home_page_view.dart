@@ -1,5 +1,5 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/common/appConstants.dart';
+import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:bujuan/pages/home/view/drawer_main_screen_widget.dart';
 import 'package:bujuan/pages/home/view/panel_view.dart';
@@ -52,14 +52,14 @@ class HomePageView extends GetView<HomePageController>{
   Widget _buildBigLandApp(BuildContext context) {
     return Container(
         alignment: Alignment.center,
-        child: Text("大屏横屏")
+        child: const Text("大屏横屏")
     );
   }
 
   Widget _buildSmallLandApp(BuildContext context) {
     return Container(
         alignment: Alignment.center,
-        child: Text("小屏横屏")
+        child: const Text("小屏横屏")
     );
   }
 
@@ -75,11 +75,9 @@ class HomePageView extends GetView<HomePageController>{
             top: context.mediaQueryPadding.top,
             left: 0, right: 0, bottom: 0,
           ),
-          blur: controller.panelFullyOpened.value
-              ? controller.isAlbumVisible.value
-                ? 0
-                : 5
-              : 20,
+          blur: controller.panelFullyClosed.value
+              ? 20
+              : 0,
           borderRadius: BorderRadius.circular(0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -95,7 +93,7 @@ class HomePageView extends GetView<HomePageController>{
               Expanded(
                 flex: 2,
                 child: Obx(() => AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
+                  duration: const Duration(milliseconds: 300),
                   transitionBuilder: (Widget child, Animation<double> animation) {
                     // 旧widget出场和新widget入场动画都在这里构建
                     // 判断当前标题是旧标题还是新标题
@@ -108,8 +106,8 @@ class HomePageView extends GetView<HomePageController>{
                         return SlideTransition(
                           position: Tween<Offset>(
                             begin: isOldWidgetAnimation || isReversing
-                                ? Offset(0, 1)   // 旧标题出场（beging和end反转）
-                                : Offset(0, -1),  // 新标题入场
+                                ? const Offset(0, 1)   // 旧标题出场（beging和end反转）
+                                : const Offset(0, -1),  // 新标题入场
                             end: Offset.zero,
                           ).animate(animation),
                           child: FadeTransition(
@@ -178,7 +176,7 @@ class HomePageView extends GetView<HomePageController>{
                         );
                     }
                   },
-                  child: Container(
+                  child: SizedBox(
                       key: ValueKey<String>(controller.curPageTitle.value), // 添加 key
                       width: MediaQuery.of(context).size.width,
                       child: FittedBox(
@@ -266,15 +264,17 @@ class HomePageView extends GetView<HomePageController>{
 
   /// 底部播放状态栏
   Widget _buildHeader(BuildContext context) {
-    return SizedBox(
-      width: context.width,
-      child: AnimatedBuilder(
-        animation: controller.panelAnimationController,
-        builder: (context, child) {
-          return GestureDetector(
-            onTap: controller.panelFullyOpened.value
-                ? () => controller.isAlbumVisible.value = !controller.isAlbumVisible.value
-                : () => controller.panelController.open(),
+    return AnimatedBuilder(
+      animation: controller.panelAnimationController,
+      builder: (context, child) {
+        return GestureDetector(
+          onTap: () => {
+            if (controller.panelFullyClosed.value) {
+              controller.panelController.open()
+            }
+          },
+          child: SizedBox(
+            width: context.width,
             child: Stack(
               alignment: Alignment.centerLeft,
               children: [
@@ -282,9 +282,9 @@ class HomePageView extends GetView<HomePageController>{
                 _buildMediaTitle(context),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
   /// 播放状态栏——歌曲标题和播放按钮
@@ -360,15 +360,16 @@ class HomePageView extends GetView<HomePageController>{
     // 实时Album宽度、margin
     double albumWidth = AppDimensions.albumMinWidth + (panelAlbumMaxWidth - AppDimensions.albumMinWidth) * controller.panelAnimationController.value;
     double albumPadding = AppDimensions.panelHeaderPadding +  (maxMarginLeft - AppDimensions.panelHeaderPadding) * controller.panelAnimationController.value;
-    double appBarPadding = (context.mediaQueryPadding.top + 60) * controller.panelAnimationController.value;
+    double appBarPadding = (context.mediaQueryPadding.top + AppDimensions.appBarHeight + maxMarginLeft) * controller.panelAnimationController.value;
     double albumBorderRadius = AppDimensions.albumMinWidth * (1 - controller.panelAnimationController.value);
 
     print('albumWidth: $albumWidth');
     return Obx(() => IgnorePointer(
-        ignoring: !controller.isAlbumVisible.value,
-        child: SizedBox(
+      ignoring: !controller.isAlbumVisible.value || controller.panelFullyClosed.value,
+        child: Container(
+          margin: EdgeInsets.only(top: appBarPadding),
           width: albumWidth + albumPadding * 2,
-          height: albumWidth + albumPadding * 2 + appBarPadding,
+          height: albumWidth + albumPadding * 2,
           child: OverflowBox(
             maxWidth: (albumWidth + albumPadding * 2) * 3,
             child: Obx(() => PageView.builder(
@@ -399,29 +400,29 @@ class HomePageView extends GetView<HomePageController>{
                           : index == controller.curPlayIndex.value
                         : controller.panelFullyClosed.value && index == controller.curPlayIndex.value,
                     child: Container(
-                      padding: EdgeInsets.only(
-                        left: albumPadding,
-                        right: albumPadding,
-                        top: appBarPadding + albumPadding,
-                        bottom: albumPadding,
-                      ),
-                      child: Container(
-                        clipBehavior: Clip.hardEdge,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(albumBorderRadius),
-                          boxShadow: [
-                            controller.panelFullyOpened.value
-                                ? BoxShadow(
-                                  color: Colors.black.withOpacity(0.4), // 阴影颜色
-                                  blurRadius: 12, // 模糊半径
-                                  spreadRadius: 2, // 扩散半径
-                                )
-                                : const BoxShadow()
-                          ],
+                      margin: EdgeInsets.all(albumPadding),
+                      child: GestureDetector(
+                        onTap: () {
+                          controller.isAlbumVisible.value = !controller.isAlbumVisible.value;
+                        },
+                        child: Container(
+                          clipBehavior: Clip.hardEdge,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(albumBorderRadius),
+                            boxShadow: [
+                              controller.panelFullyOpened.value
+                                  ? BoxShadow(
+                                    color: Colors.black.withOpacity(0.4), // 阴影颜色
+                                    blurRadius: 12, // 模糊半径
+                                    spreadRadius: 2, // 扩散半径
+                                  )
+                                  : const BoxShadow()
+                            ],
+                          ),
+                          child: Obx(() => SimpleExtendedImage(
+                            '${controller.curPlayList[index].extras?['image'] ?? ''}?param=500y500',
+                          )),
                         ),
-                        child: Obx(() => SimpleExtendedImage(
-                          '${controller.curPlayList.value[index].extras?['image'] ?? ''}?param=500y500',
-                        )),
                       ),
                     ),
                   ),

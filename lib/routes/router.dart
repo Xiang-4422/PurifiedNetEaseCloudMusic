@@ -8,7 +8,7 @@ import 'package:bujuan/pages/radio/radio_details_view.dart';
 import 'package:bujuan/pages/setting/coffee.dart';
 import 'package:bujuan/pages/setting/setting_page_view.dart';
 import 'package:bujuan/pages/setting/user_setting_view.dart';
-import 'package:bujuan/pages/talk/talk_view.dart';
+import 'package:bujuan/pages/talk/comment_page_view.dart';
 import 'package:bujuan/pages/today/today_view.dart';
 import 'package:bujuan/pages/user/personal_page_view.dart';
 
@@ -77,7 +77,7 @@ abstract class _Paths {
   static const myRadio = 'myRadio';
   static const radioDetails = 'radioDetails';
   static const guide = '/guide';
-  static const userSetting = '/userSetting';
+  static const userSetting = 'userSetting';
   static const mv = '/mv';
   static const update = '/update';
   static const editSong = '/editSong';
@@ -112,13 +112,15 @@ abstract class _Paths {
 
         // 登录
         AutoRoute(path: Routes.login, page: LoginView),
+        // 用户设置（注销登录）
+        AutoRoute(path: Routes.userSetting, page: UserSettingView),
 
         // 歌单
         AutoRoute(path: Routes.playlist, page: PlayListView),
         // 歌单管理
         AutoRoute(path: Routes.playlistManager, page: PlaylistManagerView),
         // 评论
-        AutoRoute(path: Routes.talk, page: TalkView),
+        AutoRoute(path: Routes.talk, page: CommentPageView),
       ]),
       AutoRoute(path: "page_two", page: PageTwo, children: [
         // 发现页
@@ -126,7 +128,7 @@ abstract class _Paths {
         // 歌单
         AutoRoute(path: Routes.playlist, page: PlayListView),
         // 评论
-        AutoRoute(path: Routes.talk, page: TalkView),
+        AutoRoute(path: Routes.talk, page: CommentPageView),
       ]),
       // 设置
       AutoRoute(path: Routes.setting, page: SettingPageView),
@@ -146,8 +148,6 @@ abstract class _Paths {
 
     // 引导
     AutoRoute(path: Routes.guide, page: GuideView),
-    // 用户设置（注销登录）
-    AutoRoute(path: Routes.userSetting, page: UserSettingView),
 
     // 升级
     AutoRoute(path: Routes.update, page: UpdateView),

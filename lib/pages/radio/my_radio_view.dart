@@ -1,6 +1,6 @@
 
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/common/appConstants.dart';
+import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';

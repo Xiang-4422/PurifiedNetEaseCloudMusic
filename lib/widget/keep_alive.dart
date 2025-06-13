@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
+/// 用于让 Widget 不被销毁
 class KeepAliveWrapper extends StatefulWidget {
   final Widget child;
 

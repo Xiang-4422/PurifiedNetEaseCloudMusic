@@ -64,3 +64,4 @@ class AppDurations {
   static const Duration animationDurationMedium = Duration(milliseconds: 400);
   static const Duration splashDuration = Duration(seconds: 2);
 }
+

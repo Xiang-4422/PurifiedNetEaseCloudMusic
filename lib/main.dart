@@ -26,7 +26,6 @@ main() async {
   await _initSingleton();
   Get.lazyPut<PersonalPageController>(() => PersonalPageController());
 
-
   runApp(
       AppWidget()
      );

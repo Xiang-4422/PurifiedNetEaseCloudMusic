@@ -1,6 +1,7 @@
 import 'package:bujuan/pages/home/home_page_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -13,13 +14,14 @@ class LyricView extends GetView<HomePageController> {
   Widget build(BuildContext context) {
     return Obx(() {
       return ScrollablePositionedList.builder(
+        key: ValueKey(controller.lyricsLineModels),
         itemPositionsListener: controller.lyricScrollListener,
         itemScrollController: controller.lyricScrollController,
         itemCount: controller.lyricsLineModels.length + 2,
         itemBuilder: (BuildContext context, int index) {
           if (index == 0 || index == controller.lyricsLineModels.length + 1) {
             return Container(
-              height: context.height * 3/5,
+              height: context.height * (index == 0 ? 0.4 : 0.6),
             );
           }
           index -= 1;
@@ -31,8 +33,9 @@ class LyricView extends GetView<HomePageController> {
                 // 原歌词
                 Obx(() => AnimatedDefaultTextStyle(
                   style: TextStyle(
-                      fontSize: controller.currLyricIndex.value == index && controller.lyricsLineModels[index].mainText != null ? 40.sp : 35.sp,
-                      color: controller.bodyColor.value.withOpacity(controller.currLyricIndex.value == index ? 1 : 0.4)
+                    fontSize: controller.currLyricIndex.value == index && controller.lyricsLineModels[index].mainText != null ? 40.sp : 35.sp,
+                    color: controller.bodyColor.value.withOpacity(controller.currLyricIndex.value == index ? 1 : 0.3),
+                    fontWeight: controller.currLyricIndex.value == index ? FontWeight.bold : FontWeight.normal,
                   ),
                   textAlign: TextAlign.center,
                   duration: const Duration(milliseconds: 500),
@@ -42,14 +45,15 @@ class LyricView extends GetView<HomePageController> {
                 )),
                 // 翻译歌词
                 Obx(() => Offstage(
-                  // offstage: controller.lyricsLineModels[index].extText == null,
+                  offstage: controller.lyricsLineModels[index].extText == null,
                     child: Container(
                       margin: const EdgeInsets.only(top: 10),
                       child: AnimatedDefaultTextStyle(
                         duration: const Duration(milliseconds: 500),
                         style: TextStyle(
                           fontSize: controller.currLyricIndex.value == index ? 40.sp : 35.sp,
-                          color: controller.bodyColor.value.withOpacity(controller.currLyricIndex.value == index?0.8:.4),
+                          color: controller.bodyColor.value.withOpacity(controller.currLyricIndex.value == index? 1 : 0.3),
+                          fontWeight: controller.currLyricIndex.value == index ? FontWeight.bold : FontWeight.normal,
                         ),
                         child: Text(
                           controller.lyricsLineModels[index].extText ?? '',

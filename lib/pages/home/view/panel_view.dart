@@ -37,14 +37,14 @@ class PanelView extends GetView<HomePageController> {
                           end: Alignment.bottomCenter,
                           colors: [
                             controller.isGradientBackground.value
-                                ? controller.albumColors.value.lightVibrantColor?.color.withOpacity(controller.panelOpened50.value ? 1 : 0)
-                                ?? controller.albumColors.value.lightMutedColor?.color.withOpacity(controller.panelOpened50.value ? 1 : 0)
-                                ?? Colors.transparent
-                                : controller.albumColors.value.darkVibrantColor?.color.withOpacity(controller.panelOpened50.value ? 1 : 0)
-                                ?? controller.albumColors.value.darkMutedColor?.color.withOpacity(controller.panelOpened50.value ? 1 : 0)
-                                ?? Colors.transparent,
-                            controller.albumColors.value.darkVibrantColor?.color
-                                ?? controller.albumColors.value.darkMutedColor?.color
+                                ? controller.albumColors.value.lightMutedColor?.color.withOpacity(controller.panelOpened50.value ? 1 : 0)
+                                  ?? controller.albumColors.value.lightVibrantColor?.color.withOpacity(controller.panelOpened50.value ? 1 : 0)
+                                  ?? Colors.transparent
+                                : controller.albumColors.value.darkMutedColor?.color.withOpacity(controller.panelOpened50.value ? 1 : 0)
+                                  ?? controller.albumColors.value.darkVibrantColor?.color.withOpacity(controller.panelOpened50.value ? 1 : 0)
+                                  ?? Colors.transparent,
+                            controller.albumColors.value.darkMutedColor?.color
+                                ?? controller.albumColors.value.darkVibrantColor?.color
                                 ?? controller.albumColors.value.lightVibrantColor?.color
                                 ?? Colors.transparent,
                           ],
@@ -53,23 +53,23 @@ class PanelView extends GetView<HomePageController> {
                   ),
                 )),
               Stack(
+                alignment: Alignment.bottomCenter,
                 children: [
                   // 内容
                   PageView(
                     controller: controller.panelPageController,
                     children: [
                       // 播放列表
-                      _buildPlayListPage(context),
+                      _buildCurPlayingListPage(context),
                       _buildCurPlayingPage(context),
                       _buildCommentPage(context, 2),
                       _buildCommentPage(context, 3),
                     ],
                   ),
                   // 页面指示TabBar
-                  Obx(() => BlurryContainer(
-                      blur: controller.panelOpened50.value ? 5 : 0,
+                  BlurryContainer(
+                      blur: 20,
                       borderRadius: BorderRadius.circular(0),
-                      padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top),
                       child: SizedBox(
                         height: albumPadding,
                         child: TabBar(
@@ -78,7 +78,7 @@ class PanelView extends GetView<HomePageController> {
                           indicatorSize: TabBarIndicatorSize.tab,
                           indicatorWeight: 0,
                           indicator: BoxDecoration(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(albumPadding),
                           ),
                           tabs: [
@@ -103,7 +103,7 @@ class PanelView extends GetView<HomePageController> {
                                     indicatorWeight: 0,
                                     indicatorSize: TabBarIndicatorSize.tab,
                                     indicator: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.1),
+                                      color: Colors.black.withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(albumPadding),
                                     ),
                                     tabs: const [
@@ -118,7 +118,6 @@ class PanelView extends GetView<HomePageController> {
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ],
@@ -127,8 +126,9 @@ class PanelView extends GetView<HomePageController> {
   }
 
   /// 播放列表页
-  Widget _buildPlayListPage(BuildContext context) {
-    double panelAppBarHeight = context.width * (1 - AppDimensions.albumMaxWidth) / 2 + AppDimensions.appBarHeight + context.mediaQueryPadding.top;
+  Widget _buildCurPlayingListPage(BuildContext context) {
+    double panelAppBarHeight = AppDimensions.appBarHeight + context.mediaQueryPadding.top;
+    // WidgetsBinding.instance.addPostFrameCallback((_) => controller.animatePlayListToCurPlayIndex());
     return KeepAliveWrapper(
       child: Obx(() => Container(
         key: ValueKey(controller.curPlayList),
@@ -141,16 +141,18 @@ class PanelView extends GetView<HomePageController> {
               child: Container(
                 height: panelAppBarHeight + context.width,
               ),
-            ),
-            ),
+            )),
             Expanded(
               child: ListView.builder(
                 controller: controller.playListScrollController,
                 itemExtent: 110.w,
-                padding: EdgeInsets.only(top: controller.isAlbumVisible.value ? 0 : panelAppBarHeight),
+                padding: EdgeInsets.only(top: controller.isAlbumVisible.value
+                    ? 0
+                    : panelAppBarHeight
+                ),
                 itemCount: controller.curPlayList.length,
                 itemBuilder: (context, index) {
-                  return _buildPlayListItem(controller.curPlayList[index], index, context);
+                  return _buildCurPlayingListItem(controller.curPlayList[index], index, context);
                 },
               ),
             ),
@@ -159,7 +161,7 @@ class PanelView extends GetView<HomePageController> {
       )),
     );
   }
-  Widget _buildPlayListItem(MediaItem mediaItem, int index, BuildContext context) {
+  Widget _buildCurPlayingListItem(MediaItem mediaItem, int index, BuildContext context) {
     return GestureDetector(
       onTap: () => controller.audioServeHandler.playIndex(index),
       // 透明 Container 用于触发点击
@@ -176,12 +178,18 @@ class PanelView extends GetView<HomePageController> {
                     Obx(() => Text(
                       mediaItem.title,
                       maxLines: 1,
-                      style: TextStyle(fontSize: 30.sp, color: controller.bodyColor.value),
+                      style: TextStyle(
+                          fontSize: 30.sp,
+                          color: (controller.curPlayIndex.value == index) ? Colors.red : controller.bodyColor.value,
+                      ),
                     )),
                     Obx(() => Text(
                       mediaItem.artist ?? '',
                       maxLines: 1,
-                      style: TextStyle(fontSize: 24.sp, color: controller.bodyColor.value),
+                      style: TextStyle(
+                          fontSize: 24.sp,
+                          color: (controller.curPlayIndex.value == index) ? Colors.red : controller.bodyColor.value,
+                      ),
                     ))
                   ],
                 )
@@ -218,12 +226,11 @@ class PanelView extends GetView<HomePageController> {
                     child: const AbsorbPointer(
                       absorbing: true,
                       child: LyricView(),
-                    )
-                ),
-                )
+                    ),
+                )),
             ),
           ),
-          // 控制
+          // 控制、进度条、页面指示
           Column(
             children: [
               // Album让位
@@ -390,29 +397,31 @@ class PanelView extends GetView<HomePageController> {
   
   /// 评论页
   Widget _buildCommentPage(BuildContext context, int commentType) {
-    double panelAppBarHeight = context.width * (1 - AppDimensions.albumMaxWidth) / 2 + AppDimensions.appBarHeight + context.mediaQueryPadding.top;
-    return Column(
-      children: [
-        Obx(() => Offstage(
-          offstage: !controller.isAlbumVisible.value,
-          child: Container(
-            height: context.width + panelAppBarHeight,
+    double panelAppBarHeight = AppDimensions.appBarHeight + context.mediaQueryPadding.top;
+    return KeepAliveWrapper(
+      child: Column(
+        children: [
+          Obx(() => Offstage(
+            offstage: !controller.isAlbumVisible.value,
+            child: Container(
+              height: context.width + panelAppBarHeight,
+            ),
+          )),
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: context.width * (1 - AppDimensions.albumMaxWidth) / 2),
+              child: Obx(() => ListWidget(
+                key: ValueKey(controller.curMediaItem.value.id),
+                id: controller.curMediaItem.value.id,
+                idType: "song",
+                commentType: commentType,
+                listPaddingTop: controller.isAlbumVisible.value ? 0 : panelAppBarHeight,
+                context: context,
+              ),),
+            ),
           ),
-        )),
-        Expanded(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: context.width * (1 - AppDimensions.albumMaxWidth) / 2),
-            child: Obx(() => ListWidget(
-              key: ValueKey(controller.curMediaItem.value.id),
-              id: controller.curMediaItem.value.id,
-              idType: "song",
-              commentType: commentType,
-              ListPaddingTop: controller.isAlbumVisible.value ? 0 : panelAppBarHeight,
-              context: context,
-            ),),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

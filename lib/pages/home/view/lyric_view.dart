@@ -12,9 +12,8 @@ class LyricView extends GetView<HomePageController> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
       return ScrollablePositionedList.builder(
-        key: ValueKey(controller.lyricsLineModels),
+        key: ValueKey(controller.lyricsLineModels.length),
         itemPositionsListener: controller.lyricScrollListener,
         itemScrollController: controller.lyricScrollController,
         itemCount: controller.lyricsLineModels.length + 2,
@@ -25,7 +24,8 @@ class LyricView extends GetView<HomePageController> {
             );
           }
           index -= 1;
-          return Container(
+          return Obx(() => Container(
+            key: ValueKey(controller.currLyricIndex.value == index),
             margin: const EdgeInsets.symmetric(vertical: 10),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -38,35 +38,22 @@ class LyricView extends GetView<HomePageController> {
                     fontWeight: controller.currLyricIndex.value == index ? FontWeight.bold : FontWeight.normal,
                   ),
                   textAlign: TextAlign.center,
-                  duration: const Duration(milliseconds: 500),
+                  duration: const Duration(milliseconds: 300),
                   child: Text(
-                    controller.lyricsLineModels[index].mainText ?? '',
+                    // 原歌词
+                      (controller.lyricsLineModels[index].mainText ?? '')
+                          // 翻译歌词
+                          + (controller.lyricsLineModels[index].extText == null
+                          ? ''
+                          : '\n${controller.lyricsLineModels[index].extText ?? ''}'
+                      )
                   ),
-                )),
-                // 翻译歌词
-                Obx(() => Offstage(
-                  offstage: controller.lyricsLineModels[index].extText == null,
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 10),
-                      child: AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 500),
-                        style: TextStyle(
-                          fontSize: controller.currLyricIndex.value == index ? 40.sp : 35.sp,
-                          color: controller.bodyColor.value.withOpacity(controller.currLyricIndex.value == index? 1 : 0.3),
-                          fontWeight: controller.currLyricIndex.value == index ? FontWeight.bold : FontWeight.normal,
-                        ),
-                        child: Text(
-                          controller.lyricsLineModels[index].extText ?? '',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    )
                 )),
               ],
             ),
+          ),
           );
         },
       );
-    });
   }
 }

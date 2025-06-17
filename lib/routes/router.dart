@@ -64,7 +64,7 @@ abstract class _Paths {
   static const index = 'index';
   static const user = 'user';
   static const local = 'local';
-  static const search = 'search';
+  static const search = '/search';
   static const playlist = 'playlist';
   static const details = '/details';
   static const setting = 'setting';
@@ -117,8 +117,6 @@ abstract class _Paths {
 
         // 歌单
         AutoRoute(path: Routes.playlist, page: PlayListView),
-        // 歌单管理
-        AutoRoute(path: Routes.playlistManager, page: PlaylistManagerView),
         // 评论
         AutoRoute(path: Routes.talk, page: CommentPageView),
       ]),

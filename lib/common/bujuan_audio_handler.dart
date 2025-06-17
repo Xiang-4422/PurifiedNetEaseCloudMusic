@@ -135,7 +135,7 @@ class BujuanAudioHandler extends BaseAudioHandler
       _playList.addAll(mediaItems);
       await updateQueue(_playList);
       _updateCurIndex(0);
-      // 首次进入FM模式
+    // 首次进入FM模式
     } else {
       _playList.clear();
       _playList.addAll(mediaItems);
@@ -304,7 +304,6 @@ class BujuanAudioHandler extends BaseAudioHandler
   @override
   Future<void> skipToNext() async {
     _updateCurIndexByRepeatMode(isSkipToNext: true);
-    print('下一首=======$_curIndex');
     await readySongUrl();
   }
 
@@ -351,6 +350,7 @@ class BujuanAudioHandler extends BaseAudioHandler
     await _player.dispose();
   }
 
+  /// 切换上一首、下一首的时候时候调用（列表循环）
   _updateCurIndexByRepeatMode({bool isSkipToNext = false}) {
     // 单曲循环模式直接返回
     if (_audioServiceRepeatMode == AudioServiceRepeatMode.one) return;
@@ -370,34 +370,32 @@ class BujuanAudioHandler extends BaseAudioHandler
   }
 
   void _updateCurIndex(int newIndex) {
-    if (_curIndex != newIndex) {
-      bool isSkipToNext = newIndex > _curIndex;
+    if (_curIndex == newIndex) return;
+    bool isSkipToNext = newIndex > _curIndex;
 
-      _curIndex = newIndex;
-      _box.put(playByIndex, _curIndex);
+    _curIndex = newIndex;
+    _box.put(playByIndex, _curIndex);
 
-      // 私人FM模式 最后一首切割拉取新的FM歌曲列表
-      if (HomePageController.to.isFmMode.value) {
-        if (_curIndex == queue.value.length - 1) {
-          HomePageController.to.getFmSongList();
-        }
-      }
-
-      HomePageController.to.lastPlayIndex.value = HomePageController.to.curPlayIndex.value;
-      HomePageController.to.curPlayIndex.value = newIndex;
-      // 专辑封面动画
-      if (!HomePageController.to.isAlbumPageViewScrolling.value ) {
-        if((HomePageController.to.lastPlayIndex.value - HomePageController.to.curPlayIndex.value).abs() == 1) {
-          HomePageController.to.albumPageController.animateToPage(newIndex, duration: Duration(milliseconds: 500), curve: Curves.linear);
-        } else {
-          HomePageController.to.albumPageController.jumpToPage(newIndex);
-        }
-      }
-      // 切换标题
-      if (HomePageController.to.panelFullyOpened.value) {
-        HomePageController.to.changeAppBarTitle(title: HomePageController.to.curPlayList[_curIndex].title, subTitle: HomePageController.to.curPlayList[_curIndex].artist ?? "", direction: isSkipToNext ? NewAppBarTitleComingDirection.right : NewAppBarTitleComingDirection.left);
+    // 私人FM模式 播放到最后一首拉取新的FM歌曲列表
+    if (HomePageController.to.isFmMode.value && _curIndex == queue.value.length - 1) {
+        HomePageController.to.getFmSongList();
+    }
+    // 更新UI
+    HomePageController.to.lastPlayIndex.value = HomePageController.to.curPlayIndex.value;
+    HomePageController.to.curPlayIndex.value = newIndex;
+    // 专辑封面动画
+    if (!HomePageController.to.isAlbumPageViewScrolling.value ) {
+      if((HomePageController.to.lastPlayIndex.value - HomePageController.to.curPlayIndex.value).abs() == 1) {
+        HomePageController.to.albumPageController.animateToPage(newIndex, duration: Duration(milliseconds: 500), curve: Curves.linear);
+      } else {
+        HomePageController.to.albumPageController.jumpToPage(newIndex);
       }
     }
+    // 切换标题
+    if (HomePageController.to.panelFullyOpened.value) {
+      HomePageController.to.changeAppBarTitle(title: HomePageController.to.curPlayList[_curIndex].title, subTitle: HomePageController.to.curPlayList[_curIndex].artist ?? "", direction: isSkipToNext ? NewAppBarTitleComingDirection.right : NewAppBarTitleComingDirection.left);
+    }
+
   }
 }
 

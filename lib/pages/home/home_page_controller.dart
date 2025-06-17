@@ -40,6 +40,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   double _timerCounter = 0.0;
   /// 上次弹出时间（防止多次快速点击）
   var _lastPopTime = DateTime.now();
+  RxBool inSongCollectionPage = false.obs;
 
   // AppBar标题配置
   RxString curPageTitle = "".obs;
@@ -142,7 +143,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
 
   // --- 歌词 ---
   /// 解析后的歌词数组
-  List<LyricsLineModel> lyricsLineModels = <LyricsLineModel>[].obs;
+  List<LyricsLineModel> lyricsLineModels = <LyricsLineModel>[];
   /// 是否有翻译歌词
   RxBool hasTransLyrics = false.obs;
   /// 歌词是否被用户滚动中
@@ -193,11 +194,15 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     panelPageController = PageController(initialPage: 1);
     panelPageController.addListener(() {
       int curPage = (panelPageController.page! + 0.5).toInt();
-      curPanelPageIndex.value = curPage;
+
+      if (curPanelPageIndex.value != curPage) {
+        curPanelPageIndex.value = curPage;
+        if (curPage == 0) animatePlayListToCurPlayIndex();
+      }
 
       // 避免循环监听
       if (panelTabController.indexIsChanging || panelCommentTabController.indexIsChanging) return;
-
+      // 控制tab显示
       if (panelPageController.page! <= 2) {
         panelTabController.index = curPage;
         panelTabController.offset = panelPageController.page! - curPage;
@@ -394,8 +399,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     SongListWrap2 songListWrap2 = await NeteaseMusicApi().userRadio();
     if (songListWrap2.code == 200) {
       List<Song> songs = songListWrap2.data ?? [];
-      List<MediaItem> medias = songs
-          .map((e) => MediaItem(
+      List<MediaItem> medias = songs.map((e) => MediaItem(
           id: e.id,
           duration: Duration(milliseconds: e.duration ?? 0),
           artUri: Uri.parse('${e.album?.picUrl ?? ''}?param=500y500'),
@@ -408,8 +412,8 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
           },
           title: e.name ?? "",
           album: e.album?.name ?? '',
-          artist: (e.artists ?? []).map((e) => e.name).toList().join(' / ')))
-          .toList();
+          artist: (e.artists ?? []).map((e) => e.name).toList().join(' / ')
+      )).toList();
       audioServeHandler.addFmItems(medias);
     }
   }
@@ -478,13 +482,13 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   }
   /// 当按下返回键
   Future<bool> onWillPop() async {
-    if (buildContext.router.canPop()) {
-      rollbackAppBarTitle();
-      return true;
-    }
     if (panelController.isPanelOpen) {
       panelController.close();
       return false;
+    }
+    if (buildContext.router.canPop()) {
+      rollbackAppBarTitle();
+      return true;
     }
     if (zoomDrawerController.isOpen!()) {
       zoomDrawerController.close!();
@@ -535,6 +539,9 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       loginStatus.value = LoginStatus.login;
       userData.value = NeteaseAccountInfoWrap.fromJson(jsonDecode(userDataStr));
       changeAppBarTitle(title: userData.value.profile?.nickname ?? "", direction: NewAppBarTitleComingDirection.up);
+    } else {
+      loginStatus.value = LoginStatus.noLogin;
+      changeAppBarTitle(title: '扫码登录', direction: NewAppBarTitleComingDirection.up);
     }
   }
   _initListener() {
@@ -574,8 +581,6 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     });
     // 监听歌曲切换
     audioServeHandler.mediaItem.listen((mediaItem) async {
-      // 状态清空
-      lyricsLineModels.clear();
       curPlayDuration.value = Duration.zero;
       currLyricIndex.value = -2;
       currLyric.value = '';
@@ -585,7 +590,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       curMediaItem.value = mediaItem;
       _updateAlbumColor();
       _getLyric();
-      _animatePlayListToCurPlayIndex();
+      animatePlayListToCurPlayIndex();
     });
     // 监听播放状态变化
     audioServeHandler.playbackState.listen((playbackState) {
@@ -608,14 +613,14 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
         print('realTimeLyricIndex: $realTimeLyricIndex');
         if (realTimeLyricIndex != currLyricIndex.value) {
           currLyricIndex.value = realTimeLyricIndex;
-          lyricScrollController.scrollTo(index: realTimeLyricIndex == -1 ? 1 : realTimeLyricIndex + 1, alignment: 0.4, duration: const Duration(milliseconds: 500));
+          lyricScrollController.scrollTo(index: realTimeLyricIndex == -1 ? 1 : realTimeLyricIndex + 1, alignment: 0.4, duration: const Duration(milliseconds: 300));
           if (isTopLyricOpen.value) currLyric.value = lyricsLineModels[currLyricIndex.value].mainText ?? '';
         }
       }
     });
   }
   /// 滚动播放列表到当前播放歌曲
-  _animatePlayListToCurPlayIndex() async {
+  animatePlayListToCurPlayIndex() async {
     bool isScrolledToBottom = playListScrollController.position.pixels >= playListScrollController.position.maxScrollExtent;
     int index = curPlayList.indexWhere((element) => element.id == curMediaItem.value.id);
     if (index != -1 && !isScrolledToBottom) {
@@ -642,8 +647,10 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       _timerCounter = timeValue;
     }
   }
-  /// 获取歌词
+  /// 更新歌词
   _getLyric() async {
+    // 更新 lyricsLineModels
+    lyricsLineModels.clear();
     hasTransLyrics.value = false;
 
     // 先从本地获取歌词
@@ -657,23 +664,23 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       box.put('lyric_${curMediaItem.value.id}', lyric);
       box.put('lyricTran_${curMediaItem.value.id}', lyricTran);
     }
-
-    // 更新 lyricsLineModels
     if (lyric.isNotEmpty) {
       var list = ParserLrc(lyric).parseLines();
       var listTran = ParserLrc(lyricTran).parseLines();
       if (lyricTran.isNotEmpty) {
         hasTransLyrics.value = true;
-        lyricsLineModels.addAll(list.map((e) {
+        list = list.map((e) {
           int index = listTran.indexWhere((element) => element.startTime == e.startTime);
           if (index != -1) e.extText = listTran[index].mainText;
           return e;
-        }).toList());
-      } else {
-        lyricsLineModels.addAll(list);
+        }).toList();
       }
-      lyricScrollController.jumpTo(index: 1, alignment: 0.4);
+      lyricsLineModels.addAll(list);
+    } else {
+      // TODO YU4422 没有歌词的时候，加入提示
+      lyricsLineModels.add(LyricsLineModel()..mainText = "没有歌词哦～");
     }
+    // lyricScrollController.jumpTo(index: 1, alignment: 0.4);
   }
   /// 获取专辑颜色
   _updateAlbumColor() async {

@@ -35,28 +35,9 @@ class _LoginViewStateP extends State<LoginView> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    getQrCode(context);
   }
 
-  loginCallPhone(context) async {
-    if (phone.text.isEmpty || pass.text.isEmpty) {
-      WidgetUtil.showToast('账号密码为必填项，请检查');
-      return;
-    }
-    WidgetUtil.showLoadingDialog(context);
-    NeteaseAccountInfoWrap neteaseAccountInfoWrap;
-    if (phone.text.contains('@')) {
-      neteaseAccountInfoWrap = await NeteaseMusicApi().loginEmail(phone.text, pass.text);
-    } else {
-      neteaseAccountInfoWrap = await NeteaseMusicApi().loginCellPhone(phone.text, pass.text);
-    }
-    if (mounted) Navigator.of(context).pop();
-    if (neteaseAccountInfoWrap.code != 200) {
-      WidgetUtil.showToast(neteaseAccountInfoWrap.message ?? '未知错误');
-      return;
-    }
-    PersonalPageController.to.getUserState();
-    AutoRouter.of(context).pop();
-  }
 
   getQrCode(context) async {
     QrCodeLoginKey qrCodeLoginKey = await NeteaseMusicApi().loginQrCodeKey();
@@ -65,23 +46,25 @@ class _LoginViewStateP extends State<LoginView> {
       return;
     }
     String codeUrl = NeteaseMusicApi().loginQrCodeUrl(qrCodeLoginKey.unikey);
-    print('object=========$codeUrl');
     setState(() => qrCodeUrl = codeUrl);
+
     // 不停获取二维码状态（已经登录/二维码过期）
     timer = Timer.periodic(const Duration(seconds: 3), (Timer t) async {
       ServerStatusBean serverStatusBean = await NeteaseMusicApi().loginQrCodeCheck(qrCodeLoginKey.unikey);
-      if (serverStatusBean.code == 800) {
-        WidgetUtil.showToast('二维码过期请重新获取');
-        timer?.cancel();
-        timer = null;
-        return;
-      }
-      if (serverStatusBean.code == 803) {
-        WidgetUtil.showToast('授权成功！');
-        PersonalPageController.to.getUserState();
-        AutoRouter.of(context).pop();
-        timer?.cancel();
-        timer = null;
+      switch (serverStatusBean.code) {
+        case 800:
+          WidgetUtil.showToast('二维码过期请重新获取');
+          timer?.cancel();
+          timer = null;
+          break;
+        case 803:
+          WidgetUtil.showToast('授权成功！');
+          PersonalPageController.to.getUserState();
+          timer?.cancel();
+          timer = null;
+          break;
+        default:
+          break;
       }
     });
   }
@@ -99,120 +82,14 @@ class _LoginViewStateP extends State<LoginView> {
    return Scaffold(
      body: Stack(
        children: [
-         SingleChildScrollView(
-           padding: EdgeInsets.symmetric(horizontal: 10.w),
-           child: Container(
-             margin: EdgeInsets.only(top: 20.w),
-             width: context.width,
-             child: Column(
-               mainAxisAlignment: MainAxisAlignment.center,
-               children: [
-                 Stack(
-                   children: [
-                     SvgPicture.asset(
-                       AppIcons.loginTop,
-                       width: context.width,
-                       fit: BoxFit.fitWidth,
-                     ),
-                     SafeArea(
-                         child: IconButton(
-                             padding: const EdgeInsets.all(0),
-                             onPressed: () {
-                               AutoRouter.of(context).pop();
-                             },
-                             icon: Icon(Icons.close, size: 52.sp)))
-                   ],
-                 ),
-                 Padding(
-                   padding: EdgeInsets.symmetric(horizontal: 30.w),
-                   child: Column(
-                     children: [
-                       Padding(padding: EdgeInsets.symmetric(vertical: 25.w)),
-                       CustomFiled(
-                         iconData: TablerIcons.phone,
-                         textEditingController: phone,
-                         hitText: '输入邮箱/手机号',
-                       ),
-                       CustomFiled(
-                         iconData: TablerIcons.lock,
-                         textEditingController: pass,
-                         hitText: '输入密码',
-                         pass: true,
-                       ),
-                       GestureDetector(
-                         child: Container(
-                           height: 88.w,
-                           alignment: Alignment.center,
-                           width: context.width,
-                           margin: EdgeInsets.symmetric(vertical: 40.w, horizontal: 5.w),
-                           decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(20.w)),
-                           child: Text(
-                             '立即登录',
-                             style: TextStyle(fontSize: 28.sp, color: Colors.white),
-                           ),
-                         ),
-                         onTap: () => loginCallPhone(context),
-                       ),
-                       Padding(
-                         padding: EdgeInsets.symmetric(vertical: 40.w, horizontal: 20.w),
-                         child: Row(
-                           children: [
-                             Expanded(
-                                 child: Container(
-                                   height: 1.w,
-                                   color: Colors.grey.withOpacity(.6),
-                                 )),
-                             Padding(
-                               padding: EdgeInsets.symmetric(horizontal: 15.w),
-                               child: Text(
-                                 'Or',
-                                 style: TextStyle(color: Colors.grey.withOpacity(.9)),
-                               ),
-                             ),
-                             Expanded(
-                                 child: Container(
-                                   height: 1.w,
-                                   color: Colors.grey.withOpacity(.6),
-                                 )),
-                           ],
-                         ),
-                       ),
-                       InkWell(
-                         child: Padding(
-                           padding: EdgeInsets.symmetric(vertical: 45.w),
-                           child: Row(
-                             mainAxisAlignment: MainAxisAlignment.center,
-                             children: [
-                               const Icon(
-                                 TablerIcons.qrcode,
-                                 color: Colors.grey,
-                               ),
-                               Padding(
-                                 padding: EdgeInsets.only(top: 5.w, left: 10.w),
-                                 child: const Text(
-                                   '二维码登录',
-                                   style: TextStyle(
-                                     color: Colors.grey,
-                                   ),
-                                 ),
-                               )
-                             ],
-                           ),
-                         ),
-                         onTap: () {
-                           getQrCode(context);
-                         },
-                       ),
-                     ],
-                   ),
-                 )
-               ],
-             ),
-           ),
-         ),
          Visibility(
            visible: qrCodeUrl.isNotEmpty,
            child: GestureDetector(
+             onTap: () {
+               timer?.cancel();
+               timer = null;
+               getQrCode(context);
+             },
              child: Container(
                color: Theme.of(context).cardColor.withOpacity(.5),
                width: context.width,
@@ -237,13 +114,6 @@ class _LoginViewStateP extends State<LoginView> {
                  ],
                ),
              ),
-             onTap: () {
-               timer?.cancel();
-               timer = null;
-               setState(() {
-                 qrCodeUrl = '';
-               });
-             },
            ),
          )
        ],

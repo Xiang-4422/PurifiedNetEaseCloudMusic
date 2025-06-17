@@ -35,7 +35,7 @@ class PersonalPageView extends GetView<PersonalPageController> {
       absorbing: !HomePageController.to.isDrawerClosed.value,
       child: Visibility(
           visible: HomePageController.to.loginStatus.value == LoginStatus.login,
-          replacement: _buildMeInfo(context), // 未登录页面
+          replacement: const LoginView(), // 未登录页面
           child: Obx(() => Visibility(
                 visible: !controller.loading.value,
                 replacement: const LoadingView(),
@@ -60,12 +60,17 @@ class PersonalPageView extends GetView<PersonalPageController> {
                                   if ((userItem.routes ?? '') == 'playFm') {
                                     if(HomePageController.to.isFmMode.value) {
                                       // TODO YU4422 打开播放页面，避免重复加载
+                                      if (!HomePageController.to.isPlaying.value) {
+                                        HomePageController.to.playOrPause();
+                                      }
                                     } else {
                                       HomePageController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
                                       HomePageController.to.audioServiceRepeatMode.value = AudioServiceRepeatMode.all;
                                       HomePageController.to.box.put(repeatModeSp, AudioServiceRepeatMode.all.name);
                                       HomePageController.to.getFmSongList();
                                     }
+                                    HomePageController.to.panelController.open();
+                                    HomePageController.to.panelPageController.jumpToPage(1);
                                     return;
                                   }
                                   HomePageController.to.changeAppBarTitle(title: userItem.title, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
@@ -88,7 +93,7 @@ class PersonalPageView extends GetView<PersonalPageController> {
                           '${controller.userLikedSongCollection.value.coverImgUrl ?? ''}?param=200y200',
                           width: 100.w,
                           height: 100.w,
-                          borderRadius: BorderRadius.circular(100.w),
+                          borderRadius: BorderRadius.circular(10.w),
                         )),
                         title: Text(
                           "我喜欢的音乐",
@@ -105,7 +110,7 @@ class PersonalPageView extends GetView<PersonalPageController> {
                         },
                       ),
                       // 创建的歌单
-                      _buildHeader('创建的歌单', context, actionStr: '查看/管理'),
+                      _buildHeader('创建的歌单', context),
                       Obx(() => ListView.builder(
                         padding: EdgeInsets.symmetric(horizontal: 20.w),
                         shrinkWrap: true,
@@ -118,7 +123,7 @@ class PersonalPageView extends GetView<PersonalPageController> {
                         itemExtent: 120.w,
                       )),
                       // 收藏的歌单
-                      _buildHeader('收藏的歌单', context, actionStr: '查看/管理'),
+                      _buildHeader('收藏的歌单', context),
                       Obx(() => ListView.builder(
                         padding: EdgeInsets.symmetric(horizontal: 20.w),
                         shrinkWrap: true,
@@ -174,13 +179,16 @@ class PersonalPageView extends GetView<PersonalPageController> {
   }
 
   /// 未登录
-  Widget _buildMeInfo(context) {
+  Widget _buildLoginPage(context) {
     return GestureDetector(
       onTap: () => AutoRouter.of(context).pushNamed(Routes.login),
       child: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        padding: EdgeInsets.only(left: 30.w, top: 30.w, right: 30.w),
+        padding: EdgeInsets.only(
+            top: 30.w + MediaQuery.of(context).padding.top + AppDimensions.appBarHeight,
+            left: 30.w,
+            right: 30.w),
         margin: EdgeInsets.only(bottom: 16.w, top: 120.w),
         child: Stack(
           alignment: Alignment.centerRight,

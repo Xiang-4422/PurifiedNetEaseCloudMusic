@@ -143,7 +143,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
 
   // --- 歌词 ---
   /// 解析后的歌词数组
-  List<LyricsLineModel> lyricsLineModels = <LyricsLineModel>[];
+  RxList<LyricsLineModel> lyricsLineModels = <LyricsLineModel>[].obs;
   /// 是否有翻译歌词
   RxBool hasTransLyrics = false.obs;
   /// 歌词是否被用户滚动中

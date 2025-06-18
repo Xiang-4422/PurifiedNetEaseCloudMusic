@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/pages/play_list/playlist_view.dart';
+import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

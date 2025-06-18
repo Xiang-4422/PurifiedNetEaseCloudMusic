@@ -12,7 +12,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../common/netease_api/src/api/play/bean.dart';
-import '../play_list/playlist_view.dart';
+import '../play_list/playlist_page_view.dart';
 import 'cloud_controller.dart';
 
 class CloudDriveView extends GetWidget<CloudController> {

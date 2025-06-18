@@ -9,7 +9,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../common/netease_api/src/api/play/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
-import '../play_list/playlist_view.dart';
+import '../play_list/playlist_page_view.dart';
 
 class TodayView extends StatefulWidget {
   const TodayView({Key? key}) : super(key: key);

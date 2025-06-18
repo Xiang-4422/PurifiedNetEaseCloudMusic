@@ -1,8 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/login/login.dart';
-import 'package:bujuan/pages/play_list/playlist_view.dart';
-import 'package:bujuan/pages/playlist_manager/playlist_mananger_binding.dart';
+import 'package:bujuan/pages/login/login_page_view.dart';
+import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/pages/user/personal_page_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -30,12 +29,11 @@ class PersonalPageView extends GetView<PersonalPageController> {
 
   @override
   Widget build(BuildContext context) {
-    UserBinding().dependencies();
     return Obx(() => AbsorbPointer(
       absorbing: !HomePageController.to.isDrawerClosed.value,
       child: Visibility(
           visible: HomePageController.to.loginStatus.value == LoginStatus.login,
-          replacement: const LoginView(), // 未登录页面
+          replacement: const LoginPageView(), // 未登录页面
           child: Obx(() => Visibility(
                 visible: !controller.loading.value,
                 replacement: const LoadingView(),
@@ -106,7 +104,7 @@ class PersonalPageView extends GetView<PersonalPageController> {
                         )),
                         onTap: () {
                           HomePageController.to.changeAppBarTitle(title: "我喜欢的音乐", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
-                          context.router.push(const gr.PlayListView().copyWith(args: controller.userLikedSongCollection.value));
+                          context.router.push(const gr.PlayListRouteView().copyWith(args: controller.userLikedSongCollection.value));
                         },
                       ),
                       // 创建的歌单

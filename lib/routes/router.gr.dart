@@ -20,9 +20,9 @@ import '../pages/guide/guide_view.dart' as _i7;
 import '../pages/home/view/home_page_view.dart' as _i2;
 import '../pages/index/cloud_drive_view.dart' as _i17;
 import '../pages/index/explore_page_view.dart' as _i11;
-import '../pages/login/login.dart' as _i18;
+import '../pages/login/login_page_view.dart' as _i18;
 import '../pages/mv/mv_view.dart' as _i6;
-import '../pages/play_list/playlist_view.dart' as _i20;
+import '../pages/play_list/playlist_page_view.dart' as _i20;
 import '../pages/radio/my_radio_view.dart' as _i15;
 import '../pages/radio/radio_details_view.dart' as _i16;
 import '../pages/search/search_view.dart' as _i3;
@@ -159,10 +159,10 @@ class RootRouter extends _i22.RootStackRouter {
         child: const _i17.CloudDriveView(),
       );
     },
-    LoginView.name: (routeData) {
+    LoginRouteView.name: (routeData) {
       return _i22.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i18.LoginView(),
+        child: const _i18.LoginPageView(),
       );
     },
     UserSettingView.name: (routeData) {
@@ -171,10 +171,10 @@ class RootRouter extends _i22.RootStackRouter {
         child: const _i19.UserSettingView(),
       );
     },
-    PlayListView.name: (routeData) {
+    PlayListRouteView.name: (routeData) {
       return _i22.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i20.PlayListView(),
+        child: const _i20.PlayListPageView(),
       );
     },
     CommentRouteView.name: (routeData) {
@@ -251,7 +251,7 @@ class RootRouter extends _i22.RootStackRouter {
                   parent: RouteOne.name,
                 ),
                 _i22.RouteConfig(
-                  LoginView.name,
+                  LoginRouteView.name,
                   path: 'login',
                   parent: RouteOne.name,
                 ),
@@ -261,7 +261,7 @@ class RootRouter extends _i22.RootStackRouter {
                   parent: RouteOne.name,
                 ),
                 _i22.RouteConfig(
-                  PlayListView.name,
+                  PlayListRouteView.name,
                   path: 'playlist',
                   parent: RouteOne.name,
                 ),
@@ -290,7 +290,7 @@ class RootRouter extends _i22.RootStackRouter {
                   parent: RouteTwo.name,
                 ),
                 _i22.RouteConfig(
-                  PlayListView.name,
+                  PlayListRouteView.name,
                   path: 'playlist',
                   parent: RouteTwo.name,
                 ),
@@ -609,15 +609,15 @@ class CloudDriveView extends _i22.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i18.LoginView]
-class LoginView extends _i22.PageRouteInfo<void> {
-  const LoginView()
+/// [_i18.LoginPageView]
+class LoginRouteView extends _i22.PageRouteInfo<void> {
+  const LoginRouteView()
       : super(
-          LoginView.name,
+          LoginRouteView.name,
           path: 'login',
         );
 
-  static const String name = 'LoginView';
+  static const String name = 'LoginRouteView';
 }
 
 /// generated route for
@@ -633,15 +633,15 @@ class UserSettingView extends _i22.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i20.PlayListView]
-class PlayListView extends _i22.PageRouteInfo<void> {
-  const PlayListView()
+/// [_i20.PlayListPageView]
+class PlayListRouteView extends _i22.PageRouteInfo<void> {
+  const PlayListRouteView()
       : super(
-          PlayListView.name,
+          PlayListRouteView.name,
           path: 'playlist',
         );
 
-  static const String name = 'PlayListView';
+  static const String name = 'PlayListRouteView';
 }
 
 /// generated route for

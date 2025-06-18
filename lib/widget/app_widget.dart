@@ -6,11 +6,10 @@ import 'package:get/get.dart';
 
 import '../common/constants/colors.dart';
 import '../pages/album/controller.dart';
-import '../pages/home/home_binding.dart';
+import '../pages/home/home_page_controller.dart';
 import '../pages/index/cloud_controller.dart';
 import '../pages/index/explore_page_controller.dart';
 import '../pages/play_list/playlist_controller.dart';
-import '../pages/playlist_manager/playlist_manager_controller.dart';
 import '../pages/user/personal_page_controller.dart';
 import '../routes/router.gr.dart';
 
@@ -28,8 +27,6 @@ class AppWidget extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (BuildContext context, Widget? child) {
-        // GetX初始化依赖
-        HomeBinding().dependencies();
         return GetMaterialApp.router(
           // showPerformanceOverlay: true,
           // checkerboardOffscreenLayers: true,
@@ -72,9 +69,6 @@ class MyObserver extends AutoRouterObserver {
         break;
       case 'AlbumDetails':
         del ? Get.delete<AlbumController>() : Get.lazyPut<AlbumController>(() => AlbumController());
-        break;
-      case 'PlaylistManagerView':
-        del ? Get.delete<PlaylistManager>() : Get.lazyPut<PlaylistManager>(() => PlaylistManager());
         break;
     }
   }

@@ -20,13 +20,12 @@ import 'constants/platform_utils.dart';
 import 'netease_api/src/api/play/bean.dart';
 import 'netease_api/src/netease_api.dart';
 
-class BujuanAudioHandler extends BaseAudioHandler
-    with SeekHandler, QueueHandler
-    implements AudioPlayerHandler {
+class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler implements AudioPlayerHandler {
 
   final _player = GetIt.instance<AudioPlayer>();
   final Box _box = GetIt.instance<Box>();
   RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
+
   /// 播放模式（none表示随机模式）
   AudioServiceRepeatMode _audioServiceRepeatMode = AudioServiceRepeatMode.all;
   /// 当前播放列表
@@ -145,7 +144,9 @@ class BujuanAudioHandler extends BaseAudioHandler
       HomePageController.to.isFmMode.value = true;
       _box.put(fmSp, true);
     }
-    List<String> playList = await compute(setCachePlayList, RootIsolateData(rootIsolateToken, items: mediaItems));
+    List<String> playList = await compute(
+        setCachePlayList,
+        RootIsolateData(rootIsolateToken, items: mediaItems));
     queueTitle.value = 'Fm';
     _box.put(playQueue, playList);
   }
@@ -211,18 +212,21 @@ class BujuanAudioHandler extends BaseAudioHandler
   Future<void> playIndex(int index, {bool playIt = true}) async {
     // 接收到下标
     _updateCurIndex(index);
-    await readySongUrl(playIt: playIt);
+    await playCurIndex(playIt: playIt);
   }
 
   @override
-  Future<void> readySongUrl({bool isNext = true, bool playIt = true}) async {
+  Future<void> playCurIndex({bool isNext = true, bool playIt = true}) async {
     bool high = !playIt ? _box.get(highSong) ?? false : HomePageController.to.isHighSoundQualityOpen.value;
     bool cache = !playIt ? _box.get(cacheSp) ?? false : HomePageController.to.isCacheOpen.value;
+
     // 这里是获取歌曲url
     if (queue.value.isEmpty) return;
+
     var song = queue.value[_curIndex];
     _box.put(playById, song.id);
     String? url;
+
     if (song.extras?['type'] == MediaType.local.name || song.extras?['type'] == MediaType.neteaseCache.name) url = song.extras?['url'];
     if (url != null) {
       song.extras?.putIfAbsent('cache', () => true);
@@ -304,13 +308,13 @@ class BujuanAudioHandler extends BaseAudioHandler
   @override
   Future<void> skipToNext() async {
     _updateCurIndexByRepeatMode(isSkipToNext: true);
-    await readySongUrl();
+    await playCurIndex();
   }
 
   @override
   Future<void> skipToPrevious() async {
     _updateCurIndexByRepeatMode();
-    await readySongUrl(isNext: false);
+    await playCurIndex(isNext: false);
   }
 
 

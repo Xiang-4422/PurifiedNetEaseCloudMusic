@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/pages/home/home_page_controller.dart';
@@ -12,7 +11,6 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import '../../../common/constants/other.dart';
-import '../../../routes/router.dart';
 import '../../../widget/custom_zoom_drawer/src/flutter_zoom_drawer.dart';
 import '../../../widget/simple_extended_image.dart';
 import '../../../widget/weslide/panel.dart';

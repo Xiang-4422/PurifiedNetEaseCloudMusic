@@ -223,10 +223,7 @@ class PanelView extends GetView<HomePageController> {
                 absorbing: false,
                 child: Obx(() => Offstage(
                     offstage: controller.isAlbumVisible.value,
-                    child: const AbsorbPointer(
-                      absorbing: true,
-                      child: LyricView(),
-                    ),
+                    child: const LyricView(),
                 )),
             ),
           ),

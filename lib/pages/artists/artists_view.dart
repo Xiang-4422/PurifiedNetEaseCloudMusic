@@ -4,7 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
 import 'package:bujuan/pages/home/home_page_controller.dart';
-import 'package:bujuan/pages/play_list/playlist_view.dart';
+import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:flutter/material.dart';

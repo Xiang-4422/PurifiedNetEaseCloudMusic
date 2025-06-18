@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/bujuan_audio_handler.dart';
 import 'package:bujuan/common/constants/platform_utils.dart';
 import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/index/explore_page_controller.dart';
 import 'package:bujuan/pages/user/personal_page_controller.dart';
 import 'package:bujuan/widget/app_widget.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,10 @@ main() async {
   // 在runApp前必须完成的初始化操作
   await _initSingleton();
   Get.lazyPut<PersonalPageController>(() => PersonalPageController());
+  Get.lazyPut<ExplorePageController>(() => ExplorePageController());
+  Get.lazyPut<HomePageController>(() => HomePageController());
+
+
 
   runApp(
       AppWidget()

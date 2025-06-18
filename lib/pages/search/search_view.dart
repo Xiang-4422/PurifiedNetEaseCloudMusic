@@ -12,7 +12,7 @@ import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/custom_filed.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
-import '../play_list/playlist_view.dart';
+import '../play_list/playlist_page_view.dart';
 
 // TODO YU4422 待重写
 class SearchView extends StatefulWidget {

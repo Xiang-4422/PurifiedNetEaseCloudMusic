@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/pages/guide/guide_view.dart';
 import 'package:bujuan/pages/home/view/home_page_view.dart';
 import 'package:bujuan/pages/mv/mv_view.dart';
-import 'package:bujuan/pages/playlist_manager/playlist_manager_view.dart';
 import 'package:bujuan/pages/radio/my_radio_view.dart';
 import 'package:bujuan/pages/radio/radio_details_view.dart';
 import 'package:bujuan/pages/setting/coffee.dart';
@@ -16,8 +15,8 @@ import '../pages/album/album_details.dart';
 import '../pages/artists/artists_view.dart';
 import '../pages/index/cloud_drive_view.dart';
 import '../pages/index/explore_page_view.dart';
-import '../pages/login/login.dart';
-import '../pages/play_list/playlist_view.dart';
+import '../pages/login/login_page_view.dart';
+import '../pages/play_list/playlist_page_view.dart';
 import '../pages/search/search_view.dart';
 import '../pages/setting/image_blur.dart';
 import '../pages/splash_page.dart';
@@ -111,12 +110,12 @@ abstract class _Paths {
         AutoRoute(path: Routes.cloud, page: CloudDriveView),
 
         // 登录
-        AutoRoute(path: Routes.login, page: LoginView),
+        AutoRoute(path: Routes.login, page: LoginPageView),
         // 用户设置（注销登录）
         AutoRoute(path: Routes.userSetting, page: UserSettingView),
 
         // 歌单
-        AutoRoute(path: Routes.playlist, page: PlayListView),
+        AutoRoute(path: Routes.playlist, page: PlayListPageView),
         // 评论
         AutoRoute(path: Routes.talk, page: CommentPageView),
       ]),
@@ -124,7 +123,7 @@ abstract class _Paths {
         // 发现页
         AutoRoute(path: Routes.index, page: ExplorePageView, initial: true),
         // 歌单
-        AutoRoute(path: Routes.playlist, page: PlayListView),
+        AutoRoute(path: Routes.playlist, page: PlayListPageView),
         // 评论
         AutoRoute(path: Routes.talk, page: CommentPageView),
       ]),

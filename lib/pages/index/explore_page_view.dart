@@ -9,8 +9,7 @@ import 'package:get/get.dart';
 
 import '../../routes/router.gr.dart' as gr;
 import '../../widget/simple_extended_image.dart';
-import '../play_list/playlist_view.dart';
-import 'explore_binding.dart';
+import '../play_list/playlist_page_view.dart';
 import 'explore_page_controller.dart';
 
 class PageTwo extends StatelessWidget {
@@ -27,7 +26,6 @@ class ExplorePageView extends GetView<ExplorePageController> {
 
   @override
   Widget build(BuildContext context) {
-    ExploreBinding().dependencies();
     return Obx(() => AbsorbPointer(
       absorbing: !HomePageController.to.isDrawerClosed.value,
       child: Visibility(
@@ -138,7 +136,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
         ),
         onTap: () {
           HomePageController.to.changeAppBarTitle(title: albumModel.name ?? "", direction: NewAppBarTitleComingDirection.right);
-          context.router.push(const gr.PlayListView().copyWith(args: albumModel));
+          context.router.push(const gr.PlayListRouteView().copyWith(args: albumModel));
         },
       ),
     );

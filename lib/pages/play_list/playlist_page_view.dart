@@ -3,27 +3,23 @@ import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/common/constants/enmu.dart' as type;
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/pages/play_list/playlist_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
-import 'package:bujuan/widget/custom_filed.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/my_get_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import '../../widget/simple_extended_image.dart';
-import 'package:bujuan/common/constants/enmu.dart' as type;
 import '../home/home_page_controller.dart';
 
-class PlayListView extends GetView<PlayListController> {
-  const PlayListView({super.key});
+class PlayListPageView extends GetView<PlayListController> {
+  const PlayListPageView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -362,7 +358,7 @@ class PlayListItem extends StatelessWidget {
       contentPadding: EdgeInsets.symmetric(horizontal: 10.w),
       onTap: () {
         HomePageController.to.changeAppBarTitle(title: play.name ?? "", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
-        context.router.push(const gr.PlayListView().copyWith(args: play));
+        context.router.push(const gr.PlayListRouteView().copyWith(args: play));
       },
       leading: SimpleExtendedImage(
         '${play.coverImgUrl ?? ''}?param=200y200',

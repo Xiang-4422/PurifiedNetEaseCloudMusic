@@ -16,7 +16,6 @@ class DataWidget<T> extends StatefulWidget {
   @override
   State<DataWidget> createState() => _DataWidgetState();
 }
-
 class _DataWidgetState<T> extends State<DataWidget<T>> {
   @override
   Widget build(BuildContext context) {
@@ -39,7 +38,6 @@ class DataView<T> extends StatefulWidget {
   @override
   State<DataView> createState() => _DataViewState();
 }
-
 class _DataViewState<T> extends State<DataView<T>> {
   @override
   Widget build(BuildContext context) {
@@ -79,7 +77,6 @@ class LoadingView extends StatelessWidget {
     );
   }
 }
-
 class EmptyView extends StatelessWidget {
   const EmptyView({Key? key}) : super(key: key);
 
@@ -100,7 +97,6 @@ class EmptyView extends StatelessWidget {
     );
   }
 }
-
 class ErrorView extends StatelessWidget {
   const ErrorView({Key? key}) : super(key: key);
 

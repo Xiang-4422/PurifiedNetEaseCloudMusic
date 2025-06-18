@@ -7,5 +7,4 @@ class ExploreBinding extends Bindings{
   void dependencies() {
     Get.lazyPut(() => ExplorePageController());
   }
-
 }

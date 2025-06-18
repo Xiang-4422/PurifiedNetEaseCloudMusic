@@ -6,39 +6,38 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
-
+// TODO YU4422 歌词换行、歌词丝滑缩放
 class LyricView extends GetView<HomePageController> {
   const LyricView({super.key});
 
   @override
   Widget build(BuildContext context) {
-      return ScrollablePositionedList.builder(
-        key: ValueKey(controller.lyricsLineModels.length),
-        itemPositionsListener: controller.lyricScrollListener,
-        itemScrollController: controller.lyricScrollController,
-        itemCount: controller.lyricsLineModels.length + 2,
-        itemBuilder: (BuildContext context, int index) {
-          if (index == 0 || index == controller.lyricsLineModels.length + 1) {
+      return Obx(() => ScrollablePositionedList.builder(
+          key: ValueKey(controller.curPlayIndex.value),
+          itemPositionsListener: controller.lyricScrollListener,
+          itemScrollController: controller.lyricScrollController,
+          itemCount: controller.lyricsLineModels.length + 2,
+          itemBuilder: (BuildContext context, int index) {
+            if (index == 0 || index == controller.lyricsLineModels.length + 1) {
+              return Container(
+                height: context.height * (index == 0 ? 0.4 : 0.6),
+              );
+            }
+            index -= 1;
             return Container(
-              height: context.height * (index == 0 ? 0.4 : 0.6),
-            );
-          }
-          index -= 1;
-          return Obx(() => Container(
-            key: ValueKey(controller.currLyricIndex.value == index),
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // 原歌词
-                Obx(() => AnimatedDefaultTextStyle(
-                  style: TextStyle(
-                    fontSize: controller.currLyricIndex.value == index && controller.lyricsLineModels[index].mainText != null ? 40.sp : 35.sp,
-                    color: controller.bodyColor.value.withOpacity(controller.currLyricIndex.value == index ? 1 : 0.3),
-                    fontWeight: controller.currLyricIndex.value == index ? FontWeight.bold : FontWeight.normal,
-                  ),
-                  textAlign: TextAlign.center,
-                  duration: const Duration(milliseconds: 300),
+              width: context.width,
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              alignment: Alignment.center,
+              child: Obx(() => AnimatedDefaultTextStyle(
+                style: TextStyle(
+                  fontSize: controller.currLyricIndex.value == index && controller.lyricsLineModels[index].mainText != null ? 40.sp : 35.sp,
+                  color: controller.bodyColor.value.withOpacity(controller.currLyricIndex.value == index ? 1 : 0.3),
+                  fontWeight: controller.currLyricIndex.value == index ? FontWeight.bold : FontWeight.normal,
+                ),
+                textAlign: TextAlign.center,
+                duration: const Duration(milliseconds: 300),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
                   child: Text(
                     // 原歌词
                       (controller.lyricsLineModels[index].mainText ?? '')
@@ -48,12 +47,11 @@ class LyricView extends GetView<HomePageController> {
                           : '\n${controller.lyricsLineModels[index].extText ?? ''}'
                       )
                   ),
-                )),
-              ],
-            ),
-          ),
-          );
-        },
+                ),
+              )),
+            );
+          },
+        ),
       );
   }
 }

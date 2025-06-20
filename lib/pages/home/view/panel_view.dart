@@ -6,6 +6,7 @@ import 'package:bujuan/pages/home/view/lyric_view.dart';
 import 'package:bujuan/pages/talk/comment_page_view.dart';
 import 'package:bujuan/widget/keep_alive.dart';
 import 'package:bujuan/widget/my_get_view.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -13,6 +14,8 @@ import 'package:get/get.dart';
 
 import '../../../common/constants/appConstants.dart';
 import '../../../widget/music_visualizer.dart';
+import '../../../widget/simple_extended_image.dart';
+import '../../../widget/swipeable.dart';
 
 class PanelView extends GetView<HomePageController> {
   const PanelView({Key? key}) : super(key: key);
@@ -22,7 +25,7 @@ class PanelView extends GetView<HomePageController> {
     double albumPadding = context.width * (1 - AppDimensions.albumMaxWidth) / 2;
     return MyGetView(
         child: Stack(
-            children: [
+          children: [
               // 背景层
               Obx(() => BlurryContainer(
                   blur: 20,
@@ -52,72 +55,85 @@ class PanelView extends GetView<HomePageController> {
                     ),
                   ),
                 )),
-              Stack(
-                alignment: Alignment.bottomCenter,
+              // 内容
+              Column(
                 children: [
-                  // 内容
-                  PageView(
-                    controller: controller.panelPageController,
-                    children: [
-                      // 播放列表
-                      _buildCurPlayingListPage(context),
-                      _buildCurPlayingPage(context),
-                      _buildCommentPage(context, 2),
-                      _buildCommentPage(context, 3),
-                    ],
-                  ),
-                  // 页面指示TabBar
-                  BlurryContainer(
-                      blur: 20,
-                      borderRadius: BorderRadius.circular(0),
-                      child: SizedBox(
-                        height: albumPadding,
-                        child: TabBar(
-                          controller: controller.panelTabController,
-                          dividerColor: Colors.transparent,
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          indicatorWeight: 0,
-                          indicator: BoxDecoration(
-                            color: Colors.black.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(albumPadding),
-                          ),
-                          tabs: [
-                            const Text("播放列表"),
-                            const Text("正在播放"),
-                            Obx(() => AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              transitionBuilder: (Widget child, Animation<double> animation) {
-                                //执行缩放动画
-                                return ScaleTransition(scale: animation, child: FadeTransition(opacity: animation, child: child));
-                              },
-                              child: Visibility(
-                                key: ValueKey(controller.curPanelPageIndex.value > 1),
-                                visible: controller.curPanelPageIndex.value > 1,
-                                replacement: const Text("歌曲评论"),
-                                child: SizedBox(
-                                  height: albumPadding,
-                                  child: TabBar(
-                                    controller: controller.panelCommentTabController,
-                                    dividerColor: Colors.transparent,
-                                    indicatorColor: Colors.red,
-                                    indicatorWeight: 0,
-                                    indicatorSize: TabBarIndicatorSize.tab,
-                                    indicator: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(albumPadding),
-                                    ),
-                                    tabs: const [
-                                      Text("热"),
-                                      Text("新"),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            )),
+                  Obx(() => Offstage(
+                    offstage: controller.panelFullyClosed.isFalse,
+                    child: Container(
+                      height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
+                    ),
+                  )),
+                  Expanded(
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        PageView(
+                          controller: controller.panelPageController,
+                          children: [
+                            // 播放列表
+                            _buildCurPlayingListPage(context),
+                            _buildCurPlayingPage(context),
+                            _buildCommentPage(context, 2),
+                            _buildCommentPage(context, 3),
                           ],
                         ),
-                      ),
+                        // 页面指示TabBar
+                        BlurryContainer(
+                          blur: 20,
+                          padding: EdgeInsets.zero,
+                          borderRadius: BorderRadius.circular(0),
+                          child: SizedBox(
+                            height: albumPadding,
+                            child: TabBar(
+                              controller: controller.panelTabController,
+                              dividerColor: Colors.transparent,
+                              indicatorSize: TabBarIndicatorSize.tab,
+                              indicatorWeight: 0,
+                              indicator: BoxDecoration(
+                                color: Colors.black.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(albumPadding),
+                              ),
+                              tabs: [
+                                const Text("播放列表"),
+                                const Text("正在播放"),
+                                Obx(() => AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  transitionBuilder: (Widget child, Animation<double> animation) {
+                                    //执行缩放动画
+                                    return ScaleTransition(scale: animation, child: FadeTransition(opacity: animation, child: child));
+                                  },
+                                  child: Visibility(
+                                    key: ValueKey(controller.curPanelPageIndex.value > 1),
+                                    visible: controller.curPanelPageIndex.value > 1,
+                                    replacement: const Text("歌曲评论"),
+                                    child: SizedBox(
+                                      height: albumPadding,
+                                      child: TabBar(
+                                        controller: controller.panelCommentTabController,
+                                        dividerColor: Colors.transparent,
+                                        indicatorColor: Colors.red,
+                                        indicatorWeight: 0,
+                                        indicatorSize: TabBarIndicatorSize.tab,
+                                        indicator: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(albumPadding),
+                                        ),
+                                        tabs: const [
+                                          Text("热"),
+                                          Text("新"),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                )),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ],
@@ -136,7 +152,7 @@ class PanelView extends GetView<HomePageController> {
         child: Column(
           children: [
             Obx(() => Offstage(
-              key: ValueKey(!controller.isAlbumVisible.value),
+              key: ValueKey(controller.isAlbumVisible.isFalse),
               offstage: !controller.isAlbumVisible.value,
               child: Container(
                 height: panelAppBarHeight + context.width,
@@ -146,9 +162,11 @@ class PanelView extends GetView<HomePageController> {
               child: ListView.builder(
                 controller: controller.playListScrollController,
                 itemExtent: 110.w,
-                padding: EdgeInsets.only(top: controller.isAlbumVisible.value
-                    ? 0
-                    : panelAppBarHeight
+                padding: EdgeInsets.only(
+                  top: controller.isAlbumVisible.value
+                      ? 0
+                      : panelAppBarHeight,
+                  bottom: context.width * (1 - AppDimensions.albumMaxWidth) / 2,
                 ),
                 itemCount: controller.curPlayList.length,
                 itemBuilder: (context, index) {
@@ -220,7 +238,7 @@ class PanelView extends GetView<HomePageController> {
           GestureDetector(
             onTap: () => controller.isAlbumVisible.value = !controller.isAlbumVisible.value,
             child: AbsorbPointer(
-                absorbing: false,
+                absorbing: true,
                 child: Obx(() => Offstage(
                     offstage: controller.isAlbumVisible.value,
                     child: const LyricView(),
@@ -421,4 +439,188 @@ class PanelView extends GetView<HomePageController> {
       ),
     );
   }
+}
+
+class PanelHeaderView extends GetView<HomePageController> {
+  const PanelHeaderView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _buildHeader(context);
+  }
+
+  /// 底部播放状态栏
+  Widget _buildHeader(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller.panelAnimationController,
+      builder: (context, child) {
+        return GestureDetector(
+          onTap: () => {
+            if (controller.panelFullyClosed.value) {
+              controller.panelController.open()
+            }
+          },
+          child: SizedBox(
+            width: context.width,
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                _buildAlbum(context),
+                _buildMediaTitle(context),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  /// 播放状态栏——歌曲标题和播放按钮
+  Widget _buildMediaTitle(BuildContext context) {
+    return Obx(() => Visibility(
+      visible: controller.panelFullyClosed.value,
+      child: Row(
+        children: [
+          Container(
+            width: AppDimensions.bottomPanelHeaderHeight,
+          ),
+          Expanded(
+            child: Swipeable(
+              background: const SizedBox.shrink(),
+              onSwipeLeft: () => controller.audioServeHandler.skipToPrevious(),
+              onSwipeRight: () => controller.audioServeHandler.skipToNext(),
+              child: Container(
+                height: AppDimensions.bottomPanelHeaderHeight,
+                alignment: Alignment.centerLeft,
+                child: Obx(() => Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${HomePageController.to.curMediaItem.value.title}',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: TextStyle(
+                          fontSize: 42.sp,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold
+                      ),
+                    ),
+                    Text(
+                      '${HomePageController.to.curMediaItem.value.artist ?? ''}',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: TextStyle(
+                          fontSize: 21.sp,
+                          color: Colors.black.withOpacity(0.5)
+                      ),
+                    ),
+                  ],
+                )
+                ),
+              ),
+            ),
+          ),
+          Container(
+            alignment: Alignment.center,
+            width: AppDimensions.bottomPanelHeaderHeight,
+            height: AppDimensions.bottomPanelHeaderHeight,
+            child: IconButton(
+                onPressed: () => controller.playOrPause(),
+                icon: Obx(() => Icon(
+                  controller.isPlaying.value ? TablerIcons.player_pause : TablerIcons.player_play,
+                  color: Theme.of(context).cardColor.withOpacity(.7),
+                  size: 65.sp,
+                ))),
+          ),
+        ],
+      ),
+    ),
+    );
+  }
+  /// 播放状态栏——专辑图片
+  Widget _buildAlbum(BuildContext context) {
+    /// 完全展开宽度
+    double panelAlbumMaxWidth = context.width * AppDimensions.albumMaxWidth;
+    /// 完全展开LeftMargin
+    double maxMarginLeft = (context.width - panelAlbumMaxWidth) / 2;
+
+    // 实时Album宽度、margin
+    double albumWidth = AppDimensions.albumMinWidth + (panelAlbumMaxWidth - AppDimensions.albumMinWidth) * controller.panelAnimationController.value;
+    double albumPadding = AppDimensions.panelHeaderPadding +  (maxMarginLeft - AppDimensions.panelHeaderPadding) * controller.panelAnimationController.value;
+    double appBarPadding = (context.mediaQueryPadding.top + AppDimensions.appBarHeight) * controller.panelAnimationController.value;
+    double albumBorderRadius = AppDimensions.albumMinWidth * (1 - controller.panelAnimationController.value);
+
+    return Obx(() => IgnorePointer(
+      ignoring: !controller.isAlbumVisible.value || controller.panelFullyClosed.value,
+      child: Container(
+        margin: EdgeInsets.only(top: appBarPadding),
+        width: albumWidth + albumPadding * 2,
+        height: albumWidth + albumPadding * 2,
+        child: OverflowBox(
+          maxWidth: (albumWidth + albumPadding * 2) * 3,
+          child: Obx(() => PageView.builder(
+            // key: ValueKey<List>(controller.curPlayList),
+            controller: controller.albumPageController,
+            itemCount: controller.curPlayList.length,
+            physics: controller.panelFullyClosed.value ? NeverScrollableScrollPhysics() : PageScrollPhysics(),
+            onPageChanged: (index) {
+              if (index != controller.curPlayIndex.value) {
+                index > controller.curPlayIndex.value
+                    ? controller.audioServeHandler.skipToNext()
+                    : controller.audioServeHandler.skipToPrevious();
+              }
+            },
+            itemBuilder: (BuildContext context, int index) {
+              return Obx(() => AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  );
+                },
+                child: Visibility(
+                  visible: controller.isAlbumVisible.value
+                      ? controller.panelFullyOpened.value
+                      ? true
+                      : index == controller.curPlayIndex.value
+                      : controller.panelFullyClosed.value && index == controller.curPlayIndex.value,
+                  child: Container(
+                    margin: EdgeInsets.all(albumPadding),
+                    child: GestureDetector(
+                      onTap: () {
+                        controller.isAlbumVisible.value = !controller.isAlbumVisible.value;
+                      },
+                      child: Container(
+                        clipBehavior: Clip.hardEdge,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(albumBorderRadius),
+                          boxShadow: [
+                            controller.panelFullyOpened.value
+                                ? BoxShadow(
+                              color: Colors.black.withOpacity(0.4), // 阴影颜色
+                              blurRadius: 12, // 模糊半径
+                              spreadRadius: 2, // 扩散半径
+                            )
+                                : const BoxShadow()
+                          ],
+                        ),
+                        child: Obx(() => SimpleExtendedImage(
+                          '${controller.curPlayList[index].extras?['image'] ?? ''}?param=500y500',
+                        )),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              );
+            },
+          ),
+          ),
+        ),
+      ),
+    ),
+    );
+  }
+
 }

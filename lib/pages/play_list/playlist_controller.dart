@@ -9,8 +9,8 @@ import '../../common/netease_api/src/api/play/bean.dart';
 import '../../common/netease_api/src/netease_api.dart';
 
 class PlayListController<E, T> extends GetxController {
-  RxList<MediaItem> mediaItems = <MediaItem>[].obs;
-  RxList<MediaItem> searchItems = <MediaItem>[].obs;
+  List<MediaItem> mediaItems = <MediaItem>[];
+  List<MediaItem> searchItems = <MediaItem>[];
   BuildContext? context;
   SinglePlayListWrap? details;
   RxBool loading = true.obs;

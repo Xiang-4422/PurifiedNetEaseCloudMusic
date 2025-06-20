@@ -142,9 +142,12 @@ class PlayListPageView extends GetView<PlayListController> {
                         )
                       ),
                     ),
-                    Obx(() => SliverFixedExtentList(
+                    SliverFixedExtentList(
                       itemExtent: 130.w,
                       delegate: SliverChildBuilderDelegate(
+                        childCount: controller.isSearch.value ? controller.searchItems.length : controller.mediaItems.length,
+                        addAutomaticKeepAlives: false,
+                        addRepaintBoundaries: false,
                         (context, index) => SongItem(
                           index: index,
                           mediaItem: controller.isSearch.value ? controller.searchItems[index] : controller.mediaItems[index],
@@ -152,14 +155,13 @@ class PlayListPageView extends GetView<PlayListController> {
                             if (controller.isSearch.value) {
                               index = controller.mediaItems.indexOf(controller.searchItems[index]);
                             }
-                            HomePageController.to.playByIndex(index, 'queueTitle', playList: controller.mediaItems);
+                            String songName = controller.mediaItems[index].title;
+                            print("YUUUU: index: $index, songName: $songName");
+                            HomePageController.to.playNewPlayListByIndex(index, 'queueTitle', playList: controller.mediaItems);
                           },
                         ),
-                        childCount: controller.isSearch.value ? controller.searchItems.length : controller.mediaItems.length,
-                        addAutomaticKeepAlives: false,
-                        addRepaintBoundaries: false,
                       ),
-                    )),
+                    ),
                     const SliverPadding(padding: EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight),),
                   ],
                 ),

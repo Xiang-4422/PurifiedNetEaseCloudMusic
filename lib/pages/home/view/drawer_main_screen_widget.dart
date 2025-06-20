@@ -13,25 +13,29 @@ class DrawerMainScreenView extends GetView<HomePageController> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => AutoTabsRouter.pageView(
-        routes: const [
-          RouteOne(),
-          RouteTwo(),
-          SettingRouteView(),
-          CoffeeRoute(),
-        ],
-        physics: controller.isDrawerClosed.value
-            ? const NeverScrollableScrollPhysics()
-            : const PageScrollPhysics(),
-        scrollDirection: Axis.vertical,
-        animatePageTransition: true,
-        builder: (context, child, pageController) {
-          if (!controller.isHomePageControllerInited) {
-            controller.initHomePageController(pageController);
-          }
-          return child;
-        },
-      ));
+    return SizedBox(
+      width: context.width,
+      height: context.height,
+      child: Obx(() => AutoTabsRouter.pageView(
+          routes: const [
+            RouteOne(),
+            RouteTwo(),
+            SettingRouteView(),
+            CoffeeRoute(),
+          ],
+          physics: controller.isDrawerClosed.value
+              ? const NeverScrollableScrollPhysics()
+              : const PageScrollPhysics(),
+          scrollDirection: Axis.vertical,
+          animatePageTransition: true,
+          builder: (context, child, pageController) {
+            if (!controller.isHomePageControllerInited) {
+              controller.initHomePageController(pageController);
+            }
+            return child;
+          },
+        )),
+    );
   }
 }
 

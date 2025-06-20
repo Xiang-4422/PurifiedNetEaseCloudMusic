@@ -40,7 +40,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   double _timerCounter = 0.0;
   /// 上次弹出时间（防止多次快速点击）
   var _lastPopTime = DateTime.now();
-  RxBool inSongCollectionPage = false.obs;
+  RxBool isInPlayListPage = false.obs;
 
   // AppBar标题配置
   RxString curPageTitle = "".obs;
@@ -87,6 +87,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   // --- APP 功能配置项 ---
   /// 是否渐变播放背景
   RxBool isGradientBackground = false.obs;
+  // TODO YU4422 待实现
   /// 是否开启顶部歌词
   RxBool isTopLyricOpen = true.obs;
   /// 是否开启圆形专辑
@@ -127,11 +128,12 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   final BujuanAudioHandler audioServeHandler = GetIt.instance<BujuanAudioHandler>();
   /// 循环方式
   Rx<AudioServiceRepeatMode> audioServiceRepeatMode = AudioServiceRepeatMode.all.obs;
+  /// 通过监听播放状态更新
   RxBool isPlaying = false.obs;
   RxBool isFmMode = false.obs;
 
   // --- 当前播放 ---
-  /// 当前播放列表
+  /// 当前播放列表，通过监听刷新
   RxList<MediaItem> curPlayList = <MediaItem>[].obs;
   /// 当前播放歌曲
   Rx<MediaItem> curMediaItem = const MediaItem(id: '', title: '暂无', duration: Duration(seconds: 10)).obs;
@@ -146,15 +148,12 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   RxList<LyricsLineModel> lyricsLineModels = <LyricsLineModel>[].obs;
   /// 是否有翻译歌词
   RxBool hasTransLyrics = false.obs;
-  /// 歌词是否被用户滚动中
-  RxBool isLyricsMoving = false.obs;
   /// 当前歌词下标
   RxInt currLyricIndex = (-2).obs;    // -2表示currLyricIndex未配置，-1表示前奏阶段无歌词
   /// 当前歌词（整行）
   RxString currLyric = ''.obs;
   /// 当前播放进度
   Rx<Duration> curPlayDuration = Duration.zero.obs;
-  Duration lastPlayDuration = Duration.zero;
 
   // --- 滚动状态（歌词和播放列表共用） ---
   /// 滚动起始的y位置
@@ -333,7 +332,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
 
   // --- 歌曲控制 ---
   /// 改变循环模式
-  changeRepeatMode() {
+  changeRepeatMode() async {
     switch (audioServiceRepeatMode.value) {
       case AudioServiceRepeatMode.one:
         audioServiceRepeatMode.value = AudioServiceRepeatMode.none;
@@ -347,11 +346,9 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
         break;
     }
     audioServeHandler.setRepeatMode(audioServiceRepeatMode.value);
-    box.put(repeatModeSp, audioServiceRepeatMode.value.name);
   }
   /// 播放/暂停
   playOrPause() async {
-    // isPlaying.value = !isPlaying.value;
     isPlaying.value
         ? await audioServeHandler.pause()
         : await audioServeHandler.play();
@@ -365,22 +362,17 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     ServerStatusBean serverStatusBean = await NeteaseMusicApi().likeSong(curMediaItem.value.id, !isLiked);
     if (serverStatusBean.code == 200) {
       await audioServeHandler.updateMediaItem(curMediaItem.value..extras?['liked'] = !isLiked);
-      if (PlatformUtils.isAndroid) {
         audioServeHandler.playbackState.add(audioServeHandler.playbackState.value.copyWith(
           controls: [
             (curMediaItem.value.extras?['liked'] ?? false)
                 ? const MediaControl(label: 'fastForward', action: MediaAction.fastForward, androidIcon: 'drawable/audio_service_like')
                 : const MediaControl(label: 'rewind', action: MediaAction.rewind, androidIcon: 'drawable/audio_service_unlike'),
             MediaControl.skipToPrevious,
-            if (isPlaying.value) MediaControl.pause else MediaControl.play,
+            isPlaying.value ?  MediaControl.pause : MediaControl.play,
             MediaControl.skipToNext,
             MediaControl.stop
           ],
-          systemActions: {MediaAction.playPause, MediaAction.seek, MediaAction.skipToPrevious, MediaAction.skipToNext},
-          androidCompactActionIndices: [1, 2, 3],
-          processingState: AudioProcessingState.completed,
         ));
-      }
       WidgetUtil.showToast(isLiked ? '取消喜欢成功' : '喜欢成功');
       if (isLiked) {
         likeIds.remove(int.parse(curMediaItem.value.id));
@@ -390,9 +382,10 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     }
   }
   /// 根据下标播放歌曲
-  playByIndex(int index, String queueTitle, {List<MediaItem>? playList}) async {
+  playNewPlayListByIndex(int index, String queueTitle, {List<MediaItem>? playList}) async {
     audioServeHandler.queueTitle.value = queueTitle;
-    audioServeHandler.changeQueueLists(playList ?? [], index: index);
+    await audioServeHandler.changeQueueLists(playList ?? [], index: index);
+    audioServeHandler.playCurIndex();
   }
   /// 获取 FM 歌曲列表
   getFmSongList() async {
@@ -547,20 +540,22 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   _initListener() {
     // 监听歌词滚动
     lyricScrollListener.itemPositions.addListener(() {});
-    // 监听抽屉展开程度
-    zoomDrawerController.addListener!((drawerOpenDegree) {
-      //  抽屉状态改变
-      if ((drawerOpenDegree == 0.0) != isDrawerClosed.value) {
-        // 刷新抽屉状态
-        isDrawerClosed.value = drawerOpenDegree == 0.0;
-        if (!isDrawerClosed.value) {
-          // 启动倒计时器关闭抽屉
-          _updateCloseDrawerTimer(3000);
-        } else {
-          _updateCloseDrawerTimer(0);
-        }
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
+      // 监听抽屉展开程度
+      zoomDrawerController.addListener!((drawerOpenDegree) {
+        //  抽屉状态改变
+        if ((drawerOpenDegree == 0.0) != isDrawerClosed.value) {
+          // 刷新抽屉状态
+          isDrawerClosed.value = drawerOpenDegree == 0.0;
+          if (!isDrawerClosed.value) {
+            // 启动倒计时器关闭抽屉
+            _updateCloseDrawerTimer(3000);
+          } else {
+            _updateCloseDrawerTimer(0);
+          }
 
-      }
+        }
+      });
     });
     // 监听album封面滚动
     albumPageController.addListener(() {
@@ -575,6 +570,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
 
     // 监听播放列表切换
     audioServeHandler.queue.listen((mediaItems) {
+      print("mediaItems: $mediaItems");
       curPlayList
         ..clear()
         ..addAll(mediaItems);
@@ -600,17 +596,17 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     //监听实时进度变化
     AudioService.createPositionStream(minPeriod: const Duration(microseconds: 800), steps: 1000).listen((newCurPlayingDuration) {
       //如果没有展示播放页面就先不监听（节省资源）
-      if (panelFullyClosed.isTrue) return;
+      if (panelFullyOpened.isFalse) return;
       //如果监听到的毫秒大于歌曲的总时长 置0并stop
       if (newCurPlayingDuration.inMilliseconds > (curMediaItem.value.duration?.inMilliseconds ?? 0)) {
         curPlayDuration.value = Duration.zero;
         return;
       }
       curPlayDuration.value = newCurPlayingDuration;
-      if (!isLyricsMoving.value && lyricsLineModels.isNotEmpty && !isAlbumVisible.value) {
+      if (lyricsLineModels.isNotEmpty && !isAlbumVisible.value) {
         // 找不到当前时间对应的歌词，此时realTimeLyricIndex为-1，表示为前奏阶段，刚好显示空白
         int realTimeLyricIndex = lyricsLineModels.lastIndexWhere((element) => element.startTime! <= curPlayDuration.value.inMilliseconds);
-        print('realTimeLyricIndex: $realTimeLyricIndex');
+        // print('realTimeLyricIndex: $realTimeLyricIndex');
         if (realTimeLyricIndex != currLyricIndex.value) {
           currLyricIndex.value = realTimeLyricIndex;
           lyricScrollController.scrollTo(index: realTimeLyricIndex == -1 ? 1 : realTimeLyricIndex + 1, alignment: 0.4, duration: const Duration(milliseconds: 300));

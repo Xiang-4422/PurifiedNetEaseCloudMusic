@@ -8,7 +8,7 @@ import 'package:bujuan/pages/setting/coffee.dart';
 import 'package:bujuan/pages/setting/setting_page_view.dart';
 import 'package:bujuan/pages/setting/user_setting_view.dart';
 import 'package:bujuan/pages/talk/comment_page_view.dart';
-import 'package:bujuan/pages/today/today_view.dart';
+import 'package:bujuan/pages/today/today_page_view.dart';
 import 'package:bujuan/pages/user/personal_page_view.dart';
 
 import '../pages/album/album_details.dart';
@@ -101,7 +101,7 @@ abstract class _Paths {
         // 个人收藏
         AutoRoute(path: Routes.user, page: PersonalPageView, initial: true),
         // 每日歌单
-        AutoRoute(path: Routes.today, page: TodayView),
+        AutoRoute(path: Routes.today, page: TodayPageView),
         // 播客
         AutoRoute(path: Routes.myRadio, page: MyRadioView),
         // 播客详情

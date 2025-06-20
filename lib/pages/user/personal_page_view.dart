@@ -19,7 +19,7 @@ class PageOne extends StatelessWidget {
   const PageOne({super.key});
   @override
   Widget build(BuildContext context) {
-    return AutoRouter();
+    return const AutoRouter();
   }
 }
 
@@ -58,13 +58,11 @@ class PersonalPageView extends GetView<PersonalPageController> {
                                   if ((userItem.routes ?? '') == 'playFm') {
                                     if(HomePageController.to.isFmMode.value) {
                                       // TODO YU4422 打开播放页面，避免重复加载
-                                      if (!HomePageController.to.isPlaying.value) {
+                                      if (HomePageController.to.isPlaying.isFalse) {
                                         HomePageController.to.playOrPause();
                                       }
                                     } else {
                                       HomePageController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
-                                      HomePageController.to.audioServiceRepeatMode.value = AudioServiceRepeatMode.all;
-                                      HomePageController.to.box.put(repeatModeSp, AudioServiceRepeatMode.all.name);
                                       HomePageController.to.getFmSongList();
                                     }
                                     HomePageController.to.panelController.open();

@@ -28,27 +28,30 @@ class LyricView extends GetView<HomePageController> {
               width: context.width,
               margin: const EdgeInsets.symmetric(vertical: 10),
               alignment: Alignment.center,
-              child: Obx(() => AnimatedDefaultTextStyle(
-                style: TextStyle(
-                  fontSize: controller.currLyricIndex.value == index && controller.lyricsLineModels[index].mainText != null ? 40.sp : 35.sp,
-                  color: controller.bodyColor.value.withOpacity(controller.currLyricIndex.value == index ? 1 : 0.3),
-                  fontWeight: controller.currLyricIndex.value == index ? FontWeight.bold : FontWeight.normal,
-                ),
-                textAlign: TextAlign.center,
-                duration: const Duration(milliseconds: 300),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    // 原歌词
-                      (controller.lyricsLineModels[index].mainText ?? '')
-                          // 翻译歌词
-                          + (controller.lyricsLineModels[index].extText == null
-                          ? ''
-                          : '\n${controller.lyricsLineModels[index].extText ?? ''}'
-                      )
+              child: Obx((){
+                bool isActive = controller.currLyricIndex.value == index;
+                return AnimatedDefaultTextStyle(
+                  style: TextStyle(
+                    fontSize: isActive ? 40.sp : 35.sp,
+                    color: controller.bodyColor.value.withOpacity(isActive ? 1 : 0.3),
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   ),
-                ),
-              )),
+                  textAlign: TextAlign.center,
+                  duration: const Duration(milliseconds: 300),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      // 原歌词
+                        (controller.lyricsLineModels[index].mainText ?? '')
+                            // 翻译歌词
+                            + (controller.lyricsLineModels[index].extText == null
+                            ? ''
+                            : '\n${controller.lyricsLineModels[index].extText ?? ''}'
+                        )
+                    ),
+                  ),
+                );
+              }),
             );
           },
         ),

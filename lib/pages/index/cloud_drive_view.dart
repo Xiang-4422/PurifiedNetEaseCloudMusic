@@ -59,7 +59,7 @@ class CloudDriveView extends GetWidget<CloudController> {
                         index: index,
                         mediaItem: controller.mediaItems[index],
                         onTap: () {
-                          HomePageController.to.playByIndex(index, 'queueTitle', playList: controller.mediaItems);
+                          HomePageController.to.playNewPlayListByIndex(index, 'queueTitle', playList: controller.mediaItems);
                         },
                       );
                     },

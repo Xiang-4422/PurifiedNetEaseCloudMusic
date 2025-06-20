@@ -66,7 +66,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                             index: index,
                             mediaItem: controller.newSong[index],
                             onTap: () {
-                              HomePageController.to.playByIndex(index, 'queueTitle', playList: controller.newSong);
+                              HomePageController.to.playNewPlayListByIndex(index, 'queueTitle', playList: controller.newSong);
                             },
                           ),
                           childCount: controller.newSong.length,

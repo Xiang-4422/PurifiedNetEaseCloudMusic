@@ -32,7 +32,7 @@ import '../pages/setting/setting_page_view.dart' as _i12;
 import '../pages/setting/user_setting_view.dart' as _i19;
 import '../pages/splash_page.dart' as _i1;
 import '../pages/talk/comment_page_view.dart' as _i21;
-import '../pages/today/today_view.dart' as _i14;
+import '../pages/today/today_page_view.dart' as _i14;
 import '../pages/update/update_view.dart' as _i8;
 import '../pages/user/personal_page_view.dart' as _i10;
 
@@ -49,14 +49,9 @@ class RootRouter extends _i22.RootStackRouter {
       );
     },
     HomeRouteView.name: (routeData) {
-      final args = routeData.argsAs<HomeRouteViewArgs>(
-          orElse: () => const HomeRouteViewArgs());
       return _i22.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: _i2.HomePageView(
-          key: args.key,
-          body: args.body,
-        ),
+        child: const _i2.HomePageView(),
       );
     },
     SearchView.name: (routeData) {
@@ -135,10 +130,10 @@ class RootRouter extends _i22.RootStackRouter {
         child: const _i10.PersonalPageView(),
       );
     },
-    TodayView.name: (routeData) {
+    TodayRouteView.name: (routeData) {
       return _i22.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i14.TodayView(),
+        child: const _i14.TodayPageView(),
       );
     },
     MyRadioView.name: (routeData) {
@@ -231,7 +226,7 @@ class RootRouter extends _i22.RootStackRouter {
                   parent: RouteOne.name,
                 ),
                 _i22.RouteConfig(
-                  TodayView.name,
+                  TodayRouteView.name,
                   path: 'today',
                   parent: RouteOne.name,
                 ),
@@ -358,38 +353,15 @@ class SplashRoute extends _i22.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.HomePageView]
-class HomeRouteView extends _i22.PageRouteInfo<HomeRouteViewArgs> {
-  HomeRouteView({
-    _i23.Key? key,
-    _i23.Widget? body,
-    List<_i22.PageRouteInfo>? children,
-  }) : super(
+class HomeRouteView extends _i22.PageRouteInfo<void> {
+  const HomeRouteView({List<_i22.PageRouteInfo>? children})
+      : super(
           HomeRouteView.name,
           path: '/home',
-          args: HomeRouteViewArgs(
-            key: key,
-            body: body,
-          ),
           initialChildren: children,
         );
 
   static const String name = 'HomeRouteView';
-}
-
-class HomeRouteViewArgs {
-  const HomeRouteViewArgs({
-    this.key,
-    this.body,
-  });
-
-  final _i23.Key? key;
-
-  final _i23.Widget? body;
-
-  @override
-  String toString() {
-    return 'HomeRouteViewArgs{key: $key, body: $body}';
-  }
 }
 
 /// generated route for
@@ -561,15 +533,15 @@ class PersonalRouteView extends _i22.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i14.TodayView]
-class TodayView extends _i22.PageRouteInfo<void> {
-  const TodayView()
+/// [_i14.TodayPageView]
+class TodayRouteView extends _i22.PageRouteInfo<void> {
+  const TodayRouteView()
       : super(
-          TodayView.name,
+          TodayRouteView.name,
           path: 'today',
         );
 
-  static const String name = 'TodayView';
+  static const String name = 'TodayRouteView';
 }
 
 /// generated route for

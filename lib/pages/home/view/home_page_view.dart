@@ -18,12 +18,8 @@ import 'menu_view.dart';
 
 /// 首页
 class HomePageView extends GetView<HomePageController>{
-  const HomePageView({
-    Key? key,
-    this.body,
-  }) : super(key: key);
+  const HomePageView({Key? key,}) : super(key: key);
 
-  final Widget? body;
   /// 0-1，占据屏幕的比例
   final double _manuPanelWidth = 0.2;
 
@@ -51,149 +47,16 @@ class HomePageView extends GetView<HomePageController>{
       ),
     );
   }
-
   Widget _buildBigLandApp(BuildContext context) {
     return Container(
         alignment: Alignment.center,
         child: const Text("大屏横屏")
     );
   }
-
   Widget _buildSmallLandApp(BuildContext context) {
     return Container(
         alignment: Alignment.center,
         child: const Text("小屏横屏")
-    );
-  }
-
-  final double appBarHeight = 60;
-
-  Widget _buildAppBar(BuildContext context) {
-    return Container(
-      width: context.width,
-      height: context.height,
-      alignment: Alignment.topCenter,
-      child: BlurryContainer(
-              width: context.width,
-              height: appBarHeight + context.mediaQueryPadding.top,
-              padding: EdgeInsets.only(
-                top: context.mediaQueryPadding.top,
-                left: 0, right: 0, bottom: 0,
-              ),
-              blur: 20,
-              borderRadius: BorderRadius.circular(0),
-              child: Obx(() => AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  // 旧widget出场和新widget入场动画都在这里构建
-                  // 判断当前标题是旧标题还是新标题
-                  bool isOldWidgetAnimation = animation.status == AnimationStatus.completed;
-                  bool isReversing = animation.status == AnimationStatus.reverse;
-
-                  // 入场和出场的动画
-                  switch(controller.comingDirection) {
-                    case NewAppBarTitleComingDirection.up:
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: isOldWidgetAnimation || isReversing
-                              ? const Offset(0, 1)   // 旧标题出场（beging和end反转）
-                              : const Offset(0, -1),  // 新标题入场
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: FadeTransition(
-                          opacity: Tween<double>(
-                            begin: isOldWidgetAnimation || isReversing
-                                ? 0   // 旧标题出场（beging和end反转）
-                                : 1,  // 新标题入场
-                            end: 1,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      );
-                    case NewAppBarTitleComingDirection.down:
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: isOldWidgetAnimation || isReversing
-                              ? Offset(0, -1)   // 旧标题出场（beging和end反转）
-                              : Offset(0, 1),  // 新标题入场
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: FadeTransition(
-                          opacity: Tween<double>(
-                            begin: isOldWidgetAnimation || isReversing
-                                ? 0   // 旧标题出场（beging和end反转）
-                                : 1,  // 新标题入场
-                            end: 1,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      );
-                    case NewAppBarTitleComingDirection.left:
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: isOldWidgetAnimation || isReversing
-                              ? Offset(1 , 0)   // 旧标题出场（beging和end反转）
-                              : Offset(-1 , 0),  // 新标题入场
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: FadeTransition(
-                          opacity: Tween<double>(
-                            begin: isOldWidgetAnimation || isReversing
-                                ? 0   // 旧标题出场（beging和end反转）
-                                : 1,  // 新标题入场
-                            end: 1,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      );
-                    case NewAppBarTitleComingDirection.right:
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: isOldWidgetAnimation || isReversing
-                              ? Offset(-1 , 0)   // 旧标题出场（beging和end反转）
-                              : Offset(1, 0),  // 新标题入场
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: FadeTransition(
-                          opacity: Tween<double>(
-                            begin: isOldWidgetAnimation || isReversing
-                                ? 0   // 旧标题出场（beging和end反转）
-                                : 1,  // 新标题入场
-                            end: 1,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      );
-                  }
-                },
-                child: Container(
-                  key: ValueKey<String>(controller.curPageTitle.value), // 添加 key
-                  // fit: BoxFit.scaleDown,
-                  child: RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      //  标题（当前页/歌名）
-                        text: '${controller.curPageTitle.value}',
-                        style: TextStyle(
-                            fontSize: 42.sp,
-                            fontWeight: FontWeight.bold,
-                            color: controller.panelOpened50.value ? Colors.white : Colors.black
-                        ),
-                        children: [
-                          TextSpan(
-                            // 副标题（歌手名）
-                              text: '${controller.curPageSubTitle.value}',
-                              style: TextStyle(
-                                fontSize: 21.sp,
-                                color: (controller.panelOpened50.value ? Colors.white : Colors.black).withOpacity(0.5),
-                              )
-                          ),
-                        ]
-                    ),
-                  ),
-                ),
-              ))
-            ),
     );
   }
 
@@ -208,6 +71,7 @@ class HomePageView extends GetView<HomePageController>{
       maxHeight: context.height,
       body: ZoomDrawer(
         controller: controller.zoomDrawerController,
+
         // 侧边抽屉配置
         menuScreenTapClose: true,
         slideWidth: context.width * _manuPanelWidth,
@@ -216,206 +80,150 @@ class HomePageView extends GetView<HomePageController>{
 
         // 主屏幕配置
         angle: 0,
-        // mainScreenScale: _manuPanelWidth,
         mainScreenScale: 0,
         borderRadius: 0,
-
         mainScreenTapClose: true,
         mainScreenAbsorbPointer: false,
         clipMainScreen: true,
 
+        // 动画配置
         openCurve: Curves.linear,
         closeCurve: Curves.linear,
-
-        androidCloseOnBackTap: true,
-        dragOffset: context.width * 0.5,
         duration: const Duration(milliseconds: 200),
         reverseDuration: const Duration(milliseconds: 200),
+        androidCloseOnBackTap: true,
+        dragOffset: context.width * 0.5,
+
         menuScreen: const MenuView(),
-        mainScreen: SizedBox(
-          width: context.width,
-          height: context.height,
-          child: const DrawerMainScreenView(),
-          // child: BodyView(),
-        ),
+        mainScreen: const DrawerMainScreenView(),
       ),
-      header: _buildHeader(context),
+      header: const PanelHeaderView(),
       panel: const PanelView(),
     );
   }
+  Widget _buildAppBar(BuildContext context) {
+    return Container(
+      width: context.width,
+      height: context.height,
+      alignment: Alignment.topCenter,
+      child: BlurryContainer(
+          width: context.width,
+          height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
+          padding: EdgeInsets.only(top: context.mediaQueryPadding.top,),
+          blur: controller.isInPlayListPage.value ? 0 : 20,
+          borderRadius: BorderRadius.circular(0),
+          child: Obx(() => AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              // 旧widget出场和新widget入场动画都在这里构建
+              // 判断当前标题是旧标题还是新标题
+              bool isOldWidgetAnimation = animation.status == AnimationStatus.completed;
+              bool isReversing = animation.status == AnimationStatus.reverse;
 
-  /// 底部播放状态栏
-  Widget _buildHeader(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller.panelAnimationController,
-      builder: (context, child) {
-        return GestureDetector(
-          onTap: () => {
-            if (controller.panelFullyClosed.value) {
-              controller.panelController.open()
-            }
-          },
-          child: SizedBox(
-            width: context.width,
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                _buildAlbum(context),
-                _buildMediaTitle(context),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-  /// 播放状态栏——歌曲标题和播放按钮
-  Widget _buildMediaTitle(BuildContext context) {
-    return Obx(() => Visibility(
-        visible: controller.panelFullyClosed.value,
-        child: Row(
-          children: [
-            Container(
-              width: AppDimensions.bottomPanelHeaderHeight,
-            ),
-            Expanded(
-              child: Swipeable(
-                background: const SizedBox.shrink(),
-                onSwipeLeft: () => controller.audioServeHandler.skipToPrevious(),
-                onSwipeRight: () => controller.audioServeHandler.skipToNext(),
-                child: Container(
-                  height: AppDimensions.bottomPanelHeaderHeight,
-                  alignment: Alignment.centerLeft,
-                  child: Obx(() => Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              // 入场和出场的动画
+              switch(controller.comingDirection) {
+                case NewAppBarTitleComingDirection.up:
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: isOldWidgetAnimation || isReversing
+                          ? const Offset(0, 1)   // 旧标题出场（beging和end反转）
+                          : const Offset(0, -1),  // 新标题入场
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: Tween<double>(
+                        begin: isOldWidgetAnimation || isReversing
+                            ? 0   // 旧标题出场（beging和end反转）
+                            : 1,  // 新标题入场
+                        end: 1,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                case NewAppBarTitleComingDirection.down:
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: isOldWidgetAnimation || isReversing
+                          ? Offset(0, -1)   // 旧标题出场（beging和end反转）
+                          : Offset(0, 1),  // 新标题入场
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: Tween<double>(
+                        begin: isOldWidgetAnimation || isReversing
+                            ? 0   // 旧标题出场（beging和end反转）
+                            : 1,  // 新标题入场
+                        end: 1,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                case NewAppBarTitleComingDirection.left:
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: isOldWidgetAnimation || isReversing
+                          ? Offset(1 , 0)   // 旧标题出场（beging和end反转）
+                          : Offset(-1 , 0),  // 新标题入场
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: Tween<double>(
+                        begin: isOldWidgetAnimation || isReversing
+                            ? 0   // 旧标题出场（beging和end反转）
+                            : 1,  // 新标题入场
+                        end: 1,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                case NewAppBarTitleComingDirection.right:
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: isOldWidgetAnimation || isReversing
+                          ? Offset(-1 , 0)   // 旧标题出场（beging和end反转）
+                          : Offset(1, 0),  // 新标题入场
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: FadeTransition(
+                      opacity: Tween<double>(
+                        begin: isOldWidgetAnimation || isReversing
+                            ? 0   // 旧标题出场（beging和end反转）
+                            : 1,  // 新标题入场
+                        end: 1,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+              }
+            },
+            child: FittedBox(
+              key: ValueKey<String>(controller.curPageTitle.value), // 添加 key
+              fit: BoxFit.scaleDown,
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  //  标题（当前页/歌名）
+                    text: controller.curPageTitle.value,
+                    style: TextStyle(
+                        fontSize: 42.sp,
+                        fontWeight: FontWeight.bold,
+                        color: controller.panelOpened50.value ? Colors.white : Colors.black
+                    ),
                     children: [
-                      Text(
-                        '${HomePageController.to.curMediaItem.value.title}',
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: TextStyle(
-                            fontSize: 42.sp,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold
-                        ),
-                      ),
-                      Text(
-                        '${HomePageController.to.curMediaItem.value.artist ?? ''}',
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: TextStyle(
+                      TextSpan(
+                        // 副标题（歌手名）
+                          text: controller.curPageSubTitle.value,
+                          style: TextStyle(
                             fontSize: 21.sp,
-                            color: Colors.black.withOpacity(0.5)
-                        ),
+                            color: (controller.panelOpened50.value ? Colors.white : Colors.black).withOpacity(0.5),
+                          )
                       ),
-                    ],
-                  )
-                  ),
+                    ]
                 ),
               ),
             ),
-            Container(
-              alignment: Alignment.center,
-              width: AppDimensions.bottomPanelHeaderHeight,
-              height: AppDimensions.bottomPanelHeaderHeight,
-              child: IconButton(
-                  onPressed: () => controller.playOrPause(),
-                  icon: Obx(() => Icon(
-                    controller.isPlaying.value ? TablerIcons.player_pause : TablerIcons.player_play,
-                    color: Theme.of(context).cardColor.withOpacity(.7),
-                    size: 65.sp,
-                  ))),
-            ),
-          ],
-        ),
+          ))
       ),
     );
   }
-  /// 播放状态栏——专辑图片
-  Widget _buildAlbum(BuildContext context) {
-    /// 完全展开宽度
-    double panelAlbumMaxWidth = context.width * AppDimensions.albumMaxWidth;
-    /// 完全展开LeftMargin
-    double maxMarginLeft = (context.width - panelAlbumMaxWidth) / 2;
-
-    // 实时Album宽度、margin
-    double albumWidth = AppDimensions.albumMinWidth + (panelAlbumMaxWidth - AppDimensions.albumMinWidth) * controller.panelAnimationController.value;
-    double albumPadding = AppDimensions.panelHeaderPadding +  (maxMarginLeft - AppDimensions.panelHeaderPadding) * controller.panelAnimationController.value;
-    double appBarPadding = (context.mediaQueryPadding.top + AppDimensions.appBarHeight) * controller.panelAnimationController.value;
-    double albumBorderRadius = AppDimensions.albumMinWidth * (1 - controller.panelAnimationController.value);
-
-    return Obx(() => IgnorePointer(
-      ignoring: !controller.isAlbumVisible.value || controller.panelFullyClosed.value,
-        child: Container(
-          margin: EdgeInsets.only(top: appBarPadding),
-          width: albumWidth + albumPadding * 2,
-          height: albumWidth + albumPadding * 2,
-          child: OverflowBox(
-            maxWidth: (albumWidth + albumPadding * 2) * 3,
-            child: Obx(() => PageView.builder(
-              // key: ValueKey<List>(controller.curPlayList),
-              controller: controller.albumPageController,
-              itemCount: controller.curPlayList.length,
-              physics: controller.panelFullyClosed.value ? NeverScrollableScrollPhysics() : PageScrollPhysics(),
-              onPageChanged: (index) {
-                if (index != controller.curPlayIndex.value) {
-                  index > controller.curPlayIndex.value
-                      ? controller.audioServeHandler.skipToNext()
-                      : controller.audioServeHandler.skipToPrevious();
-                }
-              },
-              itemBuilder: (BuildContext context, int index) {
-                return Obx(() => AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: child,
-                    );
-                  },
-                  child: Visibility(
-                    visible: controller.isAlbumVisible.value
-                        ? controller.panelFullyOpened.value
-                          ? true
-                          : index == controller.curPlayIndex.value
-                        : controller.panelFullyClosed.value && index == controller.curPlayIndex.value,
-                    child: Container(
-                      margin: EdgeInsets.all(albumPadding),
-                      child: GestureDetector(
-                        onTap: () {
-                          controller.isAlbumVisible.value = !controller.isAlbumVisible.value;
-                        },
-                        child: Container(
-                          clipBehavior: Clip.hardEdge,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(albumBorderRadius),
-                            boxShadow: [
-                              controller.panelFullyOpened.value
-                                  ? BoxShadow(
-                                    color: Colors.black.withOpacity(0.4), // 阴影颜色
-                                    blurRadius: 12, // 模糊半径
-                                    spreadRadius: 2, // 扩散半径
-                                  )
-                                  : const BoxShadow()
-                            ],
-                          ),
-                          child: Obx(() => SimpleExtendedImage(
-                            '${controller.curPlayList[index].extras?['image'] ?? ''}?param=500y500',
-                          )),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                );
-              },
-            ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
 }

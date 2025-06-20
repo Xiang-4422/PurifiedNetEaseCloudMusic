@@ -26,29 +26,27 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   final Box _box = GetIt.instance<Box>();
   RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
 
-  /// 播放模式（none表示随机模式）
-  AudioServiceRepeatMode _audioServiceRepeatMode = AudioServiceRepeatMode.all;
-  /// 当前播放列表
+  /// 当前原始播放列表
   final _playList = <MediaItem>[];
-  /// 随机打乱后的当前播放列表
-  final _playListShut = <MediaItem>[];
   /// 播放列表索引
   int _curIndex = -1;
-  
-  bool playInterrupted = false;
-  Timer? _sleepTimer;
+  /// 播放模式（none表示随机模式）
+  AudioServiceRepeatMode _audioServiceRepeatMode = AudioServiceRepeatMode.all;
 
   BujuanAudioHandler() {
     // 初始化
-    _loadPlaylistByStorage();
-    _notifyAudioHandlerAboutPlayStateEvents(); // 背景状态更改
-    _notifyAudioHandlerAboutPositionEvents();
+    _restoreAudioStateFromStorage();
+    _addPlaybackEventListener();
+    _addPlayerStateListener();
   }
 
-  void _loadPlaylistByStorage() async {
+  void _restoreAudioStateFromStorage() async {
+    // 恢复播放模式
     String repeatMode = _box.get(repeatModeSp, defaultValue: 'all');
-    _audioServiceRepeatMode = AudioServiceRepeatMode.values.firstWhereOrNull((element) => element.name == repeatMode) ?? AudioServiceRepeatMode.all;
-    _curIndex = _box.get(playByIndex) ?? 0;
+    _audioServiceRepeatMode = AudioServiceRepeatMode.values.firstWhereOrNull((element) => element.name == repeatMode)!;
+    // 恢复当前播放歌曲索引
+    _curIndex = _box.get(curPlaySongIndex, defaultValue: 0);
+    // 恢复播放列表
     List<String> playList = _box.get(playQueue, defaultValue: <String>[]);
     if (playList.isNotEmpty) {
       List<MediaItem> items = await compute(getCachePlayList, RootIsolateData(rootIsolateToken, playlist: playList));
@@ -56,21 +54,14 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     }
   }
 
-  void _notifyAudioHandlerAboutPlayStateEvents() {
+  void _addPlaybackEventListener() {
     _player.playbackEventStream.listen((PlaybackEvent event) {
+
+      if(event.processingState == ProcessingState.completed) skipToNext();
+
       final playing = _player.playing;
       playbackState.add(playbackState.value.copyWith(
-        controls: [
-          PlatformUtils.isAndroid
-              ? ((mediaItem.value?.extras?['liked'] ?? false)
-                  ? const MediaControl(label: 'fastForward', action: MediaAction.fastForward, androidIcon: 'drawable/audio_service_like')
-                  : const MediaControl(label: 'rewind', action: MediaAction.rewind, androidIcon: 'drawable/audio_service_unlike'))
-              : const MediaControl(label: 'setRating', action: MediaAction.setRating, androidIcon: 'drawable/audio_service_like'),
-          MediaControl.skipToPrevious,
-          if (playing) MediaControl.pause else MediaControl.play,
-          MediaControl.skipToNext,
-          MediaControl.stop,
-        ],
+        controls: buildMediaControls(isLiked: mediaItem.value?.extras?['liked'] ?? false, playing: playing),
         systemActions: const {
           MediaAction.seek,
         },
@@ -92,8 +83,9 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     });
   }
 
-  void _notifyAudioHandlerAboutPositionEvents() {
+  void _addPlayerStateListener() {
     _player.playerStateStream.listen((state) {
+
       switch (state.processingState) {
         case ProcessingState.idle:
           break;
@@ -104,250 +96,191 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
         case ProcessingState.ready:
           break;
         case ProcessingState.completed:
-          skipToNext();
-          print('object=====下一首${_curIndex}');
           break;
       }
     });
   }
 
-  @override
-  Future<void> removeQueueItem(MediaItem mediaItem) async {}
+  List<MediaControl> buildMediaControls({required bool isLiked, required bool playing}) => [
+    PlatformUtils.isAndroid
+        ? isLiked
+          ? const MediaControl(label: 'fastForward', action: MediaAction.fastForward, androidIcon: 'drawable/audio_service_like')
+          : const MediaControl(label: 'rewind', action: MediaAction.rewind, androidIcon: 'drawable/audio_service_unlike')
+        : const MediaControl(label: 'setRating', action: MediaAction.setRating, androidIcon: 'drawable/audio_service_like'),
+    MediaControl.skipToPrevious,
+    if (playing) MediaControl.pause else MediaControl.play,
+    MediaControl.skipToNext,
+    MediaControl.stop,
+  ];
 
-  @override
-  Future<void> removeQueueItemAt(int index) async {
-    if (index == _curIndex) {
-      WidgetUtil.showToast('正在播放的歌曲无法移除');
-      return;
-    }
-    _playList.removeAt(index);
-    if (index < _curIndex) _curIndex--;
-    final newQueue = queue.value..removeAt(index);
-    queue.add(newQueue);
-  }
 
   @override
   Future<void> addFmItems(List<MediaItem> mediaItems) async {
+    print("FM: $mediaItem");
     // FM模式刷新歌曲
     if (HomePageController.to.isFmMode.value) {
-      _playList.removeRange(0, queue.value.length - 1);
-      _playList.addAll(mediaItems);
-      await updateQueue(_playList);
+      queue.value.removeRange(0, queue.value.length - 1);
+      addQueueItems(mediaItems);
       _updateCurIndex(0);
     // 首次进入FM模式
     } else {
-      _playList.clear();
-      _playList.addAll(mediaItems);
-      updateQueue(_playList);
-      playIndex(0);
+      changeQueueLists(mediaItems);
+      playCurIndex();
       // 保存FM开启状态
       HomePageController.to.isFmMode.value = true;
       _box.put(fmSp, true);
     }
-    List<String> playList = await compute(
-        setCachePlayList,
-        RootIsolateData(rootIsolateToken, items: mediaItems));
+    List<String> playList = await compute(setCachePlayList, RootIsolateData(rootIsolateToken, items: mediaItems));
     queueTitle.value = 'Fm';
     _box.put(playQueue, playList);
   }
+  @override
+  Future<void> changeQueueLists(List<MediaItem> list, {int index = 0, bool init = false}) async {
+    // 切歌单退出FM模式
+    if (HomePageController.to.isFmMode.value) {
+      HomePageController.to.isFmMode.value = false;
+      _box.put(fmSp, false);
+    }
+    if (!init) {
+      List<String> playList = await compute(setCachePlayList, RootIsolateData(rootIsolateToken, items: list));
+      _box.put(playQueue, playList);
+    }
 
+    // 保存当前播放列表
+    _playList..clear()..addAll(list);
+    if (_audioServiceRepeatMode == AudioServiceRepeatMode.none) {
+      var playListCopy = <MediaItem>[...list];
+      playListCopy.shuffle();
+      await updateQueue(playListCopy);
+      index = playListCopy.indexWhere((element) => element.id == list[index].id);
+    } else {
+      await updateQueue(list);
+    }
+    _updateCurIndex(index);
+  }
+
+  @override
+  Future<void> changeQueueListsRepeatMode() async {
+    var playListCopy = <MediaItem>[..._playList];
+    // 随机播放模式
+    if (_audioServiceRepeatMode == AudioServiceRepeatMode.none) {
+      // 播放列表随机打乱后的副本
+      playListCopy.shuffle();
+    }
+    String songId = queue.value[_curIndex].id;
+    await updateQueue(playListCopy);
+    int curNewIndex = playListCopy.indexWhere((element) => element.id == songId);
+    _updateCurIndex(curNewIndex);
+  }
+  @override
+  Future<void> playIndex(int index) async {
+    // 接收到下标
+    _updateCurIndex(index);
+    await playCurIndex();
+  }
+  @override
+  Future<void> playCurIndex({bool isNext = true}) async {
+    bool high = HomePageController.to.isHighSoundQualityOpen.value;
+    // TODO YU4422 歌曲缓存功能
+    bool isCacheOpen = HomePageController.to.isCacheOpen.value;
+
+    // 这里是获取歌曲url
+    if (queue.value.isEmpty) return;
+
+    MediaItem song = queue.value[_curIndex];
+    _box.put(curPlaySongId, song.id);
+    String? url;
+
+    // 本地歌曲
+    if (song.extras?['type'] == MediaType.local.name || song.extras?['type'] == MediaType.neteaseCache.name) {
+      url = song.extras?['url'];
+      if (url != null) {
+        song.extras?.putIfAbsent('cache', () => true);
+        mediaItem.add(song);
+        //是本地音乐
+        if (song.extras?['type'] == MediaType.local.name) {
+          await _player.setFilePath(url);
+        }
+        //网易云缓存的音乐要解密哦
+        if (song.extras?['type'] == MediaType.neteaseCache.name) {
+          _player.setAudioSource(StreamSource(url, url.replaceAll('.uc!', '').split('.').last));
+        }
+        _player.play();
+        return;
+      }
+    // 在线获取
+    } else {
+      mediaItem.add(song);
+      SongUrlListWrap songUrl = await NeteaseMusicApi().songDownloadUrl([song.id], level: high ? 'lossless' : 'exhigh');
+      url = ((songUrl.data ?? [])[0].url ?? '').split('?')[0];
+      // 如果获取不到URL就跳过
+      if (url.isNotEmpty) {
+        await _player.setUrl(url);
+        _player.play();
+      } else {
+        await (isNext ? skipToNext() : skipToPrevious());
+      }
+    }
+  }
+
+  @override
+  Future<void> removeQueueItem(MediaItem mediaItem) async {}
+  @override
+  Future<void> removeQueueItemAt(int index) async {
+    if (index < _curIndex) _curIndex--;
+    final newQueue = queue.value..removeAt(index);
+    queue.add(newQueue);
+  }
   //更改为不喜欢按钮
   @override
   Future<void> fastForward() async {
     // updateMediaItem(mediaItem.value?.copyWith(extras: {'liked':'true'})??const MediaItem(id: 'id', title: 'title'));
     HomePageController.to.likeSong(liked: true);
   }
-
   //更改为喜欢按钮
   @override
   Future<void> rewind() async {
     HomePageController.to.likeSong(liked: false);
   }
-
-  @override
-  Future<void> changeQueueLists(List<MediaItem> list, {int index = 0, bool init = false}) async {
-    if (!init && HomePageController.to.isFmMode.value) {
-      HomePageController.to.isFmMode.value = false;
-      _box.put(fmSp, false);
-    }
-    _updateCurIndex(index);
-    _playList
-      ..clear()
-      ..addAll(list);
-    bool isRandomPlayMode = _box.get(repeatModeSp, defaultValue: 'all') == AudioServiceRepeatMode.none.name;
-    if (isRandomPlayMode) {
-      _playListShut
-        ..clear()
-        ..addAll(list)
-        ..shuffle();
-      await updateQueue(_playListShut);
-      String songId = list[index].id;
-      if (init) songId = _box.get(playById, defaultValue: '');
-      int indexBy = _playListShut.indexWhere((element) => element.id == songId);
-      if (indexBy != -1) {
-        if (init) {
-          _curIndex = indexBy;
-        } else {
-          _updateCurIndex(indexBy);
-        }
-      }
-    } else {
-      await updateQueue(_playList);
-    }
-    playIndex(_curIndex, playIt: !init);
-    if (!init) {
-      List<String> playList = await compute(setCachePlayList, RootIsolateData(rootIsolateToken, items: _playList));
-      _box.put(playQueue, playList);
-    }
-    // _playList
-    //   ..clear()
-    //   ..addAll(list);
-    // // notify system
-    // await updateQueue(list);
-    // List<String> playList = await compute(setCachePlayList, RootIsolateData(rootIsolateToken, items: _playList));
-    // _box.put(playQueue, playList);
-  }
-
-  @override
-  Future<void> playIndex(int index, {bool playIt = true}) async {
-    // 接收到下标
-    _updateCurIndex(index);
-    await playCurIndex(playIt: playIt);
-  }
-
-  @override
-  Future<void> playCurIndex({bool isNext = true, bool playIt = true}) async {
-    bool high = !playIt ? _box.get(highSong) ?? false : HomePageController.to.isHighSoundQualityOpen.value;
-    bool cache = !playIt ? _box.get(cacheSp) ?? false : HomePageController.to.isCacheOpen.value;
-
-    // 这里是获取歌曲url
-    if (queue.value.isEmpty) return;
-
-    var song = queue.value[_curIndex];
-    _box.put(playById, song.id);
-    String? url;
-
-    if (song.extras?['type'] == MediaType.local.name || song.extras?['type'] == MediaType.neteaseCache.name) url = song.extras?['url'];
-    if (url != null) {
-      song.extras?.putIfAbsent('cache', () => true);
-      mediaItem.add(song);
-      if (song.extras?['type'] == MediaType.local.name) {
-        //是本地音乐
-        await _player.setFilePath(url);
-      }
-      if (song.extras?['type'] == MediaType.neteaseCache.name) {
-        //网易云缓存的音乐要解密哦
-        _player.setAudioSource(StreamSource(url, url.replaceAll('.uc!', '').split('.').last));
-      }
-      if (playIt) _player.play();
-      return;
-    }
-    if (!PlatformUtils.isIOS) {
-      // url = DownloadCacheManager.getCachedFilePath(song.id);
-    }
-    if (url != null && File(url).existsSync()) {
-      song.extras?.putIfAbsent('cache', () => true);
-      mediaItem.add(song);
-      await _player.setFilePath(url);
-      if (playIt) _player.play();
-    } else {
-      mediaItem.add(song);
-      if (_box.get(unblockVipSp, defaultValue: false) && ((song.extras?['fee'] ?? 0) == 1 || (song.extras?['fee'] ?? 0) == 4)) {
-        //如果开启会员解锁并且歌曲为vip,直接从rust获取
-        print('============如果开启会员解锁,直接从rust获取=============');
-        url = await getUnblockUrl(song);
-      } else {
-        SongUrlListWrap songUrl = await NeteaseMusicApi().songDownloadUrl([song.id], level: high ? 'lossless' : 'exhigh');
-        url = ((songUrl.data ?? [])[0].url ?? '').split('?')[0];
-        if (url.isEmpty && _box.get(unblockSp, defaultValue: false)) {
-          url = await getUnblockUrl(song);
-        }
-      }
-      if (url.isNotEmpty) {
-        await _player.setUrl(url);
-        if (playIt) _player.play();
-      } else {
-        if (isNext) {
-          await skipToNext();
-        } else {
-          await skipToPrevious();
-        }
-      }
-    }
-  }
-
-  Future<String> getUnblockUrl(MediaItem song) async {
-    // try {
-    //   String url = await api.getUnblockNeteaseMusicUrl(songName: song.title, artistsName: song.artist ?? '');
-    //   print('============UnblockNeteaseMusic启动成功=============${song.title}==============$url');
-    //   return url;
-    // } catch (e) {
-    //   print('===========rust获取失败===========');
-    //   return '';
-    // }
-    return '';
-  }
-
   @override
   Future<void> pause() async => await _player.pause();
-
   @override
   Future<void> play() async => await _player.play();
-
   @override
   Future<void> seek(Duration position) async {
     await _player.seek(position);
   }
-
   @override
   Future<void> skipToQueueItem(int index) async {
     // TODO: implement skipToQueueItem
     // return super.skipToQueueItem(index);
   }
-
   @override
   Future<void> skipToNext() async {
     _updateCurIndexByRepeatMode(isSkipToNext: true);
     await playCurIndex();
   }
-
   @override
   Future<void> skipToPrevious() async {
     _updateCurIndexByRepeatMode();
     await playCurIndex(isNext: false);
   }
-
-
   @override
   Future<void> stop() async {
     await _player.stop();
   }
-
   @override
   Future customAction(String name, [Map<String, dynamic>? extras]) async {}
-
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
-    MediaItem curMediaItem = queue.value[_curIndex];
-    int index;
-    // 随机模式（none作为随机模式）
-    if (repeatMode == AudioServiceRepeatMode.none) {
-      _playListShut
-        ..clear()
-        ..addAll(_playList)
-        ..shuffle();
-      index = _playListShut.indexWhere((element) => element.id == curMediaItem.id);
-      await updateQueue(_playListShut);
-    } else {
-      index = _playList.indexWhere((element) => element.id == curMediaItem.id);
-      await updateQueue(_playList);
-    }
-    if (index != -1) _updateCurIndex(index);
+    print('setRepeatMode: $repeatMode');
+    // 更新播放列表
     _audioServiceRepeatMode = repeatMode;
-    // List<String> playList = await compute(setCachePlayList, RootIsolateData(rootIsolateToken, items: queue.value));
-    // _box.put(playQueue, playList);
+    HomePageController.to.audioServiceRepeatMode.value = repeatMode;
+    _box.put(repeatModeSp, repeatMode.name);
+    // 根据循环模式更新播放列表
+    await changeQueueListsRepeatMode();
   }
-
   @override
   Future<void> onTaskRemoved() async {
     await stop();
@@ -359,47 +292,47 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     // 单曲循环模式直接返回
     if (_audioServiceRepeatMode == AudioServiceRepeatMode.one) return;
 
-    var list = _audioServiceRepeatMode == AudioServiceRepeatMode.none
-        ? _playListShut
-        : _playList;
+    int listLength = queue.value.length;
 
     int newIndex = isSkipToNext ? _curIndex + 1 : _curIndex - 1;
     // 如果超出索引范围，循环到列表的开始或结尾
-    if (newIndex == list.length) {
+    if (newIndex == listLength) {
       newIndex = 0;
     } else if (newIndex < 0) {
-      newIndex = list.length - 1;
+      newIndex = listLength - 1;
     }
     _updateCurIndex(newIndex);
   }
 
   void _updateCurIndex(int newIndex) {
     if (_curIndex == newIndex) return;
-    bool isSkipToNext = newIndex > _curIndex;
-
     _curIndex = newIndex;
-    _box.put(playByIndex, _curIndex);
+    _box.put(curPlaySongIndex, _curIndex);
 
     // 私人FM模式 播放到最后一首拉取新的FM歌曲列表
     if (HomePageController.to.isFmMode.value && _curIndex == queue.value.length - 1) {
         HomePageController.to.getFmSongList();
     }
+
     // 更新UI
+    bool isSkipToNext = newIndex > HomePageController.to.curPlayIndex.value;
     HomePageController.to.lastPlayIndex.value = HomePageController.to.curPlayIndex.value;
     HomePageController.to.curPlayIndex.value = newIndex;
-    // 专辑封面动画
-    if (!HomePageController.to.isAlbumPageViewScrolling.value ) {
+    // 切换专辑封面
+    if (HomePageController.to.isAlbumPageViewScrolling.isFalse) {
       if((HomePageController.to.lastPlayIndex.value - HomePageController.to.curPlayIndex.value).abs() == 1) {
-        HomePageController.to.albumPageController.animateToPage(newIndex, duration: Duration(milliseconds: 500), curve: Curves.linear);
+        HomePageController.to.albumPageController.animateToPage(newIndex, duration: const Duration(milliseconds: 500), curve: Curves.linear);
       } else {
         HomePageController.to.albumPageController.jumpToPage(newIndex);
       }
     }
     // 切换标题
     if (HomePageController.to.panelFullyOpened.value) {
-      HomePageController.to.changeAppBarTitle(title: HomePageController.to.curPlayList[_curIndex].title, subTitle: HomePageController.to.curPlayList[_curIndex].artist ?? "", direction: isSkipToNext ? NewAppBarTitleComingDirection.right : NewAppBarTitleComingDirection.left);
+      HomePageController.to.changeAppBarTitle(
+          title: HomePageController.to.curPlayList[_curIndex].title,
+          subTitle: HomePageController.to.curPlayList[_curIndex].artist ?? "",
+          direction: isSkipToNext ? NewAppBarTitleComingDirection.right : NewAppBarTitleComingDirection.left);
     }
-
   }
 }
 

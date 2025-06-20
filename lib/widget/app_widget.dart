@@ -64,8 +64,9 @@ class MyObserver extends AutoRouterObserver {
       case 'UserView':
         del ? Get.delete<PersonalPageController>() : Get.lazyPut<PersonalPageController>(() => PersonalPageController());
         break;
-      case 'PlayListView':
+      case 'PlayListRouteView':
         del ? Get.delete<PlayListController>() : Get.lazyPut<PlayListController>(() => PlayListController());
+        HomePageController.to.isInPlayListPage.value = del ? false : true;
         break;
       case 'AlbumDetails':
         del ? Get.delete<AlbumController>() : Get.lazyPut<AlbumController>(() => AlbumController());

@@ -11,14 +11,14 @@ import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 import '../play_list/playlist_page_view.dart';
 
-class TodayView extends StatefulWidget {
-  const TodayView({Key? key}) : super(key: key);
+class TodayPageView extends StatefulWidget {
+  const TodayPageView({Key? key}) : super(key: key);
 
   @override
-  State<TodayView> createState() => _TodayViewState();
+  State<TodayPageView> createState() => _TodayPageViewState();
 }
 
-class _TodayViewState extends State<TodayView> {
+class _TodayPageViewState extends State<TodayPageView> {
   DioMetaData recommendSongListDioMetaData() {
     return DioMetaData(joinUri('/api/v3/discovery/recommend/songs'), data: {}, options: joinOptions(cookies: {'os': 'ios'}));
   }
@@ -27,7 +27,9 @@ class _TodayViewState extends State<TodayView> {
   @override
   Widget build(BuildContext context) {
     return MyGetView(
-      child: Column(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
           children: [
             Container(
               height: AppDimensions.appBarHeight,
@@ -45,7 +47,7 @@ class _TodayViewState extends State<TodayView> {
                         index: index,
                         mediaItem: _mediaItem[index],
                         onTap: () {
-                          HomePageController.to.playByIndex(index, 'queueTitle', playList: _mediaItem);
+                          HomePageController.to.playNewPlayListByIndex(index, 'queueTitle', playList: _mediaItem);
                         },
                       ),
                       itemCount: _mediaItem.length,
@@ -57,6 +59,7 @@ class _TodayViewState extends State<TodayView> {
             ),
           ],
         ),
+      ),
     );
   }
 }

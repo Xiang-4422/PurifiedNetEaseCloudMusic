@@ -106,123 +106,126 @@ class HomePageView extends GetView<HomePageController>{
       width: context.width,
       height: context.height,
       alignment: Alignment.topCenter,
-      child: BlurryContainer(
-          width: context.width,
-          height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
-          padding: EdgeInsets.only(top: context.mediaQueryPadding.top,),
-          blur: controller.isInPlayListPage.value ? 0 : 20,
-          borderRadius: BorderRadius.circular(0),
-          child: Obx(() => AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              // 旧widget出场和新widget入场动画都在这里构建
-              // 判断当前标题是旧标题还是新标题
-              bool isOldWidgetAnimation = animation.status == AnimationStatus.completed;
-              bool isReversing = animation.status == AnimationStatus.reverse;
+      child: Obx(() => BlurryContainer(
+            width: context.width,
+            height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
+            padding: EdgeInsets.only(top: context.mediaQueryPadding.top,),
+            blur: (controller.panelOpened50.isFalse && controller.isInPlayListPage.value) || (controller.panelOpened50.value && (controller.isAlbumVisible.value || controller.curPanelPageIndex.value != 1)) ? 0 : 20,
+            borderRadius: BorderRadius.circular(0),
+            child: Obx(() => AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                // 旧widget出场和新widget入场动画都在这里构建
+                // 判断当前标题是旧标题还是新标题
+                bool isOldWidgetAnimation = animation.status == AnimationStatus.completed;
+                bool isReversing = animation.status == AnimationStatus.reverse;
 
-              // 入场和出场的动画
-              switch(controller.comingDirection) {
-                case NewAppBarTitleComingDirection.up:
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: isOldWidgetAnimation || isReversing
-                          ? const Offset(0, 1)   // 旧标题出场（beging和end反转）
-                          : const Offset(0, -1),  // 新标题入场
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: FadeTransition(
-                      opacity: Tween<double>(
+                // 入场和出场的动画
+                switch(controller.comingDirection) {
+                  case NewAppBarTitleComingDirection.up:
+                    return SlideTransition(
+                      position: Tween<Offset>(
                         begin: isOldWidgetAnimation || isReversing
-                            ? 0   // 旧标题出场（beging和end反转）
-                            : 1,  // 新标题入场
-                        end: 1,
+                            ? const Offset(0, 1)   // 旧标题出场（beging和end反转）
+                            : const Offset(0, -1),  // 新标题入场
+                        end: Offset.zero,
                       ).animate(animation),
-                      child: child,
-                    ),
-                  );
-                case NewAppBarTitleComingDirection.down:
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: isOldWidgetAnimation || isReversing
-                          ? Offset(0, -1)   // 旧标题出场（beging和end反转）
-                          : Offset(0, 1),  // 新标题入场
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: FadeTransition(
-                      opacity: Tween<double>(
-                        begin: isOldWidgetAnimation || isReversing
-                            ? 0   // 旧标题出场（beging和end反转）
-                            : 1,  // 新标题入场
-                        end: 1,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  );
-                case NewAppBarTitleComingDirection.left:
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: isOldWidgetAnimation || isReversing
-                          ? Offset(1 , 0)   // 旧标题出场（beging和end反转）
-                          : Offset(-1 , 0),  // 新标题入场
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: FadeTransition(
-                      opacity: Tween<double>(
-                        begin: isOldWidgetAnimation || isReversing
-                            ? 0   // 旧标题出场（beging和end反转）
-                            : 1,  // 新标题入场
-                        end: 1,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  );
-                case NewAppBarTitleComingDirection.right:
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: isOldWidgetAnimation || isReversing
-                          ? Offset(-1 , 0)   // 旧标题出场（beging和end反转）
-                          : Offset(1, 0),  // 新标题入场
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: FadeTransition(
-                      opacity: Tween<double>(
-                        begin: isOldWidgetAnimation || isReversing
-                            ? 0   // 旧标题出场（beging和end反转）
-                            : 1,  // 新标题入场
-                        end: 1,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  );
-              }
-            },
-            child: FittedBox(
-              key: ValueKey<String>(controller.curPageTitle.value), // 添加 key
-              fit: BoxFit.scaleDown,
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  //  标题（当前页/歌名）
-                    text: controller.curPageTitle.value,
-                    style: TextStyle(
-                        fontSize: 42.sp,
-                        fontWeight: FontWeight.bold,
-                        color: controller.panelOpened50.value ? Colors.white : Colors.black
-                    ),
-                    children: [
-                      TextSpan(
-                        // 副标题（歌手名）
-                          text: controller.curPageSubTitle.value,
-                          style: TextStyle(
-                            fontSize: 21.sp,
-                            color: (controller.panelOpened50.value ? Colors.white : Colors.black).withOpacity(0.5),
-                          )
+                      child: FadeTransition(
+                        opacity: Tween<double>(
+                          begin: isOldWidgetAnimation || isReversing
+                              ? 0   // 旧标题出场（beging和end反转）
+                              : 1,  // 新标题入场
+                          end: 1,
+                        ).animate(animation),
+                        child: child,
                       ),
-                    ]
+                    );
+                  case NewAppBarTitleComingDirection.down:
+                    return SlideTransition(
+                      position: Tween<Offset>(
+                        begin: isOldWidgetAnimation || isReversing
+                            ? Offset(0, -1)   // 旧标题出场（beging和end反转）
+                            : Offset(0, 1),  // 新标题入场
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: FadeTransition(
+                        opacity: Tween<double>(
+                          begin: isOldWidgetAnimation || isReversing
+                              ? 0   // 旧标题出场（beging和end反转）
+                              : 1,  // 新标题入场
+                          end: 1,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    );
+                  case NewAppBarTitleComingDirection.left:
+                    return SlideTransition(
+                      position: Tween<Offset>(
+                        begin: isOldWidgetAnimation || isReversing
+                            ? Offset(1 , 0)   // 旧标题出场（beging和end反转）
+                            : Offset(-1 , 0),  // 新标题入场
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: FadeTransition(
+                        opacity: Tween<double>(
+                          begin: isOldWidgetAnimation || isReversing
+                              ? 0   // 旧标题出场（beging和end反转）
+                              : 1,  // 新标题入场
+                          end: 1,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    );
+                  case NewAppBarTitleComingDirection.right:
+                    return SlideTransition(
+                      position: Tween<Offset>(
+                        begin: isOldWidgetAnimation || isReversing
+                            ? Offset(-1 , 0)   // 旧标题出场（beging和end反转）
+                            : Offset(1, 0),  // 新标题入场
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: FadeTransition(
+                        opacity: Tween<double>(
+                          begin: isOldWidgetAnimation || isReversing
+                              ? 0   // 旧标题出场（beging和end反转）
+                              : 1,  // 新标题入场
+                          end: 1,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    );
+                  case NewAppBarTitleComingDirection.none:
+                    return FadeTransition(opacity: Tween<double>(begin: 0, end: 1).animate(animation), child: child);
+                }
+              },
+              child: FittedBox(
+                key: ValueKey<String>(controller.curPageTitle.value), // 添加 key
+                fit: BoxFit.scaleDown,
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    //  标题（当前页/歌名）
+                      text: controller.curPageTitle.value,
+                      style: TextStyle(
+                          fontSize: 42.sp,
+                          fontWeight: FontWeight.bold,
+                          color: controller.panelOpened50.value ? controller.bodyColor.value : Colors.black
+                      ),
+                      children: [
+                        TextSpan(
+                          // 副标题（歌手名）
+                            text: controller.curPageSubTitle.value,
+                            style: TextStyle(
+                              fontSize: 21.sp,
+                              color: (controller.panelOpened50.value ? controller.bodyColor.value : Colors.black).withOpacity(0.5),
+                            )
+                        ),
+                      ]
+                  ),
                 ),
               ),
-            ),
-          ))
+            ))
+        ),
       ),
     );
   }

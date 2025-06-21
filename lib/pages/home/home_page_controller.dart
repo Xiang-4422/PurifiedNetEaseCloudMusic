@@ -6,13 +6,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/common/constants/platform_utils.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/pages/home/view/menu_view.dart';
 import 'package:bujuan/widget/weslide/panel.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -66,7 +64,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   int _lastHomePageIndex = 0;
 
   /// panelTab的页面位置
-  RxInt curPanelPageIndex = 0.obs;
+  RxInt curPanelPageIndex = 1.obs;
 
   // --- 滑动面板 ---
   /// 展开程度（0-1，1表示完全展开）
@@ -96,8 +94,6 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   RxBool isCacheOpen = false.obs;
   /// 是否开启高音质
   RxBool isHighSoundQualityOpen = false.obs;
-  /// 自定义背景路径（空表示未设置自定义背景）
-  RxString customBackgroundPath = ''.obs;
 
   // --- 控制器 ---
   /// Home页面侧滑抽屉
@@ -112,9 +108,9 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   PageController albumPageController = PageController(viewportFraction: 1/3);
 
   late PageController panelPageController;
+
   late TabController panelTabController;
   late TabController panelCommentTabController;
-
 
 
   /// 歌词滚动控制器
@@ -185,7 +181,6 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     panelCommentTabController = TabController(length: 2, vsync: this);
     panelCommentTabController.addListener(() {
       if (panelCommentTabController.indexIsChanging) {
-        print('2page: ${panelTabController.indexIsChanging}');
         panelPageController.animateToPage(panelCommentTabController.index + 2, duration: Duration(milliseconds: 300), curve: Curves.linear);
       }
     });
@@ -212,7 +207,6 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     });
 
     box.get(noFirstOpen, defaultValue: false);
-    customBackgroundPath.value = box.get(backgroundSp, defaultValue: '');
     isCacheOpen.value = box.get(cacheSp, defaultValue: false);
     isGradientBackground.value = box.get(gradientBackgroundSp, defaultValue: true);
     isTopLyricOpen.value = box.get(topLyricSp, defaultValue: false);
@@ -345,7 +339,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
         audioServiceRepeatMode.value = AudioServiceRepeatMode.one;
         break;
     }
-    audioServeHandler.setRepeatMode(audioServiceRepeatMode.value);
+    await audioServeHandler.setRepeatMode(audioServiceRepeatMode.value);
   }
   /// 播放/暂停
   playOrPause() async {
@@ -384,7 +378,12 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   /// 根据下标播放歌曲
   playNewPlayListByIndex(int index, String queueTitle, {List<MediaItem>? playList}) async {
     audioServeHandler.queueTitle.value = queueTitle;
-    await audioServeHandler.changeQueueLists(playList ?? [], index: index);
+    // 切歌单退出FM模式
+    if (HomePageController.to.isFmMode.value) {
+      HomePageController.to.isFmMode.value = false;
+      box.put(fmSp, false);
+    }
+    await audioServeHandler.changePlayList(playList ?? [], index: index);
     audioServeHandler.playCurIndex();
   }
   /// 获取 FM 歌曲列表
@@ -497,7 +496,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   }
   bool intervalClick(int gapClickTime) {
     // 防重复提交
-    if (DateTime.now().difference(_lastPopTime) > Duration(seconds: gapClickTime)) {
+    if (DateTime.now().difference(_lastPopTime) > Duration(milliseconds: gapClickTime)) {
       _lastPopTime = DateTime.now();
       return true;
     } else {
@@ -570,7 +569,6 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
 
     // 监听播放列表切换
     audioServeHandler.queue.listen((mediaItems) {
-      print("mediaItems: $mediaItems");
       curPlayList
         ..clear()
         ..addAll(mediaItems);
@@ -586,7 +584,9 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       curMediaItem.value = mediaItem;
       _updateAlbumColor();
       _getLyric();
-      animatePlayListToCurPlayIndex();
+      if (panelFullyOpened.isTrue && curPanelPageIndex.value == 0) {
+        animatePlayListToCurPlayIndex();
+      }
     });
     // 监听播放状态变化
     audioServeHandler.playbackState.listen((playbackState) {
@@ -736,5 +736,6 @@ enum NewAppBarTitleComingDirection {
   up,
   down,
   left,
-  right
+  right,
+  none
 }

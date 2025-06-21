@@ -18,7 +18,6 @@ import '../pages/index/explore_page_view.dart';
 import '../pages/login/login_page_view.dart';
 import '../pages/play_list/playlist_page_view.dart';
 import '../pages/search/search_view.dart';
-import '../pages/setting/image_blur.dart';
 import '../pages/splash_page.dart';
 import '../pages/update/update_view.dart';
 
@@ -148,7 +147,6 @@ abstract class _Paths {
 
     // 升级
     AutoRoute(path: Routes.update, page: UpdateView),
-    AutoRoute(path: Routes.imageBlur, page: ImageBlur),
 
   ],
 )

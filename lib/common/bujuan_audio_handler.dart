@@ -34,12 +34,11 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   AudioServiceRepeatMode _audioServiceRepeatMode = AudioServiceRepeatMode.all;
 
   BujuanAudioHandler() {
-    // 初始化
+    // 从本地恢复播放状态
     _restoreAudioStateFromStorage();
+    // 添加播放事件监听
     _addPlaybackEventListener();
-    _addPlayerStateListener();
   }
-
   void _restoreAudioStateFromStorage() async {
     // 恢复播放模式
     String repeatMode = _box.get(repeatModeSp, defaultValue: 'all');
@@ -50,10 +49,10 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     List<String> playList = _box.get(playQueue, defaultValue: <String>[]);
     if (playList.isNotEmpty) {
       List<MediaItem> items = await compute(getCachePlayList, RootIsolateData(rootIsolateToken, playlist: playList));
-      await changeQueueLists(items, init: true, index: _curIndex);
+      await changePlayList(items, init: true, index: _curIndex);
+      playCurIndex(playNow: false);
     }
   }
-
   void _addPlaybackEventListener() {
     _player.playbackEventStream.listen((PlaybackEvent event) {
 
@@ -83,24 +82,6 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     });
   }
 
-  void _addPlayerStateListener() {
-    _player.playerStateStream.listen((state) {
-
-      switch (state.processingState) {
-        case ProcessingState.idle:
-          break;
-        case ProcessingState.loading:
-          break;
-        case ProcessingState.buffering:
-          break;
-        case ProcessingState.ready:
-          break;
-        case ProcessingState.completed:
-          break;
-      }
-    });
-  }
-
   List<MediaControl> buildMediaControls({required bool isLiked, required bool playing}) => [
     PlatformUtils.isAndroid
         ? isLiked
@@ -116,31 +97,21 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
 
   @override
   Future<void> addFmItems(List<MediaItem> mediaItems) async {
-    print("FM: $mediaItem");
     // FM模式刷新歌曲
     if (HomePageController.to.isFmMode.value) {
-      queue.value.removeRange(0, queue.value.length - 1);
-      addQueueItems(mediaItems);
+      mediaItems.insert(0, queue.value.last);
+      await changePlayList(mediaItems);
       _updateCurIndex(0);
     // 首次进入FM模式
     } else {
-      changeQueueLists(mediaItems);
-      playCurIndex();
-      // 保存FM开启状态
-      HomePageController.to.isFmMode.value = true;
-      _box.put(fmSp, true);
+      queueTitle.value = 'Fm';
+      await changePlayList(mediaItems);
+      await playCurIndex();
     }
-    List<String> playList = await compute(setCachePlayList, RootIsolateData(rootIsolateToken, items: mediaItems));
-    queueTitle.value = 'Fm';
-    _box.put(playQueue, playList);
   }
   @override
-  Future<void> changeQueueLists(List<MediaItem> list, {int index = 0, bool init = false}) async {
-    // 切歌单退出FM模式
-    if (HomePageController.to.isFmMode.value) {
-      HomePageController.to.isFmMode.value = false;
-      _box.put(fmSp, false);
-    }
+  Future<void> changePlayList(List<MediaItem> list, {int index = 0, bool init = false}) async {
+
     if (!init) {
       List<String> playList = await compute(setCachePlayList, RootIsolateData(rootIsolateToken, items: list));
       _box.put(playQueue, playList);
@@ -158,9 +129,8 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     }
     _updateCurIndex(index);
   }
-
   @override
-  Future<void> changeQueueListsRepeatMode() async {
+  Future<void> changeRepeatMode() async {
     var playListCopy = <MediaItem>[..._playList];
     // 随机播放模式
     if (_audioServiceRepeatMode == AudioServiceRepeatMode.none) {
@@ -179,7 +149,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     await playCurIndex();
   }
   @override
-  Future<void> playCurIndex({bool isNext = true}) async {
+  Future<void> playCurIndex({bool isNext = true, bool playNow = true}) async {
     bool high = HomePageController.to.isHighSoundQualityOpen.value;
     // TODO YU4422 歌曲缓存功能
     bool isCacheOpen = HomePageController.to.isCacheOpen.value;
@@ -205,7 +175,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
         if (song.extras?['type'] == MediaType.neteaseCache.name) {
           _player.setAudioSource(StreamSource(url, url.replaceAll('.uc!', '').split('.').last));
         }
-        _player.play();
+        if (playNow) await play();
         return;
       }
     // 在线获取
@@ -216,7 +186,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
       // 如果获取不到URL就跳过
       if (url.isNotEmpty) {
         await _player.setUrl(url);
-        _player.play();
+        if (playNow) await play();
       } else {
         await (isNext ? skipToNext() : skipToPrevious());
       }
@@ -279,7 +249,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     HomePageController.to.audioServiceRepeatMode.value = repeatMode;
     _box.put(repeatModeSp, repeatMode.name);
     // 根据循环模式更新播放列表
-    await changeQueueListsRepeatMode();
+    await changeRepeatMode();
   }
   @override
   Future<void> onTaskRemoved() async {
@@ -303,8 +273,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     }
     _updateCurIndex(newIndex);
   }
-
-  void _updateCurIndex(int newIndex) {
+  _updateCurIndex(int newIndex) {
     if (_curIndex == newIndex) return;
     _curIndex = newIndex;
     _box.put(curPlaySongIndex, _curIndex);
@@ -316,6 +285,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
 
     // 更新UI
     bool isSkipToNext = newIndex > HomePageController.to.curPlayIndex.value;
+    bool isNotNearBy = (newIndex - HomePageController.to.curPlayIndex.value).abs() > 1;
     HomePageController.to.lastPlayIndex.value = HomePageController.to.curPlayIndex.value;
     HomePageController.to.curPlayIndex.value = newIndex;
     // 切换专辑封面
@@ -331,7 +301,12 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
       HomePageController.to.changeAppBarTitle(
           title: HomePageController.to.curPlayList[_curIndex].title,
           subTitle: HomePageController.to.curPlayList[_curIndex].artist ?? "",
-          direction: isSkipToNext ? NewAppBarTitleComingDirection.right : NewAppBarTitleComingDirection.left);
+          direction: isNotNearBy
+              ? NewAppBarTitleComingDirection.none
+              : isSkipToNext
+                  ? NewAppBarTitleComingDirection.right
+                  : NewAppBarTitleComingDirection.left
+      );
     }
   }
 }

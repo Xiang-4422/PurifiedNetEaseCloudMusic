@@ -32,7 +32,6 @@ class AppWidget extends StatelessWidget {
           // checkerboardOffscreenLayers: true,
           // checkerboardRasterCacheImages: true,
           debugShowCheckedModeBanner: false,
-          // 渲染时间显示
           showPerformanceOverlay: false,
 
           title: "Bujuan",
@@ -52,8 +51,8 @@ class AppWidget extends StatelessWidget {
 class MyObserver extends AutoRouterObserver {
 
   _clearOrPutController(String name, {bool del = false}) {
+    // return;
     if (name.isEmpty) return;
-    print("XY4422" + name);
     switch (name) {
       case 'CloudDriveView':
         del ? Get.delete<CloudController>() : Get.lazyPut<CloudController>(() => CloudController());
@@ -66,7 +65,9 @@ class MyObserver extends AutoRouterObserver {
         break;
       case 'PlayListRouteView':
         del ? Get.delete<PlayListController>() : Get.lazyPut<PlayListController>(() => PlayListController());
-        HomePageController.to.isInPlayListPage.value = del ? false : true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          HomePageController.to.isInPlayListPage.value = del ? false : true;
+        });
         break;
       case 'AlbumDetails':
         del ? Get.delete<AlbumController>() : Get.lazyPut<AlbumController>(() => AlbumController());

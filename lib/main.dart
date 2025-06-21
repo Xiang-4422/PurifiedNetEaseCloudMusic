@@ -1,3 +1,4 @@
+
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/bujuan_audio_handler.dart';
 import 'package:bujuan/common/constants/platform_utils.dart';
@@ -25,23 +26,17 @@ main() async {
   await _initUI();
   // 在runApp前必须完成的初始化操作
   await _initSingleton();
+
   Get.lazyPut<PersonalPageController>(() => PersonalPageController());
   Get.lazyPut<ExplorePageController>(() => ExplorePageController());
   Get.lazyPut<HomePageController>(() => HomePageController());
 
-
-
-  runApp(
-      AppWidget()
-     );
+  runApp(AppWidget());
 }
 
 Future<void> _initUI() async {
-  // 安卓平台配置
-  if (PlatformUtils.isAndroid) {
-    // 高刷
-    await FlutterDisplayMode.setHighRefreshRate();
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+  // 应用全屏（UI延伸到状态栏和导航栏下）
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       // 状态栏透明
       statusBarColor: Colors.transparent,
       // 底部导航栏透明
@@ -49,9 +44,9 @@ Future<void> _initUI() async {
       // 关闭底部导航栏的阴影
       systemNavigationBarContrastEnforced: false,
     ));
-  }
-  // 应用全屏（UI延伸到状态栏和导航栏下）
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  // 高刷
+  await FlutterDisplayMode.setHighRefreshRate();
 }
 
 Future<void> _initSingleton() async {

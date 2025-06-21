@@ -54,16 +54,19 @@ class PersonalPageView extends GetView<PersonalPageController> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             IconButton(
-                              onPressed: () {
+                              onPressed: () async {
                                   if ((userItem.routes ?? '') == 'playFm') {
                                     if(HomePageController.to.isFmMode.value) {
                                       // TODO YU4422 打开播放页面，避免重复加载
                                       if (HomePageController.to.isPlaying.isFalse) {
-                                        HomePageController.to.playOrPause();
+                                        await HomePageController.to.playOrPause();
                                       }
                                     } else {
-                                      HomePageController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
-                                      HomePageController.to.getFmSongList();
+                                      await HomePageController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                      await HomePageController.to.getFmSongList();
+                                      // 保存FM开启状态
+                                      HomePageController.to.isFmMode.value = true;
+                                      HomePageController.to.box.put(fmSp, true);
                                     }
                                     HomePageController.to.panelController.open();
                                     HomePageController.to.panelPageController.jumpToPage(1);

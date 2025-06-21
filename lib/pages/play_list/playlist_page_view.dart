@@ -170,6 +170,8 @@ class PlayListPageView extends GetView<PlayListController> {
           ),)
         );
   }
+
+
 }
 
 class SongItemShowImage extends StatelessWidget {

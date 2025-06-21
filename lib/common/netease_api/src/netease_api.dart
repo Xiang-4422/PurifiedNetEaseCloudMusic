@@ -37,10 +37,12 @@ class NeteaseMusicApi
 
   static Future<bool> init({PathProvider? provider, bool debug = false}) async {
 
-    pathProvider = provider == null ? PathProvider() : provider;
+    // 初始化 pathProvider
+    pathProvider = provider ?? PathProvider();
     await pathProvider.init();
+    // 初始化 cookieManager
     cookieManager = CookieManager(PersistCookieJar(storage: FileStorage(pathProvider.getCookieSavedPath())));
-
+    // 初始化 dio
     _initDio(Https.dio, debug, true);
 
     return true;
@@ -199,8 +201,7 @@ class UserLoginStateController {
     }
   }
 
-  File _saveFile() => File(
-      NeteaseMusicApi.pathProvider.getDataSavedPath() + "_accountInfo.json");
+  File _saveFile() => File("${NeteaseMusicApi.pathProvider.getDataSavedPath()}_accountInfo.json");
 
   _checkCreateSavePath() {
     var file = _saveFile();

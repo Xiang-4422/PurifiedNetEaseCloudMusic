@@ -600,8 +600,8 @@ Map<String, dynamic> _$ArtistDetailAndSongListWrapToJson(ArtistDetailAndSongList
       'artist': instance.artist,
     };
 
-Play _$PlayFromJson(Map<String, dynamic> json) {
-  return Play()
+PlayList _$PlayFromJson(Map<String, dynamic> json) {
+  return PlayList()
     ..id = dynamicToString(json['id'])
     ..userId = dynamicToString(json['userId'])
     ..name = json['name'] as String?
@@ -629,7 +629,7 @@ Play _$PlayFromJson(Map<String, dynamic> json) {
     ..trackIds = (json['trackIds'] as List<dynamic>?)?.map((e) => PlayTrackId.fromJson(e as Map<String, dynamic>)).toList();
 }
 
-Map<String, dynamic> _$PlayToJson(Play instance) => <String, dynamic>{
+Map<String, dynamic> _$PlayToJson(PlayList instance) => <String, dynamic>{
       'id': instance.id,
       'userId': instance.userId,
       'name': instance.name,
@@ -750,7 +750,7 @@ MultiPlayListWrap _$MultiPlayListWrapFromJson(Map<String, dynamic> json) {
     ..code = dynamicToInt(json['code'])
     ..message = json['message'] as String?
     ..msg = json['msg'] as String?
-    ..playlists = (json['playlists'] as List<dynamic>?)?.map((e) => Play.fromJson(e as Map<String, dynamic>)).toList();
+    ..playlists = (json['playlists'] as List<dynamic>?)?.map((e) => PlayList.fromJson(e as Map<String, dynamic>)).toList();
 }
 
 Map<String, dynamic> _$MultiPlayListWrapToJson(MultiPlayListWrap instance) => <String, dynamic>{
@@ -765,7 +765,7 @@ MultiPlayListWrap2 _$MultiPlayListWrap2FromJson(Map<String, dynamic> json) {
     ..code = dynamicToInt(json['code'])
     ..message = json['message'] as String?
     ..msg = json['msg'] as String?
-    ..playlist = (json['playlist'] as List<dynamic>?)?.map((e) => Play.fromJson(e as Map<String, dynamic>)).toList();
+    ..playlist = (json['playlist'] as List<dynamic>?)?.map((e) => PlayList.fromJson(e as Map<String, dynamic>)).toList();
 }
 
 Map<String, dynamic> _$MultiPlayListWrap2ToJson(MultiPlayListWrap2 instance) => <String, dynamic>{
@@ -780,7 +780,7 @@ RecommendPlayListWrap _$RecommendPlayListWrapFromJson(Map<String, dynamic> json)
     ..code = dynamicToInt(json['code'])
     ..message = json['message'] as String?
     ..msg = json['msg'] as String?
-    ..recommend = (json['recommend'] as List<dynamic>?)?.map((e) => Play.fromJson(e as Map<String, dynamic>)).toList()
+    ..recommend = (json['recommend'] as List<dynamic>?)?.map((e) => PlayList.fromJson(e as Map<String, dynamic>)).toList()
     ..featureFirst = json['featureFirst'] as bool?
     ..haveRcmdSongs = json['haveRcmdSongs'] as bool?;
 }
@@ -799,7 +799,7 @@ PersonalizedPlayListWrap _$PersonalizedPlayListWrapFromJson(Map<String, dynamic>
     ..code = dynamicToInt(json['code'])
     ..message = json['message'] as String?
     ..msg = json['msg'] as String?
-    ..result = (json['result'] as List<dynamic>?)?.map((e) => Play.fromJson(e as Map<String, dynamic>)).toList()
+    ..result = (json['result'] as List<dynamic>?)?.map((e) => PlayList.fromJson(e as Map<String, dynamic>)).toList()
     ..hasTaste = json['hasTaste'] as bool?
     ..category = json['category'] as int?;
 }
@@ -929,7 +929,7 @@ SinglePlayListWrap _$SinglePlayListWrapFromJson(Map<String, dynamic> json) {
     ..code = dynamicToInt(json['code'])
     ..message = json['message'] as String?
     ..msg = json['msg'] as String?
-    ..playlist = json['playlist'] == null ? null : Play.fromJson(json['playlist'] as Map<String, dynamic>);
+    ..playlist = json['playlist'] == null ? null : PlayList.fromJson(json['playlist'] as Map<String, dynamic>);
 }
 
 Map<String, dynamic> _$SinglePlayListWrapToJson(SinglePlayListWrap instance) => <String, dynamic>{

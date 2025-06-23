@@ -10,38 +10,37 @@ import '../../common/constants/enmu.dart';
 import '../user/personal_page_controller.dart';
 
 class ExplorePageController extends GetxController {
-  RxList<Play> playlist = <Play>[].obs;
-  RxList<MediaItem> newSong = <MediaItem>[].obs;
+  RxList<PlayList> playlists = <PlayList>[].obs;
+  RxList<MediaItem> newSingles = <MediaItem>[].obs;
   RxBool loading = true.obs;
 
   @override
   void onReady() async {
     super.onReady();
     WidgetsBinding.instance.addPostFrameCallback((_) async{
-      await _getPlayList();
-      await _getNewSong();
+      await _getRecoPlayLists();
+      await _getNewSongs();
       loading.value = false;
     });
   }
 
-  _getPlayList() async {
-    List<Play> data;
+  _getRecoPlayLists() async {
+    List<PlayList> data;
     if (HomePageController.to.loginStatus.value == LoginStatus.login) {
-      RecommendPlayListWrap recommendPlayListWrap = await NeteaseMusicApi().recommendPlaylist();
+      RecommendPlayListWrap recommendPlayListWrap = await NeteaseMusicApi().recoPlaylists();
       data = recommendPlayListWrap.recommend ?? [];
     } else {
       PersonalizedPlayListWrap personalizedPlayListWrap = await NeteaseMusicApi().personalizedPlaylist();
       data = personalizedPlayListWrap.result ?? [];
     }
-    playlist
+    playlists
       ..clear()
       ..addAll(data.length > 6 ? data.sublist(0, 6) : data);
   }
-
-  _getNewSong() async{
+  _getNewSongs() async{
     PersonalizedSongListWrap personalizedSongListWrap = await NeteaseMusicApi().personalizedSongList();
     var data = personalizedSongListWrap.result??[];
-    newSong
+    newSingles
       ..clear()
       ..addAll(data.map((e) => MediaItem(
           id: e.id,

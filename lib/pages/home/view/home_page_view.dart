@@ -110,7 +110,10 @@ class HomePageView extends GetView<HomePageController>{
             width: context.width,
             height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
             padding: EdgeInsets.only(top: context.mediaQueryPadding.top,),
-            blur: (controller.panelOpened50.isFalse && controller.isInPlayListPage.value) || (controller.panelOpened50.value && (controller.isAlbumVisible.value || controller.curPanelPageIndex.value != 1)) ? 0 : 20,
+            blur: (controller.panelOpened50.isFalse && controller.isInPlayListPage.value)
+                || (controller.panelOpened50.isTrue && controller.isAlbumVisible.value)
+                ? 0
+                : 20,
             borderRadius: BorderRadius.circular(0),
             child: Obx(() => AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),

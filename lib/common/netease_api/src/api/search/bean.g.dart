@@ -82,7 +82,7 @@ Map<String, dynamic> _$SearchArtistsWrapXToJson(SearchArtistsWrapX instance) =>
 SearchPlaylistWrap _$SearchPlaylistWrapFromJson(Map<String, dynamic> json) {
   return SearchPlaylistWrap()
     ..playlists = (json['playlists'] as List<dynamic>)
-        .map((e) => Play.fromJson(e as Map<String, dynamic>))
+        .map((e) => PlayList.fromJson(e as Map<String, dynamic>))
         .toList();
 }
 
@@ -271,7 +271,7 @@ SearchComplexPlaylist _$SearchComplexPlaylistFromJson(
     Map<String, dynamic> json) {
   return SearchComplexPlaylist()
     ..playLists = (json['playLists'] as List<dynamic>)
-        .map((e) => Play.fromJson(e as Map<String, dynamic>))
+        .map((e) => PlayList.fromJson(e as Map<String, dynamic>))
         .toList()
     ..moreText = json['moreText'] as String?
     ..highText = json['highText'] as String?
@@ -664,7 +664,7 @@ SearchMultiMatchWrap _$SearchMultiMatchWrapFromJson(Map<String, dynamic> json) {
         ?.map((e) => Song.fromJson(e as Map<String, dynamic>))
         .toList()
     ..playList = (json['playList'] as List<dynamic>?)
-        ?.map((e) => Play.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => PlayList.fromJson(e as Map<String, dynamic>))
         .toList()
     ..artist = (json['artist'] as List<dynamic>?)
         ?.map((e) => Artists.fromJson(e as Map<String, dynamic>))

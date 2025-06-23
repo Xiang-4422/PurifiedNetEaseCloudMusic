@@ -137,7 +137,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   RxInt curPlayIndex = 0.obs;
   RxInt lastPlayIndex = 0.obs;
   /// 相似歌单
-  RxList<Play> simiSongCollectionList = <Play>[].obs;
+  RxList<PlayList> simiSongCollectionList = <PlayList>[].obs;
 
   // --- 歌词 ---
   /// 解析后的歌词数组
@@ -274,7 +274,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     ));
   }
 
-  void initHomePageController(PageController controller) {
+  initHomePageController(PageController controller) {
     isHomePageControllerInited = true;
     homePageController = controller;
     // 监听页面切换
@@ -306,6 +306,20 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
           case 3:
             changeAppBarTitle(title: "赞助开发者", direction: direction);
             break;
+        }
+      }
+    });
+    // 监听抽屉展开程度
+    zoomDrawerController.addListener!((drawerOpenDegree) {
+      //  抽屉状态改变
+      if ((drawerOpenDegree == 0.0) != isDrawerClosed.value) {
+        // 刷新抽屉状态
+        isDrawerClosed.value = drawerOpenDegree == 0.0;
+        if (!isDrawerClosed.value) {
+          // 启动倒计时器关闭抽屉
+          _updateCloseDrawerTimer(3000);
+        } else {
+          _updateCloseDrawerTimer(0);
         }
       }
     });
@@ -539,23 +553,6 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   _initListener() {
     // 监听歌词滚动
     lyricScrollListener.itemPositions.addListener(() {});
-    WidgetsBinding.instance.addPostFrameCallback((_) async{
-      // 监听抽屉展开程度
-      zoomDrawerController.addListener!((drawerOpenDegree) {
-        //  抽屉状态改变
-        if ((drawerOpenDegree == 0.0) != isDrawerClosed.value) {
-          // 刷新抽屉状态
-          isDrawerClosed.value = drawerOpenDegree == 0.0;
-          if (!isDrawerClosed.value) {
-            // 启动倒计时器关闭抽屉
-            _updateCloseDrawerTimer(3000);
-          } else {
-            _updateCloseDrawerTimer(0);
-          }
-
-        }
-      });
-    });
     // 监听album封面滚动
     albumPageController.addListener(() {
       if(!_isAlbumPageViewScrollingListenerAdded && albumPageController.hasClients) {

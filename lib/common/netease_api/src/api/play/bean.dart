@@ -529,7 +529,7 @@ class ArtistDetailAndSongListWrap extends ServerStatusBean {
 }
 
 @JsonSerializable()
-class Play {
+class PlayList {
   @JsonKey(fromJson: dynamicToString)
   late String id;
 
@@ -575,14 +575,14 @@ class Play {
   List<PlayTrack>? tracks;
   List<PlayTrackId>? trackIds;
 
-  Play();
+  PlayList();
 
   @override
   String toString() {
     return 'Play{id: $id, name: $name}';
   }
 
-  factory Play.fromJson(Map<String, dynamic> json) => _$PlayFromJson(json);
+  factory PlayList.fromJson(Map<String, dynamic> json) => _$PlayFromJson(json);
 
   Map<String, dynamic> toJson() => _$PlayToJson(this);
 }
@@ -653,7 +653,7 @@ class PlayTrackId {
 
 @JsonSerializable()
 class MultiPlayListWrap extends ServerStatusBean {
-  List<Play>? playlists;
+  List<PlayList>? playlists;
 
   MultiPlayListWrap();
 
@@ -665,7 +665,7 @@ class MultiPlayListWrap extends ServerStatusBean {
 
 @JsonSerializable()
 class MultiPlayListWrap2 extends ServerStatusBean {
-  List<Play>? playlist;
+  List<PlayList>? playlist;
 
   MultiPlayListWrap2();
 
@@ -677,7 +677,7 @@ class MultiPlayListWrap2 extends ServerStatusBean {
 
 @JsonSerializable()
 class RecommendPlayListWrap extends ServerStatusBean {
-  List<Play>? recommend;
+  List<PlayList>? recommend;
 
   bool? featureFirst;
   bool? haveRcmdSongs;
@@ -692,7 +692,7 @@ class RecommendPlayListWrap extends ServerStatusBean {
 
 @JsonSerializable()
 class PersonalizedPlayListWrap extends ServerStatusBean {
-  List<Play>? result;
+  List<PlayList>? result;
 
   bool? hasTaste;
   int? category;
@@ -848,7 +848,7 @@ const PLAYLIST_CATEGORY = [
 
 @JsonSerializable()
 class SinglePlayListWrap extends ServerStatusBean {
-  Play? playlist;
+  PlayList? playlist;
 
   SinglePlayListWrap();
 

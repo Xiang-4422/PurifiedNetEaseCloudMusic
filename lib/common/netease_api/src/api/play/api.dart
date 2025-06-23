@@ -85,7 +85,7 @@ mixin ApiPlay {
         var matchs = RegExp(pattern, multiLine: true).allMatches(value.data);
         for (var match in matchs) {
           try {
-            var item = Play();
+            var item = PlayList();
             item.id = match.group(2)?.substring('/playlist?id='.length) ?? '';
             item.name = match.group(3) ?? '';
             item.coverImgUrl = match.group(1)?.substring(0, match.group(1)?.length ?? 0 - '?param=50y50'.length) ?? '';
@@ -118,7 +118,7 @@ mixin ApiPlay {
 
   /// 每日推荐歌单
   /// !需要登录
-  Future<RecommendPlayListWrap> recommendPlaylist() {
+  Future<RecommendPlayListWrap> recoPlaylists() {
     return Https.dioProxy.postUri(recommendPlaylistDioMetaData()).then((Response value) {
       return RecommendPlayListWrap.fromJson(value.data);
     });

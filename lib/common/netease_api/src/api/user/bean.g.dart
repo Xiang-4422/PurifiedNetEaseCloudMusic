@@ -457,7 +457,7 @@ PlaylistCreateWrap _$PlaylistCreateWrapFromJson(Map<String, dynamic> json) {
     ..message = json['message'] as String?
     ..msg = json['msg'] as String?
     ..id = dynamicToString(json['id'])
-    ..playlist = Play.fromJson(json['playlist'] as Map<String, dynamic>);
+    ..playlist = PlayList.fromJson(json['playlist'] as Map<String, dynamic>);
 }
 
 Map<String, dynamic> _$PlaylistCreateWrapToJson(PlaylistCreateWrap instance) =>

@@ -306,7 +306,7 @@ class PlaylistCreateWrap extends ServerStatusBean {
   @JsonKey(fromJson: dynamicToString)
   late String id;
 
-  late Play playlist;
+  late PlayList playlist;
 
   PlaylistCreateWrap();
 

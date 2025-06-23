@@ -49,40 +49,44 @@ class PersonalPageView extends GetView<PersonalPageController> {
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: 4,
                         childAspectRatio: 1,
-                        children: controller.userItems.map((userItem) => Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            IconButton(
-                              onPressed: () async {
-                                  if ((userItem.routes ?? '') == 'playFm') {
-                                    if(HomePageController.to.isFmMode.value) {
-                                      // TODO YU4422 打开播放页面，避免重复加载
-                                      if (HomePageController.to.isPlaying.isFalse) {
-                                        await HomePageController.to.playOrPause();
-                                      }
-                                    } else {
-                                      await HomePageController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
-                                      await HomePageController.to.getFmSongList();
-                                      // 保存FM开启状态
-                                      HomePageController.to.isFmMode.value = true;
-                                      HomePageController.to.box.put(fmSp, true);
-                                    }
-                                    HomePageController.to.panelController.open();
-                                    HomePageController.to.panelPageController.jumpToPage(1);
-                                    return;
-                                  }
-                                  HomePageController.to.changeAppBarTitle(title: userItem.title, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
-                                  AutoRouter.of(context).pushNamed(userItem.routes! ?? '');
-                                },
-                              icon: Icon(userItem.iconData),
-                              iconSize: context.width / 4 / 3,
+                        children: controller.userItems.map((userItem) => GestureDetector(
+                          onTap: () async {
+                            if (userItem.routes == 'playFm') {
+                              HomePageController.to.panelPageController.jumpToPage(1);
+                              HomePageController.to.panelController.open();
+                              if(HomePageController.to.isFmMode.value) {
+                                if (HomePageController.to.isPlaying.isFalse) {
+                                  await HomePageController.to.playOrPause();
+                                }
+                              } else {
+                                await HomePageController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
+                                await HomePageController.to.getFmSongList();
+                                // 保存FM开启状态
+                                HomePageController.to.isFmMode.value = true;
+                                HomePageController.to.box.put(fmSp, true);
+                              }
+                            } else {
+                              HomePageController.to.changeAppBarTitle(title: userItem.title, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
+                              AutoRouter.of(context).pushNamed(userItem.routes! ?? '');
+                            }
+                          },
+                          child: Container(
+                            // color: Colors.red,
+                            alignment: Alignment.center,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  userItem.iconData,
+                                  size: context.width / 4  / 2,
+                                ),
+                                Text(
+                                  userItem.title,
+                                  style: TextStyle(fontSize: 26.sp),
+                                )
+                              ],
                             ),
-                            Text(
-                              userItem.title,
-                              style: TextStyle(fontSize: 26.sp),
-                            )
-                          ],
+                          ),
                         )).toList(),
                       ),
                       // 喜欢的音乐

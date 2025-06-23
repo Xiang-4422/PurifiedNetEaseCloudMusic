@@ -191,9 +191,9 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
   }
 
   Widget _buildPlayListSearchView() {
-    return RequestLoadMoreWidget<SearchPlaylistWrapX, Play>(
+    return RequestLoadMoreWidget<SearchPlaylistWrapX, PlayList>(
       dioMetaData: searchSongDioMetaData(searchContent, 1000),
-      childBuilder: (List<Play> playlist) {
+      childBuilder: (List<PlayList> playlist) {
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           itemExtent: 120.w,

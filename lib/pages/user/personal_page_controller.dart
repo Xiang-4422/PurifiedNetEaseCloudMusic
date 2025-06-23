@@ -20,17 +20,17 @@ enum LoginStatus { login, noLogin }
 
 class PersonalPageController extends GetxController {
   /// 喜欢歌单
-  Rx<Play> userLikedSongCollection = Play().obs;
+  Rx<PlayList> userLikedSongCollection = PlayList().obs;
   /// 创建歌单列表
-  List<Play> userMadeSongCollectionList = <Play>[].obs;
+  List<PlayList> userMadeSongCollectionList = <PlayList>[].obs;
   /// 收藏歌单列表
-  List<Play> userFavoritedSongCollectionList = <Play>[].obs;
+  List<PlayList> userFavoritedSongCollectionList = <PlayList>[].obs;
 
   RxBool loading = true.obs;
   late BuildContext context;
   final List<UserItem> userItems = [
     UserItem('每日', TablerIcons.calendar, routes: Routes.today,color: const Color.fromRGBO(66,133,244, .7)),
-    UserItem('FM', TablerIcons.vinyl, routes: 'playFm',color: const Color.fromRGBO(52,168,83, .7)),
+    UserItem('FM', TablerIcons.radio, routes: 'playFm',color: const Color.fromRGBO(52,168,83, .7)),
     UserItem('播客', TablerIcons.brand_apple_podcast, routes: Routes.myRadio,color: const Color.fromRGBO(251,188,5, .7)),
     UserItem('云盘', TablerIcons.cloud_fog, routes: Routes.cloud,color: const Color.fromRGBO(234,67,53, .7))
   ];
@@ -111,7 +111,7 @@ class PersonalPageController extends GetxController {
   _getUserPlayList() {
     NeteaseMusicApi().userPlayList(HomePageController.to.userData.value.profile?.userId ?? '-1')
         .then((MultiPlayListWrap2 multiPlayListWrap2) async {
-      List<Play> list = (multiPlayListWrap2.playlist ?? []);
+      List<PlayList> list = (multiPlayListWrap2.playlist ?? []);
       if (list.isNotEmpty) {
         userLikedSongCollection.value = list.first;
         list.removeAt(0);

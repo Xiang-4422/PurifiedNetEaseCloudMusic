@@ -69,7 +69,7 @@ class SearchArtistsWrapX extends ServerStatusBean {
 
 @JsonSerializable()
 class SearchPlaylistWrap {
-  late List<Play> playlists;
+  late List<PlayList> playlists;
 
   SearchPlaylistWrap();
 
@@ -227,7 +227,7 @@ class SearchComplexMlog {
 
 @JsonSerializable()
 class SearchComplexPlaylist {
-  late List<Play> playLists;
+  late List<PlayList> playLists;
 
   String? moreText;
 
@@ -543,7 +543,7 @@ class SearchSuggestWrapX extends ServerStatusBean {
 @JsonSerializable()
 class SearchMultiMatchWrap {
   List<Song>? song;
-  List<Play>? playList;
+  List<PlayList>? playList;
   List<Artists>? artist;
   List<Album>? album;
 

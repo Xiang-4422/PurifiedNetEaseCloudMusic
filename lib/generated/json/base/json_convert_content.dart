@@ -132,7 +132,7 @@ class JsonConvert {
 		(ArtistNewSongListData).toString(): ArtistNewSongListData.fromJson,
 		(ArtistNewSongListWrap).toString(): ArtistNewSongListWrap.fromJson,
 		(ArtistDetailAndSongListWrap).toString(): ArtistDetailAndSongListWrap.fromJson,
-		(Play).toString(): Play.fromJson,
+		(PlayList).toString(): PlayList.fromJson,
 		(PlayTrack).toString(): PlayTrack.fromJson,
 		(PlayTrackId).toString(): PlayTrackId.fromJson,
 		(MultiPlayListWrap).toString(): MultiPlayListWrap.fromJson,
@@ -703,8 +703,8 @@ class JsonConvert {
 		if(<ArtistDetailAndSongListWrap>[] is M){
 			return data.map<ArtistDetailAndSongListWrap>((Map<String, dynamic> e) => ArtistDetailAndSongListWrap.fromJson(e)).toList() as M;
 		}
-		if(<Play>[] is M){
-			return data.map<Play>((Map<String, dynamic> e) => Play.fromJson(e)).toList() as M;
+		if(<PlayList>[] is M){
+			return data.map<PlayList>((Map<String, dynamic> e) => PlayList.fromJson(e)).toList() as M;
 		}
 		if(<PlayTrack>[] is M){
 			return data.map<PlayTrack>((Map<String, dynamic> e) => PlayTrack.fromJson(e)).toList() as M;

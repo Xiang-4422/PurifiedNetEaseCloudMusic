@@ -48,8 +48,8 @@ class ExplorePageView extends GetView<ExplorePageController> {
                           childAspectRatio: 0.75,
                           mainAxisSpacing: 10.0,
                           crossAxisSpacing: 10.0),
-                      itemBuilder: (context, index) => _buildItem(controller.playlist[index], context),
-                      itemCount: controller.playlist.length,
+                      itemBuilder: (context, index) => _buildItem(controller.playlists[index], context),
+                      itemCount: controller.playlists.length,
                       addAutomaticKeepAlives: false,
                       addRepaintBoundaries: false
                   ),
@@ -64,12 +64,12 @@ class ExplorePageView extends GetView<ExplorePageController> {
                       delegate: SliverChildBuilderDelegate(
                               (context, index) => SongItemShowImage(
                             index: index,
-                            mediaItem: controller.newSong[index],
+                            mediaItem: controller.newSingles[index],
                             onTap: () {
-                              HomePageController.to.playNewPlayListByIndex(index, 'queueTitle', playList: controller.newSong);
+                              HomePageController.to.playNewPlayListByIndex(index, 'queueTitle', playList: controller.newSingles);
                             },
                           ),
-                          childCount: controller.newSong.length,
+                          childCount: controller.newSingles.length,
                           addAutomaticKeepAlives: false,
                           addRepaintBoundaries: false),
                       itemExtent: 140.w),
@@ -106,7 +106,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
     );
   }
 
-  Widget _buildItem(Play albumModel, BuildContext context) {
+  Widget _buildItem(PlayList albumModel, BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10.w),
       child: InkWell(

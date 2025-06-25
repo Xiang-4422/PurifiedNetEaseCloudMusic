@@ -78,8 +78,8 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   // --- 专辑 ---
   RxBool isAlbumVisible = true.obs;
   RxBool isAlbumPageViewScrolling = false.obs;
-  Rx<PaletteGenerator> albumColors = PaletteGenerator.fromColors([]).obs;
-  Rx<Color> bodyColor = Colors.white.obs;
+  Rx<Color> albumColor = Colors.white.obs;
+  Rx<Color> panelWidgetColor = Colors.white.obs;
   bool _isAlbumPageViewScrollingListenerAdded = false;
 
   // --- APP 功能配置项 ---
@@ -108,14 +108,17 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   PageController albumPageController = PageController(viewportFraction: 1/3);
 
   late PageController panelPageController;
-
   late TabController panelTabController;
   late TabController panelCommentTabController;
 
 
   /// 歌词滚动控制器
   ItemScrollController lyricScrollController = ItemScrollController();
-  ItemPositionsListener lyricScrollListener = ItemPositionsListener.create();
+  bool isLyricScrollingByUser = false;
+  bool isLyricScrollingByItself = false;
+  // TODO YU4422 沉浸式歌词，隐藏控件
+  Timer? fullScreenLyricTimer;
+
   /// 播放列表滚动控制器
   ScrollController playListScrollController = ScrollController();
 
@@ -164,6 +167,13 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   
   @override
   void onInit() async {
+    _initStorageState();
+    _initUIController();
+
+    super.onInit();
+  }
+
+  _initUIController() {
     panelAnimationController = AnimationController(vsync: this, value: 0);
 
     panelTabController = TabController(
@@ -205,7 +215,9 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
         panelCommentTabController.offset = panelPageController.page! - curPage;
       }
     });
+  }
 
+  _initStorageState() {
     box.get(noFirstOpen, defaultValue: false);
     isCacheOpen.value = box.get(cacheSp, defaultValue: false);
     isGradientBackground.value = box.get(gradientBackgroundSp, defaultValue: true);
@@ -213,12 +225,12 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     isFmMode.value = box.get(fmSp, defaultValue: false);
     isHighSoundQualityOpen.value = box.get(highSong, defaultValue: false);
     isRoundAlbumOpen.value = box.get(roundAlbumSp, defaultValue: false);
-    String repeatMode = box.get(repeatModeSp, defaultValue: 'all');
 
+    String repeatMode = box.get(repeatModeSp, defaultValue: 'all');
     audioServiceRepeatMode.value = AudioServiceRepeatMode.values.firstWhereOrNull((element) => element.name == repeatMode) ?? AudioServiceRepeatMode.all;
-    // audioServeHandler.setRepeatMode(audioServiceRepeatMode.value);
-    super.onInit();
+    // await audioServeHandler.setRepeatMode(audioServiceRepeatMode.value);
   }
+
   @override
   void onReady() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -263,7 +275,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     if (panelFullyOpened.isTrue) return;
 
     // 状态栏颜色控制
-    bool isDarkMode = Theme.of(buildContext).brightness == Brightness.dark;
+    bool isDarkMode = buildContext.isDarkMode;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       systemNavigationBarIconBrightness: isDarkMode ? Brightness.dark : Brightness.light,
       statusBarBrightness: isDarkMode ? Brightness.light : Brightness.dark,
@@ -398,7 +410,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       box.put(fmSp, false);
     }
     await audioServeHandler.changePlayList(playList ?? [], index: index);
-    audioServeHandler.playCurIndex();
+    await audioServeHandler.playCurIndex();
   }
   /// 获取 FM 歌曲列表
   getFmSongList() async {
@@ -450,7 +462,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     return icon;
   }
   /// 改变panel位置
-  changeSlidePosition(double value) {
+  changeSlidePosition(double value) async {
     if (value == 2.086162576020456e-9) {
       return;
     }
@@ -463,7 +475,6 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       panelFullyClosed.value = (value == 0.0);
     }
     if (panelOpened10.value != (value > 0.1)){
-      // 更新状态
       panelOpened10.value = value > 0.1;
     }
     if (panelOpened50.value != (value > 0.5)) {
@@ -483,6 +494,9 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       panelFullyOpened.value = (value == 1.0);
       // 根据状态变更图标颜色
       _changeStatusIconColor(panelFullyOpened.value);
+      if (curPanelPageIndex.value == 0) {
+        await animatePlayListToCurPlayIndex();
+      }
     }
 
   }
@@ -551,8 +565,6 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     }
   }
   _initListener() {
-    // 监听歌词滚动
-    lyricScrollListener.itemPositions.addListener(() {});
     // 监听album封面滚动
     albumPageController.addListener(() {
       if(!_isAlbumPageViewScrollingListenerAdded && albumPageController.hasClients) {
@@ -572,22 +584,22 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     });
     // 监听歌曲切换
     audioServeHandler.mediaItem.listen((mediaItem) async {
+      // 更新当前歌曲信息
+      if (mediaItem == null) return;
       curPlayDuration.value = Duration.zero;
       currLyricIndex.value = -2;
       currLyric.value = '';
-
-      // 更新当前歌曲信息
-      if (mediaItem == null) return;
       curMediaItem.value = mediaItem;
-      _updateAlbumColor();
-      _getLyric();
-      if (panelFullyOpened.isTrue && curPanelPageIndex.value == 0) {
-        animatePlayListToCurPlayIndex();
-      }
+
+      await _updateAlbumColor();
+      await _getLyric();
+      // if (panelFullyOpened.isTrue && curPanelPageIndex.value == 0) {
+      //   animatePlayListToCurPlayIndex();
+      // }
+      await animatePlayListToCurPlayIndex();
     });
     // 监听播放状态变化
     audioServeHandler.playbackState.listen((playbackState) {
-      debugPrint('playbackState: ${playbackState.playing}');
       isPlaying.value = playbackState.playing;
     });
     //监听实时进度变化
@@ -603,11 +615,18 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
       if (lyricsLineModels.isNotEmpty && !isAlbumVisible.value) {
         // 找不到当前时间对应的歌词，此时realTimeLyricIndex为-1，表示为前奏阶段，刚好显示空白
         int realTimeLyricIndex = lyricsLineModels.lastIndexWhere((element) => element.startTime! <= curPlayDuration.value.inMilliseconds);
-        // print('realTimeLyricIndex: $realTimeLyricIndex');
         if (realTimeLyricIndex != currLyricIndex.value) {
           currLyricIndex.value = realTimeLyricIndex;
-          lyricScrollController.scrollTo(index: realTimeLyricIndex == -1 ? 1 : realTimeLyricIndex + 1, alignment: 0.4, duration: const Duration(milliseconds: 300));
           if (isTopLyricOpen.value) currLyric.value = lyricsLineModels[currLyricIndex.value].mainText ?? '';
+          if (!isLyricScrollingByUser) {
+            isLyricScrollingByItself = true;
+            lyricScrollController.scrollTo(
+                index: realTimeLyricIndex == -1 ? 1 : realTimeLyricIndex + 1,
+                alignment: 0.4,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.decelerate
+            ).then((_) => isLyricScrollingByItself = false);
+          }
         }
       }
     });
@@ -617,7 +636,7 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
     bool isScrolledToBottom = playListScrollController.position.pixels >= playListScrollController.position.maxScrollExtent;
     int index = curPlayList.indexWhere((element) => element.id == curMediaItem.value.id);
     if (index != -1 && !isScrolledToBottom) {
-      double offset = 110.w * index;
+      double offset = 60.0 * index;
       print('XYXYoffset: $offset');
       await playListScrollController.animateTo(offset, duration: const Duration(milliseconds: 300), curve: Curves.linear);
     }
@@ -678,16 +697,17 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   /// 获取专辑颜色
   _updateAlbumColor() async {
     OtherUtils.getImageColor('${curMediaItem.value.extras?['image'] ?? ''}?param=500y500').then((paletteGenerator) {
-      albumColors.value = paletteGenerator;
-
       // 更新panel中的色调
-      var color = albumColors.value.darkMutedColor?.color
-          ?? albumColors.value.darkVibrantColor?.color
-          ?? albumColors.value.dominantColor?.color
-          ?? Colors.white;
-      bodyColor.value = ThemeData.estimateBrightnessForColor(color) == Brightness.light
-          ? Colors.black.withOpacity(.6)
-          : Colors.white.withOpacity(.7);
+      albumColor.value = buildContext.isDarkMode
+          ? paletteGenerator.lightMutedColor?.color
+              ?? paletteGenerator.lightVibrantColor?.color
+              ?? Colors.white
+          : paletteGenerator.darkMutedColor?.color
+              ?? paletteGenerator.darkVibrantColor?.color
+              ?? Colors.black;
+      panelWidgetColor.value = ThemeData.estimateBrightnessForColor(albumColor.value) == Brightness.light
+          ? Colors.black
+          : Colors.white;
 
       if (panelFullyOpened.isTrue) {
         _changeStatusIconColor(true);
@@ -697,18 +717,9 @@ class HomePageController extends SuperController with GetTickerProviderStateMixi
   // TODO YU4422 待完善
   /// 改变状态栏图标颜色
   _changeStatusIconColor(bool changeByAlbumColor) {
-    bool isLight;
-    if (changeByAlbumColor) {
-      var color = albumColors.value.darkMutedColor?.color
-          ?? albumColors.value.darkVibrantColor?.color
-          ?? albumColors.value.dominantColor?.color
-          ?? Colors.white;
-      // 获取 Album 颜色亮度
-      Brightness brightness = ThemeData.estimateBrightnessForColor(color);
-      isLight = brightness == Brightness.light;
-    } else {
-      isLight = !Get.isPlatformDarkMode;
-    }
+    bool isLight = changeByAlbumColor
+        ? ThemeData.estimateBrightnessForColor(albumColor.value) == Brightness.light
+        : !Get.isPlatformDarkMode;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       systemNavigationBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
       statusBarBrightness: isLight ? Brightness.light : Brightness.dark,

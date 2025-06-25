@@ -16,20 +16,16 @@ class OtherUtils {
   OtherUtils._();
 
   static Future<PaletteGenerator> getImageColor(String url) async {
+    ImageProvider imageProvider;
     if (url.replaceAll('?param=500y500', '').isEmpty) {
-      ExtendedAssetImageProvider imageProvider = const ExtendedAssetImageProvider(placeholderImage);
-      return await getImageColorByProvider(imageProvider);
-    }
-    if (url.startsWith('http')) {
-      CachedNetworkImageProvider imageProvider = CachedNetworkImageProvider(url,headers: const {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'});
-      return await getImageColorByProvider(imageProvider);
+      imageProvider = const ExtendedAssetImageProvider(placeholderImage);
     } else {
-      ExtendedFileImageProvider imageProvider = ExtendedFileImageProvider(File(url.split('?').first));
-      return await getImageColorByProvider(imageProvider);
+      if (url.startsWith('http')) {
+        imageProvider = CachedNetworkImageProvider(url, headers: const {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'});
+      } else {
+        imageProvider = ExtendedFileImageProvider(File(url.split('?').first));
+      }
     }
-  }
-
-  static Future<PaletteGenerator> getImageColorByProvider(ImageProvider imageProvider) async {
     return await PaletteGenerator.fromImageProvider(imageProvider, size: const Size(300, 300));
   }
 

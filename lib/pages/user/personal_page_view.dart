@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 
 import '../../common/constants/appConstants.dart';
 import '../../common/constants/key.dart';
+import '../../common/constants/other.dart';
 import '../../routes/router.dart';
 import '../../routes/router.gr.dart' as gr;
 import '../home/home_page_controller.dart';
@@ -109,7 +110,23 @@ class PersonalPageView extends GetView<PersonalPageController> {
                         )),
                         onTap: () {
                           HomePageController.to.changeAppBarTitle(title: "我喜欢的音乐", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
-                          context.router.push(const gr.PlayListRouteView().copyWith(args: controller.userLikedSongCollection.value));
+                          OtherUtils.getImageColor('${controller.userLikedSongCollection.value.coverImgUrl ?? ''}?param=500y500').then((paletteGenerator) {
+                            Color albumColor = context.isDarkMode
+                                ? paletteGenerator.lightMutedColor?.color
+                                ?? paletteGenerator.lightVibrantColor?.color
+                                ?? Colors.white
+                                : paletteGenerator.darkMutedColor?.color
+                                ?? paletteGenerator.darkVibrantColor?.color
+                                ?? Colors.black;
+                            Color widgetColor = ThemeData.estimateBrightnessForColor(albumColor) == Brightness.light
+                                ? Colors.black
+                                : Colors.white;
+                            context.router.push(gr.PlayListRouteView(
+                              playList: controller.userLikedSongCollection.value,
+                              albumColor: albumColor,
+                              widgetColor: widgetColor,
+                            ));
+                          });
                         },
                       ),
                       // 创建的歌单

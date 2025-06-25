@@ -11,9 +11,12 @@
 // ignore_for_file: type=lint
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'dart:ui' as _i24;
+
 import 'package:auto_route/auto_route.dart' as _i21;
 import 'package:flutter/material.dart' as _i22;
 
+import '../common/netease_api/netease_music_api.dart' as _i23;
 import '../pages/album/album_details.dart' as _i4;
 import '../pages/artists/artists_view.dart' as _i5;
 import '../pages/guide/guide_view.dart' as _i7;
@@ -156,9 +159,15 @@ class RootRouter extends _i21.RootStackRouter {
       );
     },
     PlayListRouteView.name: (routeData) {
+      final args = routeData.argsAs<PlayListRouteViewArgs>();
       return _i21.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i19.PlayListPageView(),
+        child: _i19.PlayListPageView(
+          args.playList,
+          args.albumColor,
+          args.widgetColor,
+          key: args.key,
+        ),
       );
     },
     CommentRouteView.name: (routeData) {
@@ -557,14 +566,46 @@ class UserSettingView extends _i21.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i19.PlayListPageView]
-class PlayListRouteView extends _i21.PageRouteInfo<void> {
-  const PlayListRouteView()
-      : super(
+class PlayListRouteView extends _i21.PageRouteInfo<PlayListRouteViewArgs> {
+  PlayListRouteView({
+    required _i23.PlayList playList,
+    required _i24.Color albumColor,
+    required _i24.Color widgetColor,
+    _i22.Key? key,
+  }) : super(
           PlayListRouteView.name,
           path: 'playlist',
+          args: PlayListRouteViewArgs(
+            playList: playList,
+            albumColor: albumColor,
+            widgetColor: widgetColor,
+            key: key,
+          ),
         );
 
   static const String name = 'PlayListRouteView';
+}
+
+class PlayListRouteViewArgs {
+  const PlayListRouteViewArgs({
+    required this.playList,
+    required this.albumColor,
+    required this.widgetColor,
+    this.key,
+  });
+
+  final _i23.PlayList playList;
+
+  final _i24.Color albumColor;
+
+  final _i24.Color widgetColor;
+
+  final _i22.Key? key;
+
+  @override
+  String toString() {
+    return 'PlayListRouteViewArgs{playList: $playList, albumColor: $albumColor, widgetColor: $widgetColor, key: $key}';
+  }
 }
 
 /// generated route for

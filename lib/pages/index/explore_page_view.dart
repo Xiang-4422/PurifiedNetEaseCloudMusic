@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../common/constants/other.dart';
 import '../../routes/router.gr.dart' as gr;
 import '../../widget/simple_extended_image.dart';
 import '../play_list/playlist_page_view.dart';
@@ -136,7 +137,23 @@ class ExplorePageView extends GetView<ExplorePageController> {
         ),
         onTap: () {
           HomePageController.to.changeAppBarTitle(title: albumModel.name ?? "", direction: NewAppBarTitleComingDirection.right);
-          context.router.push(const gr.PlayListRouteView().copyWith(args: albumModel));
+          OtherUtils.getImageColor('${albumModel.coverImgUrl ?? ''}?param=500y500').then((paletteGenerator) {
+            Color albumColor = context.isDarkMode
+                ? paletteGenerator.lightMutedColor?.color
+                ?? paletteGenerator.lightVibrantColor?.color
+                ?? Colors.white
+                : paletteGenerator.darkMutedColor?.color
+                ?? paletteGenerator.darkVibrantColor?.color
+                ?? Colors.black;
+            Color widgetColor = ThemeData.estimateBrightnessForColor(albumColor) == Brightness.light
+                ? Colors.black
+                : Colors.white;
+            context.router.push(gr.PlayListRouteView(
+              playList: albumModel,
+              albumColor: albumColor,
+              widgetColor: widgetColor,
+            ));
+          });
         },
       ),
     );

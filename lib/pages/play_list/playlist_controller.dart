@@ -10,30 +10,57 @@ import '../../common/netease_api/src/api/bean.dart';
 import '../../common/netease_api/src/api/play/bean.dart';
 import '../../common/netease_api/src/netease_api.dart';
 
-class PlayListController<E, T> extends GetxController {
+class PlayListController<E, T> extends GetxController with GetTickerProviderStateMixin{
+
+  late String playListId;
+
   List<MediaItem> mediaItems = <MediaItem>[];
   List<MediaItem> searchItems = <MediaItem>[];
-  BuildContext? context;
   SinglePlayListWrap? details;
   RxBool loading = true.obs;
   RxBool search = false.obs;
   RxBool isSearch = false.obs;
-  RxBool sub = false.obs;
+  RxBool isSubscribed = false.obs;
+  RxBool isMyPlayList = false.obs;
   final TextEditingController textEditingController = TextEditingController();
 
-  Rx<Color> albumColor = Colors.white.obs;
+  late TabController commentTabController;
+  late PageController pageController;
+
+  RxInt curPageIndex = 0.obs;
+
 
   @override
   void onInit() {
     super.onInit();
+    commentTabController = TabController(length: 2, vsync: this)..addListener(() {
+      if (commentTabController.indexIsChanging) {
+        pageController.animateToPage(commentTabController.index + 1, duration: Duration(milliseconds: 300), curve: Curves.linear);
+      }
+    });
+    pageController = PageController()..addListener(() {
+      double realTimePage = pageController.page!;
+      int curPage = (realTimePage + 0.5).toInt();
+      if (curPageIndex.value != curPage) curPageIndex.value = curPage;
+
+      // 避免循环监听
+      if (!commentTabController.indexIsChanging) {
+        // 控制tab显示
+        if (realTimePage >= 1) {
+          commentTabController.index = curPage - 1;
+          commentTabController.offset = realTimePage - curPage;
+        }
+      };
+    });
   }
 
   @override
   void onReady() {
     super.onReady();
+    _getSongIds(playListId);
+    // _getAlbumColor();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      _getSongIds((context?.routeData.args as PlayList).id);
-      _getAlbumColor();
+
     });
     textEditingController.addListener(() {
       if (textEditingController.text.isEmpty) {
@@ -46,30 +73,42 @@ class PlayListController<E, T> extends GetxController {
       }
     });
   }
-
-  _getAlbumColor() async {
-    OtherUtils.getImageColor('${(context?.routeData.args as PlayList).coverImgUrl ?? ''}?param=400y400').then((paletteGenerator) {
-      // 更新panel中的色调
-      albumColor.value = paletteGenerator.lightMutedColor?.color
-          ?? paletteGenerator.lightVibrantColor?.color
-          ?? paletteGenerator.dominantColor?.color
-          ?? Colors.white;
-    });
+  @override
+  void onClose() {
+    super.onClose();
+    textEditingController.dispose();
   }
+
+  // _getAlbumColor() {
+  //   OtherUtils.getImageColor('${(context?.routeData.args as PlayList).coverImgUrl ?? ''}?param=500y500').then((paletteGenerator) {
+  //     // 更新panel中的色调
+  //     albumColor.value = context!.isDarkMode
+  //         ? paletteGenerator.lightMutedColor?.color
+  //         ?? paletteGenerator.lightVibrantColor?.color
+  //         ?? Colors.white
+  //         : paletteGenerator.darkMutedColor?.color
+  //         ?? paletteGenerator.darkVibrantColor?.color
+  //         ?? Colors.black;
+  //     widgetColor.value = ThemeData.estimateBrightnessForColor(albumColor.value) == Brightness.light
+  //         ? Colors.black
+  //         : Colors.white;
+  //   });
+  // }
 
   _getSongIds(id) async {
     details ??= await NeteaseMusicApi().playListDetail(id);
-    sub.value = details?.playlist?.subscribed ?? false;
+    isSubscribed.value = details?.playlist?.subscribed ?? false;
+    isMyPlayList.value = details?.playlist?.creator?.userId == HomePageController.to.userData.value.profile?.userId;
     List<String> ids = details?.playlist?.trackIds?.map((e) => e.id).toList() ?? [];
     if (ids.length <= 1000) {
-      await callRefresh(ids);
+      await _callRefresh(ids);
     } else {
-      await callRefresh(ids.sublist(0, 1000));
-      await callRefresh(ids.sublist(1000, ids.length), clear: false);
+      await _callRefresh(ids.sublist(0, 1000));
+      await _callRefresh(ids.sublist(1000, ids.length), clear: false);
     }
   }
 
-  callRefresh(List<String> ids, {bool clear = true}) async {
+  _callRefresh(List<String> ids, {bool clear = true}) async {
     SongDetailWrap songDetailWrap = await NeteaseMusicApi().songDetail(ids);
     if (clear) mediaItems.clear();
     mediaItems.addAll(HomePageController.to.song2ToMedia(songDetailWrap.songs ?? []));
@@ -78,18 +117,10 @@ class PlayListController<E, T> extends GetxController {
     }
   }
 
-  static PlayListController get to => Get.find();
-
-  @override
-  void onClose() {
-    super.onClose();
-    textEditingController.dispose();
-  }
-
   subscribePlayList() async {
-    ServerStatusBean serverStatusBean = await NeteaseMusicApi().subscribePlayList((context?.routeData.args as PlayList).id, subscribe: !sub.value);
+    ServerStatusBean serverStatusBean = await NeteaseMusicApi().subscribePlayList(playListId, subscribe: !isSubscribed.value);
     if (serverStatusBean.code == 200) {
-      sub.value = !sub.value;
+      isSubscribed.value = !isSubscribed.value;
     }
   }
 }

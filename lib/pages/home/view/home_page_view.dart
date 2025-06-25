@@ -64,7 +64,7 @@ class HomePageView extends GetView<HomePageController>{
     return SlidingUpPanel(
       controller: controller.panelController,
       color: Colors.transparent,
-      onPanelSlide: (value) => controller.changeSlidePosition(value),
+      onPanelSlide: (value) async => await controller.changeSlidePosition(value),
       // boxShadow: const [BoxShadow(blurRadius: 8.0, color: Color.fromRGBO(0, 0, 0, 0.05))],
       boxShadow: null,
       minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
@@ -110,8 +110,8 @@ class HomePageView extends GetView<HomePageController>{
             width: context.width,
             height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
             padding: EdgeInsets.only(top: context.mediaQueryPadding.top,),
-            blur: (controller.panelOpened50.isFalse && controller.isInPlayListPage.value)
-                || (controller.panelOpened50.isTrue && controller.isAlbumVisible.value)
+            blur: (controller.panelFullyOpened.isFalse && controller.isInPlayListPage.value)
+                || (controller.panelFullyOpened.isTrue)
                 ? 0
                 : 20,
             borderRadius: BorderRadius.circular(0),
@@ -212,7 +212,7 @@ class HomePageView extends GetView<HomePageController>{
                       style: TextStyle(
                           fontSize: 42.sp,
                           fontWeight: FontWeight.bold,
-                          color: controller.panelOpened50.value ? controller.bodyColor.value : Colors.black
+                          color: controller.panelOpened50.value ? controller.panelWidgetColor.value : Colors.black
                       ),
                       children: [
                         TextSpan(
@@ -220,7 +220,7 @@ class HomePageView extends GetView<HomePageController>{
                             text: controller.curPageSubTitle.value,
                             style: TextStyle(
                               fontSize: 21.sp,
-                              color: (controller.panelOpened50.value ? controller.bodyColor.value : Colors.black).withOpacity(0.5),
+                              color: (controller.panelOpened50.value ? controller.panelWidgetColor.value : Colors.black).withOpacity(0.5),
                             )
                         ),
                       ]

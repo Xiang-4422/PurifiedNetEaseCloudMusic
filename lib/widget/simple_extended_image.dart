@@ -41,12 +41,9 @@ class SimpleExtendedImage extends StatefulWidget {
 class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   @override
   Widget build(BuildContext context) {
-
-
-    Widget image;
-
-    if (widget.url.startsWith('http')) {
-      image = CachedNetworkImage(
+    // 本地or网络
+    Widget image = widget.url.startsWith('http')
+        ? CachedNetworkImage(
         httpHeaders: const {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'},
         imageUrl: widget.url,
         width: widget.width,
@@ -61,9 +58,8 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
           widget.placeholder,
           fit: BoxFit.cover,
         ),
-      );
-    } else {
-      image = ExtendedImage.file(
+      )
+        : ExtendedImage.file(
         borderRadius: widget.borderRadius,
         File(widget.url.split('?').first),
         width: widget.width,
@@ -100,16 +96,9 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
           return image;
         },
       );
-    }
-    if (widget.shape == BoxShape.circle) {
-      return ClipOval(
-        child: image,
-      );
-    } else {
-      return ClipRRect(
-        borderRadius: widget.borderRadius ?? BorderRadius.circular(0),
-        child: image,
-      );
-    }
+    // 圆形or方形
+    return widget.shape == BoxShape.circle
+        ? ClipOval(child: image)
+        : ClipRRect(borderRadius: widget.borderRadius ?? BorderRadius.circular(0), child: image);
   }
 }

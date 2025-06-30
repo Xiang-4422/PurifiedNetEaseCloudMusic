@@ -13,6 +13,7 @@ class AppDimensions {
   static const double paddingLarge = 24.0;
 
   // 特定场景的 Padding
+  static const EdgeInsets playListPadding = EdgeInsets.symmetric(horizontal: 20, vertical: 10);
   static const EdgeInsets screenPadding = EdgeInsets.all(paddingMedium);
   static const EdgeInsets cardPadding = EdgeInsets.all(paddingSmall);
   static const EdgeInsets buttonPadding = EdgeInsets.symmetric(horizontal: paddingMedium, vertical: paddingSmall);
@@ -27,16 +28,16 @@ class AppDimensions {
   static const double iconSizeMedium = 24.0;
   static const double iconSizeLarge = 32.0;
 
-  // 组件尺寸
+  // 顶部AppBar尺寸
   static const double appBarHeight= 60;
-  static const double bottomPanelHeaderHeight = 85;
-  static const double xiaomi13CornerRadius = 42.5;
-
-  // Panel相关
-  static const double albumMinWidth = 65;
+  // 底部PanelHeader尺寸
+  /// 屏幕圆角 xiaomi13
+  static const double phoneCornerRadius = 42.5;
+  static const double bottomPanelHeaderHeight = phoneCornerRadius * 2;
+  static const double albumPadding = 10;
+  static const double albumMinWidth = bottomPanelHeaderHeight - albumPadding * 2;
   /// 屏幕宽度的 5/6
   static const double albumMaxWidth = 5/6;
-  static const double panelHeaderPadding = 10;
 
 }
 

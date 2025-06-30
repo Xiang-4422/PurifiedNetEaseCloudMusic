@@ -1,6 +1,6 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:bujuan/pages/home/view/drawer_main_screen_widget.dart';
 import 'package:bujuan/pages/home/view/panel_view.dart';
 import 'package:bujuan/widget/my_get_view.dart';
@@ -17,7 +17,7 @@ import '../../../widget/weslide/panel.dart';
 import 'menu_view.dart';
 
 /// 首页
-class HomePageView extends GetView<HomePageController>{
+class HomePageView extends GetView<AppController>{
   const HomePageView({Key? key,}) : super(key: key);
 
   /// 0-1，占据屏幕的比例
@@ -65,37 +65,39 @@ class HomePageView extends GetView<HomePageController>{
       controller: controller.panelController,
       color: Colors.transparent,
       onPanelSlide: (value) async => await controller.changeSlidePosition(value),
-      // boxShadow: const [BoxShadow(blurRadius: 8.0, color: Color.fromRGBO(0, 0, 0, 0.05))],
       boxShadow: null,
       minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
       maxHeight: context.height,
-      body: ZoomDrawer(
-        controller: controller.zoomDrawerController,
+      body: Container(
+        color: context.theme.colorScheme.primary,
+        child: ZoomDrawer(
+          controller: controller.zoomDrawerController,
 
-        // 侧边抽屉配置
-        menuScreenTapClose: true,
-        slideWidth: context.width * _manuPanelWidth,
-        menuScreenWidth: context.width * _manuPanelWidth,
-        menuBackgroundColor: Colors.transparent,
+          // 侧边抽屉配置
+          menuScreenTapClose: true,
+          slideWidth: context.width * _manuPanelWidth,
+          menuScreenWidth: context.width * _manuPanelWidth,
+          menuBackgroundColor: Colors.transparent,
 
-        // 主屏幕配置
-        angle: 0,
-        mainScreenScale: 0,
-        borderRadius: 0,
-        mainScreenTapClose: true,
-        mainScreenAbsorbPointer: false,
-        clipMainScreen: true,
+          // 主屏幕配置
+          angle: 0,
+          mainScreenScale: 0,
+          borderRadius: 0,
+          mainScreenTapClose: true,
+          mainScreenAbsorbPointer: false,
+          clipMainScreen: true,
 
-        // 动画配置
-        openCurve: Curves.linear,
-        closeCurve: Curves.linear,
-        duration: const Duration(milliseconds: 200),
-        reverseDuration: const Duration(milliseconds: 200),
-        androidCloseOnBackTap: true,
-        dragOffset: context.width * 0.5,
+          // 动画配置
+          openCurve: Curves.linear,
+          closeCurve: Curves.linear,
+          duration: const Duration(milliseconds: 200),
+          reverseDuration: const Duration(milliseconds: 200),
+          androidCloseOnBackTap: true,
+          dragOffset: context.width * 0.5,
 
-        menuScreen: const MenuView(),
-        mainScreen: const DrawerMainScreenView(),
+          menuScreen: const MenuView(),
+          mainScreen: const DrawerMainScreenView(),
+        ),
       ),
       header: const PanelHeaderView(),
       panel: const PanelView(),
@@ -107,15 +109,15 @@ class HomePageView extends GetView<HomePageController>{
       height: context.height,
       alignment: Alignment.topCenter,
       child: Obx(() => BlurryContainer(
-            width: context.width,
-            height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
-            padding: EdgeInsets.only(top: context.mediaQueryPadding.top,),
-            blur: (controller.panelFullyOpened.isFalse && controller.isInPlayListPage.value)
-                || (controller.panelFullyOpened.isTrue)
-                ? 0
-                : 20,
-            borderRadius: BorderRadius.circular(0),
-            child: Obx(() => AnimatedSwitcher(
+          width: context.width,
+          height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
+          borderRadius: BorderRadius.zero,
+          padding: EdgeInsets.only(top: context.mediaQueryPadding.top,),
+          blur: (controller.panelFullyOpened.isFalse && controller.isInPlayListPage.value)
+              || (controller.panelFullyOpened.isTrue)
+              ? 0
+              : 20,
+          child: Obx(() => AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               transitionBuilder: (Widget child, Animation<double> animation) {
                 // 旧widget出场和新widget入场动画都在这里构建
@@ -202,7 +204,7 @@ class HomePageView extends GetView<HomePageController>{
                 }
               },
               child: FittedBox(
-                key: ValueKey<String>(controller.curPageTitle.value), // 添加 key
+                key: ValueKey<String>(controller.curPageTitle.value),
                 fit: BoxFit.scaleDown,
                 child: RichText(
                   textAlign: TextAlign.center,
@@ -212,7 +214,7 @@ class HomePageView extends GetView<HomePageController>{
                       style: TextStyle(
                           fontSize: 42.sp,
                           fontWeight: FontWeight.bold,
-                          color: controller.panelOpened50.value ? controller.panelWidgetColor.value : Colors.black
+                          color: controller.panelOpened50.value ? controller.panelWidgetColor.value : context.theme.colorScheme.onPrimary
                       ),
                       children: [
                         TextSpan(
@@ -228,8 +230,7 @@ class HomePageView extends GetView<HomePageController>{
                 ),
               ),
             ))
-        ),
-      ),
+        )),
     );
   }
 }

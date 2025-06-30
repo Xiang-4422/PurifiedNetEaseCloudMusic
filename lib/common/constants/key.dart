@@ -1,6 +1,5 @@
 String playQueueTitle = 'PLAY_QUEUE_TITLE';
 String playQueue = 'PLAY_QUEUE';
-String curPlaySongIndex = 'PLAY_INDEX';
 String curPlaySongId = 'PLAY_ID';
 String playPosition = 'PLAY_POSITION';
 String leftImageSp = 'LEFT_IMAGE';

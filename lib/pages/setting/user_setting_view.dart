@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +29,7 @@ class _UserSettingViewState extends State<UserSettingView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: RequestWidget<NeteaseUserDetail>(
-        dioMetaData: userDetailDioMetaData(HomePageController.to.userData.value.profile?.userId ?? ''),
+        dioMetaData: userDetailDioMetaData(AppController.to.userData.value.profile?.userId ?? ''),
         childBuilder: (userData) => Container(
           padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top, bottom: AppDimensions.bottomPanelHeaderHeight),
           child: Stack(
@@ -68,7 +68,7 @@ class _UserSettingViewState extends State<UserSettingView> {
                       child: Container(),
                     ),
                     Obx(() => Visibility(
-                      visible: HomePageController.to.loginStatus.value == LoginStatus.login,
+                      visible: AppController.to.loginStatus.value == LoginStatus.login,
                       child: GestureDetector(
                         child: Container(
                           height: 88.w,
@@ -91,7 +91,7 @@ class _UserSettingViewState extends State<UserSettingView> {
                 ),
               ),
               SimpleExtendedImage.avatar(
-                HomePageController.to.userData.value.profile?.avatarUrl ?? '',
+                AppController.to.userData.value.profile?.avatarUrl ?? '',
                 width: 260.w,
               ),
             ],

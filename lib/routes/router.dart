@@ -1,13 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/pages/guide/guide_view.dart';
 import 'package:bujuan/pages/home/view/home_page_view.dart';
-import 'package:bujuan/pages/mv/mv_view.dart';
 import 'package:bujuan/pages/radio/my_radio_view.dart';
 import 'package:bujuan/pages/radio/radio_details_view.dart';
 import 'package:bujuan/pages/setting/coffee.dart';
 import 'package:bujuan/pages/setting/setting_page_view.dart';
 import 'package:bujuan/pages/setting/user_setting_view.dart';
-import 'package:bujuan/pages/talk/comment_page_view.dart';
+import 'package:bujuan/pages/talk/comment_widget.dart';
 import 'package:bujuan/pages/today/today_page_view.dart';
 import 'package:bujuan/pages/user/personal_page_view.dart';
 
@@ -139,8 +138,6 @@ abstract class _Paths {
     AutoRoute(path: Routes.albumDetails, page: AlbumDetails),
     // 歌手主页
     AutoRoute(path: Routes.artists, page: ArtistsView),
-    // MV
-    AutoRoute(path: Routes.mv, page: MvView),
 
     // 引导
     AutoRoute(path: Routes.guide, page: GuideView),

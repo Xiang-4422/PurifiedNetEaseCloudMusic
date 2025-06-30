@@ -1,6 +1,6 @@
 
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 
 import '../../../routes/router.gr.dart';
 
-class DrawerMainScreenView extends GetView<HomePageController> {
+class DrawerMainScreenView extends GetView<AppController> {
   const DrawerMainScreenView({Key? key}) : super(key: key);
 
   @override

@@ -1,7 +1,7 @@
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 
-import '../pages/home/home_page_controller.dart';
+import '../pages/home/app_controller.dart';
 
 class ShareView extends StatelessWidget {
   const ShareView({Key? key}) : super(key: key);
@@ -10,7 +10,7 @@ class ShareView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       child: SingleChildScrollView(
-        child: SimpleExtendedImage(HomePageController.to.curMediaItem.value.extras?['image']),
+        child: SimpleExtendedImage(AppController.to.curMediaItem.value.extras?['image']),
       ),
     );
   }

@@ -1,10 +1,13 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
 import '../../common/netease_api/src/api/play/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
@@ -28,34 +31,37 @@ class _TodayPageViewState extends State<TodayPageView> {
   Widget build(BuildContext context) {
     return MyGetView(
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: context.theme.colorScheme.primary,
         body: Column(
           children: [
-            Container(
-              height: AppDimensions.appBarHeight,
-            ),
+            // Container(height: 500,),
             Expanded(
               child: RequestWidget<RecommendSongListWrapX>(
                   dioMetaData: recommendSongListDioMetaData(),
                   childBuilder: (playlist) {
                     _mediaItem
                       ..clear()
-                      ..addAll(HomePageController.to.song2ToMedia((playlist.data.dailySongs ?? [])));
-                    return ListView.builder(
-                      itemExtent: 130.w,
-                      itemBuilder: (context, index) => SongItem(
-                        index: index,
-                        mediaItem: _mediaItem[index],
-                        onTap: () {
-                          HomePageController.to.playNewPlayListByIndex(index, 'queueTitle', playList: _mediaItem);
-                        },
-                      ),
-                      itemCount: _mediaItem.length,
+                      ..addAll(AppController.to.song2ToMedia((playlist.data.dailySongs ?? [])));
+                    return Column(
+                      children: [
+                        //TODO YU4422 添加一个日期组件
+                        Expanded(
+                          child: ListView.builder(
+                            padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top, bottom: AppDimensions.bottomPanelHeaderHeight),
+                            itemExtent: 130.w,
+                            itemCount: _mediaItem.length,
+                            itemBuilder: (context, index) => SongItem(
+                              index: index,
+                              mediaItem: _mediaItem[index],
+                              onTap: () {
+                                AppController.to.playNewPlayListByIndex(_mediaItem, index,);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     );
                   }),
-            ),
-            Container(
-              height: AppDimensions.bottomPanelHeaderHeight,
             ),
           ],
         ),

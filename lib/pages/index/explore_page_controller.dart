@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -26,7 +26,7 @@ class ExplorePageController extends GetxController {
 
   _getRecoPlayLists() async {
     List<PlayList> data;
-    if (HomePageController.to.loginStatus.value == LoginStatus.login) {
+    if (AppController.to.loginStatus.value == LoginStatus.login) {
       RecommendPlayListWrap recommendPlayListWrap = await NeteaseMusicApi().recoPlaylists();
       data = recommendPlayListWrap.recommend ?? [];
     } else {
@@ -35,7 +35,8 @@ class ExplorePageController extends GetxController {
     }
     playlists
       ..clear()
-      ..addAll(data.length > 6 ? data.sublist(0, 6) : data);
+      ..addAll(data);
+    // ..addAll(data.length > 6 ? data.sublist(0, 6) : data);
   }
   _getNewSongs() async{
     PersonalizedSongListWrap personalizedSongListWrap = await NeteaseMusicApi().personalizedSongList();
@@ -49,7 +50,7 @@ class ExplorePageController extends GetxController {
           extras: {
             'type': MediaType.playlist.name,
             'image': e.song.album?.picUrl ?? '',
-            'liked': HomePageController.to.likeIds.contains(int.tryParse(e.id)),
+            'liked': AppController.to.likeIds.contains(int.tryParse(e.id)),
             'artist': (e.song.artists ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / '),
             'album': jsonEncode(e.song.album?.toJson()),
             'mv': e.song.mvid,

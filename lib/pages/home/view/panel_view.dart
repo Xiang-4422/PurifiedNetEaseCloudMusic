@@ -2,9 +2,9 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:bujuan/pages/home/view/lyric_view.dart';
-import 'package:bujuan/pages/talk/comment_page_view.dart';
+import 'package:bujuan/pages/talk/comment_widget.dart';
 import 'package:bujuan/widget/keep_alive.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,13 +14,14 @@ import 'package:flutter_constraintlayout/flutter_constraintlayout.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
+import 'dart:math' as math;
 
 import '../../../common/constants/appConstants.dart';
 import '../../../widget/music_visualizer.dart';
 import '../../../widget/simple_extended_image.dart';
 import '../../../widget/swipeable.dart';
 
-class PanelView extends GetView<HomePageController> {
+class PanelView extends GetView<AppController> {
   const PanelView({Key? key}) : super(key: key);
 
   @override
@@ -31,27 +32,33 @@ class PanelView extends GetView<HomePageController> {
           alignment: Alignment.bottomCenter,
           children: [
             // 背景层
-            Stack(
-              children: [
-                Obx(() => Offstage(
-                    offstage: controller.panelFullyOpened.isTrue,
-                    child: BlurryContainer(
-                      blur: 20,
-                      padding: EdgeInsets.zero,
-                      borderRadius: BorderRadius.all(Radius.circular(42.5)),
-                      child: Container(),
-                    ),
-                  ),
-                ),
-                Obx(() => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  clipBehavior: Clip.hardEdge,
-                  decoration: BoxDecoration(
-                    color: controller.albumColor.value.withOpacity(controller.panelOpened50.value ? 1 : 0.5),
-                    borderRadius: BorderRadius.all(Radius.circular(controller.panelOpened50.value ? 0 : 42.5)),
-                  ),
-                )),
-              ],
+            AnimatedBuilder(
+              animation: controller.panelAnimationController,
+              builder: (BuildContext context, Widget? child) {
+                return Stack(
+                  children: [
+                    // 磨砂层
+                    Obx(() => Offstage(
+                      offstage: controller.panelFullyOpened.isTrue,
+                      child: BlurryContainer(
+                        blur: 20 * (1 - controller.panelAnimationController.value),
+                        padding: EdgeInsets.zero,
+                        borderRadius: BorderRadius.all(Radius.circular(AppDimensions.phoneCornerRadius)),
+                        child: Container(),
+                      ),
+                    )),
+                    // 背景色层
+                    Obx(() => Container(
+                        clipBehavior: Clip.hardEdge,
+                        decoration: BoxDecoration(
+                          color: controller.albumColor.value.withOpacity(0.5 * (1 + controller.panelAnimationController.value)),
+                          borderRadius: BorderRadius.all(Radius.circular(AppDimensions.phoneCornerRadius * (1 - controller.panelAnimationController.value))),
+                        ),
+                      ),
+                    )
+                  ],
+                );
+              },
             ),
             // 内容
             Column(
@@ -215,7 +222,7 @@ class PanelView extends GetView<HomePageController> {
   }
   Widget _buildSongItem(MediaItem mediaItem, int index, BuildContext context) {
     return TextButton(
-      onPressed: () => controller.audioServeHandler.playIndex(index),
+      onPressed: () => controller.audioHandler.playIndex(index),
       // 透明 Container 用于触发点击
       style: TextButton.styleFrom(
         alignment: Alignment.centerLeft,
@@ -496,7 +503,7 @@ class PanelView extends GetView<HomePageController> {
           timeLabelLocation: TimeLabelLocation.below,
           timeLabelPadding: 0,
           timeLabelTextStyle: TextStyle(fontSize: 0.sp),
-          onSeek: (duration) => controller.audioServeHandler.seek(duration),
+          onSeek: (duration) => controller.audioHandler.seek(duration),
         ))
       ],
     );
@@ -509,7 +516,7 @@ class PanelView extends GetView<HomePageController> {
         // 喜欢按钮
         IconButton(
             color: Colors.black,
-            onPressed: () => controller.likeSong(),
+            onPressed: () => controller.toggleLikeStatus(),
             icon: Obx(() => Icon(
                 controller.likeIds.contains(int.tryParse(controller.curMediaItem.value.id))
                     ? Icons.favorite
@@ -527,7 +534,7 @@ class PanelView extends GetView<HomePageController> {
                 return;
               }
               if (controller.intervalClick(500)) {
-                controller.audioServeHandler.skipToPrevious();
+                controller.audioHandler.skipToPrevious();
               }
             },
             icon: Obx(() => Icon(
@@ -550,7 +557,7 @@ class PanelView extends GetView<HomePageController> {
         IconButton(
             onPressed: () {
               if (controller.intervalClick(500)) {
-                controller.audioServeHandler.skipToNext();
+                controller.audioHandler.skipToNext();
               }
             },
             icon: Obx(() => Icon(
@@ -619,16 +626,11 @@ class PanelView extends GetView<HomePageController> {
   }
 }
 
-class PanelHeaderView extends GetView<HomePageController> {
+class PanelHeaderView extends GetView<AppController> {
   const PanelHeaderView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return _buildHeader(context);
-  }
-
-  /// 底部播放状态栏
-  Widget _buildHeader(BuildContext context) {
     return AnimatedBuilder(
       animation: controller.panelAnimationController,
       builder: (context, child) {
@@ -664,8 +666,8 @@ class PanelHeaderView extends GetView<HomePageController> {
           Expanded(
             child: Swipeable(
               background: const SizedBox.shrink(),
-              onSwipeLeft: () => controller.audioServeHandler.skipToPrevious(),
-              onSwipeRight: () => controller.audioServeHandler.skipToNext(),
+              onSwipeLeft: () => controller.audioHandler.skipToPrevious(),
+              onSwipeRight: () => controller.audioHandler.skipToNext(),
               child: Container(
                 height: AppDimensions.bottomPanelHeaderHeight,
                 alignment: Alignment.centerLeft,
@@ -674,7 +676,7 @@ class PanelHeaderView extends GetView<HomePageController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${HomePageController.to.curMediaItem.value.title}',
+                      '${AppController.to.curMediaItem.value.title}',
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: TextStyle(
@@ -684,7 +686,7 @@ class PanelHeaderView extends GetView<HomePageController> {
                       ),
                     ),
                     Text(
-                      '${HomePageController.to.curMediaItem.value.artist ?? ''}',
+                      '${AppController.to.curMediaItem.value.artist ?? ''}',
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: TextStyle(
@@ -723,29 +725,28 @@ class PanelHeaderView extends GetView<HomePageController> {
     double maxMarginLeft = (context.width - panelAlbumMaxWidth) / 2;
 
     // 实时Album宽度、margin
-    double albumWidth = AppDimensions.albumMinWidth + (panelAlbumMaxWidth - AppDimensions.albumMinWidth) * controller.panelAnimationController.value;
-    double albumPadding = AppDimensions.panelHeaderPadding +  (maxMarginLeft - AppDimensions.panelHeaderPadding) * controller.panelAnimationController.value;
-    double appBarPadding = (context.mediaQueryPadding.top + AppDimensions.appBarHeight) * controller.panelAnimationController.value;
-    double albumBorderRadius = AppDimensions.albumMinWidth * (1 - controller.panelAnimationController.value);
+    double realTimeAlbumWidth = AppDimensions.albumMinWidth + (panelAlbumMaxWidth - AppDimensions.albumMinWidth) * controller.panelAnimationController.value;
+    double realTimeAlbumPadding = AppDimensions.albumPadding +  (maxMarginLeft - AppDimensions.albumPadding) * controller.panelAnimationController.value;
+    double realTimeAppBarPadding = (context.mediaQueryPadding.top + AppDimensions.appBarHeight) * controller.panelAnimationController.value;
+    double realTimeAlbumBorderRadius = AppDimensions.albumMinWidth * (1 - controller.panelAnimationController.value);
 
     return Obx(() => IgnorePointer(
       ignoring: !controller.isAlbumVisible.value || controller.panelFullyClosed.value,
       child: Container(
-        margin: EdgeInsets.only(top: appBarPadding),
-        width: albumWidth + albumPadding * 2,
-        height: albumWidth + albumPadding * 2,
+        margin: EdgeInsets.only(top: realTimeAppBarPadding),
+        width: realTimeAlbumWidth + realTimeAlbumPadding * 2,
+        height: realTimeAlbumWidth + realTimeAlbumPadding * 2,
         child: OverflowBox(
-          maxWidth: (albumWidth + albumPadding * 2) * 3,
+          maxWidth: (realTimeAlbumWidth + realTimeAlbumPadding * 2) * 3,
           child: Obx(() => PageView.builder(
-            // key: ValueKey<List>(controller.curPlayList),
             controller: controller.albumPageController,
             itemCount: controller.curPlayList.length,
-            physics: controller.panelFullyClosed.value ? NeverScrollableScrollPhysics() : PageScrollPhysics(),
-            onPageChanged: (index) async {
-              if (index != controller.curPlayIndex.value) {
-                index > controller.curPlayIndex.value
-                    ? await controller.audioServeHandler.skipToNext()
-                    : await controller.audioServeHandler.skipToPrevious();
+            physics: controller.panelFullyClosed.value ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
+            onPageChanged: (index) {
+              if (!controller.isProgrammaticScrolling) {
+                Future.microtask(() async {
+                  await controller.audioHandler.playIndex(index);
+                });
               }
             },
             itemBuilder: (BuildContext context, int index) {
@@ -758,13 +759,13 @@ class PanelHeaderView extends GetView<HomePageController> {
                   );
                 },
                 child: Visibility(
-                  visible: controller.isAlbumVisible.value
-                      ? controller.panelFullyOpened.value
-                      ? true
-                      : index == controller.curPlayIndex.value
+                  visible: controller.isAlbumVisible.isTrue
+                      ? controller.panelFullyOpened.isTrue
+                        ? true
+                        : index == controller.curPlayIndex.value
                       : controller.panelFullyClosed.value && index == controller.curPlayIndex.value,
                   child: Container(
-                    margin: EdgeInsets.all(albumPadding),
+                    margin: EdgeInsets.all(realTimeAlbumPadding),
                     child: GestureDetector(
                       onTap: () {
                         controller.isAlbumVisible.value = !controller.isAlbumVisible.value;
@@ -772,14 +773,14 @@ class PanelHeaderView extends GetView<HomePageController> {
                       child: Container(
                         clipBehavior: Clip.hardEdge,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(albumBorderRadius),
+                          borderRadius: BorderRadius.circular(realTimeAlbumBorderRadius),
                           boxShadow: [
                             controller.panelFullyOpened.value
                                 ? BoxShadow(
-                              color: Colors.black.withOpacity(0.4), // 阴影颜色
-                              blurRadius: 12, // 模糊半径
-                              spreadRadius: 2, // 扩散半径
-                            )
+                                  color: Colors.black.withOpacity(0.4), // 阴影颜色
+                                  blurRadius: 12, // 模糊半径
+                                  spreadRadius: 2, // 扩散半径
+                                )
                                 : const BoxShadow()
                           ],
                         ),
@@ -793,12 +794,9 @@ class PanelHeaderView extends GetView<HomePageController> {
               ),
               );
             },
-          ),
-          ),
+          )),
         ),
       ),
-    ),
-    );
+    ));
   }
-
 }

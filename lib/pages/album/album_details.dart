@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../home/home_page_controller.dart';
+import '../home/app_controller.dart';
 import 'controller.dart';
 
 class AlbumDetails extends GetView<AlbumController> {
@@ -23,7 +23,7 @@ class AlbumDetails extends GetView<AlbumController> {
       ),
       body: Obx(() => Visibility(visible:! controller.loading.value,replacement: const LoadingView(),child: ListView.builder(
         itemBuilder: (context, index) => SongItem(index: index, mediaItem: controller.mediaItems[index],onTap: (){
-          HomePageController.to.playNewPlayListByIndex(index, 'queueTitle',playList: controller.mediaItems);
+          AppController.to.playNewPlayListByIndex(controller.mediaItems, index);
         },),
         itemCount: controller.mediaItems.length,
         itemExtent: 130.w,

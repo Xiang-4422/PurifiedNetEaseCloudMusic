@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:bujuan/pages/user/personal_page_view.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:bujuan/widget/enable_view.dart';
@@ -20,11 +20,11 @@ enum LoginStatus { login, noLogin }
 
 class PersonalPageController extends GetxController {
   /// 喜欢歌单
-  Rx<PlayList> userLikedSongCollection = PlayList().obs;
+  PlayList userLikedSongPlayList = PlayList();
   /// 创建歌单列表
-  List<PlayList> userMadeSongCollectionList = <PlayList>[].obs;
+  List<PlayList> userMadePlayLists = <PlayList>[].obs;
   /// 收藏歌单列表
-  List<PlayList> userFavoritedSongCollectionList = <PlayList>[].obs;
+  List<PlayList> userFavoritedPlayLists = <PlayList>[].obs;
 
   RxBool loading = true.obs;
   late BuildContext context;
@@ -81,18 +81,18 @@ class PersonalPageController extends GetxController {
       NeteaseAccountInfoWrap neteaseAccountInfoWrap = await NeteaseMusicApi().loginAccountInfo();
       if (neteaseAccountInfoWrap.code == 200 && neteaseAccountInfoWrap.profile != null) {
 
-        HomePageController.to.userData.value = neteaseAccountInfoWrap;
-        HomePageController.to.loginStatus.value = LoginStatus.login;
-        HomePageController.to.box.put(loginData, jsonEncode(neteaseAccountInfoWrap.toJson()));
+        AppController.to.userData.value = neteaseAccountInfoWrap;
+        AppController.to.loginStatus.value = LoginStatus.login;
+        AppController.to.box.put(loginData, jsonEncode(neteaseAccountInfoWrap.toJson()));
 
         _getUserPlayList();
         _getUserLikeSongIds();
       } else {
         WidgetUtil.showToast('登录失效,请重新登录');
-        HomePageController.to.loginStatus.value = LoginStatus.noLogin;
+        AppController.to.loginStatus.value = LoginStatus.noLogin;
       }
     } catch (e) {
-      HomePageController.to.loginStatus.value = LoginStatus.noLogin;
+      AppController.to.loginStatus.value = LoginStatus.noLogin;
       WidgetUtil.showToast('获取用户资料失败，请检查网络');
     }
   }
@@ -103,26 +103,27 @@ class PersonalPageController extends GetxController {
         WidgetUtil.showToast(value.message ?? '');
         return;
       }
-      HomePageController.to.box.put(loginData, '');
-      HomePageController.to.loginStatus.value = LoginStatus.noLogin;
+      AppController.to.box.put(loginData, '');
+      AppController.to.loginStatus.value = LoginStatus.noLogin;
     });
   }
 
+  /// 获取用户歌单
   _getUserPlayList() {
-    NeteaseMusicApi().userPlayList(HomePageController.to.userData.value.profile?.userId ?? '-1')
+    NeteaseMusicApi().userPlayList(AppController.to.userData.value.profile?.userId ?? '-1')
         .then((MultiPlayListWrap2 multiPlayListWrap2) async {
       List<PlayList> list = (multiPlayListWrap2.playlist ?? []);
       if (list.isNotEmpty) {
-        userLikedSongCollection.value = list.first;
+        userLikedSongPlayList = list.first..name = '我喜欢的音乐';
         list.removeAt(0);
-        userFavoritedSongCollectionList.clear();
-        userMadeSongCollectionList.clear();
+        userFavoritedPlayLists.clear();
+        userMadePlayLists.clear();
         for(var collection in list) {
-          if (collection.creator?.userId == HomePageController.to.userData.value.profile?.userId) {
-            userMadeSongCollectionList.add(collection);
-            userFavoritedSongCollectionList.remove(collection);
+          if (collection.creator?.userId == AppController.to.userData.value.profile?.userId) {
+            userMadePlayLists.add(collection);
+            userFavoritedPlayLists.remove(collection);
           } else {
-            userFavoritedSongCollectionList.add(collection);
+            userFavoritedPlayLists.add(collection);
           }
         }
       }
@@ -131,9 +132,9 @@ class PersonalPageController extends GetxController {
   }
 
   _getUserLikeSongIds() async {
-    LikeSongListWrap likeSongListWrap = await NeteaseMusicApi().likeSongList(HomePageController.to.userData.value.profile?.userId ?? '-1');
+    LikeSongListWrap likeSongListWrap = await NeteaseMusicApi().likeSongList(AppController.to.userData.value.profile?.userId ?? '-1');
     if (likeSongListWrap.code == 200) {
-      HomePageController.to.likeIds
+      AppController.to.likeIds
         ..clear()
         ..addAll(likeSongListWrap.ids);
     }

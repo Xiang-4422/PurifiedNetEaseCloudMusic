@@ -1,15 +1,15 @@
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-class CoffeePage extends GetView<HomePageController> {
+class CoffeePage extends GetView<AppController> {
   const CoffeePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Obx(() => AbsorbPointer(
-        absorbing: !HomePageController.to.isDrawerClosed.value,
+        absorbing: !AppController.to.isDrawerClosed.value,
         child: Scaffold(
           body: SafeArea(
             child: Column(

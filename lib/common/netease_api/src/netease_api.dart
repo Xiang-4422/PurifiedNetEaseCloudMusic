@@ -36,7 +36,6 @@ class NeteaseMusicApi
   UserLoginStateController usc = UserLoginStateController();
 
   static Future<bool> init({PathProvider? provider, bool debug = false}) async {
-
     // 初始化 pathProvider
     pathProvider = provider ?? PathProvider();
     await pathProvider.init();
@@ -44,7 +43,6 @@ class NeteaseMusicApi
     cookieManager = CookieManager(PersistCookieJar(storage: FileStorage(pathProvider.getCookieSavedPath())));
     // 初始化 dio
     _initDio(Https.dio, debug, true);
-
     return true;
   }
 

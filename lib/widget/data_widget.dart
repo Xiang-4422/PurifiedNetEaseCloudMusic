@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 
-import '../pages/home/home_page_controller.dart';
+import '../pages/home/app_controller.dart';
 
 typedef RequestChildBuilder<T> = Widget Function(T data);
 

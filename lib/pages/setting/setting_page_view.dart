@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -44,7 +44,7 @@ class _SettingPageViewState extends State<SettingPageView> {
   @override
   Widget build(BuildContext context) {
     return Obx(() => AbsorbPointer(
-        absorbing: !HomePageController.to.isDrawerClosed.value,
+        absorbing: !AppController.to.isDrawerClosed.value,
         child: ListView(
             padding: EdgeInsets.only(
                 top: context.mediaQueryPadding.top + AppDimensions.appBarHeight,
@@ -85,13 +85,13 @@ class _SettingPageViewState extends State<SettingPageView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  HomePageController.to.isGradientBackground.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  AppController.to.isGradientBackground.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(HomePageController.to.isGradientBackground.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(AppController.to.isGradientBackground.value ? 0.7 : .4),
                 )),
             onTap: () {
-              HomePageController.to.isGradientBackground.value = !HomePageController.to.isGradientBackground.value;
-              HomePageController.to.box.put(gradientBackgroundSp, HomePageController.to.isGradientBackground.value);
+              AppController.to.isGradientBackground.value = !AppController.to.isGradientBackground.value;
+              AppController.to.box.put(gradientBackgroundSp, AppController.to.isGradientBackground.value);
             },
           ),
           ListTile(
@@ -101,13 +101,13 @@ class _SettingPageViewState extends State<SettingPageView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  HomePageController.to.isTopLyricOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  AppController.to.isTopLyricOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(HomePageController.to.isTopLyricOpen.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(AppController.to.isTopLyricOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              HomePageController.to.isTopLyricOpen.value = !HomePageController.to.isTopLyricOpen.value;
-              HomePageController.to.box.put(topLyricSp, HomePageController.to.isTopLyricOpen.value);
+              AppController.to.isTopLyricOpen.value = !AppController.to.isTopLyricOpen.value;
+              AppController.to.box.put(topLyricSp, AppController.to.isTopLyricOpen.value);
             },
           ),
           ListTile(
@@ -117,13 +117,13 @@ class _SettingPageViewState extends State<SettingPageView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  HomePageController.to.isRoundAlbumOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  AppController.to.isRoundAlbumOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(HomePageController.to.isRoundAlbumOpen.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(AppController.to.isRoundAlbumOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              HomePageController.to.isRoundAlbumOpen.value = !HomePageController.to.isRoundAlbumOpen.value;
-              HomePageController.to.box.put(roundAlbumSp, HomePageController.to.isRoundAlbumOpen.value);
+              AppController.to.isRoundAlbumOpen.value = !AppController.to.isRoundAlbumOpen.value;
+              AppController.to.box.put(roundAlbumSp, AppController.to.isRoundAlbumOpen.value);
             },
           ),
         ],
@@ -158,13 +158,13 @@ class _SettingPageViewState extends State<SettingPageView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  HomePageController.to.isHighSoundQualityOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  AppController.to.isHighSoundQualityOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(HomePageController.to.isHighSoundQualityOpen.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(AppController.to.isHighSoundQualityOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              HomePageController.to.isHighSoundQualityOpen.value = !HomePageController.to.isHighSoundQualityOpen.value;
-              HomePageController.to.box.put(highSong, HomePageController.to.isHighSoundQualityOpen.value);
+              AppController.to.isHighSoundQualityOpen.value = !AppController.to.isHighSoundQualityOpen.value;
+              AppController.to.box.put(highSong, AppController.to.isHighSoundQualityOpen.value);
             },
           ),
           ListTile(
@@ -174,13 +174,13 @@ class _SettingPageViewState extends State<SettingPageView> {
               style: TextStyle(fontSize: 30.sp),
             ),
             trailing: Obx(() => Icon(
-                  HomePageController.to.isCacheOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                  AppController.to.isCacheOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
                   size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(HomePageController.to.isCacheOpen.value ? 0.7 : .4),
+                  color: Theme.of(context).cardColor.withOpacity(AppController.to.isCacheOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
-              HomePageController.to.isCacheOpen.value = !HomePageController.to.isCacheOpen.value;
-              HomePageController.to.box.put(cacheSp, HomePageController.to.isCacheOpen.value);
+              AppController.to.isCacheOpen.value = !AppController.to.isCacheOpen.value;
+              AppController.to.box.put(cacheSp, AppController.to.isCacheOpen.value);
             },
           ),
           // ListTile(

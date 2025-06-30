@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import '../../../widget/simple_extended_image.dart';
 import '../../user/personal_page_controller.dart';
 
-class MenuView extends GetView<HomePageController> {
+class MenuView extends GetView<AppController> {
   const MenuView({super.key});
 
   @override

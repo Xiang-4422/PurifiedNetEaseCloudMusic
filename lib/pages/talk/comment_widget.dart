@@ -16,10 +16,10 @@ import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
-import '../home/home_page_controller.dart';
+import '../home/app_controller.dart';
 
 /// 独立评论页面
-class CommentPageView extends GetView<HomePageController>{
+class CommentPageView extends GetView<AppController>{
   late String id;
   late String type;
   late Color backgroundColor = Colors.black;
@@ -101,20 +101,7 @@ class CommentPageView extends GetView<HomePageController>{
     );
   }
 
-  _sendMessage(BuildContext context) async {
-    if (_textEditingController.text.isEmpty) {
-      WidgetUtil.showToast('请输入评论');
-      return;
-    }
-    CommentWrap commentWrap = await NeteaseMusicApi().comment(id, type, 'add', content: _textEditingController.text);
-    if (commentWrap.code == 200) {
-      _textEditingController.text = '';
-      if(context.mounted) Focus.of(context).unfocus();
-      WidgetUtil.showToast('评论成功');
-    } else {
-      WidgetUtil.showToast(commentWrap.message ?? '评论失败');
-    }
-  }
+
 }
 
 /// 评论组件
@@ -125,9 +112,9 @@ class CommentWidget extends StatelessWidget {
   final String idType;        // 歌曲、歌单
   final double listPaddingTop;
   final double listPaddingBottom;
+  final TextEditingController _textEditingController = TextEditingController();
 
-
-  const CommentWidget({
+  CommentWidget({
     Key? key,
     required this.context,
     required this.id,
@@ -221,16 +208,17 @@ class CommentWidget extends StatelessWidget {
               visible: (comment.replyCount ?? 0) > 0,
               child: GestureDetector(
                 onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (_) => FoolTalk(
-                      commentItem: comment,
-                      id: id,
-                      type: idType,
-                      backGroundColor: Colors.white,
-                    ),
-                  );
+                  // showModalBottomSheet(
+                  //   context: context,
+                  //   isScrollControlled: true,
+                  //   builder: (_) => FoolTalk(
+                  //     commentItem: comment,
+                  //     id: id,
+                  //     type: idType,
+                  //     backGroundColor: Colors.white,
+                  //   ),
+                  // );
+                  showAboutDialog(context: context);
                 },
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: 16.w),
@@ -288,6 +276,21 @@ class CommentWidget extends StatelessWidget {
         break;
     }
     return typeKey;
+  }
+
+  _sendMessage(BuildContext context) async {
+    if (_textEditingController.text.isEmpty) {
+      WidgetUtil.showToast('请输入评论');
+      return;
+    }
+    CommentWrap commentWrap = await NeteaseMusicApi().comment(id, idType, 'add', content: _textEditingController.text);
+    if (commentWrap.code == 200) {
+      _textEditingController.text = '';
+      if(context.mounted) Focus.of(context).unfocus();
+      WidgetUtil.showToast('评论成功');
+    } else {
+      WidgetUtil.showToast(commentWrap.message ?? '评论失败');
+    }
   }
 }
 

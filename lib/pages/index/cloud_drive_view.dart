@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/cupertino.dart';
@@ -42,7 +42,7 @@ class CloudDriveView extends GetWidget<CloudController> {
                           'url': '',
                           'image': e.simpleSong.al?.picUrl ?? '',
                           'type': '',
-                          'liked': HomePageController.to.likeIds.contains(int.tryParse(e.simpleSong.id)),
+                          'liked': AppController.to.likeIds.contains(int.tryParse(e.simpleSong.id)),
                           'artist': (e.simpleSong.ar ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / ')
                         },
                         title: e.simpleSong.name ?? "",
@@ -59,7 +59,7 @@ class CloudDriveView extends GetWidget<CloudController> {
                         index: index,
                         mediaItem: controller.mediaItems[index],
                         onTap: () {
-                          HomePageController.to.playNewPlayListByIndex(index, 'queueTitle', playList: controller.mediaItems);
+                          AppController.to.playNewPlayListByIndex(controller.mediaItems, index);
                         },
                       );
                     },

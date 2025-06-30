@@ -1,17 +1,18 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppTheme {
   /// 亮色主题
   static ThemeData light = ThemeData.light().copyWith(
       colorScheme: ThemeData.light().colorScheme.copyWith(
-            primary: primary,
-            onPrimary: onPrimary,
-            secondary: secondary,
-            onSecondary: onSecondary,
-            surface: surface,
-            onSurface: onSurface,
-          ),
+        primary: primary,
+        onPrimary: onPrimary.withOpacity(0.8),
+        secondary: secondary,
+        onSecondary: onSecondary,
+        surface: surface,
+        onSurface: onSurface,
+      ),
       pageTransitionsTheme: const PageTransitionsTheme(builders: {
         TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
         TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
@@ -20,19 +21,20 @@ class AppTheme {
       cardColor: const Color(0xFF2C2C2C),
       iconTheme: const IconThemeData(color: Color(0xFF4D4D4D)),
       primaryColor: const Color(0xffe56260),
-      textTheme: const TextTheme(
-        titleLarge:TextStyle(color: Color(0xFF4D4D4D)) ,
-        titleMedium:TextStyle(color: Color(0xFF4D4D4D)) ,
-        titleSmall:TextStyle(color: Color(0xFF4D4D4D)) ,
-        displayLarge:TextStyle(color: Color(0xFF4D4D4D)) ,
-        displayMedium:TextStyle(color: Color(0xFF4D4D4D)) ,
-        displaySmall:TextStyle(color: Color(0xFF4D4D4D)) ,
-        bodyLarge:TextStyle(color: Color(0xFF4D4D4D)) ,
-        bodyMedium:TextStyle(color: Color(0xFF4D4D4D)) ,
-        bodySmall:TextStyle(color: Color(0xFF4D4D4D)) ,
-        headlineLarge:TextStyle(color: Color(0xFF4D4D4D)) ,
-        headlineMedium:TextStyle(color: Color(0xFF4D4D4D)) ,
-        headlineSmall:TextStyle(color: Color(0xFF4D4D4D)) ,
+      textTheme: TextTheme(
+        titleLarge: TextStyle(
+            fontSize: 30.sp,
+            fontWeight: FontWeight.bold,
+            color: onPrimary
+        ) ,
+        titleMedium: TextStyle(
+            fontSize: 30.sp,
+            color: onPrimary
+        ) ,
+        titleSmall: TextStyle(
+            fontSize: 20.sp,
+            color: onPrimary
+        ),
       ),
       scaffoldBackgroundColor: const Color(0xFFF5F3F3),
   );
@@ -41,7 +43,7 @@ class AppTheme {
   static ThemeData dark = ThemeData.dark().copyWith(
       colorScheme: ThemeData.dark().colorScheme.copyWith(
             primary: primaryDark,
-            onPrimary: onPrimaryDark,
+            onPrimary: onPrimaryDark.withOpacity(0.8),
             secondary: onSecondary,
             onSecondary: secondary,
             surface: surfaceDark,
@@ -58,6 +60,21 @@ class AppTheme {
       primaryColor: const Color(0xffE20000),
       // 网易云主页背景色
       scaffoldBackgroundColor: const Color(0xFFF4F7F9),
+      textTheme: TextTheme(
+        titleLarge: TextStyle(
+            fontSize: 30.sp,
+            fontWeight: FontWeight.bold,
+            color: onPrimaryDark
+        ) ,
+        titleMedium: TextStyle(
+            fontSize: 30.sp,
+            color: onPrimaryDark
+        ) ,
+        titleSmall: TextStyle(
+            fontSize: 20.sp,
+            color: onPrimaryDark
+        ),
+      ),
   );
 
   //right background

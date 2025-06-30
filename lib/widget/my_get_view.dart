@@ -1,4 +1,4 @@
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:flutter/material.dart';
 
 class MyGetView extends StatelessWidget {
@@ -10,7 +10,7 @@ class MyGetView extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       // TODO YU4422 返回管理
-      child: WillPopScope(child: child, onWillPop: () => HomePageController.to.onWillPop()),
+      child: WillPopScope(child: child, onWillPop: () => AppController.to.onWillPop()),
       onHorizontalDragEnd: (e) {},
     );
   }

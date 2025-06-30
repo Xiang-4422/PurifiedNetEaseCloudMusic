@@ -2,7 +2,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/bujuan_audio_handler.dart';
 import 'package:bujuan/common/constants/platform_utils.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:bujuan/pages/index/explore_page_controller.dart';
 import 'package:bujuan/pages/user/personal_page_controller.dart';
 import 'package:bujuan/widget/app_widget.dart';
@@ -29,7 +29,7 @@ main() async {
 
   Get.lazyPut<PersonalPageController>(() => PersonalPageController());
   Get.lazyPut<ExplorePageController>(() => ExplorePageController());
-  Get.lazyPut<HomePageController>(() => HomePageController());
+  Get.lazyPut<AppController>(() => AppController());
 
   runApp(AppWidget());
 }
@@ -54,20 +54,18 @@ Future<void> _initSingleton() async {
   // 初始化Hive本地存储
   await Hive.initFlutter('BuJuan');
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));
-  // 注册音频播放器（要在 BujuanAudioHandler 前注册）
-  getIt.registerSingleton<AudioPlayer>(AudioPlayer());
   // 初始化网易云API
   await NeteaseMusicApi.init(debug: false);
-  // 初始化音频后台服务
-  getIt.registerSingleton<BujuanAudioHandler>(
-      await AudioService.init<BujuanAudioHandler>(
-        builder: () => BujuanAudioHandler(),
-        config: const AudioServiceConfig(
-          androidStopForegroundOnPause: false,
-          androidNotificationChannelId: 'com.yu4422.purrr.channel.audio',
-          androidNotificationChannelName: 'Music playback',
-          androidNotificationIcon: 'drawable/audio_service_icon',
-        ),
-      )
-  );
+  // // 初始化音频服务
+  // getIt.registerSingleton<BujuanAudioHandler>(
+  //     await AudioService.init(
+  //       builder: () => BujuanAudioHandler(),
+  //       config: const AudioServiceConfig(
+  //         androidStopForegroundOnPause: false,
+  //         androidNotificationChannelId: 'com.yu4422.purrr.channel.audio',
+  //         androidNotificationChannelName: 'Music playback',
+  //         androidNotificationIcon: 'drawable/audio_service_icon',
+  //       ),
+  //     )
+  // );
 }

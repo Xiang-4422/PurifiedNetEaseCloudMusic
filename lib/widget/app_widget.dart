@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 
 import '../common/constants/colors.dart';
 import '../pages/album/controller.dart';
-import '../pages/home/home_page_controller.dart';
+import '../pages/home/app_controller.dart';
 import '../pages/index/cloud_controller.dart';
 import '../pages/index/explore_page_controller.dart';
 import '../pages/play_list/playlist_controller.dart';
@@ -66,7 +66,7 @@ class MyObserver extends AutoRouterObserver {
       case 'PlayListRouteView':
         del ? Get.delete<PlayListController>() : Get.lazyPut<PlayListController>(() => PlayListController());
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          HomePageController.to.isInPlayListPage.value = del ? false : true;
+          AppController.to.isInPlayListPage.value = del ? false : true;
         });
         break;
       case 'AlbumDetails':

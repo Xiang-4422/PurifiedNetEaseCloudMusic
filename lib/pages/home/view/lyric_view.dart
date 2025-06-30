@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +14,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../../../common/constants/appConstants.dart';
 
 // TODO YU4422 歌词换行、歌词丝滑缩放
-class LyricView extends GetView<HomePageController> {
+class LyricView extends GetView<AppController> {
   const LyricView({super.key});
 
   @override
@@ -60,7 +60,7 @@ class LyricView extends GetView<HomePageController> {
                   if (index == controller.currLyricIndex.value) {
                     controller.isAlbumVisible.value = !controller.isAlbumVisible.value;
                   } else {
-                    controller.audioServeHandler.seek(Duration(milliseconds: controller.lyricsLineModels[index].startTime!));
+                    controller.audioHandler.seek(Duration(milliseconds: controller.lyricsLineModels[index].startTime!));
                   }
                 },
                 child: Obx((){

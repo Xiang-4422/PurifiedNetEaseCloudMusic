@@ -14,7 +14,7 @@ import '../../common/constants/key.dart';
 import '../../common/constants/other.dart';
 import '../../routes/router.dart';
 import '../../routes/router.gr.dart' as gr;
-import '../home/home_page_controller.dart';
+import '../home/app_controller.dart';
 
 class PageOne extends StatelessWidget {
   const PageOne({super.key});
@@ -31,171 +31,83 @@ class PersonalPageView extends GetView<PersonalPageController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() => AbsorbPointer(
-      absorbing: !HomePageController.to.isDrawerClosed.value,
+      absorbing: !AppController.to.isDrawerClosed.value,
       child: Visibility(
-          visible: HomePageController.to.loginStatus.value == LoginStatus.login,
+          visible: AppController.to.loginStatus.value == LoginStatus.login,
           replacement: const LoginPageView(), // 未登录页面
           child: Obx(() => Visibility(
-                visible: !controller.loading.value,
-                replacement: const LoadingView(),
-                child: ListView(
-                    physics: const BouncingScrollPhysics(),
-                    children:[
-                      Container(
-                        height: AppDimensions.appBarHeight,
-                      ),
-                      // 每日 FM 播客 云盘
-                      GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 4,
-                        childAspectRatio: 1,
-                        children: controller.userItems.map((userItem) => GestureDetector(
-                          onTap: () async {
-                            if (userItem.routes == 'playFm') {
-                              HomePageController.to.panelPageController.jumpToPage(1);
-                              HomePageController.to.panelController.open();
-                              if(HomePageController.to.isFmMode.value) {
-                                if (HomePageController.to.isPlaying.isFalse) {
-                                  await HomePageController.to.playOrPause();
-                                }
-                              } else {
-                                await HomePageController.to.audioServeHandler.setRepeatMode(AudioServiceRepeatMode.all);
-                                await HomePageController.to.getFmSongList();
-                                // 保存FM开启状态
-                                HomePageController.to.isFmMode.value = true;
-                                HomePageController.to.box.put(fmSp, true);
-                              }
-                            } else {
-                              HomePageController.to.changeAppBarTitle(title: userItem.title, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
-                              AutoRouter.of(context).pushNamed(userItem.routes! ?? '');
-                            }
-                          },
-                          child: Container(
-                            // color: Colors.red,
-                            alignment: Alignment.center,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  userItem.iconData,
-                                  size: context.width / 4  / 2,
-                                ),
-                                Text(
-                                  userItem.title,
-                                  style: TextStyle(fontSize: 26.sp),
-                                )
-                              ],
-                            ),
+            visible: !controller.loading.value,
+            replacement: const LoadingView(),
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.only(
+                  top: AppDimensions.appBarHeight,
+                  bottom: AppDimensions.bottomPanelHeaderHeight
+              ),
+              children:[
+                // 每日 FM 播客 云盘
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 4,
+                  childAspectRatio: 1,
+                  children: controller.userItems.map((userItem) => GestureDetector(
+                    onTap: () async {
+                      if (userItem.routes == 'playFm') {
+                        AppController.to.openFmMode();
+                      } else {
+                        AppController.to.changeAppBarTitle(title: userItem.title, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
+                        AutoRouter.of(context).pushNamed(userItem.routes! ?? '');
+                      }
+                    },
+                    child: Container(
+                      // color: Colors.red,
+                      alignment: Alignment.center,
+                      // padding: EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            userItem.iconData,
+                            // size: context.width / 4  / 3,
                           ),
-                        )).toList(),
+                          Text(
+                            userItem.title,
+                            style: context.theme.textTheme.titleMedium,
+                          )
+                        ],
                       ),
-                      // 喜欢的音乐
-                      _buildHeader('喜欢的音乐', context),
-                      ListTile(
-                        leading: Obx(() => SimpleExtendedImage(
-                          '${controller.userLikedSongCollection.value.coverImgUrl ?? ''}?param=200y200',
-                          width: 100.w,
-                          height: 100.w,
-                          borderRadius: BorderRadius.circular(10.w),
-                        )),
-                        title: Text(
-                          "我喜欢的音乐",
-                          maxLines: 1,
-                          style: TextStyle(fontSize: 30.sp, fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Obx(() => Text(
-                          '${controller.userLikedSongCollection.value.trackCount ?? 0} 首',
-                          style: TextStyle(fontSize: 26.sp),
-                        )),
-                        onTap: () {
-                          HomePageController.to.changeAppBarTitle(title: "我喜欢的音乐", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
-                          OtherUtils.getImageColor('${controller.userLikedSongCollection.value.coverImgUrl ?? ''}?param=500y500').then((paletteGenerator) {
-                            Color albumColor = context.isDarkMode
-                                ? paletteGenerator.lightMutedColor?.color
-                                ?? paletteGenerator.lightVibrantColor?.color
-                                ?? Colors.white
-                                : paletteGenerator.darkMutedColor?.color
-                                ?? paletteGenerator.darkVibrantColor?.color
-                                ?? Colors.black;
-                            Color widgetColor = ThemeData.estimateBrightnessForColor(albumColor) == Brightness.light
-                                ? Colors.black
-                                : Colors.white;
-                            context.router.push(gr.PlayListRouteView(
-                              playList: controller.userLikedSongCollection.value,
-                              albumColor: albumColor,
-                              widgetColor: widgetColor,
-                            ));
-                          });
-                        },
-                      ),
-                      // 创建的歌单
-                      _buildHeader('创建的歌单', context),
-                      Obx(() => ListView.builder(
-                        padding: EdgeInsets.symmetric(horizontal: 20.w),
-                        shrinkWrap: true,
-                        addRepaintBoundaries: false,
-                        addAutomaticKeepAlives: false,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemBuilder: (content, index) => PlayListItem(play: controller.userMadeSongCollectionList[index]),
-                        // itemCount: controller.playlist.length > 10 ? 10 : controller.playlist.length,
-                        itemCount: controller.userMadeSongCollectionList.length,
-                        itemExtent: 120.w,
-                      )),
-                      // 收藏的歌单
-                      _buildHeader('收藏的歌单', context),
-                      Obx(() => ListView.builder(
-                        padding: EdgeInsets.symmetric(horizontal: 20.w),
-                        shrinkWrap: true,
-                        addRepaintBoundaries: false,
-                        addAutomaticKeepAlives: false,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemBuilder: (content, index) => PlayListItem(play: controller.userFavoritedSongCollectionList[index]),
-                        // itemCount: controller.playlist.length > 10 ? 10 : controller.playlist.length,
-                        itemCount: controller.userFavoritedSongCollectionList.length,
-
-                        itemExtent: 120.w,
-                      )),
-                      Container(
-                        height: AppDimensions.bottomPanelHeaderHeight,
-                      ),
-                    ],
-                  ),
+                    ),
+                  )).toList(),
+                ),
+                // 喜欢的音乐
+                const Header('喜欢的音乐'),
+                PlayListItem(controller.userLikedSongPlayList),
+                const Header('创建的歌单'),
+                Obx(() => ListView.builder(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  addRepaintBoundaries: false,
+                  addAutomaticKeepAlives: false,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: controller.userMadePlayLists.length,
+                  itemBuilder: (content, index) => PlayListItem(controller.userMadePlayLists[index]),
+                )),
+                const Header('收藏的歌单'),
+                Obx(() => ListView.builder(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  addRepaintBoundaries: false,
+                  addAutomaticKeepAlives: false,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: controller.userFavoritedPlayLists.length,
+                  itemBuilder: (content, index) => PlayListItem(controller.userFavoritedPlayLists[index]),
+                )),
+              ],
+            ),
           ))
       ),
     ));
-  }
-
-  /// 喜欢的音乐/我的歌单标题栏
-  Widget _buildHeader(String title, context, {String? actionStr}) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 10.w),
-      alignment: Alignment.centerLeft,
-      child: Row(
-        children: [
-          Container(decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(6.w)), width: 10.w, height: 10.w),
-          Padding(padding: EdgeInsets.symmetric(horizontal: 6.w)),
-          Text(
-            title,
-            style: TextStyle(fontSize: 32.sp, color: Theme.of(context).iconTheme.color, fontWeight: FontWeight.bold),
-          ),
-          const Expanded(child: SizedBox.shrink()),
-          Visibility(
-            visible: actionStr != null,
-            child: TextButton(
-                onPressed: () {
-
-                  AutoRouter.of(context).pushNamed(Routes.playlistManager);
-                },
-                child: Text(
-                  actionStr ?? '',
-                  style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 28.sp),
-                )),
-          )
-          // Icon(Icons.keyboard_arrow_right_outlined,color: Colors.black87.withOpacity(.6))
-        ],
-      ),
-    );
   }
 
   /// 未登录
@@ -221,8 +133,8 @@ class PersonalPageView extends GetView<PersonalPageController> {
                   Text('Hi', style: TextStyle(fontSize: 52.sp, color: Colors.grey, fontWeight: FontWeight.bold)),
                   Padding(padding: EdgeInsets.symmetric(vertical: 8.w)),
                   Obx(() =>
-                      Text('${HomePageController.to.loginStatus.value == LoginStatus.login
-                          ? HomePageController.to.userData.value.profile?.nickname
+                      Text('${AppController.to.loginStatus.value == LoginStatus.login
+                          ? AppController.to.userData.value.profile?.nickname
                           : '请登录'}～',
                           style: TextStyle(fontSize: 52.sp,
                           color: Theme.of(context).primaryColor,

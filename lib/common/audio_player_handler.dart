@@ -6,15 +6,12 @@ abstract class AudioPlayerHandler implements AudioHandler {
   // 改变播放列表
   Future<void> changePlayList(List<MediaItem> list);
 
-  // 改变播放顺序
-  Future<void> changeRepeatMode();
-
   // 获取歌曲url
   Future<void> playCurIndex();
 
   // 从下标播放
   Future<void> playIndex(int index);
 
-  // 私人fm
-  Future<void> addFmItems(List<MediaItem> mediaItems);
+  // 打乱or恢复播放列表顺序
+  Future<void> reorderPlayList({bool shufflePlayList = false});
 }

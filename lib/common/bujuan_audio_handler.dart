@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -20,47 +20,22 @@ import 'constants/platform_utils.dart';
 import 'netease_api/src/api/play/bean.dart';
 import 'netease_api/src/netease_api.dart';
 
-class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler implements AudioPlayerHandler {
+class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler{
 
-  final _player = GetIt.instance<AudioPlayer>();
-  final Box _box = GetIt.instance<Box>();
-  RootIsolateToken rootIsolateToken = RootIsolateToken.instance!;
+  late final AudioPlayer _player;
 
-  /// 当前原始播放列表
-  final _playList = <MediaItem>[];
-  /// 播放列表索引
+  /// 当前原始播放列表（用于随机和顺序播放模式切换用）
+  final List<MediaItem> _originalPlayList = <MediaItem>[];
+  /// 播放列表索引（当前播放对应在正在播放的列表索引）
   int _curIndex = -1;
   /// 播放模式（none表示随机模式）
-  AudioServiceRepeatMode _audioServiceRepeatMode = AudioServiceRepeatMode.all;
+  AudioServiceRepeatMode _curRepeatMode = AudioServiceRepeatMode.all;
 
   BujuanAudioHandler() {
-    // 从本地恢复播放状态
-    _restoreAudioStateFromStorage();
-    // 添加播放事件监听
-    _addPlaybackEventListener();
-  }
-  void _restoreAudioStateFromStorage() async {
-    // 恢复播放模式
-    String repeatMode = _box.get(repeatModeSp, defaultValue: 'all');
-    _audioServiceRepeatMode = AudioServiceRepeatMode.values.firstWhereOrNull((element) => element.name == repeatMode)!;
-    // 恢复当前播放歌曲索引
-    _curIndex = _box.get(curPlaySongIndex, defaultValue: 0);
-    // 恢复播放列表
-    List<String> playList = _box.get(playQueue, defaultValue: <String>[]);
-    if (playList.isNotEmpty) {
-      List<MediaItem> items = await compute(getCachePlayList, RootIsolateData(rootIsolateToken, playlist: playList));
-      await changePlayList(items, init: true, index: _curIndex);
-      playCurIndex(playNow: false);
-    }
-  }
-  void _addPlaybackEventListener() {
-    _player.playbackEventStream.listen((PlaybackEvent event) {
-
-      if(event.processingState == ProcessingState.completed) skipToNext();
-
-      final playing = _player.playing;
+    _player = AudioPlayer()
+      ..playbackEventStream.listen((PlaybackEvent event) {
+      // 监听并映射播放器状态
       playbackState.add(playbackState.value.copyWith(
-        controls: buildMediaControls(isLiked: mediaItem.value?.extras?['liked'] ?? false, playing: playing),
         systemActions: const {
           MediaAction.seek,
         },
@@ -73,94 +48,97 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
           ProcessingState.completed: AudioProcessingState.completed,
         }[_player.processingState]!,
         shuffleMode: (_player.shuffleModeEnabled) ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none,
-        playing: playing,
+        playing: _player.playing,
         updatePosition: _player.position,
         bufferedPosition: _player.bufferedPosition,
         speed: _player.speed,
         queueIndex: _curIndex,
       ));
     });
+    _updateMediaControls();
   }
 
-  List<MediaControl> buildMediaControls({required bool isLiked, required bool playing}) => [
-    PlatformUtils.isAndroid
-        ? isLiked
-          ? const MediaControl(label: 'fastForward', action: MediaAction.fastForward, androidIcon: 'drawable/audio_service_like')
-          : const MediaControl(label: 'rewind', action: MediaAction.rewind, androidIcon: 'drawable/audio_service_unlike')
-        : const MediaControl(label: 'setRating', action: MediaAction.setRating, androidIcon: 'drawable/audio_service_like'),
-    MediaControl.skipToPrevious,
-    if (playing) MediaControl.pause else MediaControl.play,
-    MediaControl.skipToNext,
-    MediaControl.stop,
-  ];
-
-
-  @override
-  Future<void> addFmItems(List<MediaItem> mediaItems) async {
-    // FM模式刷新歌曲
-    if (HomePageController.to.isFmMode.value) {
-      mediaItems.insert(0, queue.value.last);
-      await changePlayList(mediaItems);
-      _updateCurIndex(0);
-    // 首次进入FM模式
-    } else {
-      queueTitle.value = 'Fm';
-      await changePlayList(mediaItems);
-      await playCurIndex();
+  /// 更新状态栏控制按钮
+  _updateMediaControls() {
+    bool isLiked = mediaItem.value?.extras?['liked'] ?? false;
+    playbackState.add(playbackState.value.copyWith(
+      controls: [
+        PlatformUtils.isAndroid
+            ? MediaControl(label: 'rewind', action: MediaAction.rewind, androidIcon: isLiked ?'drawable/audio_service_like' : 'drawable/audio_service_unlike')
+            : const MediaControl(label: 'setRating', action: MediaAction.setRating, androidIcon: 'drawable/audio_service_like'),
+        MediaControl.skipToPrevious,
+        _player.playing ? MediaControl.pause : MediaControl.play,
+        MediaControl.skipToNext,
+        MediaControl.stop,
+      ]
+    ));
+  }
+  /// 更新当前索引（可以指定新Index，也可以通过跳过计算新Index）
+  _updateCurIndex({int newIndex = -1, bool isSkip = false, bool isSkipToNext = false}) {
+    // 上一曲或下一曲，计算Index
+    if (isSkip) {
+      // 单曲循环模式直接返回
+      if (_curRepeatMode == AudioServiceRepeatMode.one) {
+        newIndex = _curIndex;
+      } else {
+        newIndex = isSkipToNext ? _curIndex + 1 : _curIndex - 1;
+        // 如果超出索引范围，循环到列表的开始或结尾
+        int listLength = queue.value.length;
+        if (newIndex == listLength) {
+          newIndex = 0;
+        } else if (newIndex < 0) {
+          newIndex = listLength - 1;
+        }
+      }
+    }
+    // 更新Index
+    if (_curIndex != newIndex) {
+      _curIndex = newIndex;
+      AppController.to.updateCurPlayIndex(newIndex);
     }
   }
-  @override
-  Future<void> changePlayList(List<MediaItem> list, {int index = 0, bool init = false}) async {
 
-    if (!init) {
-      List<String> playList = await compute(setCachePlayList, RootIsolateData(rootIsolateToken, items: list));
-      _box.put(playQueue, playList);
-    }
 
-    // 保存当前播放列表
-    _playList..clear()..addAll(list);
-    if (_audioServiceRepeatMode == AudioServiceRepeatMode.none) {
-      var playListCopy = <MediaItem>[...list];
-      playListCopy.shuffle();
-      await updateQueue(playListCopy);
+  /// 打乱or恢复播放列表顺序
+  Future<void> reorderPlayList({bool shufflePlayList = false}) async {
+    var playListCopy = <MediaItem>[..._originalPlayList];
+    if (shufflePlayList) playListCopy.shuffle();
+    String curSongId = queue.value[_curIndex].id;
+    int curNewIndex = playListCopy.indexWhere((element) => element.id == curSongId);
+    await updateQueue(playListCopy);
+    _updateCurIndex(newIndex: curNewIndex);
+  }
+
+  /// 在AudioHandle中打乱播放列表
+  Future<void> changePlayList(List<MediaItem> list, int index) async {
+    // 保存当前播放列表(原始顺序列表)
+    _originalPlayList..clear()..addAll(list);
+    // 更新播放列表到播放器
+    if (AppController.to.isFmMode.isFalse && _curRepeatMode == AudioServiceRepeatMode.none) {
+      // 随机播放模式，打乱播放列表，重新获取index
+      var playListCopy = <MediaItem>[...list]..shuffle();
       index = playListCopy.indexWhere((element) => element.id == list[index].id);
+      await updateQueue(playListCopy);
     } else {
       await updateQueue(list);
     }
-    _updateCurIndex(index);
+    _updateCurIndex(newIndex: index);
   }
-  @override
-  Future<void> changeRepeatMode() async {
-    var playListCopy = <MediaItem>[..._playList];
-    // 随机播放模式
-    if (_audioServiceRepeatMode == AudioServiceRepeatMode.none) {
-      // 播放列表随机打乱后的副本
-      playListCopy.shuffle();
-    }
-    String songId = queue.value[_curIndex].id;
-    await updateQueue(playListCopy);
-    int curNewIndex = playListCopy.indexWhere((element) => element.id == songId);
-    _updateCurIndex(curNewIndex);
-  }
-  @override
+  /// 这里Index是在 正在播放列表 中的索引
   Future<void> playIndex(int index) async {
     // 接收到下标
-    _updateCurIndex(index);
-    await playCurIndex();
+    _updateCurIndex(newIndex: index);
+    await changePlayerSource(playNow: true);
   }
-  @override
-  Future<void> playCurIndex({bool isNext = true, bool playNow = true}) async {
-    bool high = HomePageController.to.isHighSoundQualityOpen.value;
+  Future<void> changePlayerSource({bool isNext = true, required bool playNow}) async {
+    bool highQuality = AppController.to.isHighSoundQualityOpen.value;
     // TODO YU4422 歌曲缓存功能
-    bool isCacheOpen = HomePageController.to.isCacheOpen.value;
+    bool isCacheOpen = AppController.to.isCacheOpen.value;
 
     // 这里是获取歌曲url
     if (queue.value.isEmpty) return;
-
     MediaItem song = queue.value[_curIndex];
-    _box.put(curPlaySongId, song.id);
     String? url;
-
     // 本地歌曲
     if (song.extras?['type'] == MediaType.local.name || song.extras?['type'] == MediaType.neteaseCache.name) {
       url = song.extras?['url'];
@@ -181,7 +159,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     // 在线获取
     } else {
       mediaItem.add(song);
-      SongUrlListWrap songUrl = await NeteaseMusicApi().songDownloadUrl([song.id], level: high ? 'lossless' : 'exhigh');
+      SongUrlListWrap songUrl = await NeteaseMusicApi().songDownloadUrl([song.id], level: highQuality ? 'lossless' : 'exhigh');
       url = ((songUrl.data ?? [])[0].url ?? '').split('?')[0];
       // 如果获取不到URL就跳过
       if (url.isNotEmpty) {
@@ -201,113 +179,55 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     final newQueue = queue.value..removeAt(index);
     queue.add(newQueue);
   }
-  //更改为不喜欢按钮
-  @override
-  Future<void> fastForward() async {
-    // updateMediaItem(mediaItem.value?.copyWith(extras: {'liked':'true'})??const MediaItem(id: 'id', title: 'title'));
-    HomePageController.to.likeSong(liked: true);
-  }
   //更改为喜欢按钮
   @override
   Future<void> rewind() async {
-    HomePageController.to.likeSong(liked: false);
+    AppController.to.toggleLikeStatus();
   }
   @override
-  Future<void> pause() async => await _player.pause();
+  Future<void> pause() async {
+    await _player.pause();
+    _updateMediaControls();
+  }
   @override
-  Future<void> play() async => await _player.play();
+  Future<void> play() async {
+    await _player.play();
+    _updateMediaControls();
+  }
+  @override
+  Future<void> updateMediaItem(MediaItem mediaItem) async {
+    await super.updateMediaItem(mediaItem);
+    _updateMediaControls();
+  }
   @override
   Future<void> seek(Duration position) async {
     await _player.seek(position);
   }
   @override
-  Future<void> skipToQueueItem(int index) async {
-    // TODO: implement skipToQueueItem
-    // return super.skipToQueueItem(index);
-  }
-  @override
   Future<void> skipToNext() async {
-    _updateCurIndexByRepeatMode(isSkipToNext: true);
-    await playCurIndex();
+    _player.stop();
+    _updateCurIndex(isSkip: true, isSkipToNext: true);
+    await changePlayerSource(playNow: true);
   }
   @override
   Future<void> skipToPrevious() async {
-    _updateCurIndexByRepeatMode();
-    await playCurIndex(isNext: false);
+    _player.stop();
+    _updateCurIndex(isSkip: true, isSkipToNext: false);
+    await changePlayerSource(isNext: false, playNow: true);
   }
   @override
   Future<void> stop() async {
     await _player.stop();
   }
   @override
-  Future customAction(String name, [Map<String, dynamic>? extras]) async {}
-  @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
-    print('setRepeatMode: $repeatMode');
     // 更新播放列表
-    _audioServiceRepeatMode = repeatMode;
-    HomePageController.to.audioServiceRepeatMode.value = repeatMode;
-    _box.put(repeatModeSp, repeatMode.name);
-    // 根据循环模式更新播放列表
-    await changeRepeatMode();
+    _curRepeatMode = repeatMode;
   }
   @override
   Future<void> onTaskRemoved() async {
     await stop();
     await _player.dispose();
-  }
-
-  /// 切换上一首、下一首的时候时候调用（列表循环）
-  _updateCurIndexByRepeatMode({bool isSkipToNext = false}) {
-    // 单曲循环模式直接返回
-    if (_audioServiceRepeatMode == AudioServiceRepeatMode.one) return;
-
-    int listLength = queue.value.length;
-
-    int newIndex = isSkipToNext ? _curIndex + 1 : _curIndex - 1;
-    // 如果超出索引范围，循环到列表的开始或结尾
-    if (newIndex == listLength) {
-      newIndex = 0;
-    } else if (newIndex < 0) {
-      newIndex = listLength - 1;
-    }
-    _updateCurIndex(newIndex);
-  }
-  _updateCurIndex(int newIndex) {
-    if (_curIndex == newIndex) return;
-    _curIndex = newIndex;
-    _box.put(curPlaySongIndex, _curIndex);
-
-    // 私人FM模式 播放到最后一首拉取新的FM歌曲列表
-    if (HomePageController.to.isFmMode.value && _curIndex == queue.value.length - 1) {
-        HomePageController.to.getFmSongList();
-    }
-
-    // 更新UI
-    bool isSkipToNext = newIndex > HomePageController.to.curPlayIndex.value;
-    bool isNotNearBy = (newIndex - HomePageController.to.curPlayIndex.value).abs() > 1;
-    HomePageController.to.lastPlayIndex.value = HomePageController.to.curPlayIndex.value;
-    HomePageController.to.curPlayIndex.value = newIndex;
-    // 切换专辑封面
-    if (HomePageController.to.isAlbumPageViewScrolling.isFalse) {
-      if((HomePageController.to.lastPlayIndex.value - HomePageController.to.curPlayIndex.value).abs() == 1) {
-        HomePageController.to.albumPageController.animateToPage(newIndex, duration: const Duration(milliseconds: 500), curve: Curves.linear);
-      } else {
-        HomePageController.to.albumPageController.jumpToPage(newIndex);
-      }
-    }
-    // 切换标题
-    if (HomePageController.to.panelFullyOpened.value) {
-      HomePageController.to.changeAppBarTitle(
-          title: HomePageController.to.curPlayList[_curIndex].title,
-          subTitle: HomePageController.to.curPlayList[_curIndex].artist ?? "",
-          direction: isNotNearBy
-              ? NewAppBarTitleComingDirection.none
-              : isSkipToNext
-                  ? NewAppBarTitleComingDirection.right
-                  : NewAppBarTitleComingDirection.left
-      );
-    }
   }
 }
 
@@ -334,140 +254,4 @@ class StreamSource extends StreamAudioSource {
   }
 }
 
-class RootIsolateData {
-  RootIsolateToken rootIsolateToken;
-  List<String>? playlist;
-  List<MediaItem>? items;
-
-  RootIsolateData(this.rootIsolateToken, {this.playlist, this.items});
-}
-
-class MediaItemMessage {
-  /// A unique id.
-  final String id;
-
-  /// The title of this media item.
-  final String title;
-
-  /// The album this media item belongs to.
-  final String? album;
-
-  /// The artist of this media item.
-  final String? artist;
-
-  /// The genre of this media item.
-  final String? genre;
-
-  /// The duration of this media item.
-  final Duration? duration;
-
-  /// The artwork for this media item as a uri.
-  final Uri? artUri;
-
-  /// Whether this is playable (i.e. not a folder).
-  final bool? playable;
-
-  /// Override the default title for display purposes.
-  final String? displayTitle;
-
-  /// Override the default subtitle for display purposes.
-  final String? displaySubtitle;
-
-  /// Override the default description for display purposes.
-  final String? displayDescription;
-
-  /// The rating of the MediaItemMessage.
-
-  /// A map of additional metadata for the media item.
-  ///
-  /// The values must be integers or strings.
-  final Map<String, dynamic>? extras;
-
-  /// Creates a [MediaItemMessage].
-  ///
-  /// The [id] must be unique for each instance.
-  const MediaItemMessage({
-    required this.id,
-    required this.title,
-    this.album,
-    this.artist,
-    this.genre,
-    this.duration,
-    this.artUri,
-    this.playable = true,
-    this.displayTitle,
-    this.displaySubtitle,
-    this.displayDescription,
-    this.extras,
-  });
-
-  /// Creates a [MediaItemMessage] from a map of key/value pairs corresponding to
-  /// fields of this class.
-  factory MediaItemMessage.fromMap(Map<String, dynamic> raw) => MediaItemMessage(
-    id: raw['id'] as String,
-    title: raw['title'] as String,
-    album: raw['album'] as String?,
-    artist: raw['artist'] as String?,
-    genre: raw['genre'] as String?,
-    duration: raw['duration'] != null ? Duration(milliseconds: raw['duration'] as int) : null,
-    artUri: raw['artUri'] != null ? Uri.parse(raw['artUri'] as String) : null,
-    playable: raw['playable'] as bool?,
-    displayTitle: raw['displayTitle'] as String?,
-    displaySubtitle: raw['displaySubtitle'] as String?,
-    displayDescription: raw['displayDescription'] as String?,
-    extras: castMap(raw['extras'] as Map?),
-  );
-
-  /// Converts this [MediaItemMessage] to a map of key/value pairs corresponding to
-  /// the fields of this class.
-  Map<String, dynamic> toMap() => <String, dynamic>{
-    'id': id,
-    'title': title,
-    'album': album,
-    'artist': artist,
-    'genre': genre,
-    'duration': duration?.inMilliseconds,
-    'artUri': artUri?.toString(),
-    'playable': playable,
-    'displayTitle': displayTitle,
-    'displaySubtitle': displaySubtitle,
-    'displayDescription': displayDescription,
-    'extras': extras,
-  };
-}
-
 Map<String, dynamic>? castMap(Map? map) => map?.cast<String, dynamic>();
-
-Future<List<MediaItem>> getCachePlayList(RootIsolateData data) async {
-  BackgroundIsolateBinaryMessenger.ensureInitialized(data.rootIsolateToken);
-  List<MediaItem> items = data.playlist?.map((e) {
-    var map = MediaItemMessage.fromMap(jsonDecode(e));
-    return MediaItem(
-      id: map.id,
-      duration: map.duration,
-      artUri: map.artUri,
-      extras: map.extras,
-      title: map.title,
-      artist: map.artist,
-      album: map.album,
-    );
-  }).toList() ??
-      [];
-  return items;
-}
-
-Future<List<String>> setCachePlayList(RootIsolateData data) async {
-  BackgroundIsolateBinaryMessenger.ensureInitialized(data.rootIsolateToken);
-  return data.items
-      ?.map((e) => jsonEncode(MediaItemMessage(
-    id: e.id,
-    album: e.album,
-    title: e.title,
-    artist: e.artist,
-    duration: e.duration,
-    artUri: e.artUri,
-    extras: e.extras,
-  ).toMap()))
-      .toList() ??
-      [];
-}

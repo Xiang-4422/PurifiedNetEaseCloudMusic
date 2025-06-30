@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/home_page_controller.dart';
+import 'package:bujuan/pages/home/app_controller.dart';
 import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:flutter/material.dart';
@@ -172,7 +172,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
     return RequestLoadMoreWidget<SearchSongWrapX, Song2>(
       dioMetaData: searchSongDioMetaData(searchContent, 1),
       childBuilder: (List<Song2> songs) {
-        var list = HomePageController.to.song2ToMedia(songs);
+        var list = AppController.to.song2ToMedia(songs);
         return ListView.builder(
           itemExtent: 120.w,
           padding: EdgeInsets.symmetric(horizontal: 10.w),
@@ -180,7 +180,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
             index: index,
             mediaItem: list[index],
             onTap: () {
-              HomePageController.to.playNewPlayListByIndex(index, '', playList: list);
+              AppController.to.playNewPlayListByIndex(list, index);
             },
           ),
           itemCount: list.length,
@@ -197,7 +197,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           itemExtent: 120.w,
-          itemBuilder: (context, index) => PlayListItem( play: playlist[index]),
+          itemBuilder: (context, index) => PlayListItem(playlist[index]),
           itemCount: playlist.length,
         );
       },

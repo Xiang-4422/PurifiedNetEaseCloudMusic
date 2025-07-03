@@ -146,7 +146,7 @@ class _ArtistsViewState extends State<ArtistsView> with SingleTickerProviderStat
               index: index,
               mediaItem: _items[index],
               onTap: () {
-                AppController.to.playNewPlayListByIndex(_items, index);
+                AppController.to.playNewPlayList(_items, index);
               },
             ),
             itemCount: _items.length,

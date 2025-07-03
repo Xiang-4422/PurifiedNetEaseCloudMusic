@@ -57,7 +57,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
                   index: index,
                   mediaItem: mediaItems[index],
                   onTap: () {
-                    AppController.to.playNewPlayListByIndex(mediaItems, index);
+                    AppController.to.playNewPlayList(mediaItems, index);
                   },
                 );
               },

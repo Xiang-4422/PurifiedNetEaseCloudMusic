@@ -97,22 +97,6 @@ class _SettingPageViewState extends State<SettingPageView> {
           ListTile(
             contentPadding: const EdgeInsets.all(0),
             title: Text(
-              '顶部歌词',
-              style: TextStyle(fontSize: 30.sp),
-            ),
-            trailing: Obx(() => Icon(
-                  AppController.to.isTopLyricOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
-                  size: 56.w,
-                  color: Theme.of(context).cardColor.withOpacity(AppController.to.isTopLyricOpen.value ? 0.7 : .4),
-                )),
-            onTap: () {
-              AppController.to.isTopLyricOpen.value = !AppController.to.isTopLyricOpen.value;
-              AppController.to.box.put(topLyricSp, AppController.to.isTopLyricOpen.value);
-            },
-          ),
-          ListTile(
-            contentPadding: const EdgeInsets.all(0),
-            title: Text(
               '圆形专辑',
               style: TextStyle(fontSize: 30.sp),
             ),

@@ -76,7 +76,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                           index: index,
                           mediaItem: controller.newSingles[index],
                           onTap: () {
-                            AppController.to.playNewPlayListByIndex(controller.newSingles, index);
+                            AppController.to.playNewPlayList(controller.newSingles, index);
                           },
                         ),
                       )),

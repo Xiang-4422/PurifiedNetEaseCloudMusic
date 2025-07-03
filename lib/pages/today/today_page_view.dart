@@ -54,7 +54,7 @@ class _TodayPageViewState extends State<TodayPageView> {
                               index: index,
                               mediaItem: _mediaItem[index],
                               onTap: () {
-                                AppController.to.playNewPlayListByIndex(_mediaItem, index,);
+                                AppController.to.playNewPlayList(_mediaItem, index);
                               },
                             ),
                           ),

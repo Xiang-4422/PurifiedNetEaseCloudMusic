@@ -91,6 +91,7 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
       widgetColor.value = ThemeData.estimateBrightnessForColor(albumColor.value) == Brightness.light
           ? Colors.black
           : Colors.white;
+      AppController.to.curPageTitleColor.value = widgetColor.value;
     });
   }
 

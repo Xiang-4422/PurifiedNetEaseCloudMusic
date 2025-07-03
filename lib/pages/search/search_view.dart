@@ -180,7 +180,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
             index: index,
             mediaItem: list[index],
             onTap: () {
-              AppController.to.playNewPlayListByIndex(list, index);
+              AppController.to.playNewPlayList(list, index);
             },
           ),
           itemCount: list.length,

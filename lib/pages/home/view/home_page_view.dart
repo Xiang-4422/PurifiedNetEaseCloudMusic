@@ -214,7 +214,7 @@ class HomePageView extends GetView<AppController>{
                       style: TextStyle(
                           fontSize: 42.sp,
                           fontWeight: FontWeight.bold,
-                          color: controller.panelOpened50.value ? controller.panelWidgetColor.value : context.theme.colorScheme.onPrimary
+                          color: controller.curPageTitleColor.value
                       ),
                       children: [
                         TextSpan(
@@ -222,7 +222,7 @@ class HomePageView extends GetView<AppController>{
                             text: controller.curPageSubTitle.value,
                             style: TextStyle(
                               fontSize: 21.sp,
-                              color: (controller.panelOpened50.value ? controller.panelWidgetColor.value : Colors.black).withOpacity(0.5),
+                              color: controller.curPageTitleColor.value.withOpacity(0.5),
                             )
                         ),
                       ]

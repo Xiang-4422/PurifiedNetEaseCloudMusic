@@ -38,8 +38,6 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   // --- 无功能分类 ---
   Box box = GetIt.instance<Box>();
   late BuildContext buildContext;
-  /// 上次弹出时间（防止多次快速点击）
-  var _lastPopTime = DateTime.now();
 
   // --- 用户信息 ---
   RxList<int> likeIds = <int>[].obs;
@@ -49,18 +47,18 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   // AppBar标题配置
   RxString curPageTitle = "初始化中...".obs;
   RxString curPageSubTitle = "".obs;
+  Rx<Color> curPageTitleColor = Colors.white.obs;
   NewAppBarTitleComingDirection comingDirection = NewAppBarTitleComingDirection.down;
   String _lastPageTile = "";
+  Color _lastAppBarTitleColor = Colors.white;
   String _pageTitleBeforePanelOpen = "";
-  RxBool isInPlayListPage = false.obs;
+  Color _pageTitleColorBeforePanelOpen = Colors.white;
 
+  RxBool isInPlayListPage = false.obs;
 
   // --- APP 功能配置项 ---
   /// 是否渐变播放背景
   RxBool isGradientBackground = false.obs;
-  // TODO YU4422 待实现
-  /// 是否开启顶部歌词
-  RxBool isTopLyricOpen = true.obs;
   /// 是否开启圆形专辑
   RxBool isRoundAlbumOpen = false.obs;
   /// 是否开启缓存
@@ -90,25 +88,24 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   RxInt curHomePageIndex = 0.obs;
   int _lastHomePageIndex = 0;
 
+  // --- 专辑封面 ---
+  /// Home页面底部Panel中专辑封面的PageView
+  PageController albumPageController = PageController(viewportFraction: 1/3,);
+  RxBool isAlbumVisible = true.obs;
+  bool isAlbumManullyScrolling = false;
+  bool isAlbumProgrammaticScrolling = false;
+  Rx<Color> albumColor = Colors.white.obs;
+  Rx<Color> panelWidgetColor = Colors.white.obs;
+
   // --- Panel ---
   PanelController panelController = PanelController();
+  late AnimationController panelAnimationController;
   /// panel展开程度（0-1，1表示完全展开）
   RxBool panelFullyClosed = true.obs;
   RxBool panelOpened10 = false.obs;
   RxBool panelOpened50 = false.obs;
   RxBool panelOpened90 = false.obs;
   RxBool panelFullyOpened = false.obs;
-
-  // --- 专辑封面 ---
-  /// Home页面底部Panel中专辑封面的PageView
-  PageController albumPageController = PageController(viewportFraction: 1/3,);
-  RxBool isAlbumVisible = true.obs;
-  bool isAlbumPageViewScrolling = false;
-  bool isProgrammaticScrolling = false;
-  Rx<Color> albumColor = Colors.white.obs;
-  Rx<Color> panelWidgetColor = Colors.white.obs;
-
-  late AnimationController panelAnimationController;
 
   // --- Panel中的pageview ---
   late PageController panelPageController;
@@ -118,10 +115,8 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   late TabController panelTabController;
   late TabController panelCommentTabController;
 
-
   // --- 正在播放列表 ---
   ScrollController playListScrollController = ScrollController();
-
 
   // --- 歌词 ---
   ItemScrollController lyricScrollController = ItemScrollController();
@@ -130,10 +125,8 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   // TODO YU4422 沉浸式歌词，隐藏控件
   Timer? fullScreenLyricTimer;
 
-  // --- 播放控制 ---
-  /// 播放器handler
-  late final BujuanAudioHandler audioHandler;
   // --- 播放器状态 ---
+  late final BujuanAudioHandler audioHandler;
   /// 循环方式
   Rx<AudioServiceRepeatMode> curRepeatMode = AudioServiceRepeatMode.all.obs;
   /// 播放状态
@@ -156,12 +149,10 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   Rx<Duration> curPlayDuration = Duration.zero.obs;
   /// 当前歌词下标
   RxInt currLyricIndex = (-2).obs;    // -2表示currLyricIndex未配置，-1表示前奏阶段无歌词
-  /// 当前歌词（整行）
-  RxString currLyric = ''.obs;
   
   @override
   void onInit() async {
-    _initStorageState();
+    _initAppSetting();
     _initUserData();
     _initUIController();
     super.onInit();
@@ -171,8 +162,11 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
 
     panelTabController = TabController(length: 3, initialIndex: 1, vsync: this)..addListener(() {
       if (panelTabController.indexIsChanging) {
-        print('2page: ${panelTabController.indexIsChanging}');
         panelPageController.animateToPage(panelTabController.index, duration: Duration(milliseconds: 300), curve: Curves.linear);
+        if (panelTabController.index <= 1) {
+          panelCommentTabController.index = 0;
+          panelCommentTabController.offset = 0;
+        }
       }
     });
 
@@ -182,56 +176,55 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
       }
     });
 
-    panelPageController = PageController(initialPage: 1)..addListener(() {
-      int curPage = (panelPageController.page! + 0.5).toInt();
+    panelPageController = PageController(initialPage: 1)..addListener(() async {
+      int newPanelPageIndex = (panelPageController.page! + 0.5).toInt();
 
-      if (curPanelPageIndex.value != curPage) {
-        curPanelPageIndex.value = curPage;
-        if (curPage == 0) animatePlayListToCurPlayIndex();
+      if (curPanelPageIndex.value != newPanelPageIndex) {
+        curPanelPageIndex.value = newPanelPageIndex;
+        // 切换到正在播放列表页，滚动到当前播放
+        if (newPanelPageIndex == 0) await _animatePlayListToCurSong();
       }
-
       // 避免循环监听
       if (panelTabController.indexIsChanging || panelCommentTabController.indexIsChanging) return;
       // 控制tab显示
       if (panelPageController.page! <= 2) {
-        panelTabController.index = curPage;
-        panelTabController.offset = panelPageController.page! - curPage;
+        panelTabController.index = newPanelPageIndex;
+        panelTabController.offset = panelPageController.page! - newPanelPageIndex;
       } else {
-        panelCommentTabController.index = curPage - 2;
-        panelCommentTabController.offset = panelPageController.page! - curPage;
+        panelCommentTabController.index = newPanelPageIndex - 2;
+        panelCommentTabController.offset = panelPageController.page! - newPanelPageIndex;
       }
     });
 
-    // 监听album封面滚动
-    albumPageController = PageController(viewportFraction: 1/3)..addListener(() {
-      isAlbumPageViewScrolling = true;
-      if (albumPageController.page?.toInt() == albumPageController.page) {
-        isAlbumPageViewScrolling = false;
-      }
-    });
+    albumPageController = PageController(viewportFraction: 1/3);
   }
   _initUserData() {
-    String userDataStr = box.get(loginData) ?? '';
-    if (userDataStr.isNotEmpty) {
+    String userDataJson = box.get(loginData) ?? '';
+    if (userDataJson.isNotEmpty) {
       loginStatus.value = LoginStatus.login;
-      userData.value = NeteaseAccountInfoWrap.fromJson(jsonDecode(userDataStr));
-      changeAppBarTitle(title: userData.value.profile?.nickname ?? "", direction: NewAppBarTitleComingDirection.up);
+      userData.value = NeteaseAccountInfoWrap.fromJson(jsonDecode(userDataJson));
+      // changeAppBarTitle(title: userData.value.profile?.nickname ?? "", direction: NewAppBarTitleComingDirection.up);
     } else {
       loginStatus.value = LoginStatus.noLogin;
-      changeAppBarTitle(title: '扫码登录', direction: NewAppBarTitleComingDirection.up);
+      // changeAppBarTitle(title: '扫码登录', direction: NewAppBarTitleComingDirection.up);
     }
   }
-  _initStorageState() async {
+  _initAppSetting() async {
     isCacheOpen.value = box.get(cacheSp, defaultValue: false);
     isGradientBackground.value = box.get(gradientBackgroundSp, defaultValue: true);
-    isTopLyricOpen.value = box.get(topLyricSp, defaultValue: false);
-    isFmMode.value = box.get(fmSp, defaultValue: false);
     isHighSoundQualityOpen.value = box.get(highSong, defaultValue: false);
     isRoundAlbumOpen.value = box.get(roundAlbumSp, defaultValue: false);
   }
 
+
+
   @override
   Future<void> onReady() async {
+    changeAppBarTitle(title: loginStatus.value == LoginStatus.login ? userData.value.profile?.nickname ?? "" : '扫码登录');
+    await _initAudioHandler();
+    super.onReady();
+  }
+  _initAudioHandler() async {
     audioHandler = await AudioService.init(
       builder: () => BujuanAudioHandler(),
       config: const AudioServiceConfig(
@@ -241,23 +234,96 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
         androidNotificationIcon: 'drawable/audio_service_icon',
       ),
     );
-    _initAudioStateListener();
-    await _restoreAudioHandlerState();
-    super.onReady();
-  }
-  _restoreAudioHandlerState() async {
+
+    // --- 初始化监听 ---
+    // 监听播放列表切换
+    audioHandler.queue.listen((mediaItems) async {
+      curPlayList
+        ..clear()
+        ..addAll(mediaItems);
+      // 处理仅更新播放列表的情况，重新计算并更新curPlayIndex
+      await _updateCurPlayIndex(curMediaItemUpdated: false);
+    });
+    // 监听歌曲切换
+    audioHandler.mediaItem.listen((mediaItem) async {
+      // 更新当前歌曲信息
+      if (mediaItem == null) return;
+      curMediaItem.value = mediaItem;
+      curPlayDuration.value = Duration.zero;
+      // 本地保存当前播放状态
+      box.put(curPlaySongId, mediaItem.id);
+      await _updateCurPlayIndex();
+      // 私人FM模式 播放到最后一首拉取新的FM歌曲列表
+      int newIndex = curPlayList.indexWhere((element) => element.id == curMediaItem.value.id);
+      if (isFmMode.isTrue && newIndex == curPlayList.length - 1) {
+         await _changeFmPlayList(isUpdate: true);
+      }
+    });
+    // 监听播放状态变化
+    audioHandler.playbackState.listen((playbackState) {
+      isPlaying.value = playbackState.playing;
+      if(playbackState.processingState == AudioProcessingState.completed) audioHandler.skipToNext();
+    });
+    // 监听播放进度变化
+    AudioService.createPositionStream(minPeriod: const Duration(microseconds: 800), steps: 1000).listen((newCurPlayingDuration) {
+      //如果没有展示播放页面就先不监听（节省资源）
+      if (panelFullyOpened.isFalse) return;
+      //如果监听到的毫秒大于歌曲的总时长 置0并stop
+      if (newCurPlayingDuration.inMilliseconds > (curMediaItem.value.duration?.inMilliseconds ?? 0)) {
+        curPlayDuration.value = Duration.zero;
+        return;
+      }
+      curPlayDuration.value = newCurPlayingDuration;
+      if (lyricsLineModels.isNotEmpty && !isAlbumVisible.value) {
+        // 找不到当前时间对应的歌词，此时realTimeLyricIndex为-1，表示为前奏阶段，刚好显示空白
+        int realTimeLyricIndex = lyricsLineModels.lastIndexWhere((element) => element.startTime! <= curPlayDuration.value.inMilliseconds);
+        if (realTimeLyricIndex != currLyricIndex.value) {
+          currLyricIndex.value = realTimeLyricIndex;
+          // 滚动到当前歌词
+          if (!isLyricScrollingByUser && panelFullyClosed.isFalse) {
+            isLyricScrollingByItself = true;
+            lyricScrollController.scrollTo(
+                index: realTimeLyricIndex == -1 ? 1 : realTimeLyricIndex + 1,
+                alignment: 0.4,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.decelerate
+            );
+          }
+        }
+      }
+    });
+
+    // --- 从本地恢复上次关闭播放状态 ---
+    // 恢复FM开启状态
+    isFmMode.value = box.get(fmSp, defaultValue: false);
     // 恢复播放模式
     String repeatMode = box.get(repeatModeSp, defaultValue: 'all');
     curRepeatMode.value = AudioServiceRepeatMode.values.firstWhereOrNull((element) => element.name == repeatMode) ?? AudioServiceRepeatMode.all;
-    await audioHandler.setRepeatMode(curRepeatMode.value);
+    audioHandler.setRepeatMode(curRepeatMode.value);
     // 恢复播放列表
     List<String> stringPlayList = box.get(playQueue, defaultValue: <String>[]);
     if (stringPlayList.isNotEmpty) {
       List<MediaItem> playlist = await compute(stringToPlayList, stringPlayList);
       String curSongId = box.get(curPlaySongId, defaultValue: '');
       int index = playlist.indexWhere((element) => element.id == curSongId);
-      await _changePlayList(playlist, playNow: false, index: index, changePlayerSource: true, needStore: false);
+      await _changePlayList(playlist, index: index, changePlayerSource: true, playNow: false, needStore: false);
     }
+  }
+  _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {
+    int lastPlayIndex = curPlayIndex.value;
+    int newIndex = curPlayList.indexWhere((element) =>
+    element.id == curMediaItem.value.id);
+    // if (curPlayIndex.value == newIndex) return;
+    curPlayIndex.value = newIndex;
+    if (curMediaItemUpdated) {
+      await _updateAlbumColor();
+      await _updateLyric();
+      _updateAppBarTitleToCurSong(lastPlayIndex);
+    }
+    // 切换专辑封面
+    await animateAlbumPageViewToCurSong();
+    // 正在播放列表滚动到当前歌曲
+    await _animatePlayListToCurSong();
   }
 
   @override
@@ -321,21 +387,23 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
         bool isSlidingUp = curHomePageIndex.value > _lastHomePageIndex;
         var direction = isSlidingUp ? NewAppBarTitleComingDirection.down : NewAppBarTitleComingDirection.up;
 
+        String title = "";
         // 更新appbar标题
         switch(updatedPageIndex)  {
           case 0:
-            changeAppBarTitle(title: userData.value.profile?.nickname ?? "", direction: direction);
+            title = loginStatus.value == LoginStatus.login ? userData.value.profile?.nickname ?? "" : '扫码登录';
             break;
           case 1:
-            changeAppBarTitle(title: "每日发现", direction: direction);
+            title = "每日发现";
             break;
           case 2:
-            changeAppBarTitle(title: "设置", direction: direction);
+            title = "设置";
             break;
           case 3:
-            changeAppBarTitle(title: "赞助开发者", direction: direction);
+            title = "赞助开发者";
             break;
         }
+        changeAppBarTitle(title: title, direction: direction);
       }
     });
     // 监听抽屉展开状态
@@ -355,16 +423,15 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   }
 
   // --- appbar 标题切换 ---
-  changeAppBarTitle({required String title, String subTitle = '', required NewAppBarTitleComingDirection direction, bool willRollBack  = false}) {
-    if (willRollBack) _lastPageTile = curPageTitle.value;
+  changeAppBarTitle({required String title, String subTitle = '', Color? appBarTitleColor, NewAppBarTitleComingDirection? direction, bool willRollBack  = false}) {
+    if (willRollBack) {
+      _lastPageTile = curPageTitle.value;
+      _lastAppBarTitleColor = curPageTitleColor.value;
+    }
     curPageTitle.value = title;
-    comingDirection = direction;
-    curPageSubTitle.value =
-    subTitle != "" ? "\n$subTitle" : "";
-  }
-  rollbackAppBarTitle() {
-    curPageTitle.value = _lastPageTile;
-    changeAppBarTitle(title: curPageTitle.value, direction: NewAppBarTitleComingDirection.left);
+    curPageSubTitle.value = subTitle.isNotEmpty ? "\n$subTitle" : "";
+    curPageTitleColor.value = appBarTitleColor ?? buildContext.theme.colorScheme.onPrimary;
+    comingDirection = direction ?? NewAppBarTitleComingDirection.none;
   }
 
   // --- 歌曲控制 ---
@@ -417,15 +484,14 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   openFmMode() async {
     panelPageController.jumpToPage(1);
     panelController.open();
-    if(isFmMode.value) {
+    if(isFmMode.isTrue) {
+      // 处于FM模式，恢复播放
       if (isPlaying.isFalse) await playOrPause();
     } else {
-      _getFmSongList().then((value) async {
-        await _changePlayList(value, playNow: true, changePlayerSource: true);
-      });
       // 保存FM开启状态
       isFmMode.value = true;
       box.put(fmSp, true);
+      await _changeFmPlayList();
     }
   }
   /// 播放/暂停
@@ -453,19 +519,61 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
     });
   }
   /// 根据下标播放歌曲
-  playNewPlayListByIndex(List<MediaItem> playList, int index, {String queueTitle = ""}) async {
+  playNewPlayList(List<MediaItem> playList, int index, {String queueTitle = ""}) async {
     // 切歌单退出FM模式
-    if (isFmMode.value) {
+    if (isFmMode.isTrue) {
       isFmMode.value = false;
       box.put(fmSp, false);
     }
     audioHandler.queueTitle.value = queueTitle;
-    await _changePlayList(playList ?? [], index: index, changePlayerSource: true, playNow: true);
+    await _changePlayList(playList, index: index, changePlayerSource: true, playNow: true);
   }
   /// 添加/删除歌曲到指定的歌单
   addOrDelSongToPlaylist(String playlistId, String songId, bool add) async{
     NeteaseMusicApi().playlistManipulateTracks(playlistId, songId, add);
   }
+
+  /// 改变panel位置
+  changeSlidePosition(double value) async {
+    if (value == 2.086162576020456e-9) {
+      return;
+    }
+    panelAnimationController.value = value;
+
+    // 如果当前的状态改变
+    if (panelFullyClosed.value != (value == 0.0)){
+      // 更新状态
+      panelFullyClosed.value = (value == 0.0);
+    }
+    if (panelOpened10.value != (value > 0.1)){
+      panelOpened10.value = value > 0.1;
+    }
+    if (panelOpened50.value != (value > 0.5)) {
+      panelOpened50.value = value > 0.5;
+      if (panelOpened50.value) {
+        _pageTitleBeforePanelOpen = curPageTitle.value;
+        _pageTitleColorBeforePanelOpen = curPageTitleColor.value;
+        changeAppBarTitle(title: curMediaItem.value.title, subTitle: curMediaItem.value.artist ?? '', appBarTitleColor: panelWidgetColor.value, direction: NewAppBarTitleComingDirection.down);
+      } else {
+        changeAppBarTitle(title: _pageTitleBeforePanelOpen, appBarTitleColor: _pageTitleColorBeforePanelOpen, direction: NewAppBarTitleComingDirection.up);
+      }
+    }
+    if (panelOpened90.value != (value > 0.9)) {
+      panelOpened90.value = value > 0.9;
+    }
+    if (panelFullyOpened.value != (value == 1.0)){
+      // 更新状态
+      panelFullyOpened.value = (value == 1.0);
+      // 根据状态变更图标颜色
+      _updateStatusBarColor();
+      // 打开Panel时在正在播放列表页，滚动到当前播放
+      if (curPanelPageIndex.value == 0) {
+        await _animatePlayListToCurSong();
+      }
+    }
+
+  }
+
   /// 当按下返回键
   Future<bool> onWillPop() async {
     if (panelController.isPanelOpen) {
@@ -473,7 +581,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
       return false;
     }
     if (buildContext.router.canPop()) {
-      rollbackAppBarTitle();
+      changeAppBarTitle(title: _lastPageTile, appBarTitleColor: _lastAppBarTitleColor, direction: NewAppBarTitleComingDirection.left);
       return true;
     }
     if (zoomDrawerController.isOpen!()) {
@@ -487,15 +595,6 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
       SystemNavigator.pop();
     }
     return true;
-  }
-  bool intervalClick(int gapClickTime) {
-    // 防重复提交
-    if (DateTime.now().difference(_lastPopTime) > Duration(milliseconds: gapClickTime)) {
-      _lastPopTime = DateTime.now();
-      return true;
-    } else {
-      return false;
-    }
   }
   List<MediaItem> song2ToMedia(List<Song2> songs) {
     return songs
@@ -517,185 +616,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
         artist: (e.ar ?? []).map((e) => e.name).toList().join(' / ')))
         .toList();
   }
-  // --- UI控制方法 ---
 
-  updateCurPlayIndex(int newIndex) async {
-    // 更新UI
-    bool isSkipToNext = newIndex > curPlayIndex.value;
-    bool isNearBy = (newIndex - curPlayIndex.value).abs() <= 1;
-    curPlayIndex.value = newIndex;
-    // 切换专辑封面
-    if (!isAlbumPageViewScrolling) {
-      isProgrammaticScrolling = true;
-      if (isNearBy && panelFullyOpened.isTrue) {
-        albumPageController.animateToPage(newIndex, duration: const Duration(milliseconds: 300), curve: Curves.linear).then(((_) {
-          isProgrammaticScrolling = false;
-        }));
-      } else {
-        albumPageController.jumpToPage(newIndex);
-        isProgrammaticScrolling = false;
-      }
-    }
-    // 切换AppBar标题
-    if (panelFullyOpened.isTrue) {
-      changeAppBarTitle(
-          title: curPlayList[curPlayIndex.value].title,
-          subTitle: curPlayList[curPlayIndex.value].artist ?? "",
-          direction: !isNearBy
-              ? NewAppBarTitleComingDirection.none
-              : isSkipToNext
-              ? NewAppBarTitleComingDirection.right
-              : NewAppBarTitleComingDirection.left
-      );
-    }
-
-    // 私人FM模式 播放到最后一首拉取新的FM歌曲列表
-    if (isFmMode.isTrue && newIndex == curPlayList.length - 1) {
-      _getFmSongList().then((value) {
-        _changePlayList(value..insert(0, curMediaItem.value), playNow: false, changePlayerSource: false);
-      });
-    }
-  }
-  /// 滚动播放列表到当前播放歌曲
-  animatePlayListToCurPlayIndex() async {
-    bool isScrolledToBottom = playListScrollController.position.pixels >= playListScrollController.position.maxScrollExtent;
-    int index = curPlayList.indexWhere((element) => element.id == curMediaItem.value.id);
-    if (index != -1 && !isScrolledToBottom) {
-      double offset = 60.0 * index;
-      print('XYXYoffset: $offset');
-      await playListScrollController.animateTo(offset, duration: const Duration(milliseconds: 300), curve: Curves.linear);
-    }
-  }
-  /// 改变panel位置
-  changeSlidePosition(double value) async {
-    if (value == 2.086162576020456e-9) {
-      return;
-    }
-    panelAnimationController.value = value;
-
-    // 如果当前的状态改变
-    if (panelFullyClosed.value != (value == 0.0)){
-      // 更新状态
-      panelFullyClosed.value = (value == 0.0);
-    }
-    if (panelOpened10.value != (value > 0.1)){
-      panelOpened10.value = value > 0.1;
-    }
-    if (panelOpened50.value != (value > 0.5)) {
-      panelOpened50.value = value > 0.5;
-      if (panelOpened50.value) {
-        _pageTitleBeforePanelOpen = curPageTitle.value;
-        changeAppBarTitle(title: curMediaItem.value.title, subTitle: curMediaItem.value.artist ?? '', direction: NewAppBarTitleComingDirection.down);
-      } else {
-        changeAppBarTitle(title: _pageTitleBeforePanelOpen, direction: NewAppBarTitleComingDirection.up);
-      }
-    }
-    if (panelOpened90.value != (value > 0.9)) {
-      panelOpened90.value = value > 0.9;
-    }
-    if (panelFullyOpened.value != (value == 1.0)){
-      // 更新状态
-      panelFullyOpened.value = (value == 1.0);
-      // 根据状态变更图标颜色
-      _changeStatusIconColor(panelFullyOpened.value);
-      if (curPanelPageIndex.value == 0) {
-        await animatePlayListToCurPlayIndex();
-      }
-    }
-
-  }
-
-  _initAudioStateListener() {
-    // 监听播放列表切换
-    audioHandler.queue.listen((mediaItems) {
-      curPlayList
-        ..clear()
-        ..addAll(mediaItems);
-    });
-    // 监听歌曲切换
-    audioHandler.mediaItem.listen((mediaItem) async {
-      // 更新当前歌曲信息
-      if (mediaItem == null) return;
-      curMediaItem.value = mediaItem;
-      // 本地保存当前播放状态
-      box.put(curPlaySongId, mediaItem.id);
-
-      await _updateAlbumColor();
-      await _getLyric();
-
-      // 播放列表滚动到当前歌曲
-      if (panelFullyOpened.isTrue && curPanelPageIndex.value == 0) {
-        await animatePlayListToCurPlayIndex();
-      }
-
-      // 歌词复位
-      curPlayDuration.value = Duration.zero;
-      currLyricIndex.value = -2;
-      currLyric.value = '';
-      if (panelFullyOpened.isTrue && curPanelPageIndex.value == 1 && isAlbumVisible.isFalse) {
-        lyricScrollController.jumpTo(index: 0);
-      }
-
-    });
-    // 监听播放状态变化
-    audioHandler.playbackState.listen((playbackState) {
-      print("xxxxxx" + playbackState.toString());
-      isPlaying.value = playbackState.playing;
-      if(playbackState.processingState == AudioProcessingState.completed) audioHandler.skipToNext();
-    });
-    //监听实时进度变化
-    AudioService.createPositionStream(minPeriod: const Duration(microseconds: 800), steps: 1000).listen((newCurPlayingDuration) {
-      //如果没有展示播放页面就先不监听（节省资源）
-      if (panelFullyOpened.isFalse) return;
-      //如果监听到的毫秒大于歌曲的总时长 置0并stop
-      if (newCurPlayingDuration.inMilliseconds > (curMediaItem.value.duration?.inMilliseconds ?? 0)) {
-        curPlayDuration.value = Duration.zero;
-        return;
-      }
-      curPlayDuration.value = newCurPlayingDuration;
-      if (lyricsLineModels.isNotEmpty && !isAlbumVisible.value) {
-        // 找不到当前时间对应的歌词，此时realTimeLyricIndex为-1，表示为前奏阶段，刚好显示空白
-        int realTimeLyricIndex = lyricsLineModels.lastIndexWhere((element) => element.startTime! <= curPlayDuration.value.inMilliseconds);
-        if (realTimeLyricIndex != currLyricIndex.value) {
-          currLyricIndex.value = realTimeLyricIndex;
-          if (isTopLyricOpen.value) currLyric.value = lyricsLineModels[currLyricIndex.value].mainText ?? '';
-          if (!isLyricScrollingByUser) {
-            isLyricScrollingByItself = true;
-            lyricScrollController.scrollTo(
-                index: realTimeLyricIndex == -1 ? 1 : realTimeLyricIndex + 1,
-                alignment: 0.4,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.decelerate
-            ).then((_) => isLyricScrollingByItself = false);
-          }
-        }
-      }
-    });
-  }
-  /// 获取 FM 歌曲列表
-  Future<List<MediaItem>> _getFmSongList() async {
-    SongListWrap2 songListWrap2 = await NeteaseMusicApi().userRadio();
-    if (songListWrap2.code == 200) {
-      List<Song> songs = songListWrap2.data ?? [];
-      return songs.map((e) => MediaItem(
-          id: e.id,
-          duration: Duration(milliseconds: e.duration ?? 0),
-          artUri: Uri.parse('${e.album?.picUrl ?? ''}?param=500y500'),
-          extras: {
-            'image': e.album?.picUrl ?? '',
-            'liked': likeIds.contains(int.tryParse(e.id)),
-            'artist': (e.artists ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / '),
-            'type': MediaType.fm.name,
-            'size': ''
-          },
-          title: e.name ?? "",
-          album: e.album?.name ?? '',
-          artist: (e.artists ?? []).map((e) => e.name).toList().join(' / ')
-      )).toList();
-    } else {
-      return [];
-    }
-  }
   _updateCloseDrawerTimer(double timeValue) {
     if (_timerCounter == 0) {
       _timerCounter = timeValue;
@@ -714,64 +635,102 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
     }
   }
   /// 更新歌词
-  _getLyric() async {
-    // 更新 lyricsLineModels
+  _updateLyric() async {
+    // 歌词复位
+    currLyricIndex.value = -2;
     lyricsLineModels.clear();
     hasTransLyrics.value = false;
+    if (panelFullyClosed.isFalse) {
+      lyricScrollController.jumpTo(index: 0);
+    }
 
+    // 更新 lyricsLineModels
+    String songId = curMediaItem.value.id;
     // 先从本地获取歌词
-    String lyric = box.get('lyric_${curMediaItem.value.id}') ?? '';
-    String lyricTran = box.get('lyricTran_${curMediaItem.value.id}') ?? '';
+    String lyric = box.get('lyric_$songId') ?? '';
+    String lyricTran = box.get('lyricTran_$songId') ?? '';
     // 本地为空则从网络获取，并缓存
     if (lyric.isEmpty) {
       SongLyricWrap songLyricWrap = await NeteaseMusicApi().songLyric(curMediaItem.value.id);
       lyric = songLyricWrap.lrc.lyric ?? "";
       lyricTran = songLyricWrap.tlyric.lyric ?? "";
-      box.put('lyric_${curMediaItem.value.id}', lyric);
-      box.put('lyricTran_${curMediaItem.value.id}', lyricTran);
+      box.put('lyric_$songId', lyric);
+      box.put('lyricTran_$songId', lyricTran);
     }
+    // 解析歌词
     if (lyric.isNotEmpty) {
-      var list = ParserLrc(lyric).parseLines();
-      var listTran = ParserLrc(lyricTran).parseLines();
+      var mainLyricsLineModels = ParserLrc(lyric).parseLines();
       if (lyricTran.isNotEmpty) {
         hasTransLyrics.value = true;
-        list = list.map((e) {
-          int index = listTran.indexWhere((element) => element.startTime == e.startTime);
-          if (index != -1) e.extText = listTran[index].mainText;
-          return e;
-        }).toList();
+        var extLyricsLineModels = ParserLrc(lyricTran).parseLines();
+        for(LyricsLineModel lyricsLineModel in extLyricsLineModels) {
+          int index = mainLyricsLineModels.indexWhere((element) => element.startTime == lyricsLineModel.startTime);
+          mainLyricsLineModels[index].extText = lyricsLineModel.mainText;
+        }
       }
-      lyricsLineModels.addAll(list);
+      lyricsLineModels.addAll(mainLyricsLineModels);
     } else {
-      // TODO YU4422 没有歌词的时候，加入提示
       lyricsLineModels.add(LyricsLineModel()..mainText = "没有歌词哦～");
     }
-    // lyricScrollController.jumpTo(index: 1, alignment: 0.4);
   }
   /// 获取专辑颜色
   _updateAlbumColor() async {
-    OtherUtils.getImageColor('${curMediaItem.value.extras?['image'] ?? ''}?param=500y500').then((paletteGenerator) {
+    await OtherUtils.getImageColor('${curMediaItem.value.extras?['image'] ?? ''}?param=500y500').then((paletteGenerator) {
       // 更新panel中的色调
       albumColor.value = paletteGenerator.darkMutedColor?.color
             ?? paletteGenerator.darkVibrantColor?.color
             ?? paletteGenerator.dominantColor?.color
             ?? Colors.black;
-
       panelWidgetColor.value = ThemeData.estimateBrightnessForColor(albumColor.value) == Brightness.light
           ? Colors.black
           : Colors.white;
-
+      print("update4422Color");
       if (panelFullyOpened.isTrue) {
-        _changeStatusIconColor(true);
+        _updateStatusBarColor();
       }
     });
   }
-  // TODO YU4422 待完善
-  /// 改变状态栏图标颜色
-  _changeStatusIconColor(bool changeByAlbumColor) {
-    bool isLight = changeByAlbumColor
+  /// 滚动播放列表到当前播放歌曲
+  _animatePlayListToCurSong() async {
+    if (panelFullyOpened.isTrue && curPanelPageIndex.value == 0) {
+      double offset = 60.0 * curPlayIndex.value;
+      await playListScrollController.animateTo(offset, duration: const Duration(milliseconds: 300), curve: Curves.linear);
+    }
+  }
+  animateAlbumPageViewToCurSong() async {
+    if (!isAlbumManullyScrolling) {
+      isAlbumProgrammaticScrolling = true;
+      bool isNearBy = (curPlayIndex.value - albumPageController.page!.toInt()).abs() <= 1;
+      if (isNearBy && panelFullyOpened.isTrue) {
+        await albumPageController.animateToPage(curPlayIndex.value , duration: const Duration(milliseconds: 300), curve: Curves.linear);
+      } else {
+        albumPageController.jumpToPage(curPlayIndex.value );
+      }
+      isAlbumProgrammaticScrolling = false;
+    }
+  }
+  _updateAppBarTitleToCurSong(int lastPlayIndex) {
+    bool isSkipToNext = curPlayIndex.value > lastPlayIndex;
+    bool isNearBy = (curPlayIndex.value - lastPlayIndex) <= 1;
+    // 切换AppBar标题
+    if (panelFullyOpened.isTrue) {
+      changeAppBarTitle(
+          title: curPlayList[curPlayIndex.value].title,
+          subTitle: curPlayList[curPlayIndex.value].artist ?? "",
+          appBarTitleColor: panelWidgetColor.value,
+          direction: !isNearBy
+              ? NewAppBarTitleComingDirection.none
+              : isSkipToNext
+              ? NewAppBarTitleComingDirection.right
+              : NewAppBarTitleComingDirection.left
+      );
+    }
+    print("update4422AppBarTitleToCurSong");
+  }
+  _updateStatusBarColor() {
+    bool isLight = panelFullyOpened.isTrue
         ? ThemeData.estimateBrightnessForColor(albumColor.value) == Brightness.light
-        : !Get.isPlatformDarkMode;
+        : !Get.isDarkMode;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       systemNavigationBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
       statusBarBrightness: isLight ? Brightness.light : Brightness.dark,
@@ -781,14 +740,40 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
       systemNavigationBarContrastEnforced: false,
     ));
   }
+
+  /// 获取 FM 歌曲列表
+  _changeFmPlayList({bool isUpdate = false}) async {
+    List<MediaItem> fmPlayList;
+    SongListWrap2 songListWrap2 = await NeteaseMusicApi().userRadio();
+    if (songListWrap2.code == 200) {
+      fmPlayList = (songListWrap2.data ?? []).map((e) => MediaItem(
+          id: e.id,
+          duration: Duration(milliseconds: e.duration ?? 0),
+          artUri: Uri.parse('${e.album?.picUrl ?? ''}?param=500y500'),
+          extras: {
+            'image': e.album?.picUrl ?? '',
+            'liked': likeIds.contains(int.tryParse(e.id)),
+            'artist': (e.artists ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / '),
+            'type': MediaType.fm.name,
+            'size': ''
+          },
+          title: e.name ?? "",
+          album: e.album?.name ?? '',
+          artist: (e.artists ?? []).map((e) => e.name).toList().join(' / ')
+      )).toList();
+    } else {
+      fmPlayList = [];
+    }
+    if(isUpdate) {
+      await _changePlayList(fmPlayList..insertAll(0, curPlayList), index: curPlayIndex.value, playNow: false, changePlayerSource: false);
+    } else {
+      await _changePlayList(fmPlayList, changePlayerSource: true, playNow: true);
+    }
+  }
   _changePlayList(List<MediaItem> playList, {required bool changePlayerSource, required bool playNow, int index = 0, bool needStore = true}) async {
     // 更改播放列表
-    await audioHandler.changePlayList(playList, index);
-    // 是否更改播放源
-    if (changePlayerSource) {
-      // 是否直接开始播放
-      await audioHandler.changePlayerSource(playNow: playNow);
-    }
+    await audioHandler.changePlayList(playList, index, changePlayerSource: changePlayerSource, playNow: playNow);
+    // 保存原始播放列表
     if (needStore) {
       box.put(playQueue, await compute(playListToString, playList));
     }

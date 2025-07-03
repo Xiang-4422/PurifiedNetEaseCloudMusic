@@ -68,7 +68,7 @@ class PlayListPageView extends GetView<PlayListController> {
                           String queueTitle = controller.details?.playlist?.name ?? "无名歌单";
                           AppController.to.panelPageController.jumpToPage(0);
                           AppController.to.panelController.open();
-                          AppController.to.playNewPlayListByIndex(controller.mediaItems, index, queueTitle: queueTitle );
+                          AppController.to.playNewPlayList(controller.mediaItems, index, queueTitle: queueTitle );
                         },
                       ),
                     )),
@@ -168,7 +168,7 @@ class PlayListPageView extends GetView<PlayListController> {
                                   onTap: () async {
                                     AppController.to.panelPageController.jumpToPage(0);
                                     AppController.to.panelController.open();
-                                    await AppController.to.playNewPlayListByIndex(controller.mediaItems, 0, queueTitle:  controller.playList.name ?? "无名歌单", );
+                                    await AppController.to.playNewPlayList(controller.mediaItems, 0, queueTitle:  controller.playList.name ?? "无名歌单", );
                                   },
                                   child: Container(
                                     height: 40,
@@ -234,7 +234,7 @@ class PlayListPageView extends GetView<PlayListController> {
                                             color: controller.widgetColor.value.withOpacity(0.05),
                                             borderRadius: BorderRadius.circular(60),
                                           ),
-                                          tabs: [Text('热门'), Text("最新")],
+                                          tabs: [Text('热门', style: context.textTheme.titleMedium?.copyWith(color: controller.widgetColor.value)), Text("最新", style: context.textTheme.titleMedium?.copyWith(color: controller.widgetColor.value))],
                                         ),
                                       ),
                                       child: GestureDetector(

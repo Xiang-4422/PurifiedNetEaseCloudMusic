@@ -133,6 +133,8 @@ class PanelView extends GetView<AppController> {
               padding: EdgeInsets.symmetric(horizontal: albumPadding),
               height: albumPadding,
               child: TabBar(
+                padding: EdgeInsets.zero,
+                labelPadding: EdgeInsets.zero,
                 controller: controller.panelTabController,
                 dividerColor: Colors.transparent,
                 indicatorSize: TabBarIndicatorSize.tab,
@@ -143,8 +145,8 @@ class PanelView extends GetView<AppController> {
                 ),
                 tabs: [
                   // TODO YU4422 进入播放列表页面的时候显示当前播放歌单名
-                  const Text("播放列表"),
-                  const Text("正在播放"),
+                  Text("播放列表", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
+                  Text("正在播放", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
                   Obx(() => AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
                     transitionBuilder: (Widget child, Animation<double> animation) {
@@ -154,11 +156,12 @@ class PanelView extends GetView<AppController> {
                     child: Visibility(
                       key: ValueKey(controller.curPanelPageIndex.value > 1),
                       visible: controller.curPanelPageIndex.value > 1,
-                      replacement: const Text("歌曲评论"),
-                      child: SizedBox(
+                      replacement: Text("歌曲评论", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
+                      child: Container(
                         height: albumPadding,
                         child: TabBar(
                           controller: controller.panelCommentTabController,
+                          labelPadding: EdgeInsets.zero,
                           dividerColor: Colors.transparent,
                           indicatorWeight: 0,
                           indicatorSize: TabBarIndicatorSize.tab,
@@ -166,9 +169,9 @@ class PanelView extends GetView<AppController> {
                             color: controller.panelWidgetColor.value.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(albumPadding),
                           ),
-                          tabs: const [
-                            Text("热"),
-                            Text("新"),
+                          tabs: [
+                            Text("热", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
+                            Text("新", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
                           ],
                         ),
                       ),
@@ -188,8 +191,7 @@ class PanelView extends GetView<AppController> {
     double albumPadding = context.width * (1 - AppDimensions.albumMaxWidth) / 2;
     return KeepAliveWrapper(
       child: Obx(() => Container(
-        key: ValueKey(controller.curPlayList),
-        padding: EdgeInsets.symmetric(horizontal: context.width * (1 - AppDimensions.albumMaxWidth) / 2),
+        padding: EdgeInsets.symmetric(horizontal: albumPadding),
         child: Column(
           children: [
             Obx(() => Offstage(
@@ -200,19 +202,23 @@ class PanelView extends GetView<AppController> {
               ),
             )),
             Expanded(
-              child: ListView.builder(
-                controller: controller.playListScrollController,
-                itemExtent: 60,
-                padding: EdgeInsets.only(
-                  top: controller.isAlbumVisible.value
-                      ? 0
-                      : panelAppBarHeight + albumPadding,
-                  bottom: albumPadding * 2,
+              child: ScrollConfiguration(
+                behavior: const NoGlowScrollBehavior(),
+                child: ListView.builder(
+                  controller: controller.playListScrollController,
+                  physics: const ClampingScrollPhysics(),
+                  itemExtent: 60,
+                  padding: EdgeInsets.only(
+                    top: controller.isAlbumVisible.value
+                        ? 0
+                        : panelAppBarHeight + albumPadding,
+                    bottom: albumPadding * 2,
+                  ),
+                  itemCount: controller.curPlayList.length,
+                  itemBuilder: (context, index) {
+                    return _buildSongItem(controller.curPlayList[index], index, context);
+                  },
                 ),
-                itemCount: controller.curPlayList.length,
-                itemBuilder: (context, index) {
-                  return _buildSongItem(controller.curPlayList[index], index, context);
-                },
               ),
             ),
           ],
@@ -222,7 +228,7 @@ class PanelView extends GetView<AppController> {
   }
   Widget _buildSongItem(MediaItem mediaItem, int index, BuildContext context) {
     return TextButton(
-      onPressed: () => controller.audioHandler.playIndex(index),
+      onPressed: () => controller.audioHandler.playIndex(audioSourceIndex: index, playNow: true),
       // 透明 Container 用于触发点击
       style: TextButton.styleFrom(
         alignment: Alignment.centerLeft,
@@ -258,19 +264,8 @@ class PanelView extends GetView<AppController> {
                 ],
               )
           ),
-          // TODO YU4422 删除歌曲功能，是否保留待定
-          // Obx(() => IconButton(
-          //     onPressed: () => controller.curMediaItem.value.id == mediaItem.id ? null : controller.audioServeHandler.removeQueueItemAt(index),
-          //     icon: Icon(
-          //       controller.curMediaItem.value.id == mediaItem.id
-          //           ? TablerIcons.circle_letter_p
-          //           : TablerIcons.trash_x,
-          //       color: controller.curMediaItem.value.id == mediaItem.id ? Colors.red : controller.bodyColor.value,
-          //       // size: 42.w,
-          //     )
-          // )),
           Obx(() => Offstage(
-            offstage: controller.curMediaItem.value.id != mediaItem.id,
+            offstage: controller.curPlayIndex.value != index,
             child: const Icon(
                   TablerIcons.circle_letter_p,
                   color: Colors.red,
@@ -295,7 +290,7 @@ class PanelView extends GetView<AppController> {
               offstage: controller.isAlbumVisible.value,
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: albumPadding),
-                child: const LyricView(),
+                child: const LyricView(EdgeInsets.symmetric(vertical: 10)),
               ),
           )),
           // 控制、进度条、页面指示占位
@@ -533,9 +528,7 @@ class PanelView extends GetView<AppController> {
               if (controller.isFmMode.value) {
                 return;
               }
-              if (controller.intervalClick(500)) {
-                controller.audioHandler.skipToPrevious();
-              }
+              controller.audioHandler.skipToPrevious();
             },
             icon: Obx(() => Icon(
               TablerIcons.player_skip_back_filled,
@@ -556,9 +549,7 @@ class PanelView extends GetView<AppController> {
         // 下一首
         IconButton(
             onPressed: () {
-              if (controller.intervalClick(500)) {
-                controller.audioHandler.skipToNext();
-              }
+              controller.audioHandler.skipToNext();
             },
             icon: Obx(() => Icon(
               TablerIcons.player_skip_forward_filled,
@@ -738,65 +729,94 @@ class PanelHeaderView extends GetView<AppController> {
         height: realTimeAlbumWidth + realTimeAlbumPadding * 2,
         child: OverflowBox(
           maxWidth: (realTimeAlbumWidth + realTimeAlbumPadding * 2) * 3,
-          child: Obx(() => PageView.builder(
-            controller: controller.albumPageController,
-            itemCount: controller.curPlayList.length,
-            physics: controller.panelFullyClosed.value ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
-            onPageChanged: (index) {
-              if (!controller.isProgrammaticScrolling) {
-                Future.microtask(() async {
-                  await controller.audioHandler.playIndex(index);
-                });
+          child: NotificationListener<ScrollNotification>(
+            // 监听滚动状态
+            onNotification: (notification) {
+              // 判断滚动是否是用户手势触发
+              if (notification is ScrollStartNotification) {
+                if (notification.dragDetails != null && !controller.isAlbumProgrammaticScrolling) {
+                  controller.isAlbumManullyScrolling = true;
+                }
+                // 滚动结束时重置用户滚动状态 (这里只是一个辅助，主要靠计时器)
+              } else if (notification is ScrollEndNotification) {
+                controller.isAlbumManullyScrolling = false;
+                controller.isAlbumProgrammaticScrolling = false;
               }
+              // 返回 false 让通知继续冒泡，以便 itemPositionsNotifier 也能收到
+              return false;
             },
-            itemBuilder: (BuildContext context, int index) {
-              return Obx(() => AnimatedSwitcher(
-                duration: const Duration(milliseconds: 500),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: child,
-                  );
-                },
-                child: Visibility(
-                  visible: controller.isAlbumVisible.isTrue
-                      ? controller.panelFullyOpened.isTrue
-                        ? true
-                        : index == controller.curPlayIndex.value
-                      : controller.panelFullyClosed.value && index == controller.curPlayIndex.value,
-                  child: Container(
-                    margin: EdgeInsets.all(realTimeAlbumPadding),
-                    child: GestureDetector(
-                      onTap: () {
-                        controller.isAlbumVisible.value = !controller.isAlbumVisible.value;
-                      },
-                      child: Container(
-                        clipBehavior: Clip.hardEdge,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(realTimeAlbumBorderRadius),
-                          boxShadow: [
-                            controller.panelFullyOpened.value
-                                ? BoxShadow(
-                                  color: Colors.black.withOpacity(0.4), // 阴影颜色
-                                  blurRadius: 12, // 模糊半径
-                                  spreadRadius: 2, // 扩散半径
-                                )
-                                : const BoxShadow()
-                          ],
+            child: Obx(() => PageView.builder(
+              controller: controller.albumPageController,
+              itemCount: controller.curPlayList.length,
+              physics: controller.panelFullyClosed.value ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
+              onPageChanged: (index) {
+                if (!controller.isAlbumProgrammaticScrolling) {
+                  Future.microtask(() async {
+                    await controller.audioHandler.playIndex(audioSourceIndex: index, playNow: true);
+                  });
+                }
+              },
+              itemBuilder: (BuildContext context, int index) {
+                return Obx(() => AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 500),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    );
+                  },
+                  child: Visibility(
+                    visible: controller.isAlbumVisible.isTrue
+                        ? controller.panelFullyOpened.isTrue
+                          ? true
+                          : index == controller.curPlayIndex.value
+                        : controller.panelFullyClosed.value && index == controller.curPlayIndex.value,
+                    child: Container(
+                      margin: EdgeInsets.all(realTimeAlbumPadding),
+                      child: GestureDetector(
+                        onTap: () {
+                          controller.isAlbumVisible.value = !controller.isAlbumVisible.value;
+                        },
+                        child: Container(
+                          clipBehavior: Clip.hardEdge,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(realTimeAlbumBorderRadius),
+                            boxShadow: [
+                              controller.panelFullyOpened.value
+                                  ? BoxShadow(
+                                    color: Colors.black.withOpacity(0.4), // 阴影颜色
+                                    blurRadius: 12, // 模糊半径
+                                    spreadRadius: 2, // 扩散半径
+                                  )
+                                  : const BoxShadow()
+                            ],
+                          ),
+                          child: Obx(() => SimpleExtendedImage(
+                            '${controller.curPlayList[index].extras?['image'] ?? ''}?param=500y500',
+                          )),
                         ),
-                        child: Obx(() => SimpleExtendedImage(
-                          '${controller.curPlayList[index].extras?['image'] ?? ''}?param=500y500',
-                        )),
                       ),
                     ),
                   ),
                 ),
-              ),
-              );
-            },
-          )),
+                );
+              },
+            )),
+          ),
         ),
       ),
     ));
+  }
+}
+
+// 定义一个自定义的 ScrollBehavior 来移除 OverscrollIndicator
+class NoGlowScrollBehavior extends ScrollBehavior {
+  const NoGlowScrollBehavior(); // 添加 const 构造函数
+
+  @override
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
+    // 返回子 Widget，不添加任何发光指示器
+    return child;
   }
 }

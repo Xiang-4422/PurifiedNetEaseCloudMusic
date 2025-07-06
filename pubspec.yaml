@@ -8,6 +8,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  logger: ^2.6.0
+
   # 状态管理
   get: ^4.6.5
   # 依赖注入

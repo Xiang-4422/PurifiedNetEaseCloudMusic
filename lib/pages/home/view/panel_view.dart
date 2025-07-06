@@ -14,6 +14,7 @@ import 'package:flutter_constraintlayout/flutter_constraintlayout.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
+import 'package:logger/logger.dart';
 import 'dart:math' as math;
 
 import '../../../common/constants/appConstants.dart';
@@ -514,8 +515,8 @@ class PanelView extends GetView<AppController> {
             onPressed: () => controller.toggleLikeStatus(),
             icon: Obx(() => Icon(
                 controller.likeIds.contains(int.tryParse(controller.curMediaItem.value.id))
-                    ? Icons.favorite
-                    : Icons.favorite_border,
+                    ? TablerIcons.heart_filled
+                    : TablerIcons.heart,
                 size: 46.w,
                 color: controller.likeIds.contains(int.tryParse(controller.curMediaItem.value.id))
                     ? Colors.red
@@ -563,7 +564,7 @@ class PanelView extends GetView<AppController> {
               if (controller.isFmMode.value) {
                 return;
               }
-              await controller.changeRepeatMode();
+              await controller.audioHandler.changeRepeatMode();
             },
             icon: Obx(() => Icon(
               key: ValueKey(controller.isFmMode.value),
@@ -734,13 +735,12 @@ class PanelHeaderView extends GetView<AppController> {
             onNotification: (notification) {
               // 判断滚动是否是用户手势触发
               if (notification is ScrollStartNotification) {
-                if (notification.dragDetails != null && !controller.isAlbumProgrammaticScrolling) {
-                  controller.isAlbumManullyScrolling = true;
+                if (notification.dragDetails != null && !controller.isAlbumScrollingProgrammatic) {
+                  controller.isAlbumScrollingManully = true;
                 }
                 // 滚动结束时重置用户滚动状态 (这里只是一个辅助，主要靠计时器)
               } else if (notification is ScrollEndNotification) {
-                controller.isAlbumManullyScrolling = false;
-                controller.isAlbumProgrammaticScrolling = false;
+                controller.isAlbumScrollingManully = false;
               }
               // 返回 false 让通知继续冒泡，以便 itemPositionsNotifier 也能收到
               return false;
@@ -750,11 +750,15 @@ class PanelHeaderView extends GetView<AppController> {
               itemCount: controller.curPlayList.length,
               physics: controller.panelFullyClosed.value ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
               onPageChanged: (index) {
-                if (!controller.isAlbumProgrammaticScrolling) {
+                DateTime now = DateTime.now();
+                print('统计开始: $now');
+                if (controller.isAlbumScrollingManully) {
                   Future.microtask(() async {
                     await controller.audioHandler.playIndex(audioSourceIndex: index, playNow: true);
                   });
                 }
+                now = DateTime.now();
+                print('统计结束: $now');
               },
               itemBuilder: (BuildContext context, int index) {
                 return Obx(() => AnimatedSwitcher(

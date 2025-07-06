@@ -154,6 +154,5 @@ class UserItem {
   IconData iconData;
   String? routes;
   Color? color;
-
   UserItem(this.title, this.iconData, {this.routes, this.color});
 }

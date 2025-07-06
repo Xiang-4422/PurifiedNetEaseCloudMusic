@@ -18,7 +18,7 @@ class PageTwo extends StatelessWidget {
   const PageTwo({super.key});
   @override
   Widget build(BuildContext context) {
-    return AutoRouter();
+    return const AutoRouter();
   }
 }
 
@@ -29,13 +29,12 @@ class ExplorePageView extends GetView<ExplorePageController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() => AbsorbPointer(
-      absorbing: !AppController.to.isDrawerClosed.value,
+      absorbing: AppController.to.isDrawerClosed.isFalse,
       child: Visibility(
           visible: !controller.loading.value,
           replacement: const LoadingView(),
           child: Column(
             children:[
-
               Expanded(
                 child: CustomScrollView(
                     physics: const BouncingScrollPhysics(),

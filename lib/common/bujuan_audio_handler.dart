@@ -20,21 +20,22 @@ import 'constants/platform_utils.dart';
 import 'netease_api/src/api/play/bean.dart';
 import 'netease_api/src/netease_api.dart';
 
-class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler{
-
+class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandler{
   late final AudioPlayer _player;
+  Box box = GetIt.instance<Box>();
 
   /// 当前原始播放列表（用于随机和顺序播放模式切换用）
   final List<MediaItem> _originalPlayList = <MediaItem>[];
   /// 播放列表索引（当前播放对应在正在播放的列表索引）
   int _curIndex = -1;
   /// 播放模式（none表示随机模式）
-  AudioServiceRepeatMode _curRepeatMode = AudioServiceRepeatMode.all;
+  AudioServiceRepeatMode curRepeatMode = AudioServiceRepeatMode.all;
+  bool isFmMode = false;
 
-  BujuanAudioHandler() {
-    _player = AudioPlayer()
-      ..playbackEventStream.listen((PlaybackEvent event) {
-      // 监听并映射播放器状态
+  AudioServiceHandler() {
+    _player = AudioPlayer();
+    // 映射播放器状态
+    _player.playbackEventStream.listen((PlaybackEvent event) {
       playbackState.add(playbackState.value.copyWith(
         systemActions: const {
           MediaAction.seek,
@@ -58,24 +59,52 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     _updateMediaControls();
   }
 
-  /// 更新状态栏控制按钮
-  _updateMediaControls() {
-    bool isLiked = mediaItem.value?.extras?['liked'] ?? false;
-    playbackState.add(playbackState.value.copyWith(
-      controls: [
-        PlatformUtils.isAndroid
-            ? MediaControl(label: 'rewind', action: MediaAction.rewind, androidIcon: isLiked ?'drawable/audio_service_like' : 'drawable/audio_service_unlike')
-            : const MediaControl(label: 'setRating', action: MediaAction.setRating, androidIcon: 'drawable/audio_service_like'),
-        MediaControl.skipToPrevious,
-        _player.playing ? MediaControl.pause : MediaControl.play,
-        MediaControl.skipToNext,
-        MediaControl.stop,
-      ]
-    ));
-  }
-
   /// 打乱or恢复播放列表顺序
-  Future<void> reorderPlayList({bool shufflePlayList = false}) async {
+  restoreLastPlayState() async {
+    // 恢复FM开启状态
+    isFmMode = box.get(fmSp, defaultValue: false);
+    AppController.to.isFmMode.value = box.get(fmSp, defaultValue: false);
+    // 恢复播放模式
+    String repeatMode = box.get(repeatModeSp, defaultValue: 'all');
+    changeRepeatMode(newRepeatMode: AudioServiceRepeatMode.values.firstWhereOrNull((element) => element.name == repeatMode) ?? AudioServiceRepeatMode.all);
+    // 恢复播放列表
+    List<String> stringPlayList = box.get(playQueue, defaultValue: <String>[]);
+    String curSongId = box.get(curPlaySongId, defaultValue: '');
+    if (stringPlayList.isNotEmpty) {
+      List<MediaItem> playlist = await compute(stringToPlayList, stringPlayList);
+      int index = playlist.indexWhere((element) => element.id == curSongId);
+      await changePlayList(playlist, index: index, changePlayerSource: true, playNow: false, needStore: false);
+    }
+  }
+  /// 改变循环模式
+  changeRepeatMode({AudioServiceRepeatMode? newRepeatMode}) async {
+    if (newRepeatMode == null) {
+      switch (curRepeatMode) {
+      // 单曲 -> 随机
+        case AudioServiceRepeatMode.one:
+          newRepeatMode = AudioServiceRepeatMode.none;
+          await reorderPlayList(shufflePlayList: true);
+          break;
+      // 随机 -> 全部
+        case AudioServiceRepeatMode.none:
+          newRepeatMode = AudioServiceRepeatMode.all;
+          await reorderPlayList(shufflePlayList: false);
+          break;
+      // 全部 -> 单曲
+        case AudioServiceRepeatMode.all:
+        case AudioServiceRepeatMode.group:
+          newRepeatMode = AudioServiceRepeatMode.one;
+          break;
+      }
+    }
+    curRepeatMode = newRepeatMode;
+
+    box.put(repeatModeSp, newRepeatMode.name);
+    AppController.to.curRepeatMode.value = newRepeatMode;
+    _updateMediaControls();
+  }
+  /// 打乱or恢复播放列表顺序
+  reorderPlayList({bool shufflePlayList = false}) async {
     var playListCopy = <MediaItem>[..._originalPlayList];
     if (shufflePlayList) playListCopy.shuffle();
     String curSongId = queue.value[_curIndex].id;
@@ -85,17 +114,17 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
 
   }
   /// 在AudioHandle中打乱播放列表
-  Future<void> changePlayList(List<MediaItem> list, int index, {required bool changePlayerSource, required bool playNow}) async {
+  changePlayList(List<MediaItem> playList, {int index = 0, bool needStore = true, required bool changePlayerSource, required bool playNow}) async {
     // 保存当前播放列表(原始顺序列表)
-    _originalPlayList..clear()..addAll(list);
+    _originalPlayList..clear()..addAll(playList);
     // 更新播放列表到播放器
-    if (AppController.to.isFmMode.isFalse && _curRepeatMode == AudioServiceRepeatMode.none) {
+    if (AppController.to.isFmMode.isFalse && curRepeatMode == AudioServiceRepeatMode.none) {
       // 随机播放模式，打乱播放列表，重新获取index
-      var playListCopy = <MediaItem>[...list]..shuffle();
-      index = playListCopy.indexWhere((element) => element.id == list[index].id);
+      var playListCopy = <MediaItem>[...playList]..shuffle();
+      index = playListCopy.indexWhere((element) => element.id == playList[index].id);
       await updateQueue(playListCopy);
     } else {
-      await updateQueue(list);
+      await updateQueue(playList);
     }
     // 是否更改当前播放源
     if (changePlayerSource) {
@@ -104,28 +133,36 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
     } else {
       _curIndex = index;
     }
+
+    // 保存原始播放列表
+    if (needStore) {
+      box.put(playQueue, await compute(playListToString, playList));
+    }
   }
   /// 这里Index是在 正在播放列表 中的索引
-  Future<void> playIndex({required int audioSourceIndex, required bool playNow}) async {
+  playIndex({required int audioSourceIndex, required bool playNow}) async {
+    _player.stop();
     bool isNext = audioSourceIndex >= _curIndex;
     _curIndex = audioSourceIndex;
+    print("play index: $_curIndex");
     // 获取歌曲资源
     MediaItem newIndexMediaItem = queue.value[audioSourceIndex];
     mediaItem.add(newIndexMediaItem);
     String url = "";
     // 本地歌曲
-    if (newIndexMediaItem.extras?['type'] == MediaType.local.name || newIndexMediaItem.extras?['type'] == MediaType.neteaseCache.name) {
+    if (newIndexMediaItem.extras?['type'] == MediaType.local.name) {
       url = newIndexMediaItem.extras?['url'] ?? '';
       if (url.isNotEmpty) {
         newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
-        // 是本地音乐
-        if (newIndexMediaItem.extras?['type'] == MediaType.local.name) {
-          await _player.setFilePath(url);
-        }
+        await _player.setFilePath(url);
+      }
+    // 网易云缓存
+    }else if (newIndexMediaItem.extras?['type'] == MediaType.neteaseCache.name){
+      url = newIndexMediaItem.extras?['url'] ?? '';
+      if (url.isNotEmpty) {
+        newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
         // 网易云缓存的音乐要解密哦
-        if (newIndexMediaItem.extras?['type'] == MediaType.neteaseCache.name) {
-          await _player.setAudioSource(StreamSource(url, url.replaceAll('.uc!', '').split('.').last));
-        }
+        await _player.setAudioSource(StreamSource(url, url.replaceAll('.uc!', '').split('.').last));
       }
     // 在线歌曲
     } else {
@@ -137,13 +174,13 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
         await _player.setUrl(url);
       }
     }
-    // 设置切换到当前歌曲
-    if (url.isNotEmpty) {
-      // 根据配置决定是否立即播放
-      if (playNow) await play();
-    // 获取不到歌曲资源跳过
-    } else {
-      await (isNext ? skipToNext() : skipToPrevious());
+    // 根据配置决定是否立即播放
+    if (playNow) {
+      if (url.isNotEmpty) {
+        await play();
+      } else {
+        await (isNext ? skipToNext() : skipToPrevious());
+      }
     }
   }
 
@@ -183,7 +220,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   Future<void> skipToNext() async {
     int newIndex;
     // 单曲循环模式直接返回
-    if (_curRepeatMode == AudioServiceRepeatMode.one) {
+    if (curRepeatMode == AudioServiceRepeatMode.one) {
       newIndex = _curIndex;
     } else {
       newIndex = _curIndex + 1;
@@ -197,7 +234,7 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   Future<void> skipToPrevious() async {
     // 单曲循环模式直接返回
     int newIndex;
-    if (_curRepeatMode == AudioServiceRepeatMode.one) {
+    if (curRepeatMode == AudioServiceRepeatMode.one) {
       newIndex = _curIndex;
     } else {
       newIndex = _curIndex - 1;
@@ -209,17 +246,29 @@ class BujuanAudioHandler extends BaseAudioHandler with SeekHandler, QueueHandler
   }
   @override
   Future<void> stop() async {
-    await _player.stop();
+    await changeRepeatMode();
   }
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
-    // 更新播放列表
-    _curRepeatMode = repeatMode;
   }
   @override
   Future<void> onTaskRemoved() async {
     await stop();
     await _player.dispose();
+  }
+
+  /// 更新状态栏控制按钮
+  _updateMediaControls() {
+    bool isLiked = mediaItem.value?.extras?['liked'] ?? false;
+    playbackState.add(playbackState.value.copyWith(
+        controls: [
+          MediaControl(label: 'rewind', action: MediaAction.rewind, androidIcon: isLiked ?'drawable/audio_service_like' : 'drawable/audio_service_unlike'),
+          MediaControl.skipToPrevious,
+          _player.playing ? MediaControl.pause : MediaControl.play,
+          MediaControl.skipToNext,
+          MediaControl.stop,
+        ]
+    ));
   }
 }
 
@@ -246,4 +295,121 @@ class StreamSource extends StreamAudioSource {
   }
 }
 
-Map<String, dynamic>? castMap(Map? map) => map?.cast<String, dynamic>();
+class MediaItemBean {
+  /// A unique id.
+  final String id;
+
+  /// The title of this media item.
+  final String title;
+
+  /// The album this media item belongs to.
+  final String? album;
+
+  /// The artist of this media item.
+  final String? artist;
+
+  /// The genre of this media item.
+  final String? genre;
+
+  /// The duration of this media item.
+  final Duration? duration;
+
+  /// The artwork for this media item as a uri.
+  final Uri? artUri;
+
+  /// Whether this is playable (i.e. not a folder).
+  final bool? playable;
+
+  /// Override the default title for display purposes.
+  final String? displayTitle;
+
+  /// Override the default subtitle for display purposes.
+  final String? displaySubtitle;
+
+  /// Override the default description for display purposes.
+  final String? displayDescription;
+
+  /// The rating of the MediaItemMessage.
+
+  /// A map of additional metadata for the media item.
+  ///
+  /// The values must be integers or strings.
+  final Map<String, dynamic>? extras;
+
+  /// Creates a [MediaItemBean].
+  ///
+  /// The [id] must be unique for each instance.
+  const MediaItemBean({
+    required this.id,
+    required this.title,
+    this.album,
+    this.artist,
+    this.genre,
+    this.duration,
+    this.artUri,
+    this.playable = true,
+    this.displayTitle,
+    this.displaySubtitle,
+    this.displayDescription,
+    this.extras,
+  });
+
+  /// Creates a [MediaItemBean] from a map of key/value pairs corresponding to
+  /// fields of this class.
+  factory MediaItemBean.fromMap(Map<String, dynamic> raw) => MediaItemBean(
+    id: raw['id'] as String,
+    title: raw['title'] as String,
+    album: raw['album'] as String?,
+    artist: raw['artist'] as String?,
+    genre: raw['genre'] as String?,
+    duration: raw['duration'] != null ? Duration(milliseconds: raw['duration'] as int) : null,
+    artUri: raw['artUri'] != null ? Uri.parse(raw['artUri'] as String) : null,
+    playable: raw['playable'] as bool?,
+    displayTitle: raw['displayTitle'] as String?,
+    displaySubtitle: raw['displaySubtitle'] as String?,
+    displayDescription: raw['displayDescription'] as String?,
+    extras: raw['extras'] as Map<String, dynamic>?,
+  );
+
+  /// Converts this [MediaItemBean] to a map of key/value pairs corresponding to
+  /// the fields of this class.
+  Map<String, dynamic> toMap() => <String, dynamic>{
+    'id': id,
+    'title': title,
+    'album': album,
+    'artist': artist,
+    'genre': genre,
+    'duration': duration?.inMilliseconds,
+    'artUri': artUri?.toString(),
+    'playable': playable,
+    'displayTitle': displayTitle,
+    'displaySubtitle': displaySubtitle,
+    'displayDescription': displayDescription,
+    'extras': extras,
+  };
+}
+Future<List<MediaItem>> stringToPlayList(List<String> cachedPlayList) async {
+  return cachedPlayList.map((e) {
+    var mediaItemBean = MediaItemBean.fromMap(jsonDecode(e));
+    return MediaItem(
+      id: mediaItemBean.id,
+      duration: mediaItemBean.duration,
+      artUri: mediaItemBean.artUri,
+      extras: mediaItemBean.extras,
+      title: mediaItemBean.title,
+      artist: mediaItemBean.artist,
+      album: mediaItemBean.album,
+    );
+  }).toList();
+}
+Future<List<String>> playListToString(List<MediaItem> playList) async {
+  return playList.map((e) => jsonEncode(MediaItemBean(
+    id: e.id,
+    album: e.album,
+    title: e.title,
+    artist: e.artist,
+    duration: e.duration,
+    artUri: e.artUri,
+    extras: e.extras,
+  ).toMap())).toList();
+}

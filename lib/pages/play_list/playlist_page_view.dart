@@ -183,22 +183,11 @@ class PlayListPageView extends GetView<PlayListController> {
                                           TablerIcons.player_play_filled,
                                           color: controller.widgetColor.value,
                                         ).paddingAll(8),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              '播放全部',
-                                              style: context.textTheme.titleMedium?.copyWith(
-                                                color: controller.widgetColor.value
-                                              )
-                                            ),
-                                            Text(
-                                                "${playList.trackCount ?? 0}首",
-                                                style: context.textTheme.titleSmall?.copyWith(
-                                                    color: controller.widgetColor.value
-                                                )
-                                            ),
-                                          ],
+                                        Text(
+                                          '播放全部',
+                                          style: context.textTheme.titleMedium?.copyWith(
+                                            color: controller.widgetColor.value
+                                          )
                                         ),
                                       ],
                                     ),
@@ -425,7 +414,7 @@ class PlayListItem extends StatelessWidget {
     return ListTile(
       visualDensity: VisualDensity.comfortable,
       onTap: () {
-        AppController.to.changeAppBarTitle(title: play.name ?? "", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
+        AppController.to.changeAppBarTitle(title: play.name ?? "",subTitle: play.trackCount.toString() + "首", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
         context.router.push(gr.PlayListRouteView(playList: play));
         },
       leading: SimpleExtendedImage(

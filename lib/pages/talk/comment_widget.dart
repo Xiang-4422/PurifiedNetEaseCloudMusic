@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/netease_api/src/netease_api.dart';
-import 'package:bujuan/widget/custom_filed.dart';
+import 'package:bujuan/pages/talk/custom_filed.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -18,6 +18,7 @@ import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
 import '../../controllers/app_controller.dart';
 
+// TODO YU4422: 评论功能后续开发
 /// 评论组件
 class CommentWidget extends StatelessWidget {
   final BuildContext context;

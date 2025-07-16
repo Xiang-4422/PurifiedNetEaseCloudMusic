@@ -111,21 +111,19 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
     int curNewIndex = playListCopy.indexWhere((element) => element.id == curSongId);
     _curIndex = curNewIndex;
     await updateQueue(playListCopy);
-
   }
   /// 在AudioHandle中打乱播放列表
   changePlayList(List<MediaItem> playList, {int index = 0, bool needStore = true, required bool changePlayerSource, required bool playNow}) async {
     // 保存当前播放列表(原始顺序列表)
     _originalPlayList..clear()..addAll(playList);
-    // 更新播放列表到播放器
+    var playListCopy = <MediaItem>[...playList];
+    // 随机播放模式，打乱播放列表，重新获取index
     if (AppController.to.isFmMode.isFalse && curRepeatMode == AudioServiceRepeatMode.none) {
-      // 随机播放模式，打乱播放列表，重新获取index
-      var playListCopy = <MediaItem>[...playList]..shuffle();
+      playListCopy.shuffle();
       index = playListCopy.indexWhere((element) => element.id == playList[index].id);
-      await updateQueue(playListCopy);
-    } else {
-      await updateQueue(playList);
     }
+    // 播放器播放列表更新
+    await updateQueue(playListCopy);
     // 是否更改当前播放源
     if (changePlayerSource) {
       // 是否直接开始播放
@@ -133,12 +131,12 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
     } else {
       _curIndex = index;
     }
-
     // 保存原始播放列表
     if (needStore) {
-      box.put(playQueue, await compute(playListToString, playList));
+      box.put(playQueue, await compute(playListToString, _originalPlayList));
     }
   }
+
   /// 这里Index是在 正在播放列表 中的索引
   playIndex({required int audioSourceIndex, required bool playNow}) async {
     // _player.stop();

@@ -1,4 +1,3 @@
-
 import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
@@ -14,11 +13,10 @@ import 'pages/play_list/playlist_controller.dart';
 import 'routes/router.gr.dart';
 
 /// 应用配置
-class AppRootWidget extends StatelessWidget {
-  AppRootWidget({Key? key}) : super(key: key);
+class AppRootRouter extends StatelessWidget {
+  AppRootRouter({Key? key}) : super(key: key);
 
   final _rootRouter = RootRouter();
-
 
   @override
   Widget build(BuildContext context) {

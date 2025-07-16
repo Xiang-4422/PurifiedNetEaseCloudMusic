@@ -15,7 +15,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 
 import '../../common/constants/other.dart';
-import '../../widget/custom_filed.dart';
+import '../talk/custom_filed.dart';
 import '../../widget/custom_zoom_drawer/src/flutter_zoom_drawer.dart';
 import '../../widget/simple_extended_image.dart';
 import 'top_panel/top_panel_view.dart';
@@ -40,7 +40,8 @@ class AppRootPageView extends GetView<AppController>{
             maxHeight: context.height,
             minHeight: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
             boxShadow: null,
-            collapsed: const TopPanelHeaderAppBar(),
+            // collapsed: const TopPanelHeaderAppBar(),
+            footer: Obx(() => Visibility(visible: controller.topPanelFullyClosed.isTrue,child: const TopPanelHeaderAppBar())),
             panel: const TopPanelView(),
             body: SlidingUpPanel(
               controller: controller.bottomPanelController,

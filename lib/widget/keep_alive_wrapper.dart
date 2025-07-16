@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-/// 用于让 Widget 不被销毁
+/// 用于让 PageView 或 ListView 中的子 Widget 不被销毁
 class KeepAliveWrapper extends StatefulWidget {
   final Widget child;
 

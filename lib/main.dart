@@ -3,7 +3,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/bujuan_audio_handler.dart';
 import 'package:bujuan/common/constants/platform_utils.dart';
 import 'package:bujuan/controllers/app_controller.dart';
-import 'package:bujuan/app_root_widget.dart';
+import 'package:bujuan/app_root_router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -32,7 +32,7 @@ main() async {
   Get.lazyPut<ExplorePageController>(() => ExplorePageController());
   Get.lazyPut<AppController>(() => AppController());
 
-  runApp(AppRootWidget());
+  runApp(AppRootRouter());
 }
 
 Future<void> _initUI() async {

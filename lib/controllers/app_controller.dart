@@ -33,7 +33,7 @@ import '../pages/home/body/app_body_page_view.dart';
 import 'user_controller.dart';
 
 /// 所有Controller都放在HomeController中统一控制
-class AppController extends SuperController with GetTickerProviderStateMixin {
+class AppController extends SuperController with GetTickerProviderStateMixin, WidgetsBindingObserver {
   static AppController get to => Get.find();
 
   // --- 无功能分类 ---
@@ -121,6 +121,9 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   RxBool topPanelFullyOpened = false.obs;
   RxBool topPanelFullyClosed = true.obs;
   RxString searchContent = ''.obs;
+  final FocusNode searchFocusNode = FocusNode();
+  RxDouble keyBoardHeight = 0.0.obs;
+
 
   // --- 歌词 ---
   ItemScrollController lyricScrollController = ItemScrollController();
@@ -158,6 +161,8 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
     _initAppSetting();
     _initUserData();
     _initUIController();
+
+    WidgetsBinding.instance.addObserver(this);
     super.onInit();
   }
   _initUIController() {
@@ -327,10 +332,10 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
     // --- 从本地恢复上次关闭播放状态 ---
     await audioHandler.restoreLastPlayState();
   }
+  /// 监听歌单和歌曲变化时更新当前播放索引
   _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {
     int lastPlayIndex = curPlayIndex.value;
-    int newIndex = curPlayList.indexWhere((element) =>
-    element.id == curMediaItem.value.id);
+    int newIndex = curPlayList.indexWhere((element) => element.id == curMediaItem.value.id);
     curPlayIndex.value = newIndex;
     if (curMediaItemUpdated) {
       // 更新背景
@@ -340,7 +345,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
       // 更新歌曲标题
       _updateAppBarTitleToCurSong(lastPlayIndex);
     }
-    // 切换专辑封面
+    // 专辑封面滚动到当前歌曲
     await _animateAlbumPageViewToCurSong();
     // 正在播放列表滚动到当前歌曲
     await _animatePlayListToCurSong();
@@ -371,9 +376,11 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   }
   @override
   void didChangeMetrics() {
-    // TODO: implement didChangeMetrics
-    super.didChangeMetrics();
-    // print('objectdidChangeMetrics');
+    // 监听窗口变化（包括键盘高度变化）
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      keyBoardHeight.value = MediaQuery.of(buildContext).viewInsets.bottom;
+      log("keyBoardHeight: ${keyBoardHeight.value}");
+    });
   }
   @override
   void didChangePlatformBrightness() {
@@ -390,6 +397,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
       systemNavigationBarContrastEnforced: false,
     ));
   }
+
 
   initHomePageController(PageController controller) {
     isHomePageControllerInited = true;
@@ -522,6 +530,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
       if (curPanelPageIndex.value == 0) {
         _animatePlayListToCurSong();
       }
+
     }
 
   }
@@ -535,6 +544,11 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
     }
     if (topPanelFullyOpened.value != (openDegree == 1.0)){
       topPanelFullyOpened.value = (openDegree == 1.0);
+      if (topPanelFullyOpened.isTrue) {
+        if (searchContent.isEmpty) searchFocusNode.requestFocus();
+      } else {
+        searchFocusNode.unfocus();
+      }
     }
 
   }
@@ -542,7 +556,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   /// 当按下返回键
   onWillPop() {
     if (topPanelController.isPanelOpen) {
-      bottomPanelController.close();
+      topPanelController.close();
       return;
     }
     if (bottomPanelController.isPanelOpen) {
@@ -670,21 +684,17 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
 
   /// 滚动播放列表到当前播放歌曲
   _animatePlayListToCurSong() async {
-    if (bottomPanelFullyOpened.isTrue && curPanelPageIndex.value == 0) {
-      double offset = 60.0 * curPlayIndex.value;
-      await playListScrollController.animateTo(offset, duration: const Duration(milliseconds: 300), curve: Curves.linear);
-    }
+    if (!playListScrollController.hasClients) return;
+    await playListScrollController.animateTo(60.0 * curPlayIndex.value, duration: const Duration(milliseconds: 300), curve: Curves.linear);
   }
   _animateAlbumPageViewToCurSong() async {
-    if (!albumPageController.hasClients) return;
-    if (!isAlbumScrollingManully) {
-      isAlbumScrollingProgrammatic = true;
-      bool isNearBy = (curPlayIndex.value - albumPageController.page!.toInt()).abs() <= 1;
-      if (isNearBy && bottomPanelFullyOpened.isTrue) {
-        await albumPageController.animateToPage(curPlayIndex.value , duration: const Duration(milliseconds: 300), curve: Curves.linear);
-      } else {
-        albumPageController.jumpToPage(curPlayIndex.value );
-      }
+    if (!albumPageController.hasClients || isAlbumScrollingManully || curPlayIndex.value == albumPageController.page!.toInt()) return;
+    isAlbumScrollingProgrammatic = true;
+    bool isNearBy = (curPlayIndex.value - albumPageController.page!.toInt()).abs() <= 1;
+    if (isNearBy && bottomPanelFullyOpened.isTrue) {
+      await albumPageController.animateToPage(curPlayIndex.value , duration: const Duration(milliseconds: 300), curve: Curves.linear);
+    } else {
+      albumPageController.jumpToPage(curPlayIndex.value );
     }
   }
   _updateAppBarTitleToCurSong(int lastPlayIndex) {
@@ -732,7 +742,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
     if(isInit) {
       await audioHandler.changePlayList(fmPlayList, changePlayerSource: true, playNow: true);
     } else {
-      await audioHandler.changePlayList(fmPlayList..insert(0, curMediaItem.value), index: curPlayIndex.value, playNow: false, changePlayerSource: false);
+      await audioHandler.changePlayList(fmPlayList..insertAll(0, curPlayList), index: curPlayIndex.value, playNow: false, changePlayerSource: false);
     }
   }
   _changePlayList(List<MediaItem> playList, {required bool changePlayerSource, required bool playNow, int index = 0, bool needStore = true}) async {

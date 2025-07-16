@@ -17,7 +17,7 @@ import '../../../common/netease_api/src/api/play/bean.dart';
 import '../../../common/netease_api/src/api/search/bean.dart';
 import '../../../common/netease_api/src/dio_ext.dart';
 import '../../../common/netease_api/src/netease_handler.dart';
-import '../../../widget/custom_filed.dart';
+import '../../talk/custom_filed.dart';
 import '../../../widget/request_widget/request_loadmore_view.dart';
 import '../../play_list/playlist_page_view.dart';
 
@@ -47,8 +47,9 @@ class TopPanelView extends GetView<AppController> {
         ),
         Column(
           children: [
-            // 搜索栏
-            _buildSearchBar(context),
+            Container(
+              height: context.mediaQueryPadding.top,
+            ),
             Expanded(
               child: Obx(() => Visibility(
                   visible: controller.searchContent.value.isEmpty,
@@ -58,6 +59,44 @@ class TopPanelView extends GetView<AppController> {
                     child: Column(
                       key: ValueKey(controller.searchContent.value),
                       children: [
+                        Container(
+                          height: AppDimensions.appBarHeight,
+                          margin: EdgeInsets.all(AppDimensions.paddingSmall),
+                          decoration: BoxDecoration(
+                              color: context.theme.colorScheme.primary.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(AppDimensions.appBarHeight / 2)
+                          ),
+                          // color: Colors.red,
+                          child: TabBar(
+                            padding: EdgeInsets.zero,
+                            labelPadding: EdgeInsets.zero,
+                            dividerColor: Colors.transparent,
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            indicatorWeight: 0,
+                            indicator: BoxDecoration(
+                              color: context.theme.colorScheme.onPrimary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(AppDimensions.paddingLarge),
+                            ),
+                            tabs: [
+                              Text(
+                                "单曲",
+                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                              ),
+                              Text(
+                                "歌单",
+                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                              ),
+                              Text(
+                                "专辑",
+                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                              ),
+                              Text(
+                                "歌手",
+                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                              ),
+                            ],
+                          ),
+                        ),
                         Expanded(
                           child: Obx(() => TabBarView(
                             children: [
@@ -126,75 +165,32 @@ class TopPanelView extends GetView<AppController> {
                             ],
                           ))
                         ),
-                        Container(
-                          height: AppDimensions.appBarHeight,
-                          margin: EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-                          decoration: BoxDecoration(
-                              color: context.theme.colorScheme.primary.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(AppDimensions.appBarHeight / 2)
-                          ),
-                          // color: Colors.red,
-                          child: TabBar(
-                            padding: EdgeInsets.zero,
-                            labelPadding: EdgeInsets.zero,
-                            dividerColor: Colors.transparent,
-                            indicatorSize: TabBarIndicatorSize.tab,
-                            indicatorWeight: 0,
-                            indicator: BoxDecoration(
-                              color: context.theme.colorScheme.onPrimary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(AppDimensions.paddingLarge),
-                            ),
-                            tabs: [
-                              Text(
-                                "单曲",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
-                              ),
-                              Text(
-                                "歌单",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
-                              ),
-                              Text(
-                                "专辑",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
-                              ),
-                              Text(
-                                "歌手",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
-                              ),
-                            ],
-                          ),
-                        ),
                       ],
                     ),
                   ),
                   // 热门搜索
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-                    margin: EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall, vertical: AppDimensions.paddingSmall),
-                    decoration: BoxDecoration(
-                        color: context.theme.colorScheme.primary.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(AppDimensions.appBarHeight / 2)
-                    ),
-                    child: RequestWidget<SearchKeyWrapX>(
+                  child: _buildTopPanelCard(context, RequestWidget<SearchKeyWrapX>(
                       dioMetaData: searchHotKeyDioMetaData(),
-                      childBuilder: (data) => Column(
+                      childBuilder: (data) => ListView(
+                        padding: EdgeInsets.zero,
                         children: data.result.hots.map((e) => UniversalListTile(
-                            titleString: e.first ?? '',
+                          titleString: e.first ?? '',
                           onTap: () {
-                              controller.searchTextEditingController.text = e.first ?? '';
-                            },
-                          )).toList(),
+                            controller.searchFocusNode.unfocus();
+                            controller.searchTextEditingController.text = e.first ?? '';
+                          },
+                        )).toList(),
                       )
-                    ),
-                  ),
+                  )).marginOnly(top: AppDimensions.paddingSmall),
                 )),
             ),
+            // 搜索栏
+            _buildSearchBar(context),
             // Panel关闭时占位
-            Obx(() => Offstage(
-                offstage: AppController.to.topPanelFullyClosed.isFalse,
-                child: Container(
-                  height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
-                )
+            Obx(() => Container(
+              height: AppController.to.topPanelFullyClosed.isTrue
+                  ? AppDimensions.appBarHeight + context.mediaQueryPadding.top
+                  : AppController.to.keyBoardHeight.value,
             ))
           ],
         ),
@@ -205,7 +201,7 @@ class TopPanelView extends GetView<AppController> {
   Widget _buildSearchBar(BuildContext context) {
     return Container(
         height: AppDimensions.appBarHeight,
-        margin: EdgeInsets.only(top: context.mediaQueryPadding.top, left: AppDimensions.paddingSmall, right: AppDimensions.paddingSmall),
+        margin: EdgeInsets.all(AppDimensions.paddingSmall),
         decoration: BoxDecoration(
             color: context.theme.colorScheme.primary.withOpacity(0.5),
             borderRadius: BorderRadius.circular(AppDimensions.appBarHeight / 2)
@@ -228,6 +224,7 @@ class TopPanelView extends GetView<AppController> {
             Expanded(
               child: TextField(
                 controller: controller.searchTextEditingController,
+                focusNode: controller.searchFocusNode,
                 cursorColor: Theme.of(context).primaryColor.withOpacity(.4),
                 style: context.textTheme.titleMedium,
                 decoration: InputDecoration(
@@ -240,19 +237,36 @@ class TopPanelView extends GetView<AppController> {
                 ),
               ),
             ),
-            IconButton(
-              iconSize: AppDimensions.appBarHeight / 2,
-              padding: EdgeInsets.all(AppDimensions.appBarHeight / 8),
-              style: IconButton.styleFrom(
-                backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
-              ),
-              icon: Icon(
-                TablerIcons.x,
-              ),
-              onPressed: () {
-                controller.searchTextEditingController.clear();
-              },
-            ).marginAll(AppDimensions.appBarHeight / 8)
+            Obx(() => Visibility(
+              visible: controller.searchContent.isNotEmpty,
+              replacement: IconButton(
+                iconSize: AppDimensions.appBarHeight / 2,
+                padding: EdgeInsets.all(AppDimensions.appBarHeight / 8),
+                style: IconButton.styleFrom(
+                  backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
+                ),
+                icon: Icon(
+                  TablerIcons.arrow_up,
+                ),
+                onPressed: () {
+                  controller.topPanelController.close();
+                },
+              ).marginAll(AppDimensions.appBarHeight / 8),
+              child: IconButton(
+                iconSize: AppDimensions.appBarHeight / 2,
+                padding: EdgeInsets.all(AppDimensions.appBarHeight / 8),
+                style: IconButton.styleFrom(
+                  backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
+                ),
+                icon: Icon(
+                  TablerIcons.x,
+                ),
+                onPressed: () {
+                  controller.searchTextEditingController.clear();
+                  controller.searchFocusNode.requestFocus();
+                },
+              ).marginAll(AppDimensions.appBarHeight / 8),
+            ))
           ],
         )
     );
@@ -268,7 +282,7 @@ class TopPanelView extends GetView<AppController> {
       ),
       clipBehavior: Clip.hardEdge,
       child: child,
-    ).marginAll(AppDimensions.paddingSmall);
+    ).marginSymmetric(horizontal: AppDimensions.paddingSmall);
   }
 
   DioMetaData searchDioMetaData(String keyword, int type, {int offset = 0, int limit = 30}) {

@@ -10,7 +10,7 @@ import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/artist/artist_page_view.dart';
 import 'package:bujuan/pages/home/bottom_panel/lyric_view.dart';
 import 'package:bujuan/pages/talk/comment_widget.dart';
-import 'package:bujuan/widget/keep_alive.dart';
+import 'package:bujuan/widget/keep_alive_wrapper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -45,12 +45,12 @@ class BottomPanelView extends GetView<AppController> {
           builder: (BuildContext context, Widget? child) {
             double panelOpenDegree = controller.bottomPanelAnimationController.value;
             return Obx(() => BlurryContainer(
-                blur: 20 * (1 - panelOpenDegree),
-                padding: EdgeInsets.zero,
-                borderRadius: BorderRadius.all(Radius.circular(AppDimensions.phoneCornerRadius * (1 - panelOpenDegree))),
-                color: controller.albumColor.value.withOpacity(0.5 * (1 + panelOpenDegree)),
-                child: Container(),
-              ),
+              blur: 20 * (1 - panelOpenDegree),
+              padding: EdgeInsets.zero,
+              borderRadius: BorderRadius.all(Radius.circular(AppDimensions.phoneCornerRadius * (1 - panelOpenDegree))),
+              color: controller.albumColor.value.withOpacity(0.5 * (1 + panelOpenDegree)),
+              child: Container(),
+            ),
             );
           },
         ),
@@ -66,86 +66,82 @@ class BottomPanelView extends GetView<AppController> {
             )),
             // 专辑
             Obx(() => Offstage(
-                offstage: controller.isAlbumVisible.isFalse,
-                child: Visibility(
-                  maintainSize: true,
-                  maintainAnimation: true,
-                  maintainState: true,
-                  visible: controller.bottomPanelFullyOpened.isTrue,
-                  child: Container(
-                    margin: EdgeInsets.only(top: context.mediaQueryPadding.top + AppDimensions.appBarHeight),
-                    height: context.width,
-                    child: OverflowBox(
-                      maxWidth: context.width * 3,
-                      child: Obx(() => NotificationListener<ScrollNotification>(
-                        // 监听滚动状态
-                        onNotification: (notification) {
-                          // 判断滚动是否是用户手势触发
-                          if (notification is ScrollStartNotification) {
-                            if (notification.dragDetails != null && !controller.isAlbumScrollingProgrammatic) {
-                              controller.isAlbumScrollingManully = true;
-                            }
-                            // 滚动结束时重置用户滚动状态 (这里只是一个辅助，主要靠计时器)
-                          } else if (notification is ScrollEndNotification) {
-                            controller.isAlbumScrollingManully = false;
-                            controller.isAlbumScrollingProgrammatic = false;
+              offstage: controller.isAlbumVisible.isFalse,
+              child: Visibility(
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                visible: controller.bottomPanelFullyOpened.isTrue,
+                child: Container(
+                  margin: EdgeInsets.only(top: context.mediaQueryPadding.top + AppDimensions.appBarHeight),
+                  height: context.width,
+                  child: OverflowBox(
+                    maxWidth: context.width * 3,
+                    child: Obx(() => NotificationListener<ScrollNotification>(
+                      // 监听滚动状态
+                      onNotification: (notification) {
+                        // 判断滚动是否是用户手势触发
+                        if (notification is ScrollStartNotification) {
+                          if (notification.dragDetails != null && !controller.isAlbumScrollingProgrammatic) {
+                            controller.isAlbumScrollingManully = true;
                           }
-                          // 返回 false 让通知继续冒泡，以便 itemPositionsNotifier 也能收到
-                          return false;
+                          // 滚动结束时重置用户滚动状态
+                        } else if (notification is ScrollEndNotification) {
+                          controller.isAlbumScrollingManully = false;
+                          controller.isAlbumScrollingProgrammatic = false;
+                        }
+                        // 返回 false 让通知继续冒泡，以便 itemPositionsNotifier 也能收到
+                        return false;
+                      },
+                      child: PageView.builder(
+                        controller: controller.albumPageController,
+                        itemCount: controller.curPlayList.length,
+                        onPageChanged: (index) {
+                          if (controller.isAlbumScrollingManully) {
+                            controller.audioHandler.playIndex(audioSourceIndex: index, playNow: true);
+                          }
                         },
-                        child: PageView.builder(
-                          controller: controller.albumPageController,
-                          itemCount: controller.curPlayList.length,
-                          onPageChanged: (index) {
-                            DateTime now = DateTime.now();
-                            print('统计开始: $now');
-                            if (controller.isAlbumScrollingManully) {
-                              controller.audioHandler.playIndex(audioSourceIndex: index, playNow: true);
-                            }
-                            now = DateTime.now();
-                            print('统计结束: $now');
-                          },
-                          itemBuilder: (BuildContext context, int index) {
-                            print("albumbuildIndex: $index");
-                            return AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 500),
-                              transitionBuilder: (Widget child, Animation<double> animation) {
-                                return FadeTransition(
-                                  opacity: animation,
-                                  child: child,
-                                );
-                              },
-                              child: Container(
-                                clipBehavior: Clip.hardEdge,
-                                margin: EdgeInsets.all(AppDimensions.paddingLarge),
-                                decoration: BoxDecoration(
-                                  boxShadow: [
-                                    controller.bottomPanelFullyOpened.value
-                                        ? BoxShadow(
-                                      color: Colors.black.withOpacity(0.4), // 阴影颜色
-                                      blurRadius: 12, // 模糊半径
-                                      spreadRadius: 2, // 扩散半径
-                                    )
-                                        : const BoxShadow()
-                                  ],
-                                ),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    controller.isAlbumVisible.value = !controller.isAlbumVisible.value;
-                                  },
-                                  child: Obx(() => SimpleExtendedImage(
-                                    '${controller.curPlayList[index].extras?['image'] ?? ''}?param=500y500',
-                                  )),
-                                ),
+                        itemBuilder: (BuildContext context, int index) {
+                          print("albumbuildIndex: $index");
+                          return AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 500),
+                            transitionBuilder: (Widget child, Animation<double> animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              );
+                            },
+                            child: Container(
+                              clipBehavior: Clip.hardEdge,
+                              margin: EdgeInsets.all(AppDimensions.paddingLarge),
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  controller.bottomPanelFullyOpened.value
+                                      ? BoxShadow(
+                                    color: Colors.black.withOpacity(0.4), // 阴影颜色
+                                    blurRadius: 12, // 模糊半径
+                                    spreadRadius: 2, // 扩散半径
+                                  )
+                                      : const BoxShadow()
+                                ],
                               ),
-                            );
-                          },
-                        ),
-                      )),
-                    ),
+                              child: GestureDetector(
+                                onTap: () {
+                                  controller.isAlbumVisible.value = !controller.isAlbumVisible.value;
+                                },
+                                child: Obx(() => SimpleExtendedImage(
+                                  '${controller.curPlayList[index].extras?['image'] ?? ''}?param=500y500',
+                                )),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    )),
                   ),
                 ),
-              )),
+              ),
+            )),
             Expanded(
               child: PageView(
                 controller: controller.bottomPanelPageController,

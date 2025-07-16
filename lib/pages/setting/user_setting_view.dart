@@ -1,17 +1,17 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
+import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:get/get.dart';
 
 import '../../common/constants/appConstants.dart';
 import '../../common/netease_api/src/api/user/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
-import '../user/personal_page_controller.dart';
+import '../../controllers/user_controller.dart';
 
 class UserSettingView extends StatefulWidget {
   const UserSettingView({Key? key}) : super(key: key);
@@ -37,24 +37,24 @@ class _UserSettingViewState extends State<UserSettingView> {
             children: [
               Container(
                 width: context.width,
-                margin: EdgeInsets.only(top: 200.w),
-                padding: EdgeInsets.only(left: 15.w, right: 15.w, bottom: 25.w, top: 80.w),
-                decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(25.w)),
+                margin: EdgeInsets.only(top: 200),
+                padding: EdgeInsets.only(left: 15, right: 15, bottom: 25, top: 80),
+                decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(25)),
                 child: Column(
                   children: [
                     Text(
                       userData.profile.nickname ?? '',
-                      style: TextStyle(fontSize: 56.sp),
+                      style: TextStyle(fontSize: 56),
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10.w),
+                      padding: EdgeInsets.symmetric(vertical: 10),
                       child: Text(
                         userData.profile.signature ?? '',
-                        style: TextStyle(fontSize: 32.sp, color: Colors.grey),
+                        style: TextStyle(fontSize: 32, color: Colors.grey),
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20.w,horizontal: 20.w),
+                      padding: EdgeInsets.symmetric(vertical: 20,horizontal: 20),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -69,20 +69,21 @@ class _UserSettingViewState extends State<UserSettingView> {
                     ),
                     Obx(() => Visibility(
                       visible: AppController.to.loginStatus.value == LoginStatus.login,
+
                       child: GestureDetector(
                         child: Container(
-                          height: 88.w,
+                          height: 88,
                           alignment: Alignment.center,
                           width: context.width,
-                          margin: EdgeInsets.symmetric(vertical: 40.w, horizontal: 35.w),
-                          decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(20.w)),
+                          margin: EdgeInsets.symmetric(vertical: 40, horizontal: 35),
+                          decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(20)),
                           child: Text(
                             '注销登录',
-                            style: TextStyle(fontSize: 28.sp, color: Colors.white),
+                            style: TextStyle(fontSize: 28, color: Colors.white),
                           ),
                         ),
                         onTap: () {
-                          PersonalPageController.to.clearUser();
+                          UserController.to.clearUser();
                           AutoRouter.of(context).pop();
                         },
                       ),
@@ -92,7 +93,7 @@ class _UserSettingViewState extends State<UserSettingView> {
               ),
               SimpleExtendedImage.avatar(
                 AppController.to.userData.value.profile?.avatarUrl ?? '',
-                width: 260.w,
+                width: 260,
               ),
             ],
           ),

@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
+import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/controllers/user_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../common/constants/enmu.dart';
-import '../user/personal_page_controller.dart';
+import '../common/constants/enmu.dart';
 
 class ExplorePageController extends GetxController {
   RxList<PlayList> playlists = <PlayList>[].obs;

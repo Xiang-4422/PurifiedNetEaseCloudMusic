@@ -2,15 +2,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
+import 'package:bujuan/controllers/app_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
-import '../../routes/router.gr.dart';
 
 class SettingPageView extends StatefulWidget {
   const SettingPageView({Key? key}) : super(key: key);
@@ -43,9 +41,7 @@ class _SettingPageViewState extends State<SettingPageView> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => AbsorbPointer(
-        absorbing: !AppController.to.isDrawerClosed.value,
-        child: ListView(
+    return ListView(
             padding: EdgeInsets.only(
                 top: context.mediaQueryPadding.top + AppDimensions.appBarHeight,
                 bottom: AppDimensions.bottomPanelHeaderHeight
@@ -54,9 +50,7 @@ class _SettingPageViewState extends State<SettingPageView> {
               _buildUiSetting(),
               _buildAppSetting(),
             ],
-          ),
-      ),
-    );
+          );
   }
 
   Widget _buildUiSetting() {
@@ -67,12 +61,12 @@ class _SettingPageViewState extends State<SettingPageView> {
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.symmetric(vertical: 15.w, horizontal: 10.w),
+            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
             alignment: Alignment.centerLeft,
             child: Text(
               'UI设置',
               style: TextStyle(
-                fontSize: 28.sp,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).cardColor.withOpacity(.4),
               ),
@@ -82,11 +76,11 @@ class _SettingPageViewState extends State<SettingPageView> {
             contentPadding: const EdgeInsets.all(0),
             title: Text(
               '渐变播放背景(需开启智能取色)',
-              style: TextStyle(fontSize: 30.sp),
+              style: TextStyle(fontSize: 30),
             ),
             trailing: Obx(() => Icon(
                   AppController.to.isGradientBackground.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
-                  size: 56.w,
+                  size: 56,
                   color: Theme.of(context).cardColor.withOpacity(AppController.to.isGradientBackground.value ? 0.7 : .4),
                 )),
             onTap: () {
@@ -98,11 +92,11 @@ class _SettingPageViewState extends State<SettingPageView> {
             contentPadding: const EdgeInsets.all(0),
             title: Text(
               '圆形专辑',
-              style: TextStyle(fontSize: 30.sp),
+              style: TextStyle(fontSize: 30),
             ),
             trailing: Obx(() => Icon(
                   AppController.to.isRoundAlbumOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
-                  size: 56.w,
+                  size: 56,
                   color: Theme.of(context).cardColor.withOpacity(AppController.to.isRoundAlbumOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
@@ -120,16 +114,16 @@ class _SettingPageViewState extends State<SettingPageView> {
       margin: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 20),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(22.5)),
-      // padding: EdgeInsets.symmetric(horizontal: 15.w),
+      // padding: EdgeInsets.symmetric(horizontal: 15),
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.symmetric(vertical: 15.w, horizontal: 10.w),
+            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
             alignment: Alignment.centerLeft,
             child: Text(
               'App设置',
               style: TextStyle(
-                fontSize: 28.sp,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).cardColor.withOpacity(.4)
               ),
@@ -139,11 +133,11 @@ class _SettingPageViewState extends State<SettingPageView> {
             contentPadding: const EdgeInsets.all(0),
             title: Text(
               '开启高音质(与会员有关)',
-              style: TextStyle(fontSize: 30.sp),
+              style: TextStyle(fontSize: 30),
             ),
             trailing: Obx(() => Icon(
                   AppController.to.isHighSoundQualityOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
-                  size: 56.w,
+                  size: 56,
                   color: Theme.of(context).cardColor.withOpacity(AppController.to.isHighSoundQualityOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
@@ -155,11 +149,11 @@ class _SettingPageViewState extends State<SettingPageView> {
             contentPadding: const EdgeInsets.all(0),
             title: Text(
               '开启缓存',
-              style: TextStyle(fontSize: 30.sp),
+              style: TextStyle(fontSize: 30),
             ),
             trailing: Obx(() => Icon(
                   AppController.to.isCacheOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
-                  size: 56.w,
+                  size: 56,
                   color: Theme.of(context).cardColor.withOpacity(AppController.to.isCacheOpen.value ? 0.7 : .4),
                 )),
             onTap: () {
@@ -170,11 +164,11 @@ class _SettingPageViewState extends State<SettingPageView> {
           // ListTile(
           //   title: Text(
           //     '清理缓存',
-          //     style: TextStyle(fontSize: 30.sp),
+          //     style: TextStyle(fontSize: 30),
           //   ),
           //   trailing: Icon(
           //     TablerIcons.chevron_right,
-          //     size: 42.w,
+          //     size: 42),
           //     color: Theme.of(context).cardColor.withOpacity(.6),
           //   ),
           //   onTap: () async {

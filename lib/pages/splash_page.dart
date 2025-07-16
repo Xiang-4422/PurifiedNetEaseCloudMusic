@@ -25,7 +25,6 @@ class SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
 
-
     Brightness statusBarBrightness = Get.isPlatformDarkMode ? Brightness.dark : Brightness.light;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarBrightness: statusBarBrightness,
@@ -36,6 +35,7 @@ class SplashPageState extends State<SplashPage> {
       Future.delayed(splashPageShowTime, () => AutoRouter.of(context).replaceNamed(Routes.home));
     });
   }
+
 
   @override
   void dispose() {

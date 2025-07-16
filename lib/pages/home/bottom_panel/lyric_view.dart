@@ -1,14 +1,14 @@
 import 'dart:ui';
 
-import 'package:bujuan/pages/home/app_controller.dart';
-import 'package:bujuan/pages/home/view/panel_view.dart';
+import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/pages/home/bottom_panel/bottom_panel_view.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -59,11 +59,10 @@ class LyricView extends GetView<AppController> {
                 child = Obx((){
                   bool isActive = controller.currLyricIndex.value == index;
                   return AnimatedDefaultTextStyle(
-                    style: TextStyle(
+                    style: context.theme.textTheme.titleLarge!.copyWith(
                       fontFamily: 'monospace', // 指定使用系统等宽字体
                       color: controller.panelWidgetColor.value.withOpacity(isActive ? 1 : 0.2),
                       fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 50.sp,
                     ),
                     curve: Curves.decelerate,
                     textAlign: TextAlign.start,

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 
 class MyTabBar extends StatefulWidget {
   const MyTabBar({Key? key}) : super(key: key);
@@ -28,15 +28,15 @@ class _MyTabBarState extends State<MyTabBar> {
             _buildItem(),
           ],
         )),
-        Image.asset('assets/images/logo.png',width: 65.w,height: 65.w,)
+        Image.asset('assets/images/logo.png',width: 65,height: 65,)
       ],
     );
   }
 
   Widget _buildItem(){
     return Expanded(child: Container(
-      width: 65.w,
-      height: 65.w,
+      width: 65,
+      height: 65,
       decoration: const BoxDecoration(
         color: Colors.blue
       ),

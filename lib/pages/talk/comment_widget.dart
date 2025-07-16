@@ -6,7 +6,7 @@ import 'package:bujuan/widget/custom_filed.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
@@ -16,93 +16,7 @@ import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
-import '../home/app_controller.dart';
-
-/// 独立评论页面
-class CommentPageView extends GetView<AppController>{
-  late String id;
-  late String type;
-  late Color backgroundColor = Colors.black;
-  final List<TalkItem> _tabs = [
-    TalkItem('热门', 2),
-    TalkItem('最新', 3),
-  ];
-  final TextEditingController _textEditingController = TextEditingController();
-
-  CommentPageView({Key? key, this.id = "",this.type = ""}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    id = context.routeData.queryParams.getString('id');
-    type = context.routeData.queryParams.getString('type');
-    double tabBarHeight = context.width * (1 - AppDimensions.albumMaxWidth) / 2;
-    double appBarHeight = AppDimensions.appBarHeight + context.mediaQueryPadding.top;
-
-    return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.5),
-      body: DefaultTabController(
-        length: 2,
-        child: Stack(
-          children: [
-            TabBarView(
-              children: _tabs.map((talkItem) {
-                return Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: CommentWidget(
-                    context: context,
-                    id: id,
-                    idType: type,
-                    commentType: talkItem.type,
-                    listPaddingTop: tabBarHeight + appBarHeight,
-                    listPaddingBottom: 0,
-                  ),
-                );
-              }).toList()
-            ),
-            BlurryContainer(
-                height: tabBarHeight + appBarHeight,
-                blur: 20,
-                borderRadius: BorderRadius.zero,
-                padding: EdgeInsets.only(
-                  top: appBarHeight,
-                  left: 20,
-                  right: 20
-                ),
-                child: TabBar(
-                  dividerColor: Colors.transparent,
-                  indicatorWeight: 0,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicator: BoxDecoration(
-                    color: controller.panelWidgetColor.value.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(tabBarHeight),
-                  ),
-                  tabs: [
-                    Tab(text: '热门评论'),
-                    Tab(text: '最新评论'),
-                  ]
-                )
-            ),
-          ],
-        ),
-      ),
-      // bottomSheet: Row(
-      //   children: [
-      //     Padding(padding: EdgeInsets.only(left: 20.w)),
-      //     Expanded(
-      //         child: CustomFiled(
-      //           iconData: TablerIcons.message_2,
-      //           textEditingController: _textEditingController,
-      //           hitText: '请输入想说的话',
-      //         )
-      //     ),
-      //     IconButton(onPressed: () => _sendMessage(context), icon: const Icon(TablerIcons.brand_telegram))
-      //   ],
-      // ),
-    );
-  }
-
-
-}
+import '../../controllers/app_controller.dart';
 
 /// 评论组件
 class CommentWidget extends StatelessWidget {
@@ -112,6 +26,7 @@ class CommentWidget extends StatelessWidget {
   final String idType;        // 歌曲、歌单
   final double listPaddingTop;
   final double listPaddingBottom;
+  final Color stringColor;
   final TextEditingController _textEditingController = TextEditingController();
 
   CommentWidget({
@@ -121,7 +36,8 @@ class CommentWidget extends StatelessWidget {
     required this.idType,
     required this.commentType,
     required this.listPaddingTop,
-    required this.listPaddingBottom
+    required this.listPaddingBottom,
+    required this.stringColor
   }) : super(key: key);
 
   @override
@@ -165,42 +81,41 @@ class CommentWidget extends StatelessWidget {
                 opacity: 0.8,
                 child: SimpleExtendedImage.avatar(
                   '${comment.user.avatarUrl ?? ''}?param=150y150',
-                  width: 60.w,
-                  height: 60.w,
+                  width: 30,
+                  height: 30,
                 ).paddingOnly(right: 10),
               ),
               // 用户名、评论时间
               Expanded(
                   child: RichText(
-                      text: TextSpan(
-                          text: comment.user.nickname ?? '',
+                    // 评论用户
+                    text: TextSpan(
+                      text: comment.user.nickname ?? '',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: stringColor.withOpacity(0.6),
+                      ),
+                      children: [
+                        // 评论时间
+                        TextSpan(
+                          text: '\n${OtherUtils.formatDate2Str(comment.time ?? 0)}',
                           style: TextStyle(
-                            fontSize: 25.sp,
-                            color: Colors.white.withOpacity(0.6),
+                            fontSize: 10,
+                            color: stringColor.withOpacity(0.4),
                           ),
-                          children: [
-                            TextSpan(
-                              text: '\n${OtherUtils.formatDate2Str(comment.time ?? 0)}',
-                              style: TextStyle(
-                                fontSize: 15.sp,
-                                color: Colors.white.withOpacity(0.4),
-                              ),
-                            )
-                          ]
-                      )
+                        )
+                      ]
+                    )
                   )
               ),
             ]
           ),
           // 评论内容
-          Padding(
-            padding: EdgeInsets.only(top: 20.w),
-            child: Text(
-              (comment.content ?? '').replaceAll('\n', ''),
-              style: TextStyle(
-                  color: Colors.white.withOpacity(0.6),
-                  fontSize: 30.sp
-              ),
+          Text(
+            (comment.content ?? '').replaceAll('\n', ''),
+            style: TextStyle(
+                color: stringColor.withOpacity(0.6),
+                fontSize: 20
             ),
           ),
           // 该评论的回复
@@ -208,25 +123,14 @@ class CommentWidget extends StatelessWidget {
               visible: (comment.replyCount ?? 0) > 0,
               child: GestureDetector(
                 onTap: () {
-                  // showModalBottomSheet(
-                  //   context: context,
-                  //   isScrollControlled: true,
-                  //   builder: (_) => FoolTalk(
-                  //     commentItem: comment,
-                  //     id: id,
-                  //     type: idType,
-                  //     backGroundColor: Colors.white,
-                  //   ),
-                  // );
-                  showAboutDialog(context: context);
                 },
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 16.w),
+                  alignment: FractionalOffset.centerRight,
                   child: Text(
                       '—— ${comment.replyCount}条回复 >',
                       style: TextStyle(
-                        fontSize: 24.sp,
-                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 15,
+                        color: stringColor.withOpacity(0.4),
                       )
                   ),
                 ),
@@ -326,12 +230,12 @@ class _FoolTalkState extends State<FoolTalk> {
       child: Container(
         color: widget.backGroundColor,
         height: context.height / 2,
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.w),
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
           children: [
             // 当前评论
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 15.w,vertical: 20.w),
+              padding: EdgeInsets.symmetric(horizontal: 15,vertical: 20),
               color: Theme.of(context).colorScheme.onSecondary,
               child:  Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,25 +244,25 @@ class _FoolTalkState extends State<FoolTalk> {
                     children: [
                       SimpleExtendedImage.avatar(
                         '${widget.commentItem.user.avatarUrl ?? ''}?param=150y150',
-                        width: 60.w,
-                        height: 60.w,
+                        width: 60,
+                        height: 60,
                       ),
-                      Padding(padding: EdgeInsets.symmetric(horizontal: 8.w)),
+                      Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
                       Expanded(
                           child: RichText(
-                              text: TextSpan(text: widget.commentItem.user.nickname ?? '', style: TextStyle(fontSize: 28.sp, color: Theme.of(context).cardColor), children: [
+                              text: TextSpan(text: widget.commentItem.user.nickname ?? '', style: TextStyle(fontSize: 28, color: Theme.of(context).cardColor), children: [
                                 TextSpan(
                                   text: ' (${OtherUtils.formatDate2Str(widget.commentItem.time ?? 0)}) ',
-                                  style: TextStyle(fontSize: 22.sp, color: Colors.grey),
+                                  style: TextStyle(fontSize: 22, color: Colors.grey),
                                 )
                               ]))),
                     ],
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 20.w, left: 80.w),
+                    padding: EdgeInsets.only(top: 20, left: 80),
                     child: Text(
                       (widget.commentItem.content ?? '').replaceAll('\n', ''),
-                      style: TextStyle(fontSize: 24.sp),
+                      style: TextStyle(fontSize: 24),
                     ),
                   )
                 ],
@@ -381,7 +285,7 @@ class _FoolTalkState extends State<FoolTalk> {
             // 回复当前评论
             Row(
               children: [
-                Padding(padding: EdgeInsets.only(left: 20.w)),
+                Padding(padding: EdgeInsets.only(left: 20)),
                 Expanded(
                     child: CustomFiled(
                       iconData: TablerIcons.message_2,
@@ -398,7 +302,7 @@ class _FoolTalkState extends State<FoolTalk> {
   }
   Widget _buildItem(CommentItem comment) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 20.w, horizontal: 30.w),
+      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -406,34 +310,34 @@ class _FoolTalkState extends State<FoolTalk> {
             children: [
               SimpleExtendedImage.avatar(
                 '${comment.user.avatarUrl ?? ''}?param=150y150',
-                width: 60.w,
-                height: 60.w,
+                width: 60,
+                height: 60,
               ),
-              Padding(padding: EdgeInsets.symmetric(horizontal: 8.w)),
+              Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
               Expanded(
                   child: RichText(
-                      text: TextSpan(text: comment.user.nickname ?? '', style: TextStyle(fontSize: 28.sp, color: Theme.of(context).cardColor), children: [
+                      text: TextSpan(text: comment.user.nickname ?? '', style: TextStyle(fontSize: 28, color: Theme.of(context).cardColor), children: [
                 TextSpan(
                   text: ' (${OtherUtils.formatDate2Str(comment.time ?? 0)}) ',
-                  style: TextStyle(fontSize: 22.sp, color: Colors.grey),
+                  style: TextStyle(fontSize: 22, color: Colors.grey),
                 )
               ]))),
             ],
           ),
           Padding(
-            padding: EdgeInsets.only(top: 20.w, left: 80.w),
+            padding: EdgeInsets.only(top: 20, left: 80),
             child: Text(
               (comment.content ?? '').replaceAll('\n', ''),
-              style: TextStyle(fontSize: 24.sp),
+              style: TextStyle(fontSize: 24),
             ),
           ),
           Visibility(
               visible: (comment.replyCount ?? 0) > 0,
               child: GestureDetector(
                 child: Container(
-                  margin: EdgeInsets.only(left: 60.w),
-                  padding: EdgeInsets.symmetric(vertical: 16.w, horizontal: 20.w),
-                  child: Text('—— ${comment.replyCount}条回复 >', style: TextStyle(fontSize: 24.sp, color: Colors.blue)),
+                  margin: EdgeInsets.only(left: 60),
+                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  child: Text('—— ${comment.replyCount}条回复 >', style: TextStyle(fontSize: 24, color: Colors.blue)),
                 ),
                 onTap: () {
                   showModalBottomSheet(

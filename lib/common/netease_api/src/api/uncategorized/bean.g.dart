@@ -187,7 +187,7 @@ HomeBlockPageResourceExt _$HomeBlockPageResourceExtFromJson(
     Map<String, dynamic> json) {
   return HomeBlockPageResourceExt()
     ..artists = (json['artists'] as List<dynamic>?)
-        ?.map((e) => Artists.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => Artist.fromJson(e as Map<String, dynamic>))
         .toList()
     ..songData = json['songData'] == null
         ? null

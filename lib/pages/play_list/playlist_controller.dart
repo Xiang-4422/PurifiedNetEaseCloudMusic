@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
+import 'package:bujuan/controllers/app_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -91,8 +91,8 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
       widgetColor.value = ThemeData.estimateBrightnessForColor(albumColor.value) == Brightness.light
           ? Colors.black
           : Colors.white;
-      AppController.to.curPageTitleColor.value = widgetColor.value;
     });
+    AppController.to.updateAppBarTitle(title: playList.name ?? "", subTitle: playList.trackCount.toString() + "首", appBarTitleColor: widgetColor.value, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
   }
 
   _getMediaItems(id) async {

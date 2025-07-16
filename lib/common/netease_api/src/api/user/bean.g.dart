@@ -349,7 +349,7 @@ ArtistsSubListWrap _$ArtistsSubListWrapFromJson(Map<String, dynamic> json) {
     ..count = json['count'] as int?
     ..total = json['total'] as int?
     ..data = (json['data'] as List<dynamic>)
-        .map((e) => Artists.fromJson(e as Map<String, dynamic>))
+        .map((e) => Artist.fromJson(e as Map<String, dynamic>))
         .toList();
 }
 

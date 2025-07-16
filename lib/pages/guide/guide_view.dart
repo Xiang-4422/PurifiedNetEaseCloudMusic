@@ -5,7 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:lottie/lottie.dart';
 import 'package:notification_permissions/notification_permissions.dart';
 
@@ -104,7 +104,7 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
           ),
           SafeArea(
               child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 30.w),
+            padding: EdgeInsets.symmetric(horizontal: 30),
             child: IconButton(
                 onPressed: () {
                   AutoRouter.of(context).replaceNamed(Routes.home);
@@ -113,7 +113,7 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
                 },
                 icon: Text(
                   'Skip',
-                  style: TextStyle(fontSize: 32.sp),
+                  style: TextStyle(fontSize: 32),
                 )),
           ))
         ],
@@ -126,18 +126,18 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Lottie.asset('assets/lottie/personal_character.json', width: 750.w / 1.6),
-        Padding(padding: EdgeInsets.symmetric(vertical: 20.w)),
+        Lottie.asset('assets/lottie/personal_character.json', width: 750 / 1.6),
+        Padding(padding: EdgeInsets.symmetric(vertical: 20)),
         Text(
           '欢迎来到不倦',
-          style: TextStyle(fontSize: 42.sp, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold),
         ),
-        Padding(padding: EdgeInsets.symmetric(vertical: 10.w)),
+        Padding(padding: EdgeInsets.symmetric(vertical: 10)),
         Text(
           '使用之前请先设置个性化功能',
-          style: TextStyle(fontSize: 36.sp, fontWeight: FontWeight.normal),
+          style: TextStyle(fontSize: 36, fontWeight: FontWeight.normal),
         ),
-        Padding(padding: EdgeInsets.symmetric(vertical: 30.w)),
+        Padding(padding: EdgeInsets.symmetric(vertical: 30)),
         GestureDetector(
           child: Container(
             alignment: Alignment.center,
@@ -147,13 +147,13 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
-              borderRadius: BorderRadius.circular(5.w),
+              borderRadius: BorderRadius.circular(5),
             ),
-            width: 530.w,
-            height: 86.w,
+            width: 530,
+            height: 86,
             child: Text(
               '前往设置',
-              style: TextStyle(fontSize: 32.sp, color: Colors.white),
+              style: TextStyle(fontSize: 32, color: Colors.white),
             ),
           ),
           onTap: () => pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.linear),
@@ -170,39 +170,39 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
             child: Transform.rotate(
           angle: -math.pi / 20,
           child: Container(
-            margin: EdgeInsets.only(top: 100.w),
+            margin: EdgeInsets.only(top: 100),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor.withOpacity(.1),
-              borderRadius: BorderRadius.circular(25.w),
+              borderRadius: BorderRadius.circular(25),
             ),
-            width: 750.w / 2,
-            height: 750.w,
+            width: 750 / 2,
+            height: 750,
           ),
         )),
         SafeArea(
             child: Transform.rotate(
           angle: -math.pi / 40,
           child: Container(
-            margin: EdgeInsets.only(top: 100.w),
+            margin: EdgeInsets.only(top: 100),
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor.withOpacity(.2),
-              borderRadius: BorderRadius.circular(25.w),
+              borderRadius: BorderRadius.circular(25),
             ),
-            width: 750.w / 2,
-            height: 750.w,
+            width: 750 / 2,
+            height: 750,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Opacity(
                   opacity: left ? 1 : 0,
                   child: IconButton(
-                    iconSize: 180.w,
+                    iconSize: 180,
                     icon: Opacity(
                         opacity: .9,
                         child: Lottie.asset(
                           'assets/lottie/vr_animation.json',
-                          width: 180.w,
-                          height: 180.w,
+                          width: 180,
+                          height: 180,
                           // fit: BoxFit.fitWidth,
                           // filterQuality: FilterQuality.low,
                         )),
@@ -213,24 +213,24 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 80.w,
-                      height: 80.w,
+                      width: 80,
+                      height: 80,
                       color: Theme.of(context).scaffoldBackgroundColor.withOpacity(.5),
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            width: 180.w,
-                            height: 20.w,
+                            width: 180,
+                            height: 20,
                             color: Theme.of(context).scaffoldBackgroundColor.withOpacity(.5),
                           ),
                           Container(
-                            margin: EdgeInsets.only(top: 15.w),
-                            width: 80.w,
-                            height: 20.w,
+                            margin: EdgeInsets.only(top: 15),
+                            width: 80,
+                            height: 20,
                             color: Theme.of(context).scaffoldBackgroundColor.withOpacity(.5),
                           ),
                         ],
@@ -238,29 +238,29 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
                     )
                   ],
                 ),
-                Padding(padding: EdgeInsets.symmetric(vertical: 20.w)),
+                Padding(padding: EdgeInsets.symmetric(vertical: 20)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 80.w,
-                      height: 80.w,
+                      width: 80,
+                      height: 80,
                       color: Theme.of(context).scaffoldBackgroundColor.withOpacity(.5),
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            width: 180.w,
-                            height: 20.w,
+                            width: 180,
+                            height: 20,
                             color: Theme.of(context).scaffoldBackgroundColor.withOpacity(.5),
                           ),
                           Container(
-                            margin: EdgeInsets.only(top: 15.w),
-                            width: 80.w,
-                            height: 20.w,
+                            margin: EdgeInsets.only(top: 15),
+                            width: 80,
+                            height: 20,
                             color: Theme.of(context).scaffoldBackgroundColor.withOpacity(.5),
                           ),
                         ],
@@ -285,68 +285,68 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
             child: Transform.rotate(
           angle: -math.pi / 20,
           child: Container(
-            margin: EdgeInsets.only(top: 100.w),
+            margin: EdgeInsets.only(top: 100),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [!gradient ? Theme.of(context).primaryColor.withOpacity(.5) : const Color(0xfffac9c9).withOpacity(.5), Theme.of(context).primaryColor.withOpacity(.5)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomCenter,
               ),
-              borderRadius: BorderRadius.circular(25.w),
+              borderRadius: BorderRadius.circular(25),
             ),
-            width: 750.w / 2,
-            height: 750.w,
+            width: 750 / 2,
+            height: 750,
           ),
         )),
         SafeArea(
             child: Transform.rotate(
           angle: -math.pi / 40,
           child: Container(
-            margin: EdgeInsets.only(top: 100.w),
+            margin: EdgeInsets.only(top: 100),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [!gradient ? Theme.of(context).primaryColor : const Color(0xfffac9c9), Theme.of(context).primaryColor],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomCenter,
               ),
-              borderRadius: BorderRadius.circular(25.w),
+              borderRadius: BorderRadius.circular(25),
             ),
-            width: 750.w / 2,
-            height: 750.w,
+            width: 750 / 2,
+            height: 750,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  width: 180.w,
-                  height: 180.w,
+                  width: 180,
+                  height: 180,
                   color: Theme.of(context).cardColor.withOpacity(.2),
                 ),
-                Padding(padding: EdgeInsets.symmetric(vertical: 20.w)),
+                Padding(padding: EdgeInsets.symmetric(vertical: 20)),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 15.w),
+                  padding: EdgeInsets.symmetric(horizontal: 15),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       Container(
-                        width: 20.w,
-                        height: 20.w,
+                        width: 20,
+                        height: 20,
                         color: Theme.of(context).cardColor.withOpacity(.2),
                       ),
                       Container(
-                        width: 40.w,
-                        height: 40.w,
+                        width: 40,
+                        height: 40,
                         color: Theme.of(context).cardColor.withOpacity(.2),
                       ),
                       Container(
-                        width: 20.w,
-                        height: 20.w,
+                        width: 20,
+                        height: 20,
                         color: Theme.of(context).cardColor.withOpacity(.2),
                       ),
                     ],
                   ),
                 ),
-                Padding(padding: EdgeInsets.symmetric(vertical: 30.w))
+                Padding(padding: EdgeInsets.symmetric(vertical: 30))
               ],
             ),
           ),
@@ -364,44 +364,44 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
             child: Transform.rotate(
           angle: -math.pi / 20,
           child: Container(
-            margin: EdgeInsets.only(top: 100.w),
+            margin: EdgeInsets.only(top: 100),
             decoration: BoxDecoration(
               color: const Color.fromRGBO(155, 178, 255, .3),
-              borderRadius: BorderRadius.circular(25.w),
+              borderRadius: BorderRadius.circular(25),
             ),
-            width: 750.w / 2,
-            height: 750.w,
+            width: 750 / 2,
+            height: 750,
           ),
         )),
         SafeArea(
             child: Transform.rotate(
           angle: -math.pi / 40,
           child: Container(
-            margin: EdgeInsets.only(top: 100.w),
+            margin: EdgeInsets.only(top: 100),
             decoration: BoxDecoration(
               color: const Color.fromRGBO(155, 178, 255, 1),
-              borderRadius: BorderRadius.circular(25.w),
+              borderRadius: BorderRadius.circular(25),
             ),
-            width: 750.w / 2,
-            height: 750.w,
+            width: 750 / 2,
+            height: 750,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Lottie.asset('assets/lottie/notification_request.json', width: 750.w / 3),
-                Padding(padding: EdgeInsets.symmetric(vertical: 15.w)),
+                Lottie.asset('assets/lottie/notification_request.json', width: 750 / 3),
+                Padding(padding: EdgeInsets.symmetric(vertical: 15)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 100.w,
-                      height: 46.w,
+                      width: 100,
+                      height: 46,
                       color: Theme.of(context).scaffoldBackgroundColor.withOpacity(.5),
                     ),
-                    Padding(padding: EdgeInsets.symmetric(horizontal: 20.w)),
+                    Padding(padding: EdgeInsets.symmetric(horizontal: 20)),
                     Container(
-                      width: 100.w,
-                      height: 46.w,
+                      width: 100,
+                      height: 46,
                       color: Theme.of(context).scaffoldBackgroundColor.withOpacity(.5),
                     ),
                   ],
@@ -417,20 +417,20 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
 
   Widget _buildItem(BottomData data) {
     return Positioned(
-      bottom: 70.w,
+      bottom: 70,
       child: SafeArea(
         child: Column(
           children: [
             Text(
               data.title,
-              style: TextStyle(fontSize: 42.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold),
             ),
-            Padding(padding: EdgeInsets.symmetric(vertical: 10.w)),
+            Padding(padding: EdgeInsets.symmetric(vertical: 10)),
             Text(
               data.subTitle,
-              style: TextStyle(fontSize: 36.sp, fontWeight: FontWeight.normal),
+              style: TextStyle(fontSize: 36, fontWeight: FontWeight.normal),
             ),
-            Padding(padding: EdgeInsets.symmetric(vertical: 30.w)),
+            Padding(padding: EdgeInsets.symmetric(vertical: 30)),
             Row(
               children: [
                 GestureDetector(
@@ -438,20 +438,20 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor.withOpacity(.2),
-                      borderRadius: BorderRadius.circular(5.w),
+                      borderRadius: BorderRadius.circular(5),
                     ),
-                    width: 230.w,
-                    height: 80.w,
+                    width: 230,
+                    height: 80,
                     child: Text(
                       data.cancelTitle ?? '关闭',
-                      style: TextStyle(fontSize: 32.sp),
+                      style: TextStyle(fontSize: 32),
                     ),
                   ),
                   onTap: () {
                     data.onCancel?.call();
                   },
                 ),
-                Padding(padding: EdgeInsets.symmetric(horizontal: 40.w)),
+                Padding(padding: EdgeInsets.symmetric(horizontal: 40)),
                 GestureDetector(
                   child: Container(
                     alignment: Alignment.center,
@@ -461,13 +461,13 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       ),
-                      borderRadius: BorderRadius.circular(5.w),
+                      borderRadius: BorderRadius.circular(5),
                     ),
-                    width: 230.w,
-                    height: 80.w,
+                    width: 230,
+                    height: 80,
                     child: Text(
                       data.okTitle ?? '开启',
-                      style: TextStyle(fontSize: 32.sp, color: Colors.white),
+                      style: TextStyle(fontSize: 32, color: Colors.white),
                     ),
                   ),
                   onTap: () {

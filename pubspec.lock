@@ -542,14 +542,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.0.19"
-  flutter_screenutil:
-    dependency: "direct main"
-    description:
-      name: flutter_screenutil
-      sha256: "8239210dd68bee6b0577aa4a090890342d04a136ce1c81f98ee513fc0ce891de"
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "5.9.3"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -1229,6 +1221,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.6.0"
+  sliding_up_panel:
+    dependency: "direct main"
+    description:
+      name: sliding_up_panel
+      sha256: "578e90956a6212d1e406373250b2436a0f3afece29aee3c24c8360094d6cf968"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.0+1"
   source_gen:
     dependency: transitive
     description:

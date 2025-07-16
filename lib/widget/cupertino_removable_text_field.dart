@@ -2,7 +2,7 @@
 //
 // import 'package:flutter/cupertino.dart';
 // import 'package:flutter/material.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
+// 
 // import 'package:flutter/services.dart';
 //
 // class RemovableTextField extends StatefulWidget {
@@ -126,7 +126,7 @@
 //                 child: Padding(
 //                   padding: EdgeInsets.symmetric(
 //                       horizontal: ScreenUtil().setWidth(20)),
-//                   child: Image.asset('assets/images/icon_close_round.png',width: 32.w,height: 32.w,),
+//                   child: Image.asset('assets/images/icon_close_round.png',width: 32),height: 32),),
 //                 ),
 //               )),
 //           Visibility(
@@ -143,12 +143,12 @@
 //                       ? Icon(
 //                     const IconData(0xe613, fontFamily: 'Iconfont'),
 //                     color: widget.iconColor ?? Colors.grey,
-//                     size: 40.w,
+//                     size: 40),
 //                   )
 //                       : Icon(
 //                     const IconData(0xe76c, fontFamily: 'Iconfont'),
 //                     color: widget.iconColor ?? Colors.grey,
-//                     size: 40.w,
+//                     size: 40),
 //                   ),
 //                 ),
 //               ))

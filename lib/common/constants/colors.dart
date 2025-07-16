@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 
 class AppTheme {
   /// 亮色主题
@@ -21,20 +21,47 @@ class AppTheme {
       cardColor: const Color(0xFF2C2C2C),
       iconTheme: const IconThemeData(color: Color(0xFF4D4D4D)),
       primaryColor: const Color(0xffe56260),
-      textTheme: TextTheme(
-        titleLarge: TextStyle(
-            fontSize: 30.sp,
-            fontWeight: FontWeight.bold,
-            color: onPrimary
-        ) ,
-        titleMedium: TextStyle(
-            fontSize: 30.sp,
-            color: onPrimary
-        ) ,
-        titleSmall: TextStyle(
-            fontSize: 20.sp,
+      textTheme: const TextTheme(
+        labelLarge: TextStyle(
+            fontSize: 20,
             color: onPrimary
         ),
+        labelMedium: TextStyle(
+            fontSize: 15,
+            color: onPrimary
+        ),
+        labelSmall: TextStyle(
+            fontSize: 10,
+            color: onPrimary
+        ),
+
+        titleLarge: TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            color: onPrimary
+        ),
+        titleMedium: TextStyle(
+            fontSize: 20,
+            color: onPrimary
+        ),
+        titleSmall: TextStyle(
+            fontSize: 15,
+            color: onPrimary
+        ),
+
+        bodyLarge: TextStyle(
+            fontSize: 30,
+            color: onPrimary
+        ),
+        bodyMedium: TextStyle(
+            fontSize: 20,
+            color: onPrimary
+        ),
+        bodySmall: TextStyle(
+            fontSize: 10,
+            color: onPrimary
+        ),
+
       ),
       scaffoldBackgroundColor: const Color(0xFFF5F3F3),
   );
@@ -62,16 +89,16 @@ class AppTheme {
       scaffoldBackgroundColor: const Color(0xFFF4F7F9),
       textTheme: TextTheme(
         titleLarge: TextStyle(
-            fontSize: 30.sp,
+            fontSize: 30,
             fontWeight: FontWeight.bold,
             color: onPrimaryDark
         ) ,
         titleMedium: TextStyle(
-            fontSize: 30.sp,
+            fontSize: 30,
             color: onPrimaryDark
         ) ,
         titleSmall: TextStyle(
-            fontSize: 20.sp,
+            fontSize: 20,
             color: onPrimaryDark
         ),
       ),

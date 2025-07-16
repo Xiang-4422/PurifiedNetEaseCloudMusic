@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -9,7 +9,7 @@ import '../../common/constants/other.dart';
 import '../../common/netease_api/src/api/bean.dart';
 import '../../common/netease_api/src/api/login/bean.dart';
 import '../../common/netease_api/src/netease_api.dart';
-import '../user/personal_page_controller.dart';
+import '../../controllers/user_controller.dart';
 
 class LoginPageView extends StatefulWidget {
   const LoginPageView({Key? key}) : super(key: key);
@@ -51,7 +51,7 @@ class _LoginPageViewState extends State<LoginPageView> {
           break;
         case 803:
           WidgetUtil.showToast('授权成功！');
-          PersonalPageController.to.getUserState();
+          UserController.to.getUserState();
           timer?.cancel();
           timer = null;
           break;
@@ -94,13 +94,13 @@ class _LoginPageViewState extends State<LoginPageView> {
                      backgroundColor: Colors.white,
                      data: qrCodeUrl,
                      version: QrVersions.auto,
-                     size: 400.w,
+                     size: 400,
                    ),
                    Padding(
-                     padding: EdgeInsets.symmetric(vertical: 30.w),
+                     padding: EdgeInsets.symmetric(vertical: 30),
                      child: Text(
                        '请扫描二维码码登录',
-                       style: TextStyle(fontSize: 32.sp, color: Colors.white, fontWeight: FontWeight.bold),
+                       style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold),
                      ),
                    ),
                  ],

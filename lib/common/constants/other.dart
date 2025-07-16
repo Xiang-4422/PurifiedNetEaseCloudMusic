@@ -5,7 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:date_format/date_format.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:lottie/lottie.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -80,8 +80,8 @@ class WidgetUtil {
         builder: (context) => Center(
               child: Lottie.asset(
                 'assets/lottie/empty_status.json',
-                width: 750.w / 4,
-                height: 750.w / 4,
+                width: 750 / 4,
+                height: 750 / 4,
                 fit: BoxFit.fitWidth,
                 // filterQuality: FilterQuality.low,
               ),

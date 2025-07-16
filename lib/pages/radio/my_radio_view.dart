@@ -2,10 +2,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/routes/router.gr.dart';
-import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:get/get.dart';
 
 import '../../common/netease_api/src/api/dj/bean.dart';
@@ -28,47 +27,45 @@ class _MyRadioViewState extends State<MyRadioView> {
 
   @override
   Widget build(BuildContext context) {
-    return MyGetView(
-      child: Column(
-        children: [
-          Container(
-            height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
-          ),
-          Expanded(
-            child: RequestLoadMoreWidget<DjRadioListWrap, DjRadio>(
-                listKey: const ['djRadios'],
-                dioMetaData: djRadioSubListDioMetaData(),
-                childBuilder: (List<DjRadio> list) {
-                  return ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: 20.w),
-                    itemBuilder: (context, index) => _buildItem(list[index]),
-                    itemCount: list.length,
-                  );
-                }),
-          ),
-          Container(
-            height: AppDimensions.bottomPanelHeaderHeight,
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        Container(
+          height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
+        ),
+        Expanded(
+          child: RequestLoadMoreWidget<DjRadioListWrap, DjRadio>(
+              listKey: const ['djRadios'],
+              dioMetaData: djRadioSubListDioMetaData(),
+              childBuilder: (List<DjRadio> list) {
+                return ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  itemBuilder: (context, index) => _buildItem(list[index]),
+                  itemCount: list.length,
+                );
+              }),
+        ),
+        Container(
+          height: AppDimensions.bottomPanelHeaderHeight,
+        ),
+      ],
     );
   }
 
   Widget _buildItem(DjRadio data) {
     return InkWell(
         child: SizedBox(
-          height: 120.w,
+          height: 120,
           child: Row(
             children: [
               SimpleExtendedImage(
                 '${data.picUrl ?? ''}?param=200y200',
-                width: 85.w,
-                height: 85.w,
-                borderRadius: BorderRadius.circular(10.w),
+                width: 85,
+                height: 85,
+                borderRadius: BorderRadius.circular(10),
               ),
               Expanded(
                   child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15.w),
+                padding: EdgeInsets.symmetric(horizontal: 15),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -76,14 +73,14 @@ class _MyRadioViewState extends State<MyRadioView> {
                     Text(
                       data.name,
                       maxLines: 1,
-                      style: TextStyle(fontSize: 28.sp),
+                      style: TextStyle(fontSize: 28),
                     ),
-                    Padding(padding: EdgeInsets.symmetric(vertical: 3.w)),
+                    Padding(padding: EdgeInsets.symmetric(vertical: 3)),
                     Text(
                       data.lastProgramName ?? '',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 26.sp, color: Colors.grey),
+                      style: TextStyle(fontSize: 26, color: Colors.grey),
                     )
                   ],
                 ),

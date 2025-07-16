@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
@@ -8,28 +9,28 @@ import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/pages/home/view/menu_view.dart';
-import 'package:bujuan/widget/weslide/panel.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:get/get_rx/get_rx.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
-import '../../common/bujuan_audio_handler.dart';
-import '../../common/lyric_parser/lyrics_reader_model.dart';
-import '../../common/netease_api/src/api/bean.dart';
-import '../../routes/router.dart';
-import '../../widget/custom_zoom_drawer/src/drawer_controller.dart';
-import '../user/personal_page_controller.dart';
+import '../common/bujuan_audio_handler.dart';
+import '../common/lyric_parser/lyrics_reader_model.dart';
+import '../common/netease_api/src/api/bean.dart';
+import '../routes/router.dart';
+import '../widget/custom_zoom_drawer/src/drawer_controller.dart';
+import '../pages/home/body/app_body_page_view.dart';
+import 'user_controller.dart';
 
 /// 所有Controller都放在HomeController中统一控制
 class AppController extends SuperController with GetTickerProviderStateMixin {
@@ -49,11 +50,9 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   RxString curPageSubTitle = "".obs;
   Rx<Color> curPageTitleColor = Colors.white.obs;
   NewAppBarTitleComingDirection comingDirection = NewAppBarTitleComingDirection.down;
-  List _lastPageTitle = [];
-  List _lastPageSubTitle = [];
-  List<Color> _lastAppBarTitleColor = [];
-  String _pageTitleBeforePanelOpen = "";
-  Color _pageTitleColorBeforePanelOpen = Colors.white;
+  final List _lastPageTitle = [];
+  final List _lastPageSubTitle = [];
+  final List<Color> _lastAppBarTitleColor = [];
 
   RxBool isInPlayListPage = false.obs;
 
@@ -69,7 +68,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
 
   // --- 抽屉 ---
   /// Home页面侧滑抽屉
-  ZoomDrawerController zoomDrawerController = ZoomDrawerController();
+  late ZoomDrawerController zoomDrawerController;
   /// 侧边抽屉Beans   // TODO YU4422 待规范
   final List<LeftMenuBean> leftMenus = [
     LeftMenuBean('个人中心', TablerIcons.user, Routes.user, '/home/user'),
@@ -84,40 +83,44 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   double _timerCounter = 0.0;
 
   // --- Home页面PageView ---
-  PageController homePageController = PageController();
+  late PageController homePageController;
   bool isHomePageControllerInited = false;
   RxInt curHomePageIndex = 0.obs;
   int _lastHomePageIndex = 0;
 
   // --- 专辑封面 ---
   /// Home页面底部Panel中专辑封面的PageView
-  PageController albumPageController = PageController(viewportFraction: 1/3,);
+  late PageController albumPageController;
   RxBool isAlbumVisible = true.obs;
   bool isAlbumScrollingManully = false;
   bool isAlbumScrollingProgrammatic = false;
+  RxBool isAlbumScrolling = false.obs;
   Rx<Color> albumColor = Colors.white.obs;
   Rx<Color> panelWidgetColor = Colors.white.obs;
 
-  // --- Panel ---
-  PanelController panelController = PanelController();
-  late AnimationController panelAnimationController;
+  // --- 底部Panel ---
+  PanelController bottomPanelController = PanelController();
+  late AnimationController bottomPanelAnimationController;
   /// panel展开程度（0-1，1表示完全展开）
-  RxBool panelFullyClosed = true.obs;
-  RxBool panelOpened10 = false.obs;
-  RxBool panelOpened50 = false.obs;
-  RxBool panelOpened90 = false.obs;
-  RxBool panelFullyOpened = false.obs;
-
+  RxBool bottomPanelFullyClosed = true.obs;
+  RxBool bottomPanelOpened50 = false.obs;
+  RxBool bottomPanelFullyOpened = false.obs;
   // --- Panel中的pageview ---
-  late PageController panelPageController;
+  late PageController bottomPanelPageController;
   RxInt curPanelPageIndex = 1.obs;
-
   // --- Panel中的tabview
-  late TabController panelTabController;
-  late TabController panelCommentTabController;
-
+  late TabController bottomPanelTabController;
+  late TabController bottomPanelCommentTabController;
   // --- 正在播放列表 ---
   ScrollController playListScrollController = ScrollController();
+
+  // --- 顶部Panel ---
+  PanelController topPanelController = PanelController();
+  late AnimationController topPanelAnimationController;
+  late TextEditingController searchTextEditingController;
+  RxBool topPanelFullyOpened = false.obs;
+  RxBool topPanelFullyClosed = true.obs;
+  RxString searchContent = ''.obs;
 
   // --- 歌词 ---
   ItemScrollController lyricScrollController = ItemScrollController();
@@ -151,33 +154,64 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   RxInt currLyricIndex = (-1).obs;
   
   @override
-  void onInit() async {
+  void onInit() {
     _initAppSetting();
     _initUserData();
     _initUIController();
     super.onInit();
   }
   _initUIController() {
-    panelAnimationController = AnimationController(vsync: this, value: 0);
+    zoomDrawerController = ZoomDrawerController();
+    homePageController = PageController()..addListener(() {
+      int updatedPageIndex = (homePageController.page! + 0.5).toInt();
+      // 页面切换了
+      if (updatedPageIndex != curHomePageIndex.value) {
+        // 启动倒计时器关闭抽屉
+        _updateCloseDrawerTimer(1000);
 
-    panelTabController = TabController(length: 3, initialIndex: 1, vsync: this)..addListener(() {
-      if (panelTabController.indexIsChanging) {
-        panelPageController.animateToPage(panelTabController.index, duration: Duration(milliseconds: 300), curve: Curves.linear);
-        if (panelTabController.index <= 1) {
-          panelCommentTabController.index = 0;
-          panelCommentTabController.offset = 0;
+        // 更新变量
+        _lastHomePageIndex = curHomePageIndex.value;
+        curHomePageIndex.value = updatedPageIndex;
+        bool isSlidingUp = curHomePageIndex.value > _lastHomePageIndex;
+        var direction = isSlidingUp ? NewAppBarTitleComingDirection.down : NewAppBarTitleComingDirection.up;
+
+        String title = "";
+        // 更新appbar标题
+        switch(updatedPageIndex)  {
+          case 0:
+            title = loginStatus.value == LoginStatus.login ? userData.value.profile?.nickname ?? "" : '扫码登录';
+            break;
+          case 1:
+            title = "每日发现";
+            break;
+          case 2:
+            title = "设置";
+            break;
+          case 3:
+            title = "赞助开发者";
+            break;
+        }
+        updateAppBarTitle(title: title, subTitle: '', direction: direction);
+      }
+    });
+    topPanelAnimationController = AnimationController(vsync: this);
+    bottomPanelAnimationController = AnimationController(vsync: this);
+    bottomPanelTabController = TabController(length: 3, initialIndex: 1, vsync: this)..addListener(() {
+      if (bottomPanelTabController.indexIsChanging) {
+        bottomPanelPageController.animateToPage(bottomPanelTabController.index, duration: Duration(milliseconds: 300), curve: Curves.linear);
+        if (bottomPanelTabController.index <= 1) {
+          bottomPanelCommentTabController.index = 0;
+          bottomPanelCommentTabController.offset = 0;
         }
       }
     });
-
-    panelCommentTabController = TabController(length: 2, vsync: this)..addListener(() {
-      if (panelCommentTabController.indexIsChanging) {
-        panelPageController.animateToPage(panelCommentTabController.index + 2, duration: Duration(milliseconds: 300), curve: Curves.linear);
+    bottomPanelCommentTabController = TabController(length: 2, vsync: this)..addListener(() {
+      if (bottomPanelCommentTabController.indexIsChanging) {
+        bottomPanelPageController.animateToPage(bottomPanelCommentTabController.index + 2, duration: Duration(milliseconds: 300), curve: Curves.linear);
       }
     });
-
-    panelPageController = PageController(initialPage: 1)..addListener(() async {
-      int newPanelPageIndex = (panelPageController.page! + 0.5).toInt();
+    bottomPanelPageController = PageController(initialPage: 1)..addListener(() async {
+      int newPanelPageIndex = (bottomPanelPageController.page! + 0.5).toInt();
 
       if (curPanelPageIndex.value != newPanelPageIndex) {
         curPanelPageIndex.value = newPanelPageIndex;
@@ -185,18 +219,21 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
         if (newPanelPageIndex == 0) await _animatePlayListToCurSong();
       }
       // 避免循环监听
-      if (panelTabController.indexIsChanging || panelCommentTabController.indexIsChanging) return;
+      if (bottomPanelTabController.indexIsChanging || bottomPanelCommentTabController.indexIsChanging) return;
       // 控制tab显示
-      if (panelPageController.page! <= 2) {
-        panelTabController.index = newPanelPageIndex;
-        panelTabController.offset = panelPageController.page! - newPanelPageIndex;
+      if (bottomPanelPageController.page! <= 2) {
+        bottomPanelTabController.index = newPanelPageIndex;
+        bottomPanelTabController.offset = bottomPanelPageController.page! - newPanelPageIndex;
       } else {
-        panelCommentTabController.index = newPanelPageIndex - 2;
-        panelCommentTabController.offset = panelPageController.page! - newPanelPageIndex;
+        bottomPanelCommentTabController.index = newPanelPageIndex - 2;
+        bottomPanelCommentTabController.offset = bottomPanelPageController.page! - newPanelPageIndex;
       }
     });
-
     albumPageController = PageController(viewportFraction: 1/3);
+    searchTextEditingController = TextEditingController()..addListener(() {
+      searchContent.value = searchTextEditingController.text;
+      log("searchContent: ${searchContent.value}");
+    });
   }
   _initUserData() {
     String userDataJson = box.get(loginData) ?? '';
@@ -218,8 +255,24 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
 
   @override
   Future<void> onReady() async {
-    changeAppBarTitle(title: loginStatus.value == LoginStatus.login ? userData.value.profile?.nickname ?? "" : '扫码登录');
+    updateAppBarTitle(title: loginStatus.value == LoginStatus.login ? userData.value.profile?.nickname ?? "" : '扫码登录', subTitle: '');
     await _initAudioHandler();
+
+    // 这个需要在UI构建后添加监听
+    zoomDrawerController.addListener!((drawerOpenDegree) {
+      //  抽屉状态改变
+      if ((drawerOpenDegree == 0.0) != isDrawerClosed.value) {
+        // 刷新抽屉状态
+        isDrawerClosed.value = drawerOpenDegree == 0.0;
+        if (!isDrawerClosed.value) {
+          // 启动倒计时器关闭抽屉
+          _updateCloseDrawerTimer(3000);
+        } else {
+          _updateCloseDrawerTimer(0);
+        }
+      }
+    });
+
     super.onReady();
   }
   _initAudioHandler() async {
@@ -325,8 +378,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   @override
   void didChangePlatformBrightness() {
     super.didChangePlatformBrightness();
-    if (panelFullyOpened.isTrue) return;
-
+    if (bottomPanelFullyOpened.isTrue) return;
     // 状态栏颜色控制
     bool isDarkMode = buildContext.isDarkMode;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
@@ -341,73 +393,37 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
 
   initHomePageController(PageController controller) {
     isHomePageControllerInited = true;
-    homePageController = controller..addListener(() {
-      int updatedPageIndex = (homePageController.page! + 0.5).toInt();
-      // 页面切换了
-      if (updatedPageIndex != curHomePageIndex.value) {
-        // 启动倒计时器关闭抽屉
-        _updateCloseDrawerTimer(1000);
-
-        // 更新变量
-        _lastHomePageIndex = curHomePageIndex.value;
-        curHomePageIndex.value = updatedPageIndex;
-        bool isSlidingUp = curHomePageIndex.value > _lastHomePageIndex;
-        var direction = isSlidingUp ? NewAppBarTitleComingDirection.down : NewAppBarTitleComingDirection.up;
-
-        String title = "";
-        // 更新appbar标题
-        switch(updatedPageIndex)  {
-          case 0:
-            title = loginStatus.value == LoginStatus.login ? userData.value.profile?.nickname ?? "" : '扫码登录';
-            break;
-          case 1:
-            title = "每日发现";
-            break;
-          case 2:
-            title = "设置";
-            break;
-          case 3:
-            title = "赞助开发者";
-            break;
-        }
-        changeAppBarTitle(title: title, direction: direction);
-      }
-    });
-    // 监听抽屉展开状态
-    zoomDrawerController.addListener!((drawerOpenDegree) {
-      //  抽屉状态改变
-      if ((drawerOpenDegree == 0.0) != isDrawerClosed.value) {
-        // 刷新抽屉状态
-        isDrawerClosed.value = drawerOpenDegree == 0.0;
-        if (!isDrawerClosed.value) {
-          // 启动倒计时器关闭抽屉
-          _updateCloseDrawerTimer(3000);
-        } else {
-          _updateCloseDrawerTimer(0);
-        }
-      }
-    });
+    homePageController = controller;
   }
 
   // --- appbar 标题切换 ---
-  changeAppBarTitle({required String title, String subTitle = '', Color? appBarTitleColor, NewAppBarTitleComingDirection? direction, bool willRollBack  = false}) {
+  updateAppBarTitle({String? title, String? subTitle, Color? appBarTitleColor, NewAppBarTitleComingDirection? direction, bool willRollBack  = false}) {
     if (willRollBack) {
       _lastPageTitle.add(curPageTitle.value);
-      _lastPageSubTitle.add(curPageSubTitle.value.trim());
+      _lastPageSubTitle.add(curPageSubTitle.value);
       _lastAppBarTitleColor.add(curPageTitleColor.value);
     }
-    curPageTitle.value = title;
-    curPageSubTitle.value = subTitle.isNotEmpty ? "\n$subTitle" : "";
-    curPageTitleColor.value = appBarTitleColor ?? buildContext.theme.colorScheme.onPrimary;
+    curPageTitle.value = title ?? curPageTitle.value;
+    curPageSubTitle.value = subTitle ?? curPageSubTitle.value;
     comingDirection = direction ?? NewAppBarTitleComingDirection.none;
+    curPageTitleColor.value = appBarTitleColor ?? buildContext.theme.colorScheme.onPrimary;
+    // 修改状态栏颜色
+    bool isLight = ThemeData.estimateBrightnessForColor(curPageTitleColor.value) == Brightness.light;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      systemNavigationBarIconBrightness: isLight ? Brightness.light :  Brightness.dark,
+      statusBarBrightness: isLight ? Brightness.dark : Brightness.light,
+      statusBarIconBrightness: isLight ? Brightness.light : Brightness.dark,
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarContrastEnforced: false,
+    ));
   }
 
-  _rollBackAppBarTitle({NewAppBarTitleComingDirection newAppBarTitleComingDirection = NewAppBarTitleComingDirection.left}) {
-    changeAppBarTitle(title: _lastPageTitle.removeLast(), subTitle: _lastPageSubTitle.removeLast(), appBarTitleColor: _lastAppBarTitleColor.removeLast(), direction: newAppBarTitleComingDirection);
+  rollBackAppBarTitle({NewAppBarTitleComingDirection newAppBarTitleComingDirection = NewAppBarTitleComingDirection.left}) {
+    updateAppBarTitle(title: _lastPageTitle.removeLast(), subTitle: _lastPageSubTitle.removeLast(), appBarTitleColor: _lastAppBarTitleColor.removeLast(), direction: newAppBarTitleComingDirection);
   }
 
   // --- 歌曲控制 ---
-
   /// 获取当前循环icon
   IconData getRepeatIcon() {
     IconData icon;
@@ -431,8 +447,8 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   }
   /// 打开FM模式
   openFmMode() async {
-    panelPageController.jumpToPage(1);
-    panelController.open();
+    bottomPanelPageController.jumpToPage(1);
+    bottomPanelController.open();
     if(isFmMode.isTrue) {
       // 处于FM模式，恢复播放
       if (isPlaying.isFalse) await playOrPause();
@@ -483,67 +499,65 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
   }
 
   /// 改变panel位置
-  changeSlidePosition(double value) async {
-    if (value == 2.086162576020456e-9) {
-      return;
-    }
-    panelAnimationController.value = value;
+  onBottomPanelSlide(double openDegree) {
+    bottomPanelAnimationController.value = openDegree;
 
     // 如果当前的状态改变
-    if (panelFullyClosed.value != (value == 0.0)){
+    if (bottomPanelFullyClosed.value != (openDegree == 0.0)){
       // 更新状态
-      panelFullyClosed.value = (value == 0.0);
+      bottomPanelFullyClosed.value = (openDegree == 0.0);
     }
-    if (panelOpened10.value != (value > 0.1)){
-      panelOpened10.value = value > 0.1;
-    }
-    if (panelOpened50.value != (value > 0.5)) {
-      panelOpened50.value = value > 0.5;
-      if (panelOpened50.value) {
-        _pageTitleBeforePanelOpen = curPageTitle.value;
-        _pageTitleColorBeforePanelOpen = curPageTitleColor.value;
-        changeAppBarTitle(title: curMediaItem.value.title, subTitle: curMediaItem.value.artist ?? '', appBarTitleColor: panelWidgetColor.value, direction: NewAppBarTitleComingDirection.down, willRollBack: true);
+    if (bottomPanelOpened50.value != (openDegree > 0.5)) {
+      bottomPanelOpened50.value = openDegree > 0.5;
+      if (bottomPanelOpened50.value) {
+        updateAppBarTitle(title: curMediaItem.value.title, subTitle: curMediaItem.value.artist ?? '', appBarTitleColor: panelWidgetColor.value, direction: NewAppBarTitleComingDirection.down, willRollBack: true);
       } else {
-        _rollBackAppBarTitle(newAppBarTitleComingDirection: NewAppBarTitleComingDirection.up);
+        rollBackAppBarTitle(newAppBarTitleComingDirection: NewAppBarTitleComingDirection.up);
       }
     }
-    if (panelOpened90.value != (value > 0.9)) {
-      panelOpened90.value = value > 0.9;
-    }
-    if (panelFullyOpened.value != (value == 1.0)){
+    if (bottomPanelFullyOpened.value != (openDegree == 1.0)){
       // 更新状态
-      panelFullyOpened.value = (value == 1.0);
-      // 根据状态变更图标颜色
-      _updateStatusBarColor();
+      bottomPanelFullyOpened.value = (openDegree == 1.0);
       // 打开Panel时在正在播放列表页，滚动到当前播放
       if (curPanelPageIndex.value == 0) {
-        await _animatePlayListToCurSong();
+        _animatePlayListToCurSong();
       }
     }
 
   }
 
-  /// 当按下返回键
-  Future<bool> onWillPop() async {
-    if (panelController.isPanelOpen) {
-      panelController.close();
-      return false;
+  /// 改变panel位置
+  onTopPanelSlide(double openDegree) {
+    topPanelAnimationController.value = openDegree;
+
+    if (topPanelFullyClosed.value != (openDegree == 0.0)){
+      topPanelFullyClosed.value = (openDegree == 0.0);
     }
-    if (buildContext.router.canPop()) {
-      _rollBackAppBarTitle();
-      return true;
+    if (topPanelFullyOpened.value != (openDegree == 1.0)){
+      topPanelFullyOpened.value = (openDegree == 1.0);
+    }
+
+  }
+
+  /// 当按下返回键
+  onWillPop() {
+    if (topPanelController.isPanelOpen) {
+      bottomPanelController.close();
+      return;
+    }
+    if (bottomPanelController.isPanelOpen) {
+      bottomPanelController.close();
+      return;
     }
     if (zoomDrawerController.isOpen!()) {
       zoomDrawerController.close!();
-      return false;
+      return;
     }
     if (homePageController.page != 0) {
       homePageController.animateToPage(0, duration: Duration(milliseconds: 100 * (homePageController.page)!.toInt()), curve: Curves.linear);
-      return false;
     } else {
       SystemNavigator.pop();
     }
-    return true;
   }
   List<MediaItem> song2ToMedia(List<Song2> songs) {
     return songs
@@ -556,7 +570,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
           'image': e.al?.picUrl ?? '',
           'liked': likeIds.contains(int.tryParse(e.id)),
           'artist': (e.ar ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / '),
-          'album': jsonEncode(e.al?.toJson()),
+          'albumId': e.al?.id ?? '',
           'mv': e.mv,
           'fee': e.fee
         },
@@ -634,9 +648,6 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
           ? Colors.black
           : Colors.white;
       print("update4422Color");
-      if (panelFullyOpened.isTrue) {
-        _updateStatusBarColor();
-      }
     });
   }
   _animateLyricToCurLyric() async {
@@ -644,7 +655,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
     // currLyricIndex.value == -1 表示为前奏，滚动到第一行歌词
     int lyricListViewIndex = 1 + (currLyricIndex.value == -1 ? 0 : currLyricIndex.value);
     // 滚动到当前歌词
-    if (panelFullyOpened.isTrue && !isLyricScrollingByUser) {
+    if (bottomPanelFullyOpened.isTrue && !isLyricScrollingByUser) {
       isLyricScrollingByItself = true;
       lyricListViewIndex == 1
           ? lyricScrollController.jumpTo(index: lyricListViewIndex, alignment: 0.4)
@@ -659,29 +670,29 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
 
   /// 滚动播放列表到当前播放歌曲
   _animatePlayListToCurSong() async {
-    if (panelFullyOpened.isTrue && curPanelPageIndex.value == 0) {
+    if (bottomPanelFullyOpened.isTrue && curPanelPageIndex.value == 0) {
       double offset = 60.0 * curPlayIndex.value;
       await playListScrollController.animateTo(offset, duration: const Duration(milliseconds: 300), curve: Curves.linear);
     }
   }
   _animateAlbumPageViewToCurSong() async {
+    if (!albumPageController.hasClients) return;
     if (!isAlbumScrollingManully) {
       isAlbumScrollingProgrammatic = true;
       bool isNearBy = (curPlayIndex.value - albumPageController.page!.toInt()).abs() <= 1;
-      if (isNearBy && panelFullyOpened.isTrue) {
+      if (isNearBy && bottomPanelFullyOpened.isTrue) {
         await albumPageController.animateToPage(curPlayIndex.value , duration: const Duration(milliseconds: 300), curve: Curves.linear);
       } else {
         albumPageController.jumpToPage(curPlayIndex.value );
       }
-      isAlbumScrollingProgrammatic = false;
     }
   }
   _updateAppBarTitleToCurSong(int lastPlayIndex) {
     bool isSkipToNext = curPlayIndex.value > lastPlayIndex;
     bool isNearBy = (curPlayIndex.value - lastPlayIndex) <= 1;
     // 切换AppBar标题
-    if (panelFullyOpened.isTrue) {
-      changeAppBarTitle(
+    if (bottomPanelFullyOpened.isTrue) {
+      updateAppBarTitle(
           title: curPlayList[curPlayIndex.value].title,
           subTitle: curPlayList[curPlayIndex.value].artist ?? "",
           appBarTitleColor: panelWidgetColor.value,
@@ -692,19 +703,6 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
               : NewAppBarTitleComingDirection.left
       );
     }
-  }
-  _updateStatusBarColor() {
-    bool isLight = panelFullyOpened.isTrue
-        ? ThemeData.estimateBrightnessForColor(albumColor.value) == Brightness.light
-        : !Get.isDarkMode;
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
-      statusBarBrightness: isLight ? Brightness.light : Brightness.dark,
-      statusBarIconBrightness: isLight ? Brightness.dark : Brightness.light,
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarContrastEnforced: false,
-    ));
   }
 
   /// 获取 FM 歌曲列表
@@ -720,6 +718,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin {
             'image': e.album?.picUrl ?? '',
             'liked': likeIds.contains(int.tryParse(e.id)),
             'artist': (e.artists ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / '),
+            'albumId': e.album?.id ?? '',
             'type': MediaType.fm.name,
             'size': ''
           },

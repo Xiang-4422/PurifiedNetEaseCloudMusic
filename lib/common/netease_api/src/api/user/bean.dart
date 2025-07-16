@@ -238,7 +238,7 @@ class UserListWrap extends ServerStatusBean {
 
 @JsonSerializable()
 class ArtistsSubListWrap extends ServerStatusListBean {
-  late List<Artists> data;
+  late List<Artist> data;
 
   ArtistsSubListWrap();
 

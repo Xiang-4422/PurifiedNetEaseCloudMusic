@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 
-import '../pages/home/app_controller.dart';
+import '../controllers/app_controller.dart';
 
 typedef RequestChildBuilder<T> = Widget Function(T data);
 
@@ -70,7 +70,7 @@ class LoadingView extends StatelessWidget {
           children: [
             // SvgPicture.asset(AppIcons.loading,width: context.width/2.9,),
             Lottie.asset('assets/lottie/empty_status.json', height: context.width / 3.5, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
-            Text(tips ?? '加载中...', style: TextStyle(fontSize: 28.sp)),
+            Text(tips ?? '加载中...', style: TextStyle(fontSize: 28)),
           ],
         ),
       ),
@@ -91,7 +91,7 @@ class EmptyView extends StatelessWidget {
         children: [
           // SvgPicture.asset(AppIcons.loading,width: context.width/2.9,),
           Lottie.asset('assets/lottie/empty.json', height: context.width / 2, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
-          Text('暂无数据...', style: TextStyle(fontSize: 28.sp)),
+          Text('暂无数据...', style: TextStyle(fontSize: 28)),
         ],
       ),
     );
@@ -111,7 +111,7 @@ class ErrorView extends StatelessWidget {
         children: [
           // SvgPicture.asset(AppIcons.loading,width: context.width/2.9,),
           Lottie.asset('assets/lottie/no_internet_connection.json', height: context.width / 2.5, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
-          Text('网络错误', style: TextStyle(fontSize: 32.sp)),
+          Text('网络错误', style: TextStyle(fontSize: 32)),
         ],
       ),
     );

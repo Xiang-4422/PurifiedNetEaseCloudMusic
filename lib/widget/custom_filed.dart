@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 class CustomFiled extends StatefulWidget {
@@ -46,15 +46,15 @@ class _CustomFiledState extends State<CustomFiled> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: widget.padding ?? EdgeInsets.symmetric(horizontal: 15.w,vertical: 12.w),
-      margin: widget.margin ?? EdgeInsets.symmetric(vertical: 25.w),
-      decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary.withOpacity(.6), borderRadius: BorderRadius.circular(50.w)),
+      padding: widget.padding ?? EdgeInsets.symmetric(horizontal: 15,vertical: 12),
+      margin: widget.margin ?? EdgeInsets.symmetric(vertical: 25),
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary.withOpacity(.6), borderRadius: BorderRadius.circular(50)),
       child: Row(
         children: [
           widget.iconData != null
               ? Icon(
                   widget.iconData,
-                  size: 42.sp,
+                  size: 42,
                 )
               : const SizedBox.shrink(),
           Expanded(
@@ -68,8 +68,8 @@ class _CustomFiledState extends State<CustomFiled> {
             autofocus: widget.autoFocus??false,
             decoration: InputDecoration(
               hintText: widget.hitText ?? '',
-              hintStyle: TextStyle(fontSize: 28.sp, color: Colors.grey),
-              contentPadding: EdgeInsets.symmetric(vertical: 10.w, horizontal: 15.w),
+              hintStyle: TextStyle(fontSize: 28, color: Colors.grey),
+              contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
               border: const UnderlineInputBorder(borderSide: BorderSide.none),
               isDense: true
             ),
@@ -77,11 +77,11 @@ class _CustomFiledState extends State<CustomFiled> {
           Visibility(
             visible: widget.pass ?? false,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.w),
+              padding: EdgeInsets.symmetric(horizontal: 10),
               child: GestureDetector(
                 child: Icon(
                   isPass ? TablerIcons.eye_off : TablerIcons.eye,
-                  size: 40.sp,
+                  size: 40,
                 ),
                 onTap: () => setState(() {
                   isPass = !isPass;

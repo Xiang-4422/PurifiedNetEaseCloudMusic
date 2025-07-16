@@ -2,13 +2,14 @@ import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
+import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
-import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:get/get.dart';
 
 import '../../common/netease_api/src/dio_ext.dart';
@@ -16,15 +17,15 @@ import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
 
-class ArtistsView extends StatefulWidget {
-  const ArtistsView({Key? key}) : super(key: key);
+class ArtistPageView extends StatefulWidget {
+  const ArtistPageView({Key? key}) : super(key: key);
 
   @override
-  State<ArtistsView> createState() => _ArtistsViewState();
+  State<ArtistPageView> createState() => _ArtistPageViewState();
 }
 
-class _ArtistsViewState extends State<ArtistsView> with SingleTickerProviderStateMixin {
-  Artists? artists;
+class _ArtistPageViewState extends State<ArtistPageView> with SingleTickerProviderStateMixin {
+  late String artistId;
   final List<MediaItem> _items = [];
   final List<Tab> _tabs = [
     const Tab(text: '详情'),
@@ -51,7 +52,7 @@ class _ArtistsViewState extends State<ArtistsView> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
-    artists = (context.routeData.args as Artists);
+    artistId = context.routeData.queryParams.get("artistId");
     _tabController = TabController(length: _tabs.length, vsync: this);
   }
 
@@ -63,53 +64,54 @@ class _ArtistsViewState extends State<ArtistsView> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    return MyGetView(child: Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: Text(artists?.name ?? ''),
-        bottom: TabBar(
-          tabs: _tabs,
-          controller: _tabController,
-          labelColor: Theme.of(context).primaryColor,
-          unselectedLabelColor: Theme.of(context).iconTheme.color,
-          indicatorSize: TabBarIndicatorSize.label,
-          indicatorColor: Theme.of(context).primaryColor,
-          indicatorPadding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 0),
+    return Column(
+      children: [
+        Padding(padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top)),
+        Expanded(
+          child: DefaultTabController(
+            length: _tabs.length,
+            child: Column(
+              children: [
+                TabBar(tabs: _tabs),
+                Expanded(
+                  child: TabBarView(
+                    children: [_buildDetails(), _buildSongList(), _buildAlbumView()],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildDetails(), _buildSongList(), _buildAlbumView()],
-      ),
-    ));
+        Padding(padding: EdgeInsets.only(top: AppDimensions.bottomPanelHeaderHeight)),
+      ],
+    );
   }
 
   Widget _buildDetails(){
     return RequestWidget<ArtistDetailWrap>(
-        dioMetaData: artistDetailDioMetaData(artists?.id ?? '-1'),
+        dioMetaData: artistDetailDioMetaData(artistId),
         childBuilder: (artistDetails) {
           print('======${jsonEncode(artistDetails.toJson())}');
           return SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 30.w),
+            padding: EdgeInsets.symmetric(horizontal: 30),
             child: Column(
               children: [
-                Padding(padding: EdgeInsets.symmetric(vertical: 20.w)),
+                Padding(padding: EdgeInsets.symmetric(vertical: 20)),
                 Stack(
                   alignment: Alignment.topCenter,
                   children: [
                     Container(
                       width: context.width,
-                      margin: EdgeInsets.only(top: 150.w),
-                      padding: EdgeInsets.only(left: 15.w, right: 15.w, bottom: 25.w, top: 80.w),
-                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(25.w)),
+                      margin: EdgeInsets.only(top: 150),
+                      padding: EdgeInsets.only(left: 15, right: 15, bottom: 25, top: 80),
+                      decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(25)),
                       child: Column(
                         children: [
-                          Padding(padding: EdgeInsets.symmetric(vertical: 15.w),child: Text(
+                          Padding(padding: EdgeInsets.symmetric(vertical: 15),child: Text(
                             artistDetails.data?.artist?.name??"",
-                            style: TextStyle(fontSize: 56.sp),
+                            style: TextStyle(fontSize: 56),
                           ),),
-                          Padding(padding: EdgeInsets.symmetric(vertical: 20.w,horizontal: 20.w),child: Row(
+                          Padding(padding: EdgeInsets.symmetric(vertical: 20,horizontal: 20),child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               Text('${artistDetails.data?.artist?.albumSize??''} 专辑'),
@@ -122,11 +124,11 @@ class _ArtistsViewState extends State<ArtistsView> with SingleTickerProviderStat
                     ),
                     SimpleExtendedImage.avatar(
                       '${artistDetails.data?.artist?.cover??''}?param=300y300',
-                      width: 220.w,
+                      width: 220,
                     ),
                   ],
                 ),
-                Padding(padding: EdgeInsets.symmetric(vertical: 30.w),child: Text(artistDetails.data?.artist?.briefDesc??"",style: TextStyle(color: Theme.of(context).iconTheme.color),),),
+                Padding(padding: EdgeInsets.symmetric(vertical: 30),child: Text(artistDetails.data?.artist?.briefDesc??"",style: TextStyle(color: Theme.of(context).iconTheme.color),),),
               ],
             ),
           );
@@ -135,19 +137,15 @@ class _ArtistsViewState extends State<ArtistsView> with SingleTickerProviderStat
 
   Widget _buildSongList() {
     return RequestWidget<ArtistSongListWrap>(
-        dioMetaData: artistTopSongListDioMetaData(artists?.id ?? '-1'),
+        dioMetaData: artistTopSongListDioMetaData(artistId),
         childBuilder: (artistDetails) {
           _items
             ..clear()
             ..addAll(AppController.to.song2ToMedia(artistDetails.songs ?? []));
           return ListView.builder(
-            itemExtent: 130.w,
             itemBuilder: (context, index) => SongItem(
               index: index,
-              mediaItem: _items[index],
-              onTap: () {
-                AppController.to.playNewPlayList(_items, index);
-              },
+              playlist: _items,
             ),
             itemCount: _items.length,
           );
@@ -156,14 +154,13 @@ class _ArtistsViewState extends State<ArtistsView> with SingleTickerProviderStat
 
   Widget _buildAlbumView() {
     return RequestLoadMoreWidget<ArtistAlbumListWrap, Album>(
-      dioMetaData: artistAlbumListDioMetaData(artists?.id ?? '-1'),
+      dioMetaData: artistAlbumListDioMetaData(artistId),
       pageSize: 30,
-      childBuilder: (List<Album> playlist) {
+      childBuilder: (List<Album> albums) {
         return ListView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          itemExtent: 130.w,
-          itemBuilder: (context, index) => AlbumItem(index: index, album: playlist[index]),
-          itemCount: playlist.length,
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          itemBuilder: (context, index) => AlbumItem(album: albums[index]),
+          itemCount: albums.length,
         );
       },
       listKey: const ['hotAlbums'],

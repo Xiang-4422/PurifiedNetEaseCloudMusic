@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
+import 'package:bujuan/controllers/app_controller.dart';
 import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -141,10 +141,9 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
   }
   /// 这里Index是在 正在播放列表 中的索引
   playIndex({required int audioSourceIndex, required bool playNow}) async {
-    _player.stop();
+    // _player.stop();
     bool isNext = audioSourceIndex >= _curIndex;
     _curIndex = audioSourceIndex;
-    print("play index: $_curIndex");
     // 获取歌曲资源
     MediaItem newIndexMediaItem = queue.value[audioSourceIndex];
     mediaItem.add(newIndexMediaItem);

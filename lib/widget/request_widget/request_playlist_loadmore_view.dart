@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/generated/json/base/json_convert_content.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
+import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';

@@ -147,7 +147,7 @@ class HomeBlockPageUiElement {
 
 @JsonSerializable()
 class HomeBlockPageResourceExt {
-  List<Artists>? artists;
+  List<Artist>? artists;
   Song? songData;
   Privilege? songPrivilege;
   CommentSimple? commentSimpleData;

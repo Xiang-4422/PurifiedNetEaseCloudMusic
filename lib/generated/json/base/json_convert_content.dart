@@ -148,7 +148,7 @@ class JsonConvert {
 		(PlayListDetailDynamicWrap).toString(): PlayListDetailDynamicWrap.fromJson,
 		(PlaymodeIntelligenceItem).toString(): PlaymodeIntelligenceItem.fromJson,
 		(PlaymodeIntelligenceListWrap).toString(): PlaymodeIntelligenceListWrap.fromJson,
-		(Artists).toString(): Artists.fromJson,
+		(Artist).toString(): Artist.fromJson,
 		(ArtistsListWrap).toString(): ArtistsListWrap.fromJson,
 		(ArtistsTopListWrap).toString(): ArtistsTopListWrap.fromJson,
 		(ArtistsTopListWrapX).toString(): ArtistsTopListWrapX.fromJson,
@@ -751,8 +751,8 @@ class JsonConvert {
 		if(<PlaymodeIntelligenceListWrap>[] is M){
 			return data.map<PlaymodeIntelligenceListWrap>((Map<String, dynamic> e) => PlaymodeIntelligenceListWrap.fromJson(e)).toList() as M;
 		}
-		if(<Artists>[] is M){
-			return data.map<Artists>((Map<String, dynamic> e) => Artists.fromJson(e)).toList() as M;
+		if(<Artist>[] is M){
+			return data.map<Artist>((Map<String, dynamic> e) => Artist.fromJson(e)).toList() as M;
 		}
 		if(<ArtistsListWrap>[] is M){
 			return data.map<ArtistsListWrap>((Map<String, dynamic> e) => ArtistsListWrap.fromJson(e)).toList() as M;

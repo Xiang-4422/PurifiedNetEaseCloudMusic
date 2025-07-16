@@ -2,10 +2,9 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/bujuan_audio_handler.dart';
 import 'package:bujuan/common/constants/platform_utils.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
-import 'package:bujuan/pages/index/explore_page_controller.dart';
-import 'package:bujuan/pages/user/personal_page_controller.dart';
-import 'package:bujuan/widget/app_widget.dart';
+import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/app_root_widget.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +15,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:just_audio/just_audio.dart';
 
 import 'common/netease_api/src/netease_api.dart';
+import 'controllers/explore_page_controller.dart';
+import 'controllers/user_controller.dart';
 
 /// 应用启动入口
 main() async {
@@ -27,11 +28,11 @@ main() async {
   // 在runApp前必须完成的初始化操作
   await _initSingleton();
 
-  Get.lazyPut<PersonalPageController>(() => PersonalPageController());
+  Get.lazyPut<UserController>(() => UserController());
   Get.lazyPut<ExplorePageController>(() => ExplorePageController());
   Get.lazyPut<AppController>(() => AppController());
 
-  runApp(AppWidget());
+  runApp(AppRootWidget());
 }
 
 Future<void> _initUI() async {
@@ -56,16 +57,4 @@ Future<void> _initSingleton() async {
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));
   // 初始化网易云API
   await NeteaseMusicApi.init(debug: false);
-  // // 初始化音频服务
-  // getIt.registerSingleton<BujuanAudioHandler>(
-  //     await AudioService.init(
-  //       builder: () => BujuanAudioHandler(),
-  //       config: const AudioServiceConfig(
-  //         androidStopForegroundOnPause: false,
-  //         androidNotificationChannelId: 'com.yu4422.purrr.channel.audio',
-  //         androidNotificationChannelName: 'Music playback',
-  //         androidNotificationIcon: 'drawable/audio_service_icon',
-  //       ),
-  //     )
-  // );
 }

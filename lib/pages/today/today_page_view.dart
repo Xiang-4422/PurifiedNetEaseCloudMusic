@@ -1,12 +1,11 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
-import 'package:bujuan/widget/my_get_view.dart';
+import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:get/get.dart';
 
 import '../../common/netease_api/src/api/play/bean.dart';
@@ -29,42 +28,37 @@ class _TodayPageViewState extends State<TodayPageView> {
 
   @override
   Widget build(BuildContext context) {
-    return MyGetView(
-      child: Scaffold(
-        backgroundColor: context.theme.colorScheme.primary,
-        body: Column(
-          children: [
-            // Container(height: 500,),
-            Expanded(
-              child: RequestWidget<RecommendSongListWrapX>(
-                  dioMetaData: recommendSongListDioMetaData(),
-                  childBuilder: (playlist) {
-                    _mediaItem
-                      ..clear()
-                      ..addAll(AppController.to.song2ToMedia((playlist.data.dailySongs ?? [])));
-                    return Column(
-                      children: [
-                        //TODO YU4422 添加一个日期组件
-                        Expanded(
-                          child: ListView.builder(
-                            padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top, bottom: AppDimensions.bottomPanelHeaderHeight),
-                            itemExtent: 130.w,
-                            itemCount: _mediaItem.length,
-                            itemBuilder: (context, index) => SongItem(
-                              index: index,
-                              mediaItem: _mediaItem[index],
-                              onTap: () {
-                                AppController.to.playNewPlayList(_mediaItem, index);
-                              },
-                            ),
-                          ),
+    return Scaffold(
+      backgroundColor: context.theme.colorScheme.primary,
+      body: Column(
+        children: [
+          // Container(height: 500,),
+          Expanded(
+            child: RequestWidget<RecommendSongListWrapX>(
+              dioMetaData: recommendSongListDioMetaData(),
+              childBuilder: (playlist) {
+                _mediaItem
+                  ..clear()
+                  ..addAll(AppController.to.song2ToMedia((playlist.data.dailySongs ?? [])));
+                return Column(
+                  children: [
+                    //TODO YU4422 添加一个日期组件
+                    Expanded(
+                      child: ListView.builder(
+                        padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top, bottom: AppDimensions.bottomPanelHeaderHeight),
+                        itemCount: _mediaItem.length,
+                        itemBuilder: (context, index) => SongItem(
+                          index: index,
+                          playlist: _mediaItem,
                         ),
-                      ],
-                    );
-                  }),
+                      ),
+                    ),
+                  ],
+                );
+              }
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -2,23 +2,27 @@ import 'dart:convert';
 
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
-import 'package:bujuan/pages/user/personal_page_view.dart';
-import 'package:bujuan/routes/router.dart';
-import 'package:bujuan/widget/enable_view.dart';
+import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../common/netease_api/src/api/login/bean.dart';
-import '../../common/netease_api/src/api/play/bean.dart';
-import '../../common/netease_api/src/dio_ext.dart';
-import '../../common/netease_api/src/netease_api.dart';
+import '../common/netease_api/src/api/login/bean.dart';
+import '../common/netease_api/src/api/play/bean.dart';
+import '../common/netease_api/src/dio_ext.dart';
+import '../common/netease_api/src/netease_api.dart';
+import '../routes/router.dart';
+import '../widget/enable_view.dart';
 
 enum LoginStatus { login, noLogin }
 
-class PersonalPageController extends GetxController {
+class UserController extends GetxController {
+  static UserController get to => Get.find();
   /// 喜欢歌单
   PlayList userLikedSongPlayList = PlayList();
   /// 创建歌单列表
@@ -29,7 +33,7 @@ class PersonalPageController extends GetxController {
   RxBool loading = true.obs;
   late BuildContext context;
   final List<UserItem> userItems = [
-    UserItem('每日', TablerIcons.calendar, routes: Routes.today,color: const Color.fromRGBO(66,133,244, .7)),
+    UserItem('每日', TablerIcons.calendar, fullTitle: '每日推荐', routes: Routes.today,color: const Color.fromRGBO(66,133,244, .7)),
     UserItem('FM', TablerIcons.radio, routes: 'playFm',color: const Color.fromRGBO(52,168,83, .7)),
     UserItem('播客', TablerIcons.brand_apple_podcast, routes: Routes.myRadio,color: const Color.fromRGBO(251,188,5, .7)),
     UserItem('云盘', TablerIcons.cloud_fog, routes: Routes.cloud,color: const Color.fromRGBO(234,67,53, .7))
@@ -72,9 +76,6 @@ class PersonalPageController extends GetxController {
       }
     });
   }
-
-  static PersonalPageController get to => Get.find();
-
   //获取用户信息
   getUserState() async {
     try {
@@ -110,24 +111,22 @@ class PersonalPageController extends GetxController {
 
   /// 获取用户歌单
   _getUserPlayList() {
-    NeteaseMusicApi().userPlayList(AppController.to.userData.value.profile?.userId ?? '-1')
-        .then((MultiPlayListWrap2 multiPlayListWrap2) async {
-      List<PlayList> list = (multiPlayListWrap2.playlist ?? []);
-      if (list.isNotEmpty) {
-        userLikedSongPlayList = list.first..name = '我喜欢的音乐';
-        list.removeAt(0);
-        userFavoritedPlayLists.clear();
-        userMadePlayLists.clear();
-        for(var collection in list) {
-          if (collection.creator?.userId == AppController.to.userData.value.profile?.userId) {
-            userMadePlayLists.add(collection);
-            userFavoritedPlayLists.remove(collection);
-          } else {
-            userFavoritedPlayLists.add(collection);
+    NeteaseMusicApi().userPlayList(AppController.to.userData.value.profile?.userId ?? '-1').then((MultiPlayListWrap2 multiPlayListWrap2) async {
+          List<PlayList> playLists = (multiPlayListWrap2.playlists ?? []);
+          if (playLists.isNotEmpty) {
+            userLikedSongPlayList = playLists.first..name = '我喜欢的音乐';
+            playLists.removeAt(0);
+            userFavoritedPlayLists.clear();
+            userMadePlayLists.clear();
+            for(var playList in playLists) {
+              if (playList.creator?.userId == AppController.to.userData.value.profile?.userId) {
+                userMadePlayLists.add(playList);
+              } else {
+                userFavoritedPlayLists.add(playList);
+              }
+            }
           }
-        }
-      }
-      loading.value = false;
+          loading.value = false;
     });
   }
 

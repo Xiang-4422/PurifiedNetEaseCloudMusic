@@ -1,8 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/home/app_controller.dart';
+import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
-import 'package:bujuan/widget/my_get_view.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/material.dart';
 
@@ -26,7 +25,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    return MyGetView(child: Scaffold(
+    return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text((context.routeData.args as DjRadio).name),
@@ -55,16 +54,13 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
               itemBuilder: (context, index) {
                 return SongItem(
                   index: index,
-                  mediaItem: mediaItems[index],
-                  onTap: () {
-                    AppController.to.playNewPlayList(mediaItems, index);
-                  },
+                  playlist: mediaItems,
                 );
               },
               itemCount: list.length,
             );
           },
           listKey: const ['programs']),
-    ));
+    );
   }
 }

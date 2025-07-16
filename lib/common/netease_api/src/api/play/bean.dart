@@ -125,7 +125,7 @@ class Song {
 
   String? commentThreadId;
 
-  List<Artists>? artists;
+  List<Artist>? artists;
 
   Album? album;
 
@@ -171,7 +171,7 @@ class Song2 {
   int? pst;
   int? t;
 
-  List<Artists>? ar;
+  List<Artist>? ar;
 
   double? pop;
   int? st;
@@ -518,7 +518,7 @@ class ArtistNewSongListWrap extends ServerStatusBean {
 class ArtistDetailAndSongListWrap extends ServerStatusBean {
   List<Song2>? hotSongs;
 
-  late Artists artist;
+  late Artist artist;
 
   ArtistDetailAndSongListWrap();
 
@@ -596,7 +596,7 @@ class PlayTrack {
   int? pst;
   int? t;
 
-  List<Artists>? ar;
+  List<Artist>? ar;
   double? pop;
   int? st;
   String? rt;
@@ -665,7 +665,7 @@ class MultiPlayListWrap extends ServerStatusBean {
 
 @JsonSerializable()
 class MultiPlayListWrap2 extends ServerStatusBean {
-  List<PlayList>? playlist;
+  List<PlayList>? playlists;
 
   MultiPlayListWrap2();
 
@@ -911,7 +911,7 @@ class PlaymodeIntelligenceListWrap extends ServerStatusBean {
 }
 
 @JsonSerializable()
-class Artists {
+class Artist {
   @JsonKey(fromJson: dynamicToString)
   late String id;
   @JsonKey(fromJson: dynamicToString)
@@ -938,9 +938,9 @@ class Artists {
 
   int? publishTime;
 
-  Artists();
+  Artist();
 
-  factory Artists.fromJson(Map<String, dynamic> json) =>
+  factory Artist.fromJson(Map<String, dynamic> json) =>
       _$ArtistsFromJson(json);
 
   Map<String, dynamic> toJson() => _$ArtistsToJson(this);
@@ -948,7 +948,7 @@ class Artists {
 
 @JsonSerializable()
 class ArtistsListWrap extends ServerStatusBean {
-  List<Artists>? artists;
+  List<Artist>? artists;
 
   ArtistsListWrap();
 
@@ -960,7 +960,7 @@ class ArtistsListWrap extends ServerStatusBean {
 
 @JsonSerializable()
 class ArtistsTopListWrap {
-  List<Artists>? artists;
+  List<Artist>? artists;
 
   int? type;
   int? updateTime;
@@ -1022,7 +1022,7 @@ class ArtistDetailData {
   bool? showPriMsg;
   int? videoCount;
 
-  Artists? artist;
+  Artist? artist;
 
   ArtistDetailData();
 
@@ -1069,8 +1069,8 @@ class Album {
   String? description;
   String? briefDesc;
 
-  Artists? artist;
-  List<Artists>? artists;
+  Artist? artist;
+  List<Artist>? artists;
 
   bool? isSub;
   bool? paid;
@@ -1135,7 +1135,7 @@ class ArtistAlbumListWrap extends ServerStatusListBean {
 
   List<Album>? hotAlbums;
 
-  late Artists artist;
+  late Artist artist;
 
   ArtistAlbumListWrap();
 
@@ -1193,7 +1193,7 @@ class Mv {
 
   String? alg;
 
-  List<Artists>? artists;
+  List<Artist>? artists;
 
   Mv();
 
@@ -1238,7 +1238,7 @@ class Mv3 {
 
   int? status;
 
-  late Artists artist;
+  late Artist artist;
 
   Mv3();
 

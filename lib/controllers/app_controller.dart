@@ -129,8 +129,10 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   ItemScrollController lyricScrollController = ItemScrollController();
   bool isLyricScrollingByUser = false;
   bool isLyricScrollingByItself = false;
-  // TODO YU4422 沉浸式歌词，隐藏控件
-  Timer? fullScreenLyricTimer;
+  /// 自动关闭抽屉倒计时（毫秒）
+  double _fullScreenLyricTimerCounter = 0.0;
+  Timer? _fullScreenLyricTimer;
+  RxBool isFullScreenLyricOpen = false.obs;
 
   // --- 播放器状态 ---
   late final AudioServiceHandler audioHandler;
@@ -222,6 +224,9 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
         curPanelPageIndex.value = newPanelPageIndex;
         // 切换到正在播放列表页，滚动到当前播放
         if (newPanelPageIndex == 0) await _animatePlayListToCurSong();
+        if (isFullScreenLyricOpen.isFalse) {
+          updateFullScreenLyricTimerCounter(cancelTimer: newPanelPageIndex != 1 && isFullScreenLyricOpen.isFalse);
+        }
       }
       // 避免循环监听
       if (bottomPanelTabController.indexIsChanging || bottomPanelCommentTabController.indexIsChanging) return;
@@ -316,6 +321,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     // 监听播放状态变化
     audioHandler.playbackState.listen((playbackState) {
       isPlaying.value = playbackState.playing;
+      updateFullScreenLyricTimerCounter(cancelTimer: isPlaying.isFalse);
       if(playbackState.processingState == AudioProcessingState.completed) audioHandler.skipToNext();
     });
     // 监听播放进度变化
@@ -611,6 +617,39 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
       _timerCounter = timeValue;
     }
   }
+
+  updateFullScreenLyricTimerCounter({bool cancelTimer = false}) {
+    // 无操作5s，进入沉浸式歌词
+    double closeTime = 5000;
+    if (cancelTimer){
+      _fullScreenLyricTimerCounter = 0;
+      if(_fullScreenLyricTimer != null) _fullScreenLyricTimer!.cancel();
+      isFullScreenLyricOpen.value = false;
+    } else if (isPlaying.isTrue){
+      if (_fullScreenLyricTimer == null || !_fullScreenLyricTimer!.isActive) {
+        // 启动倒计时
+        _fullScreenLyricTimerCounter = closeTime;
+        _fullScreenLyricTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+          _fullScreenLyricTimerCounter -= 50;
+          // 倒计时结束
+          if (_fullScreenLyricTimerCounter <= 0) {
+            _fullScreenLyricTimerCounter = 0;
+            timer.cancel();
+            isFullScreenLyricOpen.value = true;
+          }
+        });
+      } else {
+        _fullScreenLyricTimerCounter = closeTime;
+      }
+    }
+  }
+
+  cancelFullScreenLyricTimerCounter(){
+
+  }
+
+
+
   /// 更新歌词
   _updateLyric() async {
     // 歌词清空
@@ -669,7 +708,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     // currLyricIndex.value == -1 表示为前奏，滚动到第一行歌词
     int lyricListViewIndex = 1 + (currLyricIndex.value == -1 ? 0 : currLyricIndex.value);
     // 滚动到当前歌词
-    if (bottomPanelFullyOpened.isTrue && !isLyricScrollingByUser) {
+    if (!isLyricScrollingByUser) {
       isLyricScrollingByItself = true;
       lyricListViewIndex == 1
           ? lyricScrollController.jumpTo(index: lyricListViewIndex, alignment: 0.4)

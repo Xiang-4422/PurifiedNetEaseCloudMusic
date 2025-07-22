@@ -13,6 +13,7 @@ import 'package:bujuan/pages/play_list/playlist_controller.dart';
 import 'package:bujuan/pages/talk/comment_widget.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/data_widget.dart';
+import 'package:bujuan/widget/my_tab_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -220,19 +221,10 @@ class PlayListPageView extends GetView<PlayListController> {
                                     child: Visibility(
                                       key: ValueKey(controller.curPageIndex.value == 0),
                                       visible: controller.curPageIndex.value == 0,
-                                      replacement: SizedBox(
+                                      replacement: MyTabBar(
                                         height: 40,
-                                        child: TabBar(
-                                          controller: controller.commentTabController,
-                                          dividerColor: Colors.transparent,
-                                          indicatorSize: TabBarIndicatorSize.tab,
-                                          indicatorWeight: 0,
-                                          indicator: BoxDecoration(
-                                            color: controller.widgetColor.value.withOpacity(0.05),
-                                            borderRadius: BorderRadius.circular(60),
-                                          ),
-                                          tabs: [Text('热门', style: context.textTheme.titleMedium?.copyWith(color: controller.widgetColor.value)), Text("最新", style: context.textTheme.titleMedium?.copyWith(color: controller.widgetColor.value))],
-                                        ),
+                                        controller: controller.commentTabController,
+                                        tabs: [Text('热门', style: context.textTheme.titleMedium?.copyWith(color: controller.widgetColor.value)), Text("最新", style: context.textTheme.titleMedium?.copyWith(color: controller.widgetColor.value))],
                                       ),
                                       child: GestureDetector(
                                         onTap: (){

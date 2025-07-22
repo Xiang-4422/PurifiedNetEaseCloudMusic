@@ -45,12 +45,10 @@ class LyricView extends GetView<AppController> {
             itemCount: controller.lyricsLineModels.length + 2,
             itemBuilder: (BuildContext context, int index) {
               Widget child;
-              bool isLyric = false;
               // 首尾占位，让当前歌词行能够在固定位置显示
               if (index == 0 || index == controller.lyricsLineModels.length + 1) {
                 child = Container(height: context.height * (index == 0 ? 0.4 : 0.6));
               } else {
-                isLyric = true;
                 index -= 1;
                 String mainText = (controller.lyricsLineModels[index].mainText ?? '').trim();
                 if (mainText.isEmpty) {mainText = '···';}
@@ -80,12 +78,14 @@ class LyricView extends GetView<AppController> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onPressed: () => controller.isAlbumVisible.value = true,
-                onLongPress: () {
-                  if (isLyric) {
-                    controller.audioHandler.seek(Duration(milliseconds: controller.lyricsLineModels[index].startTime!));
-                  }
-                },
+                onPressed: null,
+                // TODO YU4422: 与外层的触摸事件冲突，暂时禁用
+                // onPressed: () => controller.isAlbumVisible.value = true,
+                // onLongPress: () {
+                //   if (isLyric) {
+                //     controller.audioHandler.seek(Duration(milliseconds: controller.lyricsLineModels[index].startTime!));
+                //   }
+                // },
                 child: child,
               );
             },

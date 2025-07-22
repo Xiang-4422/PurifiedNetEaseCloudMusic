@@ -6,9 +6,13 @@ import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
+import 'package:bujuan/widget/my_tab_bar.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
+import 'package:date_format/date_format.dart';
+import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:get/get.dart';
 
@@ -16,6 +20,7 @@ import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
+import '../home/top_panel/top_panel_view.dart';
 
 class ArtistPageView extends StatefulWidget {
   const ArtistPageView({Key? key}) : super(key: key);
@@ -64,26 +69,67 @@ class _ArtistPageViewState extends State<ArtistPageView> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top)),
-        Expanded(
-          child: DefaultTabController(
-            length: _tabs.length,
-            child: Column(
+    return RequestWidget<ArtistDetailWrap>(
+      dioMetaData: artistDetailDioMetaData(artistId),
+      childBuilder: (artistDetails) {
+        return DefaultTabController(
+          length: 2,
+          child: ExtendedNestedScrollView(
+            controller: ScrollController(),
+            headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  // title: Container(color: Colors.red, child: Container(height: 100,),),
+                  titleSpacing: 0,
+                  toolbarHeight: AppDimensions.appBarHeight,
+                  collapsedHeight: AppDimensions.appBarHeight,
+                  expandedHeight: context.width - context.mediaQueryPadding.top,
+                  automaticallyImplyLeading: false,
+                  pinned: true,
+                  flexibleSpace: FlexibleSpaceBar(
+                    title: TopPanelHeaderAppBar(),
+                    // title: Text("title"),
+                    // centerTitle: true,
+                    titlePadding: EdgeInsets.only(bottom: AppDimensions.paddingLarge),
+                    expandedTitleScale: 1.5,
+                    background: Column(
+                      children: [
+                        SimpleExtendedImage(
+                          width: context.width,
+                          height: context.width,
+                          '${artistDetails.data?.artist?.cover??''}',
+                        ),
+                        Expanded(child: Container())
+                      ],
+                    ),
+                  ),
+                  foregroundColor: Colors.transparent,
+                  surfaceTintColor: Colors.transparent,
+                  backgroundColor: context.theme.colorScheme.primary,
+                  bottom: MyTabBar(height: AppDimensions.paddingLarge, tabs: _tabs),
+                ),
+                // Padding(padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top)),
+              ];
+            },
+            body: Column(
               children: [
-                TabBar(tabs: _tabs),
                 Expanded(
-                  child: TabBarView(
-                    children: [_buildDetails(), _buildSongList(), _buildAlbumView()],
+                  child: Expanded(
+                    child: TabBarView(
+                      children: [
+                        // _buildDetails(),
+                        _buildSongList(),
+                        _buildAlbumView()
+                      ],
+                    ),
                   ),
                 ),
+                Padding(padding: EdgeInsets.only(top: AppDimensions.bottomPanelHeaderHeight)),
               ],
             ),
           ),
-        ),
-        Padding(padding: EdgeInsets.only(top: AppDimensions.bottomPanelHeaderHeight)),
-      ],
+        );
+      }
     );
   }
 

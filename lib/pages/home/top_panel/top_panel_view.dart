@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/widget/my_tab_bar.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -38,179 +39,165 @@ class TopPanelView extends GetView<AppController> {
                   blur: 15 * AppController.to.topPanelAnimationController.value,
                   padding: EdgeInsets.zero,
                   borderRadius: BorderRadius.zero,
-                  color: context.theme.colorScheme.onPrimary.withOpacity(0.5 * AppController.to.topPanelAnimationController.value),
+                  color: context.theme.colorScheme.primary.withOpacity(AppController.to.topPanelAnimationController.value),
                   child: Container(),
                 )
               ],
             );
           },
         ),
-        Column(
-          children: [
-            Container(
-              height: context.mediaQueryPadding.top,
-            ),
-            Expanded(
-              child: Obx(() => Visibility(
-                  visible: controller.searchContent.value.isEmpty,
-                  // 搜索结果
-                  replacement: DefaultTabController(
-                    length: 4,
-                    child: Column(
-                      key: ValueKey(controller.searchContent.value),
+        DefaultTabController(
+          length: 4,
+          child: Column(
+            children: [
+              Container(
+                height: context.mediaQueryPadding.top,
+              ),
+              Expanded(
+                child: Obx(() => Container(
+                  child: Visibility(
+                      visible: controller.searchContent.value.isEmpty,
+                      // 搜索结果
+                      replacement: Obx(() => TabBarView(
                       children: [
-                        Container(
-                          height: AppDimensions.appBarHeight,
-                          margin: EdgeInsets.all(AppDimensions.paddingSmall),
-                          decoration: BoxDecoration(
-                              color: context.theme.colorScheme.primary.withOpacity(0.5),
-                              borderRadius: BorderRadius.circular(AppDimensions.appBarHeight / 2)
-                          ),
-                          // color: Colors.red,
-                          child: TabBar(
-                            padding: EdgeInsets.zero,
-                            labelPadding: EdgeInsets.zero,
-                            dividerColor: Colors.transparent,
-                            indicatorSize: TabBarIndicatorSize.tab,
-                            indicatorWeight: 0,
-                            indicator: BoxDecoration(
-                              color: context.theme.colorScheme.onPrimary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(AppDimensions.paddingLarge),
-                            ),
-                            tabs: [
-                              Text(
-                                "单曲",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                        _buildTopPanelCard(context, RequestLoadMoreWidget<SearchSongWrapX, Song2>(
+                          dioMetaData: searchDioMetaData(controller.searchContent.value, 1),
+                          childBuilder: (List<Song2> songs) {
+                            var list = AppController.to.song2ToMedia(songs);
+                            return ListView.builder(
+                              itemBuilder: (context, index) => SongItem(
+                                index: index,
+                                playlist: list,
                               ),
-                              Text(
-                                "歌单",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
-                              ),
-                              Text(
-                                "专辑",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
-                              ),
-                              Text(
-                                "歌手",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Obx(() => TabBarView(
-                            children: [
-                              _buildTopPanelCard(context, RequestLoadMoreWidget<SearchSongWrapX, Song2>(
-                                dioMetaData: searchDioMetaData(controller.searchContent.value, 1),
-                                childBuilder: (List<Song2> songs) {
-                                  var list = AppController.to.song2ToMedia(songs);
-                                  return ListView.builder(
-                                    itemBuilder: (context, index) => SongItem(
-                                      index: index,
-                                      playlist: list,
-                                    ),
-                                    itemCount: list.length,
-                                  );
-                                },
-                                listKey: const ['result', 'songs'],
-                              ),),
-                              _buildTopPanelCard(context, RequestLoadMoreWidget<SearchPlaylistWrapX, PlayList>(
-                                dioMetaData: searchDioMetaData(controller.searchContent.value, 1000),
-                                listKey: const ['result', 'playlists'],
-                                childBuilder: (List<PlayList> playlist) {
-                                  return ListView.builder(
-                                    itemCount: playlist.length,
-                                    itemBuilder: (context, index) => PlayListItem(
-                                      playlist[index],
-                                      beforeOnTap: () async {
-                                        await AppController.to.topPanelController.close();
-                                        await AppController.to.bottomPanelController.close();
-                                      },
-                                    ),
-                                  );
-                                },
-                              )),
-                              _buildTopPanelCard(context, RequestLoadMoreWidget<SearchAlbumsWrapX, Album>(
-                                dioMetaData: searchDioMetaData(controller.searchContent.value, 10),
-                                childBuilder: (List<Album> albums) {
-                                  return ListView.builder(
-                                    itemBuilder: (context, index) => AlbumItem(
-                                      album: albums[index],
-                                      beforeOnTap: () async {
-                                        await AppController.to.topPanelController.close();
-                                        await AppController.to.bottomPanelController.close();
-                                      },
-                                    ),
-                                    itemCount: albums.length,
-                                  );
-                                },
-                                listKey: const ['result', 'albums'],
-                              )),
-                              _buildTopPanelCard(context, RequestLoadMoreWidget<SearchArtistsWrapX, Artist>(
-                                dioMetaData: searchDioMetaData(controller.searchContent.value, 100),
-                                listKey: const ['result', 'artists'],
-                                childBuilder: (List<Artist> artists) {
-                                  return ListView.builder(
-                                    itemBuilder: (context, index) => ArtistsItem(
-                                      artist: artists[index],
-                                      beforeOnTap: () async {
-                                        await AppController.to.topPanelController.close();
-                                        await AppController.to.bottomPanelController.close();
-                                      },
-                                    ),
-                                    itemCount: artists.length,
-                                  );
-                                },
-                              )),
-                            ],
-                          ))
-                        ),
-                      ],
-                    ),
-                  ),
-                  // 热门搜索
-                  child: _buildTopPanelCard(context, RequestWidget<SearchKeyWrapX>(
-                      dioMetaData: searchHotKeyDioMetaData(),
-                      childBuilder: (data) => ListView(
-                        padding: EdgeInsets.zero,
-                        children: data.result.hots.map((e) => UniversalListTile(
-                          titleString: e.first ?? '',
-                          onTap: () {
-                            controller.searchFocusNode.unfocus();
-                            controller.searchTextEditingController.text = e.first ?? '';
+                              itemCount: list.length,
+                            );
                           },
-                        )).toList(),
-                      )
-                  )).marginOnly(top: AppDimensions.paddingSmall),
+                          listKey: const ['result', 'songs'],
+                        ),),
+                        _buildTopPanelCard(context, RequestLoadMoreWidget<SearchPlaylistWrapX, PlayList>(
+                          dioMetaData: searchDioMetaData(controller.searchContent.value, 1000),
+                          listKey: const ['result', 'playlists'],
+                          childBuilder: (List<PlayList> playlist) {
+                            return ListView.builder(
+                              itemCount: playlist.length,
+                              itemBuilder: (context, index) => PlayListItem(
+                                playlist[index],
+                                beforeOnTap: () async {
+                                  AppController.to.bottomPanelController.close();
+                                  await AppController.to.topPanelController.close();
+                                },
+                              ),
+                            );
+                          },
+                        )),
+                        _buildTopPanelCard(context, RequestLoadMoreWidget<SearchAlbumsWrapX, Album>(
+                          dioMetaData: searchDioMetaData(controller.searchContent.value, 10),
+                          childBuilder: (List<Album> albums) {
+                            return ListView.builder(
+                              itemBuilder: (context, index) => AlbumItem(
+                                album: albums[index],
+                                beforeOnTap: () async {
+                                  AppController.to.bottomPanelController.close();
+                                  await AppController.to.topPanelController.close();
+                                },
+                              ),
+                              itemCount: albums.length,
+                            );
+                          },
+                          listKey: const ['result', 'albums'],
+                        )),
+                        _buildTopPanelCard(context, RequestLoadMoreWidget<SearchArtistsWrapX, Artist>(
+                          dioMetaData: searchDioMetaData(controller.searchContent.value, 100),
+                          listKey: const ['result', 'artists'],
+                          childBuilder: (List<Artist> artists) {
+                            return ListView.builder(
+                              itemBuilder: (context, index) => ArtistsItem(
+                                artist: artists[index],
+                                beforeOnTap: () async {
+                                  AppController.to.bottomPanelController.close();
+                                  await AppController.to.topPanelController.close();
+                                },
+                              ),
+                              itemCount: artists.length,
+                            );
+                          },
+                        )),
+                      ],
+                                            )),
+                      // 热门搜索
+                      child: _buildTopPanelCard(context, RequestWidget<SearchKeyWrapX>(
+                          dioMetaData: searchHotKeyDioMetaData(),
+                          childBuilder: (data) => ListView(
+                            padding: EdgeInsets.zero,
+                            children: data.result.hots.map((e) => UniversalListTile(
+                              titleString: e.first ?? '',
+                              onTap: () {
+                                controller.searchFocusNode.unfocus();
+                                controller.searchTextEditingController.text = e.first ?? '';
+                              },
+                            )).toList(),
+                          )
+                      )).marginOnly(top: AppDimensions.paddingSmall),
+                    ),
                 )),
-            ),
-            // 搜索栏
-            _buildSearchBar(context),
-            // Panel关闭时占位
-            Obx(() => Container(
-              height: AppController.to.topPanelFullyClosed.isTrue
-                  ? AppDimensions.appBarHeight + context.mediaQueryPadding.top
-                  : AppController.to.keyBoardHeight.value,
-            ))
-          ],
+              ),
+              Container(
+                color: context.theme.colorScheme.onPrimary.withOpacity(0.1),
+                child: Column(
+                  children: [
+                    // TabBar
+                    Obx(() => Offstage(
+                        offstage: controller.searchContent.value.isEmpty,
+                        child: MyTabBar(
+                          height: AppDimensions.appBarHeight / 3,
+                          tabs: [
+                            Text(
+                              "单曲",
+                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                            ),
+                            Text(
+                              "歌单",
+                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                            ),
+                            Text(
+                              "专辑",
+                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                            ),
+                            Text(
+                              "歌手",
+                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                            ),
+                          ],
+                        ),
+                      )),
+                    // 搜索栏
+                    _buildSearchBar(context, AppDimensions.appBarHeight * 2/3),
+                  ],
+                ),
+              ),
+              // Panel关闭时占位
+              Obx(() => Container(
+                height: AppController.to.topPanelFullyClosed.isTrue
+                    ? AppDimensions.appBarHeight + context.mediaQueryPadding.top
+                    : AppController.to.keyBoardHeight.value,
+              ))
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
+  Widget _buildSearchBar(BuildContext context, double searchBarHeight) {
+    double iconSize = searchBarHeight / 2;
+    double iconPadding = searchBarHeight / 8;
     return Container(
-        height: AppDimensions.appBarHeight,
-        margin: EdgeInsets.all(AppDimensions.paddingSmall),
-        decoration: BoxDecoration(
-            color: context.theme.colorScheme.primary.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(AppDimensions.appBarHeight / 2)
-        ),
+        height: searchBarHeight,
         child: Row(
           children: [
             IconButton(
-              iconSize: AppDimensions.appBarHeight / 2,
-              padding: EdgeInsets.all(AppDimensions.appBarHeight / 8),
+              iconSize: iconSize,
+              padding: EdgeInsets.all(iconPadding),
               // style: IconButton.styleFrom(
               //   backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
               // ),
@@ -220,7 +207,7 @@ class TopPanelView extends GetView<AppController> {
               onPressed: () {
                 // controller.searchContent.value = controller.searchTextEditingController.text;
               },
-            ).marginAll(AppDimensions.appBarHeight / 8),
+            ).marginAll(iconPadding),
             Expanded(
               child: TextField(
                 controller: controller.searchTextEditingController,
@@ -240,8 +227,9 @@ class TopPanelView extends GetView<AppController> {
             Obx(() => Visibility(
               visible: controller.searchContent.isNotEmpty,
               replacement: IconButton(
-                iconSize: AppDimensions.appBarHeight / 2,
-                padding: EdgeInsets.all(AppDimensions.appBarHeight / 8),
+                iconSize: iconSize,
+                // padding: EdgeInsets.all(AppDimensions.appBarHeight / 16),
+                padding: EdgeInsets.all(iconPadding),
                 style: IconButton.styleFrom(
                   backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
                 ),
@@ -251,10 +239,10 @@ class TopPanelView extends GetView<AppController> {
                 onPressed: () {
                   controller.topPanelController.close();
                 },
-              ).marginAll(AppDimensions.appBarHeight / 8),
+              ).marginAll(iconPadding),
               child: IconButton(
-                iconSize: AppDimensions.appBarHeight / 2,
-                padding: EdgeInsets.all(AppDimensions.appBarHeight / 8),
+                iconSize: iconSize,
+                padding: EdgeInsets.all(iconPadding),
                 style: IconButton.styleFrom(
                   backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
                 ),
@@ -265,7 +253,7 @@ class TopPanelView extends GetView<AppController> {
                   controller.searchTextEditingController.clear();
                   controller.searchFocusNode.requestFocus();
                 },
-              ).marginAll(AppDimensions.appBarHeight / 8),
+              ).marginAll(iconPadding),
             ))
           ],
         )
@@ -275,14 +263,8 @@ class TopPanelView extends GetView<AppController> {
   Widget _buildTopPanelCard(BuildContext context, Widget child) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-      // margin: EdgeInsets.all(AppDimensions.paddingSmall),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppDimensions.appBarHeight / 2),
-        color: context.theme.colorScheme.primary.withOpacity(0.5),
-      ),
-      clipBehavior: Clip.hardEdge,
       child: child,
-    ).marginSymmetric(horizontal: AppDimensions.paddingSmall);
+    );
   }
 
   DioMetaData searchDioMetaData(String keyword, int type, {int offset = 0, int limit = 30}) {

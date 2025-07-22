@@ -29,7 +29,7 @@ class AppDimensions {
   static const double iconSizeLarge = 32.0;
 
   // 顶部AppBar尺寸
-  static const double appBarHeight= 60;
+  static const double appBarHeight= bottomPanelHeaderHeight;
 
   // 底部PanelHeader尺寸
   /// 屏幕圆角 xiaomi13

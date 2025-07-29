@@ -355,7 +355,7 @@ class BottomPanelView extends GetView<AppController> {
                                         GestureDetector(
                                           onTap: () async {
                                             await controller.bottomPanelController.close();
-                                            AppController.to.updateAppBarTitle(title: controller.curMediaItem.value.album, subTitle: "专辑", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
+                                            AppController.to.updateAppBarTitle(title: controller.curMediaItem.value.album, subTitle: controller.curMediaItem.value.artist, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
                                             context.router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': controller.curMediaItem.value.extras?['albumId']}));
                                           },
                                           child: Container(
@@ -440,7 +440,7 @@ class BottomPanelView extends GetView<AppController> {
                                                     child: Obx(() => GestureDetector(
                                                       onTap: () async {
                                                         await controller.bottomPanelController.close();
-                                                        AppController.to.updateAppBarTitle(title: artist.name, subTitle: "歌手", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
+                                                        AppController.to.updateAppBarTitle(title: '', subTitle: '', willRollBack: true);
                                                         context.router.push(const gr.ArtistRouteView().copyWith(queryParams: {'artistId': artist.id}));
                                                       },
                                                       child: Text(

@@ -313,13 +313,14 @@ class SongItem extends StatelessWidget {
   final List<MediaItem> playlist;
   final Function()? beforeOnTap;
   final Color? stringColor;
+  final bool showPic;
 
-  const SongItem({Key? key, this.beforeOnTap, this.stringColor, required this.playlist, required this.index}) : super(key: key);
+  const SongItem({Key? key, this.beforeOnTap, this.stringColor, this.showPic = true, required this.playlist, required this.index}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return UniversalListTile(
-      picUrl: playlist[index].extras?['image'],
+      picUrl: showPic ? (playlist[index].extras?['image']) : null,
       titleString: playlist[index].title,
       subTitleString: playlist[index].artist,
       stringColor: stringColor,

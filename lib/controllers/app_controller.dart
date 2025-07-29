@@ -49,6 +49,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   RxString curPageTitle = "初始化中...".obs;
   RxString curPageSubTitle = "".obs;
   Rx<Color> curPageTitleColor = Colors.white.obs;
+  RxBool hideAppBar = false.obs;
   NewAppBarTitleComingDirection comingDirection = NewAppBarTitleComingDirection.down;
   final List _lastPageTitle = [];
   final List _lastPageSubTitle = [];

@@ -371,29 +371,61 @@ class TopPanelHeaderAppBar extends GetView<AppController> {
               return FadeTransition(opacity: Tween<double>(begin: 0, end: 1).animate(animation), child: child);
           }
         },
-        child: FittedBox(
+        child: Stack(
           key: ValueKey<String>(controller.curPageTitle.value),
-          fit: BoxFit.scaleDown,
-          child: RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              //  标题（当前页/歌名）
-                text: controller.curPageTitle.value,
-                style: context.textTheme.titleLarge?.copyWith(
-                    color: controller.curPageTitleColor.value
-                ),
-                children: [
-                  TextSpan(
-                    // 副标题（歌手名）
-                    text: controller.curPageSubTitle.value.isEmpty ? "" : '\n${controller.curPageSubTitle.value}',
+          children: [
+            // 显示字体描边
+            // FittedBox(
+            //   fit: BoxFit.scaleDown,
+            //   child: RichText(
+            //     textAlign: TextAlign.center,
+            //     text: TextSpan(
+            //       //  标题（当前页/歌名）
+            //         text: controller.curPageTitle.value,
+            //         style: context.textTheme.titleLarge?.copyWith(
+            //           foreground: Paint()
+            //             ..style = PaintingStyle.stroke
+            //             ..strokeWidth = 2
+            //             ..color = Colors.black,
+            //           // color: controller.curPageTitleColor.value,
+            //         ),
+            //         children: [
+            //           TextSpan(
+            //             // 副标题（歌手名）
+            //             text: controller.curPageSubTitle.value.isEmpty ? "" : '\n${controller.curPageSubTitle.value}',
+            //             style: context.textTheme.titleLarge?.copyWith(
+            //               fontSize: context.textTheme.titleLarge!.fontSize! / 2,
+            //               color: controller.curPageTitleColor.value.withOpacity(0.5),
+            //             ),
+            //           ),
+            //         ]
+            //     ),
+            //   ),
+            // ),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  //  标题（当前页/歌名）
+                    text: controller.curPageTitle.value,
                     style: context.textTheme.titleLarge?.copyWith(
-                      fontSize: context.textTheme.titleLarge!.fontSize! / 2,
-                      color: controller.curPageTitleColor.value.withOpacity(0.5),
+                      color: controller.curPageTitleColor.value,
                     ),
-                  ),
-                ]
+                    children: [
+                      TextSpan(
+                        // 副标题（歌手名）
+                        text: controller.curPageSubTitle.value.isEmpty ? "" : '\n${controller.curPageSubTitle.value}',
+                        style: context.textTheme.titleLarge?.copyWith(
+                          fontSize: context.textTheme.titleLarge!.fontSize! / 2,
+                          color: controller.curPageTitleColor.value.withOpacity(0.5),
+                        ),
+                      ),
+                    ]
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       )),
     );

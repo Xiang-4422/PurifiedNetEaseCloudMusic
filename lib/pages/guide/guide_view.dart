@@ -7,7 +7,9 @@ import 'package:bujuan/routes/router.dart';
 import 'package:flutter/material.dart';
 
 import 'package:lottie/lottie.dart';
-import 'package:notification_permissions/notification_permissions.dart';
+// 导入permission_handler包用于处理通知权限
+// 替换了原来使用的notification_permissions包
+import 'package:permission_handler/permission_handler.dart';
 
 // TODO YU4422 待重写首次启动时的引导界面
 class GuideView extends StatefulWidget {
@@ -49,24 +51,39 @@ class _GuideViewState extends State<GuideView> with WidgetsBindingObserver {
       BottomData('为了更好的为您服务', '请授予通知权限', onCancel: () {
         AutoRouter.of(context).replaceNamed(Routes.home);
       }, onOk: () async {
-        //开始获取通知权限
-        NotificationPermissions.getNotificationPermissionStatus().then((value) {
-          if (value == PermissionStatus.denied || value == PermissionStatus.unknown) {
-            NotificationPermissions.requestNotificationPermissions(openSettings: value == PermissionStatus.denied);
+        // 使用permission_handler获取通知权限
+        // 替换了原来使用的NotificationPermissions.getNotificationPermissionStatus()
+        var status = await Permission.notification.status;
+        // 检查权限状态
+        if (status.isDenied || status.isRestricted) {
+          // 请求通知权限
+          await Permission.notification.request();
+          // 检查是否永久拒绝
+          if (await Permission.notification.isPermanentlyDenied) {
             openSetting = true;
+            // 打开应用设置页面，让用户手动开启权限
+            // 替换了原来使用的NotificationPermissions.openSettings()
+            await openAppSettings();
           } else {
-            AutoRouter.of(context).replaceNamed(Routes.home);
+            openSetting = true;
           }
-        });
+        } else {
+          AutoRouter.of(context).replaceNamed(Routes.home);
+        }
       }, cancelTitle: '不授权', okTitle: '授权'),
     ];
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 当应用从后台恢复到前台且之前打开过设置页面时
     if (state == AppLifecycleState.resumed && openSetting) {
-      NotificationPermissions.getNotificationPermissionStatus().then((value) {
-        if (value == PermissionStatus.denied || value == PermissionStatus.unknown) {
+      // 使用permission_handler检查通知权限状态
+      // 替换了原来使用的NotificationPermissions.getNotificationPermissionStatus()
+      Permission.notification.status.then((status) {
+        // 检查权限状态
+        // 替换了原来使用的NotificationPermissionStatus.denied等状态检查
+        if (status.isDenied || status.isRestricted || status.isPermanentlyDenied) {
           WidgetUtil.showToast('您未开启通知权限哦');
         } else {
           if (mounted) AutoRouter.of(context).replaceNamed(Routes.home);

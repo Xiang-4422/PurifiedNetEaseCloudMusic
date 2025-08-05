@@ -1,13 +1,18 @@
+// 使用plugins块替代旧的apply plugin方式，这是Flutter 3.x推荐的Gradle配置方式
+plugins {
+    id "com.android.application"    // Android应用插件
+    id "kotlin-android"             // Kotlin Android插件
+    id "dev.flutter.flutter-gradle-plugin"  // Flutter Gradle插件
+}
+
+// 定义Kotlin版本
+def kotlin_version = '2.1.20'
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
     localPropertiesFile.withReader('UTF-8') { reader -> localProperties.load(reader)
     }
-}
-
-def flutterRoot = localProperties.getProperty('flutter.sdk')
-if (flutterRoot == null) {
-    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
@@ -21,16 +26,10 @@ if (flutterVersionName == null) {
 }
 
 def keystoreProperties = new Properties()
-
 def keystorePropertiesFile = rootProject.file('key.properties')
-
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
-
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
     namespace "com.yu4422.purrr"
@@ -51,38 +50,51 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // 指定应用的唯一标识符
         applicationId "com.yu4422.purrr"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
+        // 设置最低支持的Android SDK版本为21（Android 5.0 Lollipop）
+        // 注释掉的是使用Flutter默认设置的方式
 //        minSdkVersion flutter.minSdkVersion
         minSdkVersion 21
+        // 设置目标SDK版本为33（Android 13）
         targetSdkVersion 33
+        // 设置应用版本号和版本名称
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        // 注释掉的NDK配置，用于指定支持的CPU架构
 //        ndk {
 //            abiFilters 'armeabi-v7a', 'arm64-v8a'
 //            // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
 //        }
-        multiDexEnabled true //添加在此
+        // 启用MultiDex支持，解决方法数超过65536的限制
+        multiDexEnabled true
     }
+    // 签名配置，用于应用发布时的签名
     signingConfigs {
         release {
+            // 从key.properties文件中读取签名信息
             keyAlias keystoreProperties['keyAlias']
             keyPassword keystoreProperties['keyPassword']
             storeFile file(keystoreProperties['storeFile'])
             storePassword keystoreProperties['storePassword']
         }
     }
+    // 构建类型配置
     buildTypes {
         release {
+            // 禁用代码混淆
             minifyEnabled false
+            // 禁用资源压缩
             shrinkResources false
+            // 使用release签名配置
             signingConfig signingConfigs.release
         }
         debug {
+            // 禁用代码混淆
             minifyEnabled false
+            // 禁用资源压缩
             shrinkResources false
+            // 调试版本也使用release签名配置
             signingConfig signingConfigs.release
         }
     }
@@ -92,9 +104,13 @@ flutter {
     source '../..'
 }
 
+// 项目依赖配置
 dependencies {
+    // Kotlin标准库
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    // MultiDex支持库，用于解决方法数超过65536的限制
     implementation 'com.android.support:multidex:1.0.3'
+    // 蓝牙Beacon库，用于蓝牙相关功能
     implementation 'org.altbeacon:android-beacon-library:2.19.3'
 }
 //[

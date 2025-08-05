@@ -1,12 +1,35 @@
+// 使用pluginManagement块替代旧的apply from方式，这是Flutter 3.x推荐的Gradle配置方式
+pluginManagement {
+    // 获取Flutter SDK路径并验证其存在
+    def flutterSdkPath = {
+        def properties = new Properties()
+        file("local.properties").withInputStream { properties.load(it) }
+        def flutterSdkPath = properties.getProperty("flutter.sdk")
+        assert flutterSdkPath != null, "flutter.sdk not set in local.properties"
+        return flutterSdkPath
+    }()
+
+    // 包含Flutter工具的Gradle构建
+    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+
+    // 定义插件仓库源
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+// 声明使用的插件及其版本
+plugins {
+    // Flutter插件加载器，用于加载Flutter相关插件
+    id "dev.flutter.flutter-plugin-loader" version "1.0.0"
+    // Android应用插件，apply false表示不立即应用插件
+    id "com.android.application" version "8.1.0" apply false
+    // Kotlin Android插件
+    id "org.jetbrains.kotlin.android" version "2.1.20" apply false
+}
+
+// 包含app模块
 include ':app'
-
-def localPropertiesFile = new File(rootProject.projectDir, "local.properties")
-def properties = new Properties()
-
-assert localPropertiesFile.exists()
-localPropertiesFile.withReader("UTF-8") { reader -> properties.load(reader) }
-
-def flutterSdkPath = properties.getProperty("flutter.sdk")
-assert flutterSdkPath != null, "flutter.sdk not set in local.properties"
-apply from: "$flutterSdkPath/packages/flutter_tools/gradle/app_plugin_loader.gradle"
 

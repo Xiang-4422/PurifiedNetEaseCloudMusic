@@ -62,14 +62,16 @@ dependencies:
   fluttertoast: ^8.2.2
   # 下拉刷新
   pull_to_refresh: ^2.0.0
-  # 通知权限
-  notification_permissions: ^0.6.1
+  # 通知权限插件已被移除，因为它已经3年未更新且与新版Flutter不兼容
+  # 改为使用更全面的permission_handler插件处理通知权限
+  # notification_permissions: ^0.6.1
   # 跨平台Dialog
   adaptive_dialog: ^1.9.0-0
   # 滑动倒计时组件
   slide_countdown: ^0.6.0
-  # 权限请求组件
-  permission_handler: ^10.2.0
+  # 权限请求组件，用于处理各种权限（包括通知权限）
+  # 更新至11.0.0版本以支持最新的Flutter版本和Android嵌入式API
+  permission_handler: ^11.0.0
   # UI 抽屉侧边栏
   flutter_zoom_drawer: ^3.1.1
 

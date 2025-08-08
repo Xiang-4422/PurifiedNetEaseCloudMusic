@@ -1,11 +1,8 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/controllers/user_controller.dart';
 import 'package:bujuan/pages/login/login_page_view.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
-import 'package:bujuan/widget/simple_extended_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -127,7 +124,7 @@ class PersonalPageView extends GetView<UserController> {
             top: 30 + MediaQuery.of(context).padding.top + AppDimensions.appBarHeight,
             left: 30,
             right: 30),
-        margin: EdgeInsets.only(bottom: 16, top: 120),
+        margin: const EdgeInsets.only(bottom: 16, top: 120),
         child: Stack(
           alignment: Alignment.centerRight,
           children: [
@@ -136,8 +133,8 @@ class PersonalPageView extends GetView<UserController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Hi', style: TextStyle(fontSize: 52, color: Colors.grey, fontWeight: FontWeight.bold)),
-                  Padding(padding: EdgeInsets.symmetric(vertical: 8)),
+                  const Text('Hi', style: TextStyle(fontSize: 52, color: Colors.grey, fontWeight: FontWeight.bold)),
+                  const Padding(padding: EdgeInsets.symmetric(vertical: 8)),
                   Obx(() =>
                       Text('${AppController.to.loginStatus.value == LoginStatus.login
                           ? AppController.to.userData.value.profile?.nickname

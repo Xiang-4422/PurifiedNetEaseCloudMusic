@@ -1,26 +1,19 @@
 
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/controllers/app_controller.dart';
-import 'package:bujuan/pages/artist/artist_page_view.dart';
 import 'package:bujuan/pages/home/bottom_panel/lyric_view.dart';
 import 'package:bujuan/pages/talk/comment_widget.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_constraintlayout/flutter_constraintlayout.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-import 'package:logger/logger.dart';
-import 'dart:math' as math;
 
 import '../../../common/constants/appConstants.dart';
 import '../../../common/netease_api/src/api/play/bean.dart';
@@ -69,7 +62,7 @@ class BottomPanelView extends GetView<AppController> {
                 maintainAnimation: true,
                 maintainState: true,
                 visible: controller.bottomPanelFullyOpened.isTrue,
-                child: Container(
+                child: SizedBox(
                   height: context.width,
                   child: OverflowBox(
                     maxWidth: context.width * 3,
@@ -108,7 +101,7 @@ class BottomPanelView extends GetView<AppController> {
                             },
                             child: Container(
                               clipBehavior: Clip.hardEdge,
-                              margin: EdgeInsets.all(AppDimensions.paddingLarge),
+                              margin: const EdgeInsets.all(AppDimensions.paddingLarge),
                               decoration: BoxDecoration(
                                 boxShadow: [
                                   controller.bottomPanelFullyOpened.value
@@ -191,7 +184,7 @@ class BottomPanelView extends GetView<AppController> {
                         controller.albumColor.value,
                         controller.albumColor.value,
                       ],
-                      stops: [0,0.5, 1],
+                      stops: const [0,0.5, 1],
                     ),
                   ),
                 )
@@ -326,7 +319,7 @@ class BottomPanelView extends GetView<AppController> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // 专辑
-                            Container(
+                            SizedBox(
                               height: albumPadding,
                               child: Row(
                                 children: [
@@ -643,7 +636,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
             double realTimeAlbumPadding = AppDimensions.paddingSmall +  (albumMaxPadding - AppDimensions.paddingSmall) * panelOpenDegree;
             double realTimeAppBarPadding = (context.mediaQueryPadding.top + AppDimensions.appBarHeight) * panelOpenDegree;
             double realTimeAlbumBorderRadius = AppDimensions.albumMinSize * (1 - panelOpenDegree);
-            return Container(
+            return SizedBox(
               width: context.width,
               child: Row(
                 children: [
@@ -680,7 +673,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${AppController.to.curMediaItem.value.title}',
+                                    AppController.to.curMediaItem.value.title,
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                     style: context.textTheme.titleLarge?.copyWith(
@@ -688,7 +681,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
                                     ),
                                   ),
                                   Text(
-                                    '${AppController.to.curMediaItem.value.artist ?? ''}',
+                                    AppController.to.curMediaItem.value.artist ?? '',
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                     style: context.textTheme.titleLarge?.copyWith(

@@ -96,6 +96,7 @@ class EventListWrap extends ServerStatusBean {
   factory EventListWrap.fromJson(Map<String, dynamic> json) =>
       _$EventListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$EventListWrapToJson(this);
 }
 
@@ -110,6 +111,7 @@ class EventListWrap2 extends ServerStatusBean {
   factory EventListWrap2.fromJson(Map<String, dynamic> json) =>
       _$EventListWrap2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$EventListWrap2ToJson(this);
 }
 
@@ -122,6 +124,7 @@ class EventSingleWrap extends ServerStatusBean {
   factory EventSingleWrap.fromJson(Map<String, dynamic> json) =>
       _$EventSingleWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$EventSingleWrapToJson(this);
 }
 
@@ -162,6 +165,7 @@ class CommentItemBase {
 
 @JsonSerializable()
 class CommentItem extends CommentItemBase {
+  @override
   List<BeRepliedCommentItem>? beReplied;
 
   CommentItem();
@@ -169,6 +173,7 @@ class CommentItem extends CommentItemBase {
   factory CommentItem.fromJson(Map<String, dynamic> json) =>
       _$CommentItemFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$CommentItemToJson(this);
 }
 
@@ -182,6 +187,7 @@ class BeRepliedCommentItem extends CommentItemBase {
   factory BeRepliedCommentItem.fromJson(Map<String, dynamic> json) =>
       _$BeRepliedCommentItemFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$BeRepliedCommentItemToJson(this);
 }
 
@@ -203,6 +209,7 @@ class CommentListWrap extends ServerStatusListBean {
   factory CommentListWrap.fromJson(Map<String, dynamic> json) =>
       _$CommentListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$CommentListWrapToJson(this);
 }
 
@@ -233,6 +240,7 @@ class CommentHistoryWrap extends ServerStatusBean {
   factory CommentHistoryWrap.fromJson(Map<String, dynamic> json) =>
       _$CommentHistoryWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$CommentHistoryWrapToJson(this);
 }
 
@@ -279,6 +287,7 @@ class CommentList2Wrap extends ServerStatusBean {
   factory CommentList2Wrap.fromJson(Map<String, dynamic> json) =>
       _$CommentList2WrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$CommentList2WrapToJson(this);
 }
 
@@ -323,6 +332,7 @@ class HugCommentListWrap extends ServerStatusBean {
   factory HugCommentListWrap.fromJson(Map<String, dynamic> json) =>
       _$HugCommentListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$HugCommentListWrapToJson(this);
 }
 
@@ -353,6 +363,7 @@ class FloorCommentDetailWrap extends ServerStatusBean {
   factory FloorCommentDetailWrap.fromJson(Map<String, dynamic> json) =>
       _$FloorCommentDetailWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$FloorCommentDetailWrapToJson(this);
 }
 
@@ -379,6 +390,7 @@ class EventForwardRetWrap extends ServerStatusBean {
   factory EventForwardRetWrap.fromJson(Map<String, dynamic> json) =>
       _$EventForwardRetWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$EventForwardRetWrapToJson(this);
 }
 
@@ -564,6 +576,7 @@ class TopicHotListWrap extends ServerStatusBean {
   factory TopicHotListWrap.fromJson(Map<String, dynamic> json) =>
       _$TopicHotListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$TopicHotListWrapToJson(this);
 }
 
@@ -578,6 +591,7 @@ class TopicDetailWrap extends ServerStatusBean {
   factory TopicDetailWrap.fromJson(Map<String, dynamic> json) =>
       _$TopicDetailWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$TopicDetailWrapToJson(this);
 }
 
@@ -639,6 +653,7 @@ class HotwallCommentListWrap extends ServerStatusBean {
   factory HotwallCommentListWrap.fromJson(Map<String, dynamic> json) =>
       _$HotwallCommentListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$HotwallCommentListWrapToJson(this);
 }
 
@@ -697,6 +712,7 @@ class CommentWrap extends ServerStatusBean {
   factory CommentWrap.fromJson(Map<String, dynamic> json) =>
       _$CommentWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$CommentWrapToJson(this);
 }
 
@@ -830,6 +846,7 @@ class UsersMsgListWrap extends ServerStatusBean {
   factory UsersMsgListWrap.fromJson(Map<String, dynamic> json) =>
       _$UsersMsgListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$UsersMsgListWrapToJson(this);
 }
 
@@ -854,6 +871,7 @@ class RecentContactUsersWrap extends ServerStatusBean {
   factory RecentContactUsersWrap.fromJson(Map<String, dynamic> json) =>
       _$RecentContactUsersWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$RecentContactUsersWrapToJson(this);
 }
 
@@ -870,6 +888,7 @@ class UserMsgListWrap extends ServerStatusBean {
   factory UserMsgListWrap.fromJson(Map<String, dynamic> json) =>
       _$UserMsgListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$UserMsgListWrapToJson(this);
 }
 
@@ -888,6 +907,7 @@ class UserMsgListWrap2 extends ServerStatusBean {
   factory UserMsgListWrap2.fromJson(Map<String, dynamic> json) =>
       _$UserMsgListWrap2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$UserMsgListWrap2ToJson(this);
 }
 
@@ -1030,5 +1050,6 @@ class MyLogMyLikeWrap extends ServerStatusBean {
   factory MyLogMyLikeWrap.fromJson(Map<String, dynamic> json) =>
       _$MyLogMyLikeWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$MyLogMyLikeWrapToJson(this);
 }

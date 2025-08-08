@@ -1,24 +1,18 @@
-import 'dart:developer';
 
-import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
-import 'package:bujuan/routes/router.gr.dart' as gr;
 import '../../../common/constants/appConstants.dart';
 import '../../../common/netease_api/src/api/play/bean.dart';
 import '../../../common/netease_api/src/api/search/bean.dart';
 import '../../../common/netease_api/src/dio_ext.dart';
 import '../../../common/netease_api/src/netease_handler.dart';
-import '../../talk/custom_filed.dart';
 import '../../../widget/request_widget/request_loadmore_view.dart';
 import '../../play_list/playlist_page_view.dart';
 
@@ -191,7 +185,7 @@ class TopPanelView extends GetView<AppController> {
   Widget _buildSearchBar(BuildContext context, double searchBarHeight) {
     double iconSize = searchBarHeight / 2;
     double iconPadding = searchBarHeight / 8;
-    return Container(
+    return SizedBox(
         height: searchBarHeight,
         child: Row(
           children: [
@@ -201,7 +195,7 @@ class TopPanelView extends GetView<AppController> {
               // style: IconButton.styleFrom(
               //   backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
               // ),
-              icon: Icon(
+              icon: const Icon(
                 TablerIcons.search,
               ),
               onPressed: () {
@@ -219,7 +213,7 @@ class TopPanelView extends GetView<AppController> {
                     hintStyle: context.textTheme.titleMedium!.copyWith(
                         color: context.textTheme.titleMedium!.color!.withOpacity(0.2),
                     ),
-                    border: UnderlineInputBorder(borderSide: BorderSide.none),
+                    border: const UnderlineInputBorder(borderSide: BorderSide.none),
                     isDense: true
                 ),
               ),
@@ -233,7 +227,7 @@ class TopPanelView extends GetView<AppController> {
                 style: IconButton.styleFrom(
                   backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
                 ),
-                icon: Icon(
+                icon: const Icon(
                   TablerIcons.arrow_up,
                 ),
                 onPressed: () {
@@ -246,7 +240,7 @@ class TopPanelView extends GetView<AppController> {
                 style: IconButton.styleFrom(
                   backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
                 ),
-                icon: Icon(
+                icon: const Icon(
                   TablerIcons.x,
                 ),
                 onPressed: () {
@@ -262,7 +256,7 @@ class TopPanelView extends GetView<AppController> {
 
   Widget _buildTopPanelCard(BuildContext context, Widget child) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
       child: child,
     );
   }
@@ -317,8 +311,8 @@ class TopPanelHeaderAppBar extends GetView<AppController> {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: isOldWidgetAnimation || isReversing
-                      ? Offset(0, -1)   // 旧标题出场（beging和end反转）
-                      : Offset(0, 1),  // 新标题入场
+                      ? const Offset(0, -1)   // 旧标题出场（beging和end反转）
+                      : const Offset(0, 1),  // 新标题入场
                   end: Offset.zero,
                 ).animate(animation),
                 child: FadeTransition(
@@ -335,8 +329,8 @@ class TopPanelHeaderAppBar extends GetView<AppController> {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: isOldWidgetAnimation || isReversing
-                      ? Offset(1 , 0)   // 旧标题出场（beging和end反转）
-                      : Offset(-1 , 0),  // 新标题入场
+                      ? const Offset(1 , 0)   // 旧标题出场（beging和end反转）
+                      : const Offset(-1 , 0),  // 新标题入场
                   end: Offset.zero,
                 ).animate(animation),
                 child: FadeTransition(
@@ -353,8 +347,8 @@ class TopPanelHeaderAppBar extends GetView<AppController> {
               return SlideTransition(
                 position: Tween<Offset>(
                   begin: isOldWidgetAnimation || isReversing
-                      ? Offset(-1 , 0)   // 旧标题出场（beging和end反转）
-                      : Offset(1, 0),  // 新标题入场
+                      ? const Offset(-1 , 0)   // 旧标题出场（beging和end反转）
+                      : const Offset(1, 0),  // 新标题入场
                   end: Offset.zero,
                 ).animate(animation),
                 child: FadeTransition(

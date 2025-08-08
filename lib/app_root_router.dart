@@ -62,10 +62,6 @@ class MyObserver extends AutoRouterObserver {
     _clearOrPutController(route.settings.name ?? '', del: true);
   }
 
-  @override
-  void didReplace({Route? newRoute, Route? oldRoute}) {
-    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
-  }
 
   // only override to observer tab routes
   @override

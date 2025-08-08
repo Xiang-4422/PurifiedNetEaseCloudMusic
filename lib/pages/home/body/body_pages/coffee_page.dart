@@ -30,12 +30,12 @@ class CoffeePageView extends GetView<AppController> {
                       width: 12,
                       height: 12,
                     ),
-                    Padding(padding: EdgeInsets.symmetric(horizontal: 20)),
-                    Text(
+                    const Padding(padding: EdgeInsets.symmetric(horizontal: 20)),
+                    const Text(
                       '桃花潭水深千尺\n不及汪伦送我情',
                       style: TextStyle(fontSize: 36,height: 1.5),
                     ),
-                    Padding(padding: EdgeInsets.symmetric(horizontal: 20)),
+                    const Padding(padding: EdgeInsets.symmetric(horizontal: 20)),
                     Container(
                       decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(6)),
                       width: 12,

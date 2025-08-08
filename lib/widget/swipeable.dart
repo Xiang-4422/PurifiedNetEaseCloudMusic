@@ -24,6 +24,7 @@ class Swipeable extends StatefulWidget {
     this.threshold = 64.0,
   });
 
+  @override
   State<StatefulWidget> createState() {
     return _SwipeableState();
   }
@@ -46,6 +47,7 @@ class _SwipeableState extends State<Swipeable> with TickerProviderStateMixin {
     _moveController?.animateTo(controllerValue);
   }
 
+  @override
   void dispose() {
     _moveController?.dispose();
     super.dispose();
@@ -127,6 +129,7 @@ class _SwipeableState extends State<Swipeable> with TickerProviderStateMixin {
     _moveAnimation = Tween<Offset>(begin: const Offset(0.0, 0.0), end: Offset(end, 0.0)).animate(_moveController!);
   }
 
+  @override
   Widget build(BuildContext context) {
     var children = <Widget>[
       widget.background,

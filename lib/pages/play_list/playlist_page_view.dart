@@ -1,26 +1,20 @@
 
 import 'dart:math';
 
-import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/common/constants/enmu.dart' as type;
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/pages/play_list/playlist_controller.dart';
 import 'package:bujuan/pages/talk/comment_widget.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-import 'package:palette_generator/palette_generator.dart';
 
 import '../../widget/simple_extended_image.dart';
 import '../../controllers/app_controller.dart';
@@ -164,7 +158,7 @@ class PlayListPageView extends GetView<PlayListController> {
                     // 播放、收藏、评论（高60）
                     Container(
                       height: 60,
-                      padding: EdgeInsets.all(AppDimensions.paddingSmall),
+                      padding: const EdgeInsets.all(AppDimensions.paddingSmall),
                       child: Row(
                         children: [
                           // 播放全部
@@ -229,7 +223,7 @@ class PlayListPageView extends GetView<PlayListController> {
                                       child: GestureDetector(
                                         onTap: (){
                                           if (controller.isMyPlayList) {
-                                            controller.pageController.animateToPage(1, duration: Duration(milliseconds: 300), curve: Curves.linear);
+                                            controller.pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.linear);
                                           }
                                         },
                                         child: Row(
@@ -249,7 +243,7 @@ class PlayListPageView extends GetView<PlayListController> {
                                             ),
                                             IconButton(
                                                 onPressed: () {
-                                                  controller.pageController.animateToPage(1, duration: Duration(milliseconds: 300), curve: Curves.linear);
+                                                  controller.pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.linear);
                                                 },
                                                 icon: Icon(
                                                   TablerIcons.message,

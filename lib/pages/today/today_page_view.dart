@@ -2,9 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:get/get.dart';
 

@@ -50,7 +50,7 @@ class CloudDriveView extends GetWidget<CloudController> {
                 return ListView.builder(
                   itemCount: controller.mediaItems.length,
                   shrinkWrap: true,
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemBuilder: (context, index){
                     return SongItem(
                       index: index,

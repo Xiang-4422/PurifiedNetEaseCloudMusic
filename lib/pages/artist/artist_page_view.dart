@@ -1,34 +1,21 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
-import 'package:bujuan/widget/my_tab_bar.dart';
-import 'package:bujuan/widget/request_widget/request_view.dart';
-import 'package:date_format/date_format.dart';
-import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
 import '../../common/constants/other.dart';
-import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_api.dart';
-import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/keep_alive_wrapper.dart';
-import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
-import '../home/top_panel/top_panel_view.dart';
 
 class ArtistPageView extends StatefulWidget {
   const ArtistPageView({Key? key}) : super(key: key);
@@ -108,7 +95,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                 StretchMode.blurBackground, // 背景图模糊
                 // StretchMode.fadeTitle,      // 标题渐隐
               ],
-              titlePadding: EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
+              titlePadding: const EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
               title: Row(
                 children: [
                   Expanded(
@@ -133,7 +120,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                       ],
                     ),
                   ),
-                  Icon(TablerIcons.player_play)
+                  const Icon(TablerIcons.player_play)
                 ],
               ),
               // centerTitle: true,
@@ -141,7 +128,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
               background: SimpleExtendedImage(
                 width: context.width,
                 height: context.width,
-                '${artist.cover ?? artist.picUrl ?? ''}',
+                artist.cover ?? artist.picUrl ?? '',
               ),
             ),
             // bottom:
@@ -150,13 +137,13 @@ class _ArtistPageViewState extends State<ArtistPageView> {
             child: SizedBox(
               height: 50,
               child: Container(
-                padding: EdgeInsets.only(left: AppDimensions.paddingMedium),
+                padding: const EdgeInsets.only(left: AppDimensions.paddingMedium),
                 alignment: Alignment.centerLeft,
                 child: GestureDetector(
                   onTap: () => setState(() {
                     crossAxisCount = Random().nextInt(4) + 1;
                   }),
-                  child: Text("专辑")
+                  child: const Text("专辑")
                 ),
               )
             ),
@@ -223,7 +210,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
           SliverToBoxAdapter(
             child: SizedBox(
                 height: 50,
-                child: Text("单曲").paddingOnly(left: AppDimensions.paddingMedium)
+                child: const Text("单曲").paddingOnly(left: AppDimensions.paddingMedium)
             ),
           ),
           SliverList(
@@ -231,7 +218,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
               childCount: topSongs.length + 1,
               (BuildContext context, int index) {
                 if (index == topSongs.length) {
-                  return SizedBox(
+                  return const SizedBox(
                     height: AppDimensions.bottomPanelHeaderHeight,
                   );
                 }

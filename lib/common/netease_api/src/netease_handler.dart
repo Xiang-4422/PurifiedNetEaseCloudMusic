@@ -216,9 +216,9 @@ void _handleEApi(RequestOptions option, List<Cookie> cookies) {
           .base16;
   var data = '$url-36cd479b6b5-$body-36cd479b6b5-$digest';
 
-  const _KeyEApi = 'e82ckenh8dichen8';
+  const KeyEApi = 'e82ckenh8dichen8';
 
-  final encrypted = Encrypter(AES(Key.fromUtf8(_KeyEApi), mode: AESMode.ecb))
+  final encrypted = Encrypter(AES(Key.fromUtf8(KeyEApi), mode: AESMode.ecb))
       .encrypt(data, iv: IV.fromLength(0))
       .base16
       .toUpperCase();

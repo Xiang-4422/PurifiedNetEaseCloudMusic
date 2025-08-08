@@ -1,16 +1,10 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 
-import '../../../../common/constants/other.dart';
-import '../../../../routes/router.gr.dart' as gr;
-import '../../../../widget/simple_extended_image.dart';
 import '../../../play_list/playlist_page_view.dart';
 import '../../../../controllers/explore_page_controller.dart';
 
@@ -53,7 +47,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                     ),
                   )),
 
-                  SliverPadding(padding: EdgeInsets.only(top: AppDimensions.bottomPanelHeaderHeight),),
+                  const SliverPadding(padding: EdgeInsets.only(top: AppDimensions.bottomPanelHeaderHeight),),
                 ],
               ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
             ),

@@ -46,8 +46,8 @@ class _CustomFiledState extends State<CustomFiled> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: widget.padding ?? EdgeInsets.symmetric(horizontal: 15,vertical: 12),
-      margin: widget.margin ?? EdgeInsets.symmetric(vertical: 25),
+      padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 15,vertical: 12),
+      margin: widget.margin ?? const EdgeInsets.symmetric(vertical: 25),
       decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary.withOpacity(.6), borderRadius: BorderRadius.circular(50)),
       child: Row(
         children: [
@@ -68,8 +68,8 @@ class _CustomFiledState extends State<CustomFiled> {
             autofocus: widget.autoFocus??false,
             decoration: InputDecoration(
               hintText: widget.hitText ?? '',
-              hintStyle: TextStyle(fontSize: 28, color: Colors.grey),
-              contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              hintStyle: const TextStyle(fontSize: 28, color: Colors.grey),
+              contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
               border: const UnderlineInputBorder(borderSide: BorderSide.none),
               isDense: true
             ),
@@ -77,7 +77,7 @@ class _CustomFiledState extends State<CustomFiled> {
           Visibility(
             visible: widget.pass ?? false,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: GestureDetector(
                 child: Icon(
                   isPass ? TablerIcons.eye_off : TablerIcons.eye,

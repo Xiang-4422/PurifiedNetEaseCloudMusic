@@ -1,7 +1,5 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/key.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:flutter/material.dart';
 
@@ -55,13 +53,13 @@ class _SettingPageViewState extends State<SettingPageView> {
 
   Widget _buildUiSetting() {
     return Container(
-      margin: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
-      padding: EdgeInsets.all(20),
+      margin: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(22.5)),
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
             alignment: Alignment.centerLeft,
             child: Text(
               'UI设置',
@@ -74,7 +72,7 @@ class _SettingPageViewState extends State<SettingPageView> {
           ),
           ListTile(
             contentPadding: const EdgeInsets.all(0),
-            title: Text(
+            title: const Text(
               '渐变播放背景(需开启智能取色)',
               style: TextStyle(fontSize: 30),
             ),
@@ -90,7 +88,7 @@ class _SettingPageViewState extends State<SettingPageView> {
           ),
           ListTile(
             contentPadding: const EdgeInsets.all(0),
-            title: Text(
+            title: const Text(
               '圆形专辑',
               style: TextStyle(fontSize: 30),
             ),
@@ -111,14 +109,14 @@ class _SettingPageViewState extends State<SettingPageView> {
 
   Widget _buildAppSetting() {
     return Container(
-      margin: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 20),
-      padding: EdgeInsets.all(20),
+      margin: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(22.5)),
       // padding: EdgeInsets.symmetric(horizontal: 15),
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
             alignment: Alignment.centerLeft,
             child: Text(
               'App设置',
@@ -131,7 +129,7 @@ class _SettingPageViewState extends State<SettingPageView> {
           ),
           ListTile(
             contentPadding: const EdgeInsets.all(0),
-            title: Text(
+            title: const Text(
               '开启高音质(与会员有关)',
               style: TextStyle(fontSize: 30),
             ),
@@ -147,7 +145,7 @@ class _SettingPageViewState extends State<SettingPageView> {
           ),
           ListTile(
             contentPadding: const EdgeInsets.all(0),
-            title: Text(
+            title: const Text(
               '开启缓存',
               style: TextStyle(fontSize: 30),
             ),

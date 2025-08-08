@@ -43,6 +43,7 @@ class ServerStatusListBean extends ServerStatusBean {
   factory ServerStatusListBean.fromJson(Map<String, dynamic> json) =>
       _$ServerStatusListBeanFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ServerStatusListBeanToJson(this);
 }
 

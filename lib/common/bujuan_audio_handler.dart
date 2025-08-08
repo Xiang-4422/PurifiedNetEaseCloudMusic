@@ -4,19 +4,14 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/controllers/app_controller.dart';
-import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:just_audio/just_audio.dart';
 
-import 'audio_player_handler.dart';
 import 'constants/key.dart';
-import 'constants/platform_utils.dart';
 import 'netease_api/src/api/play/bean.dart';
 import 'netease_api/src/netease_api.dart';
 

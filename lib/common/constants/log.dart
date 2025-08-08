@@ -1,8 +1,8 @@
 
 
 class LogUtil {
-  static var _separator = "=";
-  static var _split = "$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator";
+  static const _separator = "=";
+  static const _split = "$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator";
   static var _title = "Yl-Log";
   static var _isDebug = true;
   static int _limitLength = 800;
@@ -37,7 +37,7 @@ class LogUtil {
   }
 
   static void _log(String msg) {
-    print("$_startLine");
+    print(_startLine);
     _logEmpyLine();
     if (msg.length < _limitLength) {
       print(msg);
@@ -45,7 +45,7 @@ class LogUtil {
       segmentationLog(msg);
     }
     _logEmpyLine();
-    print("$_endLine");
+    print(_endLine);
   }
 
   static void segmentationLog(String msg) {

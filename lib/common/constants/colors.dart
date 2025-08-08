@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 
 
@@ -87,7 +86,7 @@ class AppTheme {
       primaryColor: const Color(0xffE20000),
       // 网易云主页背景色
       scaffoldBackgroundColor: const Color(0xFFF4F7F9),
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         titleLarge: TextStyle(
             fontSize: 30,
             fontWeight: FontWeight.bold,

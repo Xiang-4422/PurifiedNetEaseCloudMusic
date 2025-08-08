@@ -99,6 +99,7 @@ dependencies:
 #  flutter_rust_bridge: ^1.77.1
 #  ffi: ^2.0.2
 
+  cookie_jar: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

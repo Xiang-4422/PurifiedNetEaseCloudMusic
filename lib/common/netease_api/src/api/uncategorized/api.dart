@@ -227,9 +227,9 @@ mixin ApiUncategorized {
 
   DioMetaData batchApiDioMetaData(List<DioMetaData> dioMetaDatas) {
     Map<String, dynamic> params = {};
-    dioMetaDatas.forEach((element) {
+    for (var element in dioMetaDatas) {
       params[element.uri.path] = jsonEncode(element.data);
-    });
+    }
     return DioMetaData(joinUri('/eapi/batch'), data: params, options: joinOptions(encryptType: EncryptType.EApi, eApiUrl: '/api/batch'));
   }
 

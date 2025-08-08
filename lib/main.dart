@@ -1,10 +1,6 @@
 
-import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/bujuan_audio_handler.dart';
-import 'package:bujuan/common/constants/platform_utils.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/app_root_router.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +8,6 @@ import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:just_audio/just_audio.dart';
 
 import 'common/netease_api/src/netease_api.dart';
 import 'controllers/explore_page_controller.dart';

@@ -1,22 +1,17 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/netease_api/src/netease_api.dart';
 import 'package:bujuan/pages/talk/custom_filed.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
-import '../../common/constants/appConstants.dart';
 import '../../common/netease_api/src/api/event/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
-import '../../controllers/app_controller.dart';
 
 // TODO YU4422: 评论功能后续开发
 /// 评论组件
@@ -231,12 +226,12 @@ class _FoolTalkState extends State<FoolTalk> {
       child: Container(
         color: widget.backGroundColor,
         height: context.height / 2,
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
           children: [
             // 当前评论
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 15,vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 20),
               color: Theme.of(context).colorScheme.onSecondary,
               child:  Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,22 +243,22 @@ class _FoolTalkState extends State<FoolTalk> {
                         width: 60,
                         height: 60,
                       ),
-                      Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
+                      const Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
                       Expanded(
                           child: RichText(
                               text: TextSpan(text: widget.commentItem.user.nickname ?? '', style: TextStyle(fontSize: 28, color: Theme.of(context).cardColor), children: [
                                 TextSpan(
                                   text: ' (${OtherUtils.formatDate2Str(widget.commentItem.time ?? 0)}) ',
-                                  style: TextStyle(fontSize: 22, color: Colors.grey),
+                                  style: const TextStyle(fontSize: 22, color: Colors.grey),
                                 )
                               ]))),
                     ],
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 20, left: 80),
+                    padding: const EdgeInsets.only(top: 20, left: 80),
                     child: Text(
                       (widget.commentItem.content ?? '').replaceAll('\n', ''),
-                      style: TextStyle(fontSize: 24),
+                      style: const TextStyle(fontSize: 24),
                     ),
                   )
                 ],
@@ -286,7 +281,7 @@ class _FoolTalkState extends State<FoolTalk> {
             // 回复当前评论
             Row(
               children: [
-                Padding(padding: EdgeInsets.only(left: 20)),
+                const Padding(padding: EdgeInsets.only(left: 20)),
                 Expanded(
                     child: CustomFiled(
                       iconData: TablerIcons.message_2,
@@ -303,7 +298,7 @@ class _FoolTalkState extends State<FoolTalk> {
   }
   Widget _buildItem(CommentItem comment) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -314,31 +309,31 @@ class _FoolTalkState extends State<FoolTalk> {
                 width: 60,
                 height: 60,
               ),
-              Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
+              const Padding(padding: EdgeInsets.symmetric(horizontal: 8)),
               Expanded(
                   child: RichText(
                       text: TextSpan(text: comment.user.nickname ?? '', style: TextStyle(fontSize: 28, color: Theme.of(context).cardColor), children: [
                 TextSpan(
                   text: ' (${OtherUtils.formatDate2Str(comment.time ?? 0)}) ',
-                  style: TextStyle(fontSize: 22, color: Colors.grey),
+                  style: const TextStyle(fontSize: 22, color: Colors.grey),
                 )
               ]))),
             ],
           ),
           Padding(
-            padding: EdgeInsets.only(top: 20, left: 80),
+            padding: const EdgeInsets.only(top: 20, left: 80),
             child: Text(
               (comment.content ?? '').replaceAll('\n', ''),
-              style: TextStyle(fontSize: 24),
+              style: const TextStyle(fontSize: 24),
             ),
           ),
           Visibility(
               visible: (comment.replyCount ?? 0) > 0,
               child: GestureDetector(
                 child: Container(
-                  margin: EdgeInsets.only(left: 60),
-                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                  child: Text('—— ${comment.replyCount}条回复 >', style: TextStyle(fontSize: 24, color: Colors.blue)),
+                  margin: const EdgeInsets.only(left: 60),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  child: Text('—— ${comment.replyCount}条回复 >', style: const TextStyle(fontSize: 24, color: Colors.blue)),
                 ),
                 onTap: () {
                   showModalBottomSheet(

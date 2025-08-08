@@ -3,30 +3,22 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-import 'package:get/get_rx/get_rx.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 import '../common/bujuan_audio_handler.dart';
 import '../common/lyric_parser/lyrics_reader_model.dart';
-import '../common/netease_api/src/api/bean.dart';
 import '../routes/router.dart';
 import '../widget/custom_zoom_drawer/src/drawer_controller.dart';
 import '../pages/home/body/app_body_page_view.dart';
@@ -206,7 +198,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     bottomPanelAnimationController = AnimationController(vsync: this);
     bottomPanelTabController = TabController(length: 3, initialIndex: 1, vsync: this)..addListener(() {
       if (bottomPanelTabController.indexIsChanging) {
-        bottomPanelPageController.animateToPage(bottomPanelTabController.index, duration: Duration(milliseconds: 300), curve: Curves.linear);
+        bottomPanelPageController.animateToPage(bottomPanelTabController.index, duration: const Duration(milliseconds: 300), curve: Curves.linear);
         if (bottomPanelTabController.index <= 1) {
           bottomPanelCommentTabController.index = 0;
           bottomPanelCommentTabController.offset = 0;
@@ -215,7 +207,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     });
     bottomPanelCommentTabController = TabController(length: 2, vsync: this)..addListener(() {
       if (bottomPanelCommentTabController.indexIsChanging) {
-        bottomPanelPageController.animateToPage(bottomPanelCommentTabController.index + 2, duration: Duration(milliseconds: 300), curve: Curves.linear);
+        bottomPanelPageController.animateToPage(bottomPanelCommentTabController.index + 2, duration: const Duration(milliseconds: 300), curve: Curves.linear);
       }
     });
     bottomPanelPageController = PageController(initialPage: 1)..addListener(() async {
@@ -785,7 +777,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
       await audioHandler.changePlayList(fmPlayList..insertAll(0, curPlayList), index: curPlayIndex.value, playNow: false, changePlayerSource: false);
     }
   }
-  _changePlayList(List<MediaItem> playList, {required bool changePlayerSource, required bool playNow, int index = 0, bool needStore = true}) async {
+  _changePlayList(List<MediaItem> playList, {required bool changePlayerSource, required bool playNow, int index = 0}) async {
     // 更改播放列表
     await audioHandler.changePlayList(playList, index: index, changePlayerSource: changePlayerSource, playNow: playNow);
 

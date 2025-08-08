@@ -1,7 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import '../../../netease_music_api.dart';
 import '../../../src/api/bean.dart';
-import '../../../src/api/user/bean.dart';
 
 part 'bean.g.dart';
 
@@ -220,6 +219,7 @@ class SongDetailWrap extends ServerStatusBean {
   factory SongDetailWrap.fromJson(Map<String, dynamic> json) =>
       _$SongDetailWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SongDetailWrapToJson(this);
 }
 
@@ -261,6 +261,7 @@ class SongUrlListWrap extends ServerStatusBean {
   factory SongUrlListWrap.fromJson(Map<String, dynamic> json) =>
       _$SongUrlListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SongUrlListWrapToJson(this);
 }
 
@@ -279,6 +280,7 @@ class SongLyricWrap extends ServerStatusBean {
   factory SongLyricWrap.fromJson(Map<String, dynamic> json) =>
       _$SongLyricWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SongLyricWrapToJson(this);
 }
 
@@ -291,6 +293,7 @@ class SongListWrap extends ServerStatusBean {
   factory SongListWrap.fromJson(Map<String, dynamic> json) =>
       _$SongListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SongListWrapToJson(this);
 }
 
@@ -303,6 +306,7 @@ class SongListWrap2 extends ServerStatusBean {
   factory SongListWrap2.fromJson(Map<String, dynamic> json) =>
       _$SongListWrap2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SongListWrap2ToJson(this);
 }
 
@@ -341,6 +345,7 @@ class PersonalizedSongListWrap extends ServerStatusBean {
   factory PersonalizedSongListWrap.fromJson(Map<String, dynamic> json) =>
       _$PersonalizedSongListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PersonalizedSongListWrapToJson(this);
 }
 
@@ -355,6 +360,7 @@ class LikeSongListWrap extends ServerStatusBean {
   factory LikeSongListWrap.fromJson(Map<String, dynamic> json) =>
       _$LikeSongListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$LikeSongListWrapToJson(this);
 }
 
@@ -400,6 +406,7 @@ class CloudSongListWrap extends ServerStatusListBean {
   factory CloudSongListWrap.fromJson(Map<String, dynamic> json) =>
       _$CloudSongListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$CloudSongListWrapToJson(this);
 }
 
@@ -441,6 +448,7 @@ class RecommendSongListWrapX extends ServerStatusBean {
   factory RecommendSongListWrapX.fromJson(Map<String, dynamic> json) =>
       _$RecommendSongListWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$RecommendSongListWrapXToJson(this);
 }
 
@@ -473,6 +481,7 @@ class RecommendSongListHistoryWrapX extends ServerStatusBean {
   factory RecommendSongListHistoryWrapX.fromJson(Map<String, dynamic> json) =>
       _$RecommendSongListHistoryWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$RecommendSongListHistoryWrapXToJson(this);
 }
 
@@ -485,6 +494,7 @@ class ArtistSongListWrap extends ServerStatusBean {
   factory ArtistSongListWrap.fromJson(Map<String, dynamic> json) =>
       _$ArtistSongListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistSongListWrapToJson(this);
 }
 
@@ -511,6 +521,7 @@ class ArtistNewSongListWrap extends ServerStatusBean {
   factory ArtistNewSongListWrap.fromJson(Map<String, dynamic> json) =>
       _$ArtistNewSongListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistNewSongListWrapToJson(this);
 }
 
@@ -525,6 +536,7 @@ class ArtistDetailAndSongListWrap extends ServerStatusBean {
   factory ArtistDetailAndSongListWrap.fromJson(Map<String, dynamic> json) =>
       _$ArtistDetailAndSongListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistDetailAndSongListWrapToJson(this);
 }
 
@@ -660,6 +672,7 @@ class MultiPlayListWrap extends ServerStatusBean {
   factory MultiPlayListWrap.fromJson(Map<String, dynamic> json) =>
       _$MultiPlayListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$MultiPlayListWrapToJson(this);
 }
 
@@ -672,6 +685,7 @@ class MultiPlayListWrap2 extends ServerStatusBean {
   factory MultiPlayListWrap2.fromJson(Map<String, dynamic> json) =>
       _$MultiPlayListWrap2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$MultiPlayListWrap2ToJson(this);
 }
 
@@ -687,6 +701,7 @@ class RecommendPlayListWrap extends ServerStatusBean {
   factory RecommendPlayListWrap.fromJson(Map<String, dynamic> json) =>
       _$RecommendPlayListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$RecommendPlayListWrapToJson(this);
 }
 
@@ -702,6 +717,7 @@ class PersonalizedPlayListWrap extends ServerStatusBean {
   factory PersonalizedPlayListWrap.fromJson(Map<String, dynamic> json) =>
       _$PersonalizedPlayListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PersonalizedPlayListWrapToJson(this);
 }
 
@@ -737,6 +753,7 @@ class PlaylistCatalogueWrap extends ServerStatusBean {
   factory PlaylistCatalogueWrap.fromJson(Map<String, dynamic> json) =>
       _$PlaylistCatalogueWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PlaylistCatalogueWrapToJson(this);
 }
 
@@ -803,6 +820,7 @@ class PlaylistHotTagsWrap extends ServerStatusBean {
   factory PlaylistHotTagsWrap.fromJson(Map<String, dynamic> json) =>
       _$PlaylistHotTagsWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PlaylistHotTagsWrapToJson(this);
 }
 
@@ -855,6 +873,7 @@ class SinglePlayListWrap extends ServerStatusBean {
   factory SinglePlayListWrap.fromJson(Map<String, dynamic> json) =>
       _$SinglePlayListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SinglePlayListWrapToJson(this);
 }
 
@@ -876,6 +895,7 @@ class PlayListDetailDynamicWrap extends ServerStatusBean {
   factory PlayListDetailDynamicWrap.fromJson(Map<String, dynamic> json) =>
       _$PlayListDetailDynamicWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PlayListDetailDynamicWrapToJson(this);
 }
 
@@ -907,6 +927,7 @@ class PlaymodeIntelligenceListWrap extends ServerStatusBean {
   factory PlaymodeIntelligenceListWrap.fromJson(Map<String, dynamic> json) =>
       _$PlaymodeIntelligenceListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PlaymodeIntelligenceListWrapToJson(this);
 }
 
@@ -955,6 +976,7 @@ class ArtistsListWrap extends ServerStatusBean {
   factory ArtistsListWrap.fromJson(Map<String, dynamic> json) =>
       _$ArtistsListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistsListWrapToJson(this);
 }
 
@@ -982,6 +1004,7 @@ class ArtistsTopListWrapX extends ServerStatusBean {
   factory ArtistsTopListWrapX.fromJson(Map<String, dynamic> json) =>
       _$ArtistsTopListWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistsTopListWrapXToJson(this);
 }
 
@@ -1013,6 +1036,7 @@ class ArtistDescWrap extends ServerStatusBean {
   factory ArtistDescWrap.fromJson(Map<String, dynamic> json) =>
       _$ArtistDescWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistDescWrapToJson(this);
 }
 
@@ -1041,6 +1065,7 @@ class ArtistDetailWrap extends ServerStatusBean {
   factory ArtistDetailWrap.fromJson(Map<String, dynamic> json) =>
       _$ArtistDetailWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistDetailWrapToJson(this);
 }
 
@@ -1094,6 +1119,7 @@ class AlbumDetailWrap extends ServerStatusBean {
   factory AlbumDetailWrap.fromJson(Map<String, dynamic> json) =>
       _$AlbumDetailWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$AlbumDetailWrapToJson(this);
 }
 
@@ -1114,6 +1140,7 @@ class AlbumDetailDynamicWrap extends ServerStatusBean {
   factory AlbumDetailDynamicWrap.fromJson(Map<String, dynamic> json) =>
       _$AlbumDetailDynamicWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$AlbumDetailDynamicWrapToJson(this);
 }
 
@@ -1126,6 +1153,7 @@ class AlbumListWrap extends ServerStatusListBean {
   factory AlbumListWrap.fromJson(Map<String, dynamic> json) =>
       _$AlbumListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$AlbumListWrapToJson(this);
 }
 
@@ -1142,6 +1170,7 @@ class ArtistAlbumListWrap extends ServerStatusListBean {
   factory ArtistAlbumListWrap.fromJson(Map<String, dynamic> json) =>
       _$ArtistAlbumListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistAlbumListWrapToJson(this);
 }
 
@@ -1256,6 +1285,7 @@ class MvListWrap extends ServerStatusListBean {
   factory MvListWrap.fromJson(Map<String, dynamic> json) =>
       _$MvListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$MvListWrapToJson(this);
 }
 
@@ -1270,6 +1300,7 @@ class MvListWrap2 extends ServerStatusListBean {
   factory MvListWrap2.fromJson(Map<String, dynamic> json) =>
       _$MvListWrap2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$MvListWrap2ToJson(this);
 }
 
@@ -1284,6 +1315,7 @@ class PersonalizedMvListWrap extends ServerStatusBean {
   factory PersonalizedMvListWrap.fromJson(Map<String, dynamic> json) =>
       _$PersonalizedMvListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PersonalizedMvListWrapToJson(this);
 }
 
@@ -1296,6 +1328,7 @@ class ArtistMvListWrap extends MvListWrap {
   factory ArtistMvListWrap.fromJson(Map<String, dynamic> json) =>
       _$ArtistMvListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistMvListWrapToJson(this);
 }
 
@@ -1321,6 +1354,7 @@ class ArtistNewMvListWrap extends ServerStatusBean {
   factory ArtistNewMvListWrap.fromJson(Map<String, dynamic> json) =>
       _$ArtistNewMvListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistNewMvListWrapToJson(this);
 }
 
@@ -1340,6 +1374,7 @@ class MvDetailWrap extends ServerStatusBean {
   factory MvDetailWrap.fromJson(Map<String, dynamic> json) =>
       _$MvDetailWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$MvDetailWrapToJson(this);
 }
 
@@ -1356,6 +1391,7 @@ class MvDetailInfoWrap extends ServerStatusBean {
   factory MvDetailInfoWrap.fromJson(Map<String, dynamic> json) =>
       _$MvDetailInfoWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$MvDetailInfoWrapToJson(this);
 }
 
@@ -1391,6 +1427,7 @@ class MvUrlWrap extends ServerStatusBean {
   factory MvUrlWrap.fromJson(Map<String, dynamic> json) =>
       _$MvUrlWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$MvUrlWrapToJson(this);
 }
 
@@ -1471,6 +1508,7 @@ class Video extends VideoBase {
 
   factory Video.fromJson(Map<String, dynamic> json) => _$VideoFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$VideoToJson(this);
 }
 
@@ -1482,6 +1520,7 @@ class Video2 extends VideoBase {
 
   factory Video2.fromJson(Map<String, dynamic> json) => _$Video2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$Video2ToJson(this);
 }
 
@@ -1513,6 +1552,7 @@ class VideoMetaListWrap extends ServerStatusBean {
   factory VideoMetaListWrap.fromJson(Map<String, dynamic> json) =>
       _$VideoMetaListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$VideoMetaListWrapToJson(this);
 }
 
@@ -1544,6 +1584,7 @@ class VideoListWrapX extends ServerStatusListBean {
   factory VideoListWrapX.fromJson(Map<String, dynamic> json) =>
       _$VideoListWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$VideoListWrapXToJson(this);
 }
 
@@ -1556,6 +1597,7 @@ class VideoListWrap extends ServerStatusBean {
   factory VideoListWrap.fromJson(Map<String, dynamic> json) =>
       _$VideoListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$VideoListWrapToJson(this);
 }
 
@@ -1568,6 +1610,7 @@ class VideoDetailWrap extends ServerStatusBean {
   factory VideoDetailWrap.fromJson(Map<String, dynamic> json) =>
       _$VideoDetailWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$VideoDetailWrapToJson(this);
 }
 
@@ -1584,6 +1627,7 @@ class VideoDetailInfoWrap extends ServerStatusBean {
   factory VideoDetailInfoWrap.fromJson(Map<String, dynamic> json) =>
       _$VideoDetailInfoWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$VideoDetailInfoWrapToJson(this);
 }
 
@@ -1617,5 +1661,6 @@ class VideoUrlWrap extends ServerStatusBean {
   factory VideoUrlWrap.fromJson(Map<String, dynamic> json) =>
       _$VideoUrlWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$VideoUrlWrapToJson(this);
 }

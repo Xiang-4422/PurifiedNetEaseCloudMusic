@@ -1,9 +1,7 @@
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/controllers/app_controller.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -51,7 +49,7 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
     });
     commentTabController = TabController(length: 2, vsync: this)..addListener(() {
       if (commentTabController.indexIsChanging) {
-        pageController.animateToPage(commentTabController.index + 1, duration: Duration(milliseconds: 300), curve: Curves.linear);
+        pageController.animateToPage(commentTabController.index + 1, duration: const Duration(milliseconds: 300), curve: Curves.linear);
       }
     });
     pageController = PageController()..addListener(() {
@@ -66,7 +64,7 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
           commentTabController.index = curPage - 1;
           commentTabController.offset = realTimePage - curPage;
         }
-      };
+      }
     });
   }
 
@@ -92,7 +90,7 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
           ? Colors.black
           : Colors.white;
     });
-    AppController.to.updateAppBarTitle(title: playList.name ?? "", subTitle: playList.trackCount.toString() + "首", appBarTitleColor: widgetColor.value, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
+    AppController.to.updateAppBarTitle(title: playList.name ?? "", subTitle: "${playList.trackCount}首", appBarTitleColor: widgetColor.value, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
   }
 
   _getMediaItems(id) async {

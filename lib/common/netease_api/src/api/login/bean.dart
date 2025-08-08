@@ -40,6 +40,7 @@ class NeteaseAccountProfile extends NeteaseUserInfo {
   factory NeteaseAccountProfile.fromJson(Map<String, dynamic> json) =>
       _$NeteaseAccountProfileFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$NeteaseAccountProfileToJson(this);
 }
 
@@ -56,6 +57,7 @@ class NeteaseAccountInfoWrap extends ServerStatusBean {
   factory NeteaseAccountInfoWrap.fromJson(Map<String, dynamic> json) =>
       _$NeteaseAccountInfoWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$NeteaseAccountInfoWrapToJson(this);
 }
 
@@ -91,6 +93,7 @@ class NeteaseAccountBindingWrap extends ServerStatusBean {
   factory NeteaseAccountBindingWrap.fromJson(Map<String, dynamic> json) =>
       _$NeteaseAccountBindingWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$NeteaseAccountBindingWrapToJson(this);
 }
 
@@ -111,6 +114,7 @@ class CellPhoneCheckExistenceRet extends ServerStatusBean {
   factory CellPhoneCheckExistenceRet.fromJson(Map<String, dynamic> json) =>
       _$CellPhoneCheckExistenceRetFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$CellPhoneCheckExistenceRetToJson(this);
 }
 
@@ -124,6 +128,7 @@ class AnonimousLoginRet extends ServerStatusBean {
   factory AnonimousLoginRet.fromJson(Map<String, dynamic> json) =>
       _$AnonimousLoginRetFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$AnonimousLoginRetToJson(this);
 }
 
@@ -136,5 +141,6 @@ class QrCodeLoginKey extends ServerStatusBean {
   factory QrCodeLoginKey.fromJson(Map<String, dynamic> json) =>
       _$QrCodeLoginKeyFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$QrCodeLoginKeyToJson(this);
 }

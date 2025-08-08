@@ -174,6 +174,7 @@ class DjRadioCategoryWrap extends ServerStatusBean {
   factory DjRadioCategoryWrap.fromJson(Map<String, dynamic> json) =>
       _$DjRadioCategoryWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjRadioCategoryWrapToJson(this);
 }
 
@@ -186,6 +187,7 @@ class DjRadioCategoryWrap2 extends ServerStatusBean {
   factory DjRadioCategoryWrap2.fromJson(Map<String, dynamic> json) =>
       _$DjRadioCategoryWrap2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjRadioCategoryWrap2ToJson(this);
 }
 
@@ -198,6 +200,7 @@ class DjRadioCategoryWrap3 extends ServerStatusBean {
   factory DjRadioCategoryWrap3.fromJson(Map<String, dynamic> json) =>
       _$DjRadioCategoryWrap3FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjRadioCategoryWrap3ToJson(this);
 }
 
@@ -214,6 +217,7 @@ class DjRadioListWrap extends ServerStatusListBean {
   factory DjRadioListWrap.fromJson(Map<String, dynamic> json) =>
       _$DjRadioListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjRadioListWrapToJson(this);
 }
 
@@ -226,6 +230,7 @@ class DjRadioListWrap2 extends ServerStatusBean {
   factory DjRadioListWrap2.fromJson(Map<String, dynamic> json) =>
       _$DjRadioListWrap2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjRadioListWrap2ToJson(this);
 }
 
@@ -253,6 +258,7 @@ class DjTopListListWrapX extends ServerStatusBean {
   factory DjTopListListWrapX.fromJson(Map<String, dynamic> json) =>
       _$DjTopListListWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjTopListListWrapXToJson(this);
 }
 
@@ -309,6 +315,7 @@ class DjRadioTopListListWrapX extends ServerStatusBean {
   factory DjRadioTopListListWrapX.fromJson(Map<String, dynamic> json) =>
       _$DjRadioTopListListWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjRadioTopListListWrapXToJson(this);
 }
 
@@ -321,6 +328,7 @@ class DjRadioDetail extends ServerStatusBean {
   factory DjRadioDetail.fromJson(Map<String, dynamic> json) =>
       _$DjRadioDetailFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjRadioDetailToJson(this);
 }
 
@@ -335,6 +343,7 @@ class DjRadioTopListListWrapX2 extends ServerStatusBean {
   factory DjRadioTopListListWrapX2.fromJson(Map<String, dynamic> json) =>
       _$DjRadioTopListListWrapX2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjRadioTopListListWrapX2ToJson(this);
 }
 
@@ -349,6 +358,7 @@ class DjProgramListWrap extends ServerStatusListBean {
   factory DjProgramListWrap.fromJson(Map<String, dynamic> json) =>
       _$DjProgramListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjProgramListWrapToJson(this);
 }
 
@@ -380,6 +390,7 @@ class DjProgramTopListListWrap2 extends ServerStatusBean {
   factory DjProgramTopListListWrap2.fromJson(Map<String, dynamic> json) =>
       _$DjProgramTopListListWrap2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjProgramTopListListWrap2ToJson(this);
 }
 
@@ -430,6 +441,7 @@ class DjProgramTopListListWrapX extends ServerStatusBean {
   factory DjProgramTopListListWrapX.fromJson(Map<String, dynamic> json) =>
       _$DjProgramTopListListWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjProgramTopListListWrapXToJson(this);
 }
 
@@ -444,6 +456,7 @@ class PersonalizedDjProgramListWrap extends ServerStatusBean {
   factory PersonalizedDjProgramListWrap.fromJson(Map<String, dynamic> json) =>
       _$PersonalizedDjProgramListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PersonalizedDjProgramListWrapToJson(this);
 }
 
@@ -456,5 +469,6 @@ class DjProgramDetail extends ServerStatusBean {
   factory DjProgramDetail.fromJson(Map<String, dynamic> json) =>
       _$DjProgramDetailFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$DjProgramDetailToJson(this);
 }

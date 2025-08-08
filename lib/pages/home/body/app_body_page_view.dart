@@ -7,19 +7,12 @@ import 'package:bujuan/pages/home/body/body_pages/coffee_page.dart';
 import 'package:bujuan/pages/home/body/body_pages/explore_page.dart';
 import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
 import 'package:bujuan/pages/home/body/body_pages/setting_page.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
-import '../../../routes/router.gr.dart';
 import '../../../widget/custom_zoom_drawer/src/flutter_zoom_drawer.dart';
-import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/routes/router.dart';
-import 'package:flutter/material.dart';
 
-import 'package:get/get.dart';
 
 import '../../../widget/simple_extended_image.dart';
 import '../../../controllers/user_controller.dart';
@@ -146,7 +139,7 @@ class MenuView extends GetView<AppController> {
                         controller.zoomDrawerController.close!();
                         Future.delayed(const Duration(milliseconds: 200), () {
                           int onePageAnimationTime = 200;
-                          Duration animationTime = Duration(milliseconds: onePageAnimationTime  * (controller.homePageController!.page! - menuIndex).abs().toInt());
+                          Duration animationTime = Duration(milliseconds: onePageAnimationTime  * (controller.homePageController.page! - menuIndex).abs().toInt());
                           controller.homePageController.animateToPage(menuIndex, duration: animationTime, curve:Curves.linear);
                           // AutoTabsRouter.of(context).setActiveIndex(menuIndex);
                         });

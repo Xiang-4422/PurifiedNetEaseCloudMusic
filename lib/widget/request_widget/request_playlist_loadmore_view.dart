@@ -102,7 +102,7 @@ class RequestPlaylistLoadMoreWidgetState extends State<RequestPlaylistLoadMoreWi
   @override
   Widget build(BuildContext context) {
     return _loading
-        ? LoadingView()
+        ? const LoadingView()
         : _empty
             ? const EmptyView()
             : _error

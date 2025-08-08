@@ -28,6 +28,7 @@ class SearchSongWrapX extends ServerStatusBean {
   factory SearchSongWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchSongWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchSongWrapXToJson(this);
 }
 
@@ -40,6 +41,7 @@ class SearchAlbumsWrapX extends ServerStatusBean {
   factory SearchAlbumsWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchAlbumsWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchAlbumsWrapXToJson(this);
 }
 
@@ -64,6 +66,7 @@ class SearchArtistsWrapX extends ServerStatusBean {
   factory SearchArtistsWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchArtistsWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchArtistsWrapXToJson(this);
 }
 
@@ -88,6 +91,7 @@ class SearchPlaylistWrapX extends ServerStatusBean {
   factory SearchPlaylistWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchPlaylistWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchPlaylistWrapXToJson(this);
 }
 
@@ -100,6 +104,7 @@ class SearchUserWrapX extends ServerStatusBean {
   factory SearchUserWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchUserWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchUserWrapXToJson(this);
 }
 
@@ -112,6 +117,7 @@ class SearchMvWrapX extends ServerStatusBean {
   factory SearchMvWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchMvWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchMvWrapXToJson(this);
 }
 
@@ -136,6 +142,7 @@ class SearchLyricsWrapX extends ServerStatusBean {
   factory SearchLyricsWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchLyricsWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchLyricsWrapXToJson(this);
 }
 
@@ -160,6 +167,7 @@ class SearchDjradioWrapX extends ServerStatusBean {
   factory SearchDjradioWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchDjradioWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchDjradioWrapXToJson(this);
 }
 
@@ -184,6 +192,7 @@ class SearchVideoWrapX extends ServerStatusBean {
   factory SearchVideoWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchVideoWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchVideoWrapXToJson(this);
 }
 
@@ -398,6 +407,7 @@ class SearchComplexWrapX extends ServerStatusBean {
   factory SearchComplexWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchComplexWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchComplexWrapXToJson(this);
 }
 
@@ -427,6 +437,7 @@ class SearchKeyWrap extends ServerStatusBean {
   factory SearchKeyWrap.fromJson(Map<String, dynamic> json) =>
       _$SearchKeyWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchKeyWrapToJson(this);
 }
 
@@ -465,6 +476,7 @@ class SearchKeyWrapX extends ServerStatusBean {
   factory SearchKeyWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchKeyWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchKeyWrapXToJson(this);
 }
 
@@ -498,6 +510,7 @@ class SearchKeyDetailedWrap extends ServerStatusBean {
   factory SearchKeyDetailedWrap.fromJson(Map<String, dynamic> json) =>
       _$SearchKeyDetailedWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchKeyDetailedWrapToJson(this);
 }
 
@@ -537,6 +550,7 @@ class SearchSuggestWrapX extends ServerStatusBean {
   factory SearchSuggestWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchSuggestWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchSuggestWrapXToJson(this);
 }
 
@@ -566,5 +580,6 @@ class SearchMultiMatchWrapX extends ServerStatusBean {
   factory SearchMultiMatchWrapX.fromJson(Map<String, dynamic> json) =>
       _$SearchMultiMatchWrapXFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$SearchMultiMatchWrapXToJson(this);
 }

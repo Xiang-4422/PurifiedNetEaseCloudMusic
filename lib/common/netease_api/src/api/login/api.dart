@@ -23,7 +23,7 @@ mixin ApiLogin {
   }
 
   DioMetaData loginAnonimousDioMetaData() {
-    var base64 = Base64Encoder();
+    var base64 = const Base64Encoder();
     var deviceId = Uri.encodeComponent(base64.convert(utf8.encode('null	a4:50:46:73:3a:57	a5914fdadb9b4cbb	5fe11acbc99b1fac')));
     var usernameRaw = '$deviceId 0wH6J2J5LpuzoSkpx6Kivg==';
 

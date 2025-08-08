@@ -4,12 +4,9 @@ import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../common/netease_api/src/api/login/bean.dart';
@@ -40,10 +37,6 @@ class UserController extends GetxController {
   ];
 
   //进度
-  @override
-  void onInit() {
-    super.onInit();
-  }
   @override
   void onReady() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {

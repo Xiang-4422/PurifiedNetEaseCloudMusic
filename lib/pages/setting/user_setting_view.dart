@@ -3,7 +3,6 @@ import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:get/get.dart';
 
@@ -37,24 +36,24 @@ class _UserSettingViewState extends State<UserSettingView> {
             children: [
               Container(
                 width: context.width,
-                margin: EdgeInsets.only(top: 200),
-                padding: EdgeInsets.only(left: 15, right: 15, bottom: 25, top: 80),
+                margin: const EdgeInsets.only(top: 200),
+                padding: const EdgeInsets.only(left: 15, right: 15, bottom: 25, top: 80),
                 decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(25)),
                 child: Column(
                   children: [
                     Text(
                       userData.profile.nickname ?? '',
-                      style: TextStyle(fontSize: 56),
+                      style: const TextStyle(fontSize: 56),
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Text(
                         userData.profile.signature ?? '',
-                        style: TextStyle(fontSize: 32, color: Colors.grey),
+                        style: const TextStyle(fontSize: 32, color: Colors.grey),
                       ),
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20,horizontal: 20),
+                      padding: const EdgeInsets.symmetric(vertical: 20,horizontal: 20),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -75,9 +74,9 @@ class _UserSettingViewState extends State<UserSettingView> {
                           height: 88,
                           alignment: Alignment.center,
                           width: context.width,
-                          margin: EdgeInsets.symmetric(vertical: 40, horizontal: 35),
+                          margin: const EdgeInsets.symmetric(vertical: 40, horizontal: 35),
                           decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(20)),
-                          child: Text(
+                          child: const Text(
                             '注销登录',
                             style: TextStyle(fontSize: 28, color: Colors.white),
                           ),

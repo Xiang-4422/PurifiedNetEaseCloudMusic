@@ -69,6 +69,7 @@ class UserSettingWrap extends ServerStatusBean {
   factory UserSettingWrap.fromJson(Map<String, dynamic> json) =>
       _$UserSettingWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$UserSettingWrapToJson(this);
 }
 
@@ -146,6 +147,7 @@ class NeteaseUserDetail extends ServerStatusBean {
   factory NeteaseUserDetail.fromJson(Map<String, dynamic> json) =>
       _$NeteaseUserDetailFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$NeteaseUserDetailToJson(this);
 }
 
@@ -165,6 +167,7 @@ class NeteaseUserSubcount extends ServerStatusBean {
   factory NeteaseUserSubcount.fromJson(Map<String, dynamic> json) =>
       _$NeteaseUserSubcountFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$NeteaseUserSubcountToJson(this);
 }
 
@@ -197,6 +200,7 @@ class NeteaseUserLevelWrap extends ServerStatusBean {
   factory NeteaseUserLevelWrap.fromJson(Map<String, dynamic> json) =>
       _$NeteaseUserLevelWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$NeteaseUserLevelWrapToJson(this);
 }
 
@@ -209,6 +213,7 @@ class UserFollowListWrap extends ServerStatusBean {
   factory UserFollowListWrap.fromJson(Map<String, dynamic> json) =>
       _$UserFollowListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$UserFollowListWrapToJson(this);
 }
 
@@ -221,6 +226,7 @@ class UserFollowedListWrap extends ServerStatusBean {
   factory UserFollowedListWrap.fromJson(Map<String, dynamic> json) =>
       _$UserFollowedListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$UserFollowedListWrapToJson(this);
 }
 
@@ -233,6 +239,7 @@ class UserListWrap extends ServerStatusBean {
   factory UserListWrap.fromJson(Map<String, dynamic> json) =>
       _$UserListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$UserListWrapToJson(this);
 }
 
@@ -245,6 +252,7 @@ class ArtistsSubListWrap extends ServerStatusListBean {
   factory ArtistsSubListWrap.fromJson(Map<String, dynamic> json) =>
       _$ArtistsSubListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ArtistsSubListWrapToJson(this);
 }
 
@@ -257,6 +265,7 @@ class MvSubListWrap extends ServerStatusListBean {
   factory MvSubListWrap.fromJson(Map<String, dynamic> json) =>
       _$MvSubListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$MvSubListWrapToJson(this);
 }
 
@@ -271,6 +280,7 @@ class AlbumSubListWrap extends ServerStatusListBean {
   factory AlbumSubListWrap.fromJson(Map<String, dynamic> json) =>
       _$AlbumSubListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$AlbumSubListWrapToJson(this);
 }
 
@@ -298,6 +308,7 @@ class PlayRecordListWrap extends ServerStatusBean {
   factory PlayRecordListWrap.fromJson(Map<String, dynamic> json) =>
       _$PlayRecordListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PlayRecordListWrapToJson(this);
 }
 
@@ -313,6 +324,7 @@ class PlaylistCreateWrap extends ServerStatusBean {
   factory PlaylistCreateWrap.fromJson(Map<String, dynamic> json) =>
       _$PlaylistCreateWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PlaylistCreateWrapToJson(this);
 }
 
@@ -325,5 +337,6 @@ class PlaylistSubscribersWrap extends ServerStatusBean {
   factory PlaylistSubscribersWrap.fromJson(Map<String, dynamic> json) =>
       _$PlaylistSubscribersWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$PlaylistSubscribersWrapToJson(this);
 }

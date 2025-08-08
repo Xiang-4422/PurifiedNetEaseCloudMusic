@@ -38,7 +38,7 @@ class DioProxy {
     }
     try {
       return await Https.dio.postUri(metaData.uri, data: metaData.data, options: metaData.options,cancelToken: cancelToken);
-    } on DioError catch (e) {
+    } on DioException catch (e) {
       return Future.error(e);
     }
   }

@@ -1,18 +1,11 @@
-import 'dart:ui';
 
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/home/bottom_panel/bottom_panel_view.dart';
-import 'package:extended_image/extended_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
-import '../../../common/constants/appConstants.dart';
 
 // TODO YU4422 歌词换行、歌词丝滑缩放
 class LyricView extends GetView<AppController> {
@@ -59,7 +52,7 @@ class LyricView extends GetView<AppController> {
                   return AnimatedDefaultTextStyle(
                     style: context.theme.textTheme.titleLarge!.copyWith(
                       fontFamily: 'monospace', // 指定使用系统等宽字体
-                      color: controller.panelWidgetColor.value.withOpacity(isActive ? 1 : 0.2),
+                      color: controller.panelWidgetColor.value.withValues(alpha: isActive ? 1 : 0.2),
                       fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                     ),
                     curve: Curves.decelerate,

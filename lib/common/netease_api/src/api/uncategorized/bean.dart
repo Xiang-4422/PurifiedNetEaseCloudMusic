@@ -52,6 +52,7 @@ class BannerListWrap extends ServerStatusBean {
   factory BannerListWrap.fromJson(Map<String, dynamic> json) =>
       _$BannerListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$BannerListWrapToJson(this);
 }
 
@@ -64,6 +65,7 @@ class BannerListWrap2 extends ServerStatusBean {
   factory BannerListWrap2.fromJson(Map<String, dynamic> json) =>
       _$BannerListWrap2FromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$BannerListWrap2ToJson(this);
 }
 
@@ -289,6 +291,7 @@ class HomeBlockPageWrap extends ServerStatusBean {
   factory HomeBlockPageWrap.fromJson(Map<String, dynamic> json) =>
       _$HomeBlockPageWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$HomeBlockPageWrapToJson(this);
 }
 
@@ -320,6 +323,7 @@ class HomeDragonBallWrap extends ServerStatusBean {
   factory HomeDragonBallWrap.fromJson(Map<String, dynamic> json) =>
       _$HomeDragonBallWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$HomeDragonBallWrapToJson(this);
 }
 
@@ -360,6 +364,7 @@ class CountriesCodeListWrap extends ServerStatusBean {
   factory CountriesCodeListWrap.fromJson(Map<String, dynamic> json) =>
       _$CountriesCodeListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$CountriesCodeListWrapToJson(this);
 }
 
@@ -394,6 +399,7 @@ class PersonalizedPrivateContentListWrap extends ServerStatusBean {
           Map<String, dynamic> json) =>
       _$PersonalizedPrivateContentListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() =>
       _$PersonalizedPrivateContentListWrapToJson(this);
 }
@@ -525,6 +531,7 @@ class TopListWrap extends ServerStatusBean {
   factory TopListWrap.fromJson(Map<String, dynamic> json) =>
       _$TopListWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$TopListWrapToJson(this);
 }
 
@@ -539,6 +546,7 @@ class TopListDetailWrap extends ServerStatusBean {
   factory TopListDetailWrap.fromJson(Map<String, dynamic> json) =>
       _$TopListDetailWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$TopListDetailWrapToJson(this);
 }
 
@@ -589,6 +597,7 @@ class McalendarDetailWrap extends ServerStatusBean {
   factory McalendarDetailWrap.fromJson(Map<String, dynamic> json) =>
       _$McalendarDetailWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$McalendarDetailWrapToJson(this);
 }
 
@@ -628,6 +637,7 @@ class AudioMatchResultWrap extends ServerStatusBean {
   factory AudioMatchResultWrap.fromJson(Map<String, dynamic> json) =>
       _$AudioMatchResultWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$AudioMatchResultWrapToJson(this);
 }
 
@@ -654,6 +664,7 @@ class ListenTogetherStatusWrap extends ServerStatusBean {
   factory ListenTogetherStatusWrap.fromJson(Map<String, dynamic> json) =>
       _$ListenTogetherStatusWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$ListenTogetherStatusWrapToJson(this);
 }
 
@@ -681,6 +692,7 @@ class UploadImageAllocWrap extends ServerStatusBean {
   factory UploadImageAllocWrap.fromJson(Map<String, dynamic> json) =>
       _$UploadImageAllocWrapFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$UploadImageAllocWrapToJson(this);
 }
 
@@ -696,6 +708,7 @@ class UploadImageResult extends ServerStatusBean {
   factory UploadImageResult.fromJson(Map<String, dynamic> json) =>
       _$UploadImageResultFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$UploadImageResultToJson(this);
 }
 

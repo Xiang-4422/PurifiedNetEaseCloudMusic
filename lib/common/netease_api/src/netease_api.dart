@@ -86,7 +86,7 @@ class NeteaseMusicApi
                   handler.next(newResponse);
                   return;
                 }
-              } catch (e) {} finally {
+              } finally {
                 // dio.unlock();
               }
               await NeteaseMusicApi().usc.onLogout();

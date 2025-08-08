@@ -96,7 +96,7 @@ class _LoginPageViewState extends State<LoginPageView> {
                      version: QrVersions.auto,
                      size: 400,
                    ),
-                   Padding(
+                   const Padding(
                      padding: EdgeInsets.symmetric(vertical: 30),
                      child: Text(
                        '请扫描二维码码登录',

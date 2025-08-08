@@ -38,7 +38,7 @@ class _MyRadioViewState extends State<MyRadioView> {
               dioMetaData: djRadioSubListDioMetaData(),
               childBuilder: (List<DjRadio> list) {
                 return ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemBuilder: (context, index) => _buildItem(list[index]),
                   itemCount: list.length,
                 );
@@ -65,7 +65,7 @@ class _MyRadioViewState extends State<MyRadioView> {
               ),
               Expanded(
                   child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -73,14 +73,14 @@ class _MyRadioViewState extends State<MyRadioView> {
                     Text(
                       data.name,
                       maxLines: 1,
-                      style: TextStyle(fontSize: 28),
+                      style: const TextStyle(fontSize: 28),
                     ),
-                    Padding(padding: EdgeInsets.symmetric(vertical: 3)),
+                    const Padding(padding: EdgeInsets.symmetric(vertical: 3)),
                     Text(
                       data.lastProgramName ?? '',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 26, color: Colors.grey),
+                      style: const TextStyle(fontSize: 26, color: Colors.grey),
                     )
                   ],
                 ),

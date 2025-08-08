@@ -17,7 +17,7 @@ typedef DrawerStyleBuilder = Widget Function(
 );
 
 class ZoomDrawer extends StatefulWidget {
-  const ZoomDrawer({
+  const ZoomDrawer({super.key, 
     required this.menuScreen,
     required this.mainScreen,
     this.style = DrawerStyle.defaultStyle,
@@ -231,7 +231,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
   bool isOpen() => stateNotifier.value == DrawerState.open;
 
   /// Check whether drawer is open
-  void addListener(listener) => _listeners?.add(listener);
+  void addListener(listener) => _listeners.add(listener);
 
   /// Decides if drag animation should start according to dragOffset
   void _onHorizontalDragStart(DragStartDetails startDetails) {
@@ -383,7 +383,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
     widget.controller!.stateNotifier = stateNotifier;
   }
 
-  List<ZooDrawerUpdateListener>? _listeners = [];
+  final List<ZooDrawerUpdateListener> _listeners = [];
 
   /// Updates stateNotifier, drawerLastAction, and _absorbingMainScreen
   void _animationStatusListener(AnimationStatus status) {
@@ -411,7 +411,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
         _stateNotifier.value = DrawerState.open;
         _drawerLastAction = DrawerLastAction.open;
         _absorbingMainScreen.value = widget.mainScreenAbsorbPointer;
-        for(ZooDrawerUpdateListener listener in _listeners!){
+        for(ZooDrawerUpdateListener listener in _listeners){
           listener(_animationController.value);
         }
         break;
@@ -419,7 +419,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
         _stateNotifier.value = DrawerState.closed;
         _drawerLastAction = DrawerLastAction.closed;
         _absorbingMainScreen.value = false;
-        for(ZooDrawerUpdateListener listener in _listeners!){
+        for(ZooDrawerUpdateListener listener in _listeners){
           listener(_animationController.value);
         }
         break;
@@ -427,7 +427,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
   }
 
   void _animationListener() {
-    for(ZooDrawerUpdateListener listener in _listeners!){
+    for(ZooDrawerUpdateListener listener in _listeners){
       listener(_animationController.value);
     }
   }

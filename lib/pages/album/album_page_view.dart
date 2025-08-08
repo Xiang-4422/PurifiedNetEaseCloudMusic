@@ -3,10 +3,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
-import 'package:extended_image/extended_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
@@ -15,7 +12,6 @@ import '../../common/constants/appConstants.dart';
 import '../../common/constants/other.dart';
 import '../../controllers/app_controller.dart';
 import '../../widget/simple_extended_image.dart';
-import 'controller.dart';
 
 
 
@@ -91,7 +87,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                 StretchMode.blurBackground, // 背景图模糊
                 // StretchMode.fadeTitle,      // 标题渐隐
               ],
-              titlePadding: EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
+              titlePadding: const EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
               title: Row(
                 children: [
                   Expanded(
@@ -115,7 +111,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                       ],
                     ),
                   ),
-                  Icon(TablerIcons.player_play)
+                  const Icon(TablerIcons.player_play)
                 ],
               ),
               // centerTitle: true,
@@ -123,7 +119,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
               background: SimpleExtendedImage(
                 width: context.width,
                 height: context.width,
-                '${album.picUrl ?? ''}',
+                album.picUrl ?? '',
               ),
             ),
             // bottom:
@@ -133,7 +129,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
               childCount: albumSongs.length + 1,
                   (BuildContext context, int index) {
                 if (index == albumSongs.length) {
-                  return SizedBox(
+                  return const SizedBox(
                     height: AppDimensions.bottomPanelHeaderHeight,
                   );
                 }

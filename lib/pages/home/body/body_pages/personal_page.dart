@@ -4,12 +4,15 @@ import 'package:bujuan/pages/login/login_page_view.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 import 'package:get/get.dart';
 
 import '../../../../common/constants/appConstants.dart';
 import '../../../../routes/router.dart';
 import '../../../../controllers/app_controller.dart';
+import '../../../../widget/keep_alive_wrapper.dart';
+import '../../../../widget/simple_extended_image.dart';
 
 /// 收藏页
 class PersonalPageView extends GetView<UserController> {
@@ -17,138 +20,88 @@ class PersonalPageView extends GetView<UserController> {
 
   @override
   Widget build(BuildContext context) {
-    return Visibility(
-      visible: AppController.to.loginStatus.value == LoginStatus.login,
-      replacement: const LoginPageView(), // 未登录页面
-      child: Obx(() => Visibility(
-          visible: !controller.loading.value,
-          replacement: const LoadingView(),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.only(top: AppDimensions.appBarHeight),
-                child: GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 4,
-                  childAspectRatio: 1,
-                  children: controller.userItems.map((userItem) => GestureDetector(
-                    onTap: () async {
-                      if (userItem.routes == 'playFm') {
-                        AppController.to.openFmMode();
-                      } else {
-                        AppController.to.updateAppBarTitle(title: userItem.fullTitle ?? userItem.title, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
-                        AutoRouter.of(context).pushNamed(userItem.routes! ?? '');
-                      }
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      alignment: Alignment.center,
-                      // padding: EdgeInsets.all(20),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            userItem.iconData,
-                            // size: context.width / 4  / 3,
-                          ),
-                          Text(
-                            userItem.title,
-                            style: context.theme.textTheme.titleMedium,
-                          )
-                        ],
-                      ),
-                    ),
-                  )).toList(),
-                ),
-              ),
-              Expanded(
-                child: CustomScrollView (
-                  slivers: [
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: SliverHeaderDelegate.fixedHeight( //固定高度
-                        height: 50,
-                        child: const Header('喜欢的音乐'),
-                      ),
-                    ),
-                    SliverList.builder(
-                      itemCount: 1,
-                      itemBuilder: (BuildContext context, int index) {
-                        return PlayListItem(controller.userLikedSongPlayList);
-                      },
-                    ),
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: SliverHeaderDelegate.fixedHeight( //固定高度
-                        height: 50,
-                        child: const Header('创建的歌单'),
-                      ),
-                    ),
-                    SliverList.builder(
-                      itemCount: controller.userMadePlayLists.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return PlayListItem(controller.userMadePlayLists[index]);
-                      },
-                    ),
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: SliverHeaderDelegate.fixedHeight( //固定高度
-                        height: 50,
-                        child: const Header('收藏的歌单'),
-                      ),
-                    ),
-                    SliverList.builder(
-                      itemCount: controller.userFavoritedPlayLists.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return PlayListItem(controller.userFavoritedPlayLists[index]);
-                      },
-                    ),
-                  ]
-                ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
-              ),
-            ],
-          ),
-        ))
-    );
-  }
 
-  /// 未登录
-  Widget _buildLoginPage(context) {
-    return GestureDetector(
-      onTap: () => AutoRouter.of(context).pushNamed(Routes.login),
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        padding: EdgeInsets.only(
-            top: 30 + MediaQuery.of(context).padding.top + AppDimensions.appBarHeight,
-            left: 30,
-            right: 30),
-        margin: const EdgeInsets.only(bottom: 16, top: 120),
-        child: Stack(
-          alignment: Alignment.centerRight,
-          children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Hi', style: TextStyle(fontSize: 52, color: Colors.grey, fontWeight: FontWeight.bold)),
-                  const Padding(padding: EdgeInsets.symmetric(vertical: 8)),
-                  Obx(() =>
-                      Text('${AppController.to.loginStatus.value == LoginStatus.login
-                          ? AppController.to.userData.value.profile?.nickname
-                          : '请登录'}～',
-                          style: TextStyle(fontSize: 52,
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.bold))),
-                ],
-              ),
-            ),
-          ],
-        ),
-            ),
-    );
+    double albumWidth = (context.width - AppDimensions.paddingSmall * 3) / 2.5;
+
+    return Obx(() => Visibility(
+      visible: !controller.loading.value,
+      replacement: const LoadingView(),
+      child: CustomScrollView (
+        slivers: [
+          SliverPadding(padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top)),
+          SliverList.builder(
+            itemCount: controller.userItems.length,
+            itemBuilder: (context, index) {
+              UserItem userItem = controller.userItems[index];
+              return UniversalListTile(titleString: userItem.title);
+            },
+          ),
+          SliverToBoxAdapter(
+              child: const Header('创建的歌单').paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+          ),
+          SliverToBoxAdapter(
+              child: Container(
+                height: albumWidth * 1.5,
+                child: CustomScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: SnappingScrollPhysics(itemExtent: albumWidth + AppDimensions.paddingSmall),
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsetsGeometry.symmetric(horizontal: AppDimensions.paddingSmall),
+                      sliver: SliverGrid.builder(
+
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 1,
+                          mainAxisSpacing: AppDimensions.paddingSmall,
+                          childAspectRatio: 1.5,       // 宽高比
+                        ),
+                        addAutomaticKeepAlives: true,
+                        itemCount: controller.userMadePlayLists.length,
+                        itemBuilder: (context, index) {
+                          return KeepAliveWrapper(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SimpleExtendedImage.avatar(
+                                    width: albumWidth,
+                                    shape: BoxShape.rectangle,
+                                    '${controller.userMadePlayLists[index].coverImgUrl}?param=200y200'
+                                ),
+                                Text(
+                                  "${controller.userMadePlayLists[index].name}",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.textTheme.bodyMedium,
+                                ),
+                                Text(
+                                  "${controller.userMadePlayLists[index].trackCount == null || controller.userMadePlayLists[index].trackCount == 0 ? null : "${controller.userMadePlayLists[index].trackCount}首"}",
+                                  maxLines: 1,
+                                  style: context.textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  ],
+                ),
+              )
+          ),
+          SliverToBoxAdapter(
+              child: const Header('收藏的歌单').paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+          ),
+          SliverList.builder(
+            itemCount: controller.userFavoritedPlayLists.length,
+            itemBuilder: (BuildContext context, int index) {
+              return PlayListItem(controller.userFavoritedPlayLists[index]).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
+            },
+          ),
+          SliverPadding(padding: EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight)),
+        ]
+      ),
+    ));
   }
 }
 
@@ -220,5 +173,73 @@ class SliverHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(SliverHeaderDelegate old) {
     return old.maxExtent != maxExtent || old.minExtent != minExtent;
+  }
+}
+
+class SnappingScrollPhysics extends ScrollPhysics {
+  final double itemExtent; // 每个格子的宽度(含间距)
+
+  const SnappingScrollPhysics({
+    required this.itemExtent,
+    ScrollPhysics? parent,
+  }) : super(parent: parent);
+
+  @override
+  SnappingScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return SnappingScrollPhysics(
+      itemExtent: itemExtent,
+      parent: buildParent(ancestor),
+    );
+  }
+
+  double _getTargetPixels(ScrollMetrics position, Tolerance tolerance, double velocity) {
+    double page = position.pixels / itemExtent;
+
+
+    page = page.ceilToDouble();
+
+    // if (velocity > 0) {
+    //   // 向左滑动，吸附到第一个完全显示的元素，向上取整
+    //   page = page.ceilToDouble();
+    // } else {
+    //   // 向右滑动，吸附到第一个元素，向下取整
+    //   page = page.floorToDouble();
+    // }
+
+    // 限制最大滚动范围
+    return math.min(page * itemExtent, position.maxScrollExtent);
+  }
+
+  @override
+  Simulation? createBallisticSimulation(ScrollMetrics position, double velocity) {
+
+    final Tolerance tolerance = this.tolerance;
+    // 快速滑动或超出边界，使用默认惯性滑动
+    if (position.outOfRange || velocity.abs() > tolerance.velocity) {
+      return super.createBallisticSimulation(position, velocity);
+    }
+    final double target = _getTargetPixels(position, tolerance, velocity);
+    // 慢速滑动，弹簧动画吸附
+    return ScrollSpringSimulation(
+      spring,
+      position.pixels,
+      target,
+      velocity,
+      tolerance: tolerance,
+    );
+  }
+}
+
+class NoStretchBouncingScrollBehavior extends ScrollBehavior {
+  @override
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+    // 不显示拉伸效果（去掉水波纹或拉伸）
+    return child;
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    // 使用 iOS 弹簧回弹
+    return const BouncingScrollPhysics();
   }
 }

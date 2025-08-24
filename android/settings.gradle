@@ -25,7 +25,7 @@ plugins {
     // Flutter插件加载器，用于加载Flutter相关插件
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
     // Android应用插件，apply false表示不立即应用插件
-    id "com.android.application" version "8.1.0" apply false
+    id "com.android.application" version "8.3.0" apply false
     // Kotlin Android插件
     id "org.jetbrains.kotlin.android" version "2.1.20" apply false
 }

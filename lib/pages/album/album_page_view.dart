@@ -38,6 +38,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumId = context.routeData.queryParams.get('albumId');
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      AppController.to.updateAppBarTitle(title: "", subTitle: "", willRollBack: true);
       AlbumDetailWrap albumDetailWrap = await NeteaseMusicApi().albumDetail(albumId);
       album = albumDetailWrap.album!;
       albumSongs.addAll(AppController.to.song2ToMedia(albumDetailWrap.songs ?? []));
@@ -68,81 +69,113 @@ class _AlbumPageViewState extends State<AlbumPageView> {
        );
     }
 
-    return CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          SliverAppBar(
-            toolbarHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
-            collapsedHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
-            expandedHeight: context.width - context.mediaQueryPadding.top,
-            pinned: true,
-            stretch: true,
-            automaticallyImplyLeading: false,
-            foregroundColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            backgroundColor: albumPrimaryColor,
-            flexibleSpace: FlexibleSpaceBar(
-              stretchModes: const <StretchMode>[
-                StretchMode.zoomBackground, // 背景图缩放
-                StretchMode.blurBackground, // 背景图模糊
-                // StretchMode.fadeTitle,      // 标题渐隐
-              ],
-              titlePadding: const EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
-              title: Row(
-                children: [
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Text(
-                          style: context.textTheme.titleLarge!.copyWith(
-                            foreground: Paint()
-                              ..style = PaintingStyle.stroke
-                              ..strokeWidth = 4
-                              ..color = Colors.black,
-                          ),
-                          album.name!,
-                        ),
-                        Text(
-                          style: context.textTheme.titleLarge!.copyWith(
-                            color: Colors.white,
-                          ),
-                          album.name!,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(TablerIcons.player_play)
+    return Container(
+      color: albumPrimaryColor,
+      child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              toolbarHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
+              collapsedHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
+              expandedHeight: context.width - context.mediaQueryPadding.top,
+              pinned: true,
+              stretch: true,
+              automaticallyImplyLeading: false,
+              foregroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              backgroundColor: albumPrimaryColor,
+              flexibleSpace: FlexibleSpaceBar(
+                stretchModes: const <StretchMode>[
+                  StretchMode.zoomBackground, // 背景图缩放
+                  StretchMode.blurBackground, // 背景图模糊
+                  // StretchMode.fadeTitle,      // 标题渐隐
                 ],
-              ),
-              // centerTitle: true,
-              expandedTitleScale: 1.5,
-              background: SimpleExtendedImage(
-                width: context.width,
-                height: context.width,
-                album.picUrl ?? '',
-              ),
-            ),
-            // bottom:
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              childCount: albumSongs.length + 1,
-                  (BuildContext context, int index) {
-                if (index == albumSongs.length) {
-                  return const SizedBox(
-                    height: AppDimensions.bottomPanelHeaderHeight,
-                  );
-                }
-                return Row(
+                titlePadding: const EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
+                title: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Expanded(child: SongItem(playlist: albumSongs, index: index, showPic: false,)),
-                    Text("${index + 1}").paddingOnly(left: AppDimensions.paddingMedium),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                style: context.textTheme.titleLarge!.copyWith(
+                                  foreground: Paint()
+                                    ..style = PaintingStyle.stroke
+                                    ..strokeWidth = 2
+                                    ..color = Colors.black,
+                                ),
+                                album.name!,
+                              ),
+                              Text(
+                                style: context.textTheme.titleSmall!.copyWith(
+                                  foreground: Paint()
+                                    ..style = PaintingStyle.stroke
+                                    ..strokeWidth = 2
+                                    ..color = Colors.black,
+                                ),
+                                "专辑·" + album.size.toString() + "首",
+                              ),
+
+                            ],
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                style: context.textTheme.titleLarge!.copyWith(
+                                  color: Colors.white,
+                                ),
+                                album.name!,
+                              ),
+                              Text(
+                                style: context.textTheme.titleSmall!.copyWith(
+                                  color: Colors.white,
+                                ),
+                                "专辑·" + album.size.toString() + "首",
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(TablerIcons.player_play)
                   ],
-                ).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
-              },
+                ),
+                // centerTitle: true,
+                expandedTitleScale: 1.5,
+                background: SimpleExtendedImage(
+                  width: context.width,
+                  height: context.width,
+                  album.picUrl ?? '',
+                ),
+              ),
+              // bottom:
             ),
-          ),
-        ]
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                childCount: albumSongs.length + 1,
+                    (BuildContext context, int index) {
+                  if (index == albumSongs.length) {
+                    return const SizedBox(
+                      height: AppDimensions.bottomPanelHeaderHeight,
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(child: SongItem(playlist: albumSongs, index: index, showPic: false,)),
+                      Text("${index + 1}").paddingOnly(left: AppDimensions.paddingMedium),
+                    ],
+                  ).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+                },
+              ),
+            ),
+          ]
+      ),
     );
   }
 }

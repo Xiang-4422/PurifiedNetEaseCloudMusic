@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/pages/cloud/cloud_controller.dart';
+import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -26,6 +27,8 @@ class AppRootRouter extends StatelessWidget {
       // checkerboardRasterCacheImages: true,
       debugShowCheckedModeBanner: false,
       showPerformanceOverlay: false,
+      scrollBehavior: NoStretchBouncingScrollBehavior(),
+
 
       title: "Bujuan",
       theme: AppTheme.light,

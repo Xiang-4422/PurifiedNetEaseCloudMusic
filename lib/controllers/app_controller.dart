@@ -42,6 +42,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   RxString curPageSubTitle = "".obs;
   Rx<Color> curPageTitleColor = Colors.white.obs;
   RxBool hideAppBar = false.obs;
+  RxBool showShadow = false.obs;
   NewAppBarTitleComingDirection comingDirection = NewAppBarTitleComingDirection.down;
   final List _lastPageTitle = [];
   final List _lastPageSubTitle = [];
@@ -404,7 +405,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   }
 
   // --- appbar 标题切换 ---
-  updateAppBarTitle({String? title, String? subTitle, Color? appBarTitleColor, NewAppBarTitleComingDirection? direction, bool willRollBack  = false}) {
+  updateAppBarTitle({String? title, String? subTitle, Color? appBarTitleColor, NewAppBarTitleComingDirection? direction,bool showShadow = false, bool willRollBack  = false}) {
     if (willRollBack) {
       _lastPageTitle.add(curPageTitle.value);
       _lastPageSubTitle.add(curPageSubTitle.value);
@@ -414,6 +415,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     curPageSubTitle.value = subTitle ?? curPageSubTitle.value;
     comingDirection = direction ?? NewAppBarTitleComingDirection.none;
     curPageTitleColor.value = appBarTitleColor ?? buildContext.theme.colorScheme.onPrimary;
+    this.showShadow.value = showShadow;
     // 修改状态栏颜色
     bool isLight = ThemeData.estimateBrightnessForColor(curPageTitleColor.value) == Brightness.light;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(

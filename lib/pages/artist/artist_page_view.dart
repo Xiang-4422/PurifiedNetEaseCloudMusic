@@ -42,6 +42,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
 
     artistId = context.routeData.queryParams.get("artistId");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      AppController.to.updateAppBarTitle(title: "", subTitle: "", willRollBack: true);
       ArtistDetailWrap artistDetailWrap = await NeteaseMusicApi().artistDetail(artistId);
       artist = artistDetailWrap.data!.artist!;
       await OtherUtils.getImageColor('${artist.cover ?? artist.picUrl ?? ''}?param=200y200').then((paletteGenerator) {
@@ -71,6 +72,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
   Widget build(BuildContext context) {
     if (loading) return const LoadingView();
 
+    // 计算专辑宽度：
     double albumWidth = (context.width - AppDimensions.paddingMedium * 3) / 2.5;
 
     return Container(
@@ -100,12 +102,13 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                 children: [
                   Expanded(
                     child: Stack(
+                      alignment: Alignment.centerLeft,
                       children: [
                         Text(
                           style: context.textTheme.titleLarge!.copyWith(
                             foreground: Paint()
                               ..style = PaintingStyle.stroke
-                              ..strokeWidth = 4
+                              ..strokeWidth = 2
                               ..color = Colors.black,
                           ),
                           artist.name!,
@@ -149,7 +152,8 @@ class _ArtistPageViewState extends State<ArtistPageView> {
             ),
           ),
           SliverToBoxAdapter(
-            child: SizedBox(
+            child: Container(
+              color: Colors.red,
               height: (albumWidth + AppDimensions.paddingMedium * 2 + AppDimensions.paddingMedium) * crossAxisCount,
               child: CustomScrollView(
                 scrollDirection: Axis.horizontal,

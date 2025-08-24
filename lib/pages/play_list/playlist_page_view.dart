@@ -40,239 +40,275 @@ class PlayListPageView extends GetView<PlayListController> {
         Obx(() => Visibility(
           visible: !controller.loading.value,
           replacement: const LoadingView(),
-          child: Stack(
-            alignment: Alignment.topCenter,
-            children: [
-              // 歌单列表页、评论页
-              PageView(
-                controller: controller.pageController,
-                scrollDirection: Axis.horizontal,
-                children: [
-                  // 歌单歌曲列表
-                  Obx(() => Scrollbar(
-                    thickness: 5,
-                    child: ListView.builder(
-                      padding: EdgeInsets.only(
-                        top: 160 + AppDimensions.appBarHeight + context.mediaQueryPadding.top,
-                        bottom: AppDimensions.bottomPanelHeaderHeight,
-                        left: AppDimensions.paddingSmall,
-                        right: AppDimensions.paddingSmall,
-                      ),
-                      itemCount: controller.loadedMediaItemCount.value,
-                      itemBuilder: (BuildContext context, int index) => SongItem(
-                        index: index,
-                        playlist: controller.mediaItems,
-                        stringColor: controller.widgetColor.value,
-                        beforeOnTap: () {
-                          AppController.to.bottomPanelPageController.jumpToPage(0);
-                          AppController.to.bottomPanelController.open();
-                        },
-                      ),
+           child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                toolbarHeight: AppDimensions.appBarHeight,
+                expandedHeight: context.width - context.mediaQueryPadding.top,
+                pinned: true,
+                stretch: true,
+                automaticallyImplyLeading: true,
+                foregroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                backgroundColor: controller.albumColor.value,
+
+                flexibleSpace: FlexibleSpaceBar(
+                  stretchModes: const <StretchMode>[
+                    StretchMode.zoomBackground, // 背景图缩放
+                    // StretchMode.blurBackground, // 背景图模糊
+                    // StretchMode.fadeTitle,      // 标题渐隐
+                  ],
+                  collapseMode: CollapseMode.pin,
+                  title: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Stack(
+                      alignment: Alignment.bottomLeft,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              style: context.textTheme.titleLarge!.copyWith(
+                                foreground: Paint()
+                                  ..style = PaintingStyle.stroke
+                                  ..strokeWidth = 2
+                                  ..color = controller.widgetColor.value == Colors.black ? Colors.white : Colors.black,
+                              ),
+                              playList.name ?? "无名歌单",
+                            ),
+                            Text(
+                              style: context.textTheme.titleSmall!.copyWith(
+                                foreground: Paint()
+                                  ..style = PaintingStyle.stroke
+                                  ..strokeWidth = 2
+                                  ..color = controller.widgetColor.value == Colors.black ? Colors.white : Colors.black,
+                              ),
+                              "歌单·" + playList.trackCount.toString() + "首",
+                            ),
+                          ],
+                        ),
+
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              style: context.textTheme.titleLarge!.copyWith(
+                                color: controller.widgetColor.value,
+                              ),
+                              playList.name ?? "无名歌单",
+                            ),
+                            Text(
+                              style: context.textTheme.titleSmall!.copyWith(
+                                color: controller.widgetColor.value,
+                              ),
+                              "歌单·" + playList.trackCount.toString() + "首",
+                            ),
+                          ],
+                        ),
+
+                      ],
                     ),
-                  )),
-                  CommentWidget(
-                    context: context,
-                    id: playList.id,
-                    idType: 'playlist',
-                    commentType: 2,
-                    listPaddingTop: 160+ AppDimensions.appBarHeight + context.mediaQueryPadding.top,
-                    listPaddingBottom: AppDimensions.bottomPanelHeaderHeight,
-                    stringColor: controller.widgetColor.value,
-                  ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
-                  CommentWidget(
-                    context: context,
-                    id: playList.id,
-                    idType: 'playlist',
-                    commentType: 3,
-                    listPaddingTop: 160 + AppDimensions.appBarHeight + context.mediaQueryPadding.top,
-                    listPaddingBottom: AppDimensions.bottomPanelHeaderHeight,
-                    stringColor: controller.widgetColor.value,
-                  ).paddingSymmetric(horizontal: AppDimensions.paddingSmall)
-                ]
-              ),
-              // 歌单详情
-              BlurryContainer(
-                blur: 20,
-                borderRadius: BorderRadius.zero,
-                color: controller.albumColor.value.withOpacity(0.5),
-                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + AppDimensions.appBarHeight),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 详情（高100）
-                    Container(
-                      height: 100,
-                      width: context.width,
-                      margin: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-                      child: Row(
-                        children: [
-                          // 歌单图片
-                          SimpleExtendedImage(
-                            '${playList.coverImgUrl ?? playList.picUrl ?? ''}?param=400y400',
-                            width: 100,
-                            height: 100,
-                          ).marginOnly(right: AppDimensions.paddingSmall),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    // 用户
-                                    Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          SimpleExtendedImage.avatar(
-                                            '${playList.creator?.avatarUrl ?? ''}?param=80y80',
-                                            width: 25,
-                                          ),
-                                          Text(
-                                            playList.creator?.nickname ?? '',
-                                            style: TextStyle(
-                                                color: controller.widgetColor.value,
-                                                fontSize: 15
-                                            ),
-                                          ).marginOnly(left: 10)
-                                        ]
-                                    ).marginOnly(bottom: 10),
-                                    // 歌单描述
-                                    Container(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        (playList.description ?? '歌单没介绍，我们直接听吧！').replaceAll('\n', ''),
-                                        // overflow: TextOverflow.ellipsis,
-                                        // maxLines: 4,
-                                        // textAlign: TextAlign.start,
-                                        style: TextStyle(
-                                            fontSize: 15,
-                                            color: controller.widgetColor.value
-                                        ),
-                                      ),
-                                    ),
-                                  ]
+                  ),
+                  expandedTitleScale: 1.5,
+                  titlePadding: EdgeInsets.only(bottom: 60 + AppDimensions.paddingSmall,top: context.mediaQueryPadding.top, left: AppDimensions.paddingSmall, right: AppDimensions.paddingSmall),
+                  background: SimpleExtendedImage(
+                    width: context.width,
+                    height: context.width,
+                    playList.coverImgUrl ?? playList.picUrl ?? '',
+                  ),
+                ),
+                bottom: PreferredSize(
+                  preferredSize: const Size.fromHeight(60),
+                  child: Row(
+                    spacing: AppDimensions.paddingSmall,
+                    children: [
+                      // 播放全部
+                      Flexible(
+                          child: BlurryContainer(
+                            borderRadius: BorderRadius.circular(60),
+                            padding: EdgeInsetsGeometry.zero,
+                            color: controller.widgetColor.value.withValues(alpha: 0.05),
+                            child: IconButton(
+                              onPressed: () async {
+                                AppController.to.audioHandler.changeRepeatMode(newRepeatMode: AudioServiceRepeatMode.all);
+                                AppController.to.bottomPanelPageController.jumpToPage(0);
+                                AppController.to.bottomPanelController.open();
+                                // 根据当前播放模式，决定从哪个位置开始播放
+                                int startIndex = AppController.to.curRepeatMode.value == AudioServiceRepeatMode.none
+                                    ? Random().nextInt(controller.loadedMediaItemCount.value)
+                                    : 0;
+                                await AppController.to.playNewPlayList(controller.mediaItems, startIndex, queueTitle:  controller.playList.name ?? "无名歌单", );
+                              },
+                              icon: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  Icon(
+                                    TablerIcons.repeat ,
+                                    color: controller.widgetColor.value,
+                                  ),
+                                  Text(
+                                      '顺序播放',
+                                      style: context.textTheme.titleMedium?.copyWith(
+                                          color: controller.widgetColor.value
+                                      )
+                                  ),
+                                ],
                               ),
                             ),
                           )
-                        ],
                       ),
-                    ),
-                    // 播放、收藏、评论（高60）
-                    Container(
-                      height: 60,
-                      padding: const EdgeInsets.all(AppDimensions.paddingSmall),
-                      child: Row(
-                        children: [
-                          // 播放全部
-                          Flexible(
-                              child: GestureDetector(
-                                onTap: () async {
-                                  AppController.to.bottomPanelPageController.jumpToPage(0);
-                                  AppController.to.bottomPanelController.open();
-                                  // 根据当前播放模式，决定从哪个位置开始播放
-                                  int startIndex = AppController.to.curRepeatMode.value == AudioServiceRepeatMode.none
-                                      ? Random().nextInt(controller.loadedMediaItemCount.value)
-                                      : 0;
-                                  await AppController.to.playNewPlayList(controller.mediaItems, startIndex, queueTitle:  controller.playList.name ?? "无名歌单", );
-                                },
-                                child: Container(
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(60),
-                                    color: controller.widgetColor.value.withOpacity(0.1),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        TablerIcons.player_play_filled,
-                                        color: controller.widgetColor.value,
-                                      ).paddingAll(8),
-                                      Text(
-                                          '播放全部',
-                                          style: context.textTheme.titleMedium?.copyWith(
-                                              color: controller.widgetColor.value
-                                          )
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
+                      Offstage(
+                        offstage: controller.isMyPlayList,
+                        child: BlurryContainer(
+                          borderRadius: BorderRadius.circular(60),
+                          padding: EdgeInsetsGeometry.zero,
+                          color: controller.widgetColor.value.withValues(alpha: 0.05),
+                          child: IconButton(
+                              color: Colors.red,
+                              padding: EdgeInsetsGeometry.zero,
+                              onPressed: () => controller.subscribePlayList(),
+                              icon: Obx(() => Icon(
+                                controller.isSubscribed.value
+                                    ? TablerIcons.heart_filled
+                                    : TablerIcons.heart,
+                                color: controller.isSubscribed.value ? Colors.red : controller.widgetColor.value,
+                              ))
                           ),
-                          const SizedBox(width: AppDimensions.paddingSmall),
-                          // 评论、收藏
-                          Flexible(
-                              child: Container(
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(60),
-                                  color: controller.widgetColor.value.withOpacity(0.1),
-                                ),
-                                child: Obx(() => AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 200),
-                                    transitionBuilder: (Widget child, Animation<double> animation) {
-                                      //执行缩放动画
-                                      return ScaleTransition(scale: animation, child: FadeTransition(opacity: animation, child: child));
-                                    },
-                                    child: Visibility(
-                                      key: ValueKey(controller.curPageIndex.value == 0),
-                                      visible: controller.curPageIndex.value == 0,
-                                      replacement: MyTabBar(
-                                        height: 40,
-                                        controller: controller.commentTabController,
-                                        tabs: [Text('热门', style: context.textTheme.titleMedium?.copyWith(color: controller.widgetColor.value)), Text("最新", style: context.textTheme.titleMedium?.copyWith(color: controller.widgetColor.value))],
-                                      ),
-                                      child: GestureDetector(
-                                        onTap: (){
-                                          if (controller.isMyPlayList) {
-                                            controller.pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.linear);
-                                          }
-                                        },
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Offstage(
-                                              offstage: controller.isMyPlayList,
-                                              child: IconButton(
-                                                  onPressed: () => controller.subscribePlayList(),
-                                                  icon: Obx(() => Icon(
-                                                    controller.isSubscribed.value
-                                                        ? TablerIcons.heart_filled
-                                                        : TablerIcons.heart,
-                                                    color: controller.isSubscribed.value ? Colors.red : controller.widgetColor.value,
-                                                  ))
-                                              ),
-                                            ),
-                                            IconButton(
-                                                onPressed: () {
-                                                  controller.pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.linear);
-                                                },
-                                                icon: Icon(
-                                                  TablerIcons.message,
-                                                  color: controller.widgetColor.value,
-                                                )
-                                            ),
-                                            Offstage(
-                                                offstage: !controller.isMyPlayList,
-                                                child: Text(
-                                                    "歌单评论",
-                                                    style: context.textTheme.titleMedium?.copyWith(
-                                                        color: controller.widgetColor.value
-                                                    )
-                                                )
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                )),
-                              )
-                          )
-                        ],
+                        ),
                       ),
-                    )
-                  ],
+                      // 评论、收藏
+                      Flexible(
+                          child: BlurryContainer(
+                            borderRadius: BorderRadius.circular(60),
+                            padding: EdgeInsetsGeometry.zero,
+                            color: controller.widgetColor.value.withValues(alpha: 0.05),
+                            child: IconButton(
+                              onPressed: () async {
+                                AppController.to.audioHandler.changeRepeatMode(newRepeatMode: AudioServiceRepeatMode.none);
+                                AppController.to.bottomPanelPageController.jumpToPage(0);
+                                AppController.to.bottomPanelController.open();
+                                // 根据当前播放模式，决定从哪个位置开始播放
+                                int startIndex = AppController.to.curRepeatMode.value == AudioServiceRepeatMode.none
+                                    ? Random().nextInt(controller.loadedMediaItemCount.value)
+                                    : 0;
+                                await AppController.to.playNewPlayList(controller.mediaItems, startIndex, queueTitle:  controller.playList.name ?? "无名歌单", );
+                              },
+                              icon: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  Icon(
+                                    TablerIcons.arrows_shuffle,
+                                    color: controller.widgetColor.value,
+                                  ),
+                                  Text(
+                                      '随机播放',
+                                      style: context.textTheme.titleMedium?.copyWith(
+                                          color: controller.widgetColor.value
+                                      )
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                      ),
+                    ],
+                  ).paddingAll(AppDimensions.paddingSmall)
                 ),
               ),
+              SliverList.builder(
+                itemCount: controller.loadedMediaItemCount.value + 1,
+                itemBuilder: (BuildContext context, int index) {
+                  if (index == controller.loadedMediaItemCount.value) {
+                    return const SizedBox(
+                      height: AppDimensions.bottomPanelHeaderHeight,
+                    );
+                  }
+                  return SongItem(
+                    index: index,
+                    playlist: controller.mediaItems,
+                    stringColor: controller.widgetColor.value,
+                    beforeOnTap: () {
+                      AppController.to.bottomPanelPageController.jumpToPage(0);
+                      AppController.to.bottomPanelController.open();
+                    },
+                  ).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
+                },
+              ),
             ],
+            // children: [
+            //   // 歌单列表页、评论页
+            //   // 歌单详情
+            //   BlurryContainer(
+            //     blur: 20,
+            //     borderRadius: BorderRadius.zero,
+            //     color: controller.albumColor.value.withOpacity(0.5),
+            //     padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + AppDimensions.appBarHeight),
+            //     child: Column(
+            //       mainAxisSize: MainAxisSize.min,
+            //       children: [
+            //         // 详情（高100）
+            //         Container(
+            //           height: 100,
+            //           width: context.width,
+            //           margin: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+            //           child: Row(
+            //             children: [
+            //               // 歌单图片
+            //               SimpleExtendedImage(
+            //                 '${playList.coverImgUrl ?? playList.picUrl ?? ''}?param=400y400',
+            //                 width: 100,
+            //                 height: 100,
+            //               ).marginOnly(right: AppDimensions.paddingSmall),
+            //               Expanded(
+            //                 child: SingleChildScrollView(
+            //                   child: Column(
+            //                       mainAxisAlignment: MainAxisAlignment.start,
+            //                       children: [
+            //                         // 用户
+            //                         Row(
+            //                             crossAxisAlignment: CrossAxisAlignment.center,
+            //                             children: [
+            //                               SimpleExtendedImage.avatar(
+            //                                 '${playList.creator?.avatarUrl ?? ''}?param=80y80',
+            //                                 width: 25,
+            //                               ),
+            //                               Text(
+            //                                 playList.creator?.nickname ?? '',
+            //                                 style: TextStyle(
+            //                                     color: controller.widgetColor.value,
+            //                                     fontSize: 15
+            //                                 ),
+            //                               ).marginOnly(left: 10)
+            //                             ]
+            //                         ).marginOnly(bottom: 10),
+            //                         // 歌单描述
+            //                         Container(
+            //                           alignment: Alignment.centerLeft,
+            //                           child: Text(
+            //                             (playList.description ?? '歌单没介绍，我们直接听吧！').replaceAll('\n', ''),
+            //                             // overflow: TextOverflow.ellipsis,
+            //                             // maxLines: 4,
+            //                             // textAlign: TextAlign.start,
+            //                             style: TextStyle(
+            //                                 fontSize: 15,
+            //                                 color: controller.widgetColor.value
+            //                             ),
+            //                           ),
+            //                         ),
+            //                       ]
+            //                   ),
+            //                 ),
+            //               )
+            //             ],
+            //           ),
+            //         ),
+            //
+            //       ],
+            //     ),
+            //   ),
+            // ],
           ),
         )),
       ],

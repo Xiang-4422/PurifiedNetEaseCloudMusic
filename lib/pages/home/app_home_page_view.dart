@@ -33,7 +33,7 @@ class AppRootPageView extends GetView<AppController>{
             minHeight: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
             boxShadow: null,
             // collapsed: const TopPanelHeaderAppBar(),
-            footer: Obx(() => Offstage(offstage: controller.hideAppBar.isTrue,child: const TopPanelHeaderAppBar())),
+            footer: Obx(() => Offstage(offstage: controller.hideAppBar.isTrue || controller.topPanelFullyClosed.isFalse,child: const TopPanelHeaderAppBar())),
             panel: const TopPanelView(),
             body: SlidingUpPanel(
               controller: controller.bottomPanelController,

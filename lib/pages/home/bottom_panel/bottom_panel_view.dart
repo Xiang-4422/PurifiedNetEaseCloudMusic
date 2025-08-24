@@ -103,6 +103,7 @@ class BottomPanelView extends GetView<AppController> {
                               clipBehavior: Clip.hardEdge,
                               margin: const EdgeInsets.all(AppDimensions.paddingLarge),
                               decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(AppDimensions.paddingLarge/2),
                                 boxShadow: [
                                   controller.bottomPanelFullyOpened.value
                                       ? BoxShadow(
@@ -142,6 +143,7 @@ class BottomPanelView extends GetView<AppController> {
                 ],
               ),
             ),
+            // TabBar占位
             Container(
               height: AppDimensions.paddingLarge,
             )
@@ -465,8 +467,6 @@ class BottomPanelView extends GetView<AppController> {
                     )),
                   // 播放控制
                   Expanded(child: _buildPlayController(context)),
-                  // 占位: tabBar
-                  Container(height: albumPadding),
                 ],
               ),
             )),
@@ -630,12 +630,14 @@ class BottomPanelHeaderView extends GetView<AppController> {
             /// 完全展开LeftMargin
             double albumMaxPadding = AppDimensions.paddingLarge;
 
+            double albumMinBorderRadius = AppDimensions.paddingLarge/2;
+
             double panelOpenDegree = controller.bottomPanelAnimationController.value;
             // 实时Album宽度、margin
             double realTimeAlbumWidth = AppDimensions.albumMinSize + (albumMaxSize - AppDimensions.albumMinSize) * panelOpenDegree;
             double realTimeAlbumPadding = AppDimensions.paddingSmall +  (albumMaxPadding - AppDimensions.paddingSmall) * panelOpenDegree;
             double realTimeAppBarPadding = (context.mediaQueryPadding.top + AppDimensions.appBarHeight) * panelOpenDegree;
-            double realTimeAlbumBorderRadius = AppDimensions.albumMinSize * (1 - panelOpenDegree);
+            double realTimeAlbumBorderRadius = AppDimensions.albumMinSize + (albumMinBorderRadius - AppDimensions.albumMinSize) * panelOpenDegree;
             return SizedBox(
               width: context.width,
               child: Row(

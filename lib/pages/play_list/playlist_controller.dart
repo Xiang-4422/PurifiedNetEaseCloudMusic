@@ -71,6 +71,7 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
   @override
   Future<void> onReady() async {
     super.onReady();
+    AppController.to.updateAppBarTitle(title: "", subTitle: "", willRollBack: true);
     await _getAlbumColor();
     await _getMediaItems(playList.id);
   }
@@ -82,15 +83,14 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
 
   _getAlbumColor() async {
     await OtherUtils.getImageColor('${playList.coverImgUrl ?? ''}?param=500y500').then((paletteGenerator) {
-      albumColor.value = paletteGenerator.darkMutedColor?.color
+      albumColor.value = paletteGenerator.dominantColor?.color
+          ?? paletteGenerator.darkMutedColor?.color
           ?? paletteGenerator.darkVibrantColor?.color
-          ?? paletteGenerator.dominantColor?.color
           ?? Colors.black;
       widgetColor.value = ThemeData.estimateBrightnessForColor(albumColor.value) == Brightness.light
           ? Colors.black
           : Colors.white;
     });
-    AppController.to.updateAppBarTitle(title: playList.name ?? "", subTitle: "${playList.trackCount}首", appBarTitleColor: widgetColor.value, direction: NewAppBarTitleComingDirection.right, willRollBack: true);
   }
 
   _getMediaItems(id) async {
@@ -105,6 +105,7 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
     mediaItems.addAll(AppController.to.song2ToMedia(songDetailWrap.songs ?? []));
     loadedMediaItemCount.value = mediaItems.length;
     loading.value = false;
+
     if (ids.length > 1000) {
       while (loadedMediaItemCount.value != ids.length) {
         SongDetailWrap songDetailWrap = await NeteaseMusicApi().songDetail(ids.sublist(loadedMediaItemCount.value, min(loadedMediaItemCount.value + 1000, ids.length)));

@@ -20,8 +20,6 @@ enum LoginStatus { login, noLogin }
 
 class UserController extends GetxController {
   static UserController get to => Get.find();
-  /// 喜欢歌单
-  PlayList userLikedSongPlayList = PlayList();
   /// 创建歌单列表
   List<PlayList> userMadePlayLists = <PlayList>[].obs;
   /// 收藏歌单列表
@@ -107,13 +105,14 @@ class UserController extends GetxController {
     NeteaseMusicApi().userPlayList(AppController.to.userData.value.profile?.userId ?? '-1').then((MultiPlayListWrap2 multiPlayListWrap2) async {
           List<PlayList> playLists = (multiPlayListWrap2.playlists ?? []);
           if (playLists.isNotEmpty) {
-            userLikedSongPlayList = playLists.first..name = '我喜欢的音乐';
-            playLists.removeAt(0);
             userFavoritedPlayLists.clear();
             userMadePlayLists.clear();
             for(var playList in playLists) {
               if (playList.creator?.userId == AppController.to.userData.value.profile?.userId) {
                 userMadePlayLists.add(playList);
+                userMadePlayLists.add(playList);
+                userMadePlayLists.add(playList);
+
               } else {
                 userFavoritedPlayLists.add(playList);
               }

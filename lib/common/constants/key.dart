@@ -7,6 +7,7 @@ String gradientBackgroundSp = 'SOLID_BACK_GROUND';
 String topLyricSp = 'TOP_LYRIC';
 String highSong = 'HIGH_SONG';
 String fmSp = 'FM_SP';
+String heartBeatSp = 'HEART_BEAT_SP';
 String noFirstOpen = 'NO_FIRST_OPEN';
 String loginData = 'LOGIN_DATA';
 String repeatModeSp = 'REPEAT_MODE';

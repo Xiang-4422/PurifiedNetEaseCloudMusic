@@ -23,7 +23,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top + AppDimensions.appBarHeight),),
+                  SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top),),
 
                   // 推荐歌单
                   const SliverToBoxAdapter(
@@ -40,10 +40,10 @@ class ExplorePageView extends GetView<ExplorePageController> {
                   SliverList(delegate: SliverChildBuilderDelegate(
                     addAutomaticKeepAlives: false,
                     addRepaintBoundaries: false,
-                    childCount: controller.newSingles.length,
+                    childCount: controller.newSongs.length,
                     (context, index) => SongItem(
                       index: index,
-                      playlist: controller.newSingles,
+                      playlist: controller.newSongs,
                     ),
                   )),
 

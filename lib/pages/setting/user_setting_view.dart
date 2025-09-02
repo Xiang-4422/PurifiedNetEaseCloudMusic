@@ -10,7 +10,6 @@ import '../../common/constants/appConstants.dart';
 import '../../common/netease_api/src/api/user/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
-import '../../controllers/user_controller.dart';
 
 class UserSettingView extends StatefulWidget {
   const UserSettingView({Key? key}) : super(key: key);
@@ -66,26 +65,22 @@ class _UserSettingViewState extends State<UserSettingView> {
                     Expanded(
                       child: Container(),
                     ),
-                    Obx(() => Visibility(
-                      visible: AppController.to.loginStatus.value == LoginStatus.login,
-
-                      child: GestureDetector(
-                        child: Container(
-                          height: 88,
-                          alignment: Alignment.center,
-                          width: context.width,
-                          margin: const EdgeInsets.symmetric(vertical: 40, horizontal: 35),
-                          decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(20)),
-                          child: const Text(
-                            '注销登录',
-                            style: TextStyle(fontSize: 28, color: Colors.white),
-                          ),
+                    Obx(() => GestureDetector(
+                      child: Container(
+                        height: 88,
+                        alignment: Alignment.center,
+                        width: context.width,
+                        margin: const EdgeInsets.symmetric(vertical: 40, horizontal: 35),
+                        decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(20)),
+                        child: const Text(
+                          '注销登录',
+                          style: TextStyle(fontSize: 28, color: Colors.white),
                         ),
-                        onTap: () {
-                          UserController.to.clearUser();
-                          AutoRouter.of(context).pop();
-                        },
                       ),
+                      onTap: () {
+                        AppController.to.clearUser();
+                        AutoRouter.of(context).pop();
+                      },
                     ))
                   ],
                 ),

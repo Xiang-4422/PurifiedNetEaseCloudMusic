@@ -7,6 +7,7 @@ import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:palette_generator/palette_generator.dart';
 
@@ -15,18 +16,34 @@ import 'images.dart';
 class OtherUtils {
   OtherUtils._();
 
-  static Future<PaletteGenerator> getImageColor(String url) async {
+  static Future<PaletteGenerator> getImageColorPalette(String? url) async {
     ImageProvider imageProvider;
-    if (url.replaceAll('?param=500y500', '').isEmpty) {
+    if (url == null) {
       imageProvider = const ExtendedAssetImageProvider(placeholderImage);
     } else {
       if (url.startsWith('http')) {
-        imageProvider = CachedNetworkImageProvider(url, headers: const {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'});
+        imageProvider = CachedNetworkImageProvider('$url?param=500y500', headers: const {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'});
       } else {
         imageProvider = ExtendedFileImageProvider(File(url.split('?').first));
       }
     }
     return await PaletteGenerator.fromImageProvider(imageProvider, size: const Size(300, 300));
+  }
+
+  static Future<Color> getImageColor(String? url, {bool getLightColor = false}) async {
+    return OtherUtils.getImageColorPalette(url).then((paletteGenerator) {
+      if (getLightColor) {
+        return paletteGenerator.lightMutedColor?.color
+            ?? paletteGenerator.lightVibrantColor?.color
+            ?? paletteGenerator.dominantColor?.color
+            ?? Colors.white;
+      } else {
+        return paletteGenerator.darkMutedColor?.color
+            ?? paletteGenerator.darkVibrantColor?.color
+            ?? paletteGenerator.dominantColor?.color
+            ?? Colors.black;
+      }
+    });
   }
 
   static String getTimeStamp(int milliseconds) {

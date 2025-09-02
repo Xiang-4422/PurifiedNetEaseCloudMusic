@@ -1,7 +1,10 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
+import 'package:bujuan/widget/custom_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -28,8 +31,8 @@ class _AlbumPageViewState extends State<AlbumPageView> {
   List<MediaItem> albumSongs = [];
 
   bool loading = true;
-  Color albumPrimaryColor = Get.theme.colorScheme.primary;
-  Color onAlbumPrimaryColor = Get.theme.colorScheme.onPrimary;
+  Color albumColor = Get.theme.colorScheme.primary;
+  Color onAlbumColor = Get.theme.colorScheme.onPrimary;
 
   @override
   void initState() {
@@ -38,21 +41,12 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumId = context.routeData.queryParams.get('albumId');
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      AppController.to.updateAppBarTitle(title: "", subTitle: "", willRollBack: true);
       AlbumDetailWrap albumDetailWrap = await NeteaseMusicApi().albumDetail(albumId);
       album = albumDetailWrap.album!;
       albumSongs.addAll(AppController.to.song2ToMedia(albumDetailWrap.songs ?? []));
 
-      await OtherUtils.getImageColor('${album.picUrl}?param=500y500').then((paletteGenerator) {
-        // 更新panel中的色调
-        albumPrimaryColor = paletteGenerator.lightMutedColor?.color
-            ?? paletteGenerator.lightVibrantColor?.color
-            ?? paletteGenerator.dominantColor?.color
-            ?? Get.theme.primaryColor;
-        onAlbumPrimaryColor = ThemeData.estimateBrightnessForColor(albumPrimaryColor) == Brightness.light
-            ? Colors.black
-            : Colors.white;
-      });
+      albumColor = await OtherUtils.getImageColor(album.picUrl);
+      onAlbumColor = albumColor.invertedColor;
 
       setState(() {
         loading = false;
@@ -64,13 +58,13 @@ class _AlbumPageViewState extends State<AlbumPageView> {
   Widget build(BuildContext context) {
     if (loading) {
       return Container(
-        color: albumPrimaryColor,
+        color: albumColor,
         child: const LoadingView()
        );
     }
 
     return Container(
-      color: albumPrimaryColor,
+      color: albumColor,
       child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -83,68 +77,61 @@ class _AlbumPageViewState extends State<AlbumPageView> {
               automaticallyImplyLeading: false,
               foregroundColor: Colors.transparent,
               surfaceTintColor: Colors.transparent,
-              backgroundColor: albumPrimaryColor,
+              backgroundColor: Colors.transparent,
               flexibleSpace: FlexibleSpaceBar(
                 stretchModes: const <StretchMode>[
                   StretchMode.zoomBackground, // 背景图缩放
-                  StretchMode.blurBackground, // 背景图模糊
+                  // StretchMode.blurBackground, // 背景图模糊
                   // StretchMode.fadeTitle,      // 标题渐隐
                 ],
                 titlePadding: const EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
-                title: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.end,
+                title: BlurryContainer(
+                  padding: EdgeInsetsGeometry.zero,
+                  borderRadius: BorderRadius.circular(9999),
+                  color: Colors.white.withOpacity(0.5),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Stack(
+                            alignment: Alignment.centerLeft,
                             children: [
                               Text(
+                                "  " + album.name!,
+                                maxLines: 1,
                                 style: context.textTheme.titleLarge!.copyWith(
                                   foreground: Paint()
                                     ..style = PaintingStyle.stroke
                                     ..strokeWidth = 2
                                     ..color = Colors.black,
                                 ),
-                                album.name!,
                               ),
                               Text(
-                                style: context.textTheme.titleSmall!.copyWith(
-                                  foreground: Paint()
-                                    ..style = PaintingStyle.stroke
-                                    ..strokeWidth = 2
-                                    ..color = Colors.black,
-                                ),
-                                "专辑·" + album.size.toString() + "首",
-                              ),
-
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(
+                                "  " + album.name!,
+                                maxLines: 1,
                                 style: context.textTheme.titleLarge!.copyWith(
                                   color: Colors.white,
                                 ),
-                                album.name!,
-                              ),
-                              Text(
-                                style: context.textTheme.titleSmall!.copyWith(
-                                  color: Colors.white,
-                                ),
-                                "专辑·" + album.size.toString() + "首",
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    const Icon(TablerIcons.player_play)
-                  ],
+                      BlurryContainer(
+                        padding: EdgeInsetsGeometry.zero,
+                        borderRadius: BorderRadius.circular(9999),
+                        color: Colors.red,
+                        child: IconButton(
+                            icon: Icon(
+                              TablerIcons.player_play_filled,
+                              color: Colors.white,
+                            ),
+                            onPressed: () => AppController.to.playNewPlayList(albumSongs, 0, playListName: "专辑：${album.name ?? '无名专辑'}")
+                        ),
+                      )
+                    ],
+                  ),
                 ),
                 // centerTitle: true,
                 expandedTitleScale: 1.5,
@@ -165,12 +152,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                       height: AppDimensions.bottomPanelHeaderHeight,
                     );
                   }
-                  return Row(
-                    children: [
-                      Expanded(child: SongItem(playlist: albumSongs, index: index, showPic: false,)),
-                      Text("${index + 1}").paddingOnly(left: AppDimensions.paddingMedium),
-                    ],
-                  ).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+                  return SongItem(playlist: albumSongs, index: index, stringColor: onAlbumColor, showPic: false, showIndex: true).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
                 },
               ),
             ),

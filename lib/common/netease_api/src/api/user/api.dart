@@ -150,7 +150,7 @@ mixin ApiUser {
 
   /// 获取用户歌单
   /// !需要登录
-  Future<MultiPlayListWrap2> userPlayList(String userId,
+  Future<MultiPlayListWrap2> userPlayLists(String userId,
       {int offset = 0, int limit = 30}) {
     return Https.dioProxy
         .postUri(userPlayListDioMetaData(userId, offset: offset, limit: limit))

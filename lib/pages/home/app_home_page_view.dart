@@ -22,6 +22,19 @@ class AppRootPageView extends GetView<AppController>{
         child: PopScope(
           canPop: false,
           onPopInvoked: (didPop) => controller.onWillPop(),
+          // child: SlidingUpPanel(
+          //   controller: controller.bottomPanelController,
+          //   onPanelSlide: (openDegree) => controller.onBottomPanelSlide(openDegree),
+          //   color: Colors.transparent,
+          //   boxShadow: null,
+          //   // parallaxEnabled: true,
+          //   // parallaxOffset: 1,
+          //   minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
+          //   maxHeight: context.height,
+          //   header: const BottomPanelHeaderView(),
+          //   panel: const BottomPanelView(),
+          //   body: const AutoRouter(),
+          // ),
           child: SlidingUpPanel(
             slideDirection: SlideDirection.DOWN,
             controller: controller.topPanelController,
@@ -30,10 +43,9 @@ class AppRootPageView extends GetView<AppController>{
             // parallaxEnabled: true,
             // parallaxOffset: 1,
             maxHeight: context.height,
-            minHeight: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
+            minHeight: 0,
             boxShadow: null,
             // collapsed: const TopPanelHeaderAppBar(),
-            footer: Obx(() => Offstage(offstage: controller.hideAppBar.isTrue || controller.topPanelFullyClosed.isFalse,child: const TopPanelHeaderAppBar())),
             panel: const TopPanelView(),
             body: SlidingUpPanel(
               controller: controller.bottomPanelController,

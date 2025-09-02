@@ -40,7 +40,7 @@ class CloudDriveView extends GetWidget<CloudController> {
                         'url': '',
                         'image': e.simpleSong.al?.picUrl ?? '',
                         'type': '',
-                        'liked': AppController.to.likeIds.contains(int.tryParse(e.simpleSong.id)),
+                        'liked': AppController.to.likedSongIds.contains(int.tryParse(e.simpleSong.id)),
                         'artist': (e.simpleSong.ar ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / ')
                       },
                       title: e.simpleSong.name ?? "",

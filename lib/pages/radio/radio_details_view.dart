@@ -45,7 +45,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
               extras: {
                 'type': MediaType.playlist.name,
                 'image': e.coverUrl ?? '',
-                'liked': AppController.to.likeIds.contains(int.tryParse(e.id)),
+                'liked': AppController.to.likedSongIds.contains(int.tryParse(e.id)),
                 'mv': 0,
               },
             ))

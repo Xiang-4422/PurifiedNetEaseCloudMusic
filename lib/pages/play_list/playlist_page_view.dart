@@ -50,7 +50,9 @@ class PlayListPageView extends GetView<PlayListController> {
                 automaticallyImplyLeading: true,
                 foregroundColor: Colors.transparent,
                 surfaceTintColor: Colors.transparent,
-                backgroundColor: controller.albumColor.value,
+                // backgroundColor: controller.albumColor.value,
+                backgroundColor: Colors.transparent,
+
 
                 flexibleSpace: FlexibleSpaceBar(
                   stretchModes: const <StretchMode>[
@@ -139,7 +141,7 @@ class PlayListPageView extends GetView<PlayListController> {
                                 int startIndex = AppController.to.curRepeatMode.value == AudioServiceRepeatMode.none
                                     ? Random().nextInt(controller.loadedMediaItemCount.value)
                                     : 0;
-                                await AppController.to.playNewPlayList(controller.mediaItems, startIndex, queueTitle:  controller.playList.name ?? "无名歌单", );
+                                await AppController.to.playNewPlayList(controller.songs, startIndex, playListName: controller.playList.name ?? "无名歌单");
                               },
                               icon: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -193,7 +195,7 @@ class PlayListPageView extends GetView<PlayListController> {
                                 int startIndex = AppController.to.curRepeatMode.value == AudioServiceRepeatMode.none
                                     ? Random().nextInt(controller.loadedMediaItemCount.value)
                                     : 0;
-                                await AppController.to.playNewPlayList(controller.mediaItems, startIndex, queueTitle:  controller.playList.name ?? "无名歌单", );
+                                await AppController.to.playNewPlayList(controller.songs, startIndex, playListName: controller.playList.name ?? "无名歌单", );
                               },
                               icon: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -227,7 +229,7 @@ class PlayListPageView extends GetView<PlayListController> {
                   }
                   return SongItem(
                     index: index,
-                    playlist: controller.mediaItems,
+                    playlist: controller.songs,
                     stringColor: controller.widgetColor.value,
                     beforeOnTap: () {
                       AppController.to.bottomPanelPageController.jumpToPage(0);
@@ -323,7 +325,6 @@ class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: context.theme.colorScheme.primary,
       child: Row(
         children: [
           Text(
@@ -341,23 +342,33 @@ class Header extends StatelessWidget {
 class SongItem extends StatelessWidget {
   final int index;
   final List<MediaItem> playlist;
+  // TODO YU4422: 添加歌单名称字段 part1
   final Function()? beforeOnTap;
   final Color? stringColor;
   final bool showPic;
+  final bool showIndex;
 
-  const SongItem({Key? key, this.beforeOnTap, this.stringColor, this.showPic = true, required this.playlist, required this.index}) : super(key: key);
+  const SongItem({Key? key, this.beforeOnTap, this.stringColor, this.showPic = true, this.showIndex = false, required this.playlist, required this.index}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return UniversalListTile(
-      picUrl: showPic ? (playlist[index].extras?['image']) : null,
-      titleString: playlist[index].title,
-      subTitleString: playlist[index].artist,
-      stringColor: stringColor,
-      onTap: () async {
-        if (beforeOnTap != null) await beforeOnTap!();
-        AppController.to.playNewPlayList(playlist, index);
-      },
+    return Row(
+      children: [
+        Expanded(
+          child: UniversalListTile(
+            picUrl: showPic ? (playlist[index].extras?['image']) : null,
+            titleString: playlist[index].title,
+            subTitleString: playlist[index].artist,
+            stringColor: stringColor,
+            onTap: () async {
+              if (beforeOnTap != null) await beforeOnTap!();
+              // TODO YU4422: 添加歌单名称字段 part2
+              AppController.to.playNewPlayList(playlist, index);
+            },
+          ),
+        ),
+        showIndex ? Text("${index + 1}", style: TextStyle(color: stringColor)) : Container(),
+      ],
     );
   }
 
@@ -409,7 +420,6 @@ class AlbumItem extends StatelessWidget {
         subTitleString: '${album.size ?? 0} 首',
         onTap: () async {
           if (beforeOnTap != null) await beforeOnTap!();
-          AppController.to.updateAppBarTitle(title: album.name, subTitle: "专辑", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
           context.router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': album.id}));
         }
     );
@@ -430,7 +440,6 @@ class ArtistsItem extends StatelessWidget {
       subTitleString: '${artist.albumSize ?? 0} 专辑',
       onTap: () async {
         if (beforeOnTap != null) await beforeOnTap!();
-        AppController.to.updateAppBarTitle(title: artist.name, subTitle: "歌手", direction: NewAppBarTitleComingDirection.right, willRollBack: true);
         context.router.push(const gr.ArtistRouteView().copyWith(queryParams: {'artistId': artist.id}));
       }
     );

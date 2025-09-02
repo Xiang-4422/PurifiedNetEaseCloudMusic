@@ -971,7 +971,7 @@ PlaymodeIntelligenceItem _$PlaymodeIntelligenceItemFromJson(Map<String, dynamic>
     ..id = dynamicToString(json['id'])
     ..recommended = json['recommended'] as bool?
     ..alg = json['alg'] as String?
-    ..songInfo = json['songInfo'] == null ? null : Song.fromJson(json['songInfo'] as Map<String, dynamic>);
+    ..songInfo = json['songInfo'] == null ? null : Song2.fromJson(json['songInfo'] as Map<String, dynamic>);
 }
 
 Map<String, dynamic> _$PlaymodeIntelligenceItemToJson(PlaymodeIntelligenceItem instance) => <String, dynamic>{

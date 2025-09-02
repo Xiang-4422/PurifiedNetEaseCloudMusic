@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../../../netease_music_api.dart';
 import '../../../src/api/bean.dart';
@@ -131,13 +132,14 @@ mixin ApiPlay {
   /// [songId]  歌曲 id
   /// [playlistId]  歌单 id
   /// [startMusicId]  要开始播放的歌曲的 id
-  Future<PlaymodeIntelligenceListWrap> playmodeIntelligenceList(String songId, String playlistId, {String? startMusicId, int count = 1}) {
-    return Https.dioProxy.postUri(playmodeIntelligenceListDioMetaData(songId, playlistId, startMusicId: startMusicId, count: count)).then((Response value) {
+  Future<PlaymodeIntelligenceListWrap> playmodeIntelligenceList(String songId, String playlistId, bool fromPlayAll, {String? startMusicId, int count = 1}) {
+    return Https.dioProxy.postUri(playmodeIntelligenceListDioMetaData(songId, playlistId, fromPlayAll, startMusicId: startMusicId, count: count)).then((Response value) {
+      debugPrint("yu4422: " + value.toString());
       return PlaymodeIntelligenceListWrap.fromJson(value.data);
     });
   }
-  DioMetaData playmodeIntelligenceListDioMetaData(String songId, String playlistId, {String? startMusicId, int count = 1}) {
-    var params = {'songId': songId, 'type': 'fromPlayOne', 'playlistId': playlistId, 'startMusicId': startMusicId ?? songId, 'count': count};
+  DioMetaData playmodeIntelligenceListDioMetaData(String songId, String playlistId, bool fromPlayAll, {String? startMusicId, int count = 1}) {
+    var params = {'songId': songId, 'playlistId': playlistId, 'type': fromPlayAll ? 'fromPlayAll' : 'fromPlayOne','startMusicId': startMusicId ?? songId, 'count': count};
     return DioMetaData(joinUri('/weapi/playmode/intelligence/list'), data: params, options: joinOptions());
   }
 

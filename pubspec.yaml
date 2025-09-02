@@ -93,7 +93,7 @@ dependencies:
   sliding_up_panel: ^2.0.0+1
   extended_nested_scroll_view: ^6.2.1
   # 跑马灯
-#  marquee: ^2.3.0
+  marquee: ^2.3.0
 
 
 #  flutter_rust_bridge: ^1.77.1

@@ -61,7 +61,6 @@ class MyObserver extends AutoRouterObserver {
   void didPop(Route route, Route? previousRoute) {
     // TODO: implement didPop
     super.didPop(route, previousRoute);
-    AppController.to.rollBackAppBarTitle();
     _clearOrPutController(route.settings.name ?? '', del: true);
   }
 
@@ -83,9 +82,6 @@ class MyObserver extends AutoRouterObserver {
         break;
       case 'PlayListRouteView':
         del ? Get.delete<PlayListController>() : Get.lazyPut<PlayListController>(() => PlayListController());
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          AppController.to.isInPlayListPage.value = del ? false : true;
-        });
         break;
       case 'AlbumRouteView':
         del ? Get.delete<AlbumController>() : Get.lazyPut<AlbumController>(() => AlbumController());

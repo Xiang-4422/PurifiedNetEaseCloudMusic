@@ -106,7 +106,7 @@ class AppTheme {
   //right background
   static const primaryDark = Color(0xFF1c1d1f);
   static const onPrimaryDark = Color(0xF9F1F1F1);
-  static const primary = Color(0xFFd7d9d8);
+  static const primary = Colors.white;
   static const onPrimary = Color(0xFF1c1d1f);
 
   //disabled or inactive background

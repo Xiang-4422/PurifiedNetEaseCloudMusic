@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/controllers/app_controller.dart';
-import 'package:bujuan/controllers/user_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -11,7 +10,7 @@ import '../common/constants/enmu.dart';
 
 class ExplorePageController extends GetxController {
   RxList<PlayList> playlists = <PlayList>[].obs;
-  RxList<MediaItem> newSingles = <MediaItem>[].obs;
+  RxList<MediaItem> newSongs = <MediaItem>[].obs;
   RxBool loading = true.obs;
 
   @override
@@ -26,13 +25,8 @@ class ExplorePageController extends GetxController {
 
   _getRecoPlayLists() async {
     List<PlayList> data;
-    if (AppController.to.loginStatus.value == LoginStatus.login) {
-      RecommendPlayListWrap recommendPlayListWrap = await NeteaseMusicApi().recoPlaylists();
-      data = recommendPlayListWrap.recommend ?? [];
-    } else {
-      PersonalizedPlayListWrap personalizedPlayListWrap = await NeteaseMusicApi().personalizedPlaylist();
-      data = personalizedPlayListWrap.result ?? [];
-    }
+    PersonalizedPlayListWrap personalizedPlayListWrap = await NeteaseMusicApi().personalizedPlaylist();
+    data = personalizedPlayListWrap.result ?? [];
     playlists
       ..clear()
       ..addAll(data);
@@ -41,7 +35,7 @@ class ExplorePageController extends GetxController {
   _getNewSongs() async{
     PersonalizedSongListWrap personalizedSongListWrap = await NeteaseMusicApi().personalizedSongList();
     var data = personalizedSongListWrap.result??[];
-    newSingles
+    newSongs
       ..clear()
       ..addAll(data.map((e) => MediaItem(
           id: e.id,
@@ -50,7 +44,7 @@ class ExplorePageController extends GetxController {
           extras: {
             'type': MediaType.playlist.name,
             'image': e.song.album?.picUrl ?? '',
-            'liked': AppController.to.likeIds.contains(int.tryParse(e.id)),
+            'liked': AppController.to.likedSongIds.contains(int.tryParse(e.id)),
             'artist': (e.song.artists ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / '),
             'album': jsonEncode(e.song.album?.toJson()),
             'mv': e.song.mvid,

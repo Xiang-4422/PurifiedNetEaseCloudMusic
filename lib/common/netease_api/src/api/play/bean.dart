@@ -908,7 +908,7 @@ class PlaymodeIntelligenceItem {
 
   String? alg;
 
-  Song? songInfo;
+  Song2? songInfo;
 
   PlaymodeIntelligenceItem();
 

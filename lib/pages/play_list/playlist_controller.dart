@@ -14,9 +14,8 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
 
   late PlayList playList;
 
-  List<MediaItem> mediaItems = <MediaItem>[];
+  List<MediaItem> songs = <MediaItem>[];
   RxInt loadedMediaItemCount = 0.obs;
-  List<MediaItem> searchItems = <MediaItem>[];
   SinglePlayListWrap? details;
   bool isMyPlayList = false;
 
@@ -37,16 +36,6 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
   @override
   void onInit() {
     super.onInit();
-    textEditingController = TextEditingController()..addListener(() {
-      if (textEditingController.text.isEmpty) {
-        if (isSearch.value) isSearch.value = false;
-      } else {
-        if (!isSearch.value) isSearch.value = true;
-        searchItems
-          ..clear()
-          ..addAll(mediaItems.where((p0) => p0.title.contains(textEditingController.text)).toList());
-      }
-    });
     commentTabController = TabController(length: 2, vsync: this)..addListener(() {
       if (commentTabController.indexIsChanging) {
         pageController.animateToPage(commentTabController.index + 1, duration: const Duration(milliseconds: 300), curve: Curves.linear);
@@ -71,7 +60,6 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
   @override
   Future<void> onReady() async {
     super.onReady();
-    AppController.to.updateAppBarTitle(title: "", subTitle: "", willRollBack: true);
     await _getAlbumColor();
     await _getMediaItems(playList.id);
   }
@@ -82,7 +70,7 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
   }
 
   _getAlbumColor() async {
-    await OtherUtils.getImageColor('${playList.coverImgUrl ?? ''}?param=500y500').then((paletteGenerator) {
+    await OtherUtils.getImageColorPalette(playList.coverImgUrl).then((paletteGenerator) {
       albumColor.value = paletteGenerator.dominantColor?.color
           ?? paletteGenerator.darkMutedColor?.color
           ?? paletteGenerator.darkVibrantColor?.color
@@ -100,17 +88,17 @@ class PlayListController<E, T> extends GetxController with GetTickerProviderStat
     isSubscribed.value = details?.playlist?.subscribed ?? false;
     List<String> ids = details?.playlist?.trackIds?.map((e) => e.id).toList() ?? [];
     // 获取歌曲，先获取1000首，结束loading，后台继续加载剩余歌曲
-    mediaItems.clear();
+    songs.clear();
     SongDetailWrap songDetailWrap = await NeteaseMusicApi().songDetail(ids.sublist(0, min(1000, ids.length)));
-    mediaItems.addAll(AppController.to.song2ToMedia(songDetailWrap.songs ?? []));
-    loadedMediaItemCount.value = mediaItems.length;
+    songs.addAll(AppController.to.song2ToMedia(songDetailWrap.songs ?? []));
+    loadedMediaItemCount.value = songs.length;
     loading.value = false;
 
     if (ids.length > 1000) {
       while (loadedMediaItemCount.value != ids.length) {
         SongDetailWrap songDetailWrap = await NeteaseMusicApi().songDetail(ids.sublist(loadedMediaItemCount.value, min(loadedMediaItemCount.value + 1000, ids.length)));
-        mediaItems.addAll(AppController.to.song2ToMedia(songDetailWrap.songs ?? []));
-        loadedMediaItemCount.value = mediaItems.length;
+        songs.addAll(AppController.to.song2ToMedia(songDetailWrap.songs ?? []));
+        loadedMediaItemCount.value = songs.length;
       }
     }
   }

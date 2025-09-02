@@ -11,7 +11,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'common/netease_api/src/netease_api.dart';
 import 'controllers/explore_page_controller.dart';
-import 'controllers/user_controller.dart';
 
 /// 应用启动入口
 main() async {
@@ -23,7 +22,6 @@ main() async {
   // 在runApp前必须完成的初始化操作
   await _initSingleton();
 
-  Get.lazyPut<UserController>(() => UserController());
   Get.lazyPut<ExplorePageController>(() => ExplorePageController());
   Get.lazyPut<AppController>(() => AppController());
 

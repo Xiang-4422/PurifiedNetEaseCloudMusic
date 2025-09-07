@@ -55,36 +55,40 @@ class PersonalPageView extends GetView<AppController> {
                       padding: const EdgeInsetsGeometry.only(left: AppDimensions.paddingSmall),
                       sliver: SliverList(
                         delegate: SliverChildListDelegate([
+                          Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              QuickStartCard(
+                                width: userItemWidth,
+                                height: userItemWidth * 1.3,
+                                albumUrl: controller.todayRecommendSongs[0].extras?['image'],
+                                icon: TablerIcons.calendar,
+                                title: "每日推荐",
+                                onTap: () => context.router.push(const gr.TodayRouteView()),
+                              ),
+                              IconButton(onPressed:() => controller.playNewPlayList(controller.todayRecommendSongs, 0, playListName: "今日推荐"), icon: Icon(TablerIcons.player_play_filled, color: Colors.white,))
+                            ],
+                          ).marginOnly(right: AppDimensions.paddingSmall),
                           QuickStartCard(
                             width: userItemWidth,
                             height: userItemWidth * 1.3,
-                            albumUrl: controller.todayRecommendSongs[0].extras?['image'],
-                            icon: TablerIcons.calendar,
-                            title: "每日推荐",
-                            onTap: () => context.router.push(const gr.TodayRouteView()),
-                          ),
-                          QuickStartCard(
-                            width: userItemWidth,
-                            height: userItemWidth * 1.3,
-                            albumUrl: AppController.to.isFmMode.isTrue
-                                ? (AppController.to.curPlayingSong.value.extras?['image'] ?? '')
+                            albumUrl: controller.isFmMode.isTrue
+                                ? (controller.curPlayingSong.value.extras?['image'] ?? '')
                                 : (controller.fmSongs[0].extras?['image'] ?? ''),
                             icon: TablerIcons.infinity,
                             title: "漫游模式",
-                            onTap: () => AppController.to.openFmMode(),
-                          ),
+                            onTap: () => controller.openFmMode(),
+                          ).marginOnly(right: AppDimensions.paddingSmall),
                           QuickStartCard(
                             width: userItemWidth,
                             height: userItemWidth * 1.3,
                             albumUrl: controller.isHeartBeatMode.isTrue
-                                ? (AppController.to.curPlayingSong.value.extras?['image'] ?? '')
+                                ? (controller.curPlayingSong.value.extras?['image'] ?? '')
                                 : controller.randomLikedSongAlbumUrl.value,
                             icon: TablerIcons.heartbeat,
                             title: "心动模式",
-                            onTap: controller.randomLikedSongId.value.isEmpty 
-                              ? null 
-                              : () => AppController.to.openHeartBeatMode(controller.randomLikedSongId.value, true),
-                          ),
+                            onTap: () => controller.openHeartBeatMode(controller.randomLikedSongId.value, true),
+                          ).marginOnly(right: AppDimensions.paddingSmall),
                         ]),
                       ),
                     )
@@ -335,7 +339,6 @@ class QuickStartCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppDimensions.paddingSmall),
           ),
-          margin: const EdgeInsets.only(right: AppDimensions.paddingSmall,),
           child: AsyncImageColor(
             imageUrl: albumUrl,
             child: Column(

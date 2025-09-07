@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:flutter/material.dart';
 
@@ -52,6 +53,8 @@ class _LoginPageViewState extends State<LoginPageView> {
         case 803:
           WidgetUtil.showToast('授权成功！');
           AppController.to.updateUserState();
+          AppController.to.updateData();
+          AutoRouter.of(context).pop();
           timer?.cancel();
           timer = null;
           break;

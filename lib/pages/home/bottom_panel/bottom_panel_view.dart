@@ -5,6 +5,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:bujuan/common/common_widget.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/home/bottom_panel/lyric_view.dart';
@@ -15,6 +16,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
+import 'package:marquee/marquee.dart';
 
 import '../../../common/constants/appConstants.dart';
 import '../../../common/netease_api/src/api/play/bean.dart';
@@ -32,7 +34,7 @@ class BottomPanelView extends GetView<AppController> {
   Widget build(BuildContext context) {
     double albumPadding = AppDimensions.paddingLarge;
     return Stack(
-      alignment: Alignment.bottomCenter,
+      alignment: Alignment.topCenter,
       children: [
         // 背景层
         AnimatedBuilder(
@@ -115,7 +117,7 @@ class BottomPanelView extends GetView<AppController> {
                   ),
                 )),
               ),
-            // 专辑
+            // 专辑占位
             Obx(() => Offstage(
               offstage: controller.isBigAlbum.isFalse,
               child: Visibility(
@@ -123,86 +125,56 @@ class BottomPanelView extends GetView<AppController> {
                 maintainAnimation: true,
                 maintainState: true,
                 visible: controller.bottomPanelFullyOpened.isTrue && controller.isAlbumScaleEnded.isTrue,
-                child: SizedBox(
-                  height: context.width,
-                  child: OverflowBox(
-                    maxWidth: context.width * 3,
-                    child: Obx(() => NotificationListener<ScrollNotification>(
-                      // 监听滚动状态
-                      onNotification: (notification) {
-                        // 判断滚动是否是用户手势触发
-                        if (notification is ScrollStartNotification) {
-                          if (notification.dragDetails != null && !controller.isAlbumScrollingProgrammatic) {
-                            controller.isAlbumScrollingManully = true;
-                          }
-                          // 滚动结束时重置用户滚动状态
-                        } else if (notification is ScrollEndNotification) {
-                          controller.isAlbumScrollingManully = false;
-                          controller.isAlbumScrollingProgrammatic = false;
-                        }
-                        // 返回 false 让通知继续冒泡，以便 itemPositionsNotifier 也能收到
-                        return false;
-                      },
-                      child: PageView.builder(
-                        controller: controller.albumPageController,
-                        itemCount: controller.curPlayingSongs.length,
-                        onPageChanged: (index) {
-                          if (controller.isAlbumScrollingManully) {
-                            controller.audioHandler.playIndex(audioSourceIndex: index, playNow: true);
-                          }
-                        },
-                        itemBuilder: (BuildContext context, int index) {
-                          return AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 500),
-                            transitionBuilder: (Widget child, Animation<double> animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              );
-                            },
-                            child: Container(
-                              clipBehavior: Clip.hardEdge,
-                              margin: const EdgeInsets.all(AppDimensions.paddingLarge),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(AppDimensions.paddingLarge/2),
-                                boxShadow: [
-                                  controller.bottomPanelFullyOpened.value
-                                      ? BoxShadow(
-                                    color: Colors.black.withOpacity(0.4), // 阴影颜色
-                                    blurRadius: 12, // 模糊半径
-                                    spreadRadius: 2, // 扩散半径
-                                  )
-                                      : const BoxShadow()
-                                ],
-                              ),
-                              child: GestureDetector(
-                                onTap: () {
-                                  controller.isAlbumScaleEnded.value = false;
-                                  controller.isBigAlbum.value = false;
-                                  if (controller.curPanelPageIndex.value == 1) controller.updateFullScreenLyricTimerCounter();
-                                },
-                                child: Obx(() => SimpleExtendedImage(
-                                  '${controller.curPlayingSongs[index].extras?['image'] ?? ''}?param=500y500',
-                                )),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    )),
-                  ),
-                ),
+                child: Container(height: context.width - albumPadding,),
               ),
             )),
             // 播放列表、正在播放、歌曲评论
             Expanded(
-              child: PageView(
-                controller: controller.bottomPanelPageController,
+              child: Stack(
                 children: [
-                  _buildCurPlayingListPage(context),
-                  _buildCurPlayingPage(context),
-                  _buildCommentPage(context, 2),
-                  _buildCommentPage(context, 3),
+                  PageView(
+                    controller: controller.bottomPanelPageController,
+                    children: [
+                      _buildCurPlayingListPage(context),
+                      _buildCurPlayingPage(context),
+                      _buildCommentPage(context, 2),
+                      _buildCommentPage(context, 3),
+                    ],
+                  ),
+                  Obx(() => Offstage(
+                    offstage: controller.bottomPanelFullyOpened.isFalse,
+                    child: Column(
+                      children: [
+                        Container(
+                          height: albumPadding,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter, // 渐变开始于顶部
+                              end: Alignment.bottomCenter, // 渐变结束于底部
+                              colors: [
+                                controller.albumColor.value,
+                                controller.albumColor.value.withOpacity(0),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(child: Container()),
+                        Container(
+                          height: albumPadding,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter, // 渐变开始于顶部
+                              end: Alignment.bottomCenter, // 渐变结束于底部
+                              colors: [
+                                controller.albumColor.value.withOpacity(0),
+                                controller.albumColor.value,
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  )),
                 ],
               ),
             ),
@@ -212,7 +184,7 @@ class BottomPanelView extends GetView<AppController> {
             )
           ],
         ),
-        // 专辑缩放动画图层
+        // 专辑缩放临时动画图层
         Obx(() => Offstage(
           offstage: controller.isAlbumScaleEnded.isTrue,
           child: Container(
@@ -232,90 +204,137 @@ class BottomPanelView extends GetView<AppController> {
               child: Obx(() => SimpleExtendedImage(
                 '${controller.curPlayingSong.value.extras?['image'] ?? ''}?param=500y500',
               )),
-              onEnd: () {
-                controller.isAlbumScaleEnded.value = true;
+              onEnd: () => controller.isAlbumScaleEnded.value = true,
+            )),
+          ),
+        )),
+        // 专辑单独图层
+        Obx(() => Offstage(
+          offstage: controller.bottomPanelFullyOpened.isFalse || controller.isBigAlbum.isFalse || controller.isAlbumScaleEnded.isFalse,
+          child: Container(
+            margin: EdgeInsets.only(top: context.mediaQueryPadding.top + AppDimensions.appBarHeight),
+            height: context.width,
+            child: NotificationListener<ScrollNotification>(
+              // 监听滚动状态
+              onNotification: (notification) {
+                // 判断滚动是否是用户手势触发
+                if (notification is ScrollStartNotification) {
+                  if (notification.dragDetails != null && !controller.isAlbumScrollingProgrammatic) {
+                    controller.isAlbumScrollingManully = true;
+                  }
+                  // 滚动结束时重置用户滚动状态
+                } else if (notification is ScrollEndNotification) {
+                  controller.isAlbumScrollingManully = false;
+                  controller.isAlbumScrollingProgrammatic = false;
+                }
+                // 返回 false 让通知继续冒泡，以便 itemPositionsNotifier 也能收到
+                return false;
               },
-            ),
+              child: PageView.builder(
+
+                controller: controller.albumPageController,
+                itemCount: controller.curPlayingSongs.length,
+                allowImplicitScrolling: true,
+
+                // TODO YU4422：切歌卡顿
+                onPageChanged: (index) {
+                  if (controller.isAlbumScrollingManully) {
+                    controller.audioHandler.playIndex(audioSourceIndex: index, playNow: true);
+                  }
+                },
+                itemBuilder: (BuildContext context, int index) {
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: child,
+                      );
+                    },
+                    child: Container(
+                      clipBehavior: Clip.hardEdge,
+                      margin: const EdgeInsets.all(AppDimensions.paddingLarge),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(AppDimensions.paddingLarge/2),
+                        boxShadow: [
+                           BoxShadow(
+                            color: Colors.black.withOpacity(0.4), // 阴影颜色
+                            blurRadius: 12, // 模糊半径
+                            spreadRadius: 2, // 扩散半径
+                          )
+                        ],
+                      ),
+                      child: GestureDetector(
+                        onTap: () {
+                          controller.isAlbumScaleEnded.value = false;
+                          controller.isBigAlbum.value = false;
+                          if (controller.curPanelPageIndex.value == 1) controller.updateFullScreenLyricTimerCounter();
+                        },
+                        child: Obx(() => SimpleExtendedImage(
+                          '${controller.curPlayingSongs[index].extras?['image'] ?? ''}?param=500y500',
+                        )),
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         )),
 
-        // appbar背景遮盖
-        // IgnorePointer(
-        //   child: Obx(() => Offstage(
-        //     offstage: controller.bottomPanelFullyOpened.isFalse,
-        //     child: Column(
-        //       children: [
-        //         Container(
-        //           color: controller.albumColor.value,
-        //           height: context.mediaQueryPadding.top + AppDimensions.appBarHeight,
-        //         ),
-        //         Container(
-        //           height: albumPadding,
-        //           decoration: BoxDecoration(
-        //             gradient: LinearGradient(
-        //               begin: Alignment.topCenter, // 渐变开始于顶部
-        //               end: Alignment.bottomCenter, // 渐变结束于底部
-        //               colors: [
-        //                 controller.albumColor.value,
-        //                 controller.albumColor.value.withOpacity(0),
-        //               ],
-        //             ),
-        //           ),
-        //         ),
-        //         Expanded(child: Container()),
-        //         Container(
-        //           height: albumPadding * 2,
-        //           alignment: Alignment.bottomCenter,
-        //           decoration: BoxDecoration(
-        //             gradient: LinearGradient(
-        //               begin: Alignment.topCenter, // 渐变开始于顶部
-        //               end: Alignment.bottomCenter, // 渐变结束于底部
-        //               colors: [
-        //                 controller.albumColor.value.withOpacity(0),
-        //                 controller.albumColor.value,
-        //                 controller.albumColor.value,
-        //               ],
-        //               stops: const [0,0.5, 1],
-        //             ),
-        //           ),
-        //         )
-        //       ],
-        //     ),
-        //   )),
-        // ),
         // 页面指示TabBar
-        Obx(() => Container(
-            height: albumPadding,
-            margin: EdgeInsets.symmetric(horizontal: albumPadding),
-            decoration: BoxDecoration(
-              color: controller.isBigAlbum.isTrue ? controller.panelWidgetColor.value.withOpacity(0.05) : Colors.transparent,
-              borderRadius: BorderRadius.circular(albumPadding),
-            ),
-            child: MyTabBar(
-              height: albumPadding,
-              color: controller.panelWidgetColor.value,
-              controller: controller.bottomPanelTabController,
-              tabs: [
-                // TODO YU4422 进入播放列表页面的时候显示当前播放歌单名
-                Text("播放列表", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
-                Text("正在播放", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
-                Obx(() => MyTabBarItemAnimatedSwitcher(
-                  isTabBarVisible: controller.curPanelPageIndex.value > 1,
-                  tabItem: Text("歌曲评论", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
-                  replaceItem: MyTabBar(
-                    height: albumPadding,
-                    controller: controller.bottomPanelCommentTabController,
-                    color: controller.panelWidgetColor.value,
-                    tabs: [
-                      Text("热", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
-                      Text("新", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
-                    ],
+        Container(
+          alignment: Alignment.bottomCenter,
+          child: Obx(() => Container(
+              color: controller.albumColor.value,
+              child: Obx(() => Container(
+                  height: albumPadding,
+                  margin: EdgeInsets.symmetric(horizontal: albumPadding),
+                  decoration: BoxDecoration(
+                    // color: Colors.red,
+                    color: controller.isBigAlbum.isTrue ? controller.panelWidgetColor.value.withOpacity(0.05) : Colors.transparent ,
+                    borderRadius: BorderRadius.circular(albumPadding),
+                  ),
+                  child: MyTabBarItemAnimatedSwitcher(
+                    isTabBarVisible: controller.curPanelPageIndex.value == 0,
+                    replaceItem: Container(
+                      alignment: AlignmentDirectional.center,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Obx(() => Text(
+                          controller.curPlayListName.value,
+                          style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5)),
+                        )),
+                      ).paddingSymmetric(horizontal: albumPadding/2),
+                    ),
+                    tabItem: MyTabBar(
+                      height: albumPadding,
+                      color: controller.panelWidgetColor.value,
+                      controller: controller.bottomPanelTabController,
+                      tabs: [
+                        // TODO YU4422 进入播放列表页面的时候显示当前播放歌单名
+                        Text("播放列表", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
+                        Text("正在播放", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
+                        Obx(() => MyTabBarItemAnimatedSwitcher(
+                          isTabBarVisible: controller.curPanelPageIndex.value > 1,
+                          tabItem: Text("歌曲评论", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
+                          replaceItem: MyTabBar(
+                            height: albumPadding,
+                            controller: controller.bottomPanelCommentTabController,
+                            color: controller.panelWidgetColor.value,
+                            tabs: [
+                              Text("热", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
+                              Text("新", style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5))),
+                            ],
+                          ),
+                        )),
+                      ],
+                    ),
                   ),
                 )),
-              ],
             ),
-          )),
+          ),
+        ),
       ],
     );
   }
@@ -324,38 +343,56 @@ class BottomPanelView extends GetView<AppController> {
   Widget _buildCurPlayingListPage(BuildContext context) {
     double albumPadding = AppDimensions.paddingLarge;
     return KeepAliveWrapper(
-      child: Obx(() => Container(
+      child: Container(
         padding: EdgeInsets.symmetric(horizontal: albumPadding),
         child: ScrollConfiguration(
           behavior: const NoGlowScrollBehavior(),
-          child: ListView.builder(
-            controller: controller.playListScrollController,
-            physics: const ClampingScrollPhysics(),
-            itemExtent: 60,
-            padding: EdgeInsets.only(
-              top: controller.isBigAlbum.value
-                  ? 0
-                  : albumPadding,
-              bottom: albumPadding,
+          child: Obx(() => ListView.builder(
+              controller: controller.playListScrollController,
+              physics: const ClampingScrollPhysics(),
+              itemExtent: 55,
+              padding: EdgeInsets.symmetric(vertical: albumPadding),
+              itemCount: controller.curPlayingSongs.length,
+              itemBuilder: (context, index) {
+                return _buildSongItem(controller.curPlayingSongs[index], index, context);
+              },
             ),
-            itemCount: controller.curPlayingSongs.length,
-            itemBuilder: (context, index) {
-              return _buildSongItem(controller.curPlayingSongs[index], index, context);
-            },
           ),
         ),
-      )),
+      ),
     );
   }
   Widget _buildSongItem(MediaItem mediaItem, int index, BuildContext context) {
-    return Obx(() => UniversalListTile(
-        titleString: index.toString() + "\\" + mediaItem.title,
-        subTitleString: mediaItem.artist,
-        stringColor: (controller.curPlayIndex.value == index)
-            ? Colors.red
-            : controller.panelWidgetColor.value,
-        onTap: () => controller.audioHandler.playIndex(audioSourceIndex: index, playNow: true),
-      ));
+    return GestureDetector(
+      onTap: () => controller.audioHandler.playIndex(audioSourceIndex: index, playNow: true),
+      child: Obx(() => Container(
+          alignment: AlignmentDirectional.centerStart,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                mediaItem.title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: ((controller.curPlayIndex.value == index)
+                      ? Colors.red
+                      : controller.panelWidgetColor.value),            ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+              Text(
+                mediaItem.artist ?? "未知歌手",
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: controller.panelWidgetColor.value.withOpacity(0.5),
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   /// 默认页（歌词）
@@ -386,9 +423,8 @@ class BottomPanelView extends GetView<AppController> {
                   }
                 },
                 child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: albumPadding),
-                    child: const LyricView(EdgeInsets.symmetric(vertical: 10),
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: albumPadding),
+                  child: const LyricView(EdgeInsets.symmetric(vertical: 10)),
                 ),
               )
             )),
@@ -399,168 +435,166 @@ class BottomPanelView extends GetView<AppController> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   // 占位: 专辑封面
-                  Obx(() => Container(height: controller.isBigAlbum.isTrue ? 0 : context.width)),
+                  Obx(() => Container(height: controller.isBigAlbum.isTrue ? 0 : context.width - albumPadding)),
                   // 专辑、歌手、进度条
                   Obx(() => Visibility(
                     maintainSize: true,
                     maintainAnimation: true,
                     maintainState: true,
                     visible: controller.isBigAlbum.isTrue,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: albumPadding),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 专辑
-                            SizedBox(
-                              height: albumPadding,
-                              child: Row(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: controller.panelWidgetColor.value.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(albumPadding),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // 这里测量的宽度不准确，强制将text适配到测量的宽度
-                                        IntrinsicWidth(
-                                          child: Container(
-                                            padding: EdgeInsets.only(left: albumPadding / 2),
-                                            child: Text(
-                                              "专辑：",
-                                              style: TextStyle(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: albumPadding),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 专辑
+                          SizedBox(
+                            height: albumPadding,
+                            child: Row(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: controller.panelWidgetColor.value.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(albumPadding),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      // 这里测量的宽度不准确，强制将text适配到测量的宽度
+                                      IntrinsicWidth(
+                                        child: Container(
+                                          padding: EdgeInsets.only(left: albumPadding / 2),
+                                          child: Text(
+                                            "专辑：",
+                                            style: TextStyle(
+                                              color: controller.panelWidgetColor.value,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () async {
+                                          if (controller.curPlayingSong.value.album.isNullOrEmpty) return;
+                                          await controller.bottomPanelController.close();
+                                          context.router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': controller.curPlayingSong.value.extras?['albumId']}));
+                                        },
+                                        child: Container(
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: controller.panelWidgetColor.value.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(albumPadding),
+                                          ),
+                                          child: ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              maxWidth: remainWidth - textWidth,
+                                            ),
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(horizontal: albumPadding / 2),
+                                              child: Obx(() => Text(
+                                                controller.curPlayingSong.value.album.orDefault("未知专辑"),
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    color: controller.panelWidgetColor.value
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              )),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      // Expanded(child: Container())
+                                    ],
+                                  ),
+                                ),
+                                Expanded(child: Container())
+                              ],
+                            )
+                          ).marginOnly(top: albumPadding),
+                          // 歌手
+                          SizedBox(
+                            height: albumPadding,
+                            child: Row(
+                              children: [
+                                Container(
+                                  clipBehavior: Clip.hardEdge,
+                                  decoration: BoxDecoration(
+                                    color: controller.panelWidgetColor.value.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(albumPadding),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IntrinsicWidth(
+                                        child: Container(
+                                          padding: EdgeInsets.only(left: albumPadding / 2),
+                                          child: Text(
+                                            "歌手：",
+                                            style: TextStyle(
                                                 color: controller.panelWidgetColor.value,
-                                              ),
                                             ),
                                           ),
                                         ),
-                                        GestureDetector(
-                                          onTap: () async {
-                                            if (controller.curPlayingSong.value.album.isNullOrEmpty) return;
-                                            await controller.bottomPanelController.close();
-                                            context.router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': controller.curPlayingSong.value.extras?['albumId']}));
-                                          },
-                                          child: Container(
-                                            alignment: Alignment.center,
-                                            decoration: BoxDecoration(
-                                              color: controller.panelWidgetColor.value.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(albumPadding),
-                                            ),
-                                            child: ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                maxWidth: remainWidth - textWidth,
-                                              ),
-                                              child: Container(
-                                                padding: EdgeInsets.symmetric(horizontal: albumPadding / 2),
-                                                child: Obx(() => Text(
-                                                  controller.curPlayingSong.value.album.orDefault("未知专辑"),
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                      color: controller.panelWidgetColor.value
+                                      ),
+                                      ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: remainWidth - textWidth,
+                                        ),
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal, // 允许水平滚动
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: controller.curPlayingSong.value.artist.isNullOrEmpty
+                                                ? [
+                                                  Text(
+                                                    "未知歌手",
+                                                    style: TextStyle(
+                                                        color: controller.panelWidgetColor.value
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                    textAlign: TextAlign.center,
                                                   ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                )),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        // Expanded(child: Container())
-                                      ],
-                                    ),
-                                  ),
-                                  Expanded(child: Container())
-                                ],
-                              )
-                            ),
-                            // 歌手
-                            Container(
-                              // width: remainWidth,
-                              height: albumPadding,
-                              margin: EdgeInsets.symmetric(vertical: albumPadding),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    clipBehavior: Clip.hardEdge,
-                                    decoration: BoxDecoration(
-                                      color: controller.panelWidgetColor.value.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(albumPadding),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IntrinsicWidth(
-                                          child: Container(
-                                            padding: EdgeInsets.only(left: albumPadding / 2),
-                                            child: Text(
-                                              "歌手：",
-                                              style: TextStyle(
-                                                  color: controller.panelWidgetColor.value,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            maxWidth: remainWidth - textWidth,
-                                          ),
-                                          child: SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal, // 允许水平滚动
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: controller.curPlayingSong.value.artist.isNullOrEmpty
-                                                  ? [
-                                                    Text(
-                                                      "未知歌手",
-                                                      style: TextStyle(
-                                                          color: controller.panelWidgetColor.value
+                                                ]
+                                                : [
+                                                  for(Artist artist in (controller.curPlayingSong.value.extras?['artist'].split(' / ').map((e) => Artist.fromJson(jsonDecode(e))).toList() ?? []))
+                                                  Container(
+                                                      alignment: Alignment.center,
+                                                      padding: EdgeInsets.symmetric(horizontal: albumPadding / 2),
+                                                      decoration: BoxDecoration(
+                                                        color: controller.panelWidgetColor.value.withOpacity(0.1),
+                                                        borderRadius: BorderRadius.circular(albumPadding),
                                                       ),
-                                                      overflow: TextOverflow.ellipsis,
-                                                      textAlign: TextAlign.center,
-                                                    ),
-                                                  ]
-                                                  : [
-                                                    for(Artist artist in (controller.curPlayingSong.value.extras?['artist'].split(' / ').map((e) => Artist.fromJson(jsonDecode(e))).toList() ?? []))
-                                                    Container(
-                                                        alignment: Alignment.center,
-                                                        padding: EdgeInsets.symmetric(horizontal: albumPadding / 2),
-                                                        decoration: BoxDecoration(
-                                                          color: controller.panelWidgetColor.value.withOpacity(0.1),
-                                                          borderRadius: BorderRadius.circular(albumPadding),
-                                                        ),
-                                                        child: Obx(() => GestureDetector(
-                                                          onTap: () async {
-                                                            await controller.bottomPanelController.close();
-                                                            context.router.push(const gr.ArtistRouteView().copyWith(queryParams: {'artistId': artist.id}));
-                                                          },
-                                                          child: Text(
-                                                            artist.name ?? "无名作者",
-                                                            style: TextStyle(
-                                                                color: controller.panelWidgetColor.value
-                                                            ),
-                                                            overflow: TextOverflow.ellipsis,
-                                                            textAlign: TextAlign.center,
+                                                      child: Obx(() => GestureDetector(
+                                                        onTap: () async {
+                                                          await controller.bottomPanelController.close();
+                                                          context.router.push(const gr.ArtistRouteView().copyWith(queryParams: {'artistId': artist.id}));
+                                                        },
+                                                        child: Text(
+                                                          artist.name ?? "无名作者",
+                                                          style: TextStyle(
+                                                              color: controller.panelWidgetColor.value
                                                           ),
-                                                        )),
-                                                    ),
-                                                  ]
-                                            ),
+                                                          overflow: TextOverflow.ellipsis,
+                                                          textAlign: TextAlign.center,
+                                                        ),
+                                                      )),
+                                                  ),
+                                                ]
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                  Expanded(child: Container())
-                                ],
-                              ),
+                                ),
+                                Expanded(child: Container())
+                              ],
                             ),
-                            // 播放进度条
-                            _buildProgressBar(context),
-                          ]
-                        ),
+                          ).marginOnly(top: albumPadding),
+                          // 播放进度条
+                          _buildProgressBar(context).marginOnly(top: albumPadding),
+                        ]
                       ),
-                    )),
+                    ),
+                  )),
                   // 播放控制
                   Expanded(child: _buildPlayController(context)),
                 ],
@@ -585,7 +619,6 @@ class BottomPanelView extends GetView<AppController> {
       progress: controller.curPlayDuration.value,
       buffered: controller.curPlayDuration.value,
       total: controller.curPlayingSong.value.duration ?? const Duration(seconds: 10),
-
       barHeight: AppDimensions.paddingLarge,
       barCapShape: BarCapShape.round,
       progressBarColor: controller.panelWidgetColor.value.withOpacity(.1),
@@ -659,13 +692,16 @@ class BottomPanelView extends GetView<AppController> {
           _buildButtonBackground(IconButton(
               onPressed: () async {
                 if (controller.isFmMode.isTrue) {
+                  // 漫游模式：直接返回
                   return;
                 } else if (controller.isHeartBeatMode.isTrue){
+                  // 心动模式：退出心动模式，并播放喜欢歌单，并切换到顺序播放
                   controller.quitHeartBeatMode();
                   await controller.audioHandler.changeRepeatMode(newRepeatMode: AudioServiceRepeatMode.all);
                   controller.playUserLikedSongs();
                   return;
                 } else if (controller.isPlayingLikedSongs.isTrue && controller.audioHandler.curRepeatMode == AudioServiceRepeatMode.none) {
+                  // 正在播放喜欢歌单：随机播放模式后再切换，开启心动模式
                   controller.openHeartBeatMode(controller.curPlayingSong.value.id, false);
                 }else {
                   await controller.audioHandler.changeRepeatMode();
@@ -697,20 +733,18 @@ class BottomPanelView extends GetView<AppController> {
 
     return KeepAliveWrapper(
       child: Container(
-          padding: EdgeInsets.symmetric(horizontal: albumPadding),
-          child: Obx(() => CommentWidget(
-            key: ValueKey(controller.curPlayingSong.value.id),
-            context: context,
-            id: controller.curPlayingSong.value.id,
-            idType: "song",
-            commentType: commentType,
-            listPaddingTop: controller.isBigAlbum.value
-                ? 0
-                : albumPadding,
-            listPaddingBottom: albumPadding,
-            stringColor: controller.panelWidgetColor.value,
-          )),
-        ),
+        padding: EdgeInsets.symmetric(horizontal: albumPadding),
+        child: Obx(() => CommentWidget(
+          key: ValueKey(controller.curPlayingSong.value.id),
+          context: context,
+          id: controller.curPlayingSong.value.id,
+          idType: "song",
+          commentType: commentType,
+          listPaddingTop: albumPadding,
+          listPaddingBottom: albumPadding,
+          stringColor: controller.panelWidgetColor.value,
+        )),
+      ),
     );
   }
 
@@ -827,15 +861,29 @@ class BottomPanelHeaderView extends GetView<AppController> {
                     offstage: controller.bottomPanelFullyClosed.isFalse,
                     child: Container(
                       alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.all(AppDimensions.paddingSmall),
-                      child: IconButton(
-                          onPressed: () => controller.playOrPause(),
-                          padding: const EdgeInsets.all(AppDimensions.albumMinSize * 1 / 3 / 2),
-                          icon: Obx(() => Icon(
-                            controller.isPlaying.value ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
-                            color: controller.panelWidgetColor.value,
-                            size: AppDimensions.albumMinSize * 2 / 3,
-                          ))
+                      child: Container(
+                        margin: const EdgeInsets.all(AppDimensions.paddingSmall),
+                        child: Stack(
+                          children: [
+                            CircularPlaybackProgress(
+                              progress: controller.curPlayDuration.value.inMilliseconds / controller.curPlayingSong.value.duration!.inMilliseconds,
+                              size: AppDimensions.albumMinSize,
+                              strokeWidth: 2,
+                              progressColor: controller.panelWidgetColor.value,
+                              backgroundColor: controller.panelWidgetColor.value.withAlpha(50),
+                            ),
+                            IconButton(
+                              onPressed: () => controller.playOrPause(),
+                                padding: const EdgeInsets.all(AppDimensions.albumMinSize * 1 / 3 / 2),
+                                icon: Obx(() => Icon(
+                                controller.isPlaying.value ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
+                                color: controller.panelWidgetColor.value,
+                                size: AppDimensions.albumMinSize * 2 / 3,
+                              ))
+                            ),
+
+                          ],
+                        ),
                       ),
                     ),
                   )),

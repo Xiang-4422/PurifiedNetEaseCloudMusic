@@ -60,15 +60,7 @@ class LoadingView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // SvgPicture.asset(AppIcons.loading,width: context.width/2.9,),
-          Lottie.asset('assets/lottie/empty_status.json', height: context.width / 3.5, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
-          Text(tips ?? '加载中...', style: const TextStyle(fontSize: 28)),
-        ],
-      ),
+      child: Lottie.asset('assets/lottie/empty_status.json', height: context.width / 3.5, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
     );
   }
 }

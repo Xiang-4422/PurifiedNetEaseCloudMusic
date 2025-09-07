@@ -18,6 +18,8 @@ main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // 启用显示 widget 尺寸和边界
   debugPaintSizeEnabled = false;
+  debugProfileBuildsEnabled = true;
+  debugProfilePaintsEnabled = true;
   await _initUI();
   // 在runApp前必须完成的初始化操作
   await _initSingleton();

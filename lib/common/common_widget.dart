@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math; // 导入数学库，用于计算π
 
 import 'constants/other.dart';
 
@@ -23,7 +24,6 @@ class PressScaleWidget extends StatefulWidget {
   @override
   State<PressScaleWidget> createState() => _PressScaleWidgetState();
 }
-
 class _PressScaleWidgetState extends State<PressScaleWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
@@ -70,8 +70,6 @@ class _PressScaleWidgetState extends State<PressScaleWidget>
   }
 }
 
-
-
 /// 通用组件：长按 child 时，获取其位置和尺寸，在 Overlay 上渲染一个动画过渡到目标 widget
 class LongPressOverlayTransition extends StatefulWidget {
   final Widget child;
@@ -95,7 +93,6 @@ class LongPressOverlayTransition extends StatefulWidget {
   State<LongPressOverlayTransition> createState() =>
       _LongPressOverlayTransitionState();
 }
-
 class _LongPressOverlayTransitionState
     extends State<LongPressOverlayTransition>
     with SingleTickerProviderStateMixin {
@@ -215,7 +212,6 @@ class AsyncImageColor extends StatefulWidget {
   @override
   State<AsyncImageColor> createState() => _AsyncImageColorState();
 }
-
 class _AsyncImageColorState extends State<AsyncImageColor> {
   Color _bgColor = Colors.transparent;
 
@@ -250,5 +246,119 @@ class _AsyncImageColorState extends State<AsyncImageColor> {
       color: _bgColor,
       child: widget.child,
     );
+  }
+}
+
+/// 环形播放进度条组件
+class CircularPlaybackProgress extends StatelessWidget {
+  /// 当前播放进度，范围从 0.0 到 1.0
+  final double progress;
+
+  /// 进度条的线条宽度
+  final double strokeWidth;
+
+  /// 进度条背景（未填充部分）的颜色
+  final Color backgroundColor;
+
+  /// 进度条填充部分的颜色
+  final Color progressColor;
+
+  /// 整个组件的宽度和高度（因为是圆形，所以宽高相等）
+  final double size;
+
+  /// 进度百分比文本的样式
+  final TextStyle? percentageTextStyle;
+
+  const CircularPlaybackProgress({
+    Key? key,
+    required this.progress,
+    this.strokeWidth = 8.0,
+    this.backgroundColor = Colors.grey,
+    this.progressColor = Colors.blue,
+    this.size = 100.0, // 默认大小
+    this.percentageTextStyle,
+  }) : assert(progress >= 0.0 && progress <= 1.0, 'Progress must be between 0.0 and 1.0'),
+        super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // 使用SizedBox来固定组件的尺寸
+    return SizedBox(
+      width: size,
+      height: size,
+      // 使用Stack来叠加CustomPaint（绘制环形）和Text（显示百分比）
+      child: CustomPaint(
+        painter: _CircularProgressPainter(
+          progress: progress,
+          strokeWidth: strokeWidth,
+          backgroundColor: backgroundColor,
+          progressColor: progressColor,
+        ),
+      ),
+    );
+  }
+}
+/// 实际绘制环形进度条的CustomPainter
+class _CircularProgressPainter extends CustomPainter {
+  final double progress;
+  final double strokeWidth;
+  final Color backgroundColor;
+  final Color progressColor;
+
+  _CircularProgressPainter({
+    required this.progress,
+    required this.strokeWidth,
+    required this.backgroundColor,
+    required this.progressColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 计算圆心和半径
+    final center = Offset(size.width / 2, size.height / 2);
+    // 半径需要减去一半的线条宽度，以确保线条完全在组件边界内
+    final radius = math.min(size.width, size.height) / 2 - strokeWidth / 2;
+
+    // 定义绘制背景圆弧的画笔
+    final backgroundPaint = Paint()
+      ..color = backgroundColor // 背景颜色
+      ..strokeWidth = strokeWidth // 线条宽度
+      ..style = PaintingStyle.stroke // 绘制样式为描边
+      ..strokeCap = StrokeCap.round; // 线条末端为圆形（可选，使外观更平滑）
+
+    // 定义绘制进度圆弧的画笔
+    final progressPaint = Paint()
+      ..color = progressColor // 进度颜色
+      ..strokeWidth = strokeWidth // 线条宽度
+      ..style = PaintingStyle.stroke // 绘制样式为描边
+      ..strokeCap = StrokeCap.round; // 线条末端为圆形
+
+    // 绘制背景圆（完整的圆）
+    canvas.drawCircle(center, radius, backgroundPaint);
+
+    // 定义用于绘制圆弧的矩形边界
+    // Rect.fromCircle(center: center, radius: radius) 创建一个以center为中心，radius为半径的圆形边界
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    // 绘制进度圆弧
+    // startAngle: 圆弧的起始角度，-math.pi / 2 表示从顶部（12点钟方向）开始
+    // sweepAngle: 圆弧的扫描角度，progress * 2 * math.pi 表示根据进度填充的弧度
+    // useCenter: false 表示不连接圆心，只绘制弧线
+    canvas.drawArc(
+      rect,
+      -math.pi / 2, // 从顶部开始
+      2 * math.pi * progress, // 扫描角度 = 完整圆周 * 进度
+      false, // 不连接圆心
+      progressPaint,
+    );
+  }
+
+  @override
+  // 决定是否需要重新绘制。只有当相关属性发生变化时才重新绘制，以优化性能。
+  bool shouldRepaint(covariant _CircularProgressPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.backgroundColor != backgroundColor ||
+        oldDelegate.progressColor != progressColor;
   }
 }

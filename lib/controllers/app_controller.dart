@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/key.dart';
@@ -22,6 +23,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import '../common/bujuan_audio_handler.dart';
 import '../common/lyric_parser/lyrics_reader_model.dart';
 import '../routes/router.dart';
+import '../routes/router.gr.dart' as gr;
 import '../widget/custom_zoom_drawer/src/drawer_controller.dart';
 import '../pages/home/body/app_body_page_view.dart';
 
@@ -243,7 +245,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
         bottomPanelCommentTabController.offset = bottomPanelPageController.page! - newPanelPageIndex;
       }
     });
-    albumPageController = PageController(viewportFraction: 1/3);
+    albumPageController = PageController();
     searchTextEditingController = TextEditingController()..addListener(() {
       searchContent.value = searchTextEditingController.text;
     });
@@ -301,13 +303,14 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
       // 本地保存当前播放状态
       box.put(curPlaySongId, mediaItem.id);
       await _updateCurPlayIndex();
+
       // 漫游模式 播放到最后一首拉取新的FM歌曲列表
       int newIndex = curPlayingSongs.indexWhere((element) => element.id == curPlayingSong.value.id);
       if (isFmMode.isTrue && newIndex == curPlayingSongs.length - 1) {
         List<MediaItem> newFmPlayList = await getFmSongs();
         await audioHandler.changePlayList(newFmPlayList..insertAll(0, curPlayingSongs), index: curPlayIndex.value, playListName: "漫游模式", playNow: false, changePlayerSource: false);
       }
-      // TODO YU4422: 心动模式播放到最后一首策略待确定
+      // // TODO YU4422: 心动模式播放到最后一首策略待确定
     });
     // 监听播放状态变化
     audioHandler.playbackState.listen((playbackState) {
@@ -473,48 +476,59 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
       // 处于FM模式，恢复播放
       if (isPlaying.isFalse) await playOrPause();
     } else {
-      if (isHeartBeatMode.isTrue) quitHeartBeatMode();
+      if (isHeartBeatMode.isTrue) quitHeartBeatMode(showToast: false);
       // 保存FM开启状态
       isFmMode.value = true;
       box.put(fmSp, true);
       await audioHandler.changePlayList(fmSongs, playListName: "漫游模式", changePlayerSource: true, playNow: true);
+      WidgetUtil.showToast('漫游模式已开启');
     }
   }
 
-  quitFmMode() async {
-    WidgetUtil.showToast('已经退出漫游模式');
+  quitFmMode({bool showToast = true}) async {
+    if (showToast) WidgetUtil.showToast('已经退出漫游模式');
     isFmMode.value = false;
     box.put(fmSp, false);
     fmSongs..clear()..addAll(await getFmSongs());
   }
   /// 打开心动模式
   openHeartBeatMode(String startSongId, bool fromPlayAll) async {
-    // Check if startSongId is valid
+    // fromPlayAll == true，通过首页打开
+    // fromPlayAll == false，通过切换播放模式打开（正在播放喜欢的歌单）。
     if (startSongId.isEmpty) {
-      WidgetUtil.showToast('无法启动心动模式：缺少起始歌曲');
+      WidgetUtil.showToast('心动模式开启失败');
       return;
     }
 
-    bottomPanelPageController.jumpToPage(1);
-    bottomPanelController.open();
     if (isHeartBeatMode.isTrue) {
+      bottomPanelPageController.jumpToPage(1);
+      bottomPanelController.open();
       if (isPlaying.isFalse) await playOrPause();
     } else {
-
-      if (isFmMode.isTrue) quitFmMode();
-      isHeartBeatMode.value = true;
-      box.put(heartBeatSp, true);
+      //  获取心动歌曲
       List<MediaItem> playList = await getHeartBeatSongs(startSongId, fromPlayAll);
       if (playList.isEmpty) {
-        WidgetUtil.showToast('心动模式没有可播放的歌曲');
+        WidgetUtil.showToast('心动模式开启失败');
         return;
+      } else {
+        // 在心动歌曲列表头部添加起始歌曲
+        MediaItem startSong = isPlayingLikedSongs.isTrue ? curPlayingSong.value : likedSongs.firstWhere((mediaItem) => mediaItem.id == startSongId);
+        playList.insert(0, startSong);
+
+        await audioHandler.changePlayList(playList, index: 0, playListName: "心动模式", changePlayerSource: fromPlayAll, playNow: fromPlayAll);
+        // 开启成功，更新心动模式开启状态
+        if (isFmMode.isTrue) quitFmMode(showToast: false);
+        bottomPanelPageController.jumpToPage(1);
+        bottomPanelController.open();
+        isHeartBeatMode.value = true;
+        box.put(heartBeatSp, true);
+        WidgetUtil.showToast('心动模式已开启');
       }
-      playList.insert(0, likedSongs.firstWhere((mediaItem) => mediaItem.id == startSongId));
-      await audioHandler.changePlayList(playList, index: 0, playListName: "心动模式", changePlayerSource: fromPlayAll, playNow: fromPlayAll);
+
     }
   }
-  quitHeartBeatMode() async {
-    WidgetUtil.showToast('已经退出心动模式');
+  quitHeartBeatMode({bool showToast = true}) async {
+    if (showToast) WidgetUtil.showToast('已经退出心动模式');
     isHeartBeatMode.value = false;
     box.put(heartBeatSp, false);
     _updateRandomLikedSong();
@@ -538,30 +552,25 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
             ? likedSongIds.remove(int.parse(curPlayingSong.value.id))
             : likedSongIds.add(int.parse(curPlayingSong.value.id));
 
+      } else {
+        print("serverStatusBean.msg: ${serverStatusBean.msg}");
       }
     });
   }
   /// 根据下标播放歌曲
   playNewPlayList(List<MediaItem> playList, int index, {String playListName = "无名歌单"}) async {
     // 切歌单退出漫游模式、心动模式
-    if (isFmMode.isTrue || isHeartBeatMode.isTrue) {
-      isFmMode.value = false;
-      box.put(fmSp, false);
-      isHeartBeatMode.value = false;
-      box.put(heartBeatSp, false);
-    }
+    if (isFmMode.isTrue) quitFmMode();
+    if (isHeartBeatMode.isTrue) quitHeartBeatMode();
     await audioHandler.changePlayList(playList, index: index, playListName: playListName, changePlayerSource: true, playNow: true);
   }
 
   playUserLikedSongs() async {
     int playIndex;
-    List<MediaItem> playList = [];
-    playList.addAll(likedSongs);
+    List<MediaItem> playList = [...likedSongs];
     // 正在播放红心歌曲
     if (likedSongIds.contains(int.parse(curPlayingSong.value.id))){
       playIndex = likedSongs.indexWhere((song) => song.id == curPlayingSong.value.id);
-      print("playIndex: $playIndex");
-      print("songId: ${curPlayingSong.value.id}");
     // 正在播放非红心歌曲
     } else {
       playIndex = 0;
@@ -774,7 +783,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   /// 滚动播放列表到当前播放歌曲
   _animatePlayListToCurSong() async {
     if (!playListScrollController.hasClients) return;
-    await playListScrollController.animateTo(60.0 * curPlayIndex.value, duration: const Duration(milliseconds: 300), curve: Curves.linear);
+    await playListScrollController.animateTo(55.0 * curPlayIndex.value, duration: const Duration(milliseconds: 300), curve: Curves.linear);
   }
   _animateAlbumPageViewToCurSong() async {
     if (!albumPageController.hasClients || isAlbumScrollingManully || curPlayIndex.value == albumPageController.page!.toInt()) return;
@@ -877,6 +886,8 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
 
       } else {
         WidgetUtil.showToast('登录失效,请重新登录');
+        buildContext.router.push(gr.LoginRouteView());
+
         // loginStatus.value = LoginStatus.noLogin;
       }
     } catch (e) {

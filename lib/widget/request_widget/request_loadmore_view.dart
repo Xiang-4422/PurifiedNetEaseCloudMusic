@@ -83,8 +83,9 @@ class RequestLoadMoreWidgetState<E, T> extends State<RequestLoadMoreWidget<E, T>
             : _error
                 ? const ErrorView()
                 : SmartRefresher(
-      physics: const BouncingScrollPhysics(),
+      physics: const ClampingScrollPhysics(),
       enablePullUp: widget.enableLoad,
+      enablePullDown: false,
       scrollController: widget.scrollController,
       header: WaterDropHeader(
         waterDropColor: Theme.of(context).colorScheme.onSecondary,

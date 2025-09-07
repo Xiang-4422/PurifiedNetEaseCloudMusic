@@ -42,10 +42,10 @@ class BottomPanelView extends GetView<AppController> {
           builder: (BuildContext context, Widget? child) {
             double panelOpenDegree = controller.bottomPanelAnimationController.value;
             return Obx(() => BlurryContainer(
-              blur: 20 * (1 - panelOpenDegree),
+              blur: 20 * panelOpenDegree,
               padding: EdgeInsets.zero,
               borderRadius: BorderRadius.all(Radius.circular(AppDimensions.phoneCornerRadius * (1 - panelOpenDegree))),
-              color: controller.albumColor.value.withOpacity(0.5 * (1 + panelOpenDegree)),
+              color: controller.albumColor.value.withOpacity(panelOpenDegree),
               child: Container(),
             ));
           },
@@ -762,13 +762,15 @@ class BottomPanelHeaderView extends GetView<AppController> {
         child: AnimatedBuilder(
           animation: controller.bottomPanelAnimationController,
           builder: (context, child) {
-            /// 完全展开宽度
+            // 完全展开专辑图片状态
+            /// 完全展开，专辑图片Size
             double albumMaxSize = context.width - AppDimensions.paddingLarge * 2;
-            /// 完全展开LeftMargin
+            /// 完全展开，专辑图片Margin
             double albumMaxPadding = AppDimensions.paddingLarge;
-
+            /// 完全展开，专辑图片Radius
             double albumMinBorderRadius = AppDimensions.paddingLarge/2;
 
+            /// panel展开程度
             double panelOpenDegree = controller.bottomPanelAnimationController.value;
             // 实时Album宽度、margin
             double realTimeAlbumWidth = AppDimensions.albumMinSize + (albumMaxSize - AppDimensions.albumMinSize) * panelOpenDegree;
@@ -776,119 +778,133 @@ class BottomPanelHeaderView extends GetView<AppController> {
             double realTimeAlbumTopMargin = (context.mediaQueryPadding.top + AppDimensions.appBarHeight) * panelOpenDegree;
             double realTimeAlbumBorderRadius = AppDimensions.albumMinSize + (albumMinBorderRadius - AppDimensions.albumMinSize) * panelOpenDegree;
 
-            return Container(
-              width: context.width,
-              child: Stack(
-                children: [
-                  // 歌名&歌手
-                  Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.only(
-                      left: (AppDimensions.albumMinSize + AppDimensions.paddingSmall * 2 - albumMaxPadding) * (1 - panelOpenDegree) + albumMaxPadding,
-                      right: (AppDimensions.albumMinSize + AppDimensions.paddingSmall * 2 - albumMaxPadding) * (1 - panelOpenDegree) + albumMaxPadding,
-                      top: context.mediaQueryPadding.top * panelOpenDegree,
-                    ),
-                    child: SizedBox(
-                      height: AppDimensions.bottomPanelHeaderHeight,
-                      child: Swipeable(
-                        background: const SizedBox.shrink(),
-                        onSwipeLeft: () => controller.audioHandler.skipToPrevious(),
-                        onSwipeRight: () => controller.audioHandler.skipToNext(),
-                        child: Obx(() => Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppController.to.curPlayingSong.value.title,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: context.textTheme.titleLarge?.copyWith(
-                                color: controller.panelWidgetColor.value,
-                              ),
-                            ),
-                            Text(
-                              AppController.to.curPlayingSong.value.artist ?? '',
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: context.textTheme.titleLarge?.copyWith(
-                                fontSize: context.textTheme.titleLarge!.fontSize! / 2,
-                                color: controller.panelWidgetColor.value.withOpacity(0.5),
-                              ),
-                            ),
-                          ],
-                        )),
-                      ),
-                    ),
-                  ),
-                  // 大专辑图片
-                  Visibility(
-                    visible: controller.isBigAlbum.isTrue && controller.bottomPanelFullyOpened.isFalse,
-                    child: Container(
-                      margin: EdgeInsets.only(top: realTimeAlbumTopMargin),
-                      padding: EdgeInsets.all(realTimeAlbumPadding),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(realTimeAlbumBorderRadius),
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                BlurryContainer(
+                  width: context.width - realTimeAlbumPadding * 2,
+                  height: controller.isBigAlbum.isTrue ? realTimeAlbumWidth + realTimeAlbumTopMargin : AppDimensions.albumMinSize,
+                  blur: 20 * (1 - panelOpenDegree),
+                  padding: EdgeInsets.zero,
+                  color: controller.albumColor.value.withOpacity(0.5 * (1 - panelOpenDegree)),
+                  borderRadius:  BorderRadius.circular(controller.isBigAlbum.isTrue ? realTimeAlbumBorderRadius : AppDimensions.albumMinSize),
+                  child: Container(),
+                ).marginOnly(top: controller.isBigAlbum.isTrue ? 0 : context.mediaQueryPadding.top * panelOpenDegree),
+                Container(
+                  width: context.width,
+                  child: Stack(
+                    children: [
+                      // 歌名&歌手
+                      Container(
+                        width: double.infinity,
+                        margin: EdgeInsets.only(
+                          left: (AppDimensions.albumMinSize + AppDimensions.paddingSmall * 2 - albumMaxPadding) * (1 - panelOpenDegree) + albumMaxPadding,
+                          right: (AppDimensions.albumMinSize + AppDimensions.paddingSmall * 2 - albumMaxPadding) * (1 - panelOpenDegree) + albumMaxPadding,
+                          top: context.mediaQueryPadding.top * panelOpenDegree,
                         ),
-                        clipBehavior: Clip.hardEdge,
-                        child: Obx(() => SimpleExtendedImage(
-                          width: realTimeAlbumWidth,
-                          height: realTimeAlbumWidth,
-                          '${controller.curPlayingSong.value.extras?['image'] ?? ''}?param=500y500',
-                        )),
+                        child: SizedBox(
+                          height: AppDimensions.bottomPanelHeaderHeight,
+                          child: Swipeable(
+                            background: const SizedBox.shrink(),
+                            onSwipeLeft: () => controller.audioHandler.skipToPrevious(),
+                            onSwipeRight: () => controller.audioHandler.skipToNext(),
+                            child: Obx(() => Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppController.to.curPlayingSong.value.title,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: context.textTheme.titleLarge?.copyWith(
+                                    color: controller.panelWidgetColor.value,
+                                  ),
+                                ),
+                                Text(
+                                  AppController.to.curPlayingSong.value.artist ?? '',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: context.textTheme.titleLarge?.copyWith(
+                                    fontSize: context.textTheme.titleLarge!.fontSize! / 2,
+                                    color: controller.panelWidgetColor.value.withOpacity(0.5),
+                                  ),
+                                ),
+                              ],
+                            )),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                  // 小专辑图片
-                  Visibility(
-                    visible: controller.isBigAlbum.isFalse && controller.bottomPanelFullyOpened.isFalse,
-                    child: Container(
-                      height: AppDimensions.bottomPanelHeaderHeight,
-                      alignment: Alignment.centerLeft,
-                      margin: EdgeInsets.only(
-                        top: context.mediaQueryPadding.top * panelOpenDegree,
-                        left: AppDimensions.paddingSmall + panelOpenDegree * (context.width - AppDimensions.paddingLarge - AppDimensions.albumMinSize - AppDimensions.paddingSmall)),
-                      child: Obx(() => SimpleExtendedImage(
-                        width: AppDimensions.albumMinSize,
-                        height: AppDimensions.albumMinSize,
-                        shape: BoxShape.circle,
-                        '${controller.curPlayingSong.value.extras?['image'] ?? ''}?param=500y500',
-                      )),
-                    ),
-                  ),
-                  // 播放按钮
-                  Obx(() => Offstage(
-                    offstage: controller.bottomPanelFullyClosed.isFalse,
-                    child: Container(
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        margin: const EdgeInsets.all(AppDimensions.paddingSmall),
-                        child: Stack(
-                          children: [
-                            CircularPlaybackProgress(
-                              progress: controller.curPlayDuration.value.inMilliseconds / controller.curPlayingSong.value.duration!.inMilliseconds,
-                              size: AppDimensions.albumMinSize,
-                              strokeWidth: 2,
-                              progressColor: controller.panelWidgetColor.value,
-                              backgroundColor: controller.panelWidgetColor.value.withAlpha(50),
+                      // 大专辑图片
+                      Visibility(
+                        visible: controller.isBigAlbum.isTrue && controller.bottomPanelFullyOpened.isFalse,
+                        child: Container(
+                          margin: EdgeInsets.only(top: realTimeAlbumTopMargin),
+                          padding: EdgeInsets.all(realTimeAlbumPadding),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(realTimeAlbumBorderRadius),
                             ),
-                            IconButton(
-                              onPressed: () => controller.playOrPause(),
-                                padding: const EdgeInsets.all(AppDimensions.albumMinSize * 1 / 3 / 2),
-                                icon: Obx(() => Icon(
-                                controller.isPlaying.value ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
-                                color: controller.panelWidgetColor.value,
-                                size: AppDimensions.albumMinSize * 2 / 3,
-                              ))
-                            ),
+                            clipBehavior: Clip.hardEdge,
+                            child: Obx(() => SimpleExtendedImage(
+                              width: realTimeAlbumWidth,
+                              height: realTimeAlbumWidth,
+                              '${controller.curPlayingSong.value.extras?['image'] ?? ''}?param=500y500',
+                            )),
+                          ),
+                        ),
+                      ),
+                      // 小专辑图片
+                      Visibility(
+                        visible: controller.isBigAlbum.isFalse && controller.bottomPanelFullyOpened.isFalse,
+                        child: Container(
+                          height: AppDimensions.bottomPanelHeaderHeight,
+                          alignment: Alignment.centerLeft,
+                          margin: EdgeInsets.only(
+                            top: context.mediaQueryPadding.top * panelOpenDegree,
+                            left: AppDimensions.paddingSmall + panelOpenDegree * (context.width - AppDimensions.paddingLarge - AppDimensions.albumMinSize - AppDimensions.paddingSmall)),
+                          child: Obx(() => SimpleExtendedImage(
+                            width: AppDimensions.albumMinSize,
+                            height: AppDimensions.albumMinSize,
+                            shape: BoxShape.circle,
+                            '${controller.curPlayingSong.value.extras?['image'] ?? ''}?param=500y500',
+                          )),
+                        ),
+                      ),
+                      // 播放按钮
+                      Obx(() => Offstage(
+                        offstage: controller.bottomPanelFullyClosed.isFalse,
+                        child: Container(
+                          alignment: Alignment.centerRight,
+                          child: Container(
+                            margin: const EdgeInsets.all(AppDimensions.paddingSmall),
+                            child: Stack(
+                              children: [
+                                CircularPlaybackProgress(
+                                  progress: controller.curPlayDuration.value.inMilliseconds / controller.curPlayingSong.value.duration!.inMilliseconds,
+                                  size: AppDimensions.albumMinSize,
+                                  strokeWidth: 2,
+                                  progressColor: controller.panelWidgetColor.value,
+                                  backgroundColor: controller.panelWidgetColor.value.withAlpha(50),
+                                ),
+                                IconButton(
+                                  onPressed: () => controller.playOrPause(),
+                                    padding: const EdgeInsets.all(AppDimensions.albumMinSize * 1 / 3 / 2),
+                                    icon: Obx(() => Icon(
+                                    controller.isPlaying.value ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
+                                    color: controller.panelWidgetColor.value,
+                                    size: AppDimensions.albumMinSize * 2 / 3,
+                                  ))
+                                ),
 
-                          ],
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  )),
-                ],
-              ),
+                      )),
+                    ],
+                  ),
+                ),
+              ],
             );
           },
         ),

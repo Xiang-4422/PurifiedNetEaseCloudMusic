@@ -320,18 +320,16 @@ class PlayListPageView extends GetView<PlayListController> {
 
 class Header extends StatelessWidget {
   final String title;
-  const Header(this.title, {Key? key}) : super(key: key);
+  final double padding;
+  const Header(this.title, {Key? key, this.padding = 0}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Row(
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-        ],
+      padding: EdgeInsets.all(padding),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleLarge,
       ),
     );
   }

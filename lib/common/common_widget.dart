@@ -1,8 +1,16 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'dart:math' as math; // 导入数学库，用于计算π
 
+import '../pages/home/body/body_pages/personal_page.dart';
+import '../routes/router.gr.dart' as gr;
+import '../widget/keep_alive_wrapper.dart';
+import '../widget/simple_extended_image.dart';
+import 'constants/appConstants.dart';
 import 'constants/other.dart';
+import 'netease_api/src/api/play/bean.dart';
 
 /// 通用的长按缩放组件
 class PressScaleWidget extends StatefulWidget {
@@ -360,5 +368,100 @@ class _CircularProgressPainter extends CustomPainter {
         oldDelegate.strokeWidth != strokeWidth ||
         oldDelegate.backgroundColor != backgroundColor ||
         oldDelegate.progressColor != progressColor;
+  }
+}
+
+class PlayListWidget extends StatelessWidget {
+  final double albumCountInWidget;
+  final double albumMargin;
+  final List<PlayList> playLists;
+  final bool showSongCount;
+  final bool snappAllAlbum;
+
+  const PlayListWidget({
+    Key? key,
+    required this.playLists,
+    required this.albumCountInWidget,
+    required this.albumMargin,
+    this.showSongCount = true,
+    this.snappAllAlbum = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+
+        final double maxWidth = constraints.maxWidth;
+        final double maxHeight = constraints.maxHeight;
+
+        final double albumWidth = (maxWidth - albumMargin * albumCountInWidget.ceil()) / albumCountInWidget;
+
+        return SizedBox(
+          height: albumWidth * 1.3,
+          child: CustomScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: SnappingScrollPhysics(itemExtent: (albumWidth + albumMargin) * (snappAllAlbum ? albumCountInWidget.floor() : 1)),
+            slivers: [
+              SliverPadding(
+                padding: EdgeInsetsGeometry.only(left: albumMargin),
+                sliver: SliverList.builder(
+                  addAutomaticKeepAlives: true,
+                  itemCount: playLists.length,
+                  itemBuilder: (context, index) {
+                    return KeepAliveWrapper(
+                      child: Container(
+                        width: albumWidth,
+                        margin: EdgeInsets.only(right: albumMargin,),
+                        child: GestureDetector(
+                          onTap: () {
+                            context.router.push(gr.PlayListRouteView(playList: playLists[index]));
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SimpleExtendedImage.avatar(
+                                  width: albumWidth,
+                                  shape: BoxShape.rectangle,
+                                  borderRadius: BorderRadius.circular(albumMargin),
+                                  '${playLists[index].coverImgUrl ?? playLists[index].picUrl}?param=200y200'
+                              ),
+                              SizedBox(height: albumWidth * 0.04),
+                              Expanded(child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "${playLists[index].name}",
+                                    maxLines: showSongCount ? 1 : 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: albumWidth * 0.13 - 1,
+                                      height: 1,
+                                    ),
+                                  ),
+                                  showSongCount
+                                      ? Text(
+                                        "${playLists[index].trackCount == null || playLists[index].trackCount == 0 ? null : "${playLists[index].trackCount}首"}",
+                                        maxLines: 1,
+                                        style: context.textTheme.bodySmall,
+                                      )
+                                      : Container(),
+                                ],
+                              ))
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            ],
+          ),
+        );
+      },
+    );
   }
 }

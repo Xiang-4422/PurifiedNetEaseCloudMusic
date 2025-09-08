@@ -40,6 +40,8 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   List<PlayList> userMadePlayLists = <PlayList>[].obs;
   /// 用户收藏的歌单
   List<PlayList> userFavoritedPlayLists = <PlayList>[].obs;
+  /// 推荐歌单
+  RxList<PlayList> recoPlayLists = <PlayList>[].obs;
 
   // --- 首页快速播放卡片所需数据 ---
   RxBool dateLoaded = false.obs;
@@ -349,8 +351,9 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   }
 
   updateData() async {
-    await _updateUserPlayList();
+    await _updateUserPlayLists();
     await _updateQuickStartCardData();
+    await updateRecoPlayLists();
     dateLoaded.value = true;
 
     likedSongs.addAll(await getSongsByIds(likedSongIds.map((id) => id.toString()).toList()));
@@ -366,6 +369,15 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     _updateRandomLikedSong();
   }
 
+  updateRecoPlayLists() async {
+    List<PlayList> data;
+    PersonalizedPlayListWrap personalizedPlayListWrap = await NeteaseMusicApi().personalizedPlaylist();
+    data = personalizedPlayListWrap.result ?? [];
+    recoPlayLists
+      ..clear()
+      ..addAll(data);
+  }
+
   _updateRandomLikedSong() async {
     if (likedSongIds.isNotEmpty) {
       randomLikedSongId.value = likedSongIds[Random().nextInt(likedSongIds.length)].toString();
@@ -376,10 +388,9 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     }
   }
 
-  _updateUserPlayList() async {
+  _updateUserPlayLists() async {
     NeteaseMusicApi().userPlayLists(userData.value.profile?.userId ?? '-1').then((MultiPlayListWrap2 multiPlayListWrap2) async {
       List<PlayList> playLists = (multiPlayListWrap2.playlists ?? []);
-      print("playLists: ${playLists.toString()}");
       if (playLists.isNotEmpty) {
         userFavoritedPlayLists.clear();
         userMadePlayLists.clear();
@@ -873,8 +884,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     return "${song2ToMedia(songDetailWrap.songs ?? [])[0].extras?['image'] ?? ''}?param=500y500";
   }
 
-  // TODO YU4422: 用户登录状态失效验证
-  //获取用户信息
+  /// 更新用户登录信息
   updateUserState() async {
     try {
       NeteaseAccountInfoWrap neteaseAccountInfoWrap = await NeteaseMusicApi().loginAccountInfo();

@@ -1,3 +1,4 @@
+import 'package:bujuan/common/common_widget.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,45 +15,44 @@ class ExplorePageView extends GetView<ExplorePageController> {
 
   @override
   Widget build(BuildContext context) {
-    return Visibility(
-        visible: !controller.loading.value,
-        replacement: const LoadingView(),
-        child: Column(
-          children:[
-            Expanded(
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top),),
+    return Obx(() => Visibility(
+      visible: !controller.loading.value,
+      replacement: const LoadingView(),
+      child: RefreshIndicator(
+        onRefresh: () async {
+          await controller.updateData();
+        },
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top),),
 
-                  // 推荐歌单
-                  const SliverToBoxAdapter(
-                      child: Header('推荐歌单')
-                  ),
-                  SliverList(delegate: SliverChildBuilderDelegate(
-                    childCount: controller.playlists.length,
-                    (BuildContext context, int index) => PlayListItem(controller.playlists[index])
-                  )),
-                  // 新歌推荐
-                  const SliverToBoxAdapter(
-                    child: Header('新歌推荐')
-                  ),
-                  SliverList(delegate: SliverChildBuilderDelegate(
-                    addAutomaticKeepAlives: false,
-                    addRepaintBoundaries: false,
-                    childCount: controller.newSongs.length,
-                    (context, index) => SongItem(
-                      index: index,
-                      playlist: controller.newSongs,
-                    ),
-                  )),
-
-                  const SliverPadding(padding: EdgeInsets.only(top: AppDimensions.bottomPanelHeaderHeight),),
-                ],
-              ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+            // 精选歌单
+            SliverToBoxAdapter(
+              child: Header('精选歌单', padding: AppDimensions.paddingSmall).paddingOnly(top: AppDimensions.paddingSmall)
             ),
+            SliverToBoxAdapter(
+              child: Obx(() => PlayListWidget(playLists: controller.hqPlaylists.value, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall, showSongCount: false,)),
+            ),
+
+            // 新歌推荐
+            SliverToBoxAdapter(
+              child: Header('新歌推荐', padding: AppDimensions.paddingSmall).paddingOnly(top: AppDimensions.paddingSmall)
+            ),
+            SliverList(delegate: SliverChildBuilderDelegate(
+              addAutomaticKeepAlives: false,
+              addRepaintBoundaries: false,
+              childCount: controller.newSongs.length,
+              (context, index) => SongItem(
+                index: index,
+                playlist: controller.newSongs,
+              ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+            )),
+
+            const SliverPadding(padding: EdgeInsets.only(top: AppDimensions.bottomPanelHeaderHeight),),
           ],
         ),
-      );
+      ),
+    ));
   }
 }

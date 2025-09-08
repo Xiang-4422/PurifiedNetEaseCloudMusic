@@ -6,6 +6,7 @@ import 'package:bujuan/pages/login/login_page_view.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'dart:math' as math;
 
@@ -43,10 +44,10 @@ class PersonalPageView extends GetView<AppController> {
         slivers: [
           SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top)),
 
-          // 每日推荐、FM
+          // 快速播放卡片
           SliverToBoxAdapter(
             child: Container(
-              margin: const EdgeInsets.symmetric(vertical: AppDimensions.paddingSmall),
+              margin: EdgeInsets.only(bottom: AppDimensions.paddingSmall),
               height: userItemWidth * 1.3,
               child: CustomScrollView(
                 scrollDirection: Axis.horizontal,
@@ -67,7 +68,20 @@ class PersonalPageView extends GetView<AppController> {
                               title: "每日推荐",
                               onTap: () => context.router.push(const gr.TodayRouteView()),
                             ),
-                            IconButton(onPressed:() => controller.playNewPlayList(controller.todayRecommendSongs, 0, playListName: "今日推荐"), icon: Icon(TablerIcons.player_play_filled, color: Colors.white,))
+                            Obx(() => Visibility(
+                              visible: controller.isPlaying.isTrue && (controller.curPlayListName.value == "每日推荐"),
+                              replacement: IconButton(
+                                onPressed:() {
+                                  if(controller.curPlayListName.value != "每日推荐") {
+                                    controller.playNewPlayList(controller.todayRecommendSongs, 0, playListName: "每日推荐");
+                                  } else {
+                                    controller.playOrPause();
+                                  }
+                                },
+                                icon: Icon(TablerIcons.player_play_filled, color: Colors.white,)
+                              ),
+                              child: Lottie.asset('assets/lottie/music_playing.json', width: 50),
+                            ))
                           ],
                         ).marginOnly(right: AppDimensions.paddingSmall),
                         Stack(
@@ -116,78 +130,31 @@ class PersonalPageView extends GetView<AppController> {
             ),
           ),
 
-          // 创建的歌单
+          // 推荐歌单
           SliverToBoxAdapter(
-            child: const Header('我的歌单').paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+            child: Row(
+              children: [
+                const Header('推荐歌单', padding: AppDimensions.paddingSmall),
+                IconButton(onPressed: controller.updateRecoPlayLists, icon: Icon(TablerIcons.refresh)),
+                Expanded(child: Container())
+              ],
+            ).marginOnly(top: AppDimensions.paddingSmall),
           ),
           SliverToBoxAdapter(
-              child: Container(
-                height: albumWidth * 1.6,
-                child: CustomScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: SnappingScrollPhysics(itemExtent: albumWidth + AppDimensions.paddingSmall),
-                  slivers: [
-                    SliverPadding(
-                      padding: const EdgeInsetsGeometry.only(left: AppDimensions.paddingSmall),
-                      sliver: SliverList.builder(
-                        addAutomaticKeepAlives: true,
-                        itemCount: controller.userMadePlayLists.length,
-                        itemBuilder: (context, index) {
-                          return KeepAliveWrapper(
-                            child: Container(
-                              width: albumWidth,
-                              margin: EdgeInsets.only(
-                                right: AppDimensions.paddingSmall,
-                                top: AppDimensions.paddingSmall,
-                                bottom: AppDimensions.paddingSmall,
-                              ),
-                              child: GestureDetector(
-                                onTap: () {
-                                  context.router.push(gr.PlayListRouteView(playList: controller.userMadePlayLists[index]));
-                                },
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SimpleExtendedImage.avatar(
-                                        width: albumWidth,
-                                        shape: BoxShape.rectangle,
-                                        borderRadius: BorderRadius.circular(AppDimensions.paddingSmall),
-                                        '${controller.userMadePlayLists[index].coverImgUrl}?param=200y200'
-                                    ),
-                                    Expanded(child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          "${controller.userMadePlayLists[index].name}",
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: context.textTheme.bodyMedium,
-                                        ),
-                                        Text(
-                                          "${controller.userMadePlayLists[index].trackCount == null || controller.userMadePlayLists[index].trackCount == 0 ? null : "${controller.userMadePlayLists[index].trackCount}首"}",
-                                          maxLines: 1,
-                                          style: context.textTheme.bodySmall,
-                                        ),
-                                      ],
-                                    ))
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    )
-                  ],
-                ),
-              )
+            child: Obx(() => PlayListWidget(playLists: controller.recoPlayLists.value, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall, showSongCount: false, snappAllAlbum: false)),
           ),
 
-          // 收藏的歌单
+          // 我创建的歌单
           SliverToBoxAdapter(
-            child: const Header('收藏的歌单').paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+            child: const Header('我创建的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
+          ),
+          SliverToBoxAdapter(
+              child: PlayListWidget(playLists: controller.userMadePlayLists, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall)
+          ),
+
+          // 我收藏的歌单
+          SliverToBoxAdapter(
+            child: const Header('我收藏的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
           ),
           SliverList.builder(
             itemCount: controller.userFavoritedPlayLists.length,
@@ -196,75 +163,14 @@ class PersonalPageView extends GetView<AppController> {
             },
           ),
 
-          SliverPadding(padding: EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight)),
+          SliverPadding(padding: EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom)),
         ]
       )),
     );
   }
 }
 
-typedef SliverHeaderBuilder = Widget Function(
-    BuildContext context, double shrinkOffset, bool overlapsContent);
-
-class SliverHeaderDelegate extends SliverPersistentHeaderDelegate {
-  // child 为 header
-  SliverHeaderDelegate({
-    required this.maxHeight,
-    this.minHeight = 0,
-    required Widget child,
-  })  : builder = ((a, b, c) => child),
-        assert(minHeight <= maxHeight && minHeight >= 0);
-
-  //最大和最小高度相同
-  SliverHeaderDelegate.fixedHeight({
-    required double height,
-    required Widget child,
-  })  : builder = ((a, b, c) => child),
-        maxHeight = height,
-        minHeight = height;
-
-  //需要自定义builder时使用
-  SliverHeaderDelegate.builder({
-    required this.maxHeight,
-    this.minHeight = 0,
-    required this.builder,
-  });
-
-  final double maxHeight;
-  final double minHeight;
-  final SliverHeaderBuilder builder;
-
-  @override
-  Widget build(
-      BuildContext context,
-      double shrinkOffset,
-      bool overlapsContent,
-      ) {
-    Widget child = builder(context, shrinkOffset, overlapsContent);
-    //测试代码：如果在调试模式，且子组件设置了key，则打印日志
-    assert(() {
-      if (child.key != null) {
-        print('${child.key}: shrink: $shrinkOffset，overlaps:$overlapsContent');
-      }
-      return true;
-    }());
-    // 让 header 尽可能充满限制的空间；宽度为 Viewport 宽度，
-    // 高度随着用户滑动在[minHeight,maxHeight]之间变化。
-    return SizedBox.expand(child: child);
-  }
-
-  @override
-  double get maxExtent => maxHeight;
-
-  @override
-  double get minExtent => minHeight;
-
-  @override
-  bool shouldRebuild(SliverHeaderDelegate old) {
-    return old.maxExtent != maxExtent || old.minExtent != minExtent;
-  }
-}
-
+/// 自动吸附滚动
 class SnappingScrollPhysics extends ScrollPhysics {
   final double itemExtent; // 每个格子的宽度(含间距)
 
@@ -282,18 +188,7 @@ class SnappingScrollPhysics extends ScrollPhysics {
   }
 
   double _getTargetPixels(ScrollMetrics position, Tolerance tolerance, double velocity) {
-    double page = position.pixels / itemExtent;
-
-
-    page = page.ceilToDouble();
-
-    // if (velocity > 0) {
-    //   // 向左滑动，吸附到第一个完全显示的元素，向上取整
-    //   page = page.ceilToDouble();
-    // } else {
-    //   // 向右滑动，吸附到第一个元素，向下取整
-    //   page = page.floorToDouble();
-    // }
+    int page = (position.pixels / itemExtent).round();
 
     // 限制最大滚动范围
     return math.min(page * itemExtent, position.maxScrollExtent);
@@ -301,8 +196,6 @@ class SnappingScrollPhysics extends ScrollPhysics {
 
   @override
   Simulation? createBallisticSimulation(ScrollMetrics position, double velocity) {
-
-    final Tolerance tolerance = this.tolerance;
     // 快速滑动或超出边界，使用默认惯性滑动
     if (position.outOfRange || velocity.abs() > tolerance.velocity) {
       return super.createBallisticSimulation(position, velocity);
@@ -319,6 +212,7 @@ class SnappingScrollPhysics extends ScrollPhysics {
   }
 }
 
+/// 去除拉伸变形效果
 class NoStretchBouncingScrollBehavior extends ScrollBehavior {
   @override
   Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {

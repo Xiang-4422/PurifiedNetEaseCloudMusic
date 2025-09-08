@@ -9,29 +9,39 @@ import 'package:get/get.dart';
 import '../common/constants/enmu.dart';
 
 class ExplorePageController extends GetxController {
-  RxList<PlayList> playlists = <PlayList>[].obs;
+  RxList<PlayList> hqPlaylists = <PlayList>[].obs;
+
   RxList<MediaItem> newSongs = <MediaItem>[].obs;
+
   RxBool loading = true.obs;
 
   @override
   void onReady() async {
     super.onReady();
     WidgetsBinding.instance.addPostFrameCallback((_) async{
-      await _getRecoPlayLists();
-      await _getNewSongs();
+      await updateData();
       loading.value = false;
     });
   }
 
-  _getRecoPlayLists() async {
+  updateData() async {
+    await _getNewSongs();
+    await _getHighQualityPlayLists();
+    PlaylistCatalogueWrap catalogueWrap = await NeteaseMusicApi().playlistCatalogue();
+    TopListWrap topListWrap = await NeteaseMusicApi().topList();
+
+  }
+
+  _getHighQualityPlayLists() async {
     List<PlayList> data;
-    PersonalizedPlayListWrap personalizedPlayListWrap = await NeteaseMusicApi().personalizedPlaylist();
-    data = personalizedPlayListWrap.result ?? [];
-    playlists
+    MultiPlayListWrap multiPlayListWrap = await NeteaseMusicApi().highqualityPlayList();
+    data = multiPlayListWrap.playlists ?? [];
+    hqPlaylists
       ..clear()
       ..addAll(data);
     // ..addAll(data.length > 6 ? data.sublist(0, 6) : data);
   }
+
   _getNewSongs() async{
     PersonalizedSongListWrap personalizedSongListWrap = await NeteaseMusicApi().personalizedSongList();
     var data = personalizedSongListWrap.result??[];

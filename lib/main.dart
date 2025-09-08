@@ -51,5 +51,5 @@ Future<void> _initSingleton() async {
   await Hive.initFlutter('BuJuan');
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));
   // 初始化网易云API
-  await NeteaseMusicApi.init(debug: false);
+  await NeteaseMusicApi.init(debug: true);
 }

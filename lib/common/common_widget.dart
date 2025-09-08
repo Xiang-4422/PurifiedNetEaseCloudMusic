@@ -371,6 +371,8 @@ class _CircularProgressPainter extends CustomPainter {
   }
 }
 
+/// 专辑列表
+/// 根据父容器宽度，自适应组件
 class PlayListWidget extends StatelessWidget {
   final double albumCountInWidget;
   final double albumMargin;

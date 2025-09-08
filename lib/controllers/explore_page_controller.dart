@@ -13,6 +13,8 @@ class ExplorePageController extends GetxController {
 
   RxList<MediaItem> newSongs = <MediaItem>[].obs;
 
+  int lastTime = 0;
+
   RxBool loading = true.obs;
 
   @override
@@ -27,9 +29,6 @@ class ExplorePageController extends GetxController {
   updateData() async {
     await _getNewSongs();
     await _getHighQualityPlayLists();
-    PlaylistCatalogueWrap catalogueWrap = await NeteaseMusicApi().playlistCatalogue();
-    TopListWrap topListWrap = await NeteaseMusicApi().topList();
-
   }
 
   _getHighQualityPlayLists() async {

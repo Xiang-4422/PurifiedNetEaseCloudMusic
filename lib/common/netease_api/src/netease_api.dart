@@ -49,10 +49,21 @@ class NeteaseMusicApi
   static Dio _initDio(Dio dio, bool debug, bool refreshToken) {
 
     dio.interceptors.add(cookieManager);
+    // Dio日志拦截器
+    if (debug) {
+      dio.interceptors.add(PrettyDioLogger(
+        requestHeader: false,
+        requestBody: true,
+        responseHeader: false,
+        responseBody: true,
+        error: true,
+        compact: true,
+        maxWidth: 100,
+      ));
+    }
     dio.interceptors.add(InterceptorsWrapper(
         onRequest: neteaseInterceptor,
-        onResponse:
-            (Response response, ResponseInterceptorHandler handler) async {
+        onResponse: (Response response, ResponseInterceptorHandler handler) async {
           var requestOptions = response.requestOptions;
 
           if (response.data is String) {
@@ -94,20 +105,9 @@ class NeteaseMusicApi
           }
 
           handler.next(response);
-        }));
-
-    // Dio日志拦截器
-    if (debug) {
-      dio.interceptors.add(PrettyDioLogger(
-          requestHeader: true,
-          requestBody: true,
-          responseBody: true,
-          responseHeader: true,
-          error: true,
-          compact: true,
-          maxWidth: 90,
-      ));
-    }
+        }
+      )
+    );
 
     return dio;
   }

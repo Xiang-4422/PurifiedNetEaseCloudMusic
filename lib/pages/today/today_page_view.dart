@@ -112,7 +112,7 @@ class TodayPageView extends GetView<AppController> {
                       height: AppDimensions.bottomPanelHeaderHeight,
                     );
                   }
-                  return SongItem(playlist: controller.todayRecommendSongs, index: index, stringColor: Colors.black, showIndex: true).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+                  return SongItem(playlist: controller.todayRecommendSongs, index: index, playListName: "今日推荐", stringColor: Colors.black, showIndex: true).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
                 },
               ),
             ),

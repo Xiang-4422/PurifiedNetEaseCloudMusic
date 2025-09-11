@@ -1,4 +1,6 @@
-String playQueueTitle = 'PLAY_QUEUE_TITLE';
+String playListName = 'PLAY_LIST_NAME';
+String playListNameHeader = 'PLAY_LIST_NAME_HEADER';
+
 String playQueue = 'PLAY_QUEUE';
 String curPlaySongId = 'PLAY_ID';
 String playPosition = 'PLAY_POSITION';

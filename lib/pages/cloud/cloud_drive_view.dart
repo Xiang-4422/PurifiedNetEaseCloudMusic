@@ -55,6 +55,7 @@ class CloudDriveView extends GetWidget<CloudController> {
                     return SongItem(
                       index: index,
                       playlist: controller.mediaItems,
+                      playListName: "云盘音乐",
                     );
                   },
                 );

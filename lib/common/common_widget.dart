@@ -1,7 +1,10 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/controllers/app_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 import 'dart:math' as math; // 导入数学库，用于计算π
 
 import '../pages/home/body/body_pages/personal_page.dart';
@@ -373,31 +376,36 @@ class _CircularProgressPainter extends CustomPainter {
 
 /// 专辑列表
 /// 根据父容器宽度，自适应组件
-class PlayListWidget extends StatelessWidget {
+class PlayListWidget extends GetView<AppController> {
   final double albumCountInWidget;
   final double albumMargin;
   final List<PlayList> playLists;
   final bool showSongCount;
   final bool snappAllAlbum;
+  final bool noScroll;
 
   const PlayListWidget({
     Key? key,
     required this.playLists,
-    required this.albumCountInWidget,
-    required this.albumMargin,
+    this.albumCountInWidget = 2.5,
+    this.albumMargin = 0,
     this.showSongCount = true,
     this.snappAllAlbum = false,
+    this.noScroll = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
 
         final double maxWidth = constraints.maxWidth;
         final double maxHeight = constraints.maxHeight;
 
-        final double albumWidth = (maxWidth - albumMargin * albumCountInWidget.ceil()) / albumCountInWidget;
+        final double albumWidth = noScroll
+            ? (maxWidth - albumMargin * (playLists.length + 1)) / playLists.length
+            : (maxWidth - albumMargin * albumCountInWidget.ceil()) / albumCountInWidget;
 
         return SizedBox(
           height: albumWidth * 1.3,
@@ -423,11 +431,30 @@ class PlayListWidget extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              SimpleExtendedImage.avatar(
-                                  width: albumWidth,
-                                  shape: BoxShape.rectangle,
-                                  borderRadius: BorderRadius.circular(albumMargin),
-                                  '${playLists[index].coverImgUrl ?? playLists[index].picUrl}?param=200y200'
+                              Stack(
+                                alignment: Alignment.bottomRight,
+                                children: [
+                                  SimpleExtendedImage.avatar(
+                                      width: albumWidth,
+                                      shape: BoxShape.rectangle,
+                                      borderRadius: BorderRadius.circular(albumMargin),
+                                      '${playLists[index].coverImgUrl ?? playLists[index].picUrl}?param=200y200'
+                                  ),
+                                  Obx(() => Visibility(
+                                    visible: controller.isPlaying.isTrue && (controller.curPlayListName.value == playLists[index].name),
+                                    replacement: IconButton(
+                                        onPressed:() {
+                                          if(controller.curPlayListName.value != playLists[index].name) {
+                                            controller.playNewPlayListById(playLists[index].id);
+                                          } else {
+                                            controller.playOrPause();
+                                          }
+                                        },
+                                        icon: Icon(TablerIcons.player_play_filled, color: Colors.white,)
+                                    ),
+                                    child: Lottie.asset('assets/lottie/music_playing.json', width: 50),
+                                  ))
+                                ],
                               ),
                               SizedBox(height: albumWidth * 0.04),
                               Expanded(child: Column(

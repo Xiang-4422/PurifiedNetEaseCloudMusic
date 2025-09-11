@@ -141,7 +141,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                           TablerIcons.player_play_filled,
                           color: Colors.white,
                         ),
-                        onPressed: () => AppController.to.playNewPlayList(topSongs, 0, playListName: "歌手：${artist.name}热门单曲")
+                        onPressed: () => AppController.to.playNewPlayList(topSongs, 0, playListName: artist.name ?? "未知歌手", playListNameHeader: "歌手")
                       ),
                     )
                   ],
@@ -260,7 +260,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                     height: AppDimensions.bottomPanelHeaderHeight,
                   );
                 }
-                return SongItem(playlist: topSongs, index: index, stringColor: onAlbumColor, showIndex: true).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+                return SongItem(playlist: topSongs, index: index, playListName: artist.name ?? "未知歌手", playListHeader: "歌手", stringColor: onAlbumColor, showIndex: true).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
               },
             ),
           ),

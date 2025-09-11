@@ -83,10 +83,10 @@ class WidgetUtil {
     Fluttertoast.showToast(
       msg: message,
       toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
+      gravity: ToastGravity.TOP,
       timeInSecForIosWeb: 1,
-      backgroundColor: Colors.grey,
-      textColor: Colors.white,
+      backgroundColor: Colors.white,
+      textColor: Colors.black,
       fontSize: 16.0,
     );
   }

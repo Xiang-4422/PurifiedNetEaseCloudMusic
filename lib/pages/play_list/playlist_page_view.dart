@@ -50,8 +50,8 @@ class PlayListPageView extends GetView<PlayListController> {
                 automaticallyImplyLeading: true,
                 foregroundColor: Colors.transparent,
                 surfaceTintColor: Colors.transparent,
-                // backgroundColor: controller.albumColor.value,
-                backgroundColor: Colors.transparent,
+                backgroundColor: controller.albumColor.value,
+                // backgroundColor: Colors.transparent,
 
 
                 flexibleSpace: FlexibleSpaceBar(
@@ -141,7 +141,7 @@ class PlayListPageView extends GetView<PlayListController> {
                                 int startIndex = AppController.to.curRepeatMode.value == AudioServiceRepeatMode.none
                                     ? Random().nextInt(controller.loadedMediaItemCount.value)
                                     : 0;
-                                await AppController.to.playNewPlayList(controller.songs, startIndex, playListName: controller.playList.name ?? "无名歌单");
+                                await AppController.to.playNewPlayList(controller.songs, startIndex, playListName: controller.playList.name ?? "无名歌单", playListNameHeader: "歌单");
                               },
                               icon: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -195,7 +195,7 @@ class PlayListPageView extends GetView<PlayListController> {
                                 int startIndex = AppController.to.curRepeatMode.value == AudioServiceRepeatMode.none
                                     ? Random().nextInt(controller.loadedMediaItemCount.value)
                                     : 0;
-                                await AppController.to.playNewPlayList(controller.songs, startIndex, playListName: controller.playList.name ?? "无名歌单", );
+                                await AppController.to.playNewPlayList(controller.songs, startIndex, playListName: controller.playList.name ?? "无名歌单", playListNameHeader: "歌单");
                               },
                               icon: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -230,6 +230,8 @@ class PlayListPageView extends GetView<PlayListController> {
                   return SongItem(
                     index: index,
                     playlist: controller.songs,
+                    playListName: controller.playList.name ?? "无名歌单",
+                    playListHeader: "歌单",
                     stringColor: controller.widgetColor.value,
                     beforeOnTap: () {
                       AppController.to.bottomPanelPageController.jumpToPage(0);
@@ -326,6 +328,8 @@ class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: AppDimensions.headerHeight,
+      alignment: Alignment.centerLeft,
       padding: EdgeInsets.all(padding),
       child: Text(
         title,
@@ -340,13 +344,24 @@ class Header extends StatelessWidget {
 class SongItem extends StatelessWidget {
   final int index;
   final List<MediaItem> playlist;
-  // TODO YU4422: 添加歌单名称字段 part1
+  final String playListName;
+  final String playListHeader;
   final Function()? beforeOnTap;
   final Color? stringColor;
   final bool showPic;
   final bool showIndex;
 
-  const SongItem({Key? key, this.beforeOnTap, this.stringColor, this.showPic = true, this.showIndex = false, required this.playlist, required this.index}) : super(key: key);
+  const SongItem({
+    Key? key,
+    this.beforeOnTap,
+    this.stringColor,
+    this.showPic = true,
+    this.showIndex = false,
+    this.playListHeader = "",
+    required this.playlist,
+    required this.index,
+    required this.playListName
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -360,8 +375,7 @@ class SongItem extends StatelessWidget {
             stringColor: stringColor,
             onTap: () async {
               if (beforeOnTap != null) await beforeOnTap!();
-              // TODO YU4422: 添加歌单名称字段 part2
-              AppController.to.playNewPlayList(playlist, index);
+              AppController.to.playNewPlayList(playlist, index, playListName: playListName, playListNameHeader: playListHeader);
             },
           ),
         ),

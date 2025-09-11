@@ -28,14 +28,18 @@ class AppDimensions {
   static const double iconSizeMedium = 24.0;
   static const double iconSizeLarge = 32.0;
 
-  // 顶部AppBar尺寸
-  static const double appBarHeight= bottomPanelHeaderHeight;
-
   // 底部PanelHeader尺寸
   /// 屏幕圆角 xiaomi13
   static const double phoneCornerRadius = 42.5;
   static const double bottomPanelHeaderHeight = phoneCornerRadius * 2;
   static const double albumMinSize = bottomPanelHeaderHeight - paddingSmall * 2;
+
+  // 顶部AppBar尺寸
+  static const double appBarHeight= bottomPanelHeaderHeight;
+
+  // 组件高度
+  static const double headerHeight = 50;
+
 
 }
 

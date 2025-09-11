@@ -62,6 +62,7 @@ class TopPanelView extends GetView<AppController> {
                               itemBuilder: (context, index) => SongItem(
                                 index: index,
                                 playlist: list,
+                                playListName: "搜索结果：${controller.searchContent.value}",
                               ),
                               itemCount: list.length,
                             );

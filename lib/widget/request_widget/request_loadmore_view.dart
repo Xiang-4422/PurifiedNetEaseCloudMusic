@@ -76,13 +76,10 @@ class RequestLoadMoreWidgetState<E, T> extends State<RequestLoadMoreWidget<E, T>
 
   @override
   Widget build(BuildContext context) {
-    return _loading
-        ? const LoadingView()
-        : _empty
-            ? const EmptyView()
-            : _error
-                ? const ErrorView()
-                : SmartRefresher(
+    if (_loading) return const LoadingView();
+    if (_empty) return const EmptyView();
+    if (_error) return const ErrorView();
+    return  SmartRefresher(
       physics: const ClampingScrollPhysics(),
       enablePullUp: widget.enableLoad,
       enablePullDown: false,

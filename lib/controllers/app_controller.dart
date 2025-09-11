@@ -150,6 +150,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   /// 当前播放列表
   RxList<MediaItem> curPlayingSongs = <MediaItem>[].obs;
   RxString curPlayListName = "".obs;
+  RxString curPlayListNameHeader = "".obs;
   /// 当前播放歌曲
   Rx<MediaItem> curPlayingSong = const MediaItem(id: '', title: '暂无', duration: Duration(seconds: 10)).obs;
   /// 当前播放索引
@@ -371,7 +372,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
 
   updateRecoPlayLists() async {
     List<PlayList> data;
-    PersonalizedPlayListWrap personalizedPlayListWrap = await NeteaseMusicApi().personalizedPlaylist();
+    PersonalizedPlayListWrap personalizedPlayListWrap = await NeteaseMusicApi().personalizedPlaylist(limit: 3);
     data = personalizedPlayListWrap.result ?? [];
     recoPlayLists
       ..clear()
@@ -569,12 +570,41 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     });
   }
   /// 根据下标播放歌曲
-  playNewPlayList(List<MediaItem> playList, int index, {String playListName = "无名歌单"}) async {
+  playNewPlayList(List<MediaItem> playList, int index, {String playListName = "无名歌单", String playListNameHeader = ""}) async {
     // 切歌单退出漫游模式、心动模式
     if (isFmMode.isTrue) quitFmMode();
     if (isHeartBeatMode.isTrue) quitHeartBeatMode();
-    await audioHandler.changePlayList(playList, index: index, playListName: playListName, changePlayerSource: true, playNow: true);
+    await audioHandler.changePlayList(playList, index: index, playListName: playListName, playListNameHeader: playListNameHeader, changePlayerSource: true, playNow: true);
   }
+
+  playNewPlayListById(String playListId) async {
+    SinglePlayListWrap details = await NeteaseMusicApi().playListDetail(playListId);
+    List<MediaItem> songs = await getPlayListSongs("", singlePlayListWrap: details);
+    playNewPlayList(songs, 0, playListName: details.playlist?.name ?? "无名歌单", playListNameHeader: "歌单");
+  }
+
+  Future<List<MediaItem>> getPlayListSongs(String playListId, {SinglePlayListWrap? singlePlayListWrap, int offset = 0, int limit = -1}) async {
+
+    // 获取歌曲id
+    singlePlayListWrap ??= await NeteaseMusicApi().playListDetail(playListId);
+    List<String> songIds = singlePlayListWrap?.playlist?.trackIds?.map((e) => e.id).toList() ?? [];
+
+    // 配置offset和limit
+    songIds.removeRange(0, offset);
+    limit = limit == -1 || songIds.length < limit ? songIds.length : limit;
+
+    // 获取歌曲
+    List<MediaItem> songs = [];
+    songs.clear();
+    int loadedMediaItemCount = 0;
+    while (loadedMediaItemCount < limit) {
+      SongDetailWrap songDetailWrap = await NeteaseMusicApi().songDetail(songIds.sublist(0, min(1000, limit)));
+      songs.addAll(AppController.to.song2ToMedia(songDetailWrap.songs ?? []));
+      loadedMediaItemCount = songs.length;
+    }
+    return songs;
+  }
+
 
   playUserLikedSongs() async {
     int playIndex;

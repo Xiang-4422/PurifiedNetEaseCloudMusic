@@ -127,7 +127,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                               TablerIcons.player_play_filled,
                               color: Colors.white,
                             ),
-                            onPressed: () => AppController.to.playNewPlayList(albumSongs, 0, playListName: "专辑：${album.name ?? '无名专辑'}")
+                            onPressed: () => AppController.to.playNewPlayList(albumSongs, 0, playListName: album.name ?? '无名专辑', playListNameHeader: "专辑")
                         ),
                       )
                     ],
@@ -152,7 +152,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                       height: AppDimensions.bottomPanelHeaderHeight,
                     );
                   }
-                  return SongItem(playlist: albumSongs, index: index, stringColor: onAlbumColor, showPic: false, showIndex: true).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+                  return SongItem(playlist: albumSongs, index: index, playListName: album.name ?? '无名专辑', playListHeader: "专辑", stringColor: onAlbumColor, showPic: false, showIndex: true).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
                 },
               ),
             ),

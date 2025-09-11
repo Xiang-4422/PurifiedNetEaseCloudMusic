@@ -5,30 +5,112 @@ import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../common/constants/enmu.dart';
 
 class ExplorePageController extends GetxController {
+  List<int> topPlayListIds = [3779629, 3778678, 2884035, 19723756, 10520166];
+  Map<String, List<Map<String, String>>> topPlayListCategory = {
+    "官方榜" : [
+      {'name': '云音乐新歌榜', 'id': '3779629'},
+      {'name': '云音乐热歌榜', 'id': '3778678'},
+      {'name': '云音乐原创榜', 'id': '2884035'},
+      {'name': '云音乐飙升榜', 'id': '19723756'},
+      {'name': '云音乐电音榜', 'id': '10520166'},
+    ],
+    "全球榜": [
+      {'name': 'UK排行榜周榜', 'id': '180106'},
+      {'name': '美国Billboard周榜', 'id': '60198'},
+      {'name': 'KTV嗨榜', 'id': '21845217'},
+      {'name': 'iTunes榜', 'id': '11641012'},
+      {'name': 'Hit FM Top榜', 'id': '120001'},
+      {'name': '日本Oricon周榜', 'id': '60131'},
+      {'name': '韩国Melon排行榜周榜', 'id': '3733003'},
+      {'name': '韩国Mnet排行榜周榜', 'id': '60255'},
+      {'name': '韩国Melon原声周榜', 'id': '46772709'},
+      {'name': '中国TOP排行榜(港台榜)', 'id': '112504'},
+      {'name': '中国TOP排行榜(内地榜)', 'id': '64016'},
+      {'name': '香港电台中文歌曲龙虎榜', 'id': '10169002'},
+      {'name': '华语金曲榜', 'id': '4395559'},
+      {'name': '中国嘻哈榜', 'id': '1899724'},
+      {'name': '法国 NRJ EuroHot 30周榜', 'id': '27135204'},
+      {'name': '台湾Hito排行榜', 'id': '112463'},
+      {'name': 'Beatport全球电子舞曲榜', 'id': '3812895'},
+    ],
+    "语种榜": [
+      {'name': '云音乐欧美热歌榜', 'id': '2809513713'},
+      {'name': '云音乐欧美新歌榜', 'id': '2809577409'},
+    ],
+    "精选榜": [
+      {'name': '云音乐ACG音乐榜', 'id': '71385702'},
+      {'name': '云音乐说唱榜', 'id': '991319590'},
+      {'name': '云音乐古典音乐榜', 'id': '71384707'},
+      {'name': '云音乐电音榜', 'id': '1978921795'},
+      {'name': '抖音排行榜', 'id': '2250011882'},
+      {'name': '新声榜', 'id': '2617766278'},
+      {'name': '云音乐韩语榜', 'id': '745956260'},
+      {'name': '英国Q杂志中文版周榜', 'id': '2023401535'},
+      {'name': '电竞音乐榜', 'id': '2006508653'},
+      {'name': '说唱TOP榜', 'id': '2847251561'},
+      {'name': '云音乐ACG动画榜', 'id': '3001835560'},
+      {'name': '云音乐ACG游戏榜', 'id': '3001795926'},
+      {'name': '云音乐ACG VOCALOID榜', 'id': '3001890046'}
+    ]
+  };
+
+  List<String> topPlayListCategoryNames = [];
+  RxBool showChooseCategory = false.obs;
+  RxList<Map<String, String>> curCategoryTopPlayLists = <Map<String, String>>[].obs;
+  RxBool showChoosePlayList = false.obs;
+
+  /// 当前排行榜分类名
+  RxString curTopPlayListCategoryName = "".obs;
+  /// 当前排行榜名称
+  RxString curTopPlayListName = "".obs;
+  /// 当前排行榜ID
+  RxString curTopPlayListId = "".obs;
+
   RxList<PlayList> hqPlaylists = <PlayList>[].obs;
-
-  RxList<MediaItem> newSongs = <MediaItem>[].obs;
-
-  int lastTime = 0;
+  RxList<PlayList> topPlaylists = <PlayList>[].obs;
+  /// 当前排行榜歌单
+  RxList<MediaItem> curTopPlayListSongs = <MediaItem>[].obs;
 
   RxBool loading = true.obs;
+
+  RefreshController refreshController = RefreshController();
 
   @override
   void onReady() async {
     super.onReady();
-    WidgetsBinding.instance.addPostFrameCallback((_) async{
-      await updateData();
-      loading.value = false;
-    });
+    initData();
+    await updateData();
+    loading.value = false;
+  }
+
+  initData() {
+    topPlayListCategoryNames.addAll(topPlayListCategory.keys);
+    curTopPlayListCategoryName.value = topPlayListCategoryNames[0];
+    curCategoryTopPlayLists.addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
+    curTopPlayListName.value = curCategoryTopPlayLists[0]["name"]!;
+    curTopPlayListId.value = curCategoryTopPlayLists[0]["id"]!;
   }
 
   updateData() async {
-    await _getNewSongs();
     await _getHighQualityPlayLists();
+    await _getRankingPlayLists();
+    await updateRankingPlayListSongs();
+    refreshController.refreshCompleted();
+    refreshController.resetNoData();
+  }
+
+  _getRankingPlayLists() async {
+    for (var id in topPlayListIds) {
+      SinglePlayListWrap singlePlayListWrap = await NeteaseMusicApi().playListDetail(id.toString());
+      if (singlePlayListWrap.playlist != null) {
+        topPlaylists.add(singlePlayListWrap.playlist!);
+      }
+    }
   }
 
   _getHighQualityPlayLists() async {
@@ -41,26 +123,44 @@ class ExplorePageController extends GetxController {
     // ..addAll(data.length > 6 ? data.sublist(0, 6) : data);
   }
 
-  _getNewSongs() async{
-    PersonalizedSongListWrap personalizedSongListWrap = await NeteaseMusicApi().personalizedSongList();
-    var data = personalizedSongListWrap.result??[];
-    newSongs
-      ..clear()
-      ..addAll(data.map((e) => MediaItem(
-          id: e.id,
-          duration: Duration(milliseconds: e.song.duration ?? 0),
-          artUri: Uri.parse('${e.song.album?.picUrl ?? ''}?param=500y500'),
-          extras: {
-            'type': MediaType.playlist.name,
-            'image': e.song.album?.picUrl ?? '',
-            'liked': AppController.to.likedSongIds.contains(int.tryParse(e.id)),
-            'artist': (e.song.artists ?? []).map((e) => jsonEncode(e.toJson())).toList().join(' / '),
-            'album': jsonEncode(e.song.album?.toJson()),
-            'mv': e.song.mvid,
-            'fee': e.song.fee
-          },
-          title: e.song.name ?? "",
-          album: e.song.album?.name,
-          artist: (e.song.artists ?? []).map((e) => e.name).toList().join(' / '))).toList());
+  changeCurRankingPlayList(String rankingPlayListid) {
+    curTopPlayListId.value = rankingPlayListid;
+    updateRankingPlayListSongs();
   }
+
+  updateRankingPlayListSongs({int offset = 0, limit = 10}) async {
+    if (offset == 0) curTopPlayListSongs.clear();
+    List<MediaItem> songs = await AppController.to.getPlayListSongs(curTopPlayListId.value, offset: offset, limit: limit);
+    curTopPlayListSongs.addAll(songs);
+    if (songs.length < 10 ) {
+      refreshController.loadNoData();
+    } else {
+      refreshController.loadComplete();
+    }
+  }
+
+  playCurRankingPlayListSongs() async {
+    await updateRankingPlayListSongs(offset: curTopPlayListSongs.length, limit: -1);
+    AppController.to.playNewPlayList(curTopPlayListSongs, 0, playListName: curTopPlayListName.value);
+  }
+
+  changeCurTopPlayListCategory(String name) {
+    curTopPlayListCategoryName.value = name;
+    showChooseCategory.value = false;
+    showChoosePlayList.value = false;
+
+    curCategoryTopPlayLists.clear();
+    curCategoryTopPlayLists.addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
+    changeCurTopPlayList(curCategoryTopPlayLists[0]);
+  }
+
+  changeCurTopPlayList(Map<String, String> topPlayList) {
+    curTopPlayListName.value = topPlayList["name"]!;
+    curTopPlayListId.value = topPlayList["id"]!;
+    showChooseCategory.value = false;
+    showChoosePlayList.value = false;
+
+    updateRankingPlayListSongs();
+  }
+
 }

@@ -12,6 +12,7 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:just_audio/just_audio.dart';
 
 import 'constants/key.dart';
+import 'constants/key.dart' as key;
 import 'netease_api/src/api/play/bean.dart';
 import 'netease_api/src/netease_api.dart';
 
@@ -68,7 +69,7 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
     if (stringPlayList.isNotEmpty) {
       List<MediaItem> playlist = await compute(stringToPlayList, stringPlayList);
       int index = playlist.indexWhere((element) => element.id == curSongId);
-      await changePlayList(playlist, index: index, playListName: box.get(playQueueTitle, defaultValue: ''), changePlayerSource: true, playNow: false, needStore: false);
+      await changePlayList(playlist, index: index, playListName: box.get(playListName, defaultValue: ''), playListNameHeader: box.get(playListNameHeader, defaultValue: ''), changePlayerSource: true, playNow: false, needStore: false);
     }
   }
   /// 改变循环模式
@@ -108,7 +109,16 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
     await updateQueue(playListCopy);
   }
   /// 在AudioHandle中打乱播放列表
-  changePlayList(List<MediaItem> playList, {int index = 0, bool needStore = true, required String playListName, required bool changePlayerSource, required bool playNow}) async {
+  changePlayList(
+      List<MediaItem> playList,
+      {int index = 0,
+        bool needStore = true,
+        required String playListName,
+        String playListNameHeader = "",
+        required bool changePlayerSource,
+        required bool playNow
+      }
+      ) async {
     // 保存当前播放列表(原始顺序列表)
     _originalSongs..clear()..addAll(playList);
     var playListCopy = <MediaItem>[...playList];
@@ -120,8 +130,11 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
     // 播放器播放列表更新
     await updateQueue(playListCopy);
     AppController.to.curPlayListName.value = playListName;
+    AppController.to.curPlayListNameHeader.value = playListNameHeader;
     AppController.to.isPlayingLikedSongs.value = playListName == "喜欢的音乐";
-    box.put(playQueueTitle, playListName);
+    box.put(key.playListName, playListName);
+    box.put(key.playListNameHeader, playListNameHeader);
+
     // 是否更改当前播放源
     if (changePlayerSource) {
       // 是否直接开始播放

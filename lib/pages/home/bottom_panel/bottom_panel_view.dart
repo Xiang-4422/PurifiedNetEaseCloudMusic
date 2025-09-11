@@ -290,6 +290,7 @@ class BottomPanelView extends GetView<AppController> {
               child: Obx(() => Container(
                   height: albumPadding,
                   margin: EdgeInsets.symmetric(horizontal: albumPadding),
+                  clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     // color: Colors.red,
                     color: controller.isBigAlbum.isTrue ? controller.panelWidgetColor.value.withOpacity(0.05) : Colors.transparent ,
@@ -297,15 +298,35 @@ class BottomPanelView extends GetView<AppController> {
                   ),
                   child: MyTabBarItemAnimatedSwitcher(
                     isTabBarVisible: controller.curPanelPageIndex.value == 0,
-                    replaceItem: Container(
-                      alignment: AlignmentDirectional.center,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Obx(() => Text(
-                          controller.curPlayListName.value,
-                          style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5)),
-                        )),
-                      ).paddingSymmetric(horizontal: albumPadding/2),
+                    replaceItem: Row(
+                      children: [
+                        Offstage(
+                          offstage: controller.curPlayListNameHeader.value.isEmpty,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: albumPadding/2),
+                            decoration: BoxDecoration(
+                              color: controller.panelWidgetColor.value.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(albumPadding),
+                            ),
+                            child: Obx(() => Text(
+                              controller.curPlayListNameHeader.value,
+                              style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5)),
+                            )),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            alignment: AlignmentDirectional.center,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Obx(() => Text(
+                                controller.curPlayListName.value,
+                                style: context.textTheme.titleMedium?.copyWith(color: controller.panelWidgetColor.value.withOpacity(0.5)),
+                              )),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     tabItem: MyTabBar(
                       height: albumPadding,
@@ -366,32 +387,32 @@ class BottomPanelView extends GetView<AppController> {
     return GestureDetector(
       onTap: () => controller.audioHandler.playIndex(audioSourceIndex: index, playNow: true),
       child: Obx(() => Container(
-          alignment: AlignmentDirectional.centerStart,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                mediaItem.title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: ((controller.curPlayIndex.value == index)
-                      ? Colors.red
-                      : controller.panelWidgetColor.value),            ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+        color: Colors.transparent,  // 加个颜色让透明区域也能点击
+        alignment: AlignmentDirectional.centerStart,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              mediaItem.title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: ((controller.curPlayIndex.value == index)
+                    ? Colors.red
+                    : controller.panelWidgetColor.value),            ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+            Text(
+              mediaItem.artist ?? "未知歌手",
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: controller.panelWidgetColor.value.withOpacity(0.5),
               ),
-              Text(
-                mediaItem.artist ?? "未知歌手",
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: controller.panelWidgetColor.value.withOpacity(0.5),
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ],
-          ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ],
         ),
-      ),
+      )),
     );
   }
 

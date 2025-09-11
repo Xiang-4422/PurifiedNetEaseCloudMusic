@@ -55,6 +55,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
                 return SongItem(
                   index: index,
                   playlist: mediaItems,
+                  playListName: (context.routeData.args as DjRadio).name,
                 );
               },
               itemCount: list.length,

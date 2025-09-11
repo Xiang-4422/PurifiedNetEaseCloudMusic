@@ -12,6 +12,7 @@ import 'dart:math' as math;
 
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../../common/common_widget.dart';
 import '../../../../common/constants/appConstants.dart';
@@ -32,11 +33,24 @@ class PersonalPageView extends GetView<AppController> {
   Widget build(BuildContext context) {
     return Obx(() {
       if (controller.dateLoaded.isFalse) return const LoadingView();
-      return RefreshIndicator(
+      return SmartRefresher(
         onRefresh: () async {
           controller.updateData();
-          // TODO YU4422: 待添加刷新逻辑
         },
+        enablePullUp: true,
+        onLoading: () => controller.updateRecoPlayLists(getMore: true),
+        footer: ClassicFooter(
+            height: 60 + AppDimensions.bottomPanelHeaderHeight,
+            outerBuilder:(child){
+              return Container(
+                  height: 60,
+                  margin: EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight),
+                  alignment: Alignment.center,
+                  child: child
+              );
+            }
+        ),
+        controller: controller.refreshController,
         child: CustomScrollView (
           slivers: [
             SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top)),
@@ -126,6 +140,17 @@ class PersonalPageView extends GetView<AppController> {
               ),
             ),
 
+            // 我的歌单
+            SliverToBoxAdapter(
+              child: const Header('我的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
+            ),
+            SliverToBoxAdapter(
+                child: PlayListWidget(playLists: controller.userPlayLists, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall)
+            ),
+            SliverToBoxAdapter(
+                child: PlayListItem(controller.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall)
+            ),
+
             // 推荐歌单
             SliverToBoxAdapter(
               child: Row(
@@ -136,31 +161,12 @@ class PersonalPageView extends GetView<AppController> {
                 ],
               ).marginOnly(top: AppDimensions.paddingSmall),
             ),
-            SliverToBoxAdapter(
-              child: Obx(() => PlayListWidget(
-                playLists: controller.recoPlayLists.value, albumMargin: AppDimensions.paddingSmall, showSongCount: false, noScroll: true)),
-            ),
-
-            // 我创建的歌单
-            SliverToBoxAdapter(
-              child: const Header('我创建的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
-            ),
-            SliverToBoxAdapter(
-                child: PlayListWidget(playLists: controller.userMadePlayLists, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall)
-            ),
-
-            // 我收藏的歌单
-            SliverToBoxAdapter(
-              child: const Header('我收藏的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
-            ),
             SliverList.builder(
-              itemCount: controller.userFavoritedPlayLists.length,
+              itemCount: controller.recoPlayLists.length,
               itemBuilder: (BuildContext context, int index) {
-                return PlayListItem(controller.userFavoritedPlayLists[index]).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
+                return PlayListItem(controller.recoPlayLists.value[index]).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
               },
             ),
-
-            SliverPadding(padding: EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom)),
           ]
         ),
       );

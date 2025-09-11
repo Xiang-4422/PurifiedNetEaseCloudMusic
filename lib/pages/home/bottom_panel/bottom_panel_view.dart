@@ -802,15 +802,20 @@ class BottomPanelHeaderView extends GetView<AppController> {
             return Stack(
               alignment: Alignment.center,
               children: [
-                BlurryContainer(
-                  width: context.width - realTimeAlbumPadding * 2,
-                  height: controller.isBigAlbum.isTrue ? realTimeAlbumWidth + realTimeAlbumTopMargin : AppDimensions.albumMinSize,
-                  blur: 20 * (1 - panelOpenDegree),
-                  padding: EdgeInsets.zero,
-                  color: controller.albumColor.value.withOpacity(0.5 * (1 - panelOpenDegree)),
-                  borderRadius:  BorderRadius.circular(controller.isBigAlbum.isTrue ? realTimeAlbumBorderRadius : AppDimensions.albumMinSize),
-                  child: Container(),
-                ).marginOnly(top: controller.isBigAlbum.isTrue ? 0 : context.mediaQueryPadding.top * panelOpenDegree),
+                Obx(() => BlurryContainer(
+                    // width: context.width - realTimeAlbumPadding * 2,
+                    // height: controller.isBigAlbum.isTrue ? realTimeAlbumWidth + realTimeAlbumTopMargin : AppDimensions.albumMinSize,
+                    width: context.width,
+                    height: controller.isBigAlbum.isTrue ? realTimeAlbumWidth + realTimeAlbumPadding * 2 + realTimeAlbumTopMargin : AppDimensions.bottomPanelHeaderHeight,
+                    blur: 20 * (1 - panelOpenDegree),
+                    padding: EdgeInsets.zero,
+                    color: controller.albumColor.value.withOpacity(0.5 * (1 - panelOpenDegree)),
+                    // borderRadius:  BorderRadius.circular(controller.isBigAlbum.isTrue ? realTimeAlbumBorderRadius : AppDimensions.albumMinSize),
+                    borderRadius:  BorderRadius.circular(controller.isBigAlbum.isTrue ? AppDimensions.bottomPanelHeaderHeight/2 * (1 - controller.bottomPanelAnimationController.value) : AppDimensions.albumMinSize),
+
+                    child: Container(),
+                  ).marginOnly(top: controller.isBigAlbum.isTrue ? 0 : context.mediaQueryPadding.top * panelOpenDegree),
+                ),
                 Container(
                   width: context.width,
                   child: Stack(

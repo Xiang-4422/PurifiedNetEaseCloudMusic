@@ -17,6 +17,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -36,20 +37,21 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   late BuildContext buildContext;
 
   // --- 歌单存储 ---
-  /// 用户创建的歌单
-  List<PlayList> userMadePlayLists = <PlayList>[].obs;
-  /// 用户收藏的歌单
-  List<PlayList> userFavoritedPlayLists = <PlayList>[].obs;
+  /// 用户歌单
+  List<PlayList> userPlayLists = <PlayList>[].obs;
   /// 推荐歌单
   RxList<PlayList> recoPlayLists = <PlayList>[].obs;
+
+  // 用户喜欢的歌单
+  Rx<PlayList> userLikedSongPlayList = PlayList().obs;
+  RxList<int> likedSongIds = <int>[].obs;
+  RxList<MediaItem> likedSongs = <MediaItem>[].obs;
 
   // --- 首页快速播放卡片所需数据 ---
   RxBool dateLoaded = false.obs;
   RxList<MediaItem> fmSongs = <MediaItem>[].obs;
   RxList<MediaItem> todayRecommendSongs = <MediaItem>[].obs;
-  // 用户喜欢的歌单
-  RxList<int> likedSongIds = <int>[].obs;
-  RxList<MediaItem> likedSongs = <MediaItem>[].obs;
+
   // 心动模式开始歌曲
   Rx<String> randomLikedSongAlbumUrl = ''.obs;
   Rx<String> randomLikedSongId = "".obs;
@@ -66,6 +68,9 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   RxBool isCacheOpen = false.obs;
   /// 是否开启高音质
   RxBool isHighSoundQualityOpen = false.obs;
+
+  // 首页刷新
+  RefreshController refreshController = RefreshController();
 
   // --- 抽屉 ---
   /// Home页面侧滑抽屉
@@ -358,6 +363,9 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     dateLoaded.value = true;
 
     likedSongs.addAll(await getSongsByIds(likedSongIds.map((id) => id.toString()).toList()));
+
+    refreshController.refreshCompleted();
+    refreshController.resetNoData();
   }
 
   _updateQuickStartCardData() async {
@@ -370,13 +378,14 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     _updateRandomLikedSong();
   }
 
-  updateRecoPlayLists() async {
+  updateRecoPlayLists({bool getMore = false}) async {
     List<PlayList> data;
-    PersonalizedPlayListWrap personalizedPlayListWrap = await NeteaseMusicApi().personalizedPlaylist(limit: 3);
+    PersonalizedPlayListWrap personalizedPlayListWrap = await NeteaseMusicApi().personalizedPlaylist(offset: getMore ? recoPlayLists.length : 0, limit: 10);
     data = personalizedPlayListWrap.result ?? [];
-    recoPlayLists
-      ..clear()
-      ..addAll(data);
+    if (!getMore) recoPlayLists.clear();
+    recoPlayLists.addAll(data);
+    refreshController.loadComplete();
+    NeteaseMusicApi().playlistCatalogue();
   }
 
   _updateRandomLikedSong() async {
@@ -392,21 +401,9 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   _updateUserPlayLists() async {
     NeteaseMusicApi().userPlayLists(userData.value.profile?.userId ?? '-1').then((MultiPlayListWrap2 multiPlayListWrap2) async {
       List<PlayList> playLists = (multiPlayListWrap2.playlists ?? []);
-      if (playLists.isNotEmpty) {
-        userFavoritedPlayLists.clear();
-        userMadePlayLists.clear();
-        for(var playList in playLists) {
-          if (playList.creator?.userId == userData.value.profile?.userId) {
-            // 红心歌单重命名
-            if(playList.name!.contains("${userData.value.profile?.nickname}喜欢的音乐")) {
-              playList.name = "喜欢的音乐";
-            }
-            userMadePlayLists.add(playList);
-          } else {
-            userFavoritedPlayLists.add(playList);
-          }
-        }
-      }
+      userLikedSongPlayList.value = playLists.removeAt(0);
+      userPlayLists.clear();
+      userPlayLists.addAll(playLists);
     });
   }
 

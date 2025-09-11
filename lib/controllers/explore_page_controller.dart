@@ -10,7 +10,6 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../common/constants/enmu.dart';
 
 class ExplorePageController extends GetxController {
-  List<int> topPlayListIds = [3779629, 3778678, 2884035, 19723756, 10520166];
   Map<String, List<Map<String, String>>> topPlayListCategory = {
     "官方榜" : [
       {'name': '云音乐新歌榜', 'id': '3779629'},
@@ -59,22 +58,25 @@ class ExplorePageController extends GetxController {
     ]
   };
 
-  List<String> topPlayListCategoryNames = [];
   RxBool showChooseCategory = false.obs;
-  RxList<Map<String, String>> curCategoryTopPlayLists = <Map<String, String>>[].obs;
   RxBool showChoosePlayList = false.obs;
 
+  /// 排行榜分类名
+  List<String> topPlayListCategoryNames = [];
   /// 当前排行榜分类名
   RxString curTopPlayListCategoryName = "".obs;
+  /// 当前排行榜分类歌单
+  RxList<Map<String, String>> curCategoryTopPlayLists = <Map<String, String>>[].obs;
+
   /// 当前排行榜名称
   RxString curTopPlayListName = "".obs;
   /// 当前排行榜ID
   RxString curTopPlayListId = "".obs;
-
-  RxList<PlayList> hqPlaylists = <PlayList>[].obs;
-  RxList<PlayList> topPlaylists = <PlayList>[].obs;
-  /// 当前排行榜歌单
+  /// 当前排行榜歌曲
   RxList<MediaItem> curTopPlayListSongs = <MediaItem>[].obs;
+
+  /// 精选歌单
+  RxList<PlayList> hqPlaylists = <PlayList>[].obs;
 
   RxBool loading = true.obs;
 
@@ -98,24 +100,14 @@ class ExplorePageController extends GetxController {
 
   updateData() async {
     await _getHighQualityPlayLists();
-    await _getRankingPlayLists();
     await updateRankingPlayListSongs();
     refreshController.refreshCompleted();
     refreshController.resetNoData();
   }
 
-  _getRankingPlayLists() async {
-    for (var id in topPlayListIds) {
-      SinglePlayListWrap singlePlayListWrap = await NeteaseMusicApi().playListDetail(id.toString());
-      if (singlePlayListWrap.playlist != null) {
-        topPlaylists.add(singlePlayListWrap.playlist!);
-      }
-    }
-  }
-
   _getHighQualityPlayLists() async {
     List<PlayList> data;
-    MultiPlayListWrap multiPlayListWrap = await NeteaseMusicApi().highqualityPlayList();
+    MultiPlayListWrap multiPlayListWrap = await NeteaseMusicApi().categorySongList();
     data = multiPlayListWrap.playlists ?? [];
     hqPlaylists
       ..clear()

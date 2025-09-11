@@ -41,20 +41,12 @@ class ExplorePageView extends GetView<ExplorePageController> {
           slivers: [
             SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top),),
 
-            // 精选歌单
+            // 歌单广场
             SliverToBoxAdapter(
-                child: Header('精选歌单', padding: AppDimensions.paddingSmall).paddingOnly(top: AppDimensions.paddingSmall)
+                child: Header('歌单广场', padding: AppDimensions.paddingSmall).paddingOnly(top: AppDimensions.paddingSmall)
             ),
             SliverToBoxAdapter(
               child: Obx(() => PlayListWidget(playLists: controller.hqPlaylists.value, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall, showSongCount: false,)),
-            ),
-
-            // 排行榜
-            SliverToBoxAdapter(
-                child: Header('排行榜', padding: AppDimensions.paddingSmall).paddingOnly(top: AppDimensions.paddingSmall)
-            ),
-            SliverToBoxAdapter(
-              child: Obx(() => PlayListWidget(playLists: controller.topPlaylists.value, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall, showSongCount: false,)),
             ),
 
             // 排行榜

@@ -665,9 +665,9 @@ class BottomPanelView extends GetView<AppController> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // 喜欢按钮
-          _buildButtonBackground(IconButton(
-              onPressed: () => controller.toggleLikeStatus(),
-              icon: Obx(() => Icon(
+          _buildButtonBackground(GestureDetector(
+              onTap: () => controller.toggleLikeStatus(),
+              child: Obx(() => Icon(
                   controller.likedSongIds.contains(int.tryParse(controller.curPlayingSong.value.id))
                       ? TablerIcons.heart_filled
                       : TablerIcons.heart,
@@ -678,11 +678,11 @@ class BottomPanelView extends GetView<AppController> {
               ))
           )),
           // 上一首
-          _buildButtonBackground(IconButton(
-              onPressed: () {
+          _buildButtonBackground(GestureDetector(
+              onTap: () {
                 controller.audioHandler.skipToPrevious();
               },
-              icon: Obx(() => Icon(
+              child: Obx(() => Icon(
                 TablerIcons.player_skip_back_filled,
                 size: 30,
                 color: controller.panelWidgetColor.value,
@@ -690,28 +690,28 @@ class BottomPanelView extends GetView<AppController> {
               )
           )),
           // 播放按钮
-          _buildButtonBackground(IconButton(
-            onPressed: () => controller.playOrPause(),
-            icon: Obx(() => Icon(
+          _buildButtonBackground(GestureDetector(
+            onTap: () => controller.playOrPause(),
+            child: Obx(() => Icon(
               controller.isPlaying.value ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
               size: 60,
               color: controller.panelWidgetColor.value,
             )),
           )),
           // 下一首
-          _buildButtonBackground(IconButton(
-              onPressed: () {
+          _buildButtonBackground(GestureDetector(
+              onTap: () {
                 controller.audioHandler.skipToNext();
               },
-              icon: Obx(() => Icon(
+              child: Obx(() => Icon(
                 TablerIcons.player_skip_forward_filled,
                 size: 30,
                 color: controller.panelWidgetColor.value,
               ))
           )),
           // 循环模式
-          _buildButtonBackground(IconButton(
-              onPressed: () async {
+          _buildButtonBackground(GestureDetector(
+              onTap: () async {
                 if (controller.isFmMode.isTrue) {
                   // 漫游模式：直接返回
                   return;
@@ -728,7 +728,7 @@ class BottomPanelView extends GetView<AppController> {
                   await controller.audioHandler.changeRepeatMode();
                 }
               },
-              icon: Obx(() => Icon(
+              child: Obx(() => Icon(
                 controller.getRepeatIcon(),
                 size: 30,
                 color: controller.panelWidgetColor.value,
@@ -738,13 +738,13 @@ class BottomPanelView extends GetView<AppController> {
       ),
     );
   }
-  Widget _buildButtonBackground(IconButton iconButton) {
+  Widget _buildButtonBackground(Widget child) {
     return Obx(() => BlurryContainer(
       blur: controller.isBigAlbum.isTrue ? 0 : 5,
-      padding: EdgeInsets.zero,
+      padding: EdgeInsets.all(10),
       borderRadius: BorderRadius.circular(100),
       color: controller.panelWidgetColor.value.withOpacity(controller.isBigAlbum.isTrue ? 0 : 0.05),
-      child: iconButton,
+      child: child,
     ));
   }
   
@@ -921,7 +921,6 @@ class BottomPanelHeaderView extends GetView<AppController> {
                                     size: AppDimensions.albumMinSize * 2 / 3,
                                   ))
                                 ),
-
                               ],
                             ),
                           ),

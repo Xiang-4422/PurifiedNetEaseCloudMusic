@@ -55,7 +55,7 @@ class CommentWidget extends StatelessWidget {
                 height: listPaddingBottom,
               );
             } else {
-              return CommentItemWidget(id: id, idType: idType, comment: comments[index - 1], stringColor: stringColor, );
+              return CommentItemWidget(id: id, idType: idType, comment: comments[index - 1], stringColor: stringColor).marginOnly(top: index == 1 ? 0 : 10);
             }
           },
           itemCount: comments.length,
@@ -144,7 +144,6 @@ class CommentItemWidget extends StatefulWidget {
   @override
   State<CommentItemWidget> createState() => _CommentItemWidgetState();
 }
-
 class _CommentItemWidgetState extends State<CommentItemWidget> {
 
   final List<CommentItem> _commentOnComment = [];
@@ -156,7 +155,6 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
   late int replyCount;
   late int unExpandedReplyCount;
 
-
   @override
   void initState() {
     comment = widget.comment;
@@ -167,125 +165,138 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
 
   @override
   Widget build(BuildContext context) {
-
     return GestureDetector(
       onTap: () => showOrHideCommentOnComment(),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 500),
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: isCommentOnCommentVisible ? Colors.black.withAlpha(20) : Colors.transparent,
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start, // 子组件拉伸对齐
           children: [
-            // 头像、用户名、时间
-            Row(
+            // 头像
+            Opacity(
+              opacity: 0.8,
+              child: SimpleExtendedImage.avatar(
+                '${comment.user.avatarUrl ?? ''}?param=150y150',
+                width: 30,
+                height: 30,
+              ),
+            ).marginOnly(right: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  // 头像
-                  Opacity(
-                    opacity: 0.8,
-                    child: SimpleExtendedImage.avatar(
-                      '${comment.user.avatarUrl ?? ''}?param=150y150',
-                      width: 30,
-                      height: 30,
-                    ).paddingOnly(right: 10),
+                  // 用户名&时间、点赞
+                  Row(
+                    children: [
+                      // 用户名、评论时间
+                      Expanded(
+                          child: RichText(
+                            // 评论用户
+                              text: TextSpan(
+                                  text: comment.user.nickname ?? '',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: stringColor.withOpacity(0.6),
+                                  ),
+                                  children: [
+                                    // 评论时间
+                                    TextSpan(
+                                      text: '\n${OtherUtils.formatDate2Str(comment.time ?? 0)}',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: stringColor.withOpacity(0.4),
+                                      ),
+                                    )
+                                  ]
+                              )
+                          )
+                      ),
+                      // 点赞数
+                      Row(
+                        children: [
+                          Text(
+                            (comment.likedCount ?? 0) == 0 ? '' : '${comment.likedCount ?? 0}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontFamily: "monospace",
+                              color: comment.liked ?? false ? Colors.red : stringColor.withOpacity(0.4),
+                            ),
+                          ).marginOnly(right: 5),
+                          Container(
+                            height: 30,
+                            width: 30,
+                            alignment: Alignment.center,
+                            child: GestureDetector(
+                              onTap: () {
+                                NeteaseMusicApi().likeComment(widget.id, comment.commentId, widget.idType, !(comment.liked ?? false), threadId: _type2key(widget.idType) + widget.id).then((value) {
+                                  if(value.code == 200) {
+                                    setState(() {
+                                      comment.liked = !(comment.liked ?? false);
+                                      comment.likedCount = comment.liked! ? (comment.likedCount ?? 0) + 1 : (comment.likedCount ?? 0) - 1;
+                                    });
+                                  }
+                                });
+                              },
+                              child: Icon(
+                                comment.liked ?? false ? Icons.favorite :Icons.favorite_outline,
+                                size: 20,
+                                color: comment.liked ?? false ? Colors.red : stringColor.withOpacity(0.4),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ]
                   ),
-                  // 用户名、评论时间
-                  Expanded(
-                      child: RichText(
-                        // 评论用户
-                          text: TextSpan(
-                              text: comment.user.nickname ?? '',
+                  // 评论内容
+                  Text(
+                    (comment.content ?? '').replaceAll('\n', ''),
+                    style: TextStyle(
+                        color: stringColor.withOpacity(0.6),
+                        fontSize: 15
+                    ),
+                  ).marginSymmetric(vertical: 10),
+                  // 评论的回复内容
+                  Offstage(
+                    offstage: !isCommentOnCommentVisible,
+                    child: Column(
+                      children: (_commentOnComment).map((CommentItem item) {
+                        return CommentItemWidget(comment: item, id: widget.id, idType: widget.idType, stringColor: stringColor, isReply: true,);
+                      }).toList(),
+                    ),
+                  ),
+                  // 展开回复按钮
+                  Visibility(
+                    visible: !widget.isReply && replyCount > 0,
+                    child: GestureDetector(
+                        onTap: () {
+                          if (unExpandedReplyCount > 0) {
+                            expandComment();
+                          } else {
+                            foldComment();
+                          }
+                        },
+                        child: Container(
+                          alignment: FractionalOffset.centerLeft,
+                          color: Colors.transparent,
+                          child: Text(
+                              unExpandedReplyCount > 0 ? '—— $unExpandedReplyCount条回复 >' : '收起 <',
                               style: TextStyle(
                                 fontSize: 15,
-                                color: stringColor.withOpacity(0.6),
-                              ),
-                              children: [
-                                // 评论时间
-                                TextSpan(
-                                  text: '\n${OtherUtils.formatDate2Str(comment.time ?? 0)}',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: stringColor.withOpacity(0.4),
-                                  ),
-                                )
-                              ]
-                          )
+                                color: stringColor.withOpacity(0.2),
+                              )
+                          ),
+                        ),
                       )
                   ),
-                  // 点赞数
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        (comment.likedCount ?? 0) == 0 ? '' : '${comment.likedCount ?? 0}',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontFamily: "monospace",
-                          color: comment.liked ?? false ? Colors.red : stringColor.withOpacity(0.4),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          NeteaseMusicApi().likeComment(widget.id, comment.commentId, widget.idType, !(comment.liked ?? false), threadId: _type2key(widget.idType) + widget.id).then((value) {
-                            if(value.code == 200) {
-                              setState(() {
-                                comment.liked = !(comment.liked ?? false);
-                                comment.likedCount = comment.liked! ? (comment.likedCount ?? 0) + 1 : (comment.likedCount ?? 0) - 1;
-                              });
-                            }
-                          });
-                        },
-                        iconSize: 20,
-                        padding: EdgeInsets.zero,
-                        icon: Icon(
-                          comment.liked ?? false ? Icons.favorite :Icons.favorite_outline,
-                          size: 20,
-                          color: comment.liked ?? false ? Colors.red : stringColor.withOpacity(0.4),
-                        ),
-                      ),
-                    ],
-                  )
-                ]
-            ),
-            // 评论内容
-            Text(
-              (comment.content ?? '').replaceAll('\n', ''),
-              style: TextStyle(
-                  color: stringColor.withOpacity(0.6),
-                  fontSize: 15
+                ],
               ),
-            ).marginOnly(left: 40),
-            // 评论的回复内容
-            Offstage(
-              offstage: !isCommentOnCommentVisible,
-              child: Column(
-                children: (_commentOnComment).map((CommentItem item) {
-                  return CommentItemWidget(comment: item, stringColor: stringColor, isReply: true,);
-                }).toList(),
-              ).marginOnly(left: 40),
-            ),
-            // 该评论的回复数量
-            Visibility(
-              visible: !widget.isReply && replyCount > 0,
-              child: GestureDetector(
-                  onTap: () {
-                    if (unExpandedReplyCount > 0) {
-                      expandComment();
-                    } else {
-                      foldComment();
-                    }
-                  },
-                  child: Container(
-                    alignment: FractionalOffset.centerLeft,
-                    color: Colors.transparent,
-                    child: Text(
-                        unExpandedReplyCount > 0 ? '—— $unExpandedReplyCount条回复 >' : '收起 <',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: stringColor.withOpacity(0.2),
-                        )
-                    ),
-                  ).paddingOnly(left: 40),
-                )
             ),
           ],
         ),
@@ -323,6 +334,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
 
 
   showOrHideCommentOnComment() {
+    if (widget.isReply) return;
     // 收起回复
     if (isCommentOnCommentVisible) {
       foldComment();
@@ -330,8 +342,6 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
       // 展开回复
       expandComment();
     }
-
-
   }
 
   foldComment() {

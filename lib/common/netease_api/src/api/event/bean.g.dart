@@ -448,8 +448,9 @@ FloorCommentDetail _$FloorCommentDetailFromJson(Map<String, dynamic> json) {
     ..hasMore = json['hasMore'] as bool?
     ..totalCount = json['totalCount'] as int?
     ..time = json['time'] as int?
-    ..ownerComment =
-        CommentItem.fromJson(json['ownerComment'] as Map<String, dynamic>);
+    ..ownerComment = json['ownerComment'] == null
+        ? CommentItem()
+        : CommentItem.fromJson(json['ownerComment'] as Map<String, dynamic>);
 }
 
 Map<String, dynamic> _$FloorCommentDetailToJson(FloorCommentDetail instance) =>

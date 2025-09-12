@@ -348,10 +348,13 @@ mixin ApiEvent {
   Future<FloorCommentDetailWrap> floorComments(
       String id, String type, String parentCommentId,
       {int time = -1, int limit = 20}) {
-    return Https.dioProxy
-        .postUri(floorCommentsDioMetaData(id, type, parentCommentId,
-            time: time, limit: limit))
-        .then((Response value) {
+    return Https.dioProxy.postUri(floorCommentsDioMetaData(
+        id,
+        type,
+        parentCommentId,
+        time: time,
+        limit: limit
+    )).then((Response value) {
       return FloorCommentDetailWrap.fromJson(value.data);
     });
   }

@@ -55,86 +55,12 @@ class CommentWidget extends StatelessWidget {
                 height: listPaddingBottom,
               );
             } else {
-              return _buildItem(comments[index - 1]);
+              return CommentItemWidget(id: id, idType: idType, comment: comments[index - 1], stringColor: stringColor, );
             }
           },
           itemCount: comments.length,
         ),
       );
-  }
-
-  Widget _buildItem(CommentItem comment) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // 头像
-              Opacity(
-                opacity: 0.8,
-                child: SimpleExtendedImage.avatar(
-                  '${comment.user.avatarUrl ?? ''}?param=150y150',
-                  width: 30,
-                  height: 30,
-                ).paddingOnly(right: 10),
-              ),
-              // 用户名、评论时间
-              Expanded(
-                  child: RichText(
-                    // 评论用户
-                    text: TextSpan(
-                      text: comment.user.nickname ?? '',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: stringColor.withOpacity(0.6),
-                      ),
-                      children: [
-                        // 评论时间
-                        TextSpan(
-                          text: '\n${OtherUtils.formatDate2Str(comment.time ?? 0)}',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: stringColor.withOpacity(0.4),
-                          ),
-                        )
-                      ]
-                    )
-                  )
-              ),
-            ]
-          ),
-          // 评论内容
-          Text(
-            (comment.content ?? '').replaceAll('\n', ''),
-            style: TextStyle(
-                color: stringColor.withOpacity(0.6),
-                fontSize: 20
-            ),
-          ),
-          // 该评论的回复
-          Visibility(
-              visible: (comment.replyCount ?? 0) > 0,
-              child: GestureDetector(
-                onTap: () {
-                },
-                child: Container(
-                  alignment: FractionalOffset.centerRight,
-                  child: Text(
-                      '—— ${comment.replyCount}条回复 >',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: stringColor.withOpacity(0.4),
-                      )
-                  ),
-                ),
-              )
-          ),
-        ],
-      ),
-    );
   }
 
   DioMetaData commentListDioMetaData2(String id, String type, {int pageNo = 1, int pageSize = 20, bool showInner = false, int? sortType}) {
@@ -150,6 +76,7 @@ class CommentWidget extends StatelessWidget {
     return DioMetaData(joinUri('/api/v2/resource/comments'),
         data: params, options: joinOptions(encryptType: EncryptType.EApi, eApiUrl: '/api/v2/resource/comments', cookies: {'os': 'pc'}));
   }
+
   String _type2key(String type) {
     String typeKey = 'R_SO_4_';
     switch (type) {
@@ -193,6 +120,248 @@ class CommentWidget extends StatelessWidget {
     }
   }
 }
+
+
+class CommentItemWidget extends StatefulWidget {
+  CommentItemWidget({
+    super.key,
+    required this.comment,
+    required this.stringColor,
+    this.id = "",
+    this.idType = "",
+    this.isReply = false,
+  });
+
+  /// 这个id是歌单、歌曲等的id
+  final String id;
+  final String idType;
+  final CommentItem comment;
+
+  final Color stringColor;
+  final bool isReply;
+
+
+  @override
+  State<CommentItemWidget> createState() => _CommentItemWidgetState();
+}
+
+class _CommentItemWidgetState extends State<CommentItemWidget> {
+
+  final List<CommentItem> _commentOnComment = [];
+  bool isCommentOnCommentVisible = false;
+  int lastLoadedTime = -1;
+
+  late CommentItem comment;
+  late Color stringColor;
+  late int replyCount;
+  late int unExpandedReplyCount;
+
+
+  @override
+  void initState() {
+    comment = widget.comment;
+    stringColor = widget.stringColor;
+    replyCount = comment.replyCount ?? 0;
+    unExpandedReplyCount = comment.replyCount ?? 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return GestureDetector(
+      onTap: () => showOrHideCommentOnComment(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            // 头像、用户名、时间
+            Row(
+                children: [
+                  // 头像
+                  Opacity(
+                    opacity: 0.8,
+                    child: SimpleExtendedImage.avatar(
+                      '${comment.user.avatarUrl ?? ''}?param=150y150',
+                      width: 30,
+                      height: 30,
+                    ).paddingOnly(right: 10),
+                  ),
+                  // 用户名、评论时间
+                  Expanded(
+                      child: RichText(
+                        // 评论用户
+                          text: TextSpan(
+                              text: comment.user.nickname ?? '',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: stringColor.withOpacity(0.6),
+                              ),
+                              children: [
+                                // 评论时间
+                                TextSpan(
+                                  text: '\n${OtherUtils.formatDate2Str(comment.time ?? 0)}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: stringColor.withOpacity(0.4),
+                                  ),
+                                )
+                              ]
+                          )
+                      )
+                  ),
+                  // 点赞数
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        (comment.likedCount ?? 0) == 0 ? '' : '${comment.likedCount ?? 0}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontFamily: "monospace",
+                          color: comment.liked ?? false ? Colors.red : stringColor.withOpacity(0.4),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          NeteaseMusicApi().likeComment(widget.id, comment.commentId, widget.idType, !(comment.liked ?? false), threadId: _type2key(widget.idType) + widget.id).then((value) {
+                            if(value.code == 200) {
+                              setState(() {
+                                comment.liked = !(comment.liked ?? false);
+                                comment.likedCount = comment.liked! ? (comment.likedCount ?? 0) + 1 : (comment.likedCount ?? 0) - 1;
+                              });
+                            }
+                          });
+                        },
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                        icon: Icon(
+                          comment.liked ?? false ? Icons.favorite :Icons.favorite_outline,
+                          size: 20,
+                          color: comment.liked ?? false ? Colors.red : stringColor.withOpacity(0.4),
+                        ),
+                      ),
+                    ],
+                  )
+                ]
+            ),
+            // 评论内容
+            Text(
+              (comment.content ?? '').replaceAll('\n', ''),
+              style: TextStyle(
+                  color: stringColor.withOpacity(0.6),
+                  fontSize: 15
+              ),
+            ).marginOnly(left: 40),
+            // 评论的回复内容
+            Offstage(
+              offstage: !isCommentOnCommentVisible,
+              child: Column(
+                children: (_commentOnComment).map((CommentItem item) {
+                  return CommentItemWidget(comment: item, stringColor: stringColor, isReply: true,);
+                }).toList(),
+              ).marginOnly(left: 40),
+            ),
+            // 该评论的回复数量
+            Visibility(
+              visible: !widget.isReply && replyCount > 0,
+              child: GestureDetector(
+                  onTap: () {
+                    if (unExpandedReplyCount > 0) {
+                      expandComment();
+                    } else {
+                      foldComment();
+                    }
+                  },
+                  child: Container(
+                    alignment: FractionalOffset.centerLeft,
+                    color: Colors.transparent,
+                    child: Text(
+                        unExpandedReplyCount > 0 ? '—— $unExpandedReplyCount条回复 >' : '收起 <',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: stringColor.withOpacity(0.2),
+                        )
+                    ),
+                  ).paddingOnly(left: 40),
+                )
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _type2key(String type) {
+    String typeKey = 'R_SO_4_';
+    switch (type) {
+      case 'song':
+        typeKey = 'R_SO_4_';
+        break;
+      case 'mv':
+        typeKey = 'R_MV_5_';
+        break;
+      case 'playlist':
+        typeKey = 'A_PL_0_';
+        break;
+      case 'album':
+        typeKey = 'R_AL_3_';
+        break;
+      case 'dj':
+        typeKey = 'A_DJ_1_';
+        break;
+      case 'video':
+        typeKey = 'R_VI_62_';
+        break;
+      case 'event':
+        typeKey = 'A_EV_2_';
+        break;
+    }
+    return typeKey;
+  }
+
+
+  showOrHideCommentOnComment() {
+    // 收起回复
+    if (isCommentOnCommentVisible) {
+      foldComment();
+    } else {
+      // 展开回复
+      expandComment();
+    }
+
+
+  }
+
+  foldComment() {
+    setState(() {
+      isCommentOnCommentVisible = false;
+      unExpandedReplyCount = replyCount;
+    });
+  }
+
+  expandComment() async {
+    // 已经加载数据，且回复折叠，打开折叠的回复
+    if (!isCommentOnCommentVisible && _commentOnComment.isNotEmpty) {
+      setState(() {
+        isCommentOnCommentVisible = true;
+        unExpandedReplyCount = replyCount - _commentOnComment.length;
+      });
+      return;
+    }
+    // 加载数据
+    FloorCommentDetailWrap floorCommentDetailWrap = await NeteaseMusicApi().floorComments(widget.id, widget.idType, widget.comment.commentId, time: lastLoadedTime, limit: 5);
+    lastLoadedTime = floorCommentDetailWrap.data.time ?? -1;
+    setState(() {
+      isCommentOnCommentVisible = true;
+      _commentOnComment.addAll(floorCommentDetailWrap.data.comments ?? []);
+      unExpandedReplyCount = replyCount - _commentOnComment.length;
+    });
+  }
+
+}
+
 
 /// 评论的回复
 class FoolTalk extends StatefulWidget {

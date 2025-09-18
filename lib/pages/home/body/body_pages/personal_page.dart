@@ -53,7 +53,12 @@ class PersonalPageView extends GetView<AppController> {
         controller: controller.refreshController,
         child: CustomScrollView (
           slivers: [
-            SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top)),
+            PinnedHeaderSliver(
+              child: Container(
+                height: context.mediaQueryPadding.top,
+              ),
+            ),
+            // SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top)),
 
             // 快速播放卡片
             SliverToBoxAdapter(
@@ -145,22 +150,36 @@ class PersonalPageView extends GetView<AppController> {
               child: const Header('我的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
             ),
             SliverToBoxAdapter(
-                child: PlayListWidget(playLists: controller.userPlayLists, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall)
+                child: PlayListWidget(playLists: controller.userPlayLists, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall, showSongCount: false,)
             ),
             SliverToBoxAdapter(
                 child: PlayListItem(controller.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall)
             ),
 
-            // 推荐歌单
-            SliverToBoxAdapter(
-              child: Row(
-                children: [
-                  const Header('推荐歌单', padding: AppDimensions.paddingSmall),
-                  IconButton(onPressed: controller.updateRecoPlayLists, icon: Icon(TablerIcons.refresh)),
-                  Expanded(child: Container())
-                ],
-              ).marginOnly(top: AppDimensions.paddingSmall),
+            PinnedHeaderSliver(
+              child: BlurryContainer(
+                borderRadius: BorderRadius.circular(9999),
+                color: Colors.white70,
+                padding: EdgeInsetsGeometry.zero,
+                child: Row(
+                  children: [
+                    const Header('推荐歌单', padding: AppDimensions.paddingSmall),
+                    IconButton(onPressed: controller.updateRecoPlayLists, icon: Icon(TablerIcons.refresh)),
+                    Expanded(child: Container())
+                  ],
+                ),
+              ),
             ),
+            // 推荐歌单
+            // SliverToBoxAdapter(
+            //   child: Row(
+            //     children: [
+            //       const Header('推荐歌单', padding: AppDimensions.paddingSmall),
+            //       IconButton(onPressed: controller.updateRecoPlayLists, icon: Icon(TablerIcons.refresh)),
+            //       Expanded(child: Container())
+            //     ],
+            //   ).marginOnly(top: AppDimensions.paddingSmall),
+            // ),
             SliverList.builder(
               itemCount: controller.recoPlayLists.length,
               itemBuilder: (BuildContext context, int index) {
@@ -200,20 +219,38 @@ class SnappingScrollPhysics extends ScrollPhysics {
 
   @override
   Simulation? createBallisticSimulation(ScrollMetrics position, double velocity) {
-    // 快速滑动或超出边界，使用默认惯性滑动
-    if (position.outOfRange || velocity.abs() > tolerance.velocity) {
+    if (velocity.abs() != 0) print("velocity.abs(): ${velocity.abs()}");
+
+    // 边界外。
+    if (position.outOfRange) {
       return super.createBallisticSimulation(position, velocity);
     }
-    final double target = _getTargetPixels(position, tolerance, velocity);
-    // 慢速滑动，弹簧动画吸附
-    return ScrollSpringSimulation(
-      spring,
-      position.pixels,
-      target,
-      velocity,
-      tolerance: tolerance,
-    );
+
+    // 快速滑动。如果速度大，先做减速，再吸附
+    if (velocity.abs() > tolerance.velocity) {
+      return ClampingScrollSimulation(
+        position: position.pixels,
+        velocity: velocity,
+        tolerance: tolerance,
+        friction: 0.045, // ⭐ 默认 0.135, 改小 => 滑动更远；改大 => 滑动更快停
+      );
+    } else {
+      final double target = _getTargetPixels(position, tolerance, velocity);
+
+      // 速度小，直接吸附
+      return ScrollSpringSimulation(
+        spring,
+        position.pixels,
+        target,
+        velocity,
+        tolerance: tolerance,
+      );
+    }
+
+
   }
+
+
 }
 
 /// 去除拉伸变形效果
@@ -303,5 +340,4 @@ class QuickStartCard extends StatelessWidget {
   }
 
 }
-
 

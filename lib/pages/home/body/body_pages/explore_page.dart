@@ -1,3 +1,4 @@
+import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/common_widget.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
@@ -39,7 +40,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top),),
+            PinnedHeaderSliver(child: Container(height: context.mediaQueryPadding.top),),
 
             // 歌单广场
             SliverToBoxAdapter(
@@ -50,8 +51,10 @@ class ExplorePageView extends GetView<ExplorePageController> {
             ),
 
             // 排行榜
-            SliverToBoxAdapter(
-              child: Container(
+            PinnedHeaderSliver(
+              child: BlurryContainer(
+                  borderRadius: BorderRadius.circular(9999),
+                  color: Colors.white70,
                   height: AppDimensions.headerHeight,
                   padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
                   // color: Colors.green,

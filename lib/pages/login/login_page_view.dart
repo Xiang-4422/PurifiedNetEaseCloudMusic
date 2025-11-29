@@ -86,24 +86,27 @@ class _LoginPageViewState extends State<LoginPageView> {
                getQrCode(context);
              },
              child: Container(
-               color: Theme.of(context).cardColor.withOpacity(.5),
-               width: context.width,
-               height: context.height,
+               color: Colors.white,
                alignment: Alignment.center,
-               child: Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
+               child: Stack(
+                 alignment: Alignment.bottomCenter,
                  children: [
                    QrImageView(
                      backgroundColor: Colors.white,
                      data: qrCodeUrl,
                      version: QrVersions.auto,
-                     size: 400,
+                     padding: const EdgeInsets.all(100),
                    ),
-                   const Padding(
-                     padding: EdgeInsets.symmetric(vertical: 30),
+                   Container(
+                     height: 100,
+                     alignment: Alignment.center,
                      child: Text(
-                       '请扫描二维码码登录',
-                       style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold),
+                       '扫描二维码登录',
+                       style: TextStyle(
+                           fontSize: 28,
+                           color: Colors.black,
+                           fontWeight: FontWeight.bold
+                       ),
                      ),
                    ),
                  ],

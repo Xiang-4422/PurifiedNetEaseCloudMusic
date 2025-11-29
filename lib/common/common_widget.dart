@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -133,8 +134,7 @@ class _LongPressOverlayTransitionState
   }
 
   void _showOverlay() {
-    RenderBox renderBox =
-    _childKey.currentContext!.findRenderObject() as RenderBox;
+    RenderBox renderBox = _childKey.currentContext!.findRenderObject() as RenderBox;
     Offset offset = renderBox.localToGlobal(Offset.zero);
     Size size = renderBox.size;
 
@@ -145,8 +145,7 @@ class _LongPressOverlayTransitionState
       height: widget.targetHeight,
     );
 
-    _rectAnimation =
-        RectTween(begin: startRect, end: endRect).animate(CurvedAnimation(
+    _rectAnimation = RectTween(begin: startRect, end: endRect).animate(CurvedAnimation(
           parent: _controller,
           curve: Curves.easeInOut,
         ));
@@ -160,7 +159,11 @@ class _LongPressOverlayTransitionState
               opacity: _opacityAnimation,
               child: GestureDetector(
                 onTap: _hideOverlay,
-                child: Container(color: Colors.black54),
+                child: BlurryContainer(
+                  padding: EdgeInsetsGeometry.zero,
+                  color: Colors.white60,
+                  child: Container(),
+                ),
               ),
             ),
             // 过渡中的 widget

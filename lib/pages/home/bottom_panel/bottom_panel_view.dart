@@ -814,8 +814,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
                     borderRadius:  BorderRadius.circular(controller.isBigAlbum.isTrue ? AppDimensions.bottomPanelHeaderHeight/2 * (1 - controller.bottomPanelAnimationController.value) : AppDimensions.albumMinSize),
 
                     child: Container(),
-                  ).marginOnly(top: controller.isBigAlbum.isTrue ? 0 : context.mediaQueryPadding.top * panelOpenDegree),
-                ),
+                  ).marginOnly(top: controller.isBigAlbum.isTrue ? 0 : context.mediaQueryPadding.top * panelOpenDegree)),
                 Container(
                   width: context.width,
                   child: Stack(

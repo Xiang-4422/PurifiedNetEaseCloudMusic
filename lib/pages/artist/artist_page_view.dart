@@ -21,6 +21,7 @@ import '../../common/constants/other.dart';
 import '../../common/netease_api/src/netease_api.dart';
 import '../../widget/keep_alive_wrapper.dart';
 import '../../widget/simple_extended_image.dart';
+import '../home/body/body_pages/personal_page.dart';
 
 class ArtistPageView extends StatefulWidget {
   const ArtistPageView({Key? key}) : super(key: key);
@@ -36,7 +37,6 @@ class _ArtistPageViewState extends State<ArtistPageView> {
   final List<MediaItem> topSongs = [];
   final List<Album> hotAlbums = [];
 
-  int crossAxisCount = 1;
   bool loading = true;
   Color albumColor = Get.theme.colorScheme.primary;
   Color onAlbumColor = Get.theme.colorScheme.onPrimary;
@@ -64,7 +64,6 @@ class _ArtistPageViewState extends State<ArtistPageView> {
       });
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -160,84 +159,67 @@ class _ArtistPageViewState extends State<ArtistPageView> {
           // 专辑
           SliverToBoxAdapter(
             child: SizedBox(
-              height: AppDimensions.paddingMedium * 4,
-              child: Container(
-                padding: const EdgeInsets.all(AppDimensions.paddingMedium),
-                alignment: Alignment.centerLeft,
-                child: GestureDetector(
-                  onTap: () => setState(() {
-                    crossAxisCount = Random().nextInt(hotAlbums.length ~/ 3) + 1;
-                  }),
-                  child: Row(
-                    children: [
-                      Text("专辑", style: TextStyle(color: onAlbumColor, fontWeight: FontWeight.bold),),
-                    ],
-                  )
-                ),
-              )
+                height: 50,
+                child: Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text("专辑", style: TextStyle(color: onAlbumColor, fontWeight: FontWeight.bold),).paddingOnly(left: AppDimensions.paddingMedium)
+                )
             ),
           ),
           SliverToBoxAdapter(
             child: Container(
-              height: (albumWidth * 1.35) * crossAxisCount,
-              child: CustomScrollView(
+              height: albumWidth * 1.35,
+              child: ListView.builder(
+                addAutomaticKeepAlives: true,
+                itemCount: hotAlbums.length,
                 scrollDirection: Axis.horizontal,
-                slivers: [
-                  SliverPadding(
-                    padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingMedium),
-                    sliver: SliverGrid.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        mainAxisSpacing: AppDimensions.paddingMedium,
-                        // crossAxisSpacing: AppDimensions.paddingMedium,
-                        childAspectRatio: 1.35,       // 宽高比
-                      ),
-                      addAutomaticKeepAlives: true,
-                      itemCount: hotAlbums.length,
-                      itemBuilder: (context, index) {
-                        return KeepAliveWrapper(
-                          child: GestureDetector(
-                            onTap: () => context.router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': hotAlbums[index].id})),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SimpleExtendedImage.avatar(
-                                    width: albumWidth,
-                                    shape: BoxShape.rectangle,
-                                    borderRadius: BorderRadius.circular(AppDimensions.paddingMedium),
-                                    '${hotAlbums[index].picUrl}?param=200y200'
-                                ),
-                                Expanded(child: Container(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        "${hotAlbums[index].name}",
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: context.textTheme.bodyMedium?.copyWith(
-                                          color: onAlbumColor,
-                                        ),
-                                      ),
-                                      Text(
-                                        "${DateTime.fromMillisecondsSinceEpoch(hotAlbums[index].publishTime ?? 0).year}",
-                                        maxLines: 1,
-                                        style: context.textTheme.bodySmall?.copyWith(
-                                          color: onAlbumColor,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ))
-                              ],
+                physics: SnappingScrollPhysics(itemExtent: albumWidth + AppDimensions.paddingMedium),
+                itemBuilder: (context, index) {
+                  double marginLeft = index == 0 ? AppDimensions.paddingMedium : 0;
+                  return KeepAliveWrapper(
+                    child: GestureDetector(
+                      onTap: () => context.router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': hotAlbums[index].id})),
+                      child: SizedBox(
+                        height: albumWidth * 1.35,
+                        width: albumWidth,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SimpleExtendedImage.avatar(
+                                width: albumWidth,
+                                shape: BoxShape.rectangle,
+                                borderRadius: BorderRadius.circular(AppDimensions.paddingMedium),
+                                '${hotAlbums[index].picUrl}?param=200y200'
                             ),
-                          ),
-                        );
-                      },
+                            Expanded(child: Container(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "${hotAlbums[index].name}",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: context.textTheme.bodyMedium?.copyWith(
+                                      color: onAlbumColor,
+                                    ),
+                                  ),
+                                  Text(
+                                    "${DateTime.fromMillisecondsSinceEpoch(hotAlbums[index].publishTime ?? 0).year}",
+                                    maxLines: 1,
+                                    style: context.textTheme.bodySmall?.copyWith(
+                                      color: onAlbumColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ))
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ).marginOnly(left: marginLeft, right: AppDimensions.paddingMedium);
+                },
               ),
             )
           ),

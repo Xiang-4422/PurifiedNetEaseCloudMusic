@@ -20,43 +20,54 @@ class LoginPageView extends StatefulWidget {
 }
 
 class _LoginPageViewState extends State<LoginPageView> {
-  final TextEditingController phone = TextEditingController();
-  final TextEditingController pass = TextEditingController();
   Timer? timer;
   String qrCodeUrl = '';
 
+  bool qrCodeNeedRefresh = true;
+  String hintText = "扫描二维码登录";
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    getQrCode(context);
+    refreshQrCode(context);
   }
 
-  getQrCode(context) async {
+  refreshQrCode(context) async {
+    if (!qrCodeNeedRefresh) {
+      return;
+    }
+
     QrCodeLoginKey qrCodeLoginKey = await NeteaseMusicApi().loginQrCodeKey();
     if (qrCodeLoginKey.code != 200) {
       WidgetUtil.showToast(qrCodeLoginKey.message ?? '未知错误');
       return;
     }
     String codeUrl = NeteaseMusicApi().loginQrCodeUrl(qrCodeLoginKey.unikey);
-    setState(() => qrCodeUrl = codeUrl);
+    setState(() {
+      qrCodeUrl = codeUrl;
+      hintText = "扫描二维码登录";
+      qrCodeNeedRefresh = false;
+    });
 
     // 不停获取二维码状态（已经登录/二维码过期）
     timer = Timer.periodic(const Duration(seconds: 3), (Timer t) async {
       ServerStatusBean serverStatusBean = await NeteaseMusicApi().loginQrCodeCheck(qrCodeLoginKey.unikey);
       switch (serverStatusBean.code) {
         case 800:
-          WidgetUtil.showToast('二维码过期请重新获取');
+          setState(() {
+            hintText = "二维码过期";
+            qrCodeNeedRefresh = true;
+          });
           timer?.cancel();
           timer = null;
           break;
         case 803:
-          WidgetUtil.showToast('授权成功！');
+          hintText = "授权成功!";
+          timer?.cancel();
+          timer = null;
           AppController.to.updateUserState();
           AppController.to.updateData();
           AutoRouter.of(context).pop();
-          timer?.cancel();
-          timer = null;
           break;
         default:
           break;
@@ -67,9 +78,7 @@ class _LoginPageViewState extends State<LoginPageView> {
   @override
   void dispose() {
     super.dispose();
-    phone.dispose();
     timer?.cancel();
-    pass.dispose();
   }
 
   @override
@@ -81,9 +90,7 @@ class _LoginPageViewState extends State<LoginPageView> {
            visible: qrCodeUrl.isNotEmpty,
            child: GestureDetector(
              onTap: () {
-               timer?.cancel();
-               timer = null;
-               getQrCode(context);
+               refreshQrCode(context);
              },
              child: Container(
                color: Colors.white,

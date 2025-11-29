@@ -58,6 +58,12 @@ class ExplorePageController extends GetxController {
     ]
   };
 
+  RxList tagCategorys = <String>[].obs;
+  RxMap tags = {}.obs;
+
+  RxString curTagCategoryName = "".obs;
+  RxString curTag = "全部".obs;
+
   RxBool showChooseCategory = false.obs;
   RxBool showChoosePlayList = false.obs;
 
@@ -76,7 +82,7 @@ class ExplorePageController extends GetxController {
   RxList<MediaItem> curTopPlayListSongs = <MediaItem>[].obs;
 
   /// 精选歌单
-  RxList<PlayList> hqPlaylists = <PlayList>[].obs;
+  RxList<PlayList> playLists = <PlayList>[].obs;
 
   RxBool loading = true.obs;
 
@@ -90,26 +96,37 @@ class ExplorePageController extends GetxController {
     loading.value = false;
   }
 
-  initData() {
+  initData() async {
     topPlayListCategoryNames.addAll(topPlayListCategory.keys);
     curTopPlayListCategoryName.value = topPlayListCategoryNames[0];
     curCategoryTopPlayLists.addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
     curTopPlayListName.value = curCategoryTopPlayLists[0]["name"]!;
     curTopPlayListId.value = curCategoryTopPlayLists[0]["id"]!;
+
+    NeteaseMusicApi().playlistCatalogue().then((value) {
+      for (String category in value.categories!.values) {
+        tagCategorys.add(category);
+        tags.value[category] = [];
+      }
+      for(PlaylistCatalogueItem catalogueItem in (value.sub ?? [])) {
+        tags.value[tagCategorys[catalogueItem.category!]]?.add(catalogueItem.name!);
+        print("tags: $tags");
+      }
+    });
   }
 
   updateData() async {
-    await _getHighQualityPlayLists();
+    await updatePlayLists();
     await updateRankingPlayListSongs();
     refreshController.refreshCompleted();
     refreshController.resetNoData();
   }
 
-  _getHighQualityPlayLists() async {
+  updatePlayLists() async {
     List<PlayList> data;
-    MultiPlayListWrap multiPlayListWrap = await NeteaseMusicApi().categorySongList();
+    MultiPlayListWrap multiPlayListWrap = await NeteaseMusicApi().categorySongList(category: curTag.value);
     data = multiPlayListWrap.playlists ?? [];
-    hqPlaylists
+    playLists
       ..clear()
       ..addAll(data);
     // ..addAll(data.length > 6 ? data.sublist(0, 6) : data);

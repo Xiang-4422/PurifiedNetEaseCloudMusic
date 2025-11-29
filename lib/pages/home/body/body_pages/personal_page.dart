@@ -21,6 +21,7 @@ import '../../../../controllers/app_controller.dart';
 import '../../../../routes/router.gr.dart' as gr;
 import '../../../../widget/keep_alive_wrapper.dart';
 import '../../../../widget/simple_extended_image.dart';
+import '../../bottom_panel/bottom_panel_view.dart';
 
 /// 收藏页
 class PersonalPageView extends GetView<AppController> {
@@ -38,6 +39,7 @@ class PersonalPageView extends GetView<AppController> {
           controller.updateData();
         },
         enablePullUp: true,
+        enablePullDown: false,
         onLoading: () => controller.updateRecoPlayLists(getMore: true),
         footer: ClassicFooter(
             height: 60 + AppDimensions.bottomPanelHeaderHeight,
@@ -55,6 +57,7 @@ class PersonalPageView extends GetView<AppController> {
           slivers: [
             PinnedHeaderSliver(
               child: Container(
+                color: Colors.transparent,
                 height: context.mediaQueryPadding.top,
               ),
             ),
@@ -75,13 +78,28 @@ class PersonalPageView extends GetView<AppController> {
                           Stack(
                             alignment: Alignment.bottomRight,
                             children: [
-                              QuickStartCard(
-                                width: userItemWidth,
-                                height: userItemWidth * 1.3,
-                                albumUrl: controller.todayRecommendSongs[0].extras?['image'],
-                                icon: TablerIcons.calendar,
-                                title: "每日推荐",
-                                onTap: () => context.router.push(const gr.TodayRouteView()),
+                              LongPressOverlayTransition(
+                                child: QuickStartCard(
+                                  width: userItemWidth,
+                                  height: userItemWidth * 1.3,
+                                  albumUrl: controller.todayRecommendSongs[0].extras?['image'],
+                                  icon: TablerIcons.calendar,
+                                  title: "每日推荐",
+                                  onTap: () => context.router.push(const gr.TodayRouteView()),
+                                ),
+                                builder: (_) {
+                                  return ListView.builder(
+                                    padding: EdgeInsets.zero,
+                                    itemCount: controller.todayRecommendSongs.length,
+                                    itemBuilder: (BuildContext context, int index) {
+                                      return SongItem(
+                                        playlist: controller.todayRecommendSongs,
+                                        index: index,
+                                        playListName: '',);
+                                    },
+
+                                  );
+                                },
                               ),
                               Visibility(
                                 visible: controller.isPlaying.isTrue && (controller.curPlayListName.value == "每日推荐"),
@@ -139,8 +157,7 @@ class PersonalPageView extends GetView<AppController> {
                           ).marginOnly(right: AppDimensions.paddingSmall),
                         ],
                       )
-                    ),
-                  );
+                    ));
                 },
               ),
             ),
@@ -164,8 +181,8 @@ class PersonalPageView extends GetView<AppController> {
                 child: Row(
                   children: [
                     const Header('推荐歌单', padding: AppDimensions.paddingSmall),
+                    Expanded(child: Container()),
                     IconButton(onPressed: controller.updateRecoPlayLists, icon: Icon(TablerIcons.refresh)),
-                    Expanded(child: Container())
                   ],
                 ),
               ),
@@ -340,4 +357,3 @@ class QuickStartCard extends StatelessWidget {
   }
 
 }
-

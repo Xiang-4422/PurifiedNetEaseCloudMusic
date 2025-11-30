@@ -31,7 +31,7 @@ abstract class Routes {
   static const artists = 'artists';
   static const myRadio = 'myRadio';
   static const guide = '/guide';
-  static const userSetting = 'userSetting';
+  static const userProfile = 'userProfile';
   static const mv = '/mv';
   static const update = '/update';
   static const local = 'local';
@@ -55,7 +55,7 @@ abstract class Routes {
     // 登录
     AutoRoute(path: Routes.login, page: LoginPageView),
     // 用户设置（注销登录）
-    AutoRoute(path: Routes.userSetting, page: UserSettingView),
+    AutoRoute(path: Routes.userProfile, page: UserProfilePageView),
     // APP HOME
     AutoRoute(path: Routes.home, page: AppHomePageView, initial: true, children: [
       // APP BODY

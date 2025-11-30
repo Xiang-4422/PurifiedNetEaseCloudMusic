@@ -129,7 +129,7 @@ class MenuView extends GetView<AppController> {
             onPressed: () {
               controller.zoomDrawerController.close!();
               Future.delayed(const Duration(milliseconds: 200), () {
-                context.router.pushNamed(Routes.userSetting);
+                context.router.pushNamed(Routes.userProfile);
               });
             },
           ),

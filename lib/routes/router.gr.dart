@@ -43,7 +43,7 @@ class RootRouter extends _i13.RootStackRouter {
     UserSettingView.name: (routeData) {
       return _i13.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i2.UserSettingView(),
+        child: const _i2.UserProfilePageView(),
       );
     },
     AppRootRouteView.name: (routeData) {
@@ -201,7 +201,7 @@ class LoginRouteView extends _i13.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.UserSettingView]
+/// [_i2.UserProfilePageView]
 class UserSettingView extends _i13.PageRouteInfo<void> {
   const UserSettingView()
       : super(

@@ -11,14 +11,14 @@ import '../../common/netease_api/src/api/user/bean.dart';
 import '../../common/netease_api/src/dio_ext.dart';
 import '../../common/netease_api/src/netease_handler.dart';
 
-class UserSettingView extends StatefulWidget {
-  const UserSettingView({Key? key}) : super(key: key);
+class UserProfilePageView extends StatefulWidget {
+  const UserProfilePageView({Key? key}) : super(key: key);
 
   @override
-  State<UserSettingView> createState() => _UserSettingViewState();
+  State<UserProfilePageView> createState() => _UserProfilePageViewState();
 }
 
-class _UserSettingViewState extends State<UserSettingView> {
+class _UserProfilePageViewState extends State<UserProfilePageView> {
   DioMetaData userDetailDioMetaData(String userId) {
     return DioMetaData(joinUri('/weapi/v1/user/detail/$userId'), data: {}, options: joinOptions());
   }

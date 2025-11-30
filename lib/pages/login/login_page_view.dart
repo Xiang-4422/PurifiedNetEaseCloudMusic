@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/routes/router.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -67,7 +68,7 @@ class _LoginPageViewState extends State<LoginPageView> {
           timer = null;
           AppController.to.updateUserState();
           AppController.to.updateData();
-          AutoRouter.of(context).pop();
+          AutoRouter.of(context).replaceNamed(Routes.home);
           break;
         default:
           break;

@@ -49,7 +49,7 @@ class RootRouter extends _i13.RootStackRouter {
     AppRootRouteView.name: (routeData) {
       return _i13.CupertinoPageX<dynamic>(
         routeData: routeData,
-        child: const _i3.AppRootPageView(),
+        child: const _i3.AppHomePageView(),
       );
     },
     UpdateView.name: (routeData) {
@@ -213,7 +213,7 @@ class UserSettingView extends _i13.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i3.AppRootPageView]
+/// [_i3.AppHomePageView]
 class AppRootRouteView extends _i13.PageRouteInfo<void> {
   const AppRootRouteView({List<_i13.PageRouteInfo>? children})
       : super(

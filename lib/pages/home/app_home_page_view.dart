@@ -12,8 +12,8 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 import 'top_panel/top_panel_view.dart';
 
-class AppRootPageView extends GetView<AppController>{
-  const AppRootPageView({Key? key,}) : super(key: key);
+class AppHomePageView extends GetView<AppController>{
+  const AppHomePageView({Key? key,}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -57,7 +57,7 @@ abstract class Routes {
     // 用户设置（注销登录）
     AutoRoute(path: Routes.userSetting, page: UserSettingView),
     // APP HOME
-    AutoRoute(path: Routes.home, page: AppRootPageView, initial: true, children: [
+    AutoRoute(path: Routes.home, page: AppHomePageView, initial: true, children: [
       // APP BODY
       AutoRoute(path: Routes.local, page: AppBodyPageView, initial: true),
       // 每日歌单

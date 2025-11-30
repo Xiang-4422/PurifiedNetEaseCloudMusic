@@ -1,6 +1,6 @@
 
 import 'package:bujuan/controllers/app_controller.dart';
-import 'package:bujuan/app_root_router.dart';
+import 'package:bujuan/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -24,8 +24,8 @@ main() async {
   // 在runApp前必须完成的初始化操作
   await _initSingleton();
 
+  Get.put<AppController>(AppController());
   Get.lazyPut<ExplorePageController>(() => ExplorePageController());
-  Get.lazyPut<AppController>(() => AppController());
 
   runApp(AppRootRouter());
 }

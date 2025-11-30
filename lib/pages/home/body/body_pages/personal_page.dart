@@ -61,7 +61,6 @@ class PersonalPageView extends GetView<AppController> {
                 height: context.mediaQueryPadding.top,
               ),
             ),
-            // SliverPadding(padding: EdgeInsets.only(top: context.mediaQueryPadding.top)),
 
             // 快速播放卡片
             SliverToBoxAdapter(
@@ -74,7 +73,7 @@ class PersonalPageView extends GetView<AppController> {
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         physics: SnappingScrollPhysics(itemExtent: userItemWidth + AppDimensions.paddingSmall),
-                        children: [
+                        children:   [
                           Stack(
                             alignment: Alignment.bottomRight,
                             children: [
@@ -162,17 +161,22 @@ class PersonalPageView extends GetView<AppController> {
               ),
             ),
 
-            // 我的歌单
-            SliverToBoxAdapter(
-              child: const Header('我的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
-            ),
-            SliverToBoxAdapter(
-                child: PlayListWidget(playLists: controller.userPlayLists, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall, showSongCount: false,)
-            ),
+            // 我的喜欢
             SliverToBoxAdapter(
                 child: PlayListItem(controller.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall)
             ),
 
+            // 我的歌单 Header
+            SliverToBoxAdapter(
+              child: const Header('我的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
+            ),
+            // 我的歌单
+            SliverToBoxAdapter(
+                child: PlayListWidget(playLists: controller.userPlayLists, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall, showSongCount: false,)
+            ),
+
+
+            // 推荐歌单 Header
             PinnedHeaderSliver(
               child: BlurryContainer(
                 borderRadius: BorderRadius.circular(9999),
@@ -187,16 +191,7 @@ class PersonalPageView extends GetView<AppController> {
                 ),
               ),
             ),
-            // 推荐歌单
-            // SliverToBoxAdapter(
-            //   child: Row(
-            //     children: [
-            //       const Header('推荐歌单', padding: AppDimensions.paddingSmall),
-            //       IconButton(onPressed: controller.updateRecoPlayLists, icon: Icon(TablerIcons.refresh)),
-            //       Expanded(child: Container())
-            //     ],
-            //   ).marginOnly(top: AppDimensions.paddingSmall),
-            // ),
+            // 推荐歌单列表
             SliverList.builder(
               itemCount: controller.recoPlayLists.length,
               itemBuilder: (BuildContext context, int index) {

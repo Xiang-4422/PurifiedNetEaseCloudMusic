@@ -917,14 +917,13 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
       NeteaseAccountInfoWrap neteaseAccountInfoWrap = await NeteaseMusicApi().loginAccountInfo();
       if (neteaseAccountInfoWrap.code == 200 && neteaseAccountInfoWrap.profile != null) {
         userData.value = neteaseAccountInfoWrap;
-        // loginStatus.value = LoginStatus.login;
         box.put(loginData, jsonEncode(neteaseAccountInfoWrap.toJson()));
       } else {
         WidgetUtil.showToast('登录失效,请重新登录');
         buildContext.router.replaceNamed(Routes.login);
       }
     } catch (e) {
-      WidgetUtil.showToast('获取用户资料失败，请检查网络');
+      WidgetUtil.showToast('更新用户登录信息失败，请检查网络');
     }
   }
   clearUser() {

@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/guide/guide_view.dart';
 import 'package:bujuan/pages/home/app_home_page_view.dart';
 import 'package:bujuan/pages/home/body/app_body_page_view.dart';
 import 'package:bujuan/pages/radio/my_radio_view.dart';
@@ -12,7 +11,6 @@ import '../pages/artist/artist_page_view.dart';
 import '../pages/cloud/cloud_drive_view.dart';
 import '../pages/login/login_page_view.dart';
 import '../pages/play_list/playlist_page_view.dart';
-import '../pages/splash_page.dart';
 import '../pages/update/update_view.dart';
 
 abstract class Routes {
@@ -86,10 +84,6 @@ abstract class _Paths {
 @CupertinoAutoRouter(
   replaceInRouteName: 'Page,Route',
   routes: <AutoRoute>[
-    // 开屏页
-    AutoRoute(path: Routes.splash, page: SplashPage),
-    // 引导
-    AutoRoute(path: Routes.guide, page: GuideView),
     // 登录
     AutoRoute(path: Routes.login, page: LoginPageView),
     // 用户设置（注销登录）

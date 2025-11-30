@@ -16,62 +16,28 @@ import '../pages/update/update_view.dart';
 abstract class Routes {
   Routes._();
 
-  static const home = _Paths.home;
-  static const index = _Paths.index;
-  static const user = _Paths.user;
-  static const details = _Paths.details;
-  static const splash = _Paths.splash;
-  static const setting = _Paths.setting;
-  static const playlist = _Paths.playlist;
-  static const login = _Paths.login;
-  static const search = _Paths.search;
-  static const talk = _Paths.talk;
-  static const today = _Paths.today;
-  static const cloud = _Paths.cloud;
-  static const artists = _Paths.artists;
-  static const myRadio = _Paths.myRadio;
-  static const guide = _Paths.guide;
-  static const userSetting = _Paths.userSetting;
-  static const mv = _Paths.mv;
-  static const update = _Paths.update;
-  static const local = _Paths.local;
-  static const editSong = _Paths.editSong;
-  static const localSong = _Paths.localSong;
-  static const radioDetails = _Paths.radioDetails;
-  static const imageBlur = _Paths.imageBlur;
-  static const coffee = _Paths.coffee;
-  static const neteaseCache = _Paths.neteaseCache;
-  static const localAlbum = _Paths.localAlbum;
-  static const localAr = _Paths.localAr;
-  static const albumDetails = _Paths.albumDetails;
-  static const playlistManager = _Paths.playlistManager;
-}
-
-abstract class _Paths {
-  _Paths._();
-
   static const home = '/home';
   static const index = 'index';
   static const user = 'user';
-  static const local = 'local';
-  static const search = '/search';
-  static const playlist = 'playlist';
   static const details = '/details';
-  static const setting = 'setting';
   static const splash = '/splash';
+  static const setting = 'setting';
+  static const playlist = 'playlist';
   static const login = 'login';
+  static const search = '/search';
   static const talk = 'talk';
   static const today = 'today';
   static const cloud = 'cloud';
   static const artists = 'artists';
   static const myRadio = 'myRadio';
-  static const radioDetails = 'radioDetails';
   static const guide = '/guide';
   static const userSetting = 'userSetting';
   static const mv = '/mv';
   static const update = '/update';
+  static const local = 'local';
   static const editSong = '/editSong';
   static const localSong = 'localSong';
+  static const radioDetails = 'radioDetails';
   static const imageBlur = '/imageBlur';
   static const coffee = 'coffee';
   static const neteaseCache = 'neteaseCache';
@@ -80,6 +46,8 @@ abstract class _Paths {
   static const albumDetails = 'albumDetails';
   static const playlistManager = 'playlistManager';
 }
+
+ 
 
 @CupertinoAutoRouter(
   replaceInRouteName: 'Page,Route',

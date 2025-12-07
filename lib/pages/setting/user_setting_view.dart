@@ -27,7 +27,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: RequestWidget<NeteaseUserDetail>(
-        dioMetaData: userDetailDioMetaData(AppController.to.userData.value.profile?.userId ?? ''),
+        dioMetaData: userDetailDioMetaData(AppController.to.userInfo.value.profile?.userId ?? ''),
         childBuilder: (userData) => Container(
           padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top, bottom: AppDimensions.bottomPanelHeaderHeight),
           child: Stack(
@@ -86,7 +86,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                 ),
               ),
               SimpleExtendedImage.avatar(
-                AppController.to.userData.value.profile?.avatarUrl ?? '',
+                AppController.to.userInfo.value.profile?.avatarUrl ?? '',
                 width: 260,
               ),
             ],

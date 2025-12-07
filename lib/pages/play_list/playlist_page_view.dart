@@ -354,7 +354,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   _getMediaItems(id) async {
     // 获取歌单详情
     details ??= await NeteaseMusicApi().playListDetail(id);
-    isMyPlayList = details?.playlist?.creator?.userId == AppController.to.userData.value.profile?.userId;
+    isMyPlayList = details?.playlist?.creator?.userId == AppController.to.userInfo.value.profile?.userId;
     isSubscribed = details?.playlist?.subscribed ?? false;
     List<String> ids = details?.playlist?.trackIds?.map((e) => e.id).toList() ?? [];
     // 获取歌曲，先获取1000首，结束loading，后台继续加载剩余歌曲

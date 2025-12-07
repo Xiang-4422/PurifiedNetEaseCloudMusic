@@ -123,7 +123,7 @@ class MenuView extends GetView<AppController> {
           IconButton(
             padding: EdgeInsets.zero,
             icon: Obx(() => SimpleExtendedImage.avatar(
-              '${controller.userData.value.profile?.avatarUrl ?? ''}?param=300y300',
+              '${controller.userInfo.value.profile?.avatarUrl ?? ''}?param=300y300',
               shape: BoxShape.circle,
             ),),
             onPressed: () {

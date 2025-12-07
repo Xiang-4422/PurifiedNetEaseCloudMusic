@@ -24,7 +24,7 @@ main() async {
   // 在runApp前必须完成的初始化操作
   await _initSingleton();
 
-  Get.put<AppController>(AppController());
+  Get.lazyPut<AppController>(() => AppController());
   Get.lazyPut<ExplorePageController>(() => ExplorePageController());
 
   runApp(AppRootRouter());

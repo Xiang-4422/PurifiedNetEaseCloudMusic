@@ -53,11 +53,11 @@ abstract class Routes {
   replaceInRouteName: 'Page,Route',
   routes: <AutoRoute>[
     // 登录
-    AutoRoute(path: Routes.login, page: LoginPageView),
+    AutoRoute(path: Routes.login, page: LoginPageView, initial: true),
     // 用户设置（注销登录）
     AutoRoute(path: Routes.userProfile, page: UserProfilePageView),
     // APP HOME
-    AutoRoute(path: Routes.home, page: AppHomePageView, initial: true, children: [
+    AutoRoute(path: Routes.home, page: AppHomePageView, children: [
       // APP BODY
       AutoRoute(path: Routes.local, page: AppBodyPageView, initial: true),
       // 每日歌单

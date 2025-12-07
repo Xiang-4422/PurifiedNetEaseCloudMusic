@@ -3,11 +3,15 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/routes/router.dart';
+import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../common/constants/key.dart';
 import '../../common/constants/other.dart';
 import '../../common/netease_api/src/api/bean.dart';
 import '../../common/netease_api/src/api/login/bean.dart';
@@ -23,14 +27,24 @@ class LoginPageView extends StatefulWidget {
 class _LoginPageViewState extends State<LoginPageView> {
   Timer? timer;
   String qrCodeUrl = '';
-
-  bool qrCodeNeedRefresh = true;
   String hintText = "扫描二维码登录";
 
+
+  bool qrCodeNeedRefresh = true;
+
+  late bool isLoading;
+  Box box = GetIt.instance<Box>();
+
   @override
-  void initState() {
+  initState() {
     super.initState();
-    refreshQrCode(context);
+    if (box.get(isLoginSP) == true) {
+      isLoading = true;
+      getUserInfo();
+    } else {
+      isLoading = false;
+      refreshQrCode(context);
+    }
   }
 
   refreshQrCode(context) async {
@@ -66,9 +80,11 @@ class _LoginPageViewState extends State<LoginPageView> {
           hintText = "授权成功!";
           timer?.cancel();
           timer = null;
-          AppController.to.updateUserState();
-          AppController.to.updateData();
-          AutoRouter.of(context).replaceNamed(Routes.home);
+          box.put(isLoginSP, true);
+          setState(() {
+            isLoading = true;
+          });
+          loadUserData();
           break;
         default:
           break;
@@ -85,46 +101,66 @@ class _LoginPageViewState extends State<LoginPageView> {
   @override
   Widget build(BuildContext context) {
    return Scaffold(
-     body: Stack(
-       children: [
-         Visibility(
-           visible: qrCodeUrl.isNotEmpty,
-           child: GestureDetector(
-             onTap: () {
-               refreshQrCode(context);
-             },
-             child: Container(
-               color: Colors.white,
-               alignment: Alignment.center,
-               child: Stack(
-                 alignment: Alignment.bottomCenter,
-                 children: [
-                   QrImageView(
-                     backgroundColor: Colors.white,
-                     data: qrCodeUrl,
-                     version: QrVersions.auto,
-                     padding: const EdgeInsets.all(100),
-                   ),
-                   Container(
-                     height: 100,
-                     alignment: Alignment.center,
-                     child: Text(
-                       '扫描二维码登录',
-                       style: TextStyle(
-                           fontSize: 28,
-                           color: Colors.black,
-                           fontWeight: FontWeight.bold
-                       ),
-                     ),
-                   ),
-                 ],
+     body: isLoading ? const LoadingView() : Visibility(
+       visible: qrCodeUrl.isNotEmpty,
+       child: GestureDetector(
+         onTap: () {
+           refreshQrCode(context);
+         },
+         child: Container(
+           color: Colors.white,
+           alignment: Alignment.center,
+           child: Stack(
+             alignment: Alignment.bottomCenter,
+             children: [
+               QrImageView(
+                 backgroundColor: Colors.white,
+                 data: qrCodeUrl,
+                 version: QrVersions.auto,
+                 padding: const EdgeInsets.all(100),
                ),
-             ),
+               Container(
+                 height: 100,
+                 alignment: Alignment.center,
+                 child: Text(
+                   '扫描二维码登录',
+                   style: TextStyle(
+                       fontSize: 28,
+                       color: Colors.black,
+                       fontWeight: FontWeight.bold
+                   ),
+                 ),
+               ),
+             ],
            ),
-         )
-       ],
-     ),
+         ),
+       ),
+     )
    );
+  }
+
+  loadUserData() async {
+    await AppController.to.updateData();
+    AutoRouter.of(context).replaceNamed(Routes.home);
+  }
+
+  /// 更新用户登录信息
+  Future<bool> getUserInfo() async {
+    NeteaseAccountInfoWrap neteaseAccountInfoWrap = await NeteaseMusicApi().loginAccountInfo();
+    // 登录信息有效
+    bool isLoginStatueActive = neteaseAccountInfoWrap.code == 200 && neteaseAccountInfoWrap.profile != null;
+    if (isLoginStatueActive) {
+      AppController.to.userInfo.value = neteaseAccountInfoWrap;
+      loadUserData();
+      return true;
+    } else {
+      box.put(isLoginSP, false);
+      WidgetUtil.showToast('登录失效,请重新登录');
+      setState(() {
+        isLoading = false;
+      });
+      return false;
+    }
   }
 
 }

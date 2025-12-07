@@ -40,13 +40,13 @@ class RootRouter extends _i13.RootStackRouter {
         child: const _i1.LoginPageView(),
       );
     },
-    UserSettingView.name: (routeData) {
+    UserProfileRouteView.name: (routeData) {
       return _i13.CupertinoPageX<dynamic>(
         routeData: routeData,
         child: const _i2.UserProfilePageView(),
       );
     },
-    AppRootRouteView.name: (routeData) {
+    AppHomeRouteView.name: (routeData) {
       return _i13.CupertinoPageX<dynamic>(
         routeData: routeData,
         child: const _i3.AppHomePageView(),
@@ -117,7 +117,7 @@ class RootRouter extends _i13.RootStackRouter {
         _i13.RouteConfig(
           '/#redirect',
           path: '/',
-          redirectTo: '/home',
+          redirectTo: 'login',
           fullMatch: true,
         ),
         _i13.RouteConfig(
@@ -125,59 +125,59 @@ class RootRouter extends _i13.RootStackRouter {
           path: 'login',
         ),
         _i13.RouteConfig(
-          UserSettingView.name,
-          path: 'userSetting',
+          UserProfileRouteView.name,
+          path: 'userProfile',
         ),
         _i13.RouteConfig(
-          AppRootRouteView.name,
+          AppHomeRouteView.name,
           path: '/home',
           children: [
             _i13.RouteConfig(
               '#redirect',
               path: '',
-              parent: AppRootRouteView.name,
+              parent: AppHomeRouteView.name,
               redirectTo: 'local',
               fullMatch: true,
             ),
             _i13.RouteConfig(
               AppBodyRouteView.name,
               path: 'local',
-              parent: AppRootRouteView.name,
+              parent: AppHomeRouteView.name,
             ),
             _i13.RouteConfig(
               TodayRouteView.name,
               path: 'today',
-              parent: AppRootRouteView.name,
+              parent: AppHomeRouteView.name,
             ),
             _i13.RouteConfig(
               PlayListRouteView.name,
               path: 'playlist',
-              parent: AppRootRouteView.name,
+              parent: AppHomeRouteView.name,
             ),
             _i13.RouteConfig(
               AlbumRouteView.name,
               path: 'albumDetails',
-              parent: AppRootRouteView.name,
+              parent: AppHomeRouteView.name,
             ),
             _i13.RouteConfig(
               ArtistRouteView.name,
               path: 'artists',
-              parent: AppRootRouteView.name,
+              parent: AppHomeRouteView.name,
             ),
             _i13.RouteConfig(
               MyRadioView.name,
               path: 'myRadio',
-              parent: AppRootRouteView.name,
+              parent: AppHomeRouteView.name,
             ),
             _i13.RouteConfig(
               RadioDetailsView.name,
               path: 'radioDetails',
-              parent: AppRootRouteView.name,
+              parent: AppHomeRouteView.name,
             ),
             _i13.RouteConfig(
               CloudDriveView.name,
               path: 'cloud',
-              parent: AppRootRouteView.name,
+              parent: AppHomeRouteView.name,
             ),
           ],
         ),
@@ -202,27 +202,27 @@ class LoginRouteView extends _i13.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i2.UserProfilePageView]
-class UserSettingView extends _i13.PageRouteInfo<void> {
-  const UserSettingView()
+class UserProfileRouteView extends _i13.PageRouteInfo<void> {
+  const UserProfileRouteView()
       : super(
-          UserSettingView.name,
-          path: 'userSetting',
+          UserProfileRouteView.name,
+          path: 'userProfile',
         );
 
-  static const String name = 'UserSettingView';
+  static const String name = 'UserProfileRouteView';
 }
 
 /// generated route for
 /// [_i3.AppHomePageView]
-class AppRootRouteView extends _i13.PageRouteInfo<void> {
-  const AppRootRouteView({List<_i13.PageRouteInfo>? children})
+class AppHomeRouteView extends _i13.PageRouteInfo<void> {
+  const AppHomeRouteView({List<_i13.PageRouteInfo>? children})
       : super(
-          AppRootRouteView.name,
+          AppHomeRouteView.name,
           path: '/home',
           initialChildren: children,
         );
 
-  static const String name = 'AppRootRouteView';
+  static const String name = 'AppHomeRouteView';
 }
 
 /// generated route for

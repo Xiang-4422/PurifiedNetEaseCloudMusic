@@ -57,7 +57,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   Rx<String> randomLikedSongId = "".obs;
 
   // --- 用户信息 ---
-  Rx<NeteaseAccountInfoWrap> userData = NeteaseAccountInfoWrap().obs;
+  Rx<NeteaseAccountInfoWrap> userInfo = NeteaseAccountInfoWrap().obs;
 
   // --- APP 功能配置项 ---
   /// 是否渐变播放背景
@@ -172,12 +172,10 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   
   @override
   Future<void> onInit() async {
+    super.onInit();
     _initAppSetting();
     _initUIController();
-    await updateUserState();
-
     WidgetsBinding.instance.addObserver(this);
-    super.onInit();
   }
   _initAppSetting() {
     isCacheOpen.value = box.get(cacheSp, defaultValue: false);
@@ -187,7 +185,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   }
   _initUIController() {
     zoomDrawerController = ZoomDrawerController();
-    curHomePageTitle.value = userData.value.profile?.nickname ?? "";
+    curHomePageTitle.value = userInfo.value.profile?.nickname ?? "";
     homePageController = PageController()..addListener(() {
       int updatedPageIndex = (homePageController.page! + 0.5).toInt();
       // 页面切换了
@@ -197,7 +195,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
         // 更新appbar标题
         switch(updatedPageIndex)  {
           case 0:
-            title = userData.value.profile?.nickname ?? "";
+            title = userInfo.value.profile?.nickname ?? "";
             break;
           case 1:
             title = "每日发现";
@@ -373,7 +371,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     fmSongs.addAll(await getFmSongs());
 
     likedSongIds.clear();
-    likedSongIds.addAll((await NeteaseMusicApi().likeSongList(userData.value.profile?.userId ?? '-1')).ids);
+    likedSongIds.addAll((await NeteaseMusicApi().likeSongList(userInfo.value.profile?.userId ?? '-1')).ids);
     
     _updateRandomLikedSong();
   }
@@ -399,7 +397,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
   }
 
   _updateUserPlayLists() async {
-    NeteaseMusicApi().userPlayLists(userData.value.profile?.userId ?? '-1').then((MultiPlayListWrap2 multiPlayListWrap2) async {
+    NeteaseMusicApi().userPlayLists(userInfo.value.profile?.userId ?? '-1').then((MultiPlayListWrap2 multiPlayListWrap2) async {
       List<PlayList> playLists = (multiPlayListWrap2.playlists ?? []);
       userLikedSongPlayList.value = playLists.removeAt(0);
       userPlayLists.clear();
@@ -911,29 +909,14 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     return "${song2ToMedia(songDetailWrap.songs ?? [])[0].extras?['image'] ?? ''}?param=500y500";
   }
 
-  /// 更新用户登录信息
-  updateUserState() async {
-    try {
-      NeteaseAccountInfoWrap neteaseAccountInfoWrap = await NeteaseMusicApi().loginAccountInfo();
-      if (neteaseAccountInfoWrap.code == 200 && neteaseAccountInfoWrap.profile != null) {
-        userData.value = neteaseAccountInfoWrap;
-        box.put(loginData, jsonEncode(neteaseAccountInfoWrap.toJson()));
-      } else {
-        WidgetUtil.showToast('登录失效,请重新登录');
-        buildContext.router.replaceNamed(Routes.login);
-      }
-    } catch (e) {
-      WidgetUtil.showToast('更新用户登录信息失败，请检查网络');
-    }
-  }
+
   clearUser() {
     NeteaseMusicApi().logout().then((value) {
-      if (value.code != 200) {
+      if (value.code == 200) {
+        box.put(isLoginSP, false);
+      } else {
         WidgetUtil.showToast(value.message ?? '');
-        return;
       }
-      box.put(loginData, '');
-      // loginStatus.value = LoginStatus.noLogin;
     });
   }
 

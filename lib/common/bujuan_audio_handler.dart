@@ -4,26 +4,32 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/controllers/player_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:bujuan/controllers/settings_controller.dart';
+import 'package:bujuan/controllers/user_controller.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:just_audio/just_audio.dart';
 
+import 'package:bujuan/common/constants/other.dart';
 import 'constants/key.dart';
 import 'constants/key.dart' as key;
 import 'netease_api/src/api/play/bean.dart';
 import 'netease_api/src/netease_api.dart';
 
-class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandler{
+class AudioServiceHandler extends BaseAudioHandler
+    with SeekHandler, QueueHandler {
   late final AudioPlayer _player;
   Box box = GetIt.instance<Box>();
 
   /// 当前原始播放列表（用于随机和顺序播放模式切换用）
   final List<MediaItem> _originalSongs = <MediaItem>[];
+
   /// 播放列表索引（当前播放对应在正在播放的列表索引）
   int _curIndex = -1;
+
   /// 播放模式（none表示随机模式）
   AudioServiceRepeatMode curRepeatMode = AudioServiceRepeatMode.all;
 
@@ -43,7 +49,9 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
           ProcessingState.ready: AudioProcessingState.ready,
           ProcessingState.completed: AudioProcessingState.completed,
         }[_player.processingState]!,
-        shuffleMode: (_player.shuffleModeEnabled) ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none,
+        shuffleMode: (_player.shuffleModeEnabled)
+            ? AudioServiceShuffleMode.all
+            : AudioServiceShuffleMode.none,
         playing: _player.playing,
         updatePosition: _player.position,
         bufferedPosition: _player.bufferedPosition,
@@ -57,36 +65,54 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
   /// 打乱or恢复播放列表顺序
   restoreLastPlayState() async {
     // 恢复漫游模式状态
-    AppController.to.isFmMode.value = box.get(fmSp, defaultValue: false);
-    // 恢复心动模式状态
-    AppController.to.isHeartBeatMode.value = box.get(heartBeatSp, defaultValue: false);
+    // 恢复漫游模式状态
+    bool isFm = box.get(fmSp, defaultValue: false);
+    bool isHeart = box.get(heartBeatSp, defaultValue: false);
+    if (isFm) {
+      PlayerController.to.playbackMode.value = PlaybackMode.roaming;
+    } else if (isHeart) {
+      PlayerController.to.playbackMode.value = PlaybackMode.heartbeat;
+    } else {
+      PlayerController.to.playbackMode.value = PlaybackMode.playlist;
+    }
     // 恢复播放模式
     String repeatMode = box.get(repeatModeSp, defaultValue: 'all');
-    changeRepeatMode(newRepeatMode: AudioServiceRepeatMode.values.firstWhereOrNull((element) => element.name == repeatMode) ?? AudioServiceRepeatMode.all);
+    changeRepeatMode(
+        newRepeatMode: AudioServiceRepeatMode.values
+                .firstWhereOrNull((element) => element.name == repeatMode) ??
+            AudioServiceRepeatMode.all);
     // 恢复播放列表
     List<String> stringPlayList = box.get(playQueue, defaultValue: <String>[]);
     String curSongId = box.get(curPlaySongId, defaultValue: '');
     if (stringPlayList.isNotEmpty) {
-      List<MediaItem> playlist = await compute(stringToPlayList, stringPlayList);
+      List<MediaItem> playlist =
+          await compute(stringToPlayList, stringPlayList);
       int index = playlist.indexWhere((element) => element.id == curSongId);
-      await changePlayList(playlist, index: index, playListName: box.get(playListName, defaultValue: ''), playListNameHeader: box.get(playListNameHeader, defaultValue: ''), changePlayerSource: true, playNow: false, needStore: false);
+      await changePlayList(playlist,
+          index: index,
+          playListName: box.get(playListName, defaultValue: ''),
+          playListNameHeader: box.get(playListNameHeader, defaultValue: ''),
+          changePlayerSource: true,
+          playNow: false,
+          needStore: false);
     }
   }
+
   /// 改变循环模式
   changeRepeatMode({AudioServiceRepeatMode? newRepeatMode}) async {
     if (newRepeatMode == null) {
       switch (curRepeatMode) {
-      // 单曲 -> 随机
+        // 单曲 -> 随机
         case AudioServiceRepeatMode.one:
           newRepeatMode = AudioServiceRepeatMode.none;
           await reorderPlayList(shufflePlayList: true);
           break;
-      // 随机 -> 全部
+        // 随机 -> 全部
         case AudioServiceRepeatMode.none:
           newRepeatMode = AudioServiceRepeatMode.all;
           await reorderPlayList(shufflePlayList: false);
           break;
-      // 全部 -> 单曲
+        // 全部 -> 单曲
         case AudioServiceRepeatMode.all:
         case AudioServiceRepeatMode.group:
           newRepeatMode = AudioServiceRepeatMode.one;
@@ -96,42 +122,46 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
     curRepeatMode = newRepeatMode;
 
     box.put(repeatModeSp, newRepeatMode.name);
-    AppController.to.curRepeatMode.value = newRepeatMode;
+    PlayerController.to.curRepeatMode.value = newRepeatMode;
     _updateMediaControls();
   }
+
   /// 打乱or恢复播放列表顺序
   reorderPlayList({bool shufflePlayList = false}) async {
     var playListCopy = <MediaItem>[..._originalSongs];
     if (shufflePlayList) playListCopy.shuffle();
     String curSongId = queue.value[_curIndex].id;
-    int curNewIndex = playListCopy.indexWhere((element) => element.id == curSongId);
+    int curNewIndex =
+        playListCopy.indexWhere((element) => element.id == curSongId);
     _curIndex = curNewIndex;
     await updateQueue(playListCopy);
   }
+
   /// 在AudioHandle中打乱播放列表
-  changePlayList(
-      List<MediaItem> playList,
+  changePlayList(List<MediaItem> playList,
       {int index = 0,
-        bool needStore = true,
-        required String playListName,
-        String playListNameHeader = "",
-        required bool changePlayerSource,
-        required bool playNow
-      }
-      ) async {
+      bool needStore = true,
+      required String playListName,
+      String playListNameHeader = "",
+      required bool changePlayerSource,
+      required bool playNow}) async {
     // 保存当前播放列表(原始顺序列表)
-    _originalSongs..clear()..addAll(playList);
+    _originalSongs
+      ..clear()
+      ..addAll(playList);
     var playListCopy = <MediaItem>[...playList];
     // 随机播放模式，打乱播放列表，重新获取index
-    if (curRepeatMode == AudioServiceRepeatMode.none && AppController.to.isFmMode.isFalse && AppController.to.isHeartBeatMode.isFalse) {
+    if (curRepeatMode == AudioServiceRepeatMode.none &&
+        PlayerController.to.playbackMode.value == PlaybackMode.playlist) {
       playListCopy.shuffle();
-      index = playListCopy.indexWhere((element) => element.id == playList[index].id);
+      index = playListCopy
+          .indexWhere((element) => element.id == playList[index].id);
     }
     // 播放器播放列表更新
     await updateQueue(playListCopy);
-    AppController.to.curPlayListName.value = playListName;
-    AppController.to.curPlayListNameHeader.value = playListNameHeader;
-    AppController.to.isPlayingLikedSongs.value = playListName == "喜欢的音乐";
+    PlayerController.to.curPlayListName.value = playListName;
+    PlayerController.to.curPlayListNameHeader.value = playListNameHeader;
+    PlayerController.to.isPlayingLikedSongs.value = playListName == "喜欢的音乐";
     box.put(key.playListName, playListName);
     box.put(key.playListNameHeader, playListNameHeader);
 
@@ -164,18 +194,22 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
         newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
         await _player.setFilePath(url);
       }
-    // 网易云缓存
-    }else if (newIndexMediaItem.extras?['type'] == MediaType.neteaseCache.name){
+      // 网易云缓存
+    } else if (newIndexMediaItem.extras?['type'] ==
+        MediaType.neteaseCache.name) {
       url = newIndexMediaItem.extras?['url'] ?? '';
       if (url.isNotEmpty) {
         newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
         // 网易云缓存的音乐要解密哦
-        await _player.setAudioSource(StreamSource(url, url.replaceAll('.uc!', '').split('.').last));
+        await _player.setAudioSource(
+            StreamSource(url, url.replaceAll('.uc!', '').split('.').last));
       }
-    // 在线歌曲
+      // 在线歌曲
     } else {
-      bool highQuality = AppController.to.isHighSoundQualityOpen.value;
-      SongUrlListWrap songUrl = await NeteaseMusicApi().songDownloadUrl([newIndexMediaItem.id], level: highQuality ? 'lossless' : 'exhigh');
+      bool highQuality = SettingsController.to.isHighSoundQualityOpen.value;
+      SongUrlListWrap songUrl = await NeteaseMusicApi().songDownloadUrl(
+          [newIndexMediaItem.id],
+          level: highQuality ? 'lossless' : 'exhigh');
       url = ((songUrl.data ?? [])[0].url ?? '').split('?')[0];
       // 如果获取不到URL就跳过
       if (url.isNotEmpty) {
@@ -200,30 +234,37 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
     final newQueue = queue.value..removeAt(index);
     queue.add(newQueue);
   }
+
   //更改为喜欢按钮
   @override
   Future<void> rewind() async {
-    AppController.to.toggleLikeStatus();
+    // AppController.to.toggleLikeStatus()
+    UserController.to.toggleLikeStatus(queue.value[_curIndex]);
   }
+
   @override
   Future<void> pause() async {
     await _player.pause();
     _updateMediaControls();
   }
+
   @override
   Future<void> play() async {
     await _player.play();
     _updateMediaControls();
   }
+
   @override
   Future<void> updateMediaItem(MediaItem mediaItem) async {
     await super.updateMediaItem(mediaItem);
     _updateMediaControls();
   }
+
   @override
   Future<void> seek(Duration position) async {
     await _player.seek(position);
   }
+
   @override
   Future<void> skipToNext() async {
     int newIndex;
@@ -233,11 +274,17 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
     } else {
       newIndex = _curIndex + 1;
       if (newIndex == queue.value.length) {
+        // 漫游模式下，不要直接回环到 0，防止逻辑冲突
+        if (PlayerController.to.playbackMode.value == PlaybackMode.roaming) {
+          WidgetUtil.showToast('正在加载漫游歌曲...');
+          return;
+        }
         newIndex = 0;
       }
     }
     playIndex(audioSourceIndex: newIndex, playNow: true);
   }
+
   @override
   Future<void> skipToPrevious() async {
     // 单曲循环模式直接返回
@@ -252,13 +299,14 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
     }
     playIndex(audioSourceIndex: newIndex, playNow: true);
   }
+
   @override
   Future<void> stop() async {
     await changeRepeatMode();
   }
+
   @override
-  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
-  }
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {}
   @override
   Future<void> onTaskRemoved() async {
     await stop();
@@ -268,15 +316,18 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
   /// 更新状态栏控制按钮
   _updateMediaControls() {
     bool isLiked = mediaItem.value?.extras?['liked'] ?? false;
-    playbackState.add(playbackState.value.copyWith(
-        controls: [
-          MediaControl(label: 'rewind', action: MediaAction.rewind, androidIcon: isLiked ?'drawable/audio_service_like' : 'drawable/audio_service_unlike'),
-          MediaControl.skipToPrevious,
-          _player.playing ? MediaControl.pause : MediaControl.play,
-          MediaControl.skipToNext,
-          MediaControl.stop,
-        ]
-    ));
+    playbackState.add(playbackState.value.copyWith(controls: [
+      MediaControl(
+          label: 'rewind',
+          action: MediaAction.rewind,
+          androidIcon: isLiked
+              ? 'drawable/audio_service_like'
+              : 'drawable/audio_service_unlike'),
+      MediaControl.skipToPrevious,
+      _player.playing ? MediaControl.pause : MediaControl.play,
+      MediaControl.skipToNext,
+      MediaControl.stop,
+    ]));
   }
 }
 
@@ -290,7 +341,8 @@ class StreamSource extends StreamAudioSource {
   @override
   Future<StreamAudioResponse> request([int? start, int? end]) async {
     // Use a method channel to read the file into a List of bytes
-    Uint8List fileBytes = Uint8List.fromList(File(uri).readAsBytesSync().map((e) => e ^ 0xa3).toList());
+    Uint8List fileBytes = Uint8List.fromList(
+        File(uri).readAsBytesSync().map((e) => e ^ 0xa3).toList());
 
     // Returning the stream audio response with the parameters
     return StreamAudioResponse(
@@ -365,38 +417,46 @@ class MediaItemBean {
   /// Creates a [MediaItemBean] from a map of key/value pairs corresponding to
   /// fields of this class.
   factory MediaItemBean.fromMap(Map<String, dynamic> raw) => MediaItemBean(
-    id: raw['id'] as String,
-    title: raw['title'] as String,
-    album: raw['album'] as String?,
-    artist: raw['artist'] as String?,
-    genre: raw['genre'] as String?,
-    duration: raw['duration'] != null ? Duration(milliseconds: raw['duration'] as int) : null,
-    artUri: raw['artUri'] != null ? Uri.parse(raw['artUri'] as String) : null,
-    playable: raw['playable'] as bool?,
-    displayTitle: raw['displayTitle'] as String?,
-    displaySubtitle: raw['displaySubtitle'] as String?,
-    displayDescription: raw['displayDescription'] as String?,
-    extras: raw['extras'] as Map<String, dynamic>?,
-  );
+        id: raw['id'] as String,
+        title: raw['title'] as String,
+        album: raw['album'] as String?,
+        artist: raw['artist'] as String?,
+        genre: raw['genre'] as String?,
+        duration: raw['duration'] != null
+            ? Duration(milliseconds: raw['duration'] as int)
+            : null,
+        artUri:
+            raw['artUri'] != null ? Uri.parse(raw['artUri'] as String) : null,
+        playable: raw['playable'] as bool?,
+        displayTitle: raw['displayTitle'] as String?,
+        displaySubtitle: raw['displaySubtitle'] as String?,
+        displayDescription: raw['displayDescription'] as String?,
+        extras: raw['extras'] as Map<String, dynamic>?,
+      );
 
   /// Converts this [MediaItemBean] to a map of key/value pairs corresponding to
   /// the fields of this class.
   Map<String, dynamic> toMap() => <String, dynamic>{
-    'id': id,
-    'title': title,
-    'album': album,
-    'artist': artist,
-    'genre': genre,
-    'duration': duration?.inMilliseconds,
-    'artUri': artUri?.toString(),
-    'playable': playable,
-    'displayTitle': displayTitle,
-    'displaySubtitle': displaySubtitle,
-    'displayDescription': displayDescription,
-    'extras': extras,
-  };
+        'id': id,
+        'title': title,
+        'album': album,
+        'artist': artist,
+        'genre': genre,
+        'duration': duration?.inMilliseconds,
+        'artUri': artUri?.toString(),
+        'playable': playable,
+        'displayTitle': displayTitle,
+        'displaySubtitle': displaySubtitle,
+        'displayDescription': displayDescription,
+        'extras': extras,
+      };
 }
+
 Future<List<MediaItem>> stringToPlayList(List<String> cachedPlayList) async {
+  return compute(_stringToPlayListIsolate, cachedPlayList);
+}
+
+List<MediaItem> _stringToPlayListIsolate(List<String> cachedPlayList) {
   return cachedPlayList.map((e) {
     var mediaItemBean = MediaItemBean.fromMap(jsonDecode(e));
     return MediaItem(
@@ -410,14 +470,21 @@ Future<List<MediaItem>> stringToPlayList(List<String> cachedPlayList) async {
     );
   }).toList();
 }
+
 Future<List<String>> playListToString(List<MediaItem> playList) async {
-  return playList.map((e) => jsonEncode(MediaItemBean(
-    id: e.id,
-    album: e.album,
-    title: e.title,
-    artist: e.artist,
-    duration: e.duration,
-    artUri: e.artUri,
-    extras: e.extras,
-  ).toMap())).toList();
+  return compute(_playListToStringIsolate, playList);
+}
+
+List<String> _playListToStringIsolate(List<MediaItem> data) {
+  return data
+      .map((e) => jsonEncode(MediaItemBean(
+            id: e.id,
+            album: e.album,
+            title: e.title,
+            artist: e.artist,
+            duration: e.duration,
+            artUri: e.artUri,
+            extras: e.extras,
+          ).toMap()))
+      .toList();
 }

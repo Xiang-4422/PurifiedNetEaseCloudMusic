@@ -22,26 +22,32 @@ class OtherUtils {
       imageProvider = const ExtendedAssetImageProvider(placeholderImage);
     } else {
       if (url.startsWith('http')) {
-        imageProvider = CachedNetworkImageProvider('$url?param=500y500', headers: const {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'});
+        imageProvider =
+            CachedNetworkImageProvider('$url?param=500y500', headers: const {
+          'User-Agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'
+        });
       } else {
         imageProvider = ExtendedFileImageProvider(File(url.split('?').first));
       }
     }
-    return await PaletteGenerator.fromImageProvider(imageProvider, size: const Size(300, 300));
+    return await PaletteGenerator.fromImageProvider(imageProvider,
+        size: const Size(100, 100));
   }
 
-  static Future<Color> getImageColor(String? url, {bool getLightColor = false}) async {
+  static Future<Color> getImageColor(String? url,
+      {bool getLightColor = false}) async {
     return OtherUtils.getImageColorPalette(url).then((paletteGenerator) {
       if (getLightColor) {
-        return paletteGenerator.lightMutedColor?.color
-            ?? paletteGenerator.lightVibrantColor?.color
-            ?? paletteGenerator.dominantColor?.color
-            ?? Colors.white;
+        return paletteGenerator.lightMutedColor?.color ??
+            paletteGenerator.lightVibrantColor?.color ??
+            paletteGenerator.dominantColor?.color ??
+            Colors.white;
       } else {
-        return paletteGenerator.darkMutedColor?.color
-            ?? paletteGenerator.darkVibrantColor?.color
-            ?? paletteGenerator.dominantColor?.color
-            ?? Colors.black;
+        return paletteGenerator.darkMutedColor?.color ??
+            paletteGenerator.darkVibrantColor?.color ??
+            paletteGenerator.dominantColor?.color ??
+            Colors.black;
       }
     });
   }
@@ -58,13 +64,17 @@ class OtherUtils {
 
   static String formatDate2Str(int time) {
     if (time <= 0) return '';
-    return formatDate(DateTime.fromMillisecondsSinceEpoch(time), [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn]);
+    return formatDate(DateTime.fromMillisecondsSinceEpoch(time),
+        [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn]);
   }
 
   /// 最短边，逻辑宽度大于600，判定为平板
-  static bool isPad(){
-    double deviceShortestSideLength = MediaQueryData.fromView(PlatformDispatcher.instance.implicitView!).size.shortestSide;
-    return  deviceShortestSideLength >= 600;
+  static bool isPad() {
+    double deviceShortestSideLength =
+        MediaQueryData.fromView(PlatformDispatcher.instance.implicitView!)
+            .size
+            .shortestSide;
+    return deviceShortestSideLength >= 600;
   }
 }
 

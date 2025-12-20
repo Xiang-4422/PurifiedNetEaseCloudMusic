@@ -1,11 +1,10 @@
-
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/home/bottom_panel/bottom_panel_view.dart';
 import 'package:flutter/material.dart';
+import 'package:bujuan/common/common_widget.dart';
 
 import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-
 
 // TODO YU4422 歌词换行、歌词丝滑缩放
 class LyricView extends GetView<AppController> {
@@ -20,10 +19,11 @@ class LyricView extends GetView<AppController> {
       onNotification: (notification) {
         // 判断滚动是否是用户手势触发
         if (notification is ScrollStartNotification) {
-          if (notification.dragDetails != null && !controller.isLyricScrollingByItself) {
+          if (notification.dragDetails != null &&
+              !controller.isLyricScrollingByItself) {
             controller.isLyricScrollingByUser = true;
           }
-        // 滚动结束时重置用户滚动状态 (这里只是一个辅助，主要靠计时器)
+          // 滚动结束时重置用户滚动状态 (这里只是一个辅助，主要靠计时器)
         } else if (notification is ScrollEndNotification) {
           controller.isLyricScrollingByUser = false;
           controller.isLyricScrollingByItself = false;
@@ -33,27 +33,36 @@ class LyricView extends GetView<AppController> {
       },
       child: ScrollConfiguration(
         behavior: const NoGlowScrollBehavior(),
-        child: Obx(() => ScrollablePositionedList.builder(
+        child: Obx(
+          () => ScrollablePositionedList.builder(
             itemScrollController: controller.lyricScrollController,
             itemCount: controller.lyricsLineModels.length + 2,
             itemBuilder: (BuildContext context, int index) {
               Widget child;
               // 首尾占位，让当前歌词行能够在固定位置显示
-              if (index == 0 || index == controller.lyricsLineModels.length + 1) {
-                child = Container(height: context.height * (index == 0 ? 0.4 : 0.6));
+              if (index == 0 ||
+                  index == controller.lyricsLineModels.length + 1) {
+                child = Container(
+                    height: context.height * (index == 0 ? 0.4 : 0.6));
               } else {
                 index -= 1;
-                String mainText = (controller.lyricsLineModels[index].mainText ?? '').trim();
-                if (mainText.isEmpty) {mainText = '···';}
-                String extText = (controller.lyricsLineModels[index].extText ?? '').trim();
+                String mainText =
+                    (controller.lyricsLineModels[index].mainText ?? '').trim();
+                if (mainText.isEmpty) {
+                  mainText = '···';
+                }
+                String extText =
+                    (controller.lyricsLineModels[index].extText ?? '').trim();
                 if (extText.isNotEmpty) extText = '\n$extText';
-                child = Obx((){
+                child = Obx(() {
                   bool isActive = controller.currLyricIndex.value == index;
                   return AnimatedDefaultTextStyle(
                     style: context.theme.textTheme.titleLarge!.copyWith(
                       fontFamily: 'monospace', // 指定使用系统等宽字体
-                      color: controller.panelWidgetColor.value.withValues(alpha: isActive ? 1 : 0.2),
-                      fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                      color: controller.panelWidgetColor.value
+                          .withValues(alpha: isActive ? 1 : 0.2),
+                      fontWeight:
+                          isActive ? FontWeight.bold : FontWeight.normal,
                     ),
                     curve: Curves.decelerate,
                     textAlign: TextAlign.start,

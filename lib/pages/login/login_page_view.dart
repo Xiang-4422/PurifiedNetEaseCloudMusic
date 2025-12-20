@@ -29,7 +29,6 @@ class _LoginPageViewState extends State<LoginPageView> {
   String qrCodeUrl = '';
   String hintText = "扫描二维码登录";
 
-
   bool qrCodeNeedRefresh = true;
 
   late bool isLoading;
@@ -66,7 +65,8 @@ class _LoginPageViewState extends State<LoginPageView> {
 
     // 不停获取二维码状态（已经登录/二维码过期）
     timer = Timer.periodic(const Duration(seconds: 3), (Timer t) async {
-      ServerStatusBean serverStatusBean = await NeteaseMusicApi().loginQrCodeCheck(qrCodeLoginKey.unikey);
+      ServerStatusBean serverStatusBean =
+          await NeteaseMusicApi().loginQrCodeCheck(qrCodeLoginKey.unikey);
       switch (serverStatusBean.code) {
         case 800:
           setState(() {
@@ -84,7 +84,7 @@ class _LoginPageViewState extends State<LoginPageView> {
           setState(() {
             isLoading = true;
           });
-          loadUserData();
+          getUserInfo();
           break;
         default:
           break;
@@ -100,43 +100,43 @@ class _LoginPageViewState extends State<LoginPageView> {
 
   @override
   Widget build(BuildContext context) {
-   return Scaffold(
-     body: isLoading ? const LoadingView() : Visibility(
-       visible: qrCodeUrl.isNotEmpty,
-       child: GestureDetector(
-         onTap: () {
-           refreshQrCode(context);
-         },
-         child: Container(
-           color: Colors.white,
-           alignment: Alignment.center,
-           child: Stack(
-             alignment: Alignment.bottomCenter,
-             children: [
-               QrImageView(
-                 backgroundColor: Colors.white,
-                 data: qrCodeUrl,
-                 version: QrVersions.auto,
-                 padding: const EdgeInsets.all(100),
-               ),
-               Container(
-                 height: 100,
-                 alignment: Alignment.center,
-                 child: Text(
-                   '扫描二维码登录',
-                   style: TextStyle(
-                       fontSize: 28,
-                       color: Colors.black,
-                       fontWeight: FontWeight.bold
-                   ),
-                 ),
-               ),
-             ],
-           ),
-         ),
-       ),
-     )
-   );
+    return Scaffold(
+        body: isLoading
+            ? const LoadingView()
+            : Visibility(
+                visible: qrCodeUrl.isNotEmpty,
+                child: GestureDetector(
+                  onTap: () {
+                    refreshQrCode(context);
+                  },
+                  child: Container(
+                    color: Colors.white,
+                    alignment: Alignment.center,
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        QrImageView(
+                          backgroundColor: Colors.white,
+                          data: qrCodeUrl,
+                          version: QrVersions.auto,
+                          padding: const EdgeInsets.all(100),
+                        ),
+                        Container(
+                          height: 100,
+                          alignment: Alignment.center,
+                          child: Text(
+                            '扫描二维码登录',
+                            style: TextStyle(
+                                fontSize: 28,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ));
   }
 
   loadUserData() async {
@@ -146,9 +146,11 @@ class _LoginPageViewState extends State<LoginPageView> {
 
   /// 更新用户登录信息
   Future<bool> getUserInfo() async {
-    NeteaseAccountInfoWrap neteaseAccountInfoWrap = await NeteaseMusicApi().loginAccountInfo();
+    NeteaseAccountInfoWrap neteaseAccountInfoWrap =
+        await NeteaseMusicApi().loginAccountInfo();
     // 登录信息有效
-    bool isLoginStatueActive = neteaseAccountInfoWrap.code == 200 && neteaseAccountInfoWrap.profile != null;
+    bool isLoginStatueActive = neteaseAccountInfoWrap.code == 200 &&
+        neteaseAccountInfoWrap.profile != null;
     if (isLoginStatueActive) {
       AppController.to.userInfo.value = neteaseAccountInfoWrap;
       loadUserData();
@@ -162,8 +164,4 @@ class _LoginPageViewState extends State<LoginPageView> {
       return false;
     }
   }
-
 }
-
-
-

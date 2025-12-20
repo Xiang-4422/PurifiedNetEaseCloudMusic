@@ -6,13 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
-import 'dart:math' as math; // 导入数学库，用于计算π
+import 'dart:math' as math;
 
 import '../pages/home/body/body_pages/personal_page.dart';
 import '../routes/router.gr.dart' as gr;
 import '../widget/keep_alive_wrapper.dart';
 import '../widget/simple_extended_image.dart';
-import 'constants/appConstants.dart';
 import 'constants/other.dart';
 import 'netease_api/src/api/play/bean.dart';
 
@@ -36,6 +35,7 @@ class PressScaleWidget extends StatefulWidget {
   @override
   State<PressScaleWidget> createState() => _PressScaleWidgetState();
 }
+
 class _PressScaleWidgetState extends State<PressScaleWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
@@ -105,8 +105,8 @@ class LongPressOverlayTransition extends StatefulWidget {
   State<LongPressOverlayTransition> createState() =>
       _LongPressOverlayTransitionState();
 }
-class _LongPressOverlayTransitionState
-    extends State<LongPressOverlayTransition>
+
+class _LongPressOverlayTransitionState extends State<LongPressOverlayTransition>
     with SingleTickerProviderStateMixin {
   final GlobalKey _childKey = GlobalKey();
   OverlayEntry? _overlayEntry;
@@ -134,7 +134,8 @@ class _LongPressOverlayTransitionState
   }
 
   void _showOverlay() {
-    RenderBox renderBox = _childKey.currentContext!.findRenderObject() as RenderBox;
+    RenderBox renderBox =
+        _childKey.currentContext!.findRenderObject() as RenderBox;
     Offset offset = renderBox.localToGlobal(Offset.zero);
     Size size = renderBox.size;
 
@@ -145,10 +146,11 @@ class _LongPressOverlayTransitionState
       height: widget.targetHeight,
     );
 
-    _rectAnimation = RectTween(begin: startRect, end: endRect).animate(CurvedAnimation(
-          parent: _controller,
-          curve: Curves.easeInOut,
-        ));
+    _rectAnimation =
+        RectTween(begin: startRect, end: endRect).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
 
     _overlayEntry = OverlayEntry(
       builder: (context) {
@@ -226,6 +228,7 @@ class AsyncImageColor extends StatefulWidget {
   @override
   State<AsyncImageColor> createState() => _AsyncImageColorState();
 }
+
 class _AsyncImageColorState extends State<AsyncImageColor> {
   Color _bgColor = Colors.transparent;
 
@@ -246,7 +249,8 @@ class _AsyncImageColorState extends State<AsyncImageColor> {
   }
 
   Future<void> _loadColor() async {
-    final color = await OtherUtils.getImageColor(widget.imageUrl, getLightColor: widget.getLightColor);
+    final color = await OtherUtils.getImageColor(widget.imageUrl,
+        getLightColor: widget.getLightColor);
     if (mounted) {
       setState(() {
         _bgColor = color;
@@ -291,7 +295,8 @@ class CircularPlaybackProgress extends StatelessWidget {
     this.progressColor = Colors.blue,
     this.size = 100.0, // 默认大小
     this.percentageTextStyle,
-  }) : assert(progress >= 0.0 && progress <= 1.0, 'Progress must be between 0.0 and 1.0'),
+  })  : assert(progress >= 0.0 && progress <= 1.0,
+            'Progress must be between 0.0 and 1.0'),
         super(key: key);
 
   @override
@@ -312,6 +317,7 @@ class CircularPlaybackProgress extends StatelessWidget {
     );
   }
 }
+
 /// 实际绘制环形进度条的CustomPainter
 class _CircularProgressPainter extends CustomPainter {
   final double progress;
@@ -399,22 +405,24 @@ class PlayListWidget extends GetView<AppController> {
 
   @override
   Widget build(BuildContext context) {
-
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-
         final double maxWidth = constraints.maxWidth;
         final double maxHeight = constraints.maxHeight;
 
         final double albumWidth = noScroll
-            ? (maxWidth - albumMargin * (playLists.length + 1)) / playLists.length
-            : (maxWidth - albumMargin * albumCountInWidget.ceil()) / albumCountInWidget;
+            ? (maxWidth - albumMargin * (playLists.length + 1)) /
+                playLists.length
+            : (maxWidth - albumMargin * albumCountInWidget.ceil()) /
+                albumCountInWidget;
 
         return SizedBox(
           height: albumWidth * 1.3,
           child: CustomScrollView(
             scrollDirection: Axis.horizontal,
-            physics: SnappingScrollPhysics(itemExtent: (albumWidth + albumMargin) * (snappAllAlbum ? albumCountInWidget.floor() : 1)),
+            physics: SnappingScrollPhysics(
+                itemExtent: (albumWidth + albumMargin) *
+                    (snappAllAlbum ? albumCountInWidget.floor() : 1)),
             slivers: [
               SliverPadding(
                 padding: EdgeInsetsGeometry.only(left: albumMargin),
@@ -425,10 +433,13 @@ class PlayListWidget extends GetView<AppController> {
                     return KeepAliveWrapper(
                       child: Container(
                         width: albumWidth,
-                        margin: EdgeInsets.only(right: albumMargin,),
+                        margin: EdgeInsets.only(
+                          right: albumMargin,
+                        ),
                         child: GestureDetector(
                           onTap: () {
-                            context.router.push(gr.PlayListRouteView(playList: playLists[index]));
+                            context.router.push(gr.PlayListRouteView(
+                                playList: playLists[index]));
                           },
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,27 +451,37 @@ class PlayListWidget extends GetView<AppController> {
                                   SimpleExtendedImage.avatar(
                                       width: albumWidth,
                                       shape: BoxShape.rectangle,
-                                      borderRadius: BorderRadius.circular(albumMargin),
-                                      '${playLists[index].coverImgUrl ?? playLists[index].picUrl}?param=200y200'
-                                  ),
+                                      borderRadius:
+                                          BorderRadius.circular(albumMargin),
+                                      '${playLists[index].coverImgUrl ?? playLists[index].picUrl}?param=200y200'),
                                   Obx(() => Visibility(
-                                    visible: controller.isPlaying.isTrue && (controller.curPlayListName.value == playLists[index].name),
-                                    replacement: IconButton(
-                                        onPressed:() {
-                                          if(controller.curPlayListName.value != playLists[index].name) {
-                                            controller.playNewPlayListById(playLists[index].id);
-                                          } else {
-                                            controller.playOrPause();
-                                          }
-                                        },
-                                        icon: Icon(TablerIcons.player_play_filled, color: Colors.white,)
-                                    ),
-                                    child: Lottie.asset('assets/lottie/music_playing.json', width: 50),
-                                  ))
+                                        visible: controller.isPlaying.isTrue &&
+                                            (controller.curPlayListName.value ==
+                                                playLists[index].name),
+                                        replacement: IconButton(
+                                            onPressed: () {
+                                              if (controller
+                                                      .curPlayListName.value !=
+                                                  playLists[index].name) {
+                                                controller.playNewPlayListById(
+                                                    playLists[index].id);
+                                              } else {
+                                                controller.playOrPause();
+                                              }
+                                            },
+                                            icon: Icon(
+                                              TablerIcons.player_play_filled,
+                                              color: Colors.white,
+                                            )),
+                                        child: Lottie.asset(
+                                            'assets/lottie/music_playing.json',
+                                            width: 50),
+                                      ))
                                 ],
                               ),
                               SizedBox(height: albumWidth * 0.04),
-                              Expanded(child: Column(
+                              Expanded(
+                                  child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
@@ -475,10 +496,10 @@ class PlayListWidget extends GetView<AppController> {
                                   ),
                                   showSongCount
                                       ? Text(
-                                        "${playLists[index].trackCount == null || playLists[index].trackCount == 0 ? null : "${playLists[index].trackCount}首"}",
-                                        maxLines: 1,
-                                        style: context.textTheme.bodySmall,
-                                      )
+                                          "${playLists[index].trackCount == null || playLists[index].trackCount == 0 ? null : "${playLists[index].trackCount}首"}",
+                                          maxLines: 1,
+                                          style: context.textTheme.bodySmall,
+                                        )
                                       : Container(),
                                 ],
                               ))
@@ -495,5 +516,17 @@ class PlayListWidget extends GetView<AppController> {
         );
       },
     );
+  }
+}
+
+// 定义一个自定义的 ScrollBehavior 来移除 OverscrollIndicator
+class NoGlowScrollBehavior extends ScrollBehavior {
+  const NoGlowScrollBehavior(); // 添加 const 构造函数
+
+  @override
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
+    // 返回子 Widget，不添加任何发光指示器
+    return child;
   }
 }

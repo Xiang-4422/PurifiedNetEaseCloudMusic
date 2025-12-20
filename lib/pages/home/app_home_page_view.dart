@@ -1,4 +1,3 @@
-
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/controllers/app_controller.dart';
@@ -8,61 +7,64 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
-
-
 import 'top_panel/top_panel_view.dart';
 
-class AppHomePageView extends GetView<AppController>{
-  const AppHomePageView({Key? key,}) : super(key: key);
+class AppHomePageView extends GetView<AppController> {
+  const AppHomePageView({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     controller.buildContext = context;
-     return Material(
-        child: PopScope(
-          canPop: false,
-          onPopInvoked: (didPop) => controller.onWillPop(),
-          // child: SlidingUpPanel(
-          //   controller: controller.bottomPanelController,
-          //   onPanelSlide: (openDegree) => controller.onBottomPanelSlide(openDegree),
-          //   color: Colors.transparent,
-          //   boxShadow: null,
-          //   // parallaxEnabled: true,
-          //   // parallaxOffset: 1,
-          //   minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
-          //   maxHeight: context.height,
-          //   header: const BottomPanelHeaderView(),
-          //   panel: const BottomPanelView(),
-          //   body: const AutoRouter(),
-          // ),
-          child: SlidingUpPanel(
-            slideDirection: SlideDirection.DOWN,
-            controller: controller.topPanelController,
-            onPanelSlide: (openDegree) => controller.onTopPanelSlide(openDegree),
-            color: Colors.transparent,
-            // parallaxEnabled: true,
-            // parallaxOffset: 1,
-            maxHeight: context.height,
-            minHeight: 0,
-            boxShadow: null,
-            // collapsed: const TopPanelHeaderAppBar(),
-            panel: const TopPanelView(),
-            body: SlidingUpPanel(
-              controller: controller.bottomPanelController,
-              onPanelSlide: (openDegree) => controller.onBottomPanelSlide(openDegree),
-              color: Colors.transparent,
-              boxShadow: null,
-              // parallaxEnabled: true,
-              // parallaxOffset: 1,
-              minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
-              maxHeight: context.height,
-              header: const BottomPanelHeaderView(),
-              panel: const BottomPanelView(),
-              body: const AutoRouter(),
-            ),
-          ),
+    return Material(
+      child: PopScope(
+        canPop: false,
+        onPopInvoked: (didPop) => controller.onWillPop(),
+        // child: SlidingUpPanel(
+        //   controller: controller.bottomPanelController,
+        //   onPanelSlide: (openDegree) => controller.onBottomPanelSlide(openDegree),
+        //   color: Colors.transparent,
+        //   boxShadow: null,
+        //   // parallaxEnabled: true,
+        //   // parallaxOffset: 1,
+        //   minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
+        //   maxHeight: context.height,
+        //   header: const BottomPanelHeaderView(),
+        //   panel: const BottomPanelView(),
+        //   body: const AutoRouter(),
+        // ),
+        child: SlidingUpPanel(
+          slideDirection: SlideDirection.DOWN,
+          controller: controller.topPanelController,
+          onPanelSlide: (openDegree) => controller.onTopPanelSlide(openDegree),
+          color: Colors.transparent,
+          // parallaxEnabled: true,
+          // parallaxOffset: 1,
+          maxHeight: context.height,
+          minHeight: 0,
+          boxShadow: null,
+          // collapsed: const TopPanelHeaderAppBar(),
+          panel: const TopPanelView(),
+          body: Obx(() => SlidingUpPanel(
+                controller: controller.bottomPanelController,
+                onPanelSlide: (openDegree) =>
+                    controller.onBottomPanelSlide(openDegree),
+                color: Colors.transparent,
+                boxShadow: null,
+                // parallaxEnabled: true,
+                // parallaxOffset: 1,
+                minHeight: controller.curPlayingSong.value.id.isEmpty
+                    ? 0
+                    : AppDimensions.bottomPanelHeaderHeight +
+                        context.mediaQueryPadding.bottom,
+                maxHeight: context.height,
+                header: const BottomPanelHeaderView(),
+                panel: const BottomPanelView(),
+                body: const AutoRouter(),
+              )),
         ),
-      );
+      ),
+    );
   }
 }
-

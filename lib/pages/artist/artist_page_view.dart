@@ -1,4 +1,4 @@
-import 'dart:math';
+//
 
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
@@ -9,13 +9,13 @@ import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
-import 'package:bujuan/widget/my_tab_bar.dart';
+//
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 
 import 'package:get/get.dart';
-import 'package:marquee/marquee.dart';
+//
 
 import '../../common/constants/other.dart';
 import '../../common/netease_api/src/netease_api.dart';
@@ -47,16 +47,21 @@ class _ArtistPageViewState extends State<ArtistPageView> {
 
     artistId = context.routeData.queryParams.get("artistId");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      ArtistDetailWrap artistDetailWrap = await NeteaseMusicApi().artistDetail(artistId);
+      ArtistDetailWrap artistDetailWrap =
+          await NeteaseMusicApi().artistDetail(artistId);
       artist = artistDetailWrap.data!.artist!;
 
-      albumColor = await OtherUtils.getImageColor(artist.cover ?? artist.picUrl);
+      albumColor =
+          await OtherUtils.getImageColor(artist.cover ?? artist.picUrl);
       onAlbumColor = albumColor.invertedColor;
 
-      ArtistSongListWrap artistSongListWrap = await NeteaseMusicApi().artistTopSongList(artistId);
-      topSongs.addAll(AppController.to.song2ToMedia(artistSongListWrap.songs ?? []));
+      ArtistSongListWrap artistSongListWrap =
+          await NeteaseMusicApi().artistTopSongList(artistId);
+      topSongs.addAll(
+          AppController.to.song2ToMedia(artistSongListWrap.songs ?? []));
 
-      ArtistAlbumListWrap artistAlbumListWrap = await NeteaseMusicApi().artistAlbumList(artistId);
+      ArtistAlbumListWrap artistAlbumListWrap =
+          await NeteaseMusicApi().artistAlbumList(artistId);
       hotAlbums.addAll(artistAlbumListWrap.hotAlbums ?? []);
 
       setState(() {
@@ -67,9 +72,8 @@ class _ArtistPageViewState extends State<ArtistPageView> {
 
   @override
   Widget build(BuildContext context) {
-
     if (loading) {
-      return Container(color:albumColor, child: const LoadingView());
+      return Container(color: albumColor, child: const LoadingView());
     }
 
     // 计算专辑宽度：
@@ -82,8 +86,12 @@ class _ArtistPageViewState extends State<ArtistPageView> {
         controller: ScrollController(),
         slivers: [
           SliverAppBar(
-            toolbarHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
-            collapsedHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
+            toolbarHeight: AppDimensions.appBarHeight -
+                context.mediaQueryPadding.top +
+                AppDimensions.paddingLarge,
+            collapsedHeight: AppDimensions.appBarHeight -
+                context.mediaQueryPadding.top +
+                AppDimensions.paddingLarge,
             expandedHeight: context.width - context.mediaQueryPadding.top,
             pinned: true,
             stretch: true,
@@ -136,12 +144,14 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                       borderRadius: BorderRadius.circular(9999),
                       color: Colors.red,
                       child: IconButton(
-                        icon: Icon(
-                          TablerIcons.player_play_filled,
-                          color: Colors.white,
-                        ),
-                        onPressed: () => AppController.to.playNewPlayList(topSongs, 0, playListName: artist.name ?? "未知歌手", playListNameHeader: "歌手")
-                      ),
+                          icon: Icon(
+                            TablerIcons.player_play_filled,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => AppController.to.playNewPlayList(
+                              topSongs, 0,
+                              playListName: artist.name ?? "未知歌手",
+                              playListNameHeader: "歌手")),
                     )
                   ],
                 ),
@@ -162,76 +172,85 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                 height: 50,
                 child: Container(
                     alignment: Alignment.centerLeft,
-                    child: Text("专辑", style: TextStyle(color: onAlbumColor, fontWeight: FontWeight.bold),).paddingOnly(left: AppDimensions.paddingMedium)
-                )
-            ),
+                    child: Text(
+                      "专辑",
+                      style: TextStyle(
+                          color: onAlbumColor, fontWeight: FontWeight.bold),
+                    ).paddingOnly(left: AppDimensions.paddingMedium))),
           ),
           SliverToBoxAdapter(
-            child: Container(
-              height: albumWidth * 1.35,
-              child: ListView.builder(
-                addAutomaticKeepAlives: true,
-                itemCount: hotAlbums.length,
-                scrollDirection: Axis.horizontal,
-                physics: SnappingScrollPhysics(itemExtent: albumWidth + AppDimensions.paddingMedium),
-                itemBuilder: (context, index) {
-                  double marginLeft = index == 0 ? AppDimensions.paddingMedium : 0;
-                  return KeepAliveWrapper(
-                    child: GestureDetector(
-                      onTap: () => context.router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': hotAlbums[index].id})),
-                      child: SizedBox(
-                        height: albumWidth * 1.35,
-                        width: albumWidth,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SimpleExtendedImage.avatar(
-                                width: albumWidth,
-                                shape: BoxShape.rectangle,
-                                borderRadius: BorderRadius.circular(AppDimensions.paddingMedium),
-                                '${hotAlbums[index].picUrl}?param=200y200'
+              child: Container(
+            height: albumWidth * 1.35,
+            child: ListView.builder(
+              addAutomaticKeepAlives: true,
+              itemCount: hotAlbums.length,
+              scrollDirection: Axis.horizontal,
+              physics: SnappingScrollPhysics(
+                  itemExtent: albumWidth + AppDimensions.paddingMedium),
+              itemBuilder: (context, index) {
+                double marginLeft =
+                    index == 0 ? AppDimensions.paddingMedium : 0;
+                return KeepAliveWrapper(
+                  child: GestureDetector(
+                    onTap: () => context.router.push(const gr.AlbumRouteView()
+                        .copyWith(
+                            queryParams: {'albumId': hotAlbums[index].id})),
+                    child: SizedBox(
+                      height: albumWidth * 1.35,
+                      width: albumWidth,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SimpleExtendedImage.avatar(
+                              width: albumWidth,
+                              shape: BoxShape.rectangle,
+                              borderRadius: BorderRadius.circular(
+                                  AppDimensions.paddingMedium),
+                              '${hotAlbums[index].picUrl}?param=200y200'),
+                          Expanded(
+                              child: Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "${hotAlbums[index].name}",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.textTheme.bodyMedium?.copyWith(
+                                    color: onAlbumColor,
+                                  ),
+                                ),
+                                Text(
+                                  "${DateTime.fromMillisecondsSinceEpoch(hotAlbums[index].publishTime ?? 0).year}",
+                                  maxLines: 1,
+                                  style: context.textTheme.bodySmall?.copyWith(
+                                    color: onAlbumColor,
+                                  ),
+                                ),
+                              ],
                             ),
-                            Expanded(child: Container(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "${hotAlbums[index].name}",
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: context.textTheme.bodyMedium?.copyWith(
-                                      color: onAlbumColor,
-                                    ),
-                                  ),
-                                  Text(
-                                    "${DateTime.fromMillisecondsSinceEpoch(hotAlbums[index].publishTime ?? 0).year}",
-                                    maxLines: 1,
-                                    style: context.textTheme.bodySmall?.copyWith(
-                                      color: onAlbumColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ))
-                          ],
-                        ),
+                          ))
+                        ],
                       ),
                     ),
-                  ).marginOnly(left: marginLeft, right: AppDimensions.paddingMedium);
-                },
-              ),
-            )
-          ),
+                  ),
+                ).marginOnly(
+                    left: marginLeft, right: AppDimensions.paddingMedium);
+              },
+            ),
+          )),
           // 单曲
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 50,
-              child: Container(
-                alignment: Alignment.centerLeft,
-                child: Text("单曲", style: TextStyle(color: onAlbumColor, fontWeight: FontWeight.bold),).paddingOnly(left: AppDimensions.paddingMedium)
-              )
-            ),
+                height: 50,
+                child: Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "单曲",
+                      style: TextStyle(
+                          color: onAlbumColor, fontWeight: FontWeight.bold),
+                    ).paddingOnly(left: AppDimensions.paddingMedium))),
           ),
           SliverList(
             delegate: SliverChildBuilderDelegate(
@@ -242,7 +261,14 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                     height: AppDimensions.bottomPanelHeaderHeight,
                   );
                 }
-                return SongItem(playlist: topSongs, index: index, playListName: artist.name ?? "未知歌手", playListHeader: "歌手", stringColor: onAlbumColor, showIndex: true).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+                return SongItem(
+                        playlist: topSongs,
+                        index: index,
+                        playListName: artist.name ?? "未知歌手",
+                        playListHeader: "歌手",
+                        stringColor: onAlbumColor,
+                        showIndex: true)
+                    .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
               },
             ),
           ),

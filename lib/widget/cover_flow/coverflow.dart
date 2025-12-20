@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
 import 'package:bujuan/pages/home/bottom_panel/bottom_panel_view.dart';
+import 'package:bujuan/common/common_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_constraintlayout/flutter_constraintlayout.dart';
 import 'package:get/get.dart';
@@ -17,12 +18,13 @@ class CoverFlow extends StatefulWidget {
     super.key,
     required this.images,
     required this.cardSize,
-    this.enableListViewScrolling = false,  // 默认使用PageView式滑动
+    this.enableListViewScrolling = false, // 默认使用PageView式滑动
   });
 
   @override
   State<CoverFlow> createState() => _CoverFlowState();
 }
+
 class _CoverFlowState extends State<CoverFlow> {
   PageController? _pageController;
   ScrollController? _scrollController;
@@ -35,7 +37,8 @@ class _CoverFlowState extends State<CoverFlow> {
       _scrollController = ScrollController()
         ..addListener(() {
           setState(() {
-            _currentPageIndex = min(_scrollController!.offset / widget.cardSize, widget.images.length - 1) ;
+            _currentPageIndex = min(_scrollController!.offset / widget.cardSize,
+                widget.images.length - 1);
           });
         });
     } else {
@@ -81,6 +84,7 @@ class _CoverFlowState extends State<CoverFlow> {
       },
     );
   }
+
   // PageView滚动实现
   Widget _buildPageViewScrolling() {
     return PageView.builder(
@@ -110,6 +114,7 @@ class _CoverFlowState extends State<CoverFlow> {
       },
     );
   }
+
   // ListView式滚动实现
   Widget _buildListViewScrolling(BoxConstraints constraints) {
     return ScrollConfiguration(
@@ -119,7 +124,8 @@ class _CoverFlowState extends State<CoverFlow> {
         controller: _scrollController,
         physics: SnappingScrollPhysics(itemExtent: widget.cardSize),
         child: SizedBox(
-          width: widget.images.length * widget.cardSize + (constraints.maxWidth - widget.cardSize),
+          width: widget.images.length * widget.cardSize +
+              (constraints.maxWidth - widget.cardSize),
           child: Container(
             color: Colors.transparent,
           ),

@@ -17,7 +17,15 @@ class SimpleExtendedImage extends StatefulWidget {
   final int? cacheWidth;
 
   const SimpleExtendedImage(this.url,
-      {Key? key, this.width, this.height, this.placeholder = placeholderImage, this.replacement, this.fit, this.shape = BoxShape.rectangle, this.borderRadius, this.cacheWidth})
+      {Key? key,
+      this.width,
+      this.height,
+      this.placeholder = placeholderImage,
+      this.replacement,
+      this.fit,
+      this.shape = BoxShape.rectangle,
+      this.borderRadius,
+      this.cacheWidth})
       : super(key: key);
 
   const SimpleExtendedImage.avatar(this.url,
@@ -44,61 +52,73 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
     // 本地or网络
     Widget image = widget.url.startsWith('http')
         ? CachedNetworkImage(
-          httpHeaders: const {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'},
-          imageUrl: widget.url,
-          width: widget.width,
-          height: widget.height,
-          fit: widget.fit??BoxFit.cover,
-          useOldImageOnUrlChange: true,
-          placeholder: (c, u) => Image.asset(
-            widget.placeholder,
-            fit: BoxFit.cover,
-          ),
-          errorWidget: (c,u,e) => Image.asset(
+            httpHeaders: const {
+              'User-Agent':
+                  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'
+            },
+            imageUrl: widget.url,
+            width: widget.width,
+            height: widget.height,
+            memCacheWidth: widget.cacheWidth ??
+                (widget.width != null ? (widget.width! * 2).toInt() : null),
+            memCacheHeight: widget.cacheWidth != null
+                ? widget.cacheWidth
+                : (widget.height != null ? (widget.height! * 2).toInt() : null),
+            fit: widget.fit ?? BoxFit.cover,
+            useOldImageOnUrlChange: true,
+            placeholder: (c, u) => Image.asset(
               widget.placeholder,
               fit: BoxFit.cover,
             ),
-        )
+            errorWidget: (c, u, e) => Image.asset(
+              widget.placeholder,
+              fit: BoxFit.cover,
+            ),
+          )
         : ExtendedImage.file(
-          borderRadius: widget.borderRadius,
-          File(widget.url.split('?').first),
-          width: widget.width,
-          height: widget.height,
-          fit: widget.fit,
-          loadStateChanged: (state) {
-                  Widget image;
-                  switch (state.extendedImageLoadState) {
-                    case LoadState.loading:
-                      image = Image.asset(
-                        widget.placeholder,
-                        width: widget.width,
-                        height: widget.height,
-                        fit: BoxFit.cover,
-                      );
-                      break;
-                    case LoadState.completed:
-                      image = ExtendedRawImage(
-                        image: state.extendedImageInfo?.image,
-                        width: widget.width,
-                        height: widget.height,
-                        fit: BoxFit.cover,
-                      );
-                      break;
-                    case LoadState.failed:
-                      image = Image.asset(
-                        width: widget.width,
-                        height: widget.height,
-                        widget.placeholder,
-                        fit: BoxFit.cover,
-                      );
-                      break;
-                  }
-                  return image;
-                },
-        );
+            cacheWidth: widget.cacheWidth,
+            cacheHeight: widget.cacheWidth,
+            borderRadius: widget.borderRadius,
+            File(widget.url.split('?').first),
+            width: widget.width,
+            height: widget.height,
+            fit: widget.fit,
+            loadStateChanged: (state) {
+              Widget image;
+              switch (state.extendedImageLoadState) {
+                case LoadState.loading:
+                  image = Image.asset(
+                    widget.placeholder,
+                    width: widget.width,
+                    height: widget.height,
+                    fit: BoxFit.cover,
+                  );
+                  break;
+                case LoadState.completed:
+                  image = ExtendedRawImage(
+                    image: state.extendedImageInfo?.image,
+                    width: widget.width,
+                    height: widget.height,
+                    fit: BoxFit.cover,
+                  );
+                  break;
+                case LoadState.failed:
+                  image = Image.asset(
+                    width: widget.width,
+                    height: widget.height,
+                    widget.placeholder,
+                    fit: BoxFit.cover,
+                  );
+                  break;
+              }
+              return image;
+            },
+          );
     // 圆形or方形
     return widget.shape == BoxShape.circle
         ? ClipOval(child: image)
-        : ClipRRect(borderRadius: widget.borderRadius ?? BorderRadius.circular(0), child: image);
+        : ClipRRect(
+            borderRadius: widget.borderRadius ?? BorderRadius.circular(0),
+            child: image);
   }
 }

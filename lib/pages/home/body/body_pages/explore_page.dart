@@ -1,11 +1,11 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/common_widget.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
+//
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+//
 
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -24,129 +24,161 @@ class ExplorePageView extends GetView<ExplorePageController> {
       return SmartRefresher(
         onRefresh: () => controller.updateData(),
         enablePullUp: true,
-        onLoading: () => controller.updateRankingPlayListSongs(offset: controller.curTopPlayListSongs.length),
+        onLoading: () => controller.updateRankingPlayListSongs(
+            offset: controller.curTopPlayListSongs.length),
         footer: ClassicFooter(
-          height: 60 + AppDimensions.bottomPanelHeaderHeight,
-          outerBuilder:(child){
-            return Container(
-              height: 60,
-              margin: EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight),
-              alignment: Alignment.center,
-              child: child
-            );
-          }
-        ),
+            height: 60 + AppDimensions.bottomPanelHeaderHeight,
+            outerBuilder: (child) {
+              return Container(
+                  height: 60,
+                  margin: EdgeInsets.only(
+                      bottom: AppDimensions.bottomPanelHeaderHeight),
+                  alignment: Alignment.center,
+                  child: child);
+            }),
         controller: controller.refreshController,
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            PinnedHeaderSliver(child: Container(height: context.mediaQueryPadding.top),),
+            PinnedHeaderSliver(
+              child: Container(height: context.mediaQueryPadding.top),
+            ),
 
             // 歌单广场
             SliverToBoxAdapter(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Header('歌单广场', padding: AppDimensions.paddingSmall),
-                    Expanded(child: Container()),
-                    GestureDetector(
-                      onTap: () {
-                        if (controller.curTag.value != "全部") {
-                          controller.curTag.value = "全部";
-                          controller.updatePlayLists();
-                        }
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: AppDimensions.headerHeight / 4),
-                        decoration: BoxDecoration(
-                          color: controller.curTag.value == "全部" ? Colors.black.withAlpha(24) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(9999),
-                        ),
-                        child: Text("全部"),
-                      ),
-                    )
-                  ],
-                ).paddingOnly(top: AppDimensions.paddingSmall, right: AppDimensions.paddingSmall)
-            ),
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Header('歌单广场', padding: AppDimensions.paddingSmall),
+                Expanded(child: Container()),
+                GestureDetector(
+                  onTap: () {
+                    if (controller.curTag.value != "全部") {
+                      controller.curTag.value = "全部";
+                      controller.updatePlayLists();
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: AppDimensions.headerHeight / 4),
+                    decoration: BoxDecoration(
+                      color: controller.curTag.value == "全部"
+                          ? Colors.black.withAlpha(24)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(9999),
+                    ),
+                    child: Text("全部"),
+                  ),
+                )
+              ],
+            ).paddingOnly(
+                    top: AppDimensions.paddingSmall,
+                    right: AppDimensions.paddingSmall)),
 
             SliverToBoxAdapter(
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: AppDimensions.paddingSmall),
+                padding:
+                    EdgeInsets.symmetric(vertical: AppDimensions.paddingSmall),
                 child: Column(
                   spacing: AppDimensions.paddingSmall,
                   children: [
                     Container(
-                      height: AppDimensions.headerHeight * 2/3,
+                      height: AppDimensions.headerHeight * 2 / 3,
                       decoration: BoxDecoration(
                         color: Colors.black12,
                         borderRadius: BorderRadius.circular(9999),
                       ),
                       clipBehavior: Clip.hardEdge,
-                      margin: EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+                      margin: EdgeInsets.symmetric(
+                          horizontal: AppDimensions.paddingSmall),
                       child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: controller.tagCategorys.value.length,
                           itemBuilder: (context, index) {
-                            String categoryName = controller.tagCategorys.value[index];
+                            String categoryName =
+                                controller.tagCategorys.value[index];
 
                             return GestureDetector(
-                              onTap: () => controller.curTagCategoryName.value = categoryName,
+                              onTap: () => controller.curTagCategoryName.value =
+                                  categoryName,
                               child: Container(
                                   alignment: Alignment.center,
-                                  padding: EdgeInsets.symmetric(horizontal: AppDimensions.headerHeight / 4),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal:
+                                          AppDimensions.headerHeight / 4),
                                   decoration: BoxDecoration(
-                                    color: controller.curTagCategoryName.value == categoryName ? Colors.black12 : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(AppDimensions.headerHeight / 2),
+                                    color:
+                                        controller.curTagCategoryName.value ==
+                                                categoryName
+                                            ? Colors.black12
+                                            : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(
+                                        AppDimensions.headerHeight / 2),
                                   ),
-                                  child: Text(categoryName)
-                              ),
+                                  child: Text(categoryName)),
                             );
-                          }
-                      ),
+                          }),
                     ),
                     Container(
-                      height: AppDimensions.headerHeight * 2/3,
+                      height: AppDimensions.headerHeight * 2 / 3,
                       decoration: BoxDecoration(
                         color: Colors.black12,
                         borderRadius: BorderRadius.circular(9999),
                       ),
-                      margin: EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+                      margin: EdgeInsets.symmetric(
+                          horizontal: AppDimensions.paddingSmall),
                       clipBehavior: Clip.hardEdge,
                       child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: controller.tags[controller.curTagCategoryName.value] == null ? 0 : controller.tags[controller.curTagCategoryName.value].length,
+                          itemCount: controller.tags[
+                                      controller.curTagCategoryName.value] ==
+                                  null
+                              ? 0
+                              : controller
+                                  .tags[controller.curTagCategoryName.value]
+                                  .length,
                           itemBuilder: (context, index) {
-                            String tag = controller.tags[controller.curTagCategoryName.value][index];
+                            String tag = controller
+                                    .tags[controller.curTagCategoryName.value]
+                                [index];
                             return GestureDetector(
                               onTap: () {
                                 controller.curTag.value = tag;
                                 controller.updatePlayLists();
                               },
-                              child: Obx(() => Container(
+                              child: Obx(
+                                () => Container(
                                     alignment: Alignment.center,
-                                    padding: EdgeInsets.symmetric(horizontal: AppDimensions.headerHeight / 4),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal:
+                                            AppDimensions.headerHeight / 4),
                                     decoration: BoxDecoration(
-                                      color: controller.curTag.value == tag ? Colors.black12 : Colors.transparent,
+                                      color: controller.curTag.value == tag
+                                          ? Colors.black12
+                                          : Colors.transparent,
                                       // color: controller.curTag.value == tag ? Colors.transparent : Colors.black12,
 
-                                      borderRadius: BorderRadius.circular(AppDimensions.headerHeight / 2),
+                                      borderRadius: BorderRadius.circular(
+                                          AppDimensions.headerHeight / 2),
                                     ),
-                                    child: Text(tag)
-                                ),
+                                    child: Text(tag)),
                               ),
                             );
-                          }
-                      ),
+                          }),
                     ),
                   ],
                 ),
               ),
             ),
 
-
             SliverToBoxAdapter(
-              child: Obx(() => PlayListWidget(playLists: controller.playLists.value, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall, showSongCount: false,)),
+              child: Obx(() => PlayListWidget(
+                    playLists: controller.playLists.value,
+                    albumCountInWidget: 3.2,
+                    albumMargin: AppDimensions.paddingSmall,
+                    showSongCount: false,
+                  )),
             ),
             // // 排行榜
             // PinnedHeaderSliver(
@@ -246,85 +278,107 @@ class ExplorePageView extends GetView<ExplorePageController> {
                 borderRadius: BorderRadius.circular(9999),
                 color: Colors.white70,
                 padding: EdgeInsetsGeometry.zero,
-                child: Header(controller.curTopPlayListName.value).marginOnly(left: AppDimensions.paddingSmall),
+                child: Header(controller.curTopPlayListName.value)
+                    .marginOnly(left: AppDimensions.paddingSmall),
               ),
             ),
 
             SliverToBoxAdapter(
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: AppDimensions.paddingSmall),
+                padding:
+                    EdgeInsets.symmetric(vertical: AppDimensions.paddingSmall),
                 child: Column(
                   spacing: AppDimensions.paddingSmall,
                   children: [
                     Container(
-                      height: AppDimensions.headerHeight * 2/3,
+                      height: AppDimensions.headerHeight * 2 / 3,
                       decoration: BoxDecoration(
                         color: Colors.black12,
                         borderRadius: BorderRadius.circular(9999),
                       ),
                       clipBehavior: Clip.hardEdge,
-                      margin: EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+                      margin: EdgeInsets.symmetric(
+                          horizontal: AppDimensions.paddingSmall),
                       child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: controller.topPlayListCategoryNames.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                            onTap: () => controller.changeCurTopPlayListCategory(controller.topPlayListCategoryNames[index]),
-                            child: Container(
-                                alignment: Alignment.center,
-                                padding: EdgeInsets.symmetric(horizontal: AppDimensions.headerHeight / 4),
-                                decoration: BoxDecoration(
-                                  color: controller.curTopPlayListCategoryName.value == controller.topPlayListCategoryNames[index] ? Colors.black12 : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(AppDimensions.headerHeight / 2),
-                                ),
-                                child: Text(controller.topPlayListCategoryNames[index])
-                            ),
-                          );
-                        }
-                      ),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: controller.topPlayListCategoryNames.length,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () => controller
+                                  .changeCurTopPlayListCategory(controller
+                                      .topPlayListCategoryNames[index]),
+                              child: Container(
+                                  alignment: Alignment.center,
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal:
+                                          AppDimensions.headerHeight / 4),
+                                  decoration: BoxDecoration(
+                                    color: controller.curTopPlayListCategoryName
+                                                .value ==
+                                            controller
+                                                .topPlayListCategoryNames[index]
+                                        ? Colors.black12
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(
+                                        AppDimensions.headerHeight / 2),
+                                  ),
+                                  child: Text(controller
+                                      .topPlayListCategoryNames[index])),
+                            );
+                          }),
                     ),
                     Container(
-                      height: AppDimensions.headerHeight * 2/3,
+                      height: AppDimensions.headerHeight * 2 / 3,
                       decoration: BoxDecoration(
                         color: Colors.black12,
                         borderRadius: BorderRadius.circular(9999),
                       ),
-                      margin: EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+                      margin: EdgeInsets.symmetric(
+                          horizontal: AppDimensions.paddingSmall),
                       clipBehavior: Clip.hardEdge,
                       child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: controller.curCategoryTopPlayLists.length,
                           itemBuilder: (context, index) {
                             return GestureDetector(
-                              onTap: () => controller.changeCurTopPlayList(controller.curCategoryTopPlayLists[index]),
+                              onTap: () => controller.changeCurTopPlayList(
+                                  controller.curCategoryTopPlayLists[index]),
                               child: Container(
                                   alignment: Alignment.center,
-                                  padding: EdgeInsets.symmetric(horizontal: AppDimensions.headerHeight / 4),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal:
+                                          AppDimensions.headerHeight / 4),
                                   decoration: BoxDecoration(
-                                    color: controller.curTopPlayListName.value == controller.curCategoryTopPlayLists[index]["name"]! ? Colors.black12 : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(AppDimensions.headerHeight / 2),
+                                    color: controller
+                                                .curTopPlayListName.value ==
+                                            controller.curCategoryTopPlayLists[
+                                                index]["name"]!
+                                        ? Colors.black12
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(
+                                        AppDimensions.headerHeight / 2),
                                   ),
-                                  child: Text(controller.curCategoryTopPlayLists[index]["name"]!)
-                              ),
+                                  child: Text(
+                                      controller.curCategoryTopPlayLists[index]
+                                          ["name"]!)),
                             );
-                          }
-                      ),
+                          }),
                     ),
                   ],
                 ),
               ),
             ),
-            SliverList(delegate: SliverChildBuilderDelegate(
-                  (context, index) => SongItem(
-                    index: index,
-                    playlist: controller.curTopPlayListSongs.value,
-                    playListName: controller.curTopPlayListName.value,
-                    showIndex: true,
-                  ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+            SliverList(
+                delegate: SliverChildBuilderDelegate(
+              (context, index) => SongItem(
+                index: index,
+                playlist: controller.curTopPlayListSongs.value,
+                playListName: controller.curTopPlayListName.value,
+                showIndex: true,
+              ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
               addAutomaticKeepAlives: false,
               addRepaintBoundaries: false,
               childCount: controller.curTopPlayListSongs.length,
-
             )),
           ],
         ),
@@ -347,6 +401,7 @@ class AutoSizeSliverPersistentHeader extends StatefulWidget {
   @override
   _AutoSizeSliverHeaderState createState() => _AutoSizeSliverHeaderState();
 }
+
 class _AutoSizeSliverHeaderState extends State<AutoSizeSliverPersistentHeader> {
   final GlobalKey _measurePersistentHeaderKey = GlobalKey();
   final GlobalKey _measureFoldableWidgetKey = GlobalKey();
@@ -368,7 +423,8 @@ class _AutoSizeSliverHeaderState extends State<AutoSizeSliverPersistentHeader> {
   void didUpdateWidget(covariant AutoSizeSliverPersistentHeader oldWidget) {
     super.didUpdateWidget(oldWidget);
     // 如果构建器发生变化，重新测量
-    if (oldWidget.persistentHeader != widget.persistentHeader || oldWidget.foldableWidget != widget.foldableWidget) {
+    if (oldWidget.persistentHeader != widget.persistentHeader ||
+        oldWidget.foldableWidget != widget.foldableWidget) {
       setState(() {
         _isMeasuring = true;
         _measuredPersistentHeaderHeight = null;
@@ -382,10 +438,19 @@ class _AutoSizeSliverHeaderState extends State<AutoSizeSliverPersistentHeader> {
 
   void _measureContentSize() {
     try {
-      if (_measurePersistentHeaderKey.currentContext != null && _measureFoldableWidgetKey.currentContext != null) {
+      if (_measurePersistentHeaderKey.currentContext != null &&
+          _measureFoldableWidgetKey.currentContext != null) {
         setState(() {
-          _measuredPersistentHeaderHeight = (_measurePersistentHeaderKey.currentContext!.findRenderObject() as RenderBox).size.height;
-          _measuredFoldableWidgetHeight = (_measureFoldableWidgetKey.currentContext!.findRenderObject() as RenderBox).size.height;
+          _measuredPersistentHeaderHeight =
+              (_measurePersistentHeaderKey.currentContext!.findRenderObject()
+                      as RenderBox)
+                  .size
+                  .height;
+          _measuredFoldableWidgetHeight =
+              (_measureFoldableWidgetKey.currentContext!.findRenderObject()
+                      as RenderBox)
+                  .size
+                  .height;
           _isMeasuring = false;
         });
       }
@@ -403,7 +468,9 @@ class _AutoSizeSliverHeaderState extends State<AutoSizeSliverPersistentHeader> {
   @override
   Widget build(BuildContext context) {
     // 如果正在测量或尚未测量完成，渲染测量用的组件
-    if (_isMeasuring || _measuredPersistentHeaderHeight == null || _measuredFoldableWidgetHeight == null) {
+    if (_isMeasuring ||
+        _measuredPersistentHeaderHeight == null ||
+        _measuredFoldableWidgetHeight == null) {
       return SliverToBoxAdapter(
         child: Column(
           children: [
@@ -424,7 +491,8 @@ class _AutoSizeSliverHeaderState extends State<AutoSizeSliverPersistentHeader> {
     return SliverPersistentHeader(
       delegate: _AutoSizeSliverPersistentHeaderDelegate(
         minExtent: _measuredPersistentHeaderHeight ?? 100,
-        maxExtent: (_measuredPersistentHeaderHeight ?? 100) + (_measuredFoldableWidgetHeight ?? 100),
+        maxExtent: (_measuredPersistentHeaderHeight ?? 100) +
+            (_measuredFoldableWidgetHeight ?? 100),
         child: Column(
           children: [
             Container(
@@ -445,8 +513,10 @@ class _AutoSizeSliverHeaderState extends State<AutoSizeSliverPersistentHeader> {
     );
   }
 }
+
 /// 自定义的 SliverPersistentHeaderDelegate
-class _AutoSizeSliverPersistentHeaderDelegate extends SliverPersistentHeaderDelegate {
+class _AutoSizeSliverPersistentHeaderDelegate
+    extends SliverPersistentHeaderDelegate {
   _AutoSizeSliverPersistentHeaderDelegate({
     required this.minExtent,
     required this.maxExtent,
@@ -458,7 +528,8 @@ class _AutoSizeSliverPersistentHeaderDelegate extends SliverPersistentHeaderDele
   final Widget child;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return child;
   }
 

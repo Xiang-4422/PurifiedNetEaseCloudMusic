@@ -1,8 +1,4 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/pages/login/login_page_view.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
@@ -16,12 +12,9 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../../common/common_widget.dart';
 import '../../../../common/constants/appConstants.dart';
-import '../../../../routes/router.dart';
 import '../../../../controllers/app_controller.dart';
 import '../../../../routes/router.gr.dart' as gr;
-import '../../../../widget/keep_alive_wrapper.dart';
 import '../../../../widget/simple_extended_image.dart';
-import '../../bottom_panel/bottom_panel_view.dart';
 
 /// 收藏页
 class PersonalPageView extends GetView<AppController> {
@@ -43,166 +36,201 @@ class PersonalPageView extends GetView<AppController> {
         onLoading: () => controller.updateRecoPlayLists(getMore: true),
         footer: ClassicFooter(
             height: 60 + AppDimensions.bottomPanelHeaderHeight,
-            outerBuilder:(child){
+            outerBuilder: (child) {
               return Container(
                   height: 60,
-                  margin: EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight),
+                  margin: EdgeInsets.only(
+                      bottom: AppDimensions.bottomPanelHeaderHeight),
                   alignment: Alignment.center,
-                  child: child
-              );
-            }
-        ),
+                  child: child);
+            }),
         controller: controller.refreshController,
-        child: CustomScrollView (
-          slivers: [
-            SliverToBoxAdapter(
-              child: Container(
-                height: context.mediaQueryPadding.top,
-              ),
+        child: CustomScrollView(cacheExtent: 500, slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              height: context.mediaQueryPadding.top,
             ),
+          ),
 
-            // 我的歌单 Header
-            SliverToBoxAdapter(
-              child: const Header('马上开始', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
-            ),
+          // 我的歌单 Header
+          SliverToBoxAdapter(
+            child: const Header('马上开始', padding: AppDimensions.paddingSmall)
+                .marginOnly(top: AppDimensions.paddingSmall),
+          ),
 
-            // 快速播放卡片
-            SliverToBoxAdapter(
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  double userItemWidth = (constraints.maxWidth - AppDimensions.paddingSmall * userItemCountInScreen.ceil()) / userItemCountInScreen;
-                  return Obx(() => Container(
-                      margin: EdgeInsets.only(bottom: AppDimensions.paddingSmall),
-                      height: userItemWidth * 1.3,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        physics: SnappingScrollPhysics(itemExtent: userItemWidth + AppDimensions.paddingSmall),
-                        children:   [
-                          Stack(
-                            alignment: Alignment.bottomRight,
-                            children: [
-                              LongPressOverlayTransition(
-                                child: QuickStartCard(
-                                  width: userItemWidth,
-                                  height: userItemWidth * 1.3,
-                                  albumUrl: controller.todayRecommendSongs[0].extras?['image'],
-                                  icon: TablerIcons.calendar,
-                                  title: "每日推荐",
-                                  onTap: () => context.router.push(const gr.TodayRouteView()),
-                                ),
-                                builder: (_) {
-                                  return ListView.builder(
-                                    padding: EdgeInsets.zero,
-                                    itemCount: controller.todayRecommendSongs.length,
-                                    itemBuilder: (BuildContext context, int index) {
-                                      return SongItem(
-                                        playlist: controller.todayRecommendSongs,
-                                        index: index,
-                                        playListName: '',);
-                                    },
-
-                                  );
-                                },
-                              ),
-                              Visibility(
-                                visible: controller.isPlaying.isTrue && (controller.curPlayListName.value == "每日推荐"),
-                                replacement: IconButton(
-                                    onPressed:() {
-                                      if(controller.curPlayListName.value != "每日推荐") {
-                                        controller.playNewPlayList(controller.todayRecommendSongs, 0, playListName: "每日推荐");
-                                      } else {
-                                        controller.playOrPause();
-                                      }
-                                    },
-                                    icon: Icon(TablerIcons.player_play_filled, color: Colors.white,)
-                                ),
-                                child: Lottie.asset('assets/lottie/music_playing.json', width: 50),
-                              )
-                            ],
-                          ).marginSymmetric(horizontal: AppDimensions.paddingSmall),
-                          Stack(
-                            alignment: Alignment.bottomRight,
-                            children: [
-                              QuickStartCard(
+          // 快速播放卡片
+          SliverToBoxAdapter(
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                double userItemWidth = (constraints.maxWidth -
+                        AppDimensions.paddingSmall *
+                            userItemCountInScreen.ceil()) /
+                    userItemCountInScreen;
+                return Obx(() => Container(
+                    margin: EdgeInsets.only(bottom: AppDimensions.paddingSmall),
+                    height: userItemWidth * 1.3,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      physics: SnappingScrollPhysics(
+                          itemExtent:
+                              userItemWidth + AppDimensions.paddingSmall),
+                      children: [
+                        Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            LongPressOverlayTransition(
+                              child: QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: controller.isFmMode.isTrue
-                                    ? (controller.curPlayingSong.value.extras?['image'] ?? '')
-                                    : (controller.fmSongs[0].extras?['image'] ?? ''),
-                                icon: TablerIcons.infinity,
-                                title: "漫游模式",
-                                onTap: () => controller.openFmMode(),
+                                albumUrl: controller
+                                    .todayRecommendSongs[0].extras?['image'],
+                                icon: TablerIcons.calendar,
+                                title: "每日推荐",
+                                onTap: () => context.router
+                                    .push(const gr.TodayRouteView()),
                               ),
-                              Offstage(
-                                  offstage: controller.isFmMode.isFalse || controller.isPlaying.isFalse,
-                                  child: Lottie.asset('assets/lottie/music_playing.json', width: 50)
-                              ),
-                            ],
-                          ).marginOnly(right: AppDimensions.paddingSmall),
-                          Stack(
-                            alignment: Alignment.bottomRight,
-                            children: [
-                              QuickStartCard(
-                                width: userItemWidth,
-                                height: userItemWidth * 1.3,
-                                albumUrl: controller.isHeartBeatMode.isTrue
-                                    ? (controller.curPlayingSong.value.extras?['image'] ?? '')
-                                    : controller.randomLikedSongAlbumUrl.value,
-                                icon: TablerIcons.heartbeat,
-                                title: "心动模式",
-                                onTap: () => controller.openHeartBeatMode(controller.randomLikedSongId.value, true),
-                              ),
-                              Offstage(
-                                  offstage: controller.isHeartBeatMode.isFalse || controller.isPlaying.isFalse,
-                                  child: Lottie.asset('assets/lottie/music_playing.json', width: 50)
-                              ),
-                            ],
-                          ).marginOnly(right: AppDimensions.paddingSmall),
-                        ],
-                      )
-                    ));
-                },
-              ),
-            ),
-
-            // 我的歌单 Header
-            SliverToBoxAdapter(
-              child: const Header('我的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
-            ),
-            // 我的歌单
-            SliverToBoxAdapter(
-                child: PlayListWidget(playLists: controller.userPlayLists, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall, showSongCount: false,)
-            ),
-            // 我的喜欢
-            SliverToBoxAdapter(
-                child: PlayListItem(controller.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall)
-            ),
-
-            // 推荐歌单 Header
-            SliverLayoutBuilder(
-              builder: (BuildContext context, SliverConstraints constraints) {
-                // 计算是否处于悬浮状态
-                // 当 scrollOffset > 0 时，说明 Header 已经触顶并开始“固定”了
-                final bool isPinned = constraints.scrollOffset > 0;
-                return PinnedHeaderSliver(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      color: Colors.white,
-                      padding: isPinned ? EdgeInsetsGeometry.only(top: context.mediaQueryPadding.top) : EdgeInsetsGeometry.zero,
-                      child: const Header('推荐歌单', padding: AppDimensions.paddingSmall),
-                    ),
-                  );
+                              builder: (_) {
+                                return ListView.builder(
+                                  padding: EdgeInsets.zero,
+                                  itemCount:
+                                      controller.todayRecommendSongs.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    return SongItem(
+                                      playlist: controller.todayRecommendSongs,
+                                      index: index,
+                                      playListName: '',
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                            Visibility(
+                              visible: controller.isPlaying.isTrue &&
+                                  (controller.curPlayListName.value == "每日推荐"),
+                              replacement: IconButton(
+                                  onPressed: () {
+                                    if (controller.curPlayListName.value !=
+                                        "每日推荐") {
+                                      controller.playNewPlayList(
+                                          controller.todayRecommendSongs, 0,
+                                          playListName: "每日推荐");
+                                    } else {
+                                      controller.playOrPause();
+                                    }
+                                  },
+                                  icon: Icon(
+                                    TablerIcons.player_play_filled,
+                                    color: Colors.white,
+                                  )),
+                              child: Lottie.asset(
+                                  'assets/lottie/music_playing.json',
+                                  width: 50),
+                            )
+                          ],
+                        ).marginSymmetric(
+                            horizontal: AppDimensions.paddingSmall),
+                        Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            QuickStartCard(
+                              width: userItemWidth,
+                              height: userItemWidth * 1.3,
+                              albumUrl: controller.isFmMode.isTrue
+                                  ? (controller.curPlayingSong.value
+                                          .extras?['image'] ??
+                                      '')
+                                  : (controller.fmSongs[0].extras?['image'] ??
+                                      ''),
+                              icon: TablerIcons.infinity,
+                              title: "漫游模式",
+                              onTap: () => controller.openFmMode(),
+                            ),
+                            Offstage(
+                                offstage: controller.isFmMode.isFalse ||
+                                    controller.isPlaying.isFalse,
+                                child: Lottie.asset(
+                                    'assets/lottie/music_playing.json',
+                                    width: 50)),
+                          ],
+                        ).marginOnly(right: AppDimensions.paddingSmall),
+                        Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            QuickStartCard(
+                              width: userItemWidth,
+                              height: userItemWidth * 1.3,
+                              albumUrl: controller.isHeartBeatMode.isTrue
+                                  ? (controller.curPlayingSong.value
+                                          .extras?['image'] ??
+                                      '')
+                                  : controller.randomLikedSongAlbumUrl.value,
+                              icon: TablerIcons.heartbeat,
+                              title: "心动模式",
+                              onTap: () => controller.openHeartBeatMode(
+                                  controller.randomLikedSongId.value, true),
+                            ),
+                            Offstage(
+                                offstage: controller.isHeartBeatMode.isFalse ||
+                                    controller.isPlaying.isFalse,
+                                child: Lottie.asset(
+                                    'assets/lottie/music_playing.json',
+                                    width: 50)),
+                          ],
+                        ).marginOnly(right: AppDimensions.paddingSmall),
+                      ],
+                    )));
               },
             ),
-            // 推荐歌单列表
-            SliverList.builder(
-              itemCount: controller.recoPlayLists.length,
-              itemBuilder: (BuildContext context, int index) {
-                return PlayListItem(controller.recoPlayLists.value[index]).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
-              },
-            ),
-          ]
-        ),
+          ),
+
+          // 我的歌单 Header
+          SliverToBoxAdapter(
+            child: const Header('我的歌单', padding: AppDimensions.paddingSmall)
+                .marginOnly(top: AppDimensions.paddingSmall),
+          ),
+          // 我的歌单
+          SliverToBoxAdapter(
+              child: PlayListWidget(
+            playLists: controller.userPlayLists,
+            albumCountInWidget: 3.2,
+            albumMargin: AppDimensions.paddingSmall,
+            showSongCount: false,
+          )),
+          // 我的喜欢
+          SliverToBoxAdapter(
+              child: PlayListItem(controller.userLikedSongPlayList.value)
+                  .paddingSymmetric(horizontal: AppDimensions.paddingSmall)),
+
+          // 推荐歌单 Header
+          SliverLayoutBuilder(
+            builder: (BuildContext context, SliverConstraints constraints) {
+              // 计算是否处于悬浮状态
+              // 当 scrollOffset > 0 时，说明 Header 已经触顶并开始“固定”了
+              final bool isPinned = constraints.scrollOffset > 0;
+              return PinnedHeaderSliver(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  color: Colors.white,
+                  padding: isPinned
+                      ? EdgeInsetsGeometry.only(
+                          top: context.mediaQueryPadding.top)
+                      : EdgeInsetsGeometry.zero,
+                  child:
+                      const Header('推荐歌单', padding: AppDimensions.paddingSmall),
+                ),
+              );
+            },
+          ),
+          // 推荐歌单列表
+          SliverList.builder(
+            itemCount: controller.recoPlayLists.length,
+            itemBuilder: (BuildContext context, int index) {
+              return PlayListItem(controller.recoPlayLists[index])
+                  .paddingSymmetric(horizontal: AppDimensions.paddingSmall);
+            },
+          ),
+        ]),
       );
     });
   }
@@ -225,7 +253,8 @@ class SnappingScrollPhysics extends ScrollPhysics {
     );
   }
 
-  double _getTargetPixels(ScrollMetrics position, Tolerance tolerance, double velocity) {
+  double _getTargetPixels(
+      ScrollMetrics position, Tolerance tolerance, double velocity) {
     int page = (position.pixels / itemExtent).round();
 
     // 限制最大滚动范围
@@ -233,7 +262,8 @@ class SnappingScrollPhysics extends ScrollPhysics {
   }
 
   @override
-  Simulation? createBallisticSimulation(ScrollMetrics position, double velocity) {
+  Simulation? createBallisticSimulation(
+      ScrollMetrics position, double velocity) {
     if (velocity.abs() != 0) print("velocity.abs(): ${velocity.abs()}");
 
     // 边界外。
@@ -261,17 +291,14 @@ class SnappingScrollPhysics extends ScrollPhysics {
         tolerance: tolerance,
       );
     }
-
-
   }
-
-
 }
 
 /// 去除拉伸变形效果
 class NoStretchBouncingScrollBehavior extends ScrollBehavior {
   @override
-  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
     // 不显示拉伸效果（去掉水波纹或拉伸）
     return child;
   }
@@ -284,7 +311,15 @@ class NoStretchBouncingScrollBehavior extends ScrollBehavior {
 }
 
 class QuickStartCard extends StatelessWidget {
-  const QuickStartCard({Key? key, required this.width, required this.height, this.onTap, required this.albumUrl, this.icon, required this.title}) : super(key: key);
+  const QuickStartCard(
+      {Key? key,
+      required this.width,
+      required this.height,
+      this.onTap,
+      required this.albumUrl,
+      this.icon,
+      required this.title})
+      : super(key: key);
 
   final double width;
   final double height;
@@ -296,7 +331,7 @@ class QuickStartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isEnabled = onTap != null;
-    
+
     return GestureDetector(
       onTap: isEnabled ? onTap : null,
       child: Opacity(
@@ -311,7 +346,8 @@ class QuickStartCard extends StatelessWidget {
             imageUrl: albumUrl,
             child: Column(
               children: [
-                Expanded(child: Container(
+                Expanded(
+                    child: Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
@@ -327,9 +363,9 @@ class QuickStartCard extends StatelessWidget {
                       icon == null
                           ? const SizedBox.shrink()
                           : Icon(
-                            icon,
-                            color: Colors.white,
-                          ),
+                              icon,
+                              color: Colors.white,
+                            ),
                       Text(
                         title,
                         style: TextStyle(
@@ -352,18 +388,5 @@ class QuickStartCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-}
-
-// 定义一个自定义的 ScrollBehavior 来移除 OverscrollIndicator
-class NoGlowScrollBehavior extends ScrollBehavior {
-  const NoGlowScrollBehavior(); // 添加 const 构造函数
-
-  @override
-  Widget buildOverscrollIndicator(
-      BuildContext context, Widget child, ScrollableDetails details) {
-    // 返回子 Widget，不添加任何发光指示器
-    return child;
   }
 }

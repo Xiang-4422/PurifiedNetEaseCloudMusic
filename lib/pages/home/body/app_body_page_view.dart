@@ -27,6 +27,10 @@ class AppBodyPageView extends GetView<AppController> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.initZoomDrawerListener();
+    });
+
     log("building zoomDrawer");
     return Stack(
       children: [

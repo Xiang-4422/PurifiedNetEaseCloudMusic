@@ -259,9 +259,13 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
 
   @override
   Future<void> onReady() async {
+    super.onReady();
     // 初始化音频后台播放服务
     _initAudioHandler();
+    updateData();
+  }
 
+  initZoomDrawerListener() async {
     // // 这个需要在UI构建后添加监听
     zoomDrawerController.addListener!((drawerOpenDegree) {
       //  抽屉状态改变
@@ -276,10 +280,6 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
         }
       }
     });
-
-    updateData();
-
-    super.onReady();
   }
   _initAudioHandler() async {
     audioHandler = await AudioService.init(
@@ -400,6 +400,7 @@ class AppController extends SuperController with GetTickerProviderStateMixin, Wi
     NeteaseMusicApi().userPlayLists(userInfo.value.profile?.userId ?? '-1').then((MultiPlayListWrap2 multiPlayListWrap2) async {
       List<PlayList> playLists = (multiPlayListWrap2.playlists ?? []);
       userLikedSongPlayList.value = playLists.removeAt(0);
+      userLikedSongPlayList.value.name = "我喜欢的音乐";
       userPlayLists.clear();
       userPlayLists.addAll(playLists);
     });

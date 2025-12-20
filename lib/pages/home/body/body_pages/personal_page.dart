@@ -39,7 +39,7 @@ class PersonalPageView extends GetView<AppController> {
           controller.updateData();
         },
         enablePullUp: true,
-        enablePullDown: false,
+        enablePullDown: true,
         onLoading: () => controller.updateRecoPlayLists(getMore: true),
         footer: ClassicFooter(
             height: 60 + AppDimensions.bottomPanelHeaderHeight,
@@ -55,11 +55,15 @@ class PersonalPageView extends GetView<AppController> {
         controller: controller.refreshController,
         child: CustomScrollView (
           slivers: [
-            PinnedHeaderSliver(
+            SliverToBoxAdapter(
               child: Container(
-                color: Colors.transparent,
                 height: context.mediaQueryPadding.top,
               ),
+            ),
+
+            // 我的歌单 Header
+            SliverToBoxAdapter(
+              child: const Header('马上开始', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
             ),
 
             // 快速播放卡片
@@ -161,11 +165,6 @@ class PersonalPageView extends GetView<AppController> {
               ),
             ),
 
-            // 我的喜欢
-            SliverToBoxAdapter(
-                child: PlayListItem(controller.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall)
-            ),
-
             // 我的歌单 Header
             SliverToBoxAdapter(
               child: const Header('我的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
@@ -174,22 +173,26 @@ class PersonalPageView extends GetView<AppController> {
             SliverToBoxAdapter(
                 child: PlayListWidget(playLists: controller.userPlayLists, albumCountInWidget: 3.2, albumMargin: AppDimensions.paddingSmall, showSongCount: false,)
             ),
-
+            // 我的喜欢
+            SliverToBoxAdapter(
+                child: PlayListItem(controller.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall)
+            ),
 
             // 推荐歌单 Header
-            PinnedHeaderSliver(
-              child: BlurryContainer(
-                borderRadius: BorderRadius.circular(9999),
-                color: Colors.white70,
-                padding: EdgeInsetsGeometry.zero,
-                child: Row(
-                  children: [
-                    const Header('推荐歌单', padding: AppDimensions.paddingSmall),
-                    Expanded(child: Container()),
-                    IconButton(onPressed: controller.updateRecoPlayLists, icon: Icon(TablerIcons.refresh)),
-                  ],
-                ),
-              ),
+            SliverLayoutBuilder(
+              builder: (BuildContext context, SliverConstraints constraints) {
+                // 计算是否处于悬浮状态
+                // 当 scrollOffset > 0 时，说明 Header 已经触顶并开始“固定”了
+                final bool isPinned = constraints.scrollOffset > 0;
+                return PinnedHeaderSliver(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      color: Colors.white,
+                      padding: isPinned ? EdgeInsetsGeometry.only(top: context.mediaQueryPadding.top) : EdgeInsetsGeometry.zero,
+                      child: const Header('推荐歌单', padding: AppDimensions.paddingSmall),
+                    ),
+                  );
+              },
             ),
             // 推荐歌单列表
             SliverList.builder(
@@ -351,4 +354,16 @@ class QuickStartCard extends StatelessWidget {
     );
   }
 
+}
+
+// 定义一个自定义的 ScrollBehavior 来移除 OverscrollIndicator
+class NoGlowScrollBehavior extends ScrollBehavior {
+  const NoGlowScrollBehavior(); // 添加 const 构造函数
+
+  @override
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
+    // 返回子 Widget，不添加任何发光指示器
+    return child;
+  }
 }

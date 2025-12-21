@@ -124,7 +124,7 @@ class _LoginPageViewState extends State<LoginPageView> {
                         Container(
                           height: 100,
                           alignment: Alignment.center,
-                          child: Text(
+                          child: const Text(
                             '扫描二维码登录',
                             style: TextStyle(
                                 fontSize: 28,

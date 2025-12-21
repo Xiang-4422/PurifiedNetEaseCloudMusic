@@ -469,7 +469,7 @@ class PlayListWidget extends GetView<AppController> {
                                                 controller.playOrPause();
                                               }
                                             },
-                                            icon: Icon(
+                                            icon: const Icon(
                                               TablerIcons.player_play_filled,
                                               color: Colors.white,
                                             )),

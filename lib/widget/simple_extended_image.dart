@@ -61,9 +61,8 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
             height: widget.height,
             memCacheWidth: widget.cacheWidth ??
                 (widget.width != null ? (widget.width! * 2).toInt() : null),
-            memCacheHeight: widget.cacheWidth != null
-                ? widget.cacheWidth
-                : (widget.height != null ? (widget.height! * 2).toInt() : null),
+            memCacheHeight: widget.cacheWidth ??
+                (widget.height != null ? (widget.height! * 2).toInt() : null),
             fit: widget.fit ?? BoxFit.cover,
             useOldImageOnUrlChange: true,
             placeholder: (c, u) => Image.asset(

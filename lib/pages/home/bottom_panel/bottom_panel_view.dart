@@ -57,8 +57,8 @@ class BottomPanelView extends GetView<AppController> {
             // 歌名&歌手
             Container(
               margin: EdgeInsets.only(top: context.mediaQueryPadding.top),
-              padding:
-                  EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.paddingLarge),
               height: AppDimensions.appBarHeight,
               width: context.width,
               child: Obx(() => Visibility(
@@ -304,8 +304,9 @@ class BottomPanelView extends GetView<AppController> {
                             onTap: () {
                               controller.isAlbumScaleEnded.value = false;
                               controller.isBigAlbum.value = false;
-                              if (controller.curPanelPageIndex.value == 1)
+                              if (controller.curPanelPageIndex.value == 1) {
                                 controller.updateFullScreenLyricTimerCounter();
+                              }
                             },
                             child: Obx(() => SimpleExtendedImage(
                                   '${controller.curPlayingSongs[index].extras?['image'] ?? ''}?param=500y500',
@@ -602,8 +603,9 @@ class BottomPanelView extends GetView<AppController> {
                                                           .curPlayingSong
                                                           .value
                                                           .album
-                                                          .isNullOrEmpty)
+                                                          .isNullOrEmpty) {
                                                         return;
+                                                      }
                                                       await controller
                                                           .bottomPanelController
                                                           .close();
@@ -844,7 +846,8 @@ class BottomPanelView extends GetView<AppController> {
 
   Widget _buildPlayController(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -931,7 +934,7 @@ class BottomPanelView extends GetView<AppController> {
   Widget _buildButtonBackground(Widget child) {
     return Obx(() => BlurryContainer(
           blur: controller.isBigAlbum.isTrue ? 0 : 5,
-          padding: EdgeInsets.all(10),
+          padding: const EdgeInsets.all(10),
           borderRadius: BorderRadius.circular(100),
           color: controller.panelWidgetColor.value
               .withOpacity(controller.isBigAlbum.isTrue ? 0 : 0.05),
@@ -1004,7 +1007,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
                   (albumMinBorderRadius - AppDimensions.albumMinSize) *
                       panelOpenDegree;
 
-              return Container(
+              return SizedBox(
                 width: context.width,
                 child: Stack(
                   children: [

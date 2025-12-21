@@ -1,17 +1,12 @@
-import 'dart:convert';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/controllers/app_controller.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import '../common/constants/enmu.dart';
-
 class ExplorePageController extends GetxController {
   Map<String, List<Map<String, String>>> topPlayListCategory = {
-    "官方榜" : [
+    "官方榜": [
       {'name': '云音乐新歌榜', 'id': '3779629'},
       {'name': '云音乐热歌榜', 'id': '3778678'},
       {'name': '云音乐原创榜', 'id': '2884035'},
@@ -69,15 +64,20 @@ class ExplorePageController extends GetxController {
 
   /// 排行榜分类名
   List<String> topPlayListCategoryNames = [];
+
   /// 当前排行榜分类名
   RxString curTopPlayListCategoryName = "".obs;
+
   /// 当前排行榜分类歌单
-  RxList<Map<String, String>> curCategoryTopPlayLists = <Map<String, String>>[].obs;
+  RxList<Map<String, String>> curCategoryTopPlayLists =
+      <Map<String, String>>[].obs;
 
   /// 当前排行榜名称
   RxString curTopPlayListName = "".obs;
+
   /// 当前排行榜ID
   RxString curTopPlayListId = "".obs;
+
   /// 当前排行榜歌曲
   RxList<MediaItem> curTopPlayListSongs = <MediaItem>[].obs;
 
@@ -99,7 +99,8 @@ class ExplorePageController extends GetxController {
   initData() async {
     topPlayListCategoryNames.addAll(topPlayListCategory.keys);
     curTopPlayListCategoryName.value = topPlayListCategoryNames[0];
-    curCategoryTopPlayLists.addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
+    curCategoryTopPlayLists
+        .addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
     curTopPlayListName.value = curCategoryTopPlayLists[0]["name"]!;
     curTopPlayListId.value = curCategoryTopPlayLists[0]["id"]!;
 
@@ -108,8 +109,9 @@ class ExplorePageController extends GetxController {
         tagCategorys.add(category);
         tags.value[category] = [];
       }
-      for(PlaylistCatalogueItem catalogueItem in (value.sub ?? [])) {
-        tags.value[tagCategorys[catalogueItem.category!]]?.add(catalogueItem.name!);
+      for (PlaylistCatalogueItem catalogueItem in (value.sub ?? [])) {
+        tags.value[tagCategorys[catalogueItem.category!]]
+            ?.add(catalogueItem.name!);
         print("tags: $tags");
       }
     });
@@ -124,7 +126,8 @@ class ExplorePageController extends GetxController {
 
   updatePlayLists() async {
     List<PlayList> data;
-    MultiPlayListWrap multiPlayListWrap = await NeteaseMusicApi().categorySongList(category: curTag.value);
+    MultiPlayListWrap multiPlayListWrap =
+        await NeteaseMusicApi().categorySongList(category: curTag.value);
     data = multiPlayListWrap.playlists ?? [];
     playLists
       ..clear()
@@ -139,9 +142,10 @@ class ExplorePageController extends GetxController {
 
   updateRankingPlayListSongs({int offset = 0, limit = 10}) async {
     if (offset == 0) curTopPlayListSongs.clear();
-    List<MediaItem> songs = await AppController.to.getPlayListSongs(curTopPlayListId.value, offset: offset, limit: limit);
+    List<MediaItem> songs = await AppController.to
+        .getPlayListSongs(curTopPlayListId.value, offset: offset, limit: limit);
     curTopPlayListSongs.addAll(songs);
-    if (songs.length < 10 ) {
+    if (songs.length < 10) {
       refreshController.loadNoData();
     } else {
       refreshController.loadComplete();
@@ -149,8 +153,10 @@ class ExplorePageController extends GetxController {
   }
 
   playCurRankingPlayListSongs() async {
-    await updateRankingPlayListSongs(offset: curTopPlayListSongs.length, limit: -1);
-    AppController.to.playNewPlayList(curTopPlayListSongs, 0, playListName: curTopPlayListName.value);
+    await updateRankingPlayListSongs(
+        offset: curTopPlayListSongs.length, limit: -1);
+    AppController.to.playNewPlayList(curTopPlayListSongs, 0,
+        playListName: curTopPlayListName.value);
   }
 
   changeCurTopPlayListCategory(String name) {
@@ -159,7 +165,8 @@ class ExplorePageController extends GetxController {
     showChoosePlayList.value = false;
 
     curCategoryTopPlayLists.clear();
-    curCategoryTopPlayLists.addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
+    curCategoryTopPlayLists
+        .addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
     changeCurTopPlayList(curCategoryTopPlayLists[0]);
   }
 
@@ -171,5 +178,4 @@ class ExplorePageController extends GetxController {
 
     updateRankingPlayListSongs();
   }
-
 }

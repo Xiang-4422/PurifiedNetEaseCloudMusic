@@ -16,8 +16,6 @@ import '../../common/constants/other.dart';
 import '../../controllers/app_controller.dart';
 import '../../widget/simple_extended_image.dart';
 
-
-
 class AlbumPageView extends StatefulWidget {
   const AlbumPageView({Key? key}) : super(key: key);
   @override
@@ -25,7 +23,6 @@ class AlbumPageView extends StatefulWidget {
 }
 
 class _AlbumPageViewState extends State<AlbumPageView> {
-
   late String albumId;
   late Album album;
   List<MediaItem> albumSongs = [];
@@ -41,9 +38,11 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumId = context.routeData.queryParams.get('albumId');
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      AlbumDetailWrap albumDetailWrap = await NeteaseMusicApi().albumDetail(albumId);
+      AlbumDetailWrap albumDetailWrap =
+          await NeteaseMusicApi().albumDetail(albumId);
       album = albumDetailWrap.album!;
-      albumSongs.addAll(AppController.to.song2ToMedia(albumDetailWrap.songs ?? []));
+      albumSongs
+          .addAll(AppController.to.song2ToMedia(albumDetailWrap.songs ?? []));
 
       albumColor = await OtherUtils.getImageColor(album.picUrl);
       onAlbumColor = albumColor.invertedColor;
@@ -57,107 +56,118 @@ class _AlbumPageViewState extends State<AlbumPageView> {
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return Container(
-        color: albumColor,
-        child: const LoadingView()
-       );
+      return Container(color: albumColor, child: const LoadingView());
     }
 
     return Container(
       color: albumColor,
-      child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              toolbarHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
-              collapsedHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
-              expandedHeight: context.width - context.mediaQueryPadding.top,
-              pinned: true,
-              stretch: true,
-              automaticallyImplyLeading: false,
-              foregroundColor: Colors.transparent,
-              surfaceTintColor: Colors.transparent,
-              backgroundColor: Colors.transparent,
-              flexibleSpace: FlexibleSpaceBar(
-                stretchModes: const <StretchMode>[
-                  StretchMode.zoomBackground, // 背景图缩放
-                  // StretchMode.blurBackground, // 背景图模糊
-                  // StretchMode.fadeTitle,      // 标题渐隐
-                ],
-                titlePadding: const EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
-                title: BlurryContainer(
-                  padding: EdgeInsetsGeometry.zero,
-                  borderRadius: BorderRadius.circular(9999),
-                  color: Colors.white.withOpacity(0.5),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Stack(
-                            alignment: Alignment.centerLeft,
-                            children: [
-                              Text(
-                                "  " + album.name!,
-                                maxLines: 1,
-                                style: context.textTheme.titleLarge!.copyWith(
-                                  foreground: Paint()
-                                    ..style = PaintingStyle.stroke
-                                    ..strokeWidth = 2
-                                    ..color = Colors.black,
-                                ),
-                              ),
-                              Text(
-                                "  " + album.name!,
-                                maxLines: 1,
-                                style: context.textTheme.titleLarge!.copyWith(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+      child: CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
+        SliverAppBar(
+          toolbarHeight: AppDimensions.appBarHeight -
+              context.mediaQueryPadding.top +
+              AppDimensions.paddingLarge,
+          collapsedHeight: AppDimensions.appBarHeight -
+              context.mediaQueryPadding.top +
+              AppDimensions.paddingLarge,
+          expandedHeight: context.width - context.mediaQueryPadding.top,
+          pinned: true,
+          stretch: true,
+          automaticallyImplyLeading: false,
+          foregroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: Colors.transparent,
+          flexibleSpace: FlexibleSpaceBar(
+            stretchModes: const <StretchMode>[
+              StretchMode.zoomBackground, // 背景图缩放
+              // StretchMode.blurBackground, // 背景图模糊
+              // StretchMode.fadeTitle,      // 标题渐隐
+            ],
+            titlePadding: const EdgeInsets.only(
+                bottom: AppDimensions.paddingMedium,
+                left: AppDimensions.paddingMedium,
+                right: AppDimensions.paddingMedium),
+            title: BlurryContainer(
+              padding: EdgeInsetsGeometry.zero,
+              borderRadius: BorderRadius.circular(9999),
+              color: Colors.white.withOpacity(0.5),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Stack(
+                        alignment: Alignment.centerLeft,
+                        children: [
+                          Text(
+                            "  ${album.name!}",
+                            maxLines: 1,
+                            style: context.textTheme.titleLarge!.copyWith(
+                              foreground: Paint()
+                                ..style = PaintingStyle.stroke
+                                ..strokeWidth = 2
+                                ..color = Colors.black,
+                            ),
                           ),
-                        ),
-                      ),
-                      BlurryContainer(
-                        padding: EdgeInsetsGeometry.zero,
-                        borderRadius: BorderRadius.circular(9999),
-                        color: Colors.red,
-                        child: IconButton(
-                            icon: Icon(
-                              TablerIcons.player_play_filled,
+                          Text(
+                            "  ${album.name!}",
+                            maxLines: 1,
+                            style: context.textTheme.titleLarge!.copyWith(
                               color: Colors.white,
                             ),
-                            onPressed: () => AppController.to.playNewPlayList(albumSongs, 0, playListName: album.name ?? '无名专辑', playListNameHeader: "专辑")
-                        ),
-                      )
-                    ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                // centerTitle: true,
-                expandedTitleScale: 1.5,
-                background: SimpleExtendedImage(
-                  width: context.width,
-                  height: context.width,
-                  album.picUrl ?? '',
-                ),
-              ),
-              // bottom:
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                childCount: albumSongs.length + 1,
-                    (BuildContext context, int index) {
-                  if (index == albumSongs.length) {
-                    return const SizedBox(
-                      height: AppDimensions.bottomPanelHeaderHeight,
-                    );
-                  }
-                  return SongItem(playlist: albumSongs, index: index, playListName: album.name ?? '无名专辑', playListHeader: "专辑", stringColor: onAlbumColor, showPic: false, showIndex: true).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
-                },
+                  BlurryContainer(
+                    padding: EdgeInsetsGeometry.zero,
+                    borderRadius: BorderRadius.circular(9999),
+                    color: Colors.red,
+                    child: IconButton(
+                        icon: const Icon(
+                          TablerIcons.player_play_filled,
+                          color: Colors.white,
+                        ),
+                        onPressed: () => AppController.to.playNewPlayList(
+                            albumSongs, 0,
+                            playListName: album.name ?? '无名专辑',
+                            playListNameHeader: "专辑")),
+                  )
+                ],
               ),
             ),
-          ]
-      ),
+            // centerTitle: true,
+            expandedTitleScale: 1.5,
+            background: SimpleExtendedImage(
+              width: context.width,
+              height: context.width,
+              album.picUrl ?? '',
+            ),
+          ),
+          // bottom:
+        ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            childCount: albumSongs.length + 1,
+            (BuildContext context, int index) {
+              if (index == albumSongs.length) {
+                return const SizedBox(
+                  height: AppDimensions.bottomPanelHeaderHeight,
+                );
+              }
+              return SongItem(
+                      playlist: albumSongs,
+                      index: index,
+                      playListName: album.name ?? '无名专辑',
+                      playListHeader: "专辑",
+                      stringColor: onAlbumColor,
+                      showPic: false,
+                      showIndex: true)
+                  .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+            },
+          ),
+        ),
+      ]),
     );
   }
 }

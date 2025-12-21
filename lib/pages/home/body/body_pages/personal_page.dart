@@ -39,7 +39,7 @@ class PersonalPageView extends GetView<AppController> {
             outerBuilder: (child) {
               return Container(
                   height: 60,
-                  margin: EdgeInsets.only(
+                  margin: const EdgeInsets.only(
                       bottom: AppDimensions.bottomPanelHeaderHeight),
                   alignment: Alignment.center,
                   child: child);
@@ -67,7 +67,8 @@ class PersonalPageView extends GetView<AppController> {
                             userItemCountInScreen.ceil()) /
                     userItemCountInScreen;
                 return Obx(() => Container(
-                    margin: EdgeInsets.only(bottom: AppDimensions.paddingSmall),
+                    margin: const EdgeInsets.only(
+                        bottom: AppDimensions.paddingSmall),
                     height: userItemWidth * 1.3,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
@@ -119,7 +120,7 @@ class PersonalPageView extends GetView<AppController> {
                                       controller.playOrPause();
                                     }
                                   },
-                                  icon: Icon(
+                                  icon: const Icon(
                                     TablerIcons.player_play_filled,
                                     color: Colors.white,
                                   )),
@@ -368,7 +369,7 @@ class QuickStartCard extends StatelessWidget {
                             ),
                       Text(
                         title,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,

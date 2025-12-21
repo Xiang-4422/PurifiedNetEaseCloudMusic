@@ -126,14 +126,14 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                                   ..color = Colors.black,
                               ),
                               maxLines: 1,
-                              "  " + artist.name!,
+                              "  ${artist.name!}",
                             ),
                             Text(
                               style: context.textTheme.titleLarge!.copyWith(
                                 color: Colors.white,
                               ),
                               maxLines: 1,
-                              "  " + artist.name!,
+                              "  ${artist.name!}",
                             ),
                           ],
                         ),
@@ -144,7 +144,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                       borderRadius: BorderRadius.circular(9999),
                       color: Colors.red,
                       child: IconButton(
-                          icon: Icon(
+                          icon: const Icon(
                             TablerIcons.player_play_filled,
                             color: Colors.white,
                           ),
@@ -179,7 +179,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                     ).paddingOnly(left: AppDimensions.paddingMedium))),
           ),
           SliverToBoxAdapter(
-              child: Container(
+              child: SizedBox(
             height: albumWidth * 1.35,
             child: ListView.builder(
               addAutomaticKeepAlives: true,

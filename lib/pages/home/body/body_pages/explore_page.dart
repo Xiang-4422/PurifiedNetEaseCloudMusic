@@ -31,7 +31,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
             outerBuilder: (child) {
               return Container(
                   height: 60,
-                  margin: EdgeInsets.only(
+                  margin: const EdgeInsets.only(
                       bottom: AppDimensions.bottomPanelHeaderHeight),
                   alignment: Alignment.center,
                   child: child);
@@ -50,7 +50,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Header('歌单广场', padding: AppDimensions.paddingSmall),
+                const Header('歌单广场', padding: AppDimensions.paddingSmall),
                 Expanded(child: Container()),
                 GestureDetector(
                   onTap: () {
@@ -60,7 +60,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                     }
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                         horizontal: AppDimensions.headerHeight / 4),
                     decoration: BoxDecoration(
                       color: controller.curTag.value == "全部"
@@ -68,7 +68,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(9999),
                     ),
-                    child: Text("全部"),
+                    child: const Text("全部"),
                   ),
                 )
               ],
@@ -78,8 +78,8 @@ class ExplorePageView extends GetView<ExplorePageController> {
 
             SliverToBoxAdapter(
               child: Container(
-                padding:
-                    EdgeInsets.symmetric(vertical: AppDimensions.paddingSmall),
+                padding: const EdgeInsets.symmetric(
+                    vertical: AppDimensions.paddingSmall),
                 child: Column(
                   spacing: AppDimensions.paddingSmall,
                   children: [
@@ -90,7 +90,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                         borderRadius: BorderRadius.circular(9999),
                       ),
                       clipBehavior: Clip.hardEdge,
-                      margin: EdgeInsets.symmetric(
+                      margin: const EdgeInsets.symmetric(
                           horizontal: AppDimensions.paddingSmall),
                       child: ListView.builder(
                           scrollDirection: Axis.horizontal,
@@ -104,7 +104,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                                   categoryName,
                               child: Container(
                                   alignment: Alignment.center,
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                       horizontal:
                                           AppDimensions.headerHeight / 4),
                                   decoration: BoxDecoration(
@@ -126,7 +126,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                         color: Colors.black12,
                         borderRadius: BorderRadius.circular(9999),
                       ),
-                      margin: EdgeInsets.symmetric(
+                      margin: const EdgeInsets.symmetric(
                           horizontal: AppDimensions.paddingSmall),
                       clipBehavior: Clip.hardEdge,
                       child: ListView.builder(
@@ -150,7 +150,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                               child: Obx(
                                 () => Container(
                                     alignment: Alignment.center,
-                                    padding: EdgeInsets.symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                         horizontal:
                                             AppDimensions.headerHeight / 4),
                                     decoration: BoxDecoration(
@@ -285,8 +285,8 @@ class ExplorePageView extends GetView<ExplorePageController> {
 
             SliverToBoxAdapter(
               child: Container(
-                padding:
-                    EdgeInsets.symmetric(vertical: AppDimensions.paddingSmall),
+                padding: const EdgeInsets.symmetric(
+                    vertical: AppDimensions.paddingSmall),
                 child: Column(
                   spacing: AppDimensions.paddingSmall,
                   children: [
@@ -297,7 +297,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                         borderRadius: BorderRadius.circular(9999),
                       ),
                       clipBehavior: Clip.hardEdge,
-                      margin: EdgeInsets.symmetric(
+                      margin: const EdgeInsets.symmetric(
                           horizontal: AppDimensions.paddingSmall),
                       child: ListView.builder(
                           scrollDirection: Axis.horizontal,
@@ -309,7 +309,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                                       .topPlayListCategoryNames[index]),
                               child: Container(
                                   alignment: Alignment.center,
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                       horizontal:
                                           AppDimensions.headerHeight / 4),
                                   decoration: BoxDecoration(
@@ -333,7 +333,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                         color: Colors.black12,
                         borderRadius: BorderRadius.circular(9999),
                       ),
-                      margin: EdgeInsets.symmetric(
+                      margin: const EdgeInsets.symmetric(
                           horizontal: AppDimensions.paddingSmall),
                       clipBehavior: Clip.hardEdge,
                       child: ListView.builder(
@@ -345,7 +345,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                                   controller.curCategoryTopPlayLists[index]),
                               child: Container(
                                   alignment: Alignment.center,
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                       horizontal:
                                           AppDimensions.headerHeight / 4),
                                   decoration: BoxDecoration(
@@ -495,7 +495,7 @@ class _AutoSizeSliverHeaderState extends State<AutoSizeSliverPersistentHeader> {
             (_measuredFoldableWidgetHeight ?? 100),
         child: Column(
           children: [
-            Container(
+            SizedBox(
               height: _measuredPersistentHeaderHeight,
               key: _measurePersistentHeaderKey,
               child: widget.persistentHeader,
@@ -523,7 +523,9 @@ class _AutoSizeSliverPersistentHeaderDelegate
     required this.child,
   });
 
+  @override
   final double minExtent;
+  @override
   final double maxExtent;
   final Widget child;
 

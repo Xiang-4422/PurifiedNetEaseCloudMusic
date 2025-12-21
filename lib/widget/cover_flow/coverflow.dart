@@ -118,7 +118,7 @@ class _CoverFlowState extends State<CoverFlow> {
   // ListView式滚动实现
   Widget _buildListViewScrolling(BoxConstraints constraints) {
     return ScrollConfiguration(
-      behavior: NoGlowScrollBehavior(),
+      behavior: const NoGlowScrollBehavior(),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         controller: _scrollController,

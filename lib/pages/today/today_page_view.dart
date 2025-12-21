@@ -20,105 +20,114 @@ class TodayPageView extends GetView<AppController> {
 
   @override
   Widget build(BuildContext context) {
-
     String albumUrl = controller.todayRecommendSongs[0].extras?['image'] ?? '';
 
     return Container(
       color: Colors.white,
-      child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              toolbarHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
-              collapsedHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
-              expandedHeight: context.width - context.mediaQueryPadding.top,
-              pinned: true,
-              stretch: true,
-              automaticallyImplyLeading: false,
-              foregroundColor: Colors.transparent,
-              surfaceTintColor: Colors.transparent,
-              backgroundColor: Colors.transparent,
-              flexibleSpace: FlexibleSpaceBar(
-                stretchModes: const <StretchMode>[
-                  StretchMode.zoomBackground, // 背景图缩放
-                  // StretchMode.blurBackground, // 背景图模糊
-                  // StretchMode.fadeTitle,      // 标题渐隐
-                ],
-                titlePadding: const EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
-                title: BlurryContainer(
-                  padding: EdgeInsetsGeometry.zero,
-                  borderRadius: BorderRadius.circular(9999),
-                  color: Colors.white.withOpacity(0.5),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Stack(
-                            alignment: Alignment.centerLeft,
-                            children: [
-                              Text(
-                                " 每日推荐",
-                                maxLines: 1,
-                                style: context.textTheme.titleLarge!.copyWith(
-                                  foreground: Paint()
-                                    ..style = PaintingStyle.stroke
-                                    ..strokeWidth = 2
-                                    ..color = Colors.black,
-                                ),
-                              ),
-                              Text(
-                                " 每日推荐",
-                                maxLines: 1,
-                                style: context.textTheme.titleLarge!.copyWith(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+      child: CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
+        SliverAppBar(
+          toolbarHeight: AppDimensions.appBarHeight -
+              context.mediaQueryPadding.top +
+              AppDimensions.paddingLarge,
+          collapsedHeight: AppDimensions.appBarHeight -
+              context.mediaQueryPadding.top +
+              AppDimensions.paddingLarge,
+          expandedHeight: context.width - context.mediaQueryPadding.top,
+          pinned: true,
+          stretch: true,
+          automaticallyImplyLeading: false,
+          foregroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: Colors.transparent,
+          flexibleSpace: FlexibleSpaceBar(
+            stretchModes: const <StretchMode>[
+              StretchMode.zoomBackground, // 背景图缩放
+              // StretchMode.blurBackground, // 背景图模糊
+              // StretchMode.fadeTitle,      // 标题渐隐
+            ],
+            titlePadding: const EdgeInsets.only(
+                bottom: AppDimensions.paddingMedium,
+                left: AppDimensions.paddingMedium,
+                right: AppDimensions.paddingMedium),
+            title: BlurryContainer(
+              padding: EdgeInsetsGeometry.zero,
+              borderRadius: BorderRadius.circular(9999),
+              color: Colors.white.withOpacity(0.5),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Stack(
+                        alignment: Alignment.centerLeft,
+                        children: [
+                          Text(
+                            " 每日推荐",
+                            maxLines: 1,
+                            style: context.textTheme.titleLarge!.copyWith(
+                              foreground: Paint()
+                                ..style = PaintingStyle.stroke
+                                ..strokeWidth = 2
+                                ..color = Colors.black,
+                            ),
                           ),
-                        ),
-                      ),
-                      BlurryContainer(
-                        padding: EdgeInsetsGeometry.zero,
-                        borderRadius: BorderRadius.circular(9999),
-                        color: Colors.red,
-                        child: IconButton(
-                            icon: Icon(
-                              TablerIcons.player_play_filled,
+                          Text(
+                            " 每日推荐",
+                            maxLines: 1,
+                            style: context.textTheme.titleLarge!.copyWith(
                               color: Colors.white,
                             ),
-                            onPressed: () => AppController.to.playNewPlayList(controller.todayRecommendSongs, 0, playListName: "每日推荐")
-                        ),
-                      )
-                    ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                // centerTitle: true,
-                expandedTitleScale: 1.5,
-                background: SimpleExtendedImage(
-                  width: context.width,
-                  height: context.width,
-                  albumUrl,
-                ),
-              ),
-              // bottom:
-            ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                childCount: controller.todayRecommendSongs.length + 1,
-                    (BuildContext context, int index) {
-                  if (index == controller.todayRecommendSongs.length) {
-                    return const SizedBox(
-                      height: AppDimensions.bottomPanelHeaderHeight,
-                    );
-                  }
-                  return SongItem(playlist: controller.todayRecommendSongs, index: index, playListName: "今日推荐", stringColor: Colors.black, showIndex: true).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
-                },
+                  BlurryContainer(
+                    padding: EdgeInsetsGeometry.zero,
+                    borderRadius: BorderRadius.circular(9999),
+                    color: Colors.red,
+                    child: IconButton(
+                        icon: const Icon(
+                          TablerIcons.player_play_filled,
+                          color: Colors.white,
+                        ),
+                        onPressed: () => AppController.to.playNewPlayList(
+                            controller.todayRecommendSongs, 0,
+                            playListName: "每日推荐")),
+                  )
+                ],
               ),
             ),
-          ]
-      ),
+            // centerTitle: true,
+            expandedTitleScale: 1.5,
+            background: SimpleExtendedImage(
+              width: context.width,
+              height: context.width,
+              albumUrl,
+            ),
+          ),
+          // bottom:
+        ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            childCount: controller.todayRecommendSongs.length + 1,
+            (BuildContext context, int index) {
+              if (index == controller.todayRecommendSongs.length) {
+                return const SizedBox(
+                  height: AppDimensions.bottomPanelHeaderHeight,
+                );
+              }
+              return SongItem(
+                      playlist: controller.todayRecommendSongs,
+                      index: index,
+                      playListName: "今日推荐",
+                      stringColor: Colors.black,
+                      showIndex: true)
+                  .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+            },
+          ),
+        ),
+      ]),
     );
   }
-
 }

@@ -7,7 +7,6 @@ import 'package:bujuan/pages/cloud/cloud_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 class MyObserver extends AutoRouterObserver {
   @override
@@ -31,7 +30,6 @@ class MyObserver extends AutoRouterObserver {
     _clearOrPutController(route.settings.name ?? '', del: true);
   }
 
-
   // only override to observer tab routes
   @override
   void didInitTabRoute(TabPageRoute route, TabPageRoute? previousRoute) {}
@@ -45,13 +43,19 @@ class MyObserver extends AutoRouterObserver {
     if (name.isEmpty) return;
     switch (name) {
       case 'CloudDriveView':
-        del ? Get.delete<CloudController>() : Get.lazyPut<CloudController>(() => CloudController());
+        del
+            ? Get.delete<CloudController>()
+            : Get.lazyPut<CloudController>(() => CloudController());
         break;
       case 'PlayListRouteView':
-        del ? Get.delete<PlayListController>() : Get.lazyPut<PlayListController>(() => PlayListController());
+        del
+            ? Get.delete<PlayListController>()
+            : Get.lazyPut<PlayListController>(() => PlayListController());
         break;
       case 'AlbumRouteView':
-        del ? Get.delete<AlbumController>() : Get.lazyPut<AlbumController>(() => AlbumController());
+        del
+            ? Get.delete<AlbumController>()
+            : Get.lazyPut<AlbumController>(() => AlbumController());
         break;
     }
   }

@@ -275,7 +275,9 @@ class AppController extends SuperController
         }
         // 避免循环监听
         if (bottomPanelTabController.indexIsChanging ||
-            bottomPanelCommentTabController.indexIsChanging) return;
+            bottomPanelCommentTabController.indexIsChanging) {
+          return;
+        }
         // 控制tab显示
         if (bottomPanelPageController.page! <= 2) {
           bottomPanelTabController.index = newPanelPageIndex;
@@ -444,7 +446,7 @@ class AppController extends SuperController
     // 获取歌曲id
     singlePlayListWrap ??= await NeteaseMusicApi().playListDetail(playListId);
     List<String> songIds =
-        singlePlayListWrap?.playlist?.trackIds?.map((e) => e.id).toList() ?? [];
+        singlePlayListWrap.playlist?.trackIds?.map((e) => e.id).toList() ?? [];
 
     songIds.removeRange(0, offset);
     limit = limit == -1 || songIds.length < limit ? songIds.length : limit;

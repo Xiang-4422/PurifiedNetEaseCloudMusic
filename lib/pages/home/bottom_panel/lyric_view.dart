@@ -1,5 +1,4 @@
 import 'package:bujuan/controllers/app_controller.dart';
-import 'package:bujuan/pages/home/bottom_panel/bottom_panel_view.dart';
 import 'package:flutter/material.dart';
 import 'package:bujuan/common/common_widget.dart';
 

@@ -1,4 +1,3 @@
-
 import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
@@ -14,10 +13,8 @@ import 'package:get/get.dart';
 import '../../../widget/custom_zoom_drawer/src/flutter_zoom_drawer.dart';
 import 'package:bujuan/routes/router.dart';
 
-
 import '../../../widget/simple_extended_image.dart';
 import '../top_panel/top_panel_view.dart';
-
 
 class AppBodyPageView extends GetView<AppController> {
   const AppBodyPageView({super.key});
@@ -80,33 +77,34 @@ class DrawerMainScreenView extends GetView<AppController> {
       width: context.width,
       height: context.height,
       child: Obx(() => PageView(
-        physics: controller.isDrawerClosed.value
-            ? const NeverScrollableScrollPhysics()
-            : const PageScrollPhysics(),
-        scrollDirection: Axis.vertical,
-        controller: controller.homePageController,
-        children: [
-          Obx(() => AbsorbPointer(
-            absorbing: !AppController.to.isDrawerClosed.value,
-            child: const PersonalPageView(),
+            physics: controller.isDrawerClosed.value
+                ? const NeverScrollableScrollPhysics()
+                : const PageScrollPhysics(),
+            scrollDirection: Axis.vertical,
+            controller: controller.homePageController,
+            children: [
+              Obx(() => AbsorbPointer(
+                    absorbing: !AppController.to.isDrawerClosed.value,
+                    child: const PersonalPageView(),
+                  )),
+              Obx(() => AbsorbPointer(
+                    absorbing: !AppController.to.isDrawerClosed.value,
+                    child: const ExplorePageView(),
+                  )),
+              Obx(() => AbsorbPointer(
+                    absorbing: !AppController.to.isDrawerClosed.value,
+                    child: const SettingPageView(),
+                  )),
+              Obx(() => AbsorbPointer(
+                    absorbing: !AppController.to.isDrawerClosed.value,
+                    child: const CoffeePageView(),
+                  )),
+            ],
           )),
-          Obx(() => AbsorbPointer(
-              absorbing: !AppController.to.isDrawerClosed.value,
-              child: const ExplorePageView(),
-          )),
-          Obx(() => AbsorbPointer(
-              absorbing: !AppController.to.isDrawerClosed.value,
-              child: const SettingPageView(),
-          )),
-          Obx(() => AbsorbPointer(
-              absorbing: !AppController.to.isDrawerClosed.value,
-              child: const CoffeePageView(),
-          )),
-        ],
-      )),
     );
   }
 }
+
 class MenuView extends GetView<AppController> {
   const MenuView({super.key});
 
@@ -114,8 +112,8 @@ class MenuView extends GetView<AppController> {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(top: context.mediaQueryPadding.top),
-      padding: EdgeInsets.all(AppDimensions.paddingSmall),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.all(AppDimensions.paddingSmall),
+      decoration: const BoxDecoration(
         borderRadius: BorderRadius.vertical(top: Radius.circular(9999)),
         color: Colors.black12,
       ),
@@ -126,10 +124,12 @@ class MenuView extends GetView<AppController> {
         children: [
           IconButton(
             padding: EdgeInsets.zero,
-            icon: Obx(() => SimpleExtendedImage.avatar(
-              '${controller.userInfo.value.profile?.avatarUrl ?? ''}?param=300y300',
-              shape: BoxShape.circle,
-            ),),
+            icon: Obx(
+              () => SimpleExtendedImage.avatar(
+                '${controller.userInfo.value.profile?.avatarUrl ?? ''}?param=300y300',
+                shape: BoxShape.circle,
+              ),
+            ),
             onPressed: () {
               controller.zoomDrawerController.close!();
               Future.delayed(const Duration(milliseconds: 200), () {
@@ -137,16 +137,18 @@ class MenuView extends GetView<AppController> {
               });
             },
           ),
-          Expanded(child: Obx(() => Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: controller.curHomePageTitle.value.split("").map((c) {
-              return Text(
-                c,
-                style: context.textTheme.titleLarge,
-              );
-            }).toList(),
-          ),
+          Expanded(
+              child: Obx(
+            () => Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: controller.curHomePageTitle.value.split("").map((c) {
+                return Text(
+                  c,
+                  style: context.textTheme.titleLarge,
+                );
+              }).toList(),
+            ),
           )),
           ListView.builder(
             itemCount: controller.leftMenus.length,
@@ -156,12 +158,16 @@ class MenuView extends GetView<AppController> {
               return IconButton(
                 onPressed: () {
                   int onePageAnimationTime = 200;
-                  Duration animationTime = Duration(milliseconds: onePageAnimationTime  * (controller.homePageController.page! - index).abs().toInt());
-                  controller.homePageController.animateToPage(index, duration: animationTime, curve:Curves.linear);
+                  Duration animationTime = Duration(
+                      milliseconds: onePageAnimationTime *
+                          (controller.homePageController.page! - index)
+                              .abs()
+                              .toInt());
+                  controller.homePageController.animateToPage(index,
+                      duration: animationTime, curve: Curves.linear);
                 },
-                icon: Obx(() => Icon(
-                    controller.leftMenus[index].icon,
-                    size: AppDimensions.albumMinSize * 2/3,
+                icon: Obx(() => Icon(controller.leftMenus[index].icon,
+                    size: AppDimensions.albumMinSize * 2 / 3,
                     color: controller.curHomePageIndex.value == index
                         ? Theme.of(context).primaryColor
                         : Theme.of(context).iconTheme.color)),

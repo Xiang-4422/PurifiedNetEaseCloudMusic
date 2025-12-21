@@ -42,9 +42,9 @@ class _SettingPageViewState extends State<SettingPageView> {
   Widget build(BuildContext context) {
     return ListView(
       padding: EdgeInsets.only(
-          top: context.mediaQueryPadding.top,
-          bottom: AppDimensions.bottomPanelHeaderHeight,
-          left: AppDimensions.paddingSmall,
+        top: context.mediaQueryPadding.top,
+        bottom: AppDimensions.bottomPanelHeaderHeight,
+        left: AppDimensions.paddingSmall,
         right: AppDimensions.paddingSmall,
       ),
       children: [
@@ -57,7 +57,7 @@ class _SettingPageViewState extends State<SettingPageView> {
   Widget _buildUiSetting() {
     return Column(
       children: [
-        Header('UI设置'),
+        const Header('UI设置'),
         ListTile(
           contentPadding: const EdgeInsets.all(0),
           title: const Text(
@@ -65,13 +65,18 @@ class _SettingPageViewState extends State<SettingPageView> {
             style: TextStyle(fontSize: 30),
           ),
           trailing: Obx(() => Icon(
-                AppController.to.isGradientBackground.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                AppController.to.isGradientBackground.value
+                    ? TablerIcons.toggle_right
+                    : TablerIcons.toggle_left,
                 size: 56,
-                color: Theme.of(context).cardColor.withOpacity(AppController.to.isGradientBackground.value ? 0.7 : .4),
+                color: Theme.of(context).cardColor.withOpacity(
+                    AppController.to.isGradientBackground.value ? 0.7 : .4),
               )),
           onTap: () {
-            AppController.to.isGradientBackground.value = !AppController.to.isGradientBackground.value;
-            AppController.to.box.put(gradientBackgroundSp, AppController.to.isGradientBackground.value);
+            AppController.to.isGradientBackground.value =
+                !AppController.to.isGradientBackground.value;
+            AppController.to.box.put(gradientBackgroundSp,
+                AppController.to.isGradientBackground.value);
           },
         ),
         ListTile(
@@ -81,13 +86,18 @@ class _SettingPageViewState extends State<SettingPageView> {
             style: TextStyle(fontSize: 30),
           ),
           trailing: Obx(() => Icon(
-                AppController.to.isRoundAlbumOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                AppController.to.isRoundAlbumOpen.value
+                    ? TablerIcons.toggle_right
+                    : TablerIcons.toggle_left,
                 size: 56,
-                color: Theme.of(context).cardColor.withOpacity(AppController.to.isRoundAlbumOpen.value ? 0.7 : .4),
+                color: Theme.of(context).cardColor.withOpacity(
+                    AppController.to.isRoundAlbumOpen.value ? 0.7 : .4),
               )),
           onTap: () {
-            AppController.to.isRoundAlbumOpen.value = !AppController.to.isRoundAlbumOpen.value;
-            AppController.to.box.put(roundAlbumSp, AppController.to.isRoundAlbumOpen.value);
+            AppController.to.isRoundAlbumOpen.value =
+                !AppController.to.isRoundAlbumOpen.value;
+            AppController.to.box
+                .put(roundAlbumSp, AppController.to.isRoundAlbumOpen.value);
           },
         ),
       ],
@@ -97,7 +107,7 @@ class _SettingPageViewState extends State<SettingPageView> {
   Widget _buildAppSetting() {
     return Column(
       children: [
-        Header('App设置'),
+        const Header('App设置'),
         ListTile(
           contentPadding: const EdgeInsets.all(0),
           title: const Text(
@@ -105,13 +115,18 @@ class _SettingPageViewState extends State<SettingPageView> {
             style: TextStyle(fontSize: 30),
           ),
           trailing: Obx(() => Icon(
-                AppController.to.isHighSoundQualityOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                AppController.to.isHighSoundQualityOpen.value
+                    ? TablerIcons.toggle_right
+                    : TablerIcons.toggle_left,
                 size: 56,
-                color: Theme.of(context).cardColor.withOpacity(AppController.to.isHighSoundQualityOpen.value ? 0.7 : .4),
+                color: Theme.of(context).cardColor.withOpacity(
+                    AppController.to.isHighSoundQualityOpen.value ? 0.7 : .4),
               )),
           onTap: () {
-            AppController.to.isHighSoundQualityOpen.value = !AppController.to.isHighSoundQualityOpen.value;
-            AppController.to.box.put(highSong, AppController.to.isHighSoundQualityOpen.value);
+            AppController.to.isHighSoundQualityOpen.value =
+                !AppController.to.isHighSoundQualityOpen.value;
+            AppController.to.box
+                .put(highSong, AppController.to.isHighSoundQualityOpen.value);
           },
         ),
         ListTile(
@@ -121,13 +136,19 @@ class _SettingPageViewState extends State<SettingPageView> {
             style: TextStyle(fontSize: 30),
           ),
           trailing: Obx(() => Icon(
-                AppController.to.isCacheOpen.value ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+                AppController.to.isCacheOpen.value
+                    ? TablerIcons.toggle_right
+                    : TablerIcons.toggle_left,
                 size: 56,
-                color: Theme.of(context).cardColor.withOpacity(AppController.to.isCacheOpen.value ? 0.7 : .4),
+                color: Theme.of(context)
+                    .cardColor
+                    .withOpacity(AppController.to.isCacheOpen.value ? 0.7 : .4),
               )),
           onTap: () {
-            AppController.to.isCacheOpen.value = !AppController.to.isCacheOpen.value;
-            AppController.to.box.put(cacheSp, AppController.to.isCacheOpen.value);
+            AppController.to.isCacheOpen.value =
+                !AppController.to.isCacheOpen.value;
+            AppController.to.box
+                .put(cacheSp, AppController.to.isCacheOpen.value);
           },
         ),
         // ListTile(

@@ -84,11 +84,6 @@ class PlayerController extends GetxController {
   double _fullScreenLyricTimerCounter = 0.0;
 
   @override
-  void onInit() {
-    super.onInit();
-  }
-
-  @override
   void onReady() {
     super.onReady();
     _initAudioHandler();
@@ -192,8 +187,9 @@ class PlayerController extends GetxController {
     audioHandler.playbackState.listen((playbackState) {
       isPlaying.value = playbackState.playing;
       updateFullScreenLyricTimerCounter(cancelTimer: isPlaying.isFalse);
-      if (playbackState.processingState == AudioProcessingState.completed)
+      if (playbackState.processingState == AudioProcessingState.completed) {
         audioHandler.skipToNext();
+      }
     });
 
     // 监听播放进度变化
@@ -283,8 +279,9 @@ class PlayerController extends GetxController {
         for (LyricsLineModel lyricsLineModel in extLyricsLineModels) {
           int index = mainLyricsLineModels.indexWhere(
               (element) => element.startTime == lyricsLineModel.startTime);
-          if (index != -1)
+          if (index != -1) {
             mainLyricsLineModels[index].extText = lyricsLineModel.mainText;
+          }
         }
       }
       lyricsLineModels.addAll(mainLyricsLineModels);

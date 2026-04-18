@@ -3,7 +3,11 @@ import 'dart:math';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/netease_api/src/api/bean.dart';
+import 'package:bujuan/data/mappers/netease_playlist_mapper.dart';
+import 'package:bujuan/data/mappers/netease_track_mapper.dart';
+import 'package:bujuan/features/library/repository/library_repository.dart';
 import 'package:bujuan/shared/mappers/media_item_mapper.dart';
+import 'package:get_it/get_it.dart';
 
 import 'playlist_cache_store.dart';
 
@@ -20,13 +24,28 @@ class PlaylistDetailData {
 }
 
 class PlaylistRepository {
-  PlaylistRepository({PlaylistCacheStore? cacheStore})
-      : _cacheStore = cacheStore ?? const PlaylistCacheStore();
+  PlaylistRepository({
+    PlaylistCacheStore? cacheStore,
+    LibraryRepository? libraryRepository,
+  })  : _cacheStore = cacheStore ?? const PlaylistCacheStore(),
+        _libraryRepository =
+            libraryRepository ??
+            (GetIt.instance.isRegistered<LibraryRepository>()
+                ? GetIt.instance<LibraryRepository>()
+                : LibraryRepository());
 
   final PlaylistCacheStore _cacheStore;
+  final LibraryRepository _libraryRepository;
 
-  Future<SinglePlayListWrap> fetchPlaylistWrap(String playlistId) {
-    return NeteaseMusicApi().playListDetail(playlistId);
+  Future<SinglePlayListWrap> fetchPlaylistWrap(String playlistId) async {
+    final wrap = await NeteaseMusicApi().playListDetail(playlistId);
+    final playlist = wrap.playlist;
+    if (playlist != null) {
+      await _libraryRepository.savePlaylists(
+        [NeteasePlaylistMapper.fromPlaylist(playlist)],
+      );
+    }
+    return wrap;
   }
 
   Future<List<MediaItem>> fetchPlaylistSongs({
@@ -64,6 +83,9 @@ class PlaylistRepository {
           wrap.songs ?? const [],
           likedSongIds: likedSongIds,
         ),
+      );
+      await _libraryRepository.saveTracks(
+        NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []),
       );
       loadedSongCount = songs.length;
     }

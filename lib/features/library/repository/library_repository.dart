@@ -34,6 +34,14 @@ class LibraryRepository {
 
   bool get isOfflineModeEnabled => _preferenceStore.isOfflineModeEnabled;
 
+  Future<void> saveTracks(List<Track> tracks) async {
+    await _localDataSource?.saveTracks(tracks);
+  }
+
+  Future<void> savePlaylists(List<PlaylistEntity> playlists) async {
+    await _localDataSource?.savePlaylists(playlists);
+  }
+
   Future<List<Track>> searchTracks({
     required String sourceKey,
     required String keyword,

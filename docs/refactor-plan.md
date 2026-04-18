@@ -24,7 +24,7 @@
 | --- | --- | --- | --- |
 | Phase 0 | 文档定案 | 固定技术架构、工程结构和执行计划 | Done |
 | Phase 1 | 基础边界收口 | 停止新债继续扩散，建立 repository 和 mapper 落点 | In Progress |
-| Phase 2 | Shell 拆分 | 将 `AppController` 中的壳层状态和业务入口拆开 | Planned |
+| Phase 2 | Shell 拆分 | 将 `AppController` 中的壳层状态和业务入口拆开 | In Progress |
 | Phase 3 | 内容数据线重构 | 登录、歌单、云盘、搜索的用例逻辑从页面移出 | Planned |
 | Phase 4 | 播放链路重构 | 规范播放器状态、服务层与队列切换逻辑 | Planned |
 | Phase 5 | 目录迁移与清理 | 按目标结构完成目录收口和遗留清理 | Planned |
@@ -41,6 +41,7 @@
 ### 进行中
 
 - Phase 1
+- Phase 2
 
 ### 未开始
 
@@ -119,6 +120,11 @@
 
 - 首页联动复杂，拆分过程容易产生 UI 回归
 - 上下 panel 和 PageView 联动需要逐步迁移
+
+### 进度更新
+
+- 已新增 `HomeShellController`，接管首页抽屉、顶部搜索面板和首页分页标题状态
+- `AppController` 先通过代理 getter 复用新壳层 controller，避免一次性改动页面依赖
 
 ## 7. Phase 3: 内容数据线重构
 

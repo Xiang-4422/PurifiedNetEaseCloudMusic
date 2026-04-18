@@ -7,6 +7,7 @@ import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/features/playlist/repository/playlist_repository.dart';
+import 'package:bujuan/features/shell/controller/home_shell_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -26,20 +27,16 @@ class AppController extends SuperController
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
   static AppController get to => Get.find();
   final PlaylistRepository _playlistRepository = PlaylistRepository();
+  late final HomeShellController shellController;
 
-  // --- 注入新的 Controllers ---
   late final SettingsController settingsController;
   late final UserController userController;
   late final PlayerController playerController;
 
-  // Proxy for Box (fix for setting_page.dart)
   Box get box => settingsController.box;
 
-  // Proxy for clearUser
   clearUser() => userController.clearUser();
 
-  // --- 代理 Getters (为了兼容旧代码) ---
-  // Settings
   RxBool get isGradientBackground => settingsController.isGradientBackground;
   RxBool get isRoundAlbumOpen => settingsController.isRoundAlbumOpen;
   RxBool get isCacheOpen => settingsController.isCacheOpen;
@@ -48,7 +45,6 @@ class AppController extends SuperController
   Rx<Color> get albumColor => settingsController.albumColor;
   Rx<Color> get panelWidgetColor => settingsController.panelWidgetColor;
 
-  // User
   Rx<NeteaseAccountInfoWrap> get userInfo => userController.userInfo;
   List<PlayList> get userPlayLists => userController.userPlayLists;
   RxList<PlayList> get recoPlayLists => userController.recoPlayLists;
@@ -60,7 +56,6 @@ class AppController extends SuperController
   RxList<MediaItem> get todayRecommendSongs =>
       userController.todayRecommendSongs;
 
-  // Player
   RxBool get isPlaying => playerController.isPlaying;
   Rx<AudioServiceRepeatMode> get curRepeatMode =>
       playerController.curRepeatMode;
@@ -80,41 +75,24 @@ class AppController extends SuperController
   RxBool get isFullScreenLyricOpen => playerController.isFullScreenLyricOpen;
   AudioServiceHandler get audioHandler => playerController.audioHandler;
 
-  // --- 无功能分类 ---
   late BuildContext buildContext;
 
-  // --- 首页快速播放卡片所需数据 ---
   RxBool dateLoaded = false.obs;
 
-  // 心动模式开始歌曲 (这些变量需要在适当的时候重构到 Controllers 中，暂时保留在此处做中转或State)
   RxString get randomLikedSongAlbumUrl =>
       userController.randomLikedSongAlbumUrl;
   RxString get randomLikedSongId => userController.randomLikedSongId;
 
-  // 首页刷新
   RefreshController refreshController = RefreshController();
 
-  // --- 抽屉 (UI Logic - Keep here) ---
-  /// Home页面侧滑抽屉
-  late ZoomDrawerController zoomDrawerController;
-
-  /// 侧边抽屉Beans
   List<LeftMenuBean> get leftMenus => userController.leftMenus;
+  ZoomDrawerController get zoomDrawerController =>
+      shellController.zoomDrawerController;
+  RxBool get isDrawerClosed => shellController.isDrawerClosed;
+  PageController get homePageController => shellController.homePageController;
+  RxInt get curHomePageIndex => shellController.curHomePageIndex;
+  RxString get curHomePageTitle => shellController.curHomePageTitle;
 
-  /// 抽屉开启状态
-  RxBool isDrawerClosed = true.obs;
-
-  /// 自动关闭抽屉倒计时（毫秒）
-  double _timerCounter = 0.0;
-
-  // --- Home页面PageView (UI Logic - Keep here) ---
-  late PageController homePageController;
-  bool isHomePageControllerInited = false;
-  RxInt curHomePageIndex = 0.obs;
-  RxString curHomePageTitle = "".obs;
-
-  // --- 专辑封面 (UI Logic - Keep here) ---
-  /// Home页面底部Panel中专辑封面的PageView
   late PageController albumPageController;
   RxBool isBigAlbum = true.obs;
   RxBool isAlbumScaleEnded = true.obs;
@@ -122,34 +100,28 @@ class AppController extends SuperController
   bool isAlbumScrollingProgrammatic = false;
   RxBool isAlbumScrolling = false.obs;
 
-  // --- 底部Panel (UI Logic - Keep here) ---
   PanelController bottomPanelController = PanelController();
   late AnimationController bottomPanelAnimationController;
-
-  /// panel展开程度（0-1，1表示完全展开）
   RxBool bottomPanelFullyClosed = true.obs;
   RxBool bottomPanelOpened50 = false.obs;
   RxBool bottomPanelFullyOpened = false.obs;
-  // --- Panel中的pageview ---
   late PageController bottomPanelPageController;
   RxInt curPanelPageIndex = 1.obs;
-  // --- Panel中的tabview
   late TabController bottomPanelTabController;
   late TabController bottomPanelCommentTabController;
-  // --- 正在播放列表 ---
   ScrollController playListScrollController = ScrollController();
 
-  // --- 顶部Panel (UI Logic - Keep here) ---
-  PanelController topPanelController = PanelController();
-  late AnimationController topPanelAnimationController;
-  late TextEditingController searchTextEditingController;
-  RxBool topPanelFullyOpened = false.obs;
-  RxBool topPanelFullyClosed = true.obs;
-  RxString searchContent = ''.obs;
-  final FocusNode searchFocusNode = FocusNode();
-  RxDouble keyBoardHeight = 0.0.obs;
+  PanelController get topPanelController => shellController.topPanelController;
+  AnimationController get topPanelAnimationController =>
+      shellController.topPanelAnimationController;
+  TextEditingController get searchTextEditingController =>
+      shellController.searchTextEditingController;
+  RxBool get topPanelFullyOpened => shellController.topPanelFullyOpened;
+  RxBool get topPanelFullyClosed => shellController.topPanelFullyClosed;
+  RxString get searchContent => shellController.searchContent;
+  FocusNode get searchFocusNode => shellController.searchFocusNode;
+  RxDouble get keyBoardHeight => shellController.keyBoardHeight;
 
-  // --- 歌词 (UI Scroll Logic - Keep here) ---
   ItemScrollController lyricScrollController = ItemScrollController();
   bool isLyricScrollingByUser = false;
   bool isLyricScrollingByItself = false;
@@ -157,41 +129,35 @@ class AppController extends SuperController
   @override
   Future<void> onInit() async {
     super.onInit();
-    // 注入依赖
+    shellController = Get.put(HomeShellController());
     settingsController = Get.put(SettingsController());
     userController = Get.put(UserController());
     playerController = Get.put(PlayerController());
 
-    // UI 初始化
     _initUIController();
     WidgetsBinding.instance.addObserver(this);
 
-    // 监听歌词索引变化以驱动滚动
     ever(currLyricIndex, (index) {
       if (index >= 0 &&
           !isLyricScrollingByUser &&
           lyricScrollController.isAttached) {
-        // 这里需要 try-catch 或者简单的延时，或者是确保 scrollController 已附着
         try {
           lyricScrollController.scrollTo(
               index: index, duration: const Duration(milliseconds: 300));
         } catch (e) {
-          // ignore
+          // 歌词滚动失败只会影响跟随体验，不能反过来打断播放状态更新。
         }
       }
     });
 
-    // 监听播放列表索引变化以驱动 UI 滚动
     ever(curPlayIndex, (index) {
       _animatePlayListToCurSong();
       _animateAlbumPageViewToCurSong();
     });
   }
 
-  // Debounce timer for album swipe
   Timer? _albumDebounceTimer;
 
-  // Debounced album page change handler
   void onAlbumPageChanged(int index) {
     if (isAlbumScrollingProgrammatic) return;
     _albumDebounceTimer?.cancel();
@@ -202,38 +168,8 @@ class AppController extends SuperController
     });
   }
 
-  _initUIController() {
-    zoomDrawerController = ZoomDrawerController();
-    curHomePageTitle.value = userInfo.value.profile?.nickname ?? "";
-    homePageController = PageController()
-      ..addListener(() {
-        int updatedPageIndex = (homePageController.page! + 0.5).toInt();
-        // 页面切换了
-        if (updatedPageIndex != curHomePageIndex.value) {
-          curHomePageIndex.value = updatedPageIndex;
-          String title = "";
-          // 更新appbar标题
-          switch (updatedPageIndex) {
-            case 0:
-              title = userInfo.value.profile?.nickname ?? "";
-              break;
-            case 1:
-              title = "每日发现";
-              break;
-            case 2:
-              title = "设置";
-              break;
-            case 3:
-              title = "赞助开发者";
-              break;
-          }
-          curHomePageTitle.value = title;
-
-          // 启动倒计时器关闭抽屉
-          _updateCloseDrawerTimer(3000);
-        }
-      });
-    topPanelAnimationController = AnimationController(vsync: this);
+  void _initUIController() {
+    shellController.init(initialTitle: userInfo.value.profile?.nickname ?? '');
     bottomPanelAnimationController = AnimationController(vsync: this);
     bottomPanelTabController =
         TabController(length: 3, initialIndex: 1, vsync: this)
@@ -289,38 +225,19 @@ class AppController extends SuperController
         }
       });
     albumPageController = PageController();
-    searchTextEditingController = TextEditingController()
-      ..addListener(() {
-        searchContent.value = searchTextEditingController.text;
-      });
   }
 
   @override
   Future<void> onReady() async {
     super.onReady();
-    // 触发数据加载
     updateData();
   }
 
-  initZoomDrawerListener() async {
-    // // 这个需要在UI构建后添加监听
-    zoomDrawerController.addListener!((drawerOpenDegree) {
-      //  抽屉状态改变
-      if ((drawerOpenDegree == 0.0) != isDrawerClosed.value) {
-        // 刷新抽屉状态
-        isDrawerClosed.value = drawerOpenDegree == 0.0;
-        if (!isDrawerClosed.value) {
-          // 启动倒计时器关闭抽屉
-          _updateCloseDrawerTimer(3000);
-        } else {
-          _updateCloseDrawerTimer(0);
-        }
-      }
-    });
+  Future<void> initZoomDrawerListener() async {
+    shellController.initZoomDrawerListener();
   }
 
   updateData() async {
-    // 代理调用 UserController
     await userController.updateUserData();
     dateLoaded.value = true;
 
@@ -345,9 +262,8 @@ class AppController extends SuperController
   void onHidden() {}
   @override
   void didChangeMetrics() {
-    // 监听窗口变化（包括键盘高度变化）
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      keyBoardHeight.value = MediaQuery.of(buildContext).viewInsets.bottom;
+      shellController.updateKeyboardHeight(buildContext);
     });
   }
 
@@ -355,7 +271,6 @@ class AppController extends SuperController
   void didChangePlatformBrightness() {
     super.didChangePlatformBrightness();
     if (bottomPanelFullyOpened.isTrue) return;
-    // 状态栏颜色控制
     bool isDarkMode = buildContext.isDarkMode;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       systemNavigationBarIconBrightness:
@@ -368,28 +283,21 @@ class AppController extends SuperController
     ));
   }
 
-  // --- 歌曲控制 ---
-  /// 获取当前循环icon
   IconData getRepeatIcon() => playerController.getRepeatIcon();
 
-  /// 打开漫游模式
   openFmMode() async {
     bottomPanelPageController.jumpToPage(1);
     bottomPanelController.open();
-    // 代理逻辑
     await playerController.switchMode(PlaybackMode.roaming);
   }
 
   quitFmMode({bool showToast = true}) async {
     if (showToast) WidgetUtil.showToast('已经退出漫游模式');
-    // playerController.isFmMode.value = false; // logic handled by switchMode now
-    // Potentially switch back to default playlist mode or just leave as is but unset FM flag
     if (playerController.playbackMode.value == PlaybackMode.roaming) {
       playerController.playbackMode.value = PlaybackMode.playlist;
     }
   }
 
-  /// 打开心动模式
   openHeartBeatMode(String startSongId, bool fromPlayAll) async {
     if (startSongId.isEmpty) {
       return;
@@ -408,10 +316,8 @@ class AppController extends SuperController
     }
   }
 
-  /// 播放/暂停
   playOrPause() => playerController.playOrPause();
 
-  /// 喜欢歌曲
   toggleLikeStatus() => userController.toggleLikeStatus(curPlayingSong.value);
 
   playNewPlayList(List<MediaItem> playList, int index,
@@ -490,59 +396,13 @@ class AppController extends SuperController
   }
 
   onTopPanelSlide(double openDegree) {
-    topPanelAnimationController.value = openDegree;
-
-    if (topPanelFullyClosed.value != (openDegree == 0.0)) {
-      topPanelFullyClosed.value = (openDegree == 0.0);
-    }
-    if (topPanelFullyOpened.value != (openDegree == 1.0)) {
-      topPanelFullyOpened.value = (openDegree == 1.0);
-      if (topPanelFullyOpened.isTrue) {
-        if (searchContent.isEmpty) searchFocusNode.requestFocus();
-      } else {
-        searchFocusNode.unfocus();
-      }
-    }
+    shellController.onTopPanelSlide(openDegree);
   }
 
   onWillPop() {
-    if (topPanelController.isPanelOpen) {
-      topPanelController.close();
-      return;
-    }
-    if (bottomPanelController.isPanelOpen) {
-      bottomPanelController.close();
-      return;
-    }
-    if (zoomDrawerController.isOpen!()) {
-      zoomDrawerController.close!();
-      return;
-    }
-    if (homePageController.page != 0) {
-      homePageController.animateToPage(0,
-          duration:
-              Duration(milliseconds: 100 * (homePageController.page)!.toInt()),
-          curve: Curves.linear);
-    } else {
+    if (!shellController.handleWillPop(
+        bottomPanelController: bottomPanelController)) {
       SystemNavigator.pop();
-    }
-  }
-
-  _updateCloseDrawerTimer(double timeValue) {
-    if (_timerCounter == 0) {
-      _timerCounter = timeValue;
-      Timer.periodic(const Duration(milliseconds: 50), (timer) {
-        _timerCounter -= 50;
-        if (_timerCounter <= 0) {
-          _timerCounter = 0;
-          timer.cancel();
-          if (zoomDrawerController.isOpen!()) {
-            zoomDrawerController.close!();
-          }
-        }
-      });
-    } else {
-      _timerCounter = timeValue;
     }
   }
 

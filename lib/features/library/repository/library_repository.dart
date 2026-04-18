@@ -150,6 +150,10 @@ class LibraryRepository {
   }
 
   Future<String?> getPlaybackUrl(String trackId) async {
+    final localTrack = await _localDataSource?.getTrack(trackId);
+    if (localTrack?.localPath?.isNotEmpty == true) {
+      return localTrack!.localPath;
+    }
     final source = _sourceRegistry.getByTrackId(trackId);
     if (source == null) {
       return null;
@@ -164,6 +168,10 @@ class LibraryRepository {
     String trackId, {
     String? qualityLevel,
   }) async {
+    final localTrack = await _localDataSource?.getTrack(trackId);
+    if (localTrack?.localPath?.isNotEmpty == true) {
+      return localTrack!.localPath;
+    }
     final source = _sourceRegistry.getByTrackId(trackId);
     if (source == null) {
       return null;

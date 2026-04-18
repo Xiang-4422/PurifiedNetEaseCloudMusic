@@ -177,6 +177,7 @@
 - 应用启动已开始统一注册 `LocalLibraryDataSource`、`MusicSourceRegistry` 与 `LibraryRepository`，减少过渡期重复 new 带来的本地缓存孤岛
 - 已新增 `LibraryPreferenceStore`，手动离线模式开始通过独立存储入口驱动媒体库策略，而不再只停留在文档约定
 - 搜索面板在离线模式下已停止请求在线热搜，避免 UI 继续暴露与当前数据策略相冲突的远程入口
+- 已新增持久化过渡版 `LocalLibraryDataSource`，开始替换共享内存实现，先验证“可重启保留”的本地优先行为
 
 ### 进行中
 
@@ -524,6 +525,6 @@
 
 - 阶段：`Phase 3`
 - 状态：`In Progress`
-- 完成内容：将 `AppDatabase` 与共享本地媒体库数据源正式串入应用启动依赖，统一注册 `LocalLibraryDataSource`、`MusicSourceRegistry` 与 `LibraryRepository`；补充 `LibraryPreferenceStore` 并将手动离线模式接入设置页和媒体库读取策略；搜索面板在离线模式下改为展示本地搜索提示，不再主动请求在线热搜；新增 `AuthStateStore` 与 `PlaylistCacheStore`，继续把登录态和歌单缓存访问从 repository 业务逻辑中收回到独立存储入口；搜索仓库开始按“本地优先、远程补齐并去重”返回统一结果，为后续渐进式搜索刷新打基础
-- 风险或阻塞：正式数据库仍未接管 `LocalLibraryDataSource`，离线模式当前只约束读取策略，下载与同步链路还需要继续补齐
-- 下一步：继续让正式数据库实现替换共享内存实现，并把更多播放/下载链路纳入离线模式约束
+- 完成内容：将 `AppDatabase` 与共享本地媒体库数据源正式串入应用启动依赖，统一注册 `LocalLibraryDataSource`、`MusicSourceRegistry` 与 `LibraryRepository`；补充 `LibraryPreferenceStore` 并将手动离线模式接入设置页和媒体库读取策略；搜索面板在离线模式下改为展示本地搜索提示，不再主动请求在线热搜；新增 `AuthStateStore` 与 `PlaylistCacheStore`，继续把登录态和歌单缓存访问从 repository 业务逻辑中收回到独立存储入口；搜索仓库开始按“本地优先、远程补齐并去重”返回统一结果，为后续渐进式搜索刷新打基础；新增持久化过渡版 `LocalLibraryDataSource`，开始替换共享内存实现并让本地媒体库具备跨重启保留能力；播放地址解析开始优先命中本地 `localPath`，为下载资源和本地源接入统一播放优先级
+- 风险或阻塞：当前持久化实现仍复用 `Hive Box` 作为过渡存储，`Isar` 还未正式接管；下载与同步链路仍未完全纳入离线模式约束
+- 下一步：继续把下载/播放可用性状态写回本地媒体库，并为 `Isar` 接入预留更稳定的数据迁移入口

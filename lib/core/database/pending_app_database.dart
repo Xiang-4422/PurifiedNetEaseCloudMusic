@@ -1,6 +1,6 @@
 import 'app_database.dart';
-import 'package:bujuan/data/local/in_memory_local_library_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
+import 'package:bujuan/data/local/persistent_local_library_data_source.dart';
 
 class PendingAppDatabase implements AppDatabase {
   PendingAppDatabase({required this.databaseName});
@@ -8,7 +8,7 @@ class PendingAppDatabase implements AppDatabase {
   final String databaseName;
   bool _initialized = false;
   final LocalLibraryDataSource _localLibraryDataSource =
-      InMemoryLocalLibraryDataSource.shared;
+      const PersistentLocalLibraryDataSource();
 
   @override
   Future<void> init() async {

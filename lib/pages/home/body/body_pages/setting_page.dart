@@ -1,12 +1,10 @@
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingPageView extends StatefulWidget {
@@ -18,7 +16,6 @@ class SettingPageView extends StatefulWidget {
 
 class _SettingPageViewState extends State<SettingPageView> {
   String version = '1.0.0';
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -69,14 +66,12 @@ class _SettingPageViewState extends State<SettingPageView> {
                     ? TablerIcons.toggle_right
                     : TablerIcons.toggle_left,
                 size: 56,
-                color: Theme.of(context).cardColor.withOpacity(
-                    AppController.to.isGradientBackground.value ? 0.7 : .4),
+                color: Theme.of(context).cardColor.withValues(
+                    alpha:
+                        AppController.to.isGradientBackground.value ? 0.7 : .4),
               )),
           onTap: () {
-            AppController.to.isGradientBackground.value =
-                !AppController.to.isGradientBackground.value;
-            AppController.to.box.put(gradientBackgroundSp,
-                AppController.to.isGradientBackground.value);
+            AppController.to.settingsController.toggleGradientBackground();
           },
         ),
         ListTile(
@@ -90,14 +85,11 @@ class _SettingPageViewState extends State<SettingPageView> {
                     ? TablerIcons.toggle_right
                     : TablerIcons.toggle_left,
                 size: 56,
-                color: Theme.of(context).cardColor.withOpacity(
-                    AppController.to.isRoundAlbumOpen.value ? 0.7 : .4),
+                color: Theme.of(context).cardColor.withValues(
+                    alpha: AppController.to.isRoundAlbumOpen.value ? 0.7 : .4),
               )),
           onTap: () {
-            AppController.to.isRoundAlbumOpen.value =
-                !AppController.to.isRoundAlbumOpen.value;
-            AppController.to.box
-                .put(roundAlbumSp, AppController.to.isRoundAlbumOpen.value);
+            AppController.to.settingsController.toggleRoundAlbumOpen();
           },
         ),
       ],
@@ -119,14 +111,13 @@ class _SettingPageViewState extends State<SettingPageView> {
                     ? TablerIcons.toggle_right
                     : TablerIcons.toggle_left,
                 size: 56,
-                color: Theme.of(context).cardColor.withOpacity(
-                    AppController.to.isHighSoundQualityOpen.value ? 0.7 : .4),
+                color: Theme.of(context).cardColor.withValues(
+                    alpha: AppController.to.isHighSoundQualityOpen.value
+                        ? 0.7
+                        : .4),
               )),
           onTap: () {
-            AppController.to.isHighSoundQualityOpen.value =
-                !AppController.to.isHighSoundQualityOpen.value;
-            AppController.to.box
-                .put(highSong, AppController.to.isHighSoundQualityOpen.value);
+            AppController.to.settingsController.toggleHighSoundQualityOpen();
           },
         ),
         ListTile(
@@ -140,15 +131,11 @@ class _SettingPageViewState extends State<SettingPageView> {
                     ? TablerIcons.toggle_right
                     : TablerIcons.toggle_left,
                 size: 56,
-                color: Theme.of(context)
-                    .cardColor
-                    .withOpacity(AppController.to.isCacheOpen.value ? 0.7 : .4),
+                color: Theme.of(context).cardColor.withValues(
+                    alpha: AppController.to.isCacheOpen.value ? 0.7 : .4),
               )),
           onTap: () {
-            AppController.to.isCacheOpen.value =
-                !AppController.to.isCacheOpen.value;
-            AppController.to.box
-                .put(cacheSp, AppController.to.isCacheOpen.value);
+            AppController.to.settingsController.toggleCacheOpen();
           },
         ),
         // ListTile(

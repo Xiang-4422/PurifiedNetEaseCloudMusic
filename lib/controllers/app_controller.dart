@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -30,10 +29,6 @@ class AppController extends SuperController
   late final SettingsController settingsController;
   late final UserController userController;
   late final PlayerController playerController;
-
-  Box get box => settingsController.box;
-
-  clearUser() => userController.clearUser();
 
   RxBool get isGradientBackground => settingsController.isGradientBackground;
   RxBool get isRoundAlbumOpen => settingsController.isRoundAlbumOpen;

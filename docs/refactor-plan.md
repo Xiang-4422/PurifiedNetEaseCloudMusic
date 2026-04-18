@@ -49,6 +49,7 @@
 - 已清理 `AppController` 中无引用的歌单操作与歌词计时辅助方法，持续收缩总控表面积
 - 搜索面板歌曲结果已直接使用统一 `MediaItemMapper`，`AppController` 不再保留歌曲模型转换代理
 - 已删除 `PlayerController` 中无引用的歌曲映射辅助，统一以共享 mapper 为准
+- 用户资料页已直接调用 `UserController` 注销登录，`AppController` 继续移除单点代理方法
 
 ### 进行中
 

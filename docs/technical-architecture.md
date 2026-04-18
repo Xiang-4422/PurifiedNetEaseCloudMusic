@@ -216,6 +216,7 @@
 
 - 允许先通过 `LibraryRepository` 收口统一实体读取入口
 - 允许通过 `MusicSourceRegistry` 统一管理多源分发，避免 repository 再次直接耦合单一平台实现
+- `LibraryRepository` 默认按“先本地、后远程、再回写”组织读取路径，避免未来接入本地库时再整体改业务调用链
 
 #### Sync / Download 抽象
 

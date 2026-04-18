@@ -50,7 +50,7 @@ class TodayPageView extends GetView<AppController> {
                 left: AppDimensions.paddingMedium,
                 right: AppDimensions.paddingMedium),
             title: BlurryContainer(
-              padding: EdgeInsetsGeometry.zero,
+              padding: EdgeInsets.zero,
               borderRadius: BorderRadius.circular(9999),
               color: Colors.white.withOpacity(0.5),
               child: Row(
@@ -83,7 +83,7 @@ class TodayPageView extends GetView<AppController> {
                     ),
                   ),
                   BlurryContainer(
-                    padding: EdgeInsetsGeometry.zero,
+                    padding: EdgeInsets.zero,
                     borderRadius: BorderRadius.circular(9999),
                     color: Colors.red,
                     child: IconButton(

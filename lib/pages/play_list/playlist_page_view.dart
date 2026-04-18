@@ -124,7 +124,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                           Flexible(
                               child: BlurryContainer(
                             borderRadius: BorderRadius.circular(60),
-                            padding: EdgeInsetsGeometry.zero,
+                            padding: EdgeInsets.zero,
                             color: widgetColor.withValues(alpha: 0.05),
                             child: IconButton(
                               onPressed: () async {
@@ -163,11 +163,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                             offstage: isMyPlayList,
                             child: BlurryContainer(
                               borderRadius: BorderRadius.circular(60),
-                              padding: EdgeInsetsGeometry.zero,
+                              padding: EdgeInsets.zero,
                               color: widgetColor.withOpacity(0.05),
                               child: IconButton(
                                   color: Colors.red,
-                                  padding: EdgeInsetsGeometry.zero,
+                                  padding: EdgeInsets.zero,
                                   onPressed: () => _subscribePlayList(),
                                   icon: Icon(
                                     isSubscribed
@@ -182,7 +182,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                           Flexible(
                               child: BlurryContainer(
                             borderRadius: BorderRadius.circular(60),
-                            padding: EdgeInsetsGeometry.zero,
+                            padding: EdgeInsets.zero,
                             color: widgetColor.withOpacity(0.05),
                             child: IconButton(
                               onPressed: () async {

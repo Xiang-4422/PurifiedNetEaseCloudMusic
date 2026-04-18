@@ -277,7 +277,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
               child: BlurryContainer(
                 borderRadius: BorderRadius.circular(9999),
                 color: Colors.white70,
-                padding: EdgeInsetsGeometry.zero,
+                padding: EdgeInsets.zero,
                 child: Header(controller.curTopPlayListName.value)
                     .marginOnly(left: AppDimensions.paddingSmall),
               ),

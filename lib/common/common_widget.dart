@@ -162,7 +162,7 @@ class _LongPressOverlayTransitionState extends State<LongPressOverlayTransition>
               child: GestureDetector(
                 onTap: _hideOverlay,
                 child: BlurryContainer(
-                  padding: EdgeInsetsGeometry.zero,
+                  padding: EdgeInsets.zero,
                   color: Colors.white60,
                   child: Container(),
                 ),
@@ -425,7 +425,7 @@ class PlayListWidget extends GetView<AppController> {
                     (snappAllAlbum ? albumCountInWidget.floor() : 1)),
             slivers: [
               SliverPadding(
-                padding: EdgeInsetsGeometry.only(left: albumMargin),
+                padding: EdgeInsets.only(left: albumMargin),
                 sliver: SliverList.builder(
                   addAutomaticKeepAlives: true,
                   itemCount: playLists.length,

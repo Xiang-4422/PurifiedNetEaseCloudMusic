@@ -87,7 +87,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                 left: AppDimensions.paddingMedium,
                 right: AppDimensions.paddingMedium),
             title: BlurryContainer(
-              padding: EdgeInsetsGeometry.zero,
+              padding: EdgeInsets.zero,
               borderRadius: BorderRadius.circular(9999),
               color: Colors.white.withOpacity(0.5),
               child: Row(
@@ -120,7 +120,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                     ),
                   ),
                   BlurryContainer(
-                    padding: EdgeInsetsGeometry.zero,
+                    padding: EdgeInsets.zero,
                     borderRadius: BorderRadius.circular(9999),
                     color: Colors.red,
                     child: IconButton(

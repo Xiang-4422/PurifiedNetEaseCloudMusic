@@ -33,7 +33,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.yu4422.purrr"
-    compileSdkVersion 35
+    compileSdkVersion 36
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -55,17 +55,16 @@ android {
         // 设置最低支持的Android SDK版本为21（Android 5.0 Lollipop）
         // 注释掉的是使用Flutter默认设置的方式
 //        minSdkVersion flutter.minSdkVersion
-        minSdkVersion 21
+        minSdkVersion flutter.minSdkVersion
         // 设置目标SDK版本为33（Android 13）
-        targetSdkVersion 33
+        targetSdkVersion 36
         // 设置应用版本号和版本名称
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         // 注释掉的NDK配置，用于指定支持的CPU架构
-//        ndk {
-//            abiFilters 'armeabi-v7a', 'arm64-v8a'
-//            // 还可以添加 'x86', 'x86_64', 'mips', 'mips64'
-//        }
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
         // 启用MultiDex支持，解决方法数超过65536的限制
         multiDexEnabled true
     }

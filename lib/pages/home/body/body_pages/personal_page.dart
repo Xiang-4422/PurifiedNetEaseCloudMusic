@@ -214,9 +214,9 @@ class PersonalPageView extends GetView<AppController> {
                   duration: const Duration(milliseconds: 300),
                   color: Colors.white,
                   padding: isPinned
-                      ? EdgeInsetsGeometry.only(
+                      ? EdgeInsets.only(
                           top: context.mediaQueryPadding.top)
-                      : EdgeInsetsGeometry.zero,
+                      : EdgeInsets.zero,
                   child:
                       const Header('推荐歌单', padding: AppDimensions.paddingSmall),
                 ),

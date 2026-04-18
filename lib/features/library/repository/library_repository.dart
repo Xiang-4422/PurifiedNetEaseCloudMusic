@@ -1,4 +1,5 @@
 import 'package:bujuan/data/local/local_library_data_source.dart';
+import 'package:bujuan/data/local/in_memory_local_library_data_source.dart';
 import 'package:bujuan/data/sources/music_source_registry_impl.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
@@ -9,7 +10,8 @@ class LibraryRepository {
   LibraryRepository({
     LocalLibraryDataSource? localDataSource,
     MusicSourceRegistry? sourceRegistry,
-  })  : _localDataSource = localDataSource,
+  })  : _localDataSource =
+            localDataSource ?? InMemoryLocalLibraryDataSource.shared,
         _sourceRegistry = sourceRegistry ?? MusicSourceRegistryImpl();
 
   final LocalLibraryDataSource? _localDataSource;

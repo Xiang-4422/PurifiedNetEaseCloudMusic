@@ -60,6 +60,7 @@
 - 已新增 `MusicSourceRegistry` 与 `LibraryRepository` 骨架，开始按应用能力而非单一平台接口组织数据访问
 - 播放歌词和在线播放地址已改由 `PlaybackRepository -> LibraryRepository -> MusicSource` 获取，播放器开始脱离网易云直连
 - 已新增本地媒体库数据源协议，`LibraryRepository` 开始按“先本地、后远程、再回写”组织读取路径
+- 已新增进程内本地媒体库占位实现，先把本地优先读取语义跑通，为后续 `Isar` 平滑替换做准备
 
 ### 进行中
 
@@ -194,6 +195,7 @@
 - 已新增 `lib/data/sources/netease/netease_music_source.dart`，覆盖搜索、单曲、歌词、播放地址和歌单等基础能力
 - 已新增 source registry 与 library repository，为后续本地库接管前先收口多源路由入口
 - 已新增 `LocalLibraryDataSource` 协议，等待后续 `Isar` 落地时承接本地媒体库实现
+- 已新增 `InMemoryLocalLibraryDataSource`，作为本地数据库接入前的共享过渡实现
 
 ## 8. Phase 4: 本地优先数据层
 

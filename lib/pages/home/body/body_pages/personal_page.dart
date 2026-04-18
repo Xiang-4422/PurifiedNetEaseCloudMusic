@@ -145,7 +145,12 @@ class PersonalPageView extends GetView<AppController> {
                                       ''),
                               icon: TablerIcons.infinity,
                               title: "漫游模式",
-                              onTap: () => controller.openFmMode(),
+                              onTap: () {
+                                controller.bottomPanelPageController
+                                    .jumpToPage(1);
+                                controller.bottomPanelController.open();
+                                controller.playerController.openFmMode();
+                              },
                             ),
                             Offstage(
                                 offstage: controller.isFmMode.isFalse ||
@@ -168,8 +173,15 @@ class PersonalPageView extends GetView<AppController> {
                                   : controller.randomLikedSongAlbumUrl.value,
                               icon: TablerIcons.heartbeat,
                               title: "心动模式",
-                              onTap: () => controller.openHeartBeatMode(
-                                  controller.randomLikedSongId.value, true),
+                              onTap: () {
+                                controller.bottomPanelPageController
+                                    .jumpToPage(1);
+                                controller.bottomPanelController.open();
+                                controller.playerController.openHeartBeatMode(
+                                  controller.randomLikedSongId.value,
+                                  fromPlayAll: true,
+                                );
+                              },
                             ),
                             Offstage(
                                 offstage: controller.isHeartBeatMode.isFalse ||
@@ -214,8 +226,7 @@ class PersonalPageView extends GetView<AppController> {
                   duration: const Duration(milliseconds: 300),
                   color: Colors.white,
                   padding: isPinned
-                      ? EdgeInsets.only(
-                          top: context.mediaQueryPadding.top)
+                      ? EdgeInsets.only(top: context.mediaQueryPadding.top)
                       : EdgeInsets.zero,
                   child:
                       const Header('推荐歌单', padding: AppDimensions.paddingSmall),

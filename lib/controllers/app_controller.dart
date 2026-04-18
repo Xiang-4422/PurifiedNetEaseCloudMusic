@@ -4,13 +4,11 @@ import 'package:bujuan/controllers/player_controller.dart';
 import 'package:bujuan/controllers/settings_controller.dart';
 import 'package:bujuan/controllers/user_controller.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/features/shell/controller/home_shell_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:bujuan/common/constants/enmu.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -278,68 +276,20 @@ class AppController extends SuperController
 
   IconData getRepeatIcon() => playerController.getRepeatIcon();
 
-  openFmMode() async {
-    bottomPanelPageController.jumpToPage(1);
-    bottomPanelController.open();
-    await playerController.switchMode(PlaybackMode.roaming);
-  }
-
-  quitFmMode({bool showToast = true}) async {
-    if (showToast) WidgetUtil.showToast('已经退出漫游模式');
-    if (playerController.playbackMode.value == PlaybackMode.roaming) {
-      playerController.playbackMode.value = PlaybackMode.playlist;
-    }
-  }
-
-  openHeartBeatMode(String startSongId, bool fromPlayAll) async {
-    if (startSongId.isEmpty) {
-      return;
-    }
-    bottomPanelPageController.jumpToPage(1);
-    bottomPanelController.open();
-
-    await playerController.switchMode(PlaybackMode.heartbeat,
-        contextData: {'startSongId': startSongId, 'fromPlayAll': fromPlayAll});
-  }
-
-  quitHeartBeatMode({bool showToast = true}) async {
-    if (showToast) WidgetUtil.showToast('已经退出心动模式');
-    if (playerController.playbackMode.value == PlaybackMode.heartbeat) {
-      playerController.playbackMode.value = PlaybackMode.playlist;
-    }
-  }
-
   playOrPause() => playerController.playOrPause();
 
   playNewPlayList(List<MediaItem> playList, int index,
       {String playListName = "无名歌单", String playListNameHeader = ""}) async {
-    if (isFmMode.isTrue) quitFmMode();
-    if (isHeartBeatMode.isTrue) quitHeartBeatMode();
+    if (isFmMode.isTrue) await playerController.quitFmMode(showToast: false);
+    if (isHeartBeatMode.isTrue) {
+      await playerController.quitHeartBeatMode(showToast: false);
+    }
     await audioHandler.changePlayList(playList,
         index: index,
         playListName: playListName,
         playListNameHeader: playListNameHeader,
         changePlayerSource: true,
         playNow: true);
-  }
-
-  playUserLikedSongs() async {
-    int playIndex;
-    List<MediaItem> playList = [...likedSongs];
-    // 正在播放红心歌曲
-    if (likedSongIds.contains(int.parse(curPlayingSong.value.id))) {
-      playIndex =
-          likedSongs.indexWhere((song) => song.id == curPlayingSong.value.id);
-      // 正在播放非红心歌曲
-    } else {
-      playIndex = 0;
-      playList.insert(0, curPlayingSong.value);
-    }
-    await audioHandler.changePlayList(playList,
-        index: playIndex,
-        playListName: "喜欢的音乐",
-        changePlayerSource: false,
-        playNow: false);
   }
 
   onBottomPanelSlide(double openDegree) {

@@ -905,17 +905,19 @@ class BottomPanelView extends GetView<AppController> {
                   return;
                 } else if (controller.isHeartBeatMode.isTrue) {
                   // 心动模式：退出心动模式，并播放喜欢歌单，并切换到顺序播放
-                  controller.quitHeartBeatMode();
+                  controller.playerController.quitHeartBeatMode();
                   await controller.audioHandler.changeRepeatMode(
                       newRepeatMode: AudioServiceRepeatMode.all);
-                  controller.playUserLikedSongs();
+                  controller.playerController.playUserLikedSongs();
                   return;
                 } else if (controller.isPlayingLikedSongs.isTrue &&
                     controller.audioHandler.curRepeatMode ==
                         AudioServiceRepeatMode.none) {
                   // 正在播放喜欢歌单：随机播放模式后再切换，开启心动模式
-                  controller.openHeartBeatMode(
-                      controller.curPlayingSong.value.id, false);
+                  controller.playerController.openHeartBeatMode(
+                    controller.curPlayingSong.value.id,
+                    fromPlayAll: false,
+                  );
                 } else {
                   await controller.audioHandler.changeRepeatMode();
                 }

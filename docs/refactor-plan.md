@@ -51,6 +51,7 @@
 - 已删除 `PlayerController` 中无引用的歌曲映射辅助，统一以共享 mapper 为准
 - 用户资料页已直接调用 `UserController` 注销登录，`AppController` 继续移除单点代理方法
 - 底部播放面板已直接调用 `UserController` 处理喜欢状态，`AppController` 继续削减纯转发方法
+- 漫游/心动模式与喜欢歌单播放逻辑已下沉到 `PlayerController`，`AppController` 仅保留面板开合与通用播放协调
 
 ### 进行中
 

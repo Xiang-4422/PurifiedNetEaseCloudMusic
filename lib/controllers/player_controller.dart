@@ -292,6 +292,58 @@ class PlayerController extends GetxController {
     isPlaying.value ? await audioHandler.pause() : await audioHandler.play();
   }
 
+  Future<void> openFmMode() async {
+    await switchMode(PlaybackMode.roaming);
+  }
+
+  Future<void> quitFmMode({bool showToast = true}) async {
+    if (showToast) WidgetUtil.showToast('已经退出漫游模式');
+    if (playbackMode.value == PlaybackMode.roaming) {
+      playbackMode.value = PlaybackMode.playlist;
+    }
+  }
+
+  Future<void> openHeartBeatMode(
+    String startSongId, {
+    required bool fromPlayAll,
+  }) async {
+    if (startSongId.isEmpty) return;
+    await switchMode(
+      PlaybackMode.heartbeat,
+      contextData: {
+        'startSongId': startSongId,
+        'fromPlayAll': fromPlayAll,
+      },
+    );
+  }
+
+  Future<void> quitHeartBeatMode({bool showToast = true}) async {
+    if (showToast) WidgetUtil.showToast('已经退出心动模式');
+    if (playbackMode.value == PlaybackMode.heartbeat) {
+      playbackMode.value = PlaybackMode.playlist;
+    }
+  }
+
+  Future<void> playUserLikedSongs() async {
+    int playIndex;
+    final playList = [...UserController.to.likedSongs];
+    if (UserController.to.likedSongIds
+        .contains(int.parse(curPlayingSong.value.id))) {
+      playIndex = UserController.to.likedSongs
+          .indexWhere((song) => song.id == curPlayingSong.value.id);
+    } else {
+      playIndex = 0;
+      playList.insert(0, curPlayingSong.value);
+    }
+    await audioHandler.changePlayList(
+      playList,
+      index: playIndex,
+      playListName: '喜欢的音乐',
+      changePlayerSource: false,
+      playNow: false,
+    );
+  }
+
   Future<void> switchMode(PlaybackMode newMode, {dynamic contextData}) async {
     if (playbackMode.value == newMode && newMode != PlaybackMode.playlist) {
       if (isPlaying.isFalse) await playOrPause();
@@ -328,8 +380,8 @@ class PlayerController extends GetxController {
     if (fmSongs.isNotEmpty) {
       await audioHandler.changePlayList(fmSongs,
           index: 0,
-          playListName: "漫游模式",
-          playListNameHeader: "漫游",
+          playListName: '漫游模式',
+          playListNameHeader: '漫游',
           changePlayerSource: true,
           playNow: true,
           needStore: false);
@@ -351,8 +403,8 @@ class PlayerController extends GetxController {
     if (songs.isNotEmpty) {
       await audioHandler.changePlayList(songs,
           index: 0,
-          playListName: "心动模式",
-          playListNameHeader: "心动",
+          playListName: '心动模式',
+          playListNameHeader: '心动',
           changePlayerSource: true,
           playNow: true,
           needStore: false);
@@ -442,5 +494,4 @@ class PlayerController extends GetxController {
       }
     }
   }
-
 }

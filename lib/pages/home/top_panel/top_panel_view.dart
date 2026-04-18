@@ -1,8 +1,9 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/features/search/repository/search_repository.dart';
-import 'package:bujuan/shared/mappers/media_item_mapper.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
+import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:flutter/material.dart';
 
@@ -55,26 +56,8 @@ class TopPanelView extends GetView<AppController> {
                             children: [
                               _buildTopPanelCard(
                                 context,
-                                RequestLoadMoreWidget<SearchSongWrapX, Song2>(
-                                  dioMetaData: _repository.buildSearchRequest(
-                                      controller.searchContent.value, 1),
-                                  childBuilder: (List<Song2> songs) {
-                                    final list = MediaItemMapper.fromSong2List(
-                                      songs,
-                                      likedSongIds:
-                                          controller.likedSongIds.toList(),
-                                    );
-                                    return ListView.builder(
-                                      itemBuilder: (context, index) => SongItem(
-                                        index: index,
-                                        playlist: list,
-                                        playListName:
-                                            "搜索结果：${controller.searchContent.value}",
-                                      ),
-                                      itemCount: list.length,
-                                    );
-                                  },
-                                  listKey: const ['result', 'songs'],
+                                _buildSongSearchResult(
+                                  controller.searchContent.value,
                                 ),
                               ),
                               _buildTopPanelCard(
@@ -305,6 +288,35 @@ class TopPanelView extends GetView<AppController> {
       padding:
           const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
       child: child,
+    );
+  }
+
+  Widget _buildSongSearchResult(String keyword) {
+    return FutureBuilder<List<MediaItem>>(
+      future: _repository.searchTrackMediaItems(
+        keyword,
+        likedSongIds: controller.likedSongIds.toList(),
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const LoadingView();
+        }
+        if (snapshot.hasError) {
+          return const ErrorView();
+        }
+        final list = snapshot.data ?? const <MediaItem>[];
+        if (list.isEmpty) {
+          return const EmptyView();
+        }
+        return ListView.builder(
+          itemBuilder: (context, index) => SongItem(
+            index: index,
+            playlist: list,
+            playListName: "搜索结果：$keyword",
+          ),
+          itemCount: list.length,
+        );
+      },
     );
   }
 }

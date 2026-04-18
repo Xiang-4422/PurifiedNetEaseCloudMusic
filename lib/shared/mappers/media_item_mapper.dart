@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
+import 'package:bujuan/domain/entities/track.dart';
 
 class MediaItemMapper {
   const MediaItemMapper._();
@@ -63,6 +64,29 @@ class MediaItemMapper {
               artist: (song.simpleSong.ar ?? [])
                   .map((artist) => artist.name)
                   .join(' / '),
+            ))
+        .toList();
+  }
+
+  static List<MediaItem> fromTrackList(
+    List<Track> tracks, {
+    required List<int> likedSongIds,
+  }) {
+    return tracks
+        .where((track) => track.id.isNotEmpty)
+        .map((track) => MediaItem(
+              id: track.id,
+              duration: Duration(milliseconds: track.durationMs ?? 0),
+              artUri: Uri.tryParse('${track.artworkUrl ?? ''}?param=200y200'),
+              extras: {
+                'type': MediaType.playlist.name,
+                'image': track.artworkUrl ?? '',
+                'liked': likedSongIds.contains(int.tryParse(track.sourceId)),
+                'artist': track.artistNames.join(' / '),
+              },
+              title: track.title,
+              album: track.albumTitle,
+              artist: track.artistNames.join(' / '),
             ))
         .toList();
   }

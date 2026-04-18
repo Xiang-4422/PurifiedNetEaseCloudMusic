@@ -93,11 +93,13 @@ class Track {
       sourceId: sourceId ?? this.sourceId,
       title: title ?? this.title,
       artistNames: artistNames ?? this.artistNames,
-      albumTitle:
-          identical(albumTitle, _unset) ? this.albumTitle : albumTitle as String?,
+      albumTitle: identical(albumTitle, _unset)
+          ? this.albumTitle
+          : albumTitle as String?,
       durationMs: durationMs ?? this.durationMs,
-      artworkUrl:
-          identical(artworkUrl, _unset) ? this.artworkUrl : artworkUrl as String?,
+      artworkUrl: identical(artworkUrl, _unset)
+          ? this.artworkUrl
+          : artworkUrl as String?,
       remoteUrl:
           identical(remoteUrl, _unset) ? this.remoteUrl : remoteUrl as String?,
       localPath:

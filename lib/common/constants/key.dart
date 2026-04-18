@@ -25,3 +25,4 @@ String likedSongIdsSp = 'LIKED_SONG_IDS';
 String todayRecommendSongsSp = 'TODAY_RECO_SONGS';
 String randomLikedSongAlbumUrlSp = 'RANDOM_LIKED_ALBUM_URL';
 String userLikedSongPlayListSp = 'USER_LIKED_SONG_PL';
+String downloadTasksSp = 'DOWNLOAD_TASKS';

@@ -187,6 +187,7 @@
 - `Track -> MediaItem` 已开始优先透传本地封面路径和本地歌词路径，播放器可直接优先使用本地歌词文件
 - 本地封面路径和本地歌词路径已从临时 metadata 收口为 `Track` 正式字段，下载和展示链路开始共享同一套资源字段
 - 下载进度、失败原因和资源来源已开始从临时 metadata 收口为 `Track` 正式字段，下载链路和本地导入链路开始共享同一套状态模型
+- 已新增 `DownloadTask` 与 `DownloadTaskStore` 过渡骨架，下载过程态开始从 `Track` 最终状态中拆开存放
 
 ### 进行中
 
@@ -507,3 +508,11 @@
 - 完成内容：继续将资源状态从临时 metadata 收口为 `Track` 正式字段，新增 `resourceOrigin`、`downloadProgress`、`downloadFailureReason`，并将 `DownloadRepository`、`LocalMediaRepository`、`LibraryRepository`、`MediaItem` 映射和本地媒体库存储统一切到正式字段
 - 风险或阻塞：资源状态虽然开始稳定化，但独立下载任务模型和资源索引模型仍未建立
 - 下一步：继续收口下载与离线资源状态，减少对自由 metadata 的依赖，并为统一资源索引做准备
+
+#### 2026-04-19
+
+- 阶段：`Phase 3`
+- 状态：`In Progress`
+- 完成内容：新增 `DownloadTask` 与 `DownloadTaskStore` 过渡骨架，开始把下载排队、下载中、下载完成、下载失败等过程态独立持久化；`DownloadRepository` 现在会同时写入下载任务记录和 `Track` 最终资源状态，为后续接真实下载器和任务列表打基础
+- 风险或阻塞：当前下载任务仍是过渡存储实现，调度器、并发控制和任务恢复逻辑还未建立
+- 下一步：继续补齐下载任务查询入口和资源索引落点，为后续下载列表与断点恢复做准备

@@ -16,13 +16,11 @@ class LibraryRepository {
     LocalLibraryDataSource? localDataSource,
     MusicSourceRegistry? sourceRegistry,
     LibraryPreferenceStore? preferenceStore,
-  })  : _localDataSource =
-            localDataSource ??
+  })  : _localDataSource = localDataSource ??
             (GetIt.instance.isRegistered<LocalLibraryDataSource>()
                 ? GetIt.instance<LocalLibraryDataSource>()
                 : InMemoryLocalLibraryDataSource.shared),
-        _sourceRegistry =
-            sourceRegistry ??
+        _sourceRegistry = sourceRegistry ??
             (GetIt.instance.isRegistered<MusicSourceRegistry>()
                 ? GetIt.instance<MusicSourceRegistry>()
                 : MusicSourceRegistryImpl()),

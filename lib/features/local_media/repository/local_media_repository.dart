@@ -5,8 +5,7 @@ import 'package:get_it/get_it.dart';
 
 class LocalMediaRepository {
   LocalMediaRepository({LibraryRepository? libraryRepository})
-      : _libraryRepository =
-            libraryRepository ??
+      : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository());

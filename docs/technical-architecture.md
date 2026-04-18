@@ -302,6 +302,7 @@
 - `Track.resourceOrigin` 表示本地资源来自本地导入还是受管下载
 - `Track.remoteUrl` 仅作为远程兜底播放地址
 - `Track.downloadProgress` 和 `Track.downloadFailureReason` 记录下载链路的稳定状态
+- `DownloadTask` 负责记录下载过程态，`Track` 只承载最终资源状态
 - 播放优先级固定为：`localPath > 离线缓存文件 > 远程播放地址`
 - 下载系统需要把音频文件路径和下载状态写回 `Track`
 

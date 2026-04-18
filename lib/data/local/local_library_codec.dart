@@ -53,12 +53,9 @@ class LocalLibraryCodec {
       localArtworkPath: map['localArtworkPath'] as String?,
       localLyricsPath: map['localLyricsPath'] as String?,
       lyricKey: map['lyricKey'] as String?,
-      availability:
-          _availabilityFromName(map['availability'] as String?),
-      downloadState:
-          _downloadStateFromName(map['downloadState'] as String?),
-      resourceOrigin:
-          _resourceOriginFromName(map['resourceOrigin'] as String?),
+      availability: _availabilityFromName(map['availability'] as String?),
+      downloadState: _downloadStateFromName(map['downloadState'] as String?),
+      resourceOrigin: _resourceOriginFromName(map['resourceOrigin'] as String?),
       downloadProgress: (map['downloadProgress'] as num?)?.toDouble(),
       downloadFailureReason: map['downloadFailureReason'] as String?,
       metadata: _asObjectMap(map['metadata']),

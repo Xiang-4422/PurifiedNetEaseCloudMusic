@@ -212,6 +212,11 @@
 - UI、播放控制器、搜索优先从本地媒体库读取
 - 同步器和下载器通过媒体库接口写入数据
 
+在本地数据库正式接管前：
+
+- 允许先通过 `LibraryRepository` 收口统一实体读取入口
+- 允许通过 `MusicSourceRegistry` 统一管理多源分发，避免 repository 再次直接耦合单一平台实现
+
 #### Sync / Download 抽象
 
 后续新增并强制落地：

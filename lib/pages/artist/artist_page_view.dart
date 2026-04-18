@@ -7,6 +7,7 @@ import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
 import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/features/artist/repository/artist_repository.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
 //
@@ -15,10 +16,8 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 
 import 'package:get/get.dart';
-//
 
 import '../../common/constants/other.dart';
-import '../../common/netease_api/src/netease_api.dart';
 import '../../widget/keep_alive_wrapper.dart';
 import '../../widget/simple_extended_image.dart';
 import '../home/body/body_pages/personal_page.dart';
@@ -31,6 +30,7 @@ class ArtistPageView extends StatefulWidget {
 }
 
 class _ArtistPageViewState extends State<ArtistPageView> {
+  final ArtistRepository _repository = ArtistRepository();
   late String artistId;
   late Artist artist;
 
@@ -47,22 +47,18 @@ class _ArtistPageViewState extends State<ArtistPageView> {
 
     artistId = context.routeData.queryParams.get("artistId");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      ArtistDetailWrap artistDetailWrap =
-          await NeteaseMusicApi().artistDetail(artistId);
-      artist = artistDetailWrap.data!.artist!;
+      final artistDetail = await _repository.fetchArtistDetail(
+        artistId: artistId,
+        likedSongIds: AppController.to.likedSongIds.toList(),
+      );
+      artist = artistDetail.artist;
 
       albumColor =
           await OtherUtils.getImageColor(artist.cover ?? artist.picUrl);
       onAlbumColor = albumColor.invertedColor;
 
-      ArtistSongListWrap artistSongListWrap =
-          await NeteaseMusicApi().artistTopSongList(artistId);
-      topSongs.addAll(
-          AppController.to.song2ToMedia(artistSongListWrap.songs ?? []));
-
-      ArtistAlbumListWrap artistAlbumListWrap =
-          await NeteaseMusicApi().artistAlbumList(artistId);
-      hotAlbums.addAll(artistAlbumListWrap.hotAlbums ?? []);
+      topSongs.addAll(artistDetail.topSongs);
+      hotAlbums.addAll(artistDetail.hotAlbums);
 
       setState(() {
         loading = false;
@@ -109,7 +105,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
               title: BlurryContainer(
                 padding: EdgeInsets.zero,
                 borderRadius: BorderRadius.circular(9999),
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 child: Row(
                   children: [
                     Expanded(
@@ -208,8 +204,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                                   AppDimensions.paddingMedium),
                               '${hotAlbums[index].picUrl}?param=200y200'),
                           Expanded(
-                              child: Container(
-                            child: Column(
+                              child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -229,8 +224,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                                   ),
                                 ),
                               ],
-                            ),
-                          ))
+                            ))
                         ],
                       ),
                     ),

@@ -3,16 +3,14 @@ import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:bujuan/common/bujuan_audio_handler.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/playback/repository/playback_repository.dart';
+import 'package:bujuan/features/playback/repository/playback_state_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:bujuan/common/constants/other.dart';
 import 'settings_controller.dart';
@@ -23,8 +21,8 @@ import 'user_controller.dart';
 class PlayerController extends GetxController {
   static PlayerController get to => Get.find();
 
-  Box box = GetIt.instance<Box>();
   final PlaybackRepository _repository = PlaybackRepository();
+  final PlaybackStateStore _stateStore = const PlaybackStateStore();
   late final AudioServiceHandler audioHandler;
 
   /// 播放状态
@@ -117,7 +115,7 @@ class PlayerController extends GetxController {
       if (mediaItem == null) return;
       curPlayingSong.value = mediaItem;
       // 本地保存当前播放状态
-      box.put(curPlaySongId, mediaItem.id);
+      _stateStore.saveCurrentSongId(mediaItem.id);
       await _updateCurPlayIndex();
 
       // 播放模式自动拉取逻辑
@@ -255,16 +253,19 @@ class PlayerController extends GetxController {
     hasTransLyrics.value = false;
 
     String songId = curPlayingSong.value.id;
-    String lyric = box.get('lyric_$songId') ?? '';
-    String lyricTran = box.get('lyricTran_$songId') ?? '';
+    String lyric = _stateStore.getLyric(songId) ?? '';
+    String lyricTran = _stateStore.getTranslatedLyric(songId) ?? '';
     if (lyric.isEmpty) {
       final lyrics =
           await _repository.fetchSongLyrics(curPlayingSong.value.id) ??
               const TrackLyrics();
       lyric = lyrics.main;
       lyricTran = lyrics.translated;
-      box.put('lyric_$songId', lyric);
-      box.put('lyricTran_$songId', lyricTran);
+      await _stateStore.saveLyrics(
+        songId: songId,
+        lyric: lyric,
+        translatedLyric: lyricTran,
+      );
     }
     if (lyric.isNotEmpty) {
       var mainLyricsLineModels = ParserLrc(lyric).parseLines();

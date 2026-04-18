@@ -6,23 +6,20 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/controllers/player_controller.dart';
 import 'package:bujuan/features/playback/repository/playback_repository.dart';
+import 'package:bujuan/features/playback/repository/playback_state_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:bujuan/controllers/settings_controller.dart';
 import 'package:bujuan/controllers/user_controller.dart';
-import 'package:get_it/get_it.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:just_audio/just_audio.dart';
 
 import 'package:bujuan/common/constants/other.dart';
-import 'constants/key.dart';
-import 'constants/key.dart' as key;
 
 class AudioServiceHandler extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   late final AudioPlayer _player;
-  Box box = GetIt.instance<Box>();
   final PlaybackRepository _playbackRepository = PlaybackRepository();
+  final PlaybackStateStore _stateStore = const PlaybackStateStore();
 
   /// 当前原始播放列表（用于随机和顺序播放模式切换用）
   final List<MediaItem> _originalSongs = <MediaItem>[];
@@ -66,8 +63,8 @@ class AudioServiceHandler extends BaseAudioHandler
   restoreLastPlayState() async {
     // 恢复漫游模式状态
     // 恢复漫游模式状态
-    bool isFm = box.get(fmSp, defaultValue: false);
-    bool isHeart = box.get(heartBeatSp, defaultValue: false);
+    bool isFm = _stateStore.isFmModeEnabled;
+    bool isHeart = _stateStore.isHeartBeatModeEnabled;
     if (isFm) {
       PlayerController.to.playbackMode.value = PlaybackMode.roaming;
     } else if (isHeart) {
@@ -76,22 +73,22 @@ class AudioServiceHandler extends BaseAudioHandler
       PlayerController.to.playbackMode.value = PlaybackMode.playlist;
     }
     // 恢复播放模式
-    String repeatMode = box.get(repeatModeSp, defaultValue: 'all');
+    String repeatMode = _stateStore.repeatModeName;
     changeRepeatMode(
         newRepeatMode: AudioServiceRepeatMode.values
                 .firstWhereOrNull((element) => element.name == repeatMode) ??
             AudioServiceRepeatMode.all);
     // 恢复播放列表
-    List<String> stringPlayList = box.get(playQueue, defaultValue: <String>[]);
-    String curSongId = box.get(curPlaySongId, defaultValue: '');
+    List<String> stringPlayList = _stateStore.storedQueue;
+    String curSongId = _stateStore.currentSongId;
     if (stringPlayList.isNotEmpty) {
       List<MediaItem> playlist =
           await compute(stringToPlayList, stringPlayList);
       int index = playlist.indexWhere((element) => element.id == curSongId);
       await changePlayList(playlist,
           index: index,
-          playListName: box.get(playListName, defaultValue: ''),
-          playListNameHeader: box.get(playListNameHeader, defaultValue: ''),
+          playListName: _stateStore.storedPlaylistName,
+          playListNameHeader: _stateStore.storedPlaylistHeader,
           changePlayerSource: true,
           playNow: false,
           needStore: false);
@@ -121,7 +118,7 @@ class AudioServiceHandler extends BaseAudioHandler
     }
     curRepeatMode = newRepeatMode;
 
-    box.put(repeatModeSp, newRepeatMode.name);
+    await _stateStore.saveRepeatMode(newRepeatMode);
     PlayerController.to.curRepeatMode.value = newRepeatMode;
     _updateMediaControls();
   }
@@ -162,8 +159,10 @@ class AudioServiceHandler extends BaseAudioHandler
     PlayerController.to.curPlayListName.value = playListName;
     PlayerController.to.curPlayListNameHeader.value = playListNameHeader;
     PlayerController.to.isPlayingLikedSongs.value = playListName == "喜欢的音乐";
-    box.put(key.playListName, playListName);
-    box.put(key.playListNameHeader, playListNameHeader);
+    await _stateStore.savePlaylistMeta(
+      playlistName: playListName,
+      playlistHeader: playListNameHeader,
+    );
 
     // 是否更改当前播放源
     if (changePlayerSource) {
@@ -174,7 +173,9 @@ class AudioServiceHandler extends BaseAudioHandler
     }
     // 保存原始播放列表
     if (needStore) {
-      box.put(playQueue, await compute(playListToString, _originalSongs));
+      await _stateStore.saveQueue(
+        await compute(playListToString, _originalSongs),
+      );
     }
   }
 

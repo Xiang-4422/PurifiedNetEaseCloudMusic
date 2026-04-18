@@ -1,0 +1,353 @@
+# 技术架构设计
+
+## 1. 文档目标
+
+本文档用于固定本项目后续的技术架构、工程目录架构、边界规则与演进方向。
+
+后续所有重构工作都必须满足两个原则：
+
+- 基于当前仓库真实结构渐进演进
+- 优先修复职责边界，不以更换框架为首要目标
+
+## 2. 当前仓库现状
+
+当前项目已经具备较完整的功能骨架，但职责分布存在明显交叉：
+
+- [`lib/controllers/app_controller.dart`](../lib/controllers/app_controller.dart) 同时承担应用壳层 UI 状态、播放入口、歌单加载入口和一部分业务编排
+- [`lib/controllers/player_controller.dart`](../lib/controllers/player_controller.dart) 与 [`lib/common/bujuan_audio_handler.dart`](../lib/common/bujuan_audio_handler.dart) 已形成播放链路，但仍直接依赖缓存、API 和其他 Controller
+- [`lib/controllers/user_controller.dart`](../lib/controllers/user_controller.dart) 同时承担用户状态、推荐内容、喜欢歌曲、FM、心动模式数据拉取
+- 多个页面包含用例逻辑和数据访问逻辑，例如：
+  - [`lib/pages/login/login_page_view.dart`](../lib/pages/login/login_page_view.dart)
+  - [`lib/pages/play_list/playlist_page_view.dart`](../lib/pages/play_list/playlist_page_view.dart)
+  - [`lib/pages/cloud/cloud_drive_view.dart`](../lib/pages/cloud/cloud_drive_view.dart)
+  - [`lib/pages/home/top_panel/top_panel_view.dart`](../lib/pages/home/top_panel/top_panel_view.dart)
+- 请求组件不仅负责展示，还承担接口请求、分页与解析逻辑：
+  - [`lib/widget/request_widget/request_view.dart`](../lib/widget/request_widget/request_view.dart)
+  - [`lib/widget/request_widget/request_loadmore_view.dart`](../lib/widget/request_widget/request_loadmore_view.dart)
+
+结论：
+
+- 当前问题的核心不是基础设施选型错误
+- 当前问题的核心是业务职责落点不清晰
+
+## 3. 架构决策
+
+## 3.1 总体架构风格
+
+本项目后续采用：
+
+`Feature-Oriented + Layered + Gradual Refactor`
+
+即：
+
+- 以功能模块划分工程结构
+- 在模块内保持展示层、状态层、数据访问层的清晰边界
+- 在保留现有运行能力的前提下渐进重构
+
+## 3.2 技术架构定案
+
+### 保留并继续使用
+
+#### Flutter
+
+- 继续作为唯一 UI 框架
+
+#### GetX
+
+- 现阶段保留，继续服务已有存量模块
+- 不再扩张“大型总控 Controller”写法
+- 不作为未来无限扩展的架构核心
+
+说明：
+
+- 当前仓库大量逻辑依赖 `GetX`
+- 立即迁移状态管理框架收益低、风险高
+- 当前首要问题是职责边界，而不是框架替换
+
+#### GetIt
+
+- 仅保留为基础设施单例容器
+- 允许用于底层服务和存储实例
+- 不再扩张到页面和业务层的任意依赖获取
+
+#### auto_route
+
+- 继续作为路由方案
+- 不进行替换
+
+#### Dio
+
+- 继续作为网络层基础客户端
+
+#### Hive
+
+- 继续作为轻量本地存储
+- 主要用于设置、登录态、播放恢复、本地缓存
+
+#### just_audio + audio_service
+
+- 继续作为音频播放底层方案
+- 后续重点是梳理播放业务层，而不是替换底层播放器
+
+### 明确新增的架构层
+
+#### Repository 层
+
+新增并强制落地：
+
+- 页面与大部分 Controller 不再直接访问 `NeteaseMusicApi`
+- 数据访问逻辑统一经由 `Repository`
+- `Repository` 负责组合远程数据、本地缓存和领域转换
+
+#### Mapper 层
+
+新增并强制落地：
+
+- 所有 `Song2`、`CloudSongItem`、歌单详情等到 `MediaItem` 的转换，统一收口
+- 禁止在页面里重复拼装 `MediaItem`
+
+#### Shell 协调层
+
+新增并强制落地：
+
+- 将首页壳层 UI 状态与业务入口分离
+- `AppController` 的长期目标是拆薄，壳层状态独立
+
+## 3.3 当前阶段不做的事
+
+- 不立即迁移到 `Riverpod`
+- 不替换 `auto_route`
+- 不替换 `Dio`
+- 不替换 `Hive`
+- 不进行一次性目录大搬迁
+
+这些事项后续只有在现有边界已经稳定后才允许重新评估。
+
+## 4. 边界规则
+
+以下规则从本文档落地起生效。
+
+### 4.1 页面层规则
+
+页面层只负责：
+
+- 布局展示
+- 用户交互
+- 订阅状态
+- 路由触发
+
+页面层禁止直接承担：
+
+- 接口编排
+- 登录轮询
+- 本地缓存读写策略
+- `MediaItem` 拼装
+- 分页参数管理
+- 业务流程协调
+
+### 4.2 Controller 规则
+
+Controller 负责：
+
+- 页面状态
+- 视图所需的可观察数据
+- 调用业务入口
+
+Controller 禁止继续膨胀为：
+
+- API 封装层
+- 缓存实现层
+- 多模块总控层
+
+### 4.3 Repository 规则
+
+Repository 负责：
+
+- 调用远程接口
+- 访问本地缓存
+- 合并远程和本地数据
+- 输出面向业务的结果
+
+### 4.4 Mapper 规则
+
+统一提供模型映射能力，例如：
+
+- `Song2 -> MediaItem`
+- `CloudSongItem -> MediaItem`
+- API Bean -> 页面可消费对象
+
+禁止在页面和零散组件中重复定义映射逻辑。
+
+### 4.5 基础设施规则
+
+`NeteaseMusicApi`、`Hive Box`、播放器底层实例属于基础设施。
+
+基础设施对象：
+
+- 不允许在页面中直接随意获取
+- 不允许成为每个 Controller 的默认直连依赖
+
+## 5. 目标工程文件架构
+
+当前仓库不做一次性大迁移，但目标目录结构固定如下：
+
+```text
+lib/
+  app/
+    bootstrap/
+    di/
+    routing/
+    theme/
+  core/
+    network/
+    storage/
+    playback/
+    utils/
+  features/
+    shell/
+      presentation/
+      controller/
+    auth/
+      presentation/
+      controller/
+      repository/
+    user/
+      presentation/
+      controller/
+      repository/
+    playlist/
+      presentation/
+      controller/
+      repository/
+    explore/
+      presentation/
+      controller/
+      repository/
+    cloud/
+      presentation/
+      controller/
+      repository/
+    playback/
+      presentation/
+      controller/
+      service/
+      repository/
+  shared/
+    widgets/
+    mappers/
+    models/
+```
+
+## 6. 当前目录到目标目录的映射
+
+### 现有目录
+
+- `lib/common`
+- `lib/controllers`
+- `lib/pages`
+- `lib/routes`
+- `lib/widget`
+
+### 目标映射原则
+
+#### `lib/common`
+
+逐步拆分到：
+
+- `lib/core`
+- `lib/shared`
+- `lib/features/*/repository`
+
+#### `lib/controllers`
+
+逐步拆分到：
+
+- `lib/features/*/controller`
+- `lib/features/playback/service`
+- `lib/features/shell/controller`
+
+#### `lib/pages`
+
+逐步拆分到：
+
+- `lib/features/*/presentation`
+
+#### `lib/routes`
+
+逐步并入：
+
+- `lib/app/routing`
+
+#### `lib/widget`
+
+逐步拆分到：
+
+- `lib/shared/widgets`
+- 需要保留业务语义的部分移动到对应 `feature/presentation`
+
+## 7. 优先收口的职责线
+
+后续重构优先围绕以下三条业务线进行：
+
+### 7.1 Shell 壳层
+
+重点文件：
+
+- [`lib/controllers/app_controller.dart`](../lib/controllers/app_controller.dart)
+- [`lib/pages/home/app_home_page_view.dart`](../lib/pages/home/app_home_page_view.dart)
+- [`lib/pages/home/body/app_body_page_view.dart`](../lib/pages/home/body/app_body_page_view.dart)
+
+目标：
+
+- 壳层 UI 状态独立
+- 播放业务入口和内容加载入口移出壳层
+
+### 7.2 Playback 播放链路
+
+重点文件：
+
+- [`lib/controllers/player_controller.dart`](../lib/controllers/player_controller.dart)
+- [`lib/common/bujuan_audio_handler.dart`](../lib/common/bujuan_audio_handler.dart)
+
+目标：
+
+- 控制器只负责暴露状态
+- 播放用例和队列切换逻辑沉到 service/repository
+
+### 7.3 User Content 内容数据线
+
+重点文件：
+
+- [`lib/controllers/user_controller.dart`](../lib/controllers/user_controller.dart)
+- [`lib/pages/play_list/playlist_page_view.dart`](../lib/pages/play_list/playlist_page_view.dart)
+- [`lib/pages/cloud/cloud_drive_view.dart`](../lib/pages/cloud/cloud_drive_view.dart)
+- [`lib/pages/login/login_page_view.dart`](../lib/pages/login/login_page_view.dart)
+
+目标：
+
+- 页面不再承载用例逻辑
+- 数据获取统一经由 repository
+
+## 8. 架构执行准则
+
+从本文档生效起，新增代码必须遵守以下准则：
+
+- 不新增新的超大总控 Controller
+- 不在页面中新增直接调用 `NeteaseMusicApi` 的代码
+- 不在页面中新增直接访问 `Hive Box` 的代码
+- 不在页面或零散组件中新增 `MediaItem` 拼装逻辑
+- 新增业务逻辑优先落到对应 feature 的 repository 或 service
+- 所有结构调整以最小风险迁移为前提
+
+## 9. 文档维护规则
+
+如果后续发生以下任一事项，必须更新本文档：
+
+- 确定新的模块边界
+- 调整目录结构方案
+- 替换核心技术方案
+- 增加新的架构约束
+
+文档更新原则：
+
+- 先更新文档，再推进后续阶段性重构

@@ -1,16 +1,22 @@
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/repository/library_repository.dart';
+import 'package:bujuan/features/library/repository/local_resource_index_repository.dart';
 import 'package:get_it/get_it.dart';
 
 class LocalMediaRepository {
-  LocalMediaRepository({LibraryRepository? libraryRepository})
-      : _libraryRepository = libraryRepository ??
+  LocalMediaRepository({
+    LibraryRepository? libraryRepository,
+    LocalResourceIndexRepository? resourceIndexRepository,
+  })  : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository());
+                : LibraryRepository()),
+        _resourceIndexRepository =
+            resourceIndexRepository ?? const LocalResourceIndexRepository();
 
   final LibraryRepository _libraryRepository;
+  final LocalResourceIndexRepository _resourceIndexRepository;
 
   Future<Track> importLocalTrack({
     required String filePath,
@@ -38,6 +44,11 @@ class LocalMediaRepository {
       metadata: metadata,
     );
     await _libraryRepository.saveTrack(track);
+    await _resourceIndexRepository.saveAudioResource(
+      track.id,
+      path: filePath,
+      origin: TrackResourceOrigin.localImport,
+    );
     return track;
   }
 
@@ -63,6 +74,17 @@ class LocalMediaRepository {
         )
         .toList();
     await _libraryRepository.saveTracks(importedTracks);
+    for (final track in importedTracks) {
+      final localPath = track.localPath;
+      if (localPath?.isNotEmpty != true) {
+        continue;
+      }
+      await _resourceIndexRepository.saveAudioResource(
+        track.id,
+        path: localPath!,
+        origin: TrackResourceOrigin.localImport,
+      );
+    }
     return importedTracks;
   }
 

@@ -1,6 +1,7 @@
 import 'package:bujuan/domain/entities/download_task.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/repository/library_repository.dart';
+import 'package:bujuan/features/library/repository/local_resource_index_repository.dart';
 import 'package:get_it/get_it.dart';
 
 import 'download_task_store.dart';
@@ -9,14 +10,18 @@ class DownloadRepository {
   DownloadRepository({
     LibraryRepository? libraryRepository,
     DownloadTaskStore? taskStore,
+    LocalResourceIndexRepository? resourceIndexRepository,
   })  : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository()),
-        _taskStore = taskStore ?? const DownloadTaskStore();
+        _taskStore = taskStore ?? const DownloadTaskStore(),
+        _resourceIndexRepository =
+            resourceIndexRepository ?? const LocalResourceIndexRepository();
 
   final LibraryRepository _libraryRepository;
   final DownloadTaskStore _taskStore;
+  final LocalResourceIndexRepository _resourceIndexRepository;
 
   Future<DownloadTask?> getTask(String trackId) {
     return _taskStore.getTask(trackId);
@@ -86,6 +91,25 @@ class DownloadRepository {
     String? artworkPath,
     String? lyricsPath,
   }) async {
+    await _resourceIndexRepository.saveAudioResource(
+      trackId,
+      path: localPath,
+      origin: TrackResourceOrigin.managedDownload,
+    );
+    if (artworkPath?.isNotEmpty == true) {
+      await _resourceIndexRepository.saveArtworkResource(
+        trackId,
+        path: artworkPath!,
+        origin: TrackResourceOrigin.managedDownload,
+      );
+    }
+    if (lyricsPath?.isNotEmpty == true) {
+      await _resourceIndexRepository.saveLyricsResource(
+        trackId,
+        path: lyricsPath!,
+        origin: TrackResourceOrigin.managedDownload,
+      );
+    }
     await _taskStore.saveTask(
       DownloadTask(
         trackId: trackId,

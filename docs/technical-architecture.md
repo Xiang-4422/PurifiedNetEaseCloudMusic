@@ -237,6 +237,7 @@
 应用层的长期核心实体应包括：
 
 - `Track`
+- `TrackLyrics`
 - `AlbumEntity`
 - `ArtistEntity`
 - `PlaylistEntity`

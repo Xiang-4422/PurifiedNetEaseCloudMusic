@@ -6,7 +6,7 @@ import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/playback/repository/playback_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -258,10 +258,11 @@ class PlayerController extends GetxController {
     String lyric = box.get('lyric_$songId') ?? '';
     String lyricTran = box.get('lyricTran_$songId') ?? '';
     if (lyric.isEmpty) {
-      SongLyricWrap songLyricWrap =
-          await _repository.fetchSongLyric(curPlayingSong.value.id);
-      lyric = songLyricWrap.lrc.lyric ?? "";
-      lyricTran = songLyricWrap.tlyric.lyric ?? "";
+      final lyrics =
+          await _repository.fetchSongLyrics(curPlayingSong.value.id) ??
+              const TrackLyrics();
+      lyric = lyrics.main;
+      lyricTran = lyrics.translated;
       box.put('lyric_$songId', lyric);
       box.put('lyricTran_$songId', lyricTran);
     }

@@ -44,7 +44,9 @@ class MusicSourceRegistryImpl implements MusicSourceRegistry {
   String? _extractSourceKey(String value) {
     final separatorIndex = value.indexOf(':');
     if (separatorIndex <= 0) {
-      return null;
+      // 现有播放队列和缓存里仍然大量保存纯数字网易云 ID，这里先兜底，
+      // 避免领域层切换时把历史状态恢复链路一并打断。
+      return 'netease';
     }
     return value.substring(0, separatorIndex);
   }

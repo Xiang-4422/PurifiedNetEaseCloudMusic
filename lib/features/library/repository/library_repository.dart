@@ -1,6 +1,7 @@
 import 'package:bujuan/data/sources/music_source_registry_impl.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/sources/music_source_registry.dart';
 
 class LibraryRepository {
@@ -36,12 +37,23 @@ class LibraryRepository {
     return source.getPlaybackUrl(trackId);
   }
 
-  Future<String?> getLyric(String trackId) async {
+  Future<String?> getPlaybackUrlWithQuality(
+    String trackId, {
+    String? qualityLevel,
+  }) async {
     final source = _sourceRegistry.getByTrackId(trackId);
     if (source == null) {
       return null;
     }
-    return source.getLyric(trackId);
+    return source.getPlaybackUrl(trackId, qualityLevel: qualityLevel);
+  }
+
+  Future<TrackLyrics?> getLyrics(String trackId) async {
+    final source = _sourceRegistry.getByTrackId(trackId);
+    if (source == null) {
+      return null;
+    }
+    return source.getLyrics(trackId);
   }
 
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {

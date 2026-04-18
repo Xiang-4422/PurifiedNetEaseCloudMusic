@@ -58,6 +58,7 @@
 - 已建立第一版领域层骨架：`Track`、`PlaylistEntity`、`AlbumEntity`、`ArtistEntity`、`PlaybackQueue` 与 `MusicSource`
 - 已新增第一版 `NeteaseMusicSource`，开始将网易云能力收口到统一音乐源协议下
 - 已新增 `MusicSourceRegistry` 与 `LibraryRepository` 骨架，开始按应用能力而非单一平台接口组织数据访问
+- 播放歌词和在线播放地址已改由 `PlaybackRepository -> LibraryRepository -> MusicSource` 获取，播放器开始脱离网易云直连
 
 ### 进行中
 
@@ -187,6 +188,7 @@
 
 - 已新增统一实体目录 `lib/domain/entities`
 - 已新增 `lib/domain/sources/music_source.dart`
+- 已新增 `TrackLyrics`，避免歌词能力继续绑定单一平台响应结构
 - 已新增第一版网易云到 `Track` 的映射器，作为后续本地库落地前的过渡桥接
 - 已新增 `lib/data/sources/netease/netease_music_source.dart`，覆盖搜索、单曲、歌词、播放地址和歌单等基础能力
 - 已新增 source registry 与 library repository，为后续本地库接管前先收口多源路由入口
@@ -258,6 +260,11 @@
 
 - 播放链路属于核心功能，任何拆分都要小步验证
 - 本地文件、远程链接、下载状态三者的优先级策略需要提前定清楚
+
+### 进度更新
+
+- `PlayerController` 已通过统一仓库链路读取歌词
+- `AudioServiceHandler` 已通过统一仓库链路解析在线播放地址
 
 ## 10. Phase 6: 多源接入与离线
 

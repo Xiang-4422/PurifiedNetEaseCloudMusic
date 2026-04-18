@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/controllers/player_controller.dart';
+import 'package:bujuan/features/playback/repository/playback_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:bujuan/controllers/settings_controller.dart';
@@ -16,13 +17,12 @@ import 'package:just_audio/just_audio.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'constants/key.dart';
 import 'constants/key.dart' as key;
-import 'netease_api/src/api/play/bean.dart';
-import 'netease_api/src/netease_api.dart';
 
 class AudioServiceHandler extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   late final AudioPlayer _player;
   Box box = GetIt.instance<Box>();
+  final PlaybackRepository _playbackRepository = PlaybackRepository();
 
   /// 当前原始播放列表（用于随机和顺序播放模式切换用）
   final List<MediaItem> _originalSongs = <MediaItem>[];
@@ -207,10 +207,12 @@ class AudioServiceHandler extends BaseAudioHandler
       // 在线歌曲
     } else {
       bool highQuality = SettingsController.to.isHighSoundQualityOpen.value;
-      SongUrlListWrap songUrl = await NeteaseMusicApi().songDownloadUrl(
-          [newIndexMediaItem.id],
-          level: highQuality ? 'lossless' : 'exhigh');
-      url = ((songUrl.data ?? [])[0].url ?? '').split('?')[0];
+      url = (await _playbackRepository.fetchPlaybackUrl(
+                newIndexMediaItem.id,
+                preferHighQuality: highQuality,
+              ) ??
+              '')
+          .split('?')[0];
       // 如果获取不到URL就跳过
       if (url.isNotEmpty) {
         await _player.setUrl(url);

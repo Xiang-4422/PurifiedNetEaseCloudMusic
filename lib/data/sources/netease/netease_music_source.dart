@@ -3,6 +3,7 @@ import 'package:bujuan/data/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/mappers/netease_track_mapper.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/sources/music_source.dart';
 
 class NeteaseMusicSource implements MusicSource {
@@ -31,16 +32,25 @@ class NeteaseMusicSource implements MusicSource {
   }
 
   @override
-  Future<String?> getPlaybackUrl(String trackId) async {
-    final wrap = await _api.songUrl([_normalizeTrackId(trackId)]);
+  Future<String?> getPlaybackUrl(
+    String trackId, {
+    String? qualityLevel,
+  }) async {
+    final wrap = await _api.songDownloadUrl(
+      [_normalizeTrackId(trackId)],
+      level: qualityLevel ?? 'exhigh',
+    );
     final data = wrap.data;
     return data == null || data.isEmpty ? null : data.first.url;
   }
 
   @override
-  Future<String?> getLyric(String trackId) async {
+  Future<TrackLyrics?> getLyrics(String trackId) async {
     final wrap = await _api.songLyric(_normalizeTrackId(trackId));
-    return wrap.lrc.lyric;
+    return TrackLyrics(
+      main: wrap.lrc.lyric ?? '',
+      translated: wrap.tlyric.lyric ?? '',
+    );
   }
 
   @override

@@ -1,7 +1,23 @@
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/features/library/repository/library_repository.dart';
+import 'package:bujuan/domain/entities/track_lyrics.dart';
 
 class PlaybackRepository {
-  Future<SongLyricWrap> fetchSongLyric(String songId) {
-    return NeteaseMusicApi().songLyric(songId);
+  PlaybackRepository({LibraryRepository? libraryRepository})
+      : _libraryRepository = libraryRepository ?? LibraryRepository();
+
+  final LibraryRepository _libraryRepository;
+
+  Future<TrackLyrics?> fetchSongLyrics(String trackId) {
+    return _libraryRepository.getLyrics(trackId);
+  }
+
+  Future<String?> fetchPlaybackUrl(
+    String trackId, {
+    required bool preferHighQuality,
+  }) {
+    return _libraryRepository.getPlaybackUrlWithQuality(
+      trackId,
+      qualityLevel: preferHighQuality ? 'lossless' : 'exhigh',
+    );
   }
 }

@@ -40,6 +40,13 @@ class SearchRepository {
     String keyword, {
     required List<int> likedSongIds,
   }) async {
+    final localTracks = await _libraryRepository.searchLocalTracks(keyword);
+    if (localTracks.isNotEmpty) {
+      return MediaItemMapper.fromTrackList(
+        localTracks,
+        likedSongIds: likedSongIds,
+      );
+    }
     final tracks = await _libraryRepository.searchTracks(
       sourceKey: 'netease',
       keyword: keyword,

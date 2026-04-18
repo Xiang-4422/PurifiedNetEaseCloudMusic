@@ -7,6 +7,7 @@ import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/features/playback/repository/playback_repository.dart';
 import 'package:bujuan/shared/mappers/media_item_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -24,6 +25,7 @@ class PlayerController extends GetxController {
   static PlayerController get to => Get.find();
 
   Box box = GetIt.instance<Box>();
+  final PlaybackRepository _repository = PlaybackRepository();
   late final AudioServiceHandler audioHandler;
 
   /// 播放状态
@@ -249,27 +251,21 @@ class PlayerController extends GetxController {
     }
   }
 
-  /// 更新歌词
   _updateLyric() async {
-    // 歌词清空
     lyricsLineModels.clear();
     hasTransLyrics.value = false;
 
-    // 更新歌词
     String songId = curPlayingSong.value.id;
-    // 先从本地获取歌词
     String lyric = box.get('lyric_$songId') ?? '';
     String lyricTran = box.get('lyricTran_$songId') ?? '';
-    // 本地为空则从网络获取，并缓存
     if (lyric.isEmpty) {
       SongLyricWrap songLyricWrap =
-          await NeteaseMusicApi().songLyric(curPlayingSong.value.id);
+          await _repository.fetchSongLyric(curPlayingSong.value.id);
       lyric = songLyricWrap.lrc.lyric ?? "";
       lyricTran = songLyricWrap.tlyric.lyric ?? "";
       box.put('lyric_$songId', lyric);
       box.put('lyricTran_$songId', lyricTran);
     }
-    // 解析歌词
     if (lyric.isNotEmpty) {
       var mainLyricsLineModels = ParserLrc(lyric).parseLines();
       if (lyricTran.isNotEmpty) {
@@ -290,29 +286,21 @@ class PlayerController extends GetxController {
         ..startTime = 0);
     }
 
-    // 歌词复位
     currLyricIndex.value = -1;
   }
 
-  /// 播放/暂停
   playOrPause() async {
     isPlaying.value ? await audioHandler.pause() : await audioHandler.play();
   }
 
-  /// 切换播放模式
   Future<void> switchMode(PlaybackMode newMode, {dynamic contextData}) async {
     if (playbackMode.value == newMode && newMode != PlaybackMode.playlist) {
-      // Already in this mode (and not playlist where we might just be changing lists)
-      // But maybe we want to resume?
       if (isPlaying.isFalse) await playOrPause();
       return;
     }
 
-    // 1. Cleanup / Exit current mode
-    // (Most cleanup is implicit by changing playlist, but we can do more here)
     playbackMode.value = newMode;
 
-    // 2. Init new mode
     switch (newMode) {
       case PlaybackMode.roaming:
         await _initRoamingMode();
@@ -402,9 +390,7 @@ class PlayerController extends GetxController {
     return icon;
   }
 
-  /// 更新沉浸式歌词计时器
   updateFullScreenLyricTimerCounter({bool cancelTimer = false}) {
-    // 无操作5s，进入沉浸式歌词
     double closeTime = 5000;
     if (cancelTimer) {
       _fullScreenLyricTimerCounter = 0;
@@ -412,12 +398,10 @@ class PlayerController extends GetxController {
       isFullScreenLyricOpen.value = false;
     } else if (isPlaying.isTrue) {
       if (_fullScreenLyricTimer == null || !_fullScreenLyricTimer!.isActive) {
-        // 启动倒计时
         _fullScreenLyricTimerCounter = closeTime;
         _fullScreenLyricTimer =
             Timer.periodic(const Duration(milliseconds: 50), (timer) {
           _fullScreenLyricTimerCounter -= 50;
-          // 倒计时结束
           if (_fullScreenLyricTimerCounter <= 0) {
             _fullScreenLyricTimerCounter = 0;
             timer.cancel();
@@ -430,13 +414,11 @@ class PlayerController extends GetxController {
     }
   }
 
-  /// 预加载即将到来的歌曲封面
   void _preloadImages() {
     if (curPlayingSongs.isEmpty) return;
     int currentIndex = curPlayIndex.value;
     if (currentIndex < 0) return;
 
-    // 预加载当前曲目前后共 6 个曲目的图片 (前后各3个)
     List<int> indicesToPreload = [];
     for (int i = 1; i <= 3; i++) {
       indicesToPreload.add((currentIndex + i) % curPlayingSongs.length);
@@ -449,21 +431,19 @@ class PlayerController extends GetxController {
       if (imageUrl != null && imageUrl.isNotEmpty) {
         String fullUrl = '$imageUrl?param=500y500';
         try {
-          // 使用 precacheImage 提前放入 Flutter 内存缓存
           precacheImage(
               CachedNetworkImageProvider(fullUrl, headers: const {
                 'User-Agent':
                     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'
               }),
               Get.context!);
-        } catch (e) {
-          // ignore prefetch errors
+        } catch (_) {
+          // 封面预取只影响滚动流畅度，不应该打断播放或页面渲染。
         }
       }
     }
   }
 
-  // Helper 方法：Song2 转 MediaItem (可能需要提取到 Util)
   List<MediaItem> song2ToMedia(List<Song2> songs) {
     return MediaItemMapper.fromSong2List(
       songs,

@@ -330,7 +330,6 @@ class AppController extends SuperController
 
   updateRecoPlayLists({bool getMore = false}) async {
     await userController.updateRecoPlayLists(getMore: getMore);
-    NeteaseMusicApi().playlistCatalogue();
     refreshController.loadComplete();
   }
 

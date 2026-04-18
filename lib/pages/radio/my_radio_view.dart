@@ -1,6 +1,7 @@
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/features/radio/repository/radio_repository.dart';
 import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../common/netease_api/src/api/dj/bean.dart';
-import '../../common/netease_api/src/dio_ext.dart';
-import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/simple_extended_image.dart';
 
 class MyRadioView extends StatefulWidget {
@@ -20,10 +19,7 @@ class MyRadioView extends StatefulWidget {
 }
 
 class _MyRadioViewState extends State<MyRadioView> {
-  DioMetaData djRadioSubListDioMetaData({bool total = true, int offset = 0, int limit = 30}) {
-    var params = {'total': total, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/djradio/get/subed'), data: params, options: joinOptions());
-  }
+  final RadioRepository _repository = RadioRepository();
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +31,7 @@ class _MyRadioViewState extends State<MyRadioView> {
         Expanded(
           child: RequestLoadMoreWidget<DjRadioListWrap, DjRadio>(
               listKey: const ['djRadios'],
-              dioMetaData: djRadioSubListDioMetaData(),
+              dioMetaData: _repository.buildSubscribedRadioRequest(),
               childBuilder: (List<DjRadio> list) {
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -58,7 +54,7 @@ class _MyRadioViewState extends State<MyRadioView> {
           child: Row(
             children: [
               SimpleExtendedImage(
-                '${data.picUrl ?? ''}?param=200y200',
+                '${data.picUrl}?param=200y200',
                 width: 85,
                 height: 85,
                 borderRadius: BorderRadius.circular(10),

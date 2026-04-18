@@ -6,7 +6,6 @@ import 'package:bujuan/controllers/user_controller.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
-import 'package:bujuan/features/playlist/repository/playlist_repository.dart';
 import 'package:bujuan/features/shell/controller/home_shell_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,7 +25,6 @@ import '../widget/custom_zoom_drawer/src/drawer_controller.dart';
 class AppController extends SuperController
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
   static AppController get to => Get.find();
-  final PlaylistRepository _playlistRepository = PlaylistRepository();
   late final HomeShellController shellController;
 
   late final SettingsController settingsController;
@@ -351,10 +349,6 @@ class AppController extends SuperController
         playNow: false);
   }
 
-  addOrDelSongToPlaylist(String playlistId, String songId, bool add) async {
-    _playlistRepository.manipulateTracks(playlistId, songId, add: add);
-  }
-
   onBottomPanelSlide(double openDegree) {
     bottomPanelAnimationController.value = openDegree;
 
@@ -387,8 +381,6 @@ class AppController extends SuperController
     playerController.updateFullScreenLyricTimerCounter(
         cancelTimer: cancelTimer);
   }
-
-  cancelFullScreenLyricTimerCounter() {}
 
   _animatePlayListToCurSong() {
     if (playListScrollController.hasClients) {

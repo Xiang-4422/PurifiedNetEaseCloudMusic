@@ -46,6 +46,7 @@
 - 已删除未承载职责的 `AlbumController`，路由观察器不再维护无效页面级控制器
 - 探索页榜单歌曲改为直接通过 `PlaylistRepository` 获取，`AppController` 已移除歌单查询入口
 - 歌单卡片列表已改为直接通过 `PlaylistRepository` 取详情并触发播放，`AppController` 不再保留按歌单 ID 拉取并播放的辅助入口
+- 已清理 `AppController` 中无引用的歌单操作与歌词计时辅助方法，持续收缩总控表面积
 
 ### 进行中
 

@@ -2,9 +2,9 @@ import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
+import 'package:bujuan/features/album/repository/album_repository.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
-import 'package:bujuan/widget/custom_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -23,6 +23,7 @@ class AlbumPageView extends StatefulWidget {
 }
 
 class _AlbumPageViewState extends State<AlbumPageView> {
+  final AlbumRepository _repository = AlbumRepository();
   late String albumId;
   late Album album;
   List<MediaItem> albumSongs = [];
@@ -38,11 +39,12 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumId = context.routeData.queryParams.get('albumId');
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      AlbumDetailWrap albumDetailWrap =
-          await NeteaseMusicApi().albumDetail(albumId);
-      album = albumDetailWrap.album!;
-      albumSongs
-          .addAll(AppController.to.song2ToMedia(albumDetailWrap.songs ?? []));
+      final albumDetail = await _repository.fetchAlbumDetail(
+        albumId: albumId,
+        likedSongIds: AppController.to.likedSongIds.toList(),
+      );
+      album = albumDetail.album;
+      albumSongs.addAll(albumDetail.albumSongs);
 
       albumColor = await OtherUtils.getImageColor(album.picUrl);
       onAlbumColor = albumColor.invertedColor;
@@ -89,7 +91,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
             title: BlurryContainer(
               padding: EdgeInsets.zero,
               borderRadius: BorderRadius.circular(9999),
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               child: Row(
                 children: [
                   Expanded(

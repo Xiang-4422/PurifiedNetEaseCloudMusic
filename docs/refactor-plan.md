@@ -524,6 +524,6 @@
 
 - 阶段：`Phase 3`
 - 状态：`In Progress`
-- 完成内容：将 `AppDatabase` 与共享本地媒体库数据源正式串入应用启动依赖，统一注册 `LocalLibraryDataSource`、`MusicSourceRegistry` 与 `LibraryRepository`；补充 `LibraryPreferenceStore` 并将手动离线模式接入设置页和媒体库读取策略；搜索面板在离线模式下改为展示本地搜索提示，不再主动请求在线热搜
+- 完成内容：将 `AppDatabase` 与共享本地媒体库数据源正式串入应用启动依赖，统一注册 `LocalLibraryDataSource`、`MusicSourceRegistry` 与 `LibraryRepository`；补充 `LibraryPreferenceStore` 并将手动离线模式接入设置页和媒体库读取策略；搜索面板在离线模式下改为展示本地搜索提示，不再主动请求在线热搜；新增 `AuthStateStore` 与 `PlaylistCacheStore`，继续把登录态和歌单缓存访问从 repository 业务逻辑中收回到独立存储入口
 - 风险或阻塞：正式数据库仍未接管 `LocalLibraryDataSource`，离线模式当前只约束读取策略，下载与同步链路还需要继续补齐
 - 下一步：继续让正式数据库实现替换共享内存实现，并把更多播放/下载链路纳入离线模式约束

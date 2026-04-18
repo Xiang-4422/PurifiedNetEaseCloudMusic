@@ -1,11 +1,11 @@
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/bujuan_audio_handler.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/netease_api/src/api/bean.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
 import 'package:bujuan/shared/mappers/media_item_mapper.dart';
+
+import 'playlist_cache_store.dart';
 
 class PlaylistDetailData {
   const PlaylistDetailData({
@@ -20,6 +20,11 @@ class PlaylistDetailData {
 }
 
 class PlaylistRepository {
+  PlaylistRepository({PlaylistCacheStore? cacheStore})
+      : _cacheStore = cacheStore ?? const PlaylistCacheStore();
+
+  final PlaylistCacheStore _cacheStore;
+
   Future<SinglePlayListWrap> fetchPlaylistWrap(String playlistId) {
     return NeteaseMusicApi().playListDetail(playlistId);
   }
@@ -67,13 +72,7 @@ class PlaylistRepository {
   }
 
   Future<List<MediaItem>?> loadCachedSongs(String playlistId) async {
-    final cachedSongs = CacheBox.instance
-        .get(_songsCacheKey(playlistId))
-        ?.cast<String>();
-    if (cachedSongs == null) {
-      return null;
-    }
-    return stringToPlayList(cachedSongs);
+    return _cacheStore.loadSongs(playlistId);
   }
 
   Future<PlaylistDetailData> fetchPlaylistDetail({
@@ -96,10 +95,7 @@ class PlaylistRepository {
       );
     }
 
-    await CacheBox.instance.put(
-      _songsCacheKey(playlistId),
-      await playListToString(remoteSongs),
-    );
+    await _cacheStore.saveSongs(playlistId, remoteSongs);
 
     return PlaylistDetailData(
       songs: remoteSongs,
@@ -123,6 +119,4 @@ class PlaylistRepository {
   }) {
     return NeteaseMusicApi().playlistManipulateTracks(playlistId, songId, add);
   }
-
-  String _songsCacheKey(String playlistId) => 'PLAYLIST_SONGS_$playlistId';
 }

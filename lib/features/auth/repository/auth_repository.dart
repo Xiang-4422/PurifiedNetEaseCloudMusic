@@ -1,11 +1,16 @@
-import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/netease_api/src/api/bean.dart';
 import 'package:bujuan/common/netease_api/src/api/login/bean.dart';
 import 'package:bujuan/common/netease_api/src/netease_api.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
+
+import 'auth_state_store.dart';
 
 class AuthRepository {
-  bool get hasCachedLogin => CacheBox.instance.get(isLoginSP) == true;
+  AuthRepository({AuthStateStore? stateStore})
+      : _stateStore = stateStore ?? const AuthStateStore();
+
+  final AuthStateStore _stateStore;
+
+  bool get hasCachedLogin => _stateStore.hasCachedLogin;
 
   Future<QrCodeLoginKey> createQrCodeKey() {
     return NeteaseMusicApi().loginQrCodeKey();
@@ -24,6 +29,6 @@ class AuthRepository {
   }
 
   Future<void> setLoginFlag(bool value) {
-    return CacheBox.instance.put(isLoginSP, value);
+    return _stateStore.saveLoginFlag(value);
   }
 }

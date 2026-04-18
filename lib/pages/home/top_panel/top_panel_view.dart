@@ -1,6 +1,7 @@
 
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/features/search/repository/search_repository.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:flutter/material.dart';
@@ -11,29 +12,28 @@ import 'package:get/get.dart';
 import '../../../common/constants/appConstants.dart';
 import '../../../common/netease_api/src/api/play/bean.dart';
 import '../../../common/netease_api/src/api/search/bean.dart';
-import '../../../common/netease_api/src/dio_ext.dart';
-import '../../../common/netease_api/src/netease_handler.dart';
 import '../../../widget/request_widget/request_loadmore_view.dart';
 import '../../play_list/playlist_page_view.dart';
 
 class TopPanelView extends GetView<AppController> {
   const TopPanelView({Key? key}) : super(key: key);
+  static final SearchRepository _repository = SearchRepository();
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // 背景层
         AnimatedBuilder(
           animation: AppController.to.topPanelAnimationController,
           builder: (BuildContext context, Widget? child) {
             return Stack(
               children: [
-                // 磨砂层
                 BlurryContainer(
                   blur: 15 * AppController.to.topPanelAnimationController.value,
                   padding: EdgeInsets.zero,
                   borderRadius: BorderRadius.zero,
-                  color: context.theme.colorScheme.primary.withOpacity(AppController.to.topPanelAnimationController.value),
+                  color: context.theme.colorScheme.primary
+                      .withValues(alpha: AppController.to.topPanelAnimationController.value),
                   child: Container(),
                 )
               ],
@@ -48,14 +48,12 @@ class TopPanelView extends GetView<AppController> {
                 height: context.mediaQueryPadding.top,
               ),
               Expanded(
-                child: Obx(() => Container(
-                  child: Visibility(
+                child: Obx(() => Visibility(
                       visible: controller.searchContent.value.isEmpty,
-                      // 搜索结果
                       replacement: Obx(() => TabBarView(
                       children: [
                         _buildTopPanelCard(context, RequestLoadMoreWidget<SearchSongWrapX, Song2>(
-                          dioMetaData: searchDioMetaData(controller.searchContent.value, 1),
+                          dioMetaData: _repository.buildSearchRequest(controller.searchContent.value, 1),
                           childBuilder: (List<Song2> songs) {
                             var list = AppController.to.song2ToMedia(songs);
                             return ListView.builder(
@@ -70,7 +68,7 @@ class TopPanelView extends GetView<AppController> {
                           listKey: const ['result', 'songs'],
                         ),),
                         _buildTopPanelCard(context, RequestLoadMoreWidget<SearchPlaylistWrapX, PlayList>(
-                          dioMetaData: searchDioMetaData(controller.searchContent.value, 1000),
+                          dioMetaData: _repository.buildSearchRequest(controller.searchContent.value, 1000),
                           listKey: const ['result', 'playlists'],
                           childBuilder: (List<PlayList> playlist) {
                             return ListView.builder(
@@ -86,7 +84,7 @@ class TopPanelView extends GetView<AppController> {
                           },
                         )),
                         _buildTopPanelCard(context, RequestLoadMoreWidget<SearchAlbumsWrapX, Album>(
-                          dioMetaData: searchDioMetaData(controller.searchContent.value, 10),
+                          dioMetaData: _repository.buildSearchRequest(controller.searchContent.value, 10),
                           childBuilder: (List<Album> albums) {
                             return ListView.builder(
                               itemBuilder: (context, index) => AlbumItem(
@@ -102,7 +100,7 @@ class TopPanelView extends GetView<AppController> {
                           listKey: const ['result', 'albums'],
                         )),
                         _buildTopPanelCard(context, RequestLoadMoreWidget<SearchArtistsWrapX, Artist>(
-                          dioMetaData: searchDioMetaData(controller.searchContent.value, 100),
+                          dioMetaData: _repository.buildSearchRequest(controller.searchContent.value, 100),
                           listKey: const ['result', 'artists'],
                           childBuilder: (List<Artist> artists) {
                             return ListView.builder(
@@ -119,9 +117,8 @@ class TopPanelView extends GetView<AppController> {
                         )),
                       ],
                                             )),
-                      // 热门搜索
                       child: _buildTopPanelCard(context, RequestWidget<SearchKeyWrapX>(
-                          dioMetaData: searchHotKeyDioMetaData(),
+                          dioMetaData: _repository.buildHotKeywordRequest(),
                           childBuilder: (data) => ListView(
                             padding: EdgeInsets.zero,
                             children: data.result.hots.map((e) => UniversalListTile(
@@ -133,14 +130,12 @@ class TopPanelView extends GetView<AppController> {
                             )).toList(),
                           )
                       )).marginOnly(top: AppDimensions.paddingSmall),
-                    ),
-                )),
+                    )),
               ),
               Container(
-                color: context.theme.colorScheme.onPrimary.withOpacity(0.1),
+                color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
                 child: Column(
                   children: [
-                    // TabBar
                     Obx(() => Offstage(
                         offstage: controller.searchContent.value.isEmpty,
                         child: MyTabBar(
@@ -148,29 +143,27 @@ class TopPanelView extends GetView<AppController> {
                           tabs: [
                             Text(
                               "单曲",
-                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
                             ),
                             Text(
                               "歌单",
-                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
                             ),
                             Text(
                               "专辑",
-                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
                             ),
                             Text(
                               "歌手",
-                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withOpacity(0.5)),
+                              style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
                             ),
                           ],
                         ),
                       )),
-                    // 搜索栏
                     _buildSearchBar(context, AppDimensions.appBarHeight * 2/3),
                   ],
                 ),
               ),
-              // Panel关闭时占位
               Obx(() => Container(
                 height: AppController.to.topPanelFullyClosed.isTrue
                     ? AppDimensions.appBarHeight + context.mediaQueryPadding.top
@@ -193,26 +186,21 @@ class TopPanelView extends GetView<AppController> {
             IconButton(
               iconSize: iconSize,
               padding: EdgeInsets.all(iconPadding),
-              // style: IconButton.styleFrom(
-              //   backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
-              // ),
               icon: const Icon(
                 TablerIcons.search,
               ),
-              onPressed: () {
-                // controller.searchContent.value = controller.searchTextEditingController.text;
-              },
+              onPressed: () {},
             ).marginAll(iconPadding),
             Expanded(
               child: TextField(
                 controller: controller.searchTextEditingController,
                 focusNode: controller.searchFocusNode,
-                cursorColor: Theme.of(context).primaryColor.withOpacity(.4),
+                cursorColor: Theme.of(context).primaryColor.withValues(alpha: .4),
                 style: context.textTheme.titleMedium,
                 decoration: InputDecoration(
                     hintText: '输入歌曲、歌手、歌单...',
                     hintStyle: context.textTheme.titleMedium!.copyWith(
-                        color: context.textTheme.titleMedium!.color!.withOpacity(0.2),
+                        color: context.textTheme.titleMedium!.color!.withValues(alpha: 0.2),
                     ),
                     border: const UnderlineInputBorder(borderSide: BorderSide.none),
                     isDense: true
@@ -223,10 +211,9 @@ class TopPanelView extends GetView<AppController> {
               visible: controller.searchContent.isNotEmpty,
               replacement: IconButton(
                 iconSize: iconSize,
-                // padding: EdgeInsets.all(AppDimensions.appBarHeight / 16),
                 padding: EdgeInsets.all(iconPadding),
                 style: IconButton.styleFrom(
-                  backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
+                  backgroundColor: context.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
                 ),
                 icon: const Icon(
                   TablerIcons.arrow_up,
@@ -239,7 +226,7 @@ class TopPanelView extends GetView<AppController> {
                 iconSize: iconSize,
                 padding: EdgeInsets.all(iconPadding),
                 style: IconButton.styleFrom(
-                  backgroundColor: context.theme.colorScheme.onPrimary.withOpacity(0.1),
+                  backgroundColor: context.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
                 ),
                 icon: const Icon(
                   TablerIcons.x,
@@ -260,13 +247,5 @@ class TopPanelView extends GetView<AppController> {
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
       child: child,
     );
-  }
-
-  DioMetaData searchDioMetaData(String keyword, int type, {int offset = 0, int limit = 30}) {
-    // type代表搜索类型，1为单曲，10为专辑，100为歌手，1000为歌单
-    return DioMetaData(joinUri('/weapi/cloudsearch/pc'), data: {'s': keyword, 'type': type, 'limit': limit, 'offset': offset}, options: joinOptions());
-  }
-  DioMetaData searchHotKeyDioMetaData() {
-    return DioMetaData(joinUri('/weapi/search/hot'), data: {'type': 1111}, options: joinOptions(userAgent: UserAgent.Mobile));
   }
 }

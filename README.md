@@ -4,6 +4,7 @@
 
 - [技术架构设计](./docs/technical-architecture.md)
 - [重构计划与进度](./docs/refactor-plan.md)
+- [代码注释规范](./docs/comment-guidelines.md)
 
 ## 当前结论
 

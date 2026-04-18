@@ -18,6 +18,29 @@ class DownloadRepository {
   final LibraryRepository _libraryRepository;
   final DownloadTaskStore _taskStore;
 
+  Future<DownloadTask?> getTask(String trackId) {
+    return _taskStore.getTask(trackId);
+  }
+
+  Future<List<DownloadTask>> getTasks({
+    Set<DownloadTaskStatus>? statuses,
+  }) {
+    return _taskStore.getTasks(statuses: statuses);
+  }
+
+  Future<List<DownloadTask>> getActiveTasks() {
+    return getTasks(
+      statuses: const {
+        DownloadTaskStatus.queued,
+        DownloadTaskStatus.downloading,
+      },
+    );
+  }
+
+  Future<void> clearTask(String trackId) {
+    return _taskStore.removeTask(trackId);
+  }
+
   Future<Track?> markQueued(String trackId) async {
     await _taskStore.saveTask(
       DownloadTask(

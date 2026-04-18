@@ -10,13 +10,19 @@ class DownloadTaskStore {
     return _decodeTask(bucket[trackId]);
   }
 
-  Future<List<DownloadTask>> getTasks() async {
-    return _readBucket()
+  Future<List<DownloadTask>> getTasks({
+    Set<DownloadTaskStatus>? statuses,
+  }) async {
+    final tasks = _readBucket()
         .values
         .map(_decodeTask)
         .whereType<DownloadTask>()
-        .toList()
-      ..sort((left, right) => right.updatedAt.compareTo(left.updatedAt));
+        .where(
+          (task) => statuses == null || statuses.contains(task.status),
+        )
+        .toList();
+    tasks.sort((left, right) => right.updatedAt.compareTo(left.updatedAt));
+    return tasks;
   }
 
   Future<void> saveTask(DownloadTask task) {

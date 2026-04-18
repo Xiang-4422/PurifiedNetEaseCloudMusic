@@ -27,3 +27,4 @@
 - 技术方案、目录方案、边界约束，以 [`docs/technical-architecture.md`](./docs/technical-architecture.md) 为准
 - 分阶段任务、完成情况、阻塞项，以 [`docs/refactor-plan.md`](./docs/refactor-plan.md) 为准
 - 后续每完成一个阶段性改动，都需要同步更新进度文档
+- 更完整的后续任务拆解、执行优先级和关键决策，也已固定在 [`docs/refactor-plan.md`](./docs/refactor-plan.md)

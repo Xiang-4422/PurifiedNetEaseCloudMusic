@@ -27,6 +27,8 @@ class Track {
     this.artworkUrl,
     this.remoteUrl,
     this.localPath,
+    this.localArtworkPath,
+    this.localLyricsPath,
     this.lyricKey,
     this.availability = TrackAvailability.unknown,
     this.downloadState = DownloadState.none,
@@ -43,6 +45,8 @@ class Track {
   final String? artworkUrl;
   final String? remoteUrl;
   final String? localPath;
+  final String? localArtworkPath;
+  final String? localLyricsPath;
   final String? lyricKey;
   final TrackAvailability availability;
   final DownloadState downloadState;
@@ -59,6 +63,8 @@ class Track {
     String? artworkUrl,
     String? remoteUrl,
     String? localPath,
+    String? localArtworkPath,
+    String? localLyricsPath,
     String? lyricKey,
     TrackAvailability? availability,
     DownloadState? downloadState,
@@ -75,6 +81,8 @@ class Track {
       artworkUrl: artworkUrl ?? this.artworkUrl,
       remoteUrl: remoteUrl ?? this.remoteUrl,
       localPath: localPath ?? this.localPath,
+      localArtworkPath: localArtworkPath ?? this.localArtworkPath,
+      localLyricsPath: localLyricsPath ?? this.localLyricsPath,
       lyricKey: lyricKey ?? this.lyricKey,
       availability: availability ?? this.availability,
       downloadState: downloadState ?? this.downloadState,

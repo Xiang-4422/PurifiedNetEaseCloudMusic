@@ -243,6 +243,8 @@ class LibraryRepository {
   Future<Track?> updateTrackLocalState(
     String trackId, {
     String? localPath,
+    String? localArtworkPath,
+    String? localLyricsPath,
     DownloadState? downloadState,
     TrackAvailability? availability,
     Map<String, Object?>? metadata,
@@ -253,6 +255,8 @@ class LibraryRepository {
     }
     final nextTrack = track.copyWith(
       localPath: localPath ?? track.localPath,
+      localArtworkPath: localArtworkPath ?? track.localArtworkPath,
+      localLyricsPath: localLyricsPath ?? track.localLyricsPath,
       downloadState: downloadState ?? track.downloadState,
       availability: availability ?? track.availability,
       metadata: metadata == null

@@ -43,13 +43,13 @@ class DownloadRepository {
     return _libraryRepository.updateTrackLocalState(
       trackId,
       localPath: localPath,
+      localArtworkPath: artworkPath,
+      localLyricsPath: lyricsPath,
       downloadState: DownloadState.downloaded,
       availability: TrackAvailability.playable,
       metadata: {
         'downloadOrigin': 'managed_download',
         'downloadProgress': 1.0,
-        if (artworkPath != null) 'localArtworkPath': artworkPath,
-        if (lyricsPath != null) 'localLyricsPath': lyricsPath,
       },
     );
   }

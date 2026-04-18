@@ -21,6 +21,8 @@ class LocalLibraryCodec {
       'artworkUrl': track.artworkUrl,
       'remoteUrl': track.remoteUrl,
       'localPath': track.localPath,
+      'localArtworkPath': track.localArtworkPath,
+      'localLyricsPath': track.localLyricsPath,
       'lyricKey': track.lyricKey,
       'availability': track.availability.name,
       'downloadState': track.downloadState.name,
@@ -45,6 +47,8 @@ class LocalLibraryCodec {
       artworkUrl: map['artworkUrl'] as String?,
       remoteUrl: map['remoteUrl'] as String?,
       localPath: map['localPath'] as String?,
+      localArtworkPath: map['localArtworkPath'] as String?,
+      localLyricsPath: map['localLyricsPath'] as String?,
       lyricKey: map['lyricKey'] as String?,
       availability:
           _availabilityFromName(map['availability'] as String?),

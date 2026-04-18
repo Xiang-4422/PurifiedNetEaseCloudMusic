@@ -77,10 +77,8 @@ class MediaItemMapper {
     return tracks
         .where((track) => track.id.isNotEmpty)
         .map((track) {
-          final localArtworkPath =
-              track.metadata['localArtworkPath'] as String? ?? '';
-          final localLyricsPath =
-              track.metadata['localLyricsPath'] as String? ?? '';
+          final localArtworkPath = track.localArtworkPath ?? '';
+          final localLyricsPath = track.localLyricsPath ?? '';
           final imageUrl = localArtworkPath.isNotEmpty
               ? localArtworkPath
               : track.artworkUrl ?? '';

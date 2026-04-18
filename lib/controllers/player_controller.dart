@@ -8,7 +8,6 @@ import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/features/playback/repository/playback_repository.dart';
-import 'package:bujuan/shared/mappers/media_item_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
@@ -444,10 +443,4 @@ class PlayerController extends GetxController {
     }
   }
 
-  List<MediaItem> song2ToMedia(List<Song2> songs) {
-    return MediaItemMapper.fromSong2List(
-      songs,
-      likedSongIds: UserController.to.likedSongIds.toList(),
-    );
-  }
 }

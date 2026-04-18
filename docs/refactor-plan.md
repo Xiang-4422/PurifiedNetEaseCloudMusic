@@ -48,6 +48,7 @@
 - 歌单卡片列表已改为直接通过 `PlaylistRepository` 取详情并触发播放，`AppController` 不再保留按歌单 ID 拉取并播放的辅助入口
 - 已清理 `AppController` 中无引用的歌单操作与歌词计时辅助方法，持续收缩总控表面积
 - 搜索面板歌曲结果已直接使用统一 `MediaItemMapper`，`AppController` 不再保留歌曲模型转换代理
+- 已删除 `PlayerController` 中无引用的歌曲映射辅助，统一以共享 mapper 为准
 
 ### 进行中
 

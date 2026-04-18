@@ -39,6 +39,7 @@
 - 通用请求组件已通过 `RequestRepository` 统一网络访问入口
 - 设置页已移除对 `Hive Box` 的直接写入
 - 评论组件已通过 `CommentRepository` 收口评论请求与交互
+- 用户资料页已通过 `UserRepository` 收口请求拼装，退出登录状态写入已回收到设置控制器
 
 ### 进行中
 

@@ -111,7 +111,8 @@ class UserController extends GetxController {
 
     likedSongIds.clear();
     likedSongIds.addAll(
-      await _repository.fetchLikedSongIds(userInfo.value.profile?.userId ?? '-1'),
+      await _repository
+          .fetchLikedSongIds(userInfo.value.profile?.userId ?? '-1'),
     );
     box.put(likedSongIdsSp, likedSongIds.toList());
 
@@ -211,7 +212,7 @@ class UserController extends GetxController {
   Future<void> clearUser() async {
     final value = await _repository.logout();
     if (value.code == 200) {
-      SettingsController.to.box.put(isLoginSP, false);
+      await SettingsController.to.updateLoginStatus(false);
     }
   }
 }

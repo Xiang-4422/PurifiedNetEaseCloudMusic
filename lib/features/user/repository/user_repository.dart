@@ -5,9 +5,19 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/src/api/bean.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/common/netease_api/src/dio_ext.dart';
+import 'package:bujuan/common/netease_api/src/netease_handler.dart';
 import 'package:bujuan/shared/mappers/media_item_mapper.dart';
 
 class UserRepository {
+  DioMetaData buildUserDetailRequest(String userId) {
+    return DioMetaData(
+      joinUri('/weapi/v1/user/detail/$userId'),
+      data: {},
+      options: joinOptions(),
+    );
+  }
+
   Future<List<int>> fetchLikedSongIds(String userId) async {
     final likedList = await NeteaseMusicApi().likeSongList(userId);
     return likedList.ids;

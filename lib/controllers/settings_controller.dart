@@ -58,6 +58,10 @@ class SettingsController extends GetxController {
     );
   }
 
+  Future<void> updateLoginStatus(bool value) async {
+    await box.put(isLoginSP, value);
+  }
+
   Future<void> _updateBoolSetting({
     required RxBool target,
     required String key,

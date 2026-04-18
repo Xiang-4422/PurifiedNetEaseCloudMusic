@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/features/user/repository/user_repository.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,6 @@ import 'package:get/get.dart';
 
 import '../../common/constants/appConstants.dart';
 import '../../common/netease_api/src/api/user/bean.dart';
-import '../../common/netease_api/src/dio_ext.dart';
-import '../../common/netease_api/src/netease_handler.dart';
 
 class UserProfilePageView extends StatefulWidget {
   const UserProfilePageView({Key? key}) : super(key: key);
@@ -19,25 +18,36 @@ class UserProfilePageView extends StatefulWidget {
 }
 
 class _UserProfilePageViewState extends State<UserProfilePageView> {
-  DioMetaData userDetailDioMetaData(String userId) {
-    return DioMetaData(joinUri('/weapi/v1/user/detail/$userId'), data: {}, options: joinOptions());
-  }
+  final UserRepository _repository = UserRepository();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: RequestWidget<NeteaseUserDetail>(
-        dioMetaData: userDetailDioMetaData(AppController.to.userInfo.value.profile?.userId ?? ''),
+        dioMetaData: _repository.buildUserDetailRequest(
+          AppController.to.userInfo.value.profile?.userId ?? '',
+        ),
         childBuilder: (userData) => Container(
-          padding: EdgeInsets.only(top: AppDimensions.appBarHeight + context.mediaQueryPadding.top, bottom: AppDimensions.bottomPanelHeaderHeight),
+          padding: EdgeInsets.only(
+            top: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
+            bottom: AppDimensions.bottomPanelHeaderHeight,
+          ),
           child: Stack(
             alignment: Alignment.topCenter,
             children: [
               Container(
                 width: context.width,
                 margin: const EdgeInsets.only(top: 200),
-                padding: const EdgeInsets.only(left: 15, right: 15, bottom: 25, top: 80),
-                decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary, borderRadius: BorderRadius.circular(25)),
+                padding: const EdgeInsets.only(
+                  left: 15,
+                  right: 15,
+                  bottom: 25,
+                  top: 80,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.onSecondary,
+                  borderRadius: BorderRadius.circular(25),
+                ),
                 child: Column(
                   children: [
                     Text(
@@ -48,11 +58,15 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Text(
                         userData.profile.signature ?? '',
-                        style: const TextStyle(fontSize: 32, color: Colors.grey),
+                        style:
+                            const TextStyle(fontSize: 32, color: Colors.grey),
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20,horizontal: 20),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                        horizontal: 20,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -65,23 +79,31 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                     Expanded(
                       child: Container(),
                     ),
-                    Obx(() => GestureDetector(
-                      child: Container(
-                        height: 88,
-                        alignment: Alignment.center,
-                        width: context.width,
-                        margin: const EdgeInsets.symmetric(vertical: 40, horizontal: 35),
-                        decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(20)),
-                        child: const Text(
-                          '注销登录',
-                          style: TextStyle(fontSize: 28, color: Colors.white),
+                    Obx(
+                      () => GestureDetector(
+                        child: Container(
+                          height: 88,
+                          alignment: Alignment.center,
+                          width: context.width,
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 40,
+                            horizontal: 35,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            '注销登录',
+                            style: TextStyle(fontSize: 28, color: Colors.white),
+                          ),
                         ),
+                        onTap: () {
+                          AppController.to.clearUser();
+                          AutoRouter.of(context).pop();
+                        },
                       ),
-                      onTap: () {
-                        AppController.to.clearUser();
-                        AutoRouter.of(context).pop();
-                      },
-                    ))
+                    )
                   ],
                 ),
               ),
@@ -91,7 +113,8 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
               ),
             ],
           ),
-        ),),
+        ),
+      ),
     );
   }
 }

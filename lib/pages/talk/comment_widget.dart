@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/common/netease_api/src/netease_api.dart';
+import 'package:bujuan/features/comment/repository/comment_repository.dart';
 import 'package:bujuan/pages/talk/custom_filed.dart';
 import 'package:flutter/material.dart';
 
@@ -8,24 +8,20 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import '../../common/netease_api/src/api/event/bean.dart';
-import '../../common/netease_api/src/dio_ext.dart';
-import '../../common/netease_api/src/netease_handler.dart';
 import '../../widget/request_widget/request_loadmore_view.dart';
 import '../../widget/simple_extended_image.dart';
 
-// TODO YU4422: 评论功能后续开发
-/// 评论组件
 class CommentWidget extends StatelessWidget {
+  static final CommentRepository _repository = CommentRepository();
   final BuildContext context;
-  final int commentType; // 热门、最新
-  final String id; // 歌曲或歌单ID
-  final String idType; // 歌曲、歌单
+  final int commentType;
+  final String id;
+  final String idType;
   final double listPaddingTop;
   final double listPaddingBottom;
   final Color stringColor;
-  final TextEditingController _textEditingController = TextEditingController();
 
-  CommentWidget(
+  const CommentWidget(
       {Key? key,
       required this.context,
       required this.id,
@@ -43,7 +39,11 @@ class CommentWidget extends StatelessWidget {
       isPageNmu: true,
       lastField: 'cursor',
       pageSize: 10,
-      dioMetaData: commentListDioMetaData2(id, idType, sortType: commentType),
+      dioMetaData: _repository.buildCommentListRequest(
+        id,
+        idType,
+        sortType: commentType,
+      ),
       childBuilder: (List<CommentItem> comments) => ListView.builder(
         itemBuilder: (BuildContext context, int index) {
           if (index == 0) {
@@ -66,72 +66,6 @@ class CommentWidget extends StatelessWidget {
         itemCount: comments.length,
       ),
     );
-  }
-
-  DioMetaData commentListDioMetaData2(String id, String type,
-      {int pageNo = 1,
-      int pageSize = 20,
-      bool showInner = false,
-      int? sortType}) {
-    String typeKey = _type2key(type) + id;
-    var params = {
-      'threadId': typeKey,
-      'pageNo': pageNo,
-      'pageSize': pageSize,
-      'showInner': showInner,
-      'sortType': sortType ?? 99,
-      'cursor': 0,
-    };
-    return DioMetaData(joinUri('/api/v2/resource/comments'),
-        data: params,
-        options: joinOptions(
-            encryptType: EncryptType.EApi,
-            eApiUrl: '/api/v2/resource/comments',
-            cookies: {'os': 'pc'}));
-  }
-
-  String _type2key(String type) {
-    String typeKey = 'R_SO_4_';
-    switch (type) {
-      case 'song':
-        typeKey = 'R_SO_4_';
-        break;
-      case 'mv':
-        typeKey = 'R_MV_5_';
-        break;
-      case 'playlist':
-        typeKey = 'A_PL_0_';
-        break;
-      case 'album':
-        typeKey = 'R_AL_3_';
-        break;
-      case 'dj':
-        typeKey = 'A_DJ_1_';
-        break;
-      case 'video':
-        typeKey = 'R_VI_62_';
-        break;
-      case 'event':
-        typeKey = 'A_EV_2_';
-        break;
-    }
-    return typeKey;
-  }
-
-  _sendMessage(BuildContext context) async {
-    if (_textEditingController.text.isEmpty) {
-      WidgetUtil.showToast('请输入评论');
-      return;
-    }
-    CommentWrap commentWrap = await NeteaseMusicApi()
-        .comment(id, idType, 'add', content: _textEditingController.text);
-    if (commentWrap.code == 200) {
-      _textEditingController.text = '';
-      if (context.mounted) Focus.of(context).unfocus();
-      WidgetUtil.showToast('评论成功');
-    } else {
-      WidgetUtil.showToast(commentWrap.message ?? '评论失败');
-    }
   }
 }
 
@@ -158,6 +92,7 @@ class CommentItemWidget extends StatefulWidget {
 }
 
 class _CommentItemWidgetState extends State<CommentItemWidget> {
+  static final CommentRepository _repository = CommentRepository();
   final List<CommentItem> _commentOnComment = [];
   bool isCommentOnCommentVisible = false;
   int lastLoadedTime = -1;
@@ -169,6 +104,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
 
   @override
   void initState() {
+    super.initState();
     comment = widget.comment;
     stringColor = widget.stringColor;
     replyCount = comment.replyCount ?? 0;
@@ -215,7 +151,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                                 text: comment.user.nickname ?? '',
                                 style: TextStyle(
                                   fontSize: 15,
-                                  color: stringColor.withOpacity(0.6),
+                                  color: stringColor.withValues(alpha: 0.6),
                                 ),
                                 children: [
                           // 评论时间
@@ -224,7 +160,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                                 '\n${OtherUtils.formatDate2Str(comment.time ?? 0)}',
                             style: TextStyle(
                               fontSize: 10,
-                              color: stringColor.withOpacity(0.4),
+                              color: stringColor.withValues(alpha: 0.4),
                             ),
                           )
                         ]))),
@@ -240,7 +176,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                             fontFamily: "monospace",
                             color: comment.liked ?? false
                                 ? Colors.red
-                                : stringColor.withOpacity(0.4),
+                                : stringColor.withValues(alpha: 0.4),
                           ),
                         ).marginOnly(right: 5),
                         Container(
@@ -249,11 +185,13 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                           alignment: Alignment.center,
                           child: GestureDetector(
                             onTap: () {
-                              NeteaseMusicApi()
-                                  .likeComment(widget.id, comment.commentId,
-                                      widget.idType, !(comment.liked ?? false),
-                                      threadId:
-                                          _type2key(widget.idType) + widget.id)
+                              _repository
+                                  .toggleCommentLike(
+                                widget.id,
+                                widget.idType,
+                                comment.commentId,
+                                !(comment.liked ?? false),
+                              )
                                   .then((value) {
                                 if (value.code == 200) {
                                   setState(() {
@@ -272,7 +210,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                               size: 20,
                               color: comment.liked ?? false
                                   ? Colors.red
-                                  : stringColor.withOpacity(0.4),
+                                  : stringColor.withValues(alpha: 0.4),
                             ),
                           ),
                         ),
@@ -283,7 +221,8 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                   Text(
                     (comment.content ?? '').replaceAll('\n', ''),
                     style: TextStyle(
-                        color: stringColor.withOpacity(0.6), fontSize: 15),
+                        color: stringColor.withValues(alpha: 0.6),
+                        fontSize: 15),
                   ).marginSymmetric(vertical: 10),
                   // 评论的回复内容
                   Offstage(
@@ -320,7 +259,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                                   : '收起 <',
                               style: TextStyle(
                                 fontSize: 15,
-                                color: stringColor.withOpacity(0.2),
+                                color: stringColor.withValues(alpha: 0.2),
                               )),
                         ),
                       )),
@@ -331,34 +270,6 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
         ),
       ),
     );
-  }
-
-  String _type2key(String type) {
-    String typeKey = 'R_SO_4_';
-    switch (type) {
-      case 'song':
-        typeKey = 'R_SO_4_';
-        break;
-      case 'mv':
-        typeKey = 'R_MV_5_';
-        break;
-      case 'playlist':
-        typeKey = 'A_PL_0_';
-        break;
-      case 'album':
-        typeKey = 'R_AL_3_';
-        break;
-      case 'dj':
-        typeKey = 'A_DJ_1_';
-        break;
-      case 'video':
-        typeKey = 'R_VI_62_';
-        break;
-      case 'event':
-        typeKey = 'A_EV_2_';
-        break;
-    }
-    return typeKey;
   }
 
   showOrHideCommentOnComment() {
@@ -389,9 +300,14 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
       return;
     }
     // 加载数据
-    FloorCommentDetailWrap floorCommentDetailWrap = await NeteaseMusicApi()
-        .floorComments(widget.id, widget.idType, widget.comment.commentId,
-            time: lastLoadedTime, limit: 5);
+    FloorCommentDetailWrap floorCommentDetailWrap =
+        await _repository.fetchFloorComments(
+      widget.id,
+      widget.idType,
+      widget.comment.commentId,
+      time: lastLoadedTime,
+      limit: 5,
+    );
     lastLoadedTime = floorCommentDetailWrap.data.time ?? -1;
     setState(() {
       isCommentOnCommentVisible = true;
@@ -421,6 +337,7 @@ class FoolTalk extends StatefulWidget {
 }
 
 class _FoolTalkState extends State<FoolTalk> {
+  static final CommentRepository _repository = CommentRepository();
   final TextEditingController _textEditingController = TextEditingController();
 
   @override
@@ -494,8 +411,11 @@ class _FoolTalkState extends State<FoolTalk> {
                     RequestLoadMoreWidget<FloorCommentDetailWrap, CommentItem>(
               pageSize: 20,
               lastField: 'time',
-              dioMetaData: floorCommentsDioMetaData(
-                  widget.id, widget.type, widget.commentItem.commentId),
+              dioMetaData: _repository.buildFloorCommentsRequest(
+                widget.id,
+                widget.type,
+                widget.commentItem.commentId,
+              ),
               childBuilder: (list) {
                 return ListView.builder(
                   itemBuilder: (context, index) => _buildItem(list[index]),
@@ -594,57 +514,19 @@ class _FoolTalkState extends State<FoolTalk> {
       WidgetUtil.showToast('请输入评论');
       return;
     }
-    CommentWrap commentWrap = await NeteaseMusicApi().comment(
-        widget.id, widget.type, 'reply',
-        content: _textEditingController.text,
-        commentId: widget.commentItem.commentId);
+    CommentWrap commentWrap = await _repository.sendComment(
+      widget.id,
+      widget.type,
+      'reply',
+      content: _textEditingController.text,
+      commentId: widget.commentItem.commentId,
+    );
     if (commentWrap.code == 200) {
       _textEditingController.text = '';
       WidgetUtil.showToast('评论成功');
     } else {
       WidgetUtil.showToast(commentWrap.message ?? '评论失败');
     }
-  }
-
-  String _type2key(String type) {
-    String typeKey = 'R_SO_4_';
-    switch (type) {
-      case 'song':
-        typeKey = 'R_SO_4_';
-        break;
-      case 'mv':
-        typeKey = 'R_MV_5_';
-        break;
-      case 'playlist':
-        typeKey = 'A_PL_0_';
-        break;
-      case 'album':
-        typeKey = 'R_AL_3_';
-        break;
-      case 'dj':
-        typeKey = 'A_DJ_1_';
-        break;
-      case 'video':
-        typeKey = 'R_VI_62_';
-        break;
-      case 'event':
-        typeKey = 'A_EV_2_';
-        break;
-    }
-    return typeKey;
-  }
-
-  DioMetaData floorCommentsDioMetaData(
-      String id, String type, String parentCommentId,
-      {int time = -1, int limit = 20}) {
-    var params = {
-      'parentCommentId': parentCommentId,
-      'threadId': _type2key(type) + id,
-      'time': time,
-      'limit': limit
-    };
-    return DioMetaData(joinUri('/api/resource/comment/floor/get'),
-        data: params, options: joinOptions());
   }
 }
 

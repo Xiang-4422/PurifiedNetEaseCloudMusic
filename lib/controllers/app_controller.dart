@@ -335,24 +335,14 @@ class AppController extends SuperController
   playNewPlayListById(String playListId) async {
     SinglePlayListWrap details =
         await _playlistRepository.fetchPlaylistWrap(playListId);
-    List<MediaItem> songs =
-        await getPlayListSongs("", singlePlayListWrap: details);
+    List<MediaItem> songs = await _playlistRepository.fetchPlaylistSongs(
+      playlistId: playListId,
+      likedSongIds: likedSongIds.toList(),
+      playlistWrap: details,
+    );
     playNewPlayList(songs, 0,
         playListName: details.playlist?.name ?? "无名歌单",
         playListNameHeader: "歌单");
-  }
-
-  Future<List<MediaItem>> getPlayListSongs(String playListId,
-      {SinglePlayListWrap? singlePlayListWrap,
-      int offset = 0,
-      int limit = -1}) async {
-    return _playlistRepository.fetchPlaylistSongs(
-      playlistId: playListId,
-      likedSongIds: likedSongIds.toList(),
-      offset: offset,
-      limit: limit,
-      playlistWrap: singlePlayListWrap,
-    );
   }
 
   playUserLikedSongs() async {

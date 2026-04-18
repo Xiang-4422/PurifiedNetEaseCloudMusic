@@ -2,11 +2,13 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/features/explore/repository/explore_repository.dart';
+import 'package:bujuan/features/playlist/repository/playlist_repository.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class ExplorePageController extends GetxController {
   final ExploreRepository _repository = ExploreRepository();
+  final PlaylistRepository _playlistRepository = PlaylistRepository();
 
   Map<String, List<Map<String, String>>> topPlayListCategory = {
     "官方榜": [
@@ -132,8 +134,12 @@ class ExplorePageController extends GetxController {
 
   updateRankingPlayListSongs({int offset = 0, limit = 10}) async {
     if (offset == 0) curTopPlayListSongs.clear();
-    List<MediaItem> songs = await AppController.to
-        .getPlayListSongs(curTopPlayListId.value, offset: offset, limit: limit);
+    final songs = await _playlistRepository.fetchPlaylistSongs(
+      playlistId: curTopPlayListId.value,
+      likedSongIds: AppController.to.likedSongIds.toList(),
+      offset: offset,
+      limit: limit,
+    );
     curTopPlayListSongs.addAll(songs);
     if (songs.length < 10) {
       refreshController.loadNoData();

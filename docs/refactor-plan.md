@@ -44,6 +44,7 @@
 - 已删除未被使用的歌单专用请求组件，避免旧请求路径继续扩散
 - 已删除未承载职责的 `PlayListController`，减少空壳控制器继续误导后续拆分
 - 已删除未承载职责的 `AlbumController`，路由观察器不再维护无效页面级控制器
+- 探索页榜单歌曲改为直接通过 `PlaylistRepository` 获取，`AppController` 已移除歌单查询入口
 
 ### 进行中
 

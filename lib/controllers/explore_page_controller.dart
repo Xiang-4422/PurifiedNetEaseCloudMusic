@@ -1,10 +1,13 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/features/explore/repository/explore_repository.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class ExplorePageController extends GetxController {
+  final ExploreRepository _repository = ExploreRepository();
+
   Map<String, List<Map<String, String>>> topPlayListCategory = {
     "官方榜": [
       {'name': '云音乐新歌榜', 'id': '3779629'},
@@ -62,26 +65,13 @@ class ExplorePageController extends GetxController {
   RxBool showChooseCategory = false.obs;
   RxBool showChoosePlayList = false.obs;
 
-  /// 排行榜分类名
   List<String> topPlayListCategoryNames = [];
-
-  /// 当前排行榜分类名
   RxString curTopPlayListCategoryName = "".obs;
-
-  /// 当前排行榜分类歌单
   RxList<Map<String, String>> curCategoryTopPlayLists =
       <Map<String, String>>[].obs;
-
-  /// 当前排行榜名称
   RxString curTopPlayListName = "".obs;
-
-  /// 当前排行榜ID
   RxString curTopPlayListId = "".obs;
-
-  /// 当前排行榜歌曲
   RxList<MediaItem> curTopPlayListSongs = <MediaItem>[].obs;
-
-  /// 精选歌单
   RxList<PlayList> playLists = <PlayList>[].obs;
 
   RxBool loading = true.obs;
@@ -104,15 +94,16 @@ class ExplorePageController extends GetxController {
     curTopPlayListName.value = curCategoryTopPlayLists[0]["name"]!;
     curTopPlayListId.value = curCategoryTopPlayLists[0]["id"]!;
 
-    NeteaseMusicApi().playlistCatalogue().then((value) {
+    _repository.fetchPlaylistCatalogue().then((value) {
       for (String category in value.categories!.values) {
         tagCategorys.add(category);
-        tags.value[category] = [];
+        tags[category] = <String>[];
       }
       for (PlaylistCatalogueItem catalogueItem in (value.sub ?? [])) {
-        tags.value[tagCategorys[catalogueItem.category!]]
-            ?.add(catalogueItem.name!);
-        print("tags: $tags");
+        final categoryName = tagCategorys[catalogueItem.category!];
+        final categoryTags = List<String>.from(tags[categoryName] ?? const []);
+        categoryTags.add(catalogueItem.name!);
+        tags[categoryName] = categoryTags;
       }
     });
   }
@@ -127,12 +118,11 @@ class ExplorePageController extends GetxController {
   updatePlayLists() async {
     List<PlayList> data;
     MultiPlayListWrap multiPlayListWrap =
-        await NeteaseMusicApi().categorySongList(category: curTag.value);
+        await _repository.fetchCategoryPlaylists(curTag.value);
     data = multiPlayListWrap.playlists ?? [];
     playLists
       ..clear()
       ..addAll(data);
-    // ..addAll(data.length > 6 ? data.sublist(0, 6) : data);
   }
 
   changeCurRankingPlayList(String rankingPlayListid) {

@@ -403,7 +403,4 @@ class AppController extends SuperController
           duration: const Duration(milliseconds: 500), curve: Curves.ease);
     }
   }
-
-  List<MediaItem> song2ToMedia(List<Song2> songs) =>
-      playerController.song2ToMedia(songs);
 }

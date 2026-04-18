@@ -47,6 +47,7 @@
 - 探索页榜单歌曲改为直接通过 `PlaylistRepository` 获取，`AppController` 已移除歌单查询入口
 - 歌单卡片列表已改为直接通过 `PlaylistRepository` 取详情并触发播放，`AppController` 不再保留按歌单 ID 拉取并播放的辅助入口
 - 已清理 `AppController` 中无引用的歌单操作与歌词计时辅助方法，持续收缩总控表面积
+- 搜索面板歌曲结果已直接使用统一 `MediaItemMapper`，`AppController` 不再保留歌曲模型转换代理
 
 ### 进行中
 

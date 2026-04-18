@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
@@ -75,28 +76,42 @@ class MediaItemMapper {
   }) {
     return tracks
         .where((track) => track.id.isNotEmpty)
-        .map((track) => MediaItem(
-              id: track.id,
-              duration: Duration(milliseconds: track.durationMs ?? 0),
-              artUri: Uri.tryParse('${track.artworkUrl ?? ''}?param=200y200'),
-              extras: {
-                'type': _mediaTypeForTrack(track).name,
-                'image': track.artworkUrl ?? '',
-                'url': track.localPath ?? track.remoteUrl ?? '',
-                'liked': likedSongIds.contains(int.tryParse(track.sourceId)),
-                'artist': track.artistNames.join(' / '),
-                'albumTitle': track.albumTitle ?? '',
-                'sourceType': track.sourceType.name,
-                'sourceId': track.sourceId,
-                'localPath': track.localPath ?? '',
-                'availability': track.availability.name,
-                'downloadState': track.downloadState.name,
-                'cache': track.localPath?.isNotEmpty == true,
-              },
-              title: track.title,
-              album: track.albumTitle,
-              artist: track.artistNames.join(' / '),
-            ))
+        .map((track) {
+          final localArtworkPath =
+              track.metadata['localArtworkPath'] as String? ?? '';
+          final localLyricsPath =
+              track.metadata['localLyricsPath'] as String? ?? '';
+          final imageUrl = localArtworkPath.isNotEmpty
+              ? localArtworkPath
+              : track.artworkUrl ?? '';
+          final artUri = localArtworkPath.isNotEmpty
+              ? Uri.file(File(localArtworkPath).path)
+              : Uri.tryParse('${track.artworkUrl ?? ''}?param=200y200');
+          return MediaItem(
+            id: track.id,
+            duration: Duration(milliseconds: track.durationMs ?? 0),
+            artUri: artUri,
+            extras: {
+              'type': _mediaTypeForTrack(track).name,
+              'image': imageUrl,
+              'url': track.localPath ?? track.remoteUrl ?? '',
+              'liked': likedSongIds.contains(int.tryParse(track.sourceId)),
+              'artist': track.artistNames.join(' / '),
+              'albumTitle': track.albumTitle ?? '',
+              'sourceType': track.sourceType.name,
+              'sourceId': track.sourceId,
+              'localPath': track.localPath ?? '',
+              'localArtworkPath': localArtworkPath,
+              'localLyricsPath': localLyricsPath,
+              'availability': track.availability.name,
+              'downloadState': track.downloadState.name,
+              'cache': track.localPath?.isNotEmpty == true,
+            },
+            title: track.title,
+            album: track.albumTitle,
+            artist: track.artistNames.join(' / '),
+          );
+        })
         .toList();
   }
 

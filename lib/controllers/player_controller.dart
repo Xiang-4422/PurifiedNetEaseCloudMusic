@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:bujuan/common/bujuan_audio_handler.dart';
@@ -255,6 +256,13 @@ class PlayerController extends GetxController {
     String songId = curPlayingSong.value.id;
     String lyric = _stateStore.getLyric(songId) ?? '';
     String lyricTran = _stateStore.getTranslatedLyric(songId) ?? '';
+    if (lyric.isEmpty) {
+      final localLyricsPath =
+          curPlayingSong.value.extras?['localLyricsPath'] as String? ?? '';
+      if (localLyricsPath.isNotEmpty && File(localLyricsPath).existsSync()) {
+        lyric = await File(localLyricsPath).readAsString();
+      }
+    }
     if (lyric.isEmpty) {
       final lyrics =
           await _repository.fetchSongLyrics(curPlayingSong.value.id) ??

@@ -1,10 +1,11 @@
+import 'package:bujuan/data/sources/local/local_music_source.dart';
 import 'package:bujuan/data/sources/netease/netease_music_source.dart';
 import 'package:bujuan/domain/sources/music_source.dart';
 import 'package:bujuan/domain/sources/music_source_registry.dart';
 
 class MusicSourceRegistryImpl implements MusicSourceRegistry {
   MusicSourceRegistryImpl({List<MusicSource>? sources})
-      : _sources = sources ?? [NeteaseMusicSource()];
+      : _sources = sources ?? [LocalMusicSource(), NeteaseMusicSource()];
 
   final List<MusicSource> _sources;
 

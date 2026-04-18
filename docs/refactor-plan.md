@@ -171,6 +171,7 @@
 - 单曲搜索已优先命中本地媒体库缓存，再回退远程 source 查询并写回本地，占位验证本地优先搜索路径
 - 搜索面板中的歌单、专辑、歌手结果已接入 `SearchRepository -> LibraryRepository -> MusicSource`
 - 搜索页现有分类视图保持不变，但分类结果已开始摆脱直接依赖网易云搜索 bean
+- 已新增 `LocalMusicSource` 骨架，本地媒体库内容开始具备正式 source 入口
 
 ### 进行中
 
@@ -307,6 +308,7 @@
 - 已新增 `LocalLibraryDataSource` 协议，等待后续 `Isar` 落地时承接本地媒体库实现
 - 已新增 `InMemoryLocalLibraryDataSource`，作为本地数据库接入前的共享过渡实现
 - 顶部搜索面板的单曲结果已不再直接依赖搜索请求组件和网易云歌曲 Bean
+- 已新增 `lib/data/sources/local/local_music_source.dart`，为后续本地扫描和下载入库预留统一 source 落点
 
 ## 8. Phase 4: 本地优先数据层
 

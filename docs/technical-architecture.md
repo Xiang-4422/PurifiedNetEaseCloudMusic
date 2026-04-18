@@ -272,6 +272,7 @@
 - 后续新增源必须优先实现 source 适配层，而不是直接把平台 API 暴露给页面或 controller
 - 本地音乐源将作为下一阶段重点 source，而不是延后到所有远程能力完成之后
 - `LocalMusicSource` 的职责不仅是扫描文件，还包括提供统一 `Track`、本地搜索和可播放地址
+- 在本地扫描真正接入前，`LocalMusicSource` 可以先作为本地媒体库内容的统一读取入口存在
 
 #### Local Library 抽象
 

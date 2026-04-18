@@ -10,5 +10,7 @@ abstract class MusicSource {
 
   Future<String?> getPlaybackUrl(String trackId);
 
+  Future<String?> getLyric(String trackId);
+
   Future<PlaylistEntity?> getPlaylist(String playlistId);
 }

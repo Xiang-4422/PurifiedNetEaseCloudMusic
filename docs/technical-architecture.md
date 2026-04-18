@@ -199,6 +199,11 @@
 - 不要求每个源都支持全部能力
 - 需要允许“部分能力缺失”的实现
 
+当前阶段补充：
+
+- 网易云已经开始通过 `NeteaseMusicSource` 接入统一 source 协议
+- 后续新增源必须优先实现 source 适配层，而不是直接把平台 API 暴露给页面或 controller
+
 #### Local Library 抽象
 
 后续新增并强制落地：

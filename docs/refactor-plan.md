@@ -56,6 +56,7 @@
 - 底部播放面板已直接调用 `UserController` 处理喜欢状态，`AppController` 继续削减纯转发方法
 - 漫游/心动模式与喜欢歌单播放逻辑已下沉到 `PlayerController`，`AppController` 仅保留面板开合与通用播放协调
 - 已建立第一版领域层骨架：`Track`、`PlaylistEntity`、`AlbumEntity`、`ArtistEntity`、`PlaybackQueue` 与 `MusicSource`
+- 已新增第一版 `NeteaseMusicSource`，开始将网易云能力收口到统一音乐源协议下
 
 ### 进行中
 
@@ -186,6 +187,7 @@
 - 已新增统一实体目录 `lib/domain/entities`
 - 已新增 `lib/domain/sources/music_source.dart`
 - 已新增第一版网易云到 `Track` 的映射器，作为后续本地库落地前的过渡桥接
+- 已新增 `lib/data/sources/netease/netease_music_source.dart`，覆盖搜索、单曲、歌词、播放地址和歌单等基础能力
 
 ## 8. Phase 4: 本地优先数据层
 

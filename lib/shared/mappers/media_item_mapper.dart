@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
+import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 
 class MediaItemMapper {
@@ -79,15 +80,33 @@ class MediaItemMapper {
               duration: Duration(milliseconds: track.durationMs ?? 0),
               artUri: Uri.tryParse('${track.artworkUrl ?? ''}?param=200y200'),
               extras: {
-                'type': MediaType.playlist.name,
+                'type': _mediaTypeForTrack(track).name,
                 'image': track.artworkUrl ?? '',
+                'url': track.localPath ?? track.remoteUrl ?? '',
                 'liked': likedSongIds.contains(int.tryParse(track.sourceId)),
                 'artist': track.artistNames.join(' / '),
+                'albumTitle': track.albumTitle ?? '',
+                'sourceType': track.sourceType.name,
+                'sourceId': track.sourceId,
+                'localPath': track.localPath ?? '',
+                'availability': track.availability.name,
+                'downloadState': track.downloadState.name,
+                'cache': track.localPath?.isNotEmpty == true,
               },
               title: track.title,
               album: track.albumTitle,
               artist: track.artistNames.join(' / '),
             ))
         .toList();
+  }
+
+  static MediaType _mediaTypeForTrack(Track track) {
+    if (track.sourceType == SourceType.local) {
+      return MediaType.local;
+    }
+    if (track.localPath?.isNotEmpty == true) {
+      return MediaType.neteaseCache;
+    }
+    return MediaType.playlist;
   }
 }

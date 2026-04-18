@@ -216,7 +216,13 @@ class AudioServiceHandler extends BaseAudioHandler
           .split('?')[0];
       // 如果获取不到URL就跳过
       if (url.isNotEmpty) {
-        await _player.setUrl(url);
+        final localFile = File(url);
+        if (localFile.existsSync()) {
+          newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
+          await _player.setFilePath(url);
+        } else {
+          await _player.setUrl(url);
+        }
       }
     }
     // 根据配置决定是否立即播放

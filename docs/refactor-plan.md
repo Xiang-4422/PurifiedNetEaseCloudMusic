@@ -23,7 +23,7 @@
 | 阶段 | 名称 | 目标 | 状态 |
 | --- | --- | --- | --- |
 | Phase 0 | 文档定案 | 固定技术架构、工程结构和执行计划 | Done |
-| Phase 1 | 基础边界收口 | 停止新债继续扩散，建立 repository 和 mapper 落点 | Planned |
+| Phase 1 | 基础边界收口 | 停止新债继续扩散，建立 repository 和 mapper 落点 | In Progress |
 | Phase 2 | Shell 拆分 | 将 `AppController` 中的壳层状态和业务入口拆开 | Planned |
 | Phase 3 | 内容数据线重构 | 登录、歌单、云盘、搜索的用例逻辑从页面移出 | Planned |
 | Phase 4 | 播放链路重构 | 规范播放器状态、服务层与队列切换逻辑 | Planned |
@@ -39,7 +39,7 @@
 
 ### 进行中
 
-- 无
+- Phase 1
 
 ### 未开始
 
@@ -251,3 +251,11 @@
 - 完成内容：固定技术架构、目标工程结构、分阶段重构计划，并建立正式文档
 - 风险或阻塞：后续需要严格按文档执行，避免边改边漂移
 - 下一步：启动 `Phase 1`，先建立 repository 和 mapper 的落点
+
+#### 2026-04-18
+
+- 阶段：`Phase 1`
+- 状态：`In Progress`
+- 完成内容：新增 cloud repository、统一 MediaItem mapper，并将云盘页面中的 MediaItem 拼装逻辑迁移到 controller/repository 方向
+- 风险或阻塞：当前请求组件仍承担较多请求与分页职责，后续仍需继续收缩
+- 下一步：继续抽离歌单、登录或搜索链路中的页面直调业务逻辑

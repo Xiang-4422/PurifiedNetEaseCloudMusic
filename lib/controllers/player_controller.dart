@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:bujuan/common/bujuan_audio_handler.dart';
@@ -8,7 +7,7 @@ import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
+import 'package:bujuan/shared/mappers/media_item_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
@@ -466,28 +465,9 @@ class PlayerController extends GetxController {
 
   // Helper 方法：Song2 转 MediaItem (可能需要提取到 Util)
   List<MediaItem> song2ToMedia(List<Song2> songs) {
-    return songs
-        .where((e) => e.id.isNotEmpty)
-        .map((e) => MediaItem(
-            id: e.id,
-            duration: Duration(milliseconds: e.dt ?? 0),
-            artUri: Uri.parse('${e.al?.picUrl ?? ''}?param=200y200'),
-            extras: {
-              'type': MediaType.playlist.name,
-              'image': e.al?.picUrl ?? '',
-              'liked':
-                  UserController.to.likedSongIds.contains(int.tryParse(e.id)),
-              'artist': (e.ar ?? [])
-                  .map((e) => jsonEncode(e.toJson()))
-                  .toList()
-                  .join(' / '),
-              'albumId': e.al?.id ?? '',
-              'mv': e.mv,
-              'fee': e.fee
-            },
-            title: e.name ?? "",
-            album: e.al?.name,
-            artist: (e.ar ?? []).map((e) => e.name).toList().join(' / ')))
-        .toList();
+    return MediaItemMapper.fromSong2List(
+      songs,
+      likedSongIds: UserController.to.likedSongIds.toList(),
+    );
   }
 }

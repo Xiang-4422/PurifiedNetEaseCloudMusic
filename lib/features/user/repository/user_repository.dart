@@ -7,9 +7,22 @@ import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/netease_api/src/dio_ext.dart';
 import 'package:bujuan/common/netease_api/src/netease_handler.dart';
+import 'package:bujuan/data/mappers/netease_playlist_mapper.dart';
+import 'package:bujuan/data/mappers/netease_track_mapper.dart';
+import 'package:bujuan/features/library/repository/library_repository.dart';
 import 'package:bujuan/shared/mappers/media_item_mapper.dart';
+import 'package:get_it/get_it.dart';
 
 class UserRepository {
+  UserRepository({LibraryRepository? libraryRepository})
+      : _libraryRepository =
+            libraryRepository ??
+            (GetIt.instance.isRegistered<LibraryRepository>()
+                ? GetIt.instance<LibraryRepository>()
+                : LibraryRepository());
+
+  final LibraryRepository _libraryRepository;
+
   DioMetaData buildUserDetailRequest(String userId) {
     return DioMetaData(
       joinUri('/weapi/v1/user/detail/$userId'),
@@ -29,12 +42,20 @@ class UserRepository {
   }) async {
     final wrap = await NeteaseMusicApi()
         .personalizedPlaylist(offset: offset, limit: limit);
-    return wrap.result ?? [];
+    final playlists = wrap.result ?? [];
+    await _libraryRepository.savePlaylists(
+      NeteasePlaylistMapper.fromPlaylistList(playlists),
+    );
+    return playlists;
   }
 
   Future<List<PlayList>> fetchUserPlaylists(String userId) async {
     final wrap = await NeteaseMusicApi().userPlayLists(userId);
-    return wrap.playlists ?? [];
+    final playlists = wrap.playlists ?? [];
+    await _libraryRepository.savePlaylists(
+      NeteasePlaylistMapper.fromPlaylistList(playlists),
+    );
+    return playlists;
   }
 
   Future<List<MediaItem>> fetchTodayRecommendSongs({
@@ -44,6 +65,9 @@ class UserRepository {
     if (wrap.code != 200) {
       return const [];
     }
+    await _libraryRepository.saveTracks(
+      NeteaseTrackMapper.fromSong2List(wrap.data.dailySongs ?? const []),
+    );
     return MediaItemMapper.fromSong2List(
       wrap.data.dailySongs ?? const [],
       likedSongIds: likedSongIds,
@@ -57,6 +81,9 @@ class UserRepository {
     if (wrap.code != 200) {
       return const [];
     }
+    await _libraryRepository.saveTracks(
+      NeteaseTrackMapper.fromSongList(wrap.data ?? const []),
+    );
 
     return (wrap.data ?? [])
         .map((song) => MediaItem(
@@ -102,6 +129,9 @@ class UserRepository {
         .where((song) => song.songInfo != null && song.songInfo!.id.isNotEmpty)
         .map((song) => song.songInfo!)
         .toList();
+    await _libraryRepository.saveTracks(
+      NeteaseTrackMapper.fromSong2List(validSongs),
+    );
     return MediaItemMapper.fromSong2List(
       validSongs,
       likedSongIds: likedSongIds,
@@ -124,6 +154,9 @@ class UserRepository {
           likedSongIds: likedSongIds,
         ),
       );
+      await _libraryRepository.saveTracks(
+        NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []),
+      );
       loadedSongCount = songs.length;
     }
     return songs;
@@ -135,6 +168,9 @@ class UserRepository {
     if (songs.isEmpty) {
       return '';
     }
+    await _libraryRepository.saveTracks(
+      NeteaseTrackMapper.fromSong2List(songs),
+    );
 
     final mediaItems = MediaItemMapper.fromSong2List(
       songs,

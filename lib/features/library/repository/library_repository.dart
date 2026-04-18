@@ -42,6 +42,14 @@ class LibraryRepository {
     await _localDataSource?.savePlaylists(playlists);
   }
 
+  Future<void> saveAlbums(List<AlbumEntity> albums) async {
+    await _localDataSource?.saveAlbums(albums);
+  }
+
+  Future<void> saveArtists(List<ArtistEntity> artists) async {
+    await _localDataSource?.saveArtists(artists);
+  }
+
   Future<List<Track>> searchTracks({
     required String sourceKey,
     required String keyword,

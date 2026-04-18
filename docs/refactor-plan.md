@@ -50,6 +50,7 @@
 - 搜索面板歌曲结果已直接使用统一 `MediaItemMapper`，`AppController` 不再保留歌曲模型转换代理
 - 已删除 `PlayerController` 中无引用的歌曲映射辅助，统一以共享 mapper 为准
 - 用户资料页已直接调用 `UserController` 注销登录，`AppController` 继续移除单点代理方法
+- 底部播放面板已直接调用 `UserController` 处理喜欢状态，`AppController` 继续削减纯转发方法
 
 ### 进行中
 

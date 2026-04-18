@@ -311,8 +311,6 @@ class AppController extends SuperController
 
   playOrPause() => playerController.playOrPause();
 
-  toggleLikeStatus() => userController.toggleLikeStatus(curPlayingSong.value);
-
   playNewPlayList(List<MediaItem> playList, int index,
       {String playListName = "无名歌单", String playListNameHeader = ""}) async {
     if (isFmMode.isTrue) quitFmMode();

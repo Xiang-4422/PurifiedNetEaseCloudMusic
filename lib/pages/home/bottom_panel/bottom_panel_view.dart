@@ -7,6 +7,7 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/common_widget.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/controllers/user_controller.dart';
 import 'package:bujuan/pages/home/bottom_panel/lyric_view.dart';
 import 'package:bujuan/pages/talk/comment_widget.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
@@ -15,15 +16,12 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-import 'package:marquee/marquee.dart';
 
 import '../../../common/constants/appConstants.dart';
 import '../../../common/netease_api/src/api/play/bean.dart';
 import '../../../widget/simple_extended_image.dart';
 import '../../../widget/swipeable.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
-
-import '../../play_list/playlist_page_view.dart';
 
 class BottomPanelView extends GetView<AppController> {
   const BottomPanelView({Key? key}) : super(key: key);
@@ -854,7 +852,8 @@ class BottomPanelView extends GetView<AppController> {
         children: [
           // 喜欢按钮
           _buildButtonBackground(GestureDetector(
-              onTap: () => controller.toggleLikeStatus(),
+              onTap: () => UserController.to
+                  .toggleLikeStatus(controller.curPlayingSong.value),
               child: Obx(() => Icon(
                   controller.likedSongIds.contains(
                           int.tryParse(controller.curPlayingSong.value.id))

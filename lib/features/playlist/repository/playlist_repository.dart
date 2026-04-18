@@ -20,6 +20,52 @@ class PlaylistDetailData {
 }
 
 class PlaylistRepository {
+  Future<SinglePlayListWrap> fetchPlaylistWrap(String playlistId) {
+    return NeteaseMusicApi().playListDetail(playlistId);
+  }
+
+  Future<List<MediaItem>> fetchPlaylistSongs({
+    required String playlistId,
+    required List<int> likedSongIds,
+    int offset = 0,
+    int limit = -1,
+    SinglePlayListWrap? playlistWrap,
+  }) async {
+    playlistWrap ??= await fetchPlaylistWrap(playlistId);
+    final songIds =
+        playlistWrap.playlist?.trackIds?.map((track) => track.id).toList() ??
+            [];
+
+    if (offset >= songIds.length) {
+      return const [];
+    }
+
+    final targetIds = songIds.sublist(offset);
+    final fetchCount =
+        limit == -1 || targetIds.length < limit ? targetIds.length : limit;
+    final resolvedIds = targetIds.take(fetchCount).toList();
+
+    final songs = <MediaItem>[];
+    var loadedSongCount = 0;
+    while (loadedSongCount < resolvedIds.length) {
+      final wrap = await NeteaseMusicApi().songDetail(
+        resolvedIds.sublist(
+          loadedSongCount,
+          min(loadedSongCount + 1000, resolvedIds.length),
+        ),
+      );
+      songs.addAll(
+        MediaItemMapper.fromSong2List(
+          wrap.songs ?? const [],
+          likedSongIds: likedSongIds,
+        ),
+      );
+      loadedSongCount = songs.length;
+    }
+
+    return songs;
+  }
+
   Future<List<MediaItem>?> loadCachedSongs(String playlistId) async {
     final cachedSongs = CacheBox.instance
         .get(_songsCacheKey(playlistId))
@@ -35,31 +81,19 @@ class PlaylistRepository {
     required List<int> likedSongIds,
     required String? currentUserId,
   }) async {
-    final details = await NeteaseMusicApi().playListDetail(playlistId);
-    final ids =
-        details.playlist?.trackIds?.map((track) => track.id).toList() ?? [];
+    final details = await fetchPlaylistWrap(playlistId);
+    final remoteSongs = await fetchPlaylistSongs(
+      playlistId: playlistId,
+      likedSongIds: likedSongIds,
+      playlistWrap: details,
+    );
 
-    if (ids.isEmpty) {
+    if (remoteSongs.isEmpty) {
       return PlaylistDetailData(
         songs: const [],
         isSubscribed: details.playlist?.subscribed ?? false,
         isMyPlayList: details.playlist?.creator?.userId == currentUserId,
       );
-    }
-
-    final remoteSongs = <MediaItem>[];
-    var loadedSongCount = 0;
-    while (loadedSongCount < ids.length) {
-      final wrap = await NeteaseMusicApi().songDetail(
-        ids.sublist(loadedSongCount, min(loadedSongCount + 1000, ids.length)),
-      );
-      remoteSongs.addAll(
-        MediaItemMapper.fromSong2List(
-          wrap.songs ?? const [],
-          likedSongIds: likedSongIds,
-        ),
-      );
-      loadedSongCount = remoteSongs.length;
     }
 
     await CacheBox.instance.put(

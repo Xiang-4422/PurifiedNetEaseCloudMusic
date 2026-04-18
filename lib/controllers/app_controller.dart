@@ -1,14 +1,12 @@
 import 'dart:async';
-import 'dart:math';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/controllers/player_controller.dart';
 import 'package:bujuan/controllers/settings_controller.dart';
 import 'package:bujuan/controllers/user_controller.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
+import 'package:bujuan/features/playlist/repository/playlist_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -27,6 +25,7 @@ import '../widget/custom_zoom_drawer/src/drawer_controller.dart';
 class AppController extends SuperController
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
   static AppController get to => Get.find();
+  final PlaylistRepository _playlistRepository = PlaylistRepository();
 
   // --- 注入新的 Controllers ---
   late final SettingsController settingsController;
@@ -416,7 +415,6 @@ class AppController extends SuperController
   /// 喜欢歌曲
   toggleLikeStatus() => userController.toggleLikeStatus(curPlayingSong.value);
 
-  /// 根据下标播放歌曲
   playNewPlayList(List<MediaItem> playList, int index,
       {String playListName = "无名歌单", String playListNameHeader = ""}) async {
     if (isFmMode.isTrue) quitFmMode();
@@ -431,7 +429,7 @@ class AppController extends SuperController
 
   playNewPlayListById(String playListId) async {
     SinglePlayListWrap details =
-        await NeteaseMusicApi().playListDetail(playListId);
+        await _playlistRepository.fetchPlaylistWrap(playListId);
     List<MediaItem> songs =
         await getPlayListSongs("", singlePlayListWrap: details);
     playNewPlayList(songs, 0,
@@ -443,23 +441,13 @@ class AppController extends SuperController
       {SinglePlayListWrap? singlePlayListWrap,
       int offset = 0,
       int limit = -1}) async {
-    // 获取歌曲id
-    singlePlayListWrap ??= await NeteaseMusicApi().playListDetail(playListId);
-    List<String> songIds =
-        singlePlayListWrap.playlist?.trackIds?.map((e) => e.id).toList() ?? [];
-
-    songIds.removeRange(0, offset);
-    limit = limit == -1 || songIds.length < limit ? songIds.length : limit;
-
-    List<MediaItem> songs = [];
-    int loadedMediaItemCount = 0;
-    while (loadedMediaItemCount < limit) {
-      SongDetailWrap songDetailWrap = await NeteaseMusicApi()
-          .songDetail(songIds.sublist(0, min(1000, limit)));
-      songs.addAll(playerController.song2ToMedia(songDetailWrap.songs ?? []));
-      loadedMediaItemCount = songs.length;
-    }
-    return songs;
+    return _playlistRepository.fetchPlaylistSongs(
+      playlistId: playListId,
+      likedSongIds: likedSongIds.toList(),
+      offset: offset,
+      limit: limit,
+      playlistWrap: singlePlayListWrap,
+    );
   }
 
   playUserLikedSongs() async {
@@ -481,34 +469,27 @@ class AppController extends SuperController
         playNow: false);
   }
 
-  /// 添加/删除歌曲到指定的歌单
   addOrDelSongToPlaylist(String playlistId, String songId, bool add) async {
     NeteaseMusicApi().playlistManipulateTracks(playlistId, songId, add);
   }
 
-  /// 改变panel位置
   onBottomPanelSlide(double openDegree) {
     bottomPanelAnimationController.value = openDegree;
 
-    // 如果当前的状态改变
     if (bottomPanelFullyClosed.value != (openDegree == 0.0)) {
-      // 更新状态
       bottomPanelFullyClosed.value = (openDegree == 0.0);
     }
     if (bottomPanelOpened50.value != (openDegree > 0.5)) {
       bottomPanelOpened50.value = openDegree > 0.5;
     }
     if (bottomPanelFullyOpened.value != (openDegree == 1.0)) {
-      // 更新状态
       bottomPanelFullyOpened.value = (openDegree == 1.0);
-      // 打开Panel时在正在播放列表页，滚动到当前播放
       if (curPanelPageIndex.value == 0) {
         _animatePlayListToCurSong();
       }
     }
   }
 
-  /// 改变panel位置
   onTopPanelSlide(double openDegree) {
     topPanelAnimationController.value = openDegree;
 
@@ -525,7 +506,6 @@ class AppController extends SuperController
     }
   }
 
-  /// 当按下返回键
   onWillPop() {
     if (topPanelController.isPanelOpen) {
       topPanelController.close();
@@ -574,10 +554,8 @@ class AppController extends SuperController
 
   cancelFullScreenLyricTimerCounter() {}
 
-  // 动画控制：滚动到当前歌曲
   _animatePlayListToCurSong() {
     if (playListScrollController.hasClients) {
-      // 假设 itemExtent 为 55
       double offset = curPlayIndex.value * 55.0;
       playListScrollController.animateTo(offset,
           duration: const Duration(milliseconds: 500), curve: Curves.ease);
@@ -589,7 +567,6 @@ class AppController extends SuperController
   _animateAlbumPageViewToCurSong() {
     if (albumPageController.hasClients) {
       if (isAlbumScrollingManully) return;
-      // 使用更精准的判断，避免在 PageView 自动吸附过程中产生的微小差异引起冲突
       double currentPage = albumPageController.page ?? 0;
       if ((currentPage - curPlayIndex.value).abs() < 0.01) return;
 
@@ -599,11 +576,6 @@ class AppController extends SuperController
     }
   }
 
-  _animateLyricToCurLyric() {
-    // 通过监听实现，见 onInit
-  }
-
-  // 保持兼容性：提供 song2ToMedia 作为中转，或者让调用方直接用 PlayerController
   List<MediaItem> song2ToMedia(List<Song2> songs) =>
       playerController.song2ToMedia(songs);
 }

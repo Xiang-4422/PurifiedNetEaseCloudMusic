@@ -116,5 +116,13 @@ class PlaylistRepository {
         .subscribePlayList(playlistId, subscribe: subscribe);
   }
 
+  Future<ServerStatusBean> manipulateTracks(
+    String playlistId,
+    String songId, {
+    required bool add,
+  }) {
+    return NeteaseMusicApi().playlistManipulateTracks(playlistId, songId, add);
+  }
+
   String _songsCacheKey(String playlistId) => 'PLAYLIST_SONGS_$playlistId';
 }

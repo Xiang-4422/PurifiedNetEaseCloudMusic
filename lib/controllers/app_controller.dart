@@ -470,7 +470,7 @@ class AppController extends SuperController
   }
 
   addOrDelSongToPlaylist(String playlistId, String songId, bool add) async {
-    NeteaseMusicApi().playlistManipulateTracks(playlistId, songId, add);
+    _playlistRepository.manipulateTracks(playlistId, songId, add: add);
   }
 
   onBottomPanelSlide(double openDegree) {

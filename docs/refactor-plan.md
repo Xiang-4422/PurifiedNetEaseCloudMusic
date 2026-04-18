@@ -172,6 +172,8 @@
 - 搜索面板中的歌单、专辑、歌手结果已接入 `SearchRepository -> LibraryRepository -> MusicSource`
 - 搜索页现有分类视图保持不变，但分类结果已开始摆脱直接依赖网易云搜索 bean
 - 已新增 `LocalMusicSource` 骨架，本地媒体库内容开始具备正式 source 入口
+- 已新增 `PlaybackStateStore`，播放器状态与歌词缓存开始摆脱散落的 `Hive Box` 直连访问
+- 已新增 `AppDatabase` 抽象与待接入实现，先固定本地数据库的启动与依赖入口
 
 ### 进行中
 
@@ -309,6 +311,8 @@
 - 已新增 `InMemoryLocalLibraryDataSource`，作为本地数据库接入前的共享过渡实现
 - 顶部搜索面板的单曲结果已不再直接依赖搜索请求组件和网易云歌曲 Bean
 - 已新增 `lib/data/sources/local/local_music_source.dart`，为后续本地扫描和下载入库预留统一 source 落点
+- 已新增 `lib/features/playback/repository/playback_state_store.dart`，为后续播放状态迁移和本地库接管预留统一存储入口
+- 已新增 `lib/core/database/app_database.dart` 与 `lib/core/database/pending_app_database.dart`，为正式数据库接入预留启动骨架
 
 ## 8. Phase 4: 本地优先数据层
 

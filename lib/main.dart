@@ -1,6 +1,8 @@
-
 import 'package:bujuan/controllers/app_controller.dart';
 import 'package:bujuan/app_router.dart';
+import 'package:bujuan/core/database/app_database.dart';
+import 'package:bujuan/core/database/local_database_config.dart';
+import 'package:bujuan/core/database/pending_app_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +16,6 @@ import 'controllers/explore_page_controller.dart';
 
 /// 应用启动入口
 main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
   // 启用显示 widget 尺寸和边界
   debugPaintSizeEnabled = false;
@@ -33,13 +34,13 @@ main() async {
 Future<void> _initUI() async {
   // 应用全屏（UI延伸到状态栏和导航栏下）
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      // 状态栏透明
-      statusBarColor: Colors.transparent,
-      // 底部导航栏透明
-      systemNavigationBarColor: Colors.transparent,
-      // 关闭底部导航栏的阴影
-      systemNavigationBarContrastEnforced: false,
-    ));
+    // 状态栏透明
+    statusBarColor: Colors.transparent,
+    // 底部导航栏透明
+    systemNavigationBarColor: Colors.transparent,
+    // 关闭底部导航栏的阴影
+    systemNavigationBarContrastEnforced: false,
+  ));
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   // 高刷
   await FlutterDisplayMode.setHighRefreshRate();
@@ -47,6 +48,10 @@ Future<void> _initUI() async {
 
 Future<void> _initSingleton() async {
   final getIt = GetIt.instance;
+  final appDatabase =
+      PendingAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
+  await appDatabase.init();
+  getIt.registerSingleton<AppDatabase>(appDatabase);
   // 初始化Hive本地存储
   await Hive.initFlutter('BuJuan');
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));

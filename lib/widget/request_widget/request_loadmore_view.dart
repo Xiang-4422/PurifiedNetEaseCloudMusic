@@ -1,3 +1,5 @@
+import 'package:bujuan/common/netease_api/src/dio_ext.dart';
+import 'package:bujuan/core/network/request_repository.dart';
 import 'package:bujuan/generated/json/base/json_convert_content.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:dio/dio.dart';
@@ -5,8 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-
-import '../../common/netease_api/src/dio_ext.dart';
 
 typedef RequestChildBuilder<T> = Widget Function(List<T> data);
 typedef OnData<T> = Function(T data);
@@ -38,10 +38,13 @@ class RequestLoadMoreWidget<E, T> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<RequestLoadMoreWidget> createState() => RequestLoadMoreWidgetState<E, T>();
+  State<RequestLoadMoreWidget> createState() =>
+      RequestLoadMoreWidgetState<E, T>();
 }
 
-class RequestLoadMoreWidgetState<E, T> extends State<RequestLoadMoreWidget<E, T>> with RefreshState {
+class RequestLoadMoreWidgetState<E, T>
+    extends State<RequestLoadMoreWidget<E, T>> with RefreshState {
+  final RequestRepository _repository = RequestRepository();
   bool _loading = true;
   bool _error = false;
   bool _empty = false;
@@ -54,14 +57,13 @@ class RequestLoadMoreWidgetState<E, T> extends State<RequestLoadMoreWidget<E, T>
   Map<String, dynamic>? map;
 
   @override
-  initState() {
+  void initState() {
     dioMetaData = widget.dioMetaData;
     if (widget.isPageNmu) pageNum = 1;
     super.initState();
     _bindController();
   }
 
-  // 绑定Controller
   void _bindController() {
     widget.refreshController?.bindEasyRefreshState(this);
   }
@@ -79,7 +81,7 @@ class RequestLoadMoreWidgetState<E, T> extends State<RequestLoadMoreWidget<E, T>
     if (_loading) return const LoadingView();
     if (_empty) return const EmptyView();
     if (_error) return const ErrorView();
-    return  SmartRefresher(
+    return SmartRefresher(
       physics: const ClampingScrollPhysics(),
       enablePullUp: widget.enableLoad,
       enablePullDown: false,
@@ -91,13 +93,15 @@ class RequestLoadMoreWidgetState<E, T> extends State<RequestLoadMoreWidget<E, T>
         ),
         complete: RichText(
             text: TextSpan(children: [
-              const WidgetSpan(
-                  child: Padding(
-                    padding: EdgeInsets.only(right: 16),
-                    child: Icon(TablerIcons.mood_unamused),
-                  )),
-              TextSpan(text: '呼～  搞定', style: TextStyle(color: Theme.of(context).iconTheme.color))
-            ])),
+          const WidgetSpan(
+              child: Padding(
+            padding: EdgeInsets.only(right: 16),
+            child: Icon(TablerIcons.mood_unamused),
+          )),
+          TextSpan(
+              text: '呼～  搞定',
+              style: TextStyle(color: Theme.of(context).iconTheme.color))
+        ])),
         idleIcon: Icon(
           TablerIcons.refresh,
           size: 15,
@@ -139,8 +143,9 @@ class RequestLoadMoreWidgetState<E, T> extends State<RequestLoadMoreWidget<E, T>
   }
 
   @override
-  callRefresh() {
-    Https.dioProxy.postUri(dioMetaData!, cancelToken: cancelToken).then((Response value) {
+  void callRefresh() {
+    _repository.post(dioMetaData!, cancelToken: cancelToken).then(
+        (Response value) {
       int code = value.data['code'];
       if (widget.listKey.length == 2) {
         map = value.data[widget.listKey.first];
@@ -159,7 +164,8 @@ class RequestLoadMoreWidgetState<E, T> extends State<RequestLoadMoreWidget<E, T>
         if (pageNum == (widget.isPageNmu ? 1 : 0)) list.clear();
         var listData = (mapData as List);
         setState(() {
-          list.addAll(listData.map((e) => JsonConvert.fromJsonAsT<T>(e) as T).toList());
+          list.addAll(
+              listData.map((e) => JsonConvert.fromJsonAsT<T>(e) as T).toList());
           _empty = list.isEmpty;
         });
         if (pageNum == (widget.isPageNmu ? 1 : 0)) {
@@ -176,17 +182,16 @@ class RequestLoadMoreWidgetState<E, T> extends State<RequestLoadMoreWidget<E, T>
         setState(() {});
       }
     }, onError: (e) {
-      if (mounted) {
-        setState(() {
-          _loading = false;
-          _error = true;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = true;
+      });
     });
   }
 
   @override
-  setParams(DioMetaData params) {
+  void setParams(DioMetaData params) {
     setState(() {
       _loading = true;
       _error = false;
@@ -198,33 +203,29 @@ class RequestLoadMoreWidgetState<E, T> extends State<RequestLoadMoreWidget<E, T>
 }
 
 mixin RefreshState {
-  initState() {
+  void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       callRefresh();
     });
   }
 
-  setParams(DioMetaData params);
+  void setParams(DioMetaData params);
 
-  callRefresh();
+  void callRefresh();
 }
 
 class RequestRefreshController {
-  /// 更新入参并刷新
   void callRefreshWithParams(DioMetaData params) {
     _requestBoxState?.setParams(params);
     _requestBoxState?.callRefresh();
   }
 
-  /// 触发刷新
   void callRefresh() {
     _requestBoxState?.callRefresh();
   }
 
-  // 状态
   RefreshState? _requestBoxState;
 
-  // 绑定状态
   void bindEasyRefreshState(RefreshState state) {
     _requestBoxState = state;
   }

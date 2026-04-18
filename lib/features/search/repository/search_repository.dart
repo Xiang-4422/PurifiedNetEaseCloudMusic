@@ -49,16 +49,17 @@ class SearchRepository {
     required List<int> likedSongIds,
   }) async {
     final localTracks = await _libraryRepository.searchLocalTracks(keyword);
-    if (localTracks.isNotEmpty) {
+    if (_libraryRepository.isOfflineModeEnabled) {
       return MediaItemMapper.fromTrackList(
         localTracks,
         likedSongIds: likedSongIds,
       );
     }
-    final tracks = await _libraryRepository.searchTracks(
+    final remoteTracks = await _libraryRepository.searchTracks(
       sourceKey: 'netease',
       keyword: keyword,
     );
+    final tracks = _mergeById(localTracks, remoteTracks, (track) => track.id);
     return MediaItemMapper.fromTrackList(
       tracks,
       likedSongIds: likedSongIds,
@@ -69,34 +70,56 @@ class SearchRepository {
     final localPlaylists = await _libraryRepository.searchLocalPlaylists(
       keyword,
     );
-    if (localPlaylists.isNotEmpty) {
+    if (_libraryRepository.isOfflineModeEnabled) {
       return localPlaylists;
     }
-    return _libraryRepository.searchPlaylists(
+    final remotePlaylists = await _libraryRepository.searchPlaylists(
       sourceKey: 'netease',
       keyword: keyword,
+    );
+    return _mergeById(
+      localPlaylists,
+      remotePlaylists,
+      (playlist) => playlist.id,
     );
   }
 
   Future<List<AlbumEntity>> searchAlbums(String keyword) async {
     final localAlbums = await _libraryRepository.searchLocalAlbums(keyword);
-    if (localAlbums.isNotEmpty) {
+    if (_libraryRepository.isOfflineModeEnabled) {
       return localAlbums;
     }
-    return _libraryRepository.searchAlbums(
+    final remoteAlbums = await _libraryRepository.searchAlbums(
       sourceKey: 'netease',
       keyword: keyword,
     );
+    return _mergeById(localAlbums, remoteAlbums, (album) => album.id);
   }
 
   Future<List<ArtistEntity>> searchArtists(String keyword) async {
     final localArtists = await _libraryRepository.searchLocalArtists(keyword);
-    if (localArtists.isNotEmpty) {
+    if (_libraryRepository.isOfflineModeEnabled) {
       return localArtists;
     }
-    return _libraryRepository.searchArtists(
+    final remoteArtists = await _libraryRepository.searchArtists(
       sourceKey: 'netease',
       keyword: keyword,
     );
+    return _mergeById(localArtists, remoteArtists, (artist) => artist.id);
+  }
+
+  List<T> _mergeById<T>(
+    List<T> localItems,
+    List<T> remoteItems,
+    String Function(T item) idOf,
+  ) {
+    final merged = <T>[];
+    final seenIds = <String>{};
+    for (final item in [...localItems, ...remoteItems]) {
+      if (seenIds.add(idOf(item))) {
+        merged.add(item);
+      }
+    }
+    return merged;
   }
 }

@@ -1,9 +1,14 @@
 import 'package:bujuan/features/library/repository/library_repository.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
+import 'package:get_it/get_it.dart';
 
 class PlaybackRepository {
   PlaybackRepository({LibraryRepository? libraryRepository})
-      : _libraryRepository = libraryRepository ?? LibraryRepository();
+      : _libraryRepository =
+            libraryRepository ??
+            (GetIt.instance.isRegistered<LibraryRepository>()
+                ? GetIt.instance<LibraryRepository>()
+                : LibraryRepository());
 
   final LibraryRepository _libraryRepository;
 

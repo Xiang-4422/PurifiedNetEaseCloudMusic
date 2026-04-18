@@ -6,11 +6,15 @@ import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/sources/music_source.dart';
+import 'package:get_it/get_it.dart';
 
 class LocalMusicSource implements MusicSource {
   LocalMusicSource({LocalLibraryDataSource? localDataSource})
       : _localDataSource =
-            localDataSource ?? InMemoryLocalLibraryDataSource.shared;
+            localDataSource ??
+            (GetIt.instance.isRegistered<LocalLibraryDataSource>()
+                ? GetIt.instance<LocalLibraryDataSource>()
+                : InMemoryLocalLibraryDataSource.shared);
 
   final LocalLibraryDataSource _localDataSource;
 

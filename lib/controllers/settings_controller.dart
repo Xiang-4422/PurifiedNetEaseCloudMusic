@@ -1,5 +1,6 @@
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
+import 'package:bujuan/features/library/repository/library_preference_store.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -8,11 +9,14 @@ class SettingsController extends GetxController {
   static SettingsController get to => Get.find();
 
   final Box box = CacheBox.instance;
+  final LibraryPreferenceStore _libraryPreferenceStore =
+      const LibraryPreferenceStore();
 
   RxBool isGradientBackground = false.obs;
   RxBool isRoundAlbumOpen = false.obs;
   RxBool isCacheOpen = false.obs;
   RxBool isHighSoundQualityOpen = false.obs;
+  RxBool isOfflineModeEnabled = false.obs;
   Rx<Color> albumColor = Colors.white.obs;
   Rx<Color> panelWidgetColor = Colors.white.obs;
 
@@ -28,6 +32,7 @@ class SettingsController extends GetxController {
         box.get(gradientBackgroundSp, defaultValue: true);
     isHighSoundQualityOpen.value = box.get(highSong, defaultValue: false);
     isRoundAlbumOpen.value = box.get(roundAlbumSp, defaultValue: false);
+    isOfflineModeEnabled.value = _libraryPreferenceStore.isOfflineModeEnabled;
   }
 
   Future<void> toggleGradientBackground() async {
@@ -56,6 +61,12 @@ class SettingsController extends GetxController {
       target: isCacheOpen,
       key: cacheSp,
     );
+  }
+
+  Future<void> toggleOfflineMode() async {
+    final nextValue = !isOfflineModeEnabled.value;
+    isOfflineModeEnabled.value = nextValue;
+    await _libraryPreferenceStore.saveOfflineMode(nextValue);
   }
 
   Future<void> updateLoginStatus(bool value) async {

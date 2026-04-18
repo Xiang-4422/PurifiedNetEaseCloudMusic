@@ -7,22 +7,40 @@ import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/sources/music_source_registry.dart';
+import 'package:get_it/get_it.dart';
+
+import 'library_preference_store.dart';
 
 class LibraryRepository {
   LibraryRepository({
     LocalLibraryDataSource? localDataSource,
     MusicSourceRegistry? sourceRegistry,
+    LibraryPreferenceStore? preferenceStore,
   })  : _localDataSource =
-            localDataSource ?? InMemoryLocalLibraryDataSource.shared,
-        _sourceRegistry = sourceRegistry ?? MusicSourceRegistryImpl();
+            localDataSource ??
+            (GetIt.instance.isRegistered<LocalLibraryDataSource>()
+                ? GetIt.instance<LocalLibraryDataSource>()
+                : InMemoryLocalLibraryDataSource.shared),
+        _sourceRegistry =
+            sourceRegistry ??
+            (GetIt.instance.isRegistered<MusicSourceRegistry>()
+                ? GetIt.instance<MusicSourceRegistry>()
+                : MusicSourceRegistryImpl()),
+        _preferenceStore = preferenceStore ?? const LibraryPreferenceStore();
 
   final LocalLibraryDataSource? _localDataSource;
   final MusicSourceRegistry _sourceRegistry;
+  final LibraryPreferenceStore _preferenceStore;
+
+  bool get isOfflineModeEnabled => _preferenceStore.isOfflineModeEnabled;
 
   Future<List<Track>> searchTracks({
     required String sourceKey,
     required String keyword,
   }) async {
+    if (isOfflineModeEnabled) {
+      return searchLocalTracks(keyword);
+    }
     final source = _sourceRegistry.getBySourceKey(sourceKey);
     if (source == null) {
       return const [];
@@ -44,6 +62,9 @@ class LibraryRepository {
     required String sourceKey,
     required String keyword,
   }) async {
+    if (isOfflineModeEnabled) {
+      return searchLocalPlaylists(keyword);
+    }
     final source = _sourceRegistry.getBySourceKey(sourceKey);
     if (source == null) {
       return const [];
@@ -65,6 +86,9 @@ class LibraryRepository {
     required String sourceKey,
     required String keyword,
   }) async {
+    if (isOfflineModeEnabled) {
+      return searchLocalAlbums(keyword);
+    }
     final source = _sourceRegistry.getBySourceKey(sourceKey);
     if (source == null) {
       return const [];
@@ -86,6 +110,9 @@ class LibraryRepository {
     required String sourceKey,
     required String keyword,
   }) async {
+    if (isOfflineModeEnabled) {
+      return searchLocalArtists(keyword);
+    }
     final source = _sourceRegistry.getBySourceKey(sourceKey);
     if (source == null) {
       return const [];
@@ -108,6 +135,9 @@ class LibraryRepository {
     if (localTrack != null) {
       return localTrack;
     }
+    if (isOfflineModeEnabled) {
+      return null;
+    }
     final source = _sourceRegistry.getByTrackId(trackId);
     if (source == null) {
       return null;
@@ -124,6 +154,9 @@ class LibraryRepository {
     if (source == null) {
       return null;
     }
+    if (isOfflineModeEnabled && source.sourceKey != 'local') {
+      return null;
+    }
     return source.getPlaybackUrl(trackId);
   }
 
@@ -135,6 +168,9 @@ class LibraryRepository {
     if (source == null) {
       return null;
     }
+    if (isOfflineModeEnabled && source.sourceKey != 'local') {
+      return null;
+    }
     return source.getPlaybackUrl(trackId, qualityLevel: qualityLevel);
   }
 
@@ -142,6 +178,9 @@ class LibraryRepository {
     final localLyrics = await _localDataSource?.getLyrics(trackId);
     if (localLyrics != null) {
       return localLyrics;
+    }
+    if (isOfflineModeEnabled) {
+      return null;
     }
     final source = _sourceRegistry.getByTrackId(trackId);
     if (source == null) {
@@ -158,6 +197,9 @@ class LibraryRepository {
     final localPlaylist = await _localDataSource?.getPlaylist(playlistId);
     if (localPlaylist != null) {
       return localPlaylist;
+    }
+    if (isOfflineModeEnabled) {
+      return null;
     }
     final source = _sourceRegistry.getByPlaylistId(playlistId);
     if (source == null) {

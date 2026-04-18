@@ -10,6 +10,7 @@ String topLyricSp = 'TOP_LYRIC';
 String highSong = 'HIGH_SONG';
 String fmSp = 'FM_SP';
 String heartBeatSp = 'HEART_BEAT_SP';
+String offlineModeSp = 'OFFLINE_MODE';
 String noFirstOpen = 'NO_FIRST_OPEN';
 String isLoginSP = 'IS_LOGIN';
 String repeatModeSp = 'REPEAT_MODE';

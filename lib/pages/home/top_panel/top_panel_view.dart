@@ -87,23 +87,29 @@ class TopPanelView extends GetView<AppController> {
                           )),
                       child: _buildTopPanelCard(
                           context,
-                          RequestWidget<SearchKeyWrapX>(
-                              dioMetaData: _repository.buildHotKeywordRequest(),
-                              childBuilder: (data) => ListView(
-                                    padding: EdgeInsets.zero,
-                                    children: data.result.hots
-                                        .map((e) => UniversalListTile(
-                                              titleString: e.first ?? '',
-                                              onTap: () {
-                                                controller.searchFocusNode
-                                                    .unfocus();
-                                                controller
-                                                    .searchTextEditingController
-                                                    .text = e.first ?? '';
-                                              },
-                                            ))
-                                        .toList(),
-                                  ))).marginOnly(
+                          Obx(
+                            () => controller.isOfflineModeEnabled.value
+                                ? _buildOfflineSearchHint(context)
+                                : RequestWidget<SearchKeyWrapX>(
+                                    dioMetaData:
+                                        _repository.buildHotKeywordRequest(),
+                                    childBuilder: (data) => ListView(
+                                      padding: EdgeInsets.zero,
+                                      children: data.result.hots
+                                          .map((e) => UniversalListTile(
+                                                titleString: e.first ?? '',
+                                                onTap: () {
+                                                  controller.searchFocusNode
+                                                      .unfocus();
+                                                  controller
+                                                      .searchTextEditingController
+                                                      .text = e.first ?? '';
+                                                },
+                                              ))
+                                          .toList(),
+                                    ),
+                                  ),
+                          )).marginOnly(
                           top: AppDimensions.paddingSmall),
                     )),
               ),
@@ -236,6 +242,19 @@ class TopPanelView extends GetView<AppController> {
       padding:
           const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
       child: child,
+    );
+  }
+
+  Widget _buildOfflineSearchHint(BuildContext context) {
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        UniversalListTile(
+          titleString: '离线模式已开启',
+          subTitleString: '当前仅搜索本地已经存在的歌曲、歌单、专辑和歌手',
+          onTap: () {},
+        ),
+      ],
     );
   }
 

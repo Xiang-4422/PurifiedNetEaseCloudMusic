@@ -6,10 +6,15 @@ import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/library/repository/library_repository.dart';
 import 'package:bujuan/shared/mappers/media_item_mapper.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:get_it/get_it.dart';
 
 class SearchRepository {
   SearchRepository({LibraryRepository? libraryRepository})
-      : _libraryRepository = libraryRepository ?? LibraryRepository();
+      : _libraryRepository =
+            libraryRepository ??
+            (GetIt.instance.isRegistered<LibraryRepository>()
+                ? GetIt.instance<LibraryRepository>()
+                : LibraryRepository());
 
   final LibraryRepository _libraryRepository;
 

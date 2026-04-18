@@ -138,6 +138,32 @@ class _SettingPageViewState extends State<SettingPageView> {
             AppController.to.settingsController.toggleCacheOpen();
           },
         ),
+        ListTile(
+          contentPadding: const EdgeInsets.all(0),
+          title: const Text(
+            '离线模式',
+            style: TextStyle(fontSize: 30),
+          ),
+          subtitle: Text(
+            '仅使用本地已存在的数据与资源',
+            style: TextStyle(
+              fontSize: 18,
+              color: Theme.of(context).cardColor.withValues(alpha: .5),
+            ),
+          ),
+          trailing: Obx(() => Icon(
+                AppController.to.isOfflineModeEnabled.value
+                    ? TablerIcons.toggle_right
+                    : TablerIcons.toggle_left,
+                size: 56,
+                color: Theme.of(context).cardColor.withValues(
+                    alpha:
+                        AppController.to.isOfflineModeEnabled.value ? 0.7 : .4),
+              )),
+          onTap: () {
+            AppController.to.settingsController.toggleOfflineMode();
+          },
+        ),
         // ListTile(
         //   title: Text(
         //     '清理缓存',

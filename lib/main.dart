@@ -3,6 +3,12 @@ import 'package:bujuan/app_router.dart';
 import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/local_database_config.dart';
 import 'package:bujuan/core/database/pending_app_database.dart';
+import 'package:bujuan/data/local/local_library_data_source.dart';
+import 'package:bujuan/data/sources/local/local_music_source.dart';
+import 'package:bujuan/data/sources/music_source_registry_impl.dart';
+import 'package:bujuan/data/sources/netease/netease_music_source.dart';
+import 'package:bujuan/domain/sources/music_source_registry.dart';
+import 'package:bujuan/features/library/repository/library_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -52,9 +58,25 @@ Future<void> _initSingleton() async {
       PendingAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
   await appDatabase.init();
   getIt.registerSingleton<AppDatabase>(appDatabase);
+  getIt.registerSingleton<LocalLibraryDataSource>(
+    appDatabase.localLibraryDataSource,
+  );
   // 初始化Hive本地存储
   await Hive.initFlutter('BuJuan');
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));
   // 初始化网易云API
   await NeteaseMusicApi.init(debug: true);
+  final sourceRegistry = MusicSourceRegistryImpl(
+    sources: [
+      LocalMusicSource(localDataSource: appDatabase.localLibraryDataSource),
+      NeteaseMusicSource(),
+    ],
+  );
+  getIt.registerSingleton<MusicSourceRegistry>(sourceRegistry);
+  getIt.registerSingleton<LibraryRepository>(
+    LibraryRepository(
+      localDataSource: appDatabase.localLibraryDataSource,
+      sourceRegistry: sourceRegistry,
+    ),
+  );
 }

@@ -33,6 +33,7 @@ class AppController extends SuperController
   RxBool get isCacheOpen => settingsController.isCacheOpen;
   RxBool get isHighSoundQualityOpen =>
       settingsController.isHighSoundQualityOpen;
+  RxBool get isOfflineModeEnabled => settingsController.isOfflineModeEnabled;
   Rx<Color> get albumColor => settingsController.albumColor;
   Rx<Color> get panelWidgetColor => settingsController.panelWidgetColor;
 

@@ -169,6 +169,8 @@
 - 已新增进程内本地媒体库占位实现，先把本地优先读取语义跑通，为后续 `Isar` 平滑替换做准备
 - 搜索面板中的单曲搜索已改为通过 `SearchRepository -> LibraryRepository` 获取，开始验证 UI 层走统一媒体库入口
 - 单曲搜索已优先命中本地媒体库缓存，再回退远程 source 查询并写回本地，占位验证本地优先搜索路径
+- 搜索面板中的歌单、专辑、歌手结果已接入 `SearchRepository -> LibraryRepository -> MusicSource`
+- 搜索页现有分类视图保持不变，但分类结果已开始摆脱直接依赖网易云搜索 bean
 
 ### 进行中
 

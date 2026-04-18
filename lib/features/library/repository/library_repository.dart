@@ -1,6 +1,8 @@
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/in_memory_local_library_data_source.dart';
 import 'package:bujuan/data/sources/music_source_registry_impl.dart';
+import 'package:bujuan/domain/entities/album_entity.dart';
+import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
@@ -36,6 +38,69 @@ class LibraryRepository {
       return const [];
     }
     return localDataSource.searchTracks(keyword);
+  }
+
+  Future<List<PlaylistEntity>> searchPlaylists({
+    required String sourceKey,
+    required String keyword,
+  }) async {
+    final source = _sourceRegistry.getBySourceKey(sourceKey);
+    if (source == null) {
+      return const [];
+    }
+    final playlists = await source.searchPlaylists(keyword);
+    await _localDataSource?.savePlaylists(playlists);
+    return playlists;
+  }
+
+  Future<List<PlaylistEntity>> searchLocalPlaylists(String keyword) async {
+    final localDataSource = _localDataSource;
+    if (localDataSource == null) {
+      return const [];
+    }
+    return localDataSource.searchPlaylists(keyword);
+  }
+
+  Future<List<AlbumEntity>> searchAlbums({
+    required String sourceKey,
+    required String keyword,
+  }) async {
+    final source = _sourceRegistry.getBySourceKey(sourceKey);
+    if (source == null) {
+      return const [];
+    }
+    final albums = await source.searchAlbums(keyword);
+    await _localDataSource?.saveAlbums(albums);
+    return albums;
+  }
+
+  Future<List<AlbumEntity>> searchLocalAlbums(String keyword) async {
+    final localDataSource = _localDataSource;
+    if (localDataSource == null) {
+      return const [];
+    }
+    return localDataSource.searchAlbums(keyword);
+  }
+
+  Future<List<ArtistEntity>> searchArtists({
+    required String sourceKey,
+    required String keyword,
+  }) async {
+    final source = _sourceRegistry.getBySourceKey(sourceKey);
+    if (source == null) {
+      return const [];
+    }
+    final artists = await source.searchArtists(keyword);
+    await _localDataSource?.saveArtists(artists);
+    return artists;
+  }
+
+  Future<List<ArtistEntity>> searchLocalArtists(String keyword) async {
+    final localDataSource = _localDataSource;
+    if (localDataSource == null) {
+      return const [];
+    }
+    return localDataSource.searchArtists(keyword);
   }
 
   Future<Track?> getTrack(String trackId) async {
@@ -100,7 +165,7 @@ class LibraryRepository {
     }
     final playlist = await source.getPlaylist(playlistId);
     if (playlist != null) {
-      await _localDataSource?.savePlaylist(playlist);
+      await _localDataSource?.savePlaylists([playlist]);
     }
     return playlist;
   }

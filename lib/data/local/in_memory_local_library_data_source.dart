@@ -1,3 +1,5 @@
+import 'package:bujuan/domain/entities/album_entity.dart';
+import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
@@ -15,6 +17,8 @@ class InMemoryLocalLibraryDataSource implements LocalLibraryDataSource {
   final Map<String, Track> _tracks = {};
   final Map<String, TrackLyrics> _lyrics = {};
   final Map<String, PlaylistEntity> _playlists = {};
+  final Map<String, AlbumEntity> _albums = {};
+  final Map<String, ArtistEntity> _artists = {};
 
   @override
   Future<List<Track>> searchTracks(String keyword) async {
@@ -29,6 +33,45 @@ class InMemoryLocalLibraryDataSource implements LocalLibraryDataSource {
           (track.albumTitle?.toLowerCase().contains(normalizedKeyword) ??
               false);
     }).toList();
+  }
+
+  @override
+  Future<List<PlaylistEntity>> searchPlaylists(String keyword) async {
+    if (keyword.isEmpty) {
+      return const [];
+    }
+    final normalizedKeyword = keyword.toLowerCase();
+    return _playlists.values
+        .where((playlist) => playlist.title.toLowerCase().contains(
+              normalizedKeyword,
+            ))
+        .toList();
+  }
+
+  @override
+  Future<List<AlbumEntity>> searchAlbums(String keyword) async {
+    if (keyword.isEmpty) {
+      return const [];
+    }
+    final normalizedKeyword = keyword.toLowerCase();
+    return _albums.values.where((album) {
+      final artists = album.artistNames.join(' ').toLowerCase();
+      return album.title.toLowerCase().contains(normalizedKeyword) ||
+          artists.contains(normalizedKeyword);
+    }).toList();
+  }
+
+  @override
+  Future<List<ArtistEntity>> searchArtists(String keyword) async {
+    if (keyword.isEmpty) {
+      return const [];
+    }
+    final normalizedKeyword = keyword.toLowerCase();
+    return _artists.values
+        .where((artist) => artist.name.toLowerCase().contains(
+              normalizedKeyword,
+            ))
+        .toList();
   }
 
   @override
@@ -54,12 +97,28 @@ class InMemoryLocalLibraryDataSource implements LocalLibraryDataSource {
   }
 
   @override
-  Future<void> saveLyrics(String trackId, TrackLyrics lyrics) async {
-    _lyrics[trackId] = lyrics;
+  Future<void> savePlaylists(List<PlaylistEntity> playlists) async {
+    for (final playlist in playlists) {
+      _playlists[playlist.id] = playlist;
+    }
   }
 
   @override
-  Future<void> savePlaylist(PlaylistEntity playlist) async {
-    _playlists[playlist.id] = playlist;
+  Future<void> saveAlbums(List<AlbumEntity> albums) async {
+    for (final album in albums) {
+      _albums[album.id] = album;
+    }
+  }
+
+  @override
+  Future<void> saveArtists(List<ArtistEntity> artists) async {
+    for (final artist in artists) {
+      _artists[artist.id] = artist;
+    }
+  }
+
+  @override
+  Future<void> saveLyrics(String trackId, TrackLyrics lyrics) async {
+    _lyrics[trackId] = lyrics;
   }
 }

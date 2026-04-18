@@ -1,6 +1,10 @@
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/data/mappers/netease_album_mapper.dart';
+import 'package:bujuan/data/mappers/netease_artist_mapper.dart';
 import 'package:bujuan/data/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/mappers/netease_track_mapper.dart';
+import 'package:bujuan/domain/entities/album_entity.dart';
+import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
@@ -18,6 +22,24 @@ class NeteaseMusicSource implements MusicSource {
   Future<List<Track>> searchTracks(String keyword) async {
     final wrap = await _api.searchSong(keyword);
     return NeteaseTrackMapper.fromSongList(wrap.result.songs);
+  }
+
+  @override
+  Future<List<PlaylistEntity>> searchPlaylists(String keyword) async {
+    final wrap = await _api.searchPlaylist(keyword);
+    return NeteasePlaylistMapper.fromPlaylistList(wrap.result.playlists);
+  }
+
+  @override
+  Future<List<AlbumEntity>> searchAlbums(String keyword) async {
+    final wrap = await _api.searchAlbum(keyword);
+    return NeteaseAlbumMapper.fromAlbumList(wrap.result.albums ?? const []);
+  }
+
+  @override
+  Future<List<ArtistEntity>> searchArtists(String keyword) async {
+    final wrap = await _api.searchArtists(keyword);
+    return NeteaseArtistMapper.fromArtistList(wrap.result.artists);
   }
 
   @override

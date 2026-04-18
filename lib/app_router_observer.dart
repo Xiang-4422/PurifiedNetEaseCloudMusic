@@ -3,7 +3,6 @@ import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/pages/album/controller.dart';
-import 'package:bujuan/pages/play_list/playlist_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
@@ -41,11 +40,6 @@ class MyObserver extends AutoRouterObserver {
     // return;
     if (name.isEmpty) return;
     switch (name) {
-      case 'PlayListRouteView':
-        del
-            ? Get.delete<PlayListController>()
-            : Get.lazyPut<PlayListController>(() => PlayListController());
-        break;
       case 'AlbumRouteView':
         del
             ? Get.delete<AlbumController>()

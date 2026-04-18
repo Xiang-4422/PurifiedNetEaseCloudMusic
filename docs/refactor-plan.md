@@ -40,6 +40,7 @@
 - 设置页已移除对 `Hive Box` 的直接写入
 - 评论组件已通过 `CommentRepository` 收口评论请求与交互
 - 用户资料页已通过 `UserRepository` 收口请求拼装，退出登录状态写入已回收到设置控制器
+- 云盘页已移除仅作中转的 `CloudController`，页面改为直接消费仓库层与统一映射
 
 ### 进行中
 

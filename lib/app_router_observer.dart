@@ -3,7 +3,6 @@ import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/pages/album/controller.dart';
-import 'package:bujuan/pages/cloud/cloud_controller.dart';
 import 'package:bujuan/pages/play_list/playlist_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -13,7 +12,7 @@ class MyObserver extends AutoRouterObserver {
   void didPush(Route route, Route? previousRoute) {
     super.didPush(route, previousRoute);
     _clearOrPutController(route.settings.name ?? '');
-    print('New route pushed: ${route.settings.name}');
+    log('New route pushed: ${route.settings.name}');
   }
 
   @override
@@ -42,11 +41,6 @@ class MyObserver extends AutoRouterObserver {
     // return;
     if (name.isEmpty) return;
     switch (name) {
-      case 'CloudDriveView':
-        del
-            ? Get.delete<CloudController>()
-            : Get.lazyPut<CloudController>(() => CloudController());
-        break;
       case 'PlayListRouteView':
         del
             ? Get.delete<PlayListController>()

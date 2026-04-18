@@ -1,5 +1,6 @@
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/in_memory_local_library_data_source.dart';
+import 'package:bujuan/domain/entities/local_resource_entry.dart';
 import 'package:bujuan/data/sources/music_source_registry_impl.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
@@ -10,12 +11,14 @@ import 'package:bujuan/domain/sources/music_source_registry.dart';
 import 'package:get_it/get_it.dart';
 
 import 'library_preference_store.dart';
+import 'local_resource_index_repository.dart';
 
 class LibraryRepository {
   LibraryRepository({
     LocalLibraryDataSource? localDataSource,
     MusicSourceRegistry? sourceRegistry,
     LibraryPreferenceStore? preferenceStore,
+    LocalResourceIndexRepository? resourceIndexRepository,
   })  : _localDataSource = localDataSource ??
             (GetIt.instance.isRegistered<LocalLibraryDataSource>()
                 ? GetIt.instance<LocalLibraryDataSource>()
@@ -24,11 +27,14 @@ class LibraryRepository {
             (GetIt.instance.isRegistered<MusicSourceRegistry>()
                 ? GetIt.instance<MusicSourceRegistry>()
                 : MusicSourceRegistryImpl()),
-        _preferenceStore = preferenceStore ?? const LibraryPreferenceStore();
+        _preferenceStore = preferenceStore ?? const LibraryPreferenceStore(),
+        _resourceIndexRepository =
+            resourceIndexRepository ?? const LocalResourceIndexRepository();
 
   final LocalLibraryDataSource? _localDataSource;
   final MusicSourceRegistry _sourceRegistry;
   final LibraryPreferenceStore _preferenceStore;
+  final LocalResourceIndexRepository _resourceIndexRepository;
 
   bool get isOfflineModeEnabled => _preferenceStore.isOfflineModeEnabled;
 
@@ -73,7 +79,8 @@ class LibraryRepository {
     if (localDataSource == null) {
       return const [];
     }
-    return localDataSource.searchTracks(keyword);
+    final tracks = await localDataSource.searchTracks(keyword);
+    return Future.wait(tracks.map(_mergeTrackWithResources));
   }
 
   Future<List<PlaylistEntity>> searchPlaylists({
@@ -151,7 +158,7 @@ class LibraryRepository {
   Future<Track?> getTrack(String trackId) async {
     final localTrack = await _localDataSource?.getTrack(trackId);
     if (localTrack != null) {
-      return localTrack;
+      return _mergeTrackWithResources(localTrack);
     }
     if (isOfflineModeEnabled) {
       return null;
@@ -163,12 +170,13 @@ class LibraryRepository {
     final track = await source.getTrack(trackId);
     if (track != null) {
       await _localDataSource?.saveTracks([track]);
+      return _mergeTrackWithResources(track);
     }
-    return track;
+    return null;
   }
 
   Future<String?> getPlaybackUrl(String trackId) async {
-    final localTrack = await _localDataSource?.getTrack(trackId);
+    final localTrack = await getTrack(trackId);
     if (localTrack?.localPath?.isNotEmpty == true) {
       return localTrack!.localPath;
     }
@@ -186,7 +194,7 @@ class LibraryRepository {
     String trackId, {
     String? qualityLevel,
   }) async {
-    final localTrack = await _localDataSource?.getTrack(trackId);
+    final localTrack = await getTrack(trackId);
     if (localTrack?.localPath?.isNotEmpty == true) {
       return localTrack!.localPath;
     }
@@ -238,6 +246,10 @@ class LibraryRepository {
     return playlist;
   }
 
+  Future<List<LocalResourceEntry>> getTrackResources(String trackId) {
+    return _resourceIndexRepository.getTrackResources(trackId);
+  }
+
   Future<Track?> updateTrackLocalState(
     String trackId, {
     String? localPath,
@@ -273,5 +285,39 @@ class LibraryRepository {
     );
     await saveTrack(nextTrack);
     return nextTrack;
+  }
+
+  Future<Track> _mergeTrackWithResources(Track track) async {
+    final resources =
+        await _resourceIndexRepository.getTrackResources(track.id);
+    if (resources.isEmpty) {
+      return track;
+    }
+    String? localPath = track.localPath;
+    String? localArtworkPath = track.localArtworkPath;
+    String? localLyricsPath = track.localLyricsPath;
+    var resourceOrigin = track.resourceOrigin;
+    for (final resource in resources) {
+      switch (resource.kind) {
+        case LocalResourceKind.audio:
+          localPath ??= resource.path;
+          if (resourceOrigin == TrackResourceOrigin.none) {
+            resourceOrigin = resource.origin;
+          }
+          break;
+        case LocalResourceKind.artwork:
+          localArtworkPath ??= resource.path;
+          break;
+        case LocalResourceKind.lyrics:
+          localLyricsPath ??= resource.path;
+          break;
+      }
+    }
+    return track.copyWith(
+      localPath: localPath,
+      localArtworkPath: localArtworkPath,
+      localLyricsPath: localLyricsPath,
+      resourceOrigin: resourceOrigin,
+    );
   }
 }

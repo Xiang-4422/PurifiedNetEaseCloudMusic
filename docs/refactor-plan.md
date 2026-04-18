@@ -26,7 +26,7 @@
 | Phase 0 | 文档定案 | 固定技术架构、工程结构和执行计划 | Done |
 | Phase 1 | 基础边界收口 | 停止新债继续扩散，建立 repository 和 mapper 落点 | In Progress |
 | Phase 2 | Shell 拆分 | 将 `AppController` 中的壳层状态和业务入口拆开 | In Progress |
-| Phase 3 | 统一领域模型 | 建立 Track、PlaylistEntity 等统一实体，停止以网易云模型直接驱动业务 | Planned |
+| Phase 3 | 统一领域模型 | 建立 Track、PlaylistEntity 等统一实体，停止以网易云模型直接驱动业务 | In Progress |
 | Phase 4 | 本地优先数据层 | 引入结构化本地数据库，建立本地媒体库和同步入口 | Planned |
 | Phase 5 | 播放链路重构 | 规范播放器状态、服务层与队列切换逻辑，播放器只消费统一实体 | Planned |
 | Phase 6 | 多源接入与离线 | 抽象 MusicSource，接入本地源与离线能力 | Planned |
@@ -55,11 +55,13 @@
 - 用户资料页已直接调用 `UserController` 注销登录，`AppController` 继续移除单点代理方法
 - 底部播放面板已直接调用 `UserController` 处理喜欢状态，`AppController` 继续削减纯转发方法
 - 漫游/心动模式与喜欢歌单播放逻辑已下沉到 `PlayerController`，`AppController` 仅保留面板开合与通用播放协调
+- 已建立第一版领域层骨架：`Track`、`PlaylistEntity`、`AlbumEntity`、`ArtistEntity`、`PlaybackQueue` 与 `MusicSource`
 
 ### 进行中
 
 - Phase 1
 - Phase 2
+- Phase 3
 
 ### 未开始
 
@@ -178,6 +180,12 @@
 
 - 统一实体设计过早固化会放大后续迁移成本
 - 需要在“够用”与“不过度设计”之间平衡
+
+### 进度更新
+
+- 已新增统一实体目录 `lib/domain/entities`
+- 已新增 `lib/domain/sources/music_source.dart`
+- 已新增第一版网易云到 `Track` 的映射器，作为后续本地库落地前的过渡桥接
 
 ## 8. Phase 4: 本地优先数据层
 

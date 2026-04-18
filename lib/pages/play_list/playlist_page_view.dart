@@ -5,21 +5,18 @@ import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
+import 'package:bujuan/features/playlist/repository/playlist_repository.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/data_widget.dart';
-// 移除 my_tab_bar
 import 'package:flutter/material.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import '../../common/constants/other.dart';
-import '../../widget/simple_extended_image.dart';
 import '../../controllers/app_controller.dart';
-import 'package:bujuan/common/bujuan_audio_handler.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:get_it/get_it.dart';
+import '../../widget/simple_extended_image.dart';
 
 class PlayListPageView extends StatefulWidget {
   final PlayList playList;
@@ -31,9 +28,9 @@ class PlayListPageView extends StatefulWidget {
 }
 
 class _PlayListPageViewState extends State<PlayListPageView> {
+  final PlaylistRepository _repository = PlaylistRepository();
   late final PlayList playList;
 
-  SinglePlayListWrap? details;
   List<MediaItem> songs = <MediaItem>[];
   int loadedMediaItemCount = 0;
 
@@ -47,12 +44,16 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   @override
   void initState() {
+    super.initState();
     playList = widget.playList;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       albumColor = await OtherUtils.getImageColor(
           playList.coverImgUrl ?? playList.picUrl);
       widgetColor = albumColor.invertedColor;
-      await _getMediaItems(playList.id);
+      await _loadPlaylistData();
+      if (!mounted) {
+        return;
+      }
       setState(() {
         loading = false;
       });
@@ -98,7 +99,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                         Text(
                           "歌单·${playList.trackCount ?? 0}首",
                           style: context.textTheme.titleSmall?.copyWith(
-                            color: widgetColor.withOpacity(0.8),
+                            color: widgetColor.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -164,7 +165,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                             child: BlurryContainer(
                               borderRadius: BorderRadius.circular(60),
                               padding: EdgeInsets.zero,
-                              color: widgetColor.withOpacity(0.05),
+                              color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                   color: Colors.red,
                                   padding: EdgeInsets.zero,
@@ -183,7 +184,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               child: BlurryContainer(
                             borderRadius: BorderRadius.circular(60),
                             padding: EdgeInsets.zero,
-                            color: widgetColor.withOpacity(0.05),
+                            color: widgetColor.withValues(alpha: 0.05),
                             child: IconButton(
                               onPressed: () async {
                                 AppController.to.audioHandler.changeRepeatMode(
@@ -254,81 +255,40 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     );
   }
 
-  _getAlbumColor() async {
-    await OtherUtils.getImageColorPalette(playList.coverImgUrl)
-        .then((paletteGenerator) {
-      albumColor = paletteGenerator.dominantColor?.color ??
-          paletteGenerator.darkMutedColor?.color ??
-          paletteGenerator.darkVibrantColor?.color ??
-          Colors.black;
-      widgetColor = albumColor.invertedColor;
-    });
-  }
-
-  _getMediaItems(id) async {
-    Box box = GetIt.instance<Box>();
-    String cacheKey = "PLAYLIST_SONGS_$id";
-    // 1. 尝试从缓存加载
-    List<String>? cachedSongsStr = box.get(cacheKey)?.cast<String>();
-    if (cachedSongsStr != null) {
-      songs = await stringToPlayList(cachedSongsStr);
+  Future<void> _loadPlaylistData() async {
+    final cachedSongs = await _repository.loadCachedSongs(playList.id);
+    if (cachedSongs != null && cachedSongs.isNotEmpty) {
+      songs = cachedSongs;
       loadedMediaItemCount = songs.length;
-      setState(() {
-        loading = false;
-      });
-    }
-
-    // 2. 网络获取最新详情 (静默更新)
-    details ??= await NeteaseMusicApi().playListDetail(id);
-    isMyPlayList = details?.playlist?.creator?.userId ==
-        AppController.to.userInfo.value.profile?.userId;
-    isSubscribed = details?.playlist?.subscribed ?? false;
-    List<String> ids =
-        details?.playlist?.trackIds?.map((e) => e.id).toList() ?? [];
-
-    if (ids.isEmpty) return;
-
-    // 3. 获取歌曲详情
-    List<MediaItem> remoteSongs = [];
-    SongDetailWrap songDetailWrap = await NeteaseMusicApi()
-        .songDetail(ids.sublist(0, min(1000, ids.length)));
-    remoteSongs
-        .addAll(AppController.to.song2ToMedia(songDetailWrap.songs ?? []));
-
-    if (ids.length > 1000) {
-      int currentLoaded = remoteSongs.length;
-      while (currentLoaded != ids.length) {
-        SongDetailWrap wrap = await NeteaseMusicApi().songDetail(
-            ids.sublist(currentLoaded, min(currentLoaded + 1000, ids.length)));
-        remoteSongs.addAll(AppController.to.song2ToMedia(wrap.songs ?? []));
-        currentLoaded = remoteSongs.length;
+      if (mounted) {
+        setState(() {});
       }
     }
 
-    // 4. 更新 UI 和缓存
-    songs = remoteSongs;
+    final data = await _repository.fetchPlaylistDetail(
+      playlistId: playList.id,
+      likedSongIds: AppController.to.likedSongIds.toList(),
+      currentUserId: AppController.to.userInfo.value.profile?.userId,
+    );
+    songs = data.songs;
     loadedMediaItemCount = songs.length;
+    isSubscribed = data.isSubscribed;
+    isMyPlayList = data.isMyPlayList;
     if (mounted) {
-      setState(() {
-        loading = false;
-      });
+      setState(() {});
     }
-
-    playListToString(songs).then((value) {
-      box.put(cacheKey, value);
-    });
   }
 
-  _subscribePlayList() {
-    NeteaseMusicApi()
-        .subscribePlayList(playList.id, subscribe: !isSubscribed)
-        .then((value) {
-      if (value.code == 200) {
-        setState(() {
-          isSubscribed = !isSubscribed;
-        });
-      }
-    });
+  Future<void> _subscribePlayList() async {
+    final value = await _repository.toggleSubscription(
+      playList.id,
+      subscribe: !isSubscribed,
+    );
+    if (value.code == 200 && mounted) {
+      setState(() {
+        isSubscribed = !isSubscribed;
+      });
+    }
   }
 }
 
@@ -408,7 +368,7 @@ class UniversalListTile extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: (stringColor ??
                                     context.theme.colorScheme.onPrimary)
-                                .withOpacity(0.5),
+                                .withValues(alpha: 0.5),
                           ),
                     ),
                 ],
@@ -458,19 +418,6 @@ class SongItem extends StatelessWidget {
       },
     );
   }
-
-  _getSongFeeType(int fee) {
-    String feeStr = '';
-    switch (fee) {
-      case 1:
-        feeStr = '  vip';
-        break;
-      case 4:
-        feeStr = '  need buy';
-        break;
-    }
-    return feeStr;
-  }
 }
 
 /// 歌单
@@ -482,6 +429,7 @@ class PlayListItem extends StatelessWidget {
 
   @override
   build(BuildContext context) {
+    final router = context.router;
     return UniversalListTile(
         picUrl: play.coverImgUrl ?? play.picUrl,
         titleString: play.name ?? "无歌单名",
@@ -490,7 +438,7 @@ class PlayListItem extends StatelessWidget {
             : "${play.trackCount}首",
         onTap: () async {
           if (beforeOnTap != null) await beforeOnTap!();
-          context.router.push(gr.PlayListRouteView(playList: play));
+          router.push(gr.PlayListRouteView(playList: play));
         });
   }
 }
@@ -505,13 +453,14 @@ class AlbumItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final router = context.router;
     return UniversalListTile(
         picUrl: album.picUrl ?? '',
         titleString: album.name ?? '',
         subTitleString: '${album.size ?? 0} 首',
         onTap: () async {
           if (beforeOnTap != null) await beforeOnTap!();
-          context.router.push(const gr.AlbumRouteView()
+          router.push(const gr.AlbumRouteView()
               .copyWith(queryParams: {'albumId': album.id}));
         });
   }
@@ -527,13 +476,14 @@ class ArtistsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final router = context.router;
     return UniversalListTile(
         picUrl: artist.picUrl ?? '',
         titleString: artist.name ?? '',
         subTitleString: '${artist.albumSize ?? 0} 专辑',
         onTap: () async {
           if (beforeOnTap != null) await beforeOnTap!();
-          context.router.push(const gr.ArtistRouteView()
+          router.push(const gr.ArtistRouteView()
               .copyWith(queryParams: {'artistId': artist.id}));
         });
   }

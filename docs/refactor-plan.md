@@ -256,6 +256,6 @@
 
 - 阶段：`Phase 1`
 - 状态：`In Progress`
-- 完成内容：新增 cloud repository、统一 MediaItem mapper，并将云盘页面中的 MediaItem 拼装逻辑迁移到 controller/repository 方向
+- 完成内容：新增 cloud repository、统一 MediaItem mapper，并将云盘页面中的 MediaItem 拼装逻辑迁移到 controller/repository 方向；新增 playlist repository，将歌单详情页中的缓存和歌曲拉取逻辑迁移出页面
 - 风险或阻塞：当前请求组件仍承担较多请求与分页职责，后续仍需继续收缩
 - 下一步：继续抽离歌单、登录或搜索链路中的页面直调业务逻辑

@@ -26,6 +26,9 @@ class LocalLibraryCodec {
       'lyricKey': track.lyricKey,
       'availability': track.availability.name,
       'downloadState': track.downloadState.name,
+      'resourceOrigin': track.resourceOrigin.name,
+      'downloadProgress': track.downloadProgress,
+      'downloadFailureReason': track.downloadFailureReason,
       'metadata': Map<String, Object?>.from(track.metadata),
     };
   }
@@ -54,6 +57,10 @@ class LocalLibraryCodec {
           _availabilityFromName(map['availability'] as String?),
       downloadState:
           _downloadStateFromName(map['downloadState'] as String?),
+      resourceOrigin:
+          _resourceOriginFromName(map['resourceOrigin'] as String?),
+      downloadProgress: (map['downloadProgress'] as num?)?.toDouble(),
+      downloadFailureReason: map['downloadFailureReason'] as String?,
       metadata: _asObjectMap(map['metadata']),
     );
   }
@@ -196,6 +203,13 @@ class LocalLibraryCodec {
     return DownloadState.values.firstWhere(
       (item) => item.name == name,
       orElse: () => DownloadState.none,
+    );
+  }
+
+  static TrackResourceOrigin _resourceOriginFromName(String? name) {
+    return TrackResourceOrigin.values.firstWhere(
+      (item) => item.name == name,
+      orElse: () => TrackResourceOrigin.none,
     );
   }
 

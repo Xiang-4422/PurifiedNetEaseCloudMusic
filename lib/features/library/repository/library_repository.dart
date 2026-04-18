@@ -246,6 +246,9 @@ class LibraryRepository {
     String? localArtworkPath,
     String? localLyricsPath,
     DownloadState? downloadState,
+    TrackResourceOrigin? resourceOrigin,
+    double? downloadProgress,
+    String? downloadFailureReason,
     TrackAvailability? availability,
     Map<String, Object?>? metadata,
   }) async {
@@ -258,6 +261,10 @@ class LibraryRepository {
       localArtworkPath: localArtworkPath ?? track.localArtworkPath,
       localLyricsPath: localLyricsPath ?? track.localLyricsPath,
       downloadState: downloadState ?? track.downloadState,
+      resourceOrigin: resourceOrigin ?? track.resourceOrigin,
+      downloadProgress: downloadProgress ?? track.downloadProgress,
+      downloadFailureReason:
+          downloadFailureReason ?? track.downloadFailureReason,
       availability: availability ?? track.availability,
       metadata: metadata == null
           ? track.metadata

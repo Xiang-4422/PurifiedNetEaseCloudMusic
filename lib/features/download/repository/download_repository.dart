@@ -16,7 +16,9 @@ class DownloadRepository {
     return _libraryRepository.updateTrackLocalState(
       trackId,
       downloadState: DownloadState.queued,
-      metadata: {'downloadOrigin': 'managed_download'},
+      resourceOrigin: TrackResourceOrigin.managedDownload,
+      downloadProgress: 0,
+      downloadFailureReason: '',
     );
   }
 
@@ -27,10 +29,9 @@ class DownloadRepository {
     return _libraryRepository.updateTrackLocalState(
       trackId,
       downloadState: DownloadState.downloading,
-      metadata: {
-        'downloadOrigin': 'managed_download',
-        if (progress != null) 'downloadProgress': progress,
-      },
+      resourceOrigin: TrackResourceOrigin.managedDownload,
+      downloadProgress: progress ?? 0,
+      downloadFailureReason: '',
     );
   }
 
@@ -46,11 +47,10 @@ class DownloadRepository {
       localArtworkPath: artworkPath,
       localLyricsPath: lyricsPath,
       downloadState: DownloadState.downloaded,
+      resourceOrigin: TrackResourceOrigin.managedDownload,
+      downloadProgress: 1,
+      downloadFailureReason: '',
       availability: TrackAvailability.playable,
-      metadata: {
-        'downloadOrigin': 'managed_download',
-        'downloadProgress': 1.0,
-      },
     );
   }
 
@@ -61,10 +61,8 @@ class DownloadRepository {
     return _libraryRepository.updateTrackLocalState(
       trackId,
       downloadState: DownloadState.failed,
-      metadata: {
-        'downloadOrigin': 'managed_download',
-        if (reason != null) 'downloadFailureReason': reason,
-      },
+      resourceOrigin: TrackResourceOrigin.managedDownload,
+      downloadFailureReason: reason ?? '',
     );
   }
 }

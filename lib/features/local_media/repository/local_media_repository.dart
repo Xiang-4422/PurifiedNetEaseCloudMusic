@@ -34,10 +34,9 @@ class LocalMediaRepository {
       localPath: filePath,
       availability: TrackAvailability.localOnly,
       downloadState: DownloadState.downloaded,
-      metadata: {
-        'importedFrom': 'local_scan',
-        ...metadata,
-      },
+      resourceOrigin: TrackResourceOrigin.localImport,
+      downloadProgress: 1,
+      metadata: metadata,
     );
     await _libraryRepository.saveTrack(track);
     return track;
@@ -58,10 +57,9 @@ class LocalMediaRepository {
             localPath: track.filePath,
             availability: TrackAvailability.localOnly,
             downloadState: DownloadState.downloaded,
-            metadata: {
-              'importedFrom': 'local_scan',
-              ...track.metadata,
-            },
+            resourceOrigin: TrackResourceOrigin.localImport,
+            downloadProgress: 1,
+            metadata: track.metadata,
           ),
         )
         .toList();

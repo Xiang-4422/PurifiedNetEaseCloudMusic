@@ -38,6 +38,10 @@ class LibraryRepository {
     await _localDataSource?.saveTracks(tracks);
   }
 
+  Future<void> saveTrack(Track track) async {
+    await saveTracks([track]);
+  }
+
   Future<void> savePlaylists(List<PlaylistEntity> playlists) async {
     await _localDataSource?.savePlaylists(playlists);
   }
@@ -234,5 +238,31 @@ class LibraryRepository {
       await _localDataSource?.savePlaylists([playlist]);
     }
     return playlist;
+  }
+
+  Future<Track?> updateTrackLocalState(
+    String trackId, {
+    String? localPath,
+    DownloadState? downloadState,
+    TrackAvailability? availability,
+    Map<String, Object?>? metadata,
+  }) async {
+    final track = await getTrack(trackId);
+    if (track == null) {
+      return null;
+    }
+    final nextTrack = track.copyWith(
+      localPath: localPath ?? track.localPath,
+      downloadState: downloadState ?? track.downloadState,
+      availability: availability ?? track.availability,
+      metadata: metadata == null
+          ? track.metadata
+          : {
+              ...track.metadata,
+              ...metadata,
+            },
+    );
+    await saveTrack(nextTrack);
+    return nextTrack;
   }
 }

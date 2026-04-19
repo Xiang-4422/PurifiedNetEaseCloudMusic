@@ -1,5 +1,4 @@
-import 'package:bujuan/common/netease_api/src/dio_ext.dart';
-import 'package:bujuan/common/netease_api/src/netease_handler.dart';
+import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
@@ -17,30 +16,15 @@ class SearchRepository {
 
   final LibraryRepository _libraryRepository;
 
-  DioMetaData buildSearchRequest(
-    String keyword,
-    int type, {
-    int offset = 0,
-    int limit = 30,
-  }) {
-    return DioMetaData(
-      joinUri('/weapi/cloudsearch/pc'),
-      data: {
-        's': keyword,
-        'type': type,
-        'limit': limit,
-        'offset': offset,
-      },
-      options: joinOptions(),
-    );
-  }
-
-  DioMetaData buildHotKeywordRequest() {
-    return DioMetaData(
-      joinUri('/weapi/search/hot'),
-      data: {'type': 1111},
-      options: joinOptions(userAgent: UserAgent.Mobile),
-    );
+  Future<List<String>> fetchHotKeywords() async {
+    final wrap = await NeteaseMusicApi().searchHotKey();
+    if (wrap.code != 200) {
+      return const [];
+    }
+    return wrap.result.hots
+        .map((item) => item.first ?? '')
+        .where((keyword) => keyword.isNotEmpty)
+        .toList();
   }
 
   Future<List<MediaItem>> searchTrackMediaItems(

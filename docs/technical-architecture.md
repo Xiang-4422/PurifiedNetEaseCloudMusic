@@ -27,7 +27,7 @@
   - [`lib/pages/playlist_page_view.dart`](../lib/pages/playlist_page_view.dart)
   - [`lib/pages/cloud_drive_view.dart`](../lib/pages/cloud_drive_view.dart)
   - [`lib/pages/home/top_panel_view.dart`](../lib/pages/home/top_panel_view.dart)
-- 请求组件曾同时承担展示、分页和请求编排，当前已开始收口但旧路径仍存在
+- 旧 `request_widget` 已移除，请求执行权已从页面和通用组件回收到 feature controller 与 repository
 
 结论：
 
@@ -192,6 +192,14 @@
 - 数据访问统一经由 `Repository`
 - `Repository` 负责组合本地库、轻缓存、远程源与领域转换
 - `Repository` 的长期职责中心是应用能力，而不是单一接口能力
+- `Repository` 不再向 UI 暴露 `DioMetaData` 等远程请求描述
+
+### 6.1.1 页面状态边界
+
+- 页面只消费 `LoadState` / `PagedState`
+- 页面负责渲染 loading、empty、error 和列表 UI
+- controller 负责首次加载、刷新、分页和游标推进
+- 通用组件不再执行请求、不再解析 JSON、不再管理分页参数
 
 ### 6.2 Mapper
 

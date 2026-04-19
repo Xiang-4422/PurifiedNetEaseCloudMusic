@@ -1,32 +1,43 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/common/netease_api/src/api/dj/bean.dart';
-import 'package:bujuan/common/netease_api/src/dio_ext.dart';
-import 'package:bujuan/common/netease_api/src/netease_handler.dart';
+import 'package:bujuan/common/netease_api/netease_music_api.dart';
 
 class RadioRepository {
-  DioMetaData buildSubscribedRadioRequest({
+  Future<DjRadioPage> fetchSubscribedRadios({
     bool total = true,
-    int offset = 0,
-    int limit = 30,
-  }) {
-    return DioMetaData(
-      joinUri('/weapi/djradio/get/subed'),
-      data: {'total': total, 'limit': limit, 'offset': offset},
-      options: joinOptions(),
+    required int offset,
+    required int limit,
+  }) async {
+    final wrap = await NeteaseMusicApi().djRadioSubList(
+      total: total,
+      offset: offset,
+      limit: limit,
+    );
+    final radios = wrap.djRadios;
+    return DjRadioPage(
+      items: radios,
+      hasMore: radios.length >= limit,
+      nextOffset: offset + radios.length,
     );
   }
 
-  DioMetaData buildProgramListRequest(
+  Future<DjProgramPage> fetchPrograms(
     String radioId, {
-    int offset = 0,
-    int limit = 30,
-    bool asc = true,
-  }) {
-    return DioMetaData(
-      joinUri('/weapi/dj/program/byradio'),
-      data: {'radioId': radioId, 'limit': limit, 'offset': offset, 'asc': asc},
-      options: joinOptions(),
+    required int offset,
+    required int limit,
+    required bool asc,
+  }) async {
+    final wrap = await NeteaseMusicApi().djProgramList(
+      radioId,
+      offset: offset,
+      limit: limit,
+      asc: asc,
+    );
+    final programs = wrap.programs;
+    return DjProgramPage(
+      items: programs,
+      hasMore: programs.length >= limit,
+      nextOffset: offset + programs.length,
     );
   }
 
@@ -51,4 +62,28 @@ class RadioRepository {
             ))
         .toList();
   }
+}
+
+class DjRadioPage {
+  const DjRadioPage({
+    required this.items,
+    required this.hasMore,
+    required this.nextOffset,
+  });
+
+  final List<DjRadio> items;
+  final bool hasMore;
+  final int nextOffset;
+}
+
+class DjProgramPage {
+  const DjProgramPage({
+    required this.items,
+    required this.hasMore,
+    required this.nextOffset,
+  });
+
+  final List<DjProgram> items;
+  final bool hasMore;
+  final int nextOffset;
 }

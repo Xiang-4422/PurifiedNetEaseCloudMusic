@@ -7,23 +7,25 @@ import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
+import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
 import 'package:bujuan/widget/data_widget.dart';
-import 'package:bujuan/widget/request_widget/request_view.dart';
+import 'package:bujuan/widget/load_state_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import '../../../common/constants/appConstants.dart';
-import '../../../common/netease_api/src/api/search/bean.dart';
 import '../../../routes/router.gr.dart' as gr;
 
 /// 顶部搜索面板只有一个页面文件，直接放在 `pages/home` 下比再套一层单文件目录更容易查找。
 class TopPanelView extends GetView<AppController> {
   const TopPanelView({Key? key}) : super(key: key);
   static final SearchRepository _repository = SearchRepository();
+  static final SearchPanelController _searchPanelController =
+      SearchPanelController(repository: _repository);
   static final PlaylistRepository _playlistRepository = PlaylistRepository();
 
   @override
@@ -91,25 +93,7 @@ class TopPanelView extends GetView<AppController> {
                           Obx(
                             () => controller.isOfflineModeEnabled.value
                                 ? _buildOfflineSearchHint(context)
-                                : RequestWidget<SearchKeyWrapX>(
-                                    dioMetaData:
-                                        _repository.buildHotKeywordRequest(),
-                                    childBuilder: (data) => ListView(
-                                      padding: EdgeInsets.zero,
-                                      children: data.result.hots
-                                          .map((e) => UniversalListTile(
-                                                titleString: e.first ?? '',
-                                                onTap: () {
-                                                  controller.searchFocusNode
-                                                      .unfocus();
-                                                  controller
-                                                      .searchTextEditingController
-                                                      .text = e.first ?? '';
-                                                },
-                                              ))
-                                          .toList(),
-                                    ),
-                                  ),
+                                : _buildHotKeywordList(),
                           )).marginOnly(top: AppDimensions.paddingSmall),
                     )),
               ),
@@ -255,6 +239,32 @@ class TopPanelView extends GetView<AppController> {
           onTap: () {},
         ),
       ],
+    );
+  }
+
+  Widget _buildHotKeywordList() {
+    _searchPanelController.loadInitial();
+    return ValueListenableBuilder(
+      valueListenable: _searchPanelController.hotKeywordState,
+      builder: (context, state, child) {
+        return LoadStateView<List<String>>(
+          state: state,
+          builder: (keywords) => ListView(
+            padding: EdgeInsets.zero,
+            children: keywords
+                .map(
+                  (keyword) => UniversalListTile(
+                    titleString: keyword,
+                    onTap: () {
+                      controller.searchFocusNode.unfocus();
+                      controller.searchTextEditingController.text = keyword;
+                    },
+                  ),
+                )
+                .toList(),
+          ),
+        );
+      },
     );
   }
 

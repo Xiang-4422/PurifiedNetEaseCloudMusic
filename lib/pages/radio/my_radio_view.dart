@@ -1,11 +1,14 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/features/radio/radio_list_controller.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/routes/router.gr.dart';
-import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
+import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../common/netease_api/src/api/dj/bean.dart';
 import '../../widget/simple_extended_image.dart';
@@ -19,6 +22,21 @@ class MyRadioView extends StatefulWidget {
 
 class _MyRadioViewState extends State<MyRadioView> {
   final RadioRepository _repository = RadioRepository();
+  late final RadioListController _controller;
+  final RefreshController _refreshController = RefreshController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = RadioListController(repository: _repository)..loadInitial();
+  }
+
+  @override
+  void dispose() {
+    _refreshController.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,16 +46,54 @@ class _MyRadioViewState extends State<MyRadioView> {
           height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
         ),
         Expanded(
-          child: RequestLoadMoreWidget<DjRadioListWrap, DjRadio>(
-              listKey: const ['djRadios'],
-              dioMetaData: _repository.buildSubscribedRadioRequest(),
-              childBuilder: (List<DjRadio> list) {
-                return ListView.builder(
+          child: ValueListenableBuilder<PagedState<DjRadio>>(
+            valueListenable: _controller.state,
+            builder: (context, state, child) {
+              if (state.initialLoading) {
+                return const LoadingView();
+              }
+              if (state.hasInitialError) {
+                return const ErrorView();
+              }
+              if (state.isEmpty) {
+                return const EmptyView();
+              }
+              return SmartRefresher(
+                enablePullDown: true,
+                enablePullUp: state.hasMore,
+                controller: _refreshController,
+                onRefresh: () async {
+                  await _controller.refresh();
+                  _refreshController.refreshCompleted();
+                  _refreshController.resetNoData();
+                  if (!_controller.state.value.hasMore) {
+                    _refreshController.loadNoData();
+                  }
+                },
+                onLoading: () async {
+                  final success = await _controller.loadMore();
+                  if (!mounted) {
+                    return;
+                  }
+                  if (!success) {
+                    _refreshController.loadFailed();
+                    return;
+                  }
+                  if (_controller.state.value.hasMore) {
+                    _refreshController.loadComplete();
+                  } else {
+                    _refreshController.loadNoData();
+                  }
+                },
+                child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemBuilder: (context, index) => _buildItem(list[index]),
-                  itemCount: list.length,
-                );
-              }),
+                  itemBuilder: (context, index) =>
+                      _buildItem(state.items[index]),
+                  itemCount: state.items.length,
+                ),
+              );
+            },
+          ),
         ),
         Container(
           height: AppDimensions.bottomPanelHeaderHeight,

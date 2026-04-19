@@ -3,50 +3,60 @@ import 'package:bujuan/common/netease_api/src/api/event/bean.dart';
 import 'package:bujuan/common/netease_api/src/dio_ext.dart';
 import 'package:bujuan/common/netease_api/src/netease_api.dart';
 import 'package:bujuan/common/netease_api/src/netease_handler.dart';
+import 'package:bujuan/core/network/request_repository.dart';
 
 class CommentRepository {
-  DioMetaData buildCommentListRequest(
+  CommentRepository({RequestRepository? requestRepository})
+      : _requestRepository = requestRepository ?? RequestRepository();
+
+  final RequestRepository _requestRepository;
+
+  Future<CommentPage> fetchComments(
     String id,
     String type, {
     int pageNo = 1,
     int pageSize = 20,
     bool showInner = false,
     int? sortType,
-  }) {
-    return DioMetaData(
-      joinUri('/api/v2/resource/comments'),
-      data: {
-        'threadId': _typeKey(type) + id,
-        'pageNo': pageNo,
-        'pageSize': pageSize,
-        'showInner': showInner,
-        'sortType': sortType ?? 99,
-        'cursor': 0,
-      },
-      options: joinOptions(
-        encryptType: EncryptType.EApi,
-        eApiUrl: '/api/v2/resource/comments',
-        cookies: {'os': 'pc'},
+    String? cursor,
+  }) async {
+    final response = await _requestRepository.post(
+      _commentListRequest(
+        id,
+        type,
+        pageNo: pageNo,
+        pageSize: pageSize,
+        showInner: showInner,
+        sortType: sortType,
+        cursor: cursor,
       ),
+    );
+    final wrap = CommentList2Wrap.fromJson(response.data);
+    return CommentPage(
+      items: wrap.data.comments ?? const <CommentItem>[],
+      hasMore: wrap.data.hasMore ?? false,
+      nextCursor: wrap.data.cursor,
     );
   }
 
-  DioMetaData buildFloorCommentsRequest(
+  Future<FloorCommentPage> fetchFloorComments(
     String id,
     String type,
     String parentCommentId, {
     int time = -1,
     int limit = 20,
-  }) {
-    return DioMetaData(
-      joinUri('/api/resource/comment/floor/get'),
-      data: {
-        'parentCommentId': parentCommentId,
-        'threadId': _typeKey(type) + id,
-        'time': time,
-        'limit': limit,
-      },
-      options: joinOptions(),
+  }) async {
+    final wrap = await NeteaseMusicApi().floorComments(
+      id,
+      type,
+      parentCommentId,
+      time: time,
+      limit: limit,
+    );
+    return FloorCommentPage(
+      items: wrap.data.comments ?? const <CommentItem>[],
+      hasMore: wrap.data.hasMore ?? false,
+      nextTime: wrap.data.time ?? -1,
     );
   }
 
@@ -63,22 +73,6 @@ class CommentRepository {
       operation,
       content: content,
       commentId: commentId,
-    );
-  }
-
-  Future<FloorCommentDetailWrap> fetchFloorComments(
-    String id,
-    String type,
-    String parentCommentId, {
-    int time = -1,
-    int limit = 20,
-  }) {
-    return NeteaseMusicApi().floorComments(
-      id,
-      type,
-      parentCommentId,
-      time: time,
-      limit: limit,
     );
   }
 
@@ -116,4 +110,55 @@ class CommentRepository {
         return 'R_SO_4_';
     }
   }
+
+  DioMetaData _commentListRequest(
+    String id,
+    String type, {
+    required int pageNo,
+    required int pageSize,
+    required bool showInner,
+    required int? sortType,
+    required String? cursor,
+  }) {
+    return DioMetaData(
+      joinUri('/api/v2/resource/comments'),
+      data: {
+        'threadId': _typeKey(type) + id,
+        'pageNo': pageNo,
+        'pageSize': pageSize,
+        'showInner': showInner,
+        'sortType': sortType ?? 99,
+        'cursor': cursor ?? '0',
+      },
+      options: joinOptions(
+        encryptType: EncryptType.EApi,
+        eApiUrl: '/api/v2/resource/comments',
+        cookies: const {'os': 'pc'},
+      ),
+    );
+  }
+}
+
+class CommentPage {
+  const CommentPage({
+    required this.items,
+    required this.hasMore,
+    required this.nextCursor,
+  });
+
+  final List<CommentItem> items;
+  final bool hasMore;
+  final String? nextCursor;
+}
+
+class FloorCommentPage {
+  const FloorCommentPage({
+    required this.items,
+    required this.hasMore,
+    required this.nextTime,
+  });
+
+  final List<CommentItem> items;
+  final bool hasMore;
+  final int nextTime;
 }

@@ -153,6 +153,7 @@
 - 技术架构文档已建立
 - 重构阶段计划已建立
 - 通用请求组件已通过 `RequestRepository` 统一网络访问入口
+- 旧 `RequestWidget` / `RequestLoadMoreWidget` 已删除，请求执行权已回收到 feature controller 与 repository
 - 设置页已移除对 `Hive Box` 的直接写入
 - 评论组件已通过 `CommentRepository` 收口评论请求与交互
 - 用户资料页已通过 `UserRepository` 收口请求拼装，退出登录状态写入已回收到设置控制器
@@ -197,6 +198,8 @@
 - 遗留主控制器已开始迁移到 `lib/features/*/controller`，导入链路已切到新目录
 - 轻量 feature 已开始从 `repository/` 子目录收口为模块根目录文件
 - `common/common_widget.dart` 已删除，共享 UI 组件已开始迁入 `lib/widget` 或对应 feature
+- 顶部搜索面板、用户资料页、云盘、播客列表、播客节目页、评论页已切到状态驱动数据流
+- `SearchRepository`、`UserRepository`、`CloudRepository`、`RadioRepository`、`CommentRepository` 不再向 UI 暴露 `build*Request()` 入口
 
 ### 进行中
 

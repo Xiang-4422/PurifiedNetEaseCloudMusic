@@ -1,16 +1,19 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
-import 'package:bujuan/common/netease_api/src/dio_ext.dart';
-import 'package:bujuan/common/netease_api/src/netease_handler.dart';
+import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 
 class CloudRepository {
-  DioMetaData buildCloudSongRequest({int offset = 0, int limit = 30}) {
-    final params = {'limit': limit, 'offset': offset};
-    return DioMetaData(
-      joinUri('/weapi/v1/cloud/get'),
-      data: params,
-      options: joinOptions(),
+  Future<CloudSongPage> fetchCloudSongs({
+    required int offset,
+    required int limit,
+  }) async {
+    final wrap =
+        await NeteaseMusicApi().cloudSong(offset: offset, limit: limit);
+    final songs = wrap.data ?? const <CloudSongItem>[];
+    return CloudSongPage(
+      items: songs,
+      hasMore: songs.length >= limit,
+      nextOffset: offset + songs.length,
     );
   }
 
@@ -23,4 +26,16 @@ class CloudRepository {
       likedSongIds: likedSongIds,
     );
   }
+}
+
+class CloudSongPage {
+  const CloudSongPage({
+    required this.items,
+    required this.hasMore,
+    required this.nextOffset,
+  });
+
+  final List<CloudSongItem> items;
+  final bool hasMore;
+  final int nextOffset;
 }

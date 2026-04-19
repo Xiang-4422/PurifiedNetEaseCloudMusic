@@ -5,6 +5,7 @@ import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
+import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
@@ -55,6 +56,7 @@ class AppController extends SuperController
       playerController.sessionState;
   Rx<PlaybackRuntimeState> get playbackRuntimeState =>
       playerController.runtimeState;
+  Rx<PlaybackLyricState> get playbackLyricState => playerController.lyricState;
   Rx<AudioServiceRepeatMode> get curRepeatMode =>
       playerController.curRepeatMode;
   RxBool get isFmMode => playerController.isFmMode;
@@ -135,7 +137,8 @@ class AppController extends SuperController
     _initUIController();
     WidgetsBinding.instance.addObserver(this);
 
-    ever(currLyricIndex, (index) {
+    ever(playbackLyricState, (lyricState) {
+      final index = lyricState.currentIndex;
       if (index >= 0 &&
           !isLyricScrollingByUser &&
           lyricScrollController.isAttached) {

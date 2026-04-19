@@ -33,59 +33,63 @@ class LyricView extends GetView<AppController> {
       child: ScrollConfiguration(
         behavior: const NoGlowScrollBehavior(),
         child: Obx(
-          () => ScrollablePositionedList.builder(
-            itemScrollController: controller.lyricScrollController,
-            itemCount: controller.lyricsLineModels.length + 2,
-            itemBuilder: (BuildContext context, int index) {
-              Widget child;
-              // 首尾占位，让当前歌词行能够在固定位置显示
-              if (index == 0 ||
-                  index == controller.lyricsLineModels.length + 1) {
-                child = Container(
-                    height: context.height * (index == 0 ? 0.4 : 0.6));
-              } else {
-                index -= 1;
-                String mainText =
-                    (controller.lyricsLineModels[index].mainText ?? '').trim();
-                if (mainText.isEmpty) {
-                  mainText = '···';
+          () {
+            final lyricState = controller.playbackLyricState.value;
+            return ScrollablePositionedList.builder(
+              itemScrollController: controller.lyricScrollController,
+              itemCount: lyricState.lines.length + 2,
+              itemBuilder: (BuildContext context, int index) {
+                Widget child;
+                // 首尾占位，让当前歌词行能够在固定位置显示
+                if (index == 0 || index == lyricState.lines.length + 1) {
+                  child = Container(
+                      height: context.height * (index == 0 ? 0.4 : 0.6));
+                } else {
+                  index -= 1;
+                  String mainText =
+                      (lyricState.lines[index].mainText ?? '').trim();
+                  if (mainText.isEmpty) {
+                    mainText = '···';
+                  }
+                  String extText =
+                      (lyricState.lines[index].extText ?? '').trim();
+                  if (extText.isNotEmpty) extText = '\n$extText';
+                  child = Obx(() {
+                    bool isActive =
+                        controller.playbackLyricState.value.currentIndex ==
+                            index;
+                    return AnimatedDefaultTextStyle(
+                      style: context.theme.textTheme.titleLarge!.copyWith(
+                        fontFamily: 'monospace', // 指定使用系统等宽字体
+                        color: controller.panelWidgetColor.value
+                            .withValues(alpha: isActive ? 1 : 0.2),
+                        fontWeight:
+                            isActive ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      curve: Curves.decelerate,
+                      textAlign: TextAlign.start,
+                      duration: const Duration(milliseconds: 500),
+                      child: Text(mainText + extText),
+                    );
+                  });
                 }
-                String extText =
-                    (controller.lyricsLineModels[index].extText ?? '').trim();
-                if (extText.isNotEmpty) extText = '\n$extText';
-                child = Obx(() {
-                  bool isActive = controller.currLyricIndex.value == index;
-                  return AnimatedDefaultTextStyle(
-                    style: context.theme.textTheme.titleLarge!.copyWith(
-                      fontFamily: 'monospace', // 指定使用系统等宽字体
-                      color: controller.panelWidgetColor.value
-                          .withValues(alpha: isActive ? 1 : 0.2),
-                      fontWeight:
-                          isActive ? FontWeight.bold : FontWeight.normal,
+                // 构建歌词行
+                return TextButton(
+                  style: TextButton.styleFrom(
+                    alignment: Alignment.centerLeft,
+                    padding: lyricPadding,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    curve: Curves.decelerate,
-                    textAlign: TextAlign.start,
-                    duration: const Duration(milliseconds: 500),
-                    child: Text(mainText + extText),
-                  );
-                });
-              }
-              // 构建歌词行
-              return TextButton(
-                style: TextButton.styleFrom(
-                  alignment: Alignment.centerLeft,
-                  padding: lyricPadding,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
                   ),
-                ),
-                onPressed: null,
-                // 这里保留只读点击态；歌词逐行跳播和外层手势存在冲突，迁移期先不恢复，
-                // 否则会同时触发面板滑动和歌词定位，交互会更混乱。
-                child: child,
-              );
-            },
-          ),
+                  onPressed: null,
+                  // 这里保留只读点击态；歌词逐行跳播和外层手势存在冲突，迁移期先不恢复，
+                  // 否则会同时触发面板滑动和歌词定位，交互会更混乱。
+                  child: child,
+                );
+              },
+            );
+          },
         ),
       ),
     );

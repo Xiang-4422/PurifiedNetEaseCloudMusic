@@ -6,6 +6,7 @@ import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
+import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
@@ -43,6 +44,7 @@ class PlayerController extends GetxController {
       const PlaybackSessionState().obs;
   final Rx<PlaybackRuntimeState> runtimeState =
       const PlaybackRuntimeState().obs;
+  final Rx<PlaybackLyricState> lyricState = const PlaybackLyricState().obs;
 
   // 取色是高频但纯展示性质的操作，做小缓存可以明显减少切歌时的同步卡顿。
   final Map<String, Color> _albumColorCache = {};
@@ -172,7 +174,7 @@ class PlayerController extends GetxController {
           element.startTime! <= newCurPlayingDuration.inMilliseconds);
 
       if (newLyricIndex != currLyricIndex.value) {
-        currLyricIndex.value = newLyricIndex;
+        _syncLyricState(currentIndex: newLyricIndex);
       }
     });
 
@@ -223,6 +225,24 @@ class PlayerController extends GetxController {
     curPlayDuration.value = nextState.currentPosition;
   }
 
+  void _syncLyricState({
+    List<LyricsLineModel>? lines,
+    int? currentIndex,
+    bool? hasTranslatedLyrics,
+  }) {
+    final nextState = lyricState.value.copyWith(
+      lines: lines,
+      currentIndex: currentIndex,
+      hasTranslatedLyrics: hasTranslatedLyrics,
+    );
+    lyricState.value = nextState;
+    lyricsLineModels
+      ..clear()
+      ..addAll(nextState.lines);
+    currLyricIndex.value = nextState.currentIndex;
+    hasTransLyrics.value = nextState.hasTranslatedLyrics;
+  }
+
   _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {
     final currentIndex = curPlayingSongs
         .indexWhere((element) => element.id == curPlayingSong.value.id);
@@ -263,8 +283,7 @@ class PlayerController extends GetxController {
   ///
   /// 这个顺序直接决定离线可用性，不能为了“看起来统一”就把本地文件读取删掉。
   _updateLyric() async {
-    lyricsLineModels.clear();
-    hasTransLyrics.value = false;
+    _syncLyricState(lines: const [], hasTranslatedLyrics: false);
 
     String songId = curPlayingSong.value.id;
     String lyric = _stateStore.getLyric(songId) ?? '';
@@ -291,7 +310,6 @@ class PlayerController extends GetxController {
     if (lyric.isNotEmpty) {
       var mainLyricsLineModels = ParserLrc(lyric).parseLines();
       if (lyricTran.isNotEmpty) {
-        hasTransLyrics.value = true;
         var extLyricsLineModels = ParserLrc(lyricTran).parseLines();
         for (LyricsLineModel lyricsLineModel in extLyricsLineModels) {
           int index = mainLyricsLineModels.indexWhere(
@@ -301,14 +319,19 @@ class PlayerController extends GetxController {
           }
         }
       }
-      lyricsLineModels.addAll(mainLyricsLineModels);
+      _syncLyricState(
+        lines: mainLyricsLineModels,
+        hasTranslatedLyrics: lyricTran.isNotEmpty,
+      );
     } else {
-      lyricsLineModels.add(LyricsLineModel()
-        ..mainText = "没歌词哦～"
-        ..startTime = 0);
+      _syncLyricState(lines: [
+        LyricsLineModel()
+          ..mainText = "没歌词哦～"
+          ..startTime = 0
+      ]);
     }
 
-    currLyricIndex.value = -1;
+    _syncLyricState(currentIndex: -1);
   }
 
   playOrPause() async {

@@ -136,24 +136,28 @@ class PersonalPageView extends GetView<AppController> {
                         Stack(
                           alignment: Alignment.bottomRight,
                           children: [
-                            QuickStartCard(
-                              width: userItemWidth,
-                              height: userItemWidth * 1.3,
-                              albumUrl: controller.isFmMode.isTrue
-                                  ? (controller.curPlayingSong.value
-                                          .extras?['image'] ??
-                                      '')
-                                  : (controller.fmSongs[0].extras?['image'] ??
-                                      ''),
-                              icon: TablerIcons.infinity,
-                              title: "漫游模式",
-                              onTap: () {
-                                controller.bottomPanelPageController
-                                    .jumpToPage(1);
-                                controller.bottomPanelController.open();
-                                controller.playerController.openFmMode();
-                              },
-                            ),
+                            Obx(() {
+                              final runtimeState =
+                                  controller.playbackRuntimeState.value;
+                              return QuickStartCard(
+                                width: userItemWidth,
+                                height: userItemWidth * 1.3,
+                                albumUrl: controller.isFmMode.isTrue
+                                    ? (runtimeState
+                                            .currentSong.extras?['image'] ??
+                                        '')
+                                    : (controller.fmSongs[0].extras?['image'] ??
+                                        ''),
+                                icon: TablerIcons.infinity,
+                                title: "漫游模式",
+                                onTap: () {
+                                  controller.bottomPanelPageController
+                                      .jumpToPage(1);
+                                  controller.bottomPanelController.open();
+                                  controller.playerController.openFmMode();
+                                },
+                              );
+                            }),
                             Offstage(
                                 offstage: controller.isFmMode.isFalse ||
                                     controller.isPlaying.isFalse,
@@ -165,26 +169,30 @@ class PersonalPageView extends GetView<AppController> {
                         Stack(
                           alignment: Alignment.bottomRight,
                           children: [
-                            QuickStartCard(
-                              width: userItemWidth,
-                              height: userItemWidth * 1.3,
-                              albumUrl: controller.isHeartBeatMode.isTrue
-                                  ? (controller.curPlayingSong.value
-                                          .extras?['image'] ??
-                                      '')
-                                  : controller.randomLikedSongAlbumUrl.value,
-                              icon: TablerIcons.heartbeat,
-                              title: "心动模式",
-                              onTap: () {
-                                controller.bottomPanelPageController
-                                    .jumpToPage(1);
-                                controller.bottomPanelController.open();
-                                controller.playerController.openHeartBeatMode(
-                                  controller.randomLikedSongId.value,
-                                  fromPlayAll: true,
-                                );
-                              },
-                            ),
+                            Obx(() {
+                              final runtimeState =
+                                  controller.playbackRuntimeState.value;
+                              return QuickStartCard(
+                                width: userItemWidth,
+                                height: userItemWidth * 1.3,
+                                albumUrl: controller.isHeartBeatMode.isTrue
+                                    ? (runtimeState
+                                            .currentSong.extras?['image'] ??
+                                        '')
+                                    : controller.randomLikedSongAlbumUrl.value,
+                                icon: TablerIcons.heartbeat,
+                                title: "心动模式",
+                                onTap: () {
+                                  controller.bottomPanelPageController
+                                      .jumpToPage(1);
+                                  controller.bottomPanelController.open();
+                                  controller.playerController.openHeartBeatMode(
+                                    controller.randomLikedSongId.value,
+                                    fromPlayAll: true,
+                                  );
+                                },
+                              );
+                            }),
                             Offstage(
                                 offstage: controller.isHeartBeatMode.isFalse ||
                                     controller.isPlaying.isFalse,

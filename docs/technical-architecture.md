@@ -218,6 +218,7 @@
 - `AppController` 的长期目标是拆薄
 - 壳层状态独立为 `features/shell/controller`
 - 页面不应直接驱动 `audioHandler`，也不应继续通过 `AppController` 充当播放代理；播放主链路统一经由 `PlayerController` 暴露入口
+- `PlayerController` 不再直接初始化底层播放器实例，音频服务生命周期统一收口到 `PlaybackService`
 
 ### 6.4 MusicSource
 

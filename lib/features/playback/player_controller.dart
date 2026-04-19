@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:bujuan/core/playback/audio_service_handler.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
+import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/playback_state_store.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/user/user_controller.dart';
@@ -19,14 +19,16 @@ import 'package:bujuan/common/constants/other.dart';
 
 /// 面向页面暴露播放状态和播放模式切换入口。
 ///
-/// 底层播放细节仍由 `AudioServiceHandler` 承接，这里主要负责把
+/// 底层播放细节仍由 `PlaybackService -> AudioServiceHandler` 承接，这里主要负责把
 /// 音频服务、歌词状态、全屏歌词状态和用户侧模式切换组织成可绑定的 UI 状态。
 class PlayerController extends GetxController {
   static PlayerController get to => Get.find();
 
   final PlaybackRepository _repository = PlaybackRepository();
+  final PlaybackService _playbackService = Get.find<PlaybackService>();
   final PlaybackStateStore _stateStore = const PlaybackStateStore();
-  late final AudioServiceHandler audioHandler;
+
+  PlaybackService get playbackService => _playbackService;
 
   RxBool isPlaying = false.obs;
 
@@ -78,24 +80,16 @@ class PlayerController extends GetxController {
 
   /// 统一接管音频服务的状态流，避免页面各自监听 `AudioService` 形成重复副作用。
   Future<void> _initAudioHandler() async {
-    audioHandler = await AudioService.init(
-      builder: () => AudioServiceHandler(),
-      config: const AudioServiceConfig(
-        androidStopForegroundOnPause: false,
-        androidNotificationChannelId: 'com.yu4422.purrr.channel.audio',
-        androidNotificationChannelName: 'Music playback',
-        androidNotificationIcon: 'drawable/audio_service_like',
-      ),
-    );
+    await _playbackService.ensureInitialized();
 
-    audioHandler.queue.listen((mediaItems) async {
+    _playbackService.queueStream.listen((mediaItems) async {
       curPlayingSongs
         ..clear()
         ..addAll(mediaItems);
       await _updateCurPlayIndex(curMediaItemUpdated: false);
     });
 
-    audioHandler.mediaItem.listen((mediaItem) async {
+    _playbackService.mediaItemStream.listen((mediaItem) async {
       if (mediaItem == null) return;
       curPlayingSong.value = mediaItem;
       _stateStore.saveCurrentSongId(mediaItem.id);
@@ -126,10 +120,11 @@ class PlayerController extends GetxController {
 
               bool shouldAutoPlayNext =
                   (newIndex == curPlayingSongs.length - 1) &&
-                      (audioHandler.playbackState.value.processingState ==
+                      (_playbackService
+                              .handler.playbackState.value.processingState ==
                           AudioProcessingState.completed);
 
-              await audioHandler.changePlayList(combined,
+              await _playbackService.changePlayList(combined,
                   index: updatedIndex != -1 ? updatedIndex : newIndex,
                   playListName: "漫游模式",
                   playListNameHeader: "漫游",
@@ -141,7 +136,7 @@ class PlayerController extends GetxController {
                 int nextIndex =
                     (updatedIndex != -1 ? updatedIndex : newIndex) + 1;
                 if (nextIndex < combined.length) {
-                  audioHandler.playIndex(
+                  _playbackService.playIndex(
                       audioSourceIndex: nextIndex, playNow: true);
                 }
               }
@@ -154,11 +149,11 @@ class PlayerController extends GetxController {
       }
     });
 
-    audioHandler.playbackState.listen((playbackState) {
+    _playbackService.playbackStateStream.listen((playbackState) {
       isPlaying.value = playbackState.playing;
       updateFullScreenLyricTimerCounter(cancelTimer: isPlaying.isFalse);
       if (playbackState.processingState == AudioProcessingState.completed) {
-        audioHandler.skipToNext();
+        _playbackService.skipToNext();
       }
     });
 
@@ -176,7 +171,7 @@ class PlayerController extends GetxController {
       }
     });
 
-    await audioHandler.restoreLastPlayState();
+    await _playbackService.restoreLastPlayState();
   }
 
   _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {
@@ -267,7 +262,9 @@ class PlayerController extends GetxController {
   }
 
   playOrPause() async {
-    isPlaying.value ? await audioHandler.pause() : await audioHandler.play();
+    isPlaying.value
+        ? await _playbackService.pause()
+        : await _playbackService.play();
   }
 
   /// 播放列表切换先统一走播放控制器，避免页面继续直接触碰 `audioHandler`
@@ -284,7 +281,7 @@ class PlayerController extends GetxController {
     if (isHeartBeatMode.isTrue) {
       await quitHeartBeatMode(showToast: false);
     }
-    await audioHandler.changePlayList(
+    await _playbackService.changePlayList(
       playList,
       index: index,
       playListName: playListName,
@@ -295,27 +292,27 @@ class PlayerController extends GetxController {
   }
 
   Future<void> playQueueIndex(int index) {
-    return audioHandler.playIndex(audioSourceIndex: index, playNow: true);
+    return _playbackService.playIndex(audioSourceIndex: index, playNow: true);
   }
 
   Future<void> seekTo(Duration position) {
-    return audioHandler.seek(position);
+    return _playbackService.seek(position);
   }
 
   Future<void> skipToPreviousTrack() {
-    return audioHandler.skipToPrevious();
+    return _playbackService.skipToPrevious();
   }
 
   Future<void> skipToNextTrack() {
-    return audioHandler.skipToNext();
+    return _playbackService.skipToNext();
   }
 
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) {
-    return audioHandler.changeRepeatMode(newRepeatMode: repeatMode);
+    return _playbackService.changeRepeatMode(newRepeatMode: repeatMode);
   }
 
   Future<void> cycleRepeatMode() {
-    return audioHandler.changeRepeatMode();
+    return _playbackService.changeRepeatMode();
   }
 
   Future<void> openFmMode() async {
@@ -361,7 +358,7 @@ class PlayerController extends GetxController {
       playIndex = 0;
       playList.insert(0, curPlayingSong.value);
     }
-    await audioHandler.changePlayList(
+    await _playbackService.changePlayList(
       playList,
       index: playIndex,
       playListName: '喜欢的音乐',
@@ -383,7 +380,7 @@ class PlayerController extends GetxController {
       return;
     }
     if (isPlayingLikedSongs.isTrue &&
-        audioHandler.curRepeatMode == AudioServiceRepeatMode.none) {
+        _playbackService.handler.curRepeatMode == AudioServiceRepeatMode.none) {
       await openHeartBeatMode(
         curPlayingSong.value.id,
         fromPlayAll: false,
@@ -412,7 +409,7 @@ class PlayerController extends GetxController {
         }
         break;
       case PlaybackMode.playlist:
-        // Playlist switching is usually handled by `playNewPlayList` directly calling audioHandler.
+        // 播放列表模式本身不需要额外初始化，真正的队列切换统一通过播放入口完成。
         break;
     }
   }
@@ -426,7 +423,7 @@ class PlayerController extends GetxController {
     }
 
     if (fmSongs.isNotEmpty) {
-      await audioHandler.changePlayList(fmSongs,
+      await _playbackService.changePlayList(fmSongs,
           index: 0,
           playListName: '漫游模式',
           playListNameHeader: '漫游',
@@ -435,7 +432,7 @@ class PlayerController extends GetxController {
           needStore: false);
       // Force repeat all for continuous fetch
       if (curRepeatMode.value == AudioServiceRepeatMode.one) {
-        await audioHandler.changeRepeatMode(
+        await _playbackService.changeRepeatMode(
             newRepeatMode: AudioServiceRepeatMode.all);
       }
     } else {
@@ -449,7 +446,7 @@ class PlayerController extends GetxController {
         startSongId, UserController.to.randomLikedSongId.value, fromPlayAll);
 
     if (songs.isNotEmpty) {
-      await audioHandler.changePlayList(songs,
+      await _playbackService.changePlayList(songs,
           index: 0,
           playListName: '心动模式',
           playListNameHeader: '心动',
@@ -457,7 +454,7 @@ class PlayerController extends GetxController {
           playNow: true,
           needStore: false);
       if (curRepeatMode.value == AudioServiceRepeatMode.one) {
-        await audioHandler.changeRepeatMode(
+        await _playbackService.changeRepeatMode(
             newRepeatMode: AudioServiceRepeatMode.all);
       }
     } else {

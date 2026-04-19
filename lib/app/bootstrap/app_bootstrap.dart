@@ -8,6 +8,7 @@ import 'package:bujuan/data/sources/netease/netease_music_source.dart';
 import 'package:bujuan/domain/sources/music_source_registry.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -78,6 +79,7 @@ Future<void> _initInfrastructure() async {
 void _registerControllers() {
   // 现阶段仍有旧页面直接依赖 GetX 全局控制器，先把注册收口到入口层，
   // 避免迁移期出现多处重复 lazyPut。
+  Get.put(PlaybackService(), permanent: true);
   Get.lazyPut<AppController>(() => AppController());
   Get.lazyPut<ExplorePageController>(() => ExplorePageController());
 }

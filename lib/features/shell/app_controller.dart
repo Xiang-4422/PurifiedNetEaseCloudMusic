@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
-import 'package:bujuan/core/playback/audio_service_handler.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/user/user_controller.dart';
@@ -65,7 +65,7 @@ class AppController extends SuperController
   RxBool get hasTransLyrics => playerController.hasTransLyrics;
   RxInt get currLyricIndex => playerController.currLyricIndex;
   RxBool get isFullScreenLyricOpen => playerController.isFullScreenLyricOpen;
-  AudioServiceHandler get audioHandler => playerController.audioHandler;
+  PlaybackService get playbackService => playerController.playbackService;
 
   late BuildContext buildContext;
 

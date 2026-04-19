@@ -164,7 +164,7 @@ class UserController extends GetxController {
     final serverStatusBean =
         await _repository.toggleLikeSong(curSong.id, !isLiked);
     if (serverStatusBean.code == 200) {
-      PlayerController.to.audioHandler
+      await PlayerController.to.playbackService
           .updateMediaItem(curSong..extras?['liked'] = !isLiked);
 
       if (isLiked) {

@@ -80,13 +80,8 @@ class LyricView extends GetView<AppController> {
                   ),
                 ),
                 onPressed: null,
-                // TODO YU4422: 与外层的触摸事件冲突，暂时禁用
-                // onPressed: () => controller.isAlbumVisible.value = true,
-                // onLongPress: () {
-                //   if (isLyric) {
-                //     controller.audioHandler.seek(Duration(milliseconds: controller.lyricsLineModels[index].startTime!));
-                //   }
-                // },
+                // 这里保留只读点击态；歌词逐行跳播和外层手势存在冲突，迁移期先不恢复，
+                // 否则会同时触发面板滑动和歌词定位，交互会更混乱。
                 child: child,
               );
             },

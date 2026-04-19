@@ -108,10 +108,13 @@ class PersonalPageView extends GetView<AppController> {
                             ),
                             Visibility(
                               visible: controller.isPlaying.isTrue &&
-                                  (controller.curPlayListName.value == "每日推荐"),
+                                  (controller.playbackSessionState.value
+                                          .playlistName ==
+                                      "每日推荐"),
                               replacement: IconButton(
                                   onPressed: () {
-                                    if (controller.curPlayListName.value !=
+                                    if (controller.playbackSessionState.value
+                                            .playlistName !=
                                         "每日推荐") {
                                       controller.playerController.playPlaylist(
                                         controller.todayRecommendSongs,

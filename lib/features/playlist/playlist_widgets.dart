@@ -252,12 +252,13 @@ class PlayListWidget extends GetView<AppController> {
                                   Obx(
                                     () => Visibility(
                                       visible: controller.isPlaying.isTrue &&
-                                          controller.curPlayListName.value ==
+                                          controller.playbackSessionState.value
+                                                  .playlistName ==
                                               playLists[index].name,
                                       replacement: IconButton(
                                         onPressed: () {
-                                          if (controller
-                                                  .curPlayListName.value !=
+                                          if (controller.playbackSessionState
+                                                  .value.playlistName !=
                                               playLists[index].name) {
                                             _playPlaylist(playLists[index]);
                                           } else {

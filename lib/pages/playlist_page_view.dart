@@ -134,11 +134,14 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                     .jumpToPage(0);
                                 AppController.to.bottomPanelController.open();
                                 // 根据当前播放模式，决定从哪个位置开始播放
-                                int startIndex =
-                                    AppController.to.curRepeatMode.value ==
-                                            AudioServiceRepeatMode.none
-                                        ? Random().nextInt(loadedMediaItemCount)
-                                        : 0;
+                                int startIndex = AppController
+                                            .to
+                                            .playbackSessionState
+                                            .value
+                                            .repeatMode ==
+                                        AudioServiceRepeatMode.none
+                                    ? Random().nextInt(loadedMediaItemCount)
+                                    : 0;
                                 await AppController.to.playerController
                                     .playPlaylist(
                                   songs,
@@ -195,11 +198,14 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                     .jumpToPage(0);
                                 AppController.to.bottomPanelController.open();
                                 // 根据当前播放模式，决定从哪个位置开始播放
-                                int startIndex =
-                                    AppController.to.curRepeatMode.value ==
-                                            AudioServiceRepeatMode.none
-                                        ? Random().nextInt(loadedMediaItemCount)
-                                        : 0;
+                                int startIndex = AppController
+                                            .to
+                                            .playbackSessionState
+                                            .value
+                                            .repeatMode ==
+                                        AudioServiceRepeatMode.none
+                                    ? Random().nextInt(loadedMediaItemCount)
+                                    : 0;
                                 await AppController.to.playerController
                                     .playPlaylist(
                                   songs,

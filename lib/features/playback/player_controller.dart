@@ -59,10 +59,6 @@ class PlayerController extends GetxController {
   RxBool get isHeartBeatMode =>
       (playbackMode.value == PlaybackMode.heartbeat).obs;
 
-  RxBool isPlayingLikedSongs = false.obs;
-  RxString curPlayListName = "".obs;
-  RxString curPlayListNameHeader = "".obs;
-
   Timer? _fullScreenLyricTimer;
   RxBool isFullScreenLyricOpen = false.obs;
   double _fullScreenLyricTimerCounter = 0.0;
@@ -183,9 +179,6 @@ class PlayerController extends GetxController {
     sessionState.value = nextState;
     this.playbackMode.value = nextState.playbackMode;
     curRepeatMode.value = nextState.repeatMode;
-    curPlayListName.value = nextState.playlistName;
-    curPlayListNameHeader.value = nextState.playlistHeader;
-    this.isPlayingLikedSongs.value = nextState.isPlayingLikedSongs;
     unawaited(_stateStore.savePlaybackMode(nextState.playbackMode));
   }
 
@@ -414,7 +407,7 @@ class PlayerController extends GetxController {
       await playUserLikedSongs();
       return;
     }
-    if (isPlayingLikedSongs.isTrue &&
+    if (sessionState.value.isPlayingLikedSongs &&
         _playbackService.handler.curRepeatMode == AudioServiceRepeatMode.none) {
       await openHeartBeatMode(
         runtimeState.value.currentSong.id,

@@ -60,9 +60,6 @@ class AppController extends SuperController
       playerController.curRepeatMode;
   RxBool get isFmMode => playerController.isFmMode;
   RxBool get isHeartBeatMode => playerController.isHeartBeatMode;
-  RxBool get isPlayingLikedSongs => playerController.isPlayingLikedSongs;
-  RxString get curPlayListName => playerController.curPlayListName;
-  RxString get curPlayListNameHeader => playerController.curPlayListNameHeader;
   RxBool get isFullScreenLyricOpen => playerController.isFullScreenLyricOpen;
   PlaybackService get playbackService => playerController.playbackService;
 

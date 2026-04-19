@@ -337,109 +337,104 @@ class BottomPanelView extends GetView<AppController> {
           child: Obx(
             () => Container(
               color: controller.albumColor.value,
-              child: Obx(() => Container(
-                    height: albumPadding,
-                    margin: EdgeInsets.symmetric(horizontal: albumPadding),
-                    clipBehavior: Clip.hardEdge,
-                    decoration: BoxDecoration(
-                      // color: Colors.red,
-                      color: controller.isBigAlbum.isTrue
-                          ? controller.panelWidgetColor.value.withOpacity(0.05)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(albumPadding),
-                    ),
-                    child: MyTabBarItemAnimatedSwitcher(
-                      isTabBarVisible: controller.curPanelPageIndex.value == 0,
-                      replaceItem: Row(
-                        children: [
-                          Offstage(
-                            offstage:
-                                controller.curPlayListNameHeader.value.isEmpty,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: albumPadding / 2),
-                              decoration: BoxDecoration(
-                                color: controller.panelWidgetColor.value
-                                    .withOpacity(0.05),
-                                borderRadius:
-                                    BorderRadius.circular(albumPadding),
-                              ),
-                              child: Obx(() => Text(
-                                    controller.curPlayListNameHeader.value,
-                                    style: context.textTheme.titleMedium
-                                        ?.copyWith(
-                                            color: controller
-                                                .panelWidgetColor.value
-                                                .withOpacity(0.5)),
-                                  )),
+              child: Obx(() {
+                final sessionState = controller.playbackSessionState.value;
+                return Container(
+                  height: albumPadding,
+                  margin: EdgeInsets.symmetric(horizontal: albumPadding),
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(
+                    color: controller.isBigAlbum.isTrue
+                        ? controller.panelWidgetColor.value.withOpacity(0.05)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(albumPadding),
+                  ),
+                  child: MyTabBarItemAnimatedSwitcher(
+                    isTabBarVisible: controller.curPanelPageIndex.value == 0,
+                    replaceItem: Row(
+                      children: [
+                        Offstage(
+                          offstage: sessionState.playlistHeader.isEmpty,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: albumPadding / 2),
+                            decoration: BoxDecoration(
+                              color: controller.panelWidgetColor.value
+                                  .withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(albumPadding),
+                            ),
+                            child: Text(
+                              sessionState.playlistHeader,
+                              style: context.textTheme.titleMedium?.copyWith(
+                                  color: controller.panelWidgetColor.value
+                                      .withOpacity(0.5)),
                             ),
                           ),
-                          Expanded(
-                            child: Container(
-                              alignment: AlignmentDirectional.center,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Obx(() => Text(
-                                      controller.curPlayListName.value,
+                        ),
+                        Expanded(
+                          child: Container(
+                            alignment: AlignmentDirectional.center,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Text(
+                                sessionState.playlistName,
+                                style: context.textTheme.titleMedium?.copyWith(
+                                    color: controller.panelWidgetColor.value
+                                        .withOpacity(0.5)),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    tabItem: MyTabBar(
+                      height: albumPadding,
+                      color: controller.panelWidgetColor.value,
+                      controller: controller.bottomPanelTabController,
+                      tabs: [
+                        Text("播放列表",
+                            style: context.textTheme.titleMedium?.copyWith(
+                                color: controller.panelWidgetColor.value
+                                    .withOpacity(0.5))),
+                        Text("正在播放",
+                            style: context.textTheme.titleMedium?.copyWith(
+                                color: controller.panelWidgetColor.value
+                                    .withOpacity(0.5))),
+                        Obx(() => MyTabBarItemAnimatedSwitcher(
+                              isTabBarVisible:
+                                  controller.curPanelPageIndex.value > 1,
+                              tabItem: Text("歌曲评论",
+                                  style: context.textTheme.titleMedium
+                                      ?.copyWith(
+                                          color: controller
+                                              .panelWidgetColor.value
+                                              .withOpacity(0.5))),
+                              replaceItem: MyTabBar(
+                                height: albumPadding,
+                                controller:
+                                    controller.bottomPanelCommentTabController,
+                                color: controller.panelWidgetColor.value,
+                                tabs: [
+                                  Text("热",
                                       style: context.textTheme.titleMedium
                                           ?.copyWith(
                                               color: controller
                                                   .panelWidgetColor.value
-                                                  .withOpacity(0.5)),
-                                    )),
+                                                  .withOpacity(0.5))),
+                                  Text("新",
+                                      style: context.textTheme.titleMedium
+                                          ?.copyWith(
+                                              color: controller
+                                                  .panelWidgetColor.value
+                                                  .withOpacity(0.5))),
+                                ],
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      tabItem: MyTabBar(
-                        height: albumPadding,
-                        color: controller.panelWidgetColor.value,
-                        controller: controller.bottomPanelTabController,
-                        tabs: [
-                          // TODO YU4422 进入播放列表页面的时候显示当前播放歌单名
-                          Text("播放列表",
-                              style: context.textTheme.titleMedium?.copyWith(
-                                  color: controller.panelWidgetColor.value
-                                      .withOpacity(0.5))),
-                          Text("正在播放",
-                              style: context.textTheme.titleMedium?.copyWith(
-                                  color: controller.panelWidgetColor.value
-                                      .withOpacity(0.5))),
-                          Obx(() => MyTabBarItemAnimatedSwitcher(
-                                isTabBarVisible:
-                                    controller.curPanelPageIndex.value > 1,
-                                tabItem: Text("歌曲评论",
-                                    style: context.textTheme.titleMedium
-                                        ?.copyWith(
-                                            color: controller
-                                                .panelWidgetColor.value
-                                                .withOpacity(0.5))),
-                                replaceItem: MyTabBar(
-                                  height: albumPadding,
-                                  controller: controller
-                                      .bottomPanelCommentTabController,
-                                  color: controller.panelWidgetColor.value,
-                                  tabs: [
-                                    Text("热",
-                                        style: context.textTheme.titleMedium
-                                            ?.copyWith(
-                                                color: controller
-                                                    .panelWidgetColor.value
-                                                    .withOpacity(0.5))),
-                                    Text("新",
-                                        style: context.textTheme.titleMedium
-                                            ?.copyWith(
-                                                color: controller
-                                                    .panelWidgetColor.value
-                                                    .withOpacity(0.5))),
-                                  ],
-                                ),
-                              )),
-                        ],
-                      ),
+                            )),
+                      ],
                     ),
-                  )),
+                  ),
+                );
+              }),
             ),
           ),
         ),

@@ -1,7 +1,8 @@
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
 import 'package:bujuan/domain/entities/local_resource_entry.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/database/local_resource_record.dart';
+import 'package:bujuan/data/local/local_resource_record_codec.dart';
 
 class LocalResourceIndexStore {
   const LocalResourceIndexStore();
@@ -57,13 +58,7 @@ class LocalResourceIndexStore {
   }
 
   Map<String, Object?> _encodeEntry(LocalResourceEntry entry) {
-    return {
-      'trackId': entry.trackId,
-      'kind': entry.kind.name,
-      'path': entry.path,
-      'origin': entry.origin.name,
-      'updatedAt': entry.updatedAt.millisecondsSinceEpoch,
-    };
+    return LocalResourceRecordCodec.encode(entry).toMap();
   }
 
   LocalResourceEntry? _decodeEntry(Object? value) {
@@ -71,20 +66,8 @@ class LocalResourceIndexStore {
       return null;
     }
     final map = value.map((key, value) => MapEntry('$key', value));
-    return LocalResourceEntry(
-      trackId: map['trackId'] as String? ?? '',
-      kind: LocalResourceKind.values.firstWhere(
-        (item) => item.name == map['kind'],
-        orElse: () => LocalResourceKind.audio,
-      ),
-      path: map['path'] as String? ?? '',
-      origin: TrackResourceOrigin.values.firstWhere(
-        (item) => item.name == map['origin'],
-        orElse: () => TrackResourceOrigin.none,
-      ),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(
-        (map['updatedAt'] as num?)?.toInt() ?? 0,
-      ),
+    return LocalResourceRecordCodec.decode(
+      LocalResourceRecord.fromMap(Map<String, Object?>.from(map)),
     );
   }
 }

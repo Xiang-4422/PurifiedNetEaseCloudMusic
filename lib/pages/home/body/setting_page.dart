@@ -23,12 +23,7 @@ class _SettingPageViewState extends State<SettingPageView> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) => _getVersion());
   }
 
-  @override
-  dispose() {
-    super.dispose();
-  }
-
-  _getVersion() async {
+  Future<void> _getVersion() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     setState(() {
       version = packageInfo.version;

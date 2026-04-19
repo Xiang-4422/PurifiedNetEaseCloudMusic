@@ -3,10 +3,10 @@ import 'dart:developer';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/features/shell/controller/app_controller.dart';
-import 'package:bujuan/pages/home/body/body_pages/coffee_page.dart';
-import 'package:bujuan/pages/home/body/body_pages/explore_page.dart';
-import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
-import 'package:bujuan/pages/home/body/body_pages/setting_page.dart';
+import 'package:bujuan/pages/home/body/coffee_page.dart';
+import 'package:bujuan/pages/home/body/explore_page.dart';
+import 'package:bujuan/pages/home/body/personal_page.dart';
+import 'package:bujuan/pages/home/body/setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -177,7 +177,7 @@ class MenuView extends GetView<AppController> {
   }
 }
 
-/// 左侧菜单栏bean
+/// 菜单项目前只服务首页壳层，保持在这里能避免为了一个轻量模型再扩散目录。
 class LeftMenuBean {
   String title;
   IconData icon;

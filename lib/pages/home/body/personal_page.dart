@@ -9,14 +9,14 @@ import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import '../../../../common/constants/appConstants.dart';
+import '../../../common/constants/appConstants.dart';
 import 'package:bujuan/features/shell/controller/app_controller.dart';
-import '../../../../routes/router.gr.dart' as gr;
-import '../../../../widget/common_widgets.dart';
-import '../../../../widget/scroll_helpers.dart';
-import '../../../../widget/simple_extended_image.dart';
+import '../../../routes/router.gr.dart' as gr;
+import '../../../widget/common_widgets.dart';
+import '../../../widget/scroll_helpers.dart';
+import '../../../widget/simple_extended_image.dart';
 
-/// 收藏页
+/// 这里仍保留在 `pages/home/body`，因为它和首页壳层状态绑定很紧，过早拆去 feature 只会增加跨目录跳转。
 class PersonalPageView extends GetView<AppController> {
   const PersonalPageView({Key? key}) : super(key: key);
 

@@ -1,4 +1,4 @@
-import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:flutter/foundation.dart';
@@ -6,12 +6,15 @@ import 'package:flutter/foundation.dart';
 class CloudPageController {
   CloudPageController({
     CloudRepository? repository,
+    required List<int> likedSongIds,
     this.pageSize = 30,
-  }) : _repository = repository ?? CloudRepository();
+  })  : _repository = repository ?? CloudRepository(),
+        _likedSongIds = likedSongIds;
 
   final CloudRepository _repository;
+  final List<int> _likedSongIds;
   final int pageSize;
-  final ValueNotifier<PagedState<CloudSongItem>> state =
+  final ValueNotifier<PagedState<MediaItem>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
@@ -42,6 +45,7 @@ class CloudPageController {
       final page = await _repository.fetchCloudSongs(
         offset: _offset,
         limit: pageSize,
+        likedSongIds: _likedSongIds,
       );
       _offset = page.nextOffset;
       state.value = PagedState(
@@ -64,6 +68,7 @@ class CloudPageController {
       final page = await _repository.fetchCloudSongs(
         offset: 0,
         limit: pageSize,
+        likedSongIds: _likedSongIds,
       );
       _offset = page.nextOffset;
       state.value = PagedState.data(

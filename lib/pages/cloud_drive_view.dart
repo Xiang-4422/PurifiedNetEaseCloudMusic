@@ -1,4 +1,5 @@
 import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
@@ -7,8 +8,6 @@ import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-
-import '../../data/netease/api/src/api/play/bean.dart';
 
 class CloudDriveView extends StatefulWidget {
   const CloudDriveView({Key? key}) : super(key: key);
@@ -25,7 +24,10 @@ class _CloudDriveViewState extends State<CloudDriveView> {
   @override
   void initState() {
     super.initState();
-    _controller = CloudPageController(repository: _repository)..loadInitial();
+    _controller = CloudPageController(
+      repository: _repository,
+      likedSongIds: AppController.to.likedSongIds.toList(),
+    )..loadInitial();
   }
 
   @override
@@ -44,7 +46,7 @@ class _CloudDriveViewState extends State<CloudDriveView> {
               MediaQuery.of(context).padding.top + AppDimensions.appBarHeight,
         ),
         Expanded(
-          child: ValueListenableBuilder<PagedState<CloudSongItem>>(
+          child: ValueListenableBuilder<PagedState<MediaItem>>(
             valueListenable: _controller.state,
             builder: (context, state, child) {
               if (state.initialLoading) {
@@ -56,10 +58,6 @@ class _CloudDriveViewState extends State<CloudDriveView> {
               if (state.isEmpty) {
                 return const EmptyView();
               }
-              final mediaItems = _repository.mapCloudSongs(
-                state.items,
-                likedSongIds: AppController.to.likedSongIds.toList(),
-              );
               return SmartRefresher(
                 enablePullDown: true,
                 enablePullUp: state.hasMore,
@@ -88,13 +86,13 @@ class _CloudDriveViewState extends State<CloudDriveView> {
                   }
                 },
                 child: ListView.builder(
-                  itemCount: mediaItems.length,
+                  itemCount: state.items.length,
                   shrinkWrap: true,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemBuilder: (context, index) {
                     return SongItem(
                       index: index,
-                      playlist: mediaItems,
+                      playlist: state.items,
                       playListName: "云盘音乐",
                     );
                   },

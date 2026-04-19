@@ -286,6 +286,7 @@
 - 用户资料页与 `UserProfileController` 已改为消费 feature 自己的用户资料模型，不再直接依赖 `NeteaseUserDetail`
 - 播客列表、播客详情和对应 controller 已改为消费 `RadioSummaryData / RadioProgramData`，不再直接依赖 `DjRadio / DjProgram`
 - 评论列表、楼中楼和评论弹层已改为消费 `CommentData`，不再直接依赖网易云评论 bean
+- 云盘页与 `CloudPageController` 已改为直接消费 `MediaItem` 列表，不再直接依赖 `CloudSongItem`
 - 已新增本地媒体库数据源协议，`LibraryRepository` 开始按“先本地、后远程、再回写”组织读取路径
 - 已新增进程内本地媒体库占位实现，并进一步切到可持久化过渡实现
 - 搜索面板中的单曲、歌单、专辑、歌手结果已接入统一媒体库入口

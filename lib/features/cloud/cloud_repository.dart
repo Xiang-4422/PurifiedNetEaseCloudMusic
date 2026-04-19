@@ -6,24 +6,18 @@ class CloudRepository {
   Future<CloudSongPage> fetchCloudSongs({
     required int offset,
     required int limit,
+    required List<int> likedSongIds,
   }) async {
     final wrap =
         await NeteaseMusicApi().cloudSong(offset: offset, limit: limit);
     final songs = wrap.data ?? const <CloudSongItem>[];
     return CloudSongPage(
-      items: songs,
+      items: MediaItemMapper.fromCloudSongItemList(
+        songs,
+        likedSongIds: likedSongIds,
+      ),
       hasMore: songs.length >= limit,
       nextOffset: offset + songs.length,
-    );
-  }
-
-  List<MediaItem> mapCloudSongs(
-    List<CloudSongItem> songs, {
-    required List<int> likedSongIds,
-  }) {
-    return MediaItemMapper.fromCloudSongItemList(
-      songs,
-      likedSongIds: likedSongIds,
     );
   }
 }
@@ -35,7 +29,7 @@ class CloudSongPage {
     required this.nextOffset,
   });
 
-  final List<CloudSongItem> items;
+  final List<MediaItem> items;
   final bool hasMore;
   final int nextOffset;
 }

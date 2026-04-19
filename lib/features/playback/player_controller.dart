@@ -280,14 +280,6 @@ class PlayerController extends GetxController {
         TrackLyrics(main: lyric, translated: lyricTran),
       );
     }
-    if (lyric.isEmpty) {
-      final legacyLyrics = _stateStore.getLegacyLyrics(songId);
-      if (legacyLyrics != null) {
-        lyric = legacyLyrics.main;
-        lyricTran = legacyLyrics.translated;
-        await _repository.saveSongLyrics(songId, legacyLyrics);
-      }
-    }
     if (lyric.isNotEmpty) {
       var mainLyricsLineModels = ParserLrc(lyric).parseLines();
       if (lyricTran.isNotEmpty) {

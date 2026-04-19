@@ -1,10 +1,11 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
 import 'package:bujuan/data/netease/api/src/netease_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_album_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_artist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/domain/entities/album_entity.dart';
+import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:get_it/get_it.dart';
 
@@ -15,9 +16,9 @@ class ArtistDetailData {
     required this.hotAlbums,
   });
 
-  final Artist artist;
+  final ArtistEntity artist;
   final List<MediaItem> topSongs;
-  final List<Album> hotAlbums;
+  final List<AlbumEntity> hotAlbums;
 }
 
 class ArtistRepository {
@@ -36,25 +37,24 @@ class ArtistRepository {
     final artistDetail = await NeteaseMusicApi().artistDetail(artistId);
     final artistSongs = await NeteaseMusicApi().artistTopSongList(artistId);
     final artistAlbums = await NeteaseMusicApi().artistAlbumList(artistId);
-    if (artistDetail.data?.artist != null) {
-      await _libraryRepository.saveArtists(
-        [NeteaseArtistMapper.fromArtist(artistDetail.data!.artist!)],
-      );
+    final artist = artistDetail.data?.artist == null
+        ? null
+        : NeteaseArtistMapper.fromArtist(artistDetail.data!.artist!);
+    final tracks = NeteaseTrackMapper.fromSong2List(artistSongs.songs ?? const []);
+    final albums = NeteaseAlbumMapper.fromAlbumList(artistAlbums.hotAlbums ?? const []);
+    if (artist != null) {
+      await _libraryRepository.saveArtists([artist]);
     }
-    await _libraryRepository.saveTracks(
-      NeteaseTrackMapper.fromSong2List(artistSongs.songs ?? const []),
-    );
-    await _libraryRepository.saveAlbums(
-      NeteaseAlbumMapper.fromAlbumList(artistAlbums.hotAlbums ?? const []),
-    );
+    await _libraryRepository.saveTracks(tracks);
+    await _libraryRepository.saveAlbums(albums);
 
     return ArtistDetailData(
-      artist: artistDetail.data!.artist!,
-      topSongs: MediaItemMapper.fromSong2List(
-        artistSongs.songs ?? const [],
+      artist: artist!,
+      topSongs: MediaItemMapper.fromTrackList(
+        tracks,
         likedSongIds: likedSongIds,
       ),
-      hotAlbums: artistAlbums.hotAlbums ?? const [],
+      hotAlbums: albums,
     );
   }
 }

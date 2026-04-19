@@ -77,15 +77,14 @@ class PlaylistRepository {
           min(loadedSongCount + 1000, resolvedIds.length),
         ),
       );
+      final tracks = NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []);
       songs.addAll(
-        MediaItemMapper.fromSong2List(
-          wrap.songs ?? const [],
+        MediaItemMapper.fromTrackList(
+          tracks,
           likedSongIds: likedSongIds,
         ),
       );
-      await _libraryRepository.saveTracks(
-        NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []),
-      );
+      await _libraryRepository.saveTracks(tracks);
       loadedSongCount = songs.length;
     }
 

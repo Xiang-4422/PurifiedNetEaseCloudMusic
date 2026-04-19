@@ -58,11 +58,12 @@ class UserRepository {
     if (wrap.code != 200) {
       return const [];
     }
-    await _libraryRepository.saveTracks(
-      NeteaseTrackMapper.fromSong2List(wrap.data.dailySongs ?? const []),
-    );
-    return MediaItemMapper.fromSong2List(
+    final tracks = NeteaseTrackMapper.fromSong2List(
       wrap.data.dailySongs ?? const [],
+    );
+    await _libraryRepository.saveTracks(tracks);
+    return MediaItemMapper.fromTrackList(
+      tracks,
       likedSongIds: likedSongIds,
     );
   }
@@ -122,11 +123,10 @@ class UserRepository {
         .where((song) => song.songInfo != null && song.songInfo!.id.isNotEmpty)
         .map((song) => song.songInfo!)
         .toList();
-    await _libraryRepository.saveTracks(
-      NeteaseTrackMapper.fromSong2List(validSongs),
-    );
-    return MediaItemMapper.fromSong2List(
-      validSongs,
+    final tracks = NeteaseTrackMapper.fromSong2List(validSongs);
+    await _libraryRepository.saveTracks(tracks);
+    return MediaItemMapper.fromTrackList(
+      tracks,
       likedSongIds: likedSongIds,
     );
   }
@@ -141,15 +141,14 @@ class UserRepository {
       final wrap = await NeteaseMusicApi().songDetail(
         ids.sublist(loadedSongCount, min(loadedSongCount + 1000, ids.length)),
       );
+      final tracks = NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []);
       songs.addAll(
-        MediaItemMapper.fromSong2List(
-          wrap.songs ?? const [],
+        MediaItemMapper.fromTrackList(
+          tracks,
           likedSongIds: likedSongIds,
         ),
       );
-      await _libraryRepository.saveTracks(
-        NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []),
-      );
+      await _libraryRepository.saveTracks(tracks);
       loadedSongCount = songs.length;
     }
     return songs;
@@ -161,18 +160,12 @@ class UserRepository {
     if (songs.isEmpty) {
       return '';
     }
-    await _libraryRepository.saveTracks(
-      NeteaseTrackMapper.fromSong2List(songs),
-    );
-
-    final mediaItems = MediaItemMapper.fromSong2List(
-      songs,
-      likedSongIds: const [],
-    );
-    if (mediaItems.isEmpty) {
+    final tracks = NeteaseTrackMapper.fromSong2List(songs);
+    await _libraryRepository.saveTracks(tracks);
+    if (tracks.isEmpty) {
       return '';
     }
-    return '${mediaItems.first.extras?['image'] ?? ''}?param=500y500';
+    return '${tracks.first.artworkUrl ?? ''}?param=500y500';
   }
 
   Future<ServerStatusBean> toggleLikeSong(String songId, bool like) {

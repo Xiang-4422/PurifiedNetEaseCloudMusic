@@ -5,7 +5,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
+import 'package:bujuan/domain/entities/album_entity.dart';
+import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
@@ -33,10 +34,10 @@ class ArtistPageView extends StatefulWidget {
 class _ArtistPageViewState extends State<ArtistPageView> {
   final ArtistRepository _repository = ArtistRepository();
   late String artistId;
-  late Artist artist;
+  late ArtistEntity artist;
 
   final List<MediaItem> topSongs = [];
-  final List<Album> hotAlbums = [];
+  final List<AlbumEntity> hotAlbums = [];
 
   bool loading = true;
   Color albumColor = Get.theme.colorScheme.primary;
@@ -55,7 +56,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
       artist = artistDetail.artist;
 
       albumColor =
-          await OtherUtils.getImageColor(artist.cover ?? artist.picUrl);
+          await OtherUtils.getImageColor(artist.artworkUrl);
       onAlbumColor = albumColor.invertedColor;
 
       topSongs.addAll(artistDetail.topSongs);
@@ -123,14 +124,14 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                                   ..color = Colors.black,
                               ),
                               maxLines: 1,
-                              "  ${artist.name!}",
+                              "  ${artist.name}",
                             ),
                             Text(
                               style: context.textTheme.titleLarge!.copyWith(
                                 color: Colors.white,
                               ),
                               maxLines: 1,
-                              "  ${artist.name!}",
+                              "  ${artist.name}",
                             ),
                           ],
                         ),
@@ -148,7 +149,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                           onPressed: () => PlayerController.to.playPlaylist(
                                 topSongs,
                                 0,
-                                playListName: artist.name ?? "未知歌手",
+                                playListName: artist.name,
                                 playListNameHeader: "歌手",
                               )),
                     )
@@ -160,7 +161,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
               background: SimpleExtendedImage(
                 width: context.width,
                 height: context.width,
-                artist.cover ?? artist.picUrl ?? '',
+                artist.artworkUrl ?? '',
               ),
             ),
             // bottom:
@@ -193,7 +194,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                   child: GestureDetector(
                     onTap: () => context.router.push(const gr.AlbumRouteView()
                         .copyWith(
-                            queryParams: {'albumId': hotAlbums[index].id})),
+                            queryParams: {'albumId': hotAlbums[index].sourceId})),
                     child: SizedBox(
                       height: albumWidth * 1.35,
                       width: albumWidth,
@@ -205,14 +206,14 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                               shape: BoxShape.rectangle,
                               borderRadius: BorderRadius.circular(
                                   AppDimensions.paddingMedium),
-                              '${hotAlbums[index].picUrl}?param=200y200'),
+                              '${hotAlbums[index].artworkUrl ?? ''}?param=200y200'),
                           Expanded(
                               child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "${hotAlbums[index].name}",
+                                hotAlbums[index].title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: context.textTheme.bodyMedium?.copyWith(
@@ -261,7 +262,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                 return SongItem(
                         playlist: topSongs,
                         index: index,
-                        playListName: artist.name ?? "未知歌手",
+                        playListName: artist.name,
                         playListHeader: "歌手",
                         stringColor: onAlbumColor,
                         showIndex: true)

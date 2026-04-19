@@ -2,7 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
+import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/features/album/album_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
@@ -26,7 +26,7 @@ class AlbumPageView extends StatefulWidget {
 class _AlbumPageViewState extends State<AlbumPageView> {
   final AlbumRepository _repository = AlbumRepository();
   late String albumId;
-  late Album album;
+  late AlbumEntity album;
   List<MediaItem> albumSongs = [];
 
   bool loading = true;
@@ -47,7 +47,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
       album = albumDetail.album;
       albumSongs.addAll(albumDetail.albumSongs);
 
-      albumColor = await OtherUtils.getImageColor(album.picUrl);
+      albumColor = await OtherUtils.getImageColor(album.artworkUrl);
       onAlbumColor = albumColor.invertedColor;
 
       setState(() {
@@ -102,7 +102,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                         alignment: Alignment.centerLeft,
                         children: [
                           Text(
-                            "  ${album.name!}",
+                            "  ${album.title}",
                             maxLines: 1,
                             style: context.textTheme.titleLarge!.copyWith(
                               foreground: Paint()
@@ -112,7 +112,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                             ),
                           ),
                           Text(
-                            "  ${album.name!}",
+                            "  ${album.title}",
                             maxLines: 1,
                             style: context.textTheme.titleLarge!.copyWith(
                               color: Colors.white,
@@ -134,7 +134,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                         onPressed: () => PlayerController.to.playPlaylist(
                               albumSongs,
                               0,
-                              playListName: album.name ?? '无名专辑',
+                              playListName: album.title,
                               playListNameHeader: "专辑",
                             )),
                   )
@@ -146,7 +146,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
             background: SimpleExtendedImage(
               width: context.width,
               height: context.width,
-              album.picUrl ?? '',
+              album.artworkUrl ?? '',
             ),
           ),
           // bottom:
@@ -163,7 +163,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
               return SongItem(
                       playlist: albumSongs,
                       index: index,
-                      playListName: album.name ?? '无名专辑',
+                      playListName: album.title,
                       playListHeader: "专辑",
                       stringColor: onAlbumColor,
                       showPic: false,

@@ -210,6 +210,7 @@
 - 所有 `Song2`、`CloudSongItem`、歌单详情等到 `MediaItem` 的转换统一收口
 - 页面和零散组件中禁止重复拼装 `MediaItem`
 - 平台 Bean 到领域实体的转换统一收口到 `data/mappers`
+- 专辑页、歌手页、推荐歌曲等展示链路优先消费统一实体，不再让页面直接依赖网易云 `Album`、`Artist`、`Song2`
 
 ### 6.3 Shell 协调层
 

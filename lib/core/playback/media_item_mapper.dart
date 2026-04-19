@@ -11,35 +11,6 @@ import 'package:bujuan/domain/entities/track.dart';
 class MediaItemMapper {
   const MediaItemMapper._();
 
-  static List<MediaItem> fromSong2List(
-    List<Song2> songs, {
-    required List<int> likedSongIds,
-  }) {
-    return songs
-        .where((song) => song.id.isNotEmpty)
-        .map((song) => MediaItem(
-              id: song.id,
-              duration: Duration(milliseconds: song.dt ?? 0),
-              artUri: Uri.parse('${song.al?.picUrl ?? ''}?param=200y200'),
-              extras: {
-                'type': MediaType.playlist.name,
-                'image': song.al?.picUrl ?? '',
-                'liked': likedSongIds.contains(int.tryParse(song.id)),
-                'artist': (song.ar ?? [])
-                    .map((artist) => jsonEncode(artist.toJson()))
-                    .toList()
-                    .join(' / '),
-                'albumId': song.al?.id ?? '',
-                'mv': song.mv,
-                'fee': song.fee,
-              },
-              title: song.name ?? '',
-              album: song.al?.name,
-              artist: (song.ar ?? []).map((artist) => artist.name).join(' / '),
-            ))
-        .toList();
-  }
-
   static List<MediaItem> fromCloudSongItemList(
     List<CloudSongItem> songs, {
     required List<int> likedSongIds,

@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
+import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/data/netease/mappers/netease_album_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
@@ -12,7 +13,7 @@ class AlbumDetailData {
     required this.albumSongs,
   });
 
-  final Album album;
+  final AlbumEntity album;
   final List<MediaItem> albumSongs;
 }
 
@@ -30,18 +31,18 @@ class AlbumRepository {
     required List<int> likedSongIds,
   }) async {
     final albumDetail = await NeteaseMusicApi().albumDetail(albumId);
-    if (albumDetail.album != null) {
-      await _libraryRepository.saveAlbums(
-        [NeteaseAlbumMapper.fromAlbum(albumDetail.album!)],
-      );
+    final album = albumDetail.album == null
+        ? null
+        : NeteaseAlbumMapper.fromAlbum(albumDetail.album!);
+    final tracks = NeteaseTrackMapper.fromSong2List(albumDetail.songs ?? const []);
+    if (album != null) {
+      await _libraryRepository.saveAlbums([album]);
     }
-    await _libraryRepository.saveTracks(
-      NeteaseTrackMapper.fromSong2List(albumDetail.songs ?? const []),
-    );
+    await _libraryRepository.saveTracks(tracks);
     return AlbumDetailData(
-      album: albumDetail.album!,
-      albumSongs: MediaItemMapper.fromSong2List(
-        albumDetail.songs ?? const [],
+      album: album!,
+      albumSongs: MediaItemMapper.fromTrackList(
+        tracks,
         likedSongIds: likedSongIds,
       ),
     );

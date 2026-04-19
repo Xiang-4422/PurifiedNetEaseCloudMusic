@@ -226,6 +226,7 @@
 - 播放恢复信息开始收口为 `PlaybackRestoreState`，当前项、歌单元信息、队列、模式和进度不再继续以散落 key 分别理解
 - 当前队列、当前歌曲、当前索引和当前进度开始收口为 `PlaybackRuntimeState`，旧运行态字段暂时保留作为页面兼容层
 - 歌词行、当前歌词索引和翻译歌词标记开始收口为 `PlaybackLyricState`，避免歌词解析结果继续散落在控制器兼容字段中
+- `PlaybackStateStore` 只保留播放恢复相关轻存储；歌词内容改由媒体库承接，旧歌词缓存仅保留一次性迁移读取
 - 壳层与主播放面板已开始消费统一播放状态对象，后续页面迁移优先复用这些状态而不是继续增加散落 getter
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，旧运行态字段开始退回兼容入口
 - `PlayerController` 内部逻辑已优先读取 `sessionState / runtimeState / lyricState`，旧 `curPlaying* / curPlay* / lyrics*` 字段逐步退为页面兼容镜像

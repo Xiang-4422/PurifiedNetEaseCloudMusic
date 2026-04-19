@@ -250,14 +250,14 @@ class PlayerController extends GetxController {
 
   /// 先读本地歌词缓存，再读下载后的本地歌词文件，最后才回退到远程歌词入口。
   ///
-  /// 这个顺序直接决定离线可用性，不能为了“看起来统一”就把本地文件读取删掉。
+  /// 这个顺序直接决定离线可用性；歌词内容现在走媒体库存储，不再继续塞进恢复态轻存储。
   _updateLyric() async {
     _syncLyricState(lines: const [], hasTranslatedLyrics: false);
 
     final currentSong = runtimeState.value.currentSong;
     String songId = currentSong.id;
-    String lyric = _stateStore.getLyric(songId) ?? '';
-    String lyricTran = _stateStore.getTranslatedLyric(songId) ?? '';
+    String lyric = '';
+    String lyricTran = '';
     if (lyric.isEmpty) {
       final localLyricsPath =
           currentSong.extras?['localLyricsPath'] as String? ?? '';
@@ -270,11 +270,19 @@ class PlayerController extends GetxController {
           const TrackLyrics();
       lyric = lyrics.main;
       lyricTran = lyrics.translated;
-      await _stateStore.saveLyrics(
-        songId: songId,
-        lyric: lyric,
-        translatedLyric: lyricTran,
+    } else {
+      await _repository.saveSongLyrics(
+        songId,
+        TrackLyrics(main: lyric, translated: lyricTran),
       );
+    }
+    if (lyric.isEmpty) {
+      final legacyLyrics = _stateStore.getLegacyLyrics(songId);
+      if (legacyLyrics != null) {
+        lyric = legacyLyrics.main;
+        lyricTran = legacyLyrics.translated;
+        await _repository.saveSongLyrics(songId, legacyLyrics);
+      }
     }
     if (lyric.isNotEmpty) {
       var mainLyricsLineModels = ParserLrc(lyric).parseLines();

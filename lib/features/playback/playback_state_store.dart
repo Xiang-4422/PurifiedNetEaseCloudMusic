@@ -3,6 +3,7 @@ import 'package:bujuan/common/constants/key.dart' as key;
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
+import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/playback/playback_restore_state.dart';
 
 class PlaybackStateStore {
@@ -81,26 +82,18 @@ class PlaybackStateStore {
     return CacheBox.instance.put(playPosition, position.inMilliseconds);
   }
 
-  // 现有歌词缓存 key 已经散落在多个版本里，先保持 key 兼容，
-  // 避免重构存储入口时把旧缓存全部打失效。
-  String lyricKey(String songId) => 'lyric_$songId';
-
-  String lyricTranslationKey(String songId) => 'lyricTran_$songId';
-
-  String? getLyric(String songId) {
-    return CacheBox.instance.get(lyricKey(songId));
-  }
-
-  String? getTranslatedLyric(String songId) {
-    return CacheBox.instance.get(lyricTranslationKey(songId));
-  }
-
-  Future<void> saveLyrics({
-    required String songId,
-    required String lyric,
-    required String translatedLyric,
-  }) async {
-    await CacheBox.instance.put(lyricKey(songId), lyric);
-    await CacheBox.instance.put(lyricTranslationKey(songId), translatedLyric);
+  // 旧歌词缓存曾直接挂在轻存储里，这里只保留一次性迁移读取，
+  // 避免现有用户在切换到媒体库存储后立即丢掉已缓存歌词。
+  TrackLyrics? getLegacyLyrics(String songId) {
+    final lyric = CacheBox.instance.get('lyric_$songId') as String?;
+    final translatedLyric =
+        CacheBox.instance.get('lyricTran_$songId') as String?;
+    if ((lyric ?? '').isEmpty && (translatedLyric ?? '').isEmpty) {
+      return null;
+    }
+    return TrackLyrics(
+      main: lyric ?? '',
+      translated: translatedLyric ?? '',
+    );
   }
 }

@@ -227,6 +227,10 @@ class LibraryRepository {
     return lyrics;
   }
 
+  Future<void> saveLyrics(String trackId, TrackLyrics lyrics) async {
+    await _localDataSource?.saveLyrics(trackId, lyrics);
+  }
+
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
     final localPlaylist = await _localDataSource?.getPlaylist(playlistId);
     if (localPlaylist != null) {

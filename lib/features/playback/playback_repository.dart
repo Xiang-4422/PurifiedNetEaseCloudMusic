@@ -15,6 +15,10 @@ class PlaybackRepository {
     return _libraryRepository.getLyrics(trackId);
   }
 
+  Future<void> saveSongLyrics(String trackId, TrackLyrics lyrics) {
+    return _libraryRepository.saveLyrics(trackId, lyrics);
+  }
+
   Future<String?> fetchPlaybackUrl(
     String trackId, {
     required bool preferHighQuality,

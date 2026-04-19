@@ -1,5 +1,5 @@
-import 'package:bujuan/data/netease/api/src/api/dj/bean.dart';
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/features/radio/radio_data.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -11,7 +11,7 @@ class RadioListController {
 
   final RadioRepository _repository;
   final int pageSize;
-  final ValueNotifier<PagedState<DjRadio>> state =
+  final ValueNotifier<PagedState<RadioSummaryData>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;

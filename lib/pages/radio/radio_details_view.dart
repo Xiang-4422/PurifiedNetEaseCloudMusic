@@ -1,14 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
+import 'package:bujuan/features/radio/radio_data.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-
-import '../../data/netease/api/src/api/dj/bean.dart';
 
 class RadioDetailsView extends StatefulWidget {
   const RadioDetailsView({Key? key}) : super(key: key);
@@ -19,17 +18,19 @@ class RadioDetailsView extends StatefulWidget {
 
 class _RadioDetailsViewState extends State<RadioDetailsView> {
   final RadioRepository _repository = RadioRepository();
-  late final DjRadio _radio;
+  late final String _radioId;
+  late final String _radioName;
   late final RadioDetailController _controller;
   final RefreshController _refreshController = RefreshController();
 
   @override
   void initState() {
     super.initState();
-    _radio = context.routeData.args as DjRadio;
+    _radioId = context.routeData.queryParams.get('radioId');
+    _radioName = context.routeData.queryParams.get('radioName');
     _controller = RadioDetailController(
       repository: _repository,
-      radioId: _radio.id,
+      radioId: _radioId,
     )..loadInitial();
   }
 
@@ -45,10 +46,10 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(_radio.name),
+        title: Text(_radioName),
         backgroundColor: Colors.transparent,
       ),
-      body: ValueListenableBuilder<PagedState<DjProgram>>(
+      body: ValueListenableBuilder<PagedState<RadioProgramData>>(
         valueListenable: _controller.state,
         builder: (context, state, child) {
           if (state.initialLoading) {
@@ -96,7 +97,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
                 return SongItem(
                   index: index,
                   playlist: mediaItems,
-                  playListName: _radio.name,
+                  playListName: _radioName,
                 );
               },
               itemCount: state.items.length,

@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/features/radio/radio_data.dart';
 import 'package:bujuan/features/radio/radio_list_controller.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/routes/router.gr.dart';
@@ -10,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import '../../data/netease/api/src/api/dj/bean.dart';
 import '../../widget/simple_extended_image.dart';
 
 class MyRadioView extends StatefulWidget {
@@ -46,7 +46,7 @@ class _MyRadioViewState extends State<MyRadioView> {
           height: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
         ),
         Expanded(
-          child: ValueListenableBuilder<PagedState<DjRadio>>(
+          child: ValueListenableBuilder<PagedState<RadioSummaryData>>(
             valueListenable: _controller.state,
             builder: (context, state, child) {
               if (state.initialLoading) {
@@ -102,14 +102,14 @@ class _MyRadioViewState extends State<MyRadioView> {
     );
   }
 
-  Widget _buildItem(DjRadio data) {
+  Widget _buildItem(RadioSummaryData data) {
     return InkWell(
         child: SizedBox(
           height: 120,
           child: Row(
             children: [
               SimpleExtendedImage(
-                '${data.picUrl}?param=200y200',
+                '${data.coverUrl}?param=200y200',
                 width: 85,
                 height: 85,
                 borderRadius: BorderRadius.circular(10),
@@ -128,7 +128,7 @@ class _MyRadioViewState extends State<MyRadioView> {
                     ),
                     const Padding(padding: EdgeInsets.symmetric(vertical: 3)),
                     Text(
-                      data.lastProgramName ?? '',
+                      data.lastProgramName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 26, color: Colors.grey),
@@ -140,7 +140,14 @@ class _MyRadioViewState extends State<MyRadioView> {
           ),
         ),
         onTap: () {
-          context.router.push(const RadioDetailsView().copyWith(args: data));
+          context.router.push(
+            const RadioDetailsView().copyWith(
+              queryParams: {
+                'radioId': data.id,
+                'radioName': data.name,
+              },
+            ),
+          );
         });
   }
 }

@@ -284,6 +284,7 @@
 - 专辑页、歌手页和部分用户歌曲链路已改为通过统一实体构建 `MediaItem`
 - 歌单页路由参数已改为 `playlistId / playlistName / coverUrl / trackCount`，页面不再直接依赖网易云 `PlayList` bean
 - 用户资料页与 `UserProfileController` 已改为消费 feature 自己的用户资料模型，不再直接依赖 `NeteaseUserDetail`
+- 播客列表、播客详情和对应 controller 已改为消费 `RadioSummaryData / RadioProgramData`，不再直接依赖 `DjRadio / DjProgram`
 - 已新增本地媒体库数据源协议，`LibraryRepository` 开始按“先本地、后远程、再回写”组织读取路径
 - 已新增进程内本地媒体库占位实现，并进一步切到可持久化过渡实现
 - 搜索面板中的单曲、歌单、专辑、歌手结果已接入统一媒体库入口

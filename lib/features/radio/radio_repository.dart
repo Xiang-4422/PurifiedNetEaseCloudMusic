@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
+import 'package:bujuan/features/radio/radio_data.dart';
 
 class RadioRepository {
   Future<DjRadioPage> fetchSubscribedRadios({
@@ -15,7 +16,16 @@ class RadioRepository {
     );
     final radios = wrap.djRadios;
     return DjRadioPage(
-      items: radios,
+      items: radios
+          .map(
+            (radio) => RadioSummaryData(
+              id: radio.id,
+              name: radio.name,
+              coverUrl: radio.picUrl,
+              lastProgramName: radio.lastProgramName ?? '',
+            ),
+          )
+          .toList(),
       hasMore: radios.length >= limit,
       nextOffset: offset + radios.length,
     );
@@ -35,27 +45,39 @@ class RadioRepository {
     );
     final programs = wrap.programs;
     return DjProgramPage(
-      items: programs,
+      items: programs
+          .map(
+            (program) => RadioProgramData(
+              id: program.id,
+              mainTrackId: '${program.mainTrackId}',
+              title: program.mainSong.name ?? '',
+              coverUrl: program.coverUrl ?? '',
+              artistName: program.dj.nickname ?? '',
+              albumTitle: program.mainSong.album?.name ?? '',
+              durationMs: program.duration ?? 0,
+            ),
+          )
+          .toList(),
       hasMore: programs.length >= limit,
       nextOffset: offset + programs.length,
     );
   }
 
   List<MediaItem> mapProgramsToMediaItems(
-    List<DjProgram> programs, {
+    List<RadioProgramData> programs, {
     required List<int> likedSongIds,
   }) {
     return programs
         .map((program) => MediaItem(
-              id: '${program.mainTrackId}',
-              title: program.mainSong.name ?? '',
-              artUri: Uri.parse(program.mainSong.album?.picUrl ?? ''),
-              artist: program.dj.nickname,
-              album: program.mainSong.album?.name,
-              duration: Duration(milliseconds: program.duration ?? 0),
+              id: program.mainTrackId,
+              title: program.title,
+              artUri: Uri.tryParse(program.coverUrl),
+              artist: program.artistName,
+              album: program.albumTitle,
+              duration: Duration(milliseconds: program.durationMs),
               extras: {
                 'type': MediaType.playlist.name,
-                'image': program.coverUrl ?? '',
+                'image': program.coverUrl,
                 'liked': likedSongIds.contains(int.tryParse(program.id)),
                 'mv': 0,
               },
@@ -71,7 +93,7 @@ class DjRadioPage {
     required this.nextOffset,
   });
 
-  final List<DjRadio> items;
+  final List<RadioSummaryData> items;
   final bool hasMore;
   final int nextOffset;
 }
@@ -83,7 +105,7 @@ class DjProgramPage {
     required this.nextOffset,
   });
 
-  final List<DjProgram> items;
+  final List<RadioProgramData> items;
   final bool hasMore;
   final int nextOffset;
 }

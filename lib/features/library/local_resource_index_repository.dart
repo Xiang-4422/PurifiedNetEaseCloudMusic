@@ -1,29 +1,33 @@
+import 'package:bujuan/data/local/in_memory_local_resource_index_data_source.dart';
+import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/domain/entities/local_resource_entry.dart';
 import 'package:bujuan/domain/entities/track.dart';
-
-import 'local_resource_index_store.dart';
+import 'package:get_it/get_it.dart';
 
 class LocalResourceIndexRepository {
-  const LocalResourceIndexRepository({
-    LocalResourceIndexStore store = const LocalResourceIndexStore(),
-  }) : _store = store;
+  LocalResourceIndexRepository({
+    LocalResourceIndexDataSource? dataSource,
+  }) : _dataSource = dataSource ??
+            (GetIt.instance.isRegistered<LocalResourceIndexDataSource>()
+                ? GetIt.instance<LocalResourceIndexDataSource>()
+                : const InMemoryLocalResourceIndexDataSource());
 
-  final LocalResourceIndexStore _store;
+  final LocalResourceIndexDataSource _dataSource;
 
   Future<LocalResourceEntry?> getAudioResource(String trackId) {
-    return _store.getResource(trackId, LocalResourceKind.audio);
+    return _dataSource.getResource(trackId, LocalResourceKind.audio);
   }
 
   Future<LocalResourceEntry?> getArtworkResource(String trackId) {
-    return _store.getResource(trackId, LocalResourceKind.artwork);
+    return _dataSource.getResource(trackId, LocalResourceKind.artwork);
   }
 
   Future<LocalResourceEntry?> getLyricsResource(String trackId) {
-    return _store.getResource(trackId, LocalResourceKind.lyrics);
+    return _dataSource.getResource(trackId, LocalResourceKind.lyrics);
   }
 
   Future<List<LocalResourceEntry>> getTrackResources(String trackId) {
-    return _store.getTrackResources(trackId);
+    return _dataSource.getTrackResources(trackId);
   }
 
   Future<void> saveAudioResource(
@@ -31,7 +35,7 @@ class LocalResourceIndexRepository {
     required String path,
     required TrackResourceOrigin origin,
   }) {
-    return _store.saveResource(
+    return _dataSource.saveResource(
       LocalResourceEntry(
         trackId: trackId,
         kind: LocalResourceKind.audio,
@@ -47,7 +51,7 @@ class LocalResourceIndexRepository {
     required String path,
     required TrackResourceOrigin origin,
   }) {
-    return _store.saveResource(
+    return _dataSource.saveResource(
       LocalResourceEntry(
         trackId: trackId,
         kind: LocalResourceKind.artwork,
@@ -63,7 +67,7 @@ class LocalResourceIndexRepository {
     required String path,
     required TrackResourceOrigin origin,
   }) {
-    return _store.saveResource(
+    return _dataSource.saveResource(
       LocalResourceEntry(
         trackId: trackId,
         kind: LocalResourceKind.lyrics,
@@ -75,6 +79,6 @@ class LocalResourceIndexRepository {
   }
 
   Future<void> removeTrackResources(String trackId) {
-    return _store.removeTrackResources(trackId);
+    return _dataSource.removeTrackResources(trackId);
   }
 }

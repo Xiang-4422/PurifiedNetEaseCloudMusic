@@ -2,7 +2,6 @@ import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/local_database_config.dart';
 import 'package:bujuan/core/database/pending_app_database.dart';
-import 'package:bujuan/core/storage/key_value_storage_adapter.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
@@ -58,7 +57,6 @@ Future<void> _initInfrastructure() async {
       PendingAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
   await appDatabase.init();
   getIt.registerSingleton<AppDatabase>(appDatabase);
-  getIt.registerSingleton<KeyValueStorageAdapter>(appDatabase.storageAdapter);
   getIt.registerSingleton<LocalLibraryDataSource>(
     appDatabase.localLibraryDataSource,
   );

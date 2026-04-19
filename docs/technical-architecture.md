@@ -226,14 +226,14 @@
 - 播放恢复信息开始收口为 `PlaybackRestoreState`，当前项、歌单元信息、队列、模式和进度不再继续以散落 key 分别理解
 - 当前队列、当前歌曲、当前索引和当前进度开始收口为 `PlaybackRuntimeState`，旧运行态字段暂时保留作为页面兼容层
 - 歌词行、当前歌词索引和翻译歌词标记开始收口为 `PlaybackLyricState`，避免歌词解析结果继续散落在控制器兼容字段中
-- `PlaybackStateStore` 只保留播放恢复轻存储的底层实现；歌词内容改由媒体库承接
+- 播放恢复轻存储已回收到 `PlaybackRestoreDataSource`，歌词内容改由媒体库承接
 - 播放恢复态的读写主入口已切到 `PlaybackRepository`，控制器和底层 handler 不再直接操作轻存储
 - 播放恢复态已从 `LocalLibraryDataSource` 拆出，改由独立的 `PlaybackRestoreDataSource` 承接
 - 播放恢复态会同时写入轻存储快照和恢复态数据源，为后续正式数据库接管保留稳定入口
 - 持久化层已新增独立的恢复态记录模型与 codec，后续接正式数据库时优先复用该记录格式而不是直接存业务对象
 - 数据库层已补 `AppDatabaseSchema`，并明确恢复快照、资源索引、下载任务是优先进入正式数据库的三类记录
-- 资源索引与下载任务也已从 store 侧接入独立数据库数据源接口，当前过渡实现开始统一经过 `AppDatabase`
-- 持久化数据源、`PlaybackStateStore` 与 `LibraryPreferenceStore` 已统一改经 `KeyValueStorageAdapter` 访问缓存，后续替换存储介质时只改适配层
+- 资源索引与下载任务也已直接接入独立数据库数据源接口，当前过渡实现统一经过 `AppDatabase`
+- 下载主链路已开始直接落到 `DownloadRepository`，负责音频文件、封面文件、歌词文件的实际落盘与状态回写，不再只保留任务状态模型
 - 播放恢复态在轻存储中采用单一快照格式，后续迁正式本地库时优先复用该快照结构
 - 壳层与主播放面板已开始消费统一播放状态对象，后续页面迁移优先复用这些状态而不是继续增加散落 getter
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，旧运行态字段开始退回兼容入口

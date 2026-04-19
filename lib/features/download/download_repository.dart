@@ -1,36 +1,137 @@
+import 'dart:io';
+
+import 'package:bujuan/data/local/in_memory_download_task_data_source.dart';
+import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/domain/entities/download_task.dart';
 import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
+import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-
-import 'download_task_store.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DownloadRepository {
   DownloadRepository({
     LibraryRepository? libraryRepository,
-    DownloadTaskStore? taskStore,
+    DownloadTaskDataSource? taskDataSource,
     LocalResourceIndexRepository? resourceIndexRepository,
+    Dio? dio,
   })  : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository()),
-        _taskStore = taskStore ?? const DownloadTaskStore(),
+        _taskDataSource = taskDataSource ??
+            (GetIt.instance.isRegistered<DownloadTaskDataSource>()
+                ? GetIt.instance<DownloadTaskDataSource>()
+                : const InMemoryDownloadTaskDataSource()),
         _resourceIndexRepository =
-            resourceIndexRepository ?? const LocalResourceIndexRepository();
+            resourceIndexRepository ?? LocalResourceIndexRepository(),
+        _dio = dio ?? Dio();
 
   final LibraryRepository _libraryRepository;
-  final DownloadTaskStore _taskStore;
+  final DownloadTaskDataSource _taskDataSource;
   final LocalResourceIndexRepository _resourceIndexRepository;
+  final Dio _dio;
+
+  /// 下载流程必须以最终文件落地为准，而不是只改状态；
+  /// 否则离线播放链路会继续停留在“看起来已下载，实际上没有本地资源”的假状态。
+  Future<Track?> downloadTrack(
+    String trackId, {
+    bool preferHighQuality = true,
+  }) async {
+    final track = await _libraryRepository.getTrack(trackId);
+    if (track == null) {
+      await markFailed(trackId, reason: 'track_not_found');
+      return null;
+    }
+
+    if (track.localPath?.isNotEmpty == true &&
+        File(track.localPath!).existsSync()) {
+      return markDownloaded(
+        trackId,
+        localPath: track.localPath!,
+        artworkPath: track.localArtworkPath,
+        lyricsPath: track.localLyricsPath,
+      );
+    }
+
+    await markQueued(trackId);
+
+    try {
+      final playbackUrl = await _libraryRepository.getPlaybackUrlWithQuality(
+        trackId,
+        qualityLevel: preferHighQuality ? 'lossless' : 'exhigh',
+      );
+      if (playbackUrl == null || playbackUrl.isEmpty) {
+        return markFailed(trackId, reason: 'playback_url_unavailable');
+      }
+
+      final rootDirectory = await _ensureDownloadRootDirectory();
+      final audioDirectory = await _ensureChildDirectory(rootDirectory, 'audio');
+      final artworkDirectory =
+          await _ensureChildDirectory(rootDirectory, 'artwork');
+      final lyricsDirectory =
+          await _ensureChildDirectory(rootDirectory, 'lyrics');
+
+      final audioPath = _buildAudioPath(track, playbackUrl, audioDirectory);
+      await _downloadBinaryFile(
+        playbackUrl,
+        audioPath,
+        onProgress: (progress) => markDownloading(trackId, progress: progress),
+      );
+
+      final artworkPath = await _downloadArtworkFile(
+        track,
+        artworkDirectory,
+      );
+      final lyricsPath = await _writeLyricsFile(trackId, lyricsDirectory);
+
+      return markDownloaded(
+        trackId,
+        localPath: audioPath,
+        artworkPath: artworkPath,
+        lyricsPath: lyricsPath,
+      );
+    } catch (error) {
+      return markFailed(trackId, reason: error.toString());
+    }
+  }
+
+  Future<Track?> removeDownloadedTrack(String trackId) async {
+    final track = await _libraryRepository.getTrack(trackId);
+    if (track == null) {
+      await clearTask(trackId);
+      return null;
+    }
+
+    await _deleteFileIfExists(track.localPath);
+    await _deleteFileIfExists(track.localArtworkPath);
+    await _deleteFileIfExists(track.localLyricsPath);
+    await _resourceIndexRepository.removeTrackResources(trackId);
+    await clearTask(trackId);
+
+    return _libraryRepository.updateTrackLocalState(
+      trackId,
+      localPath: '',
+      localArtworkPath: '',
+      localLyricsPath: '',
+      downloadState: DownloadState.none,
+      resourceOrigin: TrackResourceOrigin.none,
+      downloadProgress: 0,
+      downloadFailureReason: '',
+      availability: TrackAvailability.unknown,
+    );
+  }
 
   Future<DownloadTask?> getTask(String trackId) {
-    return _taskStore.getTask(trackId);
+    return _taskDataSource.getTask(trackId);
   }
 
   Future<List<DownloadTask>> getTasks({
     Set<DownloadTaskStatus>? statuses,
   }) {
-    return _taskStore.getTasks(statuses: statuses);
+    return _taskDataSource.getTasks(statuses: statuses);
   }
 
   Future<List<DownloadTask>> getActiveTasks() {
@@ -43,11 +144,11 @@ class DownloadRepository {
   }
 
   Future<void> clearTask(String trackId) {
-    return _taskStore.removeTask(trackId);
+    return _taskDataSource.removeTask(trackId);
   }
 
   Future<Track?> markQueued(String trackId) async {
-    await _taskStore.saveTask(
+    await _taskDataSource.saveTask(
       DownloadTask(
         trackId: trackId,
         status: DownloadTaskStatus.queued,
@@ -68,7 +169,7 @@ class DownloadRepository {
     String trackId, {
     double? progress,
   }) async {
-    await _taskStore.saveTask(
+    await _taskDataSource.saveTask(
       DownloadTask(
         trackId: trackId,
         status: DownloadTaskStatus.downloading,
@@ -110,7 +211,7 @@ class DownloadRepository {
         origin: TrackResourceOrigin.managedDownload,
       );
     }
-    await _taskStore.saveTask(
+    await _taskDataSource.saveTask(
       DownloadTask(
         trackId: trackId,
         status: DownloadTaskStatus.completed,
@@ -138,8 +239,8 @@ class DownloadRepository {
     String trackId, {
     String? reason,
   }) async {
-    final currentTask = await _taskStore.getTask(trackId);
-    await _taskStore.saveTask(
+    final currentTask = await _taskDataSource.getTask(trackId);
+    await _taskDataSource.saveTask(
       DownloadTask(
         trackId: trackId,
         status: DownloadTaskStatus.failed,
@@ -157,5 +258,156 @@ class DownloadRepository {
       resourceOrigin: TrackResourceOrigin.managedDownload,
       downloadFailureReason: reason ?? '',
     );
+  }
+
+  Future<Directory> _ensureDownloadRootDirectory() async {
+    final supportDirectory = await getApplicationSupportDirectory();
+    final rootDirectory =
+        Directory('${supportDirectory.path}/zmusic/downloads');
+    if (!rootDirectory.existsSync()) {
+      await rootDirectory.create(recursive: true);
+    }
+    return rootDirectory;
+  }
+
+  Future<Directory> _ensureChildDirectory(
+    Directory rootDirectory,
+    String childName,
+  ) async {
+    final childDirectory = Directory('${rootDirectory.path}/$childName');
+    if (!childDirectory.existsSync()) {
+      await childDirectory.create(recursive: true);
+    }
+    return childDirectory;
+  }
+
+  String _buildAudioPath(
+    Track track,
+    String playbackUrl,
+    Directory audioDirectory,
+  ) {
+    final extension = _resolveExtension(playbackUrl, fallback: '.mp3');
+    return '${audioDirectory.path}/${_safeTrackFileName(track)}$extension';
+  }
+
+  Future<void> _downloadBinaryFile(
+    String url,
+    String outputPath, {
+    required Future<void> Function(double progress) onProgress,
+  }) async {
+    final temporaryPath = '$outputPath.download';
+    await _deleteFileIfExists(temporaryPath);
+
+    var lastProgressPercent = -1;
+    await _dio.download(
+      url,
+      temporaryPath,
+      onReceiveProgress: (received, total) async {
+        if (total <= 0) {
+          return;
+        }
+        final progress = (received / total).clamp(0, 1).toDouble();
+        final progressPercent = (progress * 100).floor();
+        if (progressPercent == lastProgressPercent) {
+          return;
+        }
+        lastProgressPercent = progressPercent;
+        await onProgress(progress);
+      },
+      options: Options(
+        responseType: ResponseType.bytes,
+        followRedirects: true,
+      ),
+    );
+
+    final targetFile = File(outputPath);
+    if (targetFile.existsSync()) {
+      await targetFile.delete();
+    }
+    await File(temporaryPath).rename(outputPath);
+  }
+
+  Future<String?> _downloadArtworkFile(
+    Track track,
+    Directory artworkDirectory,
+  ) async {
+    final artworkUrl = track.artworkUrl;
+    if (artworkUrl == null || artworkUrl.isEmpty) {
+      return null;
+    }
+
+    final extension = _resolveExtension(artworkUrl, fallback: '.jpg');
+    final artworkPath =
+        '${artworkDirectory.path}/${_safeTrackFileName(track)}$extension';
+    try {
+      await _downloadBinaryFile(
+        artworkUrl,
+        artworkPath,
+        onProgress: (_) async {},
+      );
+      return artworkPath;
+    } catch (_) {
+      // 封面失败不应反向打断音频下载，否则离线播放会因为附属资源失败而不可用。
+      return null;
+    }
+  }
+
+  Future<String?> _writeLyricsFile(
+    String trackId,
+    Directory lyricsDirectory,
+  ) async {
+    final lyrics = await _libraryRepository.getLyrics(trackId);
+    if (lyrics == null || lyrics.main.isEmpty) {
+      return null;
+    }
+
+    final lyricsPath = '${lyricsDirectory.path}/${_safeFileSegment(trackId)}.lrc';
+    final lyricFile = File(lyricsPath);
+    await lyricFile.writeAsString(_mergeLyricsContent(lyrics));
+    return lyricFile.path;
+  }
+
+  String _mergeLyricsContent(TrackLyrics lyrics) {
+    final main = lyrics.main;
+    final translated = lyrics.translated;
+    if (translated.isEmpty) {
+      return main;
+    }
+    return '$main\n$translated';
+  }
+
+  String _resolveExtension(String url, {required String fallback}) {
+    final uri = Uri.tryParse(url);
+    final path = uri?.path ?? '';
+    final dotIndex = path.lastIndexOf('.');
+    if (dotIndex == -1 || dotIndex == path.length - 1) {
+      return fallback;
+    }
+    final extension = path.substring(dotIndex);
+    if (extension.length > 10) {
+      return fallback;
+    }
+    return extension;
+  }
+
+  String _safeTrackFileName(Track track) {
+    final title = track.title.trim().isEmpty ? track.sourceId : track.title;
+    return '${_safeFileSegment(track.id)}-${_safeFileSegment(title)}';
+  }
+
+  String _safeFileSegment(String value) {
+    return value
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
+        .replaceAll(RegExp(r'\s+'), '_');
+  }
+
+  Future<void> _deleteFileIfExists(String? path) async {
+    if (path == null || path.isEmpty) {
+      return;
+    }
+    final file = File(path);
+    if (file.existsSync()) {
+      await file.delete();
+    }
   }
 }

@@ -255,14 +255,13 @@
 - 播放恢复信息已开始收口为 `PlaybackRestoreState`，并补上当前播放进度的持久化与恢复入口
 - 当前队列、当前歌曲、当前索引和当前进度已开始收口为 `PlaybackRuntimeState`，为后续减少运行态散落字段做准备
 - 歌词行、当前歌词索引和翻译歌词标记已开始收口为 `PlaybackLyricState`，歌词页与壳层滚动同步开始脱离旧散落字段
-- `PlaybackStateStore` 已收窄为播放恢复轻存储的底层实现，歌词内容开始改由媒体库持久化
+- 播放恢复轻存储已回收到 `PlaybackRestoreDataSource`，歌词内容开始改由媒体库持久化
 - 播放恢复态的读写主入口已切到 `PlaybackRepository`，控制器和底层 handler 不再直接依赖轻存储
 - 播放恢复态已从 `LocalLibraryDataSource` 拆出，改由独立的 `PlaybackRestoreDataSource` 承接
 - 播放恢复态已开始同时写入轻存储快照和恢复态数据源，为后续正式本地数据库接管做准备
 - 持久化层已新增恢复态记录模型与 codec，为正式数据库 schema 对接提前固定映射格式
 - 数据库层已补统一 schema 清单，并为资源索引、下载任务建立记录模型与 codec
 - 资源索引与下载任务已开始通过独立数据库数据源接口接入 `AppDatabase`，为后续正式数据库实现缩小替换面
-- 持久化数据源、`PlaybackStateStore` 与 `LibraryPreferenceStore` 已开始统一经 `KeyValueStorageAdapter` 访问缓存，替换存储介质时不再需要逐个改 store
 - 播放恢复态在轻存储中已统一为单快照格式
 - 壳层与主播放面板已开始改用统一播放状态对象，旧散落字段暂时仅保留为兼容层
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，主播放界面对旧运行态字段的依赖继续缩小
@@ -288,7 +287,6 @@
 - 搜索面板中的单曲、歌单、专辑、歌手结果已接入统一媒体库入口
 - 搜索仓库已开始按“本地优先、远程补齐并去重”返回统一结果
 - 已新增 `LocalMusicSource` 骨架
-- 已新增 `PlaybackStateStore`，播放器状态与歌词缓存开始摆脱散落的 `Hive Box` 直连访问
 - 已新增 `AppDatabase` 抽象与待接入实现，固定本地数据库启动入口
 - 应用启动已统一注册 `LocalLibraryDataSource`、`MusicSourceRegistry` 与 `LibraryRepository`
 - 已新增 `LibraryPreferenceStore`，手动离线模式已接入设置页和媒体库读取策略
@@ -305,8 +303,9 @@
 - `Track -> MediaItem` 已开始优先透传本地封面路径和本地歌词路径，播放器可直接优先使用本地歌词文件
 - 本地封面路径和本地歌词路径已从临时 metadata 收口为 `Track` 正式字段，下载和展示链路开始共享同一套资源字段
 - 下载进度、失败原因和资源来源已开始从临时 metadata 收口为 `Track` 正式字段，下载链路和本地导入链路开始共享同一套状态模型
-- 已新增 `DownloadTask` 与 `DownloadTaskStore` 过渡骨架，下载过程态开始从 `Track` 最终状态中拆开存放
+- 已新增 `DownloadTask` 过渡模型，下载过程态开始从 `Track` 最终状态中拆开存放
 - `DownloadRepository` 已补齐下载任务查询与清理入口，为后续下载列表和任务恢复预留统一入口
+- `DownloadRepository` 已补实际下载执行入口，开始负责音频、封面、歌词文件落盘与本地资源状态回写
 - 已新增独立本地资源索引入口，下载链路和本地导入链路开始统一记录音频、封面、歌词资源路径
 - `LibraryRepository` 已开始汇总轨道实体和资源索引，搜索与播放链路会优先读取补全后的本地资源视图
 - 应用入口层已开始从 `lib/` 根目录收口到 `lib/app/bootstrap` 和 `lib/app/routing`
@@ -641,7 +640,7 @@
 
 - 阶段：`Phase 3`
 - 状态：`In Progress`
-- 完成内容：新增 `DownloadTask` 与 `DownloadTaskStore` 过渡骨架，开始把下载排队、下载中、下载完成、下载失败等过程态独立持久化；`DownloadRepository` 现在会同时写入下载任务记录和 `Track` 最终资源状态，为后续接真实下载器和任务列表打基础
+- 完成内容：新增 `DownloadTask` 过渡模型，开始把下载排队、下载中、下载完成、下载失败等过程态独立持久化；`DownloadRepository` 现在会同时写入下载任务记录和 `Track` 最终资源状态，为后续接真实下载器和任务列表打基础
 - 风险或阻塞：当前下载任务仍是过渡存储实现，调度器、并发控制和任务恢复逻辑还未建立
 - 下一步：继续补齐下载任务查询入口和资源索引落点，为后续下载列表与断点恢复做准备
 
@@ -657,7 +656,7 @@
 
 - 阶段：`Phase 3`
 - 状态：`In Progress`
-- 完成内容：新增 `LocalResourceEntry`、`LocalResourceIndexStore` 与 `LocalResourceIndexRepository`，开始为音频、封面、歌词三类本地资源建立独立索引；`DownloadRepository` 与 `LocalMediaRepository` 已接入资源索引写入，下载完成和本地导入会同步登记资源路径
+- 完成内容：新增 `LocalResourceEntry` 与 `LocalResourceIndexRepository`，开始为音频、封面、歌词三类本地资源建立独立索引；`DownloadRepository` 与 `LocalMediaRepository` 已接入资源索引写入，下载完成和本地导入会同步登记资源路径
 - 风险或阻塞：当前资源索引仍是过渡存储实现，播放链路和展示链路尚未直接消费资源索引查询入口
 - 下一步：继续让更上层链路消费资源索引，并逐步减少对单一 `Track` 字段的直接依赖
 

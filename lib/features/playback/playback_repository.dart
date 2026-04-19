@@ -5,27 +5,23 @@ import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playback/playback_restore_state.dart';
-import 'package:bujuan/features/playback/playback_state_store.dart';
 import 'package:get_it/get_it.dart';
 
 class PlaybackRepository {
   PlaybackRepository({
     LibraryRepository? libraryRepository,
-    PlaybackStateStore? playbackStateStore,
     PlaybackRestoreDataSource? playbackRestoreDataSource,
   })
       : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository()),
-        _playbackStateStore = playbackStateStore ?? const PlaybackStateStore(),
         _playbackRestoreDataSource = playbackRestoreDataSource ??
             (GetIt.instance.isRegistered<PlaybackRestoreDataSource>()
                 ? GetIt.instance<PlaybackRestoreDataSource>()
                 : const InMemoryPlaybackRestoreDataSource());
 
   final LibraryRepository _libraryRepository;
-  final PlaybackStateStore _playbackStateStore;
   final PlaybackRestoreDataSource _playbackRestoreDataSource;
 
   Future<TrackLyrics?> fetchSongLyrics(String trackId) {
@@ -36,18 +32,12 @@ class PlaybackRepository {
     return _libraryRepository.saveLyrics(trackId, lyrics);
   }
 
-  /// 恢复态后面会迁到正式本地库，先让播放器主链路只认仓库入口，
-  /// 这样切换存储介质时不用再回头改控制器和 handler。
   Future<PlaybackRestoreState> getRestoreState() async {
     final localState = await _playbackRestoreDataSource.getRestoreState();
     if (localState != null && localState.hasSnapshotData) {
       return localState;
     }
-    final lightState = _playbackStateStore.restoreState;
-    if (lightState.hasSnapshotData) {
-      await _playbackRestoreDataSource.saveRestoreState(lightState);
-    }
-    return lightState;
+    return const PlaybackRestoreState();
   }
 
   Future<void> updateRestoreState({
@@ -68,10 +58,7 @@ class PlaybackRepository {
       playlistHeader: playlistHeader,
       position: position,
     );
-    await Future.wait([
-      _playbackStateStore.saveRestoreState(nextState),
-      _playbackRestoreDataSource.saveRestoreState(nextState),
-    ]);
+    await _playbackRestoreDataSource.saveRestoreState(nextState);
   }
 
   Future<String?> fetchPlaybackUrl(

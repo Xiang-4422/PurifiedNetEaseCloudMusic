@@ -334,7 +334,7 @@ class AppController extends SuperController
   // 列表页打开时直接滚到当前播放项，可以减少“当前歌曲已变但列表还停在旧位置”的错觉。
   _animatePlayListToCurSong() {
     if (playListScrollController.hasClients) {
-      double offset = curPlayIndex.value * 55.0;
+      double offset = playbackRuntimeState.value.currentIndex * 55.0;
       playListScrollController.animateTo(offset,
           duration: const Duration(milliseconds: 500), curve: Curves.ease);
     }
@@ -347,10 +347,13 @@ class AppController extends SuperController
     if (albumPageController.hasClients) {
       if (isAlbumScrollingManully) return;
       double currentPage = albumPageController.page ?? 0;
-      if ((currentPage - curPlayIndex.value).abs() < 0.01) return;
+      if ((currentPage - playbackRuntimeState.value.currentIndex).abs() <
+          0.01) {
+        return;
+      }
 
       isAlbumScrollingProgrammatic = true;
-      albumPageController.animateToPage(curPlayIndex.value,
+      albumPageController.animateToPage(playbackRuntimeState.value.currentIndex,
           duration: const Duration(milliseconds: 500), curve: Curves.ease);
     }
   }

@@ -231,9 +231,13 @@ class BottomPanelView extends GetView<AppController> {
                       height: controller.isBigAlbum.isTrue
                           ? context.width - AppDimensions.paddingLarge * 2
                           : AppDimensions.albumMinSize,
-                      child: Obx(() => SimpleExtendedImage(
-                            '${controller.curPlayingSong.value.extras?['image'] ?? ''}?param=500y500',
-                          )),
+                      child: Obx(() {
+                        final runtimeState =
+                            controller.playbackRuntimeState.value;
+                        return SimpleExtendedImage(
+                          '${runtimeState.currentSong.extras?['image'] ?? ''}?param=500y500',
+                        );
+                      }),
                       onEnd: () => controller.isAlbumScaleEnded.value = true,
                     )),
               ),
@@ -270,7 +274,8 @@ class BottomPanelView extends GetView<AppController> {
                   },
                   child: PageView.builder(
                     controller: controller.albumPageController,
-                    itemCount: controller.curPlayingSongs.length,
+                    itemCount:
+                        controller.playbackRuntimeState.value.queue.length,
                     allowImplicitScrolling: true,
 
                     // TODO YU4422：切歌卡顿
@@ -310,9 +315,13 @@ class BottomPanelView extends GetView<AppController> {
                                 controller.updateFullScreenLyricTimerCounter();
                               }
                             },
-                            child: Obx(() => SimpleExtendedImage(
-                                  '${controller.curPlayingSongs[index].extras?['image'] ?? ''}?param=500y500',
-                                )),
+                            child: Obx(() {
+                              final runtimeState =
+                                  controller.playbackRuntimeState.value;
+                              return SimpleExtendedImage(
+                                '${runtimeState.queue[index].extras?['image'] ?? ''}?param=500y500',
+                              );
+                            }),
                           ),
                         ),
                       );
@@ -452,10 +461,12 @@ class BottomPanelView extends GetView<AppController> {
               physics: const ClampingScrollPhysics(),
               itemExtent: 55,
               padding: EdgeInsets.symmetric(vertical: albumPadding),
-              itemCount: controller.curPlayingSongs.length,
+              itemCount: controller.playbackRuntimeState.value.queue.length,
               itemBuilder: (context, index) {
                 return _buildSongItem(
-                    controller.curPlayingSongs[index], index, context);
+                    controller.playbackRuntimeState.value.queue[index],
+                    index,
+                    context);
               },
             ),
           ),
@@ -469,32 +480,36 @@ class BottomPanelView extends GetView<AppController> {
       onTap: () => controller.playerController.playQueueIndex(index),
       child: Obx(() => Container(
             color: Colors.transparent, // 加个颜色让透明区域也能点击
+            child: Builder(builder: (context) {
+              final runtimeState = controller.playbackRuntimeState.value;
+              final isCurrent = runtimeState.currentIndex == index;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    mediaItem.title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: isCurrent
+                              ? Colors.red
+                              : controller.panelWidgetColor.value,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  Text(
+                    mediaItem.artist ?? "未知歌手",
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: controller.panelWidgetColor.value
+                              .withOpacity(0.5),
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ],
+              );
+            }),
             alignment: AlignmentDirectional.centerStart,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  mediaItem.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: ((controller.curPlayIndex.value == index)
-                            ? Colors.red
-                            : controller.panelWidgetColor.value),
-                      ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                Text(
-                  mediaItem.artist ?? "未知歌手",
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color:
-                            controller.panelWidgetColor.value.withOpacity(0.5),
-                      ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ],
-            ),
           )),
     );
   }
@@ -600,9 +615,14 @@ class BottomPanelView extends GetView<AppController> {
                                                   ),
                                                   GestureDetector(
                                                     onTap: () async {
+                                                      final runtimeState =
+                                                          controller
+                                                              .playbackRuntimeState
+                                                              .value;
                                                       if (controller
-                                                          .curPlayingSong
+                                                          .playbackRuntimeState
                                                           .value
+                                                          .currentSong
                                                           .album
                                                           .isNullOrEmpty) {
                                                         return;
@@ -614,10 +634,10 @@ class BottomPanelView extends GetView<AppController> {
                                                               .AlbumRouteView()
                                                           .copyWith(
                                                               queryParams: {
-                                                            'albumId': controller
-                                                                .curPlayingSong
-                                                                .value
-                                                                .extras?['albumId']
+                                                            'albumId': runtimeState
+                                                                    .currentSong
+                                                                    .extras?[
+                                                                'albumId']
                                                           }));
                                                     },
                                                     child: Container(
@@ -647,8 +667,9 @@ class BottomPanelView extends GetView<AppController> {
                                                                           2),
                                                           child: Obx(() => Text(
                                                                 controller
-                                                                    .curPlayingSong
+                                                                    .playbackRuntimeState
                                                                     .value
+                                                                    .currentSong
                                                                     .album
                                                                     .orDefault(
                                                                         "未知专辑"),
@@ -718,8 +739,9 @@ class BottomPanelView extends GetView<AppController> {
                                                         mainAxisSize:
                                                             MainAxisSize.min,
                                                         children: controller
-                                                                .curPlayingSong
+                                                                .playbackRuntimeState
                                                                 .value
+                                                                .currentSong
                                                                 .artist
                                                                 .isNullOrEmpty
                                                             ? [
@@ -739,8 +761,9 @@ class BottomPanelView extends GetView<AppController> {
                                                               ]
                                                             : [
                                                                 for (Artist artist in (controller
-                                                                        .curPlayingSong
+                                                                        .playbackRuntimeState
                                                                         .value
+                                                                        .currentSong
                                                                         .extras?[
                                                                             'artist']
                                                                         .split(
@@ -851,69 +874,70 @@ class BottomPanelView extends GetView<AppController> {
     return Container(
       padding:
           const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // 喜欢按钮
-          _buildButtonBackground(GestureDetector(
-              onTap: () => UserController.to
-                  .toggleLikeStatus(controller.curPlayingSong.value),
-              child: Obx(() => Icon(
-                  controller.likedSongIds.contains(
-                          int.tryParse(controller.curPlayingSong.value.id))
-                      ? TablerIcons.heart_filled
-                      : TablerIcons.heart,
-                  size: 30,
-                  color: controller.likedSongIds.contains(
-                          int.tryParse(controller.curPlayingSong.value.id))
-                      ? Colors.red
-                      : controller.panelWidgetColor.value)))),
-          // 上一首
-          _buildButtonBackground(GestureDetector(
-              onTap: () {
-                controller.playerController.skipToPreviousTrack();
-              },
-              child: Obx(
-                () => Icon(
-                  TablerIcons.player_skip_back_filled,
-                  size: 30,
-                  color: controller.panelWidgetColor.value,
-                ),
-              ))),
-          // 播放按钮
-          _buildButtonBackground(GestureDetector(
-            onTap: () => controller.playOrPause(),
-            child: Obx(() => Icon(
-                  controller.isPlaying.value
-                      ? TablerIcons.player_pause_filled
-                      : TablerIcons.player_play_filled,
-                  size: 60,
-                  color: controller.panelWidgetColor.value,
-                )),
-          )),
-          // 下一首
-          _buildButtonBackground(GestureDetector(
-              onTap: () {
-                controller.playerController.skipToNextTrack();
-              },
-              child: Obx(() => Icon(
-                    TablerIcons.player_skip_forward_filled,
+      child: Obx(() {
+        final runtimeState = controller.playbackRuntimeState.value;
+        final currentSong = runtimeState.currentSong;
+        final currentSongId = int.tryParse(currentSong.id);
+        final isLiked = controller.likedSongIds.contains(currentSongId);
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // 喜欢按钮
+            _buildButtonBackground(GestureDetector(
+                onTap: () => UserController.to.toggleLikeStatus(currentSong),
+                child: Icon(
+                    isLiked ? TablerIcons.heart_filled : TablerIcons.heart,
+                    size: 30,
+                    color: isLiked
+                        ? Colors.red
+                        : controller.panelWidgetColor.value))),
+            // 上一首
+            _buildButtonBackground(GestureDetector(
+                onTap: () {
+                  controller.playerController.skipToPreviousTrack();
+                },
+                child: Obx(
+                  () => Icon(
+                    TablerIcons.player_skip_back_filled,
                     size: 30,
                     color: controller.panelWidgetColor.value,
-                  )))),
-          // 循环模式
-          _buildButtonBackground(GestureDetector(
-              onTap: () async {
-                await controller.playerController.handleRepeatModeTap();
-              },
+                  ),
+                ))),
+            // 播放按钮
+            _buildButtonBackground(GestureDetector(
+              onTap: () => controller.playOrPause(),
               child: Obx(() => Icon(
-                    controller.getRepeatIcon(),
-                    size: 30,
+                    controller.isPlaying.value
+                        ? TablerIcons.player_pause_filled
+                        : TablerIcons.player_play_filled,
+                    size: 60,
                     color: controller.panelWidgetColor.value,
-                  )))),
-        ],
-      ),
+                  )),
+            )),
+            // 下一首
+            _buildButtonBackground(GestureDetector(
+                onTap: () {
+                  controller.playerController.skipToNextTrack();
+                },
+                child: Obx(() => Icon(
+                      TablerIcons.player_skip_forward_filled,
+                      size: 30,
+                      color: controller.panelWidgetColor.value,
+                    )))),
+            // 循环模式
+            _buildButtonBackground(GestureDetector(
+                onTap: () async {
+                  await controller.playerController.handleRepeatModeTap();
+                },
+                child: Obx(() => Icon(
+                      controller.getRepeatIcon(),
+                      size: 30,
+                      color: controller.panelWidgetColor.value,
+                    )))),
+          ],
+        );
+      }),
     );
   }
 
@@ -959,7 +983,10 @@ class BottomPanelHeaderView extends GetView<AppController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.curPlayingSong.value.id.isEmpty) {
+      final runtimeState = controller.playbackRuntimeState.value;
+      final currentSong = runtimeState.currentSong;
+      final currentDuration = runtimeState.currentPosition;
+      if (currentSong.id.isEmpty) {
         return const SizedBox.shrink();
       }
       return Offstage(
@@ -1024,36 +1051,32 @@ class BottomPanelHeaderView extends GetView<AppController> {
                               controller.playerController.skipToPreviousTrack(),
                           onSwipeRight: () =>
                               controller.playerController.skipToNextTrack(),
-                          child: Obx(() => Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    AppController.to.curPlayingSong.value.title,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    style:
-                                        context.textTheme.titleLarge?.copyWith(
-                                      color: controller.panelWidgetColor.value,
-                                    ),
-                                  ),
-                                  Text(
-                                    AppController
-                                            .to.curPlayingSong.value.artist ??
-                                        '',
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    style:
-                                        context.textTheme.titleLarge?.copyWith(
-                                      fontSize: context
-                                              .textTheme.titleLarge!.fontSize! /
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                currentSong.title,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: context.textTheme.titleLarge?.copyWith(
+                                  color: controller.panelWidgetColor.value,
+                                ),
+                              ),
+                              Text(
+                                currentSong.artist ?? '',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: context.textTheme.titleLarge?.copyWith(
+                                  fontSize:
+                                      context.textTheme.titleLarge!.fontSize! /
                                           2,
-                                      color: controller.panelWidgetColor.value
-                                          .withOpacity(0.5),
-                                    ),
-                                  ),
-                                ],
-                              )),
+                                  color: controller.panelWidgetColor.value
+                                      .withOpacity(0.5),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -1070,11 +1093,11 @@ class BottomPanelHeaderView extends GetView<AppController> {
                                 realTimeAlbumBorderRadius),
                           ),
                           clipBehavior: Clip.hardEdge,
-                          child: Obx(() => SimpleExtendedImage(
-                                width: realTimeAlbumWidth,
-                                height: realTimeAlbumWidth,
-                                '${controller.curPlayingSong.value.extras?['image'] ?? ''}?param=500y500',
-                              )),
+                          child: SimpleExtendedImage(
+                            width: realTimeAlbumWidth,
+                            height: realTimeAlbumWidth,
+                            '${currentSong.extras?['image'] ?? ''}?param=500y500',
+                          ),
                         ),
                       ),
                     ),
@@ -1094,12 +1117,12 @@ class BottomPanelHeaderView extends GetView<AppController> {
                                         AppDimensions.paddingLarge -
                                         AppDimensions.albumMinSize -
                                         AppDimensions.paddingSmall)),
-                        child: Obx(() => SimpleExtendedImage(
-                              width: AppDimensions.albumMinSize,
-                              height: AppDimensions.albumMinSize,
-                              shape: BoxShape.circle,
-                              '${controller.curPlayingSong.value.extras?['image'] ?? ''}?param=500y500',
-                            )),
+                        child: SimpleExtendedImage(
+                          width: AppDimensions.albumMinSize,
+                          height: AppDimensions.albumMinSize,
+                          shape: BoxShape.circle,
+                          '${currentSong.extras?['image'] ?? ''}?param=500y500',
+                        ),
                       ),
                     ),
                     // 播放按钮
@@ -1112,19 +1135,20 @@ class BottomPanelHeaderView extends GetView<AppController> {
                             child: Stack(
                               children: [
                                 // 播放进度
-                                CircularPlaybackProgress(
-                                  progress: controller.curPlayDuration.value
-                                          .inMilliseconds /
-                                      controller.curPlayingSong.value.duration!
-                                          .inMilliseconds,
-                                  size: AppDimensions.albumMinSize,
-                                  strokeWidth: 2,
-                                  progressColor:
-                                      controller.panelWidgetColor.value,
-                                  backgroundColor: controller
-                                      .panelWidgetColor.value
-                                      .withAlpha(50),
-                                ),
+                                if ((currentSong.duration?.inMilliseconds ??
+                                        0) >
+                                    0)
+                                  CircularPlaybackProgress(
+                                    progress: currentDuration.inMilliseconds /
+                                        currentSong.duration!.inMilliseconds,
+                                    size: AppDimensions.albumMinSize,
+                                    strokeWidth: 2,
+                                    progressColor:
+                                        controller.panelWidgetColor.value,
+                                    backgroundColor: controller
+                                        .panelWidgetColor.value
+                                        .withAlpha(50),
+                                  ),
                                 // 播放按钮
                                 IconButton(
                                     onPressed: () => controller.playOrPause(),

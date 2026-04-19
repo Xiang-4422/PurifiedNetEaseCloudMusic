@@ -13,7 +13,7 @@ class LocalMediaRepository {
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository()),
         _resourceIndexRepository =
-            resourceIndexRepository ?? const LocalResourceIndexRepository();
+            resourceIndexRepository ?? LocalResourceIndexRepository();
 
   final LibraryRepository _libraryRepository;
   final LocalResourceIndexRepository _resourceIndexRepository;
@@ -25,6 +25,8 @@ class LocalMediaRepository {
     String? albumTitle,
     int? durationMs,
     String? artworkUrl,
+    String? localArtworkPath,
+    String? localLyricsPath,
     Map<String, Object?> metadata = const {},
   }) async {
     final track = Track(
@@ -37,6 +39,8 @@ class LocalMediaRepository {
       durationMs: durationMs,
       artworkUrl: artworkUrl,
       localPath: filePath,
+      localArtworkPath: localArtworkPath,
+      localLyricsPath: localLyricsPath,
       availability: TrackAvailability.localOnly,
       downloadState: DownloadState.downloaded,
       resourceOrigin: TrackResourceOrigin.localImport,
@@ -49,6 +53,20 @@ class LocalMediaRepository {
       path: filePath,
       origin: TrackResourceOrigin.localImport,
     );
+    if (localArtworkPath?.isNotEmpty == true) {
+      await _resourceIndexRepository.saveArtworkResource(
+        track.id,
+        path: localArtworkPath!,
+        origin: TrackResourceOrigin.localImport,
+      );
+    }
+    if (localLyricsPath?.isNotEmpty == true) {
+      await _resourceIndexRepository.saveLyricsResource(
+        track.id,
+        path: localLyricsPath!,
+        origin: TrackResourceOrigin.localImport,
+      );
+    }
     return track;
   }
 
@@ -65,6 +83,8 @@ class LocalMediaRepository {
             durationMs: track.durationMs,
             artworkUrl: track.artworkUrl,
             localPath: track.filePath,
+            localArtworkPath: track.localArtworkPath,
+            localLyricsPath: track.localLyricsPath,
             availability: TrackAvailability.localOnly,
             downloadState: DownloadState.downloaded,
             resourceOrigin: TrackResourceOrigin.localImport,
@@ -84,6 +104,22 @@ class LocalMediaRepository {
         path: localPath!,
         origin: TrackResourceOrigin.localImport,
       );
+      final localArtworkPath = track.localArtworkPath;
+      if (localArtworkPath?.isNotEmpty == true) {
+        await _resourceIndexRepository.saveArtworkResource(
+          track.id,
+          path: localArtworkPath!,
+          origin: TrackResourceOrigin.localImport,
+        );
+      }
+      final localLyricsPath = track.localLyricsPath;
+      if (localLyricsPath?.isNotEmpty == true) {
+        await _resourceIndexRepository.saveLyricsResource(
+          track.id,
+          path: localLyricsPath!,
+          origin: TrackResourceOrigin.localImport,
+        );
+      }
     }
     return importedTracks;
   }
@@ -111,6 +147,8 @@ class LocalTrackImport {
     this.albumTitle,
     this.durationMs,
     this.artworkUrl,
+    this.localArtworkPath,
+    this.localLyricsPath,
     this.metadata = const {},
   });
 
@@ -120,5 +158,7 @@ class LocalTrackImport {
   final String? albumTitle;
   final int? durationMs;
   final String? artworkUrl;
+  final String? localArtworkPath;
+  final String? localLyricsPath;
   final Map<String, Object?> metadata;
 }

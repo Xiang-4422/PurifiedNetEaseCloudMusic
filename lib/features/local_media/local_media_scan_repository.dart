@@ -17,6 +17,18 @@ class LocalMediaScanRepository {
     '.ogg',
   };
 
+  static const Set<String> _supportedArtworkExtensions = {
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.webp',
+  };
+
+  static const Set<String> _supportedLyricsExtensions = {
+    '.lrc',
+    '.txt',
+  };
+
   Future<List<LocalTrackImport>> scanDirectories(
     List<String> directoryPaths, {
     bool recursive = true,
@@ -41,6 +53,8 @@ class LocalMediaScanRepository {
           LocalTrackImport(
             filePath: filePath,
             title: _localMediaRepository.buildTrackTitleFromPath(filePath),
+            localArtworkPath: _findArtworkPath(filePath),
+            localLyricsPath: _findLyricsPath(filePath),
             metadata: {
               'scanSource': 'directory',
               'scannedAt': DateTime.now().millisecondsSinceEpoch,
@@ -67,6 +81,8 @@ class LocalMediaScanRepository {
         LocalTrackImport(
           filePath: filePath,
           title: _localMediaRepository.buildTrackTitleFromPath(filePath),
+          localArtworkPath: _findArtworkPath(filePath),
+          localLyricsPath: _findLyricsPath(filePath),
           metadata: {
             'scanSource': 'file_selection',
             'scannedAt': DateTime.now().millisecondsSinceEpoch,
@@ -101,5 +117,69 @@ class LocalMediaScanRepository {
   bool _isSupportedAudioFile(String path) {
     final normalizedPath = path.toLowerCase();
     return _supportedExtensions.any(normalizedPath.endsWith);
+  }
+
+  /// 本地导入时优先猜测同目录同名资源，避免用户明明已经整理好封面和歌词，
+  /// 但导入后还要重新走一次手工补全。
+  String? _findArtworkPath(String audioPath) {
+    final audioFile = File(audioPath);
+    final basePath = _filePathWithoutExtension(audioFile.path);
+    for (final extension in _supportedArtworkExtensions) {
+      final artworkFile = File('$basePath$extension');
+      if (artworkFile.existsSync()) {
+        return artworkFile.path;
+      }
+    }
+
+    final directory = audioFile.parent;
+    const fallbackNames = {'cover', 'folder', 'front', 'album'};
+    for (final entity in directory.listSync()) {
+      if (entity is! File) {
+        continue;
+      }
+      final fileName = entity.uri.pathSegments.last.toLowerCase();
+      final extension = _extensionOf(fileName);
+      final nameWithoutExtension = _fileNameWithoutExtension(fileName);
+      if (_supportedArtworkExtensions.contains(extension) &&
+          fallbackNames.contains(nameWithoutExtension)) {
+        return entity.path;
+      }
+    }
+    return null;
+  }
+
+  String? _findLyricsPath(String audioPath) {
+    final basePath = _filePathWithoutExtension(audioPath);
+    for (final extension in _supportedLyricsExtensions) {
+      final lyricsFile = File('$basePath$extension');
+      if (lyricsFile.existsSync()) {
+        return lyricsFile.path;
+      }
+    }
+    return null;
+  }
+
+  String _filePathWithoutExtension(String path) {
+    final dotIndex = path.lastIndexOf('.');
+    if (dotIndex == -1) {
+      return path;
+    }
+    return path.substring(0, dotIndex);
+  }
+
+  String _fileNameWithoutExtension(String fileName) {
+    final dotIndex = fileName.lastIndexOf('.');
+    if (dotIndex == -1) {
+      return fileName;
+    }
+    return fileName.substring(0, dotIndex);
+  }
+
+  String _extensionOf(String fileName) {
+    final dotIndex = fileName.lastIndexOf('.');
+    if (dotIndex == -1) {
+      return '';
+    }
+    return fileName.substring(dotIndex);
   }
 }

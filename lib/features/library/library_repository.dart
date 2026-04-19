@@ -1,7 +1,7 @@
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/in_memory_local_library_data_source.dart';
-import 'package:bujuan/data/sources/local/local_music_source.dart';
-import 'package:bujuan/data/sources/netease/netease_music_source.dart';
+import 'package:bujuan/data/local/local_music_source.dart';
+import 'package:bujuan/data/netease/netease_music_source.dart';
 import 'package:bujuan/domain/entities/local_resource_entry.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';

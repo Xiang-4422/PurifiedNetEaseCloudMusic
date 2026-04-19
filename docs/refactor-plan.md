@@ -440,10 +440,10 @@
 - 已新增 `lib/domain/sources/music_source.dart`
 - 已新增 `TrackLyrics`
 - 已新增第一版网易云到 `Track` 的映射器
-- 已新增 `lib/data/sources/netease/netease_music_source.dart`
+- 已新增 `lib/data/netease/netease_music_source.dart`
 - 已新增 source registry 与 library repository
 - 已新增 `LocalLibraryDataSource` 协议
-- 已新增 `lib/data/sources/local/local_music_source.dart`
+- 已新增 `lib/data/local/local_music_source.dart`
 - 已新增 `lib/features/playback/playback_state_store.dart`
 - 已新增 `lib/core/database/app_database.dart` 与 `lib/core/database/pending_app_database.dart`
 

@@ -258,6 +258,7 @@
 - 壳层与主播放面板已开始改用统一播放状态对象，旧散落字段暂时仅保留为兼容层
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，主播放界面对旧运行态字段的依赖继续缩小
 - `PlayerController` 内部编排已优先读取统一播放状态对象，旧 `curPlaying* / curPlay* / lyrics*` 字段开始退为兼容镜像
+- `AppController` 中旧运行态与歌词态兼容 getter 已移除，壳层统一开始通过播放状态对象读取当前播放信息
 - 设置页已移除对 `Hive Box` 的直接写入
 - 评论组件已通过 `CommentRepository` 收口评论请求与交互
 - 用户资料页已通过 `UserRepository` 收口请求拼装，退出登录状态写入已回收到设置控制器

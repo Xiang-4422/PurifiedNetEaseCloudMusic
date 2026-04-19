@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
+import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/user/user_controller.dart';
@@ -62,16 +61,8 @@ class AppController extends SuperController
   RxBool get isFmMode => playerController.isFmMode;
   RxBool get isHeartBeatMode => playerController.isHeartBeatMode;
   RxBool get isPlayingLikedSongs => playerController.isPlayingLikedSongs;
-  RxList<MediaItem> get curPlayingSongs => playerController.curPlayingSongs;
   RxString get curPlayListName => playerController.curPlayListName;
   RxString get curPlayListNameHeader => playerController.curPlayListNameHeader;
-  Rx<MediaItem> get curPlayingSong => playerController.curPlayingSong;
-  RxInt get curPlayIndex => playerController.curPlayIndex;
-  Rx<Duration> get curPlayDuration => playerController.curPlayDuration;
-  RxList<LyricsLineModel> get lyricsLineModels =>
-      playerController.lyricsLineModels;
-  RxBool get hasTransLyrics => playerController.hasTransLyrics;
-  RxInt get currLyricIndex => playerController.currLyricIndex;
   RxBool get isFullScreenLyricOpen => playerController.isFullScreenLyricOpen;
   PlaybackService get playbackService => playerController.playbackService;
 

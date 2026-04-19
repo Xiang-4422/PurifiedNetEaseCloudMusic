@@ -229,6 +229,7 @@
 - 壳层与主播放面板已开始消费统一播放状态对象，后续页面迁移优先复用这些状态而不是继续增加散落 getter
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，旧运行态字段开始退回兼容入口
 - `PlayerController` 内部逻辑已优先读取 `sessionState / runtimeState / lyricState`，旧 `curPlaying* / curPlay* / lyrics*` 字段逐步退为页面兼容镜像
+- `AppController` 中直接暴露旧运行态与歌词态的兼容 getter 已移除，壳层统一改经 `PlaybackSessionState / PlaybackRuntimeState / PlaybackLyricState` 读取播放状态
 
 ### 6.4 MusicSource
 

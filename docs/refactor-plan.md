@@ -259,7 +259,7 @@
 - [`lib/features/shell/controller/app_controller.dart`](../lib/features/shell/controller/app_controller.dart)
 - [`lib/pages/home/app_home_page_view.dart`](../lib/pages/home/app_home_page_view.dart)
 - [`lib/pages/home/body/app_body_page_view.dart`](../lib/pages/home/body/app_body_page_view.dart)
-- [`lib/pages/home/top_panel/top_panel_view.dart`](../lib/pages/home/top_panel/top_panel_view.dart)
+- [`lib/pages/home/top_panel_view.dart`](../lib/pages/home/top_panel_view.dart)
 
 任务：
 

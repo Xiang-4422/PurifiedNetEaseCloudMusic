@@ -20,6 +20,7 @@ import '../../../common/constants/appConstants.dart';
 import '../../../common/netease_api/src/api/search/bean.dart';
 import '../../../routes/router.gr.dart' as gr;
 
+/// 顶部搜索面板只有一个页面文件，直接放在 `pages/home` 下比再套一层单文件目录更容易查找。
 class TopPanelView extends GetView<AppController> {
   const TopPanelView({Key? key}) : super(key: key);
   static final SearchRepository _repository = SearchRepository();

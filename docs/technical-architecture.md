@@ -26,7 +26,7 @@
   - [`lib/pages/login/login_page_view.dart`](../lib/pages/login/login_page_view.dart)
   - [`lib/pages/playlist/playlist_page_view.dart`](../lib/pages/playlist/playlist_page_view.dart)
   - [`lib/pages/cloud/cloud_drive_view.dart`](../lib/pages/cloud/cloud_drive_view.dart)
-  - [`lib/pages/home/top_panel/top_panel_view.dart`](../lib/pages/home/top_panel/top_panel_view.dart)
+  - [`lib/pages/home/top_panel_view.dart`](../lib/pages/home/top_panel_view.dart)
 - 请求组件曾同时承担展示、分页和请求编排，当前已开始收口但旧路径仍存在
 
 结论：

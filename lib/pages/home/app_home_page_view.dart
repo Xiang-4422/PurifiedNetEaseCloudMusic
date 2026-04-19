@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
-import 'top_panel/top_panel_view.dart';
+import 'top_panel_view.dart';
 
 class AppHomePageView extends GetView<AppController> {
   const AppHomePageView({

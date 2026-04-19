@@ -306,6 +306,7 @@
 - 已新增 `DownloadTask` 过渡模型，下载过程态开始从 `Track` 最终状态中拆开存放
 - `DownloadRepository` 已补齐下载任务查询与清理入口，为后续下载列表和任务恢复预留统一入口
 - `DownloadRepository` 已补实际下载执行入口，开始负责音频、封面、歌词文件落盘与本地资源状态回写
+- 当前播放歌曲的下载入口已接到 `PlayerController`，下载完成后会同步刷新当前播放 `MediaItem`
 - 已新增独立本地资源索引入口，下载链路和本地导入链路开始统一记录音频、封面、歌词资源路径
 - `LibraryRepository` 已开始汇总轨道实体和资源索引，搜索与播放链路会优先读取补全后的本地资源视图
 - 应用入口层已开始从 `lib/` 根目录收口到 `lib/app/bootstrap` 和 `lib/app/routing`

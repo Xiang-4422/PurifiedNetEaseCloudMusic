@@ -5,7 +5,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
+import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
+import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
@@ -28,6 +31,7 @@ class PlayerController extends GetxController {
 
   final PlaybackRepository _repository = PlaybackRepository();
   final PlaybackService _playbackService = Get.find<PlaybackService>();
+  final DownloadRepository _downloadRepository = DownloadRepository();
 
   PlaybackService get playbackService => _playbackService;
 
@@ -337,6 +341,38 @@ class PlayerController extends GetxController {
     return _playbackService.playIndex(audioSourceIndex: index, playNow: true);
   }
 
+  /// 下载入口直接挂在播放控制器，是为了让“当前播放歌曲”的下载状态与播放 UI
+  /// 保持同一条事实链路；否则下载完成后页面仍会继续展示旧的远程资源状态。
+  Future<void> downloadCurrentTrack({
+    bool preferHighQuality = true,
+  }) async {
+    final currentSong = runtimeState.value.currentSong;
+    if (currentSong.id.isEmpty) {
+      return;
+    }
+    final updatedTrack = await _downloadRepository.downloadTrack(
+      currentSong.id,
+      preferHighQuality: preferHighQuality,
+    );
+    if (updatedTrack == null) {
+      return;
+    }
+    await _syncCurrentTrackMediaItem(updatedTrack);
+  }
+
+  Future<void> removeCurrentTrackDownload() async {
+    final currentSong = runtimeState.value.currentSong;
+    if (currentSong.id.isEmpty) {
+      return;
+    }
+    final updatedTrack =
+        await _downloadRepository.removeDownloadedTrack(currentSong.id);
+    if (updatedTrack == null) {
+      return;
+    }
+    await _syncCurrentTrackMediaItem(updatedTrack);
+  }
+
   Future<void> seekTo(Duration position) {
     return _playbackService.seek(position);
   }
@@ -520,6 +556,26 @@ class PlayerController extends GetxController {
         _fullScreenLyricTimerCounter = closeTime;
       }
     }
+  }
+
+  Future<void> _syncCurrentTrackMediaItem(Track track) async {
+    final mediaItems = MediaItemMapper.fromTrackList(
+      [track],
+      likedSongIds: UserController.to.likedSongIds.toList(),
+    );
+    if (mediaItems.isEmpty) {
+      return;
+    }
+
+    final updatedMediaItem = mediaItems.first;
+    final queue = runtimeState.value.queue
+        .map((item) => item.id == updatedMediaItem.id ? updatedMediaItem : item)
+        .toList(growable: false);
+    _syncRuntimeState(
+      queue: queue,
+      currentSong: updatedMediaItem,
+    );
+    await _playbackService.updateMediaItem(updatedMediaItem);
   }
 
   void _preloadImages() {

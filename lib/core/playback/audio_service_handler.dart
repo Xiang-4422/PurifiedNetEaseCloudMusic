@@ -7,8 +7,6 @@ import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_state_store.dart';
-import 'package:bujuan/features/settings/settings_controller.dart';
-import 'package:bujuan/features/user/user_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
@@ -32,6 +30,8 @@ class AudioServiceHandler extends BaseAudioHandler
   void Function(AudioServiceRepeatMode mode)? _handleRepeatModeChanged;
   void Function(String playlistName, String playlistHeader, bool isLikedSongs)?
       _handlePlaylistMetaChanged;
+  bool Function()? _isHighQualityEnabled;
+  Future<void> Function(MediaItem mediaItem)? _handleToggleLike;
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
 
@@ -74,12 +74,16 @@ class AudioServiceHandler extends BaseAudioHandler
     void Function(
             String playlistName, String playlistHeader, bool isLikedSongs)?
         onPlaylistMetaChanged,
+    bool Function()? isHighQualityEnabled,
+    Future<void> Function(MediaItem mediaItem)? onToggleLike,
     bool Function()? isPlaylistMode,
     bool Function()? isRoamingMode,
   }) {
     _handleRestoredPlaybackMode = onRestorePlaybackMode;
     _handleRepeatModeChanged = onRepeatModeChanged;
     _handlePlaylistMetaChanged = onPlaylistMetaChanged;
+    _isHighQualityEnabled = isHighQualityEnabled;
+    _handleToggleLike = onToggleLike;
     _isPlaylistMode = isPlaylistMode;
     _isRoamingMode = isRoamingMode;
   }
@@ -225,7 +229,7 @@ class AudioServiceHandler extends BaseAudioHandler
             StreamSource(url, url.replaceAll('.uc!', '').split('.').last));
       }
     } else {
-      bool highQuality = SettingsController.to.isHighSoundQualityOpen.value;
+      bool highQuality = _isHighQualityEnabled?.call() ?? false;
       url = (await _playbackRepository.fetchPlaybackUrl(
                 newIndexMediaItem.id,
                 preferHighQuality: highQuality,
@@ -262,7 +266,10 @@ class AudioServiceHandler extends BaseAudioHandler
 
   @override
   Future<void> rewind() async {
-    UserController.to.toggleLikeStatus(queue.value[_curIndex]);
+    final mediaItem = queue.value[_curIndex];
+    if (_handleToggleLike != null) {
+      await _handleToggleLike!(mediaItem);
+    }
   }
 
   @override

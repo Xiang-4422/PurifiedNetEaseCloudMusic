@@ -14,6 +14,8 @@ class PlaybackService extends GetxService {
   void Function(AudioServiceRepeatMode mode)? _onRepeatModeChanged;
   void Function(String playlistName, String playlistHeader, bool isLikedSongs)?
       _onPlaylistMetaChanged;
+  bool Function()? _isHighQualityEnabled;
+  Future<void> Function(MediaItem mediaItem)? _onToggleLike;
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
 
@@ -55,12 +57,16 @@ class PlaybackService extends GetxService {
     void Function(
             String playlistName, String playlistHeader, bool isLikedSongs)?
         onPlaylistMetaChanged,
+    bool Function()? isHighQualityEnabled,
+    Future<void> Function(MediaItem mediaItem)? onToggleLike,
     bool Function()? isPlaylistMode,
     bool Function()? isRoamingMode,
   }) {
     _onRestorePlaybackMode = onRestorePlaybackMode;
     _onRepeatModeChanged = onRepeatModeChanged;
     _onPlaylistMetaChanged = onPlaylistMetaChanged;
+    _isHighQualityEnabled = isHighQualityEnabled;
+    _onToggleLike = onToggleLike;
     _isPlaylistMode = isPlaylistMode;
     _isRoamingMode = isRoamingMode;
     _applyHandlerBindings();
@@ -71,6 +77,8 @@ class PlaybackService extends GetxService {
       onRestorePlaybackMode: _onRestorePlaybackMode,
       onRepeatModeChanged: _onRepeatModeChanged,
       onPlaylistMetaChanged: _onPlaylistMetaChanged,
+      isHighQualityEnabled: _isHighQualityEnabled,
+      onToggleLike: _onToggleLike,
       isPlaylistMode: _isPlaylistMode,
       isRoamingMode: _isRoamingMode,
     );

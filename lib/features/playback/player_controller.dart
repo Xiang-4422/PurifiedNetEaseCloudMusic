@@ -88,6 +88,9 @@ class PlayerController extends GetxController {
         curPlayListNameHeader.value = playlistHeader;
         isPlayingLikedSongs.value = isLikedSongs;
       },
+      isHighQualityEnabled: () =>
+          SettingsController.to.isHighSoundQualityOpen.value,
+      onToggleLike: UserController.to.toggleLikeStatus,
       isPlaylistMode: () => playbackMode.value == PlaybackMode.playlist,
       isRoamingMode: () => playbackMode.value == PlaybackMode.roaming,
     );

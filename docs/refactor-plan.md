@@ -250,6 +250,7 @@
 - `PlaybackService` 已接管底层播放器实例生命周期，`PlayerController` 不再直接初始化 `AudioServiceHandler`
 - 漫游模式续队列、喜欢歌曲播放和模式初始化已开始从 `PlayerController` 下沉到 `PlaybackService`
 - `AudioServiceHandler` 对 `PlayerController` 的直接反向依赖已移除，上层播放状态通过 `PlaybackService` 显式同步
+- `AudioServiceHandler` 对 `SettingsController` 和 `UserController` 的直接读取已移除，底层所需偏好和交互入口统一通过 `PlaybackService` 注入
 - 设置页已移除对 `Hive Box` 的直接写入
 - 评论组件已通过 `CommentRepository` 收口评论请求与交互
 - 用户资料页已通过 `UserRepository` 收口请求拼装，退出登录状态写入已回收到设置控制器

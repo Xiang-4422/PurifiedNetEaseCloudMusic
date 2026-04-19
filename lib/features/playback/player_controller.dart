@@ -60,23 +60,8 @@ class PlayerController extends GetxController {
       (playbackMode.value == PlaybackMode.heartbeat).obs;
 
   RxBool isPlayingLikedSongs = false.obs;
-
-  RxList<MediaItem> curPlayingSongs = <MediaItem>[].obs;
   RxString curPlayListName = "".obs;
   RxString curPlayListNameHeader = "".obs;
-
-  Rx<MediaItem> curPlayingSong =
-      const MediaItem(id: '', title: '暂无', duration: Duration(seconds: 10)).obs;
-
-  RxInt curPlayIndex = 0.obs;
-
-  Rx<Duration> curPlayDuration = Duration.zero.obs;
-
-  RxList<LyricsLineModel> lyricsLineModels = <LyricsLineModel>[].obs;
-
-  RxBool hasTransLyrics = false.obs;
-
-  RxInt currLyricIndex = (-1).obs;
 
   Timer? _fullScreenLyricTimer;
   RxBool isFullScreenLyricOpen = false.obs;
@@ -217,12 +202,6 @@ class PlayerController extends GetxController {
       currentPosition: currentPosition,
     );
     runtimeState.value = nextState;
-    curPlayingSongs
-      ..clear()
-      ..addAll(nextState.queue);
-    curPlayingSong.value = nextState.currentSong;
-    curPlayIndex.value = nextState.currentIndex;
-    curPlayDuration.value = nextState.currentPosition;
   }
 
   void _syncLyricState({
@@ -236,11 +215,6 @@ class PlayerController extends GetxController {
       hasTranslatedLyrics: hasTranslatedLyrics,
     );
     lyricState.value = nextState;
-    lyricsLineModels
-      ..clear()
-      ..addAll(nextState.lines);
-    currLyricIndex.value = nextState.currentIndex;
-    hasTransLyrics.value = nextState.hasTranslatedLyrics;
   }
 
   _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {

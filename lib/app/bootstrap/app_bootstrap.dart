@@ -1,7 +1,9 @@
+import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/local_database_config.dart';
 import 'package:bujuan/core/database/pending_app_database.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
+import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:bujuan/data/sources/local/local_music_source.dart';
 import 'package:bujuan/data/sources/music_source_registry_impl.dart';
@@ -60,6 +62,12 @@ Future<void> _initInfrastructure() async {
   );
   getIt.registerSingleton<PlaybackRestoreDataSource>(
     appDatabase.playbackRestoreDataSource,
+  );
+  getIt.registerSingleton<LocalResourceIndexDataSource>(
+    appDatabase.localResourceIndexDataSource,
+  );
+  getIt.registerSingleton<DownloadTaskDataSource>(
+    appDatabase.downloadTaskDataSource,
   );
   await Hive.initFlutter('BuJuan');
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));

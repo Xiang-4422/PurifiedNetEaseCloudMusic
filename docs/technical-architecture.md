@@ -24,7 +24,7 @@
 - [`lib/features/user/controller/user_controller.dart`](../lib/features/user/controller/user_controller.dart) 同时承担用户状态、推荐内容、喜欢歌曲、FM、心动模式等职责
 - 多个页面仍承载用例逻辑和数据访问逻辑，例如：
   - [`lib/pages/login/login_page_view.dart`](../lib/pages/login/login_page_view.dart)
-  - [`lib/pages/play_list/playlist_page_view.dart`](../lib/pages/play_list/playlist_page_view.dart)
+  - [`lib/pages/playlist/playlist_page_view.dart`](../lib/pages/playlist/playlist_page_view.dart)
   - [`lib/pages/cloud/cloud_drive_view.dart`](../lib/pages/cloud/cloud_drive_view.dart)
   - [`lib/pages/home/top_panel/top_panel_view.dart`](../lib/pages/home/top_panel/top_panel_view.dart)
 - 请求组件曾同时承担展示、分页和请求编排，当前已开始收口但旧路径仍存在
@@ -630,7 +630,7 @@ Repository 负责：
 重点文件：
 
 - [`lib/features/user/controller/user_controller.dart`](../lib/features/user/controller/user_controller.dart)
-- [`lib/pages/play_list/playlist_page_view.dart`](../lib/pages/play_list/playlist_page_view.dart)
+- [`lib/pages/playlist/playlist_page_view.dart`](../lib/pages/playlist/playlist_page_view.dart)
 - [`lib/pages/cloud/cloud_drive_view.dart`](../lib/pages/cloud/cloud_drive_view.dart)
 - [`lib/pages/login/login_page_view.dart`](../lib/pages/login/login_page_view.dart)
 

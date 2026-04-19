@@ -21,7 +21,7 @@ import '../pages/cloud/cloud_drive_view.dart' as _i12;
 import '../pages/home/app_home_page_view.dart' as _i3;
 import '../pages/home/body/app_body_page_view.dart' as _i5;
 import '../pages/login/login_page_view.dart' as _i1;
-import '../pages/play_list/playlist_page_view.dart' as _i7;
+import '../pages/playlist/playlist_page_view.dart' as _i7;
 import '../pages/radio/my_radio_view.dart' as _i10;
 import '../pages/radio/radio_details_view.dart' as _i11;
 import '../pages/setting/user_setting_view.dart' as _i2;

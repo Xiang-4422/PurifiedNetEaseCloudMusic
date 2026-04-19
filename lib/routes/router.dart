@@ -10,7 +10,7 @@ import '../pages/album/album_page_view.dart';
 import '../pages/artist/artist_page_view.dart';
 import '../pages/cloud/cloud_drive_view.dart';
 import '../pages/login/login_page_view.dart';
-import '../pages/play_list/playlist_page_view.dart';
+import '../pages/playlist/playlist_page_view.dart';
 import '../pages/update/update_view.dart';
 
 abstract class Routes {

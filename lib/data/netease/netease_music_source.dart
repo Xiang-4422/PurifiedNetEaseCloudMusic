@@ -8,41 +8,34 @@ import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
-import 'package:bujuan/domain/sources/music_source.dart';
 
-class NeteaseMusicSource implements MusicSource {
+class NeteaseMusicSource {
   NeteaseMusicSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
 
   final NeteaseMusicApi _api;
 
-  @override
   String get sourceKey => 'netease';
 
-  @override
   Future<List<Track>> searchTracks(String keyword) async {
     final wrap = await _api.searchSong(keyword);
     return NeteaseTrackMapper.fromSongList(wrap.result.songs);
   }
 
-  @override
   Future<List<PlaylistEntity>> searchPlaylists(String keyword) async {
     final wrap = await _api.searchPlaylist(keyword);
     return NeteasePlaylistMapper.fromPlaylistList(wrap.result.playlists);
   }
 
-  @override
   Future<List<AlbumEntity>> searchAlbums(String keyword) async {
     final wrap = await _api.searchAlbum(keyword);
     return NeteaseAlbumMapper.fromAlbumList(wrap.result.albums ?? const []);
   }
 
-  @override
   Future<List<ArtistEntity>> searchArtists(String keyword) async {
     final wrap = await _api.searchArtists(keyword);
     return NeteaseArtistMapper.fromArtistList(wrap.result.artists);
   }
 
-  @override
   Future<Track?> getTrack(String trackId) async {
     final wrap = await _api.songDetail([_normalizeTrackId(trackId)]);
     final songs = wrap.songs;
@@ -53,7 +46,6 @@ class NeteaseMusicSource implements MusicSource {
     return NeteaseTrackMapper.fromSong2(song);
   }
 
-  @override
   Future<String?> getPlaybackUrl(
     String trackId, {
     String? qualityLevel,
@@ -66,7 +58,6 @@ class NeteaseMusicSource implements MusicSource {
     return data == null || data.isEmpty ? null : data.first.url;
   }
 
-  @override
   Future<TrackLyrics?> getLyrics(String trackId) async {
     final wrap = await _api.songLyric(_normalizeTrackId(trackId));
     return TrackLyrics(
@@ -75,7 +66,6 @@ class NeteaseMusicSource implements MusicSource {
     );
   }
 
-  @override
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
     final wrap = await _api.playListDetail(_normalizePlaylistId(playlistId));
     final playlist = wrap.playlist;

@@ -277,10 +277,10 @@
 - 探索页榜单歌曲改为直接通过 `PlaylistRepository` 获取
 - `AppController` 已移除歌单查询、歌曲映射、喜欢状态等单点代理
 - 漫游 / 心动模式与喜欢歌单播放逻辑已下沉到 `PlayerController`
-- 已建立第一版领域层骨架：`Track`、`PlaylistEntity`、`AlbumEntity`、`ArtistEntity`、`PlaybackQueue`、`MusicSource`
+- 已建立第一版领域层骨架：`Track`、`PlaylistEntity`、`AlbumEntity`、`ArtistEntity`、`PlaybackQueue`
 - 已新增第一版 `NeteaseMusicSource`
 - 已建立 `NeteaseMusicSource`、`LocalMusicSource` 与 `LibraryRepository` 骨架
-- 播放歌词和在线播放地址已改由 `PlaybackRepository -> LibraryRepository -> MusicSource` 获取
+- 播放歌词和在线播放地址已改由 `PlaybackRepository -> LibraryRepository -> NeteaseMusicSource / LocalMusicSource` 获取
 - 已新增本地媒体库数据源协议，`LibraryRepository` 开始按“先本地、后远程、再回写”组织读取路径
 - 已新增进程内本地媒体库占位实现，并进一步切到可持久化过渡实现
 - 搜索面板中的单曲、歌单、专辑、歌手结果已接入统一媒体库入口
@@ -437,7 +437,6 @@
 进度：
 
 - 已新增统一实体目录 `lib/domain/entities`
-- 已新增 `lib/domain/sources/music_source.dart`
 - 已新增 `TrackLyrics`
 - 已新增第一版网易云到 `Track` 的映射器
 - 已新增 `lib/data/netease/netease_music_source.dart`
@@ -517,7 +516,7 @@
 
 任务：
 
-- 继续固定 `MusicSource` 的最小边界
+- 继续固定 `NeteaseMusicSource` 与 `LocalMusicSource` 的职责边界
 - 将网易云 API 归位到 `lib/data/netease`
 - 新增本地媒体源
 - 明确下载、离线缓存、无网络回退策略

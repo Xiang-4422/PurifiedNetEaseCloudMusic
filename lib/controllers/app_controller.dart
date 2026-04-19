@@ -13,7 +13,7 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
-import '../common/bujuan_audio_handler.dart';
+import '../core/playback/audio_service_handler.dart';
 import '../widget/custom_zoom_drawer/src/drawer_controller.dart';
 
 /// 所有Controller都放在HomeController中统一控制

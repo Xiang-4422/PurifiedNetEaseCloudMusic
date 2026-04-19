@@ -1,5 +1,5 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/bujuan_audio_handler.dart';
+import 'package:bujuan/core/playback/audio_service_handler.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
 
 class PlaylistCacheStore {

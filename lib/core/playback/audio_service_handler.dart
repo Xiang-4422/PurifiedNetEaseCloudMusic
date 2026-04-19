@@ -4,16 +4,15 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/controllers/player_controller.dart';
+import 'package:bujuan/controllers/settings_controller.dart';
+import 'package:bujuan/controllers/user_controller.dart';
 import 'package:bujuan/features/playback/repository/playback_repository.dart';
 import 'package:bujuan/features/playback/repository/playback_state_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:bujuan/controllers/settings_controller.dart';
-import 'package:bujuan/controllers/user_controller.dart';
 import 'package:just_audio/just_audio.dart';
-
-import 'package:bujuan/common/constants/other.dart';
 
 class AudioServiceHandler extends BaseAudioHandler
     with SeekHandler, QueueHandler {

@@ -11,7 +11,7 @@ import 'package:get/get.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:bujuan/common/bujuan_audio_handler.dart';
+import 'package:bujuan/core/playback/audio_service_handler.dart';
 
 import 'player_controller.dart';
 

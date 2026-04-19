@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:bujuan/common/bujuan_audio_handler.dart';
+import 'package:bujuan/core/playback/audio_service_handler.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';

@@ -3,15 +3,23 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/key.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
+import 'package:bujuan/core/storage/cache_box_storage_adapter.dart';
+import 'package:bujuan/core/storage/key_value_storage_adapter.dart';
 import 'package:bujuan/features/playback/playback_restore_state.dart';
+import 'package:get_it/get_it.dart';
 
 class PlaybackStateStore {
-  const PlaybackStateStore();
+  PlaybackStateStore({
+    KeyValueStorageAdapter? storageAdapter,
+  }) : _storageAdapter = storageAdapter ??
+            (GetIt.instance.isRegistered<KeyValueStorageAdapter>()
+                ? GetIt.instance<KeyValueStorageAdapter>()
+                : const CacheBoxStorageAdapter());
+
+  final KeyValueStorageAdapter _storageAdapter;
 
   PlaybackRestoreState get restoreState {
-    final snapshotJson =
-        CacheBox.instance.get(playbackRestoreSnapshotSp) as String?;
+    final snapshotJson = _storageAdapter.get<String>(playbackRestoreSnapshotSp);
     if ((snapshotJson ?? '').isEmpty) {
       return const PlaybackRestoreState();
     }
@@ -21,7 +29,7 @@ class PlaybackStateStore {
   }
 
   Future<void> saveRestoreState(PlaybackRestoreState state) {
-    return CacheBox.instance.put(
+    return _storageAdapter.put(
       playbackRestoreSnapshotSp,
       jsonEncode(state.toJson()),
     );

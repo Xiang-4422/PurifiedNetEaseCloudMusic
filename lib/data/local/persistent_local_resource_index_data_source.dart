@@ -1,6 +1,7 @@
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/core/database/local_resource_record.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
+import 'package:bujuan/core/storage/cache_box_storage_adapter.dart';
+import 'package:bujuan/core/storage/key_value_storage_adapter.dart';
 import 'package:bujuan/domain/entities/local_resource_entry.dart';
 
 import 'local_resource_index_data_source.dart';
@@ -8,7 +9,11 @@ import 'local_resource_record_codec.dart';
 
 class PersistentLocalResourceIndexDataSource
     implements LocalResourceIndexDataSource {
-  const PersistentLocalResourceIndexDataSource();
+  PersistentLocalResourceIndexDataSource({
+    KeyValueStorageAdapter? storageAdapter,
+  }) : _storageAdapter = storageAdapter ?? const CacheBoxStorageAdapter();
+
+  final KeyValueStorageAdapter _storageAdapter;
 
   @override
   Future<LocalResourceEntry?> getResource(
@@ -35,21 +40,21 @@ class PersistentLocalResourceIndexDataSource
     final bucket = _readBucket();
     bucket[_buildKey(entry.trackId, entry.kind)] =
         LocalResourceRecordCodec.encode(entry).toMap();
-    return CacheBox.instance.put(localResourceIndexSp, bucket);
+    return _storageAdapter.put(localResourceIndexSp, bucket);
   }
 
   @override
   Future<void> removeResource(String trackId, LocalResourceKind kind) {
     final bucket = _readBucket();
     bucket.remove(_buildKey(trackId, kind));
-    return CacheBox.instance.put(localResourceIndexSp, bucket);
+    return _storageAdapter.put(localResourceIndexSp, bucket);
   }
 
   @override
   Future<void> removeTrackResources(String trackId) {
     final bucket = _readBucket();
     bucket.removeWhere((key, _) => key.toString().startsWith('$trackId::'));
-    return CacheBox.instance.put(localResourceIndexSp, bucket);
+    return _storageAdapter.put(localResourceIndexSp, bucket);
   }
 
   String _buildKey(String trackId, LocalResourceKind kind) {
@@ -57,7 +62,7 @@ class PersistentLocalResourceIndexDataSource
   }
 
   Map<String, dynamic> _readBucket() {
-    final storedValue = CacheBox.instance.get(localResourceIndexSp);
+    final storedValue = _storageAdapter.get<Object?>(localResourceIndexSp);
     if (storedValue is Map) {
       return storedValue.map((key, value) => MapEntry('$key', value));
     }

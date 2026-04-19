@@ -1,4 +1,5 @@
-import 'package:bujuan/core/storage/cache_box.dart';
+import 'package:bujuan/core/storage/cache_box_storage_adapter.dart';
+import 'package:bujuan/core/storage/key_value_storage_adapter.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
@@ -9,13 +10,17 @@ import 'local_library_codec.dart';
 import 'local_library_data_source.dart';
 
 class PersistentLocalLibraryDataSource implements LocalLibraryDataSource {
-  const PersistentLocalLibraryDataSource();
+  PersistentLocalLibraryDataSource({
+    KeyValueStorageAdapter? storageAdapter,
+  }) : _storageAdapter = storageAdapter ?? const CacheBoxStorageAdapter();
 
   static const String _tracksKey = 'LOCAL_LIBRARY_TRACKS';
   static const String _lyricsKey = 'LOCAL_LIBRARY_LYRICS';
   static const String _playlistsKey = 'LOCAL_LIBRARY_PLAYLISTS';
   static const String _albumsKey = 'LOCAL_LIBRARY_ALBUMS';
   static const String _artistsKey = 'LOCAL_LIBRARY_ARTISTS';
+
+  final KeyValueStorageAdapter _storageAdapter;
 
   @override
   Future<List<Track>> searchTracks(String keyword) async {
@@ -147,7 +152,7 @@ class PersistentLocalLibraryDataSource implements LocalLibraryDataSource {
   }
 
   Map<String, dynamic> _readBucket(String key) {
-    final storedValue = CacheBox.instance.get(key);
+    final storedValue = _storageAdapter.get<Object?>(key);
     if (storedValue is Map) {
       return storedValue.map((key, value) => MapEntry('$key', value));
     }
@@ -155,6 +160,6 @@ class PersistentLocalLibraryDataSource implements LocalLibraryDataSource {
   }
 
   Future<void> _writeBucket(String key, Map<String, dynamic> bucket) {
-    return CacheBox.instance.put(key, bucket);
+    return _storageAdapter.put(key, bucket);
   }
 }

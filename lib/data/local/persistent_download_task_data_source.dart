@@ -1,13 +1,18 @@
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/core/database/download_task_record.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
+import 'package:bujuan/core/storage/cache_box_storage_adapter.dart';
+import 'package:bujuan/core/storage/key_value_storage_adapter.dart';
 import 'package:bujuan/domain/entities/download_task.dart';
 
 import 'download_task_data_source.dart';
 import 'download_task_record_codec.dart';
 
 class PersistentDownloadTaskDataSource implements DownloadTaskDataSource {
-  const PersistentDownloadTaskDataSource();
+  PersistentDownloadTaskDataSource({
+    KeyValueStorageAdapter? storageAdapter,
+  }) : _storageAdapter = storageAdapter ?? const CacheBoxStorageAdapter();
+
+  final KeyValueStorageAdapter _storageAdapter;
 
   @override
   Future<DownloadTask?> getTask(String trackId) async {
@@ -33,18 +38,18 @@ class PersistentDownloadTaskDataSource implements DownloadTaskDataSource {
   Future<void> saveTask(DownloadTask task) {
     final bucket = _readBucket();
     bucket[task.trackId] = DownloadTaskRecordCodec.encode(task).toMap();
-    return CacheBox.instance.put(downloadTasksSp, bucket);
+    return _storageAdapter.put(downloadTasksSp, bucket);
   }
 
   @override
   Future<void> removeTask(String trackId) {
     final bucket = _readBucket();
     bucket.remove(trackId);
-    return CacheBox.instance.put(downloadTasksSp, bucket);
+    return _storageAdapter.put(downloadTasksSp, bucket);
   }
 
   Map<String, dynamic> _readBucket() {
-    final storedValue = CacheBox.instance.get(downloadTasksSp);
+    final storedValue = _storageAdapter.get<Object?>(downloadTasksSp);
     if (storedValue is Map) {
       return storedValue.map((key, value) => MapEntry('$key', value));
     }

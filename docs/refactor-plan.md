@@ -262,6 +262,7 @@
 - 持久化层已新增恢复态记录模型与 codec，为正式数据库 schema 对接提前固定映射格式
 - 数据库层已补统一 schema 清单，并为资源索引、下载任务建立记录模型与 codec
 - 资源索引与下载任务已开始通过独立数据库数据源接口接入 `AppDatabase`，为后续正式数据库实现缩小替换面
+- 持久化数据源、`PlaybackStateStore` 与 `LibraryPreferenceStore` 已开始统一经 `KeyValueStorageAdapter` 访问缓存，替换存储介质时不再需要逐个改 store
 - 播放恢复态在轻存储中已统一为单快照格式
 - 壳层与主播放面板已开始改用统一播放状态对象，旧散落字段暂时仅保留为兼容层
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，主播放界面对旧运行态字段的依赖继续缩小

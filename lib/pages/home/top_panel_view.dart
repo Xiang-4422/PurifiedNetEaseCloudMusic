@@ -5,7 +5,6 @@ import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
-import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/search/search_repository.dart';
@@ -26,7 +25,6 @@ class TopPanelView extends GetView<AppController> {
   static final SearchRepository _repository = SearchRepository();
   static final SearchPanelController _searchPanelController =
       SearchPanelController(repository: _repository);
-  static final PlaylistRepository _playlistRepository = PlaylistRepository();
 
   @override
   Widget build(BuildContext context) {
@@ -376,13 +374,17 @@ class TopPanelView extends GetView<AppController> {
       BuildContext context, PlaylistEntity playlist) async {
     AppController.to.bottomPanelController.close();
     await AppController.to.topPanelController.close();
-    final detail =
-        await _playlistRepository.fetchPlaylistWrap(playlist.sourceId);
-    final playList = detail.playlist;
-    if (playList == null || !context.mounted) {
+    if (!context.mounted) {
       return;
     }
-    context.router.push(gr.PlayListRouteView(playList: playList));
+    context.router.push(
+      gr.PlayListRouteView(
+        playlistId: playlist.sourceId,
+        playlistName: playlist.title,
+        coverUrl: playlist.coverUrl,
+        trackCount: playlist.trackCount,
+      ),
+    );
   }
 
   Future<void> _openAlbum(BuildContext context, AlbumEntity album) async {

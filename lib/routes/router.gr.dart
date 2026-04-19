@@ -14,7 +14,6 @@
 import 'package:auto_route/auto_route.dart' as _i13;
 import 'package:flutter/material.dart' as _i14;
 
-import '../data/netease/api/src/api/play/bean.dart' as _i15;
 import '../pages/album_page_view.dart' as _i8;
 import '../pages/artist_page_view.dart' as _i9;
 import '../pages/cloud_drive_view.dart' as _i12;
@@ -75,7 +74,10 @@ class RootRouter extends _i13.RootStackRouter {
       return _i13.CupertinoPageX<dynamic>(
         routeData: routeData,
         child: _i7.PlayListPageView(
-          args.playList,
+          playlistId: args.playlistId,
+          playlistName: args.playlistName,
+          coverUrl: args.coverUrl,
+          trackCount: args.trackCount,
           key: args.key,
         ),
       );
@@ -265,13 +267,19 @@ class TodayRouteView extends _i13.PageRouteInfo<void> {
 /// [_i7.PlayListPageView]
 class PlayListRouteView extends _i13.PageRouteInfo<PlayListRouteViewArgs> {
   PlayListRouteView({
-    required _i15.PlayList playList,
+    required String playlistId,
+    required String playlistName,
+    String? coverUrl,
+    int? trackCount,
     _i14.Key? key,
   }) : super(
           PlayListRouteView.name,
           path: 'playlist',
           args: PlayListRouteViewArgs(
-            playList: playList,
+            playlistId: playlistId,
+            playlistName: playlistName,
+            coverUrl: coverUrl,
+            trackCount: trackCount,
             key: key,
           ),
         );
@@ -281,17 +289,26 @@ class PlayListRouteView extends _i13.PageRouteInfo<PlayListRouteViewArgs> {
 
 class PlayListRouteViewArgs {
   const PlayListRouteViewArgs({
-    required this.playList,
+    required this.playlistId,
+    required this.playlistName,
+    this.coverUrl,
+    this.trackCount,
     this.key,
   });
 
-  final _i15.PlayList playList;
+  final String playlistId;
+
+  final String playlistName;
+
+  final String? coverUrl;
+
+  final int? trackCount;
 
   final _i14.Key? key;
 
   @override
   String toString() {
-    return 'PlayListRouteViewArgs{playList: $playList, key: $key}';
+    return 'PlayListRouteViewArgs{playlistId: $playlistId, playlistName: $playlistName, coverUrl: $coverUrl, trackCount: $trackCount, key: $key}';
   }
 }
 

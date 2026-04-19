@@ -172,7 +172,14 @@ class PlayListItem extends StatelessWidget {
         if (beforeOnTap != null) {
           await beforeOnTap!();
         }
-        router.push(gr.PlayListRouteView(playList: play));
+        router.push(
+          gr.PlayListRouteView(
+            playlistId: play.id,
+            playlistName: play.name ?? '无名歌单',
+            coverUrl: play.coverImgUrl ?? play.picUrl,
+            trackCount: play.trackCount,
+          ),
+        );
       },
     );
   }
@@ -232,7 +239,13 @@ class PlayListWidget extends GetView<AppController> {
                         child: GestureDetector(
                           onTap: () {
                             context.router.push(
-                              gr.PlayListRouteView(playList: playLists[index]),
+                              gr.PlayListRouteView(
+                                playlistId: playLists[index].id,
+                                playlistName: playLists[index].name ?? '无名歌单',
+                                coverUrl: playLists[index].coverImgUrl ??
+                                    playLists[index].picUrl,
+                                trackCount: playLists[index].trackCount,
+                              ),
                             );
                           },
                           child: Column(

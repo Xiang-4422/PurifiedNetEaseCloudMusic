@@ -4,7 +4,6 @@ import 'package:audio_service/audio_service.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/widget/data_widget.dart';
@@ -18,9 +17,18 @@ import 'package:bujuan/features/shell/app_controller.dart';
 import '../../widget/simple_extended_image.dart';
 
 class PlayListPageView extends StatefulWidget {
-  final PlayList playList;
+  const PlayListPageView({
+    required this.playlistId,
+    required this.playlistName,
+    this.coverUrl,
+    this.trackCount,
+    super.key,
+  });
 
-  const PlayListPageView(this.playList, {super.key});
+  final String playlistId;
+  final String playlistName;
+  final String? coverUrl;
+  final int? trackCount;
 
   @override
   State<PlayListPageView> createState() => _PlayListPageViewState();
@@ -28,7 +36,6 @@ class PlayListPageView extends StatefulWidget {
 
 class _PlayListPageViewState extends State<PlayListPageView> {
   final PlaylistRepository _repository = PlaylistRepository();
-  late final PlayList playList;
 
   List<MediaItem> songs = <MediaItem>[];
   int loadedMediaItemCount = 0;
@@ -44,10 +51,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   @override
   void initState() {
     super.initState();
-    playList = widget.playList;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      albumColor = await OtherUtils.getImageColor(
-          playList.coverImgUrl ?? playList.picUrl);
+      albumColor = await OtherUtils.getImageColor(widget.coverUrl);
       widgetColor = albumColor.invertedColor;
       await _loadPlaylistData();
       if (!mounted) {
@@ -88,7 +93,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          playList.name ?? "无名歌单",
+                          widget.playlistName,
                           style: context.textTheme.titleLarge?.copyWith(
                             color: widgetColor,
                           ),
@@ -96,7 +101,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          "歌单·${playList.trackCount ?? 0}首",
+                          "歌单·${widget.trackCount ?? 0}首",
                           style: context.textTheme.titleSmall?.copyWith(
                             color: widgetColor.withValues(alpha: 0.8),
                           ),
@@ -112,7 +117,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                     background: SimpleExtendedImage(
                       width: context.width,
                       height: context.width,
-                      playList.picUrl ?? playList.coverImgUrl ?? '',
+                      widget.coverUrl ?? '',
                     ),
                   ),
                   bottom: PreferredSize(
@@ -146,7 +151,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                     .playPlaylist(
                                   songs,
                                   startIndex,
-                                  playListName: playList.name ?? "无名歌单",
+                                  playListName: widget.playlistName,
                                   playListNameHeader: "歌单",
                                 );
                               },
@@ -210,7 +215,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                     .playPlaylist(
                                   songs,
                                   startIndex,
-                                  playListName: playList.name ?? "无名歌单",
+                                  playListName: widget.playlistName,
                                   playListNameHeader: "歌单",
                                 );
                               },
@@ -242,7 +247,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                         return SongItem(
                           index: index,
                           playlist: songs,
-                          playListName: playList.name ?? "无名歌单",
+                          playListName: widget.playlistName,
                           playListHeader: "歌单",
                           stringColor: widgetColor,
                           beforeOnTap: () {
@@ -267,7 +272,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _loadPlaylistData() async {
-    final cachedSongs = await _repository.loadCachedSongs(playList.id);
+    final cachedSongs = await _repository.loadCachedSongs(widget.playlistId);
     if (cachedSongs != null && cachedSongs.isNotEmpty) {
       songs = cachedSongs;
       loadedMediaItemCount = songs.length;
@@ -277,7 +282,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     }
 
     final data = await _repository.fetchPlaylistDetail(
-      playlistId: playList.id,
+      playlistId: widget.playlistId,
       likedSongIds: AppController.to.likedSongIds.toList(),
       currentUserId: AppController.to.userInfo.value.profile?.userId,
     );
@@ -292,7 +297,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   Future<void> _subscribePlayList() async {
     final value = await _repository.toggleSubscription(
-      playList.id,
+      widget.playlistId,
       subscribe: !isSubscribed,
     );
     if (value.code == 200 && mounted) {

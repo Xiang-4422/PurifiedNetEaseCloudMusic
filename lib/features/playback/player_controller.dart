@@ -80,6 +80,17 @@ class PlayerController extends GetxController {
 
   /// 统一接管音频服务的状态流，避免页面各自监听 `AudioService` 形成重复副作用。
   Future<void> _initAudioHandler() async {
+    _playbackService.bindControllerState(
+      onRestorePlaybackMode: (mode) => playbackMode.value = mode,
+      onRepeatModeChanged: (mode) => curRepeatMode.value = mode,
+      onPlaylistMetaChanged: (playlistName, playlistHeader, isLikedSongs) {
+        curPlayListName.value = playlistName;
+        curPlayListNameHeader.value = playlistHeader;
+        isPlayingLikedSongs.value = isLikedSongs;
+      },
+      isPlaylistMode: () => playbackMode.value == PlaybackMode.playlist,
+      isRoamingMode: () => playbackMode.value == PlaybackMode.roaming,
+    );
     await _playbackService.ensureInitialized();
 
     _playbackService.queueStream.listen((mediaItems) async {

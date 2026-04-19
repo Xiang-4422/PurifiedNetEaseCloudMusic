@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/core/playback/audio_service_handler.dart';
 import 'package:get/get.dart';
 
@@ -9,6 +10,12 @@ import 'package:get/get.dart';
 /// 让 `PlayerController` 继续直接持有底层 handler。
 class PlaybackService extends GetxService {
   AudioServiceHandler? _handler;
+  void Function(PlaybackMode mode)? _onRestorePlaybackMode;
+  void Function(AudioServiceRepeatMode mode)? _onRepeatModeChanged;
+  void Function(String playlistName, String playlistHeader, bool isLikedSongs)?
+      _onPlaylistMetaChanged;
+  bool Function()? _isPlaylistMode;
+  bool Function()? _isRoamingMode;
 
   AudioServiceHandler get handler {
     final handler = _handler;
@@ -37,7 +44,36 @@ class PlaybackService extends GetxService {
         androidNotificationIcon: 'drawable/audio_service_like',
       ),
     );
+    _applyHandlerBindings();
     return _handler!;
+  }
+
+  /// 控制器状态仍由上层持有，但底层播放器通过这组回调显式同步，避免反向依赖控制器单例。
+  void bindControllerState({
+    void Function(PlaybackMode mode)? onRestorePlaybackMode,
+    void Function(AudioServiceRepeatMode mode)? onRepeatModeChanged,
+    void Function(
+            String playlistName, String playlistHeader, bool isLikedSongs)?
+        onPlaylistMetaChanged,
+    bool Function()? isPlaylistMode,
+    bool Function()? isRoamingMode,
+  }) {
+    _onRestorePlaybackMode = onRestorePlaybackMode;
+    _onRepeatModeChanged = onRepeatModeChanged;
+    _onPlaylistMetaChanged = onPlaylistMetaChanged;
+    _isPlaylistMode = isPlaylistMode;
+    _isRoamingMode = isRoamingMode;
+    _applyHandlerBindings();
+  }
+
+  void _applyHandlerBindings() {
+    _handler?.configure(
+      onRestorePlaybackMode: _onRestorePlaybackMode,
+      onRepeatModeChanged: _onRepeatModeChanged,
+      onPlaylistMetaChanged: _onPlaylistMetaChanged,
+      isPlaylistMode: _isPlaylistMode,
+      isRoamingMode: _isRoamingMode,
+    );
   }
 
   Future<void> restoreLastPlayState() => handler.restoreLastPlayState();

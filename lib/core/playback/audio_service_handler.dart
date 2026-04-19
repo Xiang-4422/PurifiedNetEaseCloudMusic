@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_state_store.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
@@ -29,6 +28,12 @@ class AudioServiceHandler extends BaseAudioHandler
   final PlaybackStateStore _stateStore = const PlaybackStateStore();
 
   final List<MediaItem> _originalSongs = <MediaItem>[];
+  void Function(PlaybackMode mode)? _handleRestoredPlaybackMode;
+  void Function(AudioServiceRepeatMode mode)? _handleRepeatModeChanged;
+  void Function(String playlistName, String playlistHeader, bool isLikedSongs)?
+      _handlePlaylistMetaChanged;
+  bool Function()? _isPlaylistMode;
+  bool Function()? _isRoamingMode;
 
   int _curIndex = -1;
 
@@ -62,6 +67,23 @@ class AudioServiceHandler extends BaseAudioHandler
     _updateMediaControls();
   }
 
+  /// 播放底层只通过显式回调同步上层状态，避免继续硬依赖控制器单例。
+  void configure({
+    void Function(PlaybackMode mode)? onRestorePlaybackMode,
+    void Function(AudioServiceRepeatMode mode)? onRepeatModeChanged,
+    void Function(
+            String playlistName, String playlistHeader, bool isLikedSongs)?
+        onPlaylistMetaChanged,
+    bool Function()? isPlaylistMode,
+    bool Function()? isRoamingMode,
+  }) {
+    _handleRestoredPlaybackMode = onRestorePlaybackMode;
+    _handleRepeatModeChanged = onRepeatModeChanged;
+    _handlePlaylistMetaChanged = onPlaylistMetaChanged;
+    _isPlaylistMode = isPlaylistMode;
+    _isRoamingMode = isRoamingMode;
+  }
+
   /// 按历史缓存格式恢复上一次的播放模式和队列。
   ///
   /// 当前仍有大量页面和控制器默认依赖“关闭应用后还能直接回到上一次队列”的行为，
@@ -70,11 +92,11 @@ class AudioServiceHandler extends BaseAudioHandler
     bool isFm = _stateStore.isFmModeEnabled;
     bool isHeart = _stateStore.isHeartBeatModeEnabled;
     if (isFm) {
-      PlayerController.to.playbackMode.value = PlaybackMode.roaming;
+      _handleRestoredPlaybackMode?.call(PlaybackMode.roaming);
     } else if (isHeart) {
-      PlayerController.to.playbackMode.value = PlaybackMode.heartbeat;
+      _handleRestoredPlaybackMode?.call(PlaybackMode.heartbeat);
     } else {
-      PlayerController.to.playbackMode.value = PlaybackMode.playlist;
+      _handleRestoredPlaybackMode?.call(PlaybackMode.playlist);
     }
     String repeatMode = _stateStore.repeatModeName;
     changeRepeatMode(
@@ -117,7 +139,7 @@ class AudioServiceHandler extends BaseAudioHandler
     curRepeatMode = newRepeatMode;
 
     await _stateStore.saveRepeatMode(newRepeatMode);
-    PlayerController.to.curRepeatMode.value = newRepeatMode;
+    _handleRepeatModeChanged?.call(newRepeatMode);
     _updateMediaControls();
   }
 
@@ -149,15 +171,17 @@ class AudioServiceHandler extends BaseAudioHandler
       ..addAll(playList);
     var playListCopy = <MediaItem>[...playList];
     if (curRepeatMode == AudioServiceRepeatMode.none &&
-        PlayerController.to.playbackMode.value == PlaybackMode.playlist) {
+        (_isPlaylistMode?.call() ?? true)) {
       playListCopy.shuffle();
       index = playListCopy
           .indexWhere((element) => element.id == playList[index].id);
     }
     await updateQueue(playListCopy);
-    PlayerController.to.curPlayListName.value = playListName;
-    PlayerController.to.curPlayListNameHeader.value = playListNameHeader;
-    PlayerController.to.isPlayingLikedSongs.value = playListName == "喜欢的音乐";
+    _handlePlaylistMetaChanged?.call(
+      playListName,
+      playListNameHeader,
+      playListName == "喜欢的音乐",
+    );
     await _stateStore.savePlaylistMeta(
       playlistName: playListName,
       playlistHeader: playListNameHeader,
@@ -274,7 +298,7 @@ class AudioServiceHandler extends BaseAudioHandler
       if (newIndex == queue.value.length) {
         // 漫游模式的补队列是异步触发的，直接回环会把“加载中”和“切回第一首”
         // 混成同一个动作，结果会让队列状态和 UI 都更难解释。
-        if (PlayerController.to.playbackMode.value == PlaybackMode.roaming) {
+        if (_isRoamingMode?.call() ?? false) {
           WidgetUtil.showToast('正在加载漫游歌曲...');
           return;
         }

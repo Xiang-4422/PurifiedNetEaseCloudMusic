@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
@@ -141,7 +142,7 @@ class SongItem extends StatelessWidget {
         if (beforeOnTap != null) {
           await beforeOnTap!();
         }
-        AppController.to.playNewPlayList(
+        PlayerController.to.playPlaylist(
           playlist,
           index,
           playListName: playListName,
@@ -329,7 +330,7 @@ class PlayListWidget extends GetView<AppController> {
       likedSongIds: controller.likedSongIds.toList(),
       playlistWrap: details,
     );
-    await controller.playNewPlayList(
+    await controller.playerController.playPlaylist(
       songs,
       0,
       playListName: details.playlist?.name ?? '无名歌单',

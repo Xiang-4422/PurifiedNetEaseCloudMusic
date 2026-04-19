@@ -1,5 +1,6 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:flutter/material.dart';
@@ -85,9 +86,11 @@ class TodayPageView extends GetView<AppController> {
                           TablerIcons.player_play_filled,
                           color: Colors.white,
                         ),
-                        onPressed: () => AppController.to.playNewPlayList(
-                            controller.todayRecommendSongs, 0,
-                            playListName: "每日推荐")),
+                        onPressed: () => PlayerController.to.playPlaylist(
+                              controller.todayRecommendSongs,
+                              0,
+                              playListName: "每日推荐",
+                            )),
                   )
                 ],
               ),

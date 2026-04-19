@@ -139,10 +139,13 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                             AudioServiceRepeatMode.none
                                         ? Random().nextInt(loadedMediaItemCount)
                                         : 0;
-                                await AppController.to.playNewPlayList(
-                                    songs, startIndex,
-                                    playListName: playList.name ?? "无名歌单",
-                                    playListNameHeader: "歌单");
+                                await AppController.to.playerController
+                                    .playPlaylist(
+                                  songs,
+                                  startIndex,
+                                  playListName: playList.name ?? "无名歌单",
+                                  playListNameHeader: "歌单",
+                                );
                               },
                               icon: Row(
                                 mainAxisAlignment:
@@ -197,10 +200,13 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                             AudioServiceRepeatMode.none
                                         ? Random().nextInt(loadedMediaItemCount)
                                         : 0;
-                                await AppController.to.playNewPlayList(
-                                    songs, startIndex,
-                                    playListName: playList.name ?? "无名歌单",
-                                    playListNameHeader: "歌单");
+                                await AppController.to.playerController
+                                    .playPlaylist(
+                                  songs,
+                                  startIndex,
+                                  playListName: playList.name ?? "无名歌单",
+                                  playListNameHeader: "歌单",
+                                );
                               },
                               icon: Row(
                                 mainAxisAlignment:

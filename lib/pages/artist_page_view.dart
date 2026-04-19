@@ -7,6 +7,7 @@ import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
@@ -144,10 +145,12 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                             TablerIcons.player_play_filled,
                             color: Colors.white,
                           ),
-                          onPressed: () => AppController.to.playNewPlayList(
-                              topSongs, 0,
-                              playListName: artist.name ?? "未知歌手",
-                              playListNameHeader: "歌手")),
+                          onPressed: () => PlayerController.to.playPlaylist(
+                                topSongs,
+                                0,
+                                playListName: artist.name ?? "未知歌手",
+                                playListNameHeader: "歌手",
+                              )),
                     )
                   ],
                 ),

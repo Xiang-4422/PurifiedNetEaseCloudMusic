@@ -113,9 +113,11 @@ class PersonalPageView extends GetView<AppController> {
                                   onPressed: () {
                                     if (controller.curPlayListName.value !=
                                         "每日推荐") {
-                                      controller.playNewPlayList(
-                                          controller.todayRecommendSongs, 0,
-                                          playListName: "每日推荐");
+                                      controller.playerController.playPlaylist(
+                                        controller.todayRecommendSongs,
+                                        0,
+                                        playListName: "每日推荐",
+                                      );
                                     } else {
                                       controller.playOrPause();
                                     }

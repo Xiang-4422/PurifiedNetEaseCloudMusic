@@ -158,7 +158,7 @@
 - 重构阶段计划已建立
 - 通用请求组件已通过 `RequestRepository` 统一网络访问入口
 - 旧 `RequestWidget` / `RequestLoadMoreWidget` 已删除，请求执行权已回收到 feature controller 与 repository
-- 播放主链路已开始收口到 `PlayerController`，底部面板和歌单页不再直接驱动 `audioHandler` 的切歌、拖动和重复模式切换
+- 播放主链路已开始收口到 `PlayerController`，底部面板、歌单页、专辑页、歌手页、每日推荐、榜单和个人页快捷入口已不再通过页面直接驱动 `audioHandler` 或 `AppController` 播放代理
 - 设置页已移除对 `Hive Box` 的直接写入
 - 评论组件已通过 `CommentRepository` 收口评论请求与交互
 - 用户资料页已通过 `UserRepository` 收口请求拼装，退出登录状态写入已回收到设置控制器

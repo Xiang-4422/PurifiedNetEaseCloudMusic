@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:get/get.dart';
@@ -154,8 +155,11 @@ class ExplorePageController extends GetxController {
   playCurRankingPlayListSongs() async {
     await updateRankingPlayListSongs(
         offset: curTopPlayListSongs.length, limit: -1);
-    AppController.to.playNewPlayList(curTopPlayListSongs, 0,
-        playListName: curTopPlayListName.value);
+    await PlayerController.to.playPlaylist(
+      curTopPlayListSongs,
+      0,
+      playListName: curTopPlayListName.value,
+    );
   }
 
   changeCurTopPlayListCategory(String name) {

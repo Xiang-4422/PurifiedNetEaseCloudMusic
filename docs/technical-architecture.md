@@ -217,7 +217,7 @@
 - 首页壳层 UI 状态与业务入口分离
 - `AppController` 的长期目标是拆薄
 - 壳层状态独立为 `features/shell/controller`
-- 页面不应直接驱动 `audioHandler`，播放主链路优先经由 `PlayerController` 暴露统一入口
+- 页面不应直接驱动 `audioHandler`，也不应继续通过 `AppController` 充当播放代理；播放主链路统一经由 `PlayerController` 暴露入口
 
 ### 6.4 MusicSource
 

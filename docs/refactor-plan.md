@@ -252,6 +252,7 @@
 - `AudioServiceHandler` 对 `PlayerController` 的直接反向依赖已移除，上层播放状态通过 `PlaybackService` 显式同步
 - `AudioServiceHandler` 对 `SettingsController` 和 `UserController` 的直接读取已移除，底层所需偏好和交互入口统一通过 `PlaybackService` 注入
 - 播放模式、重复模式、当前歌单名等会话展示态已开始收口为 `PlaybackSessionState`，为后续恢复状态收口做准备
+- 播放恢复信息已开始收口为 `PlaybackRestoreState`，并补上当前播放进度的持久化与恢复入口
 - 设置页已移除对 `Hive Box` 的直接写入
 - 评论组件已通过 `CommentRepository` 收口评论请求与交互
 - 用户资料页已通过 `UserRepository` 收口请求拼装，退出登录状态写入已回收到设置控制器

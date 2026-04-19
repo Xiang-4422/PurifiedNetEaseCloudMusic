@@ -76,6 +76,7 @@ class PlayerController extends GetxController {
   Timer? _fullScreenLyricTimer;
   RxBool isFullScreenLyricOpen = false.obs;
   double _fullScreenLyricTimerCounter = 0.0;
+  int _lastStoredPositionSecond = -1;
 
   @override
   void onReady() {
@@ -160,6 +161,11 @@ class PlayerController extends GetxController {
             minPeriod: const Duration(milliseconds: 200), steps: 1000)
         .listen((newCurPlayingDuration) async {
       curPlayDuration.value = newCurPlayingDuration;
+      final currentSecond = newCurPlayingDuration.inSeconds;
+      if (currentSecond != _lastStoredPositionSecond) {
+        _lastStoredPositionSecond = currentSecond;
+        unawaited(_stateStore.savePlaybackPosition(newCurPlayingDuration));
+      }
       int newLyricIndex = lyricsLineModels.lastIndexWhere((element) =>
           element.startTime! <= newCurPlayingDuration.inMilliseconds);
 
@@ -191,6 +197,7 @@ class PlayerController extends GetxController {
     curPlayListName.value = nextState.playlistName;
     curPlayListNameHeader.value = nextState.playlistHeader;
     this.isPlayingLikedSongs.value = nextState.isPlayingLikedSongs;
+    unawaited(_stateStore.savePlaybackMode(nextState.playbackMode));
   }
 
   _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {

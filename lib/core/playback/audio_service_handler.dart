@@ -8,7 +8,6 @@ import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_state_store.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 
 /// 承接 `audio_service` 层的播放状态与队列控制。
@@ -93,33 +92,24 @@ class AudioServiceHandler extends BaseAudioHandler
   /// 当前仍有大量页面和控制器默认依赖“关闭应用后还能直接回到上一次队列”的行为，
   /// 所以恢复逻辑必须保留在音频服务入口，而不是交给页面自己拼。
   restoreLastPlayState() async {
-    bool isFm = _stateStore.isFmModeEnabled;
-    bool isHeart = _stateStore.isHeartBeatModeEnabled;
-    if (isFm) {
-      _handleRestoredPlaybackMode?.call(PlaybackMode.roaming);
-    } else if (isHeart) {
-      _handleRestoredPlaybackMode?.call(PlaybackMode.heartbeat);
-    } else {
-      _handleRestoredPlaybackMode?.call(PlaybackMode.playlist);
-    }
-    String repeatMode = _stateStore.repeatModeName;
-    changeRepeatMode(
-        newRepeatMode: AudioServiceRepeatMode.values
-                .firstWhereOrNull((element) => element.name == repeatMode) ??
-            AudioServiceRepeatMode.all);
-    List<String> stringPlayList = _stateStore.storedQueue;
-    String curSongId = _stateStore.currentSongId;
-    if (stringPlayList.isNotEmpty) {
+    final restoreState = _stateStore.restoreState;
+    _handleRestoredPlaybackMode?.call(restoreState.playbackMode);
+    await changeRepeatMode(newRepeatMode: restoreState.repeatMode);
+    if (restoreState.queue.isNotEmpty) {
       List<MediaItem> playlist =
-          await compute(stringToPlayList, stringPlayList);
-      int index = playlist.indexWhere((element) => element.id == curSongId);
+          await compute(stringToPlayList, restoreState.queue);
+      int index = playlist
+          .indexWhere((element) => element.id == restoreState.currentSongId);
       await changePlayList(playlist,
           index: index,
-          playListName: _stateStore.storedPlaylistName,
-          playListNameHeader: _stateStore.storedPlaylistHeader,
+          playListName: restoreState.playlistName,
+          playListNameHeader: restoreState.playlistHeader,
           changePlayerSource: true,
           playNow: false,
           needStore: false);
+      if (restoreState.position > Duration.zero) {
+        await seek(restoreState.position);
+      }
     }
   }
 

@@ -2,12 +2,8 @@ library coverflow;
 
 import 'dart:math';
 
-import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
-import 'package:bujuan/pages/home/bottom_panel/bottom_panel_view.dart';
-import 'package:bujuan/common/common_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_constraintlayout/flutter_constraintlayout.dart';
-import 'package:get/get.dart';
+import 'package:bujuan/widget/scroll_helpers.dart';
 
 class CoverFlow extends StatefulWidget {
   final List<Widget> images;

@@ -1,6 +1,6 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/common/common_widget.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/features/playlist/playlist_widgets.dart';
 //
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,8 +9,6 @@ import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-
-import '../../../play_list/playlist_page_view.dart';
 import 'package:bujuan/features/explore/controller/explore_page_controller.dart';
 
 /// 发现页

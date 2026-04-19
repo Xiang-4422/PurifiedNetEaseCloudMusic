@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/features/auth/repository/auth_repository.dart';
+import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:get/get.dart';
 

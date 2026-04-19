@@ -4,7 +4,7 @@ import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/core/playback/audio_service_handler.dart';
 import 'package:bujuan/features/playback/controller/player_controller.dart';
-import 'package:bujuan/features/settings/controller/settings_controller.dart';
+import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/controller/home_shell_controller.dart';
 import 'package:bujuan/features/user/controller/user_controller.dart';
 import 'package:flutter/material.dart';

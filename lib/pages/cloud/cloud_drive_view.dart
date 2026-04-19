@@ -1,11 +1,11 @@
 import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/features/cloud/cloud_repository.dart';
+import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/controller/app_controller.dart';
-import 'package:bujuan/features/cloud/repository/cloud_repository.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/netease_api/src/api/play/bean.dart';
-import '../play_list/playlist_page_view.dart';
 
 class CloudDriveView extends StatelessWidget {
   const CloudDriveView({Key? key}) : super(key: key);

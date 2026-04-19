@@ -7,7 +7,7 @@ import 'package:bujuan/data/sources/music_source_registry_impl.dart';
 import 'package:bujuan/data/sources/netease/netease_music_source.dart';
 import 'package:bujuan/domain/sources/music_source_registry.dart';
 import 'package:bujuan/features/explore/controller/explore_page_controller.dart';
-import 'package:bujuan/features/library/repository/library_repository.dart';
+import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';

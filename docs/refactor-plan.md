@@ -95,9 +95,9 @@
 
 - 逐步弱化旧 `controllers` 与 `pages` 的双轨结构
 - 原 `lib/controllers` 已清空并进入移除阶段，主控制器已迁往 `features/*/controller`
-- 推进到 `core / data / domain / features / shared` 目标结构
+- 推进到 `app / core / data / domain / features / pages / widget / common` 目标结构
 - 收口 DI 与初始化入口
-- 清理 `common` 中残留的业务逻辑
+- 清理 `common` 中残留的业务逻辑与共享 UI 组件
 
 ### H. 质量与文档
 
@@ -195,6 +195,8 @@
 - 应用入口层已开始从 `lib/` 根目录收口到 `lib/app/bootstrap` 和 `lib/app/routing`
 - 播放底层已开始从 `lib/common` 收口到 `lib/core/playback`
 - 遗留主控制器已开始迁移到 `lib/features/*/controller`，导入链路已切到新目录
+- 轻量 feature 已开始从 `repository/` 子目录收口为模块根目录文件
+- `common/common_widget.dart` 已删除，共享 UI 组件已开始迁入 `lib/widget` 或对应 feature
 
 ### 进行中
 
@@ -323,7 +325,7 @@
 - 已新增 source registry 与 library repository
 - 已新增 `LocalLibraryDataSource` 协议
 - 已新增 `lib/data/sources/local/local_music_source.dart`
-- 已新增 `lib/features/playback/repository/playback_state_store.dart`
+- 已新增 `lib/features/playback/playback_state_store.dart`
 - 已新增 `lib/core/database/app_database.dart` 与 `lib/core/database/pending_app_database.dart`
 
 ### Phase 4: 本地优先数据层

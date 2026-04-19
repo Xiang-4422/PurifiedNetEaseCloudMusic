@@ -4,14 +4,15 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/common/common_widget.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:bujuan/features/user/controller/user_controller.dart';
 import 'package:bujuan/pages/home/bottom_panel/lyric_view.dart';
 import 'package:bujuan/pages/talk/comment_widget.dart';
+import 'package:bujuan/widget/common_widgets.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
+import 'package:bujuan/widget/scroll_helpers.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';

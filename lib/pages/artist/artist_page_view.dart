@@ -6,9 +6,9 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
+import 'package:bujuan/features/artist/artist_repository.dart';
+import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/controller/app_controller.dart';
-import 'package:bujuan/features/artist/repository/artist_repository.dart';
-import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
 //
 import 'package:flutter/material.dart';
@@ -19,8 +19,8 @@ import 'package:get/get.dart';
 
 import '../../common/constants/other.dart';
 import '../../widget/keep_alive_wrapper.dart';
+import '../../widget/scroll_helpers.dart';
 import '../../widget/simple_extended_image.dart';
-import '../home/body/body_pages/personal_page.dart';
 
 class ArtistPageView extends StatefulWidget {
   const ArtistPageView({Key? key}) : super(key: key);

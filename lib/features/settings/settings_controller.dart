@@ -1,6 +1,6 @@
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
-import 'package:bujuan/features/library/repository/library_preference_store.dart';
+import 'package:bujuan/features/library/library_preference_store.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/adapters.dart';

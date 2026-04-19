@@ -1,7 +1,7 @@
 import 'package:bujuan/domain/entities/download_task.dart';
 import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/features/library/repository/library_repository.dart';
-import 'package:bujuan/features/library/repository/local_resource_index_repository.dart';
+import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:get_it/get_it.dart';
 
 import 'download_task_store.dart';

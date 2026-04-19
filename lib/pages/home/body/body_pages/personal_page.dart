@@ -1,19 +1,19 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/pages/play_list/playlist_page_view.dart';
+import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
-import 'dart:math' as math;
 
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import '../../../../common/common_widget.dart';
 import '../../../../common/constants/appConstants.dart';
 import 'package:bujuan/features/shell/controller/app_controller.dart';
 import '../../../../routes/router.gr.dart' as gr;
+import '../../../../widget/common_widgets.dart';
+import '../../../../widget/scroll_helpers.dart';
 import '../../../../widget/simple_extended_image.dart';
 
 /// 收藏页
@@ -245,80 +245,6 @@ class PersonalPageView extends GetView<AppController> {
         ]),
       );
     });
-  }
-}
-
-/// 自动吸附滚动
-class SnappingScrollPhysics extends ScrollPhysics {
-  final double itemExtent; // 每个格子的宽度(含间距)
-
-  const SnappingScrollPhysics({
-    required this.itemExtent,
-    ScrollPhysics? parent,
-  }) : super(parent: parent);
-
-  @override
-  SnappingScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return SnappingScrollPhysics(
-      itemExtent: itemExtent,
-      parent: buildParent(ancestor),
-    );
-  }
-
-  double _getTargetPixels(
-      ScrollMetrics position, Tolerance tolerance, double velocity) {
-    int page = (position.pixels / itemExtent).round();
-
-    // 限制最大滚动范围
-    return math.min(page * itemExtent, position.maxScrollExtent);
-  }
-
-  @override
-  Simulation? createBallisticSimulation(
-      ScrollMetrics position, double velocity) {
-    if (velocity.abs() != 0) print("velocity.abs(): ${velocity.abs()}");
-
-    // 边界外。
-    if (position.outOfRange) {
-      return super.createBallisticSimulation(position, velocity);
-    }
-
-    // 快速滑动。如果速度大，先做减速，再吸附
-    if (velocity.abs() > tolerance.velocity) {
-      return ClampingScrollSimulation(
-        position: position.pixels,
-        velocity: velocity,
-        tolerance: tolerance,
-        friction: 0.045, // ⭐ 默认 0.135, 改小 => 滑动更远；改大 => 滑动更快停
-      );
-    } else {
-      final double target = _getTargetPixels(position, tolerance, velocity);
-
-      // 速度小，直接吸附
-      return ScrollSpringSimulation(
-        spring,
-        position.pixels,
-        target,
-        velocity,
-        tolerance: tolerance,
-      );
-    }
-  }
-}
-
-/// 去除拉伸变形效果
-class NoStretchBouncingScrollBehavior extends ScrollBehavior {
-  @override
-  Widget buildOverscrollIndicator(
-      BuildContext context, Widget child, ScrollableDetails details) {
-    // 不显示拉伸效果（去掉水波纹或拉伸）
-    return child;
-  }
-
-  @override
-  ScrollPhysics getScrollPhysics(BuildContext context) {
-    // 使用 iOS 弹簧回弹
-    return const BouncingScrollPhysics();
   }
 }
 

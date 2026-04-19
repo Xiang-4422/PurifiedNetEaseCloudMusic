@@ -1,6 +1,6 @@
 import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:bujuan/common/common_widget.dart';
+import 'package:bujuan/widget/scroll_helpers.dart';
 
 import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';

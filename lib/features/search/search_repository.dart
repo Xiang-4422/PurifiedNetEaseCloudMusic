@@ -3,15 +3,14 @@ import 'package:bujuan/common/netease_api/src/netease_handler.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
-import 'package:bujuan/features/library/repository/library_repository.dart';
-import 'package:bujuan/shared/mappers/media_item_mapper.dart';
+import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/features/library/library_repository.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:get_it/get_it.dart';
 
 class SearchRepository {
   SearchRepository({LibraryRepository? libraryRepository})
-      : _libraryRepository =
-            libraryRepository ??
+      : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository());

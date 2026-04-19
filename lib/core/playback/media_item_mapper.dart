@@ -7,6 +7,7 @@ import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 
+/// `MediaItem` 只服务播放适配层，所以统一放在 playback 下，避免各个 feature 再维护一份音频服务专用映射。
 class MediaItemMapper {
   const MediaItemMapper._();
 

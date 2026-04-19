@@ -1,6 +1,6 @@
 import 'package:bujuan/common/constants/colors.dart';
-import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
 import 'package:bujuan/routes/router.gr.dart';
+import 'package:bujuan/widget/scroll_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

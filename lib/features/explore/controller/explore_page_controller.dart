@@ -1,7 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/features/explore/repository/explore_repository.dart';
-import 'package:bujuan/features/playlist/repository/playlist_repository.dart';
+import 'package:bujuan/features/explore/explore_repository.dart';
+import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';

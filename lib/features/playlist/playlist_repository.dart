@@ -5,8 +5,8 @@ import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/netease_api/src/api/bean.dart';
 import 'package:bujuan/data/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/mappers/netease_track_mapper.dart';
-import 'package:bujuan/features/library/repository/library_repository.dart';
-import 'package:bujuan/shared/mappers/media_item_mapper.dart';
+import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/features/library/library_repository.dart';
 import 'package:get_it/get_it.dart';
 
 import 'playlist_cache_store.dart';
@@ -28,8 +28,7 @@ class PlaylistRepository {
     PlaylistCacheStore? cacheStore,
     LibraryRepository? libraryRepository,
   })  : _cacheStore = cacheStore ?? const PlaylistCacheStore(),
-        _libraryRepository =
-            libraryRepository ??
+        _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository());

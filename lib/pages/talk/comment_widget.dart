@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/features/comment/repository/comment_repository.dart';
+import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/pages/talk/custom_filed.dart';
 import 'package:flutter/material.dart';
 

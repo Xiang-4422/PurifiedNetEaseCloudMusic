@@ -5,8 +5,9 @@ import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
-import 'package:bujuan/features/playlist/repository/playlist_repository.dart';
-import 'package:bujuan/features/search/repository/search_repository.dart';
+import 'package:bujuan/features/playlist/playlist_repository.dart';
+import 'package:bujuan/features/playlist/playlist_widgets.dart';
+import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
@@ -17,7 +18,6 @@ import 'package:get/get.dart';
 
 import '../../../common/constants/appConstants.dart';
 import '../../../common/netease_api/src/api/search/bean.dart';
-import '../../play_list/playlist_page_view.dart';
 import '../../../routes/router.gr.dart' as gr;
 
 class TopPanelView extends GetView<AppController> {

@@ -366,77 +366,45 @@
 lib/
   app/
     bootstrap/
-    di/
     routing/
-    theme/
   core/
-    network/
-    storage/
     database/
+    network/
     playback/
-    sync/
-    download/
-    utils/
+    storage/
   domain/
     entities/
-    repositories/
     sources/
-    services/
-  features/
-    shell/
-      presentation/
-      controller/
-    auth/
-      presentation/
-      controller/
-      repository/
-    user/
-      presentation/
-      controller/
-      repository/
-    playlist/
-      presentation/
-      controller/
-      repository/
-    explore/
-      presentation/
-      controller/
-      repository/
-    cloud/
-      presentation/
-      controller/
-      repository/
-    playback/
-      presentation/
-      controller/
-      service/
-      repository/
-    library/
-      presentation/
-      controller/
-      repository/
-    local_media/
-      presentation/
-      controller/
-      repository/
-    search/
-      presentation/
-      controller/
-      repository/
-    download/
-      presentation/
-      controller/
-      repository/
   data/
     local/
-    remote/
+    mappers/
     sources/
-    repositories/
-    mappers/
-  shared/
-    widgets/
-    mappers/
-    models/
+  features/
+    album/
+    artist/
+    auth/
+      controller/
+    cloud/
+    comment/
+    download/
+    explore/
+      controller/
+    library/
+    local_media/
+    playback/
+      controller/
+    playlist/
+    radio/
+    search/
+    settings/
+    shell/
+      controller/
+    user/
+      controller/
+  pages/
+  routes/
+  widget/
+  common/
 ```
 
 ### 8.2 目标目录职责
@@ -450,9 +418,13 @@ lib/
 - `data`
   - 本地数据库实现、远程源实现、多源适配、仓库实现、领域映射
 - `features`
-  - 业务功能模块，包含页面、页面状态和模块级用例
-- `shared`
-  - 跨 feature 共享但不属于基础设施的 UI 与轻量工具
+  - 业务功能模块，默认直接在模块根目录放能力文件，只有角色明显分化时才增加子目录
+- `pages`
+  - 当前唯一页面层，继续承担 presentation 职责，暂不再新增第二套 presentation 目录
+- `widget`
+  - 跨页面复用的通用 UI 组件和滚动行为
+- `common`
+  - 历史兼容目录，仅保留常量、歌词解析和网易云 API 等旧基础能力
 
 ### 8.3 当前目录职责与保留原因
 
@@ -476,7 +448,7 @@ lib/
 - `lib/app`
   - 应用级初始化、路由和后续应用外壳入口
 - `lib/common`
-  - 历史公共能力目录，当前仍包含常量、歌词解析、网易云 API 适配和部分旧基础代码
+  - 历史公共能力目录，当前仍包含常量、歌词解析、网易云 API 适配和少量旧基础代码
 - `lib/core`
   - 已开始承接稳定基础设施能力，当前已包含 `database / network / storage / playback`
 - `lib/data`
@@ -484,17 +456,15 @@ lib/
 - `lib/domain`
   - 统一领域实体与多源协议
 - `lib/features`
-  - 正式业务模块目录，当前已开始承接各 feature 的 `repository` 和核心 controller
+  - 正式业务模块目录，当前已开始承接各 feature 的能力入口与核心 controller
 - `lib/generated / lib/generator`
   - 生成代码和生成相关逻辑
 - `lib/pages`
   - 历史页面和页面内组合组件，当前仍承担主要 UI 结构
 - `lib/routes`
   - 当前路由声明与生成入口
-- `lib/shared`
-  - 新架构下的共享轻量能力
 - `lib/widget`
-  - 历史通用组件和部分旧业务组件
+  - 通用 UI 组件和滚动辅助能力，`common` 中的共享 UI 已开始迁入这里或对应 feature
 
 保留原因：
 
@@ -504,22 +474,25 @@ lib/
 ### 8.4 当前到目标目录的映射
 
 - `lib/common`
-  - 逐步拆到 `core / data / shared / features`
+  - 逐步拆到 `core / data / widget / features`
 - 原 `lib/controllers`
   - 已进入移除阶段，职责继续拆到 `features/*/controller`、`features/playback/service`、`features/shell/controller`
 - `lib/pages`
-  - 逐步迁到 `features/*/presentation`
+  - 当前继续作为唯一页面层，只有在模块内出现稳定复用的局部组件时，才逐步往对应 `feature` 或 `widget` 迁移
 - `lib/routes`
-  - 逐步并入 `lib/app/routing`
+  - 保留 `auto_route` 声明与生成结果，不再额外拆第三套路由目录
 - `lib/widget`
-  - 逐步拆到 `shared/widgets` 或对应 `feature/presentation`
+  - 作为共享 UI 的主要落点继续保留
+- `lib/features/*`
+  - 默认采用扁平结构，只有同一模块下同时存在多类职责文件时，才新增 `controller` 等子目录
 
 ### 8.5 为什么采用这种结构
 
-- `app / core / domain / data / features / shared` 能把启动装配、基础设施、稳定抽象、实现细节、业务能力、共享 UI 分开
-- 这样分是为了避免继续用“页面目录 + 全局 controller”组织复杂应用
+- `app / core / domain / data / features / pages / widget / common` 已足够表达当前工程的职责边界
+- 这样分是为了避免继续用“页面目录 + 全局 controller”组织复杂应用，同时不把目录预留得比当前实现更大
 - 当前不做一次性目录大搬迁，因为先搬目录再拆职责，容易造成“文件位置变了，但耦合关系没变”
-- `features` 先长 `repository` 而不是先迁页面，是因为数据入口最容易产生跨模块副作用，先收数据入口收益最大
+- `features` 先收能力入口而不是先迁页面，是因为数据入口最容易产生跨模块副作用，先收数据入口收益最大
+- 默认不新增 `repository` 子目录，是为了避免轻量模块因为预留结构过多而增加路径深度
 
 ## 9. 边界规则
 

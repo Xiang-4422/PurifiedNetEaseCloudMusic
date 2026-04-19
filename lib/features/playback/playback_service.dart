@@ -87,4 +87,142 @@ class PlaybackService extends GetxService {
   Future<void> updateMediaItem(MediaItem mediaItem) {
     return handler.updateMediaItem(mediaItem);
   }
+
+  /// 队列切换和播放源更新先统一收口在 service，避免控制器继续直接编排底层 handler。
+  Future<void> playPlaylist(
+    List<MediaItem> playList,
+    int index, {
+    required String playListName,
+    String playListNameHeader = "",
+    bool playNow = true,
+    bool changePlayerSource = true,
+    bool needStore = true,
+  }) {
+    return changePlayList(
+      playList,
+      index: index,
+      playListName: playListName,
+      playListNameHeader: playListNameHeader,
+      playNow: playNow,
+      changePlayerSource: changePlayerSource,
+      needStore: needStore,
+    );
+  }
+
+  /// 漫游模式的续队列需要和当前队列裁剪、自动切歌一起生效，留在 service 里更容易保证行为一致。
+  Future<void> appendRoamingSongs({
+    required List<MediaItem> currentQueue,
+    required List<MediaItem> incomingSongs,
+    required String currentSongId,
+    required bool shouldAutoPlayNext,
+    required int fallbackIndex,
+  }) async {
+    if (incomingSongs.isEmpty) {
+      return;
+    }
+
+    final existingIds = currentQueue.map((item) => item.id).toSet();
+    final filteredSongs =
+        incomingSongs.where((item) => !existingIds.contains(item.id)).toList();
+    if (filteredSongs.isEmpty) {
+      return;
+    }
+
+    final combined = [...currentQueue, ...filteredSongs];
+    if (combined.length > 200) {
+      combined.removeRange(0, combined.length - 150);
+    }
+
+    final updatedIndex =
+        combined.indexWhere((element) => element.id == currentSongId);
+    final nextIndex = updatedIndex != -1 ? updatedIndex : fallbackIndex;
+
+    await changePlayList(
+      combined,
+      index: nextIndex,
+      playListName: '漫游模式',
+      playListNameHeader: '漫游',
+      playNow: false,
+      changePlayerSource: false,
+      needStore: false,
+    );
+
+    if (shouldAutoPlayNext) {
+      final autoPlayIndex = nextIndex + 1;
+      if (autoPlayIndex < combined.length) {
+        await playIndex(audioSourceIndex: autoPlayIndex, playNow: true);
+      }
+    }
+  }
+
+  Future<void> playLikedSongs({
+    required List<MediaItem> likedSongs,
+    required List<int> likedSongIds,
+    required MediaItem currentSong,
+  }) async {
+    int playIndex;
+    final playList = [...likedSongs];
+    if (likedSongIds.contains(int.parse(currentSong.id))) {
+      playIndex = likedSongs.indexWhere((song) => song.id == currentSong.id);
+    } else {
+      playIndex = 0;
+      playList.insert(0, currentSong);
+    }
+
+    await changePlayList(
+      playList,
+      index: playIndex,
+      playListName: '喜欢的音乐',
+      playNow: false,
+      changePlayerSource: false,
+    );
+  }
+
+  Future<bool> startRoamingMode({
+    required List<MediaItem> fmSongs,
+    required AudioServiceRepeatMode currentRepeatMode,
+  }) async {
+    if (fmSongs.isEmpty) {
+      return false;
+    }
+
+    await changePlayList(
+      fmSongs,
+      index: 0,
+      playListName: '漫游模式',
+      playListNameHeader: '漫游',
+      playNow: true,
+      changePlayerSource: true,
+      needStore: false,
+    );
+
+    if (currentRepeatMode == AudioServiceRepeatMode.one) {
+      await changeRepeatMode(newRepeatMode: AudioServiceRepeatMode.all);
+    }
+    return true;
+  }
+
+  Future<bool> startHeartBeatMode({
+    required List<MediaItem> songs,
+    required AudioServiceRepeatMode currentRepeatMode,
+  }) async {
+    if (songs.isEmpty) {
+      return false;
+    }
+
+    await changePlayList(
+      songs,
+      index: 0,
+      playListName: '心动模式',
+      playListNameHeader: '心动',
+      playNow: true,
+      changePlayerSource: true,
+      needStore: false,
+    );
+
+    if (currentRepeatMode == AudioServiceRepeatMode.one) {
+      await changeRepeatMode(newRepeatMode: AudioServiceRepeatMode.all);
+    }
+    return true;
+  }
 }

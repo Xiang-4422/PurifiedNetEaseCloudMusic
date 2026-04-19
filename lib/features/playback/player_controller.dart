@@ -105,42 +105,18 @@ class PlayerController extends GetxController {
         UserController.to.getFmSongs().then((newFmPlayList) async {
           if (playbackMode.value == PlaybackMode.roaming &&
               newFmPlayList.isNotEmpty) {
-            var existingIds = curPlayingSongs.map((e) => e.id).toSet();
-            newFmPlayList.removeWhere((item) => existingIds.contains(item.id));
+            final shouldAutoPlayNext = (newIndex ==
+                    curPlayingSongs.length - 1) &&
+                (_playbackService.handler.playbackState.value.processingState ==
+                    AudioProcessingState.completed);
 
-            if (newFmPlayList.isNotEmpty) {
-              List<MediaItem> combined = [...curPlayingSongs, ...newFmPlayList];
-              // 漫游模式理论上是无限队列，历史过长时裁掉前段，避免内存和序列化成本线性增长。
-              if (combined.length > 200) {
-                combined.removeRange(0, combined.length - 150);
-              }
-
-              int updatedIndex =
-                  combined.indexWhere((e) => e.id == curPlayingSong.value.id);
-
-              bool shouldAutoPlayNext =
-                  (newIndex == curPlayingSongs.length - 1) &&
-                      (_playbackService
-                              .handler.playbackState.value.processingState ==
-                          AudioProcessingState.completed);
-
-              await _playbackService.changePlayList(combined,
-                  index: updatedIndex != -1 ? updatedIndex : newIndex,
-                  playListName: "漫游模式",
-                  playListNameHeader: "漫游",
-                  playNow: false,
-                  changePlayerSource: false,
-                  needStore: false);
-
-              if (shouldAutoPlayNext) {
-                int nextIndex =
-                    (updatedIndex != -1 ? updatedIndex : newIndex) + 1;
-                if (nextIndex < combined.length) {
-                  _playbackService.playIndex(
-                      audioSourceIndex: nextIndex, playNow: true);
-                }
-              }
-            }
+            await _playbackService.appendRoamingSongs(
+              currentQueue: curPlayingSongs.toList(),
+              incomingSongs: newFmPlayList,
+              currentSongId: curPlayingSong.value.id,
+              shouldAutoPlayNext: shouldAutoPlayNext,
+              fallbackIndex: newIndex,
+            );
           }
           _isFetchingFm = false;
         }).catchError((e) {
@@ -281,13 +257,11 @@ class PlayerController extends GetxController {
     if (isHeartBeatMode.isTrue) {
       await quitHeartBeatMode(showToast: false);
     }
-    await _playbackService.changePlayList(
+    await _playbackService.playPlaylist(
       playList,
-      index: index,
+      index,
       playListName: playListName,
       playListNameHeader: playListNameHeader,
-      changePlayerSource: true,
-      playNow: true,
     );
   }
 
@@ -348,22 +322,10 @@ class PlayerController extends GetxController {
   }
 
   Future<void> playUserLikedSongs() async {
-    int playIndex;
-    final playList = [...UserController.to.likedSongs];
-    if (UserController.to.likedSongIds
-        .contains(int.parse(curPlayingSong.value.id))) {
-      playIndex = UserController.to.likedSongs
-          .indexWhere((song) => song.id == curPlayingSong.value.id);
-    } else {
-      playIndex = 0;
-      playList.insert(0, curPlayingSong.value);
-    }
-    await _playbackService.changePlayList(
-      playList,
-      index: playIndex,
-      playListName: '喜欢的音乐',
-      changePlayerSource: false,
-      playNow: false,
+    await _playbackService.playLikedSongs(
+      likedSongs: UserController.to.likedSongs.toList(),
+      likedSongIds: UserController.to.likedSongIds.toList(),
+      currentSong: curPlayingSong.value,
     );
   }
 
@@ -422,20 +384,11 @@ class PlayerController extends GetxController {
       fmSongs.addAll(await UserController.to.getFmSongs());
     }
 
-    if (fmSongs.isNotEmpty) {
-      await _playbackService.changePlayList(fmSongs,
-          index: 0,
-          playListName: '漫游模式',
-          playListNameHeader: '漫游',
-          changePlayerSource: true,
-          playNow: true,
-          needStore: false);
-      // Force repeat all for continuous fetch
-      if (curRepeatMode.value == AudioServiceRepeatMode.one) {
-        await _playbackService.changeRepeatMode(
-            newRepeatMode: AudioServiceRepeatMode.all);
-      }
-    } else {
+    final started = await _playbackService.startRoamingMode(
+      fmSongs: fmSongs,
+      currentRepeatMode: curRepeatMode.value,
+    );
+    if (!started) {
       // Fallback or error
       playbackMode.value = PlaybackMode.playlist;
     }
@@ -445,19 +398,11 @@ class PlayerController extends GetxController {
     List<MediaItem> songs = await UserController.to.getHeartBeatSongs(
         startSongId, UserController.to.randomLikedSongId.value, fromPlayAll);
 
-    if (songs.isNotEmpty) {
-      await _playbackService.changePlayList(songs,
-          index: 0,
-          playListName: '心动模式',
-          playListNameHeader: '心动',
-          changePlayerSource: true,
-          playNow: true,
-          needStore: false);
-      if (curRepeatMode.value == AudioServiceRepeatMode.one) {
-        await _playbackService.changeRepeatMode(
-            newRepeatMode: AudioServiceRepeatMode.all);
-      }
-    } else {
+    final started = await _playbackService.startHeartBeatMode(
+      songs: songs,
+      currentRepeatMode: curRepeatMode.value,
+    );
+    if (!started) {
       playbackMode.value = PlaybackMode.playlist;
     }
   }

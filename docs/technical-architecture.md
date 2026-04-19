@@ -219,6 +219,7 @@
 - 壳层状态独立为 `features/shell/controller`
 - 页面不应直接驱动 `audioHandler`，也不应继续通过 `AppController` 充当播放代理；播放主链路统一经由 `PlayerController` 暴露入口
 - `PlayerController` 不再直接初始化底层播放器实例，音频服务生命周期统一收口到 `PlaybackService`
+- 漫游模式续队列、喜欢歌曲播放和模式初始化等队列编排优先下沉到 `PlaybackService`，控制器只保留状态与交互协作
 
 ### 6.4 MusicSource
 

@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
-import 'package:bujuan/pages/talk/custom_filed.dart';
+import 'package:bujuan/pages/talk/custom_field.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -429,7 +429,7 @@ class _FoolTalkState extends State<FoolTalk> {
               children: [
                 const Padding(padding: EdgeInsets.only(left: 20)),
                 Expanded(
-                    child: CustomFiled(
+                    child: CustomField(
                   iconData: TablerIcons.message_2,
                   textEditingController: _textEditingController,
                   hitText: '请输入想说的话',

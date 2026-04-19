@@ -24,7 +24,7 @@ import '../pages/login/login_page_view.dart' as _i1;
 import '../pages/playlist/playlist_page_view.dart' as _i7;
 import '../pages/radio/my_radio_view.dart' as _i10;
 import '../pages/radio/radio_details_view.dart' as _i11;
-import '../pages/setting/user_setting_view.dart' as _i2;
+import '../pages/settings/user_setting_view.dart' as _i2;
 import '../pages/today/today_page_view.dart' as _i6;
 import '../pages/update/update_view.dart' as _i4;
 

@@ -3,7 +3,7 @@ import 'package:bujuan/pages/home/app_home_page_view.dart';
 import 'package:bujuan/pages/home/body/app_body_page_view.dart';
 import 'package:bujuan/pages/radio/my_radio_view.dart';
 import 'package:bujuan/pages/radio/radio_details_view.dart';
-import 'package:bujuan/pages/setting/user_setting_view.dart';
+import 'package:bujuan/pages/settings/user_setting_view.dart';
 import 'package:bujuan/pages/today/today_page_view.dart';
 
 import '../pages/album/album_page_view.dart';
@@ -46,8 +46,6 @@ abstract class Routes {
   static const albumDetails = 'albumDetails';
   static const playlistManager = 'playlistManager';
 }
-
- 
 
 @CupertinoAutoRouter(
   replaceInRouteName: 'Page,Route',

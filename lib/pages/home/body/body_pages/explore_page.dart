@@ -11,7 +11,7 @@ import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../play_list/playlist_page_view.dart';
-import '../../../../controllers/explore_page_controller.dart';
+import 'package:bujuan/features/explore/controller/explore_page_controller.dart';
 
 /// 发现页
 class ExplorePageView extends GetView<ExplorePageController> {

@@ -1,24 +1,24 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/controllers/player_controller.dart';
-import 'package:bujuan/controllers/settings_controller.dart';
-import 'package:bujuan/controllers/user_controller.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
+import 'package:bujuan/core/playback/audio_service_handler.dart';
+import 'package:bujuan/features/playback/controller/player_controller.dart';
+import 'package:bujuan/features/settings/controller/settings_controller.dart';
 import 'package:bujuan/features/shell/controller/home_shell_controller.dart';
+import 'package:bujuan/features/user/controller/user_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
 
-import '../core/playback/audio_service_handler.dart';
-import '../widget/custom_zoom_drawer/src/drawer_controller.dart';
-
-/// 所有Controller都放在HomeController中统一控制
+/// 迁移期的应用壳层协调器。
 ///
-/// **代理 Getters 以保持向后兼容**
+/// 这里仍保留大量代理 getter 和少量跨页面 UI 协调，是为了先把旧页面
+/// 从“各自管理全局状态”收回到单点入口，再逐步下沉到更细的 feature controller。
 class AppController extends SuperController
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
   static AppController get to => Get.find();
@@ -229,6 +229,7 @@ class AppController extends SuperController
     shellController.initZoomDrawerListener();
   }
 
+  /// 主页初始化仍统一走这一入口，避免旧页面在各自生命周期里重复拉取同一份用户数据。
   updateData() async {
     await userController.updateUserData();
     dateLoaded.value = true;
@@ -279,6 +280,8 @@ class AppController extends SuperController
 
   playOrPause() => playerController.playOrPause();
 
+  /// 播放列表切换仍保留在壳层入口，是为了兼容大量旧页面直接通过 `AppController`
+  /// 发起播放；等这些入口迁完，再继续下沉到更细的播放用例层。
   playNewPlayList(List<MediaItem> playList, int index,
       {String playListName = "无名歌单", String playListNameHeader = ""}) async {
     if (isFmMode.isTrue) await playerController.quitFmMode(showToast: false);
@@ -326,6 +329,7 @@ class AppController extends SuperController
         cancelTimer: cancelTimer);
   }
 
+  // 列表页打开时直接滚到当前播放项，可以减少“当前歌曲已变但列表还停在旧位置”的错觉。
   _animatePlayListToCurSong() {
     if (playListScrollController.hasClients) {
       double offset = curPlayIndex.value * 55.0;
@@ -336,6 +340,7 @@ class AppController extends SuperController
 
   syncAlbumPage() => _animateAlbumPageViewToCurSong();
 
+  // 专辑页和真实播放索引必须保持单向同步，否则用户会同时触发手势滚动和程序跳页。
   _animateAlbumPageViewToCurSong() {
     if (albumPageController.hasClients) {
       if (isAlbumScrollingManully) return;

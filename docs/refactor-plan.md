@@ -94,6 +94,7 @@
 ### G. 工程结构收口
 
 - 逐步弱化旧 `controllers` 与 `pages` 的双轨结构
+- 原 `lib/controllers` 已清空并进入移除阶段，主控制器已迁往 `features/*/controller`
 - 推进到 `core / data / domain / features / shared` 目标结构
 - 收口 DI 与初始化入口
 - 清理 `common` 中残留的业务逻辑
@@ -193,6 +194,7 @@
 - `LibraryRepository` 已开始汇总轨道实体和资源索引，搜索与播放链路会优先读取补全后的本地资源视图
 - 应用入口层已开始从 `lib/` 根目录收口到 `lib/app/bootstrap` 和 `lib/app/routing`
 - 播放底层已开始从 `lib/common` 收口到 `lib/core/playback`
+- 遗留主控制器已开始迁移到 `lib/features/*/controller`，导入链路已切到新目录
 
 ### 进行中
 
@@ -216,11 +218,11 @@
 
 范围：
 
-- [`lib/controllers/user_controller.dart`](../lib/controllers/user_controller.dart)
+- [`lib/features/user/controller/user_controller.dart`](../lib/features/user/controller/user_controller.dart)
 - [`lib/pages/play_list/playlist_page_view.dart`](../lib/pages/play_list/playlist_page_view.dart)
 - [`lib/pages/cloud/cloud_drive_view.dart`](../lib/pages/cloud/cloud_drive_view.dart)
 - [`lib/pages/login/login_page_view.dart`](../lib/pages/login/login_page_view.dart)
-- [`lib/controllers/player_controller.dart`](../lib/controllers/player_controller.dart)
+- [`lib/features/playback/controller/player_controller.dart`](../lib/features/playback/controller/player_controller.dart)
 
 任务：
 
@@ -252,7 +254,7 @@
 
 范围：
 
-- [`lib/controllers/app_controller.dart`](../lib/controllers/app_controller.dart)
+- [`lib/features/shell/controller/app_controller.dart`](../lib/features/shell/controller/app_controller.dart)
 - [`lib/pages/home/app_home_page_view.dart`](../lib/pages/home/app_home_page_view.dart)
 - [`lib/pages/home/body/app_body_page_view.dart`](../lib/pages/home/body/app_body_page_view.dart)
 - [`lib/pages/home/top_panel/top_panel_view.dart`](../lib/pages/home/top_panel/top_panel_view.dart)
@@ -424,7 +426,7 @@
 范围：
 
 - `lib/common`
-- `lib/controllers`
+- 原 `lib/controllers`
 - `lib/pages`
 - `lib/widget`
 - `lib/routes`
@@ -559,5 +561,13 @@
 - 阶段：`Phase 7`
 - 状态：`In Progress`
 - 完成内容：播放底层文件已开始从 `lib/common` 收口到 `lib/core/playback`，`AudioServiceHandler` 和播放列表序列化辅助能力已归入播放基础设施目录，未使用的旧抽象接口已清理
-- 风险或阻塞：当前播放控制器仍留在 `lib/controllers`，播放链路的上层职责还没有完全迁走
-- 下一步：继续按“基础设施先归位、上层控制后迁移”的顺序整理遗留目录
+- 风险或阻塞：虽然主控制器已迁到 `features/*/controller`，但页面层仍大量依赖旧壳层接口，后续目录收口还会牵动较多导入和兼容代码
+- 下一步：继续按“控制器先归位、页面再跟进”的顺序整理遗留目录
+
+#### 2026-04-19
+
+- 阶段：`Phase 7`
+- 状态：`In Progress`
+- 完成内容：`AppController`、`PlayerController`、`UserController`、`SettingsController` 与 `ExplorePageController` 已迁入 `lib/features/*/controller`；应用入口、播放底层和迁移中的控制器已补充职责边界与兼容原因注释；旧页面和功能入口对控制器的导入已统一切到新目录
+- 风险或阻塞：页面层仍通过 `AppController` 复用较多迁移期代理入口，后续继续拆壳层和播放入口时仍会触及较大范围调用点
+- 下一步：继续缩减页面层对迁移期代理入口的依赖，并清理仍以旧控制器目录为中心的历史描述和兼容逻辑

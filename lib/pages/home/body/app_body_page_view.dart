@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:bujuan/pages/home/body/body_pages/coffee_page.dart';
 import 'package:bujuan/pages/home/body/body_pages/explore_page.dart';
 import 'package:bujuan/pages/home/body/body_pages/personal_page.dart';
@@ -14,13 +14,9 @@ import '../../../widget/custom_zoom_drawer/src/flutter_zoom_drawer.dart';
 import 'package:bujuan/routes/router.dart';
 
 import '../../../widget/simple_extended_image.dart';
-import '../top_panel/top_panel_view.dart';
 
 class AppBodyPageView extends GetView<AppController> {
   const AppBodyPageView({super.key});
-
-  /// 0-1，占据屏幕的比例
-  final double _manuPanelWidth = 0.2;
 
   @override
   Widget build(BuildContext context) {

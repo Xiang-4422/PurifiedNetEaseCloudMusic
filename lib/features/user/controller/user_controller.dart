@@ -1,20 +1,23 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/controllers/settings_controller.dart';
 import 'package:bujuan/common/constants/key.dart';
+import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/core/playback/audio_service_handler.dart';
+import 'package:bujuan/features/playback/controller/player_controller.dart';
+import 'package:bujuan/features/settings/controller/settings_controller.dart';
 import 'package:bujuan/features/user/repository/user_repository.dart';
-import 'dart:convert';
-import 'dart:math';
+import 'package:bujuan/routes/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-import 'package:bujuan/routes/router.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:bujuan/core/playback/audio_service_handler.dart';
+import 'dart:convert';
+import 'dart:math';
 
-import 'player_controller.dart';
-
+/// 收口账号相关的本地缓存、用户资料和快捷入口数据。
+///
+/// 当前仍保留少量 `Hive` 读写，是因为这些数据还没有完全迁入正式本地库，
+/// 先集中在这里比继续散落到页面里更容易替换。
 class UserController extends GetxController {
   static UserController get to => Get.find();
   final Box box = GetIt.instance<Box>();

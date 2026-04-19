@@ -1,7 +1,7 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
@@ -109,8 +109,7 @@ class TopPanelView extends GetView<AppController> {
                                           .toList(),
                                     ),
                                   ),
-                          )).marginOnly(
-                          top: AppDimensions.paddingSmall),
+                          )).marginOnly(top: AppDimensions.paddingSmall),
                     )),
               ),
               Container(

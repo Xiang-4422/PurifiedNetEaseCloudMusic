@@ -9,16 +9,18 @@ import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/playback/repository/playback_repository.dart';
 import 'package:bujuan/features/playback/repository/playback_state_store.dart';
+import 'package:bujuan/features/settings/controller/settings_controller.dart';
+import 'package:bujuan/features/user/controller/user_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import 'package:bujuan/common/constants/other.dart';
-import 'settings_controller.dart';
-import 'user_controller.dart';
 
-/// 播放控制器
-/// 负责音频播放、进度、歌词、循环模式等
+/// 面向页面暴露播放状态和播放模式切换入口。
+///
+/// 底层播放细节仍由 `AudioServiceHandler` 承接，这里主要负责把
+/// 音频服务、歌词状态、全屏歌词状态和用户侧模式切换组织成可绑定的 UI 状态。
 class PlayerController extends GetxController {
   static PlayerController get to => Get.find();
 
@@ -26,22 +28,18 @@ class PlayerController extends GetxController {
   final PlaybackStateStore _stateStore = const PlaybackStateStore();
   late final AudioServiceHandler audioHandler;
 
-  /// 播放状态
   RxBool isPlaying = false.obs;
 
-  /// 循环方式
   Rx<AudioServiceRepeatMode> curRepeatMode = AudioServiceRepeatMode.all.obs;
 
-  /// 当前播放模式
   Rx<PlaybackMode> playbackMode = PlaybackMode.playlist.obs;
 
-  // Album color cache
+  // 取色是高频但纯展示性质的操作，做小缓存可以明显减少切歌时的同步卡顿。
   final Map<String, Color> _albumColorCache = {};
 
-  // Roaming Mode fetch lock
+  // 漫游模式的补队列是异步请求，锁住重复触发可以避免同一首歌附近连续补多次。
   bool _isFetchingFm = false;
 
-  // Forward compatibility getters
   bool get isFmModeValue => playbackMode.value == PlaybackMode.roaming;
   RxBool get isFmMode => (playbackMode.value == PlaybackMode.roaming).obs;
 
@@ -49,35 +47,25 @@ class PlayerController extends GetxController {
   RxBool get isHeartBeatMode =>
       (playbackMode.value == PlaybackMode.heartbeat).obs;
 
-  /// 正在播放喜欢的音乐
   RxBool isPlayingLikedSongs = false.obs;
 
-  /// 当前播放列表
   RxList<MediaItem> curPlayingSongs = <MediaItem>[].obs;
   RxString curPlayListName = "".obs;
   RxString curPlayListNameHeader = "".obs;
 
-  /// 当前播放歌曲
   Rx<MediaItem> curPlayingSong =
       const MediaItem(id: '', title: '暂无', duration: Duration(seconds: 10)).obs;
 
-  /// 当前播放索引
   RxInt curPlayIndex = 0.obs;
 
-  /// 当前播放进度
   Rx<Duration> curPlayDuration = Duration.zero.obs;
 
-  // --- 歌词 ---
-  /// 解析后的歌词数组
   RxList<LyricsLineModel> lyricsLineModels = <LyricsLineModel>[].obs;
 
-  /// 是否有翻译歌词
   RxBool hasTransLyrics = false.obs;
 
-  /// 当前歌词下标
   RxInt currLyricIndex = (-1).obs;
 
-  /// 沉浸式歌词相关
   Timer? _fullScreenLyricTimer;
   RxBool isFullScreenLyricOpen = false.obs;
   double _fullScreenLyricTimerCounter = 0.0;
@@ -88,6 +76,7 @@ class PlayerController extends GetxController {
     _initAudioHandler();
   }
 
+  /// 统一接管音频服务的状态流，避免页面各自监听 `AudioService` 形成重复副作用。
   Future<void> _initAudioHandler() async {
     audioHandler = await AudioService.init(
       builder: () => AudioServiceHandler(),
@@ -99,31 +88,22 @@ class PlayerController extends GetxController {
       ),
     );
 
-    // --- 初始化监听 ---
-
-    // 监听播放列表切换
     audioHandler.queue.listen((mediaItems) async {
       curPlayingSongs
         ..clear()
         ..addAll(mediaItems);
-      // 处理仅更新播放列表的情况，重新计算并更新curPlayIndex
       await _updateCurPlayIndex(curMediaItemUpdated: false);
     });
 
-    // 监听歌曲切换
     audioHandler.mediaItem.listen((mediaItem) async {
-      // 更新当前歌曲信息
       if (mediaItem == null) return;
       curPlayingSong.value = mediaItem;
-      // 本地保存当前播放状态
       _stateStore.saveCurrentSongId(mediaItem.id);
       await _updateCurPlayIndex();
 
-      // 播放模式自动拉取逻辑
       int newIndex = curPlayingSongs
           .indexWhere((element) => element.id == curPlayingSong.value.id);
 
-      // Roaming Mode Fetching
       if (playbackMode.value == PlaybackMode.roaming &&
           newIndex >= curPlayingSongs.length - 2 &&
           !_isFetchingFm) {
@@ -131,22 +111,19 @@ class PlayerController extends GetxController {
         UserController.to.getFmSongs().then((newFmPlayList) async {
           if (playbackMode.value == PlaybackMode.roaming &&
               newFmPlayList.isNotEmpty) {
-            // Deduplicate
             var existingIds = curPlayingSongs.map((e) => e.id).toSet();
             newFmPlayList.removeWhere((item) => existingIds.contains(item.id));
 
             if (newFmPlayList.isNotEmpty) {
               List<MediaItem> combined = [...curPlayingSongs, ...newFmPlayList];
-              // Optional: keep last 100 as history if queue gets too long
+              // 漫游模式理论上是无限队列，历史过长时裁掉前段，避免内存和序列化成本线性增长。
               if (combined.length > 200) {
                 combined.removeRange(0, combined.length - 150);
               }
 
-              // Find current index in new list (it might have shifted if we trimmed history)
               int updatedIndex =
                   combined.indexWhere((e) => e.id == curPlayingSong.value.id);
 
-              // If we were at the very end and playback completed, we should trigger the next one after adding
               bool shouldAutoPlayNext =
                   (newIndex == curPlayingSongs.length - 1) &&
                       (audioHandler.playbackState.value.processingState ==
@@ -161,7 +138,6 @@ class PlayerController extends GetxController {
                   needStore: false);
 
               if (shouldAutoPlayNext) {
-                // Get the new index again as it might have been set by changePlayList
                 int nextIndex =
                     (updatedIndex != -1 ? updatedIndex : newIndex) + 1;
                 if (nextIndex < combined.length) {
@@ -176,13 +152,8 @@ class PlayerController extends GetxController {
           _isFetchingFm = false;
         });
       }
-
-      // Heartbeat Mode Fetching (To be implemented or migrated strictly here if needed)
-      // Currently assuming similar behavior or handled by initial fetch,
-      // but logic can be added here for infinite scroll in heartbeat mode.
     });
 
-    // 监听播放状态变化
     audioHandler.playbackState.listen((playbackState) {
       isPlaying.value = playbackState.playing;
       updateFullScreenLyricTimerCounter(cancelTimer: isPlaying.isFalse);
@@ -191,13 +162,12 @@ class PlayerController extends GetxController {
       }
     });
 
-    // 监听播放进度变化
-    // 监听播放进度变化 - 降低频率 (从 800us 改为 200ms) 以释放 UI 线程
+    // 进度流过密会把歌词滚动和面板动画一起拖慢，这里宁可牺牲一点歌词精度，
+    // 也优先保证滑动和切歌时的流畅度。
     AudioService.createPositionStream(
             minPeriod: const Duration(milliseconds: 200), steps: 1000)
         .listen((newCurPlayingDuration) async {
       curPlayDuration.value = newCurPlayingDuration;
-      // 找不到当前时间对应的歌词，此时newLyricIndex为-1，表示为前奏阶段，刚好显示空白
       int newLyricIndex = lyricsLineModels.lastIndexWhere((element) =>
           element.startTime! <= newCurPlayingDuration.inMilliseconds);
 
@@ -206,28 +176,23 @@ class PlayerController extends GetxController {
       }
     });
 
-    // --- 从本地恢复上次关闭播放状态 ---
     await audioHandler.restoreLastPlayState();
   }
 
-  /// 监听歌单和歌曲变化时更新当前播放索引
   _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {
     curPlayIndex.value = curPlayingSongs
         .indexWhere((element) => element.id == curPlayingSong.value.id);
     if (curMediaItemUpdated) {
-      // 关键优化：使用 microtask 或延迟执行耗时任务，让 PageView 动画能先跑起来
+      // 切歌时先让索引和主播放状态更新到 UI，再延后取色、歌词和图片预取，
+      // 否则首页大面板和歌词页切换会先被这些耗时任务阻塞。
       Future.microtask(() async {
-        // 预加载接下来几首歌的封面
         _preloadImages();
-        // 更新背景颜色 - 委托给 SettingsController
         await _updateAlbumColor();
-        // 更新歌词
         await _updateLyric();
       });
     }
   }
 
-  /// 获取专辑颜色 (更新 SettingsController)
   _updateAlbumColor() async {
     String? imageUrl = curPlayingSong.value.extras?['image'];
     if (imageUrl != null) {
@@ -236,7 +201,7 @@ class PlayerController extends GetxController {
         color = _albumColorCache[imageUrl]!;
       } else {
         color = await OtherUtils.getImageColor(imageUrl);
-        // Simple cache size limit
+        // 这里只做很小的缓存就够了，再大只会把“展示态颜色”变成长期驻留内存。
         if (_albumColorCache.length > 20) {
           _albumColorCache.remove(_albumColorCache.keys.first);
         }
@@ -249,6 +214,9 @@ class PlayerController extends GetxController {
     }
   }
 
+  /// 先读本地歌词缓存，再读下载后的本地歌词文件，最后才回退到远程歌词入口。
+  ///
+  /// 这个顺序直接决定离线可用性，不能为了“看起来统一”就把本地文件读取删掉。
   _updateLyric() async {
     lyricsLineModels.clear();
     hasTransLyrics.value = false;
@@ -374,7 +342,6 @@ class PlayerController extends GetxController {
         break;
       case PlaybackMode.playlist:
         // Playlist switching is usually handled by `playNewPlayList` directly calling audioHandler.
-        // We might want to centralize that here too eventually.
         break;
     }
   }
@@ -427,7 +394,6 @@ class PlayerController extends GetxController {
     }
   }
 
-  /// 获取当前循环icon
   IconData getRepeatIcon() {
     IconData icon;
     if (playbackMode.value == PlaybackMode.roaming) {
@@ -499,7 +465,7 @@ class PlayerController extends GetxController {
               }),
               Get.context!);
         } catch (_) {
-          // 封面预取只影响滚动流畅度，不应该打断播放或页面渲染。
+          // 预取失败只影响切歌时的观感，不能让展示层优化反过来干扰播放主链路。
         }
       }
     }

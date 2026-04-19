@@ -19,9 +19,9 @@
 
 当前项目功能完整，但职责分布仍然交叉：
 
-- [`lib/controllers/app_controller.dart`](../lib/controllers/app_controller.dart) 同时承担壳层 UI 状态、播放入口和部分业务编排
-- [`lib/controllers/player_controller.dart`](../lib/controllers/player_controller.dart) 与 [`lib/core/playback/audio_service_handler.dart`](../lib/core/playback/audio_service_handler.dart) 已形成播放链路，但仍混有缓存、API 和跨控制器依赖
-- [`lib/controllers/user_controller.dart`](../lib/controllers/user_controller.dart) 同时承担用户状态、推荐内容、喜欢歌曲、FM、心动模式等职责
+- [`lib/features/shell/controller/app_controller.dart`](../lib/features/shell/controller/app_controller.dart) 同时承担壳层 UI 状态、播放入口和部分业务编排
+- [`lib/features/playback/controller/player_controller.dart`](../lib/features/playback/controller/player_controller.dart) 与 [`lib/core/playback/audio_service_handler.dart`](../lib/core/playback/audio_service_handler.dart) 已形成播放链路，但仍混有缓存、API 和跨控制器依赖
+- [`lib/features/user/controller/user_controller.dart`](../lib/features/user/controller/user_controller.dart) 同时承担用户状态、推荐内容、喜欢歌曲、FM、心动模式等职责
 - 多个页面仍承载用例逻辑和数据访问逻辑，例如：
   - [`lib/pages/login/login_page_view.dart`](../lib/pages/login/login_page_view.dart)
   - [`lib/pages/play_list/playlist_page_view.dart`](../lib/pages/play_list/playlist_page_view.dart)
@@ -477,8 +477,6 @@ lib/
   - 应用级初始化、路由和后续应用外壳入口
 - `lib/common`
   - 历史公共能力目录，当前仍包含常量、歌词解析、网易云 API 适配和部分旧基础代码
-- `lib/controllers`
-  - 历史页面状态与跨页面协调控制器，当前仍承载壳层、播放、用户、设置等主流程状态
 - `lib/core`
   - 已开始承接稳定基础设施能力，当前已包含 `database / network / storage / playback`
 - `lib/data`
@@ -486,7 +484,7 @@ lib/
 - `lib/domain`
   - 统一领域实体与多源协议
 - `lib/features`
-  - 正式业务模块目录，当前主要承接各 feature 的 `repository`
+  - 正式业务模块目录，当前已开始承接各 feature 的 `repository` 和核心 controller
 - `lib/generated / lib/generator`
   - 生成代码和生成相关逻辑
 - `lib/pages`
@@ -507,8 +505,8 @@ lib/
 
 - `lib/common`
   - 逐步拆到 `core / data / shared / features`
-- `lib/controllers`
-  - 逐步拆到 `features/*/controller`、`features/playback/service`、`features/shell/controller`
+- 原 `lib/controllers`
+  - 已进入移除阶段，职责继续拆到 `features/*/controller`、`features/playback/service`、`features/shell/controller`
 - `lib/pages`
   - 逐步迁到 `features/*/presentation`
 - `lib/routes`
@@ -633,7 +631,7 @@ Repository 负责：
 
 重点文件：
 
-- [`lib/controllers/app_controller.dart`](../lib/controllers/app_controller.dart)
+- [`lib/features/shell/controller/app_controller.dart`](../lib/features/shell/controller/app_controller.dart)
 - [`lib/pages/home/app_home_page_view.dart`](../lib/pages/home/app_home_page_view.dart)
 - [`lib/pages/home/body/app_body_page_view.dart`](../lib/pages/home/body/app_body_page_view.dart)
 
@@ -646,7 +644,7 @@ Repository 负责：
 
 重点文件：
 
-- [`lib/controllers/player_controller.dart`](../lib/controllers/player_controller.dart)
+- [`lib/features/playback/controller/player_controller.dart`](../lib/features/playback/controller/player_controller.dart)
 - [`lib/core/playback/audio_service_handler.dart`](../lib/core/playback/audio_service_handler.dart)
 
 目标：
@@ -658,7 +656,7 @@ Repository 负责：
 
 重点文件：
 
-- [`lib/controllers/user_controller.dart`](../lib/controllers/user_controller.dart)
+- [`lib/features/user/controller/user_controller.dart`](../lib/features/user/controller/user_controller.dart)
 - [`lib/pages/play_list/playlist_page_view.dart`](../lib/pages/play_list/playlist_page_view.dart)
 - [`lib/pages/cloud/cloud_drive_view.dart`](../lib/pages/cloud/cloud_drive_view.dart)
 - [`lib/pages/login/login_page_view.dart`](../lib/pages/login/login_page_view.dart)

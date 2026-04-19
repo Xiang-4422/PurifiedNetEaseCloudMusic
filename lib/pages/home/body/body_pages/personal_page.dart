@@ -12,7 +12,7 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../../common/common_widget.dart';
 import '../../../../common/constants/appConstants.dart';
-import '../../../../controllers/app_controller.dart';
+import 'package:bujuan/features/shell/controller/app_controller.dart';
 import '../../../../routes/router.gr.dart' as gr;
 import '../../../../widget/simple_extended_image.dart';
 

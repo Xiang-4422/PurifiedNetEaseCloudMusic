@@ -1,5 +1,5 @@
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:bujuan/features/cloud/repository/cloud_repository.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/material.dart';

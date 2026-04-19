@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:bujuan/features/radio/repository/radio_repository.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
@@ -26,7 +26,8 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
         backgroundColor: Colors.transparent,
       ),
       body: RequestLoadMoreWidget<DjProgramListWrap, DjProgram>(
-          dioMetaData: _repository.buildProgramListRequest((context.routeData.args as DjRadio).id),
+          dioMetaData: _repository
+              .buildProgramListRequest((context.routeData.args as DjRadio).id),
           childBuilder: (list) {
             final mediaItems = _repository.mapProgramsToMediaItems(
               list,

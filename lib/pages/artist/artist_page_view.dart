@@ -6,7 +6,7 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
-import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:bujuan/features/artist/repository/artist_repository.dart';
 import 'package:bujuan/pages/play_list/playlist_page_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
@@ -205,26 +205,26 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                               '${hotAlbums[index].picUrl}?param=200y200'),
                           Expanded(
                               child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "${hotAlbums[index].name}",
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: context.textTheme.bodyMedium?.copyWith(
-                                    color: onAlbumColor,
-                                  ),
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "${hotAlbums[index].name}",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: context.textTheme.bodyMedium?.copyWith(
+                                  color: onAlbumColor,
                                 ),
-                                Text(
-                                  "${DateTime.fromMillisecondsSinceEpoch(hotAlbums[index].publishTime ?? 0).year}",
-                                  maxLines: 1,
-                                  style: context.textTheme.bodySmall?.copyWith(
-                                    color: onAlbumColor,
-                                  ),
+                              ),
+                              Text(
+                                "${DateTime.fromMillisecondsSinceEpoch(hotAlbums[index].publishTime ?? 0).year}",
+                                maxLines: 1,
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: onAlbumColor,
                                 ),
-                              ],
-                            ))
+                              ),
+                            ],
+                          ))
                         ],
                       ),
                     ),

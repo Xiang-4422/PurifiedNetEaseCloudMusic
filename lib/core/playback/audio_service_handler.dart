@@ -5,33 +5,37 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/controllers/player_controller.dart';
-import 'package:bujuan/controllers/settings_controller.dart';
-import 'package:bujuan/controllers/user_controller.dart';
+import 'package:bujuan/features/playback/controller/player_controller.dart';
 import 'package:bujuan/features/playback/repository/playback_repository.dart';
 import 'package:bujuan/features/playback/repository/playback_state_store.dart';
+import 'package:bujuan/features/settings/controller/settings_controller.dart';
+import 'package:bujuan/features/user/controller/user_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 
+/// 承接 `audio_service` 层的播放状态与队列控制。
+///
+/// 这里保留的职责有两类：
+/// 1. 平台播放器必须直接理解的播放行为与通知栏状态。
+/// 2. 仍依赖历史 `MediaItem` 队列格式的恢复与兼容逻辑。
+///
+/// 页面和控制器不应直接复制这里的行为，否则播放状态、通知栏状态和
+/// 本地恢复状态会很快分叉。
 class AudioServiceHandler extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   late final AudioPlayer _player;
   final PlaybackRepository _playbackRepository = PlaybackRepository();
   final PlaybackStateStore _stateStore = const PlaybackStateStore();
 
-  /// 当前原始播放列表（用于随机和顺序播放模式切换用）
   final List<MediaItem> _originalSongs = <MediaItem>[];
 
-  /// 播放列表索引（当前播放对应在正在播放的列表索引）
   int _curIndex = -1;
 
-  /// 播放模式（none表示随机模式）
   AudioServiceRepeatMode curRepeatMode = AudioServiceRepeatMode.all;
 
   AudioServiceHandler() {
     _player = AudioPlayer();
-    // 映射播放器状态
     _player.playbackEventStream.listen((PlaybackEvent event) {
       playbackState.add(playbackState.value.copyWith(
         systemActions: const {
@@ -58,10 +62,11 @@ class AudioServiceHandler extends BaseAudioHandler
     _updateMediaControls();
   }
 
-  /// 打乱or恢复播放列表顺序
+  /// 按历史缓存格式恢复上一次的播放模式和队列。
+  ///
+  /// 当前仍有大量页面和控制器默认依赖“关闭应用后还能直接回到上一次队列”的行为，
+  /// 所以恢复逻辑必须保留在音频服务入口，而不是交给页面自己拼。
   restoreLastPlayState() async {
-    // 恢复漫游模式状态
-    // 恢复漫游模式状态
     bool isFm = _stateStore.isFmModeEnabled;
     bool isHeart = _stateStore.isHeartBeatModeEnabled;
     if (isFm) {
@@ -71,13 +76,11 @@ class AudioServiceHandler extends BaseAudioHandler
     } else {
       PlayerController.to.playbackMode.value = PlaybackMode.playlist;
     }
-    // 恢复播放模式
     String repeatMode = _stateStore.repeatModeName;
     changeRepeatMode(
         newRepeatMode: AudioServiceRepeatMode.values
                 .firstWhereOrNull((element) => element.name == repeatMode) ??
             AudioServiceRepeatMode.all);
-    // 恢复播放列表
     List<String> stringPlayList = _stateStore.storedQueue;
     String curSongId = _stateStore.currentSongId;
     if (stringPlayList.isNotEmpty) {
@@ -94,21 +97,17 @@ class AudioServiceHandler extends BaseAudioHandler
     }
   }
 
-  /// 改变循环模式
   changeRepeatMode({AudioServiceRepeatMode? newRepeatMode}) async {
     if (newRepeatMode == null) {
       switch (curRepeatMode) {
-        // 单曲 -> 随机
         case AudioServiceRepeatMode.one:
           newRepeatMode = AudioServiceRepeatMode.none;
           await reorderPlayList(shufflePlayList: true);
           break;
-        // 随机 -> 全部
         case AudioServiceRepeatMode.none:
           newRepeatMode = AudioServiceRepeatMode.all;
           await reorderPlayList(shufflePlayList: false);
           break;
-        // 全部 -> 单曲
         case AudioServiceRepeatMode.all:
         case AudioServiceRepeatMode.group:
           newRepeatMode = AudioServiceRepeatMode.one;
@@ -122,7 +121,8 @@ class AudioServiceHandler extends BaseAudioHandler
     _updateMediaControls();
   }
 
-  /// 打乱or恢复播放列表顺序
+  /// 随机模式切换依赖 `_originalSongs` 保留原始顺序，否则来回切模式会不断
+  /// 在已打乱结果上再次打乱，用户无法回到真正的原歌单顺序。
   reorderPlayList({bool shufflePlayList = false}) async {
     var playListCopy = <MediaItem>[..._originalSongs];
     if (shufflePlayList) playListCopy.shuffle();
@@ -133,7 +133,10 @@ class AudioServiceHandler extends BaseAudioHandler
     await updateQueue(playListCopy);
   }
 
-  /// 在AudioHandle中打乱播放列表
+  /// 统一更新音频服务队列、播放列表元信息和持久化缓存。
+  ///
+  /// 当前项目仍有多种入口会切换播放列表，先把这些副作用收口在这里，
+  /// 比让每个调用点各自改队列和缓存更稳。
   changePlayList(List<MediaItem> playList,
       {int index = 0,
       bool needStore = true,
@@ -141,19 +144,16 @@ class AudioServiceHandler extends BaseAudioHandler
       String playListNameHeader = "",
       required bool changePlayerSource,
       required bool playNow}) async {
-    // 保存当前播放列表(原始顺序列表)
     _originalSongs
       ..clear()
       ..addAll(playList);
     var playListCopy = <MediaItem>[...playList];
-    // 随机播放模式，打乱播放列表，重新获取index
     if (curRepeatMode == AudioServiceRepeatMode.none &&
         PlayerController.to.playbackMode.value == PlaybackMode.playlist) {
       playListCopy.shuffle();
       index = playListCopy
           .indexWhere((element) => element.id == playList[index].id);
     }
-    // 播放器播放列表更新
     await updateQueue(playListCopy);
     PlayerController.to.curPlayListName.value = playListName;
     PlayerController.to.curPlayListNameHeader.value = playListNameHeader;
@@ -163,14 +163,11 @@ class AudioServiceHandler extends BaseAudioHandler
       playlistHeader: playListNameHeader,
     );
 
-    // 是否更改当前播放源
     if (changePlayerSource) {
-      // 是否直接开始播放
       await playIndex(audioSourceIndex: index, playNow: playNow);
     } else {
       _curIndex = index;
     }
-    // 保存原始播放列表
     if (needStore) {
       await _stateStore.saveQueue(
         await compute(playListToString, _originalSongs),
@@ -178,33 +175,31 @@ class AudioServiceHandler extends BaseAudioHandler
     }
   }
 
-  /// 这里Index是在 正在播放列表 中的索引
+  /// 根据 `MediaItem` 的历史类型约定解析真实播放源。
+  ///
+  /// 这里仍保留 `local / neteaseCache / playlist` 三种分支，是为了兼容
+  /// 现有缓存队列和页面侧 extras 结构；在新的统一播放模型完全接管前，
+  /// 不能直接把这层类型判断删掉。
   playIndex({required int audioSourceIndex, required bool playNow}) async {
-    // _player.stop();
     bool isNext = audioSourceIndex >= _curIndex;
     _curIndex = audioSourceIndex;
-    // 获取歌曲资源
     MediaItem newIndexMediaItem = queue.value[audioSourceIndex];
     mediaItem.add(newIndexMediaItem);
     String url = "";
-    // 本地歌曲
     if (newIndexMediaItem.extras?['type'] == MediaType.local.name) {
       url = newIndexMediaItem.extras?['url'] ?? '';
       if (url.isNotEmpty) {
         newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
         await _player.setFilePath(url);
       }
-      // 网易云缓存
     } else if (newIndexMediaItem.extras?['type'] ==
         MediaType.neteaseCache.name) {
       url = newIndexMediaItem.extras?['url'] ?? '';
       if (url.isNotEmpty) {
         newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
-        // 网易云缓存的音乐要解密哦
         await _player.setAudioSource(
             StreamSource(url, url.replaceAll('.uc!', '').split('.').last));
       }
-      // 在线歌曲
     } else {
       bool highQuality = SettingsController.to.isHighSoundQualityOpen.value;
       url = (await _playbackRepository.fetchPlaybackUrl(
@@ -213,7 +208,6 @@ class AudioServiceHandler extends BaseAudioHandler
               ) ??
               '')
           .split('?')[0];
-      // 如果获取不到URL就跳过
       if (url.isNotEmpty) {
         final localFile = File(url);
         if (localFile.existsSync()) {
@@ -224,7 +218,6 @@ class AudioServiceHandler extends BaseAudioHandler
         }
       }
     }
-    // 根据配置决定是否立即播放
     if (playNow) {
       if (url.isNotEmpty) {
         await play();
@@ -243,10 +236,8 @@ class AudioServiceHandler extends BaseAudioHandler
     queue.add(newQueue);
   }
 
-  //更改为喜欢按钮
   @override
   Future<void> rewind() async {
-    // AppController.to.toggleLikeStatus()
     UserController.to.toggleLikeStatus(queue.value[_curIndex]);
   }
 
@@ -276,13 +267,13 @@ class AudioServiceHandler extends BaseAudioHandler
   @override
   Future<void> skipToNext() async {
     int newIndex;
-    // 单曲循环模式直接返回
     if (curRepeatMode == AudioServiceRepeatMode.one) {
       newIndex = _curIndex;
     } else {
       newIndex = _curIndex + 1;
       if (newIndex == queue.value.length) {
-        // 漫游模式下，不要直接回环到 0，防止逻辑冲突
+        // 漫游模式的补队列是异步触发的，直接回环会把“加载中”和“切回第一首”
+        // 混成同一个动作，结果会让队列状态和 UI 都更难解释。
         if (PlayerController.to.playbackMode.value == PlaybackMode.roaming) {
           WidgetUtil.showToast('正在加载漫游歌曲...');
           return;
@@ -295,7 +286,6 @@ class AudioServiceHandler extends BaseAudioHandler
 
   @override
   Future<void> skipToPrevious() async {
-    // 单曲循环模式直接返回
     int newIndex;
     if (curRepeatMode == AudioServiceRepeatMode.one) {
       newIndex = _curIndex;
@@ -321,7 +311,10 @@ class AudioServiceHandler extends BaseAudioHandler
     await _player.dispose();
   }
 
-  /// 更新状态栏控制按钮
+  /// 通知栏按钮仍以 `MediaItem.extras['liked']` 为准。
+  ///
+  /// 这里没有直接改成统一领域模型，是因为当前通知栏状态刷新仍跟着
+  /// `audio_service` 的 `MediaItem` 流转，贸然拆开会先破坏现有按钮状态。
   _updateMediaControls() {
     bool isLiked = mediaItem.value?.extras?['liked'] ?? false;
     playbackState.add(playbackState.value.copyWith(controls: [
@@ -343,16 +336,16 @@ class StreamSource extends StreamAudioSource {
   String uri;
   String fileType;
 
-  // Get the Android content uri and the corresponsing file type by using MediaStore API in android
+  /// 仍保留 `.uc!` 解密读取，是为了兼容历史网易云缓存文件。
   StreamSource(this.uri, this.fileType);
 
   @override
   Future<StreamAudioResponse> request([int? start, int? end]) async {
-    // Use a method channel to read the file into a List of bytes
+    // `.uc!` 缓存不是标准媒体文件，仍保留按字节异或的读取方式，
+    // 否则现有本地缓存会在迁移期全部失效。
     Uint8List fileBytes = Uint8List.fromList(
         File(uri).readAsBytesSync().map((e) => e ^ 0xa3).toList());
 
-    // Returning the stream audio response with the parameters
     return StreamAudioResponse(
       sourceLength: fileBytes.length,
       contentLength: (start ?? 0) - (end ?? fileBytes.length),
@@ -363,50 +356,23 @@ class StreamSource extends StreamAudioSource {
   }
 }
 
+/// `MediaItem` 的持久化过渡格式。
+///
+/// 当前播放队列仍通过字符串列表写入轻存储，先保留这层显式转换，
+/// 避免直接把 `MediaItem` 的内部结构散落到多个调用点。
 class MediaItemBean {
-  /// A unique id.
   final String id;
-
-  /// The title of this media item.
   final String title;
-
-  /// The album this media item belongs to.
   final String? album;
-
-  /// The artist of this media item.
   final String? artist;
-
-  /// The genre of this media item.
   final String? genre;
-
-  /// The duration of this media item.
   final Duration? duration;
-
-  /// The artwork for this media item as a uri.
   final Uri? artUri;
-
-  /// Whether this is playable (i.e. not a folder).
   final bool? playable;
-
-  /// Override the default title for display purposes.
   final String? displayTitle;
-
-  /// Override the default subtitle for display purposes.
   final String? displaySubtitle;
-
-  /// Override the default description for display purposes.
   final String? displayDescription;
-
-  /// The rating of the MediaItemMessage.
-
-  /// A map of additional metadata for the media item.
-  ///
-  /// The values must be integers or strings.
   final Map<String, dynamic>? extras;
-
-  /// Creates a [MediaItemBean].
-  ///
-  /// The [id] must be unique for each instance.
   const MediaItemBean({
     required this.id,
     required this.title,
@@ -422,8 +388,6 @@ class MediaItemBean {
     this.extras,
   });
 
-  /// Creates a [MediaItemBean] from a map of key/value pairs corresponding to
-  /// fields of this class.
   factory MediaItemBean.fromMap(Map<String, dynamic> raw) => MediaItemBean(
         id: raw['id'] as String,
         title: raw['title'] as String,
@@ -442,8 +406,6 @@ class MediaItemBean {
         extras: raw['extras'] as Map<String, dynamic>?,
       );
 
-  /// Converts this [MediaItemBean] to a map of key/value pairs corresponding to
-  /// the fields of this class.
   Map<String, dynamic> toMap() => <String, dynamic>{
         'id': id,
         'title': title,
@@ -460,6 +422,7 @@ class MediaItemBean {
       };
 }
 
+/// 保留独立 isolate 转换，避免大队列恢复时把 JSON 解析全部压回主线程。
 Future<List<MediaItem>> stringToPlayList(List<String> cachedPlayList) async {
   return compute(_stringToPlayListIsolate, cachedPlayList);
 }
@@ -479,6 +442,8 @@ List<MediaItem> _stringToPlayListIsolate(List<String> cachedPlayList) {
   }).toList();
 }
 
+/// 播放队列的持久化格式仍以字符串列表为准，先保持旧缓存兼容，
+/// 后续统一播放队列模型接管后再整体替换。
 Future<List<String>> playListToString(List<MediaItem> playList) async {
   return compute(_playListToStringIsolate, playList);
 }

@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/controllers/app_controller.dart';
-import 'package:bujuan/controllers/user_controller.dart';
+import 'package:bujuan/features/shell/controller/app_controller.dart';
+import 'package:bujuan/features/user/controller/user_controller.dart';
 import 'package:bujuan/features/user/repository/user_repository.dart';
 import 'package:bujuan/widget/request_widget/request_view.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';

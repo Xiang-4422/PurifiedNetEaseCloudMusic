@@ -1,4 +1,4 @@
-import 'package:bujuan/controllers/app_controller.dart';
+import 'package:bujuan/features/shell/controller/app_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:bujuan/common/common_widget.dart';
 

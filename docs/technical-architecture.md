@@ -19,9 +19,9 @@
 
 当前项目功能完整，但职责分布仍然交叉：
 
-- [`lib/features/shell/controller/app_controller.dart`](../lib/features/shell/controller/app_controller.dart) 同时承担壳层 UI 状态、播放入口和部分业务编排
-- [`lib/features/playback/controller/player_controller.dart`](../lib/features/playback/controller/player_controller.dart) 与 [`lib/core/playback/audio_service_handler.dart`](../lib/core/playback/audio_service_handler.dart) 已形成播放链路，但仍混有缓存、API 和跨控制器依赖
-- [`lib/features/user/controller/user_controller.dart`](../lib/features/user/controller/user_controller.dart) 同时承担用户状态、推荐内容、喜欢歌曲、FM、心动模式等职责
+- [`lib/features/shell/app_controller.dart`](../lib/features/shell/app_controller.dart) 同时承担壳层 UI 状态、播放入口和部分业务编排
+- [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart) 与 [`lib/core/playback/audio_service_handler.dart`](../lib/core/playback/audio_service_handler.dart) 已形成播放链路，但仍混有缓存、API 和跨控制器依赖
+- [`lib/features/user/user_controller.dart`](../lib/features/user/user_controller.dart) 同时承担用户状态、推荐内容、喜欢歌曲、FM、心动模式等职责
 - 多个页面仍承载用例逻辑和数据访问逻辑，例如：
   - [`lib/pages/login_page_view.dart`](../lib/pages/login_page_view.dart)
   - [`lib/pages/playlist_page_view.dart`](../lib/pages/playlist_page_view.dart)
@@ -604,7 +604,7 @@ Repository 负责：
 
 重点文件：
 
-- [`lib/features/shell/controller/app_controller.dart`](../lib/features/shell/controller/app_controller.dart)
+- [`lib/features/shell/app_controller.dart`](../lib/features/shell/app_controller.dart)
 - [`lib/pages/home/app_home_page_view.dart`](../lib/pages/home/app_home_page_view.dart)
 - [`lib/pages/home/body/app_body_page_view.dart`](../lib/pages/home/body/app_body_page_view.dart)
 
@@ -617,7 +617,7 @@ Repository 负责：
 
 重点文件：
 
-- [`lib/features/playback/controller/player_controller.dart`](../lib/features/playback/controller/player_controller.dart)
+- [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart)
 - [`lib/core/playback/audio_service_handler.dart`](../lib/core/playback/audio_service_handler.dart)
 
 目标：
@@ -629,7 +629,7 @@ Repository 负责：
 
 重点文件：
 
-- [`lib/features/user/controller/user_controller.dart`](../lib/features/user/controller/user_controller.dart)
+- [`lib/features/user/user_controller.dart`](../lib/features/user/user_controller.dart)
 - [`lib/pages/playlist_page_view.dart`](../lib/pages/playlist_page_view.dart)
 - [`lib/pages/cloud_drive_view.dart`](../lib/pages/cloud_drive_view.dart)
 - [`lib/pages/login_page_view.dart`](../lib/pages/login_page_view.dart)

@@ -3,7 +3,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
-import 'package:bujuan/features/shell/controller/app_controller.dart';
+import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
 import 'package:bujuan/widget/scroll_helpers.dart';

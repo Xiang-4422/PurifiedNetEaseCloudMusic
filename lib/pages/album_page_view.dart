@@ -13,7 +13,7 @@ import 'package:get/get.dart';
 
 import '../../common/constants/appConstants.dart';
 import '../../common/constants/other.dart';
-import 'package:bujuan/features/shell/controller/app_controller.dart';
+import 'package:bujuan/features/shell/app_controller.dart';
 import '../../widget/simple_extended_image.dart';
 
 class AlbumPageView extends StatefulWidget {

@@ -10,7 +10,7 @@ import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_state_store.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
-import 'package:bujuan/features/user/controller/user_controller.dart';
+import 'package:bujuan/features/user/user_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';

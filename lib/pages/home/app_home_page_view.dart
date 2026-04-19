@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/features/shell/controller/app_controller.dart';
+import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/pages/home/bottom_panel/bottom_panel_view.dart';
 import 'package:flutter/material.dart';
 

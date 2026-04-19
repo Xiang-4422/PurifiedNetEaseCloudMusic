@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
-import 'package:bujuan/features/shell/controller/app_controller.dart';
+import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:get/get.dart';
 
 /// 承接二维码登录流程的瞬时状态，避免登录页继续持有轮询与鉴权副作用。

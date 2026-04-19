@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
-import 'package:bujuan/features/shell/controller/app_controller.dart';
+import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/widget/request_widget/request_loadmore_view.dart';
 import 'package:flutter/material.dart';
 

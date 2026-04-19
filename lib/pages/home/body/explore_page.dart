@@ -5,7 +5,7 @@ import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:bujuan/features/explore/controller/explore_page_controller.dart';
+import 'package:bujuan/features/explore/explore_page_controller.dart';
 
 /// 探索页当前仍直接消费首页控制器驱动的刷新节奏，所以先和 home body 放在同一层，避免再引入一层页面目录。
 class ExplorePageView extends GetView<ExplorePageController> {

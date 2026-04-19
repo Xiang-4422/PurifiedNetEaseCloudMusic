@@ -6,9 +6,7 @@ import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:bujuan/data/sources/local/local_music_source.dart';
-import 'package:bujuan/data/sources/music_source_registry_impl.dart';
 import 'package:bujuan/data/sources/netease/netease_music_source.dart';
-import 'package:bujuan/domain/sources/music_source_registry.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
@@ -73,17 +71,14 @@ Future<void> _initInfrastructure() async {
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));
   await NeteaseMusicApi.init(debug: true);
 
-  final sourceRegistry = MusicSourceRegistryImpl(
-    sources: [
-      LocalMusicSource(localDataSource: appDatabase.localLibraryDataSource),
-      NeteaseMusicSource(),
-    ],
-  );
-  getIt.registerSingleton<MusicSourceRegistry>(sourceRegistry);
+  final localMusicSource =
+      LocalMusicSource(localDataSource: appDatabase.localLibraryDataSource);
+  final neteaseMusicSource = NeteaseMusicSource();
   getIt.registerSingleton<LibraryRepository>(
     LibraryRepository(
       localDataSource: appDatabase.localLibraryDataSource,
-      sourceRegistry: sourceRegistry,
+      localMusicSource: localMusicSource,
+      neteaseSource: neteaseMusicSource,
     ),
   );
 }

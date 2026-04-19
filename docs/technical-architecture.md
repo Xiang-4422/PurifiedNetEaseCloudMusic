@@ -9,10 +9,10 @@
 - 基于当前仓库真实结构渐进演进
 - 优先修复职责边界，不以更换框架为首要目标
 
-当前架构目标已经升级为：
+当前架构目标已经固定为：
 
-- 从“适配网易云接口的播放器”演进为“本地优先的多源音乐播放器”
-- 支持远程源、本地媒体库、离线缓存与无网络可用
+- 面向第三方网易云客户端的本地优先音乐应用
+- 支持网易云远程数据、本地媒体库、离线缓存与无网络可用
 - 所有功能优先以本地数据为事实来源
 
 ## 2. 当前仓库现状
@@ -33,16 +33,15 @@
 
 - 当前问题不是基础设施选型本身错误
 - 当前问题是职责落点不清晰
-- 当前数据流仍带有“远程接口为中心”的历史惯性，不满足多源与离线目标
+- 当前数据流仍带有“远程接口为中心”的历史惯性，不满足本地优先与离线目标
 
 ## 3. 目标与关键决策
 
 ### 3.1 产品目标
 
-- 支持多个音乐源，而不仅限于网易云
 - 支持本地扫描、本地播放与离线播放
 - 支持无网络时继续浏览本地库、播放已缓存内容、查看历史数据
-- 支持将远程源内容同步到本地媒体库，供 UI 和播放器统一消费
+- 支持将网易云远程内容同步到本地媒体库，供 UI 和播放器统一消费
 
 ### 3.2 当前确认的关键决策
 
@@ -79,12 +78,12 @@
 
 本项目采用：
 
-`Local-First + Source-Driven + Feature-Oriented + Gradual Refactor`
+`Local-First + Netease-Remote + Feature-Oriented + Gradual Refactor`
 
 含义：
 
 - 本地媒体库是应用主数据入口
-- 远程音乐源和本地扫描器都作为 source adapter 存在
+- 网易云远程数据和本地扫描是当前唯一需要承接的两类内容来源
 - 业务代码按 feature 组织
 - 在模块内保持展示层、状态层、数据访问层的清晰边界
 - 在保留现有运行能力的前提下渐进重构
@@ -93,7 +92,7 @@
 
 后续默认数据流如下：
 
-`UI / Controller -> Repository / Service -> Local Library -> Source Adapter / Sync -> Remote`
+`UI / Controller -> Repository / Service -> Local Library -> Netease / Local -> Remote`
 
 规则：
 
@@ -244,17 +243,14 @@
 - 页面层对 `curPlayListName / curPlayListNameHeader / isPlayingLikedSongs` 的依赖已切到 `PlaybackSessionState`，会话态兼容字段开始退出壳层和控制器
 - 当前播放歌曲的下载与删除下载入口已收口到 `PlayerController`，并通过 `DownloadRepository` 回写本地资源后再同步当前 `MediaItem`
 
-### 6.4 MusicSource
+### 6.4 Netease 与 Local Source
 
-- 所有远程源、本地扫描源都通过统一 `MusicSource` 协议接入
-- 每个源只负责能力适配，不把平台差异泄漏到页面层
-- 不要求每个源支持全部能力，但要允许能力缺失
-
-当前阶段补充：
-
-- 网易云已通过 `NeteaseMusicSource` 接入统一 source 协议
+- 当前只保留两个内容来源：
+  - `NeteaseMusicSource`
+  - `LocalMusicSource`
+- 不再围绕“未来其他远程源”设计 registry 或扩展模板
+- repository 直接依赖这两个来源，不再通过额外分发层再转一次
 - `LocalMusicSource` 的职责不仅是扫描文件，还包括提供统一 `Track`、本地搜索和可播放地址
-- 过渡期的 source、媒体库与应用能力入口应优先通过启动阶段统一注册，避免 repository 在运行时各自 new 出分裂数据视图
 
 ### 6.5 Local Library
 
@@ -413,11 +409,10 @@ lib/
     storage/
   domain/
     entities/
-    sources/
   data/
     local/
     mappers/
-    sources/
+    netease/
   features/
     album/
     artist/
@@ -453,9 +448,9 @@ lib/
 - `core`
   - 网络、存储、数据库、播放器、下载、同步等基础设施
 - `domain`
-  - 统一实体、仓库接口、源协议、领域服务
+  - 统一实体与稳定业务模型
 - `data`
-  - 本地数据库实现、远程源实现、多源适配、仓库实现、领域映射
+  - 本地数据库实现、网易云远程实现、仓库实现、领域映射
 - `features`
   - 业务功能模块，默认直接在模块根目录放能力文件，只有角色明显分化时才增加子目录
 - `pages`
@@ -463,7 +458,7 @@ lib/
 - `widget`
   - 跨页面复用的通用 UI 组件和滚动行为
 - `common`
-  - 历史兼容目录，仅保留常量、歌词解析和网易云 API 等旧基础能力
+  - 历史兼容目录，仅保留常量、歌词解析和少量旧基础能力；网易云 API 后续迁入 `data/netease`
 
 ### 8.3 当前目录职责与保留原因
 
@@ -491,9 +486,9 @@ lib/
 - `lib/core`
   - 已开始承接稳定基础设施能力，当前已包含 `database / network / storage / playback`
 - `lib/data`
-  - 数据层实现细节，当前已包含 `local / mappers / sources`
+  - 数据层实现细节，当前已包含 `local / mappers / sources`，后续收口为 `local / netease / mappers`
 - `lib/domain`
-  - 统一领域实体与多源协议
+  - 统一领域实体
 - `lib/features`
   - 正式业务模块目录，当前已开始承接各 feature 的能力入口与核心 controller
 - `lib/generated / lib/generator`

@@ -17,7 +17,7 @@
 - 优先低风险、小步快跑
 - 重构期间保证现有功能可运行
 - 每阶段结束后都需要形成可验证成果
-- 所有长期设计都以“本地优先、多源接入、离线可用”为目标
+- 所有长期设计都以“第三方网易云客户端 + 本地优先 + 离线可用”为目标
 
 ## 3. 阶段总览
 
@@ -29,7 +29,7 @@
 | Phase 3 | 统一领域模型 | 建立 `Track`、`PlaylistEntity` 等统一实体，停止以网易云模型直接驱动业务 | In Progress |
 | Phase 4 | 本地优先数据层 | 引入结构化本地数据库，建立本地媒体库和同步入口 | Planned |
 | Phase 5 | 播放链路重构 | 规范播放器状态、服务层与队列切换逻辑，播放器只消费统一实体 | Planned |
-| Phase 6 | 多源接入与离线 | 抽象 `MusicSource`，接入本地源与离线能力 | Planned |
+| Phase 6 | 本地媒体与离线 | 打通本地扫描、本地资源管理与离线能力 | Planned |
 | Phase 7 | 目录迁移与清理 | 按目标结构完成目录收口和遗留清理 | Planned |
 
 ## 4. 总任务清单
@@ -65,13 +65,12 @@
 - `SourceAccount`
 - 播放历史、最近播放、下载记录等本地模型
 
-### D. 多源能力建设
+### D. 网易云远程层与本地媒体能力
 
-- 完善 `MusicSource` 协议的能力边界
 - 继续规范 `NeteaseMusicSource`
-- 新增 `LocalMusicSource`
-- 为未来其他远程源保留扩展位
-- 通过 `MusicSourceRegistry` 统一管理 source 分发
+- 新增并完善 `LocalMusicSource`
+- 将网易云 API 从 `common` 迁入明确的数据目录
+- 明确 repository 直接依赖网易云与本地能力，不再通过额外分发层中转
 
 ### E. 离线与下载能力
 
@@ -158,7 +157,7 @@
 - 明确下载文件清理策略
 - 打通离线模式、资源索引和播放可用性
 
-### 6.4 多源与本地音乐源
+### 6.4 本地音乐源与离线能力
 
 - 优先级：中高
 - 风险：中
@@ -168,7 +167,7 @@
 - 完成本地扫描
 - 完成本地文件元数据提取
 - 让 `LocalMusicSource` 真正进入搜索、展示和播放主链路
-- 为未来第二个远程 source 保留样板和扩展位
+- 让网易云远程层与本地层的职责边界稳定下来
 
 ### 6.5 用户资料、播客与云盘的本地优先
 
@@ -280,7 +279,7 @@
 - 漫游 / 心动模式与喜欢歌单播放逻辑已下沉到 `PlayerController`
 - 已建立第一版领域层骨架：`Track`、`PlaylistEntity`、`AlbumEntity`、`ArtistEntity`、`PlaybackQueue`、`MusicSource`
 - 已新增第一版 `NeteaseMusicSource`
-- 已新增 `MusicSourceRegistry` 与 `LibraryRepository` 骨架
+- 已建立 `NeteaseMusicSource`、`LocalMusicSource` 与 `LibraryRepository` 骨架
 - 播放歌词和在线播放地址已改由 `PlaybackRepository -> LibraryRepository -> MusicSource` 获取
 - 已新增本地媒体库数据源协议，`LibraryRepository` 开始按“先本地、后远程、再回写”组织读取路径
 - 已新增进程内本地媒体库占位实现，并进一步切到可持久化过渡实现
@@ -288,7 +287,7 @@
 - 搜索仓库已开始按“本地优先、远程补齐并去重”返回统一结果
 - 已新增 `LocalMusicSource` 骨架
 - 已新增 `AppDatabase` 抽象与待接入实现，固定本地数据库启动入口
-- 应用启动已统一注册 `LocalLibraryDataSource`、`MusicSourceRegistry` 与 `LibraryRepository`
+- 应用启动已统一注册 `LocalLibraryDataSource` 与 `LibraryRepository`
 - 已新增 `LibraryPreferenceStore`，手动离线模式已接入设置页和媒体库读取策略
 - 搜索面板在离线模式下已停止请求在线热搜
 - 已新增 `AuthStateStore` 与 `PlaylistCacheStore`
@@ -625,8 +624,8 @@
 
 - 阶段：`Phase 3`
 - 状态：`In Progress`
-- 完成内容：将 `AppDatabase` 与共享本地媒体库数据源正式串入应用启动依赖，统一注册 `LocalLibraryDataSource`、`MusicSourceRegistry` 与 `LibraryRepository`；补充 `LibraryPreferenceStore` 并将手动离线模式接入设置页和媒体库读取策略；搜索面板在离线模式下改为展示本地搜索提示，不再主动请求在线热搜；新增 `AuthStateStore` 与 `PlaylistCacheStore`，继续把登录态和歌单缓存访问从 repository 业务逻辑中收回到独立存储入口；搜索仓库开始按“本地优先、远程补齐并去重”返回统一结果；新增持久化过渡版 `LocalLibraryDataSource`，开始替换共享内存实现并让本地媒体库具备跨重启保留能力；播放地址解析开始优先命中本地 `localPath`；歌单详情链路开始把歌单元数据和歌曲明细同步写回本地媒体库
-- 完成内容：将 `AppDatabase` 与共享本地媒体库数据源正式串入应用启动依赖，统一注册 `LocalLibraryDataSource`、`MusicSourceRegistry` 与 `LibraryRepository`；补充 `LibraryPreferenceStore` 并将手动离线模式接入设置页和媒体库读取策略；搜索面板在离线模式下改为展示本地搜索提示，不再主动请求在线热搜；新增 `AuthStateStore` 与 `PlaylistCacheStore`，继续把登录态和歌单缓存访问从 repository 业务逻辑中收回到独立存储入口；搜索仓库开始按“本地优先、远程补齐并去重”返回统一结果；新增持久化过渡版 `LocalLibraryDataSource`，开始替换共享内存实现并让本地媒体库具备跨重启保留能力；播放地址解析开始优先命中本地 `localPath`；歌单详情链路开始把歌单元数据和歌曲明细同步写回本地媒体库；用户数据链路开始把推荐歌单、用户歌单、日推、FM、心动模式和按 ID 拉取的歌曲明细写回本地媒体库；专辑和歌手详情链路开始把专辑、歌手及其歌曲明细同步写回本地媒体库；`LibraryRepository` 已补齐本地文件路径、下载状态和可用性写回入口，并新增 `LocalMediaRepository` 作为本地扫描导入骨架；`Track -> MediaItem -> AudioServiceHandler` 已开始透传本地文件状态，使本地导入和已缓存歌曲能够优先按本地文件路径播放；已新增 `DownloadRepository`，开始将排队、下载中、下载完成、下载失败等状态统一写回 `Track`；已新增 `LocalMediaScanRepository`，开始提供本地目录扫描、音频文件过滤和批量导入入口；`Track -> MediaItem` 已开始优先透传本地封面路径和本地歌词路径，播放器可直接优先使用本地歌词文件；本地封面路径和本地歌词路径已从临时 metadata 收口为 `Track` 正式字段，下载和展示链路开始共享同一套资源字段
+- 完成内容：将 `AppDatabase` 与共享本地媒体库数据源正式串入应用启动依赖，统一注册 `LocalLibraryDataSource` 与 `LibraryRepository`；补充 `LibraryPreferenceStore` 并将手动离线模式接入设置页和媒体库读取策略；搜索面板在离线模式下改为展示本地搜索提示，不再主动请求在线热搜；新增 `AuthStateStore` 与 `PlaylistCacheStore`，继续把登录态和歌单缓存访问从 repository 业务逻辑中收回到独立存储入口；搜索仓库开始按“本地优先、远程补齐并去重”返回统一结果；新增持久化过渡版 `LocalLibraryDataSource`，开始替换共享内存实现并让本地媒体库具备跨重启保留能力；播放地址解析开始优先命中本地 `localPath`；歌单详情链路开始把歌单元数据和歌曲明细同步写回本地媒体库
+- 完成内容：将 `AppDatabase` 与共享本地媒体库数据源正式串入应用启动依赖，统一注册 `LocalLibraryDataSource` 与 `LibraryRepository`；补充 `LibraryPreferenceStore` 并将手动离线模式接入设置页和媒体库读取策略；搜索面板在离线模式下改为展示本地搜索提示，不再主动请求在线热搜；新增 `AuthStateStore` 与 `PlaylistCacheStore`，继续把登录态和歌单缓存访问从 repository 业务逻辑中收回到独立存储入口；搜索仓库开始按“本地优先、远程补齐并去重”返回统一结果；新增持久化过渡版 `LocalLibraryDataSource`，开始替换共享内存实现并让本地媒体库具备跨重启保留能力；播放地址解析开始优先命中本地 `localPath`；歌单详情链路开始把歌单元数据和歌曲明细同步写回本地媒体库；用户数据链路开始把推荐歌单、用户歌单、日推、FM、心动模式和按 ID 拉取的歌曲明细写回本地媒体库；专辑和歌手详情链路开始把专辑、歌手及其歌曲明细同步写回本地媒体库；`LibraryRepository` 已补齐本地文件路径、下载状态和可用性写回入口，并新增 `LocalMediaRepository` 作为本地扫描导入骨架；`Track -> MediaItem -> AudioServiceHandler` 已开始透传本地文件状态，使本地导入和已缓存歌曲能够优先按本地文件路径播放；已新增 `DownloadRepository`，开始将排队、下载中、下载完成、下载失败等状态统一写回 `Track`；已新增 `LocalMediaScanRepository`，开始提供本地目录扫描、音频文件过滤和批量导入入口；`Track -> MediaItem` 已开始优先透传本地封面路径和本地歌词路径，播放器可直接优先使用本地歌词文件；本地封面路径和本地歌词路径已从临时 metadata 收口为 `Track` 正式字段，下载和展示链路开始共享同一套资源字段
 - 风险或阻塞：当前持久化实现仍复用 `Hive Box` 作为过渡存储，`Isar` 还未正式接管；下载与同步链路仍未完全纳入离线模式约束
 - 下一步：继续把下载/播放可用性状态写回本地媒体库，并为 `Isar` 接入预留更稳定的数据迁移入口
 

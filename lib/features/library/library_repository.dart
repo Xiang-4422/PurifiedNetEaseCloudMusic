@@ -1,13 +1,13 @@
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/in_memory_local_library_data_source.dart';
+import 'package:bujuan/data/sources/local/local_music_source.dart';
+import 'package:bujuan/data/sources/netease/netease_music_source.dart';
 import 'package:bujuan/domain/entities/local_resource_entry.dart';
-import 'package:bujuan/data/sources/music_source_registry_impl.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
-import 'package:bujuan/domain/sources/music_source_registry.dart';
 import 'package:get_it/get_it.dart';
 
 import 'library_preference_store.dart';
@@ -16,23 +16,24 @@ import 'local_resource_index_repository.dart';
 class LibraryRepository {
   LibraryRepository({
     LocalLibraryDataSource? localDataSource,
-    MusicSourceRegistry? sourceRegistry,
+    NeteaseMusicSource? neteaseSource,
+    LocalMusicSource? localMusicSource,
     LibraryPreferenceStore? preferenceStore,
     LocalResourceIndexRepository? resourceIndexRepository,
   })  : _localDataSource = localDataSource ??
             (GetIt.instance.isRegistered<LocalLibraryDataSource>()
                 ? GetIt.instance<LocalLibraryDataSource>()
                 : InMemoryLocalLibraryDataSource.shared),
-        _sourceRegistry = sourceRegistry ??
-            (GetIt.instance.isRegistered<MusicSourceRegistry>()
-                ? GetIt.instance<MusicSourceRegistry>()
-                : MusicSourceRegistryImpl()),
+        _neteaseSource = neteaseSource ?? NeteaseMusicSource(),
+        _localMusicSource = localMusicSource ??
+            LocalMusicSource(localDataSource: localDataSource),
         _preferenceStore = preferenceStore ?? const LibraryPreferenceStore(),
         _resourceIndexRepository =
-            resourceIndexRepository ?? const LocalResourceIndexRepository();
+            resourceIndexRepository ?? LocalResourceIndexRepository();
 
   final LocalLibraryDataSource? _localDataSource;
-  final MusicSourceRegistry _sourceRegistry;
+  final NeteaseMusicSource _neteaseSource;
+  final LocalMusicSource _localMusicSource;
   final LibraryPreferenceStore _preferenceStore;
   final LocalResourceIndexRepository _resourceIndexRepository;
 
@@ -65,11 +66,9 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return searchLocalTracks(keyword);
     }
-    final source = _sourceRegistry.getBySourceKey(sourceKey);
-    if (source == null) {
-      return const [];
-    }
-    final tracks = await source.searchTracks(keyword);
+    final tracks = sourceKey == _localMusicSource.sourceKey
+        ? await _localMusicSource.searchTracks(keyword)
+        : await _neteaseSource.searchTracks(keyword);
     await _localDataSource?.saveTracks(tracks);
     return tracks;
   }
@@ -90,11 +89,9 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return searchLocalPlaylists(keyword);
     }
-    final source = _sourceRegistry.getBySourceKey(sourceKey);
-    if (source == null) {
-      return const [];
-    }
-    final playlists = await source.searchPlaylists(keyword);
+    final playlists = sourceKey == _localMusicSource.sourceKey
+        ? await _localMusicSource.searchPlaylists(keyword)
+        : await _neteaseSource.searchPlaylists(keyword);
     await _localDataSource?.savePlaylists(playlists);
     return playlists;
   }
@@ -114,11 +111,9 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return searchLocalAlbums(keyword);
     }
-    final source = _sourceRegistry.getBySourceKey(sourceKey);
-    if (source == null) {
-      return const [];
-    }
-    final albums = await source.searchAlbums(keyword);
+    final albums = sourceKey == _localMusicSource.sourceKey
+        ? await _localMusicSource.searchAlbums(keyword)
+        : await _neteaseSource.searchAlbums(keyword);
     await _localDataSource?.saveAlbums(albums);
     return albums;
   }
@@ -138,11 +133,9 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return searchLocalArtists(keyword);
     }
-    final source = _sourceRegistry.getBySourceKey(sourceKey);
-    if (source == null) {
-      return const [];
-    }
-    final artists = await source.searchArtists(keyword);
+    final artists = sourceKey == _localMusicSource.sourceKey
+        ? await _localMusicSource.searchArtists(keyword)
+        : await _neteaseSource.searchArtists(keyword);
     await _localDataSource?.saveArtists(artists);
     return artists;
   }
@@ -163,11 +156,9 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return null;
     }
-    final source = _sourceRegistry.getByTrackId(trackId);
-    if (source == null) {
-      return null;
-    }
-    final track = await source.getTrack(trackId);
+    final track = _isLocalTrackId(trackId)
+        ? await _localMusicSource.getTrack(trackId)
+        : await _neteaseSource.getTrack(trackId);
     if (track != null) {
       await _localDataSource?.saveTracks([track]);
       return _mergeTrackWithResources(track);
@@ -180,14 +171,13 @@ class LibraryRepository {
     if (localTrack?.localPath?.isNotEmpty == true) {
       return localTrack!.localPath;
     }
-    final source = _sourceRegistry.getByTrackId(trackId);
-    if (source == null) {
+    final isLocalTrack = _isLocalTrackId(trackId);
+    if (isOfflineModeEnabled && !isLocalTrack) {
       return null;
     }
-    if (isOfflineModeEnabled && source.sourceKey != 'local') {
-      return null;
-    }
-    return source.getPlaybackUrl(trackId);
+    return isLocalTrack
+        ? _localMusicSource.getPlaybackUrl(trackId)
+        : _neteaseSource.getPlaybackUrl(trackId);
   }
 
   Future<String?> getPlaybackUrlWithQuality(
@@ -198,14 +188,13 @@ class LibraryRepository {
     if (localTrack?.localPath?.isNotEmpty == true) {
       return localTrack!.localPath;
     }
-    final source = _sourceRegistry.getByTrackId(trackId);
-    if (source == null) {
+    final isLocalTrack = _isLocalTrackId(trackId);
+    if (isOfflineModeEnabled && !isLocalTrack) {
       return null;
     }
-    if (isOfflineModeEnabled && source.sourceKey != 'local') {
-      return null;
-    }
-    return source.getPlaybackUrl(trackId, qualityLevel: qualityLevel);
+    return isLocalTrack
+        ? _localMusicSource.getPlaybackUrl(trackId, qualityLevel: qualityLevel)
+        : _neteaseSource.getPlaybackUrl(trackId, qualityLevel: qualityLevel);
   }
 
   Future<TrackLyrics?> getLyrics(String trackId) async {
@@ -216,11 +205,9 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return null;
     }
-    final source = _sourceRegistry.getByTrackId(trackId);
-    if (source == null) {
-      return null;
-    }
-    final lyrics = await source.getLyrics(trackId);
+    final lyrics = _isLocalTrackId(trackId)
+        ? await _localMusicSource.getLyrics(trackId)
+        : await _neteaseSource.getLyrics(trackId);
     if (lyrics != null) {
       await _localDataSource?.saveLyrics(trackId, lyrics);
     }
@@ -239,11 +226,9 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return null;
     }
-    final source = _sourceRegistry.getByPlaylistId(playlistId);
-    if (source == null) {
-      return null;
-    }
-    final playlist = await source.getPlaylist(playlistId);
+    final playlist = _isLocalPlaylistId(playlistId)
+        ? await _localMusicSource.getPlaylist(playlistId)
+        : await _neteaseSource.getPlaylist(playlistId);
     if (playlist != null) {
       await _localDataSource?.savePlaylists([playlist]);
     }
@@ -323,5 +308,13 @@ class LibraryRepository {
       localLyricsPath: localLyricsPath,
       resourceOrigin: resourceOrigin,
     );
+  }
+
+  bool _isLocalTrackId(String trackId) {
+    return trackId.startsWith('${_localMusicSource.sourceKey}:');
+  }
+
+  bool _isLocalPlaylistId(String playlistId) {
+    return playlistId.startsWith('${_localMusicSource.sourceKey}:');
   }
 }

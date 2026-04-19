@@ -4,7 +4,6 @@ import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
-import 'package:bujuan/features/playback/playback_restore_state.dart';
 
 import 'local_library_codec.dart';
 import 'local_library_data_source.dart';
@@ -17,7 +16,6 @@ class PersistentLocalLibraryDataSource implements LocalLibraryDataSource {
   static const String _playlistsKey = 'LOCAL_LIBRARY_PLAYLISTS';
   static const String _albumsKey = 'LOCAL_LIBRARY_ALBUMS';
   static const String _artistsKey = 'LOCAL_LIBRARY_ARTISTS';
-  static const String _playbackRestoreKey = 'LOCAL_LIBRARY_PLAYBACK_RESTORE';
 
   @override
   Future<List<Track>> searchTracks(String keyword) async {
@@ -99,13 +97,6 @@ class PersistentLocalLibraryDataSource implements LocalLibraryDataSource {
   }
 
   @override
-  Future<PlaybackRestoreState?> getPlaybackRestoreState() async {
-    return LocalLibraryCodec.decodePlaybackRestoreState(
-      CacheBox.instance.get(_playbackRestoreKey),
-    );
-  }
-
-  @override
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
     return LocalLibraryCodec.decodePlaylist(
       _readBucket(_playlistsKey)[playlistId],
@@ -153,14 +144,6 @@ class PersistentLocalLibraryDataSource implements LocalLibraryDataSource {
     final bucket = _readBucket(_lyricsKey);
     bucket[trackId] = LocalLibraryCodec.encodeLyrics(lyrics);
     await _writeBucket(_lyricsKey, bucket);
-  }
-
-  @override
-  Future<void> savePlaybackRestoreState(PlaybackRestoreState state) async {
-    await CacheBox.instance.put(
-      _playbackRestoreKey,
-      LocalLibraryCodec.encodePlaybackRestoreState(state),
-    );
   }
 
   Map<String, dynamic> _readBucket(String key) {

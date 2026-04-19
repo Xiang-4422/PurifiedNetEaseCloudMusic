@@ -5,7 +5,6 @@ import 'package:bujuan/domain/entities/playlist_track_ref.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
-import 'package:bujuan/features/playback/playback_restore_state.dart';
 
 class LocalLibraryCodec {
   const LocalLibraryCodec._();
@@ -188,20 +187,6 @@ class LocalLibraryCodec {
       main: map['main'] as String? ?? '',
       translated: map['translated'] as String? ?? '',
     );
-  }
-
-  static Map<String, Object?> encodePlaybackRestoreState(
-    PlaybackRestoreState state,
-  ) {
-    return state.toJson();
-  }
-
-  static PlaybackRestoreState? decodePlaybackRestoreState(Object? value) {
-    final map = _asMap(value);
-    if (map == null) {
-      return null;
-    }
-    return PlaybackRestoreState.fromJson(Map<String, Object?>.from(map));
   }
 
   static TrackAvailability _availabilityFromName(String? name) {

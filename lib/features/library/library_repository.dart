@@ -8,7 +8,6 @@ import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/sources/music_source_registry.dart';
-import 'package:bujuan/features/playback/playback_restore_state.dart';
 import 'package:get_it/get_it.dart';
 
 import 'library_preference_store.dart';
@@ -230,14 +229,6 @@ class LibraryRepository {
 
   Future<void> saveLyrics(String trackId, TrackLyrics lyrics) async {
     await _localDataSource?.saveLyrics(trackId, lyrics);
-  }
-
-  Future<PlaybackRestoreState?> getPlaybackRestoreState() async {
-    return await _localDataSource?.getPlaybackRestoreState();
-  }
-
-  Future<void> savePlaybackRestoreState(PlaybackRestoreState state) async {
-    await _localDataSource?.savePlaybackRestoreState(state);
   }
 
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {

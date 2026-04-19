@@ -1,5 +1,7 @@
 import 'app_database.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
+import 'package:bujuan/data/local/persistent_playback_restore_data_source.dart';
+import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:bujuan/data/local/persistent_local_library_data_source.dart';
 
 class PendingAppDatabase implements AppDatabase {
@@ -9,6 +11,8 @@ class PendingAppDatabase implements AppDatabase {
   bool _initialized = false;
   final LocalLibraryDataSource _localLibraryDataSource =
       const PersistentLocalLibraryDataSource();
+  final PlaybackRestoreDataSource _playbackRestoreDataSource =
+      const PersistentPlaybackRestoreDataSource();
 
   @override
   Future<void> init() async {
@@ -21,4 +25,8 @@ class PendingAppDatabase implements AppDatabase {
 
   @override
   LocalLibraryDataSource get localLibraryDataSource => _localLibraryDataSource;
+
+  @override
+  PlaybackRestoreDataSource get playbackRestoreDataSource =>
+      _playbackRestoreDataSource;
 }

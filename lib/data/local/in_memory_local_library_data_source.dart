@@ -3,7 +3,6 @@ import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
-import 'package:bujuan/features/playback/playback_restore_state.dart';
 
 import 'local_library_data_source.dart';
 
@@ -20,7 +19,6 @@ class InMemoryLocalLibraryDataSource implements LocalLibraryDataSource {
   final Map<String, PlaylistEntity> _playlists = {};
   final Map<String, AlbumEntity> _albums = {};
   final Map<String, ArtistEntity> _artists = {};
-  PlaybackRestoreState? _playbackRestoreState;
 
   @override
   Future<List<Track>> searchTracks(String keyword) async {
@@ -87,11 +85,6 @@ class InMemoryLocalLibraryDataSource implements LocalLibraryDataSource {
   }
 
   @override
-  Future<PlaybackRestoreState?> getPlaybackRestoreState() async {
-    return _playbackRestoreState;
-  }
-
-  @override
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
     return _playlists[playlistId];
   }
@@ -127,10 +120,5 @@ class InMemoryLocalLibraryDataSource implements LocalLibraryDataSource {
   @override
   Future<void> saveLyrics(String trackId, TrackLyrics lyrics) async {
     _lyrics[trackId] = lyrics;
-  }
-
-  @override
-  Future<void> savePlaybackRestoreState(PlaybackRestoreState state) async {
-    _playbackRestoreState = state;
   }
 }

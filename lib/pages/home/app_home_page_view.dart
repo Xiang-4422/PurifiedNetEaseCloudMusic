@@ -54,10 +54,11 @@ class AppHomePageView extends GetView<AppController> {
                 boxShadow: null,
                 // parallaxEnabled: true,
                 // parallaxOffset: 1,
-                minHeight: controller.curPlayingSong.value.id.isEmpty
-                    ? 0
-                    : AppDimensions.bottomPanelHeaderHeight +
-                        context.mediaQueryPadding.bottom,
+                minHeight:
+                    controller.playbackRuntimeState.value.currentSong.id.isEmpty
+                        ? 0
+                        : AppDimensions.bottomPanelHeaderHeight +
+                            context.mediaQueryPadding.bottom,
                 maxHeight: context.height,
                 header: const BottomPanelHeaderView(),
                 panel: const BottomPanelView(),

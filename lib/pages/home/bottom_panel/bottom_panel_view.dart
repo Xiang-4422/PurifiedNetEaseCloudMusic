@@ -62,69 +62,72 @@ class BottomPanelView extends GetView<AppController> {
               width: context.width,
               child: Obx(() => Visibility(
                     visible: controller.bottomPanelFullyOpened.isTrue,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppController.to.curPlayingSong.value.title,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: context.textTheme.titleLarge?.copyWith(
-                                  color: controller.panelWidgetColor.value,
+                    child: Builder(builder: (context) {
+                      final runtimeState =
+                          controller.playbackRuntimeState.value;
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  runtimeState.currentSong.title,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: context.textTheme.titleLarge?.copyWith(
+                                    color: controller.panelWidgetColor.value,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                AppController.to.curPlayingSong.value.artist ??
-                                    '',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: context.textTheme.titleLarge?.copyWith(
-                                  fontSize:
-                                      context.textTheme.titleLarge!.fontSize! /
-                                          2,
-                                  color: controller.panelWidgetColor.value
-                                      .withOpacity(0.5),
+                                Text(
+                                  runtimeState.currentSong.artist ?? '',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: context.textTheme.titleLarge?.copyWith(
+                                    fontSize: context
+                                            .textTheme.titleLarge!.fontSize! /
+                                        2,
+                                    color: controller.panelWidgetColor.value
+                                        .withOpacity(0.5),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        Obx(() => Offstage(
-                              offstage: controller.isBigAlbum.isTrue,
-                              child: Visibility(
-                                visible: controller.isAlbumScaleEnded.isTrue,
-                                child: Obx(() => GestureDetector(
-                                      onTap: () {
-                                        if (controller
-                                            .isFullScreenLyricOpen.isTrue) {
-                                          controller.isFullScreenLyricOpen
-                                              .value = false;
-                                        } else {
-                                          controller.isAlbumScaleEnded.value =
-                                              false;
-                                          controller.isBigAlbum.value = true;
-                                          controller
-                                              .updateFullScreenLyricTimerCounter(
-                                                  cancelTimer: true);
-                                        }
-                                      },
-                                      child: SimpleExtendedImage(
-                                        width: AppDimensions.albumMinSize,
-                                        height: AppDimensions.albumMinSize,
-                                        shape: BoxShape.circle,
-                                        '${controller.curPlayingSong.value.extras?['image'] ?? ''}?param=500y500',
-                                      ),
-                                    )),
-                              ),
-                            )),
-                      ],
-                    ),
+                          Obx(() => Offstage(
+                                offstage: controller.isBigAlbum.isTrue,
+                                child: Visibility(
+                                  visible: controller.isAlbumScaleEnded.isTrue,
+                                  child: Obx(() => GestureDetector(
+                                        onTap: () {
+                                          if (controller
+                                              .isFullScreenLyricOpen.isTrue) {
+                                            controller.isFullScreenLyricOpen
+                                                .value = false;
+                                          } else {
+                                            controller.isAlbumScaleEnded.value =
+                                                false;
+                                            controller.isBigAlbum.value = true;
+                                            controller
+                                                .updateFullScreenLyricTimerCounter(
+                                                    cancelTimer: true);
+                                          }
+                                        },
+                                        child: SimpleExtendedImage(
+                                          width: AppDimensions.albumMinSize,
+                                          height: AppDimensions.albumMinSize,
+                                          shape: BoxShape.circle,
+                                          '${runtimeState.currentSong.extras?['image'] ?? ''}?param=500y500',
+                                        ),
+                                      )),
+                                ),
+                              )),
+                        ],
+                      );
+                    }),
                   )),
             ),
             // 专辑占位
@@ -821,25 +824,27 @@ class BottomPanelView extends GetView<AppController> {
   }
 
   Widget _buildProgressBar(BuildContext context) {
-    return Obx(() => ProgressBar(
-          progress: controller.curPlayDuration.value,
-          buffered: controller.curPlayDuration.value,
-          total: controller.curPlayingSong.value.duration ??
-              const Duration(seconds: 10),
-          barHeight: AppDimensions.paddingLarge,
-          barCapShape: BarCapShape.round,
-          progressBarColor: controller.panelWidgetColor.value.withOpacity(.1),
-          baseBarColor: controller.panelWidgetColor.value.withOpacity(.05),
-          bufferedBarColor: Colors.transparent,
-          thumbColor: controller.panelWidgetColor.value.withOpacity(.05),
-          thumbRadius: AppDimensions.paddingLarge / 2,
-          thumbGlowRadius: AppDimensions.paddingLarge * 2 / 3,
-          thumbCanPaintOutsideBar: false,
-          timeLabelLocation: TimeLabelLocation.below,
-          // timeLabelPadding: 0,
-          timeLabelTextStyle: const TextStyle(fontSize: 0),
-          onSeek: (duration) => controller.playerController.seekTo(duration),
-        ));
+    return Obx(() {
+      final runtimeState = controller.playbackRuntimeState.value;
+      return ProgressBar(
+        progress: runtimeState.currentPosition,
+        buffered: runtimeState.currentPosition,
+        total: runtimeState.currentSong.duration ?? const Duration(seconds: 10),
+        barHeight: AppDimensions.paddingLarge,
+        barCapShape: BarCapShape.round,
+        progressBarColor: controller.panelWidgetColor.value.withOpacity(.1),
+        baseBarColor: controller.panelWidgetColor.value.withOpacity(.05),
+        bufferedBarColor: Colors.transparent,
+        thumbColor: controller.panelWidgetColor.value.withOpacity(.05),
+        thumbRadius: AppDimensions.paddingLarge / 2,
+        thumbGlowRadius: AppDimensions.paddingLarge * 2 / 3,
+        thumbCanPaintOutsideBar: false,
+        timeLabelLocation: TimeLabelLocation.below,
+        // timeLabelPadding: 0,
+        timeLabelTextStyle: const TextStyle(fontSize: 0),
+        onSeek: (duration) => controller.playerController.seekTo(duration),
+      );
+    });
   }
 
   Widget _buildPlayController(BuildContext context) {
@@ -930,16 +935,19 @@ class BottomPanelView extends GetView<AppController> {
     return KeepAliveWrapper(
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: albumPadding),
-        child: Obx(() => CommentWidget(
-              key: ValueKey(controller.curPlayingSong.value.id),
-              context: context,
-              id: controller.curPlayingSong.value.id,
-              idType: "song",
-              commentType: commentType,
-              listPaddingTop: albumPadding,
-              listPaddingBottom: albumPadding,
-              stringColor: controller.panelWidgetColor.value,
-            )),
+        child: Obx(() {
+          final runtimeState = controller.playbackRuntimeState.value;
+          return CommentWidget(
+            key: ValueKey(runtimeState.currentSong.id),
+            context: context,
+            id: runtimeState.currentSong.id,
+            idType: "song",
+            commentType: commentType,
+            listPaddingTop: albumPadding,
+            listPaddingBottom: albumPadding,
+            stringColor: controller.panelWidgetColor.value,
+          );
+        }),
       ),
     );
   }

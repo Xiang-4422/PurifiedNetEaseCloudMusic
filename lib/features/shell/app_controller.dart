@@ -3,6 +3,8 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/netease_api/netease_music_api.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/playback_runtime_state.dart';
+import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
@@ -49,6 +51,10 @@ class AppController extends SuperController
       userController.todayRecommendSongs;
 
   RxBool get isPlaying => playerController.isPlaying;
+  Rx<PlaybackSessionState> get playbackSessionState =>
+      playerController.sessionState;
+  Rx<PlaybackRuntimeState> get playbackRuntimeState =>
+      playerController.runtimeState;
   Rx<AudioServiceRepeatMode> get curRepeatMode =>
       playerController.curRepeatMode;
   RxBool get isFmMode => playerController.isFmMode;
@@ -142,7 +148,7 @@ class AppController extends SuperController
       }
     });
 
-    ever(curPlayIndex, (index) {
+    ever(playbackRuntimeState, (_) {
       _animatePlayListToCurSong();
       _animateAlbumPageViewToCurSong();
     });
@@ -154,7 +160,7 @@ class AppController extends SuperController
     if (isAlbumScrollingProgrammatic) return;
     _albumDebounceTimer?.cancel();
     _albumDebounceTimer = Timer(const Duration(milliseconds: 300), () {
-      if (curPlayIndex.value != index) {
+      if (playbackRuntimeState.value.currentIndex != index) {
         playerController.playQueueIndex(index);
       }
     });

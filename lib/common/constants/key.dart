@@ -27,3 +27,4 @@ String randomLikedSongAlbumUrlSp = 'RANDOM_LIKED_ALBUM_URL';
 String userLikedSongPlayListSp = 'USER_LIKED_SONG_PL';
 String downloadTasksSp = 'DOWNLOAD_TASKS';
 String localResourceIndexSp = 'LOCAL_RESOURCE_INDEX';
+String playbackRestoreSnapshotSp = 'PLAYBACK_RESTORE_SNAPSHOT';

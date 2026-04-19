@@ -1,5 +1,6 @@
+import 'dart:convert';
+
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/constants/key.dart' as key;
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
@@ -9,22 +10,31 @@ import 'package:bujuan/features/playback/playback_restore_state.dart';
 class PlaybackStateStore {
   const PlaybackStateStore();
 
-  PlaybackRestoreState get restoreState => PlaybackRestoreState(
-        playbackMode: isFmModeEnabled
-            ? PlaybackMode.roaming
-            : isHeartBeatModeEnabled
-                ? PlaybackMode.heartbeat
-                : PlaybackMode.playlist,
-        repeatMode: AudioServiceRepeatMode.values.firstWhere(
-          (element) => element.name == repeatModeName,
-          orElse: () => AudioServiceRepeatMode.all,
-        ),
-        queue: storedQueue,
-        currentSongId: currentSongId,
-        playlistName: storedPlaylistName,
-        playlistHeader: storedPlaylistHeader,
-        position: storedPosition,
+  PlaybackRestoreState get restoreState {
+    final snapshotJson =
+        CacheBox.instance.get(playbackRestoreSnapshotSp) as String?;
+    if ((snapshotJson ?? '').isNotEmpty) {
+      return PlaybackRestoreState.fromJson(
+        jsonDecode(snapshotJson!) as Map<String, Object?>,
       );
+    }
+    return PlaybackRestoreState(
+      playbackMode: isFmModeEnabled
+          ? PlaybackMode.roaming
+          : isHeartBeatModeEnabled
+              ? PlaybackMode.heartbeat
+              : PlaybackMode.playlist,
+      repeatMode: AudioServiceRepeatMode.values.firstWhere(
+        (element) => element.name == repeatModeName,
+        orElse: () => AudioServiceRepeatMode.all,
+      ),
+      queue: storedQueue,
+      currentSongId: currentSongId,
+      playlistName: storedPlaylistName,
+      playlistHeader: storedPlaylistHeader,
+      position: storedPosition,
+    );
+  }
 
   bool get isFmModeEnabled =>
       CacheBox.instance.get(fmSp, defaultValue: false) ?? false;
@@ -63,27 +73,19 @@ class PlaybackStateStore {
     String? playlistHeader,
     Duration? position,
   }) async {
-    final nextPlaybackMode = playbackMode ?? restoreState.playbackMode;
-    final nextRepeatMode = repeatMode ?? restoreState.repeatMode;
-    await CacheBox.instance.put(fmSp, nextPlaybackMode == PlaybackMode.roaming);
-    await CacheBox.instance
-        .put(heartBeatSp, nextPlaybackMode == PlaybackMode.heartbeat);
-    await CacheBox.instance.put(repeatModeSp, nextRepeatMode.name);
-    if (queue != null) {
-      await CacheBox.instance.put(playQueue, queue);
-    }
-    if (currentSongId != null) {
-      await CacheBox.instance.put(curPlaySongId, currentSongId);
-    }
-    if (playlistName != null) {
-      await CacheBox.instance.put(key.playListName, playlistName);
-    }
-    if (playlistHeader != null) {
-      await CacheBox.instance.put(key.playListNameHeader, playlistHeader);
-    }
-    if (position != null) {
-      await CacheBox.instance.put(playPosition, position.inMilliseconds);
-    }
+    final nextState = restoreState.copyWith(
+      playbackMode: playbackMode,
+      repeatMode: repeatMode,
+      queue: queue,
+      currentSongId: currentSongId,
+      playlistName: playlistName,
+      playlistHeader: playlistHeader,
+      position: position,
+    );
+    await CacheBox.instance.put(
+      playbackRestoreSnapshotSp,
+      jsonEncode(nextState.toJson()),
+    );
   }
 
   // 旧歌词缓存曾直接挂在轻存储里，这里只保留一次性迁移读取，

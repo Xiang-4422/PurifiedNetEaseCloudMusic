@@ -23,4 +23,54 @@ class PlaybackRestoreState {
     this.playlistHeader = '',
     this.position = Duration.zero,
   });
+
+  PlaybackRestoreState copyWith({
+    PlaybackMode? playbackMode,
+    AudioServiceRepeatMode? repeatMode,
+    List<String>? queue,
+    String? currentSongId,
+    String? playlistName,
+    String? playlistHeader,
+    Duration? position,
+  }) {
+    return PlaybackRestoreState(
+      playbackMode: playbackMode ?? this.playbackMode,
+      repeatMode: repeatMode ?? this.repeatMode,
+      queue: queue ?? this.queue,
+      currentSongId: currentSongId ?? this.currentSongId,
+      playlistName: playlistName ?? this.playlistName,
+      playlistHeader: playlistHeader ?? this.playlistHeader,
+      position: position ?? this.position,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'playbackMode': playbackMode.name,
+      'repeatMode': repeatMode.name,
+      'queue': queue,
+      'currentSongId': currentSongId,
+      'playlistName': playlistName,
+      'playlistHeader': playlistHeader,
+      'positionMs': position.inMilliseconds,
+    };
+  }
+
+  factory PlaybackRestoreState.fromJson(Map<String, Object?> json) {
+    return PlaybackRestoreState(
+      playbackMode: PlaybackMode.values.firstWhere(
+        (element) => element.name == json['playbackMode'],
+        orElse: () => PlaybackMode.playlist,
+      ),
+      repeatMode: AudioServiceRepeatMode.values.firstWhere(
+        (element) => element.name == json['repeatMode'],
+        orElse: () => AudioServiceRepeatMode.all,
+      ),
+      queue: (json['queue'] as List?)?.cast<String>() ?? const <String>[],
+      currentSongId: json['currentSongId'] as String? ?? '',
+      playlistName: json['playlistName'] as String? ?? '',
+      playlistHeader: json['playlistHeader'] as String? ?? '',
+      position: Duration(milliseconds: json['positionMs'] as int? ?? 0),
+    );
+  }
 }

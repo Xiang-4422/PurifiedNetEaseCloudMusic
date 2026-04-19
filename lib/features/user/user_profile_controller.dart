@@ -1,5 +1,5 @@
-import 'package:bujuan/data/netease/api/src/api/user/bean.dart';
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/features/user/user_profile_data.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -12,14 +12,14 @@ class UserProfileController {
 
   final String userId;
   final UserRepository _repository;
-  final ValueNotifier<LoadState<NeteaseUserDetail>> state =
+  final ValueNotifier<LoadState<UserProfileData>> state =
       ValueNotifier(const LoadState.loading());
 
   Future<void> loadInitial() async {
     state.value = const LoadState.loading();
     try {
       final detail = await _repository.fetchUserDetail(userId);
-      state.value = detail.profile.userId.isEmpty
+      state.value = detail.userId.isEmpty
           ? const LoadState.empty()
           : LoadState.data(detail);
     } catch (error, stackTrace) {

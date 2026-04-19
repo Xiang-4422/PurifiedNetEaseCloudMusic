@@ -9,6 +9,7 @@ import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/features/user/user_profile_data.dart';
 import 'package:get_it/get_it.dart';
 
 class UserRepository {
@@ -20,8 +21,18 @@ class UserRepository {
 
   final LibraryRepository _libraryRepository;
 
-  Future<NeteaseUserDetail> fetchUserDetail(String userId) {
-    return NeteaseMusicApi().userDetail(userId);
+  Future<UserProfileData> fetchUserDetail(String userId) async {
+    final detail = await NeteaseMusicApi().userDetail(userId);
+    final profile = detail.profile;
+    return UserProfileData(
+      userId: profile.userId,
+      nickname: profile.nickname ?? '',
+      signature: profile.signature ?? '',
+      follows: profile.follows ?? 0,
+      followeds: profile.followeds ?? 0,
+      playlistCount: profile.playlistCount ?? 0,
+      avatarUrl: profile.avatarUrl ?? '',
+    );
   }
 
   Future<List<int>> fetchLikedSongIds(String userId) async {

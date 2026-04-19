@@ -65,13 +65,13 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                   child: Column(
                     children: [
                       Text(
-                        userData.profile.nickname ?? '',
+                        userData.nickname,
                         style: const TextStyle(fontSize: 56),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         child: Text(
-                          userData.profile.signature ?? '',
+                          userData.signature,
                           style:
                               const TextStyle(fontSize: 32, color: Colors.grey),
                         ),
@@ -84,9 +84,9 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Text('${userData.profile.follows} 关注'),
-                            Text('${userData.profile.followeds} 粉丝'),
-                            Text('${userData.profile.playlistCount} 歌单'),
+                            Text('${userData.follows} 关注'),
+                            Text('${userData.followeds} 粉丝'),
+                            Text('${userData.playlistCount} 歌单'),
                           ],
                         ),
                       ),
@@ -123,7 +123,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                   ),
                 ),
                 SimpleExtendedImage.avatar(
-                  AppController.to.userInfo.value.profile?.avatarUrl ?? '',
+                  userData.avatarUrl,
                   width: 260,
                 ),
               ],

@@ -222,6 +222,7 @@
 - 漫游模式续队列、喜欢歌曲播放和模式初始化等队列编排优先下沉到 `PlaybackService`，控制器只保留状态与交互协作
 - `AudioServiceHandler` 不再直接反向依赖 `PlayerController`，上层状态同步改为通过 `PlaybackService` 显式绑定回调
 - `AudioServiceHandler` 不再直接读取 `SettingsController` 或 `UserController`，底层所需偏好和交互入口统一通过 `PlaybackService` 注入
+- 播放模式、重复模式、当前歌单名等展示态开始收口为 `PlaybackSessionState`，旧分散字段暂时保留作为兼容层
 
 ### 6.4 MusicSource
 

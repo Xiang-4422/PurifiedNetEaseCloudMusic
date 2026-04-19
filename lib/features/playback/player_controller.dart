@@ -7,6 +7,7 @@ import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
+import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/playback_state_store.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
@@ -35,6 +36,10 @@ class PlayerController extends GetxController {
   Rx<AudioServiceRepeatMode> curRepeatMode = AudioServiceRepeatMode.all.obs;
 
   Rx<PlaybackMode> playbackMode = PlaybackMode.playlist.obs;
+
+  /// 旧页面还在直接订阅多个散落字段，这里先保留兼容字段，同时补一份统一会话状态。
+  final Rx<PlaybackSessionState> sessionState =
+      const PlaybackSessionState().obs;
 
   // 取色是高频但纯展示性质的操作，做小缓存可以明显减少切歌时的同步卡顿。
   final Map<String, Color> _albumColorCache = {};
@@ -81,12 +86,14 @@ class PlayerController extends GetxController {
   /// 统一接管音频服务的状态流，避免页面各自监听 `AudioService` 形成重复副作用。
   Future<void> _initAudioHandler() async {
     _playbackService.bindControllerState(
-      onRestorePlaybackMode: (mode) => playbackMode.value = mode,
-      onRepeatModeChanged: (mode) => curRepeatMode.value = mode,
+      onRestorePlaybackMode: (mode) => _syncSessionState(playbackMode: mode),
+      onRepeatModeChanged: (mode) => _syncSessionState(repeatMode: mode),
       onPlaylistMetaChanged: (playlistName, playlistHeader, isLikedSongs) {
-        curPlayListName.value = playlistName;
-        curPlayListNameHeader.value = playlistHeader;
-        isPlayingLikedSongs.value = isLikedSongs;
+        _syncSessionState(
+          playlistName: playlistName,
+          playlistHeader: playlistHeader,
+          isPlayingLikedSongs: isLikedSongs,
+        );
       },
       isHighQualityEnabled: () =>
           SettingsController.to.isHighSoundQualityOpen.value,
@@ -162,6 +169,28 @@ class PlayerController extends GetxController {
     });
 
     await _playbackService.restoreLastPlayState();
+  }
+
+  void _syncSessionState({
+    PlaybackMode? playbackMode,
+    AudioServiceRepeatMode? repeatMode,
+    String? playlistName,
+    String? playlistHeader,
+    bool? isPlayingLikedSongs,
+  }) {
+    final nextState = sessionState.value.copyWith(
+      playbackMode: playbackMode,
+      repeatMode: repeatMode,
+      playlistName: playlistName,
+      playlistHeader: playlistHeader,
+      isPlayingLikedSongs: isPlayingLikedSongs,
+    );
+    sessionState.value = nextState;
+    this.playbackMode.value = nextState.playbackMode;
+    curRepeatMode.value = nextState.repeatMode;
+    curPlayListName.value = nextState.playlistName;
+    curPlayListNameHeader.value = nextState.playlistHeader;
+    this.isPlayingLikedSongs.value = nextState.isPlayingLikedSongs;
   }
 
   _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {
@@ -310,7 +339,7 @@ class PlayerController extends GetxController {
   Future<void> quitFmMode({bool showToast = true}) async {
     if (showToast) WidgetUtil.showToast('已经退出漫游模式');
     if (playbackMode.value == PlaybackMode.roaming) {
-      playbackMode.value = PlaybackMode.playlist;
+      _syncSessionState(playbackMode: PlaybackMode.playlist);
     }
   }
 
@@ -331,7 +360,7 @@ class PlayerController extends GetxController {
   Future<void> quitHeartBeatMode({bool showToast = true}) async {
     if (showToast) WidgetUtil.showToast('已经退出心动模式');
     if (playbackMode.value == PlaybackMode.heartbeat) {
-      playbackMode.value = PlaybackMode.playlist;
+      _syncSessionState(playbackMode: PlaybackMode.playlist);
     }
   }
 
@@ -372,7 +401,7 @@ class PlayerController extends GetxController {
       return;
     }
 
-    playbackMode.value = newMode;
+    _syncSessionState(playbackMode: newMode);
 
     switch (newMode) {
       case PlaybackMode.roaming:
@@ -404,7 +433,7 @@ class PlayerController extends GetxController {
     );
     if (!started) {
       // Fallback or error
-      playbackMode.value = PlaybackMode.playlist;
+      _syncSessionState(playbackMode: PlaybackMode.playlist);
     }
   }
 
@@ -417,7 +446,7 @@ class PlayerController extends GetxController {
       currentRepeatMode: curRepeatMode.value,
     );
     if (!started) {
-      playbackMode.value = PlaybackMode.playlist;
+      _syncSessionState(playbackMode: PlaybackMode.playlist);
     }
   }
 

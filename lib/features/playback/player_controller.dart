@@ -7,6 +7,7 @@ import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
+import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/playback_state_store.dart';
@@ -40,6 +41,8 @@ class PlayerController extends GetxController {
   /// 旧页面还在直接订阅多个散落字段，这里先保留兼容字段，同时补一份统一会话状态。
   final Rx<PlaybackSessionState> sessionState =
       const PlaybackSessionState().obs;
+  final Rx<PlaybackRuntimeState> runtimeState =
+      const PlaybackRuntimeState().obs;
 
   // 取色是高频但纯展示性质的操作，做小缓存可以明显减少切歌时的同步卡顿。
   final Map<String, Color> _albumColorCache = {};
@@ -105,15 +108,13 @@ class PlayerController extends GetxController {
     await _playbackService.ensureInitialized();
 
     _playbackService.queueStream.listen((mediaItems) async {
-      curPlayingSongs
-        ..clear()
-        ..addAll(mediaItems);
+      _syncRuntimeState(queue: mediaItems);
       await _updateCurPlayIndex(curMediaItemUpdated: false);
     });
 
     _playbackService.mediaItemStream.listen((mediaItem) async {
       if (mediaItem == null) return;
-      curPlayingSong.value = mediaItem;
+      _syncRuntimeState(currentSong: mediaItem);
       _stateStore.saveCurrentSongId(mediaItem.id);
       await _updateCurPlayIndex();
 
@@ -161,6 +162,7 @@ class PlayerController extends GetxController {
             minPeriod: const Duration(milliseconds: 200), steps: 1000)
         .listen((newCurPlayingDuration) async {
       curPlayDuration.value = newCurPlayingDuration;
+      _syncRuntimeState(currentPosition: newCurPlayingDuration);
       final currentSecond = newCurPlayingDuration.inSeconds;
       if (currentSecond != _lastStoredPositionSecond) {
         _lastStoredPositionSecond = currentSecond;
@@ -200,9 +202,31 @@ class PlayerController extends GetxController {
     unawaited(_stateStore.savePlaybackMode(nextState.playbackMode));
   }
 
+  void _syncRuntimeState({
+    List<MediaItem>? queue,
+    MediaItem? currentSong,
+    int? currentIndex,
+    Duration? currentPosition,
+  }) {
+    final nextState = runtimeState.value.copyWith(
+      queue: queue,
+      currentSong: currentSong,
+      currentIndex: currentIndex,
+      currentPosition: currentPosition,
+    );
+    runtimeState.value = nextState;
+    curPlayingSongs
+      ..clear()
+      ..addAll(nextState.queue);
+    curPlayingSong.value = nextState.currentSong;
+    curPlayIndex.value = nextState.currentIndex;
+    curPlayDuration.value = nextState.currentPosition;
+  }
+
   _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {
-    curPlayIndex.value = curPlayingSongs
+    final currentIndex = curPlayingSongs
         .indexWhere((element) => element.id == curPlayingSong.value.id);
+    _syncRuntimeState(currentIndex: currentIndex);
     if (curMediaItemUpdated) {
       // 切歌时先让索引和主播放状态更新到 UI，再延后取色、歌词和图片预取，
       // 否则首页大面板和歌词页切换会先被这些耗时任务阻塞。

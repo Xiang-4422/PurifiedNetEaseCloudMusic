@@ -224,6 +224,7 @@
 - `AudioServiceHandler` 不再直接读取 `SettingsController` 或 `UserController`，底层所需偏好和交互入口统一通过 `PlaybackService` 注入
 - 播放模式、重复模式、当前歌单名等展示态开始收口为 `PlaybackSessionState`，旧分散字段暂时保留作为兼容层
 - 播放恢复信息开始收口为 `PlaybackRestoreState`，当前项、歌单元信息、队列、模式和进度不再继续以散落 key 分别理解
+- 当前队列、当前歌曲、当前索引和当前进度开始收口为 `PlaybackRuntimeState`，旧运行态字段暂时保留作为页面兼容层
 
 ### 6.4 MusicSource
 

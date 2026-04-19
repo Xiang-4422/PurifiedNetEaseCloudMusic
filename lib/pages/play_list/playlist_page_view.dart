@@ -1,14 +1,12 @@
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
-import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -290,51 +288,5 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         isSubscribed = !isSubscribed;
       });
     }
-  }
-}
-
-/// 专辑
-class AlbumItem extends StatelessWidget {
-  final Album album;
-  final Function()? beforeOnTap;
-
-  const AlbumItem({Key? key, required this.album, this.beforeOnTap})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final router = context.router;
-    return UniversalListTile(
-        picUrl: album.picUrl ?? '',
-        titleString: album.name ?? '',
-        subTitleString: '${album.size ?? 0} 首',
-        onTap: () async {
-          if (beforeOnTap != null) await beforeOnTap!();
-          router.push(const gr.AlbumRouteView()
-              .copyWith(queryParams: {'albumId': album.id}));
-        });
-  }
-}
-
-/// 歌手
-class ArtistsItem extends StatelessWidget {
-  final Artist artist;
-  final Function()? beforeOnTap;
-
-  const ArtistsItem({Key? key, required this.artist, this.beforeOnTap})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final router = context.router;
-    return UniversalListTile(
-        picUrl: artist.picUrl ?? '',
-        titleString: artist.name ?? '',
-        subTitleString: '${artist.albumSize ?? 0} 专辑',
-        onTap: () async {
-          if (beforeOnTap != null) await beforeOnTap!();
-          router.push(const gr.ArtistRouteView()
-              .copyWith(queryParams: {'artistId': artist.id}));
-        });
   }
 }

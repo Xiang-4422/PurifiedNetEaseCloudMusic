@@ -228,6 +228,7 @@
 - 歌词行、当前歌词索引和翻译歌词标记开始收口为 `PlaybackLyricState`，避免歌词解析结果继续散落在控制器兼容字段中
 - 壳层与主播放面板已开始消费统一播放状态对象，后续页面迁移优先复用这些状态而不是继续增加散落 getter
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，旧运行态字段开始退回兼容入口
+- `PlayerController` 内部逻辑已优先读取 `sessionState / runtimeState / lyricState`，旧 `curPlaying* / curPlay* / lyrics*` 字段逐步退为页面兼容镜像
 
 ### 6.4 MusicSource
 

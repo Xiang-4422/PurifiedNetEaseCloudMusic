@@ -120,25 +120,26 @@ class PlayerController extends GetxController {
       _stateStore.saveCurrentSongId(mediaItem.id);
       await _updateCurPlayIndex();
 
-      int newIndex = curPlayingSongs
-          .indexWhere((element) => element.id == curPlayingSong.value.id);
+      final currentRuntimeState = runtimeState.value;
+      int newIndex = currentRuntimeState.queue.indexWhere(
+          (element) => element.id == currentRuntimeState.currentSong.id);
 
       if (playbackMode.value == PlaybackMode.roaming &&
-          newIndex >= curPlayingSongs.length - 2 &&
+          newIndex >= currentRuntimeState.queue.length - 2 &&
           !_isFetchingFm) {
         _isFetchingFm = true;
         UserController.to.getFmSongs().then((newFmPlayList) async {
           if (playbackMode.value == PlaybackMode.roaming &&
               newFmPlayList.isNotEmpty) {
             final shouldAutoPlayNext = (newIndex ==
-                    curPlayingSongs.length - 1) &&
+                    currentRuntimeState.queue.length - 1) &&
                 (_playbackService.handler.playbackState.value.processingState ==
                     AudioProcessingState.completed);
 
             await _playbackService.appendRoamingSongs(
-              currentQueue: curPlayingSongs.toList(),
+              currentQueue: currentRuntimeState.queue,
               incomingSongs: newFmPlayList,
-              currentSongId: curPlayingSong.value.id,
+              currentSongId: currentRuntimeState.currentSong.id,
               shouldAutoPlayNext: shouldAutoPlayNext,
               fallbackIndex: newIndex,
             );
@@ -163,17 +164,16 @@ class PlayerController extends GetxController {
     AudioService.createPositionStream(
             minPeriod: const Duration(milliseconds: 200), steps: 1000)
         .listen((newCurPlayingDuration) async {
-      curPlayDuration.value = newCurPlayingDuration;
       _syncRuntimeState(currentPosition: newCurPlayingDuration);
       final currentSecond = newCurPlayingDuration.inSeconds;
       if (currentSecond != _lastStoredPositionSecond) {
         _lastStoredPositionSecond = currentSecond;
         unawaited(_stateStore.savePlaybackPosition(newCurPlayingDuration));
       }
-      int newLyricIndex = lyricsLineModels.lastIndexWhere((element) =>
+      int newLyricIndex = lyricState.value.lines.lastIndexWhere((element) =>
           element.startTime! <= newCurPlayingDuration.inMilliseconds);
 
-      if (newLyricIndex != currLyricIndex.value) {
+      if (newLyricIndex != lyricState.value.currentIndex) {
         _syncLyricState(currentIndex: newLyricIndex);
       }
     });
@@ -244,8 +244,10 @@ class PlayerController extends GetxController {
   }
 
   _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {
-    final currentIndex = curPlayingSongs
-        .indexWhere((element) => element.id == curPlayingSong.value.id);
+    final currentRuntimeState = runtimeState.value;
+    final currentIndex = currentRuntimeState.queue.indexWhere(
+      (element) => element.id == currentRuntimeState.currentSong.id,
+    );
     _syncRuntimeState(currentIndex: currentIndex);
     if (curMediaItemUpdated) {
       // 切歌时先让索引和主播放状态更新到 UI，再延后取色、歌词和图片预取，
@@ -259,7 +261,7 @@ class PlayerController extends GetxController {
   }
 
   _updateAlbumColor() async {
-    String? imageUrl = curPlayingSong.value.extras?['image'];
+    String? imageUrl = runtimeState.value.currentSong.extras?['image'];
     if (imageUrl != null) {
       Color color;
       if (_albumColorCache.containsKey(imageUrl)) {
@@ -285,20 +287,20 @@ class PlayerController extends GetxController {
   _updateLyric() async {
     _syncLyricState(lines: const [], hasTranslatedLyrics: false);
 
-    String songId = curPlayingSong.value.id;
+    final currentSong = runtimeState.value.currentSong;
+    String songId = currentSong.id;
     String lyric = _stateStore.getLyric(songId) ?? '';
     String lyricTran = _stateStore.getTranslatedLyric(songId) ?? '';
     if (lyric.isEmpty) {
       final localLyricsPath =
-          curPlayingSong.value.extras?['localLyricsPath'] as String? ?? '';
+          currentSong.extras?['localLyricsPath'] as String? ?? '';
       if (localLyricsPath.isNotEmpty && File(localLyricsPath).existsSync()) {
         lyric = await File(localLyricsPath).readAsString();
       }
     }
     if (lyric.isEmpty) {
-      final lyrics =
-          await _repository.fetchSongLyrics(curPlayingSong.value.id) ??
-              const TrackLyrics();
+      final lyrics = await _repository.fetchSongLyrics(currentSong.id) ??
+          const TrackLyrics();
       lyric = lyrics.main;
       lyricTran = lyrics.translated;
       await _stateStore.saveLyrics(
@@ -422,7 +424,7 @@ class PlayerController extends GetxController {
     await _playbackService.playLikedSongs(
       likedSongs: UserController.to.likedSongs.toList(),
       likedSongIds: UserController.to.likedSongIds.toList(),
-      currentSong: curPlayingSong.value,
+      currentSong: runtimeState.value.currentSong,
     );
   }
 
@@ -441,7 +443,7 @@ class PlayerController extends GetxController {
     if (isPlayingLikedSongs.isTrue &&
         _playbackService.handler.curRepeatMode == AudioServiceRepeatMode.none) {
       await openHeartBeatMode(
-        curPlayingSong.value.id,
+        runtimeState.value.currentSong.id,
         fromPlayAll: false,
       );
       return;
@@ -483,7 +485,7 @@ class PlayerController extends GetxController {
 
     final started = await _playbackService.startRoamingMode(
       fmSongs: fmSongs,
-      currentRepeatMode: curRepeatMode.value,
+      currentRepeatMode: sessionState.value.repeatMode,
     );
     if (!started) {
       // Fallback or error
@@ -497,7 +499,7 @@ class PlayerController extends GetxController {
 
     final started = await _playbackService.startHeartBeatMode(
       songs: songs,
-      currentRepeatMode: curRepeatMode.value,
+      currentRepeatMode: sessionState.value.repeatMode,
     );
     if (!started) {
       _syncSessionState(playbackMode: PlaybackMode.playlist);
@@ -552,19 +554,22 @@ class PlayerController extends GetxController {
   }
 
   void _preloadImages() {
-    if (curPlayingSongs.isEmpty) return;
-    int currentIndex = curPlayIndex.value;
+    final currentRuntimeState = runtimeState.value;
+    if (currentRuntimeState.queue.isEmpty) return;
+    int currentIndex = currentRuntimeState.currentIndex;
     if (currentIndex < 0) return;
 
     List<int> indicesToPreload = [];
     for (int i = 1; i <= 3; i++) {
-      indicesToPreload.add((currentIndex + i) % curPlayingSongs.length);
+      indicesToPreload
+          .add((currentIndex + i) % currentRuntimeState.queue.length);
       indicesToPreload.add(
-          (currentIndex - i + curPlayingSongs.length) % curPlayingSongs.length);
+          (currentIndex - i + currentRuntimeState.queue.length) %
+              currentRuntimeState.queue.length);
     }
 
     for (int index in indicesToPreload) {
-      String? imageUrl = curPlayingSongs[index].extras?['image'];
+      String? imageUrl = currentRuntimeState.queue[index].extras?['image'];
       if (imageUrl != null && imageUrl.isNotEmpty) {
         String fullUrl = '$imageUrl?param=500y500';
         try {

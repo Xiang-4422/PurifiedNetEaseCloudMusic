@@ -15,18 +15,18 @@ import 'package:auto_route/auto_route.dart' as _i13;
 import 'package:flutter/material.dart' as _i14;
 
 import '../common/netease_api/src/api/play/bean.dart' as _i15;
-import '../pages/album/album_page_view.dart' as _i8;
-import '../pages/artist/artist_page_view.dart' as _i9;
-import '../pages/cloud/cloud_drive_view.dart' as _i12;
+import '../pages/album_page_view.dart' as _i8;
+import '../pages/artist_page_view.dart' as _i9;
+import '../pages/cloud_drive_view.dart' as _i12;
 import '../pages/home/app_home_page_view.dart' as _i3;
 import '../pages/home/body/app_body_page_view.dart' as _i5;
-import '../pages/login/login_page_view.dart' as _i1;
-import '../pages/playlist/playlist_page_view.dart' as _i7;
+import '../pages/login_page_view.dart' as _i1;
+import '../pages/playlist_page_view.dart' as _i7;
 import '../pages/radio/my_radio_view.dart' as _i10;
 import '../pages/radio/radio_details_view.dart' as _i11;
-import '../pages/settings/user_setting_view.dart' as _i2;
-import '../pages/today/today_page_view.dart' as _i6;
-import '../pages/update/update_view.dart' as _i4;
+import '../pages/today_page_view.dart' as _i6;
+import '../pages/update_view.dart' as _i4;
+import '../pages/user_setting_view.dart' as _i2;
 
 class RootRouter extends _i13.RootStackRouter {
   RootRouter([_i14.GlobalKey<_i14.NavigatorState>? navigatorKey])

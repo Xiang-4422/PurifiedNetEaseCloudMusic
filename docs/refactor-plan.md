@@ -221,9 +221,9 @@
 范围：
 
 - [`lib/features/user/controller/user_controller.dart`](../lib/features/user/controller/user_controller.dart)
-- [`lib/pages/playlist/playlist_page_view.dart`](../lib/pages/playlist/playlist_page_view.dart)
-- [`lib/pages/cloud/cloud_drive_view.dart`](../lib/pages/cloud/cloud_drive_view.dart)
-- [`lib/pages/login/login_page_view.dart`](../lib/pages/login/login_page_view.dart)
+- [`lib/pages/playlist_page_view.dart`](../lib/pages/playlist_page_view.dart)
+- [`lib/pages/cloud_drive_view.dart`](../lib/pages/cloud_drive_view.dart)
+- [`lib/pages/login_page_view.dart`](../lib/pages/login_page_view.dart)
 - [`lib/features/playback/controller/player_controller.dart`](../lib/features/playback/controller/player_controller.dart)
 
 任务：

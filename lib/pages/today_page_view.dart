@@ -46,7 +46,7 @@ class TodayPageView extends GetView<AppController> {
             title: BlurryContainer(
               padding: EdgeInsets.zero,
               borderRadius: BorderRadius.circular(9999),
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               child: Row(
                 children: [
                   Expanded(

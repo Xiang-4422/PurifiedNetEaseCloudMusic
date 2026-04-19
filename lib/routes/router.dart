@@ -3,15 +3,15 @@ import 'package:bujuan/pages/home/app_home_page_view.dart';
 import 'package:bujuan/pages/home/body/app_body_page_view.dart';
 import 'package:bujuan/pages/radio/my_radio_view.dart';
 import 'package:bujuan/pages/radio/radio_details_view.dart';
-import 'package:bujuan/pages/settings/user_setting_view.dart';
-import 'package:bujuan/pages/today/today_page_view.dart';
+import 'package:bujuan/pages/today_page_view.dart';
+import 'package:bujuan/pages/user_setting_view.dart';
 
-import '../pages/album/album_page_view.dart';
-import '../pages/artist/artist_page_view.dart';
-import '../pages/cloud/cloud_drive_view.dart';
-import '../pages/login/login_page_view.dart';
-import '../pages/playlist/playlist_page_view.dart';
-import '../pages/update/update_view.dart';
+import '../pages/album_page_view.dart';
+import '../pages/artist_page_view.dart';
+import '../pages/cloud_drive_view.dart';
+import '../pages/login_page_view.dart';
+import '../pages/playlist_page_view.dart';
+import '../pages/update_view.dart';
 
 abstract class Routes {
   Routes._();

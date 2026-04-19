@@ -98,7 +98,7 @@ class PlayerController extends GetxController {
     _playbackService.mediaItemStream.listen((mediaItem) async {
       if (mediaItem == null) return;
       _syncRuntimeState(currentSong: mediaItem);
-      _stateStore.saveCurrentSongId(mediaItem.id);
+      unawaited(_stateStore.updateRestoreState(currentSongId: mediaItem.id));
       await _updateCurPlayIndex();
 
       final currentRuntimeState = runtimeState.value;
@@ -149,7 +149,9 @@ class PlayerController extends GetxController {
       final currentSecond = newCurPlayingDuration.inSeconds;
       if (currentSecond != _lastStoredPositionSecond) {
         _lastStoredPositionSecond = currentSecond;
-        unawaited(_stateStore.savePlaybackPosition(newCurPlayingDuration));
+        unawaited(
+          _stateStore.updateRestoreState(position: newCurPlayingDuration),
+        );
       }
       int newLyricIndex = lyricState.value.lines.lastIndexWhere((element) =>
           element.startTime! <= newCurPlayingDuration.inMilliseconds);
@@ -179,7 +181,9 @@ class PlayerController extends GetxController {
     sessionState.value = nextState;
     this.playbackMode.value = nextState.playbackMode;
     curRepeatMode.value = nextState.repeatMode;
-    unawaited(_stateStore.savePlaybackMode(nextState.playbackMode));
+    unawaited(
+      _stateStore.updateRestoreState(playbackMode: nextState.playbackMode),
+    );
   }
 
   void _syncRuntimeState({

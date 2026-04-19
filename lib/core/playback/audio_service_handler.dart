@@ -132,7 +132,7 @@ class AudioServiceHandler extends BaseAudioHandler
     }
     curRepeatMode = newRepeatMode;
 
-    await _stateStore.saveRepeatMode(newRepeatMode);
+    await _stateStore.updateRestoreState(repeatMode: newRepeatMode);
     _handleRepeatModeChanged?.call(newRepeatMode);
     _updateMediaControls();
   }
@@ -176,19 +176,21 @@ class AudioServiceHandler extends BaseAudioHandler
       playListNameHeader,
       playListName == "喜欢的音乐",
     );
-    await _stateStore.savePlaylistMeta(
-      playlistName: playListName,
-      playlistHeader: playListNameHeader,
-    );
-
     if (changePlayerSource) {
       await playIndex(audioSourceIndex: index, playNow: playNow);
     } else {
       _curIndex = index;
     }
     if (needStore) {
-      await _stateStore.saveQueue(
-        await compute(playListToString, _originalSongs),
+      await _stateStore.updateRestoreState(
+        playlistName: playListName,
+        playlistHeader: playListNameHeader,
+        queue: await compute(playListToString, _originalSongs),
+      );
+    } else {
+      await _stateStore.updateRestoreState(
+        playlistName: playListName,
+        playlistHeader: playListNameHeader,
       );
     }
   }

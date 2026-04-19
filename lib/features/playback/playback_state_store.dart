@@ -52,34 +52,38 @@ class PlaybackStateStore {
   Duration get storedPosition => Duration(
       milliseconds: CacheBox.instance.get(playPosition, defaultValue: 0) ?? 0);
 
-  Future<void> saveCurrentSongId(String songId) {
-    return CacheBox.instance.put(curPlaySongId, songId);
-  }
-
-  Future<void> savePlaybackMode(PlaybackMode playbackMode) async {
-    await CacheBox.instance.put(fmSp, playbackMode == PlaybackMode.roaming);
-    await CacheBox.instance
-        .put(heartBeatSp, playbackMode == PlaybackMode.heartbeat);
-  }
-
-  Future<void> saveRepeatMode(AudioServiceRepeatMode repeatMode) {
-    return CacheBox.instance.put(repeatModeSp, repeatMode.name);
-  }
-
-  Future<void> savePlaylistMeta({
-    required String playlistName,
-    required String playlistHeader,
+  /// 恢复态仍暂留在轻存储里，但写入口先统一到一个方法，
+  /// 这样后续迁正式本地库时不需要再从多个调用点重新拼装恢复快照。
+  Future<void> updateRestoreState({
+    PlaybackMode? playbackMode,
+    AudioServiceRepeatMode? repeatMode,
+    List<String>? queue,
+    String? currentSongId,
+    String? playlistName,
+    String? playlistHeader,
+    Duration? position,
   }) async {
-    await CacheBox.instance.put(key.playListName, playlistName);
-    await CacheBox.instance.put(key.playListNameHeader, playlistHeader);
-  }
-
-  Future<void> saveQueue(List<String> queue) {
-    return CacheBox.instance.put(playQueue, queue);
-  }
-
-  Future<void> savePlaybackPosition(Duration position) {
-    return CacheBox.instance.put(playPosition, position.inMilliseconds);
+    final nextPlaybackMode = playbackMode ?? restoreState.playbackMode;
+    final nextRepeatMode = repeatMode ?? restoreState.repeatMode;
+    await CacheBox.instance.put(fmSp, nextPlaybackMode == PlaybackMode.roaming);
+    await CacheBox.instance
+        .put(heartBeatSp, nextPlaybackMode == PlaybackMode.heartbeat);
+    await CacheBox.instance.put(repeatModeSp, nextRepeatMode.name);
+    if (queue != null) {
+      await CacheBox.instance.put(playQueue, queue);
+    }
+    if (currentSongId != null) {
+      await CacheBox.instance.put(curPlaySongId, currentSongId);
+    }
+    if (playlistName != null) {
+      await CacheBox.instance.put(key.playListName, playlistName);
+    }
+    if (playlistHeader != null) {
+      await CacheBox.instance.put(key.playListNameHeader, playlistHeader);
+    }
+    if (position != null) {
+      await CacheBox.instance.put(playPosition, position.inMilliseconds);
+    }
   }
 
   // 旧歌词缓存曾直接挂在轻存储里，这里只保留一次性迁移读取，

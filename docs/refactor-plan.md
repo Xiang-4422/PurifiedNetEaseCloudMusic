@@ -256,6 +256,7 @@
 - 当前队列、当前歌曲、当前索引和当前进度已开始收口为 `PlaybackRuntimeState`，为后续减少运行态散落字段做准备
 - 歌词行、当前歌词索引和翻译歌词标记已开始收口为 `PlaybackLyricState`，歌词页与壳层滚动同步开始脱离旧散落字段
 - `PlaybackStateStore` 已收窄为播放恢复轻存储，歌词内容开始改由媒体库持久化，旧歌词缓存只保留迁移读取
+- 播放恢复态的写入已开始统一走 `PlaybackStateStore.updateRestoreState(...)`，为后续迁正式本地库减少分散写 key 的成本
 - 壳层与主播放面板已开始改用统一播放状态对象，旧散落字段暂时仅保留为兼容层
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，主播放界面对旧运行态字段的依赖继续缩小
 - `PlayerController` 内部编排已优先读取统一播放状态对象，旧 `curPlaying* / curPlay* / lyrics*` 字段开始退为兼容镜像

@@ -20,6 +20,13 @@ class PlaybackStateStore {
     );
   }
 
+  Future<void> saveRestoreState(PlaybackRestoreState state) {
+    return CacheBox.instance.put(
+      playbackRestoreSnapshotSp,
+      jsonEncode(state.toJson()),
+    );
+  }
+
   /// 恢复态仍暂留在轻存储里，但写入口先统一到一个方法，
   /// 这样后续迁正式本地库时不需要再从多个调用点重新拼装恢复快照。
   Future<void> updateRestoreState({
@@ -40,9 +47,6 @@ class PlaybackStateStore {
       playlistHeader: playlistHeader,
       position: position,
     );
-    await CacheBox.instance.put(
-      playbackRestoreSnapshotSp,
-      jsonEncode(nextState.toJson()),
-    );
+    await saveRestoreState(nextState);
   }
 }

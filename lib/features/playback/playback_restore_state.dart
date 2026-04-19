@@ -24,6 +24,16 @@ class PlaybackRestoreState {
     this.position = Duration.zero,
   });
 
+  bool get hasSnapshotData {
+    return playbackMode != PlaybackMode.playlist ||
+        repeatMode != AudioServiceRepeatMode.all ||
+        queue.isNotEmpty ||
+        currentSongId.isNotEmpty ||
+        playlistName.isNotEmpty ||
+        playlistHeader.isNotEmpty ||
+        position > Duration.zero;
+  }
+
   PlaybackRestoreState copyWith({
     PlaybackMode? playbackMode,
     AudioServiceRepeatMode? repeatMode,

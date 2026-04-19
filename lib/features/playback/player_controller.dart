@@ -11,7 +11,6 @@ import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
-import 'package:bujuan/features/playback/playback_state_store.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/user/user_controller.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +28,6 @@ class PlayerController extends GetxController {
 
   final PlaybackRepository _repository = PlaybackRepository();
   final PlaybackService _playbackService = Get.find<PlaybackService>();
-  final PlaybackStateStore _stateStore = const PlaybackStateStore();
 
   PlaybackService get playbackService => _playbackService;
 
@@ -98,7 +96,7 @@ class PlayerController extends GetxController {
     _playbackService.mediaItemStream.listen((mediaItem) async {
       if (mediaItem == null) return;
       _syncRuntimeState(currentSong: mediaItem);
-      unawaited(_stateStore.updateRestoreState(currentSongId: mediaItem.id));
+      unawaited(_repository.updateRestoreState(currentSongId: mediaItem.id));
       await _updateCurPlayIndex();
 
       final currentRuntimeState = runtimeState.value;
@@ -150,7 +148,7 @@ class PlayerController extends GetxController {
       if (currentSecond != _lastStoredPositionSecond) {
         _lastStoredPositionSecond = currentSecond;
         unawaited(
-          _stateStore.updateRestoreState(position: newCurPlayingDuration),
+          _repository.updateRestoreState(position: newCurPlayingDuration),
         );
       }
       int newLyricIndex = lyricState.value.lines.lastIndexWhere((element) =>
@@ -182,7 +180,7 @@ class PlayerController extends GetxController {
     this.playbackMode.value = nextState.playbackMode;
     curRepeatMode.value = nextState.repeatMode;
     unawaited(
-      _stateStore.updateRestoreState(playbackMode: nextState.playbackMode),
+      _repository.updateRestoreState(playbackMode: nextState.playbackMode),
     );
   }
 

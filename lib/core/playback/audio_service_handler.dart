@@ -6,7 +6,6 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
-import 'package:bujuan/features/playback/playback_state_store.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -22,7 +21,6 @@ class AudioServiceHandler extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   late final AudioPlayer _player;
   final PlaybackRepository _playbackRepository = PlaybackRepository();
-  final PlaybackStateStore _stateStore = const PlaybackStateStore();
 
   final List<MediaItem> _originalSongs = <MediaItem>[];
   void Function(PlaybackMode mode)? _handleRestoredPlaybackMode;
@@ -92,7 +90,7 @@ class AudioServiceHandler extends BaseAudioHandler
   /// 当前仍有大量页面和控制器默认依赖“关闭应用后还能直接回到上一次队列”的行为，
   /// 所以恢复逻辑必须保留在音频服务入口，而不是交给页面自己拼。
   restoreLastPlayState() async {
-    final restoreState = _stateStore.restoreState;
+    final restoreState = await _playbackRepository.getRestoreState();
     _handleRestoredPlaybackMode?.call(restoreState.playbackMode);
     await changeRepeatMode(newRepeatMode: restoreState.repeatMode);
     if (restoreState.queue.isNotEmpty) {
@@ -132,7 +130,7 @@ class AudioServiceHandler extends BaseAudioHandler
     }
     curRepeatMode = newRepeatMode;
 
-    await _stateStore.updateRestoreState(repeatMode: newRepeatMode);
+    await _playbackRepository.updateRestoreState(repeatMode: newRepeatMode);
     _handleRepeatModeChanged?.call(newRepeatMode);
     _updateMediaControls();
   }
@@ -182,13 +180,13 @@ class AudioServiceHandler extends BaseAudioHandler
       _curIndex = index;
     }
     if (needStore) {
-      await _stateStore.updateRestoreState(
+      await _playbackRepository.updateRestoreState(
         playlistName: playListName,
         playlistHeader: playListNameHeader,
         queue: await compute(playListToString, _originalSongs),
       );
     } else {
-      await _stateStore.updateRestoreState(
+      await _playbackRepository.updateRestoreState(
         playlistName: playListName,
         playlistHeader: playListNameHeader,
       );

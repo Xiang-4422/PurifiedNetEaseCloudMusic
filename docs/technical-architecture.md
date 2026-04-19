@@ -226,9 +226,10 @@
 - 播放恢复信息开始收口为 `PlaybackRestoreState`，当前项、歌单元信息、队列、模式和进度不再继续以散落 key 分别理解
 - 当前队列、当前歌曲、当前索引和当前进度开始收口为 `PlaybackRuntimeState`，旧运行态字段暂时保留作为页面兼容层
 - 歌词行、当前歌词索引和翻译歌词标记开始收口为 `PlaybackLyricState`，避免歌词解析结果继续散落在控制器兼容字段中
-- `PlaybackStateStore` 只保留播放恢复相关轻存储；歌词内容改由媒体库承接
-- 播放恢复态的写入已开始统一经过 `PlaybackStateStore.updateRestoreState(...)`，避免队列、模式、当前项和进度继续由多个调用点各自写 key
-- 播放恢复态在轻存储中开始采用单一快照格式，后续迁正式本地库时优先复用该快照结构
+- `PlaybackStateStore` 只保留播放恢复轻存储的底层实现；歌词内容改由媒体库承接
+- 播放恢复态的读写主入口已切到 `PlaybackRepository`，控制器和底层 handler 不再直接操作轻存储
+- 播放恢复态会同时写入轻存储快照和本地媒体库，为后续正式数据库接管保留稳定入口
+- 播放恢复态在轻存储中采用单一快照格式，后续迁正式本地库时优先复用该快照结构
 - 壳层与主播放面板已开始消费统一播放状态对象，后续页面迁移优先复用这些状态而不是继续增加散落 getter
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，旧运行态字段开始退回兼容入口
 - `PlayerController` 内部逻辑已优先读取 `sessionState / runtimeState / lyricState`，旧 `curPlaying* / curPlay* / lyrics*` 字段逐步退为页面兼容镜像

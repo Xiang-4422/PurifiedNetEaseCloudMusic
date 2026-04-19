@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/features/comment/comment_data.dart';
 import 'package:bujuan/features/comment/comment_list_controller.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/comment/floor_comment_controller.dart';
@@ -11,7 +12,6 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import '../../data/netease/api/src/api/event/bean.dart';
 import '../../widget/simple_extended_image.dart';
 
 class CommentWidget extends StatefulWidget {
@@ -61,7 +61,7 @@ class _CommentWidgetState extends State<CommentWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<PagedState<CommentItem>>(
+    return ValueListenableBuilder<PagedState<CommentData>>(
       valueListenable: _controller.state,
       builder: (context, state, child) {
         if (state.initialLoading) {
@@ -135,7 +135,7 @@ class CommentItemWidget extends StatefulWidget {
 
   final String id;
   final String idType;
-  final CommentItem comment;
+  final CommentData comment;
   final Color stringColor;
   final bool isReply;
 
@@ -148,7 +148,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
   late final FloorCommentController _floorController;
   bool isCommentOnCommentVisible = false;
 
-  late CommentItem comment;
+  late CommentData comment;
   late Color stringColor;
   late int replyCount;
   late int unExpandedReplyCount;
@@ -158,8 +158,8 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
     super.initState();
     comment = widget.comment;
     stringColor = widget.stringColor;
-    replyCount = comment.replyCount ?? 0;
-    unExpandedReplyCount = comment.replyCount ?? 0;
+    replyCount = comment.replyCount;
+    unExpandedReplyCount = comment.replyCount;
     _floorController = FloorCommentController(
       id: widget.id,
       type: widget.idType,
@@ -193,7 +193,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
             Opacity(
               opacity: 0.8,
               child: SimpleExtendedImage.avatar(
-                '${comment.user.avatarUrl ?? ''}?param=150y150',
+                '${comment.user.avatarUrl}?param=150y150',
                 width: 30,
                 height: 30,
               ),
@@ -208,7 +208,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                       Expanded(
                         child: RichText(
                           text: TextSpan(
-                            text: comment.user.nickname ?? '',
+                            text: comment.user.nickname,
                             style: TextStyle(
                               fontSize: 15,
                               color: stringColor.withValues(alpha: 0.6),
@@ -216,7 +216,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                             children: [
                               TextSpan(
                                 text:
-                                    '\n${OtherUtils.formatDate2Str(comment.time ?? 0)}',
+                                    '\n${OtherUtils.formatDate2Str(comment.time)}',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: stringColor.withValues(alpha: 0.4),
@@ -229,13 +229,11 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                       Row(
                         children: [
                           Text(
-                            (comment.likedCount ?? 0) == 0
-                                ? ''
-                                : '${comment.likedCount ?? 0}',
+                            comment.likedCount == 0 ? '' : '${comment.likedCount}',
                             style: TextStyle(
                               fontSize: 10,
                               fontFamily: "monospace",
-                              color: comment.liked ?? false
+                              color: comment.liked
                                   ? Colors.red
                                   : stringColor.withValues(alpha: 0.4),
                             ),
@@ -251,25 +249,28 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                                   widget.id,
                                   widget.idType,
                                   comment.commentId,
-                                  !(comment.liked ?? false),
+                                  !comment.liked,
                                 )
                                     .then((value) {
                                   if (value.code == 200) {
                                     setState(() {
-                                      comment.liked = !(comment.liked ?? false);
-                                      comment.likedCount = comment.liked!
-                                          ? (comment.likedCount ?? 0) + 1
-                                          : (comment.likedCount ?? 0) - 1;
+                                      final liked = !comment.liked;
+                                      comment = comment.copyWith(
+                                        liked: liked,
+                                        likedCount: liked
+                                            ? comment.likedCount + 1
+                                            : comment.likedCount - 1,
+                                      );
                                     });
                                   }
                                 });
                               },
                               child: Icon(
-                                comment.liked ?? false
+                                comment.liked
                                     ? Icons.favorite
                                     : Icons.favorite_outline,
                                 size: 20,
-                                color: comment.liked ?? false
+                                color: comment.liked
                                     ? Colors.red
                                     : stringColor.withValues(alpha: 0.4),
                               ),
@@ -280,7 +281,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                     ],
                   ),
                   Text(
-                    (comment.content ?? '').replaceAll('\n', ''),
+                    comment.content.replaceAll('\n', ''),
                     style: TextStyle(
                       color: stringColor.withValues(alpha: 0.6),
                       fontSize: 15,
@@ -288,7 +289,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                   ).marginSymmetric(vertical: 10),
                   Offstage(
                     offstage: !isCommentOnCommentVisible,
-                    child: ValueListenableBuilder<PagedState<CommentItem>>(
+                    child: ValueListenableBuilder<PagedState<CommentData>>(
                       valueListenable: _floorController.state,
                       builder: (context, state, child) {
                         if (state.initialLoading) {
@@ -416,7 +417,7 @@ class FoolTalk extends StatefulWidget {
     required this.backGroundColor,
   });
 
-  final CommentItem commentItem;
+  final CommentData commentItem;
   final String id;
   final String type;
   final Color backGroundColor;
@@ -470,7 +471,7 @@ class _FoolTalkState extends State<FoolTalk> {
                   Row(
                     children: [
                       SimpleExtendedImage.avatar(
-                        '${widget.commentItem.user.avatarUrl ?? ''}?param=150y150',
+                        '${widget.commentItem.user.avatarUrl}?param=150y150',
                         width: 60,
                         height: 60,
                       ),
@@ -480,7 +481,7 @@ class _FoolTalkState extends State<FoolTalk> {
                       Expanded(
                         child: RichText(
                           text: TextSpan(
-                            text: widget.commentItem.user.nickname ?? '',
+                            text: widget.commentItem.user.nickname,
                             style: TextStyle(
                               fontSize: 28,
                               color: Theme.of(context).cardColor,
@@ -488,7 +489,7 @@ class _FoolTalkState extends State<FoolTalk> {
                             children: [
                               TextSpan(
                                 text:
-                                    ' (${OtherUtils.formatDate2Str(widget.commentItem.time ?? 0)}) ',
+                                    ' (${OtherUtils.formatDate2Str(widget.commentItem.time)}) ',
                                 style: const TextStyle(
                                   fontSize: 22,
                                   color: Colors.grey,
@@ -503,7 +504,7 @@ class _FoolTalkState extends State<FoolTalk> {
                   Padding(
                     padding: const EdgeInsets.only(top: 20, left: 80),
                     child: Text(
-                      (widget.commentItem.content ?? '').replaceAll('\n', ''),
+                      widget.commentItem.content.replaceAll('\n', ''),
                       style: const TextStyle(fontSize: 24),
                     ),
                   )
@@ -511,7 +512,7 @@ class _FoolTalkState extends State<FoolTalk> {
               ),
             ),
             Expanded(
-              child: ValueListenableBuilder<PagedState<CommentItem>>(
+              child: ValueListenableBuilder<PagedState<CommentData>>(
                 valueListenable: _controller.state,
                 builder: (context, state, child) {
                   if (state.initialLoading) {
@@ -581,7 +582,7 @@ class _FoolTalkState extends State<FoolTalk> {
     );
   }
 
-  Widget _buildItem(CommentItem comment) {
+  Widget _buildItem(CommentData comment) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
       child: Column(
@@ -590,7 +591,7 @@ class _FoolTalkState extends State<FoolTalk> {
           Row(
             children: [
               SimpleExtendedImage.avatar(
-                '${comment.user.avatarUrl ?? ''}?param=150y150',
+                '${comment.user.avatarUrl}?param=150y150',
                 width: 60,
                 height: 60,
               ),
@@ -598,15 +599,14 @@ class _FoolTalkState extends State<FoolTalk> {
               Expanded(
                 child: RichText(
                   text: TextSpan(
-                    text: comment.user.nickname ?? '',
+                    text: comment.user.nickname,
                     style: TextStyle(
                       fontSize: 28,
                       color: Theme.of(context).cardColor,
                     ),
                     children: [
                       TextSpan(
-                        text:
-                            ' (${OtherUtils.formatDate2Str(comment.time ?? 0)}) ',
+                        text: ' (${OtherUtils.formatDate2Str(comment.time)}) ',
                         style: const TextStyle(
                           fontSize: 22,
                           color: Colors.grey,
@@ -621,12 +621,12 @@ class _FoolTalkState extends State<FoolTalk> {
           Padding(
             padding: const EdgeInsets.only(top: 20, left: 80),
             child: Text(
-              (comment.content ?? '').replaceAll('\n', ''),
+              comment.content.replaceAll('\n', ''),
               style: const TextStyle(fontSize: 24),
             ),
           ),
           Visibility(
-            visible: (comment.replyCount ?? 0) > 0,
+            visible: comment.replyCount > 0,
             child: GestureDetector(
               child: Container(
                 margin: const EdgeInsets.only(left: 60),

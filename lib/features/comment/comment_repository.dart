@@ -4,6 +4,8 @@ import 'package:bujuan/data/netease/api/src/dio_ext.dart';
 import 'package:bujuan/data/netease/api/src/netease_api.dart';
 import 'package:bujuan/data/netease/api/src/netease_handler.dart';
 import 'package:bujuan/core/network/request_repository.dart';
+import 'package:bujuan/features/comment/comment_data.dart';
+import 'package:bujuan/features/comment/comment_mapper.dart';
 
 class CommentRepository {
   CommentRepository({RequestRepository? requestRepository})
@@ -33,7 +35,7 @@ class CommentRepository {
     );
     final wrap = CommentList2Wrap.fromJson(response.data);
     return CommentPage(
-      items: wrap.data.comments ?? const <CommentItem>[],
+      items: CommentMapper.fromItemList(wrap.data.comments ?? const <CommentItem>[]),
       hasMore: wrap.data.hasMore ?? false,
       nextCursor: wrap.data.cursor,
     );
@@ -54,7 +56,7 @@ class CommentRepository {
       limit: limit,
     );
     return FloorCommentPage(
-      items: wrap.data.comments ?? const <CommentItem>[],
+      items: CommentMapper.fromItemList(wrap.data.comments ?? const <CommentItem>[]),
       hasMore: wrap.data.hasMore ?? false,
       nextTime: wrap.data.time ?? -1,
     );
@@ -146,7 +148,7 @@ class CommentPage {
     required this.nextCursor,
   });
 
-  final List<CommentItem> items;
+  final List<CommentData> items;
   final bool hasMore;
   final String? nextCursor;
 }
@@ -158,7 +160,7 @@ class FloorCommentPage {
     required this.nextTime,
   });
 
-  final List<CommentItem> items;
+  final List<CommentData> items;
   final bool hasMore;
   final int nextTime;
 }

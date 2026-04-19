@@ -1,5 +1,5 @@
-import 'package:bujuan/data/netease/api/src/api/event/bean.dart';
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/features/comment/comment_data.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -17,7 +17,7 @@ class CommentListController {
   final int sortType;
   final int pageSize;
   final CommentRepository _repository;
-  final ValueNotifier<PagedState<CommentItem>> state =
+  final ValueNotifier<PagedState<CommentData>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _pageNo = 1;

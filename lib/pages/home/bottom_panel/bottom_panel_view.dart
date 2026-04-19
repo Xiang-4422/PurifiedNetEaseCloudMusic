@@ -463,8 +463,7 @@ class BottomPanelView extends GetView<AppController> {
 
   Widget _buildSongItem(MediaItem mediaItem, int index, BuildContext context) {
     return GestureDetector(
-      onTap: () => controller.audioHandler
-          .playIndex(audioSourceIndex: index, playNow: true),
+      onTap: () => controller.playerController.playQueueIndex(index),
       child: Obx(() => Container(
             color: Colors.transparent, // 加个颜色让透明区域也能点击
             alignment: AlignmentDirectional.centerStart,
@@ -839,7 +838,7 @@ class BottomPanelView extends GetView<AppController> {
           timeLabelLocation: TimeLabelLocation.below,
           // timeLabelPadding: 0,
           timeLabelTextStyle: const TextStyle(fontSize: 0),
-          onSeek: (duration) => controller.audioHandler.seek(duration),
+          onSeek: (duration) => controller.playerController.seekTo(duration),
         ));
   }
 
@@ -868,7 +867,7 @@ class BottomPanelView extends GetView<AppController> {
           // 上一首
           _buildButtonBackground(GestureDetector(
               onTap: () {
-                controller.audioHandler.skipToPrevious();
+                controller.playerController.skipToPreviousTrack();
               },
               child: Obx(
                 () => Icon(
@@ -891,7 +890,7 @@ class BottomPanelView extends GetView<AppController> {
           // 下一首
           _buildButtonBackground(GestureDetector(
               onTap: () {
-                controller.audioHandler.skipToNext();
+                controller.playerController.skipToNextTrack();
               },
               child: Obx(() => Icon(
                     TablerIcons.player_skip_forward_filled,
@@ -901,27 +900,7 @@ class BottomPanelView extends GetView<AppController> {
           // 循环模式
           _buildButtonBackground(GestureDetector(
               onTap: () async {
-                if (controller.isFmMode.isTrue) {
-                  // 漫游模式：直接返回
-                  return;
-                } else if (controller.isHeartBeatMode.isTrue) {
-                  // 心动模式：退出心动模式，并播放喜欢歌单，并切换到顺序播放
-                  controller.playerController.quitHeartBeatMode();
-                  await controller.audioHandler.changeRepeatMode(
-                      newRepeatMode: AudioServiceRepeatMode.all);
-                  controller.playerController.playUserLikedSongs();
-                  return;
-                } else if (controller.isPlayingLikedSongs.isTrue &&
-                    controller.audioHandler.curRepeatMode ==
-                        AudioServiceRepeatMode.none) {
-                  // 正在播放喜欢歌单：随机播放模式后再切换，开启心动模式
-                  controller.playerController.openHeartBeatMode(
-                    controller.curPlayingSong.value.id,
-                    fromPlayAll: false,
-                  );
-                } else {
-                  await controller.audioHandler.changeRepeatMode();
-                }
+                await controller.playerController.handleRepeatModeTap();
               },
               child: Obx(() => Icon(
                     controller.getRepeatIcon(),
@@ -1034,9 +1013,9 @@ class BottomPanelHeaderView extends GetView<AppController> {
                         child: Swipeable(
                           background: const SizedBox.shrink(),
                           onSwipeLeft: () =>
-                              controller.audioHandler.skipToPrevious(),
+                              controller.playerController.skipToPreviousTrack(),
                           onSwipeRight: () =>
-                              controller.audioHandler.skipToNext(),
+                              controller.playerController.skipToNextTrack(),
                           child: Obx(() => Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,

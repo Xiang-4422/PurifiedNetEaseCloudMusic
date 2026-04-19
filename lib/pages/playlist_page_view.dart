@@ -128,8 +128,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                             color: widgetColor.withValues(alpha: 0.05),
                             child: IconButton(
                               onPressed: () async {
-                                AppController.to.audioHandler.changeRepeatMode(
-                                    newRepeatMode: AudioServiceRepeatMode.all);
+                                await AppController.to.playerController
+                                    .setRepeatMode(AudioServiceRepeatMode.all);
                                 AppController.to.bottomPanelPageController
                                     .jumpToPage(0);
                                 AppController.to.bottomPanelController.open();
@@ -186,8 +186,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                             color: widgetColor.withValues(alpha: 0.05),
                             child: IconButton(
                               onPressed: () async {
-                                AppController.to.audioHandler.changeRepeatMode(
-                                    newRepeatMode: AudioServiceRepeatMode.none);
+                                await AppController.to.playerController
+                                    .setRepeatMode(AudioServiceRepeatMode.none);
                                 AppController.to.bottomPanelPageController
                                     .jumpToPage(0);
                                 AppController.to.bottomPanelController.open();

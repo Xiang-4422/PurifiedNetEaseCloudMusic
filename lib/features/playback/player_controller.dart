@@ -270,6 +270,54 @@ class PlayerController extends GetxController {
     isPlaying.value ? await audioHandler.pause() : await audioHandler.play();
   }
 
+  /// 播放列表切换先统一走播放控制器，避免页面继续直接触碰 `audioHandler`
+  /// 并各自处理模式退出逻辑。
+  Future<void> playPlaylist(
+    List<MediaItem> playList,
+    int index, {
+    String playListName = "无名歌单",
+    String playListNameHeader = "",
+  }) async {
+    if (isFmMode.isTrue) {
+      await quitFmMode(showToast: false);
+    }
+    if (isHeartBeatMode.isTrue) {
+      await quitHeartBeatMode(showToast: false);
+    }
+    await audioHandler.changePlayList(
+      playList,
+      index: index,
+      playListName: playListName,
+      playListNameHeader: playListNameHeader,
+      changePlayerSource: true,
+      playNow: true,
+    );
+  }
+
+  Future<void> playQueueIndex(int index) {
+    return audioHandler.playIndex(audioSourceIndex: index, playNow: true);
+  }
+
+  Future<void> seekTo(Duration position) {
+    return audioHandler.seek(position);
+  }
+
+  Future<void> skipToPreviousTrack() {
+    return audioHandler.skipToPrevious();
+  }
+
+  Future<void> skipToNextTrack() {
+    return audioHandler.skipToNext();
+  }
+
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) {
+    return audioHandler.changeRepeatMode(newRepeatMode: repeatMode);
+  }
+
+  Future<void> cycleRepeatMode() {
+    return audioHandler.changeRepeatMode();
+  }
+
   Future<void> openFmMode() async {
     await switchMode(PlaybackMode.roaming);
   }
@@ -320,6 +368,29 @@ class PlayerController extends GetxController {
       changePlayerSource: false,
       playNow: false,
     );
+  }
+
+  /// 重复模式按钮的行为已经带上“退出心动模式并回到喜欢歌单”等业务规则，
+  /// 放在页面里会持续复制分支并让播放模式判断再次散落。
+  Future<void> handleRepeatModeTap() async {
+    if (isFmMode.isTrue) {
+      return;
+    }
+    if (isHeartBeatMode.isTrue) {
+      quitHeartBeatMode();
+      await setRepeatMode(AudioServiceRepeatMode.all);
+      await playUserLikedSongs();
+      return;
+    }
+    if (isPlayingLikedSongs.isTrue &&
+        audioHandler.curRepeatMode == AudioServiceRepeatMode.none) {
+      await openHeartBeatMode(
+        curPlayingSong.value.id,
+        fromPlayAll: false,
+      );
+      return;
+    }
+    await cycleRepeatMode();
   }
 
   Future<void> switchMode(PlaybackMode newMode, {dynamic contextData}) async {

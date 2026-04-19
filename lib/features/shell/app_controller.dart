@@ -155,7 +155,7 @@ class AppController extends SuperController
     _albumDebounceTimer?.cancel();
     _albumDebounceTimer = Timer(const Duration(milliseconds: 300), () {
       if (curPlayIndex.value != index) {
-        audioHandler.playIndex(audioSourceIndex: index, playNow: true);
+        playerController.playQueueIndex(index);
       }
     });
   }
@@ -284,16 +284,12 @@ class AppController extends SuperController
   /// 发起播放；等这些入口迁完，再继续下沉到更细的播放用例层。
   playNewPlayList(List<MediaItem> playList, int index,
       {String playListName = "无名歌单", String playListNameHeader = ""}) async {
-    if (isFmMode.isTrue) await playerController.quitFmMode(showToast: false);
-    if (isHeartBeatMode.isTrue) {
-      await playerController.quitHeartBeatMode(showToast: false);
-    }
-    await audioHandler.changePlayList(playList,
-        index: index,
-        playListName: playListName,
-        playListNameHeader: playListNameHeader,
-        changePlayerSource: true,
-        playNow: true);
+    await playerController.playPlaylist(
+      playList,
+      index,
+      playListName: playListName,
+      playListNameHeader: playListNameHeader,
+    );
   }
 
   onBottomPanelSlide(double openDegree) {

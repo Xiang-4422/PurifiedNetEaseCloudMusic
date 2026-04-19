@@ -1,4 +1,4 @@
-import 'package:bujuan/common/netease_api/src/api/dj/bean.dart';
+import 'package:bujuan/data/netease/api/src/api/dj/bean.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:flutter/foundation.dart';

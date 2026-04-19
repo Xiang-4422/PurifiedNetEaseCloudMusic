@@ -1,8 +1,8 @@
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/data/mappers/netease_album_mapper.dart';
-import 'package:bujuan/data/mappers/netease_artist_mapper.dart';
-import 'package:bujuan/data/mappers/netease_playlist_mapper.dart';
-import 'package:bujuan/data/mappers/netease_track_mapper.dart';
+import 'package:bujuan/data/netease/api/netease_music_api.dart';
+import 'package:bujuan/data/netease/mappers/netease_album_mapper.dart';
+import 'package:bujuan/data/netease/mappers/netease_artist_mapper.dart';
+import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
+import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';

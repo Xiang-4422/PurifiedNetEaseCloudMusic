@@ -1,4 +1,4 @@
-import 'package:bujuan/common/netease_api/src/api/bean.dart';
+import 'package:bujuan/data/netease/api/src/api/bean.dart';
 
 class CloudEntity extends ServerStatusBean{
   // int? code;

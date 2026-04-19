@@ -407,7 +407,7 @@
 目标：
 
 - 建立独立于网易云 API Bean 的统一领域实体
-- 为多源与离线能力准备稳定的数据模型边界
+- 为网易云远程层、本地媒体能力与离线能力准备稳定的数据模型边界
 
 范围：
 
@@ -441,7 +441,7 @@
 - 已新增 `TrackLyrics`
 - 已新增第一版网易云到 `Track` 的映射器
 - 已新增 `lib/data/netease/netease_music_source.dart`
-- 已新增 source registry 与 library repository
+- `LibraryRepository` 已直接依赖网易云与本地 source，不再通过额外分发层中转
 - 已新增 `LocalLibraryDataSource` 协议
 - 已新增 `lib/data/local/local_music_source.dart`
 - 已新增 `lib/features/playback/playback_state_store.dart`
@@ -508,17 +508,17 @@
 - `PlayerController` 已通过统一仓库链路读取歌词
 - `AudioServiceHandler` 已通过统一仓库链路解析在线播放地址
 
-### Phase 6: 多源接入与离线
+### Phase 6: 本地媒体与离线
 
 目标：
 
-- 抽象统一 `MusicSource`
-- 支持远程源、本地源、离线文件共同服务于同一播放器
+- 固定网易云远程层与本地媒体能力的边界
+- 支持本地文件、离线资源与网易云内容共同服务于同一播放器
 
 任务：
 
-- 定义 `MusicSource` 协议
-- 将网易云接入改造成第一个 source 实现
+- 继续固定 `MusicSource` 的最小边界
+- 将网易云 API 归位到 `lib/data/netease`
 - 新增本地媒体源
 - 明确下载、离线缓存、无网络回退策略
 - 建立下载任务与资源生命周期规则
@@ -527,14 +527,14 @@
 
 验收标准：
 
-- 播放器可以消费不同 source 的统一实体
+- 播放器可以统一消费网易云内容、本地文件与离线资源
 - 本地扫描结果可进入统一媒体库
 - 已缓存或本地文件在无网络时仍可播放
 - `LocalMusicSource` 可完成本地扫描、入库、搜索与播放地址提供
 
 风险：
 
-- 多源能力差异较大，协议设计要允许能力缺失
+- 网易云远程层和本地媒体能力的边界如果继续混杂，会重新把平台细节带回页面与 feature
 - 离线状态和版权状态的表达需要提前设计
 
 ### Phase 7: 目录迁移与清理
@@ -564,7 +564,7 @@
 - 主干目录基本符合目标结构
 - 遗留总控逻辑明显减少
 - 常见业务链路都已完成本地优先化
-- 多源接入不再需要侵入页面层
+- 网易云平台接入不再侵入页面层
 
 风险：
 

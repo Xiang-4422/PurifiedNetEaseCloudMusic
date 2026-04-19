@@ -1,4 +1,4 @@
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/data/netease/api/netease_music_api.dart';
 
 class ExploreRepository {
   Future<PlaylistCatalogueWrap> fetchPlaylistCatalogue() {

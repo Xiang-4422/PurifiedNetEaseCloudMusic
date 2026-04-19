@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import '../../common/netease_api/src/api/dj/bean.dart';
+import '../../data/netease/api/src/api/dj/bean.dart';
 import '../../widget/simple_extended_image.dart';
 
 class MyRadioView extends StatefulWidget {

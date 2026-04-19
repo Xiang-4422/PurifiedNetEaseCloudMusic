@@ -1,4 +1,4 @@
-import 'package:bujuan/common/netease_api/src/api/event/bean.dart';
+import 'package:bujuan/data/netease/api/src/api/event/bean.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';

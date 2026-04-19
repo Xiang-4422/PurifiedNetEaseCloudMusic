@@ -5,7 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
+import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';

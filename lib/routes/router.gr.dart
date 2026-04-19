@@ -14,7 +14,7 @@
 import 'package:auto_route/auto_route.dart' as _i13;
 import 'package:flutter/material.dart' as _i14;
 
-import '../common/netease_api/src/api/play/bean.dart' as _i15;
+import '../data/netease/api/src/api/play/bean.dart' as _i15;
 import '../pages/album_page_view.dart' as _i8;
 import '../pages/artist_page_view.dart' as _i9;
 import '../pages/cloud_drive_view.dart' as _i12;

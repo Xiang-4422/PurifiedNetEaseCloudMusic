@@ -19,7 +19,7 @@ import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../common/netease_api/src/netease_api.dart';
+import '../../data/netease/api/src/netease_api.dart';
 
 /// 统一收口应用启动依赖，避免初始化逻辑继续散落到 `main.dart`
 /// 或页面侧，破坏本地优先链路对单例视图的一致性假设。

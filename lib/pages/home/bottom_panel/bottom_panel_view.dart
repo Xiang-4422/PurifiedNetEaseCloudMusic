@@ -19,7 +19,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import '../../../common/constants/appConstants.dart';
-import '../../../common/netease_api/src/api/play/bean.dart';
+import '../../../data/netease/api/src/api/play/bean.dart';
 import '../../../widget/simple_extended_image.dart';
 import '../../../widget/swipeable.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;

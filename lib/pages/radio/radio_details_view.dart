@@ -8,7 +8,7 @@ import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import '../../common/netease_api/src/api/dj/bean.dart';
+import '../../data/netease/api/src/api/dj/bean.dart';
 
 class RadioDetailsView extends StatefulWidget {
   const RadioDetailsView({Key? key}) : super(key: key);

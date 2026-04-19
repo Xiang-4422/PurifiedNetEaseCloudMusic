@@ -11,7 +11,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import '../../common/netease_api/src/api/event/bean.dart';
+import '../../data/netease/api/src/api/event/bean.dart';
 import '../../widget/simple_extended_image.dart';
 
 class CommentWidget extends StatefulWidget {

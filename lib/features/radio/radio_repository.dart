@@ -1,6 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/data/netease/api/netease_music_api.dart';
 
 class RadioRepository {
   Future<DjRadioPage> fetchSubscribedRadios({

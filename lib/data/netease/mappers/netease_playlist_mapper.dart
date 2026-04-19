@@ -1,4 +1,4 @@
-import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
+import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_track_ref.dart';
 import 'package:bujuan/domain/entities/source_type.dart';

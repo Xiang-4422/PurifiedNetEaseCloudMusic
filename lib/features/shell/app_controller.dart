@@ -5,7 +5,7 @@ import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
+import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/user/user_controller.dart';

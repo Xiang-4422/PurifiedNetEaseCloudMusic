@@ -1,9 +1,9 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/netease_api/src/api/play/bean.dart';
-import 'package:bujuan/common/netease_api/src/netease_api.dart';
-import 'package:bujuan/data/mappers/netease_album_mapper.dart';
-import 'package:bujuan/data/mappers/netease_artist_mapper.dart';
-import 'package:bujuan/data/mappers/netease_track_mapper.dart';
+import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
+import 'package:bujuan/data/netease/api/src/netease_api.dart';
+import 'package:bujuan/data/netease/mappers/netease_album_mapper.dart';
+import 'package:bujuan/data/netease/mappers/netease_artist_mapper.dart';
+import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:get_it/get_it.dart';

@@ -1,6 +1,6 @@
-import 'package:bujuan/common/netease_api/src/api/bean.dart';
-import 'package:bujuan/common/netease_api/src/api/login/bean.dart';
-import 'package:bujuan/common/netease_api/src/netease_api.dart';
+import 'package:bujuan/data/netease/api/src/api/bean.dart';
+import 'package:bujuan/data/netease/api/src/api/login/bean.dart';
+import 'package:bujuan/data/netease/api/src/netease_api.dart';
 
 import 'auth_state_store.dart';
 

@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/netease_api/src/api/bean.dart';
+import 'package:bujuan/data/netease/api/src/api/bean.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/common/netease_api/netease_music_api.dart';
-import 'package:bujuan/data/mappers/netease_playlist_mapper.dart';
-import 'package:bujuan/data/mappers/netease_track_mapper.dart';
+import 'package:bujuan/data/netease/api/netease_music_api.dart';
+import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
+import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:get_it/get_it.dart';

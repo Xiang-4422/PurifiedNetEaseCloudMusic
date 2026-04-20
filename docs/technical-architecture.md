@@ -489,6 +489,7 @@ lib/
   - 已开始承接稳定基础设施能力，当前已包含 `database / network / storage / playback`
 - `lib/data`
   - 数据层实现细节，当前已包含 `local / netease`，远程平台代码统一归位到 `data/netease`
+  - `features/**` 不再直接 import `NeteaseMusicApi` 或 `netease_api.dart`
 - `lib/domain`
   - 统一领域实体
 - `lib/features`

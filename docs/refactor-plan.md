@@ -281,6 +281,7 @@
 - 已新增第一版 `NeteaseMusicSource`
 - 已建立 `NeteaseMusicSource`、`LocalMusicSource` 与 `LibraryRepository` 骨架
 - 播放歌词和在线播放地址已改由 `PlaybackRepository -> LibraryRepository -> NeteaseMusicSource / LocalMusicSource` 获取
+- `feature repository -> 网易云 API` 直连已全部下沉到 `data/netease/**`，`features/**` 不再直接 import `NeteaseMusicApi`
 - 专辑页、歌手页和部分用户歌曲链路已改为通过统一实体构建 `MediaItem`
 - 歌单页路由参数已改为 `playlistId / playlistName / coverUrl / trackCount`，页面不再直接依赖网易云 `PlayList` bean
 - 用户资料页与 `UserProfileController` 已改为消费 feature 自己的用户资料模型，不再直接依赖 `NeteaseUserDetail`
@@ -733,3 +734,11 @@
 - 完成内容：引入 `Isar`、`isar_generator` 与 `isar_flutter_libs`；新增 `IsarAppDatabase`、`IsarPlaybackRestoreDataSource` 与 `IsarPlaybackRestoreSnapshotEntity`，应用启动默认切到 `IsarAppDatabase`，播放恢复态已开始使用 `Isar` 作为正式数据库实现
 - 风险或阻塞：当前正式数据库只接入了恢复态，媒体库、资源索引、下载任务仍沿用原持久化实现；`build_runner` 现阶段只用于 `Isar` 实体生成，旧网易云 `bean.g.dart` 仍需保留现状
 - 下一步：继续把资源索引和下载任务接到正式数据库实现，并清理剩余 feature repository 的网易云 API 直连
+
+#### 2026-04-20
+
+- 阶段：`Phase 1`
+- 状态：`In Progress`
+- 完成内容：新增 `netease_playlist_remote_data_source`、`netease_user_remote_data_source`、`netease_comment_remote_data_source`，将 `playlist / user / comment` 三条链路的网易云远程访问继续下沉到 `data/netease`；当前 `lib/features/**` 已不再直接 import `NeteaseMusicApi` 或 `netease_api.dart`
+- 风险或阻塞：虽然 feature 层已经切断对网易云 API 的直连，但 `data/netease` 内部仍保留一批原始 bean 和平台协议实现，后续还需要继续围绕数据库落地和本地优先策略做分层整理
+- 下一步：继续把正式数据库扩到资源索引和下载任务，并逐步让更多 feature 走本地优先读取与回写

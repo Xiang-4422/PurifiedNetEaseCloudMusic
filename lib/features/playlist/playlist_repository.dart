@@ -1,11 +1,6 @@
-import 'dart:math';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/operation_result.dart';
-import 'package:bujuan/data/netease/api/netease_music_api.dart';
-import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
-import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/data/netease/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:get_it/get_it.dart';
 
@@ -43,29 +38,30 @@ class PlaylistRepository {
   PlaylistRepository({
     PlaylistCacheStore? cacheStore,
     LibraryRepository? libraryRepository,
+    NeteasePlaylistRemoteDataSource? remoteDataSource,
   })  : _cacheStore = cacheStore ?? const PlaylistCacheStore(),
         _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository());
+                : LibraryRepository()),
+        _remoteDataSource =
+            remoteDataSource ?? const NeteasePlaylistRemoteDataSource();
 
   final PlaylistCacheStore _cacheStore;
   final LibraryRepository _libraryRepository;
+  final NeteasePlaylistRemoteDataSource _remoteDataSource;
 
   Future<PlaylistSnapshotData> fetchPlaylistSnapshot(String playlistId) async {
-    final wrap = await NeteaseMusicApi().playListDetail(playlistId);
-    final playlist = wrap.playlist;
-    if (playlist != null) {
-      await _libraryRepository.savePlaylists(
-        [NeteasePlaylistMapper.fromPlaylist(playlist)],
-      );
+    final snapshot = await _remoteDataSource.fetchPlaylistSnapshot(playlistId);
+    if (snapshot.playlist != null) {
+      await _libraryRepository.savePlaylists([snapshot.playlist!]);
     }
     return PlaylistSnapshotData(
       id: playlistId,
-      name: playlist?.name ?? '无名歌单',
-      trackIds: playlist?.trackIds?.map((track) => track.id).toList() ?? const [],
-      isSubscribed: playlist?.subscribed ?? false,
-      creatorUserId: playlist?.creator?.userId,
+      name: snapshot.name,
+      trackIds: snapshot.trackIds,
+      isSubscribed: snapshot.isSubscribed,
+      creatorUserId: snapshot.creatorUserId,
     );
   }
 
@@ -78,37 +74,17 @@ class PlaylistRepository {
   }) async {
     playlistSnapshot ??= await fetchPlaylistSnapshot(playlistId);
     final songIds = playlistSnapshot.trackIds;
-
     if (offset >= songIds.length) {
       return const [];
     }
-
-    final targetIds = songIds.sublist(offset);
-    final fetchCount =
-        limit == -1 || targetIds.length < limit ? targetIds.length : limit;
-    final resolvedIds = targetIds.take(fetchCount).toList();
-
-    final songs = <MediaItem>[];
-    var loadedSongCount = 0;
-    while (loadedSongCount < resolvedIds.length) {
-      final wrap = await NeteaseMusicApi().songDetail(
-        resolvedIds.sublist(
-          loadedSongCount,
-          min(loadedSongCount + 1000, resolvedIds.length),
-        ),
-      );
-      final tracks = NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []);
-      songs.addAll(
-        MediaItemMapper.fromTrackList(
-          tracks,
-          likedSongIds: likedSongIds,
-        ),
-      );
-      await _libraryRepository.saveTracks(tracks);
-      loadedSongCount = songs.length;
-    }
-
-    return songs;
+    final result = await _remoteDataSource.fetchPlaylistSongs(
+      songIds: songIds,
+      offset: offset,
+      limit: limit,
+      likedSongIds: likedSongIds,
+    );
+    await _libraryRepository.saveTracks(result.tracks);
+    return result.mediaItems;
   }
 
   Future<List<MediaItem>?> loadCachedSongs(String playlistId) async {
@@ -148,10 +124,12 @@ class PlaylistRepository {
     String playlistId, {
     required bool subscribe,
   }) async {
-    final result = await NeteaseMusicApi()
-        .subscribePlayList(playlistId, subscribe: subscribe);
+    final result = await _remoteDataSource.toggleSubscription(
+      playlistId,
+      subscribe: subscribe,
+    );
     return OperationResult(
-      success: result.code == 200,
+      success: result.success,
       message: result.message,
     );
   }
@@ -161,10 +139,13 @@ class PlaylistRepository {
     String songId, {
     required bool add,
   }) async {
-    final result =
-        await NeteaseMusicApi().playlistManipulateTracks(playlistId, songId, add);
+    final result = await _remoteDataSource.manipulateTracks(
+      playlistId,
+      songId,
+      add: add,
+    );
     return OperationResult(
-      success: result.code == 200,
+      success: result.success,
       message: result.message,
     );
   }

@@ -1,16 +1,13 @@
 import 'package:bujuan/core/network/operation_result.dart';
-import 'package:bujuan/data/netease/mappers/netease_comment_mapper.dart';
-import 'package:bujuan/data/netease/api/src/dio_ext.dart';
-import 'package:bujuan/data/netease/api/src/netease_api.dart';
-import 'package:bujuan/data/netease/api/src/netease_handler.dart';
-import 'package:bujuan/core/network/request_repository.dart';
+import 'package:bujuan/data/netease/netease_comment_remote_data_source.dart';
 import 'package:bujuan/features/comment/comment_data.dart';
 
 class CommentRepository {
-  CommentRepository({RequestRepository? requestRepository})
-      : _requestRepository = requestRepository ?? RequestRepository();
+  CommentRepository({NeteaseCommentRemoteDataSource? remoteDataSource})
+      : _remoteDataSource =
+            remoteDataSource ?? NeteaseCommentRemoteDataSource();
 
-  final RequestRepository _requestRepository;
+  final NeteaseCommentRemoteDataSource _remoteDataSource;
 
   Future<CommentPage> fetchComments(
     String id,
@@ -21,18 +18,15 @@ class CommentRepository {
     int? sortType,
     String? cursor,
   }) async {
-    final response = await _requestRepository.post(
-      _commentListRequest(
-        id,
-        type,
-        pageNo: pageNo,
-        pageSize: pageSize,
-        showInner: showInner,
-        sortType: sortType,
-        cursor: cursor,
-      ),
+    final page = await _remoteDataSource.fetchComments(
+      id,
+      type,
+      pageNo: pageNo,
+      pageSize: pageSize,
+      showInner: showInner,
+      sortType: sortType ?? 99,
+      cursor: cursor ?? '0',
     );
-    final page = NeteaseCommentMapper.fromCommentListResponse(response.data);
     return CommentPage(
       items: page.items,
       hasMore: page.hasMore,
@@ -47,14 +41,13 @@ class CommentRepository {
     int time = -1,
     int limit = 20,
   }) async {
-    final wrap = await NeteaseMusicApi().floorComments(
+    final page = await _remoteDataSource.fetchFloorComments(
       id,
       type,
       parentCommentId,
       time: time,
       limit: limit,
     );
-    final page = NeteaseCommentMapper.fromFloorCommentResponse(wrap);
     return FloorCommentPage(
       items: page.items,
       hasMore: page.hasMore,
@@ -69,7 +62,7 @@ class CommentRepository {
     required String content,
     String? commentId,
   }) async {
-    final result = await NeteaseMusicApi().comment(
+    final result = await _remoteDataSource.sendComment(
       id,
       type,
       operation,
@@ -77,7 +70,7 @@ class CommentRepository {
       commentId: commentId,
     );
     return OperationResult(
-      success: result.code == 200,
+      success: result.success,
       message: result.message,
     );
   }
@@ -88,63 +81,15 @@ class CommentRepository {
     String commentId,
     bool like,
   ) async {
-    final result = await NeteaseMusicApi().likeComment(
+    final result = await _remoteDataSource.toggleCommentLike(
       id,
-      commentId,
       type,
+      commentId,
       like,
-      threadId: _typeKey(type) + id,
     );
     return OperationResult(
-      success: result.code == 200,
+      success: result.success,
       message: result.message,
-    );
-  }
-
-  String _typeKey(String type) {
-    switch (type) {
-      case 'mv':
-        return 'R_MV_5_';
-      case 'playlist':
-        return 'A_PL_0_';
-      case 'album':
-        return 'R_AL_3_';
-      case 'dj':
-        return 'A_DJ_1_';
-      case 'video':
-        return 'R_VI_62_';
-      case 'event':
-        return 'A_EV_2_';
-      case 'song':
-      default:
-        return 'R_SO_4_';
-    }
-  }
-
-  DioMetaData _commentListRequest(
-    String id,
-    String type, {
-    required int pageNo,
-    required int pageSize,
-    required bool showInner,
-    required int? sortType,
-    required String? cursor,
-  }) {
-    return DioMetaData(
-      joinUri('/api/v2/resource/comments'),
-      data: {
-        'threadId': _typeKey(type) + id,
-        'pageNo': pageNo,
-        'pageSize': pageSize,
-        'showInner': showInner,
-        'sortType': sortType ?? 99,
-        'cursor': cursor ?? '0',
-      },
-      options: joinOptions(
-        encryptType: EncryptType.EApi,
-        eApiUrl: '/api/v2/resource/comments',
-        cookies: const {'os': 'pc'},
-      ),
     );
   }
 }

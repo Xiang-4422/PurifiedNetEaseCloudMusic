@@ -269,9 +269,9 @@ class CoverFlowCardItems extends StatelessWidget {
     double centerOffset = isLeftCard ? cardSize / 2 : -cardSize / 2;
 
     return Matrix4.identity()
-      ..translate(-centerOffset)
+      ..translateByDouble(-centerOffset, 0, 0, 1)
       ..setEntry(3, 2, 0.001)
       ..rotateY(angle)
-      ..translate(centerOffset);
+      ..translateByDouble(centerOffset, 0, 0, 1);
   }
 }

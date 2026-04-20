@@ -34,8 +34,8 @@ class Style4Widget extends StatelessWidget {
         Transform(
           transform: Matrix4.identity()
             ..setEntry(3, 2, 0.0009)
-            ..translate(xPosition)
-            ..scale(scalePercentage)
+            ..translateByDouble(xPosition, 0, 0, 1)
+            ..scaleByDouble(scalePercentage, scalePercentage, 1, 1)
             ..rotateY(-yAngle),
           alignment: isRtl ? Alignment.centerRight : Alignment.centerLeft,
           child: mainScreenWidget,

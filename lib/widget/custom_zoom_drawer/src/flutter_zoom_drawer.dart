@@ -528,7 +528,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
       child: Transform(
         transform: Matrix4.translationValues(xPosition, yPosition, 0.0)
           ..rotateZ(rotationAngle)
-          ..scale(scalePercentage, scalePercentage),
+          ..scaleByDouble(scalePercentage, scalePercentage, 1, 1),
         alignment: widget.isRtl ? Alignment.centerRight : Alignment.centerLeft,
       
         // We exclude mainScreen from ClipRRect because it already has borderRadius applied
@@ -584,7 +584,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
     if (widget.menuScreenOverlayColor != null) {
       final overlayColor = ColorTween(
         begin: widget.menuScreenOverlayColor,
-        end: widget.menuScreenOverlayColor!.withOpacity(0.0),
+        end: widget.menuScreenOverlayColor!.withValues(alpha: 0.0),
       );
 
       menuScreen = ColorFiltered(
@@ -624,7 +624,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
     // Add layer - Overlay color
     if (widget.mainScreenOverlayColor != null) {
       final overlayColor = ColorTween(
-        begin: widget.mainScreenOverlayColor!.withOpacity(0.0),
+        begin: widget.mainScreenOverlayColor!.withValues(alpha: 0.0),
         end: widget.mainScreenOverlayColor,
       );
       mainScreen = ColorFiltered(
@@ -656,7 +656,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
           boxShadow: widget.boxShadow ??
               [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   blurRadius: 5,
                 )
               ],

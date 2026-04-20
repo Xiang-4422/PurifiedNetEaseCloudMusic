@@ -31,8 +31,8 @@ class Style2Widget extends StatelessWidget {
         menuScreenWidget,
         Transform(
           transform: Matrix4.identity()
-            ..translate(xPosition, yPosition)
-            ..scale(scalePercentage),
+            ..translateByDouble(xPosition, yPosition, 0, 1)
+            ..scaleByDouble(scalePercentage, scalePercentage, 1, 1),
           alignment: Alignment.center,
           child: mainScreenWidget,
         ),

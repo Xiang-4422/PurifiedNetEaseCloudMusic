@@ -22,7 +22,7 @@ class MyTabBar extends StatelessWidget implements PreferredSizeWidget{
         indicatorWeight: 0,
         indicatorSize: TabBarIndicatorSize.tab,
         indicator: BoxDecoration(
-          color: widgetColor.withOpacity(0.1),
+          color: widgetColor.withValues(alpha: 0.1),
           // 去极大值，让左右均为半圆
           borderRadius: BorderRadius.circular((1 << 20).toDouble()),
         ),
@@ -64,4 +64,3 @@ class MyTabBarItemAnimatedSwitcher extends StatelessWidget {
   }
 
 }
-

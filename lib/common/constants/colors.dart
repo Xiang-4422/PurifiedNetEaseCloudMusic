@@ -6,7 +6,7 @@ class AppTheme {
   static ThemeData light = ThemeData.light().copyWith(
       colorScheme: ThemeData.light().colorScheme.copyWith(
         primary: primary,
-        onPrimary: onPrimary.withOpacity(0.8),
+        onPrimary: onPrimary.withValues(alpha: 0.8),
         secondary: secondary,
         onSecondary: onSecondary,
         surface: surface,
@@ -69,7 +69,7 @@ class AppTheme {
   static ThemeData dark = ThemeData.dark().copyWith(
       colorScheme: ThemeData.dark().colorScheme.copyWith(
             primary: primaryDark,
-            onPrimary: onPrimaryDark.withOpacity(0.8),
+            onPrimary: onPrimaryDark.withValues(alpha: 0.8),
             secondary: onSecondary,
             onSecondary: secondary,
             surface: surfaceDark,

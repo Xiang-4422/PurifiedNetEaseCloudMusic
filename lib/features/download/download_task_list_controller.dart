@@ -71,6 +71,47 @@ class DownloadTaskListController {
     await _reload();
   }
 
+  Future<void> retryAllFailedTasks({
+    bool preferHighQuality = true,
+  }) async {
+    final failedTasks = await _repository.getTasks(
+      statuses: const {
+        DownloadTaskStatus.failed,
+      },
+    );
+    for (final task in failedTasks) {
+      await _repository.retryTask(
+        task.trackId,
+        preferHighQuality: preferHighQuality,
+      );
+    }
+    await _reload();
+  }
+
+  Future<void> clearFailedTasks() async {
+    final failedTasks = await _repository.getTasks(
+      statuses: const {
+        DownloadTaskStatus.failed,
+      },
+    );
+    for (final task in failedTasks) {
+      await _repository.clearTask(task.trackId);
+    }
+    await _reload();
+  }
+
+  Future<void> clearCompletedTasks() async {
+    final completedTasks = await _repository.getTasks(
+      statuses: const {
+        DownloadTaskStatus.completed,
+      },
+    );
+    for (final task in completedTasks) {
+      await _repository.clearTask(task.trackId);
+    }
+    await _reload();
+  }
+
   Future<void> _reload() async {
     try {
       await _publishTasks(await _repository.getTasks(statuses: statuses));

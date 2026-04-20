@@ -18,6 +18,9 @@ class DownloadTaskPageView extends StatefulWidget {
 
 class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
   late final DownloadTaskListController _controller;
+  static const _retryFailedAction = 'retry_failed';
+  static const _clearFailedAction = 'clear_failed';
+  static const _clearCompletedAction = 'clear_completed';
 
   @override
   void initState() {
@@ -37,6 +40,49 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('下载管理'),
+        actions: [
+          ValueListenableBuilder<LoadState<List<DownloadTaskListItemData>>>(
+            valueListenable: _controller.state,
+            builder: (context, state, child) {
+              if (!state.hasData) {
+                return const SizedBox.shrink();
+              }
+
+              final items = state.data!;
+              final hasFailed = items.any(
+                (item) => item.task.status == DownloadTaskStatus.failed,
+              );
+              final hasCompleted = items.any(
+                (item) => item.task.status == DownloadTaskStatus.completed,
+              );
+              if (!hasFailed && !hasCompleted) {
+                return const SizedBox.shrink();
+              }
+
+              return PopupMenuButton<String>(
+                tooltip: '批量操作',
+                onSelected: _handleBulkAction,
+                itemBuilder: (context) => [
+                  if (hasFailed)
+                    const PopupMenuItem<String>(
+                      value: _retryFailedAction,
+                      child: Text('重试全部失败任务'),
+                    ),
+                  if (hasFailed)
+                    const PopupMenuItem<String>(
+                      value: _clearFailedAction,
+                      child: Text('清除失败记录'),
+                    ),
+                  if (hasCompleted)
+                    const PopupMenuItem<String>(
+                      value: _clearCompletedAction,
+                      child: Text('清除已完成记录'),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: ValueListenableBuilder<LoadState<List<DownloadTaskListItemData>>>(
         valueListenable: _controller.state,
@@ -80,6 +126,20 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
         },
       ),
     );
+  }
+
+  Future<void> _handleBulkAction(String action) async {
+    switch (action) {
+      case _retryFailedAction:
+        await _controller.retryAllFailedTasks();
+        break;
+      case _clearFailedAction:
+        await _controller.clearFailedTasks();
+        break;
+      case _clearCompletedAction:
+        await _controller.clearCompletedTasks();
+        break;
+    }
   }
 }
 

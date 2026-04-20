@@ -25,15 +25,18 @@ class DriftDownloadTaskDataSource implements DownloadTaskDataSource {
   Future<List<domain.DownloadTask>> getTasks({
     Set<domain.DownloadTaskStatus>? statuses,
   }) async {
-    final rows = await (_database.select(_database.downloadTasks)
-          ..orderBy([
-            (tbl) => drift.OrderingTerm.desc(tbl.updatedAtMs),
-          ]))
-        .get();
-    return rows
-        .map(_mapRow)
-        .where((task) => statuses == null || statuses.contains(task.status))
-        .toList();
+    return _buildTaskQuery(statuses: statuses).get().then(
+          (rows) => rows.map(_mapRow).toList(),
+        );
+  }
+
+  @override
+  Stream<List<domain.DownloadTask>> watchTasks({
+    Set<domain.DownloadTaskStatus>? statuses,
+  }) {
+    return _buildTaskQuery(statuses: statuses).watch().map(
+          (rows) => rows.map(_mapRow).toList(),
+        );
   }
 
   @override
@@ -73,5 +76,20 @@ class DriftDownloadTaskDataSource implements DownloadTaskDataSource {
       lyricsPath: row.lyricsPath,
       failureReason: row.failureReason,
     );
+  }
+
+  drift.Selectable<DownloadTask> _buildTaskQuery({
+    Set<domain.DownloadTaskStatus>? statuses,
+  }) {
+    final query = _database.select(_database.downloadTasks)
+      ..orderBy([
+        (tbl) => drift.OrderingTerm.desc(tbl.updatedAtMs),
+      ]);
+    if (statuses != null && statuses.isNotEmpty) {
+      query.where(
+        (tbl) => tbl.status.isIn(statuses.map((item) => item.name)),
+      );
+    }
+    return query;
   }
 }

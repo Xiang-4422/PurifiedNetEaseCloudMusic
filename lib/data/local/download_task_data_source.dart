@@ -7,6 +7,10 @@ abstract class DownloadTaskDataSource {
     Set<DownloadTaskStatus>? statuses,
   });
 
+  Stream<List<DownloadTask>> watchTasks({
+    Set<DownloadTaskStatus>? statuses,
+  });
+
   Future<void> saveTask(DownloadTask task);
 
   Future<void> removeTask(String trackId);

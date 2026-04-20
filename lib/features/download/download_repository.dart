@@ -221,6 +221,12 @@ class DownloadRepository {
     return _taskDataSource.getTasks(statuses: statuses);
   }
 
+  Stream<List<DownloadTask>> watchTasks({
+    Set<DownloadTaskStatus>? statuses,
+  }) {
+    return _taskDataSource.watchTasks(statuses: statuses);
+  }
+
   Future<List<DownloadTask>> getActiveTasks() {
     return getTasks(
       statuses: const {

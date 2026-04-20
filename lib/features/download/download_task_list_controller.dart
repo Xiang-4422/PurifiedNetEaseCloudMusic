@@ -3,6 +3,7 @@ import 'package:bujuan/domain/entities/download_task.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 
 import 'download_repository.dart';
 
@@ -27,11 +28,21 @@ class DownloadTaskListController {
   final DownloadRepository _repository;
   final LibraryRepository _libraryRepository;
   final Set<DownloadTaskStatus>? statuses;
+  StreamSubscription<List<DownloadTask>>? _tasksSubscription;
   final ValueNotifier<LoadState<List<DownloadTaskListItemData>>> state =
       ValueNotifier(const LoadState.loading());
 
   Future<void> loadInitial() async {
     state.value = const LoadState.loading();
+    await _tasksSubscription?.cancel();
+    _tasksSubscription = _repository
+        .watchTasks(statuses: statuses)
+        .listen(_publishTasks, onError: (error, stackTrace) {
+      state.value = LoadState.error(
+        error,
+        stackTrace: stackTrace is StackTrace ? stackTrace : null,
+      );
+    });
     await _reload();
   }
 
@@ -62,21 +73,7 @@ class DownloadTaskListController {
 
   Future<void> _reload() async {
     try {
-      final tasks = await _repository.getTasks(statuses: statuses);
-      if (tasks.isEmpty) {
-        state.value = const LoadState.empty();
-        return;
-      }
-      final itemData = <DownloadTaskListItemData>[];
-      for (final task in tasks) {
-        itemData.add(
-          DownloadTaskListItemData(
-            task: task,
-            track: await _libraryRepository.getTrack(task.trackId),
-          ),
-        );
-      }
-      state.value = LoadState.data(itemData);
+      await _publishTasks(await _repository.getTasks(statuses: statuses));
     } catch (error, stackTrace) {
       state.value = LoadState.error(
         error,
@@ -85,7 +82,25 @@ class DownloadTaskListController {
     }
   }
 
+  Future<void> _publishTasks(List<DownloadTask> tasks) async {
+    if (tasks.isEmpty) {
+      state.value = const LoadState.empty();
+      return;
+    }
+    final itemData = <DownloadTaskListItemData>[];
+    for (final task in tasks) {
+      itemData.add(
+        DownloadTaskListItemData(
+          task: task,
+          track: await _libraryRepository.getTrack(task.trackId),
+        ),
+      );
+    }
+    state.value = LoadState.data(itemData);
+  }
+
   void dispose() {
+    _tasksSubscription?.cancel();
     state.dispose();
   }
 }

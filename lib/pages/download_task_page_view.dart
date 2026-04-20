@@ -110,6 +110,21 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
   }
 
   Future<void> _handleBulkAction(String action) async {
+    final requiresConfirmation = switch (action) {
+      _cancelActiveAction => true,
+      _clearFailedAction => true,
+      _removeDownloadedAction => true,
+      _clearCompletedAction => true,
+      _retryFailedAction => false,
+      _ => false,
+    };
+    if (requiresConfirmation) {
+      final confirmed = await _confirmBulkAction(action);
+      if (!confirmed) {
+        return;
+      }
+    }
+
     final controller = DownloadTaskListController();
     try {
       switch (action) {
@@ -132,6 +147,34 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
     } finally {
       controller.dispose();
     }
+  }
+
+  Future<bool> _confirmBulkAction(String action) async {
+    final (title, content) = switch (action) {
+      _cancelActiveAction => ('取消全部进行中任务', '这会停止当前排队中和下载中的任务。'),
+      _clearFailedAction => ('清除失败记录', '这只会删除失败任务记录，不会删除本地文件。'),
+      _removeDownloadedAction => ('删除全部已下载文件', '这会删除所有已下载的本地文件和对应下载记录。'),
+      _clearCompletedAction => ('清除已完成记录', '这只会删除已完成任务记录，不会删除本地文件。'),
+      _ => ('确认操作', '确定继续执行这个批量操作吗？'),
+    };
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('继续'),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
   }
 }
 

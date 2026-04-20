@@ -9,6 +9,7 @@ import 'package:bujuan/features/album/album_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
+import 'package:bujuan/widget/artwork_display.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -51,7 +52,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
         albumSongs
           ..clear()
           ..addAll(localDetail.albumSongs);
-        await _updateAlbumColor(album.artworkUrl);
+        await _updateAlbumColor(_resolvedArtworkUrl);
         if (!mounted) {
           return;
         }
@@ -176,7 +177,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
               background: SimpleExtendedImage(
                 width: context.width,
                 height: context.width,
-                album.artworkUrl ?? '',
+                _resolvedArtworkUrl ?? '',
               ),
             ),
             // bottom:
@@ -221,7 +222,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumSongs
       ..clear()
       ..addAll(albumDetail.albumSongs);
-    await _updateAlbumColor(album.artworkUrl);
+    await _updateAlbumColor(_resolvedArtworkUrl);
     if (!mounted) {
       return;
     }
@@ -234,4 +235,9 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumColor = await OtherUtils.getImageColor(artworkPath);
     onAlbumColor = albumColor.invertedColor;
   }
+
+  String? get _resolvedArtworkUrl => ArtworkDisplay.resolvePreferredArtwork(
+        album.artworkUrl,
+        fallbackItems: albumSongs,
+      );
 }

@@ -13,6 +13,7 @@ import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
+import 'package:bujuan/widget/artwork_display.dart';
 import 'package:bujuan/widget/data_widget.dart';
 //
 import 'package:flutter/material.dart';
@@ -63,7 +64,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
         hotAlbums
           ..clear()
           ..addAll(localDetail.hotAlbums);
-        await _updateArtistColor(artist.artworkUrl);
+        await _updateArtistColor(_resolvedArtworkUrl);
         if (!mounted) {
           return;
         }
@@ -172,7 +173,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                 background: SimpleExtendedImage(
                   width: context.width,
                   height: context.width,
-                  artist.artworkUrl ?? '',
+                  _resolvedArtworkUrl ?? '',
                 ),
               ),
               // bottom:
@@ -218,7 +219,10 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                                 shape: BoxShape.rectangle,
                                 borderRadius: BorderRadius.circular(
                                     AppDimensions.paddingMedium),
-                                '${hotAlbums[index].artworkUrl ?? ''}?param=200y200'),
+                                ArtworkDisplay.resolvePreferredArtwork(
+                                      hotAlbums[index].artworkUrl,
+                                    ) ??
+                                    ''),
                             Expanded(
                                 child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,7 +310,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     hotAlbums
       ..clear()
       ..addAll(artistDetail.hotAlbums);
-    await _updateArtistColor(artist.artworkUrl);
+    await _updateArtistColor(_resolvedArtworkUrl);
     if (!mounted) {
       return;
     }
@@ -319,4 +323,9 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     albumColor = await OtherUtils.getImageColor(artworkPath);
     onAlbumColor = albumColor.invertedColor;
   }
+
+  String? get _resolvedArtworkUrl => ArtworkDisplay.resolvePreferredArtwork(
+        artist.artworkUrl,
+        fallbackItems: topSongs,
+      );
 }

@@ -7,6 +7,7 @@ import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
+import 'package:bujuan/widget/artwork_display.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -119,7 +120,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                       background: SimpleExtendedImage(
                         width: context.width,
                         height: context.width,
-                        coverUrl ?? '',
+                        _resolvedCoverUrl ?? '',
                       ),
                     ),
                     bottom: PreferredSize(
@@ -325,7 +326,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       loadedMediaItemCount = songs.length;
       isSubscribed = localDetail.isSubscribed;
       isMyPlayList = localDetail.isMyPlayList;
-      await _updateArtworkColors(coverUrl);
+      await _updateArtworkColors(_resolvedCoverUrl);
       if (mounted) {
         setState(() {
           loading = false;
@@ -358,7 +359,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     loadedMediaItemCount = songs.length;
     isSubscribed = data.isSubscribed;
     isMyPlayList = data.isMyPlayList;
-    await _updateArtworkColors(coverUrl);
+    await _updateArtworkColors(_resolvedCoverUrl);
     if (mounted) {
       setState(() {});
     }
@@ -368,6 +369,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     albumColor = await OtherUtils.getImageColor(artworkPath);
     widgetColor = albumColor.invertedColor;
   }
+
+  String? get _resolvedCoverUrl => ArtworkDisplay.resolvePreferredArtwork(
+        coverUrl,
+        fallbackItems: songs,
+      );
 
   Future<void> _subscribePlayList() async {
     final value = await _repository.toggleSubscription(

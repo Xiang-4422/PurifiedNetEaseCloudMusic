@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
@@ -37,6 +38,9 @@ class PlayListPageView extends StatefulWidget {
 class _PlayListPageViewState extends State<PlayListPageView> {
   final PlaylistRepository _repository = PlaylistRepository();
 
+  String playlistName = '';
+  String? coverUrl;
+  int? trackCount;
   List<MediaItem> songs = <MediaItem>[];
   int loadedMediaItemCount = 0;
 
@@ -51,16 +55,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   @override
   void initState() {
     super.initState();
+    playlistName = widget.playlistName;
+    coverUrl = widget.coverUrl;
+    trackCount = widget.trackCount;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      albumColor = await OtherUtils.getImageColor(widget.coverUrl);
-      widgetColor = albumColor.invertedColor;
       await _loadPlaylistData();
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        loading = false;
-      });
     });
   }
 
@@ -71,258 +70,303 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       color: albumColor,
       child: loading
           ? const LoadingView()
-          : CustomScrollView(
-              slivers: [
-                SliverAppBar(
-                  toolbarHeight: AppDimensions.appBarHeight,
-                  expandedHeight: context.width - context.mediaQueryPadding.top,
-                  pinned: true,
-                  stretch: true,
-                  automaticallyImplyLeading: true,
-                  foregroundColor: Colors.transparent,
-                  surfaceTintColor: Colors.transparent,
-                  backgroundColor: albumColor,
-                  flexibleSpace: FlexibleSpaceBar(
-                    stretchModes: const <StretchMode>[
-                      StretchMode.zoomBackground,
-                    ],
-                    collapseMode: CollapseMode.pin,
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          widget.playlistName,
-                          style: context.textTheme.titleLarge?.copyWith(
-                            color: widgetColor,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          "歌单·${widget.trackCount ?? 0}首",
-                          style: context.textTheme.titleSmall?.copyWith(
-                            color: widgetColor.withValues(alpha: 0.8),
-                          ),
-                        ),
+          : RefreshIndicator(
+              onRefresh: () => _refreshPlaylistData(showLoadingState: false),
+              child: CustomScrollView(
+                slivers: [
+                  SliverAppBar(
+                    toolbarHeight: AppDimensions.appBarHeight,
+                    expandedHeight:
+                        context.width - context.mediaQueryPadding.top,
+                    pinned: true,
+                    stretch: true,
+                    automaticallyImplyLeading: true,
+                    foregroundColor: Colors.transparent,
+                    surfaceTintColor: Colors.transparent,
+                    backgroundColor: albumColor,
+                    flexibleSpace: FlexibleSpaceBar(
+                      stretchModes: const <StretchMode>[
+                        StretchMode.zoomBackground,
                       ],
-                    ),
-                    expandedTitleScale: 1.5,
-                    titlePadding: EdgeInsets.only(
-                        bottom: 60 + AppDimensions.paddingSmall,
-                        top: context.mediaQueryPadding.top,
-                        left: AppDimensions.paddingSmall,
-                        right: AppDimensions.paddingSmall),
-                    background: SimpleExtendedImage(
-                      width: context.width,
-                      height: context.width,
-                      widget.coverUrl ?? '',
-                    ),
-                  ),
-                  bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(60),
-                      child: Row(
-                        spacing: AppDimensions.paddingSmall,
+                      collapseMode: CollapseMode.pin,
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          // 播放全部
-                          Flexible(
-                              child: BlurryContainer(
-                            borderRadius: BorderRadius.circular(60),
-                            padding: EdgeInsets.zero,
-                            color: widgetColor.withValues(alpha: 0.05),
-                            child: IconButton(
-                              onPressed: () async {
-                                await AppController.to.playerController
-                                    .setRepeatMode(AudioServiceRepeatMode.all);
-                                AppController.to.bottomPanelPageController
-                                    .jumpToPage(0);
-                                AppController.to.bottomPanelController.open();
-                                // 根据当前播放模式，决定从哪个位置开始播放
-                                int startIndex = AppController
-                                            .to
-                                            .playbackSessionState
-                                            .value
-                                            .repeatMode ==
-                                        AudioServiceRepeatMode.none
-                                    ? Random().nextInt(loadedMediaItemCount)
-                                    : 0;
-                                await AppController.to.playerController
-                                    .playPlaylist(
-                                  songs,
-                                  startIndex,
-                                  playListName: widget.playlistName,
-                                  playListNameHeader: "歌单",
-                                );
-                              },
-                              icon: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Icon(
-                                    TablerIcons.repeat,
-                                    color: widgetColor,
-                                  ),
-                                  Text('顺序播放',
-                                      style: context.textTheme.titleMedium
-                                          ?.copyWith(color: widgetColor)),
-                                ],
-                              ),
+                          Text(
+                            playlistName,
+                            style: context.textTheme.titleLarge?.copyWith(
+                              color: widgetColor,
                             ),
-                          )),
-                          Offstage(
-                            offstage: isMyPlayList,
-                            child: BlurryContainer(
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            "歌单·${trackCount ?? loadedMediaItemCount}首",
+                            style: context.textTheme.titleSmall?.copyWith(
+                              color: widgetColor.withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ],
+                      ),
+                      expandedTitleScale: 1.5,
+                      titlePadding: EdgeInsets.only(
+                          bottom: 60 + AppDimensions.paddingSmall,
+                          top: context.mediaQueryPadding.top,
+                          left: AppDimensions.paddingSmall,
+                          right: AppDimensions.paddingSmall),
+                      background: SimpleExtendedImage(
+                        width: context.width,
+                        height: context.width,
+                        coverUrl ?? '',
+                      ),
+                    ),
+                    bottom: PreferredSize(
+                        preferredSize: const Size.fromHeight(60),
+                        child: Row(
+                          spacing: AppDimensions.paddingSmall,
+                          children: [
+                            // 播放全部
+                            Flexible(
+                                child: BlurryContainer(
                               borderRadius: BorderRadius.circular(60),
                               padding: EdgeInsets.zero,
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
-                                  color: Colors.red,
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () => _subscribePlayList(),
-                                  icon: Icon(
-                                    isSubscribed
-                                        ? TablerIcons.heart_filled
-                                        : TablerIcons.heart,
-                                    color:
-                                        isSubscribed ? Colors.red : widgetColor,
-                                  )),
-                            ),
-                          ),
-                          Flexible(
+                                onPressed: () async {
+                                  await AppController.to.playerController
+                                      .setRepeatMode(
+                                          AudioServiceRepeatMode.all);
+                                  AppController.to.bottomPanelPageController
+                                      .jumpToPage(0);
+                                  AppController.to.bottomPanelController.open();
+                                  // 根据当前播放模式，决定从哪个位置开始播放
+                                  int startIndex = AppController
+                                              .to
+                                              .playbackSessionState
+                                              .value
+                                              .repeatMode ==
+                                          AudioServiceRepeatMode.none
+                                      ? Random().nextInt(loadedMediaItemCount)
+                                      : 0;
+                                  await AppController.to.playerController
+                                      .playPlaylist(
+                                    songs,
+                                    startIndex,
+                                    playListName: playlistName,
+                                    playListNameHeader: "歌单",
+                                  );
+                                },
+                                icon: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Icon(
+                                      TablerIcons.repeat,
+                                      color: widgetColor,
+                                    ),
+                                    Text('顺序播放',
+                                        style: context.textTheme.titleMedium
+                                            ?.copyWith(color: widgetColor)),
+                                  ],
+                                ),
+                              ),
+                            )),
+                            Offstage(
+                              offstage: isMyPlayList,
                               child: BlurryContainer(
-                            borderRadius: BorderRadius.circular(60),
-                            padding: EdgeInsets.zero,
-                            color: widgetColor.withValues(alpha: 0.05),
-                            child: IconButton(
-                              onPressed: () async {
-                                await AppController.to.playerController
-                                    .queueTrackDownloads(
-                                  songs.map((item) => item.id),
-                                );
-                                WidgetUtil.showToast('已加入下载队列');
-                              },
-                              icon: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Icon(
-                                    TablerIcons.download,
-                                    color: widgetColor,
-                                  ),
-                                  Text(
-                                    '下载全部',
-                                    style: context.textTheme.titleMedium
-                                        ?.copyWith(color: widgetColor),
-                                  ),
-                                ],
+                                borderRadius: BorderRadius.circular(60),
+                                padding: EdgeInsets.zero,
+                                color: widgetColor.withValues(alpha: 0.05),
+                                child: IconButton(
+                                    color: Colors.red,
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () => _subscribePlayList(),
+                                    icon: Icon(
+                                      isSubscribed
+                                          ? TablerIcons.heart_filled
+                                          : TablerIcons.heart,
+                                      color: isSubscribed
+                                          ? Colors.red
+                                          : widgetColor,
+                                    )),
                               ),
                             ),
-                          )),
-                          // 评论、收藏
-                          Flexible(
-                              child: BlurryContainer(
-                            borderRadius: BorderRadius.circular(60),
-                            padding: EdgeInsets.zero,
-                            color: widgetColor.withValues(alpha: 0.05),
-                            child: IconButton(
-                              onPressed: () async {
-                                await AppController.to.playerController
-                                    .setRepeatMode(AudioServiceRepeatMode.none);
-                                AppController.to.bottomPanelPageController
-                                    .jumpToPage(0);
-                                AppController.to.bottomPanelController.open();
-                                // 根据当前播放模式，决定从哪个位置开始播放
-                                int startIndex = AppController
-                                            .to
-                                            .playbackSessionState
-                                            .value
-                                            .repeatMode ==
-                                        AudioServiceRepeatMode.none
-                                    ? Random().nextInt(loadedMediaItemCount)
-                                    : 0;
-                                await AppController.to.playerController
-                                    .playPlaylist(
-                                  songs,
-                                  startIndex,
-                                  playListName: widget.playlistName,
-                                  playListNameHeader: "歌单",
-                                );
-                              },
-                              icon: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Icon(
-                                    TablerIcons.arrows_shuffle,
-                                    color: widgetColor,
-                                  ),
-                                  Text('随机播放',
+                            Flexible(
+                                child: BlurryContainer(
+                              borderRadius: BorderRadius.circular(60),
+                              padding: EdgeInsets.zero,
+                              color: widgetColor.withValues(alpha: 0.05),
+                              child: IconButton(
+                                onPressed: () async {
+                                  await AppController.to.playerController
+                                      .queueTrackDownloads(
+                                    songs.map((item) => item.id),
+                                  );
+                                  WidgetUtil.showToast('已加入下载队列');
+                                },
+                                icon: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Icon(
+                                      TablerIcons.download,
+                                      color: widgetColor,
+                                    ),
+                                    Text(
+                                      '下载全部',
                                       style: context.textTheme.titleMedium
-                                          ?.copyWith(color: widgetColor)),
-                                ],
+                                          ?.copyWith(color: widgetColor),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          )),
-                        ],
-                      ).paddingAll(AppDimensions.paddingSmall)),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.paddingSmall),
-                  sliver: SliverFixedExtentList(
-                    itemExtent: 56,
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                        return SongItem(
-                          index: index,
-                          playlist: songs,
-                          playListName: widget.playlistName,
-                          playListHeader: "歌单",
-                          stringColor: widgetColor,
-                          beforeOnTap: () {
-                            AppController.to.bottomPanelPageController
-                                .jumpToPage(0);
-                            AppController.to.bottomPanelController.open();
-                          },
-                        );
-                      },
-                      childCount: loadedMediaItemCount,
+                            )),
+                            // 评论、收藏
+                            Flexible(
+                                child: BlurryContainer(
+                              borderRadius: BorderRadius.circular(60),
+                              padding: EdgeInsets.zero,
+                              color: widgetColor.withValues(alpha: 0.05),
+                              child: IconButton(
+                                onPressed: () async {
+                                  await AppController.to.playerController
+                                      .setRepeatMode(
+                                          AudioServiceRepeatMode.none);
+                                  AppController.to.bottomPanelPageController
+                                      .jumpToPage(0);
+                                  AppController.to.bottomPanelController.open();
+                                  // 根据当前播放模式，决定从哪个位置开始播放
+                                  int startIndex = AppController
+                                              .to
+                                              .playbackSessionState
+                                              .value
+                                              .repeatMode ==
+                                          AudioServiceRepeatMode.none
+                                      ? Random().nextInt(loadedMediaItemCount)
+                                      : 0;
+                                  await AppController.to.playerController
+                                      .playPlaylist(
+                                    songs,
+                                    startIndex,
+                                    playListName: widget.playlistName,
+                                    playListNameHeader: "歌单",
+                                  );
+                                },
+                                icon: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Icon(
+                                      TablerIcons.arrows_shuffle,
+                                      color: widgetColor,
+                                    ),
+                                    Text('随机播放',
+                                        style: context.textTheme.titleMedium
+                                            ?.copyWith(color: widgetColor)),
+                                  ],
+                                ),
+                              ),
+                            )),
+                          ],
+                        ).paddingAll(AppDimensions.paddingSmall)),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.paddingSmall),
+                    sliver: SliverFixedExtentList(
+                      itemExtent: 56,
+                      delegate: SliverChildBuilderDelegate(
+                        (BuildContext context, int index) {
+                          return SongItem(
+                            index: index,
+                            playlist: songs,
+                            playListName: playlistName,
+                            playListHeader: "歌单",
+                            stringColor: widgetColor,
+                            beforeOnTap: () {
+                              AppController.to.bottomPanelPageController
+                                  .jumpToPage(0);
+                              AppController.to.bottomPanelController.open();
+                            },
+                          );
+                        },
+                        childCount: loadedMediaItemCount,
+                      ),
                     ),
                   ),
-                ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: AppDimensions.bottomPanelHeaderHeight,
+                  const SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: AppDimensions.bottomPanelHeaderHeight,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
     );
   }
 
   Future<void> _loadPlaylistData() async {
-    final cachedSongs = await _repository.loadCachedSongs(widget.playlistId);
-    if (cachedSongs != null && cachedSongs.isNotEmpty) {
-      songs = cachedSongs;
-      loadedMediaItemCount = songs.length;
-      if (mounted) {
-        setState(() {});
-      }
+    final localDetail = await _repository.loadLocalPlaylistDetail(
+      playlistId: widget.playlistId,
+      likedSongIds: AppController.to.likedSongIds.toList(),
+      currentUserId: AppController.to.userInfo.value.userId,
+    );
+    final cachedSnapshot =
+        await _repository.loadCachedSnapshot(widget.playlistId);
+    if (cachedSnapshot != null) {
+      playlistName = cachedSnapshot.name;
+      coverUrl = cachedSnapshot.coverUrl ?? coverUrl;
+      trackCount = cachedSnapshot.trackCount ?? trackCount;
     }
+    if (localDetail != null) {
+      songs = localDetail.songs;
+      loadedMediaItemCount = songs.length;
+      isSubscribed = localDetail.isSubscribed;
+      isMyPlayList = localDetail.isMyPlayList;
+      await _updateArtworkColors(coverUrl);
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+      unawaited(_refreshPlaylistData(showLoadingState: false));
+      return;
+    }
+    await _refreshPlaylistData(showLoadingState: true);
+  }
 
+  Future<void> _refreshPlaylistData({required bool showLoadingState}) async {
+    if (showLoadingState && mounted) {
+      setState(() {
+        loading = true;
+      });
+    }
     final data = await _repository.fetchPlaylistDetail(
       playlistId: widget.playlistId,
       likedSongIds: AppController.to.likedSongIds.toList(),
       currentUserId: AppController.to.userInfo.value.userId,
     );
+    final snapshot = await _repository.loadCachedSnapshot(widget.playlistId);
+    if (snapshot != null) {
+      playlistName = snapshot.name;
+      coverUrl = snapshot.coverUrl ?? coverUrl;
+      trackCount = snapshot.trackCount ?? trackCount;
+    }
     songs = data.songs;
     loadedMediaItemCount = songs.length;
     isSubscribed = data.isSubscribed;
     isMyPlayList = data.isMyPlayList;
+    await _updateArtworkColors(coverUrl);
     if (mounted) {
       setState(() {});
     }
+  }
+
+  Future<void> _updateArtworkColors(String? artworkPath) async {
+    albumColor = await OtherUtils.getImageColor(artworkPath);
+    widgetColor = albumColor.invertedColor;
   }
 
   Future<void> _subscribePlayList() async {

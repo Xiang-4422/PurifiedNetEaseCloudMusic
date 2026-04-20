@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/radio/radio_data.dart';
 import 'package:bujuan/features/radio/radio_list_controller.dart';

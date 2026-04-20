@@ -1,5 +1,5 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';

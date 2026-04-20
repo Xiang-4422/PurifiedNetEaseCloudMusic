@@ -9,7 +9,7 @@ import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import '../../../common/constants/appConstants.dart';
+import '../../../common/constants/app_constants.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import '../../../routes/router.gr.dart' as gr;
 import '../../../widget/common_widgets.dart';

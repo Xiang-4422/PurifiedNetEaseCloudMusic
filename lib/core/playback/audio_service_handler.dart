@@ -353,6 +353,7 @@ class AudioServiceHandler extends BaseAudioHandler
   }
 }
 
+// ignore: experimental_member_use
 class StreamSource extends StreamAudioSource {
   String uri;
   String fileType;
@@ -361,12 +362,14 @@ class StreamSource extends StreamAudioSource {
   StreamSource(this.uri, this.fileType);
 
   @override
+  // ignore: experimental_member_use
   Future<StreamAudioResponse> request([int? start, int? end]) async {
     // `.uc!` 缓存不是标准媒体文件，仍保留按字节异或的读取方式，
     // 否则现有本地缓存会在迁移期全部失效。
     Uint8List fileBytes = Uint8List.fromList(
         File(uri).readAsBytesSync().map((e) => e ^ 0xa3).toList());
 
+    // ignore: experimental_member_use
     return StreamAudioResponse(
       sourceLength: fileBytes.length,
       contentLength: (start ?? 0) - (end ?? fileBytes.length),

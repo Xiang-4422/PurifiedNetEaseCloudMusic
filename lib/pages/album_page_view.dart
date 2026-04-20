@@ -13,7 +13,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
-import '../../common/constants/appConstants.dart';
+import '../../common/constants/app_constants.dart';
 import '../../common/constants/other.dart';
 import '../../widget/simple_extended_image.dart';
 

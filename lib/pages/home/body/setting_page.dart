@@ -1,4 +1,4 @@
-import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/pages/download_task_page_view.dart';

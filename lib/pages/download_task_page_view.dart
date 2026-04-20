@@ -1,4 +1,4 @@
-import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/download_task.dart';
 import 'package:bujuan/domain/entities/track.dart';

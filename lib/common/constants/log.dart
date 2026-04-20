@@ -1,4 +1,6 @@
 
+import 'package:flutter/foundation.dart';
+
 
 class LogUtil {
   static const _separator = "=";
@@ -37,15 +39,15 @@ class LogUtil {
   }
 
   static void _log(String msg) {
-    print(_startLine);
+    debugPrint(_startLine);
     _logEmpyLine();
     if (msg.length < _limitLength) {
-      print(msg);
+      debugPrint(msg);
     } else {
       segmentationLog(msg);
     }
     _logEmpyLine();
-    print(_endLine);
+    debugPrint(_endLine);
   }
 
   static void segmentationLog(String msg) {
@@ -53,12 +55,12 @@ class LogUtil {
     for (var index = 0; index < msg.length; index++) {
       outStr.write(msg[index]);
       if (index % _limitLength == 0 && index != 0) {
-        print(outStr);
+        debugPrint(outStr.toString());
         outStr.clear();
         var lastIndex = index + 1;
         if (msg.length - lastIndex < _limitLength) {
           var remainderStr = msg.substring(lastIndex, msg.length);
-          print(remainderStr);
+          debugPrint(remainderStr);
           break;
         }
       }
@@ -66,6 +68,6 @@ class LogUtil {
   }
 
   static void _logEmpyLine() {
-    print("");
+    debugPrint("");
   }
 }

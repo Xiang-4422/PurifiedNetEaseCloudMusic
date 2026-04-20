@@ -1,6 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';

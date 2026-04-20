@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 
-import '../../common/constants/appConstants.dart';
+import '../../common/constants/app_constants.dart';
 
 class UserProfilePageView extends StatefulWidget {
   const UserProfilePageView({Key? key}) : super(key: key);

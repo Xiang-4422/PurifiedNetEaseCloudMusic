@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
-import '../../../common/constants/appConstants.dart';
+import '../../../common/constants/app_constants.dart';
 import '../../../routes/router.gr.dart' as gr;
 
 /// 顶部搜索面板只有一个页面文件，直接放在 `pages/home` 下比再套一层单文件目录更容易查找。

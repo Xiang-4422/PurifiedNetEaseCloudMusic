@@ -15,6 +15,8 @@ abstract class LocalLibraryDataSource {
 
   Future<Track?> getTrack(String trackId);
 
+  Future<List<Track>> getTracksByIds(Iterable<String> trackIds);
+
   Future<TrackLyrics?> getLyrics(String trackId);
 
   Future<PlaylistEntity?> getPlaylist(String playlistId);

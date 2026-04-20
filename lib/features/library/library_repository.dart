@@ -165,6 +165,15 @@ class LibraryRepository {
     return null;
   }
 
+  Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
+    final ids = trackIds.toSet().toList();
+    if (ids.isEmpty) {
+      return const [];
+    }
+    final localTracks = await _localDataSource?.getTracksByIds(ids) ?? const [];
+    return Future.wait(localTracks.map(_mergeTrackWithResources));
+  }
+
   Future<String?> getPlaybackUrl(String trackId) async {
     final localTrack = await getTrack(trackId);
     if (localTrack?.localPath?.isNotEmpty == true) {

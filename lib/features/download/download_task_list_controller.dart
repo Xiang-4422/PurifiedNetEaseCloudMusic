@@ -128,12 +128,17 @@ class DownloadTaskListController {
       state.value = const LoadState.empty();
       return;
     }
+    final tracksById = {
+      for (final track
+          in await _libraryRepository.getTracksByIds(tasks.map((task) => task.trackId)))
+        track.id: track,
+    };
     final itemData = <DownloadTaskListItemData>[];
     for (final task in tasks) {
       itemData.add(
         DownloadTaskListItemData(
           task: task,
-          track: await _libraryRepository.getTrack(task.trackId),
+          track: tracksById[task.trackId],
         ),
       );
     }

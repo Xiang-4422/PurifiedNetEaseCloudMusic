@@ -98,6 +98,18 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
   }
 
   @override
+  Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
+    final ids = trackIds.toSet().toList();
+    if (ids.isEmpty) {
+      return const [];
+    }
+    final rows = await (_database.select(_database.tracks)
+          ..where((tbl) => tbl.trackId.isIn(ids)))
+        .get();
+    return rows.map(_mapTrackRow).whereType<Track>().toList();
+  }
+
+  @override
   Future<TrackLyrics?> getLyrics(String trackId) async {
     final row = await (_database.select(_database.trackLyricsEntries)
           ..where((tbl) => tbl.trackId.equals(trackId)))

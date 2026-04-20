@@ -1,23 +1,27 @@
-import 'package:bujuan/data/netease/api/netease_music_api.dart';
-import 'package:bujuan/data/netease/mappers/netease_radio_mapper.dart';
+import 'package:bujuan/data/netease/netease_radio_remote_data_source.dart';
 import 'package:bujuan/features/radio/radio_data.dart';
 
 class RadioRepository {
+  RadioRepository({NeteaseRadioRemoteDataSource? remoteDataSource})
+      : _remoteDataSource =
+            remoteDataSource ?? const NeteaseRadioRemoteDataSource();
+
+  final NeteaseRadioRemoteDataSource _remoteDataSource;
+
   Future<DjRadioPage> fetchSubscribedRadios({
     bool total = true,
     required int offset,
     required int limit,
   }) async {
-    final wrap = await NeteaseMusicApi().djRadioSubList(
+    final result = await _remoteDataSource.fetchSubscribedRadios(
       total: total,
       offset: offset,
       limit: limit,
     );
-    final radios = wrap.djRadios;
     return DjRadioPage(
-      items: NeteaseRadioMapper.fromRadioList(radios),
-      hasMore: radios.length >= limit,
-      nextOffset: offset + radios.length,
+      items: result.items,
+      hasMore: result.itemCount >= limit,
+      nextOffset: offset + result.itemCount,
     );
   }
 
@@ -27,17 +31,16 @@ class RadioRepository {
     required int limit,
     required bool asc,
   }) async {
-    final wrap = await NeteaseMusicApi().djProgramList(
+    final result = await _remoteDataSource.fetchPrograms(
       radioId,
       offset: offset,
       limit: limit,
       asc: asc,
     );
-    final programs = wrap.programs;
     return DjProgramPage(
-      items: NeteaseRadioMapper.fromProgramList(programs),
-      hasMore: programs.length >= limit,
-      nextOffset: offset + programs.length,
+      items: result.items,
+      hasMore: result.itemCount >= limit,
+      nextOffset: offset + result.itemCount,
     );
   }
 }

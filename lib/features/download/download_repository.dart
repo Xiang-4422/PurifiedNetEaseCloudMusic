@@ -46,6 +46,7 @@ class DownloadRepository {
   /// - `downloading` 视为中断失败
   /// - `queued` 直接重新入队
   Future<List<DownloadTask>> recoverInterruptedTasks() async {
+    await _cleanupOrphanTemporaryFiles();
     final interruptedTasks = await getTasks(
       statuses: const {
         DownloadTaskStatus.queued,
@@ -590,6 +591,22 @@ class DownloadRepository {
       return Future.value();
     }
     return _deleteFileIfExists('$path.download');
+  }
+
+  Future<void> _cleanupOrphanTemporaryFiles() async {
+    final rootDirectory = await _ensureDownloadRootDirectory();
+    if (!rootDirectory.existsSync()) {
+      return;
+    }
+    await for (final entity in rootDirectory.list(recursive: true)) {
+      if (entity is! File) {
+        continue;
+      }
+      if (!entity.path.endsWith('.download')) {
+        continue;
+      }
+      await entity.delete();
+    }
   }
 
   Future<void> _clearCancelledTask(String trackId) async {

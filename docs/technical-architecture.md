@@ -254,7 +254,9 @@
 - 页面层对 `curPlayListName / curPlayListNameHeader / isPlayingLikedSongs` 的依赖已切到 `PlaybackSessionState`，会话态兼容字段开始退出壳层和控制器
 - 当前播放歌曲的下载与删除下载入口已收口到 `PlayerController`，并通过 `DownloadRepository` 回写本地资源后再同步当前 `MediaItem`
 - 下载任务已经接入独立页面入口，设置页和当前播放面板都能直接触发下载管理、删除下载和失败重试动作
+- 下载管理页已按 `全部 / 进行中 / 失败 / 已完成` 分栏，任务不再全部堆在单列表中
 - 下载管理页已支持批量重试失败任务、清除失败记录、清除已完成记录和取消全部进行中任务
+- 下载管理页已支持批量删除全部已下载文件，下载记录清理与真实文件删除不再混成同一个动作
 - 歌单、专辑等复用 `SongItem` 的音乐列表已接入统一下载动作，列表页不再直接依赖下载仓库
 - 歌单页和专辑页已补“下载全部”入口，批量下载统一经 `PlayerController -> DownloadRepository` 入队，不再让页面自己组织下载任务
 - 当前播放面板和歌单列表项对 `queued / downloading` 状态已支持直接取消下载，不再只展示不可操作的进行中图标

@@ -1,46 +1,13 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 
 /// `MediaItem` 只服务播放适配层，所以统一放在 playback 下，避免各个 feature 再维护一份音频服务专用映射。
 class MediaItemMapper {
   const MediaItemMapper._();
-
-  static List<MediaItem> fromCloudSongItemList(
-    List<CloudSongItem> songs, {
-    required List<int> likedSongIds,
-  }) {
-    return songs
-        .where((song) => song.simpleSong.id.isNotEmpty)
-        .map((song) => MediaItem(
-              id: song.simpleSong.id,
-              duration: Duration(milliseconds: song.simpleSong.dt ?? 0),
-              artUri: Uri.parse(
-                  '${song.simpleSong.al?.picUrl ?? ''}?param=500y500'),
-              extras: {
-                'url': '',
-                'image': song.simpleSong.al?.picUrl ?? '',
-                'type': MediaType.playlist.name,
-                'liked':
-                    likedSongIds.contains(int.tryParse(song.simpleSong.id)),
-                'artist': (song.simpleSong.ar ?? [])
-                    .map((artist) => jsonEncode(artist.toJson()))
-                    .toList()
-                    .join(' / '),
-              },
-              title: song.simpleSong.name ?? '',
-              album: song.simpleSong.al?.name,
-              artist: (song.simpleSong.ar ?? [])
-                  .map((artist) => artist.name)
-                  .join(' / '),
-            ))
-        .toList();
-  }
 
   static List<MediaItem> fromTrackList(
     List<Track> tracks, {
@@ -65,7 +32,12 @@ class MediaItemMapper {
           'url': track.localPath ?? track.remoteUrl ?? '',
           'liked': likedSongIds.contains(int.tryParse(track.sourceId)),
           'artist': track.artistNames.join(' / '),
+          'artistNames': track.artistNames,
+          'artistIds': List<String>.from(
+            (track.metadata['artistIds'] as List?)?.map((e) => '$e') ?? const [],
+          ),
           'albumTitle': track.albumTitle ?? '',
+          'albumId': track.metadata['albumId']?.toString() ?? '',
           'sourceType': track.sourceType.name,
           'sourceId': track.sourceId,
           'localPath': track.localPath ?? '',

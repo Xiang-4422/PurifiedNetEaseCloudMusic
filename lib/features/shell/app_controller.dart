@@ -5,10 +5,11 @@ import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
-import 'package:bujuan/data/netease/api/netease_music_api.dart';
+import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_session_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -39,10 +40,10 @@ class AppController extends SuperController
   Rx<Color> get albumColor => settingsController.albumColor;
   Rx<Color> get panelWidgetColor => settingsController.panelWidgetColor;
 
-  Rx<NeteaseAccountInfoWrap> get userInfo => userController.userInfo;
-  List<PlayList> get userPlayLists => userController.userPlayLists;
-  RxList<PlayList> get recoPlayLists => userController.recoPlayLists;
-  Rx<PlayList> get userLikedSongPlayList =>
+  Rx<UserSessionData> get userInfo => userController.userInfo;
+  List<PlaylistSummaryData> get userPlayLists => userController.userPlayLists;
+  RxList<PlaylistSummaryData> get recoPlayLists => userController.recoPlayLists;
+  Rx<PlaylistSummaryData> get userLikedSongPlayList =>
       userController.userLikedSongPlayList;
   RxList<int> get likedSongIds => userController.likedSongIds;
   RxList<MediaItem> get likedSongs => userController.likedSongs;
@@ -158,7 +159,7 @@ class AppController extends SuperController
   }
 
   void _initUIController() {
-    shellController.init(initialTitle: userInfo.value.profile?.nickname ?? '');
+    shellController.init(initialTitle: userInfo.value.nickname);
     bottomPanelAnimationController = AnimationController(vsync: this);
     bottomPanelTabController =
         TabController(length: 3, initialIndex: 1, vsync: this)

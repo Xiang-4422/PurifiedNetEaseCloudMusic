@@ -284,7 +284,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     final data = await _repository.fetchPlaylistDetail(
       playlistId: widget.playlistId,
       likedSongIds: AppController.to.likedSongIds.toList(),
-      currentUserId: AppController.to.userInfo.value.profile?.userId,
+      currentUserId: AppController.to.userInfo.value.userId,
     );
     songs = data.songs;
     loadedMediaItemCount = songs.length;

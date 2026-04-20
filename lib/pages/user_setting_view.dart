@@ -24,7 +24,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
   void initState() {
     super.initState();
     _controller = UserProfileController(
-      userId: AppController.to.userInfo.value.profile?.userId ?? '',
+      userId: AppController.to.userInfo.value.userId,
     )..loadInitial();
   }
 

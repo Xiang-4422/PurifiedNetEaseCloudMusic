@@ -21,6 +21,8 @@ class NeteaseTrackMapper {
       metadata: {
         'mv': song.mvid,
         'fee': song.fee,
+        'albumId': song.album?.id,
+        'artistIds': (song.artists ?? []).map((artist) => artist.id).toList(),
       },
     );
   }
@@ -43,6 +45,8 @@ class NeteaseTrackMapper {
         'mv': song.mv,
         'fee': song.fee,
         'publishTime': song.publishTime,
+        'albumId': song.al?.id,
+        'artistIds': (song.ar ?? []).map((artist) => artist.id).toList(),
       },
     );
   }

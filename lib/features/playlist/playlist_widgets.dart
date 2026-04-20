@@ -1,9 +1,9 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
-import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
+import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
@@ -154,7 +154,7 @@ class SongItem extends StatelessWidget {
 }
 
 class PlayListItem extends StatelessWidget {
-  final PlayList play;
+  final PlaylistSummaryData play;
   final Function()? beforeOnTap;
 
   const PlayListItem(this.play, {Key? key, this.beforeOnTap}) : super(key: key);
@@ -163,8 +163,8 @@ class PlayListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final router = context.router;
     return UniversalListTile(
-      picUrl: play.coverImgUrl ?? play.picUrl,
-      titleString: play.name ?? "无歌单名",
+      picUrl: play.coverUrl,
+      titleString: play.title,
       subTitleString: play.trackCount == null || play.trackCount == 0
           ? null
           : "${play.trackCount}首",
@@ -175,8 +175,8 @@ class PlayListItem extends StatelessWidget {
         router.push(
           gr.PlayListRouteView(
             playlistId: play.id,
-            playlistName: play.name ?? '无名歌单',
-            coverUrl: play.coverImgUrl ?? play.picUrl,
+            playlistName: play.title,
+            coverUrl: play.coverUrl,
             trackCount: play.trackCount,
           ),
         );
@@ -191,7 +191,7 @@ class PlayListWidget extends GetView<AppController> {
 
   final double albumCountInWidget;
   final double albumMargin;
-  final List<PlayList> playLists;
+  final List<PlaylistSummaryData> playLists;
   final bool showSongCount;
   final bool snappAllAlbum;
   final bool noScroll;
@@ -241,9 +241,8 @@ class PlayListWidget extends GetView<AppController> {
                             context.router.push(
                               gr.PlayListRouteView(
                                 playlistId: playLists[index].id,
-                                playlistName: playLists[index].name ?? '无名歌单',
-                                coverUrl: playLists[index].coverImgUrl ??
-                                    playLists[index].picUrl,
+                                playlistName: playLists[index].title,
+                                coverUrl: playLists[index].coverUrl,
                                 trackCount: playLists[index].trackCount,
                               ),
                             );
@@ -260,19 +259,19 @@ class PlayListWidget extends GetView<AppController> {
                                     shape: BoxShape.rectangle,
                                     borderRadius:
                                         BorderRadius.circular(albumMargin),
-                                    '${playLists[index].coverImgUrl ?? playLists[index].picUrl}?param=200y200',
+                                    '${playLists[index].coverUrl ?? ''}?param=200y200',
                                   ),
                                   Obx(
                                     () => Visibility(
                                       visible: controller.isPlaying.isTrue &&
                                           controller.playbackSessionState.value
                                                   .playlistName ==
-                                              playLists[index].name,
+                                              playLists[index].title,
                                       replacement: IconButton(
                                         onPressed: () {
                                           if (controller.playbackSessionState
                                                   .value.playlistName !=
-                                              playLists[index].name) {
+                                              playLists[index].title) {
                                             _playPlaylist(playLists[index]);
                                           } else {
                                             controller.playOrPause();
@@ -298,7 +297,7 @@ class PlayListWidget extends GetView<AppController> {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${playLists[index].name}",
+                                      playLists[index].title,
                                       maxLines: showSongCount ? 1 : 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
@@ -337,7 +336,7 @@ class PlayListWidget extends GetView<AppController> {
     );
   }
 
-  Future<void> _playPlaylist(PlayList playlist) async {
+  Future<void> _playPlaylist(PlaylistSummaryData playlist) async {
     final details = await _repository.fetchPlaylistWrap(playlist.id);
     final songs = await _repository.fetchPlaylistSongs(
       playlistId: playlist.id,

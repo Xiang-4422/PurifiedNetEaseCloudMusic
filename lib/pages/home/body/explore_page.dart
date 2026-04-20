@@ -88,10 +88,9 @@ class ExplorePageView extends GetView<ExplorePageController> {
                           horizontal: AppDimensions.paddingSmall),
                       child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: controller.tagCategorys.value.length,
+                          itemCount: controller.tagCategorys.length,
                           itemBuilder: (context, index) {
-                            String categoryName =
-                                controller.tagCategorys.value[index];
+                            String categoryName = controller.tagCategorys[index];
 
                             return GestureDetector(
                               onTap: () => controller.curTagCategoryName.value =
@@ -168,7 +167,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
 
             SliverToBoxAdapter(
               child: Obx(() => PlayListWidget(
-                    playLists: controller.playLists.value,
+                    playLists: controller.playLists,
                     albumCountInWidget: 3.2,
                     albumMargin: AppDimensions.paddingSmall,
                     showSongCount: false,
@@ -366,7 +365,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                 delegate: SliverChildBuilderDelegate(
               (context, index) => SongItem(
                 index: index,
-                playlist: controller.curTopPlayListSongs.value,
+                playlist: controller.curTopPlayListSongs,
                 playListName: controller.curTopPlayListName.value,
                 showIndex: true,
               ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
@@ -450,7 +449,6 @@ class _AutoSizeSliverHeaderState extends State<AutoSizeSliverPersistentHeader> {
       }
     } catch (e) {
       // 处理测量错误，使用默认高度
-      print('测量组件高度时出错: $e');
       setState(() {
         _measuredPersistentHeaderHeight = 100; // 默认高度
         _measuredFoldableWidgetHeight = 100;

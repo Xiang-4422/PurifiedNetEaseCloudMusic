@@ -1,6 +1,7 @@
 import 'package:bujuan/data/netease/api/src/api/bean.dart';
 import 'package:bujuan/data/netease/api/src/api/login/bean.dart';
 import 'package:bujuan/data/netease/api/src/netease_api.dart';
+import 'package:bujuan/features/user/user_session_data.dart';
 
 import 'auth_state_store.dart';
 
@@ -24,8 +25,14 @@ class AuthRepository {
     return NeteaseMusicApi().loginQrCodeCheck(unikey);
   }
 
-  Future<NeteaseAccountInfoWrap> fetchLoginAccountInfo() {
-    return NeteaseMusicApi().loginAccountInfo();
+  Future<UserSessionData> fetchLoginAccountInfo() async {
+    final accountInfo = await NeteaseMusicApi().loginAccountInfo();
+    final profile = accountInfo.profile;
+    return UserSessionData(
+      userId: profile?.userId ?? '',
+      nickname: profile?.nickname ?? '',
+      avatarUrl: profile?.avatarUrl ?? '',
+    );
   }
 
   Future<void> setLoginFlag(bool value) {

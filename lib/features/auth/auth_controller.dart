@@ -58,8 +58,7 @@ class AuthController extends GetxController {
 
   Future<void> _loadUserData() async {
     final accountInfo = await _repository.fetchLoginAccountInfo();
-    final isLoginStateActive =
-        accountInfo.code == 200 && accountInfo.profile != null;
+    final isLoginStateActive = accountInfo.isLoggedIn;
 
     if (!isLoginStateActive) {
       await _repository.setLoginFlag(false);

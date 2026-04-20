@@ -1,10 +1,11 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/key.dart';
-import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/core/playback/audio_service_handler.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
+import 'package:bujuan/features/user/user_session_data.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -26,7 +27,7 @@ class UserController extends GetxController {
   void _loadCache() {
     String? userInfoStr = box.get(userInfoSp);
     if (userInfoStr != null) {
-      userInfo.value = NeteaseAccountInfoWrap.fromJson(jsonDecode(userInfoStr));
+      userInfo.value = UserSessionData.fromJson(jsonDecode(userInfoStr));
     }
 
     List<dynamic>? cachedLikedIds = box.get(likedSongIdsSp);
@@ -37,19 +38,23 @@ class UserController extends GetxController {
     List<dynamic>? cachedReco = box.get(recoPlayListsSp);
     if (cachedReco != null && recoPlayLists.isEmpty) {
       recoPlayLists.addAll(
-          cachedReco.map((e) => PlayList.fromJson(jsonDecode(e))).toList());
+        cachedReco
+            .map((e) => PlaylistSummaryData.fromJson(jsonDecode(e)))
+            .toList(),
+      );
     }
 
     List<dynamic>? cachedUserPlayLists = box.get(userPlayListsSp);
     if (cachedUserPlayLists != null && userPlayLists.isEmpty) {
       userPlayLists.addAll(cachedUserPlayLists
-          .map((e) => PlayList.fromJson(jsonDecode(e)))
+          .map((e) => PlaylistSummaryData.fromJson(jsonDecode(e)))
           .toList());
     }
 
     String? likedPlStr = box.get(userLikedSongPlayListSp);
     if (likedPlStr != null) {
-      userLikedSongPlayList.value = PlayList.fromJson(jsonDecode(likedPlStr));
+      userLikedSongPlayList.value =
+          PlaylistSummaryData.fromJson(jsonDecode(likedPlStr));
     }
 
     List<String>? cachedTodaySongs =
@@ -64,10 +69,11 @@ class UserController extends GetxController {
         box.get(randomLikedSongAlbumUrlSp, defaultValue: '');
   }
 
-  Rx<NeteaseAccountInfoWrap> userInfo = NeteaseAccountInfoWrap().obs;
-  List<PlayList> userPlayLists = <PlayList>[].obs;
-  RxList<PlayList> recoPlayLists = <PlayList>[].obs;
-  Rx<PlayList> userLikedSongPlayList = PlayList().obs;
+  Rx<UserSessionData> userInfo = const UserSessionData.empty().obs;
+  List<PlaylistSummaryData> userPlayLists = <PlaylistSummaryData>[].obs;
+  RxList<PlaylistSummaryData> recoPlayLists = <PlaylistSummaryData>[].obs;
+  Rx<PlaylistSummaryData> userLikedSongPlayList =
+      const PlaylistSummaryData(id: '', title: '').obs;
   RxList<int> likedSongIds = <int>[].obs;
   RxList<MediaItem> likedSongs = <MediaItem>[].obs;
   RxList<MediaItem> todayRecommendSongs = <MediaItem>[].obs;
@@ -87,7 +93,7 @@ class UserController extends GetxController {
     super.onInit();
     _loadCache();
     ever(userInfo, (info) {
-      if (info.profile != null) {
+      if (info.isLoggedIn) {
         box.put(userInfoSp, jsonEncode(info.toJson()));
       }
     });
@@ -114,8 +120,9 @@ class UserController extends GetxController {
 
     likedSongIds.clear();
     likedSongIds.addAll(
-      await _repository
-          .fetchLikedSongIds(userInfo.value.profile?.userId ?? '-1'),
+      await _repository.fetchLikedSongIds(
+        userInfo.value.userId.isEmpty ? '-1' : userInfo.value.userId,
+      ),
     );
     box.put(likedSongIdsSp, likedSongIds.toList());
 
@@ -141,13 +148,13 @@ class UserController extends GetxController {
   }
 
   Future<void> _updateUserPlayLists() async {
-    String? userId = userInfo.value.profile?.userId;
-    if (userId == null || userId == "-1") return;
+    final userId = userInfo.value.userId;
+    if (userId.isEmpty || userId == "-1") return;
     final playLists = await _repository.fetchUserPlaylists(userId);
     if (playLists.isNotEmpty) {
       final mutablePlayLists = [...playLists];
-      userLikedSongPlayList.value = mutablePlayLists.removeAt(0);
-      userLikedSongPlayList.value.name = "我喜欢的音乐";
+      userLikedSongPlayList.value =
+          mutablePlayLists.removeAt(0).copyWith(title: "我喜欢的音乐");
       userLikedSongPlayList.refresh();
       userPlayLists.clear();
       userPlayLists.addAll(mutablePlayLists);

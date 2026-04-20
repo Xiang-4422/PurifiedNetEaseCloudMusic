@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
@@ -9,7 +8,9 @@ import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/user/user_profile_data.dart';
+import 'package:bujuan/features/user/user_session_data.dart';
 import 'package:get_it/get_it.dart';
 
 class UserRepository {
@@ -20,6 +21,16 @@ class UserRepository {
                 : LibraryRepository());
 
   final LibraryRepository _libraryRepository;
+
+  Future<UserSessionData> fetchLoginSession() async {
+    final accountInfo = await NeteaseMusicApi().loginAccountInfo();
+    final profile = accountInfo.profile;
+    return UserSessionData(
+      userId: profile?.userId ?? '',
+      nickname: profile?.nickname ?? '',
+      avatarUrl: profile?.avatarUrl ?? '',
+    );
+  }
 
   Future<UserProfileData> fetchUserDetail(String userId) async {
     final detail = await NeteaseMusicApi().userDetail(userId);
@@ -40,26 +51,30 @@ class UserRepository {
     return likedList.ids;
   }
 
-  Future<List<PlayList>> fetchRecommendedPlaylists({
+  Future<List<PlaylistSummaryData>> fetchRecommendedPlaylists({
     required int offset,
     int limit = 10,
   }) async {
     final wrap = await NeteaseMusicApi()
         .personalizedPlaylist(offset: offset, limit: limit);
-    final playlists = wrap.result ?? [];
-    await _libraryRepository.savePlaylists(
-      NeteasePlaylistMapper.fromPlaylistList(playlists),
+    final playlists = NeteasePlaylistMapper.fromPlaylistList(
+      wrap.result ?? const [],
     );
-    return playlists;
+    await _libraryRepository.savePlaylists(
+      playlists,
+    );
+    return playlists.map(PlaylistSummaryData.fromEntity).toList();
   }
 
-  Future<List<PlayList>> fetchUserPlaylists(String userId) async {
+  Future<List<PlaylistSummaryData>> fetchUserPlaylists(String userId) async {
     final wrap = await NeteaseMusicApi().userPlayLists(userId);
-    final playlists = wrap.playlists ?? [];
-    await _libraryRepository.savePlaylists(
-      NeteasePlaylistMapper.fromPlaylistList(playlists),
+    final playlists = NeteasePlaylistMapper.fromPlaylistList(
+      wrap.playlists ?? const [],
     );
-    return playlists;
+    await _libraryRepository.savePlaylists(
+      playlists,
+    );
+    return playlists.map(PlaylistSummaryData.fromEntity).toList();
   }
 
   Future<List<MediaItem>> fetchTodayRecommendSongs({
@@ -99,9 +114,12 @@ class UserRepository {
                 'image': song.album?.picUrl ?? '',
                 'liked': likedSongIds.contains(int.tryParse(song.id)),
                 'artist': (song.artists ?? [])
-                    .map((artist) => jsonEncode(artist.toJson()))
-                    .toList()
+                    .map((artist) => artist.name)
                     .join(' / '),
+                'artistNames':
+                    (song.artists ?? []).map((artist) => artist.name ?? '').toList(),
+                'artistIds':
+                    (song.artists ?? []).map((artist) => artist.id).toList(),
                 'albumId': song.album?.id ?? '',
                 'type': MediaType.fm.name,
                 'size': '',

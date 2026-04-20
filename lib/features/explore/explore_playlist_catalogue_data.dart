@@ -1,0 +1,10 @@
+/// 探索页只需要分类和标签视图时，直接返回整理后的结构，避免控制器理解网易云分类响应细节。
+class ExplorePlaylistCatalogueData {
+  const ExplorePlaylistCatalogueData({
+    required this.categoryNames,
+    required this.tagsByCategory,
+  });
+
+  final List<String> categoryNames;
+  final Map<String, List<String>> tagsByCategory;
+}

@@ -459,7 +459,7 @@ lib/
 - `widget`
   - 跨页面复用的通用 UI 组件和滚动行为
 - `common`
-  - 历史兼容目录，仅保留常量、歌词解析和少量旧基础能力；网易云 API 后续迁入 `data/netease`
+  - 历史兼容目录，仅保留常量、歌词解析和少量旧基础能力；不再承载网易云远程层
 
 ### 8.3 当前目录职责与保留原因
 
@@ -483,11 +483,11 @@ lib/
 - `lib/app`
   - 应用级初始化、路由和后续应用外壳入口
 - `lib/common`
-  - 历史公共能力目录，当前仍包含常量、歌词解析、网易云 API 适配和少量旧基础代码
+  - 历史公共能力目录，当前保留常量、歌词解析和少量旧基础代码
 - `lib/core`
   - 已开始承接稳定基础设施能力，当前已包含 `database / network / storage / playback`
 - `lib/data`
-  - 数据层实现细节，当前已包含 `local / mappers / sources`，后续收口为 `local / netease / mappers`
+  - 数据层实现细节，当前已包含 `local / netease`，远程平台代码统一归位到 `data/netease`
 - `lib/domain`
   - 统一领域实体
 - `lib/features`

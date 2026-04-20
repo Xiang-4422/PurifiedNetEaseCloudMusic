@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
@@ -19,13 +17,34 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import '../../../common/constants/appConstants.dart';
-import '../../../data/netease/api/src/api/play/bean.dart';
 import '../../../widget/simple_extended_image.dart';
 import '../../../widget/swipeable.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 
 class BottomPanelView extends GetView<AppController> {
   const BottomPanelView({Key? key}) : super(key: key);
+
+  List<_ArtistChipData> _artistEntries(MediaItem mediaItem) {
+    final artistNames = (mediaItem.extras?['artistNames'] as List?)
+            ?.map((artist) => '$artist')
+            .where((artist) => artist.isNotEmpty)
+            .toList() ??
+        (mediaItem.artist ?? '')
+            .split(' / ')
+            .where((artist) => artist.isNotEmpty)
+            .toList();
+    final artistIds = (mediaItem.extras?['artistIds'] as List?)
+            ?.map((artistId) => '$artistId')
+            .toList() ??
+        const <String>[];
+    return List.generate(
+      artistNames.length,
+      (index) => _ArtistChipData(
+        name: artistNames[index],
+        id: index < artistIds.length ? artistIds[index] : '',
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -755,18 +774,7 @@ class BottomPanelView extends GetView<AppController> {
                                                                 ),
                                                               ]
                                                             : [
-                                                                for (Artist artist in (controller
-                                                                        .playbackRuntimeState
-                                                                        .value
-                                                                        .currentSong
-                                                                        .extras?[
-                                                                            'artist']
-                                                                        .split(
-                                                                            ' / ')
-                                                                        .map((e) =>
-                                                                            Artist.fromJson(jsonDecode(e)))
-                                                                        .toList() ??
-                                                                    []))
+                                                                for (final artist in _artistEntries(controller.playbackRuntimeState.value.currentSong))
                                                                   Container(
                                                                     alignment:
                                                                         Alignment
@@ -790,13 +798,16 @@ class BottomPanelView extends GetView<AppController> {
                                                                         () =>
                                                                             GestureDetector(
                                                                               onTap: () async {
+                                                                                if (artist.id.isEmpty) {
+                                                                                  return;
+                                                                                }
                                                                                 await controller.bottomPanelController.close();
                                                                                 context.router.push(const gr.ArtistRouteView().copyWith(queryParams: {
                                                                                   'artistId': artist.id
                                                                                 }));
                                                                               },
                                                                               child: Text(
-                                                                                artist.name ?? "无名作者",
+                                                                                artist.name,
                                                                                 style: TextStyle(color: controller.panelWidgetColor.value),
                                                                                 overflow: TextOverflow.ellipsis,
                                                                                 textAlign: TextAlign.center,
@@ -970,6 +981,16 @@ class BottomPanelView extends GetView<AppController> {
       ),
     );
   }
+}
+
+class _ArtistChipData {
+  const _ArtistChipData({
+    required this.name,
+    required this.id,
+  });
+
+  final String name;
+  final String id;
 }
 
 class BottomPanelHeaderView extends GetView<AppController> {

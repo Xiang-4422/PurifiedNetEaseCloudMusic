@@ -1,7 +1,7 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:get/get.dart';
@@ -78,7 +78,7 @@ class ExplorePageController extends GetxController {
   RxString curTopPlayListName = "".obs;
   RxString curTopPlayListId = "".obs;
   RxList<MediaItem> curTopPlayListSongs = <MediaItem>[].obs;
-  RxList<PlayList> playLists = <PlayList>[].obs;
+  RxList<PlaylistSummaryData> playLists = <PlaylistSummaryData>[].obs;
 
   RxBool loading = true.obs;
 
@@ -101,16 +101,8 @@ class ExplorePageController extends GetxController {
     curTopPlayListId.value = curCategoryTopPlayLists[0]["id"]!;
 
     _repository.fetchPlaylistCatalogue().then((value) {
-      for (String category in value.categories!.values) {
-        tagCategorys.add(category);
-        tags[category] = <String>[];
-      }
-      for (PlaylistCatalogueItem catalogueItem in (value.sub ?? [])) {
-        final categoryName = tagCategorys[catalogueItem.category!];
-        final categoryTags = List<String>.from(tags[categoryName] ?? const []);
-        categoryTags.add(catalogueItem.name!);
-        tags[categoryName] = categoryTags;
-      }
+      tagCategorys.addAll(value.categoryNames);
+      tags.assignAll(value.tagsByCategory);
     });
   }
 
@@ -122,10 +114,7 @@ class ExplorePageController extends GetxController {
   }
 
   updatePlayLists() async {
-    List<PlayList> data;
-    MultiPlayListWrap multiPlayListWrap =
-        await _repository.fetchCategoryPlaylists(curTag.value);
-    data = multiPlayListWrap.playlists ?? [];
+    final data = await _repository.fetchCategoryPlaylists(curTag.value);
     playLists
       ..clear()
       ..addAll(data);

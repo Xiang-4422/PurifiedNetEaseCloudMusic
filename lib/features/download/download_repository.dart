@@ -164,10 +164,15 @@ class DownloadRepository {
       _activeCancelTokens[trackId] = cancelToken;
 
       final audioPath = _buildAudioPath(track, playbackUrl, audioDirectory);
+      await markQueued(trackId, localPath: audioPath);
       await _downloadBinaryFile(
         playbackUrl,
         audioPath,
-        onProgress: (progress) => markDownloading(trackId, progress: progress),
+        onProgress: (progress) => markDownloading(
+          trackId,
+          progress: progress,
+          localPath: audioPath,
+        ),
         cancelToken: cancelToken,
       );
       if (_cancelledTrackIds.contains(trackId)) {
@@ -290,13 +295,20 @@ class DownloadRepository {
     return _taskDataSource.removeTask(trackId);
   }
 
-  Future<Track?> markQueued(String trackId) async {
+  Future<Track?> markQueued(
+    String trackId, {
+    String? localPath,
+  }) async {
+    final currentTask = await _taskDataSource.getTask(trackId);
     await _taskDataSource.saveTask(
       DownloadTask(
         trackId: trackId,
         status: DownloadTaskStatus.queued,
         updatedAt: DateTime.now(),
         progress: 0,
+        localPath: localPath ?? currentTask?.localPath,
+        artworkPath: currentTask?.artworkPath,
+        lyricsPath: currentTask?.lyricsPath,
       ),
     );
     return _libraryRepository.updateTrackLocalState(
@@ -311,13 +323,18 @@ class DownloadRepository {
   Future<Track?> markDownloading(
     String trackId, {
     double? progress,
+    String? localPath,
   }) async {
+    final currentTask = await _taskDataSource.getTask(trackId);
     await _taskDataSource.saveTask(
       DownloadTask(
         trackId: trackId,
         status: DownloadTaskStatus.downloading,
         updatedAt: DateTime.now(),
         progress: progress ?? 0,
+        localPath: localPath ?? currentTask?.localPath,
+        artworkPath: currentTask?.artworkPath,
+        lyricsPath: currentTask?.lyricsPath,
       ),
     );
     return _libraryRepository.updateTrackLocalState(

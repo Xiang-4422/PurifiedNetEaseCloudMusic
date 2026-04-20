@@ -795,9 +795,9 @@
 
 - 阶段：`Phase 4`
 - 状态：`In Progress`
-- 完成内容：`Track` 已改为结构化列落库，Drift 媒体库读取和搜索不再依赖 `payloadJson` 反序列化作为主路径；`DownloadTaskListController` 已落地，下载列表、刷新、重试和清理动作现在有统一的页面状态入口
-- 风险或阻塞：`Playlist / Album / Artist` 仍然保留 `payloadJson` 作为主要持久化格式，下载列表还没有接入实际页面
-- 下一步：继续把歌单、专辑、歌手持久化从 `payloadJson` 收成结构化列，或者把下载任务 controller 接到真实页面入口
+- 完成内容：`Track` 已改为结构化列落库，Drift 媒体库读取和搜索不再依赖 `payloadJson` 反序列化作为主路径；下载列表、刷新、重试和清理动作已接到真实页面入口，设置页和当前播放面板都能直接触发下载管理与当前歌曲下载动作
+- 风险或阻塞：`bottom_panel_view.dart` 仍有一批历史 `withOpacity` 和 `BuildContext` 相关 info；下载体系还没有断点续传和自动调度
+- 下一步：继续把歌单、专辑、歌手持久化从 `payloadJson` 收成结构化列，并开始补下载任务恢复与调度策略
 
 #### 2026-04-20
 

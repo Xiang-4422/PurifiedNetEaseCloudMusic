@@ -1,18 +1,33 @@
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/download_task.dart';
+import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/features/library/library_repository.dart';
 import 'package:flutter/foundation.dart';
 
 import 'download_repository.dart';
 
+class DownloadTaskListItemData {
+  const DownloadTaskListItemData({
+    required this.task,
+    this.track,
+  });
+
+  final DownloadTask task;
+  final Track? track;
+}
+
 class DownloadTaskListController {
   DownloadTaskListController({
     DownloadRepository? repository,
+    LibraryRepository? libraryRepository,
     this.statuses,
-  }) : _repository = repository ?? DownloadRepository();
+  })  : _repository = repository ?? DownloadRepository(),
+        _libraryRepository = libraryRepository ?? LibraryRepository();
 
   final DownloadRepository _repository;
+  final LibraryRepository _libraryRepository;
   final Set<DownloadTaskStatus>? statuses;
-  final ValueNotifier<LoadState<List<DownloadTask>>> state =
+  final ValueNotifier<LoadState<List<DownloadTaskListItemData>>> state =
       ValueNotifier(const LoadState.loading());
 
   Future<void> loadInitial() async {
@@ -52,7 +67,16 @@ class DownloadTaskListController {
         state.value = const LoadState.empty();
         return;
       }
-      state.value = LoadState.data(tasks);
+      final itemData = <DownloadTaskListItemData>[];
+      for (final task in tasks) {
+        itemData.add(
+          DownloadTaskListItemData(
+            task: task,
+            track: await _libraryRepository.getTrack(task.trackId),
+          ),
+        );
+      }
+      state.value = LoadState.data(itemData);
     } catch (error, stackTrace) {
       state.value = LoadState.error(
         error,

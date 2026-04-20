@@ -2358,19 +2358,58 @@ class $PlaylistsTable extends Playlists
   late final GeneratedColumn<String> playlistId = GeneratedColumn<String>(
       'playlist_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceTypeMeta =
+      const VerificationMeta('sourceType');
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+      'source_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceIdMeta =
+      const VerificationMeta('sourceId');
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+      'source_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
       'title', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _payloadJsonMeta =
-      const VerificationMeta('payloadJson');
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
   @override
-  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
-      'payload_json', aliasedName, false,
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _coverUrlMeta =
+      const VerificationMeta('coverUrl');
+  @override
+  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>(
+      'cover_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _trackCountMeta =
+      const VerificationMeta('trackCount');
+  @override
+  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>(
+      'track_count', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _trackRefsJsonMeta =
+      const VerificationMeta('trackRefsJson');
+  @override
+  late final GeneratedColumn<String> trackRefsJson = GeneratedColumn<String>(
+      'track_refs_json', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [playlistId, title, payloadJson];
+  List<GeneratedColumn> get $columns => [
+        playlistId,
+        sourceType,
+        sourceId,
+        title,
+        description,
+        coverUrl,
+        trackCount,
+        trackRefsJson
+      ];
   @override
   String get aliasedName => _alias ?? 'playlists';
   @override
@@ -2388,19 +2427,49 @@ class $PlaylistsTable extends Playlists
     } else if (isInserting) {
       context.missing(_playlistIdMeta);
     }
+    if (data.containsKey('source_type')) {
+      context.handle(
+          _sourceTypeMeta,
+          sourceType.isAcceptableOrUnknown(
+              data['source_type']!, _sourceTypeMeta));
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(_sourceIdMeta,
+          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
     if (data.containsKey('title')) {
       context.handle(
           _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
-    if (data.containsKey('payload_json')) {
+    if (data.containsKey('description')) {
       context.handle(
-          _payloadJsonMeta,
-          payloadJson.isAcceptableOrUnknown(
-              data['payload_json']!, _payloadJsonMeta));
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('cover_url')) {
+      context.handle(_coverUrlMeta,
+          coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
+    }
+    if (data.containsKey('track_count')) {
+      context.handle(
+          _trackCountMeta,
+          trackCount.isAcceptableOrUnknown(
+              data['track_count']!, _trackCountMeta));
+    }
+    if (data.containsKey('track_refs_json')) {
+      context.handle(
+          _trackRefsJsonMeta,
+          trackRefsJson.isAcceptableOrUnknown(
+              data['track_refs_json']!, _trackRefsJsonMeta));
     } else if (isInserting) {
-      context.missing(_payloadJsonMeta);
+      context.missing(_trackRefsJsonMeta);
     }
     return context;
   }
@@ -2413,10 +2482,20 @@ class $PlaylistsTable extends Playlists
     return Playlist(
       playlistId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
+      sourceType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      sourceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      payloadJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}payload_json'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      coverUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cover_url']),
+      trackCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}track_count']),
+      trackRefsJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}track_refs_json'])!,
     );
   }
 
@@ -2428,26 +2507,58 @@ class $PlaylistsTable extends Playlists
 
 class Playlist extends DataClass implements Insertable<Playlist> {
   final String playlistId;
+  final String sourceType;
+  final String sourceId;
   final String title;
-  final String payloadJson;
+  final String? description;
+  final String? coverUrl;
+  final int? trackCount;
+  final String trackRefsJson;
   const Playlist(
       {required this.playlistId,
+      required this.sourceType,
+      required this.sourceId,
       required this.title,
-      required this.payloadJson});
+      this.description,
+      this.coverUrl,
+      this.trackCount,
+      required this.trackRefsJson});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['playlist_id'] = Variable<String>(playlistId);
+    map['source_type'] = Variable<String>(sourceType);
+    map['source_id'] = Variable<String>(sourceId);
     map['title'] = Variable<String>(title);
-    map['payload_json'] = Variable<String>(payloadJson);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || coverUrl != null) {
+      map['cover_url'] = Variable<String>(coverUrl);
+    }
+    if (!nullToAbsent || trackCount != null) {
+      map['track_count'] = Variable<int>(trackCount);
+    }
+    map['track_refs_json'] = Variable<String>(trackRefsJson);
     return map;
   }
 
   PlaylistsCompanion toCompanion(bool nullToAbsent) {
     return PlaylistsCompanion(
       playlistId: Value(playlistId),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
       title: Value(title),
-      payloadJson: Value(payloadJson),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      coverUrl: coverUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverUrl),
+      trackCount: trackCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trackCount),
+      trackRefsJson: Value(trackRefsJson),
     );
   }
 
@@ -2456,8 +2567,13 @@ class Playlist extends DataClass implements Insertable<Playlist> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Playlist(
       playlistId: serializer.fromJson<String>(json['playlistId']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
       title: serializer.fromJson<String>(json['title']),
-      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      description: serializer.fromJson<String?>(json['description']),
+      coverUrl: serializer.fromJson<String?>(json['coverUrl']),
+      trackCount: serializer.fromJson<int?>(json['trackCount']),
+      trackRefsJson: serializer.fromJson<String>(json['trackRefsJson']),
     );
   }
   @override
@@ -2465,80 +2581,146 @@ class Playlist extends DataClass implements Insertable<Playlist> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'playlistId': serializer.toJson<String>(playlistId),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
       'title': serializer.toJson<String>(title),
-      'payloadJson': serializer.toJson<String>(payloadJson),
+      'description': serializer.toJson<String?>(description),
+      'coverUrl': serializer.toJson<String?>(coverUrl),
+      'trackCount': serializer.toJson<int?>(trackCount),
+      'trackRefsJson': serializer.toJson<String>(trackRefsJson),
     };
   }
 
-  Playlist copyWith({String? playlistId, String? title, String? payloadJson}) =>
+  Playlist copyWith(
+          {String? playlistId,
+          String? sourceType,
+          String? sourceId,
+          String? title,
+          Value<String?> description = const Value.absent(),
+          Value<String?> coverUrl = const Value.absent(),
+          Value<int?> trackCount = const Value.absent(),
+          String? trackRefsJson}) =>
       Playlist(
         playlistId: playlistId ?? this.playlistId,
+        sourceType: sourceType ?? this.sourceType,
+        sourceId: sourceId ?? this.sourceId,
         title: title ?? this.title,
-        payloadJson: payloadJson ?? this.payloadJson,
+        description: description.present ? description.value : this.description,
+        coverUrl: coverUrl.present ? coverUrl.value : this.coverUrl,
+        trackCount: trackCount.present ? trackCount.value : this.trackCount,
+        trackRefsJson: trackRefsJson ?? this.trackRefsJson,
       );
   @override
   String toString() {
     return (StringBuffer('Playlist(')
           ..write('playlistId: $playlistId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
           ..write('title: $title, ')
-          ..write('payloadJson: $payloadJson')
+          ..write('description: $description, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('trackCount: $trackCount, ')
+          ..write('trackRefsJson: $trackRefsJson')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(playlistId, title, payloadJson);
+  int get hashCode => Object.hash(playlistId, sourceType, sourceId, title,
+      description, coverUrl, trackCount, trackRefsJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Playlist &&
           other.playlistId == this.playlistId &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
           other.title == this.title &&
-          other.payloadJson == this.payloadJson);
+          other.description == this.description &&
+          other.coverUrl == this.coverUrl &&
+          other.trackCount == this.trackCount &&
+          other.trackRefsJson == this.trackRefsJson);
 }
 
 class PlaylistsCompanion extends UpdateCompanion<Playlist> {
   final Value<String> playlistId;
+  final Value<String> sourceType;
+  final Value<String> sourceId;
   final Value<String> title;
-  final Value<String> payloadJson;
+  final Value<String?> description;
+  final Value<String?> coverUrl;
+  final Value<int?> trackCount;
+  final Value<String> trackRefsJson;
   final Value<int> rowid;
   const PlaylistsCompanion({
     this.playlistId = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
     this.title = const Value.absent(),
-    this.payloadJson = const Value.absent(),
+    this.description = const Value.absent(),
+    this.coverUrl = const Value.absent(),
+    this.trackCount = const Value.absent(),
+    this.trackRefsJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PlaylistsCompanion.insert({
     required String playlistId,
+    required String sourceType,
+    required String sourceId,
     required String title,
-    required String payloadJson,
+    this.description = const Value.absent(),
+    this.coverUrl = const Value.absent(),
+    this.trackCount = const Value.absent(),
+    required String trackRefsJson,
     this.rowid = const Value.absent(),
   })  : playlistId = Value(playlistId),
+        sourceType = Value(sourceType),
+        sourceId = Value(sourceId),
         title = Value(title),
-        payloadJson = Value(payloadJson);
+        trackRefsJson = Value(trackRefsJson);
   static Insertable<Playlist> custom({
     Expression<String>? playlistId,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
     Expression<String>? title,
-    Expression<String>? payloadJson,
+    Expression<String>? description,
+    Expression<String>? coverUrl,
+    Expression<int>? trackCount,
+    Expression<String>? trackRefsJson,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (playlistId != null) 'playlist_id': playlistId,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
       if (title != null) 'title': title,
-      if (payloadJson != null) 'payload_json': payloadJson,
+      if (description != null) 'description': description,
+      if (coverUrl != null) 'cover_url': coverUrl,
+      if (trackCount != null) 'track_count': trackCount,
+      if (trackRefsJson != null) 'track_refs_json': trackRefsJson,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   PlaylistsCompanion copyWith(
       {Value<String>? playlistId,
+      Value<String>? sourceType,
+      Value<String>? sourceId,
       Value<String>? title,
-      Value<String>? payloadJson,
+      Value<String?>? description,
+      Value<String?>? coverUrl,
+      Value<int?>? trackCount,
+      Value<String>? trackRefsJson,
       Value<int>? rowid}) {
     return PlaylistsCompanion(
       playlistId: playlistId ?? this.playlistId,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
       title: title ?? this.title,
-      payloadJson: payloadJson ?? this.payloadJson,
+      description: description ?? this.description,
+      coverUrl: coverUrl ?? this.coverUrl,
+      trackCount: trackCount ?? this.trackCount,
+      trackRefsJson: trackRefsJson ?? this.trackRefsJson,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2549,11 +2731,26 @@ class PlaylistsCompanion extends UpdateCompanion<Playlist> {
     if (playlistId.present) {
       map['playlist_id'] = Variable<String>(playlistId.value);
     }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
-    if (payloadJson.present) {
-      map['payload_json'] = Variable<String>(payloadJson.value);
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (coverUrl.present) {
+      map['cover_url'] = Variable<String>(coverUrl.value);
+    }
+    if (trackCount.present) {
+      map['track_count'] = Variable<int>(trackCount.value);
+    }
+    if (trackRefsJson.present) {
+      map['track_refs_json'] = Variable<String>(trackRefsJson.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -2565,8 +2762,13 @@ class PlaylistsCompanion extends UpdateCompanion<Playlist> {
   String toString() {
     return (StringBuffer('PlaylistsCompanion(')
           ..write('playlistId: $playlistId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
           ..write('title: $title, ')
-          ..write('payloadJson: $payloadJson, ')
+          ..write('description: $description, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('trackCount: $trackCount, ')
+          ..write('trackRefsJson: $trackRefsJson, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2584,6 +2786,18 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
   late final GeneratedColumn<String> albumId = GeneratedColumn<String>(
       'album_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceTypeMeta =
+      const VerificationMeta('sourceType');
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+      'source_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceIdMeta =
+      const VerificationMeta('sourceId');
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+      'source_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -2595,15 +2809,49 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
   late final GeneratedColumn<String> artistSearchText = GeneratedColumn<String>(
       'artist_search_text', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _payloadJsonMeta =
-      const VerificationMeta('payloadJson');
+  static const VerificationMeta _artistNamesJsonMeta =
+      const VerificationMeta('artistNamesJson');
   @override
-  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
-      'payload_json', aliasedName, false,
+  late final GeneratedColumn<String> artistNamesJson = GeneratedColumn<String>(
+      'artist_names_json', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artworkUrlMeta =
+      const VerificationMeta('artworkUrl');
   @override
-  List<GeneratedColumn> get $columns =>
-      [albumId, title, artistSearchText, payloadJson];
+  late final GeneratedColumn<String> artworkUrl = GeneratedColumn<String>(
+      'artwork_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _trackCountMeta =
+      const VerificationMeta('trackCount');
+  @override
+  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>(
+      'track_count', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _publishTimeMeta =
+      const VerificationMeta('publishTime');
+  @override
+  late final GeneratedColumn<int> publishTime = GeneratedColumn<int>(
+      'publish_time', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        albumId,
+        sourceType,
+        sourceId,
+        title,
+        artistSearchText,
+        artistNamesJson,
+        artworkUrl,
+        description,
+        trackCount,
+        publishTime
+      ];
   @override
   String get aliasedName => _alias ?? 'albums';
   @override
@@ -2619,6 +2867,20 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
     } else if (isInserting) {
       context.missing(_albumIdMeta);
     }
+    if (data.containsKey('source_type')) {
+      context.handle(
+          _sourceTypeMeta,
+          sourceType.isAcceptableOrUnknown(
+              data['source_type']!, _sourceTypeMeta));
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(_sourceIdMeta,
+          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
     if (data.containsKey('title')) {
       context.handle(
           _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
@@ -2633,13 +2895,37 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
     } else if (isInserting) {
       context.missing(_artistSearchTextMeta);
     }
-    if (data.containsKey('payload_json')) {
+    if (data.containsKey('artist_names_json')) {
       context.handle(
-          _payloadJsonMeta,
-          payloadJson.isAcceptableOrUnknown(
-              data['payload_json']!, _payloadJsonMeta));
+          _artistNamesJsonMeta,
+          artistNamesJson.isAcceptableOrUnknown(
+              data['artist_names_json']!, _artistNamesJsonMeta));
     } else if (isInserting) {
-      context.missing(_payloadJsonMeta);
+      context.missing(_artistNamesJsonMeta);
+    }
+    if (data.containsKey('artwork_url')) {
+      context.handle(
+          _artworkUrlMeta,
+          artworkUrl.isAcceptableOrUnknown(
+              data['artwork_url']!, _artworkUrlMeta));
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('track_count')) {
+      context.handle(
+          _trackCountMeta,
+          trackCount.isAcceptableOrUnknown(
+              data['track_count']!, _trackCountMeta));
+    }
+    if (data.containsKey('publish_time')) {
+      context.handle(
+          _publishTimeMeta,
+          publishTime.isAcceptableOrUnknown(
+              data['publish_time']!, _publishTimeMeta));
     }
     return context;
   }
@@ -2652,12 +2938,24 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
     return Album(
       albumId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}album_id'])!,
+      sourceType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      sourceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       artistSearchText: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}artist_search_text'])!,
-      payloadJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}payload_json'])!,
+      artistNamesJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}artist_names_json'])!,
+      artworkUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}artwork_url']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      trackCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}track_count']),
+      publishTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}publish_time']),
     );
   }
 
@@ -2669,30 +2967,70 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
 
 class Album extends DataClass implements Insertable<Album> {
   final String albumId;
+  final String sourceType;
+  final String sourceId;
   final String title;
   final String artistSearchText;
-  final String payloadJson;
+  final String artistNamesJson;
+  final String? artworkUrl;
+  final String? description;
+  final int? trackCount;
+  final int? publishTime;
   const Album(
       {required this.albumId,
+      required this.sourceType,
+      required this.sourceId,
       required this.title,
       required this.artistSearchText,
-      required this.payloadJson});
+      required this.artistNamesJson,
+      this.artworkUrl,
+      this.description,
+      this.trackCount,
+      this.publishTime});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['album_id'] = Variable<String>(albumId);
+    map['source_type'] = Variable<String>(sourceType);
+    map['source_id'] = Variable<String>(sourceId);
     map['title'] = Variable<String>(title);
     map['artist_search_text'] = Variable<String>(artistSearchText);
-    map['payload_json'] = Variable<String>(payloadJson);
+    map['artist_names_json'] = Variable<String>(artistNamesJson);
+    if (!nullToAbsent || artworkUrl != null) {
+      map['artwork_url'] = Variable<String>(artworkUrl);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || trackCount != null) {
+      map['track_count'] = Variable<int>(trackCount);
+    }
+    if (!nullToAbsent || publishTime != null) {
+      map['publish_time'] = Variable<int>(publishTime);
+    }
     return map;
   }
 
   AlbumsCompanion toCompanion(bool nullToAbsent) {
     return AlbumsCompanion(
       albumId: Value(albumId),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
       title: Value(title),
       artistSearchText: Value(artistSearchText),
-      payloadJson: Value(payloadJson),
+      artistNamesJson: Value(artistNamesJson),
+      artworkUrl: artworkUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(artworkUrl),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      trackCount: trackCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trackCount),
+      publishTime: publishTime == null && nullToAbsent
+          ? const Value.absent()
+          : Value(publishTime),
     );
   }
 
@@ -2701,9 +3039,15 @@ class Album extends DataClass implements Insertable<Album> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Album(
       albumId: serializer.fromJson<String>(json['albumId']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
       title: serializer.fromJson<String>(json['title']),
       artistSearchText: serializer.fromJson<String>(json['artistSearchText']),
-      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      artistNamesJson: serializer.fromJson<String>(json['artistNamesJson']),
+      artworkUrl: serializer.fromJson<String?>(json['artworkUrl']),
+      description: serializer.fromJson<String?>(json['description']),
+      trackCount: serializer.fromJson<int?>(json['trackCount']),
+      publishTime: serializer.fromJson<int?>(json['publishTime']),
     );
   }
   @override
@@ -2711,97 +3055,180 @@ class Album extends DataClass implements Insertable<Album> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'albumId': serializer.toJson<String>(albumId),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
       'title': serializer.toJson<String>(title),
       'artistSearchText': serializer.toJson<String>(artistSearchText),
-      'payloadJson': serializer.toJson<String>(payloadJson),
+      'artistNamesJson': serializer.toJson<String>(artistNamesJson),
+      'artworkUrl': serializer.toJson<String?>(artworkUrl),
+      'description': serializer.toJson<String?>(description),
+      'trackCount': serializer.toJson<int?>(trackCount),
+      'publishTime': serializer.toJson<int?>(publishTime),
     };
   }
 
   Album copyWith(
           {String? albumId,
+          String? sourceType,
+          String? sourceId,
           String? title,
           String? artistSearchText,
-          String? payloadJson}) =>
+          String? artistNamesJson,
+          Value<String?> artworkUrl = const Value.absent(),
+          Value<String?> description = const Value.absent(),
+          Value<int?> trackCount = const Value.absent(),
+          Value<int?> publishTime = const Value.absent()}) =>
       Album(
         albumId: albumId ?? this.albumId,
+        sourceType: sourceType ?? this.sourceType,
+        sourceId: sourceId ?? this.sourceId,
         title: title ?? this.title,
         artistSearchText: artistSearchText ?? this.artistSearchText,
-        payloadJson: payloadJson ?? this.payloadJson,
+        artistNamesJson: artistNamesJson ?? this.artistNamesJson,
+        artworkUrl: artworkUrl.present ? artworkUrl.value : this.artworkUrl,
+        description: description.present ? description.value : this.description,
+        trackCount: trackCount.present ? trackCount.value : this.trackCount,
+        publishTime: publishTime.present ? publishTime.value : this.publishTime,
       );
   @override
   String toString() {
     return (StringBuffer('Album(')
           ..write('albumId: $albumId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
           ..write('title: $title, ')
           ..write('artistSearchText: $artistSearchText, ')
-          ..write('payloadJson: $payloadJson')
+          ..write('artistNamesJson: $artistNamesJson, ')
+          ..write('artworkUrl: $artworkUrl, ')
+          ..write('description: $description, ')
+          ..write('trackCount: $trackCount, ')
+          ..write('publishTime: $publishTime')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(albumId, title, artistSearchText, payloadJson);
+  int get hashCode => Object.hash(
+      albumId,
+      sourceType,
+      sourceId,
+      title,
+      artistSearchText,
+      artistNamesJson,
+      artworkUrl,
+      description,
+      trackCount,
+      publishTime);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Album &&
           other.albumId == this.albumId &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
           other.title == this.title &&
           other.artistSearchText == this.artistSearchText &&
-          other.payloadJson == this.payloadJson);
+          other.artistNamesJson == this.artistNamesJson &&
+          other.artworkUrl == this.artworkUrl &&
+          other.description == this.description &&
+          other.trackCount == this.trackCount &&
+          other.publishTime == this.publishTime);
 }
 
 class AlbumsCompanion extends UpdateCompanion<Album> {
   final Value<String> albumId;
+  final Value<String> sourceType;
+  final Value<String> sourceId;
   final Value<String> title;
   final Value<String> artistSearchText;
-  final Value<String> payloadJson;
+  final Value<String> artistNamesJson;
+  final Value<String?> artworkUrl;
+  final Value<String?> description;
+  final Value<int?> trackCount;
+  final Value<int?> publishTime;
   final Value<int> rowid;
   const AlbumsCompanion({
     this.albumId = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
     this.title = const Value.absent(),
     this.artistSearchText = const Value.absent(),
-    this.payloadJson = const Value.absent(),
+    this.artistNamesJson = const Value.absent(),
+    this.artworkUrl = const Value.absent(),
+    this.description = const Value.absent(),
+    this.trackCount = const Value.absent(),
+    this.publishTime = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AlbumsCompanion.insert({
     required String albumId,
+    required String sourceType,
+    required String sourceId,
     required String title,
     required String artistSearchText,
-    required String payloadJson,
+    required String artistNamesJson,
+    this.artworkUrl = const Value.absent(),
+    this.description = const Value.absent(),
+    this.trackCount = const Value.absent(),
+    this.publishTime = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : albumId = Value(albumId),
+        sourceType = Value(sourceType),
+        sourceId = Value(sourceId),
         title = Value(title),
         artistSearchText = Value(artistSearchText),
-        payloadJson = Value(payloadJson);
+        artistNamesJson = Value(artistNamesJson);
   static Insertable<Album> custom({
     Expression<String>? albumId,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
     Expression<String>? title,
     Expression<String>? artistSearchText,
-    Expression<String>? payloadJson,
+    Expression<String>? artistNamesJson,
+    Expression<String>? artworkUrl,
+    Expression<String>? description,
+    Expression<int>? trackCount,
+    Expression<int>? publishTime,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (albumId != null) 'album_id': albumId,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
       if (title != null) 'title': title,
       if (artistSearchText != null) 'artist_search_text': artistSearchText,
-      if (payloadJson != null) 'payload_json': payloadJson,
+      if (artistNamesJson != null) 'artist_names_json': artistNamesJson,
+      if (artworkUrl != null) 'artwork_url': artworkUrl,
+      if (description != null) 'description': description,
+      if (trackCount != null) 'track_count': trackCount,
+      if (publishTime != null) 'publish_time': publishTime,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   AlbumsCompanion copyWith(
       {Value<String>? albumId,
+      Value<String>? sourceType,
+      Value<String>? sourceId,
       Value<String>? title,
       Value<String>? artistSearchText,
-      Value<String>? payloadJson,
+      Value<String>? artistNamesJson,
+      Value<String?>? artworkUrl,
+      Value<String?>? description,
+      Value<int?>? trackCount,
+      Value<int?>? publishTime,
       Value<int>? rowid}) {
     return AlbumsCompanion(
       albumId: albumId ?? this.albumId,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
       title: title ?? this.title,
       artistSearchText: artistSearchText ?? this.artistSearchText,
-      payloadJson: payloadJson ?? this.payloadJson,
+      artistNamesJson: artistNamesJson ?? this.artistNamesJson,
+      artworkUrl: artworkUrl ?? this.artworkUrl,
+      description: description ?? this.description,
+      trackCount: trackCount ?? this.trackCount,
+      publishTime: publishTime ?? this.publishTime,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2812,14 +3239,32 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
     if (albumId.present) {
       map['album_id'] = Variable<String>(albumId.value);
     }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
     if (artistSearchText.present) {
       map['artist_search_text'] = Variable<String>(artistSearchText.value);
     }
-    if (payloadJson.present) {
-      map['payload_json'] = Variable<String>(payloadJson.value);
+    if (artistNamesJson.present) {
+      map['artist_names_json'] = Variable<String>(artistNamesJson.value);
+    }
+    if (artworkUrl.present) {
+      map['artwork_url'] = Variable<String>(artworkUrl.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (trackCount.present) {
+      map['track_count'] = Variable<int>(trackCount.value);
+    }
+    if (publishTime.present) {
+      map['publish_time'] = Variable<int>(publishTime.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -2831,9 +3276,15 @@ class AlbumsCompanion extends UpdateCompanion<Album> {
   String toString() {
     return (StringBuffer('AlbumsCompanion(')
           ..write('albumId: $albumId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
           ..write('title: $title, ')
           ..write('artistSearchText: $artistSearchText, ')
-          ..write('payloadJson: $payloadJson, ')
+          ..write('artistNamesJson: $artistNamesJson, ')
+          ..write('artworkUrl: $artworkUrl, ')
+          ..write('description: $description, ')
+          ..write('trackCount: $trackCount, ')
+          ..write('publishTime: $publishTime, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2851,19 +3302,38 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
   late final GeneratedColumn<String> artistId = GeneratedColumn<String>(
       'artist_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceTypeMeta =
+      const VerificationMeta('sourceType');
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+      'source_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceIdMeta =
+      const VerificationMeta('sourceId');
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+      'source_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _payloadJsonMeta =
-      const VerificationMeta('payloadJson');
+  static const VerificationMeta _artworkUrlMeta =
+      const VerificationMeta('artworkUrl');
   @override
-  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
-      'payload_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> artworkUrl = GeneratedColumn<String>(
+      'artwork_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
   @override
-  List<GeneratedColumn> get $columns => [artistId, name, payloadJson];
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [artistId, sourceType, sourceId, name, artworkUrl, description];
   @override
   String get aliasedName => _alias ?? 'artists';
   @override
@@ -2879,19 +3349,37 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
     } else if (isInserting) {
       context.missing(_artistIdMeta);
     }
+    if (data.containsKey('source_type')) {
+      context.handle(
+          _sourceTypeMeta,
+          sourceType.isAcceptableOrUnknown(
+              data['source_type']!, _sourceTypeMeta));
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(_sourceIdMeta,
+          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
     if (data.containsKey('name')) {
       context.handle(
           _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('payload_json')) {
+    if (data.containsKey('artwork_url')) {
       context.handle(
-          _payloadJsonMeta,
-          payloadJson.isAcceptableOrUnknown(
-              data['payload_json']!, _payloadJsonMeta));
-    } else if (isInserting) {
-      context.missing(_payloadJsonMeta);
+          _artworkUrlMeta,
+          artworkUrl.isAcceptableOrUnknown(
+              data['artwork_url']!, _artworkUrlMeta));
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
     }
     return context;
   }
@@ -2904,10 +3392,16 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
     return Artist(
       artistId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}artist_id'])!,
+      sourceType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      sourceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      payloadJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}payload_json'])!,
+      artworkUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}artwork_url']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
     );
   }
 
@@ -2919,24 +3413,46 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
 
 class Artist extends DataClass implements Insertable<Artist> {
   final String artistId;
+  final String sourceType;
+  final String sourceId;
   final String name;
-  final String payloadJson;
+  final String? artworkUrl;
+  final String? description;
   const Artist(
-      {required this.artistId, required this.name, required this.payloadJson});
+      {required this.artistId,
+      required this.sourceType,
+      required this.sourceId,
+      required this.name,
+      this.artworkUrl,
+      this.description});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['artist_id'] = Variable<String>(artistId);
+    map['source_type'] = Variable<String>(sourceType);
+    map['source_id'] = Variable<String>(sourceId);
     map['name'] = Variable<String>(name);
-    map['payload_json'] = Variable<String>(payloadJson);
+    if (!nullToAbsent || artworkUrl != null) {
+      map['artwork_url'] = Variable<String>(artworkUrl);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
     return map;
   }
 
   ArtistsCompanion toCompanion(bool nullToAbsent) {
     return ArtistsCompanion(
       artistId: Value(artistId),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
       name: Value(name),
-      payloadJson: Value(payloadJson),
+      artworkUrl: artworkUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(artworkUrl),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
     );
   }
 
@@ -2945,8 +3461,11 @@ class Artist extends DataClass implements Insertable<Artist> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Artist(
       artistId: serializer.fromJson<String>(json['artistId']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
       name: serializer.fromJson<String>(json['name']),
-      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      artworkUrl: serializer.fromJson<String?>(json['artworkUrl']),
+      description: serializer.fromJson<String?>(json['description']),
     );
   }
   @override
@@ -2954,80 +3473,121 @@ class Artist extends DataClass implements Insertable<Artist> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'artistId': serializer.toJson<String>(artistId),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
       'name': serializer.toJson<String>(name),
-      'payloadJson': serializer.toJson<String>(payloadJson),
+      'artworkUrl': serializer.toJson<String?>(artworkUrl),
+      'description': serializer.toJson<String?>(description),
     };
   }
 
-  Artist copyWith({String? artistId, String? name, String? payloadJson}) =>
+  Artist copyWith(
+          {String? artistId,
+          String? sourceType,
+          String? sourceId,
+          String? name,
+          Value<String?> artworkUrl = const Value.absent(),
+          Value<String?> description = const Value.absent()}) =>
       Artist(
         artistId: artistId ?? this.artistId,
+        sourceType: sourceType ?? this.sourceType,
+        sourceId: sourceId ?? this.sourceId,
         name: name ?? this.name,
-        payloadJson: payloadJson ?? this.payloadJson,
+        artworkUrl: artworkUrl.present ? artworkUrl.value : this.artworkUrl,
+        description: description.present ? description.value : this.description,
       );
   @override
   String toString() {
     return (StringBuffer('Artist(')
           ..write('artistId: $artistId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
           ..write('name: $name, ')
-          ..write('payloadJson: $payloadJson')
+          ..write('artworkUrl: $artworkUrl, ')
+          ..write('description: $description')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(artistId, name, payloadJson);
+  int get hashCode => Object.hash(
+      artistId, sourceType, sourceId, name, artworkUrl, description);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Artist &&
           other.artistId == this.artistId &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
           other.name == this.name &&
-          other.payloadJson == this.payloadJson);
+          other.artworkUrl == this.artworkUrl &&
+          other.description == this.description);
 }
 
 class ArtistsCompanion extends UpdateCompanion<Artist> {
   final Value<String> artistId;
+  final Value<String> sourceType;
+  final Value<String> sourceId;
   final Value<String> name;
-  final Value<String> payloadJson;
+  final Value<String?> artworkUrl;
+  final Value<String?> description;
   final Value<int> rowid;
   const ArtistsCompanion({
     this.artistId = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
     this.name = const Value.absent(),
-    this.payloadJson = const Value.absent(),
+    this.artworkUrl = const Value.absent(),
+    this.description = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ArtistsCompanion.insert({
     required String artistId,
+    required String sourceType,
+    required String sourceId,
     required String name,
-    required String payloadJson,
+    this.artworkUrl = const Value.absent(),
+    this.description = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : artistId = Value(artistId),
-        name = Value(name),
-        payloadJson = Value(payloadJson);
+        sourceType = Value(sourceType),
+        sourceId = Value(sourceId),
+        name = Value(name);
   static Insertable<Artist> custom({
     Expression<String>? artistId,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
     Expression<String>? name,
-    Expression<String>? payloadJson,
+    Expression<String>? artworkUrl,
+    Expression<String>? description,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (artistId != null) 'artist_id': artistId,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
       if (name != null) 'name': name,
-      if (payloadJson != null) 'payload_json': payloadJson,
+      if (artworkUrl != null) 'artwork_url': artworkUrl,
+      if (description != null) 'description': description,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   ArtistsCompanion copyWith(
       {Value<String>? artistId,
+      Value<String>? sourceType,
+      Value<String>? sourceId,
       Value<String>? name,
-      Value<String>? payloadJson,
+      Value<String?>? artworkUrl,
+      Value<String?>? description,
       Value<int>? rowid}) {
     return ArtistsCompanion(
       artistId: artistId ?? this.artistId,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
       name: name ?? this.name,
-      payloadJson: payloadJson ?? this.payloadJson,
+      artworkUrl: artworkUrl ?? this.artworkUrl,
+      description: description ?? this.description,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3038,11 +3598,20 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
     if (artistId.present) {
       map['artist_id'] = Variable<String>(artistId.value);
     }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (payloadJson.present) {
-      map['payload_json'] = Variable<String>(payloadJson.value);
+    if (artworkUrl.present) {
+      map['artwork_url'] = Variable<String>(artworkUrl.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -3054,8 +3623,11 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
   String toString() {
     return (StringBuffer('ArtistsCompanion(')
           ..write('artistId: $artistId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
           ..write('name: $name, ')
-          ..write('payloadJson: $payloadJson, ')
+          ..write('artworkUrl: $artworkUrl, ')
+          ..write('description: $description, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();

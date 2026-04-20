@@ -4,12 +4,12 @@ import 'package:bujuan/core/database/drift_database.dart' as db;
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/domain/entities/playlist_track_ref.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:drift/drift.dart' as drift;
 
-import 'local_library_codec.dart';
 import 'local_library_data_source.dart';
 
 class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
@@ -46,13 +46,7 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
     final rows = await (_database.select(_database.playlists)
           ..where((tbl) => tbl.title.like('%$keyword%')))
         .get();
-    return rows
-        .map(
-          (row) =>
-              LocalLibraryCodec.decodePlaylist(_decodePayload(row.payloadJson)),
-        )
-        .whereType<PlaylistEntity>()
-        .toList();
+    return rows.map(_mapPlaylistRow).toList();
   }
 
   @override
@@ -68,10 +62,7 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
                 tbl.artistSearchText.like(likeKeyword),
           ))
         .get();
-    return rows
-        .map((row) => LocalLibraryCodec.decodeAlbum(_decodePayload(row.payloadJson)))
-        .whereType<AlbumEntity>()
-        .toList();
+    return rows.map(_mapAlbumRow).toList();
   }
 
   @override
@@ -82,10 +73,7 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
     final rows = await (_database.select(_database.artists)
           ..where((tbl) => tbl.name.like('%$keyword%')))
         .get();
-    return rows
-        .map((row) => LocalLibraryCodec.decodeArtist(_decodePayload(row.payloadJson)))
-        .whereType<ArtistEntity>()
-        .toList();
+    return rows.map(_mapArtistRow).toList();
   }
 
   @override
@@ -118,7 +106,7 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
     if (row == null) {
       return null;
     }
-    return LocalLibraryCodec.decodePlaylist(_decodePayload(row.payloadJson));
+    return _mapPlaylistRow(row);
   }
 
   @override
@@ -166,9 +154,24 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
             .map(
               (playlist) => db.PlaylistsCompanion(
                 playlistId: drift.Value(playlist.id),
+                sourceType: drift.Value(playlist.sourceType.name),
+                sourceId: drift.Value(playlist.sourceId),
                 title: drift.Value(playlist.title),
-                payloadJson: drift.Value(
-                  jsonEncode(LocalLibraryCodec.encodePlaylist(playlist)),
+                description: drift.Value(playlist.description),
+                coverUrl: drift.Value(playlist.coverUrl),
+                trackCount: drift.Value(playlist.trackCount),
+                trackRefsJson: drift.Value(
+                  jsonEncode(
+                    playlist.trackRefs
+                        .map(
+                          (trackRef) => {
+                            'trackId': trackRef.trackId,
+                            'order': trackRef.order,
+                            'addedAt': trackRef.addedAt,
+                          },
+                        )
+                        .toList(),
+                  ),
                 ),
               ),
             )
@@ -186,11 +189,15 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
             .map(
               (album) => db.AlbumsCompanion(
                 albumId: drift.Value(album.id),
+                sourceType: drift.Value(album.sourceType.name),
+                sourceId: drift.Value(album.sourceId),
                 title: drift.Value(album.title),
                 artistSearchText: drift.Value(album.artistNames.join(' ')),
-                payloadJson: drift.Value(
-                  jsonEncode(LocalLibraryCodec.encodeAlbum(album)),
-                ),
+                artistNamesJson: drift.Value(jsonEncode(album.artistNames)),
+                artworkUrl: drift.Value(album.artworkUrl),
+                description: drift.Value(album.description),
+                trackCount: drift.Value(album.trackCount),
+                publishTime: drift.Value(album.publishTime),
               ),
             )
             .toList(),
@@ -207,10 +214,11 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
             .map(
               (artist) => db.ArtistsCompanion(
                 artistId: drift.Value(artist.id),
+                sourceType: drift.Value(artist.sourceType.name),
+                sourceId: drift.Value(artist.sourceId),
                 name: drift.Value(artist.name),
-                payloadJson: drift.Value(
-                  jsonEncode(LocalLibraryCodec.encodeArtist(artist)),
-                ),
+                artworkUrl: drift.Value(artist.artworkUrl),
+                description: drift.Value(artist.description),
               ),
             )
             .toList(),
@@ -229,14 +237,67 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
         );
   }
 
-  Map<String, Object?> _decodePayload(String payloadJson) {
-    final decoded = jsonDecode(payloadJson);
-    if (decoded is Map) {
-      return Map<String, Object?>.from(
-        decoded.map((key, value) => MapEntry('$key', value)),
-      );
-    }
-    return const {};
+  PlaylistEntity _mapPlaylistRow(db.Playlist row) {
+    final rawTrackRefs =
+        (jsonDecode(row.trackRefsJson) as List?) ?? const <Object?>[];
+    final trackRefs = rawTrackRefs
+        .map((item) => item is Map ? Map<String, dynamic>.from(item) : null)
+        .whereType<Map<String, dynamic>>()
+        .map(
+          (item) => PlaylistTrackRef(
+            trackId: item['trackId'] as String? ?? '',
+            order: (item['order'] as num?)?.toInt() ?? 0,
+            addedAt: (item['addedAt'] as num?)?.toInt(),
+          ),
+        )
+        .toList();
+    return PlaylistEntity(
+      id: row.playlistId,
+      sourceType: SourceType.values.firstWhere(
+        (item) => item.name == row.sourceType,
+        orElse: () => SourceType.unknown,
+      ),
+      sourceId: row.sourceId,
+      title: row.title,
+      description: row.description,
+      coverUrl: row.coverUrl,
+      trackCount: row.trackCount,
+      trackRefs: trackRefs,
+    );
+  }
+
+  AlbumEntity _mapAlbumRow(db.Album row) {
+    final artistNames =
+        (jsonDecode(row.artistNamesJson) as List?)?.cast<String>() ??
+            const <String>[];
+    return AlbumEntity(
+      id: row.albumId,
+      sourceType: SourceType.values.firstWhere(
+        (item) => item.name == row.sourceType,
+        orElse: () => SourceType.unknown,
+      ),
+      sourceId: row.sourceId,
+      title: row.title,
+      artworkUrl: row.artworkUrl,
+      artistNames: artistNames,
+      description: row.description,
+      trackCount: row.trackCount,
+      publishTime: row.publishTime,
+    );
+  }
+
+  ArtistEntity _mapArtistRow(db.Artist row) {
+    return ArtistEntity(
+      id: row.artistId,
+      sourceType: SourceType.values.firstWhere(
+        (item) => item.name == row.sourceType,
+        orElse: () => SourceType.unknown,
+      ),
+      sourceId: row.sourceId,
+      name: row.name,
+      artworkUrl: row.artworkUrl,
+      description: row.description,
+    );
   }
 
   Track _mapTrackRow(db.Track row) {

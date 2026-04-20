@@ -84,8 +84,13 @@ class TrackLyricsEntries extends Table {
 
 class Playlists extends Table {
   TextColumn get playlistId => text()();
+  TextColumn get sourceType => text()();
+  TextColumn get sourceId => text()();
   TextColumn get title => text()();
-  TextColumn get payloadJson => text()();
+  TextColumn get description => text().nullable()();
+  TextColumn get coverUrl => text().nullable()();
+  IntColumn get trackCount => integer().nullable()();
+  TextColumn get trackRefsJson => text()();
 
   @override
   Set<Column<Object>> get primaryKey => {playlistId};
@@ -93,9 +98,15 @@ class Playlists extends Table {
 
 class Albums extends Table {
   TextColumn get albumId => text()();
+  TextColumn get sourceType => text()();
+  TextColumn get sourceId => text()();
   TextColumn get title => text()();
   TextColumn get artistSearchText => text()();
-  TextColumn get payloadJson => text()();
+  TextColumn get artistNamesJson => text()();
+  TextColumn get artworkUrl => text().nullable()();
+  TextColumn get description => text().nullable()();
+  IntColumn get trackCount => integer().nullable()();
+  IntColumn get publishTime => integer().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {albumId};
@@ -103,8 +114,11 @@ class Albums extends Table {
 
 class Artists extends Table {
   TextColumn get artistId => text()();
+  TextColumn get sourceType => text()();
+  TextColumn get sourceId => text()();
   TextColumn get name => text()();
-  TextColumn get payloadJson => text()();
+  TextColumn get artworkUrl => text().nullable()();
+  TextColumn get description => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {artistId};

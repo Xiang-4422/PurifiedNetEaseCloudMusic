@@ -1202,6 +1202,18 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
   late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
       'track_id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceTypeMeta =
+      const VerificationMeta('sourceType');
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+      'source_type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceIdMeta =
+      const VerificationMeta('sourceId');
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+      'source_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -1213,21 +1225,119 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
   late final GeneratedColumn<String> artistSearchText = GeneratedColumn<String>(
       'artist_search_text', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artistNamesJsonMeta =
+      const VerificationMeta('artistNamesJson');
+  @override
+  late final GeneratedColumn<String> artistNamesJson = GeneratedColumn<String>(
+      'artist_names_json', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _albumTitleMeta =
       const VerificationMeta('albumTitle');
   @override
   late final GeneratedColumn<String> albumTitle = GeneratedColumn<String>(
       'album_title', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _payloadJsonMeta =
-      const VerificationMeta('payloadJson');
+  static const VerificationMeta _durationMsMeta =
+      const VerificationMeta('durationMs');
   @override
-  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
-      'payload_json', aliasedName, false,
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+      'duration_ms', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _artworkUrlMeta =
+      const VerificationMeta('artworkUrl');
+  @override
+  late final GeneratedColumn<String> artworkUrl = GeneratedColumn<String>(
+      'artwork_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _remoteUrlMeta =
+      const VerificationMeta('remoteUrl');
+  @override
+  late final GeneratedColumn<String> remoteUrl = GeneratedColumn<String>(
+      'remote_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _localPathMeta =
+      const VerificationMeta('localPath');
+  @override
+  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
+      'local_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _localArtworkPathMeta =
+      const VerificationMeta('localArtworkPath');
+  @override
+  late final GeneratedColumn<String> localArtworkPath = GeneratedColumn<String>(
+      'local_artwork_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _localLyricsPathMeta =
+      const VerificationMeta('localLyricsPath');
+  @override
+  late final GeneratedColumn<String> localLyricsPath = GeneratedColumn<String>(
+      'local_lyrics_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lyricKeyMeta =
+      const VerificationMeta('lyricKey');
+  @override
+  late final GeneratedColumn<String> lyricKey = GeneratedColumn<String>(
+      'lyric_key', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _availabilityMeta =
+      const VerificationMeta('availability');
+  @override
+  late final GeneratedColumn<String> availability = GeneratedColumn<String>(
+      'availability', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _downloadStateMeta =
+      const VerificationMeta('downloadState');
+  @override
+  late final GeneratedColumn<String> downloadState = GeneratedColumn<String>(
+      'download_state', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _resourceOriginMeta =
+      const VerificationMeta('resourceOrigin');
+  @override
+  late final GeneratedColumn<String> resourceOrigin = GeneratedColumn<String>(
+      'resource_origin', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _downloadProgressMeta =
+      const VerificationMeta('downloadProgress');
+  @override
+  late final GeneratedColumn<double> downloadProgress = GeneratedColumn<double>(
+      'download_progress', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _downloadFailureReasonMeta =
+      const VerificationMeta('downloadFailureReason');
+  @override
+  late final GeneratedColumn<String> downloadFailureReason =
+      GeneratedColumn<String>('download_failure_reason', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _metadataJsonMeta =
+      const VerificationMeta('metadataJson');
+  @override
+  late final GeneratedColumn<String> metadataJson = GeneratedColumn<String>(
+      'metadata_json', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns =>
-      [trackId, title, artistSearchText, albumTitle, payloadJson];
+  List<GeneratedColumn> get $columns => [
+        trackId,
+        sourceType,
+        sourceId,
+        title,
+        artistSearchText,
+        artistNamesJson,
+        albumTitle,
+        durationMs,
+        artworkUrl,
+        remoteUrl,
+        localPath,
+        localArtworkPath,
+        localLyricsPath,
+        lyricKey,
+        availability,
+        downloadState,
+        resourceOrigin,
+        downloadProgress,
+        downloadFailureReason,
+        metadataJson
+      ];
   @override
   String get aliasedName => _alias ?? 'tracks';
   @override
@@ -1243,6 +1353,20 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
     } else if (isInserting) {
       context.missing(_trackIdMeta);
     }
+    if (data.containsKey('source_type')) {
+      context.handle(
+          _sourceTypeMeta,
+          sourceType.isAcceptableOrUnknown(
+              data['source_type']!, _sourceTypeMeta));
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(_sourceIdMeta,
+          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
     if (data.containsKey('title')) {
       context.handle(
           _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
@@ -1257,19 +1381,99 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
     } else if (isInserting) {
       context.missing(_artistSearchTextMeta);
     }
+    if (data.containsKey('artist_names_json')) {
+      context.handle(
+          _artistNamesJsonMeta,
+          artistNamesJson.isAcceptableOrUnknown(
+              data['artist_names_json']!, _artistNamesJsonMeta));
+    } else if (isInserting) {
+      context.missing(_artistNamesJsonMeta);
+    }
     if (data.containsKey('album_title')) {
       context.handle(
           _albumTitleMeta,
           albumTitle.isAcceptableOrUnknown(
               data['album_title']!, _albumTitleMeta));
     }
-    if (data.containsKey('payload_json')) {
+    if (data.containsKey('duration_ms')) {
       context.handle(
-          _payloadJsonMeta,
-          payloadJson.isAcceptableOrUnknown(
-              data['payload_json']!, _payloadJsonMeta));
+          _durationMsMeta,
+          durationMs.isAcceptableOrUnknown(
+              data['duration_ms']!, _durationMsMeta));
+    }
+    if (data.containsKey('artwork_url')) {
+      context.handle(
+          _artworkUrlMeta,
+          artworkUrl.isAcceptableOrUnknown(
+              data['artwork_url']!, _artworkUrlMeta));
+    }
+    if (data.containsKey('remote_url')) {
+      context.handle(_remoteUrlMeta,
+          remoteUrl.isAcceptableOrUnknown(data['remote_url']!, _remoteUrlMeta));
+    }
+    if (data.containsKey('local_path')) {
+      context.handle(_localPathMeta,
+          localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta));
+    }
+    if (data.containsKey('local_artwork_path')) {
+      context.handle(
+          _localArtworkPathMeta,
+          localArtworkPath.isAcceptableOrUnknown(
+              data['local_artwork_path']!, _localArtworkPathMeta));
+    }
+    if (data.containsKey('local_lyrics_path')) {
+      context.handle(
+          _localLyricsPathMeta,
+          localLyricsPath.isAcceptableOrUnknown(
+              data['local_lyrics_path']!, _localLyricsPathMeta));
+    }
+    if (data.containsKey('lyric_key')) {
+      context.handle(_lyricKeyMeta,
+          lyricKey.isAcceptableOrUnknown(data['lyric_key']!, _lyricKeyMeta));
+    }
+    if (data.containsKey('availability')) {
+      context.handle(
+          _availabilityMeta,
+          availability.isAcceptableOrUnknown(
+              data['availability']!, _availabilityMeta));
     } else if (isInserting) {
-      context.missing(_payloadJsonMeta);
+      context.missing(_availabilityMeta);
+    }
+    if (data.containsKey('download_state')) {
+      context.handle(
+          _downloadStateMeta,
+          downloadState.isAcceptableOrUnknown(
+              data['download_state']!, _downloadStateMeta));
+    } else if (isInserting) {
+      context.missing(_downloadStateMeta);
+    }
+    if (data.containsKey('resource_origin')) {
+      context.handle(
+          _resourceOriginMeta,
+          resourceOrigin.isAcceptableOrUnknown(
+              data['resource_origin']!, _resourceOriginMeta));
+    } else if (isInserting) {
+      context.missing(_resourceOriginMeta);
+    }
+    if (data.containsKey('download_progress')) {
+      context.handle(
+          _downloadProgressMeta,
+          downloadProgress.isAcceptableOrUnknown(
+              data['download_progress']!, _downloadProgressMeta));
+    }
+    if (data.containsKey('download_failure_reason')) {
+      context.handle(
+          _downloadFailureReasonMeta,
+          downloadFailureReason.isAcceptableOrUnknown(
+              data['download_failure_reason']!, _downloadFailureReasonMeta));
+    }
+    if (data.containsKey('metadata_json')) {
+      context.handle(
+          _metadataJsonMeta,
+          metadataJson.isAcceptableOrUnknown(
+              data['metadata_json']!, _metadataJsonMeta));
+    } else if (isInserting) {
+      context.missing(_metadataJsonMeta);
     }
     return context;
   }
@@ -1282,14 +1486,45 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
     return Track(
       trackId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      sourceType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      sourceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       artistSearchText: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}artist_search_text'])!,
+      artistNamesJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}artist_names_json'])!,
       albumTitle: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}album_title']),
-      payloadJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}payload_json'])!,
+      durationMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}duration_ms']),
+      artworkUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}artwork_url']),
+      remoteUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}remote_url']),
+      localPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}local_path']),
+      localArtworkPath: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}local_artwork_path']),
+      localLyricsPath: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}local_lyrics_path']),
+      lyricKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}lyric_key']),
+      availability: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}availability'])!,
+      downloadState: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}download_state'])!,
+      resourceOrigin: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}resource_origin'])!,
+      downloadProgress: attachedDatabase.typeMapping.read(
+          DriftSqlType.double, data['${effectivePrefix}download_progress']),
+      downloadFailureReason: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}download_failure_reason']),
+      metadataJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}metadata_json'])!,
     );
   }
 
@@ -1301,38 +1536,134 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
 
 class Track extends DataClass implements Insertable<Track> {
   final String trackId;
+  final String sourceType;
+  final String sourceId;
   final String title;
   final String artistSearchText;
+  final String artistNamesJson;
   final String? albumTitle;
-  final String payloadJson;
+  final int? durationMs;
+  final String? artworkUrl;
+  final String? remoteUrl;
+  final String? localPath;
+  final String? localArtworkPath;
+  final String? localLyricsPath;
+  final String? lyricKey;
+  final String availability;
+  final String downloadState;
+  final String resourceOrigin;
+  final double? downloadProgress;
+  final String? downloadFailureReason;
+  final String metadataJson;
   const Track(
       {required this.trackId,
+      required this.sourceType,
+      required this.sourceId,
       required this.title,
       required this.artistSearchText,
+      required this.artistNamesJson,
       this.albumTitle,
-      required this.payloadJson});
+      this.durationMs,
+      this.artworkUrl,
+      this.remoteUrl,
+      this.localPath,
+      this.localArtworkPath,
+      this.localLyricsPath,
+      this.lyricKey,
+      required this.availability,
+      required this.downloadState,
+      required this.resourceOrigin,
+      this.downloadProgress,
+      this.downloadFailureReason,
+      required this.metadataJson});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['track_id'] = Variable<String>(trackId);
+    map['source_type'] = Variable<String>(sourceType);
+    map['source_id'] = Variable<String>(sourceId);
     map['title'] = Variable<String>(title);
     map['artist_search_text'] = Variable<String>(artistSearchText);
+    map['artist_names_json'] = Variable<String>(artistNamesJson);
     if (!nullToAbsent || albumTitle != null) {
       map['album_title'] = Variable<String>(albumTitle);
     }
-    map['payload_json'] = Variable<String>(payloadJson);
+    if (!nullToAbsent || durationMs != null) {
+      map['duration_ms'] = Variable<int>(durationMs);
+    }
+    if (!nullToAbsent || artworkUrl != null) {
+      map['artwork_url'] = Variable<String>(artworkUrl);
+    }
+    if (!nullToAbsent || remoteUrl != null) {
+      map['remote_url'] = Variable<String>(remoteUrl);
+    }
+    if (!nullToAbsent || localPath != null) {
+      map['local_path'] = Variable<String>(localPath);
+    }
+    if (!nullToAbsent || localArtworkPath != null) {
+      map['local_artwork_path'] = Variable<String>(localArtworkPath);
+    }
+    if (!nullToAbsent || localLyricsPath != null) {
+      map['local_lyrics_path'] = Variable<String>(localLyricsPath);
+    }
+    if (!nullToAbsent || lyricKey != null) {
+      map['lyric_key'] = Variable<String>(lyricKey);
+    }
+    map['availability'] = Variable<String>(availability);
+    map['download_state'] = Variable<String>(downloadState);
+    map['resource_origin'] = Variable<String>(resourceOrigin);
+    if (!nullToAbsent || downloadProgress != null) {
+      map['download_progress'] = Variable<double>(downloadProgress);
+    }
+    if (!nullToAbsent || downloadFailureReason != null) {
+      map['download_failure_reason'] = Variable<String>(downloadFailureReason);
+    }
+    map['metadata_json'] = Variable<String>(metadataJson);
     return map;
   }
 
   TracksCompanion toCompanion(bool nullToAbsent) {
     return TracksCompanion(
       trackId: Value(trackId),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
       title: Value(title),
       artistSearchText: Value(artistSearchText),
+      artistNamesJson: Value(artistNamesJson),
       albumTitle: albumTitle == null && nullToAbsent
           ? const Value.absent()
           : Value(albumTitle),
-      payloadJson: Value(payloadJson),
+      durationMs: durationMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationMs),
+      artworkUrl: artworkUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(artworkUrl),
+      remoteUrl: remoteUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteUrl),
+      localPath: localPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localPath),
+      localArtworkPath: localArtworkPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localArtworkPath),
+      localLyricsPath: localLyricsPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localLyricsPath),
+      lyricKey: lyricKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lyricKey),
+      availability: Value(availability),
+      downloadState: Value(downloadState),
+      resourceOrigin: Value(resourceOrigin),
+      downloadProgress: downloadProgress == null && nullToAbsent
+          ? const Value.absent()
+          : Value(downloadProgress),
+      downloadFailureReason: downloadFailureReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(downloadFailureReason),
+      metadataJson: Value(metadataJson),
     );
   }
 
@@ -1341,10 +1672,26 @@ class Track extends DataClass implements Insertable<Track> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Track(
       trackId: serializer.fromJson<String>(json['trackId']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
       title: serializer.fromJson<String>(json['title']),
       artistSearchText: serializer.fromJson<String>(json['artistSearchText']),
+      artistNamesJson: serializer.fromJson<String>(json['artistNamesJson']),
       albumTitle: serializer.fromJson<String?>(json['albumTitle']),
-      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      durationMs: serializer.fromJson<int?>(json['durationMs']),
+      artworkUrl: serializer.fromJson<String?>(json['artworkUrl']),
+      remoteUrl: serializer.fromJson<String?>(json['remoteUrl']),
+      localPath: serializer.fromJson<String?>(json['localPath']),
+      localArtworkPath: serializer.fromJson<String?>(json['localArtworkPath']),
+      localLyricsPath: serializer.fromJson<String?>(json['localLyricsPath']),
+      lyricKey: serializer.fromJson<String?>(json['lyricKey']),
+      availability: serializer.fromJson<String>(json['availability']),
+      downloadState: serializer.fromJson<String>(json['downloadState']),
+      resourceOrigin: serializer.fromJson<String>(json['resourceOrigin']),
+      downloadProgress: serializer.fromJson<double?>(json['downloadProgress']),
+      downloadFailureReason:
+          serializer.fromJson<String?>(json['downloadFailureReason']),
+      metadataJson: serializer.fromJson<String>(json['metadataJson']),
     );
   }
   @override
@@ -1352,109 +1699,325 @@ class Track extends DataClass implements Insertable<Track> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'trackId': serializer.toJson<String>(trackId),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
       'title': serializer.toJson<String>(title),
       'artistSearchText': serializer.toJson<String>(artistSearchText),
+      'artistNamesJson': serializer.toJson<String>(artistNamesJson),
       'albumTitle': serializer.toJson<String?>(albumTitle),
-      'payloadJson': serializer.toJson<String>(payloadJson),
+      'durationMs': serializer.toJson<int?>(durationMs),
+      'artworkUrl': serializer.toJson<String?>(artworkUrl),
+      'remoteUrl': serializer.toJson<String?>(remoteUrl),
+      'localPath': serializer.toJson<String?>(localPath),
+      'localArtworkPath': serializer.toJson<String?>(localArtworkPath),
+      'localLyricsPath': serializer.toJson<String?>(localLyricsPath),
+      'lyricKey': serializer.toJson<String?>(lyricKey),
+      'availability': serializer.toJson<String>(availability),
+      'downloadState': serializer.toJson<String>(downloadState),
+      'resourceOrigin': serializer.toJson<String>(resourceOrigin),
+      'downloadProgress': serializer.toJson<double?>(downloadProgress),
+      'downloadFailureReason':
+          serializer.toJson<String?>(downloadFailureReason),
+      'metadataJson': serializer.toJson<String>(metadataJson),
     };
   }
 
   Track copyWith(
           {String? trackId,
+          String? sourceType,
+          String? sourceId,
           String? title,
           String? artistSearchText,
+          String? artistNamesJson,
           Value<String?> albumTitle = const Value.absent(),
-          String? payloadJson}) =>
+          Value<int?> durationMs = const Value.absent(),
+          Value<String?> artworkUrl = const Value.absent(),
+          Value<String?> remoteUrl = const Value.absent(),
+          Value<String?> localPath = const Value.absent(),
+          Value<String?> localArtworkPath = const Value.absent(),
+          Value<String?> localLyricsPath = const Value.absent(),
+          Value<String?> lyricKey = const Value.absent(),
+          String? availability,
+          String? downloadState,
+          String? resourceOrigin,
+          Value<double?> downloadProgress = const Value.absent(),
+          Value<String?> downloadFailureReason = const Value.absent(),
+          String? metadataJson}) =>
       Track(
         trackId: trackId ?? this.trackId,
+        sourceType: sourceType ?? this.sourceType,
+        sourceId: sourceId ?? this.sourceId,
         title: title ?? this.title,
         artistSearchText: artistSearchText ?? this.artistSearchText,
+        artistNamesJson: artistNamesJson ?? this.artistNamesJson,
         albumTitle: albumTitle.present ? albumTitle.value : this.albumTitle,
-        payloadJson: payloadJson ?? this.payloadJson,
+        durationMs: durationMs.present ? durationMs.value : this.durationMs,
+        artworkUrl: artworkUrl.present ? artworkUrl.value : this.artworkUrl,
+        remoteUrl: remoteUrl.present ? remoteUrl.value : this.remoteUrl,
+        localPath: localPath.present ? localPath.value : this.localPath,
+        localArtworkPath: localArtworkPath.present
+            ? localArtworkPath.value
+            : this.localArtworkPath,
+        localLyricsPath: localLyricsPath.present
+            ? localLyricsPath.value
+            : this.localLyricsPath,
+        lyricKey: lyricKey.present ? lyricKey.value : this.lyricKey,
+        availability: availability ?? this.availability,
+        downloadState: downloadState ?? this.downloadState,
+        resourceOrigin: resourceOrigin ?? this.resourceOrigin,
+        downloadProgress: downloadProgress.present
+            ? downloadProgress.value
+            : this.downloadProgress,
+        downloadFailureReason: downloadFailureReason.present
+            ? downloadFailureReason.value
+            : this.downloadFailureReason,
+        metadataJson: metadataJson ?? this.metadataJson,
       );
   @override
   String toString() {
     return (StringBuffer('Track(')
           ..write('trackId: $trackId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
           ..write('title: $title, ')
           ..write('artistSearchText: $artistSearchText, ')
+          ..write('artistNamesJson: $artistNamesJson, ')
           ..write('albumTitle: $albumTitle, ')
-          ..write('payloadJson: $payloadJson')
+          ..write('durationMs: $durationMs, ')
+          ..write('artworkUrl: $artworkUrl, ')
+          ..write('remoteUrl: $remoteUrl, ')
+          ..write('localPath: $localPath, ')
+          ..write('localArtworkPath: $localArtworkPath, ')
+          ..write('localLyricsPath: $localLyricsPath, ')
+          ..write('lyricKey: $lyricKey, ')
+          ..write('availability: $availability, ')
+          ..write('downloadState: $downloadState, ')
+          ..write('resourceOrigin: $resourceOrigin, ')
+          ..write('downloadProgress: $downloadProgress, ')
+          ..write('downloadFailureReason: $downloadFailureReason, ')
+          ..write('metadataJson: $metadataJson')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(trackId, title, artistSearchText, albumTitle, payloadJson);
+  int get hashCode => Object.hash(
+      trackId,
+      sourceType,
+      sourceId,
+      title,
+      artistSearchText,
+      artistNamesJson,
+      albumTitle,
+      durationMs,
+      artworkUrl,
+      remoteUrl,
+      localPath,
+      localArtworkPath,
+      localLyricsPath,
+      lyricKey,
+      availability,
+      downloadState,
+      resourceOrigin,
+      downloadProgress,
+      downloadFailureReason,
+      metadataJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Track &&
           other.trackId == this.trackId &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
           other.title == this.title &&
           other.artistSearchText == this.artistSearchText &&
+          other.artistNamesJson == this.artistNamesJson &&
           other.albumTitle == this.albumTitle &&
-          other.payloadJson == this.payloadJson);
+          other.durationMs == this.durationMs &&
+          other.artworkUrl == this.artworkUrl &&
+          other.remoteUrl == this.remoteUrl &&
+          other.localPath == this.localPath &&
+          other.localArtworkPath == this.localArtworkPath &&
+          other.localLyricsPath == this.localLyricsPath &&
+          other.lyricKey == this.lyricKey &&
+          other.availability == this.availability &&
+          other.downloadState == this.downloadState &&
+          other.resourceOrigin == this.resourceOrigin &&
+          other.downloadProgress == this.downloadProgress &&
+          other.downloadFailureReason == this.downloadFailureReason &&
+          other.metadataJson == this.metadataJson);
 }
 
 class TracksCompanion extends UpdateCompanion<Track> {
   final Value<String> trackId;
+  final Value<String> sourceType;
+  final Value<String> sourceId;
   final Value<String> title;
   final Value<String> artistSearchText;
+  final Value<String> artistNamesJson;
   final Value<String?> albumTitle;
-  final Value<String> payloadJson;
+  final Value<int?> durationMs;
+  final Value<String?> artworkUrl;
+  final Value<String?> remoteUrl;
+  final Value<String?> localPath;
+  final Value<String?> localArtworkPath;
+  final Value<String?> localLyricsPath;
+  final Value<String?> lyricKey;
+  final Value<String> availability;
+  final Value<String> downloadState;
+  final Value<String> resourceOrigin;
+  final Value<double?> downloadProgress;
+  final Value<String?> downloadFailureReason;
+  final Value<String> metadataJson;
   final Value<int> rowid;
   const TracksCompanion({
     this.trackId = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
     this.title = const Value.absent(),
     this.artistSearchText = const Value.absent(),
+    this.artistNamesJson = const Value.absent(),
     this.albumTitle = const Value.absent(),
-    this.payloadJson = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.artworkUrl = const Value.absent(),
+    this.remoteUrl = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.localArtworkPath = const Value.absent(),
+    this.localLyricsPath = const Value.absent(),
+    this.lyricKey = const Value.absent(),
+    this.availability = const Value.absent(),
+    this.downloadState = const Value.absent(),
+    this.resourceOrigin = const Value.absent(),
+    this.downloadProgress = const Value.absent(),
+    this.downloadFailureReason = const Value.absent(),
+    this.metadataJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TracksCompanion.insert({
     required String trackId,
+    required String sourceType,
+    required String sourceId,
     required String title,
     required String artistSearchText,
+    required String artistNamesJson,
     this.albumTitle = const Value.absent(),
-    required String payloadJson,
+    this.durationMs = const Value.absent(),
+    this.artworkUrl = const Value.absent(),
+    this.remoteUrl = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.localArtworkPath = const Value.absent(),
+    this.localLyricsPath = const Value.absent(),
+    this.lyricKey = const Value.absent(),
+    required String availability,
+    required String downloadState,
+    required String resourceOrigin,
+    this.downloadProgress = const Value.absent(),
+    this.downloadFailureReason = const Value.absent(),
+    required String metadataJson,
     this.rowid = const Value.absent(),
   })  : trackId = Value(trackId),
+        sourceType = Value(sourceType),
+        sourceId = Value(sourceId),
         title = Value(title),
         artistSearchText = Value(artistSearchText),
-        payloadJson = Value(payloadJson);
+        artistNamesJson = Value(artistNamesJson),
+        availability = Value(availability),
+        downloadState = Value(downloadState),
+        resourceOrigin = Value(resourceOrigin),
+        metadataJson = Value(metadataJson);
   static Insertable<Track> custom({
     Expression<String>? trackId,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
     Expression<String>? title,
     Expression<String>? artistSearchText,
+    Expression<String>? artistNamesJson,
     Expression<String>? albumTitle,
-    Expression<String>? payloadJson,
+    Expression<int>? durationMs,
+    Expression<String>? artworkUrl,
+    Expression<String>? remoteUrl,
+    Expression<String>? localPath,
+    Expression<String>? localArtworkPath,
+    Expression<String>? localLyricsPath,
+    Expression<String>? lyricKey,
+    Expression<String>? availability,
+    Expression<String>? downloadState,
+    Expression<String>? resourceOrigin,
+    Expression<double>? downloadProgress,
+    Expression<String>? downloadFailureReason,
+    Expression<String>? metadataJson,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (trackId != null) 'track_id': trackId,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
       if (title != null) 'title': title,
       if (artistSearchText != null) 'artist_search_text': artistSearchText,
+      if (artistNamesJson != null) 'artist_names_json': artistNamesJson,
       if (albumTitle != null) 'album_title': albumTitle,
-      if (payloadJson != null) 'payload_json': payloadJson,
+      if (durationMs != null) 'duration_ms': durationMs,
+      if (artworkUrl != null) 'artwork_url': artworkUrl,
+      if (remoteUrl != null) 'remote_url': remoteUrl,
+      if (localPath != null) 'local_path': localPath,
+      if (localArtworkPath != null) 'local_artwork_path': localArtworkPath,
+      if (localLyricsPath != null) 'local_lyrics_path': localLyricsPath,
+      if (lyricKey != null) 'lyric_key': lyricKey,
+      if (availability != null) 'availability': availability,
+      if (downloadState != null) 'download_state': downloadState,
+      if (resourceOrigin != null) 'resource_origin': resourceOrigin,
+      if (downloadProgress != null) 'download_progress': downloadProgress,
+      if (downloadFailureReason != null)
+        'download_failure_reason': downloadFailureReason,
+      if (metadataJson != null) 'metadata_json': metadataJson,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   TracksCompanion copyWith(
       {Value<String>? trackId,
+      Value<String>? sourceType,
+      Value<String>? sourceId,
       Value<String>? title,
       Value<String>? artistSearchText,
+      Value<String>? artistNamesJson,
       Value<String?>? albumTitle,
-      Value<String>? payloadJson,
+      Value<int?>? durationMs,
+      Value<String?>? artworkUrl,
+      Value<String?>? remoteUrl,
+      Value<String?>? localPath,
+      Value<String?>? localArtworkPath,
+      Value<String?>? localLyricsPath,
+      Value<String?>? lyricKey,
+      Value<String>? availability,
+      Value<String>? downloadState,
+      Value<String>? resourceOrigin,
+      Value<double?>? downloadProgress,
+      Value<String?>? downloadFailureReason,
+      Value<String>? metadataJson,
       Value<int>? rowid}) {
     return TracksCompanion(
       trackId: trackId ?? this.trackId,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
       title: title ?? this.title,
       artistSearchText: artistSearchText ?? this.artistSearchText,
+      artistNamesJson: artistNamesJson ?? this.artistNamesJson,
       albumTitle: albumTitle ?? this.albumTitle,
-      payloadJson: payloadJson ?? this.payloadJson,
+      durationMs: durationMs ?? this.durationMs,
+      artworkUrl: artworkUrl ?? this.artworkUrl,
+      remoteUrl: remoteUrl ?? this.remoteUrl,
+      localPath: localPath ?? this.localPath,
+      localArtworkPath: localArtworkPath ?? this.localArtworkPath,
+      localLyricsPath: localLyricsPath ?? this.localLyricsPath,
+      lyricKey: lyricKey ?? this.lyricKey,
+      availability: availability ?? this.availability,
+      downloadState: downloadState ?? this.downloadState,
+      resourceOrigin: resourceOrigin ?? this.resourceOrigin,
+      downloadProgress: downloadProgress ?? this.downloadProgress,
+      downloadFailureReason:
+          downloadFailureReason ?? this.downloadFailureReason,
+      metadataJson: metadataJson ?? this.metadataJson,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1465,17 +2028,63 @@ class TracksCompanion extends UpdateCompanion<Track> {
     if (trackId.present) {
       map['track_id'] = Variable<String>(trackId.value);
     }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
     if (artistSearchText.present) {
       map['artist_search_text'] = Variable<String>(artistSearchText.value);
     }
+    if (artistNamesJson.present) {
+      map['artist_names_json'] = Variable<String>(artistNamesJson.value);
+    }
     if (albumTitle.present) {
       map['album_title'] = Variable<String>(albumTitle.value);
     }
-    if (payloadJson.present) {
-      map['payload_json'] = Variable<String>(payloadJson.value);
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
+    if (artworkUrl.present) {
+      map['artwork_url'] = Variable<String>(artworkUrl.value);
+    }
+    if (remoteUrl.present) {
+      map['remote_url'] = Variable<String>(remoteUrl.value);
+    }
+    if (localPath.present) {
+      map['local_path'] = Variable<String>(localPath.value);
+    }
+    if (localArtworkPath.present) {
+      map['local_artwork_path'] = Variable<String>(localArtworkPath.value);
+    }
+    if (localLyricsPath.present) {
+      map['local_lyrics_path'] = Variable<String>(localLyricsPath.value);
+    }
+    if (lyricKey.present) {
+      map['lyric_key'] = Variable<String>(lyricKey.value);
+    }
+    if (availability.present) {
+      map['availability'] = Variable<String>(availability.value);
+    }
+    if (downloadState.present) {
+      map['download_state'] = Variable<String>(downloadState.value);
+    }
+    if (resourceOrigin.present) {
+      map['resource_origin'] = Variable<String>(resourceOrigin.value);
+    }
+    if (downloadProgress.present) {
+      map['download_progress'] = Variable<double>(downloadProgress.value);
+    }
+    if (downloadFailureReason.present) {
+      map['download_failure_reason'] =
+          Variable<String>(downloadFailureReason.value);
+    }
+    if (metadataJson.present) {
+      map['metadata_json'] = Variable<String>(metadataJson.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1487,10 +2096,25 @@ class TracksCompanion extends UpdateCompanion<Track> {
   String toString() {
     return (StringBuffer('TracksCompanion(')
           ..write('trackId: $trackId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
           ..write('title: $title, ')
           ..write('artistSearchText: $artistSearchText, ')
+          ..write('artistNamesJson: $artistNamesJson, ')
           ..write('albumTitle: $albumTitle, ')
-          ..write('payloadJson: $payloadJson, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('artworkUrl: $artworkUrl, ')
+          ..write('remoteUrl: $remoteUrl, ')
+          ..write('localPath: $localPath, ')
+          ..write('localArtworkPath: $localArtworkPath, ')
+          ..write('localLyricsPath: $localLyricsPath, ')
+          ..write('lyricKey: $lyricKey, ')
+          ..write('availability: $availability, ')
+          ..write('downloadState: $downloadState, ')
+          ..write('resourceOrigin: $resourceOrigin, ')
+          ..write('downloadProgress: $downloadProgress, ')
+          ..write('downloadFailureReason: $downloadFailureReason, ')
+          ..write('metadataJson: $metadataJson, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();

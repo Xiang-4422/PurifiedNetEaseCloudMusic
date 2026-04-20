@@ -49,10 +49,25 @@ class DownloadTasks extends Table {
 
 class Tracks extends Table {
   TextColumn get trackId => text()();
+  TextColumn get sourceType => text()();
+  TextColumn get sourceId => text()();
   TextColumn get title => text()();
   TextColumn get artistSearchText => text()();
+  TextColumn get artistNamesJson => text()();
   TextColumn get albumTitle => text().nullable()();
-  TextColumn get payloadJson => text()();
+  IntColumn get durationMs => integer().nullable()();
+  TextColumn get artworkUrl => text().nullable()();
+  TextColumn get remoteUrl => text().nullable()();
+  TextColumn get localPath => text().nullable()();
+  TextColumn get localArtworkPath => text().nullable()();
+  TextColumn get localLyricsPath => text().nullable()();
+  TextColumn get lyricKey => text().nullable()();
+  TextColumn get availability => text()();
+  TextColumn get downloadState => text()();
+  TextColumn get resourceOrigin => text()();
+  RealColumn get downloadProgress => real().nullable()();
+  TextColumn get downloadFailureReason => text().nullable()();
+  TextColumn get metadataJson => text()();
 
   @override
   Set<Column<Object>> get primaryKey => {trackId};

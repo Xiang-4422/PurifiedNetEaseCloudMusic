@@ -4,6 +4,7 @@ import 'package:bujuan/core/database/drift_database.dart' as db;
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:drift/drift.dart' as drift;
@@ -32,7 +33,7 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
           ))
         .get();
     return rows
-        .map((row) => LocalLibraryCodec.decodeTrack(_decodePayload(row.payloadJson)))
+        .map(_mapTrackRow)
         .whereType<Track>()
         .toList();
   }
@@ -95,7 +96,7 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
     if (row == null) {
       return null;
     }
-    return LocalLibraryCodec.decodeTrack(_decodePayload(row.payloadJson));
+    return _mapTrackRow(row);
   }
 
   @override
@@ -129,12 +130,26 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
             .map(
               (track) => db.TracksCompanion(
                 trackId: drift.Value(track.id),
+                sourceType: drift.Value(track.sourceType.name),
+                sourceId: drift.Value(track.sourceId),
                 title: drift.Value(track.title),
                 artistSearchText: drift.Value(track.artistNames.join(' ')),
+                artistNamesJson: drift.Value(jsonEncode(track.artistNames)),
                 albumTitle: drift.Value(track.albumTitle),
-                payloadJson: drift.Value(
-                  jsonEncode(LocalLibraryCodec.encodeTrack(track)),
-                ),
+                durationMs: drift.Value(track.durationMs),
+                artworkUrl: drift.Value(track.artworkUrl),
+                remoteUrl: drift.Value(track.remoteUrl),
+                localPath: drift.Value(track.localPath),
+                localArtworkPath: drift.Value(track.localArtworkPath),
+                localLyricsPath: drift.Value(track.localLyricsPath),
+                lyricKey: drift.Value(track.lyricKey),
+                availability: drift.Value(track.availability.name),
+                downloadState: drift.Value(track.downloadState.name),
+                resourceOrigin: drift.Value(track.resourceOrigin.name),
+                downloadProgress: drift.Value(track.downloadProgress),
+                downloadFailureReason:
+                    drift.Value(track.downloadFailureReason),
+                metadataJson: drift.Value(jsonEncode(track.metadata)),
               ),
             )
             .toList(),
@@ -222,5 +237,50 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
       );
     }
     return const {};
+  }
+
+  Track _mapTrackRow(db.Track row) {
+    final artistNames =
+        (jsonDecode(row.artistNamesJson) as List?)?.cast<String>() ??
+            const <String>[];
+    final metadataDecoded = jsonDecode(row.metadataJson);
+    final metadata = metadataDecoded is Map
+        ? Map<String, Object?>.from(
+            metadataDecoded.map((key, value) => MapEntry('$key', value)),
+          )
+        : const <String, Object?>{};
+    return Track(
+      id: row.trackId,
+      sourceType: SourceType.values.firstWhere(
+        (item) => item.name == row.sourceType,
+        orElse: () => SourceType.unknown,
+      ),
+      sourceId: row.sourceId,
+      title: row.title,
+      artistNames: artistNames,
+      albumTitle: row.albumTitle,
+      durationMs: row.durationMs,
+      artworkUrl: row.artworkUrl,
+      remoteUrl: row.remoteUrl,
+      localPath: row.localPath,
+      localArtworkPath: row.localArtworkPath,
+      localLyricsPath: row.localLyricsPath,
+      lyricKey: row.lyricKey,
+      availability: TrackAvailability.values.firstWhere(
+        (item) => item.name == row.availability,
+        orElse: () => TrackAvailability.unknown,
+      ),
+      downloadState: DownloadState.values.firstWhere(
+        (item) => item.name == row.downloadState,
+        orElse: () => DownloadState.none,
+      ),
+      resourceOrigin: TrackResourceOrigin.values.firstWhere(
+        (item) => item.name == row.resourceOrigin,
+        orElse: () => TrackResourceOrigin.none,
+      ),
+      downloadProgress: row.downloadProgress,
+      downloadFailureReason: row.downloadFailureReason,
+      metadata: metadata,
+    );
   }
 }

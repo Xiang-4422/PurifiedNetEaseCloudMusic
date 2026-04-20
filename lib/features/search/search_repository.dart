@@ -1,4 +1,4 @@
-import 'package:bujuan/data/netease/api/netease_music_api.dart';
+import 'package:bujuan/data/netease/netease_search_remote_data_source.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
@@ -8,23 +8,22 @@ import 'package:audio_service/audio_service.dart';
 import 'package:get_it/get_it.dart';
 
 class SearchRepository {
-  SearchRepository({LibraryRepository? libraryRepository})
+  SearchRepository({
+    LibraryRepository? libraryRepository,
+    NeteaseSearchRemoteDataSource? remoteDataSource,
+  })
       : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository());
+                : LibraryRepository()),
+        _remoteDataSource =
+            remoteDataSource ?? const NeteaseSearchRemoteDataSource();
 
   final LibraryRepository _libraryRepository;
+  final NeteaseSearchRemoteDataSource _remoteDataSource;
 
   Future<List<String>> fetchHotKeywords() async {
-    final wrap = await NeteaseMusicApi().searchHotKey();
-    if (wrap.code != 200) {
-      return const [];
-    }
-    return wrap.result.hots
-        .map((item) => item.first ?? '')
-        .where((keyword) => keyword.isNotEmpty)
-        .toList();
+    return _remoteDataSource.fetchHotKeywords();
   }
 
   Future<List<MediaItem>> searchTrackMediaItems(

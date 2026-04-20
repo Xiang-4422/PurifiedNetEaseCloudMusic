@@ -717,3 +717,19 @@
 - 完成内容：新增 `netease_auth_remote_data_source`、`netease_explore_remote_data_source`、`netease_cloud_remote_data_source`、`netease_radio_remote_data_source`，将 `auth / explore / cloud / radio` 四条链路的网易云远程访问从 feature repository 下沉到 `data/netease`；对应 repository 现在只依赖数据源结果，不再直接 import `NeteaseMusicApi`
 - 风险或阻塞：`album / artist / playlist / search / user / comment` 六条链路仍然直接依赖网易云 API，后续还要按同样方式继续下沉
 - 下一步：继续清理剩余 feature repository 的网易云 API 直连，优先处理 album、artist、search 这三条较薄的链路
+
+#### 2026-04-20
+
+- 阶段：`Phase 1`
+- 状态：`In Progress`
+- 完成内容：新增 `netease_album_remote_data_source`、`netease_artist_remote_data_source`、`netease_search_remote_data_source`，将 `album / artist / search` 三条链路的网易云远程访问继续下沉到 `data/netease`；当前剩余直接依赖网易云 API 的 feature repository 已收缩到 `playlist / user / comment`
+- 风险或阻塞：`playlist / user / comment` 三条链路更厚，拆分时会同时牵动缓存、操作结果和多段请求编排
+- 下一步：继续按同样方式清理 `playlist / user / comment`
+
+#### 2026-04-20
+
+- 阶段：`Phase 4`
+- 状态：`In Progress`
+- 完成内容：引入 `Isar`、`isar_generator` 与 `isar_flutter_libs`；新增 `IsarAppDatabase`、`IsarPlaybackRestoreDataSource` 与 `IsarPlaybackRestoreSnapshotEntity`，应用启动默认切到 `IsarAppDatabase`，播放恢复态已开始使用 `Isar` 作为正式数据库实现
+- 风险或阻塞：当前正式数据库只接入了恢复态，媒体库、资源索引、下载任务仍沿用原持久化实现；`build_runner` 现阶段只用于 `Isar` 实体生成，旧网易云 `bean.g.dart` 仍需保留现状
+- 下一步：继续把资源索引和下载任务接到正式数据库实现，并清理剩余 feature repository 的网易云 API 直连

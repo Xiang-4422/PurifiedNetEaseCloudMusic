@@ -1,9 +1,6 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/data/netease/api/netease_music_api.dart';
+import 'package:bujuan/data/netease/netease_album_remote_data_source.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
-import 'package:bujuan/data/netease/mappers/netease_album_mapper.dart';
-import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:get_it/get_it.dart';
 
@@ -18,33 +15,37 @@ class AlbumDetailData {
 }
 
 class AlbumRepository {
-  AlbumRepository({LibraryRepository? libraryRepository})
+  AlbumRepository({
+    LibraryRepository? libraryRepository,
+    NeteaseAlbumRemoteDataSource? remoteDataSource,
+  })
       : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository());
+                : LibraryRepository()),
+        _remoteDataSource =
+            remoteDataSource ?? const NeteaseAlbumRemoteDataSource();
 
   final LibraryRepository _libraryRepository;
+  final NeteaseAlbumRemoteDataSource _remoteDataSource;
 
   Future<AlbumDetailData> fetchAlbumDetail({
     required String albumId,
     required List<int> likedSongIds,
   }) async {
-    final albumDetail = await NeteaseMusicApi().albumDetail(albumId);
-    final album = albumDetail.album == null
-        ? null
-        : NeteaseAlbumMapper.fromAlbum(albumDetail.album!);
-    final tracks = NeteaseTrackMapper.fromSong2List(albumDetail.songs ?? const []);
+    final result = await _remoteDataSource.fetchAlbumDetail(
+      albumId: albumId,
+      likedSongIds: likedSongIds,
+    );
+    final album = result.album;
+    final tracks = result.tracks;
     if (album != null) {
       await _libraryRepository.saveAlbums([album]);
     }
     await _libraryRepository.saveTracks(tracks);
     return AlbumDetailData(
       album: album!,
-      albumSongs: MediaItemMapper.fromTrackList(
-        tracks,
-        likedSongIds: likedSongIds,
-      ),
+      albumSongs: result.mediaItems,
     );
   }
 }

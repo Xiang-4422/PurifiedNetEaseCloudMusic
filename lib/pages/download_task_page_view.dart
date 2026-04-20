@@ -16,18 +16,143 @@ class DownloadTaskPageView extends StatefulWidget {
   State<DownloadTaskPageView> createState() => _DownloadTaskPageViewState();
 }
 
-class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
-  late final DownloadTaskListController _controller;
+class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
+    with SingleTickerProviderStateMixin {
+  static const _cancelActiveAction = 'cancel_active';
   static const _retryFailedAction = 'retry_failed';
   static const _clearFailedAction = 'clear_failed';
-  static const _clearCompletedAction = 'clear_completed';
-  static const _cancelActiveAction = 'cancel_active';
   static const _removeDownloadedAction = 'remove_downloaded';
+  static const _clearCompletedAction = 'clear_completed';
+
+  late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _controller = DownloadTaskListController();
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('下载管理'),
+          actions: [
+            PopupMenuButton<String>(
+              tooltip: '批量操作',
+              onSelected: _handleBulkAction,
+              itemBuilder: (context) => const [
+                PopupMenuItem<String>(
+                  value: _cancelActiveAction,
+                  child: Text('取消全部进行中任务'),
+                ),
+                PopupMenuItem<String>(
+                  value: _retryFailedAction,
+                  child: Text('重试全部失败任务'),
+                ),
+                PopupMenuItem<String>(
+                  value: _clearFailedAction,
+                  child: Text('清除失败记录'),
+                ),
+                PopupMenuItem<String>(
+                  value: _removeDownloadedAction,
+                  child: Text('删除全部已下载文件'),
+                ),
+                PopupMenuItem<String>(
+                  value: _clearCompletedAction,
+                  child: Text('清除已完成记录'),
+                ),
+              ],
+            ),
+          ],
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(text: '全部'),
+              Tab(text: '进行中'),
+              Tab(text: '失败'),
+              Tab(text: '已完成'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: const [
+            _DownloadTaskTabView(),
+            _DownloadTaskTabView(
+              statuses: {
+                DownloadTaskStatus.queued,
+                DownloadTaskStatus.downloading,
+              },
+            ),
+            _DownloadTaskTabView(
+              statuses: {
+                DownloadTaskStatus.failed,
+              },
+            ),
+            _DownloadTaskTabView(
+              statuses: {
+                DownloadTaskStatus.completed,
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleBulkAction(String action) async {
+    final controller = DownloadTaskListController();
+    try {
+      switch (action) {
+        case _cancelActiveAction:
+          await controller.cancelActiveTasks();
+          break;
+        case _retryFailedAction:
+          await controller.retryAllFailedTasks();
+          break;
+        case _clearFailedAction:
+          await controller.clearFailedTasks();
+          break;
+        case _removeDownloadedAction:
+          await controller.removeAllDownloadedTracks();
+          break;
+        case _clearCompletedAction:
+          await controller.clearCompletedTasks();
+          break;
+      }
+    } finally {
+      controller.dispose();
+    }
+  }
+}
+
+class _DownloadTaskTabView extends StatefulWidget {
+  const _DownloadTaskTabView({
+    this.statuses,
+  });
+
+  final Set<DownloadTaskStatus>? statuses;
+
+  @override
+  State<_DownloadTaskTabView> createState() => _DownloadTaskTabViewState();
+}
+
+class _DownloadTaskTabViewState extends State<_DownloadTaskTabView> {
+  late final DownloadTaskListController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = DownloadTaskListController(statuses: widget.statuses);
     _controller.loadInitial();
   }
 
@@ -39,131 +164,48 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('下载管理'),
-        actions: [
-          ValueListenableBuilder<LoadState<List<DownloadTaskListItemData>>>(
-            valueListenable: _controller.state,
-            builder: (context, state, child) {
-              if (!state.hasData) {
-                return const SizedBox.shrink();
-              }
-
-              final items = state.data!;
-              final hasFailed = items.any(
-                (item) => item.task.status == DownloadTaskStatus.failed,
-              );
-              final hasCompleted = items.any(
-                (item) => item.task.status == DownloadTaskStatus.completed,
-              );
-              final hasActive = items.any(
-                (item) =>
-                    item.task.status == DownloadTaskStatus.queued ||
-                    item.task.status == DownloadTaskStatus.downloading,
-              );
-              if (!hasFailed && !hasCompleted && !hasActive) {
-                return const SizedBox.shrink();
-              }
-
-              return PopupMenuButton<String>(
-                tooltip: '批量操作',
-                onSelected: _handleBulkAction,
-                itemBuilder: (context) => [
-                  if (hasActive)
-                    const PopupMenuItem<String>(
-                      value: _cancelActiveAction,
-                      child: Text('取消全部进行中任务'),
-                    ),
-                  if (hasFailed)
-                    const PopupMenuItem<String>(
-                      value: _retryFailedAction,
-                      child: Text('重试全部失败任务'),
-                    ),
-                  if (hasFailed)
-                    const PopupMenuItem<String>(
-                      value: _clearFailedAction,
-                      child: Text('清除失败记录'),
-                    ),
-                  if (hasCompleted)
-                    const PopupMenuItem<String>(
-                      value: _removeDownloadedAction,
-                      child: Text('删除全部已下载文件'),
-                    ),
-                  if (hasCompleted)
-                    const PopupMenuItem<String>(
-                      value: _clearCompletedAction,
-                      child: Text('清除已完成记录'),
-                    ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-      body: ValueListenableBuilder<LoadState<List<DownloadTaskListItemData>>>(
-        valueListenable: _controller.state,
-        builder: (context, state, child) {
-          return LoadStateView<List<DownloadTaskListItemData>>(
-            state: state,
-            emptyView: RefreshIndicator(
-              onRefresh: _controller.refresh,
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 160),
-                  EmptyView(),
-                ],
-              ),
+    return ValueListenableBuilder<LoadState<List<DownloadTaskListItemData>>>(
+      valueListenable: _controller.state,
+      builder: (context, state, child) {
+        return LoadStateView<List<DownloadTaskListItemData>>(
+          state: state,
+          emptyView: RefreshIndicator(
+            onRefresh: _controller.refresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: const [
+                SizedBox(height: 160),
+                EmptyView(),
+              ],
             ),
-            builder: (items) {
-              return RefreshIndicator(
-                onRefresh: _controller.refresh,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.paddingSmall,
-                    vertical: AppDimensions.paddingSmall,
-                  ),
-                  itemCount: items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return _DownloadTaskTile(
-                      item: item,
-                      onCancel: () => _controller.cancelTask(item.task.trackId),
-                      onRetry: () => _controller.retryTask(item.task.trackId),
-                      onRemoveDownloaded: () =>
-                          _controller.removeDownloadedTrack(item.task.trackId),
-                      onClear: () => _controller.clearTask(item.task.trackId),
-                    );
-                  },
+          ),
+          builder: (items) {
+            return RefreshIndicator(
+              onRefresh: _controller.refresh,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.paddingSmall,
+                  vertical: AppDimensions.paddingSmall,
                 ),
-              );
-            },
-          );
-        },
-      ),
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return _DownloadTaskTile(
+                    item: item,
+                    onCancel: () => _controller.cancelTask(item.task.trackId),
+                    onRetry: () => _controller.retryTask(item.task.trackId),
+                    onRemoveDownloaded: () =>
+                        _controller.removeDownloadedTrack(item.task.trackId),
+                    onClear: () => _controller.clearTask(item.task.trackId),
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
     );
-  }
-
-  Future<void> _handleBulkAction(String action) async {
-    switch (action) {
-      case _cancelActiveAction:
-        await _controller.cancelActiveTasks();
-        break;
-      case _retryFailedAction:
-        await _controller.retryAllFailedTasks();
-        break;
-      case _clearFailedAction:
-        await _controller.clearFailedTasks();
-        break;
-      case _clearCompletedAction:
-        await _controller.clearCompletedTasks();
-        break;
-      case _removeDownloadedAction:
-        await _controller.removeAllDownloadedTracks();
-        break;
-    }
   }
 }
 

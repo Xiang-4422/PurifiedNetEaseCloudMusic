@@ -6,6 +6,7 @@ import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_music_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
+import 'package:bujuan/data/netease/netease_remote_bootstrap.dart';
 import 'package:bujuan/data/netease/netease_music_source.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
@@ -19,8 +20,6 @@ import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
-import '../../data/netease/api/src/netease_api.dart';
 
 /// 统一收口应用启动依赖，避免初始化逻辑继续散落到 `main.dart`
 /// 或页面侧，破坏本地优先链路对单例视图的一致性假设。
@@ -70,7 +69,7 @@ Future<void> _initInfrastructure() async {
   );
   await Hive.initFlutter('BuJuan');
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));
-  await NeteaseMusicApi.init(debug: true);
+  await NeteaseRemoteBootstrap.initialize(debug: true);
 
   final localMusicSource =
       LocalMusicSource(localDataSource: appDatabase.localLibraryDataSource);

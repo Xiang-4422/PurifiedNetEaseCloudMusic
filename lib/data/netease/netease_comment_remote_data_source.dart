@@ -1,6 +1,6 @@
 import 'package:bujuan/core/network/request_repository.dart';
 import 'package:bujuan/data/netease/api/src/dio_ext.dart';
-import 'package:bujuan/data/netease/api/src/netease_api.dart';
+import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/api/src/netease_handler.dart';
 import 'package:bujuan/data/netease/mappers/netease_comment_mapper.dart';
 import 'package:bujuan/features/comment/comment_data.dart';

@@ -218,10 +218,24 @@ class _DownloadTaskTile extends StatelessWidget {
       case DownloadTaskStatus.completed:
         return '$base\n已下载到本地';
       case DownloadTaskStatus.failed:
-        final reason = task.failureReason?.isNotEmpty == true
-            ? task.failureReason!
-            : '下载失败';
+        final reason = _readableFailureReason(task.failureReason);
         return '$base\n$reason';
+    }
+  }
+
+  String _readableFailureReason(String? reason) {
+    switch (reason) {
+      case null:
+      case '':
+        return '下载失败';
+      case 'download_interrupted':
+        return '下载被中断，请重试';
+      case 'playback_url_unavailable':
+        return '当前无法获取播放地址';
+      case 'track_not_found':
+        return '本地未找到歌曲信息';
+      default:
+        return reason;
     }
   }
 

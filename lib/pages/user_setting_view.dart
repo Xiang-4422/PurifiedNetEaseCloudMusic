@@ -37,96 +37,99 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ValueListenableBuilder(
-        valueListenable: _controller.state,
-        builder: (context, state, child) => LoadStateView(
-          state: state,
-          builder: (userData) => Container(
-            padding: EdgeInsets.only(
-              top: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
-              bottom: AppDimensions.bottomPanelHeaderHeight,
-            ),
-            child: Stack(
-              alignment: Alignment.topCenter,
-              children: [
-                Container(
-                  width: context.width,
-                  margin: const EdgeInsets.only(top: 200),
-                  padding: const EdgeInsets.only(
-                    left: 15,
-                    right: 15,
-                    bottom: 25,
-                    top: 80,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onSecondary,
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        userData.nickname,
-                        style: const TextStyle(fontSize: 56),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: Text(
-                          userData.signature,
-                          style:
-                              const TextStyle(fontSize: 32, color: Colors.grey),
+      body: RefreshIndicator(
+        onRefresh: _controller.refresh,
+        child: ValueListenableBuilder(
+          valueListenable: _controller.state,
+          builder: (context, state, child) => LoadStateView(
+            state: state,
+            builder: (userData) => Container(
+              padding: EdgeInsets.only(
+                top: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
+                bottom: AppDimensions.bottomPanelHeaderHeight,
+              ),
+              child: Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  Container(
+                    width: context.width,
+                    margin: const EdgeInsets.only(top: 200),
+                    padding: const EdgeInsets.only(
+                      left: 15,
+                      right: 15,
+                      bottom: 25,
+                      top: 80,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onSecondary,
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          userData.nickname,
+                          style: const TextStyle(fontSize: 56),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 20,
-                          horizontal: 20,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Text('${userData.follows} 关注'),
-                            Text('${userData.followeds} 粉丝'),
-                            Text('${userData.playlistCount} 歌单'),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(),
-                      ),
-                      Obx(
-                        () => GestureDetector(
-                          child: Container(
-                            height: 88,
-                            alignment: Alignment.center,
-                            width: context.width,
-                            margin: const EdgeInsets.symmetric(
-                              vertical: 40,
-                              horizontal: 35,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              '注销登录',
-                              style:
-                                  TextStyle(fontSize: 28, color: Colors.white),
-                            ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            userData.signature,
+                            style: const TextStyle(
+                                fontSize: 32, color: Colors.grey),
                           ),
-                          onTap: () {
-                            UserController.to.clearUser();
-                            AutoRouter.of(context).pop();
-                          },
                         ),
-                      )
-                    ],
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 20,
+                            horizontal: 20,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text('${userData.follows} 关注'),
+                              Text('${userData.followeds} 粉丝'),
+                              Text('${userData.playlistCount} 歌单'),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(),
+                        ),
+                        Obx(
+                          () => GestureDetector(
+                            child: Container(
+                              height: 88,
+                              alignment: Alignment.center,
+                              width: context.width,
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 40,
+                                horizontal: 35,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                '注销登录',
+                                style: TextStyle(
+                                    fontSize: 28, color: Colors.white),
+                              ),
+                            ),
+                            onTap: () {
+                              UserController.to.clearUser();
+                              AutoRouter.of(context).pop();
+                            },
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                SimpleExtendedImage.avatar(
-                  userData.avatarUrl,
-                  width: 260,
-                ),
-              ],
+                  SimpleExtendedImage.avatar(
+                    userData.avatarUrl,
+                    width: 260,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -3,6 +3,7 @@ import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/data/netease/netease_user_remote_data_source.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playlist/playlist_summary_data.dart';
+import 'package:bujuan/features/user/user_profile_cache_store.dart';
 import 'package:bujuan/features/user/user_profile_data.dart';
 import 'package:get_it/get_it.dart';
 
@@ -10,18 +11,27 @@ class UserRepository {
   UserRepository({
     LibraryRepository? libraryRepository,
     NeteaseUserRemoteDataSource? remoteDataSource,
-  })
-      : _libraryRepository = libraryRepository ??
+    UserProfileCacheStore? profileCacheStore,
+  })  : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository()),
-        _remoteDataSource = remoteDataSource ?? const NeteaseUserRemoteDataSource();
+        _remoteDataSource =
+            remoteDataSource ?? const NeteaseUserRemoteDataSource(),
+        _profileCacheStore = profileCacheStore ?? const UserProfileCacheStore();
 
   final LibraryRepository _libraryRepository;
   final NeteaseUserRemoteDataSource _remoteDataSource;
+  final UserProfileCacheStore _profileCacheStore;
+
+  Future<UserProfileData?> loadCachedUserDetail(String userId) {
+    return _profileCacheStore.loadProfile(userId);
+  }
 
   Future<UserProfileData> fetchUserDetail(String userId) async {
-    return _remoteDataSource.fetchUserDetail(userId);
+    final profile = await _remoteDataSource.fetchUserDetail(userId);
+    await _profileCacheStore.saveProfile(profile);
+    return profile;
   }
 
   Future<List<int>> fetchLikedSongIds(String userId) async {

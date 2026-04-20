@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/user/user_profile_data.dart';
 import 'package:bujuan/features/user/user_repository.dart';
@@ -16,13 +18,26 @@ class UserProfileController {
       ValueNotifier(const LoadState.loading());
 
   Future<void> loadInitial() async {
+    final cachedDetail = await _repository.loadCachedUserDetail(userId);
+    if (cachedDetail != null && cachedDetail.userId.isNotEmpty) {
+      state.value = LoadState.data(cachedDetail);
+      unawaited(refresh());
+      return;
+    }
     state.value = const LoadState.loading();
+    await refresh();
+  }
+
+  Future<void> refresh() async {
     try {
       final detail = await _repository.fetchUserDetail(userId);
       state.value = detail.userId.isEmpty
           ? const LoadState.empty()
           : LoadState.data(detail);
     } catch (error, stackTrace) {
+      if (state.value.data != null) {
+        return;
+      }
       state.value = LoadState.error(error, stackTrace: stackTrace);
     }
   }

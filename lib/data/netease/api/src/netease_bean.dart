@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 export '../src/api/dj/bean.dart';
 export '../src/api/event/bean.dart';
 export '../src/api/login/bean.dart';

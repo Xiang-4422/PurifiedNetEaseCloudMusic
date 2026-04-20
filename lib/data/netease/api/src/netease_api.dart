@@ -1,3 +1,5 @@
+// ignore_for_file: empty_catches, avoid_print, constant_identifier_names
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -244,4 +246,3 @@ enum LoginState {
   Logined,
   Logout,
 }
-

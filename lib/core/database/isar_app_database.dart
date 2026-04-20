@@ -1,14 +1,15 @@
 import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/app_database_schema.dart';
 import 'package:bujuan/core/database/database_collection_schema.dart';
+import 'package:bujuan/core/database/isar_download_task_entity.dart';
 import 'package:bujuan/core/database/isar_local_resource_entity.dart';
 import 'package:bujuan/core/database/isar_playback_restore_snapshot_entity.dart';
 import 'package:bujuan/data/local/download_task_data_source.dart';
+import 'package:bujuan/data/local/isar_download_task_data_source.dart';
 import 'package:bujuan/data/local/isar_local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/isar_playback_restore_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
-import 'package:bujuan/data/local/persistent_download_task_data_source.dart';
 import 'package:bujuan/data/local/persistent_local_library_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:isar/isar.dart';
@@ -31,6 +32,7 @@ class IsarAppDatabase implements AppDatabase {
       [
         IsarPlaybackRestoreSnapshotEntitySchema,
         IsarLocalResourceEntitySchema,
+        IsarDownloadTaskEntitySchema,
       ],
       name: databaseName,
       directory: directory.path,
@@ -39,7 +41,7 @@ class IsarAppDatabase implements AppDatabase {
     _playbackRestoreDataSource = IsarPlaybackRestoreDataSource(isar: _isar);
     _localResourceIndexDataSource =
         IsarLocalResourceIndexDataSource(isar: _isar);
-    _downloadTaskDataSource = const PersistentDownloadTaskDataSource();
+    _downloadTaskDataSource = IsarDownloadTaskDataSource(isar: _isar);
   }
 
   @override

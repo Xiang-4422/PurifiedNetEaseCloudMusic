@@ -10,7 +10,7 @@ class CloudRepository {
   }) async {
     final wrap =
         await NeteaseMusicApi().cloudSong(offset: offset, limit: limit);
-    final songs = wrap.data ?? const <CloudSongItem>[];
+    final songs = wrap.data ?? const [];
     return CloudSongPage(
       items: NeteaseMediaItemMapper.fromCloudSongs(
         songs,

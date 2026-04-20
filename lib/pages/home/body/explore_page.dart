@@ -345,15 +345,16 @@ class ExplorePageView extends GetView<ExplorePageController> {
                                     color: controller
                                                 .curTopPlayListName.value ==
                                             controller.curCategoryTopPlayLists[
-                                                index]["name"]!
+                                                    index]
+                                                .name
                                         ? Colors.black12
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(
                                         AppDimensions.headerHeight / 2),
                                   ),
                                   child: Text(
-                                      controller.curCategoryTopPlayLists[index]
-                                          ["name"]!)),
+                                      controller
+                                          .curCategoryTopPlayLists[index].name)),
                             );
                           }),
                     ),
@@ -392,7 +393,8 @@ class AutoSizeSliverPersistentHeader extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _AutoSizeSliverHeaderState createState() => _AutoSizeSliverHeaderState();
+  State<AutoSizeSliverPersistentHeader> createState() =>
+      _AutoSizeSliverHeaderState();
 }
 
 class _AutoSizeSliverHeaderState extends State<AutoSizeSliverPersistentHeader> {

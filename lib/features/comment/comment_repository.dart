@@ -1,6 +1,5 @@
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/data/netease/mappers/netease_comment_mapper.dart';
-import 'package:bujuan/data/netease/api/src/api/event/bean.dart';
 import 'package:bujuan/data/netease/api/src/dio_ext.dart';
 import 'package:bujuan/data/netease/api/src/netease_api.dart';
 import 'package:bujuan/data/netease/api/src/netease_handler.dart';
@@ -33,13 +32,11 @@ class CommentRepository {
         cursor: cursor,
       ),
     );
-    final wrap = CommentList2Wrap.fromJson(response.data);
+    final page = NeteaseCommentMapper.fromCommentListResponse(response.data);
     return CommentPage(
-      items: NeteaseCommentMapper.fromItemList(
-        wrap.data.comments ?? const <CommentItem>[],
-      ),
-      hasMore: wrap.data.hasMore ?? false,
-      nextCursor: wrap.data.cursor,
+      items: page.items,
+      hasMore: page.hasMore,
+      nextCursor: page.nextCursor,
     );
   }
 
@@ -57,12 +54,11 @@ class CommentRepository {
       time: time,
       limit: limit,
     );
+    final page = NeteaseCommentMapper.fromFloorCommentResponse(wrap);
     return FloorCommentPage(
-      items: NeteaseCommentMapper.fromItemList(
-        wrap.data.comments ?? const <CommentItem>[],
-      ),
-      hasMore: wrap.data.hasMore ?? false,
-      nextTime: wrap.data.time ?? -1,
+      items: page.items,
+      hasMore: page.hasMore,
+      nextTime: page.nextTime,
     );
   }
 

@@ -701,3 +701,11 @@
 - 完成内容：`AppController`、`PlayerController`、`UserController`、`SettingsController` 与 `ExplorePageController` 已迁入 `lib/features/*/controller`；应用入口、播放底层和迁移中的控制器已补充职责边界与兼容原因注释；旧页面和功能入口对控制器的导入已统一切到新目录
 - 风险或阻塞：页面层仍通过 `AppController` 复用较多迁移期代理入口，后续继续拆壳层和播放入口时仍会触及较大范围调用点
 - 下一步：继续缩减页面层对迁移期代理入口的依赖，并清理仍以旧控制器目录为中心的历史描述和兼容逻辑
+
+#### 2026-04-20
+
+- 阶段：`Phase 1`
+- 状态：`In Progress`
+- 完成内容：探索页榜单已从字符串下标字典收口为 `RankingPlaylistData`；评论列表响应解析已下沉到 `data/netease/mappers`，feature repository 不再直接解析评论 bean；云盘仓库已移除最后一个 `CloudSongItem` 显式类型；当前 `pages / features / core` 层已不再直接依赖网易云原始 bean，原始模型仅保留在 `data/netease/**`
+- 风险或阻塞：feature repository 仍直接依赖网易云远程 API 调用入口，后续还要继续判断哪些调用应进一步下沉到 `data/netease`
+- 下一步：继续清理 feature 层剩余的网易云 API 直连，并评估是否把评论、播客、云盘的远程访问进一步下沉到 `data/netease`

@@ -90,10 +90,19 @@ class Playlists extends Table {
   TextColumn get description => text().nullable()();
   TextColumn get coverUrl => text().nullable()();
   IntColumn get trackCount => integer().nullable()();
-  TextColumn get trackRefsJson => text()();
 
   @override
   Set<Column<Object>> get primaryKey => {playlistId};
+}
+
+class PlaylistTrackRefs extends Table {
+  TextColumn get playlistId => text()();
+  TextColumn get trackId => text()();
+  IntColumn get order => integer()();
+  IntColumn get addedAt => integer().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {playlistId, trackId};
 }
 
 class Albums extends Table {
@@ -132,6 +141,7 @@ class Artists extends Table {
     Tracks,
     TrackLyricsEntries,
     Playlists,
+    PlaylistTrackRefs,
     Albums,
     Artists,
   ],

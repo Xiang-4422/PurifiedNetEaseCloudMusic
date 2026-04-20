@@ -236,6 +236,7 @@
 - `DriftAppDatabase` 已落地并接管 `PlaybackRestoreDataSource`、`LocalResourceIndexDataSource`、`DownloadTaskDataSource` 和 `LocalLibraryDataSource`，播放恢复态、本地资源索引、下载任务以及媒体库中的 `Track / Lyrics / Playlist / Album / Artist` 已开始使用 `Drift` 作为正式数据库入口
 - `Track` 已改为结构化列落库，不再依赖 `payloadJson` 反序列化作为主读取路径；后续媒体库查询优先继续沿这个方向补齐
 - `Playlist / Album / Artist` 也已改为结构化列落库，媒体库本体不再依赖 `payloadJson` 作为主持久化格式
+- 歌单与歌曲关系已拆到独立关系表，`PlaylistEntity.trackRefs` 不再整包压进单列 JSON 作为唯一事实来源
 - 下载主链路已开始直接落到 `DownloadRepository`，负责音频文件、封面文件、歌词文件的实际落盘与状态回写，不再只保留任务状态模型
 - 下载任务当前不做断点续传；应用启动时会统一把遗留的 `queued / downloading` 任务收敛为失败态，再由显式重试入口重新发起完整下载
 - 本地扫描已开始自动识别同目录的歌词与封面文件，导入后会直接补齐本地资源索引

@@ -46,7 +46,17 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
     final rows = await (_database.select(_database.playlists)
           ..where((tbl) => tbl.title.like('%$keyword%')))
         .get();
-    return rows.map(_mapPlaylistRow).toList();
+    final trackRefsByPlaylistId = await _loadTrackRefsByPlaylistIds(
+      rows.map((row) => row.playlistId).toList(),
+    );
+    return rows
+        .map(
+          (row) => _mapPlaylistRow(
+            row,
+            trackRefs: trackRefsByPlaylistId[row.playlistId] ?? const [],
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -106,7 +116,13 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
     if (row == null) {
       return null;
     }
-    return _mapPlaylistRow(row);
+    final trackRefsByPlaylistId = await _loadTrackRefsByPlaylistIds([
+      playlistId,
+    ]);
+    return _mapPlaylistRow(
+      row,
+      trackRefs: trackRefsByPlaylistId[playlistId] ?? const [],
+    );
   }
 
   @override
@@ -147,36 +163,48 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
 
   @override
   Future<void> savePlaylists(List<PlaylistEntity> playlists) async {
-    await _database.batch((batch) {
-      batch.insertAllOnConflictUpdate(
-        _database.playlists,
-        playlists
-            .map(
-              (playlist) => db.PlaylistsCompanion(
-                playlistId: drift.Value(playlist.id),
-                sourceType: drift.Value(playlist.sourceType.name),
-                sourceId: drift.Value(playlist.sourceId),
-                title: drift.Value(playlist.title),
-                description: drift.Value(playlist.description),
-                coverUrl: drift.Value(playlist.coverUrl),
-                trackCount: drift.Value(playlist.trackCount),
-                trackRefsJson: drift.Value(
-                  jsonEncode(
-                    playlist.trackRefs
-                        .map(
-                          (trackRef) => {
-                            'trackId': trackRef.trackId,
-                            'order': trackRef.order,
-                            'addedAt': trackRef.addedAt,
-                          },
-                        )
-                        .toList(),
-                  ),
+    await _database.transaction(() async {
+      await _database.batch((batch) {
+        batch.insertAllOnConflictUpdate(
+          _database.playlists,
+          playlists
+              .map(
+                (playlist) => db.PlaylistsCompanion(
+                  playlistId: drift.Value(playlist.id),
+                  sourceType: drift.Value(playlist.sourceType.name),
+                  sourceId: drift.Value(playlist.sourceId),
+                  title: drift.Value(playlist.title),
+                  description: drift.Value(playlist.description),
+                  coverUrl: drift.Value(playlist.coverUrl),
+                  trackCount: drift.Value(playlist.trackCount),
                 ),
-              ),
-            )
-            .toList(),
-      );
+              )
+              .toList(),
+        );
+      });
+      for (final playlist in playlists) {
+        await (_database.delete(_database.playlistTrackRefs)
+              ..where((tbl) => tbl.playlistId.equals(playlist.id)))
+            .go();
+        if (playlist.trackRefs.isEmpty) {
+          continue;
+        }
+        await _database.batch((batch) {
+          batch.insertAll(
+            _database.playlistTrackRefs,
+            playlist.trackRefs
+                .map(
+                  (trackRef) => db.PlaylistTrackRefsCompanion.insert(
+                    playlistId: playlist.id,
+                    trackId: trackRef.trackId,
+                    order: trackRef.order,
+                    addedAt: drift.Value(trackRef.addedAt),
+                  ),
+                )
+                .toList(),
+          );
+        });
+      }
     });
   }
 
@@ -237,20 +265,10 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
         );
   }
 
-  PlaylistEntity _mapPlaylistRow(db.Playlist row) {
-    final rawTrackRefs =
-        (jsonDecode(row.trackRefsJson) as List?) ?? const <Object?>[];
-    final trackRefs = rawTrackRefs
-        .map((item) => item is Map ? Map<String, dynamic>.from(item) : null)
-        .whereType<Map<String, dynamic>>()
-        .map(
-          (item) => PlaylistTrackRef(
-            trackId: item['trackId'] as String? ?? '',
-            order: (item['order'] as num?)?.toInt() ?? 0,
-            addedAt: (item['addedAt'] as num?)?.toInt(),
-          ),
-        )
-        .toList();
+  PlaylistEntity _mapPlaylistRow(
+    db.Playlist row, {
+    required List<PlaylistTrackRef> trackRefs,
+  }) {
     return PlaylistEntity(
       id: row.playlistId,
       sourceType: SourceType.values.firstWhere(
@@ -298,6 +316,31 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
       artworkUrl: row.artworkUrl,
       description: row.description,
     );
+  }
+
+  Future<Map<String, List<PlaylistTrackRef>>> _loadTrackRefsByPlaylistIds(
+    List<String> playlistIds,
+  ) async {
+    if (playlistIds.isEmpty) {
+      return const {};
+    }
+    final rows = await (_database.select(_database.playlistTrackRefs)
+          ..where((tbl) => tbl.playlistId.isIn(playlistIds))
+          ..orderBy([
+            (tbl) => drift.OrderingTerm.asc(tbl.order),
+          ]))
+        .get();
+    final refsByPlaylistId = <String, List<PlaylistTrackRef>>{};
+    for (final row in rows) {
+      refsByPlaylistId.putIfAbsent(row.playlistId, () => []).add(
+            PlaylistTrackRef(
+              trackId: row.trackId,
+              order: row.order,
+              addedAt: row.addedAt,
+            ),
+          );
+    }
+    return refsByPlaylistId;
   }
 
   Track _mapTrackRow(db.Track row) {

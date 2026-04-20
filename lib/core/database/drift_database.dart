@@ -147,12 +147,59 @@ class Artists extends Table {
   ],
 )
 class BujuanDriftDatabase extends _$BujuanDriftDatabase {
-  BujuanDriftDatabase({required this.databaseName}) : super(_openConnection(databaseName));
+  BujuanDriftDatabase({required this.databaseName})
+      : super(_openConnection(databaseName));
 
   final String databaseName;
 
   @override
   int get schemaVersion => LocalDatabaseConfig.schemaVersion;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (migrator) async {
+          await migrator.createAll();
+          await _createQueryIndexes();
+        },
+        onUpgrade: (migrator, from, to) async {
+          if (from < 2) {
+            await _createQueryIndexes();
+          }
+        },
+      );
+
+  Future<void> _createQueryIndexes() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_tracks_title ON tracks (title)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_tracks_artist_search_text ON tracks (artist_search_text)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_tracks_album_title ON tracks (album_title)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_tracks_download_state ON tracks (download_state)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_playlists_title ON playlists (title)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_playlist_track_refs_playlist_order ON playlist_track_refs (playlist_id, "order")',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_albums_title ON albums (title)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_albums_artist_search_text ON albums (artist_search_text)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_artists_name ON artists (name)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_download_tasks_status_updated_at_ms ON download_tasks (status, updated_at_ms)',
+    );
+  }
 
   static LazyDatabase _openConnection(String databaseName) {
     return LazyDatabase(() async {

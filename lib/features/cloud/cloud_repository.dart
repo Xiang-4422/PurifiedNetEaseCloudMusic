@@ -1,11 +1,21 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/data/netease/netease_cloud_remote_data_source.dart';
+import 'package:bujuan/features/cloud/cloud_cache_store.dart';
+
 class CloudRepository {
-  CloudRepository({NeteaseCloudRemoteDataSource? remoteDataSource})
-      : _remoteDataSource =
-            remoteDataSource ?? const NeteaseCloudRemoteDataSource();
+  CloudRepository({
+    NeteaseCloudRemoteDataSource? remoteDataSource,
+    CloudCacheStore? cacheStore,
+  })  : _remoteDataSource =
+            remoteDataSource ?? const NeteaseCloudRemoteDataSource(),
+        _cacheStore = cacheStore ?? const CloudCacheStore();
 
   final NeteaseCloudRemoteDataSource _remoteDataSource;
+  final CloudCacheStore _cacheStore;
+
+  Future<List<MediaItem>?> loadCachedSongs() {
+    return _cacheStore.loadSongs();
+  }
 
   Future<CloudSongPage> fetchCloudSongs({
     required int offset,
@@ -17,6 +27,9 @@ class CloudRepository {
       limit: limit,
       likedSongIds: likedSongIds,
     );
+    if (offset == 0 && result.items.isNotEmpty) {
+      await _cacheStore.saveSongs(result.items);
+    }
     return CloudSongPage(
       items: result.items,
       hasMore: result.itemCount >= limit,

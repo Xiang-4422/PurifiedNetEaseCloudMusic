@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
@@ -20,6 +22,16 @@ class CloudPageController {
   int _offset = 0;
 
   Future<void> loadInitial() async {
+    final cachedSongs = await _repository.loadCachedSongs();
+    if (cachedSongs != null && cachedSongs.isNotEmpty) {
+      _offset = cachedSongs.length;
+      state.value = PagedState.data(
+        cachedSongs,
+        hasMore: true,
+      );
+      unawaited(refresh());
+      return;
+    }
     state.value = PagedState.initialLoading();
     await _reload();
   }

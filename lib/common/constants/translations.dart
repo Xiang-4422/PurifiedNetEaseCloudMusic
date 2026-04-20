@@ -95,9 +95,6 @@ class LocaleString extends Translations {
           'my_devices': 'My Devices',
           'settings': 'Settings',
           'hey': 'Hey, ',
-          'or': 'OR',
-
-
         },
       };
 }

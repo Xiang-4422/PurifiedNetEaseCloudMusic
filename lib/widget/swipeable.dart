@@ -101,7 +101,6 @@ class _SwipeableState extends State<Swipeable> with TickerProviderStateMixin {
 
   void _handleDragEnd(DragEndDetails details) {
     var delta = details.primaryVelocity;
-    var oldDragExtent = _dragExtent;
     _dragExtent += delta!;
 
     if (_dragExtent > 0 && !_pastLeftThreshold && (_moveController?.value ?? 0) > 0.2) {

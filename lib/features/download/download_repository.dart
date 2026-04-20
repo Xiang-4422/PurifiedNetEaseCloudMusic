@@ -14,6 +14,8 @@ import 'package:path_provider/path_provider.dart';
 class DownloadRepository {
   static Future<void> _downloadQueue = Future.value();
   static final Map<String, Future<Track?>> _scheduledDownloads = {};
+  static final Map<String, CancelToken> _activeCancelTokens = {};
+  static final Set<String> _cancelledTrackIds = <String>{};
 
   DownloadRepository({
     LibraryRepository? libraryRepository,
@@ -65,6 +67,7 @@ class DownloadRepository {
     String trackId, {
     bool preferHighQuality = true,
   }) async {
+    _cancelledTrackIds.remove(trackId);
     final existingTask = _scheduledDownloads[trackId];
     if (existingTask != null) {
       return existingTask;
@@ -101,6 +104,10 @@ class DownloadRepository {
     String trackId, {
     required bool preferHighQuality,
   }) async {
+    if (_cancelledTrackIds.contains(trackId)) {
+      await _clearCancelledTask(trackId);
+      return null;
+    }
     final track = await _libraryRepository.getTrack(trackId);
     if (track == null) {
       await markFailed(trackId, reason: 'track_not_found');
@@ -118,6 +125,10 @@ class DownloadRepository {
     }
 
     await markQueued(trackId);
+    if (_cancelledTrackIds.contains(trackId)) {
+      await _clearCancelledTask(trackId);
+      return null;
+    }
 
     try {
       final playbackUrl = await _libraryRepository.getPlaybackUrlWithQuality(
@@ -134,13 +145,21 @@ class DownloadRepository {
           await _ensureChildDirectory(rootDirectory, 'artwork');
       final lyricsDirectory =
           await _ensureChildDirectory(rootDirectory, 'lyrics');
+      final cancelToken = CancelToken();
+      _activeCancelTokens[trackId] = cancelToken;
 
       final audioPath = _buildAudioPath(track, playbackUrl, audioDirectory);
       await _downloadBinaryFile(
         playbackUrl,
         audioPath,
         onProgress: (progress) => markDownloading(trackId, progress: progress),
+        cancelToken: cancelToken,
       );
+      if (_cancelledTrackIds.contains(trackId)) {
+        await _deleteTemporaryDownloadIfExists(audioPath);
+        await _clearCancelledTask(trackId);
+        return null;
+      }
 
       final artworkPath = await _downloadArtworkFile(
         track,
@@ -154,8 +173,16 @@ class DownloadRepository {
         artworkPath: artworkPath,
         lyricsPath: lyricsPath,
       );
+    } on DioException catch (error) {
+      if (CancelToken.isCancel(error)) {
+        await _clearCancelledTask(trackId);
+        return null;
+      }
+      return markFailed(trackId, reason: error.toString());
     } catch (error) {
       return markFailed(trackId, reason: error.toString());
+    } finally {
+      _activeCancelTokens.remove(trackId);
     }
   }
 
@@ -197,6 +224,14 @@ class DownloadRepository {
       downloadFailureReason: '',
       availability: TrackAvailability.unknown,
     );
+  }
+
+  Future<void> cancelTask(String trackId) async {
+    _cancelledTrackIds.add(trackId);
+    _activeCancelTokens[trackId]?.cancel('download_cancelled');
+    final currentTask = await _taskDataSource.getTask(trackId);
+    await _deleteTemporaryDownloadIfExists(currentTask?.localPath);
+    await _clearCancelledTask(trackId);
   }
 
   Future<DownloadTask?> getTask(String trackId) {
@@ -387,6 +422,7 @@ class DownloadRepository {
     String url,
     String outputPath, {
     required Future<void> Function(double progress) onProgress,
+    CancelToken? cancelToken,
   }) async {
     final temporaryPath = '$outputPath.download';
     await _deleteFileIfExists(temporaryPath);
@@ -411,6 +447,7 @@ class DownloadRepository {
         responseType: ResponseType.bytes,
         followRedirects: true,
       ),
+      cancelToken: cancelToken,
     );
 
     final targetFile = File(outputPath);
@@ -509,5 +546,18 @@ class DownloadRepository {
       return Future.value();
     }
     return _deleteFileIfExists('$path.download');
+  }
+
+  Future<void> _clearCancelledTask(String trackId) async {
+    await clearTask(trackId);
+    await _libraryRepository.updateTrackLocalState(
+      trackId,
+      downloadState: DownloadState.none,
+      resourceOrigin: TrackResourceOrigin.none,
+      downloadProgress: 0,
+      downloadFailureReason: '',
+      availability: TrackAvailability.unknown,
+    );
+    _cancelledTrackIds.remove(trackId);
   }
 }

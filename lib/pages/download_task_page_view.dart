@@ -113,6 +113,7 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
                     final item = items[index];
                     return _DownloadTaskTile(
                       item: item,
+                      onCancel: () => _controller.cancelTask(item.task.trackId),
                       onRetry: () => _controller.retryTask(item.task.trackId),
                       onRemoveDownloaded: () =>
                           _controller.removeDownloadedTrack(item.task.trackId),
@@ -146,12 +147,14 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
 class _DownloadTaskTile extends StatelessWidget {
   const _DownloadTaskTile({
     required this.item,
+    required this.onCancel,
     required this.onRetry,
     required this.onRemoveDownloaded,
     required this.onClear,
   });
 
   final DownloadTaskListItemData item;
+  final Future<void> Function() onCancel;
   final Future<void> Function() onRetry;
   final Future<void> Function() onRemoveDownloaded;
   final Future<void> Function() onClear;
@@ -216,26 +219,38 @@ class _DownloadTaskTile extends StatelessWidget {
     switch (task.status) {
       case DownloadTaskStatus.queued:
       case DownloadTaskStatus.downloading:
-        return SizedBox(
-          width: 48,
-          height: 48,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              CircularPlaybackProgress(
-                progress: progress <= 0 ? 0.04 : progress,
-                size: 40,
-                strokeWidth: 3,
-                progressColor: Theme.of(context).colorScheme.primary,
-                backgroundColor:
-                    Theme.of(context).colorScheme.primary.withValues(alpha: .15),
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 48,
+              height: 48,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  CircularPlaybackProgress(
+                    progress: progress <= 0 ? 0.04 : progress,
+                    size: 40,
+                    strokeWidth: 3,
+                    progressColor: Theme.of(context).colorScheme.primary,
+                    backgroundColor: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: .15),
+                  ),
+                  Text(
+                    '${progress * 100 ~/ 1}%',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
               ),
-              Text(
-                '${progress * 100 ~/ 1}%',
-                style: const TextStyle(fontSize: 12),
-              ),
-            ],
-          ),
+            ),
+            IconButton(
+              tooltip: '取消下载',
+              onPressed: onCancel,
+              icon: const Icon(TablerIcons.x),
+            ),
+          ],
         );
       case DownloadTaskStatus.completed:
         return IconButton(

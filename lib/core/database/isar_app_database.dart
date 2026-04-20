@@ -1,14 +1,15 @@
 import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/app_database_schema.dart';
 import 'package:bujuan/core/database/database_collection_schema.dart';
+import 'package:bujuan/core/database/isar_local_resource_entity.dart';
 import 'package:bujuan/core/database/isar_playback_restore_snapshot_entity.dart';
 import 'package:bujuan/data/local/download_task_data_source.dart';
+import 'package:bujuan/data/local/isar_local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/isar_playback_restore_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/persistent_download_task_data_source.dart';
 import 'package:bujuan/data/local/persistent_local_library_data_source.dart';
-import 'package:bujuan/data/local/persistent_local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -27,14 +28,17 @@ class IsarAppDatabase implements AppDatabase {
   Future<void> init() async {
     final directory = await getApplicationSupportDirectory();
     _isar = await Isar.open(
-      [IsarPlaybackRestoreSnapshotEntitySchema],
+      [
+        IsarPlaybackRestoreSnapshotEntitySchema,
+        IsarLocalResourceEntitySchema,
+      ],
       name: databaseName,
       directory: directory.path,
     );
     _localLibraryDataSource = const PersistentLocalLibraryDataSource();
     _playbackRestoreDataSource = IsarPlaybackRestoreDataSource(isar: _isar);
     _localResourceIndexDataSource =
-        const PersistentLocalResourceIndexDataSource();
+        IsarLocalResourceIndexDataSource(isar: _isar);
     _downloadTaskDataSource = const PersistentDownloadTaskDataSource();
   }
 

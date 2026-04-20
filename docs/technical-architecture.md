@@ -233,7 +233,7 @@
 - 持久化层已新增独立的恢复态记录模型与 codec，后续接正式数据库时优先复用该记录格式而不是直接存业务对象
 - 数据库层已补 `AppDatabaseSchema`，并明确恢复快照、资源索引、下载任务是优先进入正式数据库的三类记录
 - 资源索引与下载任务也已直接接入独立数据库数据源接口，当前过渡实现统一经过 `AppDatabase`
-- `IsarAppDatabase` 已落地并接管 `PlaybackRestoreDataSource`，播放恢复态开始使用 `Isar` 作为正式数据库入口
+- `IsarAppDatabase` 已落地并接管 `PlaybackRestoreDataSource` 与 `LocalResourceIndexDataSource`，播放恢复态和本地资源索引已开始使用 `Isar` 作为正式数据库入口
 - 下载主链路已开始直接落到 `DownloadRepository`，负责音频文件、封面文件、歌词文件的实际落盘与状态回写，不再只保留任务状态模型
 - 本地扫描已开始自动识别同目录的歌词与封面文件，导入后会直接补齐本地资源索引
 - 播放恢复态在轻存储中采用单一快照格式，后续迁正式本地库时优先复用该快照结构

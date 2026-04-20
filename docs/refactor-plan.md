@@ -737,6 +737,14 @@
 
 #### 2026-04-20
 
+- 阶段：`Phase 4`
+- 状态：`In Progress`
+- 完成内容：新增 `IsarLocalResourceEntity` 与 `IsarLocalResourceIndexDataSource`，资源索引已通过 `trackId + kind` 唯一索引接入 `Isar`；`IsarAppDatabase` 现在同时承接播放恢复态和本地资源索引两类正式数据库实现
+- 风险或阻塞：下载任务和媒体库本体仍沿用原持久化实现，正式数据库当前还没有接管下载任务和媒体库记录
+- 下一步：继续把下载任务接到正式数据库实现，再评估媒体库本体的正式数据库落点
+
+#### 2026-04-20
+
 - 阶段：`Phase 1`
 - 状态：`In Progress`
 - 完成内容：新增 `netease_playlist_remote_data_source`、`netease_user_remote_data_source`、`netease_comment_remote_data_source`，将 `playlist / user / comment` 三条链路的网易云远程访问继续下沉到 `data/netease`；当前 `lib/features/**` 已不再直接 import `NeteaseMusicApi` 或 `netease_api.dart`

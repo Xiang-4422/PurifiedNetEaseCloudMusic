@@ -72,6 +72,7 @@ class DownloadRepository {
     if (existingTask != null) {
       return existingTask;
     }
+    await markQueued(trackId);
 
     final taskFuture = _enqueueDownload(
       () => _performDownloadTrack(
@@ -124,7 +125,6 @@ class DownloadRepository {
       );
     }
 
-    await markQueued(trackId);
     if (_cancelledTrackIds.contains(trackId)) {
       await _clearCancelledTask(trackId);
       return null;

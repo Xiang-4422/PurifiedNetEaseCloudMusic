@@ -47,7 +47,7 @@
 
 以下决策作为当前阶段默认前提，变更前必须先更新本文档：
 
-- 本地数据库目标选型：`Isar`
+- 本地数据库目标选型：`Drift`
 - 搜索策略：本地优先，远程补充并回写
 - 本地音乐源是正式目标能力，不是附属功能
 - 离线下载是核心能力，不是可选增强
@@ -185,7 +185,7 @@
 ### 5.2 新增并逐步落地
 
 - 结构化本地数据库
-  - 目标选型：`Isar`
+  - 目标选型：`Drift`
   - 用于曲库索引、歌单关系、本地扫描结果、下载状态、离线文件索引、播放历史、搜索缓存
 
 ## 6. 核心抽象
@@ -233,7 +233,7 @@
 - 持久化层已新增独立的恢复态记录模型与 codec，后续接正式数据库时优先复用该记录格式而不是直接存业务对象
 - 数据库层已补 `AppDatabaseSchema`，并明确恢复快照、资源索引、下载任务是优先进入正式数据库的三类记录
 - 资源索引与下载任务也已直接接入独立数据库数据源接口，当前过渡实现统一经过 `AppDatabase`
-- `IsarAppDatabase` 已落地并接管 `PlaybackRestoreDataSource`、`LocalResourceIndexDataSource`、`DownloadTaskDataSource` 和 `LocalLibraryDataSource`，播放恢复态、本地资源索引、下载任务以及媒体库中的 `Track / Lyrics / Playlist / Album / Artist` 已开始使用 `Isar` 作为正式数据库入口
+- `DriftAppDatabase` 已落地并接管 `PlaybackRestoreDataSource`、`LocalResourceIndexDataSource`、`DownloadTaskDataSource` 和 `LocalLibraryDataSource`，播放恢复态、本地资源索引、下载任务以及媒体库中的 `Track / Lyrics / Playlist / Album / Artist` 已开始使用 `Drift` 作为正式数据库入口
 - 下载主链路已开始直接落到 `DownloadRepository`，负责音频文件、封面文件、歌词文件的实际落盘与状态回写，不再只保留任务状态模型
 - 本地扫描已开始自动识别同目录的歌词与封面文件，导入后会直接补齐本地资源索引
 - 播放恢复态在轻存储中采用单一快照格式，后续迁正式本地库时优先复用该快照结构
@@ -630,7 +630,7 @@ Repository 负责：
 
 1. 搜索剩余几栏接入统一入口
 2. 清理播放链路残余平台直连
-3. 引入 `Isar` 并落地正式本地库实现
+3. 引入 `Drift` 并落地正式本地库实现
 4. 实现 `LocalMusicSource`
 5. 推进下载与离线体系
 6. 再处理更彻底的目录迁移和服务层拆分

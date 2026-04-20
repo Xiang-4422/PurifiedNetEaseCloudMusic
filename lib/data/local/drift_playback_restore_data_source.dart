@@ -1,0 +1,61 @@
+import 'dart:convert';
+
+import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/core/database/drift_database.dart';
+import 'package:bujuan/features/playback/playback_restore_state.dart';
+import 'package:audio_service/audio_service.dart';
+import 'package:drift/drift.dart' as drift;
+
+import 'playback_restore_data_source.dart';
+
+class DriftPlaybackRestoreDataSource implements PlaybackRestoreDataSource {
+  DriftPlaybackRestoreDataSource({required BujuanDriftDatabase database})
+      : _database = database;
+
+  final BujuanDriftDatabase _database;
+
+  @override
+  Future<PlaybackRestoreState?> getRestoreState() async {
+    final row = await (_database.select(_database.playbackRestoreSnapshots)
+          ..where((tbl) => tbl.id.equals(0)))
+        .getSingleOrNull();
+    if (row == null) {
+      return null;
+    }
+    final queue = (jsonDecode(row.queueJson) as List?)?.cast<String>() ?? const <String>[];
+    return PlaybackRestoreState(
+      playbackMode: PlaybackMode.values.firstWhere(
+        (item) => item.name == row.playbackMode,
+        orElse: () => PlaybackMode.playlist,
+      ),
+      repeatMode: AudioServiceRepeatMode.values.firstWhere(
+        (item) => item.name == row.repeatMode,
+        orElse: () => AudioServiceRepeatMode.all,
+      ),
+      queue: queue,
+      currentSongId: row.currentSongId,
+      playlistName: row.playlistName,
+      playlistHeader: row.playlistHeader,
+      position: Duration(milliseconds: row.positionMs),
+    );
+  }
+
+  @override
+  Future<void> saveRestoreState(PlaybackRestoreState state) {
+    return _database
+        .into(_database.playbackRestoreSnapshots)
+        .insertOnConflictUpdate(
+          PlaybackRestoreSnapshotsCompanion(
+            id: const drift.Value(0),
+            updatedAtMs: drift.Value(DateTime.now().millisecondsSinceEpoch),
+            playbackMode: drift.Value(state.playbackMode.name),
+            repeatMode: drift.Value(state.repeatMode.name),
+            queueJson: drift.Value(jsonEncode(state.queue)),
+            currentSongId: drift.Value(state.currentSongId),
+            playlistName: drift.Value(state.playlistName),
+            playlistHeader: drift.Value(state.playlistHeader),
+            positionMs: drift.Value(state.position.inMilliseconds),
+          ),
+        );
+  }
+}

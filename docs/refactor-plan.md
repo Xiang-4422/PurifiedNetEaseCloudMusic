@@ -45,7 +45,7 @@
 
 ### B. 落实本地优先数据层
 
-- 引入正式结构化本地数据库，目标选型为 `Isar`
+- 引入正式结构化本地数据库，目标选型为 `Drift`
 - 建立 `core/database` 初始化入口、schema version 与迁移策略
 - 明确 `Hive` 与本地媒体库的职责边界
 - 建立正式 `LocalLibraryDataSource`
@@ -111,7 +111,7 @@
 
 1. 搜索链路剩余几栏继续接入统一入口
 2. 播放链路残余直连逻辑继续清理
-3. 引入 `Isar` 与正式本地库实现
+3. 引入 `Drift` 与正式本地库实现
 4. 落地 `LocalMusicSource`
 5. 建立下载与离线体系
 6. 推进更彻底的目录迁移与服务层拆分
@@ -138,7 +138,7 @@
 
 剩余内容：
 
-- 正式引入 `Isar`
+- 正式引入 `Drift`
 - 设计正式 schema
 - 将过渡本地媒体库切换到正式数据库实现
 - 明确迁移策略
@@ -208,11 +208,11 @@
 
 ### 7.1 关键决策
 
-- 本地数据库目标选型：`Isar`
+- 本地数据库目标选型：`Drift`
 - 搜索策略：本地优先，远程补充并回写
 - 本地音乐源是下一阶段核心目标之一
 - 离线下载属于核心能力
-- 允许一段时间内 `Hive + Isar + 旧页面/新入口` 并存
+- 允许一段时间内 `Hive + Drift + 旧页面/新入口` 并存
 
 ### 7.2 已确认的设计偏好
 
@@ -636,8 +636,8 @@
 - 状态：`In Progress`
 - 完成内容：将 `AppDatabase` 与共享本地媒体库数据源正式串入应用启动依赖，统一注册 `LocalLibraryDataSource` 与 `LibraryRepository`；补充 `LibraryPreferenceStore` 并将手动离线模式接入设置页和媒体库读取策略；搜索面板在离线模式下改为展示本地搜索提示，不再主动请求在线热搜；新增 `AuthStateStore` 与 `PlaylistCacheStore`，继续把登录态和歌单缓存访问从 repository 业务逻辑中收回到独立存储入口；搜索仓库开始按“本地优先、远程补齐并去重”返回统一结果；新增持久化过渡版 `LocalLibraryDataSource`，开始替换共享内存实现并让本地媒体库具备跨重启保留能力；播放地址解析开始优先命中本地 `localPath`；歌单详情链路开始把歌单元数据和歌曲明细同步写回本地媒体库
 - 完成内容：将 `AppDatabase` 与共享本地媒体库数据源正式串入应用启动依赖，统一注册 `LocalLibraryDataSource` 与 `LibraryRepository`；补充 `LibraryPreferenceStore` 并将手动离线模式接入设置页和媒体库读取策略；搜索面板在离线模式下改为展示本地搜索提示，不再主动请求在线热搜；新增 `AuthStateStore` 与 `PlaylistCacheStore`，继续把登录态和歌单缓存访问从 repository 业务逻辑中收回到独立存储入口；搜索仓库开始按“本地优先、远程补齐并去重”返回统一结果；新增持久化过渡版 `LocalLibraryDataSource`，开始替换共享内存实现并让本地媒体库具备跨重启保留能力；播放地址解析开始优先命中本地 `localPath`；歌单详情链路开始把歌单元数据和歌曲明细同步写回本地媒体库；用户数据链路开始把推荐歌单、用户歌单、日推、FM、心动模式和按 ID 拉取的歌曲明细写回本地媒体库；专辑和歌手详情链路开始把专辑、歌手及其歌曲明细同步写回本地媒体库；`LibraryRepository` 已补齐本地文件路径、下载状态和可用性写回入口，并新增 `LocalMediaRepository` 作为本地扫描导入骨架；`Track -> MediaItem -> AudioServiceHandler` 已开始透传本地文件状态，使本地导入和已缓存歌曲能够优先按本地文件路径播放；已新增 `DownloadRepository`，开始将排队、下载中、下载完成、下载失败等状态统一写回 `Track`；已新增 `LocalMediaScanRepository`，开始提供本地目录扫描、音频文件过滤和批量导入入口；`Track -> MediaItem` 已开始优先透传本地封面路径和本地歌词路径，播放器可直接优先使用本地歌词文件；本地封面路径和本地歌词路径已从临时 metadata 收口为 `Track` 正式字段，下载和展示链路开始共享同一套资源字段
-- 风险或阻塞：当前持久化实现仍复用 `Hive Box` 作为过渡存储，`Isar` 还未正式接管；下载与同步链路仍未完全纳入离线模式约束
-- 下一步：继续把下载/播放可用性状态写回本地媒体库，并为 `Isar` 接入预留更稳定的数据迁移入口
+- 风险或阻塞：当前持久化实现仍复用 `Hive Box` 作为过渡存储，正式数据库还未完全接管；下载与同步链路仍未完全纳入离线模式约束
+- 下一步：继续把下载/播放可用性状态写回本地媒体库，并为 `Drift` 接入预留更稳定的数据迁移入口
 
 #### 2026-04-19
 
@@ -731,15 +731,15 @@
 
 - 阶段：`Phase 4`
 - 状态：`In Progress`
-- 完成内容：引入 `Isar`、`isar_generator` 与 `isar_flutter_libs`；新增 `IsarAppDatabase`、`IsarPlaybackRestoreDataSource` 与 `IsarPlaybackRestoreSnapshotEntity`，应用启动默认切到 `IsarAppDatabase`，播放恢复态已开始使用 `Isar` 作为正式数据库实现
-- 风险或阻塞：当前正式数据库只接入了恢复态，媒体库、资源索引、下载任务仍沿用原持久化实现；`build_runner` 现阶段只用于 `Isar` 实体生成，旧网易云 `bean.g.dart` 仍需保留现状
+- 完成内容：引入正式数据库主线，并开始将播放恢复态接入结构化本地库；应用启动已切到正式数据库实现，播放恢复态开始使用正式数据库入口
+- 风险或阻塞：当前正式数据库只接入了恢复态，媒体库、资源索引、下载任务仍沿用原持久化实现；`build_runner` 仍需同时生成数据库 schema 与保留旧网易云 `bean.g.dart`
 - 下一步：继续把资源索引和下载任务接到正式数据库实现，并清理剩余 feature repository 的网易云 API 直连
 
 #### 2026-04-20
 
 - 阶段：`Phase 4`
 - 状态：`In Progress`
-- 完成内容：新增 `IsarLocalResourceEntity` 与 `IsarLocalResourceIndexDataSource`，资源索引已通过 `trackId + kind` 唯一索引接入 `Isar`；`IsarAppDatabase` 现在同时承接播放恢复态和本地资源索引两类正式数据库实现
+- 完成内容：资源索引已通过 `trackId + kind` 唯一键接入正式数据库；正式数据库现在同时承接播放恢复态和本地资源索引两类实现
 - 风险或阻塞：下载任务和媒体库本体仍沿用原持久化实现，正式数据库当前还没有接管下载任务和媒体库记录
 - 下一步：继续把下载任务接到正式数据库实现，再评估媒体库本体的正式数据库落点
 
@@ -747,7 +747,7 @@
 
 - 阶段：`Phase 4`
 - 状态：`In Progress`
-- 完成内容：新增 `IsarDownloadTaskEntity` 与 `IsarDownloadTaskDataSource`，下载任务已按 `trackId` 唯一索引接入 `Isar`；`IsarAppDatabase` 现在同时承接播放恢复态、本地资源索引和下载任务三类正式数据库实现
+- 完成内容：下载任务已按 `trackId` 唯一键接入正式数据库；正式数据库现在同时承接播放恢复态、本地资源索引和下载任务三类实现
 - 风险或阻塞：媒体库本体仍沿用过渡持久化实现，正式数据库当前还没有接管 `Track / Playlist / Album / Artist / Lyrics`
 - 下一步：开始把媒体库本体切到正式数据库实现，优先评估 `Track` 与歌词的落库方案
 
@@ -755,7 +755,7 @@
 
 - 阶段：`Phase 4`
 - 状态：`In Progress`
-- 完成内容：新增 `IsarTrackEntity`、`IsarTrackLyricsEntity` 与 `IsarLocalLibraryDataSource`，媒体库中的 `Track / Lyrics` 已接入 `Isar`；`IsarAppDatabase` 现在直接承接播放恢复态、资源索引、下载任务、轨道和歌词五类正式数据库实现
+- 完成内容：媒体库中的 `Track / Lyrics` 已接入正式数据库；正式数据库现在直接承接播放恢复态、资源索引、下载任务、轨道和歌词五类实现
 - 风险或阻塞：歌单、专辑、歌手仍暂时委托旧持久化实现，媒体库本体当前还是混合实现，需要继续清理委托边界
 - 下一步：继续把 `Playlist / Album / Artist` 切到正式数据库实现，并评估搜索是否需要补更明确的本地索引
 
@@ -763,7 +763,7 @@
 
 - 阶段：`Phase 4`
 - 状态：`In Progress`
-- 完成内容：新增 `IsarPlaylistEntity`、`IsarAlbumEntity`、`IsarArtistEntity`，`IsarLocalLibraryDataSource` 已直接承接 `Track / Lyrics / Playlist / Album / Artist` 全量媒体库读写与搜索；`IsarAppDatabase` 不再委托旧媒体库持久化实现
+- 完成内容：`Playlist / Album / Artist` 已接入正式数据库，`LocalLibraryDataSource` 直接承接 `Track / Lyrics / Playlist / Album / Artist` 全量媒体库读写与搜索；正式数据库不再委托旧媒体库持久化实现
 - 风险或阻塞：媒体库虽然已经切到正式数据库实现，但当前搜索仍采用全量读取后内存过滤，后续还需要评估是否补更明确的索引策略
 - 下一步：开始回头收下载列表、任务恢复和失败重试，或者继续优化媒体库搜索与写入策略
 
@@ -774,3 +774,11 @@
 - 完成内容：新增 `netease_playlist_remote_data_source`、`netease_user_remote_data_source`、`netease_comment_remote_data_source`，将 `playlist / user / comment` 三条链路的网易云远程访问继续下沉到 `data/netease`；当前 `lib/features/**` 已不再直接 import `NeteaseMusicApi` 或 `netease_api.dart`
 - 风险或阻塞：虽然 feature 层已经切断对网易云 API 的直连，但 `data/netease` 内部仍保留一批原始 bean 和平台协议实现，后续还需要继续围绕数据库落地和本地优先策略做分层整理
 - 下一步：继续把正式数据库扩到资源索引和下载任务，并逐步让更多 feature 走本地优先读取与回写
+
+#### 2026-04-20
+
+- 阶段：`Phase 4`
+- 状态：`In Progress`
+- 完成内容：正式数据库最终选型已切换为 `Drift`；应用启动已切到 `DriftAppDatabase`；`PlaybackRestoreDataSource`、`LocalResourceIndexDataSource`、`DownloadTaskDataSource` 与 `LocalLibraryDataSource` 已全部改由 Drift 实现承接；旧数据库实体、数据源和依赖已移除，数据库主线现在固定为 `AppDatabase -> Drift DataSource -> Repository`
+- 风险或阻塞：媒体库搜索当前仍主要依赖 `payloadJson` 落库与查询字段辅助，后续还需要继续补索引与更精确的查询策略；`build_runner` 仍会误删网易云 `bean.g.dart`，生成步骤需要继续显式恢复这些文件
+- 下一步：优先优化媒体库搜索与查询策略，并把下载列表、任务恢复和失败重试接到已经稳定的 Drift 下载任务数据源

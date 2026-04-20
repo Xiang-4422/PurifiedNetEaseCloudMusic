@@ -1,6 +1,6 @@
 import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/core/database/app_database.dart';
-import 'package:bujuan/core/database/isar_app_database.dart';
+import 'package:bujuan/core/database/drift_app_database.dart';
 import 'package:bujuan/core/database/local_database_config.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_music_source.dart';
@@ -52,7 +52,7 @@ Future<void> _initInfrastructure() async {
   // 当前仍处在旧入口和新入口并存阶段，基础设施必须全部经由同一组
   // 单例注册出去，否则 repository、source 和本地库会各自持有不同实例。
   final appDatabase =
-      IsarAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
+      DriftAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
   await appDatabase.init();
   getIt.registerSingleton<AppDatabase>(appDatabase);
   getIt.registerSingleton<LocalLibraryDataSource>(

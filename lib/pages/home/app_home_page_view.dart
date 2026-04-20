@@ -20,7 +20,7 @@ class AppHomePageView extends GetView<AppController> {
     return Material(
       child: PopScope(
         canPop: false,
-        onPopInvoked: (didPop) => controller.onWillPop(),
+        onPopInvokedWithResult: (didPop, result) => controller.onWillPop(),
         // child: SlidingUpPanel(
         //   controller: controller.bottomPanelController,
         //   onPanelSlide: (openDegree) => controller.onBottomPanelSlide(openDegree),

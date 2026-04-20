@@ -1,5 +1,5 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/data/netease/api/src/netease_api.dart';
+import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_album_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_artist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';

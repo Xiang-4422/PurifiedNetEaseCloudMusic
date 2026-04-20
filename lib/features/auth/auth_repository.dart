@@ -1,4 +1,4 @@
-import 'package:bujuan/data/netease/api/src/netease_api.dart';
+import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/features/auth/qr_login_data.dart';
 import 'package:bujuan/features/user/user_session_data.dart';
 

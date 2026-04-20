@@ -192,6 +192,8 @@ class _SongItemState extends State<SongItem> {
           break;
         case DownloadState.queued:
         case DownloadState.downloading:
+          updatedTrack =
+              await PlayerController.to.cancelTrackDownloadById(mediaItem.id);
           break;
         case DownloadState.downloaded:
           updatedTrack =
@@ -230,8 +232,8 @@ class _SongItemState extends State<SongItem> {
       trailing: IconButton(
         tooltip: switch (effectiveDownloadState) {
           DownloadState.none => '下载歌曲',
-          DownloadState.queued => '已加入下载队列',
-          DownloadState.downloading => '正在下载',
+          DownloadState.queued => '取消下载',
+          DownloadState.downloading => '取消下载',
           DownloadState.downloaded => '删除下载',
           DownloadState.failed => '重试下载',
         },
@@ -239,8 +241,8 @@ class _SongItemState extends State<SongItem> {
         icon: Icon(
           switch (effectiveDownloadState) {
             DownloadState.none => TablerIcons.download,
-            DownloadState.queued => TablerIcons.loader,
-            DownloadState.downloading => TablerIcons.loader,
+            DownloadState.queued => TablerIcons.x,
+            DownloadState.downloading => TablerIcons.x,
             DownloadState.downloaded => TablerIcons.trash,
             DownloadState.failed => TablerIcons.refresh,
           },

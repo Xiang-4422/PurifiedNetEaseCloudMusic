@@ -364,6 +364,14 @@ class PlayerController extends GetxController {
     return removeDownloadedTrackById(currentSong.id);
   }
 
+  Future<Track?> cancelCurrentTrackDownload() async {
+    final currentSong = runtimeState.value.currentSong;
+    if (currentSong.id.isEmpty) {
+      return null;
+    }
+    return cancelTrackDownloadById(currentSong.id);
+  }
+
   Future<Track?> retryCurrentTrackDownload({
     bool preferHighQuality = true,
   }) async {
@@ -394,6 +402,16 @@ class PlayerController extends GetxController {
 
   Future<Track?> removeDownloadedTrackById(String trackId) async {
     final updatedTrack = await _downloadRepository.removeDownloadedTrack(trackId);
+    if (updatedTrack == null) {
+      return null;
+    }
+    await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+    return updatedTrack;
+  }
+
+  Future<Track?> cancelTrackDownloadById(String trackId) async {
+    await _downloadRepository.cancelTask(trackId);
+    final updatedTrack = await _repository.getTrack(trackId);
     if (updatedTrack == null) {
       return null;
     }

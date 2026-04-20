@@ -34,6 +34,7 @@ class BottomPanelView extends GetView<AppController> {
         return;
       case DownloadState.queued:
       case DownloadState.downloading:
+        await controller.playerController.cancelCurrentTrackDownload();
         return;
       case DownloadState.downloaded:
         await controller.playerController.removeCurrentTrackDownload();
@@ -56,13 +57,9 @@ class BottomPanelView extends GetView<AppController> {
         );
       case DownloadState.queued:
       case DownloadState.downloading:
-        return CircularPlaybackProgress(
-          progress: 0.35,
-          size: 20,
-          strokeWidth: 2,
-          progressColor: controller.panelWidgetColor.value,
-          backgroundColor:
-              controller.panelWidgetColor.value.withValues(alpha: .12),
+        return Icon(
+          TablerIcons.x,
+          color: controller.panelWidgetColor.value,
         );
       case DownloadState.downloaded:
         return Icon(

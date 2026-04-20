@@ -71,6 +71,19 @@ class DownloadTaskListController {
     await _reload();
   }
 
+  Future<void> cancelActiveTasks() async {
+    final activeTasks = await _repository.getTasks(
+      statuses: const {
+        DownloadTaskStatus.queued,
+        DownloadTaskStatus.downloading,
+      },
+    );
+    for (final task in activeTasks) {
+      await _repository.cancelTask(task.trackId);
+    }
+    await _reload();
+  }
+
   Future<void> removeDownloadedTrack(String trackId) async {
     await _repository.removeDownloadedTrack(trackId);
     await _reload();

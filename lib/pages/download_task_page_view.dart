@@ -21,6 +21,7 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
   static const _retryFailedAction = 'retry_failed';
   static const _clearFailedAction = 'clear_failed';
   static const _clearCompletedAction = 'clear_completed';
+  static const _cancelActiveAction = 'cancel_active';
 
   @override
   void initState() {
@@ -55,7 +56,12 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
               final hasCompleted = items.any(
                 (item) => item.task.status == DownloadTaskStatus.completed,
               );
-              if (!hasFailed && !hasCompleted) {
+              final hasActive = items.any(
+                (item) =>
+                    item.task.status == DownloadTaskStatus.queued ||
+                    item.task.status == DownloadTaskStatus.downloading,
+              );
+              if (!hasFailed && !hasCompleted && !hasActive) {
                 return const SizedBox.shrink();
               }
 
@@ -63,6 +69,11 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
                 tooltip: '批量操作',
                 onSelected: _handleBulkAction,
                 itemBuilder: (context) => [
+                  if (hasActive)
+                    const PopupMenuItem<String>(
+                      value: _cancelActiveAction,
+                      child: Text('取消全部进行中任务'),
+                    ),
                   if (hasFailed)
                     const PopupMenuItem<String>(
                       value: _retryFailedAction,
@@ -131,6 +142,9 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
 
   Future<void> _handleBulkAction(String action) async {
     switch (action) {
+      case _cancelActiveAction:
+        await _controller.cancelActiveTasks();
+        break;
       case _retryFailedAction:
         await _controller.retryAllFailedTasks();
         break;

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:bujuan/data/local/in_memory_download_task_data_source.dart';
 import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/domain/entities/download_task.dart';
 import 'package:bujuan/domain/entities/track.dart';
@@ -24,7 +23,9 @@ class DownloadRepository {
         _taskDataSource = taskDataSource ??
             (GetIt.instance.isRegistered<DownloadTaskDataSource>()
                 ? GetIt.instance<DownloadTaskDataSource>()
-                : const InMemoryDownloadTaskDataSource()),
+                : (throw StateError(
+                    'DownloadTaskDataSource is not registered',
+                  ))),
         _resourceIndexRepository =
             resourceIndexRepository ?? LocalResourceIndexRepository(),
         _dio = dio ?? Dio();

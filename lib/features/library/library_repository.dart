@@ -1,5 +1,4 @@
 import 'package:bujuan/data/local/local_library_data_source.dart';
-import 'package:bujuan/data/local/in_memory_local_library_data_source.dart';
 import 'package:bujuan/data/local/local_music_source.dart';
 import 'package:bujuan/data/netease/netease_music_source.dart';
 import 'package:bujuan/domain/entities/local_resource_entry.dart';
@@ -23,7 +22,7 @@ class LibraryRepository {
   })  : _localDataSource = localDataSource ??
             (GetIt.instance.isRegistered<LocalLibraryDataSource>()
                 ? GetIt.instance<LocalLibraryDataSource>()
-                : InMemoryLocalLibraryDataSource.shared),
+                : (throw StateError('LocalLibraryDataSource is not registered'))),
         _neteaseSource = neteaseSource ?? NeteaseMusicSource(),
         _localMusicSource = localMusicSource ??
             LocalMusicSource(localDataSource: localDataSource),

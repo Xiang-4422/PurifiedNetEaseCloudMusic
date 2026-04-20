@@ -1,6 +1,5 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/data/local/in_memory_playback_restore_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/library/library_repository.dart';
@@ -19,7 +18,9 @@ class PlaybackRepository {
         _playbackRestoreDataSource = playbackRestoreDataSource ??
             (GetIt.instance.isRegistered<PlaybackRestoreDataSource>()
                 ? GetIt.instance<PlaybackRestoreDataSource>()
-                : const InMemoryPlaybackRestoreDataSource());
+                : (throw StateError(
+                    'PlaybackRestoreDataSource is not registered',
+                  )));
 
   final LibraryRepository _libraryRepository;
   final PlaybackRestoreDataSource _playbackRestoreDataSource;

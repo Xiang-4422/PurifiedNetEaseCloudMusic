@@ -1,4 +1,3 @@
-import 'package:bujuan/data/local/in_memory_local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/domain/entities/local_resource_entry.dart';
 import 'package:bujuan/domain/entities/track.dart';
@@ -10,7 +9,9 @@ class LocalResourceIndexRepository {
   }) : _dataSource = dataSource ??
             (GetIt.instance.isRegistered<LocalResourceIndexDataSource>()
                 ? GetIt.instance<LocalResourceIndexDataSource>()
-                : const InMemoryLocalResourceIndexDataSource());
+                : (throw StateError(
+                    'LocalResourceIndexDataSource is not registered',
+                  )));
 
   final LocalResourceIndexDataSource _dataSource;
 

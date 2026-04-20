@@ -1,4 +1,3 @@
-import 'package:bujuan/data/local/in_memory_local_library_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
@@ -13,7 +12,9 @@ class LocalMusicSource {
             localDataSource ??
             (GetIt.instance.isRegistered<LocalLibraryDataSource>()
                 ? GetIt.instance<LocalLibraryDataSource>()
-                : InMemoryLocalLibraryDataSource.shared);
+                : (throw StateError(
+                    'LocalLibraryDataSource is not registered',
+                  )));
 
   final LocalLibraryDataSource _localDataSource;
 

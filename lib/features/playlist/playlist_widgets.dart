@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/appConstants.dart';
+import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_summary_data.dart';
@@ -43,6 +44,7 @@ class UniversalListTile extends StatelessWidget {
   final GestureTapCallback? onTap;
   final GestureTapCallback? onLongPress;
   final Color? stringColor;
+  final Widget? trailing;
 
   const UniversalListTile({
     super.key,
@@ -52,6 +54,7 @@ class UniversalListTile extends StatelessWidget {
     this.stringColor,
     this.onTap,
     this.onLongPress,
+    this.trailing,
   });
 
   @override
@@ -101,6 +104,7 @@ class UniversalListTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (trailing != null) trailing!,
           ],
         ),
       ),
@@ -133,11 +137,54 @@ class SongItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mediaItem = playlist[index];
+    final downloadState = DownloadState.values.firstWhere(
+      (state) =>
+          state.name ==
+          '${mediaItem.extras?['downloadState'] ?? DownloadState.none.name}',
+      orElse: () => DownloadState.none,
+    );
     return UniversalListTile(
-      picUrl: showPic ? (playlist[index].extras?['image']) : null,
-      titleString: playlist[index].title,
-      subTitleString: playlist[index].artist,
+      picUrl: showPic ? (mediaItem.extras?['image']) : null,
+      titleString: mediaItem.title,
+      subTitleString: mediaItem.artist,
       stringColor: stringColor,
+      trailing: IconButton(
+        tooltip: switch (downloadState) {
+          DownloadState.none => '下载歌曲',
+          DownloadState.queued => '已加入下载队列',
+          DownloadState.downloading => '正在下载',
+          DownloadState.downloaded => '删除下载',
+          DownloadState.failed => '重试下载',
+        },
+        onPressed: () async {
+          switch (downloadState) {
+            case DownloadState.none:
+              await PlayerController.to.downloadTrackById(mediaItem.id);
+              return;
+            case DownloadState.queued:
+            case DownloadState.downloading:
+              return;
+            case DownloadState.downloaded:
+              await PlayerController.to.removeDownloadedTrackById(mediaItem.id);
+              return;
+            case DownloadState.failed:
+              await PlayerController.to.retryTrackDownloadById(mediaItem.id);
+              return;
+          }
+        },
+        icon: Icon(
+          switch (downloadState) {
+            DownloadState.none => TablerIcons.download,
+            DownloadState.queued => TablerIcons.loader,
+            DownloadState.downloading => TablerIcons.loader,
+            DownloadState.downloaded => TablerIcons.trash,
+            DownloadState.failed => TablerIcons.refresh,
+          },
+          color: stringColor ?? context.theme.colorScheme.onPrimary,
+          size: 24,
+        ),
+      ),
       onTap: () async {
         if (beforeOnTap != null) {
           await beforeOnTap!();

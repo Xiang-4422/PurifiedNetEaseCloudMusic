@@ -350,14 +350,10 @@ class PlayerController extends GetxController {
     if (currentSong.id.isEmpty) {
       return;
     }
-    final updatedTrack = await _downloadRepository.downloadTrack(
+    await downloadTrackById(
       currentSong.id,
       preferHighQuality: preferHighQuality,
     );
-    if (updatedTrack == null) {
-      return;
-    }
-    await _syncCurrentTrackMediaItem(updatedTrack);
   }
 
   Future<void> removeCurrentTrackDownload() async {
@@ -365,12 +361,7 @@ class PlayerController extends GetxController {
     if (currentSong.id.isEmpty) {
       return;
     }
-    final updatedTrack =
-        await _downloadRepository.removeDownloadedTrack(currentSong.id);
-    if (updatedTrack == null) {
-      return;
-    }
-    await _syncCurrentTrackMediaItem(updatedTrack);
+    await removeDownloadedTrackById(currentSong.id);
   }
 
   Future<void> retryCurrentTrackDownload({
@@ -380,14 +371,46 @@ class PlayerController extends GetxController {
     if (currentSong.id.isEmpty) {
       return;
     }
-    final updatedTrack = await _downloadRepository.retryTask(
+    await retryTrackDownloadById(
       currentSong.id,
+      preferHighQuality: preferHighQuality,
+    );
+  }
+
+  Future<void> downloadTrackById(
+    String trackId, {
+    bool preferHighQuality = true,
+  }) async {
+    final updatedTrack = await _downloadRepository.downloadTrack(
+      trackId,
       preferHighQuality: preferHighQuality,
     );
     if (updatedTrack == null) {
       return;
     }
-    await _syncCurrentTrackMediaItem(updatedTrack);
+    await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+  }
+
+  Future<void> removeDownloadedTrackById(String trackId) async {
+    final updatedTrack = await _downloadRepository.removeDownloadedTrack(trackId);
+    if (updatedTrack == null) {
+      return;
+    }
+    await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+  }
+
+  Future<void> retryTrackDownloadById(
+    String trackId, {
+    bool preferHighQuality = true,
+  }) async {
+    final updatedTrack = await _downloadRepository.retryTask(
+      trackId,
+      preferHighQuality: preferHighQuality,
+    );
+    if (updatedTrack == null) {
+      return;
+    }
+    await _maybeSyncCurrentTrackMediaItem(updatedTrack);
   }
 
   Future<void> seekTo(Duration position) {
@@ -593,6 +616,13 @@ class PlayerController extends GetxController {
       currentSong: updatedMediaItem,
     );
     await _playbackService.updateMediaItem(updatedMediaItem);
+  }
+
+  Future<void> _maybeSyncCurrentTrackMediaItem(Track track) async {
+    if (runtimeState.value.currentSong.id != track.id) {
+      return;
+    }
+    await _syncCurrentTrackMediaItem(track);
   }
 
   void _preloadImages() {

@@ -249,6 +249,7 @@
 - 页面层对 `curPlayListName / curPlayListNameHeader / isPlayingLikedSongs` 的依赖已切到 `PlaybackSessionState`，会话态兼容字段开始退出壳层和控制器
 - 当前播放歌曲的下载与删除下载入口已收口到 `PlayerController`，并通过 `DownloadRepository` 回写本地资源后再同步当前 `MediaItem`
 - 下载任务已经接入独立页面入口，设置页和当前播放面板都能直接触发下载管理、删除下载和失败重试动作
+- 歌单、专辑等复用 `SongItem` 的音乐列表已接入统一下载动作，列表页不再直接依赖下载仓库
 
 ### 6.4 Netease 与 Local Source
 

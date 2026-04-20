@@ -337,16 +337,16 @@ class PlayListWidget extends GetView<AppController> {
   }
 
   Future<void> _playPlaylist(PlaylistSummaryData playlist) async {
-    final details = await _repository.fetchPlaylistWrap(playlist.id);
+    final details = await _repository.fetchPlaylistSnapshot(playlist.id);
     final songs = await _repository.fetchPlaylistSongs(
       playlistId: playlist.id,
       likedSongIds: controller.likedSongIds.toList(),
-      playlistWrap: details,
+      playlistSnapshot: details,
     );
     await controller.playerController.playPlaylist(
       songs,
       0,
-      playListName: details.playlist?.name ?? '无名歌单',
+      playListName: details.name,
       playListNameHeader: '歌单',
     );
   }

@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/data/netease/api/src/api/bean.dart';
+import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
@@ -197,11 +197,19 @@ class UserRepository {
     return '${tracks.first.artworkUrl ?? ''}?param=500y500';
   }
 
-  Future<ServerStatusBean> toggleLikeSong(String songId, bool like) {
-    return NeteaseMusicApi().likeSong(songId, like);
+  Future<OperationResult> toggleLikeSong(String songId, bool like) async {
+    final result = await NeteaseMusicApi().likeSong(songId, like);
+    return OperationResult(
+      success: result.code == 200,
+      message: result.message,
+    );
   }
 
-  Future<ServerStatusBean> logout() {
-    return NeteaseMusicApi().logout();
+  Future<OperationResult> logout() async {
+    final result = await NeteaseMusicApi().logout();
+    return OperationResult(
+      success: result.code == 200,
+      message: result.message,
+    );
   }
 }

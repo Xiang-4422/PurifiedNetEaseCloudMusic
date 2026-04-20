@@ -252,7 +252,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                                   !comment.liked,
                                 )
                                     .then((value) {
-                                  if (value.code == 200) {
+                                  if (value.success) {
                                     setState(() {
                                       final liked = !comment.liked;
                                       comment = comment.copyWith(
@@ -668,7 +668,7 @@ class _FoolTalkState extends State<FoolTalk> {
       content: _textEditingController.text,
       commentId: widget.commentItem.commentId,
     );
-    if (commentWrap.code == 200) {
+    if (commentWrap.success) {
       _textEditingController.text = '';
       WidgetUtil.showToast('评论成功');
       await _controller.refresh();

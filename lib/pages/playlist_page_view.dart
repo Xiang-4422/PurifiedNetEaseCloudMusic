@@ -300,7 +300,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       widget.playlistId,
       subscribe: !isSubscribed,
     );
-    if (value.code == 200 && mounted) {
+    if (value.success && mounted) {
       setState(() {
         isSubscribed = !isSubscribed;
       });

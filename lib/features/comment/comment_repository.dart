@@ -1,4 +1,4 @@
-import 'package:bujuan/data/netease/api/src/api/bean.dart';
+import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/data/netease/api/src/api/event/bean.dart';
 import 'package:bujuan/data/netease/api/src/dio_ext.dart';
 import 'package:bujuan/data/netease/api/src/netease_api.dart';
@@ -62,34 +62,42 @@ class CommentRepository {
     );
   }
 
-  Future<CommentWrap> sendComment(
+  Future<OperationResult> sendComment(
     String id,
     String type,
     String operation, {
     required String content,
     String? commentId,
-  }) {
-    return NeteaseMusicApi().comment(
+  }) async {
+    final result = await NeteaseMusicApi().comment(
       id,
       type,
       operation,
       content: content,
       commentId: commentId,
     );
+    return OperationResult(
+      success: result.code == 200,
+      message: result.message,
+    );
   }
 
-  Future<ServerStatusBean> toggleCommentLike(
+  Future<OperationResult> toggleCommentLike(
     String id,
     String type,
     String commentId,
     bool like,
-  ) {
-    return NeteaseMusicApi().likeComment(
+  ) async {
+    final result = await NeteaseMusicApi().likeComment(
       id,
       commentId,
       type,
       like,
       threadId: _typeKey(type) + id,
+    );
+    return OperationResult(
+      success: result.code == 200,
+      message: result.message,
     );
   }
 

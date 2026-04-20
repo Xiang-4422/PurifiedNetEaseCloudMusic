@@ -170,7 +170,7 @@ class UserController extends GetxController {
 
     final serverStatusBean =
         await _repository.toggleLikeSong(curSong.id, !isLiked);
-    if (serverStatusBean.code == 200) {
+    if (serverStatusBean.success) {
       await PlayerController.to.playbackService
           .updateMediaItem(curSong..extras?['liked'] = !isLiked);
 
@@ -221,7 +221,7 @@ class UserController extends GetxController {
 
   Future<void> clearUser() async {
     final value = await _repository.logout();
-    if (value.code == 200) {
+    if (value.success) {
       await SettingsController.to.updateLoginStatus(false);
     }
   }

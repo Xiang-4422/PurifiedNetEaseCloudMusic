@@ -35,7 +35,7 @@ class AuthController extends GetxController {
     }
 
     final qrCodeLoginKey = await _repository.createQrCodeKey();
-    if (qrCodeLoginKey.code != 200) {
+    if (!qrCodeLoginKey.success) {
       WidgetUtil.showToast(qrCodeLoginKey.message ?? '未知错误');
       return;
     }

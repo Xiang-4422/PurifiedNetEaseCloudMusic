@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
-import 'package:bujuan/data/netease/api/src/api/bean.dart';
 import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
@@ -23,6 +23,22 @@ class PlaylistDetailData {
   final bool isMyPlayList;
 }
 
+class PlaylistSnapshotData {
+  const PlaylistSnapshotData({
+    required this.id,
+    required this.name,
+    required this.trackIds,
+    required this.isSubscribed,
+    required this.creatorUserId,
+  });
+
+  final String id;
+  final String name;
+  final List<String> trackIds;
+  final bool isSubscribed;
+  final String? creatorUserId;
+}
+
 class PlaylistRepository {
   PlaylistRepository({
     PlaylistCacheStore? cacheStore,
@@ -36,7 +52,7 @@ class PlaylistRepository {
   final PlaylistCacheStore _cacheStore;
   final LibraryRepository _libraryRepository;
 
-  Future<SinglePlayListWrap> fetchPlaylistWrap(String playlistId) async {
+  Future<PlaylistSnapshotData> fetchPlaylistSnapshot(String playlistId) async {
     final wrap = await NeteaseMusicApi().playListDetail(playlistId);
     final playlist = wrap.playlist;
     if (playlist != null) {
@@ -44,7 +60,13 @@ class PlaylistRepository {
         [NeteasePlaylistMapper.fromPlaylist(playlist)],
       );
     }
-    return wrap;
+    return PlaylistSnapshotData(
+      id: playlistId,
+      name: playlist?.name ?? '无名歌单',
+      trackIds: playlist?.trackIds?.map((track) => track.id).toList() ?? const [],
+      isSubscribed: playlist?.subscribed ?? false,
+      creatorUserId: playlist?.creator?.userId,
+    );
   }
 
   Future<List<MediaItem>> fetchPlaylistSongs({
@@ -52,12 +74,10 @@ class PlaylistRepository {
     required List<int> likedSongIds,
     int offset = 0,
     int limit = -1,
-    SinglePlayListWrap? playlistWrap,
+    PlaylistSnapshotData? playlistSnapshot,
   }) async {
-    playlistWrap ??= await fetchPlaylistWrap(playlistId);
-    final songIds =
-        playlistWrap.playlist?.trackIds?.map((track) => track.id).toList() ??
-            [];
+    playlistSnapshot ??= await fetchPlaylistSnapshot(playlistId);
+    final songIds = playlistSnapshot.trackIds;
 
     if (offset >= songIds.length) {
       return const [];
@@ -100,18 +120,18 @@ class PlaylistRepository {
     required List<int> likedSongIds,
     required String? currentUserId,
   }) async {
-    final details = await fetchPlaylistWrap(playlistId);
+    final details = await fetchPlaylistSnapshot(playlistId);
     final remoteSongs = await fetchPlaylistSongs(
       playlistId: playlistId,
       likedSongIds: likedSongIds,
-      playlistWrap: details,
+      playlistSnapshot: details,
     );
 
     if (remoteSongs.isEmpty) {
       return PlaylistDetailData(
         songs: const [],
-        isSubscribed: details.playlist?.subscribed ?? false,
-        isMyPlayList: details.playlist?.creator?.userId == currentUserId,
+        isSubscribed: details.isSubscribed,
+        isMyPlayList: details.creatorUserId == currentUserId,
       );
     }
 
@@ -119,24 +139,33 @@ class PlaylistRepository {
 
     return PlaylistDetailData(
       songs: remoteSongs,
-      isSubscribed: details.playlist?.subscribed ?? false,
-      isMyPlayList: details.playlist?.creator?.userId == currentUserId,
+      isSubscribed: details.isSubscribed,
+      isMyPlayList: details.creatorUserId == currentUserId,
     );
   }
 
-  Future<ServerStatusBean> toggleSubscription(
+  Future<OperationResult> toggleSubscription(
     String playlistId, {
     required bool subscribe,
-  }) {
-    return NeteaseMusicApi()
+  }) async {
+    final result = await NeteaseMusicApi()
         .subscribePlayList(playlistId, subscribe: subscribe);
+    return OperationResult(
+      success: result.code == 200,
+      message: result.message,
+    );
   }
 
-  Future<ServerStatusBean> manipulateTracks(
+  Future<OperationResult> manipulateTracks(
     String playlistId,
     String songId, {
     required bool add,
-  }) {
-    return NeteaseMusicApi().playlistManipulateTracks(playlistId, songId, add);
+  }) async {
+    final result =
+        await NeteaseMusicApi().playlistManipulateTracks(playlistId, songId, add);
+    return OperationResult(
+      success: result.code == 200,
+      message: result.message,
+    );
   }
 }

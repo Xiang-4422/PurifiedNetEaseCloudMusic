@@ -289,6 +289,7 @@
 - 评论列表、楼中楼和评论弹层已改为消费 `CommentData`，不再直接依赖网易云评论 bean
 - 云盘页与 `CloudPageController` 已改为直接消费 `MediaItem` 列表，不再直接依赖 `CloudSongItem`
 - 底部播放面板的歌手跳转已改为消费应用侧作者字段，不再通过 `Artist.fromJson` 反解网易云作者 bean
+- 认证轮询、评论发送/点赞、歌单订阅、喜欢歌曲和退出登录已改为返回应用侧结果对象，不再把网易云 `ServerStatusBean / CommentWrap / QrCodeLoginKey` 暴露给控制器和页面
 - 已新增本地媒体库数据源协议，`LibraryRepository` 开始按“先本地、后远程、再回写”组织读取路径
 - 已新增进程内本地媒体库占位实现，并进一步切到可持久化过渡实现
 - 搜索面板中的单曲、歌单、专辑、歌手结果已接入统一媒体库入口

@@ -5,6 +5,7 @@ import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
+import 'package:bujuan/pages/coverflow_demo_page_view.dart';
 import 'package:bujuan/pages/download_task_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -285,6 +286,32 @@ class _SettingPageViewState extends State<SettingPageView> {
             color: Theme.of(context).cardColor.withValues(alpha: .5),
           ),
           onTap: _scanLocalMedia,
+        ),
+        ListTile(
+          contentPadding: const EdgeInsets.all(0),
+          title: const Text(
+            'CoverFlow Demo',
+            style: TextStyle(fontSize: 30),
+          ),
+          subtitle: Text(
+            '使用当前播放列表的封面验证 CoverFlow 交互',
+            style: TextStyle(
+              fontSize: 18,
+              color: Theme.of(context).cardColor.withValues(alpha: .5),
+            ),
+          ),
+          trailing: Icon(
+            TablerIcons.chevron_right,
+            size: 32,
+            color: Theme.of(context).cardColor.withValues(alpha: .5),
+          ),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const CoverFlowDemoPageView(),
+              ),
+            );
+          },
         ),
         ListTile(
           contentPadding: const EdgeInsets.all(0),

@@ -3,6 +3,7 @@ import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/radio/radio_data.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
+import 'package:bujuan/features/radio/radio_media_item_mapper.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
@@ -61,7 +62,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
           if (state.isEmpty) {
             return const EmptyView();
           }
-          final mediaItems = _repository.mapProgramsToMediaItems(
+          final mediaItems = RadioMediaItemMapper.fromPrograms(
             state.items,
             likedSongIds: AppController.to.likedSongIds.toList(),
           );

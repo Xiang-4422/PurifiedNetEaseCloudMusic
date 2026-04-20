@@ -10,7 +10,6 @@ import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/user/user_profile_data.dart';
-import 'package:bujuan/features/user/user_session_data.dart';
 import 'package:get_it/get_it.dart';
 
 class UserRepository {
@@ -21,16 +20,6 @@ class UserRepository {
                 : LibraryRepository());
 
   final LibraryRepository _libraryRepository;
-
-  Future<UserSessionData> fetchLoginSession() async {
-    final accountInfo = await NeteaseMusicApi().loginAccountInfo();
-    final profile = accountInfo.profile;
-    return UserSessionData(
-      userId: profile?.userId ?? '',
-      nickname: profile?.nickname ?? '',
-      avatarUrl: profile?.avatarUrl ?? '',
-    );
-  }
 
   Future<UserProfileData> fetchUserDetail(String userId) async {
     final detail = await NeteaseMusicApi().userDetail(userId);

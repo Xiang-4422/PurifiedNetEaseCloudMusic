@@ -91,7 +91,22 @@ class DownloadRepository {
     Iterable<String> trackIds, {
     bool preferHighQuality = true,
   }) async {
-    for (final trackId in trackIds.toSet()) {
+    final candidateIds = trackIds.toSet().toList();
+    if (candidateIds.isEmpty) {
+      return;
+    }
+    final tracks = await _libraryRepository.getTracksByIds(candidateIds);
+    final tracksById = {
+      for (final track in tracks) track.id: track,
+    };
+    for (final trackId in candidateIds) {
+      final track = tracksById[trackId];
+      final downloadState = track?.downloadState;
+      if (downloadState == DownloadState.downloaded ||
+          downloadState == DownloadState.queued ||
+          downloadState == DownloadState.downloading) {
+        continue;
+      }
       unawaited(
         downloadTrack(
           trackId,

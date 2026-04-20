@@ -1,3 +1,5 @@
+import 'dart:async';
+
 //
 
 import 'package:audio_service/audio_service.dart';
@@ -49,22 +51,29 @@ class _ArtistPageViewState extends State<ArtistPageView> {
 
     artistId = context.routeData.queryParams.get("artistId");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final artistDetail = await _repository.fetchArtistDetail(
+      final localDetail = await _repository.loadLocalArtistDetail(
         artistId: artistId,
         likedSongIds: AppController.to.likedSongIds.toList(),
       );
-      artist = artistDetail.artist;
-
-      albumColor =
-          await OtherUtils.getImageColor(artist.artworkUrl);
-      onAlbumColor = albumColor.invertedColor;
-
-      topSongs.addAll(artistDetail.topSongs);
-      hotAlbums.addAll(artistDetail.hotAlbums);
-
-      setState(() {
-        loading = false;
-      });
+      if (localDetail != null) {
+        artist = localDetail.artist;
+        topSongs
+          ..clear()
+          ..addAll(localDetail.topSongs);
+        hotAlbums
+          ..clear()
+          ..addAll(localDetail.hotAlbums);
+        await _updateArtistColor(artist.artworkUrl);
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          loading = false;
+        });
+        unawaited(_refreshArtistDetail(showLoadingState: false));
+        return;
+      }
+      await _refreshArtistDetail(showLoadingState: true);
     });
   }
 
@@ -77,201 +86,237 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     // 计算专辑宽度：
     double albumWidth = (context.width - AppDimensions.paddingMedium * 3) / 2.5;
 
-    return Container(
-      color: albumColor,
-      child: CustomScrollView(
-        physics: const BouncingScrollPhysics(), // 关键：允许弹性滚动
-        controller: ScrollController(),
-        slivers: [
-          SliverAppBar(
-            toolbarHeight: AppDimensions.appBarHeight -
-                context.mediaQueryPadding.top +
-                AppDimensions.paddingLarge,
-            collapsedHeight: AppDimensions.appBarHeight -
-                context.mediaQueryPadding.top +
-                AppDimensions.paddingLarge,
-            expandedHeight: context.width - context.mediaQueryPadding.top,
-            pinned: true,
-            stretch: true,
-            automaticallyImplyLeading: false,
-            foregroundColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            backgroundColor: Colors.transparent,
-            flexibleSpace: FlexibleSpaceBar(
-              stretchModes: const <StretchMode>[
-                StretchMode.zoomBackground, // 背景图缩放
-                // StretchMode.blurBackground, // 背景图模糊
-                // StretchMode.fadeTitle,      // 标题渐隐
-              ],
-              titlePadding: const EdgeInsets.all(AppDimensions.paddingMedium),
-              title: BlurryContainer(
-                padding: EdgeInsets.zero,
-                borderRadius: BorderRadius.circular(9999),
-                color: Colors.white.withValues(alpha: 0.5),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Stack(
-                          alignment: Alignment.centerLeft,
+    return RefreshIndicator(
+      onRefresh: () => _refreshArtistDetail(showLoadingState: false),
+      child: Container(
+        color: albumColor,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(), // 关键：允许弹性滚动
+          controller: ScrollController(),
+          slivers: [
+            SliverAppBar(
+              toolbarHeight: AppDimensions.appBarHeight -
+                  context.mediaQueryPadding.top +
+                  AppDimensions.paddingLarge,
+              collapsedHeight: AppDimensions.appBarHeight -
+                  context.mediaQueryPadding.top +
+                  AppDimensions.paddingLarge,
+              expandedHeight: context.width - context.mediaQueryPadding.top,
+              pinned: true,
+              stretch: true,
+              automaticallyImplyLeading: false,
+              foregroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              backgroundColor: Colors.transparent,
+              flexibleSpace: FlexibleSpaceBar(
+                stretchModes: const <StretchMode>[
+                  StretchMode.zoomBackground, // 背景图缩放
+                  // StretchMode.blurBackground, // 背景图模糊
+                  // StretchMode.fadeTitle,      // 标题渐隐
+                ],
+                titlePadding: const EdgeInsets.all(AppDimensions.paddingMedium),
+                title: BlurryContainer(
+                  padding: EdgeInsets.zero,
+                  borderRadius: BorderRadius.circular(9999),
+                  color: Colors.white.withValues(alpha: 0.5),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Stack(
+                            alignment: Alignment.centerLeft,
+                            children: [
+                              Text(
+                                style: context.textTheme.titleLarge!.copyWith(
+                                  foreground: Paint()
+                                    ..style = PaintingStyle.stroke
+                                    ..strokeWidth = 2
+                                    ..color = Colors.black,
+                                ),
+                                maxLines: 1,
+                                "  ${artist.name}",
+                              ),
+                              Text(
+                                style: context.textTheme.titleLarge!.copyWith(
+                                  color: Colors.white,
+                                ),
+                                maxLines: 1,
+                                "  ${artist.name}",
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      BlurryContainer(
+                        padding: EdgeInsets.zero,
+                        borderRadius: BorderRadius.circular(9999),
+                        color: Colors.red,
+                        child: IconButton(
+                            icon: const Icon(
+                              TablerIcons.player_play_filled,
+                              color: Colors.white,
+                            ),
+                            onPressed: () => PlayerController.to.playPlaylist(
+                                  topSongs,
+                                  0,
+                                  playListName: artist.name,
+                                  playListNameHeader: "歌手",
+                                )),
+                      )
+                    ],
+                  ),
+                ),
+                // centerTitle: true,
+                expandedTitleScale: 1.5,
+                background: SimpleExtendedImage(
+                  width: context.width,
+                  height: context.width,
+                  artist.artworkUrl ?? '',
+                ),
+              ),
+              // bottom:
+            ),
+            // 专辑
+            SliverToBoxAdapter(
+              child: SizedBox(
+                  height: 50,
+                  child: Container(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "专辑",
+                        style: TextStyle(
+                            color: onAlbumColor, fontWeight: FontWeight.bold),
+                      ).paddingOnly(left: AppDimensions.paddingMedium))),
+            ),
+            SliverToBoxAdapter(
+                child: SizedBox(
+              height: albumWidth * 1.35,
+              child: ListView.builder(
+                addAutomaticKeepAlives: true,
+                itemCount: hotAlbums.length,
+                scrollDirection: Axis.horizontal,
+                physics: SnappingScrollPhysics(
+                    itemExtent: albumWidth + AppDimensions.paddingMedium),
+                itemBuilder: (context, index) {
+                  double marginLeft =
+                      index == 0 ? AppDimensions.paddingMedium : 0;
+                  return KeepAliveWrapper(
+                    child: GestureDetector(
+                      onTap: () => context.router.push(const gr.AlbumRouteView()
+                          .copyWith(queryParams: {
+                        'albumId': hotAlbums[index].sourceId
+                      })),
+                      child: SizedBox(
+                        height: albumWidth * 1.35,
+                        width: albumWidth,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              style: context.textTheme.titleLarge!.copyWith(
-                                foreground: Paint()
-                                  ..style = PaintingStyle.stroke
-                                  ..strokeWidth = 2
-                                  ..color = Colors.black,
-                              ),
-                              maxLines: 1,
-                              "  ${artist.name}",
-                            ),
-                            Text(
-                              style: context.textTheme.titleLarge!.copyWith(
-                                color: Colors.white,
-                              ),
-                              maxLines: 1,
-                              "  ${artist.name}",
-                            ),
+                            SimpleExtendedImage.avatar(
+                                width: albumWidth,
+                                shape: BoxShape.rectangle,
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.paddingMedium),
+                                '${hotAlbums[index].artworkUrl ?? ''}?param=200y200'),
+                            Expanded(
+                                child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  hotAlbums[index].title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.textTheme.bodyMedium?.copyWith(
+                                    color: onAlbumColor,
+                                  ),
+                                ),
+                                Text(
+                                  "${DateTime.fromMillisecondsSinceEpoch(hotAlbums[index].publishTime ?? 0).year}",
+                                  maxLines: 1,
+                                  style: context.textTheme.bodySmall?.copyWith(
+                                    color: onAlbumColor,
+                                  ),
+                                ),
+                              ],
+                            ))
                           ],
                         ),
                       ),
                     ),
-                    BlurryContainer(
-                      padding: EdgeInsets.zero,
-                      borderRadius: BorderRadius.circular(9999),
-                      color: Colors.red,
-                      child: IconButton(
-                          icon: const Icon(
-                            TablerIcons.player_play_filled,
-                            color: Colors.white,
-                          ),
-                          onPressed: () => PlayerController.to.playPlaylist(
-                                topSongs,
-                                0,
-                                playListName: artist.name,
-                                playListNameHeader: "歌手",
-                              )),
-                    )
-                  ],
-                ),
+                  ).marginOnly(
+                      left: marginLeft, right: AppDimensions.paddingMedium);
+                },
               ),
-              // centerTitle: true,
-              expandedTitleScale: 1.5,
-              background: SimpleExtendedImage(
-                width: context.width,
-                height: context.width,
-                artist.artworkUrl ?? '',
-              ),
-            ),
-            // bottom:
-          ),
-          // 专辑
-          SliverToBoxAdapter(
-            child: SizedBox(
-                height: 50,
-                child: Container(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "专辑",
-                      style: TextStyle(
-                          color: onAlbumColor, fontWeight: FontWeight.bold),
-                    ).paddingOnly(left: AppDimensions.paddingMedium))),
-          ),
-          SliverToBoxAdapter(
+            )),
+            // 单曲
+            SliverToBoxAdapter(
               child: SizedBox(
-            height: albumWidth * 1.35,
-            child: ListView.builder(
-              addAutomaticKeepAlives: true,
-              itemCount: hotAlbums.length,
-              scrollDirection: Axis.horizontal,
-              physics: SnappingScrollPhysics(
-                  itemExtent: albumWidth + AppDimensions.paddingMedium),
-              itemBuilder: (context, index) {
-                double marginLeft =
-                    index == 0 ? AppDimensions.paddingMedium : 0;
-                return KeepAliveWrapper(
-                  child: GestureDetector(
-                    onTap: () => context.router.push(const gr.AlbumRouteView()
-                        .copyWith(
-                            queryParams: {'albumId': hotAlbums[index].sourceId})),
-                    child: SizedBox(
-                      height: albumWidth * 1.35,
-                      width: albumWidth,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SimpleExtendedImage.avatar(
-                              width: albumWidth,
-                              shape: BoxShape.rectangle,
-                              borderRadius: BorderRadius.circular(
-                                  AppDimensions.paddingMedium),
-                              '${hotAlbums[index].artworkUrl ?? ''}?param=200y200'),
-                          Expanded(
-                              child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                hotAlbums[index].title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.textTheme.bodyMedium?.copyWith(
-                                  color: onAlbumColor,
-                                ),
-                              ),
-                              Text(
-                                "${DateTime.fromMillisecondsSinceEpoch(hotAlbums[index].publishTime ?? 0).year}",
-                                maxLines: 1,
-                                style: context.textTheme.bodySmall?.copyWith(
-                                  color: onAlbumColor,
-                                ),
-                              ),
-                            ],
-                          ))
-                        ],
-                      ),
-                    ),
-                  ),
-                ).marginOnly(
-                    left: marginLeft, right: AppDimensions.paddingMedium);
-              },
+                  height: 50,
+                  child: Container(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "单曲",
+                        style: TextStyle(
+                            color: onAlbumColor, fontWeight: FontWeight.bold),
+                      ).paddingOnly(left: AppDimensions.paddingMedium))),
             ),
-          )),
-          // 单曲
-          SliverToBoxAdapter(
-            child: SizedBox(
-                height: 50,
-                child: Container(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "单曲",
-                      style: TextStyle(
-                          color: onAlbumColor, fontWeight: FontWeight.bold),
-                    ).paddingOnly(left: AppDimensions.paddingMedium))),
-          ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              childCount: topSongs.length + 1,
-              (BuildContext context, int index) {
-                if (index == topSongs.length) {
-                  return const SizedBox(
-                    height: AppDimensions.bottomPanelHeaderHeight,
-                  );
-                }
-                return SongItem(
-                        playlist: topSongs,
-                        index: index,
-                        playListName: artist.name,
-                        playListHeader: "歌手",
-                        stringColor: onAlbumColor,
-                        showIndex: true)
-                    .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
-              },
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                childCount: topSongs.length + 1,
+                (BuildContext context, int index) {
+                  if (index == topSongs.length) {
+                    return const SizedBox(
+                      height: AppDimensions.bottomPanelHeaderHeight,
+                    );
+                  }
+                  return SongItem(
+                          playlist: topSongs,
+                          index: index,
+                          playListName: artist.name,
+                          playListHeader: "歌手",
+                          stringColor: onAlbumColor,
+                          showIndex: true)
+                      .paddingSymmetric(
+                          horizontal: AppDimensions.paddingMedium);
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  Future<void> _refreshArtistDetail({required bool showLoadingState}) async {
+    if (showLoadingState && mounted) {
+      setState(() {
+        loading = true;
+      });
+    }
+    final artistDetail = await _repository.fetchArtistDetail(
+      artistId: artistId,
+      likedSongIds: AppController.to.likedSongIds.toList(),
+    );
+    artist = artistDetail.artist;
+    topSongs
+      ..clear()
+      ..addAll(artistDetail.topSongs);
+    hotAlbums
+      ..clear()
+      ..addAll(artistDetail.hotAlbums);
+    await _updateArtistColor(artist.artworkUrl);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      loading = false;
+    });
+  }
+
+  Future<void> _updateArtistColor(String? artworkPath) async {
+    albumColor = await OtherUtils.getImageColor(artworkPath);
+    onAlbumColor = albumColor.invertedColor;
   }
 }

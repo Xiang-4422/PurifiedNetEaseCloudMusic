@@ -1,7 +1,9 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/data/netease/netease_artist_remote_data_source.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
+import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:get_it/get_it.dart';
 
@@ -21,8 +23,7 @@ class ArtistRepository {
   ArtistRepository({
     LibraryRepository? libraryRepository,
     NeteaseArtistRemoteDataSource? remoteDataSource,
-  })
-      : _libraryRepository = libraryRepository ??
+  })  : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository()),
@@ -31,6 +32,25 @@ class ArtistRepository {
 
   final LibraryRepository _libraryRepository;
   final NeteaseArtistRemoteDataSource _remoteDataSource;
+
+  Future<ArtistDetailData?> loadLocalArtistDetail({
+    required String artistId,
+    required List<int> likedSongIds,
+  }) async {
+    final artist = await _libraryRepository.getArtist('netease:$artistId');
+    if (artist == null) {
+      return null;
+    }
+    final topTracks = await _libraryRepository.getTracksByArtistId(artistId);
+    final hotAlbums = await _libraryRepository.searchLocalAlbums(artist.name);
+    return ArtistDetailData(
+      artist: artist,
+      topSongs: _mapTracksToMediaItems(topTracks, likedSongIds: likedSongIds),
+      hotAlbums: hotAlbums
+          .where((album) => album.artistNames.contains(artist.name))
+          .toList(),
+    );
+  }
 
   Future<ArtistDetailData> fetchArtistDetail({
     required String artistId,
@@ -54,5 +74,15 @@ class ArtistRepository {
       topSongs: result.topMediaItems,
       hotAlbums: albums,
     );
+  }
+
+  List<MediaItem> _mapTracksToMediaItems(
+    List<Track> tracks, {
+    required List<int> likedSongIds,
+  }) {
+    if (tracks.isEmpty) {
+      return const [];
+    }
+    return MediaItemMapper.fromTrackList(tracks, likedSongIds: likedSongIds);
   }
 }

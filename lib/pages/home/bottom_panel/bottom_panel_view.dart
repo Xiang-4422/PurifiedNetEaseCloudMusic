@@ -117,7 +117,7 @@ class BottomPanelView extends GetView<AppController> {
                   borderRadius: BorderRadius.all(Radius.circular(
                       AppDimensions.phoneCornerRadius * (1 - panelOpenDegree))),
                   color: controller.albumColor.value
-                      .withOpacity(0.5 + 0.5 * panelOpenDegree),
+                      .withValues(alpha: 0.5 + 0.5 * panelOpenDegree),
                   child: Container(),
                 ));
           },
@@ -169,7 +169,7 @@ class BottomPanelView extends GetView<AppController> {
                                             .textTheme.titleLarge!.fontSize! /
                                         2,
                                     color: controller.panelWidgetColor.value
-                                        .withOpacity(0.5),
+                                        .withValues(alpha: 0.5),
                                   ),
                                 ),
                               ],
@@ -262,7 +262,8 @@ class BottomPanelView extends GetView<AppController> {
                                   end: Alignment.bottomCenter, // 渐变结束于底部
                                   colors: [
                                     controller.albumColor.value,
-                                    controller.albumColor.value.withOpacity(0),
+                                    controller.albumColor.value
+                                        .withValues(alpha: 0),
                                   ],
                                 ),
                               ),
@@ -275,7 +276,8 @@ class BottomPanelView extends GetView<AppController> {
                                   begin: Alignment.topCenter, // 渐变开始于顶部
                                   end: Alignment.bottomCenter, // 渐变结束于底部
                                   colors: [
-                                    controller.albumColor.value.withOpacity(0),
+                                    controller.albumColor.value
+                                        .withValues(alpha: 0),
                                     controller.albumColor.value,
                                   ],
                                 ),
@@ -394,7 +396,7 @@ class BottomPanelView extends GetView<AppController> {
                                 AppDimensions.paddingLarge / 2),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.4), // 阴影颜色
+                                color: Colors.black.withValues(alpha: 0.4),
                                 blurRadius: 12, // 模糊半径
                                 spreadRadius: 2, // 扩散半径
                               )
@@ -438,7 +440,8 @@ class BottomPanelView extends GetView<AppController> {
                   clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     color: controller.isBigAlbum.isTrue
-                        ? controller.panelWidgetColor.value.withOpacity(0.05)
+                        ? controller.panelWidgetColor.value
+                            .withValues(alpha: 0.05)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(albumPadding),
                   ),
@@ -453,14 +456,14 @@ class BottomPanelView extends GetView<AppController> {
                                 horizontal: albumPadding / 2),
                             decoration: BoxDecoration(
                               color: controller.panelWidgetColor.value
-                                  .withOpacity(0.05),
+                                  .withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(albumPadding),
                             ),
                             child: Text(
                               sessionState.playlistHeader,
                               style: context.textTheme.titleMedium?.copyWith(
                                   color: controller.panelWidgetColor.value
-                                      .withOpacity(0.5)),
+                                      .withValues(alpha: 0.5)),
                             ),
                           ),
                         ),
@@ -473,7 +476,7 @@ class BottomPanelView extends GetView<AppController> {
                                 sessionState.playlistName,
                                 style: context.textTheme.titleMedium?.copyWith(
                                     color: controller.panelWidgetColor.value
-                                        .withOpacity(0.5)),
+                                        .withValues(alpha: 0.5)),
                               ),
                             ),
                           ),
@@ -488,11 +491,11 @@ class BottomPanelView extends GetView<AppController> {
                         Text("播放列表",
                             style: context.textTheme.titleMedium?.copyWith(
                                 color: controller.panelWidgetColor.value
-                                    .withOpacity(0.5))),
+                                    .withValues(alpha: 0.5))),
                         Text("正在播放",
                             style: context.textTheme.titleMedium?.copyWith(
                                 color: controller.panelWidgetColor.value
-                                    .withOpacity(0.5))),
+                                    .withValues(alpha: 0.5))),
                         Obx(() => MyTabBarItemAnimatedSwitcher(
                               isTabBarVisible:
                                   controller.curPanelPageIndex.value > 1,
@@ -501,7 +504,7 @@ class BottomPanelView extends GetView<AppController> {
                                       ?.copyWith(
                                           color: controller
                                               .panelWidgetColor.value
-                                              .withOpacity(0.5))),
+                                              .withValues(alpha: 0.5))),
                               replaceItem: MyTabBar(
                                 height: albumPadding,
                                 controller:
@@ -513,13 +516,13 @@ class BottomPanelView extends GetView<AppController> {
                                           ?.copyWith(
                                               color: controller
                                                   .panelWidgetColor.value
-                                                  .withOpacity(0.5))),
+                                                  .withValues(alpha: 0.5))),
                                   Text("新",
                                       style: context.textTheme.titleMedium
                                           ?.copyWith(
                                               color: controller
                                                   .panelWidgetColor.value
-                                                  .withOpacity(0.5))),
+                                                  .withValues(alpha: 0.5))),
                                 ],
                               ),
                             )),
@@ -568,6 +571,7 @@ class BottomPanelView extends GetView<AppController> {
       onTap: () => controller.playerController.playQueueIndex(index),
       child: Obx(() => Container(
             color: Colors.transparent, // 加个颜色让透明区域也能点击
+            alignment: AlignmentDirectional.centerStart,
             child: Builder(builder: (context) {
               final runtimeState = controller.playbackRuntimeState.value;
               final isCurrent = runtimeState.currentIndex == index;
@@ -589,7 +593,7 @@ class BottomPanelView extends GetView<AppController> {
                     mediaItem.artist ?? "未知歌手",
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: controller.panelWidgetColor.value
-                              .withOpacity(0.5),
+                              .withValues(alpha: 0.5),
                         ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -597,7 +601,6 @@ class BottomPanelView extends GetView<AppController> {
                 ],
               );
             }),
-            alignment: AlignmentDirectional.centerStart,
           )),
     );
   }
@@ -677,7 +680,7 @@ class BottomPanelView extends GetView<AppController> {
                                               decoration: BoxDecoration(
                                                 color: controller
                                                     .panelWidgetColor.value
-                                                    .withOpacity(0.1),
+                                                    .withValues(alpha: 0.1),
                                                 borderRadius:
                                                     BorderRadius.circular(
                                                         albumPadding),
@@ -715,10 +718,12 @@ class BottomPanelView extends GetView<AppController> {
                                                           .isNullOrEmpty) {
                                                         return;
                                                       }
+                                                      final router =
+                                                          context.router;
                                                       await controller
                                                           .bottomPanelController
                                                           .close();
-                                                      context.router.push(const gr
+                                                      router.push(const gr
                                                               .AlbumRouteView()
                                                           .copyWith(
                                                               queryParams: {
@@ -735,7 +740,8 @@ class BottomPanelView extends GetView<AppController> {
                                                         color: controller
                                                             .panelWidgetColor
                                                             .value
-                                                            .withOpacity(0.1),
+                                                            .withValues(
+                                                                alpha: 0.1),
                                                         borderRadius:
                                                             BorderRadius.circular(
                                                                 albumPadding),
@@ -793,7 +799,7 @@ class BottomPanelView extends GetView<AppController> {
                                             decoration: BoxDecoration(
                                               color: controller
                                                   .panelWidgetColor.value
-                                                  .withOpacity(0.1),
+                                                  .withValues(alpha: 0.1),
                                               borderRadius:
                                                   BorderRadius.circular(
                                                       albumPadding),
@@ -862,8 +868,9 @@ class BottomPanelView extends GetView<AppController> {
                                                                       color: controller
                                                                           .panelWidgetColor
                                                                           .value
-                                                                          .withOpacity(
-                                                                              0.1),
+                                                                          .withValues(
+                                                                              alpha:
+                                                                                  0.1),
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               albumPadding),
@@ -875,8 +882,9 @@ class BottomPanelView extends GetView<AppController> {
                                                                                 if (artist.id.isEmpty) {
                                                                                   return;
                                                                                 }
+                                                                                final router = context.router;
                                                                                 await controller.bottomPanelController.close();
-                                                                                context.router.push(const gr.ArtistRouteView().copyWith(queryParams: {
+                                                                                router.push(const gr.ArtistRouteView().copyWith(queryParams: {
                                                                                   'artistId': artist.id
                                                                                 }));
                                                                               },
@@ -935,10 +943,12 @@ class BottomPanelView extends GetView<AppController> {
         total: runtimeState.currentSong.duration ?? const Duration(seconds: 10),
         barHeight: AppDimensions.paddingLarge,
         barCapShape: BarCapShape.round,
-        progressBarColor: controller.panelWidgetColor.value.withOpacity(.1),
-        baseBarColor: controller.panelWidgetColor.value.withOpacity(.05),
+        progressBarColor:
+            controller.panelWidgetColor.value.withValues(alpha: .1),
+        baseBarColor:
+            controller.panelWidgetColor.value.withValues(alpha: .05),
         bufferedBarColor: Colors.transparent,
-        thumbColor: controller.panelWidgetColor.value.withOpacity(.05),
+        thumbColor: controller.panelWidgetColor.value.withValues(alpha: .05),
         thumbRadius: AppDimensions.paddingLarge / 2,
         thumbGlowRadius: AppDimensions.paddingLarge * 2 / 3,
         thumbCanPaintOutsideBar: false,
@@ -1026,8 +1036,9 @@ class BottomPanelView extends GetView<AppController> {
           blur: controller.isBigAlbum.isTrue ? 0 : 5,
           padding: const EdgeInsets.all(10),
           borderRadius: BorderRadius.circular(100),
-          color: controller.panelWidgetColor.value
-              .withOpacity(controller.isBigAlbum.isTrue ? 0 : 0.05),
+          color: controller.panelWidgetColor.value.withValues(
+            alpha: controller.isBigAlbum.isTrue ? 0 : 0.05,
+          ),
           child: child,
         ));
   }
@@ -1162,7 +1173,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
                                       context.textTheme.titleLarge!.fontSize! /
                                           2,
                                   color: controller.panelWidgetColor.value
-                                      .withOpacity(0.5),
+                                      .withValues(alpha: 0.5),
                                 ),
                               ),
                             ],

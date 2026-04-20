@@ -761,6 +761,14 @@
 
 #### 2026-04-20
 
+- 阶段：`Phase 4`
+- 状态：`In Progress`
+- 完成内容：新增 `IsarPlaylistEntity`、`IsarAlbumEntity`、`IsarArtistEntity`，`IsarLocalLibraryDataSource` 已直接承接 `Track / Lyrics / Playlist / Album / Artist` 全量媒体库读写与搜索；`IsarAppDatabase` 不再委托旧媒体库持久化实现
+- 风险或阻塞：媒体库虽然已经切到正式数据库实现，但当前搜索仍采用全量读取后内存过滤，后续还需要评估是否补更明确的索引策略
+- 下一步：开始回头收下载列表、任务恢复和失败重试，或者继续优化媒体库搜索与写入策略
+
+#### 2026-04-20
+
 - 阶段：`Phase 1`
 - 状态：`In Progress`
 - 完成内容：新增 `netease_playlist_remote_data_source`、`netease_user_remote_data_source`、`netease_comment_remote_data_source`，将 `playlist / user / comment` 三条链路的网易云远程访问继续下沉到 `data/netease`；当前 `lib/features/**` 已不再直接 import `NeteaseMusicApi` 或 `netease_api.dart`

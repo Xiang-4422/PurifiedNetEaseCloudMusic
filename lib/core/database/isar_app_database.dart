@@ -1,8 +1,11 @@
 import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/app_database_schema.dart';
 import 'package:bujuan/core/database/database_collection_schema.dart';
+import 'package:bujuan/core/database/isar_album_entity.dart';
+import 'package:bujuan/core/database/isar_artist_entity.dart';
 import 'package:bujuan/core/database/isar_download_task_entity.dart';
 import 'package:bujuan/core/database/isar_local_resource_entity.dart';
+import 'package:bujuan/core/database/isar_playlist_entity.dart';
 import 'package:bujuan/core/database/isar_playback_restore_snapshot_entity.dart';
 import 'package:bujuan/core/database/isar_track_entity.dart';
 import 'package:bujuan/core/database/isar_track_lyrics_entity.dart';
@@ -13,7 +16,6 @@ import 'package:bujuan/data/local/isar_local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/isar_playback_restore_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
-import 'package:bujuan/data/local/persistent_local_library_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -38,14 +40,14 @@ class IsarAppDatabase implements AppDatabase {
         IsarDownloadTaskEntitySchema,
         IsarTrackEntitySchema,
         IsarTrackLyricsEntitySchema,
+        IsarPlaylistEntitySchema,
+        IsarAlbumEntitySchema,
+        IsarArtistEntitySchema,
       ],
       name: databaseName,
       directory: directory.path,
     );
-    _localLibraryDataSource = IsarLocalLibraryDataSource(
-      isar: _isar,
-      fallbackDataSource: const PersistentLocalLibraryDataSource(),
-    );
+    _localLibraryDataSource = IsarLocalLibraryDataSource(isar: _isar);
     _playbackRestoreDataSource = IsarPlaybackRestoreDataSource(isar: _isar);
     _localResourceIndexDataSource =
         IsarLocalResourceIndexDataSource(isar: _isar);

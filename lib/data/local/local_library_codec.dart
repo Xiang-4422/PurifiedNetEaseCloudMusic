@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:bujuan/core/database/isar_album_entity.dart';
+import 'package:bujuan/core/database/isar_artist_entity.dart';
+import 'package:bujuan/core/database/isar_playlist_entity.dart';
 import 'package:bujuan/core/database/isar_track_entity.dart';
 import 'package:bujuan/core/database/isar_track_lyrics_entity.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
@@ -171,6 +174,57 @@ class LocalLibraryCodec {
     );
   }
 
+  static IsarPlaylistEntity encodePlaylistEntity(PlaylistEntity playlist) {
+    return IsarPlaylistEntity(
+      schemaVersion: 1,
+      playlistId: playlist.id,
+      sourceType: playlist.sourceType.name,
+      sourceId: playlist.sourceId,
+      title: playlist.title,
+      description: playlist.description,
+      coverUrl: playlist.coverUrl,
+      trackCount: playlist.trackCount,
+      trackRefsJson: jsonEncode(
+        playlist.trackRefs
+            .map(
+              (trackRef) => {
+                'trackId': trackRef.trackId,
+                'order': trackRef.order,
+                'addedAt': trackRef.addedAt,
+              },
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  static PlaylistEntity decodePlaylistEntity(IsarPlaylistEntity entity) {
+    final rawTrackRefs = jsonDecode(entity.trackRefsJson);
+    final refs = rawTrackRefs is List
+        ? rawTrackRefs
+            .map((item) => _asMap(item))
+            .whereType<Map<String, dynamic>>()
+            .map(
+              (item) => PlaylistTrackRef(
+                trackId: _readString(item, 'trackId'),
+                order: (item['order'] as num?)?.toInt() ?? 0,
+                addedAt: (item['addedAt'] as num?)?.toInt(),
+              ),
+            )
+            .toList()
+        : const <PlaylistTrackRef>[];
+    return PlaylistEntity(
+      id: entity.playlistId,
+      sourceType: _sourceTypeFromName(entity.sourceType),
+      sourceId: entity.sourceId,
+      title: entity.title,
+      description: entity.description,
+      coverUrl: entity.coverUrl,
+      trackCount: entity.trackCount,
+      trackRefs: refs,
+    );
+  }
+
   static Map<String, Object?> encodeAlbum(AlbumEntity album) {
     return {
       'id': album.id,
@@ -203,6 +257,35 @@ class LocalLibraryCodec {
     );
   }
 
+  static IsarAlbumEntity encodeAlbumEntity(AlbumEntity album) {
+    return IsarAlbumEntity(
+      schemaVersion: 1,
+      albumId: album.id,
+      sourceType: album.sourceType.name,
+      sourceId: album.sourceId,
+      title: album.title,
+      artworkUrl: album.artworkUrl,
+      artistNames: album.artistNames,
+      description: album.description,
+      trackCount: album.trackCount,
+      publishTime: album.publishTime,
+    );
+  }
+
+  static AlbumEntity decodeAlbumEntity(IsarAlbumEntity entity) {
+    return AlbumEntity(
+      id: entity.albumId,
+      sourceType: _sourceTypeFromName(entity.sourceType),
+      sourceId: entity.sourceId,
+      title: entity.title,
+      artworkUrl: entity.artworkUrl,
+      artistNames: entity.artistNames,
+      description: entity.description,
+      trackCount: entity.trackCount,
+      publishTime: entity.publishTime,
+    );
+  }
+
   static Map<String, Object?> encodeArtist(ArtistEntity artist) {
     return {
       'id': artist.id,
@@ -226,6 +309,29 @@ class LocalLibraryCodec {
       name: _readString(map, 'name'),
       artworkUrl: map['artworkUrl'] as String?,
       description: map['description'] as String?,
+    );
+  }
+
+  static IsarArtistEntity encodeArtistEntity(ArtistEntity artist) {
+    return IsarArtistEntity(
+      schemaVersion: 1,
+      artistId: artist.id,
+      sourceType: artist.sourceType.name,
+      sourceId: artist.sourceId,
+      name: artist.name,
+      artworkUrl: artist.artworkUrl,
+      description: artist.description,
+    );
+  }
+
+  static ArtistEntity decodeArtistEntity(IsarArtistEntity entity) {
+    return ArtistEntity(
+      id: entity.artistId,
+      sourceType: _sourceTypeFromName(entity.sourceType),
+      sourceId: entity.sourceId,
+      name: entity.name,
+      artworkUrl: entity.artworkUrl,
+      description: entity.description,
     );
   }
 

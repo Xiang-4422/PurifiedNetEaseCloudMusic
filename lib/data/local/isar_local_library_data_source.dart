@@ -1,3 +1,6 @@
+import 'package:bujuan/core/database/isar_album_entity.dart';
+import 'package:bujuan/core/database/isar_artist_entity.dart';
+import 'package:bujuan/core/database/isar_playlist_entity.dart';
 import 'package:bujuan/core/database/isar_track_entity.dart';
 import 'package:bujuan/core/database/isar_track_lyrics_entity.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
@@ -11,14 +14,9 @@ import 'local_library_codec.dart';
 import 'local_library_data_source.dart';
 
 class IsarLocalLibraryDataSource implements LocalLibraryDataSource {
-  IsarLocalLibraryDataSource({
-    required Isar isar,
-    required LocalLibraryDataSource fallbackDataSource,
-  })  : _isar = isar,
-        _fallbackDataSource = fallbackDataSource;
+  IsarLocalLibraryDataSource({required Isar isar}) : _isar = isar;
 
   final Isar _isar;
-  final LocalLibraryDataSource _fallbackDataSource;
 
   @override
   Future<List<Track>> searchTracks(String keyword) async {
@@ -41,17 +39,54 @@ class IsarLocalLibraryDataSource implements LocalLibraryDataSource {
 
   @override
   Future<List<PlaylistEntity>> searchPlaylists(String keyword) {
-    return _fallbackDataSource.searchPlaylists(keyword);
+    if (keyword.isEmpty) {
+      return Future.value(const []);
+    }
+    final normalizedKeyword = keyword.toLowerCase();
+    return _isar.isarPlaylistEntitys.where().findAll().then(
+          (entities) => entities
+              .map(LocalLibraryCodec.decodePlaylistEntity)
+              .where(
+                (playlist) =>
+                    playlist.title.toLowerCase().contains(normalizedKeyword),
+              )
+              .toList(),
+        );
   }
 
   @override
   Future<List<AlbumEntity>> searchAlbums(String keyword) {
-    return _fallbackDataSource.searchAlbums(keyword);
+    if (keyword.isEmpty) {
+      return Future.value(const []);
+    }
+    final normalizedKeyword = keyword.toLowerCase();
+    return _isar.isarAlbumEntitys.where().findAll().then(
+          (entities) => entities
+              .map(LocalLibraryCodec.decodeAlbumEntity)
+              .where((album) {
+                final artists = album.artistNames.join(' ').toLowerCase();
+                return album.title.toLowerCase().contains(normalizedKeyword) ||
+                    artists.contains(normalizedKeyword);
+              })
+              .toList(),
+        );
   }
 
   @override
   Future<List<ArtistEntity>> searchArtists(String keyword) {
-    return _fallbackDataSource.searchArtists(keyword);
+    if (keyword.isEmpty) {
+      return Future.value(const []);
+    }
+    final normalizedKeyword = keyword.toLowerCase();
+    return _isar.isarArtistEntitys.where().findAll().then(
+          (entities) => entities
+              .map(LocalLibraryCodec.decodeArtistEntity)
+              .where(
+                (artist) =>
+                    artist.name.toLowerCase().contains(normalizedKeyword),
+              )
+              .toList(),
+        );
   }
 
   @override
@@ -78,7 +113,16 @@ class IsarLocalLibraryDataSource implements LocalLibraryDataSource {
 
   @override
   Future<PlaylistEntity?> getPlaylist(String playlistId) {
-    return _fallbackDataSource.getPlaylist(playlistId);
+    return _isar.isarPlaylistEntitys
+        .where()
+        .playlistIdEqualTo(playlistId)
+        .findFirst()
+        .then((entity) {
+      if (entity == null) {
+        return null;
+      }
+      return LocalLibraryCodec.decodePlaylistEntity(entity);
+    });
   }
 
   @override
@@ -91,17 +135,27 @@ class IsarLocalLibraryDataSource implements LocalLibraryDataSource {
 
   @override
   Future<void> savePlaylists(List<PlaylistEntity> playlists) {
-    return _fallbackDataSource.savePlaylists(playlists);
+    final entities =
+        playlists.map(LocalLibraryCodec.encodePlaylistEntity).toList();
+    return _isar.writeTxn(() async {
+      await _isar.isarPlaylistEntitys.putAllByPlaylistId(entities);
+    });
   }
 
   @override
   Future<void> saveAlbums(List<AlbumEntity> albums) {
-    return _fallbackDataSource.saveAlbums(albums);
+    final entities = albums.map(LocalLibraryCodec.encodeAlbumEntity).toList();
+    return _isar.writeTxn(() async {
+      await _isar.isarAlbumEntitys.putAllByAlbumId(entities);
+    });
   }
 
   @override
   Future<void> saveArtists(List<ArtistEntity> artists) {
-    return _fallbackDataSource.saveArtists(artists);
+    final entities = artists.map(LocalLibraryCodec.encodeArtistEntity).toList();
+    return _isar.writeTxn(() async {
+      await _isar.isarArtistEntitys.putAllByArtistId(entities);
+    });
   }
 
   @override

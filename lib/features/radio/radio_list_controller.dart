@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/radio/radio_data.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
@@ -17,6 +19,16 @@ class RadioListController {
   int _offset = 0;
 
   Future<void> loadInitial() async {
+    final cachedItems = await _repository.loadCachedSubscribedRadios();
+    if (cachedItems != null && cachedItems.isNotEmpty) {
+      _offset = cachedItems.length;
+      state.value = PagedState.data(
+        cachedItems,
+        hasMore: true,
+      );
+      unawaited(refresh());
+      return;
+    }
     state.value = PagedState.initialLoading();
     await _reload();
   }

@@ -1,4 +1,5 @@
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
+import 'package:bujuan/data/netease/mappers/netease_radio_mapper.dart';
 import 'package:bujuan/features/radio/radio_data.dart';
 
 class RadioRepository {
@@ -14,16 +15,7 @@ class RadioRepository {
     );
     final radios = wrap.djRadios;
     return DjRadioPage(
-      items: radios
-          .map(
-            (radio) => RadioSummaryData(
-              id: radio.id,
-              name: radio.name,
-              coverUrl: radio.picUrl,
-              lastProgramName: radio.lastProgramName ?? '',
-            ),
-          )
-          .toList(),
+      items: NeteaseRadioMapper.fromRadioList(radios),
       hasMore: radios.length >= limit,
       nextOffset: offset + radios.length,
     );
@@ -43,19 +35,7 @@ class RadioRepository {
     );
     final programs = wrap.programs;
     return DjProgramPage(
-      items: programs
-          .map(
-            (program) => RadioProgramData(
-              id: program.id,
-              mainTrackId: '${program.mainTrackId}',
-              title: program.mainSong.name ?? '',
-              coverUrl: program.coverUrl ?? '',
-              artistName: program.dj.nickname ?? '',
-              albumTitle: program.mainSong.album?.name ?? '',
-              durationMs: program.duration ?? 0,
-            ),
-          )
-          .toList(),
+      items: NeteaseRadioMapper.fromProgramList(programs),
       hasMore: programs.length >= limit,
       nextOffset: offset + programs.length,
     );

@@ -1,8 +1,8 @@
 import 'package:bujuan/data/netease/api/src/api/event/bean.dart';
 import 'package:bujuan/features/comment/comment_data.dart';
 
-class CommentMapper {
-  const CommentMapper._();
+class NeteaseCommentMapper {
+  const NeteaseCommentMapper._();
 
   static CommentData fromItem(CommentItem item) {
     return CommentData(

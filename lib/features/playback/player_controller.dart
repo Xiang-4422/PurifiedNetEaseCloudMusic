@@ -413,6 +413,16 @@ class PlayerController extends GetxController {
     await _maybeSyncCurrentTrackMediaItem(updatedTrack);
   }
 
+  Future<void> queueTrackDownloads(
+    Iterable<String> trackIds, {
+    bool preferHighQuality = true,
+  }) {
+    return _downloadRepository.queueTracks(
+      trackIds,
+      preferHighQuality: preferHighQuality,
+    );
+  }
+
   Future<void> seekTo(Duration position) {
     return _playbackService.seek(position);
   }

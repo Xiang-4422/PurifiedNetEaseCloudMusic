@@ -251,6 +251,7 @@
 - 当前播放歌曲的下载与删除下载入口已收口到 `PlayerController`，并通过 `DownloadRepository` 回写本地资源后再同步当前 `MediaItem`
 - 下载任务已经接入独立页面入口，设置页和当前播放面板都能直接触发下载管理、删除下载和失败重试动作
 - 歌单、专辑等复用 `SongItem` 的音乐列表已接入统一下载动作，列表页不再直接依赖下载仓库
+- 歌单页和专辑页已补“下载全部”入口，批量下载统一经 `PlayerController -> DownloadRepository` 入队，不再让页面自己组织下载任务
 
 ### 6.4 Netease 与 Local Source
 

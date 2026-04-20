@@ -83,6 +83,20 @@ class DownloadRepository {
     return taskFuture;
   }
 
+  Future<void> queueTracks(
+    Iterable<String> trackIds, {
+    bool preferHighQuality = true,
+  }) async {
+    for (final trackId in trackIds.toSet()) {
+      unawaited(
+        downloadTrack(
+          trackId,
+          preferHighQuality: preferHighQuality,
+        ),
+      );
+    }
+  }
+
   Future<Track?> _performDownloadTrack(
     String trackId, {
     required bool preferHighQuality,

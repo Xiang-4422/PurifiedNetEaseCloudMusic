@@ -1,4 +1,8 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/domain/entities/album_entity.dart';
+import 'package:bujuan/domain/entities/artist_entity.dart';
+import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -11,8 +15,17 @@ class SearchPanelController {
   final SearchRepository _repository;
   final ValueNotifier<LoadState<List<String>>> hotKeywordState =
       ValueNotifier(const LoadState.loading());
+  final ValueNotifier<LoadState<List<MediaItem>>> songState =
+      ValueNotifier(const LoadState.empty());
+  final ValueNotifier<LoadState<List<PlaylistEntity>>> playlistState =
+      ValueNotifier(const LoadState.empty());
+  final ValueNotifier<LoadState<List<AlbumEntity>>> albumState =
+      ValueNotifier(const LoadState.empty());
+  final ValueNotifier<LoadState<List<ArtistEntity>>> artistState =
+      ValueNotifier(const LoadState.empty());
 
   bool _loadedOnce = false;
+  String _currentKeyword = '';
 
   Future<void> loadInitial({bool force = false}) async {
     if (_loadedOnce && !force) {
@@ -29,7 +42,88 @@ class SearchPanelController {
     }
   }
 
+  Future<void> search(
+    String keyword, {
+    required List<int> likedSongIds,
+    bool force = false,
+  }) async {
+    final normalizedKeyword = keyword.trim();
+    if (normalizedKeyword.isEmpty) {
+      _currentKeyword = '';
+      songState.value = const LoadState.empty();
+      playlistState.value = const LoadState.empty();
+      albumState.value = const LoadState.empty();
+      artistState.value = const LoadState.empty();
+      return;
+    }
+    if (!force && normalizedKeyword == _currentKeyword) {
+      return;
+    }
+    _currentKeyword = normalizedKeyword;
+    songState.value = const LoadState.loading();
+    playlistState.value = const LoadState.loading();
+    albumState.value = const LoadState.loading();
+    artistState.value = const LoadState.loading();
+    await Future.wait([
+      _loadSongs(normalizedKeyword, likedSongIds: likedSongIds),
+      _loadPlaylists(normalizedKeyword),
+      _loadAlbums(normalizedKeyword),
+      _loadArtists(normalizedKeyword),
+    ]);
+  }
+
+  Future<void> _loadSongs(
+    String keyword, {
+    required List<int> likedSongIds,
+  }) async {
+    try {
+      final songs = await _repository.searchTrackMediaItems(
+        keyword,
+        likedSongIds: likedSongIds,
+      );
+      songState.value =
+          songs.isEmpty ? const LoadState.empty() : LoadState.data(songs);
+    } catch (error, stackTrace) {
+      songState.value = LoadState.error(error, stackTrace: stackTrace);
+    }
+  }
+
+  Future<void> _loadPlaylists(String keyword) async {
+    try {
+      final playlists = await _repository.searchPlaylists(keyword);
+      playlistState.value = playlists.isEmpty
+          ? const LoadState.empty()
+          : LoadState.data(playlists);
+    } catch (error, stackTrace) {
+      playlistState.value = LoadState.error(error, stackTrace: stackTrace);
+    }
+  }
+
+  Future<void> _loadAlbums(String keyword) async {
+    try {
+      final albums = await _repository.searchAlbums(keyword);
+      albumState.value =
+          albums.isEmpty ? const LoadState.empty() : LoadState.data(albums);
+    } catch (error, stackTrace) {
+      albumState.value = LoadState.error(error, stackTrace: stackTrace);
+    }
+  }
+
+  Future<void> _loadArtists(String keyword) async {
+    try {
+      final artists = await _repository.searchArtists(keyword);
+      artistState.value =
+          artists.isEmpty ? const LoadState.empty() : LoadState.data(artists);
+    } catch (error, stackTrace) {
+      artistState.value = LoadState.error(error, stackTrace: stackTrace);
+    }
+  }
+
   void dispose() {
     hotKeywordState.dispose();
+    songState.dispose();
+    playlistState.dispose();
+    albumState.dispose();
+    artistState.dispose();
   }
 }

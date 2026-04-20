@@ -9,7 +9,6 @@ import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
-import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/load_state_view.dart';
 import 'package:flutter/material.dart';
 
@@ -20,11 +19,40 @@ import '../../../common/constants/app_constants.dart';
 import '../../../routes/router.gr.dart' as gr;
 
 /// 顶部搜索面板只有一个页面文件，直接放在 `pages/home` 下比再套一层单文件目录更容易查找。
-class TopPanelView extends GetView<AppController> {
+class TopPanelView extends StatefulWidget {
   const TopPanelView({Key? key}) : super(key: key);
   static final SearchRepository _repository = SearchRepository();
   static final SearchPanelController _searchPanelController =
       SearchPanelController(repository: _repository);
+
+  @override
+  State<TopPanelView> createState() => _TopPanelViewState();
+}
+
+class _TopPanelViewState extends State<TopPanelView> {
+  late final Worker _searchWorker;
+
+  AppController get controller => AppController.to;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!controller.isOfflineModeEnabled.value) {
+      TopPanelView._searchPanelController.loadInitial();
+    }
+    _searchWorker = ever<String>(controller.searchContent, (keyword) {
+      TopPanelView._searchPanelController.search(
+        keyword,
+        likedSongIds: controller.likedSongIds.toList(),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchWorker.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -241,9 +269,8 @@ class TopPanelView extends GetView<AppController> {
   }
 
   Widget _buildHotKeywordList() {
-    _searchPanelController.loadInitial();
     return ValueListenableBuilder(
-      valueListenable: _searchPanelController.hotKeywordState,
+      valueListenable: TopPanelView._searchPanelController.hotKeywordState,
       builder: (context, state, child) {
         return LoadStateView<List<String>>(
           state: state,
@@ -267,53 +294,36 @@ class TopPanelView extends GetView<AppController> {
   }
 
   Widget _buildSongSearchResult(String keyword) {
-    return FutureBuilder<List<MediaItem>>(
-      future: _repository.searchTrackMediaItems(
-        keyword,
-        likedSongIds: controller.likedSongIds.toList(),
-      ),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const LoadingView();
-        }
-        if (snapshot.hasError) {
-          return const ErrorView();
-        }
-        final list = snapshot.data ?? const <MediaItem>[];
-        if (list.isEmpty) {
-          return const EmptyView();
-        }
-        return ListView.builder(
-          itemBuilder: (context, index) => SongItem(
-            index: index,
-            playlist: list,
-            playListName: "搜索结果：$keyword",
+    return ValueListenableBuilder(
+      valueListenable: TopPanelView._searchPanelController.songState,
+      builder: (context, state, child) {
+        return LoadStateView<List<MediaItem>>(
+          state: state,
+          builder: (list) => ListView.builder(
+            itemBuilder: (context, index) => SongItem(
+              index: index,
+              playlist: list,
+              playListName: "搜索结果：$keyword",
+            ),
+            itemCount: list.length,
           ),
-          itemCount: list.length,
         );
       },
     );
   }
 
   Widget _buildPlaylistSearchResult(String keyword) {
-    return FutureBuilder<List<PlaylistEntity>>(
-      future: _repository.searchPlaylists(keyword),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const LoadingView();
-        }
-        if (snapshot.hasError) {
-          return const ErrorView();
-        }
-        final playlists = snapshot.data ?? const <PlaylistEntity>[];
-        if (playlists.isEmpty) {
-          return const EmptyView();
-        }
-        return ListView.builder(
-          itemCount: playlists.length,
-          itemBuilder: (context, index) => _PlaylistSearchItem(
-            playlist: playlists[index],
-            onTap: () => _openPlaylist(context, playlists[index]),
+    return ValueListenableBuilder(
+      valueListenable: TopPanelView._searchPanelController.playlistState,
+      builder: (context, state, child) {
+        return LoadStateView<List<PlaylistEntity>>(
+          state: state,
+          builder: (playlists) => ListView.builder(
+            itemCount: playlists.length,
+            itemBuilder: (context, index) => _PlaylistSearchItem(
+              playlist: playlists[index],
+              onTap: () => _openPlaylist(context, playlists[index]),
+            ),
           ),
         );
       },
@@ -321,24 +331,17 @@ class TopPanelView extends GetView<AppController> {
   }
 
   Widget _buildAlbumSearchResult(String keyword) {
-    return FutureBuilder<List<AlbumEntity>>(
-      future: _repository.searchAlbums(keyword),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const LoadingView();
-        }
-        if (snapshot.hasError) {
-          return const ErrorView();
-        }
-        final albums = snapshot.data ?? const <AlbumEntity>[];
-        if (albums.isEmpty) {
-          return const EmptyView();
-        }
-        return ListView.builder(
-          itemCount: albums.length,
-          itemBuilder: (context, index) => _AlbumSearchItem(
-            album: albums[index],
-            onTap: () => _openAlbum(context, albums[index]),
+    return ValueListenableBuilder(
+      valueListenable: TopPanelView._searchPanelController.albumState,
+      builder: (context, state, child) {
+        return LoadStateView<List<AlbumEntity>>(
+          state: state,
+          builder: (albums) => ListView.builder(
+            itemCount: albums.length,
+            itemBuilder: (context, index) => _AlbumSearchItem(
+              album: albums[index],
+              onTap: () => _openAlbum(context, albums[index]),
+            ),
           ),
         );
       },
@@ -346,24 +349,17 @@ class TopPanelView extends GetView<AppController> {
   }
 
   Widget _buildArtistSearchResult(String keyword) {
-    return FutureBuilder<List<ArtistEntity>>(
-      future: _repository.searchArtists(keyword),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const LoadingView();
-        }
-        if (snapshot.hasError) {
-          return const ErrorView();
-        }
-        final artists = snapshot.data ?? const <ArtistEntity>[];
-        if (artists.isEmpty) {
-          return const EmptyView();
-        }
-        return ListView.builder(
-          itemCount: artists.length,
-          itemBuilder: (context, index) => _ArtistSearchItem(
-            artist: artists[index],
-            onTap: () => _openArtist(context, artists[index]),
+    return ValueListenableBuilder(
+      valueListenable: TopPanelView._searchPanelController.artistState,
+      builder: (context, state, child) {
+        return LoadStateView<List<ArtistEntity>>(
+          state: state,
+          builder: (artists) => ListView.builder(
+            itemCount: artists.length,
+            itemBuilder: (context, index) => _ArtistSearchItem(
+              artist: artists[index],
+              onTap: () => _openArtist(context, artists[index]),
+            ),
           ),
         );
       },

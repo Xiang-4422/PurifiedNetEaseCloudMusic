@@ -343,41 +343,41 @@ class PlayerController extends GetxController {
 
   /// 下载入口直接挂在播放控制器，是为了让“当前播放歌曲”的下载状态与播放 UI
   /// 保持同一条事实链路；否则下载完成后页面仍会继续展示旧的远程资源状态。
-  Future<void> downloadCurrentTrack({
+  Future<Track?> downloadCurrentTrack({
     bool preferHighQuality = true,
   }) async {
     final currentSong = runtimeState.value.currentSong;
     if (currentSong.id.isEmpty) {
-      return;
+      return null;
     }
-    await downloadTrackById(
+    return downloadTrackById(
       currentSong.id,
       preferHighQuality: preferHighQuality,
     );
   }
 
-  Future<void> removeCurrentTrackDownload() async {
+  Future<Track?> removeCurrentTrackDownload() async {
     final currentSong = runtimeState.value.currentSong;
     if (currentSong.id.isEmpty) {
-      return;
+      return null;
     }
-    await removeDownloadedTrackById(currentSong.id);
+    return removeDownloadedTrackById(currentSong.id);
   }
 
-  Future<void> retryCurrentTrackDownload({
+  Future<Track?> retryCurrentTrackDownload({
     bool preferHighQuality = true,
   }) async {
     final currentSong = runtimeState.value.currentSong;
     if (currentSong.id.isEmpty) {
-      return;
+      return null;
     }
-    await retryTrackDownloadById(
+    return retryTrackDownloadById(
       currentSong.id,
       preferHighQuality: preferHighQuality,
     );
   }
 
-  Future<void> downloadTrackById(
+  Future<Track?> downloadTrackById(
     String trackId, {
     bool preferHighQuality = true,
   }) async {
@@ -386,20 +386,22 @@ class PlayerController extends GetxController {
       preferHighQuality: preferHighQuality,
     );
     if (updatedTrack == null) {
-      return;
+      return null;
     }
     await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+    return updatedTrack;
   }
 
-  Future<void> removeDownloadedTrackById(String trackId) async {
+  Future<Track?> removeDownloadedTrackById(String trackId) async {
     final updatedTrack = await _downloadRepository.removeDownloadedTrack(trackId);
     if (updatedTrack == null) {
-      return;
+      return null;
     }
     await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+    return updatedTrack;
   }
 
-  Future<void> retryTrackDownloadById(
+  Future<Track?> retryTrackDownloadById(
     String trackId, {
     bool preferHighQuality = true,
   }) async {
@@ -408,9 +410,10 @@ class PlayerController extends GetxController {
       preferHighQuality: preferHighQuality,
     );
     if (updatedTrack == null) {
-      return;
+      return null;
     }
     await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+    return updatedTrack;
   }
 
   Future<void> queueTrackDownloads(

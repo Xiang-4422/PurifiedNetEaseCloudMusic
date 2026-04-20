@@ -113,7 +113,7 @@ class UniversalListTile extends StatelessWidget {
 }
 
 /// `SongItem` 统一承接“点击即按当前上下文播放”的行为，避免每个页面再手写一次播放入口。
-class SongItem extends StatelessWidget {
+class SongItem extends StatefulWidget {
   final int index;
   final List<MediaItem> playlist;
   final String playListName;
@@ -136,64 +136,127 @@ class SongItem extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final mediaItem = playlist[index];
-    final downloadState = DownloadState.values.firstWhere(
+  State<SongItem> createState() => _SongItemState();
+}
+
+class _SongItemState extends State<SongItem> {
+  late DownloadState _downloadState;
+  bool _handlingDownloadAction = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _downloadState = _resolveDownloadState();
+  }
+
+  @override
+  void didUpdateWidget(covariant SongItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.playlist[oldWidget.index].id != widget.playlist[widget.index].id ||
+        oldWidget.playlist[oldWidget.index].extras?['downloadState'] !=
+            widget.playlist[widget.index].extras?['downloadState']) {
+      _downloadState = _resolveDownloadState();
+    }
+  }
+
+  DownloadState _resolveDownloadState() {
+    final mediaItem = widget.playlist[widget.index];
+    return DownloadState.values.firstWhere(
       (state) =>
           state.name ==
           '${mediaItem.extras?['downloadState'] ?? DownloadState.none.name}',
       orElse: () => DownloadState.none,
     );
+  }
+
+  Future<void> _handleDownloadAction() async {
+    if (_handlingDownloadAction) {
+      return;
+    }
+    final mediaItem = widget.playlist[widget.index];
+    final requestedState = _downloadState;
+    setState(() {
+      _handlingDownloadAction = true;
+      if (requestedState == DownloadState.none ||
+          requestedState == DownloadState.failed) {
+        _downloadState = DownloadState.downloading;
+      }
+    });
+
+    try {
+      Track? updatedTrack;
+      switch (requestedState) {
+        case DownloadState.none:
+          updatedTrack =
+              await PlayerController.to.downloadTrackById(mediaItem.id);
+          break;
+        case DownloadState.queued:
+        case DownloadState.downloading:
+          break;
+        case DownloadState.downloaded:
+          updatedTrack =
+              await PlayerController.to.removeDownloadedTrackById(mediaItem.id);
+          break;
+        case DownloadState.failed:
+          updatedTrack =
+              await PlayerController.to.retryTrackDownloadById(mediaItem.id);
+          break;
+      }
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _downloadState = updatedTrack?.downloadState ?? _resolveDownloadState();
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _handlingDownloadAction = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaItem = widget.playlist[widget.index];
+    final effectiveDownloadState =
+        _handlingDownloadAction ? DownloadState.downloading : _downloadState;
     return UniversalListTile(
-      picUrl: showPic ? (mediaItem.extras?['image']) : null,
+      picUrl: widget.showPic ? (mediaItem.extras?['image']) : null,
       titleString: mediaItem.title,
       subTitleString: mediaItem.artist,
-      stringColor: stringColor,
+      stringColor: widget.stringColor,
       trailing: IconButton(
-        tooltip: switch (downloadState) {
+        tooltip: switch (effectiveDownloadState) {
           DownloadState.none => '下载歌曲',
           DownloadState.queued => '已加入下载队列',
           DownloadState.downloading => '正在下载',
           DownloadState.downloaded => '删除下载',
           DownloadState.failed => '重试下载',
         },
-        onPressed: () async {
-          switch (downloadState) {
-            case DownloadState.none:
-              await PlayerController.to.downloadTrackById(mediaItem.id);
-              return;
-            case DownloadState.queued:
-            case DownloadState.downloading:
-              return;
-            case DownloadState.downloaded:
-              await PlayerController.to.removeDownloadedTrackById(mediaItem.id);
-              return;
-            case DownloadState.failed:
-              await PlayerController.to.retryTrackDownloadById(mediaItem.id);
-              return;
-          }
-        },
+        onPressed: _handleDownloadAction,
         icon: Icon(
-          switch (downloadState) {
+          switch (effectiveDownloadState) {
             DownloadState.none => TablerIcons.download,
             DownloadState.queued => TablerIcons.loader,
             DownloadState.downloading => TablerIcons.loader,
             DownloadState.downloaded => TablerIcons.trash,
             DownloadState.failed => TablerIcons.refresh,
           },
-          color: stringColor ?? context.theme.colorScheme.onPrimary,
+          color: widget.stringColor ?? context.theme.colorScheme.onPrimary,
           size: 24,
         ),
       ),
       onTap: () async {
-        if (beforeOnTap != null) {
-          await beforeOnTap!();
+        if (widget.beforeOnTap != null) {
+          await widget.beforeOnTap!();
         }
         PlayerController.to.playPlaylist(
-          playlist,
-          index,
-          playListName: playListName,
-          playListNameHeader: playListHeader,
+          widget.playlist,
+          widget.index,
+          playListName: widget.playListName,
+          playListNameHeader: widget.playListHeader,
         );
       },
     );

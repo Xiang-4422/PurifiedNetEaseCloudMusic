@@ -35,6 +35,26 @@ class DownloadRepository {
   final LocalResourceIndexRepository _resourceIndexRepository;
   final Dio _dio;
 
+  /// 下载任务不会做断点续传；应用异常退出后仍保留 `queued/downloading`
+  /// 只会制造假状态，所以启动时要先把这些任务收敛成可见失败态。
+  Future<List<DownloadTask>> recoverInterruptedTasks() async {
+    final interruptedTasks = await getTasks(
+      statuses: const {
+        DownloadTaskStatus.queued,
+        DownloadTaskStatus.downloading,
+      },
+    );
+    for (final task in interruptedTasks) {
+      await _deleteTemporaryDownloadIfExists(task.localPath);
+      await markFailed(task.trackId, reason: 'download_interrupted');
+    }
+    return getTasks(
+      statuses: const {
+        DownloadTaskStatus.failed,
+      },
+    );
+  }
+
   /// 下载流程必须以最终文件落地为准，而不是只改状态；
   /// 否则离线播放链路会继续停留在“看起来已下载，实际上没有本地资源”的假状态。
   Future<Track?> downloadTrack(
@@ -127,6 +147,18 @@ class DownloadRepository {
 
   Future<DownloadTask?> getTask(String trackId) {
     return _taskDataSource.getTask(trackId);
+  }
+
+  Future<Track?> retryTask(
+    String trackId, {
+    bool preferHighQuality = true,
+  }) async {
+    final currentTask = await _taskDataSource.getTask(trackId);
+    await _deleteTemporaryDownloadIfExists(currentTask?.localPath);
+    return downloadTrack(
+      trackId,
+      preferHighQuality: preferHighQuality,
+    );
   }
 
   Future<List<DownloadTask>> getTasks({
@@ -410,5 +442,12 @@ class DownloadRepository {
     if (file.existsSync()) {
       await file.delete();
     }
+  }
+
+  Future<void> _deleteTemporaryDownloadIfExists(String? path) {
+    if (path == null || path.isEmpty) {
+      return Future.value();
+    }
+    return _deleteFileIfExists('$path.download');
   }
 }

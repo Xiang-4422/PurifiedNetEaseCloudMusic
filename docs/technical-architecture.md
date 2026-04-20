@@ -235,6 +235,7 @@
 - 资源索引与下载任务也已直接接入独立数据库数据源接口，当前过渡实现统一经过 `AppDatabase`
 - `DriftAppDatabase` 已落地并接管 `PlaybackRestoreDataSource`、`LocalResourceIndexDataSource`、`DownloadTaskDataSource` 和 `LocalLibraryDataSource`，播放恢复态、本地资源索引、下载任务以及媒体库中的 `Track / Lyrics / Playlist / Album / Artist` 已开始使用 `Drift` 作为正式数据库入口
 - 下载主链路已开始直接落到 `DownloadRepository`，负责音频文件、封面文件、歌词文件的实际落盘与状态回写，不再只保留任务状态模型
+- 下载任务当前不做断点续传；应用启动时会统一把遗留的 `queued / downloading` 任务收敛为失败态，再由显式重试入口重新发起完整下载
 - 本地扫描已开始自动识别同目录的歌词与封面文件，导入后会直接补齐本地资源索引
 - 播放恢复态在轻存储中采用单一快照格式，后续迁正式本地库时优先复用该快照结构
 - 壳层与主播放面板已开始消费统一播放状态对象，后续页面迁移优先复用这些状态而不是继续增加散落 getter

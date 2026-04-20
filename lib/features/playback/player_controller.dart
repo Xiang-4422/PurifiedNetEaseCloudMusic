@@ -373,6 +373,23 @@ class PlayerController extends GetxController {
     await _syncCurrentTrackMediaItem(updatedTrack);
   }
 
+  Future<void> retryCurrentTrackDownload({
+    bool preferHighQuality = true,
+  }) async {
+    final currentSong = runtimeState.value.currentSong;
+    if (currentSong.id.isEmpty) {
+      return;
+    }
+    final updatedTrack = await _downloadRepository.retryTask(
+      currentSong.id,
+      preferHighQuality: preferHighQuality,
+    );
+    if (updatedTrack == null) {
+      return;
+    }
+    await _syncCurrentTrackMediaItem(updatedTrack);
+  }
+
   Future<void> seekTo(Duration position) {
     return _playbackService.seek(position);
   }

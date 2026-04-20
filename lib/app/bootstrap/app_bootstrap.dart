@@ -7,6 +7,7 @@ import 'package:bujuan/data/local/local_music_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:bujuan/data/netease/netease_music_source.dart';
+import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
@@ -81,6 +82,7 @@ Future<void> _initInfrastructure() async {
       neteaseSource: neteaseMusicSource,
     ),
   );
+  await DownloadRepository().recoverInterruptedTasks();
 }
 
 void _registerControllers() {

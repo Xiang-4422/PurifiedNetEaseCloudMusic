@@ -782,3 +782,11 @@
 - 完成内容：正式数据库最终选型已切换为 `Drift`；应用启动已切到 `DriftAppDatabase`；`PlaybackRestoreDataSource`、`LocalResourceIndexDataSource`、`DownloadTaskDataSource` 与 `LocalLibraryDataSource` 已全部改由 Drift 实现承接；旧数据库实体、数据源和依赖已移除，数据库主线现在固定为 `AppDatabase -> Drift DataSource -> Repository`
 - 风险或阻塞：媒体库搜索当前仍主要依赖 `payloadJson` 落库与查询字段辅助，后续还需要继续补索引与更精确的查询策略；`build_runner` 仍会误删网易云 `bean.g.dart`，生成步骤需要继续显式恢复这些文件
 - 下一步：优先优化媒体库搜索与查询策略，并把下载列表、任务恢复和失败重试接到已经稳定的 Drift 下载任务数据源
+
+#### 2026-04-20
+
+- 阶段：`Phase 4`
+- 状态：`In Progress`
+- 完成内容：移除了 repository 和 source 内部悄悄退回 `in_memory_*` 的分支，正式数据库现在是唯一主线；应用启动已开始在首帧前清理中断下载任务，把遗留的 `queued / downloading` 状态统一收敛为失败态，并补充了显式重试入口
+- 风险或阻塞：当前下载任务恢复策略仍是“失败后手动重试”，还没有真正的断点续传或自动续传能力
+- 下一步：继续把下载列表和失败重试入口接到页面层，并评估是否要补下载调度和续传策略

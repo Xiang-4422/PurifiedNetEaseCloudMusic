@@ -25,15 +25,18 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
   static const _clearCompletedAction = 'clear_completed';
 
   late final TabController _tabController;
+  late final DownloadTaskListController _summaryController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _summaryController = DownloadTaskListController()..loadInitial();
   }
 
   @override
   void dispose() {
+    _summaryController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -73,14 +76,40 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
               ],
             ),
           ],
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: '全部'),
-              Tab(text: '进行中'),
-              Tab(text: '失败'),
-              Tab(text: '已完成'),
-            ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(kTextTabBarHeight),
+            child: ValueListenableBuilder<LoadState<List<DownloadTaskListItemData>>>(
+              valueListenable: _summaryController.state,
+              builder: (context, state, child) {
+                final items = state.data ?? const <DownloadTaskListItemData>[];
+                final activeCount = items
+                    .where(
+                      (item) =>
+                          item.task.status == DownloadTaskStatus.queued ||
+                          item.task.status == DownloadTaskStatus.downloading,
+                    )
+                    .length;
+                final failedCount = items
+                    .where(
+                      (item) => item.task.status == DownloadTaskStatus.failed,
+                    )
+                    .length;
+                final completedCount = items
+                    .where(
+                      (item) => item.task.status == DownloadTaskStatus.completed,
+                    )
+                    .length;
+                return TabBar(
+                  controller: _tabController,
+                  tabs: [
+                    Tab(text: '全部 ${items.length}'),
+                    Tab(text: '进行中 $activeCount'),
+                    Tab(text: '失败 $failedCount'),
+                    Tab(text: '已完成 $completedCount'),
+                  ],
+                );
+              },
+            ),
           ),
         ),
         body: TabBarView(

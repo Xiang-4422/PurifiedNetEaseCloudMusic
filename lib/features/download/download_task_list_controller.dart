@@ -130,6 +130,18 @@ class DownloadTaskListController {
     await _reload();
   }
 
+  Future<void> removeAllDownloadedTracks() async {
+    final completedTasks = await _repository.getTasks(
+      statuses: const {
+        DownloadTaskStatus.completed,
+      },
+    );
+    for (final task in completedTasks) {
+      await _repository.removeDownloadedTrack(task.trackId);
+    }
+    await _reload();
+  }
+
   Future<void> _reload() async {
     try {
       await _publishTasks(await _repository.getTasks(statuses: statuses));

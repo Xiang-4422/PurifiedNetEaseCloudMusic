@@ -22,6 +22,7 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
   static const _clearFailedAction = 'clear_failed';
   static const _clearCompletedAction = 'clear_completed';
   static const _cancelActiveAction = 'cancel_active';
+  static const _removeDownloadedAction = 'remove_downloaded';
 
   @override
   void initState() {
@@ -83,6 +84,11 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
                     const PopupMenuItem<String>(
                       value: _clearFailedAction,
                       child: Text('清除失败记录'),
+                    ),
+                  if (hasCompleted)
+                    const PopupMenuItem<String>(
+                      value: _removeDownloadedAction,
+                      child: Text('删除全部已下载文件'),
                     ),
                   if (hasCompleted)
                     const PopupMenuItem<String>(
@@ -153,6 +159,9 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> {
         break;
       case _clearCompletedAction:
         await _controller.clearCompletedTasks();
+        break;
+      case _removeDownloadedAction:
+        await _controller.removeAllDownloadedTracks();
         break;
     }
   }

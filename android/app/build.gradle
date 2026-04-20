@@ -93,8 +93,6 @@ android {
             minifyEnabled false
             // 禁用资源压缩
             shrinkResources false
-            // 调试版本也使用release签名配置
-            signingConfig signingConfigs.release
         }
     }
 }
@@ -108,7 +106,7 @@ dependencies {
     // Kotlin标准库
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     // MultiDex支持库，用于解决方法数超过65536的限制
-    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'androidx.multidex:multidex:2.0.1'
     // 蓝牙Beacon库，用于蓝牙相关功能
     implementation 'org.altbeacon:android-beacon-library:2.19.3'
 }

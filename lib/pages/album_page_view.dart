@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
@@ -40,19 +42,26 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumId = context.routeData.queryParams.get('albumId');
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final albumDetail = await _repository.fetchAlbumDetail(
+      final localDetail = await _repository.loadLocalAlbumDetail(
         albumId: albumId,
         likedSongIds: AppController.to.likedSongIds.toList(),
       );
-      album = albumDetail.album;
-      albumSongs.addAll(albumDetail.albumSongs);
-
-      albumColor = await OtherUtils.getImageColor(album.artworkUrl);
-      onAlbumColor = albumColor.invertedColor;
-
-      setState(() {
-        loading = false;
-      });
+      if (localDetail != null) {
+        album = localDetail.album;
+        albumSongs
+          ..clear()
+          ..addAll(localDetail.albumSongs);
+        await _updateAlbumColor(album.artworkUrl);
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          loading = false;
+        });
+        unawaited(_refreshAlbumDetail(showLoadingState: false));
+        return;
+      }
+      await _refreshAlbumDetail(showLoadingState: true);
     });
   }
 
@@ -62,135 +71,167 @@ class _AlbumPageViewState extends State<AlbumPageView> {
       return Container(color: albumColor, child: const LoadingView());
     }
 
-    return Container(
-      color: albumColor,
-      child: CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
-        SliverAppBar(
-          toolbarHeight: AppDimensions.appBarHeight -
-              context.mediaQueryPadding.top +
-              AppDimensions.paddingLarge,
-          collapsedHeight: AppDimensions.appBarHeight -
-              context.mediaQueryPadding.top +
-              AppDimensions.paddingLarge,
-          expandedHeight: context.width - context.mediaQueryPadding.top,
-          pinned: true,
-          stretch: true,
-          automaticallyImplyLeading: false,
-          foregroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          backgroundColor: Colors.transparent,
-          flexibleSpace: FlexibleSpaceBar(
-            stretchModes: const <StretchMode>[
-              StretchMode.zoomBackground, // 背景图缩放
-              // StretchMode.blurBackground, // 背景图模糊
-              // StretchMode.fadeTitle,      // 标题渐隐
-            ],
-            titlePadding: const EdgeInsets.only(
-                bottom: AppDimensions.paddingMedium,
-                left: AppDimensions.paddingMedium,
-                right: AppDimensions.paddingMedium),
-            title: BlurryContainer(
-              padding: EdgeInsets.zero,
-              borderRadius: BorderRadius.circular(9999),
-              color: Colors.white.withValues(alpha: 0.5),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Stack(
-                        alignment: Alignment.centerLeft,
-                        children: [
-                          Text(
-                            "  ${album.title}",
-                            maxLines: 1,
-                            style: context.textTheme.titleLarge!.copyWith(
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 2
-                                ..color = Colors.black,
+    return RefreshIndicator(
+      onRefresh: () => _refreshAlbumDetail(showLoadingState: false),
+      child: Container(
+        color: albumColor,
+        child:
+            CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
+          SliverAppBar(
+            toolbarHeight: AppDimensions.appBarHeight -
+                context.mediaQueryPadding.top +
+                AppDimensions.paddingLarge,
+            collapsedHeight: AppDimensions.appBarHeight -
+                context.mediaQueryPadding.top +
+                AppDimensions.paddingLarge,
+            expandedHeight: context.width - context.mediaQueryPadding.top,
+            pinned: true,
+            stretch: true,
+            automaticallyImplyLeading: false,
+            foregroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            backgroundColor: Colors.transparent,
+            flexibleSpace: FlexibleSpaceBar(
+              stretchModes: const <StretchMode>[
+                StretchMode.zoomBackground, // 背景图缩放
+                // StretchMode.blurBackground, // 背景图模糊
+                // StretchMode.fadeTitle,      // 标题渐隐
+              ],
+              titlePadding: const EdgeInsets.only(
+                  bottom: AppDimensions.paddingMedium,
+                  left: AppDimensions.paddingMedium,
+                  right: AppDimensions.paddingMedium),
+              title: BlurryContainer(
+                padding: EdgeInsets.zero,
+                borderRadius: BorderRadius.circular(9999),
+                color: Colors.white.withValues(alpha: 0.5),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            Text(
+                              "  ${album.title}",
+                              maxLines: 1,
+                              style: context.textTheme.titleLarge!.copyWith(
+                                foreground: Paint()
+                                  ..style = PaintingStyle.stroke
+                                  ..strokeWidth = 2
+                                  ..color = Colors.black,
+                              ),
                             ),
-                          ),
-                          Text(
-                            "  ${album.title}",
-                            maxLines: 1,
-                            style: context.textTheme.titleLarge!.copyWith(
-                              color: Colors.white,
+                            Text(
+                              "  ${album.title}",
+                              maxLines: 1,
+                              style: context.textTheme.titleLarge!.copyWith(
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  BlurryContainer(
-                    padding: EdgeInsets.zero,
-                    borderRadius: BorderRadius.circular(9999),
-                    color: Colors.red,
-                    child: IconButton(
+                    BlurryContainer(
+                      padding: EdgeInsets.zero,
+                      borderRadius: BorderRadius.circular(9999),
+                      color: Colors.red,
+                      child: IconButton(
+                          icon: const Icon(
+                            TablerIcons.player_play_filled,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => PlayerController.to.playPlaylist(
+                                albumSongs,
+                                0,
+                                playListName: album.title,
+                                playListNameHeader: "专辑",
+                              )),
+                    ),
+                    const SizedBox(width: AppDimensions.paddingSmall),
+                    BlurryContainer(
+                      padding: EdgeInsets.zero,
+                      borderRadius: BorderRadius.circular(9999),
+                      color: Colors.white.withValues(alpha: 0.25),
+                      child: IconButton(
                         icon: const Icon(
-                          TablerIcons.player_play_filled,
+                          TablerIcons.download,
                           color: Colors.white,
                         ),
-                        onPressed: () => PlayerController.to.playPlaylist(
-                              albumSongs,
-                              0,
-                              playListName: album.title,
-                              playListNameHeader: "专辑",
-                            )),
-                  ),
-                  const SizedBox(width: AppDimensions.paddingSmall),
-                  BlurryContainer(
-                    padding: EdgeInsets.zero,
-                    borderRadius: BorderRadius.circular(9999),
-                    color: Colors.white.withValues(alpha: 0.25),
-                    child: IconButton(
-                      icon: const Icon(
-                        TablerIcons.download,
-                        color: Colors.white,
+                        onPressed: () async {
+                          await PlayerController.to.queueTrackDownloads(
+                            albumSongs.map((item) => item.id),
+                          );
+                          WidgetUtil.showToast('专辑歌曲已加入下载队列');
+                        },
                       ),
-                      onPressed: () async {
-                        await PlayerController.to.queueTrackDownloads(
-                          albumSongs.map((item) => item.id),
-                        );
-                        WidgetUtil.showToast('专辑歌曲已加入下载队列');
-                      },
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+              // centerTitle: true,
+              expandedTitleScale: 1.5,
+              background: SimpleExtendedImage(
+                width: context.width,
+                height: context.width,
+                album.artworkUrl ?? '',
               ),
             ),
-            // centerTitle: true,
-            expandedTitleScale: 1.5,
-            background: SimpleExtendedImage(
-              width: context.width,
-              height: context.width,
-              album.artworkUrl ?? '',
+            // bottom:
+          ),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              childCount: albumSongs.length + 1,
+              (BuildContext context, int index) {
+                if (index == albumSongs.length) {
+                  return const SizedBox(
+                    height: AppDimensions.bottomPanelHeaderHeight,
+                  );
+                }
+                return SongItem(
+                        playlist: albumSongs,
+                        index: index,
+                        playListName: album.title,
+                        playListHeader: "专辑",
+                        stringColor: onAlbumColor,
+                        showPic: false,
+                        showIndex: true)
+                    .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+              },
             ),
           ),
-          // bottom:
-        ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            childCount: albumSongs.length + 1,
-            (BuildContext context, int index) {
-              if (index == albumSongs.length) {
-                return const SizedBox(
-                  height: AppDimensions.bottomPanelHeaderHeight,
-                );
-              }
-              return SongItem(
-                      playlist: albumSongs,
-                      index: index,
-                      playListName: album.title,
-                      playListHeader: "专辑",
-                      stringColor: onAlbumColor,
-                      showPic: false,
-                      showIndex: true)
-                  .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
-            },
-          ),
-        ),
-      ]),
+        ]),
+      ),
     );
+  }
+
+  Future<void> _refreshAlbumDetail({required bool showLoadingState}) async {
+    if (showLoadingState && mounted) {
+      setState(() {
+        loading = true;
+      });
+    }
+    final albumDetail = await _repository.fetchAlbumDetail(
+      albumId: albumId,
+      likedSongIds: AppController.to.likedSongIds.toList(),
+    );
+    album = albumDetail.album;
+    albumSongs
+      ..clear()
+      ..addAll(albumDetail.albumSongs);
+    await _updateAlbumColor(album.artworkUrl);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      loading = false;
+    });
+  }
+
+  Future<void> _updateAlbumColor(String? artworkPath) async {
+    albumColor = await OtherUtils.getImageColor(artworkPath);
+    onAlbumColor = albumColor.invertedColor;
   }
 }

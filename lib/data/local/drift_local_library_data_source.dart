@@ -32,10 +32,7 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
                 (tbl.albumTitle.isNotNull() & tbl.albumTitle.like(likeKeyword)),
           ))
         .get();
-    return rows
-        .map(_mapTrackRow)
-        .whereType<Track>()
-        .toList();
+    return rows.map(_mapTrackRow).whereType<Track>().toList();
   }
 
   @override
@@ -138,6 +135,48 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
   }
 
   @override
+  Future<AlbumEntity?> getAlbum(String albumId) async {
+    final row = await (_database.select(_database.albums)
+          ..where((tbl) => tbl.albumId.equals(albumId)))
+        .getSingleOrNull();
+    if (row == null) {
+      return null;
+    }
+    return _mapAlbumRow(row);
+  }
+
+  @override
+  Future<ArtistEntity?> getArtist(String artistId) async {
+    final row = await (_database.select(_database.artists)
+          ..where((tbl) => tbl.artistId.equals(artistId)))
+        .getSingleOrNull();
+    if (row == null) {
+      return null;
+    }
+    return _mapArtistRow(row);
+  }
+
+  @override
+  Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
+    final rows = await _database.select(_database.tracks).get();
+    return rows
+        .map(_mapTrackRow)
+        .where((track) => '${track.metadata['albumId'] ?? ''}' == albumSourceId)
+        .toList();
+  }
+
+  @override
+  Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
+    final rows = await _database.select(_database.tracks).get();
+    return rows.map(_mapTrackRow).where((track) {
+      final artistIds = (track.metadata['artistIds'] as List? ?? const [])
+          .map((item) => '$item')
+          .toList();
+      return artistIds.contains(artistSourceId);
+    }).toList();
+  }
+
+  @override
   Future<void> saveTracks(List<Track> tracks) async {
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
@@ -163,8 +202,7 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
                 downloadState: drift.Value(track.downloadState.name),
                 resourceOrigin: drift.Value(track.resourceOrigin.name),
                 downloadProgress: drift.Value(track.downloadProgress),
-                downloadFailureReason:
-                    drift.Value(track.downloadFailureReason),
+                downloadFailureReason: drift.Value(track.downloadFailureReason),
                 metadataJson: drift.Value(jsonEncode(track.metadata)),
               ),
             )

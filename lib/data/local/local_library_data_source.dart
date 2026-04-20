@@ -21,6 +21,14 @@ abstract class LocalLibraryDataSource {
 
   Future<PlaylistEntity?> getPlaylist(String playlistId);
 
+  Future<AlbumEntity?> getAlbum(String albumId);
+
+  Future<ArtistEntity?> getArtist(String artistId);
+
+  Future<List<Track>> getTracksByAlbumId(String albumSourceId);
+
+  Future<List<Track>> getTracksByArtistId(String artistSourceId);
+
   Future<void> saveTracks(List<Track> tracks);
 
   Future<void> savePlaylists(List<PlaylistEntity> playlists);

@@ -22,7 +22,8 @@ class LibraryRepository {
   })  : _localDataSource = localDataSource ??
             (GetIt.instance.isRegistered<LocalLibraryDataSource>()
                 ? GetIt.instance<LocalLibraryDataSource>()
-                : (throw StateError('LocalLibraryDataSource is not registered'))),
+                : (throw StateError(
+                    'LocalLibraryDataSource is not registered'))),
         _neteaseSource = neteaseSource ?? NeteaseMusicSource(),
         _localMusicSource = localMusicSource ??
             LocalMusicSource(localDataSource: localDataSource),
@@ -241,6 +242,27 @@ class LibraryRepository {
       await _localDataSource?.savePlaylists([playlist]);
     }
     return playlist;
+  }
+
+  Future<AlbumEntity?> getAlbum(String albumId) async {
+    return _localDataSource?.getAlbum(albumId);
+  }
+
+  Future<ArtistEntity?> getArtist(String artistId) async {
+    return _localDataSource?.getArtist(artistId);
+  }
+
+  Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
+    final tracks = await _localDataSource?.getTracksByAlbumId(albumSourceId) ??
+        const <Track>[];
+    return Future.wait(tracks.map(_mergeTrackWithResources));
+  }
+
+  Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
+    final tracks =
+        await _localDataSource?.getTracksByArtistId(artistSourceId) ??
+            const <Track>[];
+    return Future.wait(tracks.map(_mergeTrackWithResources));
   }
 
   Future<List<LocalResourceEntry>> getTrackResources(String trackId) {

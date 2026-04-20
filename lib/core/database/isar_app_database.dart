@@ -4,8 +4,11 @@ import 'package:bujuan/core/database/database_collection_schema.dart';
 import 'package:bujuan/core/database/isar_download_task_entity.dart';
 import 'package:bujuan/core/database/isar_local_resource_entity.dart';
 import 'package:bujuan/core/database/isar_playback_restore_snapshot_entity.dart';
+import 'package:bujuan/core/database/isar_track_entity.dart';
+import 'package:bujuan/core/database/isar_track_lyrics_entity.dart';
 import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/data/local/isar_download_task_data_source.dart';
+import 'package:bujuan/data/local/isar_local_library_data_source.dart';
 import 'package:bujuan/data/local/isar_local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/isar_playback_restore_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
@@ -33,11 +36,16 @@ class IsarAppDatabase implements AppDatabase {
         IsarPlaybackRestoreSnapshotEntitySchema,
         IsarLocalResourceEntitySchema,
         IsarDownloadTaskEntitySchema,
+        IsarTrackEntitySchema,
+        IsarTrackLyricsEntitySchema,
       ],
       name: databaseName,
       directory: directory.path,
     );
-    _localLibraryDataSource = const PersistentLocalLibraryDataSource();
+    _localLibraryDataSource = IsarLocalLibraryDataSource(
+      isar: _isar,
+      fallbackDataSource: const PersistentLocalLibraryDataSource(),
+    );
     _playbackRestoreDataSource = IsarPlaybackRestoreDataSource(isar: _isar);
     _localResourceIndexDataSource =
         IsarLocalResourceIndexDataSource(isar: _isar);

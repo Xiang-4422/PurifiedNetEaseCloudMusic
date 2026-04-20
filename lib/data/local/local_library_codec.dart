@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:bujuan/core/database/isar_track_entity.dart';
+import 'package:bujuan/core/database/isar_track_lyrics_entity.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
@@ -59,6 +63,60 @@ class LocalLibraryCodec {
       downloadProgress: (map['downloadProgress'] as num?)?.toDouble(),
       downloadFailureReason: map['downloadFailureReason'] as String?,
       metadata: _asObjectMap(map['metadata']),
+    );
+  }
+
+  static IsarTrackEntity encodeTrackEntity(Track track) {
+    return IsarTrackEntity(
+      schemaVersion: 1,
+      trackId: track.id,
+      sourceType: track.sourceType.name,
+      sourceId: track.sourceId,
+      title: track.title,
+      artistNames: track.artistNames,
+      albumTitle: track.albumTitle,
+      durationMs: track.durationMs,
+      artworkUrl: track.artworkUrl,
+      remoteUrl: track.remoteUrl,
+      localPath: track.localPath,
+      localArtworkPath: track.localArtworkPath,
+      localLyricsPath: track.localLyricsPath,
+      lyricKey: track.lyricKey,
+      availability: track.availability.name,
+      downloadState: track.downloadState.name,
+      resourceOrigin: track.resourceOrigin.name,
+      downloadProgress: track.downloadProgress,
+      downloadFailureReason: track.downloadFailureReason,
+      metadataJson: jsonEncode(track.metadata),
+    );
+  }
+
+  static Track decodeTrackEntity(IsarTrackEntity entity) {
+    final metadata = jsonDecode(entity.metadataJson);
+    return Track(
+      id: entity.trackId,
+      sourceType: _sourceTypeFromName(entity.sourceType),
+      sourceId: entity.sourceId,
+      title: entity.title,
+      artistNames: entity.artistNames,
+      albumTitle: entity.albumTitle,
+      durationMs: entity.durationMs,
+      artworkUrl: entity.artworkUrl,
+      remoteUrl: entity.remoteUrl,
+      localPath: entity.localPath,
+      localArtworkPath: entity.localArtworkPath,
+      localLyricsPath: entity.localLyricsPath,
+      lyricKey: entity.lyricKey,
+      availability: _availabilityFromName(entity.availability),
+      downloadState: _downloadStateFromName(entity.downloadState),
+      resourceOrigin: _resourceOriginFromName(entity.resourceOrigin),
+      downloadProgress: entity.downloadProgress,
+      downloadFailureReason: entity.downloadFailureReason,
+      metadata: metadata is Map
+          ? Map<String, Object?>.from(
+              metadata.map((key, value) => MapEntry('$key', value)),
+            )
+          : const {},
     );
   }
 
@@ -186,6 +244,25 @@ class LocalLibraryCodec {
     return TrackLyrics(
       main: map['main'] as String? ?? '',
       translated: map['translated'] as String? ?? '',
+    );
+  }
+
+  static IsarTrackLyricsEntity encodeLyricsEntity(
+    String trackId,
+    TrackLyrics lyrics,
+  ) {
+    return IsarTrackLyricsEntity(
+      schemaVersion: 1,
+      trackId: trackId,
+      main: lyrics.main,
+      translated: lyrics.translated,
+    );
+  }
+
+  static TrackLyrics decodeLyricsEntity(IsarTrackLyricsEntity entity) {
+    return TrackLyrics(
+      main: entity.main,
+      translated: entity.translated,
     );
   }
 

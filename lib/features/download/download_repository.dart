@@ -42,7 +42,9 @@ class DownloadRepository {
   final Dio _dio;
 
   /// 下载任务不会做断点续传；应用异常退出后仍保留 `queued/downloading`
-  /// 只会制造假状态，所以启动时要先把这些任务收敛成可见失败态。
+  /// 只会制造假状态，所以启动时要区分两种恢复：
+  /// - `downloading` 视为中断失败
+  /// - `queued` 直接重新入队
   Future<List<DownloadTask>> recoverInterruptedTasks() async {
     final interruptedTasks = await getTasks(
       statuses: const {
@@ -50,9 +52,19 @@ class DownloadRepository {
         DownloadTaskStatus.downloading,
       },
     );
-    for (final task in interruptedTasks) {
+    final queuedTasks = interruptedTasks
+        .where((task) => task.status == DownloadTaskStatus.queued)
+        .toList();
+    final downloadingTasks = interruptedTasks
+        .where((task) => task.status == DownloadTaskStatus.downloading)
+        .toList();
+
+    for (final task in downloadingTasks) {
       await _deleteTemporaryDownloadIfExists(task.localPath);
       await markFailed(task.trackId, reason: 'download_interrupted');
+    }
+    for (final task in queuedTasks) {
+      unawaited(downloadTrack(task.trackId));
     }
     return getTasks(
       statuses: const {

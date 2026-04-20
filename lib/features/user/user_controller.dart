@@ -23,16 +23,22 @@ class UserController extends GetxController {
   static UserController get to => Get.find();
   final Box box = GetIt.instance<Box>();
   final UserRepository _repository = UserRepository();
+  bool _hasLocalSnapshot = false;
+
+  bool get hasLocalSnapshot => _hasLocalSnapshot;
 
   void _loadCache() {
+    var hasCachedData = false;
     String? userInfoStr = box.get(userInfoSp);
     if (userInfoStr != null) {
       userInfo.value = UserSessionData.fromJson(jsonDecode(userInfoStr));
+      hasCachedData = true;
     }
 
     List<dynamic>? cachedLikedIds = box.get(likedSongIdsSp);
     if (cachedLikedIds != null) {
       likedSongIds.addAll(cachedLikedIds.cast<int>());
+      hasCachedData = true;
     }
 
     List<dynamic>? cachedReco = box.get(recoPlayListsSp);
@@ -42,6 +48,7 @@ class UserController extends GetxController {
             .map((e) => PlaylistSummaryData.fromJson(jsonDecode(e)))
             .toList(),
       );
+      hasCachedData = true;
     }
 
     List<dynamic>? cachedUserPlayLists = box.get(userPlayListsSp);
@@ -49,12 +56,14 @@ class UserController extends GetxController {
       userPlayLists.addAll(cachedUserPlayLists
           .map((e) => PlaylistSummaryData.fromJson(jsonDecode(e)))
           .toList());
+      hasCachedData = true;
     }
 
     String? likedPlStr = box.get(userLikedSongPlayListSp);
     if (likedPlStr != null) {
       userLikedSongPlayList.value =
           PlaylistSummaryData.fromJson(jsonDecode(likedPlStr));
+      hasCachedData = true;
     }
 
     List<String>? cachedTodaySongs =
@@ -63,10 +72,15 @@ class UserController extends GetxController {
       stringToPlayList(cachedTodaySongs).then((list) {
         todayRecommendSongs.addAll(list);
       });
+      hasCachedData = true;
     }
 
     randomLikedSongAlbumUrl.value =
         box.get(randomLikedSongAlbumUrlSp, defaultValue: '');
+    if (randomLikedSongAlbumUrl.value.isNotEmpty) {
+      hasCachedData = true;
+    }
+    _hasLocalSnapshot = hasCachedData;
   }
 
   Rx<UserSessionData> userInfo = const UserSessionData.empty().obs;

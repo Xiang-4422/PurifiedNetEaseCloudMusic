@@ -220,7 +220,12 @@ class AppController extends SuperController
   @override
   Future<void> onReady() async {
     super.onReady();
-    updateData();
+    if (userController.hasLocalSnapshot) {
+      dateLoaded.value = true;
+      unawaited(updateData());
+      return;
+    }
+    await updateData();
   }
 
   Future<void> initZoomDrawerListener() async {

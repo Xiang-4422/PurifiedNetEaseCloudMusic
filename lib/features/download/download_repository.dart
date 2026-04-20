@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bujuan/data/local/download_task_data_source.dart';
@@ -11,6 +12,9 @@ import 'package:get_it/get_it.dart';
 import 'package:path_provider/path_provider.dart';
 
 class DownloadRepository {
+  static Future<void> _downloadQueue = Future.value();
+  static final Map<String, Future<Track?>> _scheduledDownloads = {};
+
   DownloadRepository({
     LibraryRepository? libraryRepository,
     DownloadTaskDataSource? taskDataSource,
@@ -60,6 +64,28 @@ class DownloadRepository {
   Future<Track?> downloadTrack(
     String trackId, {
     bool preferHighQuality = true,
+  }) async {
+    final existingTask = _scheduledDownloads[trackId];
+    if (existingTask != null) {
+      return existingTask;
+    }
+
+    final taskFuture = _enqueueDownload(
+      () => _performDownloadTrack(
+        trackId,
+        preferHighQuality: preferHighQuality,
+      ),
+    );
+    _scheduledDownloads[trackId] = taskFuture;
+    taskFuture.whenComplete(() {
+      _scheduledDownloads.remove(trackId);
+    });
+    return taskFuture;
+  }
+
+  Future<Track?> _performDownloadTrack(
+    String trackId, {
+    required bool preferHighQuality,
   }) async {
     final track = await _libraryRepository.getTrack(trackId);
     if (track == null) {
@@ -117,6 +143,20 @@ class DownloadRepository {
     } catch (error) {
       return markFailed(trackId, reason: error.toString());
     }
+  }
+
+  Future<T> _enqueueDownload<T>(Future<T> Function() operation) {
+    final completer = Completer<T>();
+    _downloadQueue = _downloadQueue
+        .catchError((_) {})
+        .then((_) async {
+          try {
+            completer.complete(await operation());
+          } catch (error, stackTrace) {
+            completer.completeError(error, stackTrace);
+          }
+        });
+    return completer.future;
   }
 
   Future<Track?> removeDownloadedTrack(String trackId) async {

@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/operation_result.dart';
-import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
+import 'package:bujuan/data/netease/mappers/netease_media_item_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
@@ -104,32 +104,10 @@ class UserRepository {
     await _libraryRepository.saveTracks(
       NeteaseTrackMapper.fromSongList(wrap.data ?? const []),
     );
-
-    return (wrap.data ?? [])
-        .map((song) => MediaItem(
-              id: song.id,
-              duration: Duration(milliseconds: song.duration ?? 0),
-              artUri: Uri.parse('${song.album?.picUrl ?? ''}?param=200y200'),
-              extras: {
-                'image': song.album?.picUrl ?? '',
-                'liked': likedSongIds.contains(int.tryParse(song.id)),
-                'artist': (song.artists ?? [])
-                    .map((artist) => artist.name)
-                    .join(' / '),
-                'artistNames':
-                    (song.artists ?? []).map((artist) => artist.name ?? '').toList(),
-                'artistIds':
-                    (song.artists ?? []).map((artist) => artist.id).toList(),
-                'albumId': song.album?.id ?? '',
-                'type': MediaType.fm.name,
-                'size': '',
-              },
-              title: song.name ?? '',
-              album: song.album?.name ?? '',
-              artist:
-                  (song.artists ?? []).map((artist) => artist.name).join(' / '),
-            ))
-        .toList();
+    return NeteaseMediaItemMapper.fromFmSongs(
+      wrap.data ?? const [],
+      likedSongIds: likedSongIds,
+    );
   }
 
   Future<List<MediaItem>> fetchHeartBeatSongs({

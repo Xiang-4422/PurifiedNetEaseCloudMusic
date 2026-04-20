@@ -1,6 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
-import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/data/netease/mappers/netease_media_item_mapper.dart';
 
 class CloudRepository {
   Future<CloudSongPage> fetchCloudSongs({
@@ -12,40 +12,10 @@ class CloudRepository {
         await NeteaseMusicApi().cloudSong(offset: offset, limit: limit);
     final songs = wrap.data ?? const <CloudSongItem>[];
     return CloudSongPage(
-      items: songs
-          .where((song) => song.simpleSong.id.isNotEmpty)
-          .map(
-            (song) => MediaItem(
-              id: song.simpleSong.id,
-              duration: Duration(milliseconds: song.simpleSong.dt ?? 0),
-              artUri: Uri.parse(
-                '${song.simpleSong.al?.picUrl ?? ''}?param=500y500',
-              ),
-              extras: {
-                'url': '',
-                'image': song.simpleSong.al?.picUrl ?? '',
-                'type': MediaType.playlist.name,
-                'liked':
-                    likedSongIds.contains(int.tryParse(song.simpleSong.id)),
-                'artist': (song.simpleSong.ar ?? [])
-                    .map((artist) => artist.name ?? '')
-                    .join(' / '),
-                'artistNames': (song.simpleSong.ar ?? [])
-                    .map((artist) => artist.name ?? '')
-                    .toList(),
-                'artistIds': (song.simpleSong.ar ?? [])
-                    .map((artist) => artist.id)
-                    .toList(),
-                'albumId': song.simpleSong.al?.id ?? '',
-              },
-              title: song.simpleSong.name ?? '',
-              album: song.simpleSong.al?.name,
-              artist: (song.simpleSong.ar ?? [])
-                  .map((artist) => artist.name)
-                  .join(' / '),
-            ),
-          )
-          .toList(),
+      items: NeteaseMediaItemMapper.fromCloudSongs(
+        songs,
+        likedSongIds: likedSongIds,
+      ),
       hasMore: songs.length >= limit,
       nextOffset: offset + songs.length,
     );

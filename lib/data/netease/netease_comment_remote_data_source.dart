@@ -21,11 +21,12 @@ class NeteaseCommentRemoteDataSource {
     required int sortType,
     required String cursor,
   }) async {
+    final normalizedId = _normalizeResourceId(id);
     final response = await _requestRepository.post(
       DioMetaData(
         joinUri('/api/v2/resource/comments'),
         data: {
-          'threadId': _typeKey(type) + id,
+          'threadId': _typeKey(type) + normalizedId,
           'pageNo': pageNo,
           'pageSize': pageSize,
           'showInner': showInner,
@@ -55,8 +56,9 @@ class NeteaseCommentRemoteDataSource {
     required int time,
     required int limit,
   }) async {
+    final normalizedId = _normalizeResourceId(id);
     final wrap = await NeteaseMusicApi().floorComments(
-      id,
+      normalizedId,
       type,
       parentCommentId,
       time: time,
@@ -77,8 +79,9 @@ class NeteaseCommentRemoteDataSource {
     required String content,
     String? commentId,
   }) async {
+    final normalizedId = _normalizeResourceId(id);
     final result = await NeteaseMusicApi().comment(
-      id,
+      normalizedId,
       type,
       operation,
       content: content,
@@ -96,12 +99,13 @@ class NeteaseCommentRemoteDataSource {
     String commentId,
     bool like,
   ) async {
+    final normalizedId = _normalizeResourceId(id);
     final result = await NeteaseMusicApi().likeComment(
-      id,
+      normalizedId,
       commentId,
       type,
       like,
-      threadId: _typeKey(type) + id,
+      threadId: _typeKey(type) + normalizedId,
     );
     return (
       success: result.code == 200,
@@ -127,5 +131,13 @@ class NeteaseCommentRemoteDataSource {
       default:
         return 'R_SO_4_';
     }
+  }
+
+  String _normalizeResourceId(String id) {
+    final separatorIndex = id.indexOf(':');
+    if (separatorIndex == -1) {
+      return id;
+    }
+    return id.substring(separatorIndex + 1);
   }
 }

@@ -57,6 +57,8 @@ class AppController extends SuperController
       playerController.sessionState;
   Rx<PlaybackRuntimeState> get playbackRuntimeState =>
       playerController.runtimeState;
+  RxList<MediaItem> get playbackQueue => playerController.queueState;
+  RxInt get playbackQueueIndex => playerController.currentQueueIndex;
   Rx<PlaybackLyricState> get playbackLyricState => playerController.lyricState;
   Rx<AudioServiceRepeatMode> get curRepeatMode =>
       playerController.curRepeatMode;

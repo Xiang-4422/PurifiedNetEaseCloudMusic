@@ -46,6 +46,8 @@ class PlayerController extends GetxController {
   final Rx<PlaybackRuntimeState> runtimeState =
       const PlaybackRuntimeState().obs;
   final Rx<PlaybackLyricState> lyricState = const PlaybackLyricState().obs;
+  final RxList<MediaItem> queueState = <MediaItem>[].obs;
+  final RxInt currentQueueIndex = (-1).obs;
 
   // 取色是高频但纯展示性质的操作，做小缓存可以明显减少切歌时的同步卡顿。
   final Map<String, Color> _albumColorCache = {};
@@ -207,6 +209,12 @@ class PlayerController extends GetxController {
       currentPosition: currentPosition,
     );
     runtimeState.value = nextState;
+    if (queue != null) {
+      queueState.assignAll(queue);
+    }
+    if (currentIndex != null && currentQueueIndex.value != currentIndex) {
+      currentQueueIndex.value = currentIndex;
+    }
   }
 
   void _syncLyricState({

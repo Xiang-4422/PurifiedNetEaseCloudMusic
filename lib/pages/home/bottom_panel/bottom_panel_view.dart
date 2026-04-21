@@ -120,30 +120,29 @@ class BottomPanelView extends GetView<AppController> {
                                 offstage: controller.isBigAlbum.isTrue,
                                 child: Visibility(
                                   visible: controller.isAlbumScaleEnded.isTrue,
-                                  child: Obx(() => GestureDetector(
-                                        onTap: () {
-                                          if (controller
-                                              .isFullScreenLyricOpen.isTrue) {
-                                            controller.isFullScreenLyricOpen
-                                                .value = false;
-                                          } else {
-                                            controller.isAlbumScaleEnded.value =
-                                                false;
-                                            controller.isBigAlbum.value = true;
-                                            controller
-                                                .updateFullScreenLyricTimerCounter(
-                                                    cancelTimer: true);
-                                          }
-                                        },
-                                        child: SimpleExtendedImage(
-                                          width: AppDimensions.albumMinSize,
-                                          height: AppDimensions.albumMinSize,
-                                          shape: BoxShape.circle,
-                                          runtimeState.currentSong
-                                                  .extras?['image'] ??
-                                              '',
-                                        ),
-                                      )),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      if (controller
+                                          .isFullScreenLyricOpen.isTrue) {
+                                        controller.isFullScreenLyricOpen.value =
+                                            false;
+                                      } else {
+                                        controller.isAlbumScaleEnded.value =
+                                            false;
+                                        controller.isBigAlbum.value = true;
+                                        controller
+                                            .updateFullScreenLyricTimerCounter(
+                                                cancelTimer: true);
+                                      }
+                                    },
+                                    child: SimpleExtendedImage(
+                                      width: AppDimensions.albumMinSize,
+                                      height: AppDimensions.albumMinSize,
+                                      shape: BoxShape.circle,
+                                      runtimeState.currentSong.extras?['image'] ??
+                                          '',
+                                    ),
+                                  ),
                                 ),
                               )),
                         ],
@@ -477,12 +476,13 @@ class BottomPanelView extends GetView<AppController> {
               physics: const ClampingScrollPhysics(),
               itemExtent: 55,
               padding: EdgeInsets.symmetric(vertical: albumPadding),
-              itemCount: controller.playbackRuntimeState.value.queue.length,
+              itemCount: controller.playbackQueue.length,
               itemBuilder: (context, index) {
                 return _buildSongItem(
-                    controller.playbackRuntimeState.value.queue[index],
-                    index,
-                    context);
+                  controller.playbackQueue[index],
+                  index,
+                  context,
+                );
               },
             ),
           ),
@@ -494,39 +494,38 @@ class BottomPanelView extends GetView<AppController> {
   Widget _buildSongItem(MediaItem mediaItem, int index, BuildContext context) {
     return GestureDetector(
       onTap: () => controller.playerController.playQueueIndex(index),
-      child: Obx(() => Container(
-            color: Colors.transparent, // 加个颜色让透明区域也能点击
-            alignment: AlignmentDirectional.centerStart,
-            child: Builder(builder: (context) {
-              final runtimeState = controller.playbackRuntimeState.value;
-              final isCurrent = runtimeState.currentIndex == index;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    mediaItem.title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: isCurrent
-                              ? Colors.red
-                              : controller.panelWidgetColor.value,
-                        ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                  Text(
-                    mediaItem.artist ?? "未知歌手",
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: controller.panelWidgetColor.value
-                              .withValues(alpha: 0.5),
-                        ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ],
-              );
-            }),
-          )),
+      child: Obx(() {
+        final isCurrent = controller.playbackQueueIndex.value == index;
+        return Container(
+          color: Colors.transparent,
+          alignment: AlignmentDirectional.centerStart,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                mediaItem.title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: isCurrent
+                          ? Colors.red
+                          : controller.panelWidgetColor.value,
+                    ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+              Text(
+                mediaItem.artist ?? "未知歌手",
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color:
+                          controller.panelWidgetColor.value.withValues(alpha: 0.5),
+                    ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 

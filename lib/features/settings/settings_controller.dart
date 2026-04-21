@@ -14,7 +14,6 @@ class SettingsController extends GetxController {
 
   RxBool isGradientBackground = false.obs;
   RxBool isRoundAlbumOpen = false.obs;
-  RxBool isCacheOpen = false.obs;
   RxBool isHighSoundQualityOpen = false.obs;
   RxBool isOfflineModeEnabled = false.obs;
   Rx<Color> albumColor = Colors.white.obs;
@@ -27,7 +26,6 @@ class SettingsController extends GetxController {
   }
 
   void _initAppSetting() {
-    isCacheOpen.value = box.get(cacheSp, defaultValue: false);
     isGradientBackground.value =
         box.get(gradientBackgroundSp, defaultValue: true);
     isHighSoundQualityOpen.value = box.get(highSong, defaultValue: false);
@@ -53,13 +51,6 @@ class SettingsController extends GetxController {
     await _updateBoolSetting(
       target: isHighSoundQualityOpen,
       key: highSong,
-    );
-  }
-
-  Future<void> toggleCacheOpen() async {
-    await _updateBoolSetting(
-      target: isCacheOpen,
-      key: cacheSp,
     );
   }
 

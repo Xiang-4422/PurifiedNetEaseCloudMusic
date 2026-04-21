@@ -1,6 +1,9 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/core/network/operation_result.dart';
+import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/data/netease/netease_user_remote_data_source.dart';
+import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/user/user_profile_cache_store.dart';
@@ -105,6 +108,49 @@ class UserRepository {
     return result.mediaItems;
   }
 
+  Future<List<MediaItem>> loadCachedSongsByIds({
+    required List<String> ids,
+    required List<int> likedSongIds,
+  }) async {
+    final normalizedIds = ids.map(_toTrackId).toList();
+    final tracks = await _libraryRepository.getTracksByIds(normalizedIds);
+    if (tracks.isEmpty) {
+      return const [];
+    }
+    final tracksById = {
+      for (final track in tracks) track.id: track,
+    };
+    final orderedTracks = normalizedIds
+        .map((trackId) => tracksById[trackId])
+        .whereType<Track>()
+        .toList();
+    if (orderedTracks.isEmpty) {
+      return const [];
+    }
+    return MediaItemMapper.fromTrackList(
+      orderedTracks,
+      likedSongIds: likedSongIds,
+    );
+  }
+
+  Future<String> loadCachedSongAlbumUrl(String songId) async {
+    final tracks =
+        await _libraryRepository.getTracksByIds([_toTrackId(songId)]);
+    if (tracks.isEmpty) {
+      return '';
+    }
+    final track = tracks.first;
+    final localArtworkPath = track.localArtworkPath ?? '';
+    if (localArtworkPath.isNotEmpty) {
+      return localArtworkPath;
+    }
+    final artworkUrl = OtherUtils.normalizeImageUrl(track.artworkUrl);
+    if (artworkUrl.isEmpty) {
+      return '';
+    }
+    return artworkUrl;
+  }
+
   Future<String> fetchSongAlbumUrl(String songId) async {
     final artworkUrl = await _remoteDataSource.fetchSongAlbumUrl(songId);
     if (artworkUrl.isEmpty) {
@@ -132,5 +178,16 @@ class UserRepository {
       success: result.success,
       message: result.message,
     );
+  }
+
+  Future<void> clearCachedProfiles() {
+    return _profileCacheStore.clearAllProfiles();
+  }
+
+  String _toTrackId(String songId) {
+    if (songId.startsWith('netease:') || songId.startsWith('local:')) {
+      return songId;
+    }
+    return 'netease:$songId';
   }
 }

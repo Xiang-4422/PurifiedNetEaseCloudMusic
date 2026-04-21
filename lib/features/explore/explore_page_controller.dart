@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/explore/ranking_playlist_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
@@ -12,6 +15,10 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 ///
 /// 这里暂时仍直接驱动部分旧页面交互，是因为探索页还没有完整拆成独立 view model。
 class ExplorePageController extends GetxController {
+  static const Duration _playlistCatalogueTtl = Duration(hours: 12);
+  static const Duration _categoryPlaylistsTtl = Duration(minutes: 30);
+  static const Duration _rankingPlaylistTtl = Duration(minutes: 30);
+
   final ExploreRepository _repository = ExploreRepository();
   final PlaylistRepository _playlistRepository = PlaylistRepository();
 
@@ -84,37 +91,171 @@ class ExplorePageController extends GetxController {
   RxBool loading = true.obs;
 
   RefreshController refreshController = RefreshController();
+  Worker? _pageVisibilityWorker;
+  bool _bootstrapped = false;
 
   @override
-  void onReady() async {
+  void onReady() {
     super.onReady();
-    initData();
-    await updateData();
+    _initStaticState();
+    if (AppController.to.curHomePageIndex.value == 1) {
+      unawaited(_ensureBootstrapped());
+      return;
+    }
+    _pageVisibilityWorker =
+        ever<int>(AppController.to.curHomePageIndex, (pageIndex) {
+      if (pageIndex != 1) {
+        return;
+      }
+      _pageVisibilityWorker?.dispose();
+      _pageVisibilityWorker = null;
+      unawaited(_ensureBootstrapped());
+    });
+  }
+
+  Future<void> _ensureBootstrapped() async {
+    if (_bootstrapped) {
+      return;
+    }
+    _bootstrapped = true;
+    final hasCachedData = await _loadCachedInitialData();
+    if (hasCachedData) {
+      loading.value = false;
+      if (_shouldRefreshInitialData()) {
+        unawaited(updateData());
+      }
+      return;
+    }
+    await updateData(force: true);
     loading.value = false;
   }
 
-  initData() async {
+  void _initStaticState() {
+    if (topPlayListCategoryNames.isNotEmpty) {
+      return;
+    }
     topPlayListCategoryNames.addAll(topPlayListCategory.keys);
     curTopPlayListCategoryName.value = topPlayListCategoryNames[0];
     curCategoryTopPlayLists
         .addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
     curTopPlayListName.value = curCategoryTopPlayLists[0].name;
     curTopPlayListId.value = curCategoryTopPlayLists[0].id;
-
-    _repository.fetchPlaylistCatalogue().then((value) {
-      tagCategorys.addAll(value.categoryNames);
-      tags.assignAll(value.tagsByCategory);
-    });
   }
 
-  updateData() async {
-    await updatePlayLists();
-    await updateRankingPlayListSongs();
+  @override
+  void onClose() {
+    _pageVisibilityWorker?.dispose();
+    super.onClose();
+  }
+
+  Future<bool> _loadCachedInitialData() async {
+    var hasCachedData = false;
+    if (await _loadCachedPlaylistCatalogue()) {
+      hasCachedData = true;
+    }
+    if (await _loadCachedPlayLists()) {
+      hasCachedData = true;
+    }
+    if (await _loadCachedRankingPlayListSongs()) {
+      hasCachedData = true;
+    }
+    return hasCachedData;
+  }
+
+  bool _shouldRefreshInitialData() {
+    return !_repository.isPlaylistCatalogueFresh(ttl: _playlistCatalogueTtl) ||
+        !_repository.isCategoryPlaylistsFresh(
+          curTag.value,
+          ttl: _categoryPlaylistsTtl,
+        ) ||
+        !_playlistRepository.isCacheFresh(
+          curTopPlayListId.value,
+          ttl: _rankingPlaylistTtl,
+        ) ||
+        tagCategorys.isEmpty ||
+        playLists.isEmpty ||
+        curTopPlayListSongs.isEmpty;
+  }
+
+  Future<bool> _loadCachedPlaylistCatalogue() async {
+    final cachedCatalogue = await _repository.loadCachedPlaylistCatalogue();
+    if (cachedCatalogue == null) {
+      return false;
+    }
+    _applyPlaylistCatalogue(cachedCatalogue);
+    return cachedCatalogue.categoryNames.isNotEmpty ||
+        cachedCatalogue.tagsByCategory.isNotEmpty;
+  }
+
+  void _applyPlaylistCatalogue(ExplorePlaylistCatalogueData catalogue) {
+    tagCategorys.assignAll(catalogue.categoryNames);
+    tags.assignAll(catalogue.tagsByCategory);
+    if (tagCategorys.isNotEmpty &&
+        !tagCategorys.contains(curTagCategoryName.value)) {
+      curTagCategoryName.value = tagCategorys.first;
+    }
+  }
+
+  Future<bool> _loadCachedPlayLists() async {
+    final cachedPlayLists =
+        await _repository.loadCachedCategoryPlaylists(curTag.value);
+    if (cachedPlayLists == null || cachedPlayLists.isEmpty) {
+      return false;
+    }
+    playLists
+      ..clear()
+      ..addAll(cachedPlayLists);
+    return true;
+  }
+
+  Future<bool> _loadCachedRankingPlayListSongs() async {
+    final cachedDetail = await _playlistRepository.loadLocalPlaylistDetail(
+      playlistId: curTopPlayListId.value,
+      likedSongIds: AppController.to.likedSongIds.toList(),
+      currentUserId: AppController.to.userInfo.value.userId,
+    );
+    final cachedSongs = cachedDetail?.songs ?? const <MediaItem>[];
+    if (cachedSongs.isEmpty) {
+      return false;
+    }
+    curTopPlayListSongs
+      ..clear()
+      ..addAll(cachedSongs);
+    _updateLoadMoreState(cachedSongs.length);
+    return true;
+  }
+
+  Future<void> updateData({bool force = false}) async {
+    await _refreshPlaylistCatalogue(force: force);
+    await Future.wait([
+      updatePlayLists(force: force),
+      updateRankingPlayListSongs(force: force),
+    ]);
     refreshController.refreshCompleted();
     refreshController.resetNoData();
   }
 
-  updatePlayLists() async {
+  Future<void> _refreshPlaylistCatalogue({bool force = false}) async {
+    if (!force &&
+        tagCategorys.isNotEmpty &&
+        _repository.isPlaylistCatalogueFresh(ttl: _playlistCatalogueTtl)) {
+      return;
+    }
+    final catalogue = await _repository.fetchPlaylistCatalogue();
+    _applyPlaylistCatalogue(catalogue);
+  }
+
+  Future<void> updatePlayLists({bool force = false}) async {
+    if (!force) {
+      final hasCachedPlayLists = await _loadCachedPlayLists();
+      if (hasCachedPlayLists &&
+          _repository.isCategoryPlaylistsFresh(
+            curTag.value,
+            ttl: _categoryPlaylistsTtl,
+          )) {
+        return;
+      }
+    }
     final data = await _repository.fetchCategoryPlaylists(curTag.value);
     playLists
       ..clear()
@@ -123,11 +264,27 @@ class ExplorePageController extends GetxController {
 
   changeCurRankingPlayList(String rankingPlayListid) {
     curTopPlayListId.value = rankingPlayListid;
-    updateRankingPlayListSongs();
+    unawaited(updateRankingPlayListSongs());
   }
 
-  updateRankingPlayListSongs({int offset = 0, limit = 10}) async {
-    if (offset == 0) curTopPlayListSongs.clear();
+  Future<void> updateRankingPlayListSongs({
+    int offset = 0,
+    int limit = 10,
+    bool force = false,
+  }) async {
+    if (offset == 0 && !force) {
+      final hasCachedSongs = await _loadCachedRankingPlayListSongs();
+      if (hasCachedSongs &&
+          _playlistRepository.isCacheFresh(
+            curTopPlayListId.value,
+            ttl: _rankingPlaylistTtl,
+          )) {
+        return;
+      }
+    }
+    if (offset == 0) {
+      curTopPlayListSongs.clear();
+    }
     final songs = await _playlistRepository.fetchPlaylistSongs(
       playlistId: curTopPlayListId.value,
       likedSongIds: AppController.to.likedSongIds.toList(),
@@ -135,16 +292,23 @@ class ExplorePageController extends GetxController {
       limit: limit,
     );
     curTopPlayListSongs.addAll(songs);
-    if (songs.length < 10) {
-      refreshController.loadNoData();
-    } else {
-      refreshController.loadComplete();
-    }
+    _updateLoadMoreState(songs.length);
   }
 
-  playCurRankingPlayListSongs() async {
+  void _updateLoadMoreState(int currentBatchSize) {
+    if (currentBatchSize < 10) {
+      refreshController.loadNoData();
+      return;
+    }
+    refreshController.loadComplete();
+  }
+
+  Future<void> playCurRankingPlayListSongs() async {
     await updateRankingPlayListSongs(
-        offset: curTopPlayListSongs.length, limit: -1);
+      offset: curTopPlayListSongs.length,
+      limit: -1,
+      force: true,
+    );
     await PlayerController.to.playPlaylist(
       curTopPlayListSongs,
       0,
@@ -169,6 +333,6 @@ class ExplorePageController extends GetxController {
     showChooseCategory.value = false;
     showChoosePlayList.value = false;
 
-    updateRankingPlayListSongs();
+    unawaited(updateRankingPlayListSongs());
   }
 }

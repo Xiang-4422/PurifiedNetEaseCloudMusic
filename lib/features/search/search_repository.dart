@@ -4,6 +4,7 @@ import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/features/search/search_cache_store.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:get_it/get_it.dart';
 
@@ -11,19 +12,35 @@ class SearchRepository {
   SearchRepository({
     LibraryRepository? libraryRepository,
     NeteaseSearchRemoteDataSource? remoteDataSource,
-  })
-      : _libraryRepository = libraryRepository ??
+    SearchCacheStore? cacheStore,
+  })  : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository()),
         _remoteDataSource =
-            remoteDataSource ?? const NeteaseSearchRemoteDataSource();
+            remoteDataSource ?? const NeteaseSearchRemoteDataSource(),
+        _cacheStore = cacheStore ?? const SearchCacheStore();
 
   final LibraryRepository _libraryRepository;
   final NeteaseSearchRemoteDataSource _remoteDataSource;
+  final SearchCacheStore _cacheStore;
+
+  Future<List<String>?> loadCachedHotKeywords() {
+    return _cacheStore.loadHotKeywords();
+  }
+
+  bool isHotKeywordCacheFresh({
+    required Duration ttl,
+  }) {
+    return _cacheStore.isHotKeywordsFresh(ttl: ttl);
+  }
 
   Future<List<String>> fetchHotKeywords() async {
-    return _remoteDataSource.fetchHotKeywords();
+    final keywords = await _remoteDataSource.fetchHotKeywords();
+    if (keywords.isNotEmpty) {
+      await _cacheStore.saveHotKeywords(keywords);
+    }
+    return keywords;
   }
 
   Future<List<MediaItem>> searchTrackMediaItems(

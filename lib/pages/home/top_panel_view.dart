@@ -31,15 +31,23 @@ class TopPanelView extends StatefulWidget {
 
 class _TopPanelViewState extends State<TopPanelView> {
   late final Worker _searchWorker;
+  late final Worker _panelOpenWorker;
 
   AppController get controller => AppController.to;
 
   @override
   void initState() {
     super.initState();
-    if (!controller.isOfflineModeEnabled.value) {
+    if (!controller.isOfflineModeEnabled.value &&
+        controller.topPanelFullyClosed.isFalse) {
       TopPanelView._searchPanelController.loadInitial();
     }
+    _panelOpenWorker = ever<bool>(controller.topPanelFullyClosed, (closed) {
+      if (closed || controller.isOfflineModeEnabled.value) {
+        return;
+      }
+      TopPanelView._searchPanelController.loadInitial();
+    });
     _searchWorker = ever<String>(controller.searchContent, (keyword) {
       TopPanelView._searchPanelController.search(
         keyword,
@@ -50,6 +58,7 @@ class _TopPanelViewState extends State<TopPanelView> {
 
   @override
   void dispose() {
+    _panelOpenWorker.dispose();
     _searchWorker.dispose();
     super.dispose();
   }

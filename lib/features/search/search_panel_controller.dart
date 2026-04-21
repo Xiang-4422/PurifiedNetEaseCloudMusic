@@ -12,6 +12,8 @@ class SearchPanelController {
   SearchPanelController({SearchRepository? repository})
       : _repository = repository ?? SearchRepository();
 
+  static const Duration _hotKeywordTtl = Duration(minutes: 30);
+
   final SearchRepository _repository;
   final ValueNotifier<LoadState<List<String>>> hotKeywordState =
       ValueNotifier(const LoadState.loading());
@@ -31,14 +33,29 @@ class SearchPanelController {
     if (_loadedOnce && !force) {
       return;
     }
-    hotKeywordState.value = const LoadState.loading();
+    final cachedKeywords = await _repository.loadCachedHotKeywords();
+    final shouldRefresh = force ||
+        !_repository.isHotKeywordCacheFresh(ttl: _hotKeywordTtl) ||
+        cachedKeywords == null ||
+        cachedKeywords.isEmpty;
+    if (cachedKeywords != null && cachedKeywords.isNotEmpty) {
+      hotKeywordState.value = LoadState.data(cachedKeywords);
+      _loadedOnce = true;
+      if (!shouldRefresh) {
+        return;
+      }
+    } else {
+      hotKeywordState.value = const LoadState.loading();
+    }
     try {
       final keywords = await _repository.fetchHotKeywords();
       hotKeywordState.value =
           keywords.isEmpty ? const LoadState.empty() : LoadState.data(keywords);
       _loadedOnce = true;
     } catch (error, stackTrace) {
-      hotKeywordState.value = LoadState.error(error, stackTrace: stackTrace);
+      if (cachedKeywords == null || cachedKeywords.isEmpty) {
+        hotKeywordState.value = LoadState.error(error, stackTrace: stackTrace);
+      }
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/data/netease/netease_playlist_remote_data_source.dart';
+import 'package:bujuan/domain/entities/playlist_track_ref.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:get_it/get_it.dart';
@@ -84,20 +85,35 @@ class PlaylistRepository {
   final NeteasePlaylistRemoteDataSource _remoteDataSource;
 
   Future<PlaylistSnapshotData> fetchPlaylistSnapshot(String playlistId) async {
-    final snapshot = await _remoteDataSource.fetchPlaylistSnapshot(playlistId);
+    final sourcePlaylistId = _toSourcePlaylistId(playlistId);
+    final cachePlaylistId = _toCachePlaylistId(playlistId);
+    final snapshot = await _remoteDataSource.fetchPlaylistSnapshot(
+      sourcePlaylistId,
+    );
+    final trackIds =
+        (snapshot.playlist?.trackRefs ?? const <PlaylistTrackRef>[])
+            .map((item) => item.trackId)
+            .toList();
+    if (trackIds.isEmpty && snapshot.trackIds.isNotEmpty) {
+      trackIds.addAll(
+        snapshot.trackIds.map(
+          (id) => id.startsWith('netease:') ? id : 'netease:$id',
+        ),
+      );
+    }
     if (snapshot.playlist != null) {
       await _libraryRepository.savePlaylists([snapshot.playlist!]);
     }
     final playlistSnapshot = PlaylistSnapshotData(
-      id: playlistId,
+      id: cachePlaylistId,
       name: snapshot.name,
-      trackIds: snapshot.trackIds,
+      trackIds: trackIds,
       isSubscribed: snapshot.isSubscribed,
       creatorUserId: snapshot.creatorUserId,
       coverUrl: snapshot.playlist?.coverUrl,
       trackCount: snapshot.playlist?.trackCount,
     );
-    await _cacheStore.saveSnapshot(playlistId, playlistSnapshot);
+    await _cacheStore.saveSnapshot(cachePlaylistId, playlistSnapshot);
     return playlistSnapshot;
   }
 
@@ -109,7 +125,10 @@ class PlaylistRepository {
     PlaylistSnapshotData? playlistSnapshot,
   }) async {
     playlistSnapshot ??= await fetchPlaylistSnapshot(playlistId);
-    final songIds = playlistSnapshot.trackIds;
+    final songIds = playlistSnapshot.trackIds
+        .map(_toSourceTrackId)
+        .where((id) => id.isNotEmpty)
+        .toList();
     if (offset >= songIds.length) {
       return const [];
     }
@@ -120,15 +139,25 @@ class PlaylistRepository {
       likedSongIds: likedSongIds,
     );
     await _libraryRepository.saveTracks(result.tracks);
+    if (result.mediaItems.isNotEmpty) {
+      await _cacheStore.touchRefresh(_toCachePlaylistId(playlistId));
+    }
     return result.mediaItems;
   }
 
   Future<List<MediaItem>?> loadCachedSongs(String playlistId) async {
-    return _cacheStore.loadSongs(playlistId);
+    return _cacheStore.loadSongs(_toCachePlaylistId(playlistId));
   }
 
   Future<PlaylistSnapshotData?> loadCachedSnapshot(String playlistId) {
-    return _cacheStore.loadSnapshot(playlistId);
+    return _cacheStore.loadSnapshot(_toCachePlaylistId(playlistId));
+  }
+
+  bool isCacheFresh(
+    String playlistId, {
+    required Duration ttl,
+  }) {
+    return _cacheStore.isFresh(_toCachePlaylistId(playlistId), ttl: ttl);
   }
 
   Future<PlaylistDetailData?> loadLocalPlaylistDetail({
@@ -136,8 +165,11 @@ class PlaylistRepository {
     required List<int> likedSongIds,
     required String? currentUserId,
   }) async {
-    final localPlaylist = await _libraryRepository.getPlaylist(playlistId);
-    final cachedSnapshot = await _cacheStore.loadSnapshot(playlistId);
+    final entityPlaylistId = _toEntityPlaylistId(playlistId);
+    final cachePlaylistId = _toCachePlaylistId(playlistId);
+    final localPlaylist =
+        await _libraryRepository.getPlaylist(entityPlaylistId);
+    final cachedSnapshot = await _cacheStore.loadSnapshot(cachePlaylistId);
 
     final trackIds =
         localPlaylist?.trackRefs.map((item) => item.trackId).toList() ??
@@ -145,8 +177,9 @@ class PlaylistRepository {
             const <String>[];
     final localSongs =
         await _loadLocalSongs(trackIds, likedSongIds: likedSongIds);
-    final cachedSongs =
-        localSongs.isEmpty ? await _cacheStore.loadSongs(playlistId) : null;
+    final cachedSongs = localSongs.isEmpty
+        ? await _cacheStore.loadSongs(cachePlaylistId)
+        : null;
     final songs = localSongs.isNotEmpty
         ? localSongs
         : (cachedSongs ?? const <MediaItem>[]);
@@ -168,6 +201,7 @@ class PlaylistRepository {
     required List<int> likedSongIds,
     required String? currentUserId,
   }) async {
+    final cachePlaylistId = _toCachePlaylistId(playlistId);
     final details = await fetchPlaylistSnapshot(playlistId);
     final remoteSongs = await fetchPlaylistSongs(
       playlistId: playlistId,
@@ -183,7 +217,7 @@ class PlaylistRepository {
       );
     }
 
-    await _cacheStore.saveSongs(playlistId, remoteSongs);
+    await _cacheStore.saveSongs(cachePlaylistId, remoteSongs);
 
     return PlaylistDetailData(
       songs: remoteSongs,
@@ -247,5 +281,30 @@ class PlaylistRepository {
       success: result.success,
       message: result.message,
     );
+  }
+
+  String _toEntityPlaylistId(String playlistId) {
+    if (playlistId.startsWith('netease:') || playlistId.startsWith('local:')) {
+      return playlistId;
+    }
+    return 'netease:$playlistId';
+  }
+
+  String _toSourcePlaylistId(String playlistId) {
+    if (playlistId.startsWith('netease:')) {
+      return playlistId.substring('netease:'.length);
+    }
+    return playlistId;
+  }
+
+  String _toCachePlaylistId(String playlistId) {
+    return _toSourcePlaylistId(playlistId);
+  }
+
+  String _toSourceTrackId(String trackId) {
+    if (trackId.startsWith('netease:')) {
+      return trackId.substring('netease:'.length);
+    }
+    return trackId;
   }
 }

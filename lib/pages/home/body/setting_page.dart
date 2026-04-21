@@ -226,24 +226,6 @@ class _SettingPageViewState extends State<SettingPageView> {
         ListTile(
           contentPadding: const EdgeInsets.all(0),
           title: const Text(
-            '开启缓存',
-            style: TextStyle(fontSize: 30),
-          ),
-          trailing: Obx(() => Icon(
-                AppController.to.isCacheOpen.value
-                    ? TablerIcons.toggle_right
-                    : TablerIcons.toggle_left,
-                size: 56,
-                color: Theme.of(context).cardColor.withValues(
-                    alpha: AppController.to.isCacheOpen.value ? 0.7 : .4),
-              )),
-          onTap: () {
-            AppController.to.settingsController.toggleCacheOpen();
-          },
-        ),
-        ListTile(
-          contentPadding: const EdgeInsets.all(0),
-          title: const Text(
             '下载管理',
             style: TextStyle(fontSize: 30),
           ),

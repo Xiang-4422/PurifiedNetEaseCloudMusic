@@ -16,7 +16,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
     return Obx(() {
       if (controller.loading.isTrue) return const LoadingView();
       return SmartRefresher(
-        onRefresh: () => controller.updateData(),
+        onRefresh: () => controller.updateData(force: true),
         enablePullUp: true,
         onLoading: () => controller.updateRankingPlayListSongs(
             offset: controller.curTopPlayListSongs.length),
@@ -90,7 +90,8 @@ class ExplorePageView extends GetView<ExplorePageController> {
                           scrollDirection: Axis.horizontal,
                           itemCount: controller.tagCategorys.length,
                           itemBuilder: (context, index) {
-                            String categoryName = controller.tagCategorys[index];
+                            String categoryName =
+                                controller.tagCategorys[index];
 
                             return GestureDetector(
                               onTap: () => controller.curTagCategoryName.value =
@@ -344,17 +345,16 @@ class ExplorePageView extends GetView<ExplorePageController> {
                                   decoration: BoxDecoration(
                                     color: controller
                                                 .curTopPlayListName.value ==
-                                            controller.curCategoryTopPlayLists[
-                                                    index]
+                                            controller
+                                                .curCategoryTopPlayLists[index]
                                                 .name
                                         ? Colors.black12
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(
                                         AppDimensions.headerHeight / 2),
                                   ),
-                                  child: Text(
-                                      controller
-                                          .curCategoryTopPlayLists[index].name)),
+                                  child: Text(controller
+                                      .curCategoryTopPlayLists[index].name)),
                             );
                           }),
                     ),

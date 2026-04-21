@@ -26,5 +26,20 @@ class UserProfileCacheStore {
     );
   }
 
+  Future<void> clearProfile(String userId) {
+    return CacheBox.instance.delete(_profileCacheKey(userId));
+  }
+
+  Future<void> clearAllProfiles() async {
+    final keys = CacheBox.instance.keys
+        .where((key) => '$key'.startsWith(_profileKeyPrefix))
+        .toList();
+    for (final key in keys) {
+      await CacheBox.instance.delete(key);
+    }
+  }
+
   String _profileCacheKey(String userId) => 'USER_PROFILE_$userId';
+
+  static const String _profileKeyPrefix = 'USER_PROFILE_';
 }

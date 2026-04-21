@@ -45,7 +45,15 @@ class AppHomePageView extends GetView<AppController> {
           minHeight: 0,
           boxShadow: null,
           // collapsed: const TopPanelHeaderAppBar(),
-          panel: const TopPanelView(),
+          panel: Obx(() {
+            final shouldBuildTopPanel =
+                controller.topPanelFullyClosed.isFalse ||
+                controller.searchContent.value.isNotEmpty;
+            if (!shouldBuildTopPanel) {
+              return const SizedBox.shrink();
+            }
+            return const TopPanelView();
+          }),
           body: Obx(() {
             final hasCurrentSong =
                 controller.playbackRuntimeState.value.currentSong.id.isNotEmpty;

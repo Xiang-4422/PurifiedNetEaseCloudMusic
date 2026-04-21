@@ -3,7 +3,6 @@ import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/features/user/user_controller.dart';
 import 'package:bujuan/pages/home/bottom_panel/lyric_view.dart';
@@ -24,55 +23,6 @@ import 'package:bujuan/routes/router.gr.dart' as gr;
 
 class BottomPanelView extends GetView<AppController> {
   const BottomPanelView({Key? key}) : super(key: key);
-
-  Future<void> _handleCurrentTrackDownloadAction(
-    DownloadState downloadState,
-  ) async {
-    switch (downloadState) {
-      case DownloadState.none:
-        await controller.playerController.downloadCurrentTrack();
-        return;
-      case DownloadState.queued:
-      case DownloadState.downloading:
-        await controller.playerController.cancelCurrentTrackDownload();
-        return;
-      case DownloadState.downloaded:
-        await controller.playerController.removeCurrentTrackDownload();
-        return;
-      case DownloadState.failed:
-        await controller.playerController.retryCurrentTrackDownload();
-        return;
-    }
-  }
-
-  Widget _buildCurrentTrackDownloadIcon(
-    BuildContext context,
-    DownloadState downloadState,
-  ) {
-    switch (downloadState) {
-      case DownloadState.none:
-        return Icon(
-          TablerIcons.download,
-          color: controller.panelWidgetColor.value,
-        );
-      case DownloadState.queued:
-      case DownloadState.downloading:
-        return Icon(
-          TablerIcons.x,
-          color: controller.panelWidgetColor.value,
-        );
-      case DownloadState.downloaded:
-        return Icon(
-          TablerIcons.trash,
-          color: controller.panelWidgetColor.value,
-        );
-      case DownloadState.failed:
-        return Icon(
-          TablerIcons.refresh,
-          color: controller.panelWidgetColor.value,
-        );
-    }
-  }
 
   List<_ArtistChipData> _artistEntries(MediaItem mediaItem) {
     final artistNames = (mediaItem.extras?['artistNames'] as List?)
@@ -134,12 +84,6 @@ class BottomPanelView extends GetView<AppController> {
                     child: Builder(builder: (context) {
                       final runtimeState =
                           controller.playbackRuntimeState.value;
-                      final downloadState = DownloadState.values.firstWhere(
-                        (state) =>
-                            state.name ==
-                            '${runtimeState.currentSong.extras?['downloadState'] ?? DownloadState.none.name}',
-                        orElse: () => DownloadState.none,
-                      );
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -170,21 +114,6 @@ class BottomPanelView extends GetView<AppController> {
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                          IconButton(
-                            tooltip: switch (downloadState) {
-                              DownloadState.none => '下载当前歌曲',
-                              DownloadState.queued => '已加入下载队列',
-                              DownloadState.downloading => '正在下载',
-                              DownloadState.downloaded => '删除本地下载',
-                              DownloadState.failed => '重试下载',
-                            },
-                            onPressed: () => _handleCurrentTrackDownloadAction(
-                                downloadState),
-                            icon: _buildCurrentTrackDownloadIcon(
-                              context,
-                              downloadState,
                             ),
                           ),
                           Obx(() => Offstage(

@@ -1,7 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_summary_data.dart';
@@ -140,117 +139,14 @@ class SongItem extends StatefulWidget {
 }
 
 class _SongItemState extends State<SongItem> {
-  late DownloadState _downloadState;
-  bool _handlingDownloadAction = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _downloadState = _resolveDownloadState();
-  }
-
-  @override
-  void didUpdateWidget(covariant SongItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.playlist[oldWidget.index].id !=
-            widget.playlist[widget.index].id ||
-        oldWidget.playlist[oldWidget.index].extras?['downloadState'] !=
-            widget.playlist[widget.index].extras?['downloadState']) {
-      _downloadState = _resolveDownloadState();
-    }
-  }
-
-  DownloadState _resolveDownloadState() {
-    final mediaItem = widget.playlist[widget.index];
-    return DownloadState.values.firstWhere(
-      (state) =>
-          state.name ==
-          '${mediaItem.extras?['downloadState'] ?? DownloadState.none.name}',
-      orElse: () => DownloadState.none,
-    );
-  }
-
-  Future<void> _handleDownloadAction() async {
-    if (_handlingDownloadAction) {
-      return;
-    }
-    final mediaItem = widget.playlist[widget.index];
-    final requestedState = _downloadState;
-    setState(() {
-      _handlingDownloadAction = true;
-      if (requestedState == DownloadState.none ||
-          requestedState == DownloadState.failed) {
-        _downloadState = DownloadState.downloading;
-      }
-    });
-
-    try {
-      Track? updatedTrack;
-      switch (requestedState) {
-        case DownloadState.none:
-          updatedTrack =
-              await PlayerController.to.downloadTrackById(mediaItem.id);
-          break;
-        case DownloadState.queued:
-        case DownloadState.downloading:
-          updatedTrack =
-              await PlayerController.to.cancelTrackDownloadById(mediaItem.id);
-          break;
-        case DownloadState.downloaded:
-          updatedTrack =
-              await PlayerController.to.removeDownloadedTrackById(mediaItem.id);
-          break;
-        case DownloadState.failed:
-          updatedTrack =
-              await PlayerController.to.retryTrackDownloadById(mediaItem.id);
-          break;
-      }
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _downloadState = updatedTrack?.downloadState ?? _resolveDownloadState();
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _handlingDownloadAction = false;
-        });
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final mediaItem = widget.playlist[widget.index];
-    final effectiveDownloadState =
-        _handlingDownloadAction ? DownloadState.downloading : _downloadState;
     return UniversalListTile(
       picUrl: widget.showPic ? (mediaItem.extras?['image']) : null,
       titleString: mediaItem.title,
       subTitleString: mediaItem.artist,
       stringColor: widget.stringColor,
-      trailing: IconButton(
-        tooltip: switch (effectiveDownloadState) {
-          DownloadState.none => '下载歌曲',
-          DownloadState.queued => '取消下载',
-          DownloadState.downloading => '取消下载',
-          DownloadState.downloaded => '删除下载',
-          DownloadState.failed => '重试下载',
-        },
-        onPressed: _handleDownloadAction,
-        icon: Icon(
-          switch (effectiveDownloadState) {
-            DownloadState.none => TablerIcons.download,
-            DownloadState.queued => TablerIcons.x,
-            DownloadState.downloading => TablerIcons.x,
-            DownloadState.downloaded => TablerIcons.trash,
-            DownloadState.failed => TablerIcons.refresh,
-          },
-          color: widget.stringColor ?? context.theme.colorScheme.onPrimary,
-          size: 24,
-        ),
-      ),
       onTap: () async {
         if (widget.beforeOnTap != null) {
           await widget.beforeOnTap!();

@@ -194,36 +194,6 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                     )),
                               ),
                             ),
-                            Flexible(
-                                child: BlurryContainer(
-                              borderRadius: BorderRadius.circular(60),
-                              padding: EdgeInsets.zero,
-                              color: widgetColor.withValues(alpha: 0.05),
-                              child: IconButton(
-                                onPressed: () async {
-                                  await AppController.to.playerController
-                                      .queueTrackDownloads(
-                                    songs.map((item) => item.id),
-                                  );
-                                  WidgetUtil.showToast('已加入下载队列');
-                                },
-                                icon: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    Icon(
-                                      TablerIcons.download,
-                                      color: widgetColor,
-                                    ),
-                                    Text(
-                                      '下载全部',
-                                      style: context.textTheme.titleMedium
-                                          ?.copyWith(color: widgetColor),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )),
                             // 评论、收藏
                             Flexible(
                                 child: BlurryContainer(

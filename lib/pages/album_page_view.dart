@@ -151,24 +151,6 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                                 playListNameHeader: "专辑",
                               )),
                     ),
-                    const SizedBox(width: AppDimensions.paddingSmall),
-                    BlurryContainer(
-                      padding: EdgeInsets.zero,
-                      borderRadius: BorderRadius.circular(9999),
-                      color: Colors.white.withValues(alpha: 0.25),
-                      child: IconButton(
-                        icon: const Icon(
-                          TablerIcons.download,
-                          color: Colors.white,
-                        ),
-                        onPressed: () async {
-                          await PlayerController.to.queueTrackDownloads(
-                            albumSongs.map((item) => item.id),
-                          );
-                          WidgetUtil.showToast('专辑歌曲已加入下载队列');
-                        },
-                      ),
-                    ),
                   ],
                 ),
               ),

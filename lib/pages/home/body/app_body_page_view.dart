@@ -67,35 +67,46 @@ class AppBodyPageView extends GetView<AppController> {
 class DrawerMainScreenView extends GetView<AppController> {
   const DrawerMainScreenView({Key? key}) : super(key: key);
 
+  Widget _buildPage(int index) {
+    switch (index) {
+      case 0:
+        return Obx(() => AbsorbPointer(
+              absorbing: !AppController.to.isDrawerClosed.value,
+              child: const PersonalPageView(),
+            ));
+      case 1:
+        return Obx(() => AbsorbPointer(
+              absorbing: !AppController.to.isDrawerClosed.value,
+              child: const ExplorePageView(),
+            ));
+      case 2:
+        return Obx(() => AbsorbPointer(
+              absorbing: !AppController.to.isDrawerClosed.value,
+              child: const SettingPageView(),
+            ));
+      case 3:
+        return Obx(() => AbsorbPointer(
+              absorbing: !AppController.to.isDrawerClosed.value,
+              child: const CoffeePageView(),
+            ));
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: context.width,
       height: context.height,
-      child: Obx(() => PageView(
+      child: Obx(() => PageView.builder(
             physics: controller.isDrawerClosed.value
                 ? const NeverScrollableScrollPhysics()
                 : const PageScrollPhysics(),
             scrollDirection: Axis.vertical,
             controller: controller.homePageController,
-            children: [
-              Obx(() => AbsorbPointer(
-                    absorbing: !AppController.to.isDrawerClosed.value,
-                    child: const PersonalPageView(),
-                  )),
-              Obx(() => AbsorbPointer(
-                    absorbing: !AppController.to.isDrawerClosed.value,
-                    child: const ExplorePageView(),
-                  )),
-              Obx(() => AbsorbPointer(
-                    absorbing: !AppController.to.isDrawerClosed.value,
-                    child: const SettingPageView(),
-                  )),
-              Obx(() => AbsorbPointer(
-                    absorbing: !AppController.to.isDrawerClosed.value,
-                    child: const CoffeePageView(),
-                  )),
-            ],
+            itemCount: 4,
+            itemBuilder: (context, index) => _buildPage(index),
           )),
     );
   }

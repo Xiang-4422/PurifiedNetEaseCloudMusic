@@ -9,6 +9,7 @@ import '../../../widget/custom_zoom_drawer/src/drawer_controller.dart';
 class HomeShellController extends GetxController
     with GetTickerProviderStateMixin {
   late ZoomDrawerController zoomDrawerController;
+  bool _zoomDrawerListenerInitialized = false;
 
   RxBool isDrawerClosed = true.obs;
   double _timerCounter = 0.0;
@@ -46,6 +47,10 @@ class HomeShellController extends GetxController
   }
 
   void initZoomDrawerListener() {
+    if (_zoomDrawerListenerInitialized) {
+      return;
+    }
+    _zoomDrawerListenerInitialized = true;
     zoomDrawerController.addListener!((drawerOpenDegree) {
       if ((drawerOpenDegree == 0.0) == isDrawerClosed.value) return;
       isDrawerClosed.value = drawerOpenDegree == 0.0;

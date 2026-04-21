@@ -69,7 +69,9 @@ class PlayerController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    _initAudioHandler();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_initAudioHandler());
+    });
   }
 
   /// 统一接管音频服务的状态流，避免页面各自监听 `AudioService` 形成重复副作用。

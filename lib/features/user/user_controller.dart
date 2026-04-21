@@ -140,9 +140,11 @@ class UserController extends GetxController {
   }
 
   Future<void> updateUserData() async {
-    await _updateUserPlayLists();
-    await _updateQuickStartCardData();
-    await updateRecoPlayLists();
+    await Future.wait([
+      _updateUserPlayLists(),
+      _updateQuickStartCardData(),
+      updateRecoPlayLists(),
+    ]);
     _hasLocalSnapshot = true;
     await _timestampStore.markUpdated(userStartupLastRefreshSp);
   }

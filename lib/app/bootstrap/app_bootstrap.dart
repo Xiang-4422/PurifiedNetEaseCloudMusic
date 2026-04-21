@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/drift_app_database.dart';
@@ -13,6 +15,7 @@ import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -26,8 +29,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 Future<void> bootstrapApplication() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPaintSizeEnabled = false;
-  debugProfileBuildsEnabled = true;
-  debugProfilePaintsEnabled = true;
+  debugProfileBuildsEnabled =
+      kDebugMode &&
+      const bool.fromEnvironment('profile_flutter_builds');
+  debugProfilePaintsEnabled =
+      kDebugMode &&
+      const bool.fromEnvironment('profile_flutter_paints');
   await _initUi();
   // 这里必须在 runApp 前完成注册，否则页面和控制器会各自 new 出
   // 分裂的本地库与 source 视图，后面的本地优先链路就不再可信。
@@ -69,7 +76,11 @@ Future<void> _initInfrastructure() async {
   );
   await Hive.initFlutter('BuJuan');
   getIt.registerSingleton<Box>(await Hive.openBox('cache'));
-  await NeteaseRemoteBootstrap.initialize(debug: true);
+  await NeteaseRemoteBootstrap.initialize(
+    debug:
+        kDebugMode &&
+        const bool.fromEnvironment('enable_verbose_network_logs'),
+  );
 
   final localMusicSource =
       LocalMusicSource(localDataSource: appDatabase.localLibraryDataSource);
@@ -81,7 +92,7 @@ Future<void> _initInfrastructure() async {
       neteaseSource: neteaseMusicSource,
     ),
   );
-  await DownloadRepository().recoverInterruptedTasks();
+  unawaited(DownloadRepository().recoverInterruptedTasks());
 }
 
 void _registerControllers() {

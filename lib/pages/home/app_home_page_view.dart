@@ -46,24 +46,26 @@ class AppHomePageView extends GetView<AppController> {
           boxShadow: null,
           // collapsed: const TopPanelHeaderAppBar(),
           panel: const TopPanelView(),
-          body: Obx(() => SlidingUpPanel(
-                controller: controller.bottomPanelController,
-                onPanelSlide: (openDegree) =>
-                    controller.onBottomPanelSlide(openDegree),
-                color: Colors.transparent,
-                boxShadow: null,
-                // parallaxEnabled: true,
-                // parallaxOffset: 1,
-                minHeight:
-                    controller.playbackRuntimeState.value.currentSong.id.isEmpty
-                        ? 0
-                        : AppDimensions.bottomPanelHeaderHeight +
-                            context.mediaQueryPadding.bottom,
-                maxHeight: context.height,
-                header: const BottomPanelHeaderView(),
-                panel: const BottomPanelView(),
-                body: const AutoRouter(),
-              )),
+          body: Obx(() {
+            final hasCurrentSong =
+                controller.playbackRuntimeState.value.currentSong.id.isNotEmpty;
+            if (!hasCurrentSong) {
+              return const AutoRouter();
+            }
+            return SlidingUpPanel(
+              controller: controller.bottomPanelController,
+              onPanelSlide: (openDegree) =>
+                  controller.onBottomPanelSlide(openDegree),
+              color: Colors.transparent,
+              boxShadow: null,
+              minHeight: AppDimensions.bottomPanelHeaderHeight +
+                  context.mediaQueryPadding.bottom,
+              maxHeight: context.height,
+              header: const BottomPanelHeaderView(),
+              panel: const BottomPanelView(),
+              body: const AutoRouter(),
+            );
+          }),
         ),
       ),
     );

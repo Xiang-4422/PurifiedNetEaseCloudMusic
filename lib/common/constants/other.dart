@@ -129,6 +129,29 @@ class OtherUtils {
     return future;
   }
 
+  static Color? peekCachedImageColor(
+    String? url, {
+    bool getLightColor = false,
+  }) {
+    final normalizedUrl = normalizeImageUrl(url);
+    final cacheKey = '$normalizedUrl|${getLightColor ? 'light' : 'dark'}';
+
+    final memoryCached = _imageColorMemoryCache[cacheKey];
+    if (memoryCached != null) {
+      return memoryCached;
+    }
+
+    final diskCached = _imageColorCacheStore.load(
+      imageUrl: normalizedUrl,
+      getLightColor: getLightColor,
+    );
+    if (diskCached != null) {
+      _rememberImageColor(cacheKey, diskCached);
+      return diskCached;
+    }
+    return null;
+  }
+
   static Future<void> prewarmImageColors(
     Iterable<String?> urls, {
     bool getLightColor = false,

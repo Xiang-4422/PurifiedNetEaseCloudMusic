@@ -84,6 +84,7 @@ class PersonalPageView extends GetView<AppController> {
                               child: QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
+                                fallbackColor: const Color(0xFFB86A4A),
                                 albumUrl:
                                     controller.todayRecommendSongs.isNotEmpty
                                         ? (controller.todayRecommendSongs[0]
@@ -150,6 +151,7 @@ class PersonalPageView extends GetView<AppController> {
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
+                                fallbackColor: const Color(0xFF2D6C8C),
                                 albumUrl: controller.isFmMode.isTrue
                                     ? (runtimeState
                                             .currentSong.extras?['image'] ??
@@ -186,6 +188,7 @@ class PersonalPageView extends GetView<AppController> {
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
+                                fallbackColor: const Color(0xFF8B3D5D),
                                 albumUrl: controller.isHeartBeatMode.isTrue
                                     ? (runtimeState
                                             .currentSong.extras?['image'] ??
@@ -270,84 +273,178 @@ class PersonalPageView extends GetView<AppController> {
 }
 
 class QuickStartCard extends StatelessWidget {
-  const QuickStartCard(
-      {Key? key,
-      required this.width,
-      required this.height,
-      this.onTap,
-      required this.albumUrl,
-      this.icon,
-      required this.title})
-      : super(key: key);
+  const QuickStartCard({
+    Key? key,
+    required this.width,
+    required this.height,
+    this.onTap,
+    required this.albumUrl,
+    required this.fallbackColor,
+    this.icon,
+    required this.title,
+  }) : super(key: key);
 
   final double width;
   final double height;
   final Function()? onTap;
   final String albumUrl;
+  final Color fallbackColor;
   final IconData? icon;
   final String title;
 
   @override
   Widget build(BuildContext context) {
-    bool isEnabled = onTap != null;
+    final isEnabled = onTap != null;
     final resolvedAlbumUrl =
         OtherUtils.buildSizedImageUrl(albumUrl, size: '500y500');
+    final borderRadius =
+        BorderRadius.circular(AppDimensions.paddingSmall + 2);
 
     return GestureDetector(
       onTap: isEnabled ? onTap : null,
       child: Opacity(
-        opacity: isEnabled ? 1.0 : 0.5, // Make disabled cards semi-transparent
-        child: Container(
+        opacity: isEnabled ? 1.0 : 0.5,
+        child: SizedBox(
           width: width,
-          clipBehavior: Clip.hardEdge,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDimensions.paddingSmall),
-          ),
+          height: height,
           child: AsyncImageColor(
             imageUrl: resolvedAlbumUrl,
-            child: Column(
-              children: [
-                Expanded(
-                    child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.black, Colors.transparent],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+            fallbackColor: fallbackColor,
+            child: Container(
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                borderRadius: borderRadius,
+                boxShadow: [
+                  BoxShadow(
+                    color: fallbackColor.withValues(alpha: 0.18),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (resolvedAlbumUrl.isNotEmpty)
+                    SimpleExtendedImage(
+                      resolvedAlbumUrl,
+                      width: width,
+                      height: height,
+                      cacheWidth: (width * 2).round(),
+                    ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          fallbackColor.withValues(alpha: 0.88),
+                          fallbackColor.withValues(alpha: 0.42),
+                          Colors.black.withValues(alpha: 0.22),
+                        ],
+                        stops: const [0.0, 0.55, 1.0],
+                      ),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      icon == null
-                          ? const SizedBox.shrink()
-                          : Icon(
-                              icon,
-                              color: Colors.white,
-                            ),
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.12),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.42),
+                        ],
+                        stops: const [0.0, 0.45, 1.0],
                       ),
-                    ],
+                    ),
                   ),
-                )),
-                SimpleExtendedImage(
-                  height: width,
-                  width: width,
-                  resolvedAlbumUrl,
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(AppDimensions.paddingSmall),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.14),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (icon != null) ...[
+                                Icon(
+                                  icon,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            height: 1.05,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _descriptionFor(title),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.82),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  String _descriptionFor(String title) {
+    switch (title) {
+      case '每日推荐':
+        return '从今天开始，直接播';
+      case '漫游模式':
+        return '让队列自己延展下去';
+      case '心动模式':
+        return '围绕你的喜欢继续发散';
+      default:
+        return '';
+    }
   }
 }

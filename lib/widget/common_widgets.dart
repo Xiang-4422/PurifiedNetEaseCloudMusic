@@ -135,12 +135,16 @@ class AsyncImageColor extends StatefulWidget {
   final String imageUrl;
   final bool getLightColor;
   final Widget? child;
+  final Color fallbackColor;
+  final bool deferLoadUntilPostFrame;
 
   const AsyncImageColor({
     Key? key,
     required this.imageUrl,
     this.getLightColor = false,
     this.child,
+    this.fallbackColor = Colors.transparent,
+    this.deferLoadUntilPostFrame = true,
   }) : super(key: key);
 
   @override
@@ -148,22 +152,59 @@ class AsyncImageColor extends StatefulWidget {
 }
 
 class _AsyncImageColorState extends State<AsyncImageColor> {
-  Color _bgColor = Colors.transparent;
+  late Color _bgColor;
   int _loadVersion = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadColor();
+    _bgColor = OtherUtils.peekCachedImageColor(
+          widget.imageUrl,
+          getLightColor: widget.getLightColor,
+        ) ??
+        widget.fallbackColor;
+    _scheduleLoadColorIfNeeded();
   }
 
   @override
   void didUpdateWidget(covariant AsyncImageColor oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.imageUrl != widget.imageUrl ||
-        oldWidget.getLightColor != widget.getLightColor) {
-      _loadColor();
+        oldWidget.getLightColor != widget.getLightColor ||
+        oldWidget.fallbackColor != widget.fallbackColor ||
+        oldWidget.deferLoadUntilPostFrame != widget.deferLoadUntilPostFrame) {
+      _bgColor = OtherUtils.peekCachedImageColor(
+            widget.imageUrl,
+            getLightColor: widget.getLightColor,
+          ) ??
+          widget.fallbackColor;
+      _scheduleLoadColorIfNeeded();
     }
+  }
+
+  void _scheduleLoadColorIfNeeded() {
+    final cachedColor = OtherUtils.peekCachedImageColor(
+      widget.imageUrl,
+      getLightColor: widget.getLightColor,
+    );
+    if (cachedColor != null) {
+      if (_bgColor != cachedColor && mounted) {
+        setState(() {
+          _bgColor = cachedColor;
+        });
+      }
+      return;
+    }
+    if (widget.deferLoadUntilPostFrame) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        _loadColor();
+      });
+      return;
+    }
+    _loadColor();
   }
 
   Future<void> _loadColor() async {

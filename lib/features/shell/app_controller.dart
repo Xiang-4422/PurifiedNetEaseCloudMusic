@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
@@ -33,7 +35,6 @@ class AppController extends SuperController
 
   RxBool get isGradientBackground => settingsController.isGradientBackground;
   RxBool get isRoundAlbumOpen => settingsController.isRoundAlbumOpen;
-  RxBool get isCacheOpen => settingsController.isCacheOpen;
   RxBool get isHighSoundQualityOpen =>
       settingsController.isHighSoundQualityOpen;
   RxBool get isOfflineModeEnabled => settingsController.isOfflineModeEnabled;
@@ -88,6 +89,8 @@ class AppController extends SuperController
   bool isAlbumScrollingManully = false;
   bool isAlbumScrollingProgrammatic = false;
   RxBool isAlbumScrolling = false.obs;
+  int _lastSyncedPlaybackIndex = -1;
+  Timer? _homeImageColorPrewarmTimer;
 
   PanelController bottomPanelController = PanelController();
   late AnimationController bottomPanelAnimationController;
@@ -120,7 +123,9 @@ class AppController extends SuperController
     super.onInit();
     shellController = Get.put(HomeShellController());
     settingsController = Get.put(SettingsController());
-    userController = Get.put(UserController());
+    userController = Get.isRegistered<UserController>()
+        ? Get.find<UserController>()
+        : Get.put(UserController());
     playerController = Get.put(PlayerController());
 
     _initUIController();
@@ -140,9 +145,24 @@ class AppController extends SuperController
       }
     });
 
-    ever(playbackRuntimeState, (_) {
+    ever(playbackRuntimeState, (PlaybackRuntimeState state) {
+      final currentIndex = state.currentIndex;
+      if (currentIndex < 0 || currentIndex == _lastSyncedPlaybackIndex) {
+        return;
+      }
+
+      _lastSyncedPlaybackIndex = currentIndex;
       _animatePlayListToCurSong();
       _animateAlbumPageViewToCurSong();
+    });
+    ever<List<MediaItem>>(todayRecommendSongs, (_) {
+      _scheduleHomeImageColorPrewarm();
+    });
+    ever<List<MediaItem>>(fmSongs, (_) {
+      _scheduleHomeImageColorPrewarm();
+    });
+    ever<String>(randomLikedSongAlbumUrl, (_) {
+      _scheduleHomeImageColorPrewarm();
     });
   }
 
@@ -222,7 +242,16 @@ class AppController extends SuperController
     super.onReady();
     if (userController.hasLocalSnapshot) {
       dateLoaded.value = true;
-      unawaited(updateData());
+      _scheduleHomeImageColorPrewarm();
+      unawaited(
+        (Get.isRegistered<AuthController>()
+                ? Get.find<AuthController>()
+                : Get.put(AuthController()))
+            .validateLoginStateInBackgroundIfNeeded(),
+      );
+      if (userController.shouldRefreshStartupData) {
+        unawaited(updateData());
+      }
       return;
     }
     await updateData();
@@ -233,9 +262,10 @@ class AppController extends SuperController
   }
 
   /// 主页初始化仍统一走这一入口，避免旧页面在各自生命周期里重复拉取同一份用户数据。
-  updateData() async {
+  Future<void> updateData() async {
     await userController.updateUserData();
     dateLoaded.value = true;
+    _scheduleHomeImageColorPrewarm();
 
     refreshController.refreshCompleted();
     refreshController.resetNoData();
@@ -256,6 +286,13 @@ class AppController extends SuperController
   void onResumed() {}
   @override
   void onHidden() {}
+  @override
+  void onClose() {
+    _homeImageColorPrewarmTimer?.cancel();
+    _albumDebounceTimer?.cancel();
+    super.onClose();
+  }
+
   @override
   void didChangeMetrics() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -337,7 +374,32 @@ class AppController extends SuperController
     }
   }
 
-  syncAlbumPage() => _animateAlbumPageViewToCurSong();
+  syncAlbumPage() {
+    if (isAlbumScrollingProgrammatic) {
+      return;
+    }
+    _animateAlbumPageViewToCurSong();
+  }
+
+  void _scheduleHomeImageColorPrewarm() {
+    _homeImageColorPrewarmTimer?.cancel();
+    _homeImageColorPrewarmTimer =
+        Timer(const Duration(milliseconds: 120), () {
+      unawaited(
+        OtherUtils.prewarmImageColors(
+          [
+            todayRecommendSongs.isNotEmpty
+                ? (todayRecommendSongs.first.extras?['image'] as String?)
+                : null,
+            fmSongs.isNotEmpty
+                ? (fmSongs.first.extras?['image'] as String?)
+                : null,
+            randomLikedSongAlbumUrl.value,
+          ],
+        ),
+      );
+    });
+  }
 
   // 专辑页和真实播放索引必须保持单向同步，否则用户会同时触发手势滚动和程序跳页。
   _animateAlbumPageViewToCurSong() {
@@ -350,8 +412,12 @@ class AppController extends SuperController
       }
 
       isAlbumScrollingProgrammatic = true;
-      albumPageController.animateToPage(playbackRuntimeState.value.currentIndex,
-          duration: const Duration(milliseconds: 500), curve: Curves.ease);
+      albumPageController
+          .animateToPage(playbackRuntimeState.value.currentIndex,
+              duration: const Duration(milliseconds: 500), curve: Curves.ease)
+          .whenComplete(() {
+        isAlbumScrollingProgrammatic = false;
+      });
     }
   }
 }

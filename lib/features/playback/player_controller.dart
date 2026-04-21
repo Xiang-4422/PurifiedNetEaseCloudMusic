@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:audio_service/audio_service.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
@@ -65,6 +64,7 @@ class PlayerController extends GetxController {
   RxBool isFullScreenLyricOpen = false.obs;
   double _fullScreenLyricTimerCounter = 0.0;
   int _lastStoredPositionSecond = -1;
+  bool _restoringPlaybackState = false;
 
   @override
   void onReady() {
@@ -101,7 +101,9 @@ class PlayerController extends GetxController {
       if (mediaItem == null) return;
       _syncRuntimeState(currentSong: mediaItem);
       unawaited(_repository.updateRestoreState(currentSongId: mediaItem.id));
-      await _updateCurPlayIndex();
+      await _updateCurPlayIndex(
+        curMediaItemUpdated: !_restoringPlaybackState,
+      );
 
       final currentRuntimeState = runtimeState.value;
       int newIndex = currentRuntimeState.queue.indexWhere(
@@ -163,7 +165,9 @@ class PlayerController extends GetxController {
       }
     });
 
+    _restoringPlaybackState = true;
     await _playbackService.restoreLastPlayState();
+    _restoringPlaybackState = false;
   }
 
   void _syncSessionState({
@@ -401,7 +405,8 @@ class PlayerController extends GetxController {
   }
 
   Future<Track?> removeDownloadedTrackById(String trackId) async {
-    final updatedTrack = await _downloadRepository.removeDownloadedTrack(trackId);
+    final updatedTrack =
+        await _downloadRepository.removeDownloadedTrack(trackId);
     if (updatedTrack == null) {
       return null;
     }
@@ -497,6 +502,7 @@ class PlayerController extends GetxController {
   }
 
   Future<void> playUserLikedSongs() async {
+    await UserController.to.ensureLikedSongsLoaded();
     await _playbackService.playLikedSongs(
       likedSongs: UserController.to.likedSongs.toList(),
       likedSongIds: UserController.to.likedSongIds.toList(),
@@ -657,6 +663,9 @@ class PlayerController extends GetxController {
   }
 
   void _preloadImages() {
+    if (isPlaying.isFalse) {
+      return;
+    }
     final currentRuntimeState = runtimeState.value;
     if (currentRuntimeState.queue.isEmpty) return;
     int currentIndex = currentRuntimeState.currentIndex;
@@ -674,14 +683,13 @@ class PlayerController extends GetxController {
     for (int index in indicesToPreload) {
       String? imageUrl = currentRuntimeState.queue[index].extras?['image'];
       if (imageUrl != null && imageUrl.isNotEmpty) {
-        String fullUrl = '$imageUrl?param=500y500';
+        final fullUrl = OtherUtils.buildSizedImageUrl(
+          imageUrl,
+          size: '500y500',
+        );
         try {
           precacheImage(
-              CachedNetworkImageProvider(fullUrl, headers: const {
-                'User-Agent':
-                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'
-              }),
-              Get.context!);
+              OtherUtils.buildCachedImageProvider(fullUrl), Get.context!);
         } catch (_) {
           // 预取失败只影响切歌时的观感，不能让展示层优化反过来干扰播放主链路。
         }

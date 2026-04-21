@@ -1,4 +1,7 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/colors.dart';
+import 'package:bujuan/common/constants/key.dart';
+import 'package:bujuan/core/storage/cache_box.dart';
 import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/scroll_helpers.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +17,17 @@ class AppRootRouter extends StatelessWidget {
   // delegate 把历史导航状态打散。
   final _rootRouter = RootRouter();
 
+  List<PageRouteInfo> _buildInitialRoutes() {
+    final hasCachedLogin = CacheBox.instance.get(isLoginSP) == true;
+    final hasCachedUserInfo = (CacheBox.instance.get(userInfoSp) as String?)
+            ?.isNotEmpty ==
+        true;
+    if (hasCachedLogin && hasCachedUserInfo) {
+      return const [AppHomeRouteView()];
+    }
+    return const [LoginRouteView()];
+  }
+
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp.router(
@@ -26,6 +40,7 @@ class AppRootRouter extends StatelessWidget {
       themeMode: ThemeMode.system,
       routeInformationParser: _rootRouter.defaultRouteParser(),
       routerDelegate: _rootRouter.delegate(
+        initialRoutes: _buildInitialRoutes(),
         navigatorObservers: () => [AppRouterObserver()],
       ),
     );

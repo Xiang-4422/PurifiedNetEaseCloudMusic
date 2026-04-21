@@ -114,7 +114,7 @@ class MenuView extends GetView<AppController> {
         color: Colors.black12,
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -122,7 +122,7 @@ class MenuView extends GetView<AppController> {
             padding: EdgeInsets.zero,
             icon: Obx(
               () => SimpleExtendedImage.avatar(
-                '${controller.userInfo.value.avatarUrl}?param=300y300',
+                controller.userInfo.value.avatarUrl,
                 shape: BoxShape.circle,
               ),
             ),
@@ -135,41 +135,48 @@ class MenuView extends GetView<AppController> {
             },
           ),
           Expanded(
+            child: Center(
               child: Obx(
-            () => Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: controller.curHomePageTitle.value.split("").map((c) {
-                return Text(
-                  c,
-                  style: context.textTheme.titleLarge,
-                );
-              }).toList(),
+                () => SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children:
+                        controller.curHomePageTitle.value.split("").map((c) {
+                      return Text(
+                        c,
+                        style: context.textTheme.titleLarge,
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
             ),
-          )),
-          ListView.builder(
-            itemCount: controller.leftMenus.length,
+          ),
+          Padding(
             padding: const EdgeInsets.symmetric(vertical: 20),
-            shrinkWrap: true,
-            itemBuilder: (_, index) {
-              return IconButton(
-                onPressed: () {
-                  int onePageAnimationTime = 200;
-                  Duration animationTime = Duration(
-                      milliseconds: onePageAnimationTime *
-                          (controller.homePageController.page! - index)
-                              .abs()
-                              .toInt());
-                  controller.homePageController.animateToPage(index,
-                      duration: animationTime, curve: Curves.linear);
-                },
-                icon: Obx(() => Icon(controller.leftMenus[index].icon,
-                    size: AppDimensions.albumMinSize * 2 / 3,
-                    color: controller.curHomePageIndex.value == index
-                        ? Theme.of(context).primaryColor
-                        : Theme.of(context).iconTheme.color)),
-              );
-            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(controller.leftMenus.length, (index) {
+                return IconButton(
+                  onPressed: () {
+                    int onePageAnimationTime = 200;
+                    Duration animationTime = Duration(
+                        milliseconds: onePageAnimationTime *
+                            (controller.homePageController.page! - index)
+                                .abs()
+                                .toInt());
+                    controller.homePageController.animateToPage(index,
+                        duration: animationTime, curve: Curves.linear);
+                  },
+                  icon: Obx(() => Icon(controller.leftMenus[index].icon,
+                      size: AppDimensions.albumMinSize * 2 / 3,
+                      color: controller.curHomePageIndex.value == index
+                          ? Theme.of(context).primaryColor
+                          : Theme.of(context).iconTheme.color)),
+                );
+              }),
+            ),
           ),
           const SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
         ],

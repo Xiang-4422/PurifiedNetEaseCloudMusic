@@ -31,6 +31,7 @@ class AudioServiceHandler extends BaseAudioHandler
   Future<void> Function(MediaItem mediaItem)? _handleToggleLike;
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
+  Duration _pendingRestorePosition = Duration.zero;
 
   int _curIndex = -1;
 
@@ -98,16 +99,17 @@ class AudioServiceHandler extends BaseAudioHandler
           await compute(stringToPlayList, restoreState.queue);
       int index = playlist
           .indexWhere((element) => element.id == restoreState.currentSongId);
+      if (index < 0 && playlist.isNotEmpty) {
+        index = 0;
+      }
       await changePlayList(playlist,
           index: index,
           playListName: restoreState.playlistName,
           playListNameHeader: restoreState.playlistHeader,
-          changePlayerSource: true,
+          changePlayerSource: false,
           playNow: false,
           needStore: false);
-      if (restoreState.position > Duration.zero) {
-        await seek(restoreState.position);
-      }
+      _pendingRestorePosition = restoreState.position;
     }
   }
 
@@ -178,6 +180,11 @@ class AudioServiceHandler extends BaseAudioHandler
       await playIndex(audioSourceIndex: index, playNow: playNow);
     } else {
       _curIndex = index;
+      if (_curIndex >= 0 && _curIndex < playListCopy.length) {
+        mediaItem.add(playListCopy[_curIndex]);
+        playbackState.add(playbackState.value.copyWith(queueIndex: _curIndex));
+        _updateMediaControls();
+      }
     }
     if (needStore) {
       await _playbackRepository.updateRestoreState(
@@ -236,6 +243,10 @@ class AudioServiceHandler extends BaseAudioHandler
         }
       }
     }
+    if (_pendingRestorePosition > Duration.zero) {
+      await _player.seek(_pendingRestorePosition);
+      _pendingRestorePosition = Duration.zero;
+    }
     if (playNow) {
       if (url.isNotEmpty) {
         await play();
@@ -270,6 +281,13 @@ class AudioServiceHandler extends BaseAudioHandler
 
   @override
   Future<void> play() async {
+    if (_player.audioSource == null &&
+        queue.value.isNotEmpty &&
+        _curIndex >= 0 &&
+        _curIndex < queue.value.length) {
+      await playIndex(audioSourceIndex: _curIndex, playNow: true);
+      return;
+    }
     await _player.play();
     _updateMediaControls();
   }

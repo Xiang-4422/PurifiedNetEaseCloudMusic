@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
-import 'package:bujuan/features/shell/app_controller.dart';
+import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/routes/router.dart';
 import 'package:get/get.dart';
 
 /// 承接二维码登录流程的瞬时状态，避免登录页继续持有轮询与鉴权副作用。
@@ -19,9 +21,47 @@ class AuthController extends GetxController {
   final loginCompleted = false.obs;
 
   Timer? _qrPollingTimer;
+  Future<void>? _bootstrapFuture;
 
   Future<void> bootstrap() async {
+    final pending = _bootstrapFuture;
+    if (pending != null) {
+      return pending;
+    }
+
+    final future = _runBootstrap();
+    _bootstrapFuture = future;
+    try {
+      await future;
+    } finally {
+      _bootstrapFuture = null;
+    }
+  }
+
+  Future<void> validateLoginStateInBackgroundIfNeeded() async {
+    if (!_repository.hasCachedLogin) {
+      return;
+    }
+    final userController = Get.isRegistered<UserController>()
+        ? UserController.to
+        : Get.put(UserController());
+    if (!userController.userInfo.value.isLoggedIn) {
+      return;
+    }
+    await _validateLoginStateInBackground();
+  }
+
+  Future<void> _runBootstrap() async {
     if (_repository.hasCachedLogin) {
+      final userController = Get.isRegistered<UserController>()
+          ? UserController.to
+          : Get.put(UserController());
+      if (userController.userInfo.value.isLoggedIn) {
+        loginCompleted.value = true;
+        unawaited(_validateLoginStateInBackground());
+        return;
+      }
+
       isLoading.value = true;
       await _loadUserData();
       return;
@@ -62,14 +102,43 @@ class AuthController extends GetxController {
 
     if (!isLoginStateActive) {
       await _repository.setLoginFlag(false);
+      if (Get.isRegistered<UserController>()) {
+        await UserController.to.expireLoginSession();
+      }
       WidgetUtil.showToast('登录失效,请重新登录');
       isLoading.value = false;
       return;
     }
 
-    AppController.to.userInfo.value = accountInfo;
-    await AppController.to.updateData();
+    final userController = Get.isRegistered<UserController>()
+        ? UserController.to
+        : Get.put(UserController());
+    userController.userInfo.value = accountInfo;
     loginCompleted.value = true;
+  }
+
+  Future<void> _validateLoginStateInBackground() async {
+    final accountInfo = await _repository.fetchLoginAccountInfo();
+    if (accountInfo.isLoggedIn) {
+      final userController = Get.isRegistered<UserController>()
+          ? UserController.to
+          : Get.put(UserController());
+      userController.userInfo.value = accountInfo;
+      return;
+    }
+
+    await _repository.setLoginFlag(false);
+    if (Get.isRegistered<UserController>()) {
+      await UserController.to.expireLoginSession();
+    }
+    WidgetUtil.showToast('登录失效,请重新登录');
+    Future.microtask(() {
+      final context = Get.context;
+      if (context != null) {
+        // ignore: use_build_context_synchronously
+        AutoRouter.of(context).replaceNamed(Routes.login);
+      }
+    });
   }
 
   void _startPolling(String unikey) {

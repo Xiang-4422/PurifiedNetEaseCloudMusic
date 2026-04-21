@@ -180,8 +180,8 @@ class BottomPanelView extends GetView<AppController> {
                               DownloadState.downloaded => '删除本地下载',
                               DownloadState.failed => '重试下载',
                             },
-                            onPressed: () =>
-                                _handleCurrentTrackDownloadAction(downloadState),
+                            onPressed: () => _handleCurrentTrackDownloadAction(
+                                downloadState),
                             icon: _buildCurrentTrackDownloadIcon(
                               context,
                               downloadState,
@@ -210,7 +210,9 @@ class BottomPanelView extends GetView<AppController> {
                                           width: AppDimensions.albumMinSize,
                                           height: AppDimensions.albumMinSize,
                                           shape: BoxShape.circle,
-                                          '${runtimeState.currentSong.extras?['image'] ?? ''}?param=500y500',
+                                          runtimeState.currentSong
+                                                  .extras?['image'] ??
+                                              '',
                                         ),
                                       )),
                                 ),
@@ -327,7 +329,7 @@ class BottomPanelView extends GetView<AppController> {
                         final runtimeState =
                             controller.playbackRuntimeState.value;
                         return SimpleExtendedImage(
-                          '${runtimeState.currentSong.extras?['image'] ?? ''}?param=500y500',
+                          runtimeState.currentSong.extras?['image'] ?? '',
                         );
                       }),
                       onEnd: () => controller.isAlbumScaleEnded.value = true,
@@ -354,12 +356,8 @@ class BottomPanelView extends GetView<AppController> {
                         controller.isAlbumScrollingManully = true;
                         controller.isAlbumScrollingProgrammatic = false;
                       }
-                      // 滚动结束时重置状态并尝试同步一次
                     } else if (notification is ScrollEndNotification) {
                       controller.isAlbumScrollingManully = false;
-                      controller.isAlbumScrollingProgrammatic = false;
-                      // 结束后同步一下，防止在手动滑动中途切歌导致的不一致
-                      controller.syncAlbumPage();
                     }
                     // 返回 false 让通知继续冒泡，以便 itemPositionsNotifier 也能收到
                     return false;
@@ -411,7 +409,8 @@ class BottomPanelView extends GetView<AppController> {
                               final runtimeState =
                                   controller.playbackRuntimeState.value;
                               return SimpleExtendedImage(
-                                '${runtimeState.queue[index].extras?['image'] ?? ''}?param=500y500',
+                                runtimeState.queue[index].extras?['image'] ??
+                                    '',
                               );
                             }),
                           ),
@@ -851,7 +850,11 @@ class BottomPanelView extends GetView<AppController> {
                                                                 ),
                                                               ]
                                                             : [
-                                                                for (final artist in _artistEntries(controller.playbackRuntimeState.value.currentSong))
+                                                                for (final artist
+                                                                    in _artistEntries(controller
+                                                                        .playbackRuntimeState
+                                                                        .value
+                                                                        .currentSong))
                                                                   Container(
                                                                     alignment:
                                                                         Alignment
@@ -866,8 +869,7 @@ class BottomPanelView extends GetView<AppController> {
                                                                           .panelWidgetColor
                                                                           .value
                                                                           .withValues(
-                                                                              alpha:
-                                                                                  0.1),
+                                                                              alpha: 0.1),
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               albumPadding),
@@ -942,8 +944,7 @@ class BottomPanelView extends GetView<AppController> {
         barCapShape: BarCapShape.round,
         progressBarColor:
             controller.panelWidgetColor.value.withValues(alpha: .1),
-        baseBarColor:
-            controller.panelWidgetColor.value.withValues(alpha: .05),
+        baseBarColor: controller.panelWidgetColor.value.withValues(alpha: .05),
         bufferedBarColor: Colors.transparent,
         thumbColor: controller.panelWidgetColor.value.withValues(alpha: .05),
         thumbRadius: AppDimensions.paddingLarge / 2,
@@ -1194,7 +1195,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
                           child: SimpleExtendedImage(
                             width: realTimeAlbumWidth,
                             height: realTimeAlbumWidth,
-                            '${currentSong.extras?['image'] ?? ''}?param=500y500',
+                            currentSong.extras?['image'] ?? '',
                           ),
                         ),
                       ),
@@ -1219,7 +1220,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
                           width: AppDimensions.albumMinSize,
                           height: AppDimensions.albumMinSize,
                           shape: BoxShape.circle,
-                          '${currentSong.extras?['image'] ?? ''}?param=500y500',
+                          currentSong.extras?['image'] ?? '',
                         ),
                       ),
                     ),

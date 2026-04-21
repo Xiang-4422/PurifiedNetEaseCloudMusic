@@ -21,7 +21,6 @@ class _LoginPageViewState extends State<LoginPageView> {
   void initState() {
     super.initState();
     controller = Get.put(AuthController());
-    controller.bootstrap();
     _loginWorker = ever(controller.loginCompleted, (bool completed) {
       if (!completed || !mounted) {
         return;
@@ -29,6 +28,16 @@ class _LoginPageViewState extends State<LoginPageView> {
       AutoRouter.of(context).replaceNamed(Routes.home);
       controller.consumeLoginCompleted();
     });
+    if (controller.loginCompleted.value) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        AutoRouter.of(context).replaceNamed(Routes.home);
+        controller.consumeLoginCompleted();
+      });
+    }
+    controller.bootstrap();
   }
 
   @override

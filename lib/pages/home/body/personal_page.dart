@@ -84,21 +84,12 @@ class PersonalPageView extends GetView<AppController> {
                               child: QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-<<<<<<< HEAD
                                 albumUrl:
                                     controller.todayRecommendSongs.isNotEmpty
                                         ? (controller.todayRecommendSongs[0]
                                                 .extras?['image'] ??
                                             '')
                                         : '',
-=======
-                                albumUrl:
-                                    controller.todayRecommendSongs.isNotEmpty
-                                        ? (controller.todayRecommendSongs[0]
-                                                .extras?['image'] ??
-                                            '')
-                                        : '',
->>>>>>> e154083 (重构：统一图片缓存与颜色提取复用链路)
                                 icon: TablerIcons.calendar,
                                 title: "每日推荐",
                                 onTap: () => context.router
@@ -163,19 +154,11 @@ class PersonalPageView extends GetView<AppController> {
                                     ? (runtimeState
                                             .currentSong.extras?['image'] ??
                                         '')
-<<<<<<< HEAD
                                     : (controller.fmSongs.isNotEmpty
                                         ? (controller
                                                 .fmSongs[0].extras?['image'] ??
                                             '')
                                         : ''),
-=======
-                                    : (controller.fmSongs.isNotEmpty
-                                        ? (controller
-                                                .fmSongs[0].extras?['image'] ??
-                                            '')
-                                        : ''),
->>>>>>> e154083 (重构：统一图片缓存与颜色提取复用链路)
                                 icon: TablerIcons.infinity,
                                 title: "漫游模式",
                                 onTap: () {

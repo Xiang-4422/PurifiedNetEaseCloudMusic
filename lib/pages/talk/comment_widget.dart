@@ -193,7 +193,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
             Opacity(
               opacity: 0.8,
               child: SimpleExtendedImage.avatar(
-                '${comment.user.avatarUrl}?param=150y150',
+                comment.user.avatarUrl,
                 width: 30,
                 height: 30,
               ),
@@ -229,7 +229,9 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                       Row(
                         children: [
                           Text(
-                            comment.likedCount == 0 ? '' : '${comment.likedCount}',
+                            comment.likedCount == 0
+                                ? ''
+                                : '${comment.likedCount}',
                             style: TextStyle(
                               fontSize: 10,
                               fontFamily: "monospace",
@@ -471,7 +473,7 @@ class _FoolTalkState extends State<FoolTalk> {
                   Row(
                     children: [
                       SimpleExtendedImage.avatar(
-                        '${widget.commentItem.user.avatarUrl}?param=150y150',
+                        widget.commentItem.user.avatarUrl,
                         width: 60,
                         height: 60,
                       ),
@@ -591,7 +593,7 @@ class _FoolTalkState extends State<FoolTalk> {
           Row(
             children: [
               SimpleExtendedImage.avatar(
-                '${comment.user.avatarUrl}?param=150y150',
+                comment.user.avatarUrl,
                 width: 60,
                 height: 60,
               ),

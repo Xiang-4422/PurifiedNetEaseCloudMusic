@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/common/constants/images.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:extended_image/extended_image.dart';
@@ -49,14 +50,13 @@ class SimpleExtendedImage extends StatefulWidget {
 class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   @override
   Widget build(BuildContext context) {
+    final resolvedUrl = OtherUtils.normalizeImageUrl(widget.url);
     // 本地or网络
-    Widget image = widget.url.startsWith('http')
+    Widget image = resolvedUrl.startsWith('http')
         ? CachedNetworkImage(
-            httpHeaders: const {
-              'User-Agent':
-                  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'
-            },
-            imageUrl: widget.url,
+            httpHeaders: OtherUtils.imageHttpHeaders,
+            imageUrl: resolvedUrl,
+            cacheKey: resolvedUrl,
             width: widget.width,
             height: widget.height,
             memCacheWidth: widget.cacheWidth ??
@@ -78,7 +78,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
             cacheWidth: widget.cacheWidth,
             cacheHeight: widget.cacheWidth,
             borderRadius: widget.borderRadius,
-            File(widget.url.split('?').first),
+            File(resolvedUrl.split('?').first),
             width: widget.width,
             height: widget.height,
             fit: widget.fit,

@@ -68,7 +68,7 @@ class UniversalListTile extends StatelessWidget {
           children: [
             if (picUrl != null)
               SimpleExtendedImage(
-                '${picUrl ?? ''}?param=150y150',
+                picUrl ?? '',
                 width: 44,
                 height: 44,
                 cacheWidth: 120,
@@ -152,7 +152,8 @@ class _SongItemState extends State<SongItem> {
   @override
   void didUpdateWidget(covariant SongItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.playlist[oldWidget.index].id != widget.playlist[widget.index].id ||
+    if (oldWidget.playlist[oldWidget.index].id !=
+            widget.playlist[widget.index].id ||
         oldWidget.playlist[oldWidget.index].extras?['downloadState'] !=
             widget.playlist[widget.index].extras?['downloadState']) {
       _downloadState = _resolveDownloadState();
@@ -371,7 +372,7 @@ class PlayListWidget extends GetView<AppController> {
                                     shape: BoxShape.rectangle,
                                     borderRadius:
                                         BorderRadius.circular(albumMargin),
-                                    '${playLists[index].coverUrl ?? ''}?param=200y200',
+                                    playLists[index].coverUrl ?? '',
                                   ),
                                   Obx(
                                     () => Visibility(

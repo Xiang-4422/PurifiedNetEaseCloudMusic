@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_media_item_mapper.dart';
@@ -83,7 +84,8 @@ class NeteaseUserRemoteDataSource {
     );
   }
 
-  Future<({List<Track> tracks, List<MediaItem> mediaItems})> fetchHeartBeatSongs({
+  Future<({List<Track> tracks, List<MediaItem> mediaItems})>
+      fetchHeartBeatSongs({
     required String startSongId,
     required String randomLikedSongId,
     required bool fromPlayAll,
@@ -145,7 +147,7 @@ class NeteaseUserRemoteDataSource {
     if (tracks.isEmpty) {
       return '';
     }
-    return '${tracks.first.artworkUrl ?? ''}?param=500y500';
+    return OtherUtils.normalizeImageUrl(tracks.first.artworkUrl);
   }
 
   Future<({bool success, String? message})> toggleLikeSong(

@@ -149,6 +149,7 @@ class AsyncImageColor extends StatefulWidget {
 
 class _AsyncImageColorState extends State<AsyncImageColor> {
   Color _bgColor = Colors.transparent;
+  int _loadVersion = 0;
 
   @override
   void initState() {
@@ -166,11 +167,12 @@ class _AsyncImageColorState extends State<AsyncImageColor> {
   }
 
   Future<void> _loadColor() async {
+    final loadVersion = ++_loadVersion;
     final color = await OtherUtils.getImageColor(
       widget.imageUrl,
       getLightColor: widget.getLightColor,
     );
-    if (mounted) {
+    if (mounted && loadVersion == _loadVersion) {
       setState(() {
         _bgColor = color;
       });

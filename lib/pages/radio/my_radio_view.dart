@@ -109,7 +109,7 @@ class _MyRadioViewState extends State<MyRadioView> {
           child: Row(
             children: [
               SimpleExtendedImage(
-                '${data.coverUrl}?param=200y200',
+                data.coverUrl,
                 width: 85,
                 height: 85,
                 borderRadius: BorderRadius.circular(10),

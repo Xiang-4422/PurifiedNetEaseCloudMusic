@@ -11,6 +11,20 @@ import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 
 mixin ApiPlay {
+  String _normalizeImageUrl(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.queryParameters.containsKey('param')) {
+      return url;
+    }
+    final queryParameters = Map<String, String>.from(uri.queryParameters)
+      ..remove('param');
+    return uri
+        .replace(
+          queryParameters: queryParameters.isEmpty ? null : queryParameters,
+        )
+        .toString();
+  }
+
   /// 歌单收藏者
   Future<PlaylistSubscribersWrap> playlistSubscribers(String pid,
       {int offset = 0, int limit = 30}) {
@@ -138,9 +152,7 @@ mixin ApiPlay {
             var item = PlayList();
             item.id = match.group(2)?.substring('/playlist?id='.length) ?? '';
             item.name = match.group(3) ?? '';
-            item.coverImgUrl = match.group(1)?.substring(
-                    0, match.group(1)?.length ?? 0 - '?param=50y50'.length) ??
-                '';
+            item.coverImgUrl = _normalizeImageUrl(match.group(1) ?? '');
             item.creator = NeteaseUserInfo();
             item.creator?.userId =
                 match.group(4)?.substring('/user/home?id='.length) ?? '';

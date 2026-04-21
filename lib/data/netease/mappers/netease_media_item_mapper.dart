@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
 
 class NeteaseMediaItemMapper {
@@ -15,12 +16,12 @@ class NeteaseMediaItemMapper {
           (song) => MediaItem(
             id: song.simpleSong.id,
             duration: Duration(milliseconds: song.simpleSong.dt ?? 0),
-            artUri: Uri.parse(
-              '${song.simpleSong.al?.picUrl ?? ''}?param=500y500',
+            artUri: Uri.tryParse(
+              OtherUtils.normalizeImageUrl(song.simpleSong.al?.picUrl),
             ),
             extras: {
               'url': '',
-              'image': song.simpleSong.al?.picUrl ?? '',
+              'image': OtherUtils.normalizeImageUrl(song.simpleSong.al?.picUrl),
               'type': MediaType.playlist.name,
               'liked': likedSongIds.contains(int.tryParse(song.simpleSong.id)),
               'artist': (song.simpleSong.ar ?? [])
@@ -53,15 +54,17 @@ class NeteaseMediaItemMapper {
           (song) => MediaItem(
             id: song.id,
             duration: Duration(milliseconds: song.duration ?? 0),
-            artUri: Uri.parse('${song.album?.picUrl ?? ''}?param=200y200'),
+            artUri: Uri.tryParse(
+              OtherUtils.normalizeImageUrl(song.album?.picUrl),
+            ),
             extras: {
-              'image': song.album?.picUrl ?? '',
+              'image': OtherUtils.normalizeImageUrl(song.album?.picUrl),
               'liked': likedSongIds.contains(int.tryParse(song.id)),
-              'artist': (song.artists ?? [])
-                  .map((artist) => artist.name)
-                  .join(' / '),
-              'artistNames':
-                  (song.artists ?? []).map((artist) => artist.name ?? '').toList(),
+              'artist':
+                  (song.artists ?? []).map((artist) => artist.name).join(' / '),
+              'artistNames': (song.artists ?? [])
+                  .map((artist) => artist.name ?? '')
+                  .toList(),
               'artistIds':
                   (song.artists ?? []).map((artist) => artist.id).toList(),
               'albumId': song.album?.id ?? '',

@@ -10,6 +10,7 @@ import 'package:lottie/lottie.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../common/constants/app_constants.dart';
+import '../../../common/constants/other.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import '../../../routes/router.gr.dart' as gr;
 import '../../../widget/common_widgets.dart';
@@ -45,7 +46,7 @@ class PersonalPageView extends GetView<AppController> {
                   child: child);
             }),
         controller: controller.refreshController,
-        child: CustomScrollView(cacheExtent: 500, slivers: [
+        child: CustomScrollView(cacheExtent: 120, slivers: [
           SliverToBoxAdapter(
             child: Container(
               height: context.mediaQueryPadding.top,
@@ -83,8 +84,21 @@ class PersonalPageView extends GetView<AppController> {
                               child: QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: controller
-                                    .todayRecommendSongs[0].extras?['image'],
+<<<<<<< HEAD
+                                albumUrl:
+                                    controller.todayRecommendSongs.isNotEmpty
+                                        ? (controller.todayRecommendSongs[0]
+                                                .extras?['image'] ??
+                                            '')
+                                        : '',
+=======
+                                albumUrl:
+                                    controller.todayRecommendSongs.isNotEmpty
+                                        ? (controller.todayRecommendSongs[0]
+                                                .extras?['image'] ??
+                                            '')
+                                        : '',
+>>>>>>> e154083 (重构：统一图片缓存与颜色提取复用链路)
                                 icon: TablerIcons.calendar,
                                 title: "每日推荐",
                                 onTap: () => context.router
@@ -149,8 +163,19 @@ class PersonalPageView extends GetView<AppController> {
                                     ? (runtimeState
                                             .currentSong.extras?['image'] ??
                                         '')
-                                    : (controller.fmSongs[0].extras?['image'] ??
-                                        ''),
+<<<<<<< HEAD
+                                    : (controller.fmSongs.isNotEmpty
+                                        ? (controller
+                                                .fmSongs[0].extras?['image'] ??
+                                            '')
+                                        : ''),
+=======
+                                    : (controller.fmSongs.isNotEmpty
+                                        ? (controller
+                                                .fmSongs[0].extras?['image'] ??
+                                            '')
+                                        : ''),
+>>>>>>> e154083 (重构：统一图片缓存与颜色提取复用链路)
                                 icon: TablerIcons.infinity,
                                 title: "漫游模式",
                                 onTap: () {
@@ -282,6 +307,8 @@ class QuickStartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isEnabled = onTap != null;
+    final resolvedAlbumUrl =
+        OtherUtils.buildSizedImageUrl(albumUrl, size: '500y500');
 
     return GestureDetector(
       onTap: isEnabled ? onTap : null,
@@ -294,7 +321,7 @@ class QuickStartCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimensions.paddingSmall),
           ),
           child: AsyncImageColor(
-            imageUrl: albumUrl,
+            imageUrl: resolvedAlbumUrl,
             child: Column(
               children: [
                 Expanded(
@@ -331,7 +358,7 @@ class QuickStartCard extends StatelessWidget {
                 SimpleExtendedImage(
                   height: width,
                   width: width,
-                  albumUrl,
+                  resolvedAlbumUrl,
                 ),
               ],
             ),

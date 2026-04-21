@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 
@@ -18,10 +19,10 @@ class MediaItemMapper {
       final localLyricsPath = track.localLyricsPath ?? '';
       final imageUrl = localArtworkPath.isNotEmpty
           ? localArtworkPath
-          : track.artworkUrl ?? '';
+          : OtherUtils.normalizeImageUrl(track.artworkUrl);
       final artUri = localArtworkPath.isNotEmpty
           ? Uri.file(File(localArtworkPath).path)
-          : Uri.tryParse('${track.artworkUrl ?? ''}?param=200y200');
+          : Uri.tryParse(OtherUtils.normalizeImageUrl(track.artworkUrl));
       return MediaItem(
         id: track.id,
         duration: Duration(milliseconds: track.durationMs ?? 0),
@@ -34,7 +35,8 @@ class MediaItemMapper {
           'artist': track.artistNames.join(' / '),
           'artistNames': track.artistNames,
           'artistIds': List<String>.from(
-            (track.metadata['artistIds'] as List?)?.map((e) => '$e') ?? const [],
+            (track.metadata['artistIds'] as List?)?.map((e) => '$e') ??
+                const [],
           ),
           'albumTitle': track.albumTitle ?? '',
           'albumId': track.metadata['albumId']?.toString() ?? '',

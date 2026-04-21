@@ -306,9 +306,10 @@ class _SettingPageViewState extends State<SettingPageView> {
             color: Theme.of(context).cardColor.withValues(alpha: .5),
           ),
           onTap: () {
-            Navigator.of(context).push(
+            Navigator.of(context, rootNavigator: true).push(
               MaterialPageRoute(
                 builder: (_) => const CoverFlowDemoPageView(),
+                fullscreenDialog: true,
               ),
             );
           },

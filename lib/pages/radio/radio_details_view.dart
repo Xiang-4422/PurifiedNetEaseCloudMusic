@@ -32,6 +32,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
     _controller = RadioDetailController(
       repository: _repository,
       radioId: _radioId,
+      userId: AppController.to.userInfo.value.userId,
     )..loadInitial();
   }
 

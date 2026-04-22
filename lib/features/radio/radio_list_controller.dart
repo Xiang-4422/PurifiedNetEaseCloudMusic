@@ -7,10 +7,13 @@ import 'package:flutter/foundation.dart';
 
 class RadioListController {
   RadioListController({
+    required String userId,
     RadioRepository? repository,
     this.pageSize = 30,
-  }) : _repository = repository ?? RadioRepository();
+  })  : _userId = userId,
+        _repository = repository ?? RadioRepository();
 
+  final String _userId;
   final RadioRepository _repository;
   final int pageSize;
   final ValueNotifier<PagedState<RadioSummaryData>> state =
@@ -19,8 +22,12 @@ class RadioListController {
   int _offset = 0;
 
   Future<void> loadInitial() async {
-    final cachedItems = await _repository.loadCachedSubscribedRadios();
-    if (cachedItems != null && cachedItems.isNotEmpty) {
+    if (_userId.isEmpty) {
+      state.value = const PagedState(items: [], hasMore: false);
+      return;
+    }
+    final cachedItems = await _repository.loadCachedSubscribedRadios(_userId);
+    if (cachedItems.isNotEmpty) {
       _offset = cachedItems.length;
       state.value = PagedState.data(
         cachedItems,
@@ -52,6 +59,7 @@ class RadioListController {
     );
     try {
       final page = await _repository.fetchSubscribedRadios(
+        userId: _userId,
         offset: _offset,
         limit: pageSize,
       );
@@ -74,6 +82,7 @@ class RadioListController {
   Future<bool> _reload() async {
     try {
       final page = await _repository.fetchSubscribedRadios(
+        userId: _userId,
         offset: 0,
         limit: pageSize,
       );

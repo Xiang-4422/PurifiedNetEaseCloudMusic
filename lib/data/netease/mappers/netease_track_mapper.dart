@@ -58,4 +58,20 @@ class NeteaseTrackMapper {
   static List<Track> fromSongList(List<Song> songs) {
     return songs.map(fromSong).toList();
   }
+
+  static Track fromCloudSong(CloudSongItem song) {
+    final track = fromSong2(song.simpleSong);
+    return track.copyWith(
+      metadata: {
+        ...track.metadata,
+        'cloudSongId': song.songId,
+        'cloudFileName': song.fileName,
+        'cloudAddTime': song.addTime,
+      },
+    );
+  }
+
+  static List<Track> fromCloudSongList(List<CloudSongItem> songs) {
+    return songs.map(fromCloudSong).toList();
+  }
 }

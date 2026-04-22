@@ -278,6 +278,7 @@ class AppController extends SuperController
   @override
   Future<void> onReady() async {
     super.onReady();
+    await userController.ensureCacheLoaded();
     if (userController.hasLocalSnapshot) {
       dateLoaded.value = true;
       _scheduleHomeImageColorPrewarm();
@@ -287,7 +288,7 @@ class AppController extends SuperController
                 : Get.put(AuthController()))
             .validateLoginStateInBackgroundIfNeeded(),
       );
-      if (userController.shouldRefreshStartupData) {
+      if (await userController.shouldRefreshStartupData()) {
         unawaited(updateData());
       }
       return;
@@ -430,8 +431,7 @@ class AppController extends SuperController
 
   void _scheduleHomeImageColorPrewarm() {
     _homeImageColorPrewarmTimer?.cancel();
-    _homeImageColorPrewarmTimer =
-        Timer(const Duration(milliseconds: 120), () {
+    _homeImageColorPrewarmTimer = Timer(const Duration(milliseconds: 120), () {
       unawaited(
         OtherUtils.prewarmImageColors(
           [

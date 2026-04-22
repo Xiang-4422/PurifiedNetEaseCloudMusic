@@ -1,9 +1,12 @@
+import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_search_remote_data_source.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:get_it/get_it.dart';
@@ -13,17 +16,23 @@ class SearchRepository {
     LibraryRepository? libraryRepository,
     NeteaseSearchRemoteDataSource? remoteDataSource,
     SearchCacheStore? cacheStore,
+    UserScopedDataSource? userScopedDataSource,
   })  : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository()),
         _remoteDataSource =
             remoteDataSource ?? const NeteaseSearchRemoteDataSource(),
-        _cacheStore = cacheStore ?? const SearchCacheStore();
+        _cacheStore = cacheStore ?? const SearchCacheStore(),
+        _userScopedDataSource = userScopedDataSource ??
+            (GetIt.instance.isRegistered<UserScopedDataSource>()
+                ? GetIt.instance<UserScopedDataSource>()
+                : (throw StateError('UserScopedDataSource is not registered')));
 
   final LibraryRepository _libraryRepository;
   final NeteaseSearchRemoteDataSource _remoteDataSource;
   final SearchCacheStore _cacheStore;
+  final UserScopedDataSource _userScopedDataSource;
 
   Future<List<String>?> loadCachedHotKeywords() {
     return _cacheStore.loadHotKeywords();
@@ -65,19 +74,34 @@ class SearchRepository {
     );
   }
 
-  Future<List<PlaylistEntity>> searchPlaylists(String keyword) async {
-    final localPlaylists = await _libraryRepository.searchLocalPlaylists(
-      keyword,
+  Future<List<PlaylistEntity>> searchPlaylists(
+    String keyword, {
+    required String currentUserId,
+  }) async {
+    final localPlaylists =
+        await _libraryRepository.searchLocalPlaylists(keyword);
+    final userPlaylists = currentUserId.isEmpty
+        ? const <PlaylistEntity>[]
+        : (await _userScopedDataSource.searchPlaylistItems(
+            currentUserId,
+            keyword,
+          ))
+            .map(_playlistSummaryToEntity)
+            .toList();
+    final mergedLocalPlaylists = _mergeById(
+      localPlaylists,
+      userPlaylists,
+      (playlist) => playlist.id,
     );
     if (_libraryRepository.isOfflineModeEnabled) {
-      return localPlaylists;
+      return mergedLocalPlaylists;
     }
     final remotePlaylists = await _libraryRepository.searchPlaylists(
       sourceKey: 'netease',
       keyword: keyword,
     );
     return _mergeById(
-      localPlaylists,
+      mergedLocalPlaylists,
       remotePlaylists,
       (playlist) => playlist.id,
     );
@@ -120,5 +144,17 @@ class SearchRepository {
       }
     }
     return merged;
+  }
+
+  PlaylistEntity _playlistSummaryToEntity(PlaylistSummaryData playlist) {
+    return PlaylistEntity(
+      id: 'netease:${playlist.id}',
+      sourceType: SourceType.netease,
+      sourceId: playlist.id,
+      title: playlist.title,
+      description: playlist.description,
+      coverUrl: playlist.coverUrl,
+      trackCount: playlist.trackCount,
+    );
   }
 }

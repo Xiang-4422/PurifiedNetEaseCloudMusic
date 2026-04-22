@@ -52,6 +52,7 @@ class _TopPanelViewState extends State<TopPanelView> {
       TopPanelView._searchPanelController.search(
         keyword,
         likedSongIds: controller.likedSongIds.toList(),
+        currentUserId: controller.userInfo.value.userId,
       );
     });
   }

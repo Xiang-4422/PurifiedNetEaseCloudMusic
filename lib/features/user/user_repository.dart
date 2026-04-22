@@ -1,11 +1,11 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_user_remote_data_source.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playlist/playlist_summary_data.dart';
-import 'package:bujuan/features/user/user_profile_cache_store.dart';
 import 'package:bujuan/features/user/user_profile_data.dart';
 import 'package:get_it/get_it.dart';
 
@@ -13,34 +13,96 @@ class UserRepository {
   UserRepository({
     LibraryRepository? libraryRepository,
     NeteaseUserRemoteDataSource? remoteDataSource,
-    UserProfileCacheStore? profileCacheStore,
+    UserScopedDataSource? userScopedDataSource,
   })  : _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository()),
         _remoteDataSource =
             remoteDataSource ?? const NeteaseUserRemoteDataSource(),
-        _profileCacheStore = profileCacheStore ?? const UserProfileCacheStore();
+        _userScopedDataSource = userScopedDataSource ??
+            (GetIt.instance.isRegistered<UserScopedDataSource>()
+                ? GetIt.instance<UserScopedDataSource>()
+                : (throw StateError('UserScopedDataSource is not registered')));
 
   final LibraryRepository _libraryRepository;
   final NeteaseUserRemoteDataSource _remoteDataSource;
-  final UserProfileCacheStore _profileCacheStore;
+  final UserScopedDataSource _userScopedDataSource;
 
   Future<UserProfileData?> loadCachedUserDetail(String userId) {
-    return _profileCacheStore.loadProfile(userId);
+    return _userScopedDataSource.loadProfile(userId);
   }
 
   Future<UserProfileData> fetchUserDetail(String userId) async {
     final profile = await _remoteDataSource.fetchUserDetail(userId);
-    await _profileCacheStore.saveProfile(profile);
+    await _userScopedDataSource.saveProfile(profile);
     return profile;
   }
 
+  Future<List<int>> loadCachedLikedSongIds(String userId) async {
+    final trackIds = await _userScopedDataSource.loadTrackIds(
+      userId,
+      UserTrackListKind.liked,
+    );
+    return trackIds
+        .map(_toSongSourceId)
+        .whereType<int>()
+        .toList(growable: false);
+  }
+
+  Future<List<PlaylistSummaryData>> loadCachedPlaylistList(
+    String userId,
+    UserPlaylistListKind kind,
+  ) {
+    return _userScopedDataSource.loadPlaylistItems(userId, kind);
+  }
+
+  Future<List<MediaItem>> loadCachedTrackList({
+    required String userId,
+    required UserTrackListKind kind,
+    required List<int> likedSongIds,
+  }) async {
+    final trackIds = await _userScopedDataSource.loadTrackIds(userId, kind);
+    return loadCachedSongsByIds(
+      ids: trackIds,
+      likedSongIds: likedSongIds,
+    );
+  }
+
+  Future<bool> isSyncMarkerFresh({
+    required String userId,
+    required String markerKey,
+    required Duration ttl,
+  }) async {
+    final updatedAt = await _userScopedDataSource.loadSyncMarker(
+      userId,
+      markerKey,
+    );
+    if (updatedAt == null) {
+      return false;
+    }
+    return DateTime.now().difference(updatedAt) < ttl;
+  }
+
+  Future<void> markSyncMarkerUpdated({
+    required String userId,
+    required String markerKey,
+  }) {
+    return _userScopedDataSource.markSyncMarkerUpdated(userId, markerKey);
+  }
+
   Future<List<int>> fetchLikedSongIds(String userId) async {
-    return _remoteDataSource.fetchLikedSongIds(userId);
+    final likedSongIds = await _remoteDataSource.fetchLikedSongIds(userId);
+    await _userScopedDataSource.replaceTrackList(
+      userId,
+      UserTrackListKind.liked,
+      likedSongIds.map((songId) => 'netease:$songId').toList(),
+    );
+    return likedSongIds;
   }
 
   Future<List<PlaylistSummaryData>> fetchRecommendedPlaylists({
+    required String userId,
     required int offset,
     int limit = 10,
   }) async {
@@ -48,17 +110,45 @@ class UserRepository {
       offset: offset,
       limit: limit,
     );
-    await _libraryRepository.savePlaylists(playlists);
-    return playlists.map(PlaylistSummaryData.fromEntity).toList();
+    final summaries = playlists.map(PlaylistSummaryData.fromEntity).toList();
+    if (offset == 0) {
+      await _userScopedDataSource.replacePlaylistItems(
+        userId,
+        UserPlaylistListKind.recommended,
+        summaries,
+      );
+    } else {
+      await _userScopedDataSource.appendPlaylistItems(
+        userId,
+        UserPlaylistListKind.recommended,
+        summaries,
+        startOrder: offset,
+      );
+    }
+    return summaries;
   }
 
   Future<List<PlaylistSummaryData>> fetchUserPlaylists(String userId) async {
     final playlists = await _remoteDataSource.fetchUserPlaylists(userId);
-    await _libraryRepository.savePlaylists(playlists);
-    return playlists.map(PlaylistSummaryData.fromEntity).toList();
+    final summaries = playlists.map(PlaylistSummaryData.fromEntity).toList();
+    final likedCollection = summaries.take(1).toList();
+    final ownPlaylists =
+        summaries.length > 1 ? summaries.sublist(1) : <PlaylistSummaryData>[];
+    await _userScopedDataSource.replacePlaylistItems(
+      userId,
+      UserPlaylistListKind.likedCollection,
+      likedCollection,
+    );
+    await _userScopedDataSource.replacePlaylistItems(
+      userId,
+      UserPlaylistListKind.userPlaylists,
+      ownPlaylists,
+    );
+    return summaries;
   }
 
   Future<List<MediaItem>> fetchTodayRecommendSongs({
+    required String userId,
     required List<int> likedSongIds,
   }) async {
     final result = await _remoteDataSource.fetchTodayRecommendSongs(
@@ -66,16 +156,27 @@ class UserRepository {
     );
     final tracks = result.tracks;
     await _libraryRepository.saveTracks(tracks);
+    await _userScopedDataSource.replaceTrackList(
+      userId,
+      UserTrackListKind.dailyRecommend,
+      tracks.map((track) => track.id).toList(),
+    );
     return _mediaItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
   Future<List<MediaItem>> fetchFmSongs({
+    required String userId,
     required List<int> likedSongIds,
   }) async {
     final result = await _remoteDataSource.fetchFmSongs(
       likedSongIds: likedSongIds,
     );
     await _libraryRepository.saveTracks(result.tracks);
+    await _userScopedDataSource.replaceTrackList(
+      userId,
+      UserTrackListKind.fm,
+      result.tracks.map((track) => track.id).toList(),
+    );
     return _mediaItemsFromSavedTracks(result.tracks,
         likedSongIds: likedSongIds);
   }
@@ -162,8 +263,28 @@ class UserRepository {
     return loadCachedSongAlbumUrl(songId);
   }
 
-  Future<OperationResult> toggleLikeSong(String songId, bool like) async {
+  Future<OperationResult> toggleLikeSong(
+    String userId,
+    String songId,
+    bool like,
+  ) async {
     final result = await _remoteDataSource.toggleLikeSong(songId, like);
+    if (result.success) {
+      final trackId = _toTrackId(songId);
+      if (like) {
+        await _userScopedDataSource.upsertTrackRef(
+          userId,
+          UserTrackListKind.liked,
+          trackId,
+        );
+      } else {
+        await _userScopedDataSource.deleteTrackRef(
+          userId,
+          UserTrackListKind.liked,
+          trackId,
+        );
+      }
+    }
     return OperationResult(
       success: result.success,
       message: result.message,
@@ -176,10 +297,6 @@ class UserRepository {
       success: result.success,
       message: result.message,
     );
-  }
-
-  Future<void> clearCachedProfiles() {
-    return _profileCacheStore.clearAllProfiles();
   }
 
   String _toTrackId(String songId) {
@@ -203,5 +320,12 @@ class UserRepository {
       mergedTracks.isEmpty ? tracks : mergedTracks,
       likedSongIds: likedSongIds,
     );
+  }
+
+  int? _toSongSourceId(String trackId) {
+    final sourceId = trackId.startsWith('netease:')
+        ? trackId.substring('netease:'.length)
+        : trackId;
+    return int.tryParse(sourceId);
   }
 }

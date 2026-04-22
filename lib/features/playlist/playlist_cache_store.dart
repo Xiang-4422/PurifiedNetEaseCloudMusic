@@ -56,6 +56,12 @@ class PlaylistCacheStore {
     await _pruneCaches();
   }
 
+  Future<void> invalidate(String playlistId) async {
+    await CacheBox.instance.delete(_songsCacheKey(playlistId));
+    await CacheBox.instance.delete(_snapshotCacheKey(playlistId));
+    await _timestampStore.clear(_refreshCacheKey(playlistId));
+  }
+
   String _songsCacheKey(String playlistId) => 'PLAYLIST_SONGS_$playlistId';
 
   String _snapshotCacheKey(String playlistId) =>

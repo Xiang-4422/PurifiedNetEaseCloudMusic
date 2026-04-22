@@ -62,6 +62,7 @@ class SearchPanelController {
   Future<void> search(
     String keyword, {
     required List<int> likedSongIds,
+    required String currentUserId,
     bool force = false,
   }) async {
     final normalizedKeyword = keyword.trim();
@@ -83,7 +84,7 @@ class SearchPanelController {
     artistState.value = const LoadState.loading();
     await Future.wait([
       _loadSongs(normalizedKeyword, likedSongIds: likedSongIds),
-      _loadPlaylists(normalizedKeyword),
+      _loadPlaylists(normalizedKeyword, currentUserId: currentUserId),
       _loadAlbums(normalizedKeyword),
       _loadArtists(normalizedKeyword),
     ]);
@@ -105,9 +106,15 @@ class SearchPanelController {
     }
   }
 
-  Future<void> _loadPlaylists(String keyword) async {
+  Future<void> _loadPlaylists(
+    String keyword, {
+    required String currentUserId,
+  }) async {
     try {
-      final playlists = await _repository.searchPlaylists(keyword);
+      final playlists = await _repository.searchPlaylists(
+        keyword,
+        currentUserId: currentUserId,
+      );
       playlistState.value = playlists.isEmpty
           ? const LoadState.empty()
           : LoadState.data(playlists);

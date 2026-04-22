@@ -1,23 +1,59 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_cloud_remote_data_source.dart';
-import 'package:bujuan/features/cloud/cloud_cache_store.dart';
+import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/features/library/library_repository.dart';
+import 'package:get_it/get_it.dart';
 
 class CloudRepository {
   CloudRepository({
+    LibraryRepository? libraryRepository,
+    UserScopedDataSource? userScopedDataSource,
     NeteaseCloudRemoteDataSource? remoteDataSource,
-    CloudCacheStore? cacheStore,
   })  : _remoteDataSource =
             remoteDataSource ?? const NeteaseCloudRemoteDataSource(),
-        _cacheStore = cacheStore ?? const CloudCacheStore();
+        _libraryRepository = libraryRepository ??
+            (GetIt.instance.isRegistered<LibraryRepository>()
+                ? GetIt.instance<LibraryRepository>()
+                : LibraryRepository()),
+        _userScopedDataSource = userScopedDataSource ??
+            (GetIt.instance.isRegistered<UserScopedDataSource>()
+                ? GetIt.instance<UserScopedDataSource>()
+                : (throw StateError('UserScopedDataSource is not registered')));
 
   final NeteaseCloudRemoteDataSource _remoteDataSource;
-  final CloudCacheStore _cacheStore;
+  final LibraryRepository _libraryRepository;
+  final UserScopedDataSource _userScopedDataSource;
 
-  Future<List<MediaItem>?> loadCachedSongs() {
-    return _cacheStore.loadSongs();
+  Future<List<MediaItem>> loadCachedSongs({
+    required String userId,
+    required List<int> likedSongIds,
+  }) async {
+    final trackIds = await _userScopedDataSource.loadTrackIds(
+      userId,
+      UserTrackListKind.cloud,
+    );
+    if (trackIds.isEmpty) {
+      return const [];
+    }
+    final tracks = await _libraryRepository.getTracksByIds(trackIds);
+    if (tracks.isEmpty) {
+      return const [];
+    }
+    final tracksById = {for (final track in tracks) track.id: track};
+    final orderedTracks = trackIds
+        .map((trackId) => tracksById[trackId])
+        .whereType<Track>()
+        .toList();
+    return MediaItemMapper.fromTrackList(
+      orderedTracks,
+      likedSongIds: likedSongIds,
+    );
   }
 
   Future<CloudSongPage> fetchCloudSongs({
+    required String userId,
     required int offset,
     required int limit,
     required List<int> likedSongIds,
@@ -27,8 +63,21 @@ class CloudRepository {
       limit: limit,
       likedSongIds: likedSongIds,
     );
-    if (offset == 0 && result.items.isNotEmpty) {
-      await _cacheStore.saveSongs(result.items);
+    await _libraryRepository.saveTracks(result.tracks);
+    final trackIds = result.tracks.map((track) => track.id).toList();
+    if (offset == 0) {
+      await _userScopedDataSource.replaceTrackList(
+        userId,
+        UserTrackListKind.cloud,
+        trackIds,
+      );
+    } else {
+      await _userScopedDataSource.appendTrackList(
+        userId,
+        UserTrackListKind.cloud,
+        trackIds,
+        startOrder: offset,
+      );
     }
     return CloudSongPage(
       items: result.items,

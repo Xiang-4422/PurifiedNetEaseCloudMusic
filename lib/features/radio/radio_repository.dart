@@ -1,27 +1,40 @@
+import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_radio_remote_data_source.dart';
-import 'package:bujuan/features/radio/radio_cache_store.dart';
 import 'package:bujuan/features/radio/radio_data.dart';
+import 'package:get_it/get_it.dart';
 
 class RadioRepository {
   RadioRepository({
+    UserScopedDataSource? userScopedDataSource,
     NeteaseRadioRemoteDataSource? remoteDataSource,
-    RadioCacheStore? cacheStore,
   })  : _remoteDataSource =
             remoteDataSource ?? const NeteaseRadioRemoteDataSource(),
-        _cacheStore = cacheStore ?? const RadioCacheStore();
+        _userScopedDataSource = userScopedDataSource ??
+            (GetIt.instance.isRegistered<UserScopedDataSource>()
+                ? GetIt.instance<UserScopedDataSource>()
+                : (throw StateError('UserScopedDataSource is not registered')));
 
   final NeteaseRadioRemoteDataSource _remoteDataSource;
-  final RadioCacheStore _cacheStore;
+  final UserScopedDataSource _userScopedDataSource;
 
-  Future<List<RadioSummaryData>?> loadCachedSubscribedRadios() {
-    return _cacheStore.loadSubscribedRadios();
+  Future<List<RadioSummaryData>> loadCachedSubscribedRadios(String userId) {
+    return _userScopedDataSource.loadSubscribedRadios(userId);
   }
 
-  Future<List<RadioProgramData>?> loadCachedPrograms(String radioId) {
-    return _cacheStore.loadPrograms(radioId);
+  Future<List<RadioProgramData>> loadCachedPrograms(
+    String userId,
+    String radioId, {
+    required bool asc,
+  }) {
+    return _userScopedDataSource.loadPrograms(
+      userId,
+      radioId,
+      asc: asc,
+    );
   }
 
   Future<DjRadioPage> fetchSubscribedRadios({
+    required String userId,
     bool total = true,
     required int offset,
     required int limit,
@@ -31,8 +44,14 @@ class RadioRepository {
       offset: offset,
       limit: limit,
     );
-    if (offset == 0 && result.items.isNotEmpty) {
-      await _cacheStore.saveSubscribedRadios(result.items);
+    if (offset == 0) {
+      await _userScopedDataSource.replaceSubscribedRadios(userId, result.items);
+    } else {
+      await _userScopedDataSource.appendSubscribedRadios(
+        userId,
+        result.items,
+        startOrder: offset,
+      );
     }
     return DjRadioPage(
       items: result.items,
@@ -42,6 +61,7 @@ class RadioRepository {
   }
 
   Future<DjProgramPage> fetchPrograms(
+    String userId,
     String radioId, {
     required int offset,
     required int limit,
@@ -53,8 +73,21 @@ class RadioRepository {
       limit: limit,
       asc: asc,
     );
-    if (offset == 0 && result.items.isNotEmpty) {
-      await _cacheStore.savePrograms(radioId, result.items);
+    if (offset == 0) {
+      await _userScopedDataSource.replacePrograms(
+        userId,
+        radioId,
+        asc: asc,
+        items: result.items,
+      );
+    } else {
+      await _userScopedDataSource.appendPrograms(
+        userId,
+        radioId,
+        asc: asc,
+        items: result.items,
+        startOrder: offset,
+      );
     }
     return DjProgramPage(
       items: result.items,

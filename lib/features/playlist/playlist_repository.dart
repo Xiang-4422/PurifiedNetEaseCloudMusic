@@ -1,6 +1,8 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/data/local/local_library_data_source.dart';
+import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/domain/entities/playlist_track_ref.dart';
 import 'package:bujuan/domain/entities/track.dart';
@@ -26,7 +28,6 @@ class PlaylistSnapshotData {
     required this.id,
     required this.name,
     required this.trackIds,
-    required this.isSubscribed,
     required this.creatorUserId,
     this.coverUrl,
     this.trackCount,
@@ -35,7 +36,6 @@ class PlaylistSnapshotData {
   final String id;
   final String name;
   final List<String> trackIds;
-  final bool isSubscribed;
   final String? creatorUserId;
   final String? coverUrl;
   final int? trackCount;
@@ -47,7 +47,6 @@ class PlaylistSnapshotData {
       trackIds: (json['trackIds'] as List? ?? const [])
           .map((item) => '$item')
           .toList(),
-      isSubscribed: json['isSubscribed'] as bool? ?? false,
       creatorUserId: json['creatorUserId'] as String?,
       coverUrl: json['coverUrl'] as String?,
       trackCount: json['trackCount'] as int?,
@@ -59,7 +58,6 @@ class PlaylistSnapshotData {
       'id': id,
       'name': name,
       'trackIds': trackIds,
-      'isSubscribed': isSubscribed,
       'creatorUserId': creatorUserId,
       'coverUrl': coverUrl,
       'trackCount': trackCount,
@@ -71,20 +69,36 @@ class PlaylistRepository {
   PlaylistRepository({
     PlaylistCacheStore? cacheStore,
     LibraryRepository? libraryRepository,
+    LocalLibraryDataSource? localLibraryDataSource,
     NeteasePlaylistRemoteDataSource? remoteDataSource,
+    UserScopedDataSource? userScopedDataSource,
   })  : _cacheStore = cacheStore ?? const PlaylistCacheStore(),
         _libraryRepository = libraryRepository ??
             (GetIt.instance.isRegistered<LibraryRepository>()
                 ? GetIt.instance<LibraryRepository>()
                 : LibraryRepository()),
+        _localLibraryDataSource = localLibraryDataSource ??
+            (GetIt.instance.isRegistered<LocalLibraryDataSource>()
+                ? GetIt.instance<LocalLibraryDataSource>()
+                : (throw StateError(
+                    'LocalLibraryDataSource is not registered'))),
         _remoteDataSource =
-            remoteDataSource ?? const NeteasePlaylistRemoteDataSource();
+            remoteDataSource ?? const NeteasePlaylistRemoteDataSource(),
+        _userScopedDataSource = userScopedDataSource ??
+            (GetIt.instance.isRegistered<UserScopedDataSource>()
+                ? GetIt.instance<UserScopedDataSource>()
+                : (throw StateError('UserScopedDataSource is not registered')));
 
   final PlaylistCacheStore _cacheStore;
   final LibraryRepository _libraryRepository;
+  final LocalLibraryDataSource _localLibraryDataSource;
   final NeteasePlaylistRemoteDataSource _remoteDataSource;
+  final UserScopedDataSource _userScopedDataSource;
 
-  Future<PlaylistSnapshotData> fetchPlaylistSnapshot(String playlistId) async {
+  Future<PlaylistSnapshotData> fetchPlaylistSnapshot(
+    String playlistId, {
+    String? currentUserId,
+  }) async {
     final sourcePlaylistId = _toSourcePlaylistId(playlistId);
     final cachePlaylistId = _toCachePlaylistId(playlistId);
     final snapshot = await _remoteDataSource.fetchPlaylistSnapshot(
@@ -108,12 +122,18 @@ class PlaylistRepository {
       id: cachePlaylistId,
       name: snapshot.name,
       trackIds: trackIds,
-      isSubscribed: snapshot.isSubscribed,
       creatorUserId: snapshot.creatorUserId,
       coverUrl: snapshot.playlist?.coverUrl,
       trackCount: snapshot.playlist?.trackCount,
     );
     await _cacheStore.saveSnapshot(cachePlaylistId, playlistSnapshot);
+    if (currentUserId?.isNotEmpty == true) {
+      await _userScopedDataSource.savePlaylistSubscriptionState(
+        currentUserId!,
+        cachePlaylistId,
+        snapshot.isSubscribed,
+      );
+    }
     return playlistSnapshot;
   }
 
@@ -191,7 +211,10 @@ class PlaylistRepository {
 
     return PlaylistDetailData(
       songs: songs,
-      isSubscribed: cachedSnapshot?.isSubscribed ?? false,
+      isSubscribed: await _loadSubscriptionState(
+        currentUserId,
+        cachePlaylistId,
+      ),
       isMyPlayList: (cachedSnapshot?.creatorUserId ?? '') == currentUserId,
     );
   }
@@ -202,7 +225,10 @@ class PlaylistRepository {
     required String? currentUserId,
   }) async {
     final cachePlaylistId = _toCachePlaylistId(playlistId);
-    final details = await fetchPlaylistSnapshot(playlistId);
+    final details = await fetchPlaylistSnapshot(
+      playlistId,
+      currentUserId: currentUserId,
+    );
     final remoteSongs = await fetchPlaylistSongs(
       playlistId: playlistId,
       likedSongIds: likedSongIds,
@@ -212,7 +238,10 @@ class PlaylistRepository {
     if (remoteSongs.isEmpty) {
       return PlaylistDetailData(
         songs: const [],
-        isSubscribed: details.isSubscribed,
+        isSubscribed: await _loadSubscriptionState(
+          currentUserId,
+          cachePlaylistId,
+        ),
         isMyPlayList: details.creatorUserId == currentUserId,
       );
     }
@@ -221,7 +250,10 @@ class PlaylistRepository {
 
     return PlaylistDetailData(
       songs: remoteSongs,
-      isSubscribed: details.isSubscribed,
+      isSubscribed: await _loadSubscriptionState(
+        currentUserId,
+        cachePlaylistId,
+      ),
       isMyPlayList: details.creatorUserId == currentUserId,
     );
   }
@@ -256,11 +288,19 @@ class PlaylistRepository {
   Future<OperationResult> toggleSubscription(
     String playlistId, {
     required bool subscribe,
+    String? currentUserId,
   }) async {
     final result = await _remoteDataSource.toggleSubscription(
       playlistId,
       subscribe: subscribe,
     );
+    if (result.success && currentUserId?.isNotEmpty == true) {
+      await _userScopedDataSource.savePlaylistSubscriptionState(
+        currentUserId!,
+        _toCachePlaylistId(playlistId),
+        subscribe,
+      );
+    }
     return OperationResult(
       success: result.success,
       message: result.message,
@@ -277,6 +317,12 @@ class PlaylistRepository {
       songId,
       add: add,
     );
+    if (result.success) {
+      final entityPlaylistId = _toEntityPlaylistId(playlistId);
+      final cachePlaylistId = _toCachePlaylistId(playlistId);
+      await _cacheStore.invalidate(cachePlaylistId);
+      await _localLibraryDataSource.clearPlaylistTrackRefs(entityPlaylistId);
+    }
     return OperationResult(
       success: result.success,
       message: result.message,
@@ -306,5 +352,19 @@ class PlaylistRepository {
       return trackId.substring('netease:'.length);
     }
     return trackId;
+  }
+
+  Future<bool> _loadSubscriptionState(
+    String? currentUserId,
+    String playlistId,
+  ) async {
+    if (currentUserId?.isNotEmpty != true) {
+      return false;
+    }
+    return await _userScopedDataSource.loadPlaylistSubscriptionState(
+          currentUserId!,
+          playlistId,
+        ) ??
+        false;
   }
 }

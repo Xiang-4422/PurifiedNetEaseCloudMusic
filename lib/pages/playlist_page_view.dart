@@ -349,6 +349,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     final value = await _repository.toggleSubscription(
       widget.playlistId,
       subscribe: !isSubscribed,
+      currentUserId: AppController.to.userInfo.value.userId,
     );
     if (value.success && mounted) {
       setState(() {

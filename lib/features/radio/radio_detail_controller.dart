@@ -8,12 +8,15 @@ import 'package:flutter/foundation.dart';
 class RadioDetailController {
   RadioDetailController({
     required this.radioId,
+    required String userId,
     RadioRepository? repository,
     this.pageSize = 30,
     this.asc = true,
-  }) : _repository = repository ?? RadioRepository();
+  })  : _userId = userId,
+        _repository = repository ?? RadioRepository();
 
   final String radioId;
+  final String _userId;
   final RadioRepository _repository;
   final int pageSize;
   final bool asc;
@@ -23,8 +26,16 @@ class RadioDetailController {
   int _offset = 0;
 
   Future<void> loadInitial() async {
-    final cachedItems = await _repository.loadCachedPrograms(radioId);
-    if (cachedItems != null && cachedItems.isNotEmpty) {
+    if (_userId.isEmpty) {
+      state.value = const PagedState(items: [], hasMore: false);
+      return;
+    }
+    final cachedItems = await _repository.loadCachedPrograms(
+      _userId,
+      radioId,
+      asc: asc,
+    );
+    if (cachedItems.isNotEmpty) {
       _offset = cachedItems.length;
       state.value = PagedState.data(
         cachedItems,
@@ -56,6 +67,7 @@ class RadioDetailController {
     );
     try {
       final page = await _repository.fetchPrograms(
+        _userId,
         radioId,
         offset: _offset,
         limit: pageSize,
@@ -80,6 +92,7 @@ class RadioDetailController {
   Future<bool> _reload() async {
     try {
       final page = await _repository.fetchPrograms(
+        _userId,
         radioId,
         offset: 0,
         limit: pageSize,

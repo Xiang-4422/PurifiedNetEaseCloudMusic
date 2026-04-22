@@ -26,6 +26,7 @@ class _CloudDriveViewState extends State<CloudDriveView> {
     super.initState();
     _controller = CloudPageController(
       repository: _repository,
+      userId: AppController.to.userInfo.value.userId,
       likedSongIds: AppController.to.likedSongIds.toList(),
     )..loadInitial();
   }

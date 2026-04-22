@@ -8,12 +8,15 @@ import 'package:flutter/foundation.dart';
 class CloudPageController {
   CloudPageController({
     CloudRepository? repository,
+    required String userId,
     required List<int> likedSongIds,
     this.pageSize = 30,
   })  : _repository = repository ?? CloudRepository(),
+        _userId = userId,
         _likedSongIds = likedSongIds;
 
   final CloudRepository _repository;
+  final String _userId;
   final List<int> _likedSongIds;
   final int pageSize;
   final ValueNotifier<PagedState<MediaItem>> state =
@@ -22,8 +25,15 @@ class CloudPageController {
   int _offset = 0;
 
   Future<void> loadInitial() async {
-    final cachedSongs = await _repository.loadCachedSongs();
-    if (cachedSongs != null && cachedSongs.isNotEmpty) {
+    if (_userId.isEmpty) {
+      state.value = const PagedState(items: [], hasMore: false);
+      return;
+    }
+    final cachedSongs = await _repository.loadCachedSongs(
+      userId: _userId,
+      likedSongIds: _likedSongIds,
+    );
+    if (cachedSongs.isNotEmpty) {
       _offset = cachedSongs.length;
       state.value = PagedState.data(
         cachedSongs,
@@ -55,6 +65,7 @@ class CloudPageController {
     );
     try {
       final page = await _repository.fetchCloudSongs(
+        userId: _userId,
         offset: _offset,
         limit: pageSize,
         likedSongIds: _likedSongIds,
@@ -78,6 +89,7 @@ class CloudPageController {
   Future<bool> _reload() async {
     try {
       final page = await _repository.fetchCloudSongs(
+        userId: _userId,
         offset: 0,
         limit: pageSize,
         likedSongIds: _likedSongIds,

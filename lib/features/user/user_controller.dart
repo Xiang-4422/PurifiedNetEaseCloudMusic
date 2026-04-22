@@ -1,7 +1,10 @@
 import 'package:audio_service/audio_service.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:bujuan/common/constants/key.dart';
-import 'package:bujuan/core/playback/audio_service_handler.dart';
-import 'package:bujuan/core/storage/cache_timestamp_store.dart';
+import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
@@ -13,8 +16,6 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'dart:convert';
-import 'dart:math';
 
 /// 收口账号相关的本地缓存、用户资料和快捷入口数据。
 ///
@@ -22,87 +23,121 @@ import 'dart:math';
 /// 先集中在这里比继续散落到页面里更容易替换。
 class UserController extends GetxController {
   static const Duration _startupDataTtl = Duration(minutes: 10);
+  static const String _startupSyncMarker = 'startup_home';
 
   static UserController get to => Get.find();
   final Box box = GetIt.instance<Box>();
   final UserRepository _repository = UserRepository();
-  final CacheTimestampStore _timestampStore = const CacheTimestampStore();
   bool _hasLocalSnapshot = false;
+  Future<void>? _cacheBootstrapFuture;
+  String _activeSnapshotUserId = '';
 
   bool get hasLocalSnapshot => _hasLocalSnapshot;
-  bool get shouldRefreshStartupData {
+
+  Future<void> ensureCacheLoaded() async {
+    await (_cacheBootstrapFuture ?? Future<void>.value());
+  }
+
+  Future<bool> shouldRefreshStartupData() async {
+    await ensureCacheLoaded();
     if (!_hasLocalSnapshot) {
       return true;
     }
-    return !_timestampStore.isFresh(
-      userStartupLastRefreshSp,
+    final userId = userInfo.value.userId;
+    if (userId.isEmpty) {
+      return true;
+    }
+    return !(await _repository.isSyncMarkerFresh(
+      userId: userId,
+      markerKey: _startupSyncMarker,
       ttl: _startupDataTtl,
-    );
+    ));
   }
 
-  void _loadCache() {
-    var hasCachedData = false;
-    String? userInfoStr = box.get(userInfoSp);
+  Future<void> _loadCache() async {
+    final String? userInfoStr = box.get(userInfoSp);
     if (userInfoStr != null) {
       userInfo.value = UserSessionData.fromJson(jsonDecode(userInfoStr));
+    }
+    _activeSnapshotUserId = userInfo.value.userId;
+    await _loadScopedSnapshot(_activeSnapshotUserId);
+  }
+
+  Future<void> _loadScopedSnapshot(String userId) async {
+    _clearScopedState();
+    if (userId.isEmpty) {
+      _hasLocalSnapshot = false;
+      return;
+    }
+
+    var hasCachedData = false;
+
+    final cachedLikedIds = await _repository.loadCachedLikedSongIds(userId);
+    likedSongIds
+      ..clear()
+      ..addAll(cachedLikedIds);
+    if (cachedLikedIds.isNotEmpty) {
       hasCachedData = true;
     }
 
-    List<dynamic>? cachedLikedIds = box.get(likedSongIdsSp);
-    if (cachedLikedIds != null) {
-      likedSongIds.addAll(cachedLikedIds.cast<int>());
+    final cachedReco = await _repository.loadCachedPlaylistList(
+      userId,
+      UserPlaylistListKind.recommended,
+    );
+    recoPlayLists
+      ..clear()
+      ..addAll(cachedReco);
+    if (cachedReco.isNotEmpty) {
       hasCachedData = true;
     }
 
-    List<dynamic>? cachedReco = box.get(recoPlayListsSp);
-    if (cachedReco != null && recoPlayLists.isEmpty) {
-      recoPlayLists.addAll(
-        cachedReco
-            .map((e) => PlaylistSummaryData.fromJson(jsonDecode(e)))
-            .toList(),
-      );
+    final cachedUserPlayLists = await _repository.loadCachedPlaylistList(
+      userId,
+      UserPlaylistListKind.userPlaylists,
+    );
+    userPlayLists
+      ..clear()
+      ..addAll(cachedUserPlayLists);
+    if (cachedUserPlayLists.isNotEmpty) {
       hasCachedData = true;
     }
 
-    List<dynamic>? cachedUserPlayLists = box.get(userPlayListsSp);
-    if (cachedUserPlayLists != null && userPlayLists.isEmpty) {
-      userPlayLists.addAll(cachedUserPlayLists
-          .map((e) => PlaylistSummaryData.fromJson(jsonDecode(e)))
-          .toList());
+    final cachedLikedPlaylist = await _repository.loadCachedPlaylistList(
+      userId,
+      UserPlaylistListKind.likedCollection,
+    );
+    userLikedSongPlayList.value = cachedLikedPlaylist.isEmpty
+        ? const PlaylistSummaryData(id: '', title: '')
+        : cachedLikedPlaylist.first;
+    if (userLikedSongPlayList.value.id.isNotEmpty) {
       hasCachedData = true;
     }
 
-    String? likedPlStr = box.get(userLikedSongPlayListSp);
-    if (likedPlStr != null) {
-      userLikedSongPlayList.value =
-          PlaylistSummaryData.fromJson(jsonDecode(likedPlStr));
+    final cachedTodaySongs = await _repository.loadCachedTrackList(
+      userId: userId,
+      kind: UserTrackListKind.dailyRecommend,
+      likedSongIds: likedSongIds.toList(),
+    );
+    todayRecommendSongs
+      ..clear()
+      ..addAll(cachedTodaySongs);
+    if (cachedTodaySongs.isNotEmpty) {
       hasCachedData = true;
     }
 
-    List<String>? cachedTodaySongs =
-        box.get(todayRecommendSongsSp)?.cast<String>();
-    if (cachedTodaySongs != null && todayRecommendSongs.isEmpty) {
-      stringToPlayList(cachedTodaySongs).then((list) {
-        todayRecommendSongs.addAll(list);
-      });
+    final cachedFmSongs = await _repository.loadCachedTrackList(
+      userId: userId,
+      kind: UserTrackListKind.fm,
+      likedSongIds: likedSongIds.toList(),
+    );
+    fmSongs
+      ..clear()
+      ..addAll(cachedFmSongs);
+    if (cachedFmSongs.isNotEmpty) {
       hasCachedData = true;
     }
 
-    List<String>? cachedFmSongs = box.get(fmSongsSp)?.cast<String>();
-    if (cachedFmSongs != null && fmSongs.isEmpty) {
-      stringToPlayList(cachedFmSongs).then((list) {
-        fmSongs.addAll(list);
-      });
-      hasCachedData = true;
-    }
-
-    randomLikedSongId.value = box.get(randomLikedSongIdSp, defaultValue: '');
-    if (randomLikedSongId.value.isNotEmpty) {
-      hasCachedData = true;
-    }
-
-    randomLikedSongAlbumUrl.value =
-        box.get(randomLikedSongAlbumUrlSp, defaultValue: '');
+    await _refreshRandomLikedSong();
     if (randomLikedSongAlbumUrl.value.isNotEmpty) {
       hasCachedData = true;
     }
@@ -131,49 +166,47 @@ class UserController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadCache();
+    _cacheBootstrapFuture = _loadCache();
     ever(userInfo, (info) {
       if (info.isLoggedIn) {
         box.put(userInfoSp, jsonEncode(info.toJson()));
+      } else {
+        box.delete(userInfoSp);
       }
+      if (_activeSnapshotUserId == info.userId) {
+        return;
+      }
+      _activeSnapshotUserId = info.userId;
+      unawaited(_loadScopedSnapshot(info.userId));
     });
   }
 
   Future<void> updateUserData() async {
+    final userId = userInfo.value.userId;
+    if (userId.isEmpty) {
+      return;
+    }
     await Future.wait([
       _updateUserPlayLists(),
       _updateQuickStartCardData(),
       updateRecoPlayLists(),
     ]);
     _hasLocalSnapshot = true;
-    await _timestampStore.markUpdated(userStartupLastRefreshSp);
+    await _repository.markSyncMarkerUpdated(
+      userId: userId,
+      markerKey: _startupSyncMarker,
+    );
   }
 
   Future<void> _updateQuickStartCardData() async {
+    final userId = userInfo.value.userId.isEmpty ? '-1' : userInfo.value.userId;
     final nextLikedSongIds = await _repository.fetchLikedSongIds(
-      userInfo.value.userId.isEmpty ? '-1' : userInfo.value.userId,
+      userId,
     );
     likedSongIds
       ..clear()
       ..addAll(nextLikedSongIds);
-    box.put(likedSongIdsSp, likedSongIds.toList());
-
-    var nextRandomLikedSongId = '';
-    var nextRandomLikedSongAlbumUrl = '';
-    if (likedSongIds.isNotEmpty) {
-      final randomIndex = Random().nextInt(likedSongIds.length);
-      nextRandomLikedSongId = likedSongIds[randomIndex].toString();
-      nextRandomLikedSongAlbumUrl =
-          await _repository.loadCachedSongAlbumUrl(nextRandomLikedSongId);
-      if (nextRandomLikedSongAlbumUrl.isEmpty) {
-        nextRandomLikedSongAlbumUrl =
-            await getSongAlbumUrl(nextRandomLikedSongId);
-      }
-    }
-    randomLikedSongId.value = nextRandomLikedSongId;
-    randomLikedSongAlbumUrl.value = nextRandomLikedSongAlbumUrl;
-    box.put(randomLikedSongIdSp, randomLikedSongId.value);
-    box.put(randomLikedSongAlbumUrlSp, randomLikedSongAlbumUrl.value);
+    await _refreshRandomLikedSong();
 
     final nextTodayRecommendSongs = await getTodayRecommendSongs();
     todayRecommendSongs
@@ -214,19 +247,16 @@ class UserController extends GetxController {
   }
 
   Future<void> updateRecoPlayLists({bool getMore = false}) async {
+    final userId = userInfo.value.userId;
+    if (userId.isEmpty || userId == "-1") return;
     final data = await _repository.fetchRecommendedPlaylists(
+      userId: userId,
       offset: getMore ? recoPlayLists.length : 0,
     );
     if (!getMore) {
       recoPlayLists.clear();
     }
     recoPlayLists.addAll(data);
-    if (!getMore && data.isNotEmpty) {
-      box.put(
-        recoPlayListsSp,
-        data.map((e) => jsonEncode(e.toJson())).toList(),
-      );
-    }
   }
 
   Future<void> _updateUserPlayLists() async {
@@ -242,55 +272,60 @@ class UserController extends GetxController {
       userPlayLists
         ..clear()
         ..addAll(mutablePlayLists);
-      box.put(
-        userPlayListsSp,
-        mutablePlayLists.map((e) => jsonEncode(e.toJson())).toList(),
-      );
-      box.put(
-        userLikedSongPlayListSp,
-        jsonEncode(userLikedSongPlayList.value.toJson()),
-      );
     }
   }
 
   Future<void> toggleLikeStatus(MediaItem curSong) async {
-    bool isLiked = likedSongIds.contains(int.parse(curSong.id));
+    final userId = userInfo.value.userId;
+    final songId = _resolveSongSourceId(curSong);
+    final numericSongId = int.tryParse(songId);
+    if (userId.isEmpty || numericSongId == null) {
+      return;
+    }
+    final isLiked = likedSongIds.contains(numericSongId);
 
     final serverStatusBean =
-        await _repository.toggleLikeSong(curSong.id, !isLiked);
+        await _repository.toggleLikeSong(userId, songId, !isLiked);
     if (serverStatusBean.success) {
       await PlayerController.to.playbackService
           .updateMediaItem(curSong..extras?['liked'] = !isLiked);
 
       if (isLiked) {
-        likedSongIds.remove(int.parse(curSong.id));
+        likedSongIds.remove(numericSongId);
+        likedSongs.removeWhere(
+          (item) => _resolveSongSourceId(item) == songId,
+        );
       } else {
-        likedSongIds.add(int.parse(curSong.id));
+        likedSongIds.add(numericSongId);
+        if (likedSongs.isNotEmpty) {
+          likedSongs.add(curSong);
+        }
       }
+      await _refreshRandomLikedSong();
     }
   }
 
   Future<List<MediaItem>> getTodayRecommendSongs() async {
+    final userId = userInfo.value.userId;
+    if (userId.isEmpty || userId == "-1") {
+      return const [];
+    }
     final todayRecommendSongs = await _repository.fetchTodayRecommendSongs(
+      userId: userId,
       likedSongIds: likedSongIds.toList(),
     );
-    if (todayRecommendSongs.isNotEmpty) {
-      playListToString(todayRecommendSongs).then((list) {
-        box.put(todayRecommendSongsSp, list);
-      });
-    }
     return todayRecommendSongs;
   }
 
   Future<List<MediaItem>> getFmSongs() async {
-    final songs =
-        await _repository.fetchFmSongs(likedSongIds: likedSongIds.toList());
-    if (songs.isNotEmpty) {
-      playListToString(songs).then((list) {
-        box.put(fmSongsSp, list);
-      });
+    final userId = userInfo.value.userId;
+    if (userId.isEmpty || userId == "-1") {
+      return const [];
     }
-    return songs;
+    return _repository.fetchFmSongs(
+      userId: userId,
+      likedSongIds: likedSongIds.toList(),
+    );
   }
 
   Future<List<MediaItem>> getHeartBeatSongs(
@@ -328,7 +363,42 @@ class UserController extends GetxController {
   }
 
   Future<void> _clearUserSnapshot() async {
+    _activeSnapshotUserId = '';
     _hasLocalSnapshot = false;
+    _clearScopedState();
+    userInfo.value = const UserSessionData.empty();
+    await box.delete(userInfoSp);
+  }
+
+  Future<void> _refreshRandomLikedSong() async {
+    var nextRandomLikedSongId = '';
+    var nextRandomLikedSongAlbumUrl = '';
+    if (likedSongIds.isNotEmpty) {
+      final randomIndex = Random().nextInt(likedSongIds.length);
+      nextRandomLikedSongId = likedSongIds[randomIndex].toString();
+      nextRandomLikedSongAlbumUrl =
+          await _repository.loadCachedSongAlbumUrl(nextRandomLikedSongId);
+      if (nextRandomLikedSongAlbumUrl.isEmpty) {
+        nextRandomLikedSongAlbumUrl =
+            await getSongAlbumUrl(nextRandomLikedSongId);
+      }
+    }
+    randomLikedSongId.value = nextRandomLikedSongId;
+    randomLikedSongAlbumUrl.value = nextRandomLikedSongAlbumUrl;
+  }
+
+  String _resolveSongSourceId(MediaItem song) {
+    final extraSourceId = song.extras?['sourceId']?.toString() ?? '';
+    if (extraSourceId.isNotEmpty) {
+      return extraSourceId;
+    }
+    if (song.id.startsWith('netease:')) {
+      return song.id.substring('netease:'.length);
+    }
+    return song.id;
+  }
+
+  void _clearScopedState() {
     likedSongIds.clear();
     likedSongs.clear();
     todayRecommendSongs.clear();
@@ -338,23 +408,6 @@ class UserController extends GetxController {
     userLikedSongPlayList.value = const PlaylistSummaryData(id: '', title: '');
     randomLikedSongAlbumUrl.value = '';
     randomLikedSongId.value = '';
-    userInfo.value = const UserSessionData.empty();
-    await _repository.clearCachedProfiles();
-    final keys = [
-      userInfoSp,
-      likedSongIdsSp,
-      recoPlayListsSp,
-      userPlayListsSp,
-      userLikedSongPlayListSp,
-      todayRecommendSongsSp,
-      fmSongsSp,
-      randomLikedSongIdSp,
-      randomLikedSongAlbumUrlSp,
-      userStartupLastRefreshSp,
-    ];
-    for (final key in keys) {
-      await box.delete(key);
-    }
   }
 }
 

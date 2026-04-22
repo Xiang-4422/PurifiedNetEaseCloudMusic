@@ -135,6 +135,7 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     String trackId, {
     int? sortOrder,
   }) async {
+    await deleteTrackRef(userId, kind, trackId);
     final resolvedOrder = sortOrder ?? await nextTrackSortOrder(userId, kind);
     await _database.into(_database.userTrackListRefs).insertOnConflictUpdate(
           db.UserTrackListRefsCompanion(
@@ -184,19 +185,16 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     UserPlaylistListKind kind, {
     String? keyword,
   }) async {
-    final normalizedKeyword = keyword?.trim() ?? '';
-    final rows = await (_database.select(_database.userPlaylistListItems)
+    final refs = await (_database.select(_database.userPlaylistListRefs)
           ..where(
-            (tbl) =>
-                tbl.userId.equals(userId) &
-                tbl.listKind.equals(kind.name) &
-                (normalizedKeyword.isEmpty
-                    ? const drift.Constant(true)
-                    : tbl.title.like('%$normalizedKeyword%')),
+            (tbl) => tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
           )
           ..orderBy([(tbl) => drift.OrderingTerm.asc(tbl.sortOrder)]))
         .get();
-    return rows.map(_mapPlaylistItemRow).toList();
+    return _loadPlaylistSummariesFromRefs(
+      refs,
+      keyword: keyword,
+    );
   }
 
   @override
@@ -204,19 +202,14 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     String userId,
     String keyword,
   ) async {
-    final normalizedKeyword = keyword.trim();
-    if (normalizedKeyword.isEmpty) {
-      return const [];
-    }
-    final rows = await (_database.select(_database.userPlaylistListItems)
-          ..where(
-            (tbl) =>
-                tbl.userId.equals(userId) &
-                tbl.title.like('%$normalizedKeyword%'),
-          )
+    final refs = await (_database.select(_database.userPlaylistListRefs)
+          ..where((tbl) => tbl.userId.equals(userId))
           ..orderBy([(tbl) => drift.OrderingTerm.asc(tbl.sortOrder)]))
         .get();
-    return rows.map(_mapPlaylistItemRow).toList();
+    return _loadPlaylistSummariesFromRefs(
+      refs,
+      keyword: keyword,
+    );
   }
 
   @override
@@ -226,7 +219,7 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     List<PlaylistSummaryData> items,
   ) async {
     await _database.transaction(() async {
-      await (_database.delete(_database.userPlaylistListItems)
+      await (_database.delete(_database.userPlaylistListRefs)
             ..where(
               (tbl) =>
                   tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
@@ -237,21 +230,33 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
       }
       final now = DateTime.now().millisecondsSinceEpoch;
       await _database.batch((batch) {
+        batch.insertAllOnConflictUpdate(
+          _database.userPlaylistSnapshots,
+          items
+              .map(
+                (item) => db.UserPlaylistSnapshotsCompanion(
+                  playlistId: drift.Value(_toEntityPlaylistId(item.id)),
+                  sourceId: drift.Value(item.id),
+                  title: drift.Value(item.title),
+                  coverUrl: drift.Value(item.coverUrl),
+                  trackCount: drift.Value(item.trackCount),
+                  description: drift.Value(item.description),
+                  updatedAtMs: drift.Value(now),
+                ),
+              )
+              .toList(),
+        );
         batch.insertAll(
-          _database.userPlaylistListItems,
+          _database.userPlaylistListRefs,
           items
               .asMap()
               .entries
               .map(
-                (entry) => db.UserPlaylistListItemsCompanion.insert(
+                (entry) => db.UserPlaylistListRefsCompanion.insert(
                   userId: userId,
                   listKind: kind.name,
-                  playlistId: entry.value.id,
+                  playlistId: _toEntityPlaylistId(entry.value.id),
                   sortOrder: entry.key,
-                  title: entry.value.title,
-                  coverUrl: drift.Value(entry.value.coverUrl),
-                  trackCount: drift.Value(entry.value.trackCount),
-                  description: drift.Value(entry.value.description),
                   updatedAtMs: now,
                 ),
               )
@@ -274,20 +279,32 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
-        _database.userPlaylistListItems,
+        _database.userPlaylistSnapshots,
+        items
+            .map(
+              (item) => db.UserPlaylistSnapshotsCompanion(
+                playlistId: drift.Value(_toEntityPlaylistId(item.id)),
+                sourceId: drift.Value(item.id),
+                title: drift.Value(item.title),
+                coverUrl: drift.Value(item.coverUrl),
+                trackCount: drift.Value(item.trackCount),
+                description: drift.Value(item.description),
+                updatedAtMs: drift.Value(now),
+              ),
+            )
+            .toList(),
+      );
+      batch.insertAllOnConflictUpdate(
+        _database.userPlaylistListRefs,
         items
             .asMap()
             .entries
             .map(
-              (entry) => db.UserPlaylistListItemsCompanion(
+              (entry) => db.UserPlaylistListRefsCompanion(
                 userId: drift.Value(userId),
                 listKind: drift.Value(kind.name),
-                playlistId: drift.Value(entry.value.id),
+                playlistId: drift.Value(_toEntityPlaylistId(entry.value.id)),
                 sortOrder: drift.Value(startOrder + entry.key),
-                title: drift.Value(entry.value.title),
-                coverUrl: drift.Value(entry.value.coverUrl),
-                trackCount: drift.Value(entry.value.trackCount),
-                description: drift.Value(entry.value.description),
                 updatedAtMs: drift.Value(now),
               ),
             )
@@ -564,13 +581,48 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
         .go();
   }
 
-  PlaylistSummaryData _mapPlaylistItemRow(db.UserPlaylistListItem row) {
+  Future<List<PlaylistSummaryData>> _loadPlaylistSummariesFromRefs(
+    List<db.UserPlaylistListRef> refs, {
+    String? keyword,
+  }) async {
+    if (refs.isEmpty) {
+      return const [];
+    }
+    final normalizedKeyword = keyword?.trim() ?? '';
+    final snapshotRows =
+        await (_database.select(_database.userPlaylistSnapshots)
+              ..where((tbl) =>
+                  tbl.playlistId.isIn(refs.map((item) => item.playlistId)))
+              ..where(
+                (tbl) => normalizedKeyword.isEmpty
+                    ? const drift.Constant(true)
+                    : tbl.title.like('%$normalizedKeyword%'),
+              ))
+            .get();
+    final snapshotsById = {
+      for (final row in snapshotRows) row.playlistId: row,
+    };
+    return refs
+        .map((ref) => snapshotsById[ref.playlistId])
+        .whereType<db.UserPlaylistSnapshot>()
+        .map(_mapPlaylistSnapshotRow)
+        .toList();
+  }
+
+  PlaylistSummaryData _mapPlaylistSnapshotRow(db.UserPlaylistSnapshot row) {
     return PlaylistSummaryData(
-      id: row.playlistId,
+      id: row.sourceId,
       title: row.title,
       coverUrl: row.coverUrl,
       trackCount: row.trackCount,
       description: row.description,
     );
+  }
+
+  String _toEntityPlaylistId(String playlistId) {
+    if (playlistId.startsWith('netease:') || playlistId.startsWith('local:')) {
+      return playlistId;
+    }
+    return 'netease:$playlistId';
   }
 }

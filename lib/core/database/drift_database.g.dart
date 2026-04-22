@@ -4364,7 +4364,7 @@ class $UserTrackListRefsTable extends UserTrackListRefs
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {userId, listKind, trackId};
+  Set<GeneratedColumn> get $primaryKey => {userId, listKind, sortOrder};
   @override
   UserTrackListRef map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -4584,12 +4584,12 @@ class UserTrackListRefsCompanion extends UpdateCompanion<UserTrackListRef> {
   }
 }
 
-class $UserPlaylistListItemsTable extends UserPlaylistListItems
-    with TableInfo<$UserPlaylistListItemsTable, UserPlaylistListItem> {
+class $UserPlaylistListRefsTable extends UserPlaylistListRefs
+    with TableInfo<$UserPlaylistListRefsTable, UserPlaylistListRef> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $UserPlaylistListItemsTable(this.attachedDatabase, [this._alias]);
+  $UserPlaylistListRefsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
   late final GeneratedColumn<String> userId = GeneratedColumn<String>(
@@ -4613,6 +4613,302 @@ class $UserPlaylistListItemsTable extends UserPlaylistListItems
   late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
       'sort_order', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta =
+      const VerificationMeta('updatedAtMs');
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+      'updated_at_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [userId, listKind, playlistId, sortOrder, updatedAtMs];
+  @override
+  String get aliasedName => _alias ?? 'user_playlist_list_refs';
+  @override
+  String get actualTableName => 'user_playlist_list_refs';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<UserPlaylistListRef> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('list_kind')) {
+      context.handle(_listKindMeta,
+          listKind.isAcceptableOrUnknown(data['list_kind']!, _listKindMeta));
+    } else if (isInserting) {
+      context.missing(_listKindMeta);
+    }
+    if (data.containsKey('playlist_id')) {
+      context.handle(
+          _playlistIdMeta,
+          playlistId.isAcceptableOrUnknown(
+              data['playlist_id']!, _playlistIdMeta));
+    } else if (isInserting) {
+      context.missing(_playlistIdMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(_sortOrderMeta,
+          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+          _updatedAtMsMeta,
+          updatedAtMs.isAcceptableOrUnknown(
+              data['updated_at_ms']!, _updatedAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, listKind, playlistId};
+  @override
+  UserPlaylistListRef map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserPlaylistListRef(
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      listKind: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}list_kind'])!,
+      playlistId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
+      sortOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      updatedAtMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+    );
+  }
+
+  @override
+  $UserPlaylistListRefsTable createAlias(String alias) {
+    return $UserPlaylistListRefsTable(attachedDatabase, alias);
+  }
+}
+
+class UserPlaylistListRef extends DataClass
+    implements Insertable<UserPlaylistListRef> {
+  final String userId;
+  final String listKind;
+  final String playlistId;
+  final int sortOrder;
+  final int updatedAtMs;
+  const UserPlaylistListRef(
+      {required this.userId,
+      required this.listKind,
+      required this.playlistId,
+      required this.sortOrder,
+      required this.updatedAtMs});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['list_kind'] = Variable<String>(listKind);
+    map['playlist_id'] = Variable<String>(playlistId);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  UserPlaylistListRefsCompanion toCompanion(bool nullToAbsent) {
+    return UserPlaylistListRefsCompanion(
+      userId: Value(userId),
+      listKind: Value(listKind),
+      playlistId: Value(playlistId),
+      sortOrder: Value(sortOrder),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory UserPlaylistListRef.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserPlaylistListRef(
+      userId: serializer.fromJson<String>(json['userId']),
+      listKind: serializer.fromJson<String>(json['listKind']),
+      playlistId: serializer.fromJson<String>(json['playlistId']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'listKind': serializer.toJson<String>(listKind),
+      'playlistId': serializer.toJson<String>(playlistId),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  UserPlaylistListRef copyWith(
+          {String? userId,
+          String? listKind,
+          String? playlistId,
+          int? sortOrder,
+          int? updatedAtMs}) =>
+      UserPlaylistListRef(
+        userId: userId ?? this.userId,
+        listKind: listKind ?? this.listKind,
+        playlistId: playlistId ?? this.playlistId,
+        sortOrder: sortOrder ?? this.sortOrder,
+        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('UserPlaylistListRef(')
+          ..write('userId: $userId, ')
+          ..write('listKind: $listKind, ')
+          ..write('playlistId: $playlistId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(userId, listKind, playlistId, sortOrder, updatedAtMs);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserPlaylistListRef &&
+          other.userId == this.userId &&
+          other.listKind == this.listKind &&
+          other.playlistId == this.playlistId &&
+          other.sortOrder == this.sortOrder &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class UserPlaylistListRefsCompanion
+    extends UpdateCompanion<UserPlaylistListRef> {
+  final Value<String> userId;
+  final Value<String> listKind;
+  final Value<String> playlistId;
+  final Value<int> sortOrder;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const UserPlaylistListRefsCompanion({
+    this.userId = const Value.absent(),
+    this.listKind = const Value.absent(),
+    this.playlistId = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserPlaylistListRefsCompanion.insert({
+    required String userId,
+    required String listKind,
+    required String playlistId,
+    required int sortOrder,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  })  : userId = Value(userId),
+        listKind = Value(listKind),
+        playlistId = Value(playlistId),
+        sortOrder = Value(sortOrder),
+        updatedAtMs = Value(updatedAtMs);
+  static Insertable<UserPlaylistListRef> custom({
+    Expression<String>? userId,
+    Expression<String>? listKind,
+    Expression<String>? playlistId,
+    Expression<int>? sortOrder,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (listKind != null) 'list_kind': listKind,
+      if (playlistId != null) 'playlist_id': playlistId,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserPlaylistListRefsCompanion copyWith(
+      {Value<String>? userId,
+      Value<String>? listKind,
+      Value<String>? playlistId,
+      Value<int>? sortOrder,
+      Value<int>? updatedAtMs,
+      Value<int>? rowid}) {
+    return UserPlaylistListRefsCompanion(
+      userId: userId ?? this.userId,
+      listKind: listKind ?? this.listKind,
+      playlistId: playlistId ?? this.playlistId,
+      sortOrder: sortOrder ?? this.sortOrder,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (listKind.present) {
+      map['list_kind'] = Variable<String>(listKind.value);
+    }
+    if (playlistId.present) {
+      map['playlist_id'] = Variable<String>(playlistId.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserPlaylistListRefsCompanion(')
+          ..write('userId: $userId, ')
+          ..write('listKind: $listKind, ')
+          ..write('playlistId: $playlistId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserPlaylistSnapshotsTable extends UserPlaylistSnapshots
+    with TableInfo<$UserPlaylistSnapshotsTable, UserPlaylistSnapshot> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserPlaylistSnapshotsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _playlistIdMeta =
+      const VerificationMeta('playlistId');
+  @override
+  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>(
+      'playlist_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceIdMeta =
+      const VerificationMeta('sourceId');
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+      'source_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
@@ -4644,10 +4940,8 @@ class $UserPlaylistListItemsTable extends UserPlaylistListItems
       type: DriftSqlType.int, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [
-        userId,
-        listKind,
         playlistId,
-        sortOrder,
+        sourceId,
         title,
         coverUrl,
         trackCount,
@@ -4655,27 +4949,15 @@ class $UserPlaylistListItemsTable extends UserPlaylistListItems
         updatedAtMs
       ];
   @override
-  String get aliasedName => _alias ?? 'user_playlist_list_items';
+  String get aliasedName => _alias ?? 'user_playlist_snapshots';
   @override
-  String get actualTableName => 'user_playlist_list_items';
+  String get actualTableName => 'user_playlist_snapshots';
   @override
   VerificationContext validateIntegrity(
-      Insertable<UserPlaylistListItem> instance,
+      Insertable<UserPlaylistSnapshot> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
-    } else if (isInserting) {
-      context.missing(_userIdMeta);
-    }
-    if (data.containsKey('list_kind')) {
-      context.handle(_listKindMeta,
-          listKind.isAcceptableOrUnknown(data['list_kind']!, _listKindMeta));
-    } else if (isInserting) {
-      context.missing(_listKindMeta);
-    }
     if (data.containsKey('playlist_id')) {
       context.handle(
           _playlistIdMeta,
@@ -4684,11 +4966,11 @@ class $UserPlaylistListItemsTable extends UserPlaylistListItems
     } else if (isInserting) {
       context.missing(_playlistIdMeta);
     }
-    if (data.containsKey('sort_order')) {
-      context.handle(_sortOrderMeta,
-          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    if (data.containsKey('source_id')) {
+      context.handle(_sourceIdMeta,
+          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
     } else if (isInserting) {
-      context.missing(_sortOrderMeta);
+      context.missing(_sourceIdMeta);
     }
     if (data.containsKey('title')) {
       context.handle(
@@ -4724,19 +5006,15 @@ class $UserPlaylistListItemsTable extends UserPlaylistListItems
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {userId, listKind, playlistId};
+  Set<GeneratedColumn> get $primaryKey => {playlistId};
   @override
-  UserPlaylistListItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+  UserPlaylistSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return UserPlaylistListItem(
-      userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
-      listKind: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}list_kind'])!,
+    return UserPlaylistSnapshot(
       playlistId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
-      sortOrder: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      sourceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
       title: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
       coverUrl: attachedDatabase.typeMapping
@@ -4751,27 +5029,23 @@ class $UserPlaylistListItemsTable extends UserPlaylistListItems
   }
 
   @override
-  $UserPlaylistListItemsTable createAlias(String alias) {
-    return $UserPlaylistListItemsTable(attachedDatabase, alias);
+  $UserPlaylistSnapshotsTable createAlias(String alias) {
+    return $UserPlaylistSnapshotsTable(attachedDatabase, alias);
   }
 }
 
-class UserPlaylistListItem extends DataClass
-    implements Insertable<UserPlaylistListItem> {
-  final String userId;
-  final String listKind;
+class UserPlaylistSnapshot extends DataClass
+    implements Insertable<UserPlaylistSnapshot> {
   final String playlistId;
-  final int sortOrder;
+  final String sourceId;
   final String title;
   final String? coverUrl;
   final int? trackCount;
   final String? description;
   final int updatedAtMs;
-  const UserPlaylistListItem(
-      {required this.userId,
-      required this.listKind,
-      required this.playlistId,
-      required this.sortOrder,
+  const UserPlaylistSnapshot(
+      {required this.playlistId,
+      required this.sourceId,
       required this.title,
       this.coverUrl,
       this.trackCount,
@@ -4780,10 +5054,8 @@ class UserPlaylistListItem extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['user_id'] = Variable<String>(userId);
-    map['list_kind'] = Variable<String>(listKind);
     map['playlist_id'] = Variable<String>(playlistId);
-    map['sort_order'] = Variable<int>(sortOrder);
+    map['source_id'] = Variable<String>(sourceId);
     map['title'] = Variable<String>(title);
     if (!nullToAbsent || coverUrl != null) {
       map['cover_url'] = Variable<String>(coverUrl);
@@ -4798,12 +5070,10 @@ class UserPlaylistListItem extends DataClass
     return map;
   }
 
-  UserPlaylistListItemsCompanion toCompanion(bool nullToAbsent) {
-    return UserPlaylistListItemsCompanion(
-      userId: Value(userId),
-      listKind: Value(listKind),
+  UserPlaylistSnapshotsCompanion toCompanion(bool nullToAbsent) {
+    return UserPlaylistSnapshotsCompanion(
       playlistId: Value(playlistId),
-      sortOrder: Value(sortOrder),
+      sourceId: Value(sourceId),
       title: Value(title),
       coverUrl: coverUrl == null && nullToAbsent
           ? const Value.absent()
@@ -4818,14 +5088,12 @@ class UserPlaylistListItem extends DataClass
     );
   }
 
-  factory UserPlaylistListItem.fromJson(Map<String, dynamic> json,
+  factory UserPlaylistSnapshot.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return UserPlaylistListItem(
-      userId: serializer.fromJson<String>(json['userId']),
-      listKind: serializer.fromJson<String>(json['listKind']),
+    return UserPlaylistSnapshot(
       playlistId: serializer.fromJson<String>(json['playlistId']),
-      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
       title: serializer.fromJson<String>(json['title']),
       coverUrl: serializer.fromJson<String?>(json['coverUrl']),
       trackCount: serializer.fromJson<int?>(json['trackCount']),
@@ -4837,10 +5105,8 @@ class UserPlaylistListItem extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'userId': serializer.toJson<String>(userId),
-      'listKind': serializer.toJson<String>(listKind),
       'playlistId': serializer.toJson<String>(playlistId),
-      'sortOrder': serializer.toJson<int>(sortOrder),
+      'sourceId': serializer.toJson<String>(sourceId),
       'title': serializer.toJson<String>(title),
       'coverUrl': serializer.toJson<String?>(coverUrl),
       'trackCount': serializer.toJson<int?>(trackCount),
@@ -4849,21 +5115,17 @@ class UserPlaylistListItem extends DataClass
     };
   }
 
-  UserPlaylistListItem copyWith(
-          {String? userId,
-          String? listKind,
-          String? playlistId,
-          int? sortOrder,
+  UserPlaylistSnapshot copyWith(
+          {String? playlistId,
+          String? sourceId,
           String? title,
           Value<String?> coverUrl = const Value.absent(),
           Value<int?> trackCount = const Value.absent(),
           Value<String?> description = const Value.absent(),
           int? updatedAtMs}) =>
-      UserPlaylistListItem(
-        userId: userId ?? this.userId,
-        listKind: listKind ?? this.listKind,
+      UserPlaylistSnapshot(
         playlistId: playlistId ?? this.playlistId,
-        sortOrder: sortOrder ?? this.sortOrder,
+        sourceId: sourceId ?? this.sourceId,
         title: title ?? this.title,
         coverUrl: coverUrl.present ? coverUrl.value : this.coverUrl,
         trackCount: trackCount.present ? trackCount.value : this.trackCount,
@@ -4872,11 +5134,9 @@ class UserPlaylistListItem extends DataClass
       );
   @override
   String toString() {
-    return (StringBuffer('UserPlaylistListItem(')
-          ..write('userId: $userId, ')
-          ..write('listKind: $listKind, ')
+    return (StringBuffer('UserPlaylistSnapshot(')
           ..write('playlistId: $playlistId, ')
-          ..write('sortOrder: $sortOrder, ')
+          ..write('sourceId: $sourceId, ')
           ..write('title: $title, ')
           ..write('coverUrl: $coverUrl, ')
           ..write('trackCount: $trackCount, ')
@@ -4887,16 +5147,14 @@ class UserPlaylistListItem extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(userId, listKind, playlistId, sortOrder,
-      title, coverUrl, trackCount, description, updatedAtMs);
+  int get hashCode => Object.hash(playlistId, sourceId, title, coverUrl,
+      trackCount, description, updatedAtMs);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is UserPlaylistListItem &&
-          other.userId == this.userId &&
-          other.listKind == this.listKind &&
+      (other is UserPlaylistSnapshot &&
           other.playlistId == this.playlistId &&
-          other.sortOrder == this.sortOrder &&
+          other.sourceId == this.sourceId &&
           other.title == this.title &&
           other.coverUrl == this.coverUrl &&
           other.trackCount == this.trackCount &&
@@ -4904,23 +5162,19 @@ class UserPlaylistListItem extends DataClass
           other.updatedAtMs == this.updatedAtMs);
 }
 
-class UserPlaylistListItemsCompanion
-    extends UpdateCompanion<UserPlaylistListItem> {
-  final Value<String> userId;
-  final Value<String> listKind;
+class UserPlaylistSnapshotsCompanion
+    extends UpdateCompanion<UserPlaylistSnapshot> {
   final Value<String> playlistId;
-  final Value<int> sortOrder;
+  final Value<String> sourceId;
   final Value<String> title;
   final Value<String?> coverUrl;
   final Value<int?> trackCount;
   final Value<String?> description;
   final Value<int> updatedAtMs;
   final Value<int> rowid;
-  const UserPlaylistListItemsCompanion({
-    this.userId = const Value.absent(),
-    this.listKind = const Value.absent(),
+  const UserPlaylistSnapshotsCompanion({
     this.playlistId = const Value.absent(),
-    this.sortOrder = const Value.absent(),
+    this.sourceId = const Value.absent(),
     this.title = const Value.absent(),
     this.coverUrl = const Value.absent(),
     this.trackCount = const Value.absent(),
@@ -4928,28 +5182,22 @@ class UserPlaylistListItemsCompanion
     this.updatedAtMs = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  UserPlaylistListItemsCompanion.insert({
-    required String userId,
-    required String listKind,
+  UserPlaylistSnapshotsCompanion.insert({
     required String playlistId,
-    required int sortOrder,
+    required String sourceId,
     required String title,
     this.coverUrl = const Value.absent(),
     this.trackCount = const Value.absent(),
     this.description = const Value.absent(),
     required int updatedAtMs,
     this.rowid = const Value.absent(),
-  })  : userId = Value(userId),
-        listKind = Value(listKind),
-        playlistId = Value(playlistId),
-        sortOrder = Value(sortOrder),
+  })  : playlistId = Value(playlistId),
+        sourceId = Value(sourceId),
         title = Value(title),
         updatedAtMs = Value(updatedAtMs);
-  static Insertable<UserPlaylistListItem> custom({
-    Expression<String>? userId,
-    Expression<String>? listKind,
+  static Insertable<UserPlaylistSnapshot> custom({
     Expression<String>? playlistId,
-    Expression<int>? sortOrder,
+    Expression<String>? sourceId,
     Expression<String>? title,
     Expression<String>? coverUrl,
     Expression<int>? trackCount,
@@ -4958,10 +5206,8 @@ class UserPlaylistListItemsCompanion
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (userId != null) 'user_id': userId,
-      if (listKind != null) 'list_kind': listKind,
       if (playlistId != null) 'playlist_id': playlistId,
-      if (sortOrder != null) 'sort_order': sortOrder,
+      if (sourceId != null) 'source_id': sourceId,
       if (title != null) 'title': title,
       if (coverUrl != null) 'cover_url': coverUrl,
       if (trackCount != null) 'track_count': trackCount,
@@ -4971,22 +5217,18 @@ class UserPlaylistListItemsCompanion
     });
   }
 
-  UserPlaylistListItemsCompanion copyWith(
-      {Value<String>? userId,
-      Value<String>? listKind,
-      Value<String>? playlistId,
-      Value<int>? sortOrder,
+  UserPlaylistSnapshotsCompanion copyWith(
+      {Value<String>? playlistId,
+      Value<String>? sourceId,
       Value<String>? title,
       Value<String?>? coverUrl,
       Value<int?>? trackCount,
       Value<String?>? description,
       Value<int>? updatedAtMs,
       Value<int>? rowid}) {
-    return UserPlaylistListItemsCompanion(
-      userId: userId ?? this.userId,
-      listKind: listKind ?? this.listKind,
+    return UserPlaylistSnapshotsCompanion(
       playlistId: playlistId ?? this.playlistId,
-      sortOrder: sortOrder ?? this.sortOrder,
+      sourceId: sourceId ?? this.sourceId,
       title: title ?? this.title,
       coverUrl: coverUrl ?? this.coverUrl,
       trackCount: trackCount ?? this.trackCount,
@@ -4999,17 +5241,11 @@ class UserPlaylistListItemsCompanion
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (userId.present) {
-      map['user_id'] = Variable<String>(userId.value);
-    }
-    if (listKind.present) {
-      map['list_kind'] = Variable<String>(listKind.value);
-    }
     if (playlistId.present) {
       map['playlist_id'] = Variable<String>(playlistId.value);
     }
-    if (sortOrder.present) {
-      map['sort_order'] = Variable<int>(sortOrder.value);
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
     }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
@@ -5034,11 +5270,9 @@ class UserPlaylistListItemsCompanion
 
   @override
   String toString() {
-    return (StringBuffer('UserPlaylistListItemsCompanion(')
-          ..write('userId: $userId, ')
-          ..write('listKind: $listKind, ')
+    return (StringBuffer('UserPlaylistSnapshotsCompanion(')
           ..write('playlistId: $playlistId, ')
-          ..write('sortOrder: $sortOrder, ')
+          ..write('sourceId: $sourceId, ')
           ..write('title: $title, ')
           ..write('coverUrl: $coverUrl, ')
           ..write('trackCount: $trackCount, ')
@@ -6546,8 +6780,10 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
   late final $UserProfilesTable userProfiles = $UserProfilesTable(this);
   late final $UserTrackListRefsTable userTrackListRefs =
       $UserTrackListRefsTable(this);
-  late final $UserPlaylistListItemsTable userPlaylistListItems =
-      $UserPlaylistListItemsTable(this);
+  late final $UserPlaylistListRefsTable userPlaylistListRefs =
+      $UserPlaylistListRefsTable(this);
+  late final $UserPlaylistSnapshotsTable userPlaylistSnapshots =
+      $UserPlaylistSnapshotsTable(this);
   late final $UserPlaylistStatesTable userPlaylistStates =
       $UserPlaylistStatesTable(this);
   late final $UserRadioSubscriptionsTable userRadioSubscriptions =
@@ -6572,7 +6808,8 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
         artists,
         userProfiles,
         userTrackListRefs,
-        userPlaylistListItems,
+        userPlaylistListRefs,
+        userPlaylistSnapshots,
         userPlaylistStates,
         userRadioSubscriptions,
         userRadioPrograms,

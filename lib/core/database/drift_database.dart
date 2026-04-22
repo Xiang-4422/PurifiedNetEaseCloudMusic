@@ -155,14 +155,23 @@ class UserTrackListRefs extends Table {
   IntColumn get updatedAtMs => integer()();
 
   @override
-  Set<Column<Object>> get primaryKey => {userId, listKind, trackId};
+  Set<Column<Object>> get primaryKey => {userId, listKind, sortOrder};
 }
 
-class UserPlaylistListItems extends Table {
+class UserPlaylistListRefs extends Table {
   TextColumn get userId => text()();
   TextColumn get listKind => text()();
   TextColumn get playlistId => text()();
   IntColumn get sortOrder => integer()();
+  IntColumn get updatedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {userId, listKind, playlistId};
+}
+
+class UserPlaylistSnapshots extends Table {
+  TextColumn get playlistId => text()();
+  TextColumn get sourceId => text()();
   TextColumn get title => text()();
   TextColumn get coverUrl => text().nullable()();
   IntColumn get trackCount => integer().nullable()();
@@ -170,7 +179,7 @@ class UserPlaylistListItems extends Table {
   IntColumn get updatedAtMs => integer()();
 
   @override
-  Set<Column<Object>> get primaryKey => {userId, listKind, playlistId};
+  Set<Column<Object>> get primaryKey => {playlistId};
 }
 
 class UserPlaylistStates extends Table {
@@ -236,7 +245,8 @@ class UserSyncMarkers extends Table {
     Artists,
     UserProfiles,
     UserTrackListRefs,
-    UserPlaylistListItems,
+    UserPlaylistListRefs,
+    UserPlaylistSnapshots,
     UserPlaylistStates,
     UserRadioSubscriptions,
     UserRadioPrograms,
@@ -265,7 +275,8 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
           if (from < 3) {
             await migrator.createTable(userProfiles);
             await migrator.createTable(userTrackListRefs);
-            await migrator.createTable(userPlaylistListItems);
+            await migrator.createTable(userPlaylistListRefs);
+            await migrator.createTable(userPlaylistSnapshots);
             await migrator.createTable(userPlaylistStates);
             await migrator.createTable(userRadioSubscriptions);
             await migrator.createTable(userRadioPrograms);
@@ -307,16 +318,22 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
       'CREATE INDEX IF NOT EXISTS idx_download_tasks_status_updated_at_ms ON download_tasks (status, updated_at_ms)',
     );
     await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_user_track_list_refs_user_list_sort_order ON user_track_list_refs (user_id, list_kind, sort_order)',
+      'CREATE INDEX IF NOT EXISTS idx_user_track_list_refs_user_list_track_id ON user_track_list_refs (user_id, list_kind, track_id)',
     );
     await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_user_playlist_list_items_user_list_sort_order ON user_playlist_list_items (user_id, list_kind, sort_order)',
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_user_track_list_refs_user_list_sort_order_unique ON user_track_list_refs (user_id, list_kind, sort_order)',
     );
     await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_user_radio_subscriptions_user_sort_order ON user_radio_subscriptions (user_id, sort_order)',
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_user_playlist_list_refs_user_list_sort_order_unique ON user_playlist_list_refs (user_id, list_kind, sort_order)',
     );
     await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_user_radio_programs_user_radio_asc_sort_order ON user_radio_programs (user_id, radio_id, asc, sort_order)',
+      'CREATE INDEX IF NOT EXISTS idx_user_playlist_snapshots_title ON user_playlist_snapshots (title)',
+    );
+    await customStatement(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_user_radio_subscriptions_user_sort_order_unique ON user_radio_subscriptions (user_id, sort_order)',
+    );
+    await customStatement(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_user_radio_programs_user_radio_asc_sort_order_unique ON user_radio_programs (user_id, radio_id, asc, sort_order)',
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_user_sync_markers_user_marker_key ON user_sync_markers (user_id, marker_key)',

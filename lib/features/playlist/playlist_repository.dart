@@ -130,7 +130,7 @@ class PlaylistRepository {
     if (currentUserId?.isNotEmpty == true) {
       await _userScopedDataSource.savePlaylistSubscriptionState(
         currentUserId!,
-        cachePlaylistId,
+        _toEntityPlaylistId(playlistId),
         snapshot.isSubscribed,
       );
     }
@@ -213,7 +213,7 @@ class PlaylistRepository {
       songs: songs,
       isSubscribed: await _loadSubscriptionState(
         currentUserId,
-        cachePlaylistId,
+        entityPlaylistId,
       ),
       isMyPlayList: (cachedSnapshot?.creatorUserId ?? '') == currentUserId,
     );
@@ -225,6 +225,7 @@ class PlaylistRepository {
     required String? currentUserId,
   }) async {
     final cachePlaylistId = _toCachePlaylistId(playlistId);
+    final entityPlaylistId = _toEntityPlaylistId(playlistId);
     final details = await fetchPlaylistSnapshot(
       playlistId,
       currentUserId: currentUserId,
@@ -240,7 +241,7 @@ class PlaylistRepository {
         songs: const [],
         isSubscribed: await _loadSubscriptionState(
           currentUserId,
-          cachePlaylistId,
+          entityPlaylistId,
         ),
         isMyPlayList: details.creatorUserId == currentUserId,
       );
@@ -252,7 +253,7 @@ class PlaylistRepository {
       songs: remoteSongs,
       isSubscribed: await _loadSubscriptionState(
         currentUserId,
-        cachePlaylistId,
+        entityPlaylistId,
       ),
       isMyPlayList: details.creatorUserId == currentUserId,
     );
@@ -297,7 +298,7 @@ class PlaylistRepository {
     if (result.success && currentUserId?.isNotEmpty == true) {
       await _userScopedDataSource.savePlaylistSubscriptionState(
         currentUserId!,
-        _toCachePlaylistId(playlistId),
+        _toEntityPlaylistId(playlistId),
         subscribe,
       );
     }

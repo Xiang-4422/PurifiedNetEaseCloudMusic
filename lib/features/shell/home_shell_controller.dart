@@ -10,9 +10,10 @@ class HomeShellController extends GetxController
     with GetTickerProviderStateMixin {
   late ZoomDrawerController zoomDrawerController;
   bool _zoomDrawerListenerInitialized = false;
+  Timer? _closeDrawerTimer;
+  String _defaultHomePageTitle = '';
 
   RxBool isDrawerClosed = true.obs;
-  double _timerCounter = 0.0;
 
   late PageController homePageController;
   RxInt curHomePageIndex = 0.obs;
@@ -27,9 +28,11 @@ class HomeShellController extends GetxController
   final FocusNode searchFocusNode = FocusNode();
   RxDouble keyBoardHeight = 0.0.obs;
 
-  void init({required String initialTitle}) {
-    curHomePageTitle.value = initialTitle;
+  @override
+  void onInit() {
+    super.onInit();
     zoomDrawerController = ZoomDrawerController();
+    initZoomDrawerListener();
     topPanelAnimationController = AnimationController(vsync: this);
     searchTextEditingController = TextEditingController()
       ..addListener(() {
@@ -41,9 +44,14 @@ class HomeShellController extends GetxController
         if (updatedPageIndex == curHomePageIndex.value) return;
         curHomePageIndex.value = updatedPageIndex;
         curHomePageTitle.value =
-            _resolveHomePageTitle(updatedPageIndex, initialTitle);
+            _resolveHomePageTitle(updatedPageIndex);
         _updateCloseDrawerTimer(3000);
       });
+  }
+
+  void init({required String initialTitle}) {
+    _defaultHomePageTitle = initialTitle;
+    curHomePageTitle.value = initialTitle;
   }
 
   void initZoomDrawerListener() {
@@ -107,10 +115,10 @@ class HomeShellController extends GetxController
     keyBoardHeight.value = MediaQuery.of(context).viewInsets.bottom;
   }
 
-  String _resolveHomePageTitle(int pageIndex, String defaultTitle) {
+  String _resolveHomePageTitle(int pageIndex) {
     switch (pageIndex) {
       case 0:
-        return defaultTitle;
+        return _defaultHomePageTitle;
       case 1:
         return '每日发现';
       case 2:
@@ -118,29 +126,25 @@ class HomeShellController extends GetxController
       case 3:
         return '赞助开发者';
       default:
-        return defaultTitle;
+        return _defaultHomePageTitle;
     }
   }
 
   void _updateCloseDrawerTimer(double timeValue) {
-    if (_timerCounter == 0) {
-      _timerCounter = timeValue;
-      Timer.periodic(const Duration(milliseconds: 50), (timer) {
-        _timerCounter -= 50;
-        if (_timerCounter > 0) return;
-        _timerCounter = 0;
-        timer.cancel();
-        if (zoomDrawerController.isOpen!()) {
-          zoomDrawerController.close!();
-        }
-      });
+    _closeDrawerTimer?.cancel();
+    if (timeValue <= 0) {
       return;
     }
-    _timerCounter = timeValue;
+    _closeDrawerTimer = Timer(Duration(milliseconds: timeValue.toInt()), () {
+      if (zoomDrawerController.isOpen!()) {
+        zoomDrawerController.close!();
+      }
+    });
   }
 
   @override
   void onClose() {
+    _closeDrawerTimer?.cancel();
     homePageController.dispose();
     topPanelAnimationController.dispose();
     searchTextEditingController.dispose();

@@ -49,6 +49,9 @@ class PlayerController extends GetxController {
   final Rx<PlaybackRuntimeState> runtimeState =
       const PlaybackRuntimeState().obs;
   final Rx<PlaybackLyricState> lyricState = const PlaybackLyricState().obs;
+  final Rx<MediaItem> currentSongState =
+      const MediaItem(id: '', title: '暂无').obs;
+  final Rx<Duration> currentPositionState = Duration.zero.obs;
   final RxList<MediaItem> queueState = <MediaItem>[].obs;
   final RxInt currentQueueIndex = (-1).obs;
 
@@ -214,6 +217,13 @@ class PlayerController extends GetxController {
       currentPosition: currentPosition,
     );
     runtimeState.value = nextState;
+    if (currentSong != null) {
+      currentSongState.value = currentSong;
+    }
+    if (currentPosition != null &&
+        currentPositionState.value != currentPosition) {
+      currentPositionState.value = currentPosition;
+    }
     if (queue != null) {
       queueState.assignAll(queue);
     }

@@ -27,11 +27,21 @@ import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
 class AppController extends SuperController
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
   static AppController get to => Get.find();
-  late final HomeShellController shellController;
+  HomeShellController get shellController =>
+      Get.isRegistered<HomeShellController>()
+          ? Get.find<HomeShellController>()
+          : Get.put(HomeShellController());
 
-  late final SettingsController settingsController;
-  late final UserController userController;
-  late final PlayerController playerController;
+  SettingsController get settingsController =>
+      Get.isRegistered<SettingsController>()
+          ? Get.find<SettingsController>()
+          : Get.put(SettingsController());
+  UserController get userController => Get.isRegistered<UserController>()
+      ? Get.find<UserController>()
+      : Get.put(UserController());
+  PlayerController get playerController => Get.isRegistered<PlayerController>()
+      ? Get.find<PlayerController>()
+      : Get.put(PlayerController());
 
   RxBool get isGradientBackground => settingsController.isGradientBackground;
   RxBool get isRoundAlbumOpen => settingsController.isRoundAlbumOpen;
@@ -57,6 +67,8 @@ class AppController extends SuperController
       playerController.sessionState;
   Rx<PlaybackRuntimeState> get playbackRuntimeState =>
       playerController.runtimeState;
+  Rx<MediaItem> get currentSong => playerController.currentSongState;
+  Rx<Duration> get currentPosition => playerController.currentPositionState;
   RxList<MediaItem> get playbackQueue => playerController.queueState;
   RxInt get playbackQueueIndex => playerController.currentQueueIndex;
   Rx<PlaybackLyricState> get playbackLyricState => playerController.lyricState;
@@ -85,25 +97,50 @@ class AppController extends SuperController
   RxInt get curHomePageIndex => shellController.curHomePageIndex;
   RxString get curHomePageTitle => shellController.curHomePageTitle;
 
-  late PageController albumPageController;
+  bool _uiControllersInitialized = false;
+  PageController? _albumPageController;
   RxBool isBigAlbum = true.obs;
   RxBool isAlbumScaleEnded = true.obs;
   bool isAlbumScrollingManully = false;
   bool isAlbumScrollingProgrammatic = false;
   RxBool isAlbumScrolling = false.obs;
-  int _lastSyncedPlaybackIndex = -1;
   Timer? _homeImageColorPrewarmTimer;
 
   PanelController bottomPanelController = PanelController();
-  late AnimationController bottomPanelAnimationController;
+  AnimationController? _bottomPanelAnimationController;
   RxBool bottomPanelFullyClosed = true.obs;
   RxBool bottomPanelOpened50 = false.obs;
   RxBool bottomPanelFullyOpened = false.obs;
-  late PageController bottomPanelPageController;
+  PageController? _bottomPanelPageController;
   RxInt curPanelPageIndex = 1.obs;
-  late TabController bottomPanelTabController;
-  late TabController bottomPanelCommentTabController;
+  TabController? _bottomPanelTabController;
+  TabController? _bottomPanelCommentTabController;
   ScrollController playListScrollController = ScrollController();
+
+  PageController get albumPageController {
+    _ensureUiControllersInitialized();
+    return _albumPageController!;
+  }
+
+  AnimationController get bottomPanelAnimationController {
+    _ensureUiControllersInitialized();
+    return _bottomPanelAnimationController!;
+  }
+
+  PageController get bottomPanelPageController {
+    _ensureUiControllersInitialized();
+    return _bottomPanelPageController!;
+  }
+
+  TabController get bottomPanelTabController {
+    _ensureUiControllersInitialized();
+    return _bottomPanelTabController!;
+  }
+
+  TabController get bottomPanelCommentTabController {
+    _ensureUiControllersInitialized();
+    return _bottomPanelCommentTabController!;
+  }
 
   PanelController get topPanelController => shellController.topPanelController;
   AnimationController get topPanelAnimationController =>
@@ -123,14 +160,12 @@ class AppController extends SuperController
   @override
   Future<void> onInit() async {
     super.onInit();
-    shellController = Get.put(HomeShellController());
-    settingsController = Get.put(SettingsController());
-    userController = Get.isRegistered<UserController>()
-        ? Get.find<UserController>()
-        : Get.put(UserController());
-    playerController = Get.put(PlayerController());
+    shellController;
+    settingsController;
+    userController;
+    playerController;
 
-    _initUIController();
+    _ensureUiControllersInitialized();
     WidgetsBinding.instance.addObserver(this);
 
     ever(playbackLyricState, (lyricState) {
@@ -147,13 +182,10 @@ class AppController extends SuperController
       }
     });
 
-    ever(playbackRuntimeState, (PlaybackRuntimeState state) {
-      final currentIndex = state.currentIndex;
-      if (currentIndex < 0 || currentIndex == _lastSyncedPlaybackIndex) {
+    ever<int>(playbackQueueIndex, (currentIndex) {
+      if (currentIndex < 0) {
         return;
       }
-
-      _lastSyncedPlaybackIndex = currentIndex;
       _animatePlayListToCurSong();
       _animateAlbumPageViewToCurSong();
     });
@@ -180,10 +212,14 @@ class AppController extends SuperController
     });
   }
 
-  void _initUIController() {
+  void _ensureUiControllersInitialized() {
+    if (_uiControllersInitialized) {
+      return;
+    }
+    _uiControllersInitialized = true;
     shellController.init(initialTitle: userInfo.value.nickname);
-    bottomPanelAnimationController = AnimationController(vsync: this);
-    bottomPanelTabController =
+    _bottomPanelAnimationController = AnimationController(vsync: this);
+    _bottomPanelTabController =
         TabController(length: 3, initialIndex: 1, vsync: this)
           ..addListener(() {
             if (bottomPanelTabController.indexIsChanging) {
@@ -197,7 +233,7 @@ class AppController extends SuperController
               }
             }
           });
-    bottomPanelCommentTabController = TabController(length: 2, vsync: this)
+    _bottomPanelCommentTabController = TabController(length: 2, vsync: this)
       ..addListener(() {
         if (bottomPanelCommentTabController.indexIsChanging) {
           bottomPanelPageController.animateToPage(
@@ -206,7 +242,7 @@ class AppController extends SuperController
               curve: Curves.linear);
         }
       });
-    bottomPanelPageController = PageController(initialPage: 1)
+    _bottomPanelPageController = PageController(initialPage: 1)
       ..addListener(() async {
         int newPanelPageIndex = (bottomPanelPageController.page! + 0.5).toInt();
 
@@ -236,7 +272,7 @@ class AppController extends SuperController
               bottomPanelPageController.page! - newPanelPageIndex;
         }
       });
-    albumPageController = PageController();
+    _albumPageController = PageController();
   }
 
   @override
@@ -292,6 +328,11 @@ class AppController extends SuperController
   void onClose() {
     _homeImageColorPrewarmTimer?.cancel();
     _albumDebounceTimer?.cancel();
+    _bottomPanelAnimationController?.dispose();
+    _bottomPanelPageController?.dispose();
+    _bottomPanelTabController?.dispose();
+    _bottomPanelCommentTabController?.dispose();
+    _albumPageController?.dispose();
     super.onClose();
   }
 
@@ -370,7 +411,11 @@ class AppController extends SuperController
   // 列表页打开时直接滚到当前播放项，可以减少“当前歌曲已变但列表还停在旧位置”的错觉。
   _animatePlayListToCurSong() {
     if (playListScrollController.hasClients) {
-      double offset = playbackRuntimeState.value.currentIndex * 55.0;
+      final currentIndex = playbackQueueIndex.value;
+      if (currentIndex < 0) {
+        return;
+      }
+      double offset = currentIndex * 55.0;
       playListScrollController.animateTo(offset,
           duration: const Duration(milliseconds: 500), curve: Curves.ease);
     }
@@ -407,15 +452,18 @@ class AppController extends SuperController
   _animateAlbumPageViewToCurSong() {
     if (albumPageController.hasClients) {
       if (isAlbumScrollingManully) return;
+      final currentIndex = playbackQueueIndex.value;
+      if (currentIndex < 0) {
+        return;
+      }
       double currentPage = albumPageController.page ?? 0;
-      if ((currentPage - playbackRuntimeState.value.currentIndex).abs() <
-          0.01) {
+      if ((currentPage - currentIndex).abs() < 0.01) {
         return;
       }
 
       isAlbumScrollingProgrammatic = true;
       albumPageController
-          .animateToPage(playbackRuntimeState.value.currentIndex,
+          .animateToPage(currentIndex,
               duration: const Duration(milliseconds: 500), curve: Curves.ease)
           .whenComplete(() {
         isAlbumScrollingProgrammatic = false;

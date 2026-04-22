@@ -145,15 +145,12 @@ class PersonalPageView extends GetView<AppController> {
                           alignment: Alignment.bottomRight,
                           children: [
                             Obx(() {
-                              final runtimeState =
-                                  controller.playbackRuntimeState.value;
+                              final currentSong = controller.currentSong.value;
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
                                 albumUrl: controller.isFmMode.isTrue
-                                    ? (runtimeState
-                                            .currentSong.extras?['image'] ??
-                                        '')
+                                    ? (currentSong.extras?['image'] ?? '')
                                     : (controller.fmSongs.isNotEmpty
                                         ? (controller
                                                 .fmSongs[0].extras?['image'] ??
@@ -181,15 +178,12 @@ class PersonalPageView extends GetView<AppController> {
                           alignment: Alignment.bottomRight,
                           children: [
                             Obx(() {
-                              final runtimeState =
-                                  controller.playbackRuntimeState.value;
+                              final currentSong = controller.currentSong.value;
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
                                 albumUrl: controller.isHeartBeatMode.isTrue
-                                    ? (runtimeState
-                                            .currentSong.extras?['image'] ??
-                                        '')
+                                    ? (currentSong.extras?['image'] ?? '')
                                     : controller.randomLikedSongAlbumUrl.value,
                                 icon: TablerIcons.heartbeat,
                                 title: "心动模式",

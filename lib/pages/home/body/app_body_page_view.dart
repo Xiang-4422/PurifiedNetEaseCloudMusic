@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
@@ -21,11 +19,6 @@ class AppBodyPageView extends GetView<AppController> {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.initZoomDrawerListener();
-    });
-
-    log("building zoomDrawer");
     return Stack(
       children: [
         Container(

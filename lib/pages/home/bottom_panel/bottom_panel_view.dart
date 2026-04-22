@@ -83,8 +83,7 @@ class BottomPanelView extends GetView<AppController> {
               child: Obx(() => Visibility(
                     visible: controller.bottomPanelFullyOpened.isTrue,
                     child: Builder(builder: (context) {
-                      final runtimeState =
-                          controller.playbackRuntimeState.value;
+                      final currentSong = controller.currentSong.value;
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -95,7 +94,7 @@ class BottomPanelView extends GetView<AppController> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  runtimeState.currentSong.title,
+                                  currentSong.title,
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                   style: context.textTheme.titleLarge?.copyWith(
@@ -103,7 +102,7 @@ class BottomPanelView extends GetView<AppController> {
                                   ),
                                 ),
                                 Text(
-                                  runtimeState.currentSong.artist ?? '',
+                                  currentSong.artist ?? '',
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                   style: context.textTheme.titleLarge?.copyWith(
@@ -141,7 +140,7 @@ class BottomPanelView extends GetView<AppController> {
                                       height: AppDimensions.albumMinSize,
                                       shape: BoxShape.circle,
                                       ArtworkPathResolver.resolveDisplayPath(
-                                        runtimeState.currentSong
+                                        controller.currentSong.value
                                             .extras?['image'] as String?,
                                       ),
                                     ),
@@ -257,11 +256,9 @@ class BottomPanelView extends GetView<AppController> {
                           ? context.width - AppDimensions.paddingLarge * 2
                           : AppDimensions.albumMinSize,
                       child: Obx(() {
-                        final runtimeState =
-                            controller.playbackRuntimeState.value;
                         return SimpleExtendedImage(
                           ArtworkPathResolver.resolveDisplayPath(
-                            runtimeState.currentSong.extras?['image']
+                            controller.currentSong.value.extras?['image']
                                 as String?,
                           ),
                         );
@@ -298,8 +295,7 @@ class BottomPanelView extends GetView<AppController> {
                   },
                   child: PageView.builder(
                     controller: controller.albumPageController,
-                    itemCount:
-                        controller.playbackRuntimeState.value.queue.length,
+                    itemCount: controller.playbackQueue.length,
                     allowImplicitScrolling: true,
 
                     // TODO YU4422：切歌卡顿
@@ -339,16 +335,12 @@ class BottomPanelView extends GetView<AppController> {
                                 controller.updateFullScreenLyricTimerCounter();
                               }
                             },
-                            child: Obx(() {
-                              final runtimeState =
-                                  controller.playbackRuntimeState.value;
-                              return SimpleExtendedImage(
-                                ArtworkPathResolver.resolveDisplayPath(
-                                  runtimeState.queue[index].extras?['image']
-                                      as String?,
-                                ),
-                              );
-                            }),
+                            child: Obx(() => SimpleExtendedImage(
+                                  ArtworkPathResolver.resolveDisplayPath(
+                                    controller.playbackQueue[index]
+                                        .extras?['image'] as String?,
+                                  ),
+                                )),
                           ),
                         ),
                       );
@@ -871,11 +863,12 @@ class BottomPanelView extends GetView<AppController> {
 
   Widget _buildProgressBar(BuildContext context) {
     return Obx(() {
-      final runtimeState = controller.playbackRuntimeState.value;
+      final currentSong = controller.currentSong.value;
+      final currentPosition = controller.currentPosition.value;
       return ProgressBar(
-        progress: runtimeState.currentPosition,
-        buffered: runtimeState.currentPosition,
-        total: runtimeState.currentSong.duration ?? const Duration(seconds: 10),
+        progress: currentPosition,
+        buffered: currentPosition,
+        total: currentSong.duration ?? const Duration(seconds: 10),
         barHeight: AppDimensions.paddingLarge,
         barCapShape: BarCapShape.round,
         progressBarColor:
@@ -899,8 +892,7 @@ class BottomPanelView extends GetView<AppController> {
       padding:
           const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
       child: Obx(() {
-        final runtimeState = controller.playbackRuntimeState.value;
-        final currentSong = runtimeState.currentSong;
+        final currentSong = controller.currentSong.value;
         final currentSongId = int.tryParse(currentSong.id);
         final isLiked = controller.likedSongIds.contains(currentSongId);
         return Row(
@@ -985,11 +977,11 @@ class BottomPanelView extends GetView<AppController> {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: albumPadding),
         child: Obx(() {
-          final runtimeState = controller.playbackRuntimeState.value;
+          final currentSong = controller.currentSong.value;
           return CommentWidget(
-            key: ValueKey(runtimeState.currentSong.id),
+            key: ValueKey(currentSong.id),
             context: context,
-            id: runtimeState.currentSong.id,
+            id: currentSong.id,
             idType: "song",
             commentType: commentType,
             listPaddingTop: albumPadding,
@@ -1018,9 +1010,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final runtimeState = controller.playbackRuntimeState.value;
-      final currentSong = runtimeState.currentSong;
-      final currentDuration = runtimeState.currentPosition;
+      final currentSong = controller.currentSong.value;
       if (currentSong.id.isEmpty) {
         return const SizedBox.shrink();
       }
@@ -1177,17 +1167,21 @@ class BottomPanelHeaderView extends GetView<AppController> {
                                 if ((currentSong.duration?.inMilliseconds ??
                                         0) >
                                     0)
-                                  CircularPlaybackProgress(
-                                    progress: currentDuration.inMilliseconds /
-                                        currentSong.duration!.inMilliseconds,
-                                    size: AppDimensions.albumMinSize,
-                                    strokeWidth: 2,
-                                    progressColor:
-                                        controller.panelWidgetColor.value,
-                                    backgroundColor: controller
-                                        .panelWidgetColor.value
-                                        .withAlpha(50),
-                                  ),
+                                  Obx(() {
+                                    final currentDuration =
+                                        controller.currentPosition.value;
+                                    return CircularPlaybackProgress(
+                                      progress: currentDuration.inMilliseconds /
+                                          currentSong.duration!.inMilliseconds,
+                                      size: AppDimensions.albumMinSize,
+                                      strokeWidth: 2,
+                                      progressColor:
+                                          controller.panelWidgetColor.value,
+                                      backgroundColor: controller
+                                          .panelWidgetColor.value
+                                          .withAlpha(50),
+                                    );
+                                  }),
                                 // 播放按钮
                                 IconButton(
                                     onPressed: () => controller.playOrPause(),

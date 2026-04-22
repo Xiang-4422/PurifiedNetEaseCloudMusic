@@ -55,8 +55,7 @@ class AppHomePageView extends GetView<AppController> {
             return const TopPanelView();
           }),
           body: Obx(() {
-            final hasCurrentSong =
-                controller.playbackRuntimeState.value.currentSong.id.isNotEmpty;
+            final hasCurrentSong = controller.currentSong.value.id.isNotEmpty;
             if (!hasCurrentSong) {
               return const AutoRouter();
             }

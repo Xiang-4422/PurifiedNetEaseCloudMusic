@@ -810,7 +810,7 @@ class BottomPanelView extends GetView<AppController> {
                                                                                   return;
                                                                                 }
                                                                                 final router = context.router;
-                                                                                await controller.bottomPanelController.close();
+                                                                                await controller.closeBottomPanel();
                                                                                 router.push(const gr.ArtistRouteView().copyWith(queryParams: {
                                                                                   'artistId': artist.id
                                                                                 }));
@@ -1017,7 +1017,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
       return Offstage(
         offstage: controller.bottomPanelFullyOpened.isTrue,
         child: GestureDetector(
-          onTap: () => controller.bottomPanelController.open(),
+          onTap: () => controller.openBottomPanel(),
           child: AnimatedBuilder(
             animation: controller.bottomPanelAnimationController,
             builder: (context, child) {

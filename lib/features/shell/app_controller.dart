@@ -156,6 +156,30 @@ class AppController extends SuperController
     }
   }
 
+  Future<void> openBottomPanel() async {
+    if (bottomPanelController.isAttached) {
+      await bottomPanelController.open();
+    }
+  }
+
+  Future<void> closeBottomPanel() async {
+    if (bottomPanelController.isAttached) {
+      await bottomPanelController.close();
+    }
+  }
+
+  Future<void> openTopPanel() async {
+    if (topPanelController.isAttached) {
+      await topPanelController.open();
+    }
+  }
+
+  Future<void> closeTopPanel() async {
+    if (topPanelController.isAttached) {
+      await topPanelController.close();
+    }
+  }
+
   TabController get bottomPanelTabController {
     _ensureUiControllersInitialized();
     return _bottomPanelTabController!;

@@ -58,8 +58,12 @@ class HomeShellController extends GetxController
     if (_zoomDrawerListenerInitialized) {
       return;
     }
+    final addListener = zoomDrawerController.addListener;
+    if (addListener == null) {
+      return;
+    }
     _zoomDrawerListenerInitialized = true;
-    zoomDrawerController.addListener!((drawerOpenDegree) {
+    addListener((drawerOpenDegree) {
       if ((drawerOpenDegree == 0.0) == isDrawerClosed.value) return;
       isDrawerClosed.value = drawerOpenDegree == 0.0;
       if (!isDrawerClosed.value) {
@@ -88,15 +92,21 @@ class HomeShellController extends GetxController
 
   bool handleWillPop({required PanelController bottomPanelController}) {
     if (topPanelController.isPanelOpen) {
-      topPanelController.close();
+      if (topPanelController.isAttached) {
+        topPanelController.close();
+      }
       return true;
     }
     if (bottomPanelController.isPanelOpen) {
-      bottomPanelController.close();
+      if (bottomPanelController.isAttached) {
+        bottomPanelController.close();
+      }
       return true;
     }
-    if (zoomDrawerController.isOpen!()) {
-      zoomDrawerController.close!();
+    final isDrawerOpen = zoomDrawerController.isOpen;
+    final closeDrawer = zoomDrawerController.close;
+    if (isDrawerOpen?.call() == true) {
+      closeDrawer?.call();
       return true;
     }
     if (homePageController.page != 0) {
@@ -136,8 +146,10 @@ class HomeShellController extends GetxController
       return;
     }
     _closeDrawerTimer = Timer(Duration(milliseconds: timeValue.toInt()), () {
-      if (zoomDrawerController.isOpen!()) {
-        zoomDrawerController.close!();
+      final isDrawerOpen = zoomDrawerController.isOpen;
+      final closeDrawer = zoomDrawerController.close;
+      if (isDrawerOpen?.call() == true) {
+        closeDrawer?.call();
       }
     });
   }

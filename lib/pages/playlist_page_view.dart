@@ -140,7 +140,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                       .setRepeatMode(
                                           AudioServiceRepeatMode.all);
                                   AppController.to.jumpBottomPanelToPage(0);
-                                  AppController.to.bottomPanelController.open();
+                                  AppController.to.openBottomPanel();
                                   // 根据当前播放模式，决定从哪个位置开始播放
                                   int startIndex = AppController
                                               .to
@@ -205,7 +205,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                       .setRepeatMode(
                                           AudioServiceRepeatMode.none);
                                   AppController.to.jumpBottomPanelToPage(0);
-                                  AppController.to.bottomPanelController.open();
+                                  AppController.to.openBottomPanel();
                                   // 根据当前播放模式，决定从哪个位置开始播放
                                   int startIndex = AppController
                                               .to
@@ -256,7 +256,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                             stringColor: widgetColor,
                             beforeOnTap: () {
                               AppController.to.jumpBottomPanelToPage(0);
-                              AppController.to.bottomPanelController.open();
+                              AppController.to.openBottomPanel();
                             },
                           );
                         },

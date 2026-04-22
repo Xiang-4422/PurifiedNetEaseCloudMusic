@@ -234,7 +234,7 @@ class _TopPanelViewState extends State<TopPanelView> {
                       TablerIcons.arrow_up,
                     ),
                     onPressed: () {
-                      controller.topPanelController.close();
+                      controller.closeTopPanel();
                     },
                   ).marginAll(iconPadding),
                   child: IconButton(
@@ -378,8 +378,8 @@ class _TopPanelViewState extends State<TopPanelView> {
 
   Future<void> _openPlaylist(
       BuildContext context, PlaylistEntity playlist) async {
-    AppController.to.bottomPanelController.close();
-    await AppController.to.topPanelController.close();
+    await AppController.to.closeBottomPanel();
+    await AppController.to.closeTopPanel();
     if (!context.mounted) {
       return;
     }
@@ -394,8 +394,8 @@ class _TopPanelViewState extends State<TopPanelView> {
   }
 
   Future<void> _openAlbum(BuildContext context, AlbumEntity album) async {
-    AppController.to.bottomPanelController.close();
-    await AppController.to.topPanelController.close();
+    await AppController.to.closeBottomPanel();
+    await AppController.to.closeTopPanel();
     if (!context.mounted) {
       return;
     }
@@ -407,8 +407,8 @@ class _TopPanelViewState extends State<TopPanelView> {
   }
 
   Future<void> _openArtist(BuildContext context, ArtistEntity artist) async {
-    AppController.to.bottomPanelController.close();
-    await AppController.to.topPanelController.close();
+    await AppController.to.closeBottomPanel();
+    await AppController.to.closeTopPanel();
     if (!context.mounted) {
       return;
     }

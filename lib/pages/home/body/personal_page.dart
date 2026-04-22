@@ -160,7 +160,7 @@ class PersonalPageView extends GetView<AppController> {
                                 title: "漫游模式",
                                 onTap: () {
                                   controller.jumpBottomPanelToPage(1);
-                                  controller.bottomPanelController.open();
+                                  controller.openBottomPanel();
                                   controller.playerController.openFmMode();
                                 },
                               );
@@ -188,7 +188,7 @@ class PersonalPageView extends GetView<AppController> {
                                 title: "心动模式",
                                 onTap: () {
                                   controller.jumpBottomPanelToPage(1);
-                                  controller.bottomPanelController.open();
+                                  controller.openBottomPanel();
                                   controller.playerController.openHeartBeatMode(
                                     controller.randomLikedSongId.value,
                                     fromPlayAll: true,

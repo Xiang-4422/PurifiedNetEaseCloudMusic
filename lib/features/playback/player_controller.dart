@@ -765,11 +765,18 @@ class PlayerController extends GetxController {
     }
     final updatedTrack = await _downloadRepository.cacheTrackForPlayback(
       mediaItem.id,
-      preferHighQuality: SettingsController.to.isHighSoundQualityOpen.value,
+      preferHighQuality: _isHighQualityEnabled(),
     );
     if (updatedTrack != null) {
       await _maybeSyncCurrentTrackMediaItem(updatedTrack);
     }
+  }
+
+  bool _isHighQualityEnabled() {
+    if (Get.isRegistered<SettingsController>()) {
+      return Get.find<SettingsController>().isHighSoundQualityOpen.value;
+    }
+    return false;
   }
 
   void _preloadImages() {

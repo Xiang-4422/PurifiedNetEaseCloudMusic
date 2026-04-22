@@ -135,7 +135,7 @@ class MenuView extends GetView<AppController> {
             ),
             onPressed: () {
               final router = context.router;
-              controller.zoomDrawerController.close!();
+              controller.zoomDrawerController.close?.call();
               Future.delayed(const Duration(milliseconds: 200), () {
                 router.pushNamed(Routes.userProfile);
               });

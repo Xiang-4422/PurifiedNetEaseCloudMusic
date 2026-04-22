@@ -3861,6 +3861,2673 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
   }
 }
 
+class $UserProfilesTable extends UserProfiles
+    with TableInfo<$UserProfilesTable, UserProfile> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserProfilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nicknameMeta =
+      const VerificationMeta('nickname');
+  @override
+  late final GeneratedColumn<String> nickname = GeneratedColumn<String>(
+      'nickname', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _signatureMeta =
+      const VerificationMeta('signature');
+  @override
+  late final GeneratedColumn<String> signature = GeneratedColumn<String>(
+      'signature', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _followsMeta =
+      const VerificationMeta('follows');
+  @override
+  late final GeneratedColumn<int> follows = GeneratedColumn<int>(
+      'follows', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _followedsMeta =
+      const VerificationMeta('followeds');
+  @override
+  late final GeneratedColumn<int> followeds = GeneratedColumn<int>(
+      'followeds', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _playlistCountMeta =
+      const VerificationMeta('playlistCount');
+  @override
+  late final GeneratedColumn<int> playlistCount = GeneratedColumn<int>(
+      'playlist_count', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _avatarUrlMeta =
+      const VerificationMeta('avatarUrl');
+  @override
+  late final GeneratedColumn<String> avatarUrl = GeneratedColumn<String>(
+      'avatar_url', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta =
+      const VerificationMeta('updatedAtMs');
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+      'updated_at_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        userId,
+        nickname,
+        signature,
+        follows,
+        followeds,
+        playlistCount,
+        avatarUrl,
+        updatedAtMs
+      ];
+  @override
+  String get aliasedName => _alias ?? 'user_profiles';
+  @override
+  String get actualTableName => 'user_profiles';
+  @override
+  VerificationContext validateIntegrity(Insertable<UserProfile> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('nickname')) {
+      context.handle(_nicknameMeta,
+          nickname.isAcceptableOrUnknown(data['nickname']!, _nicknameMeta));
+    } else if (isInserting) {
+      context.missing(_nicknameMeta);
+    }
+    if (data.containsKey('signature')) {
+      context.handle(_signatureMeta,
+          signature.isAcceptableOrUnknown(data['signature']!, _signatureMeta));
+    } else if (isInserting) {
+      context.missing(_signatureMeta);
+    }
+    if (data.containsKey('follows')) {
+      context.handle(_followsMeta,
+          follows.isAcceptableOrUnknown(data['follows']!, _followsMeta));
+    } else if (isInserting) {
+      context.missing(_followsMeta);
+    }
+    if (data.containsKey('followeds')) {
+      context.handle(_followedsMeta,
+          followeds.isAcceptableOrUnknown(data['followeds']!, _followedsMeta));
+    } else if (isInserting) {
+      context.missing(_followedsMeta);
+    }
+    if (data.containsKey('playlist_count')) {
+      context.handle(
+          _playlistCountMeta,
+          playlistCount.isAcceptableOrUnknown(
+              data['playlist_count']!, _playlistCountMeta));
+    } else if (isInserting) {
+      context.missing(_playlistCountMeta);
+    }
+    if (data.containsKey('avatar_url')) {
+      context.handle(_avatarUrlMeta,
+          avatarUrl.isAcceptableOrUnknown(data['avatar_url']!, _avatarUrlMeta));
+    } else if (isInserting) {
+      context.missing(_avatarUrlMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+          _updatedAtMsMeta,
+          updatedAtMs.isAcceptableOrUnknown(
+              data['updated_at_ms']!, _updatedAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId};
+  @override
+  UserProfile map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserProfile(
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      nickname: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}nickname'])!,
+      signature: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}signature'])!,
+      follows: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}follows'])!,
+      followeds: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}followeds'])!,
+      playlistCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}playlist_count'])!,
+      avatarUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}avatar_url'])!,
+      updatedAtMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+    );
+  }
+
+  @override
+  $UserProfilesTable createAlias(String alias) {
+    return $UserProfilesTable(attachedDatabase, alias);
+  }
+}
+
+class UserProfile extends DataClass implements Insertable<UserProfile> {
+  final String userId;
+  final String nickname;
+  final String signature;
+  final int follows;
+  final int followeds;
+  final int playlistCount;
+  final String avatarUrl;
+  final int updatedAtMs;
+  const UserProfile(
+      {required this.userId,
+      required this.nickname,
+      required this.signature,
+      required this.follows,
+      required this.followeds,
+      required this.playlistCount,
+      required this.avatarUrl,
+      required this.updatedAtMs});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['nickname'] = Variable<String>(nickname);
+    map['signature'] = Variable<String>(signature);
+    map['follows'] = Variable<int>(follows);
+    map['followeds'] = Variable<int>(followeds);
+    map['playlist_count'] = Variable<int>(playlistCount);
+    map['avatar_url'] = Variable<String>(avatarUrl);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  UserProfilesCompanion toCompanion(bool nullToAbsent) {
+    return UserProfilesCompanion(
+      userId: Value(userId),
+      nickname: Value(nickname),
+      signature: Value(signature),
+      follows: Value(follows),
+      followeds: Value(followeds),
+      playlistCount: Value(playlistCount),
+      avatarUrl: Value(avatarUrl),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory UserProfile.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserProfile(
+      userId: serializer.fromJson<String>(json['userId']),
+      nickname: serializer.fromJson<String>(json['nickname']),
+      signature: serializer.fromJson<String>(json['signature']),
+      follows: serializer.fromJson<int>(json['follows']),
+      followeds: serializer.fromJson<int>(json['followeds']),
+      playlistCount: serializer.fromJson<int>(json['playlistCount']),
+      avatarUrl: serializer.fromJson<String>(json['avatarUrl']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'nickname': serializer.toJson<String>(nickname),
+      'signature': serializer.toJson<String>(signature),
+      'follows': serializer.toJson<int>(follows),
+      'followeds': serializer.toJson<int>(followeds),
+      'playlistCount': serializer.toJson<int>(playlistCount),
+      'avatarUrl': serializer.toJson<String>(avatarUrl),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  UserProfile copyWith(
+          {String? userId,
+          String? nickname,
+          String? signature,
+          int? follows,
+          int? followeds,
+          int? playlistCount,
+          String? avatarUrl,
+          int? updatedAtMs}) =>
+      UserProfile(
+        userId: userId ?? this.userId,
+        nickname: nickname ?? this.nickname,
+        signature: signature ?? this.signature,
+        follows: follows ?? this.follows,
+        followeds: followeds ?? this.followeds,
+        playlistCount: playlistCount ?? this.playlistCount,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
+        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('UserProfile(')
+          ..write('userId: $userId, ')
+          ..write('nickname: $nickname, ')
+          ..write('signature: $signature, ')
+          ..write('follows: $follows, ')
+          ..write('followeds: $followeds, ')
+          ..write('playlistCount: $playlistCount, ')
+          ..write('avatarUrl: $avatarUrl, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(userId, nickname, signature, follows,
+      followeds, playlistCount, avatarUrl, updatedAtMs);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserProfile &&
+          other.userId == this.userId &&
+          other.nickname == this.nickname &&
+          other.signature == this.signature &&
+          other.follows == this.follows &&
+          other.followeds == this.followeds &&
+          other.playlistCount == this.playlistCount &&
+          other.avatarUrl == this.avatarUrl &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
+  final Value<String> userId;
+  final Value<String> nickname;
+  final Value<String> signature;
+  final Value<int> follows;
+  final Value<int> followeds;
+  final Value<int> playlistCount;
+  final Value<String> avatarUrl;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const UserProfilesCompanion({
+    this.userId = const Value.absent(),
+    this.nickname = const Value.absent(),
+    this.signature = const Value.absent(),
+    this.follows = const Value.absent(),
+    this.followeds = const Value.absent(),
+    this.playlistCount = const Value.absent(),
+    this.avatarUrl = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserProfilesCompanion.insert({
+    required String userId,
+    required String nickname,
+    required String signature,
+    required int follows,
+    required int followeds,
+    required int playlistCount,
+    required String avatarUrl,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  })  : userId = Value(userId),
+        nickname = Value(nickname),
+        signature = Value(signature),
+        follows = Value(follows),
+        followeds = Value(followeds),
+        playlistCount = Value(playlistCount),
+        avatarUrl = Value(avatarUrl),
+        updatedAtMs = Value(updatedAtMs);
+  static Insertable<UserProfile> custom({
+    Expression<String>? userId,
+    Expression<String>? nickname,
+    Expression<String>? signature,
+    Expression<int>? follows,
+    Expression<int>? followeds,
+    Expression<int>? playlistCount,
+    Expression<String>? avatarUrl,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (nickname != null) 'nickname': nickname,
+      if (signature != null) 'signature': signature,
+      if (follows != null) 'follows': follows,
+      if (followeds != null) 'followeds': followeds,
+      if (playlistCount != null) 'playlist_count': playlistCount,
+      if (avatarUrl != null) 'avatar_url': avatarUrl,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserProfilesCompanion copyWith(
+      {Value<String>? userId,
+      Value<String>? nickname,
+      Value<String>? signature,
+      Value<int>? follows,
+      Value<int>? followeds,
+      Value<int>? playlistCount,
+      Value<String>? avatarUrl,
+      Value<int>? updatedAtMs,
+      Value<int>? rowid}) {
+    return UserProfilesCompanion(
+      userId: userId ?? this.userId,
+      nickname: nickname ?? this.nickname,
+      signature: signature ?? this.signature,
+      follows: follows ?? this.follows,
+      followeds: followeds ?? this.followeds,
+      playlistCount: playlistCount ?? this.playlistCount,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (nickname.present) {
+      map['nickname'] = Variable<String>(nickname.value);
+    }
+    if (signature.present) {
+      map['signature'] = Variable<String>(signature.value);
+    }
+    if (follows.present) {
+      map['follows'] = Variable<int>(follows.value);
+    }
+    if (followeds.present) {
+      map['followeds'] = Variable<int>(followeds.value);
+    }
+    if (playlistCount.present) {
+      map['playlist_count'] = Variable<int>(playlistCount.value);
+    }
+    if (avatarUrl.present) {
+      map['avatar_url'] = Variable<String>(avatarUrl.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserProfilesCompanion(')
+          ..write('userId: $userId, ')
+          ..write('nickname: $nickname, ')
+          ..write('signature: $signature, ')
+          ..write('follows: $follows, ')
+          ..write('followeds: $followeds, ')
+          ..write('playlistCount: $playlistCount, ')
+          ..write('avatarUrl: $avatarUrl, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserTrackListRefsTable extends UserTrackListRefs
+    with TableInfo<$UserTrackListRefsTable, UserTrackListRef> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserTrackListRefsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _listKindMeta =
+      const VerificationMeta('listKind');
+  @override
+  late final GeneratedColumn<String> listKind = GeneratedColumn<String>(
+      'list_kind', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _trackIdMeta =
+      const VerificationMeta('trackId');
+  @override
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
+      'track_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta =
+      const VerificationMeta('sortOrder');
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+      'sort_order', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta =
+      const VerificationMeta('updatedAtMs');
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+      'updated_at_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [userId, listKind, trackId, sortOrder, updatedAtMs];
+  @override
+  String get aliasedName => _alias ?? 'user_track_list_refs';
+  @override
+  String get actualTableName => 'user_track_list_refs';
+  @override
+  VerificationContext validateIntegrity(Insertable<UserTrackListRef> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('list_kind')) {
+      context.handle(_listKindMeta,
+          listKind.isAcceptableOrUnknown(data['list_kind']!, _listKindMeta));
+    } else if (isInserting) {
+      context.missing(_listKindMeta);
+    }
+    if (data.containsKey('track_id')) {
+      context.handle(_trackIdMeta,
+          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+    } else if (isInserting) {
+      context.missing(_trackIdMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(_sortOrderMeta,
+          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+          _updatedAtMsMeta,
+          updatedAtMs.isAcceptableOrUnknown(
+              data['updated_at_ms']!, _updatedAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, listKind, trackId};
+  @override
+  UserTrackListRef map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserTrackListRef(
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      listKind: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}list_kind'])!,
+      trackId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      sortOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      updatedAtMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+    );
+  }
+
+  @override
+  $UserTrackListRefsTable createAlias(String alias) {
+    return $UserTrackListRefsTable(attachedDatabase, alias);
+  }
+}
+
+class UserTrackListRef extends DataClass
+    implements Insertable<UserTrackListRef> {
+  final String userId;
+  final String listKind;
+  final String trackId;
+  final int sortOrder;
+  final int updatedAtMs;
+  const UserTrackListRef(
+      {required this.userId,
+      required this.listKind,
+      required this.trackId,
+      required this.sortOrder,
+      required this.updatedAtMs});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['list_kind'] = Variable<String>(listKind);
+    map['track_id'] = Variable<String>(trackId);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  UserTrackListRefsCompanion toCompanion(bool nullToAbsent) {
+    return UserTrackListRefsCompanion(
+      userId: Value(userId),
+      listKind: Value(listKind),
+      trackId: Value(trackId),
+      sortOrder: Value(sortOrder),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory UserTrackListRef.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserTrackListRef(
+      userId: serializer.fromJson<String>(json['userId']),
+      listKind: serializer.fromJson<String>(json['listKind']),
+      trackId: serializer.fromJson<String>(json['trackId']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'listKind': serializer.toJson<String>(listKind),
+      'trackId': serializer.toJson<String>(trackId),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  UserTrackListRef copyWith(
+          {String? userId,
+          String? listKind,
+          String? trackId,
+          int? sortOrder,
+          int? updatedAtMs}) =>
+      UserTrackListRef(
+        userId: userId ?? this.userId,
+        listKind: listKind ?? this.listKind,
+        trackId: trackId ?? this.trackId,
+        sortOrder: sortOrder ?? this.sortOrder,
+        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('UserTrackListRef(')
+          ..write('userId: $userId, ')
+          ..write('listKind: $listKind, ')
+          ..write('trackId: $trackId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(userId, listKind, trackId, sortOrder, updatedAtMs);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserTrackListRef &&
+          other.userId == this.userId &&
+          other.listKind == this.listKind &&
+          other.trackId == this.trackId &&
+          other.sortOrder == this.sortOrder &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class UserTrackListRefsCompanion extends UpdateCompanion<UserTrackListRef> {
+  final Value<String> userId;
+  final Value<String> listKind;
+  final Value<String> trackId;
+  final Value<int> sortOrder;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const UserTrackListRefsCompanion({
+    this.userId = const Value.absent(),
+    this.listKind = const Value.absent(),
+    this.trackId = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserTrackListRefsCompanion.insert({
+    required String userId,
+    required String listKind,
+    required String trackId,
+    required int sortOrder,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  })  : userId = Value(userId),
+        listKind = Value(listKind),
+        trackId = Value(trackId),
+        sortOrder = Value(sortOrder),
+        updatedAtMs = Value(updatedAtMs);
+  static Insertable<UserTrackListRef> custom({
+    Expression<String>? userId,
+    Expression<String>? listKind,
+    Expression<String>? trackId,
+    Expression<int>? sortOrder,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (listKind != null) 'list_kind': listKind,
+      if (trackId != null) 'track_id': trackId,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserTrackListRefsCompanion copyWith(
+      {Value<String>? userId,
+      Value<String>? listKind,
+      Value<String>? trackId,
+      Value<int>? sortOrder,
+      Value<int>? updatedAtMs,
+      Value<int>? rowid}) {
+    return UserTrackListRefsCompanion(
+      userId: userId ?? this.userId,
+      listKind: listKind ?? this.listKind,
+      trackId: trackId ?? this.trackId,
+      sortOrder: sortOrder ?? this.sortOrder,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (listKind.present) {
+      map['list_kind'] = Variable<String>(listKind.value);
+    }
+    if (trackId.present) {
+      map['track_id'] = Variable<String>(trackId.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserTrackListRefsCompanion(')
+          ..write('userId: $userId, ')
+          ..write('listKind: $listKind, ')
+          ..write('trackId: $trackId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserPlaylistListItemsTable extends UserPlaylistListItems
+    with TableInfo<$UserPlaylistListItemsTable, UserPlaylistListItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserPlaylistListItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _listKindMeta =
+      const VerificationMeta('listKind');
+  @override
+  late final GeneratedColumn<String> listKind = GeneratedColumn<String>(
+      'list_kind', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _playlistIdMeta =
+      const VerificationMeta('playlistId');
+  @override
+  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>(
+      'playlist_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta =
+      const VerificationMeta('sortOrder');
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+      'sort_order', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _coverUrlMeta =
+      const VerificationMeta('coverUrl');
+  @override
+  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>(
+      'cover_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _trackCountMeta =
+      const VerificationMeta('trackCount');
+  @override
+  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>(
+      'track_count', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMsMeta =
+      const VerificationMeta('updatedAtMs');
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+      'updated_at_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        userId,
+        listKind,
+        playlistId,
+        sortOrder,
+        title,
+        coverUrl,
+        trackCount,
+        description,
+        updatedAtMs
+      ];
+  @override
+  String get aliasedName => _alias ?? 'user_playlist_list_items';
+  @override
+  String get actualTableName => 'user_playlist_list_items';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<UserPlaylistListItem> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('list_kind')) {
+      context.handle(_listKindMeta,
+          listKind.isAcceptableOrUnknown(data['list_kind']!, _listKindMeta));
+    } else if (isInserting) {
+      context.missing(_listKindMeta);
+    }
+    if (data.containsKey('playlist_id')) {
+      context.handle(
+          _playlistIdMeta,
+          playlistId.isAcceptableOrUnknown(
+              data['playlist_id']!, _playlistIdMeta));
+    } else if (isInserting) {
+      context.missing(_playlistIdMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(_sortOrderMeta,
+          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('cover_url')) {
+      context.handle(_coverUrlMeta,
+          coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
+    }
+    if (data.containsKey('track_count')) {
+      context.handle(
+          _trackCountMeta,
+          trackCount.isAcceptableOrUnknown(
+              data['track_count']!, _trackCountMeta));
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+          _updatedAtMsMeta,
+          updatedAtMs.isAcceptableOrUnknown(
+              data['updated_at_ms']!, _updatedAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, listKind, playlistId};
+  @override
+  UserPlaylistListItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserPlaylistListItem(
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      listKind: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}list_kind'])!,
+      playlistId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
+      sortOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      coverUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cover_url']),
+      trackCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}track_count']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      updatedAtMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+    );
+  }
+
+  @override
+  $UserPlaylistListItemsTable createAlias(String alias) {
+    return $UserPlaylistListItemsTable(attachedDatabase, alias);
+  }
+}
+
+class UserPlaylistListItem extends DataClass
+    implements Insertable<UserPlaylistListItem> {
+  final String userId;
+  final String listKind;
+  final String playlistId;
+  final int sortOrder;
+  final String title;
+  final String? coverUrl;
+  final int? trackCount;
+  final String? description;
+  final int updatedAtMs;
+  const UserPlaylistListItem(
+      {required this.userId,
+      required this.listKind,
+      required this.playlistId,
+      required this.sortOrder,
+      required this.title,
+      this.coverUrl,
+      this.trackCount,
+      this.description,
+      required this.updatedAtMs});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['list_kind'] = Variable<String>(listKind);
+    map['playlist_id'] = Variable<String>(playlistId);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || coverUrl != null) {
+      map['cover_url'] = Variable<String>(coverUrl);
+    }
+    if (!nullToAbsent || trackCount != null) {
+      map['track_count'] = Variable<int>(trackCount);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  UserPlaylistListItemsCompanion toCompanion(bool nullToAbsent) {
+    return UserPlaylistListItemsCompanion(
+      userId: Value(userId),
+      listKind: Value(listKind),
+      playlistId: Value(playlistId),
+      sortOrder: Value(sortOrder),
+      title: Value(title),
+      coverUrl: coverUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(coverUrl),
+      trackCount: trackCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trackCount),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory UserPlaylistListItem.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserPlaylistListItem(
+      userId: serializer.fromJson<String>(json['userId']),
+      listKind: serializer.fromJson<String>(json['listKind']),
+      playlistId: serializer.fromJson<String>(json['playlistId']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      title: serializer.fromJson<String>(json['title']),
+      coverUrl: serializer.fromJson<String?>(json['coverUrl']),
+      trackCount: serializer.fromJson<int?>(json['trackCount']),
+      description: serializer.fromJson<String?>(json['description']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'listKind': serializer.toJson<String>(listKind),
+      'playlistId': serializer.toJson<String>(playlistId),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'title': serializer.toJson<String>(title),
+      'coverUrl': serializer.toJson<String?>(coverUrl),
+      'trackCount': serializer.toJson<int?>(trackCount),
+      'description': serializer.toJson<String?>(description),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  UserPlaylistListItem copyWith(
+          {String? userId,
+          String? listKind,
+          String? playlistId,
+          int? sortOrder,
+          String? title,
+          Value<String?> coverUrl = const Value.absent(),
+          Value<int?> trackCount = const Value.absent(),
+          Value<String?> description = const Value.absent(),
+          int? updatedAtMs}) =>
+      UserPlaylistListItem(
+        userId: userId ?? this.userId,
+        listKind: listKind ?? this.listKind,
+        playlistId: playlistId ?? this.playlistId,
+        sortOrder: sortOrder ?? this.sortOrder,
+        title: title ?? this.title,
+        coverUrl: coverUrl.present ? coverUrl.value : this.coverUrl,
+        trackCount: trackCount.present ? trackCount.value : this.trackCount,
+        description: description.present ? description.value : this.description,
+        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('UserPlaylistListItem(')
+          ..write('userId: $userId, ')
+          ..write('listKind: $listKind, ')
+          ..write('playlistId: $playlistId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('title: $title, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('trackCount: $trackCount, ')
+          ..write('description: $description, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(userId, listKind, playlistId, sortOrder,
+      title, coverUrl, trackCount, description, updatedAtMs);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserPlaylistListItem &&
+          other.userId == this.userId &&
+          other.listKind == this.listKind &&
+          other.playlistId == this.playlistId &&
+          other.sortOrder == this.sortOrder &&
+          other.title == this.title &&
+          other.coverUrl == this.coverUrl &&
+          other.trackCount == this.trackCount &&
+          other.description == this.description &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class UserPlaylistListItemsCompanion
+    extends UpdateCompanion<UserPlaylistListItem> {
+  final Value<String> userId;
+  final Value<String> listKind;
+  final Value<String> playlistId;
+  final Value<int> sortOrder;
+  final Value<String> title;
+  final Value<String?> coverUrl;
+  final Value<int?> trackCount;
+  final Value<String?> description;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const UserPlaylistListItemsCompanion({
+    this.userId = const Value.absent(),
+    this.listKind = const Value.absent(),
+    this.playlistId = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.title = const Value.absent(),
+    this.coverUrl = const Value.absent(),
+    this.trackCount = const Value.absent(),
+    this.description = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserPlaylistListItemsCompanion.insert({
+    required String userId,
+    required String listKind,
+    required String playlistId,
+    required int sortOrder,
+    required String title,
+    this.coverUrl = const Value.absent(),
+    this.trackCount = const Value.absent(),
+    this.description = const Value.absent(),
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  })  : userId = Value(userId),
+        listKind = Value(listKind),
+        playlistId = Value(playlistId),
+        sortOrder = Value(sortOrder),
+        title = Value(title),
+        updatedAtMs = Value(updatedAtMs);
+  static Insertable<UserPlaylistListItem> custom({
+    Expression<String>? userId,
+    Expression<String>? listKind,
+    Expression<String>? playlistId,
+    Expression<int>? sortOrder,
+    Expression<String>? title,
+    Expression<String>? coverUrl,
+    Expression<int>? trackCount,
+    Expression<String>? description,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (listKind != null) 'list_kind': listKind,
+      if (playlistId != null) 'playlist_id': playlistId,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (title != null) 'title': title,
+      if (coverUrl != null) 'cover_url': coverUrl,
+      if (trackCount != null) 'track_count': trackCount,
+      if (description != null) 'description': description,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserPlaylistListItemsCompanion copyWith(
+      {Value<String>? userId,
+      Value<String>? listKind,
+      Value<String>? playlistId,
+      Value<int>? sortOrder,
+      Value<String>? title,
+      Value<String?>? coverUrl,
+      Value<int?>? trackCount,
+      Value<String?>? description,
+      Value<int>? updatedAtMs,
+      Value<int>? rowid}) {
+    return UserPlaylistListItemsCompanion(
+      userId: userId ?? this.userId,
+      listKind: listKind ?? this.listKind,
+      playlistId: playlistId ?? this.playlistId,
+      sortOrder: sortOrder ?? this.sortOrder,
+      title: title ?? this.title,
+      coverUrl: coverUrl ?? this.coverUrl,
+      trackCount: trackCount ?? this.trackCount,
+      description: description ?? this.description,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (listKind.present) {
+      map['list_kind'] = Variable<String>(listKind.value);
+    }
+    if (playlistId.present) {
+      map['playlist_id'] = Variable<String>(playlistId.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (coverUrl.present) {
+      map['cover_url'] = Variable<String>(coverUrl.value);
+    }
+    if (trackCount.present) {
+      map['track_count'] = Variable<int>(trackCount.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserPlaylistListItemsCompanion(')
+          ..write('userId: $userId, ')
+          ..write('listKind: $listKind, ')
+          ..write('playlistId: $playlistId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('title: $title, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('trackCount: $trackCount, ')
+          ..write('description: $description, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserPlaylistStatesTable extends UserPlaylistStates
+    with TableInfo<$UserPlaylistStatesTable, UserPlaylistState> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserPlaylistStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _playlistIdMeta =
+      const VerificationMeta('playlistId');
+  @override
+  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>(
+      'playlist_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _isSubscribedMeta =
+      const VerificationMeta('isSubscribed');
+  @override
+  late final GeneratedColumn<bool> isSubscribed =
+      GeneratedColumn<bool>('is_subscribed', aliasedName, false,
+          type: DriftSqlType.bool,
+          requiredDuringInsert: true,
+          defaultConstraints: GeneratedColumn.constraintsDependsOnDialect({
+            SqlDialect.sqlite: 'CHECK ("is_subscribed" IN (0, 1))',
+            SqlDialect.mysql: '',
+            SqlDialect.postgres: '',
+          }));
+  static const VerificationMeta _updatedAtMsMeta =
+      const VerificationMeta('updatedAtMs');
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+      'updated_at_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [userId, playlistId, isSubscribed, updatedAtMs];
+  @override
+  String get aliasedName => _alias ?? 'user_playlist_states';
+  @override
+  String get actualTableName => 'user_playlist_states';
+  @override
+  VerificationContext validateIntegrity(Insertable<UserPlaylistState> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('playlist_id')) {
+      context.handle(
+          _playlistIdMeta,
+          playlistId.isAcceptableOrUnknown(
+              data['playlist_id']!, _playlistIdMeta));
+    } else if (isInserting) {
+      context.missing(_playlistIdMeta);
+    }
+    if (data.containsKey('is_subscribed')) {
+      context.handle(
+          _isSubscribedMeta,
+          isSubscribed.isAcceptableOrUnknown(
+              data['is_subscribed']!, _isSubscribedMeta));
+    } else if (isInserting) {
+      context.missing(_isSubscribedMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+          _updatedAtMsMeta,
+          updatedAtMs.isAcceptableOrUnknown(
+              data['updated_at_ms']!, _updatedAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, playlistId};
+  @override
+  UserPlaylistState map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserPlaylistState(
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      playlistId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
+      isSubscribed: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_subscribed'])!,
+      updatedAtMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+    );
+  }
+
+  @override
+  $UserPlaylistStatesTable createAlias(String alias) {
+    return $UserPlaylistStatesTable(attachedDatabase, alias);
+  }
+}
+
+class UserPlaylistState extends DataClass
+    implements Insertable<UserPlaylistState> {
+  final String userId;
+  final String playlistId;
+  final bool isSubscribed;
+  final int updatedAtMs;
+  const UserPlaylistState(
+      {required this.userId,
+      required this.playlistId,
+      required this.isSubscribed,
+      required this.updatedAtMs});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['playlist_id'] = Variable<String>(playlistId);
+    map['is_subscribed'] = Variable<bool>(isSubscribed);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  UserPlaylistStatesCompanion toCompanion(bool nullToAbsent) {
+    return UserPlaylistStatesCompanion(
+      userId: Value(userId),
+      playlistId: Value(playlistId),
+      isSubscribed: Value(isSubscribed),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory UserPlaylistState.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserPlaylistState(
+      userId: serializer.fromJson<String>(json['userId']),
+      playlistId: serializer.fromJson<String>(json['playlistId']),
+      isSubscribed: serializer.fromJson<bool>(json['isSubscribed']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'playlistId': serializer.toJson<String>(playlistId),
+      'isSubscribed': serializer.toJson<bool>(isSubscribed),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  UserPlaylistState copyWith(
+          {String? userId,
+          String? playlistId,
+          bool? isSubscribed,
+          int? updatedAtMs}) =>
+      UserPlaylistState(
+        userId: userId ?? this.userId,
+        playlistId: playlistId ?? this.playlistId,
+        isSubscribed: isSubscribed ?? this.isSubscribed,
+        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('UserPlaylistState(')
+          ..write('userId: $userId, ')
+          ..write('playlistId: $playlistId, ')
+          ..write('isSubscribed: $isSubscribed, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(userId, playlistId, isSubscribed, updatedAtMs);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserPlaylistState &&
+          other.userId == this.userId &&
+          other.playlistId == this.playlistId &&
+          other.isSubscribed == this.isSubscribed &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class UserPlaylistStatesCompanion extends UpdateCompanion<UserPlaylistState> {
+  final Value<String> userId;
+  final Value<String> playlistId;
+  final Value<bool> isSubscribed;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const UserPlaylistStatesCompanion({
+    this.userId = const Value.absent(),
+    this.playlistId = const Value.absent(),
+    this.isSubscribed = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserPlaylistStatesCompanion.insert({
+    required String userId,
+    required String playlistId,
+    required bool isSubscribed,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  })  : userId = Value(userId),
+        playlistId = Value(playlistId),
+        isSubscribed = Value(isSubscribed),
+        updatedAtMs = Value(updatedAtMs);
+  static Insertable<UserPlaylistState> custom({
+    Expression<String>? userId,
+    Expression<String>? playlistId,
+    Expression<bool>? isSubscribed,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (playlistId != null) 'playlist_id': playlistId,
+      if (isSubscribed != null) 'is_subscribed': isSubscribed,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserPlaylistStatesCompanion copyWith(
+      {Value<String>? userId,
+      Value<String>? playlistId,
+      Value<bool>? isSubscribed,
+      Value<int>? updatedAtMs,
+      Value<int>? rowid}) {
+    return UserPlaylistStatesCompanion(
+      userId: userId ?? this.userId,
+      playlistId: playlistId ?? this.playlistId,
+      isSubscribed: isSubscribed ?? this.isSubscribed,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (playlistId.present) {
+      map['playlist_id'] = Variable<String>(playlistId.value);
+    }
+    if (isSubscribed.present) {
+      map['is_subscribed'] = Variable<bool>(isSubscribed.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserPlaylistStatesCompanion(')
+          ..write('userId: $userId, ')
+          ..write('playlistId: $playlistId, ')
+          ..write('isSubscribed: $isSubscribed, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserRadioSubscriptionsTable extends UserRadioSubscriptions
+    with TableInfo<$UserRadioSubscriptionsTable, UserRadioSubscription> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserRadioSubscriptionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _radioIdMeta =
+      const VerificationMeta('radioId');
+  @override
+  late final GeneratedColumn<String> radioId = GeneratedColumn<String>(
+      'radio_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta =
+      const VerificationMeta('sortOrder');
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+      'sort_order', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _coverUrlMeta =
+      const VerificationMeta('coverUrl');
+  @override
+  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>(
+      'cover_url', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _lastProgramNameMeta =
+      const VerificationMeta('lastProgramName');
+  @override
+  late final GeneratedColumn<String> lastProgramName = GeneratedColumn<String>(
+      'last_program_name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta =
+      const VerificationMeta('updatedAtMs');
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+      'updated_at_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        userId,
+        radioId,
+        sortOrder,
+        name,
+        coverUrl,
+        lastProgramName,
+        updatedAtMs
+      ];
+  @override
+  String get aliasedName => _alias ?? 'user_radio_subscriptions';
+  @override
+  String get actualTableName => 'user_radio_subscriptions';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<UserRadioSubscription> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('radio_id')) {
+      context.handle(_radioIdMeta,
+          radioId.isAcceptableOrUnknown(data['radio_id']!, _radioIdMeta));
+    } else if (isInserting) {
+      context.missing(_radioIdMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(_sortOrderMeta,
+          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('cover_url')) {
+      context.handle(_coverUrlMeta,
+          coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
+    } else if (isInserting) {
+      context.missing(_coverUrlMeta);
+    }
+    if (data.containsKey('last_program_name')) {
+      context.handle(
+          _lastProgramNameMeta,
+          lastProgramName.isAcceptableOrUnknown(
+              data['last_program_name']!, _lastProgramNameMeta));
+    } else if (isInserting) {
+      context.missing(_lastProgramNameMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+          _updatedAtMsMeta,
+          updatedAtMs.isAcceptableOrUnknown(
+              data['updated_at_ms']!, _updatedAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, radioId};
+  @override
+  UserRadioSubscription map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserRadioSubscription(
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      radioId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}radio_id'])!,
+      sortOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      coverUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cover_url'])!,
+      lastProgramName: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}last_program_name'])!,
+      updatedAtMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+    );
+  }
+
+  @override
+  $UserRadioSubscriptionsTable createAlias(String alias) {
+    return $UserRadioSubscriptionsTable(attachedDatabase, alias);
+  }
+}
+
+class UserRadioSubscription extends DataClass
+    implements Insertable<UserRadioSubscription> {
+  final String userId;
+  final String radioId;
+  final int sortOrder;
+  final String name;
+  final String coverUrl;
+  final String lastProgramName;
+  final int updatedAtMs;
+  const UserRadioSubscription(
+      {required this.userId,
+      required this.radioId,
+      required this.sortOrder,
+      required this.name,
+      required this.coverUrl,
+      required this.lastProgramName,
+      required this.updatedAtMs});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['radio_id'] = Variable<String>(radioId);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['name'] = Variable<String>(name);
+    map['cover_url'] = Variable<String>(coverUrl);
+    map['last_program_name'] = Variable<String>(lastProgramName);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  UserRadioSubscriptionsCompanion toCompanion(bool nullToAbsent) {
+    return UserRadioSubscriptionsCompanion(
+      userId: Value(userId),
+      radioId: Value(radioId),
+      sortOrder: Value(sortOrder),
+      name: Value(name),
+      coverUrl: Value(coverUrl),
+      lastProgramName: Value(lastProgramName),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory UserRadioSubscription.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserRadioSubscription(
+      userId: serializer.fromJson<String>(json['userId']),
+      radioId: serializer.fromJson<String>(json['radioId']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      name: serializer.fromJson<String>(json['name']),
+      coverUrl: serializer.fromJson<String>(json['coverUrl']),
+      lastProgramName: serializer.fromJson<String>(json['lastProgramName']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'radioId': serializer.toJson<String>(radioId),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'name': serializer.toJson<String>(name),
+      'coverUrl': serializer.toJson<String>(coverUrl),
+      'lastProgramName': serializer.toJson<String>(lastProgramName),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  UserRadioSubscription copyWith(
+          {String? userId,
+          String? radioId,
+          int? sortOrder,
+          String? name,
+          String? coverUrl,
+          String? lastProgramName,
+          int? updatedAtMs}) =>
+      UserRadioSubscription(
+        userId: userId ?? this.userId,
+        radioId: radioId ?? this.radioId,
+        sortOrder: sortOrder ?? this.sortOrder,
+        name: name ?? this.name,
+        coverUrl: coverUrl ?? this.coverUrl,
+        lastProgramName: lastProgramName ?? this.lastProgramName,
+        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('UserRadioSubscription(')
+          ..write('userId: $userId, ')
+          ..write('radioId: $radioId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('name: $name, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('lastProgramName: $lastProgramName, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      userId, radioId, sortOrder, name, coverUrl, lastProgramName, updatedAtMs);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserRadioSubscription &&
+          other.userId == this.userId &&
+          other.radioId == this.radioId &&
+          other.sortOrder == this.sortOrder &&
+          other.name == this.name &&
+          other.coverUrl == this.coverUrl &&
+          other.lastProgramName == this.lastProgramName &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class UserRadioSubscriptionsCompanion
+    extends UpdateCompanion<UserRadioSubscription> {
+  final Value<String> userId;
+  final Value<String> radioId;
+  final Value<int> sortOrder;
+  final Value<String> name;
+  final Value<String> coverUrl;
+  final Value<String> lastProgramName;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const UserRadioSubscriptionsCompanion({
+    this.userId = const Value.absent(),
+    this.radioId = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.name = const Value.absent(),
+    this.coverUrl = const Value.absent(),
+    this.lastProgramName = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserRadioSubscriptionsCompanion.insert({
+    required String userId,
+    required String radioId,
+    required int sortOrder,
+    required String name,
+    required String coverUrl,
+    required String lastProgramName,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  })  : userId = Value(userId),
+        radioId = Value(radioId),
+        sortOrder = Value(sortOrder),
+        name = Value(name),
+        coverUrl = Value(coverUrl),
+        lastProgramName = Value(lastProgramName),
+        updatedAtMs = Value(updatedAtMs);
+  static Insertable<UserRadioSubscription> custom({
+    Expression<String>? userId,
+    Expression<String>? radioId,
+    Expression<int>? sortOrder,
+    Expression<String>? name,
+    Expression<String>? coverUrl,
+    Expression<String>? lastProgramName,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (radioId != null) 'radio_id': radioId,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (name != null) 'name': name,
+      if (coverUrl != null) 'cover_url': coverUrl,
+      if (lastProgramName != null) 'last_program_name': lastProgramName,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserRadioSubscriptionsCompanion copyWith(
+      {Value<String>? userId,
+      Value<String>? radioId,
+      Value<int>? sortOrder,
+      Value<String>? name,
+      Value<String>? coverUrl,
+      Value<String>? lastProgramName,
+      Value<int>? updatedAtMs,
+      Value<int>? rowid}) {
+    return UserRadioSubscriptionsCompanion(
+      userId: userId ?? this.userId,
+      radioId: radioId ?? this.radioId,
+      sortOrder: sortOrder ?? this.sortOrder,
+      name: name ?? this.name,
+      coverUrl: coverUrl ?? this.coverUrl,
+      lastProgramName: lastProgramName ?? this.lastProgramName,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (radioId.present) {
+      map['radio_id'] = Variable<String>(radioId.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (coverUrl.present) {
+      map['cover_url'] = Variable<String>(coverUrl.value);
+    }
+    if (lastProgramName.present) {
+      map['last_program_name'] = Variable<String>(lastProgramName.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserRadioSubscriptionsCompanion(')
+          ..write('userId: $userId, ')
+          ..write('radioId: $radioId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('name: $name, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('lastProgramName: $lastProgramName, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserRadioProgramsTable extends UserRadioPrograms
+    with TableInfo<$UserRadioProgramsTable, UserRadioProgram> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserRadioProgramsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _radioIdMeta =
+      const VerificationMeta('radioId');
+  @override
+  late final GeneratedColumn<String> radioId = GeneratedColumn<String>(
+      'radio_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _ascMeta = const VerificationMeta('asc');
+  @override
+  late final GeneratedColumn<bool> asc =
+      GeneratedColumn<bool>('asc', aliasedName, false,
+          type: DriftSqlType.bool,
+          requiredDuringInsert: true,
+          defaultConstraints: GeneratedColumn.constraintsDependsOnDialect({
+            SqlDialect.sqlite: 'CHECK ("asc" IN (0, 1))',
+            SqlDialect.mysql: '',
+            SqlDialect.postgres: '',
+          }));
+  static const VerificationMeta _programIdMeta =
+      const VerificationMeta('programId');
+  @override
+  late final GeneratedColumn<String> programId = GeneratedColumn<String>(
+      'program_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta =
+      const VerificationMeta('sortOrder');
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+      'sort_order', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _mainTrackIdMeta =
+      const VerificationMeta('mainTrackId');
+  @override
+  late final GeneratedColumn<String> mainTrackId = GeneratedColumn<String>(
+      'main_track_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _coverUrlMeta =
+      const VerificationMeta('coverUrl');
+  @override
+  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>(
+      'cover_url', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artistNameMeta =
+      const VerificationMeta('artistName');
+  @override
+  late final GeneratedColumn<String> artistName = GeneratedColumn<String>(
+      'artist_name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _albumTitleMeta =
+      const VerificationMeta('albumTitle');
+  @override
+  late final GeneratedColumn<String> albumTitle = GeneratedColumn<String>(
+      'album_title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _durationMsMeta =
+      const VerificationMeta('durationMs');
+  @override
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+      'duration_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta =
+      const VerificationMeta('updatedAtMs');
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+      'updated_at_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        userId,
+        radioId,
+        asc,
+        programId,
+        sortOrder,
+        mainTrackId,
+        title,
+        coverUrl,
+        artistName,
+        albumTitle,
+        durationMs,
+        updatedAtMs
+      ];
+  @override
+  String get aliasedName => _alias ?? 'user_radio_programs';
+  @override
+  String get actualTableName => 'user_radio_programs';
+  @override
+  VerificationContext validateIntegrity(Insertable<UserRadioProgram> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('radio_id')) {
+      context.handle(_radioIdMeta,
+          radioId.isAcceptableOrUnknown(data['radio_id']!, _radioIdMeta));
+    } else if (isInserting) {
+      context.missing(_radioIdMeta);
+    }
+    if (data.containsKey('asc')) {
+      context.handle(
+          _ascMeta, asc.isAcceptableOrUnknown(data['asc']!, _ascMeta));
+    } else if (isInserting) {
+      context.missing(_ascMeta);
+    }
+    if (data.containsKey('program_id')) {
+      context.handle(_programIdMeta,
+          programId.isAcceptableOrUnknown(data['program_id']!, _programIdMeta));
+    } else if (isInserting) {
+      context.missing(_programIdMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(_sortOrderMeta,
+          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    if (data.containsKey('main_track_id')) {
+      context.handle(
+          _mainTrackIdMeta,
+          mainTrackId.isAcceptableOrUnknown(
+              data['main_track_id']!, _mainTrackIdMeta));
+    } else if (isInserting) {
+      context.missing(_mainTrackIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('cover_url')) {
+      context.handle(_coverUrlMeta,
+          coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
+    } else if (isInserting) {
+      context.missing(_coverUrlMeta);
+    }
+    if (data.containsKey('artist_name')) {
+      context.handle(
+          _artistNameMeta,
+          artistName.isAcceptableOrUnknown(
+              data['artist_name']!, _artistNameMeta));
+    } else if (isInserting) {
+      context.missing(_artistNameMeta);
+    }
+    if (data.containsKey('album_title')) {
+      context.handle(
+          _albumTitleMeta,
+          albumTitle.isAcceptableOrUnknown(
+              data['album_title']!, _albumTitleMeta));
+    } else if (isInserting) {
+      context.missing(_albumTitleMeta);
+    }
+    if (data.containsKey('duration_ms')) {
+      context.handle(
+          _durationMsMeta,
+          durationMs.isAcceptableOrUnknown(
+              data['duration_ms']!, _durationMsMeta));
+    } else if (isInserting) {
+      context.missing(_durationMsMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+          _updatedAtMsMeta,
+          updatedAtMs.isAcceptableOrUnknown(
+              data['updated_at_ms']!, _updatedAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, radioId, asc, programId};
+  @override
+  UserRadioProgram map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserRadioProgram(
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      radioId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}radio_id'])!,
+      asc: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}asc'])!,
+      programId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}program_id'])!,
+      sortOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      mainTrackId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}main_track_id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      coverUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cover_url'])!,
+      artistName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}artist_name'])!,
+      albumTitle: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}album_title'])!,
+      durationMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}duration_ms'])!,
+      updatedAtMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+    );
+  }
+
+  @override
+  $UserRadioProgramsTable createAlias(String alias) {
+    return $UserRadioProgramsTable(attachedDatabase, alias);
+  }
+}
+
+class UserRadioProgram extends DataClass
+    implements Insertable<UserRadioProgram> {
+  final String userId;
+  final String radioId;
+  final bool asc;
+  final String programId;
+  final int sortOrder;
+  final String mainTrackId;
+  final String title;
+  final String coverUrl;
+  final String artistName;
+  final String albumTitle;
+  final int durationMs;
+  final int updatedAtMs;
+  const UserRadioProgram(
+      {required this.userId,
+      required this.radioId,
+      required this.asc,
+      required this.programId,
+      required this.sortOrder,
+      required this.mainTrackId,
+      required this.title,
+      required this.coverUrl,
+      required this.artistName,
+      required this.albumTitle,
+      required this.durationMs,
+      required this.updatedAtMs});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['radio_id'] = Variable<String>(radioId);
+    map['asc'] = Variable<bool>(asc);
+    map['program_id'] = Variable<String>(programId);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['main_track_id'] = Variable<String>(mainTrackId);
+    map['title'] = Variable<String>(title);
+    map['cover_url'] = Variable<String>(coverUrl);
+    map['artist_name'] = Variable<String>(artistName);
+    map['album_title'] = Variable<String>(albumTitle);
+    map['duration_ms'] = Variable<int>(durationMs);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  UserRadioProgramsCompanion toCompanion(bool nullToAbsent) {
+    return UserRadioProgramsCompanion(
+      userId: Value(userId),
+      radioId: Value(radioId),
+      asc: Value(asc),
+      programId: Value(programId),
+      sortOrder: Value(sortOrder),
+      mainTrackId: Value(mainTrackId),
+      title: Value(title),
+      coverUrl: Value(coverUrl),
+      artistName: Value(artistName),
+      albumTitle: Value(albumTitle),
+      durationMs: Value(durationMs),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory UserRadioProgram.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserRadioProgram(
+      userId: serializer.fromJson<String>(json['userId']),
+      radioId: serializer.fromJson<String>(json['radioId']),
+      asc: serializer.fromJson<bool>(json['asc']),
+      programId: serializer.fromJson<String>(json['programId']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      mainTrackId: serializer.fromJson<String>(json['mainTrackId']),
+      title: serializer.fromJson<String>(json['title']),
+      coverUrl: serializer.fromJson<String>(json['coverUrl']),
+      artistName: serializer.fromJson<String>(json['artistName']),
+      albumTitle: serializer.fromJson<String>(json['albumTitle']),
+      durationMs: serializer.fromJson<int>(json['durationMs']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'radioId': serializer.toJson<String>(radioId),
+      'asc': serializer.toJson<bool>(asc),
+      'programId': serializer.toJson<String>(programId),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'mainTrackId': serializer.toJson<String>(mainTrackId),
+      'title': serializer.toJson<String>(title),
+      'coverUrl': serializer.toJson<String>(coverUrl),
+      'artistName': serializer.toJson<String>(artistName),
+      'albumTitle': serializer.toJson<String>(albumTitle),
+      'durationMs': serializer.toJson<int>(durationMs),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  UserRadioProgram copyWith(
+          {String? userId,
+          String? radioId,
+          bool? asc,
+          String? programId,
+          int? sortOrder,
+          String? mainTrackId,
+          String? title,
+          String? coverUrl,
+          String? artistName,
+          String? albumTitle,
+          int? durationMs,
+          int? updatedAtMs}) =>
+      UserRadioProgram(
+        userId: userId ?? this.userId,
+        radioId: radioId ?? this.radioId,
+        asc: asc ?? this.asc,
+        programId: programId ?? this.programId,
+        sortOrder: sortOrder ?? this.sortOrder,
+        mainTrackId: mainTrackId ?? this.mainTrackId,
+        title: title ?? this.title,
+        coverUrl: coverUrl ?? this.coverUrl,
+        artistName: artistName ?? this.artistName,
+        albumTitle: albumTitle ?? this.albumTitle,
+        durationMs: durationMs ?? this.durationMs,
+        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('UserRadioProgram(')
+          ..write('userId: $userId, ')
+          ..write('radioId: $radioId, ')
+          ..write('asc: $asc, ')
+          ..write('programId: $programId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('mainTrackId: $mainTrackId, ')
+          ..write('title: $title, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('artistName: $artistName, ')
+          ..write('albumTitle: $albumTitle, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      userId,
+      radioId,
+      asc,
+      programId,
+      sortOrder,
+      mainTrackId,
+      title,
+      coverUrl,
+      artistName,
+      albumTitle,
+      durationMs,
+      updatedAtMs);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserRadioProgram &&
+          other.userId == this.userId &&
+          other.radioId == this.radioId &&
+          other.asc == this.asc &&
+          other.programId == this.programId &&
+          other.sortOrder == this.sortOrder &&
+          other.mainTrackId == this.mainTrackId &&
+          other.title == this.title &&
+          other.coverUrl == this.coverUrl &&
+          other.artistName == this.artistName &&
+          other.albumTitle == this.albumTitle &&
+          other.durationMs == this.durationMs &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class UserRadioProgramsCompanion extends UpdateCompanion<UserRadioProgram> {
+  final Value<String> userId;
+  final Value<String> radioId;
+  final Value<bool> asc;
+  final Value<String> programId;
+  final Value<int> sortOrder;
+  final Value<String> mainTrackId;
+  final Value<String> title;
+  final Value<String> coverUrl;
+  final Value<String> artistName;
+  final Value<String> albumTitle;
+  final Value<int> durationMs;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const UserRadioProgramsCompanion({
+    this.userId = const Value.absent(),
+    this.radioId = const Value.absent(),
+    this.asc = const Value.absent(),
+    this.programId = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.mainTrackId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.coverUrl = const Value.absent(),
+    this.artistName = const Value.absent(),
+    this.albumTitle = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserRadioProgramsCompanion.insert({
+    required String userId,
+    required String radioId,
+    required bool asc,
+    required String programId,
+    required int sortOrder,
+    required String mainTrackId,
+    required String title,
+    required String coverUrl,
+    required String artistName,
+    required String albumTitle,
+    required int durationMs,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  })  : userId = Value(userId),
+        radioId = Value(radioId),
+        asc = Value(asc),
+        programId = Value(programId),
+        sortOrder = Value(sortOrder),
+        mainTrackId = Value(mainTrackId),
+        title = Value(title),
+        coverUrl = Value(coverUrl),
+        artistName = Value(artistName),
+        albumTitle = Value(albumTitle),
+        durationMs = Value(durationMs),
+        updatedAtMs = Value(updatedAtMs);
+  static Insertable<UserRadioProgram> custom({
+    Expression<String>? userId,
+    Expression<String>? radioId,
+    Expression<bool>? asc,
+    Expression<String>? programId,
+    Expression<int>? sortOrder,
+    Expression<String>? mainTrackId,
+    Expression<String>? title,
+    Expression<String>? coverUrl,
+    Expression<String>? artistName,
+    Expression<String>? albumTitle,
+    Expression<int>? durationMs,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (radioId != null) 'radio_id': radioId,
+      if (asc != null) 'asc': asc,
+      if (programId != null) 'program_id': programId,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (mainTrackId != null) 'main_track_id': mainTrackId,
+      if (title != null) 'title': title,
+      if (coverUrl != null) 'cover_url': coverUrl,
+      if (artistName != null) 'artist_name': artistName,
+      if (albumTitle != null) 'album_title': albumTitle,
+      if (durationMs != null) 'duration_ms': durationMs,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserRadioProgramsCompanion copyWith(
+      {Value<String>? userId,
+      Value<String>? radioId,
+      Value<bool>? asc,
+      Value<String>? programId,
+      Value<int>? sortOrder,
+      Value<String>? mainTrackId,
+      Value<String>? title,
+      Value<String>? coverUrl,
+      Value<String>? artistName,
+      Value<String>? albumTitle,
+      Value<int>? durationMs,
+      Value<int>? updatedAtMs,
+      Value<int>? rowid}) {
+    return UserRadioProgramsCompanion(
+      userId: userId ?? this.userId,
+      radioId: radioId ?? this.radioId,
+      asc: asc ?? this.asc,
+      programId: programId ?? this.programId,
+      sortOrder: sortOrder ?? this.sortOrder,
+      mainTrackId: mainTrackId ?? this.mainTrackId,
+      title: title ?? this.title,
+      coverUrl: coverUrl ?? this.coverUrl,
+      artistName: artistName ?? this.artistName,
+      albumTitle: albumTitle ?? this.albumTitle,
+      durationMs: durationMs ?? this.durationMs,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (radioId.present) {
+      map['radio_id'] = Variable<String>(radioId.value);
+    }
+    if (asc.present) {
+      map['asc'] = Variable<bool>(asc.value);
+    }
+    if (programId.present) {
+      map['program_id'] = Variable<String>(programId.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (mainTrackId.present) {
+      map['main_track_id'] = Variable<String>(mainTrackId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (coverUrl.present) {
+      map['cover_url'] = Variable<String>(coverUrl.value);
+    }
+    if (artistName.present) {
+      map['artist_name'] = Variable<String>(artistName.value);
+    }
+    if (albumTitle.present) {
+      map['album_title'] = Variable<String>(albumTitle.value);
+    }
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserRadioProgramsCompanion(')
+          ..write('userId: $userId, ')
+          ..write('radioId: $radioId, ')
+          ..write('asc: $asc, ')
+          ..write('programId: $programId, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('mainTrackId: $mainTrackId, ')
+          ..write('title: $title, ')
+          ..write('coverUrl: $coverUrl, ')
+          ..write('artistName: $artistName, ')
+          ..write('albumTitle: $albumTitle, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserSyncMarkersTable extends UserSyncMarkers
+    with TableInfo<$UserSyncMarkersTable, UserSyncMarker> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserSyncMarkersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _markerKeyMeta =
+      const VerificationMeta('markerKey');
+  @override
+  late final GeneratedColumn<String> markerKey = GeneratedColumn<String>(
+      'marker_key', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta =
+      const VerificationMeta('updatedAtMs');
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+      'updated_at_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [userId, markerKey, updatedAtMs];
+  @override
+  String get aliasedName => _alias ?? 'user_sync_markers';
+  @override
+  String get actualTableName => 'user_sync_markers';
+  @override
+  VerificationContext validateIntegrity(Insertable<UserSyncMarker> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('marker_key')) {
+      context.handle(_markerKeyMeta,
+          markerKey.isAcceptableOrUnknown(data['marker_key']!, _markerKeyMeta));
+    } else if (isInserting) {
+      context.missing(_markerKeyMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+          _updatedAtMsMeta,
+          updatedAtMs.isAcceptableOrUnknown(
+              data['updated_at_ms']!, _updatedAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, markerKey};
+  @override
+  UserSyncMarker map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserSyncMarker(
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      markerKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}marker_key'])!,
+      updatedAtMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+    );
+  }
+
+  @override
+  $UserSyncMarkersTable createAlias(String alias) {
+    return $UserSyncMarkersTable(attachedDatabase, alias);
+  }
+}
+
+class UserSyncMarker extends DataClass implements Insertable<UserSyncMarker> {
+  final String userId;
+  final String markerKey;
+  final int updatedAtMs;
+  const UserSyncMarker(
+      {required this.userId,
+      required this.markerKey,
+      required this.updatedAtMs});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['marker_key'] = Variable<String>(markerKey);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  UserSyncMarkersCompanion toCompanion(bool nullToAbsent) {
+    return UserSyncMarkersCompanion(
+      userId: Value(userId),
+      markerKey: Value(markerKey),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory UserSyncMarker.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserSyncMarker(
+      userId: serializer.fromJson<String>(json['userId']),
+      markerKey: serializer.fromJson<String>(json['markerKey']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'markerKey': serializer.toJson<String>(markerKey),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  UserSyncMarker copyWith(
+          {String? userId, String? markerKey, int? updatedAtMs}) =>
+      UserSyncMarker(
+        userId: userId ?? this.userId,
+        markerKey: markerKey ?? this.markerKey,
+        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('UserSyncMarker(')
+          ..write('userId: $userId, ')
+          ..write('markerKey: $markerKey, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(userId, markerKey, updatedAtMs);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserSyncMarker &&
+          other.userId == this.userId &&
+          other.markerKey == this.markerKey &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class UserSyncMarkersCompanion extends UpdateCompanion<UserSyncMarker> {
+  final Value<String> userId;
+  final Value<String> markerKey;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const UserSyncMarkersCompanion({
+    this.userId = const Value.absent(),
+    this.markerKey = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  UserSyncMarkersCompanion.insert({
+    required String userId,
+    required String markerKey,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  })  : userId = Value(userId),
+        markerKey = Value(markerKey),
+        updatedAtMs = Value(updatedAtMs);
+  static Insertable<UserSyncMarker> custom({
+    Expression<String>? userId,
+    Expression<String>? markerKey,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (markerKey != null) 'marker_key': markerKey,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  UserSyncMarkersCompanion copyWith(
+      {Value<String>? userId,
+      Value<String>? markerKey,
+      Value<int>? updatedAtMs,
+      Value<int>? rowid}) {
+    return UserSyncMarkersCompanion(
+      userId: userId ?? this.userId,
+      markerKey: markerKey ?? this.markerKey,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (markerKey.present) {
+      map['marker_key'] = Variable<String>(markerKey.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserSyncMarkersCompanion(')
+          ..write('userId: $userId, ')
+          ..write('markerKey: $markerKey, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
   _$BujuanDriftDatabase(QueryExecutor e) : super(e);
   late final $PlaybackRestoreSnapshotsTable playbackRestoreSnapshots =
@@ -3876,6 +6543,19 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
       $PlaylistTrackRefsTable(this);
   late final $AlbumsTable albums = $AlbumsTable(this);
   late final $ArtistsTable artists = $ArtistsTable(this);
+  late final $UserProfilesTable userProfiles = $UserProfilesTable(this);
+  late final $UserTrackListRefsTable userTrackListRefs =
+      $UserTrackListRefsTable(this);
+  late final $UserPlaylistListItemsTable userPlaylistListItems =
+      $UserPlaylistListItemsTable(this);
+  late final $UserPlaylistStatesTable userPlaylistStates =
+      $UserPlaylistStatesTable(this);
+  late final $UserRadioSubscriptionsTable userRadioSubscriptions =
+      $UserRadioSubscriptionsTable(this);
+  late final $UserRadioProgramsTable userRadioPrograms =
+      $UserRadioProgramsTable(this);
+  late final $UserSyncMarkersTable userSyncMarkers =
+      $UserSyncMarkersTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3889,6 +6569,13 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
         playlists,
         playlistTrackRefs,
         albums,
-        artists
+        artists,
+        userProfiles,
+        userTrackListRefs,
+        userPlaylistListItems,
+        userPlaylistStates,
+        userRadioSubscriptions,
+        userRadioPrograms,
+        userSyncMarkers
       ];
 }

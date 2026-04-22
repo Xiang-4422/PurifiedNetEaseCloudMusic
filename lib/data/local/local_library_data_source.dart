@@ -38,4 +38,6 @@ abstract class LocalLibraryDataSource {
   Future<void> saveArtists(List<ArtistEntity> artists);
 
   Future<void> saveLyrics(String trackId, TrackLyrics lyrics);
+
+  Future<void> clearPlaylistTrackRefs(String playlistId);
 }

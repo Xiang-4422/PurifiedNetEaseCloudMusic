@@ -315,6 +315,13 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
         );
   }
 
+  @override
+  Future<void> clearPlaylistTrackRefs(String playlistId) {
+    return (_database.delete(_database.playlistTrackRefs)
+          ..where((tbl) => tbl.playlistId.equals(playlistId)))
+        .go();
+  }
+
   PlaylistEntity _mapPlaylistRow(
     db.Playlist row, {
     required List<PlaylistTrackRef> trackRefs,

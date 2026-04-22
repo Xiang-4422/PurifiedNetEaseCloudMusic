@@ -7,9 +7,11 @@ import 'package:bujuan/data/local/drift_download_task_data_source.dart';
 import 'package:bujuan/data/local/drift_local_library_data_source.dart';
 import 'package:bujuan/data/local/drift_local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/drift_playback_restore_data_source.dart';
+import 'package:bujuan/data/local/drift_user_scoped_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
+import 'package:bujuan/data/local/user_scoped_data_source.dart';
 
 class DriftAppDatabase implements AppDatabase {
   DriftAppDatabase({required this.databaseName});
@@ -20,6 +22,7 @@ class DriftAppDatabase implements AppDatabase {
   late final PlaybackRestoreDataSource _playbackRestoreDataSource;
   late final LocalResourceIndexDataSource _localResourceIndexDataSource;
   late final DownloadTaskDataSource _downloadTaskDataSource;
+  late final UserScopedDataSource _userScopedDataSource;
 
   @override
   Future<void> init() async {
@@ -30,6 +33,7 @@ class DriftAppDatabase implements AppDatabase {
     _localResourceIndexDataSource =
         DriftLocalResourceIndexDataSource(database: _database);
     _downloadTaskDataSource = DriftDownloadTaskDataSource(database: _database);
+    _userScopedDataSource = DriftUserScopedDataSource(database: _database);
   }
 
   @override
@@ -52,4 +56,7 @@ class DriftAppDatabase implements AppDatabase {
 
   @override
   DownloadTaskDataSource get downloadTaskDataSource => _downloadTaskDataSource;
+
+  @override
+  UserScopedDataSource get userScopedDataSource => _userScopedDataSource;
 }

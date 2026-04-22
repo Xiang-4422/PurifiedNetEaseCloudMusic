@@ -133,6 +133,96 @@ class Artists extends Table {
   Set<Column<Object>> get primaryKey => {artistId};
 }
 
+class UserProfiles extends Table {
+  TextColumn get userId => text()();
+  TextColumn get nickname => text()();
+  TextColumn get signature => text()();
+  IntColumn get follows => integer()();
+  IntColumn get followeds => integer()();
+  IntColumn get playlistCount => integer()();
+  TextColumn get avatarUrl => text()();
+  IntColumn get updatedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {userId};
+}
+
+class UserTrackListRefs extends Table {
+  TextColumn get userId => text()();
+  TextColumn get listKind => text()();
+  TextColumn get trackId => text()();
+  IntColumn get sortOrder => integer()();
+  IntColumn get updatedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {userId, listKind, trackId};
+}
+
+class UserPlaylistListItems extends Table {
+  TextColumn get userId => text()();
+  TextColumn get listKind => text()();
+  TextColumn get playlistId => text()();
+  IntColumn get sortOrder => integer()();
+  TextColumn get title => text()();
+  TextColumn get coverUrl => text().nullable()();
+  IntColumn get trackCount => integer().nullable()();
+  TextColumn get description => text().nullable()();
+  IntColumn get updatedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {userId, listKind, playlistId};
+}
+
+class UserPlaylistStates extends Table {
+  TextColumn get userId => text()();
+  TextColumn get playlistId => text()();
+  BoolColumn get isSubscribed => boolean()();
+  IntColumn get updatedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {userId, playlistId};
+}
+
+class UserRadioSubscriptions extends Table {
+  TextColumn get userId => text()();
+  TextColumn get radioId => text()();
+  IntColumn get sortOrder => integer()();
+  TextColumn get name => text()();
+  TextColumn get coverUrl => text()();
+  TextColumn get lastProgramName => text()();
+  IntColumn get updatedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {userId, radioId};
+}
+
+class UserRadioPrograms extends Table {
+  TextColumn get userId => text()();
+  TextColumn get radioId => text()();
+  BoolColumn get asc => boolean()();
+  TextColumn get programId => text()();
+  IntColumn get sortOrder => integer()();
+  TextColumn get mainTrackId => text()();
+  TextColumn get title => text()();
+  TextColumn get coverUrl => text()();
+  TextColumn get artistName => text()();
+  TextColumn get albumTitle => text()();
+  IntColumn get durationMs => integer()();
+  IntColumn get updatedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {userId, radioId, asc, programId};
+}
+
+class UserSyncMarkers extends Table {
+  TextColumn get userId => text()();
+  TextColumn get markerKey => text()();
+  IntColumn get updatedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {userId, markerKey};
+}
+
 @DriftDatabase(
   tables: [
     PlaybackRestoreSnapshots,
@@ -144,6 +234,13 @@ class Artists extends Table {
     PlaylistTrackRefs,
     Albums,
     Artists,
+    UserProfiles,
+    UserTrackListRefs,
+    UserPlaylistListItems,
+    UserPlaylistStates,
+    UserRadioSubscriptions,
+    UserRadioPrograms,
+    UserSyncMarkers,
   ],
 )
 class BujuanDriftDatabase extends _$BujuanDriftDatabase {
@@ -163,6 +260,16 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
         },
         onUpgrade: (migrator, from, to) async {
           if (from < 2) {
+            await _createQueryIndexes();
+          }
+          if (from < 3) {
+            await migrator.createTable(userProfiles);
+            await migrator.createTable(userTrackListRefs);
+            await migrator.createTable(userPlaylistListItems);
+            await migrator.createTable(userPlaylistStates);
+            await migrator.createTable(userRadioSubscriptions);
+            await migrator.createTable(userRadioPrograms);
+            await migrator.createTable(userSyncMarkers);
             await _createQueryIndexes();
           }
         },
@@ -198,6 +305,21 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_download_tasks_status_updated_at_ms ON download_tasks (status, updated_at_ms)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_user_track_list_refs_user_list_sort_order ON user_track_list_refs (user_id, list_kind, sort_order)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_user_playlist_list_items_user_list_sort_order ON user_playlist_list_items (user_id, list_kind, sort_order)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_user_radio_subscriptions_user_sort_order ON user_radio_subscriptions (user_id, sort_order)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_user_radio_programs_user_radio_asc_sort_order ON user_radio_programs (user_id, radio_id, asc, sort_order)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_user_sync_markers_user_marker_key ON user_sync_markers (user_id, marker_key)',
     );
   }
 

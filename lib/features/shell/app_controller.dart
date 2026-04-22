@@ -132,6 +132,30 @@ class AppController extends SuperController
     return _bottomPanelPageController!;
   }
 
+  void jumpBottomPanelToPage(int page) {
+    _ensureUiControllersInitialized();
+    final controller = _bottomPanelPageController;
+    if (controller != null && controller.hasClients) {
+      controller.jumpToPage(page);
+    }
+  }
+
+  Future<void> animateBottomPanelToPage(
+    int page, {
+    Duration duration = const Duration(milliseconds: 300),
+    Curve curve = Curves.linear,
+  }) async {
+    _ensureUiControllersInitialized();
+    final controller = _bottomPanelPageController;
+    if (controller != null && controller.hasClients) {
+      await controller.animateToPage(
+        page,
+        duration: duration,
+        curve: curve,
+      );
+    }
+  }
+
   TabController get bottomPanelTabController {
     _ensureUiControllersInitialized();
     return _bottomPanelTabController!;
@@ -223,10 +247,12 @@ class AppController extends SuperController
         TabController(length: 3, initialIndex: 1, vsync: this)
           ..addListener(() {
             if (bottomPanelTabController.indexIsChanging) {
-              bottomPanelPageController.animateToPage(
+              unawaited(
+                animateBottomPanelToPage(
                   bottomPanelTabController.index,
                   duration: const Duration(milliseconds: 500),
-                  curve: Curves.linear);
+                ),
+              );
               if (bottomPanelTabController.index <= 1) {
                 bottomPanelCommentTabController.index = 0;
                 bottomPanelCommentTabController.offset = 0;
@@ -236,10 +262,11 @@ class AppController extends SuperController
     _bottomPanelCommentTabController = TabController(length: 2, vsync: this)
       ..addListener(() {
         if (bottomPanelCommentTabController.indexIsChanging) {
-          bottomPanelPageController.animateToPage(
+          unawaited(
+            animateBottomPanelToPage(
               bottomPanelCommentTabController.index + 2,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.linear);
+            ),
+          );
         }
       });
     _bottomPanelPageController = PageController(initialPage: 1)

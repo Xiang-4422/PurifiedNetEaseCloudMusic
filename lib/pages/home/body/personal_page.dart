@@ -159,8 +159,7 @@ class PersonalPageView extends GetView<AppController> {
                                 icon: TablerIcons.infinity,
                                 title: "漫游模式",
                                 onTap: () {
-                                  controller.bottomPanelPageController
-                                      .jumpToPage(1);
+                                  controller.jumpBottomPanelToPage(1);
                                   controller.bottomPanelController.open();
                                   controller.playerController.openFmMode();
                                 },
@@ -188,8 +187,7 @@ class PersonalPageView extends GetView<AppController> {
                                 icon: TablerIcons.heartbeat,
                                 title: "心动模式",
                                 onTap: () {
-                                  controller.bottomPanelPageController
-                                      .jumpToPage(1);
+                                  controller.jumpBottomPanelToPage(1);
                                   controller.bottomPanelController.open();
                                   controller.playerController.openHeartBeatMode(
                                     controller.randomLikedSongId.value,

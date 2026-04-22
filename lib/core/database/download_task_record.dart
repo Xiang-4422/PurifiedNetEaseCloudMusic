@@ -4,9 +4,7 @@ class DownloadTaskRecord {
     required this.status,
     required this.updatedAtMs,
     this.progress,
-    this.localPath,
-    this.artworkPath,
-    this.lyricsPath,
+    this.temporaryPath,
     this.failureReason,
   });
 
@@ -14,9 +12,7 @@ class DownloadTaskRecord {
   final String status;
   final int updatedAtMs;
   final double? progress;
-  final String? localPath;
-  final String? artworkPath;
-  final String? lyricsPath;
+  final String? temporaryPath;
   final String? failureReason;
 
   Map<String, Object?> toMap() {
@@ -25,9 +21,7 @@ class DownloadTaskRecord {
       'status': status,
       'updatedAtMs': updatedAtMs,
       'progress': progress,
-      'localPath': localPath,
-      'artworkPath': artworkPath,
-      'lyricsPath': lyricsPath,
+      'temporaryPath': temporaryPath,
       'failureReason': failureReason,
     };
   }
@@ -38,9 +32,7 @@ class DownloadTaskRecord {
       status: map['status'] as String? ?? '',
       updatedAtMs: map['updatedAtMs'] as int? ?? 0,
       progress: (map['progress'] as num?)?.toDouble(),
-      localPath: map['localPath'] as String?,
-      artworkPath: map['artworkPath'] as String?,
-      lyricsPath: map['lyricsPath'] as String?,
+      temporaryPath: map['temporaryPath'] as String?,
       failureReason: map['failureReason'] as String?,
     );
   }

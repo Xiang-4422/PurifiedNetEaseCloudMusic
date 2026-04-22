@@ -38,13 +38,7 @@ class LocalMediaRepository {
       albumTitle: albumTitle,
       durationMs: durationMs,
       artworkUrl: artworkUrl,
-      localPath: filePath,
-      localArtworkPath: localArtworkPath,
-      localLyricsPath: localLyricsPath,
       availability: TrackAvailability.localOnly,
-      downloadState: DownloadState.downloaded,
-      resourceOrigin: TrackResourceOrigin.localImport,
-      downloadProgress: 1,
       metadata: metadata,
     );
     await _libraryRepository.saveTrack(track);
@@ -82,29 +76,21 @@ class LocalMediaRepository {
             albumTitle: track.albumTitle,
             durationMs: track.durationMs,
             artworkUrl: track.artworkUrl,
-            localPath: track.filePath,
-            localArtworkPath: track.localArtworkPath,
-            localLyricsPath: track.localLyricsPath,
             availability: TrackAvailability.localOnly,
-            downloadState: DownloadState.downloaded,
-            resourceOrigin: TrackResourceOrigin.localImport,
-            downloadProgress: 1,
             metadata: track.metadata,
           ),
         )
         .toList();
     await _libraryRepository.saveTracks(importedTracks);
-    for (final track in importedTracks) {
-      final localPath = track.localPath;
-      if (localPath?.isNotEmpty != true) {
-        continue;
-      }
+    for (var i = 0; i < importedTracks.length; i++) {
+      final track = importedTracks[i];
+      final localPath = tracks[i].filePath;
       await _resourceIndexRepository.saveAudioResource(
         track.id,
-        path: localPath!,
+        path: localPath,
         origin: TrackResourceOrigin.localImport,
       );
-      final localArtworkPath = track.localArtworkPath;
+      final localArtworkPath = tracks[i].localArtworkPath;
       if (localArtworkPath?.isNotEmpty == true) {
         await _resourceIndexRepository.saveArtworkResource(
           track.id,
@@ -112,7 +98,7 @@ class LocalMediaRepository {
           origin: TrackResourceOrigin.localImport,
         );
       }
-      final localLyricsPath = track.localLyricsPath;
+      final localLyricsPath = tracks[i].localLyricsPath;
       if (localLyricsPath?.isNotEmpty == true) {
         await _resourceIndexRepository.saveLyricsResource(
           track.id,

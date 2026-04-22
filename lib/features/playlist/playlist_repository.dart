@@ -5,7 +5,7 @@ import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/domain/entities/playlist_track_ref.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:get_it/get_it.dart';
 
@@ -266,21 +266,21 @@ class PlaylistRepository {
     if (trackIds.isEmpty) {
       return const [];
     }
-    final tracks = await _libraryRepository.getTracksByIds(trackIds);
+    final tracks = await _libraryRepository.getTracksWithResources(trackIds);
     if (tracks.isEmpty) {
       return const [];
     }
-    final tracksById = <String, Track>{
-      for (final track in tracks) track.id: track,
+    final tracksById = <String, TrackWithResources>{
+      for (final track in tracks) track.track.id: track,
     };
     final orderedTracks = trackIds
         .map((trackId) => tracksById[trackId])
-        .whereType<Track>()
+        .whereType<TrackWithResources>()
         .toList();
     if (orderedTracks.isEmpty) {
       return const [];
     }
-    return MediaItemMapper.fromTrackList(
+    return MediaItemMapper.fromTrackWithResourcesList(
       orderedTracks,
       likedSongIds: likedSongIds,
     );

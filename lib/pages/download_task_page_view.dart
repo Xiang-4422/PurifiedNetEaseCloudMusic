@@ -1,5 +1,6 @@
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/domain/entities/local_song_entry.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/download/local_song_list_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
@@ -71,23 +72,25 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(kTextTabBarHeight),
-            child: ValueListenableBuilder<LoadState<List<Track>>>(
+            child: ValueListenableBuilder<LoadState<List<LocalSongEntry>>>(
               valueListenable: _allController.state,
               builder: (context, state, child) {
-                final items = state.data ?? const <Track>[];
+                final items = state.data ?? const <LocalSongEntry>[];
                 final cacheCount = items
                     .where(
-                      (item) => item.resourceOrigin == TrackResourceOrigin.playbackCache,
+                      (item) =>
+                          item.origin == TrackResourceOrigin.playbackCache,
                     )
                     .length;
                 final downloadCount = items
                     .where(
-                      (item) => item.resourceOrigin == TrackResourceOrigin.managedDownload,
+                      (item) =>
+                          item.origin == TrackResourceOrigin.managedDownload,
                     )
                     .length;
                 final importCount = items
                     .where(
-                      (item) => item.resourceOrigin == TrackResourceOrigin.localImport,
+                      (item) => item.origin == TrackResourceOrigin.localImport,
                     )
                     .length;
                 return TabBar(
@@ -175,10 +178,10 @@ class _LocalSongTabView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<LoadState<List<Track>>>(
+    return ValueListenableBuilder<LoadState<List<LocalSongEntry>>>(
       valueListenable: controller.state,
       builder: (context, state, child) {
-        return LoadStateView<List<Track>>(
+        return LoadStateView<List<LocalSongEntry>>(
           state: state,
           emptyView: RefreshIndicator(
             onRefresh: controller.refresh,
@@ -201,11 +204,11 @@ class _LocalSongTabView extends StatelessWidget {
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
-                  final track = items[index];
+                  final entry = items[index];
                   return _LocalSongTile(
-                    track: track,
+                    entry: entry,
                     onDelete: () async {
-                      await controller.removeLocalTrack(track.id);
+                      await controller.removeLocalTrack(entry.track.id);
                       await onMutated();
                     },
                   );
@@ -221,11 +224,11 @@ class _LocalSongTabView extends StatelessWidget {
 
 class _LocalSongTile extends StatelessWidget {
   const _LocalSongTile({
-    required this.track,
+    required this.entry,
     required this.onDelete,
   });
 
-  final Track track;
+  final LocalSongEntry entry;
   final Future<void> Function() onDelete;
 
   @override
@@ -239,12 +242,12 @@ class _LocalSongTile extends StatelessWidget {
           vertical: AppDimensions.paddingSmall / 2,
         ),
         title: Text(
-          track.title,
+          entry.track.title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          '${track.artistNames.join(' / ')}\n${_originLabel(track.resourceOrigin)}',
+          '${entry.track.artistNames.join(' / ')}\n${_originLabel(entry.origin)}',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(

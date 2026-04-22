@@ -12,6 +12,7 @@
 
 - 全局内容实体只存一份，不按用户复制多份正文数据
 - 用户相关数据按 `user_id` 隔离，不允许跨账号串读
+- `local_resource_entries` 是音频、封面、歌词的唯一本地资源事实源
 - 页面默认采用“本地优先 + 后台刷新”
 - `Hive` 只承接会话、设置和匿名公共轻缓存，不再承接账号事实数据
 - `Repository` 负责远端数据回写本地，页面不直接依赖远端响应作为事实源
@@ -52,7 +53,20 @@
 
 这些表只表示“内容本身是什么”，不表示“哪个用户拥有什么”。
 
-### 3.3 Drift 用户作用域表
+### 3.3 Drift 本地资源与过程表
+
+本地资源与下载过程单独建表，不混入内容实体：
+
+- `local_resource_entries`
+- `download_tasks`
+
+规则：
+
+- `local_resource_entries` 是音频、封面、歌词本地文件的唯一事实源
+- `download_tasks` 只表示手动下载过程，不表示最终资源结果
+- `tracks` 不再保存本地路径、下载状态、资源来源等字段
+
+### 3.4 Drift 用户作用域表
 
 用户作用域表承接“用户关系、用户状态、用户快照”，必须显式带 `user_id`：
 
@@ -95,6 +109,7 @@
 
 - 歌曲主实体
 - 承接搜索、本地播放、远端补全、云盘/FM/日推回写后的统一歌曲数据
+- 不承接本地资源路径、下载状态和资源来源
 
 #### `playlists`
 
@@ -246,6 +261,20 @@
 - 当前电台只做用户快照
 - 不进入全局正式实体表
 
+### 6.6 本地资源
+
+统一读取路径：
+
+`tracks -> local_resource_entries -> TrackResourceBundle / LocalSongEntry`
+
+规则：
+
+- 播放音频先查 `kind=audio`
+- 显示封面先查 `kind=artwork`
+- 读取歌词先查 `kind=lyrics`
+- 命中本地文件后统一更新 `last_accessed_at_ms`
+- `本地歌曲` 页只按音频资源 `origin` 分类，不再读 `tracks` 上的本地状态字段
+
 ## 7. 关键写路径
 
 ### 7.1 喜欢歌曲
@@ -282,6 +311,16 @@
 - 订阅列表写 `user_radio_subscriptions`
 - 节目列表写 `user_radio_programs`
 - 不为电台单独建立无作用域全局缓存 key
+
+### 7.6 本地资源与下载
+
+- 手动下载成功后写 `local_resource_entries`，并删除对应 `download_tasks` 成功记录
+- 播放缓存只写 `local_resource_entries`，不写 `download_tasks`
+- 本地导入写 `tracks` 与 `local_resource_entries`
+- 删除本地歌曲时：
+  - `managedDownload` / `playbackCache` 删除资源文件、资源索引、歌词缓存
+  - `localImport` 删除资源索引、歌词缓存和本地库实体，但不删除用户源文件
+- “删除所有缓存”只清 `origin = playbackCache`
 
 ## 8. 失效与刷新规则
 
@@ -389,15 +428,8 @@ Fields：
 - `duration_ms`：时长
 - `artwork_url`：远端封面 URL
 - `remote_url`：远端播放地址
-- `local_path`：本地音频路径
-- `local_artwork_path`：本地封面路径
-- `local_lyrics_path`：本地歌词路径
 - `lyric_key`：歌词索引键
 - `availability`：歌曲可用性状态
-- `download_state`：下载状态
-- `resource_origin`：资源来源
-- `download_progress`：下载进度
-- `download_failure_reason`：下载失败原因
 - `metadata_json`：补充元数据 JSON
 
 Key Design：
@@ -406,14 +438,13 @@ Key Design：
 - `IDX: title`
 - `IDX: artist_search_text`
 - `IDX: album_title`
-- `IDX: download_state`
 
 Field-Key Relation：
 
 - `track_id` 组成主键，是整张表每一行的唯一身份
-- `title`、`artist_search_text`、`album_title`、`download_state` 参与普通索引，用于搜索和筛选
+- `title`、`artist_search_text`、`album_title` 参与普通索引，用于搜索和筛选
 - 其余字段都是普通数据字段，不参与 key
-- 不承接 `liked`、`in_cloud`、`is_recommended` 这类用户私有语义
+- 不承接本地资源路径、下载状态、资源来源，也不承接 `liked`、`in_cloud`、`is_recommended` 这类用户私有语义
 
 关联关系：
 
@@ -429,6 +460,7 @@ Field-Key Relation：
 典型写路径与失效：
 
 - 远端歌曲详情、搜索补全、云盘/FM/日推回写都可以更新本表
+- 本地资源新增、命中和删除不直接写本表
 - 本表不因为账号切换而清空
 
 ### 13.2 `track_lyrics_entries`
@@ -964,7 +996,7 @@ Field-Key Relation：
 用途：
 
 - 下载任务状态表
-- 承接下载中的进度、结果和失败原因
+- 只承接手动下载过程中的进度与失败原因
 
 Fields：
 
@@ -972,7 +1004,7 @@ Fields：
 - `status`：下载任务状态
 - `updated_at_ms`：任务最近更新时间
 - `progress`：下载进度
-- `local_path` / `artwork_path` / `lyrics_path`：下载产生的本地文件路径
+- `temporary_path`：当前下载临时文件路径
 - `failure_reason`：失败原因
 
 Key Design：
@@ -984,7 +1016,7 @@ Field-Key Relation：
 
 - `track_id` 组成主键，表示一首歌在当前库里只有一条下载任务记录
 - `status + updated_at_ms` 参与普通索引，用于按任务状态和更新时间读取下载列表
-- `progress`、`local_path`、`artwork_path`、`lyrics_path`、`failure_reason` 都是普通字段
+- `progress`、`temporary_path`、`failure_reason` 都是普通字段
 
 关联关系：
 
@@ -994,12 +1026,12 @@ Field-Key Relation：
 典型读路径：
 
 - 下载列表
-- 播放和资源恢复时的下载态判断
+- 失败重试与中断恢复
 
 典型写路径与失效：
 
-- 下载启动、进度更新、成功、失败时写入
-- 任务完成后可长期保留结果态，不因账号切换清理
+- 下载启动、进度更新、失败时写入
+- 下载成功后立即删除任务行，不长期保留成功结果态
 
 ### 13.16 `local_resource_entries`
 
@@ -1014,16 +1046,20 @@ Fields：
 - `kind`：资源类型
 - `path`：本地文件路径
 - `origin`：资源来源
-- `updated_at_ms`：最近更新时间
+- `size_bytes`：资源文件大小
+- `created_at_ms`：资源创建时间
+- `last_accessed_at_ms`：最近命中时间
 
 Key Design：
 
 - `PK: (track_id, kind)`
+- `IDX: (origin, kind)`
 
 Field-Key Relation：
 
 - `track_id + kind` 组成主键，唯一标识某首歌的某一种本地资源
-- `path`、`origin`、`updated_at_ms` 都是普通字段，不参与 key
+- `origin + kind` 参与普通索引，用于本地歌曲分类和批量清理
+- `path`、`size_bytes`、`created_at_ms`、`last_accessed_at_ms` 都是普通字段，不参与 key
 
 关联关系：
 
@@ -1034,11 +1070,13 @@ Field-Key Relation：
 
 - 播放前选择本地资源
 - 页面封面、歌词、本地可用性判断
+- 本地歌曲页按音频资源来源装配 `LocalSongEntry`
 
 典型写路径与失效：
 
-- 下载完成或本地资源扫描完成后写入
-- 资源文件失效时按 `(track_id, kind)` 删除或覆盖
+- 下载完成、播放缓存完成、本地导入完成后写入
+- 本地文件命中时更新 `last_accessed_at_ms`
+- 删除本地歌曲或清空缓存时按 `(track_id, kind)` 或 `origin` 删除
 
 ### 13.17 `playback_restore_snapshots`
 

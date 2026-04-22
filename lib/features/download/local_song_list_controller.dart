@@ -1,4 +1,5 @@
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/domain/entities/local_song_entry.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/library/library_repository.dart';
@@ -16,7 +17,7 @@ class LocalSongListController {
   final DownloadRepository _downloadRepository;
   final Set<TrackResourceOrigin>? origins;
 
-  final ValueNotifier<LoadState<List<Track>>> state =
+  final ValueNotifier<LoadState<List<LocalSongEntry>>> state =
       ValueNotifier(const LoadState.loading());
 
   Future<void> loadInitial() => refresh();
@@ -24,12 +25,12 @@ class LocalSongListController {
   Future<void> refresh() async {
     state.value = const LoadState.loading();
     try {
-      final tracks = await _libraryRepository.getLocalTracks(origins: origins);
-      if (tracks.isEmpty) {
+      final entries = await _libraryRepository.getLocalSongs(origins: origins);
+      if (entries.isEmpty) {
         state.value = const LoadState.empty();
         return;
       }
-      state.value = LoadState.data(tracks);
+      state.value = LoadState.data(entries);
     } catch (error, stackTrace) {
       state.value = LoadState.error(error, stackTrace: stackTrace);
     }

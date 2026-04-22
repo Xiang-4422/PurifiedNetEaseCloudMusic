@@ -107,28 +107,6 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
   }
 
   @override
-  Future<List<Track>> getLocalTracks({
-    Set<TrackResourceOrigin>? origins,
-  }) async {
-    final query = _database.select(_database.tracks)
-      ..where(
-        (tbl) =>
-            tbl.localPath.isNotNull() &
-            tbl.localPath.isBiggerThanValue(''),
-      )
-      ..orderBy([
-        (tbl) => drift.OrderingTerm.asc(tbl.title),
-      ]);
-    if (origins != null && origins.isNotEmpty) {
-      query.where(
-        (tbl) => tbl.resourceOrigin.isIn(origins.map((item) => item.name)),
-      );
-    }
-    final rows = await query.get();
-    return rows.map(_mapTrackRow).toList();
-  }
-
-  @override
   Future<TrackLyrics?> getLyrics(String trackId) async {
     final row = await (_database.select(_database.trackLyricsEntries)
           ..where((tbl) => tbl.trackId.equals(trackId)))
@@ -216,15 +194,8 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
                 durationMs: drift.Value(track.durationMs),
                 artworkUrl: drift.Value(track.artworkUrl),
                 remoteUrl: drift.Value(track.remoteUrl),
-                localPath: drift.Value(track.localPath),
-                localArtworkPath: drift.Value(track.localArtworkPath),
-                localLyricsPath: drift.Value(track.localLyricsPath),
                 lyricKey: drift.Value(track.lyricKey),
                 availability: drift.Value(track.availability.name),
-                downloadState: drift.Value(track.downloadState.name),
-                resourceOrigin: drift.Value(track.resourceOrigin.name),
-                downloadProgress: drift.Value(track.downloadProgress),
-                downloadFailureReason: drift.Value(track.downloadFailureReason),
                 metadataJson: drift.Value(jsonEncode(track.metadata)),
               ),
             )
@@ -338,6 +309,20 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
   }
 
   @override
+  Future<void> removeTrack(String trackId) {
+    return (_database.delete(_database.tracks)
+          ..where((tbl) => tbl.trackId.equals(trackId)))
+        .go();
+  }
+
+  @override
+  Future<void> removeLyrics(String trackId) {
+    return (_database.delete(_database.trackLyricsEntries)
+          ..where((tbl) => tbl.trackId.equals(trackId)))
+        .go();
+  }
+
+  @override
   Future<void> clearPlaylistTrackRefs(String playlistId) {
     return (_database.delete(_database.playlistTrackRefs)
           ..where((tbl) => tbl.playlistId.equals(playlistId)))
@@ -445,24 +430,11 @@ class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
       durationMs: row.durationMs,
       artworkUrl: row.artworkUrl,
       remoteUrl: row.remoteUrl,
-      localPath: row.localPath,
-      localArtworkPath: row.localArtworkPath,
-      localLyricsPath: row.localLyricsPath,
       lyricKey: row.lyricKey,
       availability: TrackAvailability.values.firstWhere(
         (item) => item.name == row.availability,
         orElse: () => TrackAvailability.unknown,
       ),
-      downloadState: DownloadState.values.firstWhere(
-        (item) => item.name == row.downloadState,
-        orElse: () => DownloadState.none,
-      ),
-      resourceOrigin: TrackResourceOrigin.values.firstWhere(
-        (item) => item.name == row.resourceOrigin,
-        orElse: () => TrackResourceOrigin.none,
-      ),
-      downloadProgress: row.downloadProgress,
-      downloadFailureReason: row.downloadFailureReason,
       metadata: metadata,
     );
   }

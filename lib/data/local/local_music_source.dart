@@ -45,7 +45,7 @@ class LocalMusicSource {
     String? qualityLevel,
   }) async {
     final track = await _localDataSource.getTrack(trackId);
-    return track?.localPath;
+    return track?.sourceId;
   }
 
   Future<TrackLyrics?> getLyrics(String trackId) {

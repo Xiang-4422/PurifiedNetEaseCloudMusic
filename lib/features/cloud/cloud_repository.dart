@@ -2,7 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_cloud_remote_data_source.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:get_it/get_it.dart';
 
@@ -37,16 +37,16 @@ class CloudRepository {
     if (trackIds.isEmpty) {
       return const [];
     }
-    final tracks = await _libraryRepository.getTracksByIds(trackIds);
+    final tracks = await _libraryRepository.getTracksWithResources(trackIds);
     if (tracks.isEmpty) {
       return const [];
     }
-    final tracksById = {for (final track in tracks) track.id: track};
+    final tracksById = {for (final track in tracks) track.track.id: track};
     final orderedTracks = trackIds
         .map((trackId) => tracksById[trackId])
-        .whereType<Track>()
+        .whereType<TrackWithResources>()
         .toList();
-    return MediaItemMapper.fromTrackList(
+    return MediaItemMapper.fromTrackWithResourcesList(
       orderedTracks,
       likedSongIds: likedSongIds,
     );

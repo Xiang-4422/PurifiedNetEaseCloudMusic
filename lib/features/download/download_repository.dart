@@ -6,6 +6,7 @@ import 'package:bujuan/domain/entities/download_task.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
+import 'package:bujuan/domain/entities/track_resource_bundle.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:dio/dio.dart';
@@ -43,10 +44,6 @@ class DownloadRepository {
   final LocalResourceIndexRepository _resourceIndexRepository;
   final Dio _dio;
 
-  /// 下载任务不会做断点续传；应用异常退出后仍保留 `queued/downloading`
-  /// 只会制造假状态，所以启动时要区分两种恢复：
-  /// - `downloading` 视为中断失败
-  /// - `queued` 直接重新入队
   Future<List<DownloadTask>> recoverInterruptedTasks() async {
     await _cleanupOrphanTemporaryFiles();
     final interruptedTasks = await getTasks(
@@ -63,7 +60,7 @@ class DownloadRepository {
         .toList();
 
     for (final task in downloadingTasks) {
-      await _deleteTemporaryDownloadIfExists(task.localPath);
+      await _deleteTemporaryDownloadIfExists(task.temporaryPath);
       await markFailed(task.trackId, reason: 'download_interrupted');
     }
     for (final task in queuedTasks) {
@@ -76,8 +73,6 @@ class DownloadRepository {
     );
   }
 
-  /// 下载流程必须以最终文件落地为准，而不是只改状态；
-  /// 否则离线播放链路会继续停留在“看起来已下载，实际上没有本地资源”的假状态。
   Future<Track?> downloadTrack(
     String trackId, {
     bool preferHighQuality = true,
@@ -110,16 +105,28 @@ class DownloadRepository {
     if (candidateIds.isEmpty) {
       return;
     }
-    final tracks = await _libraryRepository.getTracksByIds(candidateIds);
+    final tracksWithResources =
+        await _libraryRepository.getTracksWithResources(candidateIds);
     final tracksById = {
-      for (final track in tracks) track.id: track,
+      for (final item in tracksWithResources) item.track.id: item,
     };
     for (final trackId in candidateIds) {
-      final track = tracksById[trackId];
-      final downloadState = track?.downloadState;
-      if (downloadState == DownloadState.downloaded ||
-          downloadState == DownloadState.queued ||
-          downloadState == DownloadState.downloading) {
+      final trackWithResources = tracksById[trackId];
+      final currentTask = await _taskDataSource.getTask(trackId);
+      if (currentTask != null &&
+          {
+            DownloadTaskStatus.queued,
+            DownloadTaskStatus.downloading,
+          }.contains(currentTask.status)) {
+        continue;
+      }
+      if (trackWithResources == null) {
+        continue;
+      }
+      final track = trackWithResources.track;
+      final audioResource = trackWithResources.resources.audio;
+      if (track.sourceType == SourceType.local ||
+          audioResource?.origin == TrackResourceOrigin.managedDownload) {
         continue;
       }
       unawaited(
@@ -158,20 +165,30 @@ class DownloadRepository {
       await _clearCancelledTask(trackId);
       return null;
     }
-    final track = await _libraryRepository.getTrack(trackId);
-    if (track == null) {
+    final trackWithResources = await _libraryRepository.getTrackWithResources(
+      trackId,
+    );
+    if (trackWithResources == null) {
       await markFailed(trackId, reason: 'track_not_found');
       return null;
     }
 
-    if (track.localPath?.isNotEmpty == true &&
-        File(track.localPath!).existsSync()) {
-      return markDownloaded(
-        trackId,
-        localPath: track.localPath!,
-        artworkPath: track.localArtworkPath,
-        lyricsPath: track.localLyricsPath,
-      );
+    final track = trackWithResources.track;
+    if (track.sourceType == SourceType.local) {
+      await clearTask(trackId);
+      return track;
+    }
+    final audioResource = trackWithResources.resources.audio;
+    if (audioResource != null && File(audioResource.path).existsSync()) {
+      if (audioResource.origin != TrackResourceOrigin.managedDownload &&
+          track.sourceType != SourceType.local) {
+        await _promoteResourcesToManagedDownload(
+          track.id,
+          trackWithResources.resources,
+        );
+      }
+      await clearTask(trackId);
+      return track;
     }
 
     if (_cancelledTrackIds.contains(trackId)) {
@@ -198,19 +215,20 @@ class DownloadRepository {
       _activeCancelTokens[trackId] = cancelToken;
 
       final audioPath = _buildAudioPath(track, playbackUrl, audioDirectory);
-      await markQueued(trackId, localPath: audioPath);
+      final temporaryPath = '$audioPath.download';
+      await markQueued(trackId, temporaryPath: temporaryPath);
       await _downloadBinaryFile(
         playbackUrl,
         audioPath,
         onProgress: (progress) => markDownloading(
           trackId,
           progress: progress,
-          localPath: audioPath,
+          temporaryPath: temporaryPath,
         ),
         cancelToken: cancelToken,
       );
       if (_cancelledTrackIds.contains(trackId)) {
-        await _deleteTemporaryDownloadIfExists(audioPath);
+        await _deleteTemporaryDownloadIfExists(temporaryPath);
         await _clearCancelledTask(trackId);
         return null;
       }
@@ -221,12 +239,14 @@ class DownloadRepository {
       );
       final lyricsPath = await _writeLyricsFile(trackId, lyricsDirectory);
 
-      return markDownloaded(
+      await _saveManagedDownloadResources(
         trackId,
         localPath: audioPath,
         artworkPath: artworkPath,
         lyricsPath: lyricsPath,
       );
+      await clearTask(trackId);
+      return track;
     } on DioException catch (error) {
       if (CancelToken.isCancel(error)) {
         await _clearCancelledTask(trackId);
@@ -242,24 +262,29 @@ class DownloadRepository {
 
   Future<T> _enqueueDownload<T>(Future<T> Function() operation) {
     final completer = Completer<T>();
-    _downloadQueue = _downloadQueue
-        .catchError((_) {})
-        .then((_) async {
-          try {
-            completer.complete(await operation());
-          } catch (error, stackTrace) {
-            completer.completeError(error, stackTrace);
-          }
-        });
+    _downloadQueue = _downloadQueue.catchError((_) {}).then((_) async {
+      try {
+        completer.complete(await operation());
+      } catch (error, stackTrace) {
+        completer.completeError(error, stackTrace);
+      }
+    });
     return completer.future;
   }
 
-  Future<Track?> removeDownloadedTrack(String trackId) async {
+  Future<void> removeDownloadedTrack(String trackId) async {
     await clearTask(trackId);
-    return _libraryRepository.removeLocalTrackResources(trackId);
+    final trackWithResources = await _libraryRepository.getTrackWithResources(
+      trackId,
+    );
+    final audioOrigin = trackWithResources?.resources.audio?.origin;
+    await _libraryRepository.removeLocalTrackResources(
+      trackId,
+      deleteSourceFiles: audioOrigin != TrackResourceOrigin.localImport,
+    );
   }
 
-  Future<Track?> removeLocalTrack(String trackId) {
+  Future<void> removeLocalTrack(String trackId) {
     return removeDownloadedTrack(trackId);
   }
 
@@ -267,7 +292,7 @@ class DownloadRepository {
     _cancelledTrackIds.add(trackId);
     _activeCancelTokens[trackId]?.cancel('download_cancelled');
     final currentTask = await _taskDataSource.getTask(trackId);
-    await _deleteTemporaryDownloadIfExists(currentTask?.localPath);
+    await _deleteTemporaryDownloadIfExists(currentTask?.temporaryPath);
     await _clearCancelledTask(trackId);
   }
 
@@ -280,7 +305,7 @@ class DownloadRepository {
     bool preferHighQuality = true,
   }) async {
     final currentTask = await _taskDataSource.getTask(trackId);
-    await _deleteTemporaryDownloadIfExists(currentTask?.localPath);
+    await _deleteTemporaryDownloadIfExists(currentTask?.temporaryPath);
     return downloadTrack(
       trackId,
       preferHighQuality: preferHighQuality,
@@ -312,18 +337,13 @@ class DownloadRepository {
     return _taskDataSource.removeTask(trackId);
   }
 
-  Future<void> clearPlaybackCache() async {
-    final tracks = await _libraryRepository.getLocalTracks(
-      origins: const {TrackResourceOrigin.playbackCache},
-    );
-    for (final track in tracks) {
-      await _libraryRepository.removeLocalTrackResources(track.id);
-    }
+  Future<void> clearPlaybackCache() {
+    return _libraryRepository.removePlaybackCache();
   }
 
   Future<Track?> markQueued(
     String trackId, {
-    String? localPath,
+    String? temporaryPath,
   }) async {
     final currentTask = await _taskDataSource.getTask(trackId);
     await _taskDataSource.saveTask(
@@ -332,24 +352,16 @@ class DownloadRepository {
         status: DownloadTaskStatus.queued,
         updatedAt: DateTime.now(),
         progress: 0,
-        localPath: localPath ?? currentTask?.localPath,
-        artworkPath: currentTask?.artworkPath,
-        lyricsPath: currentTask?.lyricsPath,
+        temporaryPath: temporaryPath ?? currentTask?.temporaryPath,
       ),
     );
-    return _libraryRepository.updateTrackLocalState(
-      trackId,
-      downloadState: DownloadState.queued,
-      resourceOrigin: TrackResourceOrigin.managedDownload,
-      downloadProgress: 0,
-      downloadFailureReason: '',
-    );
+    return _libraryRepository.getTrack(trackId);
   }
 
   Future<Track?> markDownloading(
     String trackId, {
     double? progress,
-    String? localPath,
+    String? temporaryPath,
   }) async {
     final currentTask = await _taskDataSource.getTask(trackId);
     await _taskDataSource.saveTask(
@@ -358,79 +370,25 @@ class DownloadRepository {
         status: DownloadTaskStatus.downloading,
         updatedAt: DateTime.now(),
         progress: progress ?? 0,
-        localPath: localPath ?? currentTask?.localPath,
-        artworkPath: currentTask?.artworkPath,
-        lyricsPath: currentTask?.lyricsPath,
+        temporaryPath: temporaryPath ?? currentTask?.temporaryPath,
       ),
     );
-    return _libraryRepository.updateTrackLocalState(
-      trackId,
-      downloadState: DownloadState.downloading,
-      resourceOrigin: TrackResourceOrigin.managedDownload,
-      downloadProgress: progress ?? 0,
-      downloadFailureReason: '',
-    );
-  }
-
-  Future<Track?> markDownloaded(
-    String trackId, {
-    required String localPath,
-    String? artworkPath,
-    String? lyricsPath,
-  }) async {
-    await _resourceIndexRepository.saveAudioResource(
-      trackId,
-      path: localPath,
-      origin: TrackResourceOrigin.managedDownload,
-    );
-    if (artworkPath?.isNotEmpty == true) {
-      await _resourceIndexRepository.saveArtworkResource(
-        trackId,
-        path: artworkPath!,
-        origin: TrackResourceOrigin.managedDownload,
-      );
-    }
-    if (lyricsPath?.isNotEmpty == true) {
-      await _resourceIndexRepository.saveLyricsResource(
-        trackId,
-        path: lyricsPath!,
-        origin: TrackResourceOrigin.managedDownload,
-      );
-    }
-    await _taskDataSource.saveTask(
-      DownloadTask(
-        trackId: trackId,
-        status: DownloadTaskStatus.completed,
-        updatedAt: DateTime.now(),
-        progress: 1,
-        localPath: localPath,
-        artworkPath: artworkPath,
-        lyricsPath: lyricsPath,
-      ),
-    );
-    return _libraryRepository.updateTrackLocalState(
-      trackId,
-      localPath: localPath,
-      localArtworkPath: artworkPath,
-      localLyricsPath: lyricsPath,
-      downloadState: DownloadState.downloaded,
-      resourceOrigin: TrackResourceOrigin.managedDownload,
-      downloadProgress: 1,
-      downloadFailureReason: '',
-      availability: TrackAvailability.playable,
-    );
+    return _libraryRepository.getTrack(trackId);
   }
 
   Future<Track?> _performCacheTrackForPlayback(
     String trackId, {
     required bool preferHighQuality,
   }) async {
-    final track = await _libraryRepository.getTrack(trackId);
+    final trackWithResources = await _libraryRepository.getTrackWithResources(
+      trackId,
+    );
+    final track = trackWithResources?.track;
     if (track == null || track.sourceType == SourceType.local) {
       return track;
     }
-    if (track.localPath?.isNotEmpty == true &&
-        File(track.localPath!).existsSync()) {
+    final audioResource = trackWithResources?.resources.audio;
+    if (audioResource != null && File(audioResource.path).existsSync()) {
       return track;
     }
     try {
@@ -474,14 +432,7 @@ class DownloadRepository {
           origin: TrackResourceOrigin.playbackCache,
         );
       }
-      return _libraryRepository.updateTrackLocalState(
-        trackId,
-        localPath: audioPath,
-        localArtworkPath: artworkPath,
-        localLyricsPath: lyricsPath,
-        resourceOrigin: TrackResourceOrigin.playbackCache,
-        availability: TrackAvailability.playable,
-      );
+      return track;
     } catch (_) {
       return track;
     }
@@ -498,18 +449,11 @@ class DownloadRepository {
         status: DownloadTaskStatus.failed,
         updatedAt: DateTime.now(),
         progress: currentTask?.progress,
-        localPath: currentTask?.localPath,
-        artworkPath: currentTask?.artworkPath,
-        lyricsPath: currentTask?.lyricsPath,
+        temporaryPath: currentTask?.temporaryPath,
         failureReason: reason,
       ),
     );
-    return _libraryRepository.updateTrackLocalState(
-      trackId,
-      downloadState: DownloadState.failed,
-      resourceOrigin: TrackResourceOrigin.managedDownload,
-      downloadFailureReason: reason ?? '',
-    );
+    return _libraryRepository.getTrack(trackId);
   }
 
   Future<Directory> _ensureDownloadRootDirectory() async {
@@ -610,7 +554,6 @@ class DownloadRepository {
       );
       return artworkPath;
     } catch (_) {
-      // 封面失败不应反向打断音频下载，否则离线播放会因为附属资源失败而不可用。
       return null;
     }
   }
@@ -674,11 +617,11 @@ class DownloadRepository {
     }
   }
 
-  Future<void> _deleteTemporaryDownloadIfExists(String? path) {
-    if (path == null || path.isEmpty) {
+  Future<void> _deleteTemporaryDownloadIfExists(String? temporaryPath) {
+    if (temporaryPath == null || temporaryPath.isEmpty) {
       return Future.value();
     }
-    return _deleteFileIfExists('$path.download');
+    return _deleteFileIfExists(temporaryPath);
   }
 
   Future<void> _cleanupOrphanTemporaryFiles() async {
@@ -699,14 +642,60 @@ class DownloadRepository {
 
   Future<void> _clearCancelledTask(String trackId) async {
     await clearTask(trackId);
-    await _libraryRepository.updateTrackLocalState(
-      trackId,
-      downloadState: DownloadState.none,
-      resourceOrigin: TrackResourceOrigin.none,
-      downloadProgress: 0,
-      downloadFailureReason: '',
-      availability: TrackAvailability.unknown,
-    );
     _cancelledTrackIds.remove(trackId);
+  }
+
+  Future<void> _saveManagedDownloadResources(
+    String trackId, {
+    required String localPath,
+    String? artworkPath,
+    String? lyricsPath,
+  }) async {
+    await _resourceIndexRepository.saveAudioResource(
+      trackId,
+      path: localPath,
+      origin: TrackResourceOrigin.managedDownload,
+    );
+    if (artworkPath?.isNotEmpty == true) {
+      await _resourceIndexRepository.saveArtworkResource(
+        trackId,
+        path: artworkPath!,
+        origin: TrackResourceOrigin.managedDownload,
+      );
+    }
+    if (lyricsPath?.isNotEmpty == true) {
+      await _resourceIndexRepository.saveLyricsResource(
+        trackId,
+        path: lyricsPath!,
+        origin: TrackResourceOrigin.managedDownload,
+      );
+    }
+  }
+
+  Future<void> _promoteResourcesToManagedDownload(
+    String trackId,
+    TrackResourceBundle bundle,
+  ) async {
+    if (bundle.audio?.path.isNotEmpty == true) {
+      await _resourceIndexRepository.saveAudioResource(
+        trackId,
+        path: bundle.audio!.path,
+        origin: TrackResourceOrigin.managedDownload,
+      );
+    }
+    if (bundle.artwork?.path.isNotEmpty == true) {
+      await _resourceIndexRepository.saveArtworkResource(
+        trackId,
+        path: bundle.artwork!.path,
+        origin: TrackResourceOrigin.managedDownload,
+      );
+    }
+    if (bundle.lyrics?.path.isNotEmpty == true) {
+      await _resourceIndexRepository.saveLyricsResource(
+        trackId,
+        path: bundle.lyrics!.path,
+        origin: TrackResourceOrigin.managedDownload,
+      );
+    }
   }
 }

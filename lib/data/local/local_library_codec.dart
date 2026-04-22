@@ -20,15 +20,8 @@ class LocalLibraryCodec {
       'durationMs': track.durationMs,
       'artworkUrl': track.artworkUrl,
       'remoteUrl': track.remoteUrl,
-      'localPath': track.localPath,
-      'localArtworkPath': track.localArtworkPath,
-      'localLyricsPath': track.localLyricsPath,
       'lyricKey': track.lyricKey,
       'availability': track.availability.name,
-      'downloadState': track.downloadState.name,
-      'resourceOrigin': track.resourceOrigin.name,
-      'downloadProgress': track.downloadProgress,
-      'downloadFailureReason': track.downloadFailureReason,
       'metadata': Map<String, Object?>.from(track.metadata),
     };
   }
@@ -49,15 +42,8 @@ class LocalLibraryCodec {
       durationMs: (map['durationMs'] as num?)?.toInt(),
       artworkUrl: map['artworkUrl'] as String?,
       remoteUrl: map['remoteUrl'] as String?,
-      localPath: map['localPath'] as String?,
-      localArtworkPath: map['localArtworkPath'] as String?,
-      localLyricsPath: map['localLyricsPath'] as String?,
       lyricKey: map['lyricKey'] as String?,
       availability: _availabilityFromName(map['availability'] as String?),
-      downloadState: _downloadStateFromName(map['downloadState'] as String?),
-      resourceOrigin: _resourceOriginFromName(map['resourceOrigin'] as String?),
-      downloadProgress: (map['downloadProgress'] as num?)?.toDouble(),
-      downloadFailureReason: map['downloadFailureReason'] as String?,
       metadata: _asObjectMap(map['metadata']),
     );
   }
@@ -193,20 +179,6 @@ class LocalLibraryCodec {
     return TrackAvailability.values.firstWhere(
       (item) => item.name == name,
       orElse: () => TrackAvailability.unknown,
-    );
-  }
-
-  static DownloadState _downloadStateFromName(String? name) {
-    return DownloadState.values.firstWhere(
-      (item) => item.name == name,
-      orElse: () => DownloadState.none,
-    );
-  }
-
-  static TrackResourceOrigin _resourceOriginFromName(String? name) {
-    return TrackResourceOrigin.values.firstWhere(
-      (item) => item.name == name,
-      orElse: () => TrackResourceOrigin.none,
     );
   }
 

@@ -47,9 +47,7 @@ class DriftDownloadTaskDataSource implements DownloadTaskDataSource {
             status: drift.Value(task.status.name),
             updatedAtMs: drift.Value(task.updatedAt.millisecondsSinceEpoch),
             progress: drift.Value(task.progress),
-            localPath: drift.Value(task.localPath),
-            artworkPath: drift.Value(task.artworkPath),
-            lyricsPath: drift.Value(task.lyricsPath),
+            temporaryPath: drift.Value(task.temporaryPath),
             failureReason: drift.Value(task.failureReason),
           ),
         );
@@ -71,9 +69,7 @@ class DriftDownloadTaskDataSource implements DownloadTaskDataSource {
       ),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAtMs),
       progress: row.progress,
-      localPath: row.localPath,
-      artworkPath: row.artworkPath,
-      lyricsPath: row.lyricsPath,
+      temporaryPath: row.temporaryPath,
       failureReason: row.failureReason,
     );
   }

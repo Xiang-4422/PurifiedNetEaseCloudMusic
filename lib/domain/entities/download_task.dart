@@ -11,9 +11,7 @@ class DownloadTask {
     required this.status,
     required this.updatedAt,
     this.progress,
-    this.localPath,
-    this.artworkPath,
-    this.lyricsPath,
+    this.temporaryPath,
     this.failureReason,
   });
 
@@ -21,9 +19,7 @@ class DownloadTask {
   final DownloadTaskStatus status;
   final DateTime updatedAt;
   final double? progress;
-  final String? localPath;
-  final String? artworkPath;
-  final String? lyricsPath;
+  final String? temporaryPath;
   final String? failureReason;
 
   DownloadTask copyWith({
@@ -31,9 +27,7 @@ class DownloadTask {
     DownloadTaskStatus? status,
     DateTime? updatedAt,
     double? progress,
-    String? localPath,
-    String? artworkPath,
-    String? lyricsPath,
+    String? temporaryPath,
     String? failureReason,
   }) {
     return DownloadTask(
@@ -41,9 +35,7 @@ class DownloadTask {
       status: status ?? this.status,
       updatedAt: updatedAt ?? this.updatedAt,
       progress: progress ?? this.progress,
-      localPath: localPath ?? this.localPath,
-      artworkPath: artworkPath ?? this.artworkPath,
-      lyricsPath: lyricsPath ?? this.lyricsPath,
+      temporaryPath: temporaryPath ?? this.temporaryPath,
       failureReason: failureReason ?? this.failureReason,
     );
   }

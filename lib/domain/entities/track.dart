@@ -7,14 +7,6 @@ enum TrackAvailability {
   localOnly,
 }
 
-enum DownloadState {
-  none,
-  queued,
-  downloading,
-  downloaded,
-  failed,
-}
-
 enum TrackResourceOrigin {
   none,
   artworkCache,
@@ -36,15 +28,8 @@ class Track {
     this.durationMs,
     this.artworkUrl,
     this.remoteUrl,
-    this.localPath,
-    this.localArtworkPath,
-    this.localLyricsPath,
     this.lyricKey,
     this.availability = TrackAvailability.unknown,
-    this.downloadState = DownloadState.none,
-    this.resourceOrigin = TrackResourceOrigin.none,
-    this.downloadProgress,
-    this.downloadFailureReason,
     this.metadata = const {},
   });
 
@@ -57,15 +42,8 @@ class Track {
   final int? durationMs;
   final String? artworkUrl;
   final String? remoteUrl;
-  final String? localPath;
-  final String? localArtworkPath;
-  final String? localLyricsPath;
   final String? lyricKey;
   final TrackAvailability availability;
-  final DownloadState downloadState;
-  final TrackResourceOrigin resourceOrigin;
-  final double? downloadProgress;
-  final String? downloadFailureReason;
   final Map<String, Object?> metadata;
 
   Track copyWith({
@@ -78,15 +56,8 @@ class Track {
     int? durationMs,
     Object? artworkUrl = _unset,
     Object? remoteUrl = _unset,
-    Object? localPath = _unset,
-    Object? localArtworkPath = _unset,
-    Object? localLyricsPath = _unset,
     Object? lyricKey = _unset,
     TrackAvailability? availability,
-    DownloadState? downloadState,
-    TrackResourceOrigin? resourceOrigin,
-    Object? downloadProgress = _unset,
-    Object? downloadFailureReason = _unset,
     Map<String, Object?>? metadata,
   }) {
     return Track(
@@ -104,25 +75,9 @@ class Track {
           : artworkUrl as String?,
       remoteUrl:
           identical(remoteUrl, _unset) ? this.remoteUrl : remoteUrl as String?,
-      localPath:
-          identical(localPath, _unset) ? this.localPath : localPath as String?,
-      localArtworkPath: identical(localArtworkPath, _unset)
-          ? this.localArtworkPath
-          : localArtworkPath as String?,
-      localLyricsPath: identical(localLyricsPath, _unset)
-          ? this.localLyricsPath
-          : localLyricsPath as String?,
       lyricKey:
           identical(lyricKey, _unset) ? this.lyricKey : lyricKey as String?,
       availability: availability ?? this.availability,
-      downloadState: downloadState ?? this.downloadState,
-      resourceOrigin: resourceOrigin ?? this.resourceOrigin,
-      downloadProgress: identical(downloadProgress, _unset)
-          ? this.downloadProgress
-          : downloadProgress as double?,
-      downloadFailureReason: identical(downloadFailureReason, _unset)
-          ? this.downloadFailureReason
-          : downloadFailureReason as String?,
       metadata: metadata ?? this.metadata,
     );
   }

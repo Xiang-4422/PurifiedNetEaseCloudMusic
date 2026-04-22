@@ -10,9 +10,7 @@ class DownloadTaskRecordCodec {
       status: task.status.name,
       updatedAtMs: task.updatedAt.millisecondsSinceEpoch,
       progress: task.progress,
-      localPath: task.localPath,
-      artworkPath: task.artworkPath,
-      lyricsPath: task.lyricsPath,
+      temporaryPath: task.temporaryPath,
       failureReason: task.failureReason,
     );
   }
@@ -26,9 +24,7 @@ class DownloadTaskRecordCodec {
       ),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(record.updatedAtMs),
       progress: record.progress,
-      localPath: record.localPath,
-      artworkPath: record.artworkPath,
-      lyricsPath: record.lyricsPath,
+      temporaryPath: record.temporaryPath,
       failureReason: record.failureReason,
     );
   }

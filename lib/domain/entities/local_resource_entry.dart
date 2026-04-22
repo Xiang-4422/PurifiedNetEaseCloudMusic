@@ -12,28 +12,36 @@ class LocalResourceEntry {
     required this.kind,
     required this.path,
     required this.origin,
-    required this.updatedAt,
+    required this.sizeBytes,
+    required this.createdAt,
+    required this.lastAccessedAt,
   });
 
   final String trackId;
   final LocalResourceKind kind;
   final String path;
   final TrackResourceOrigin origin;
-  final DateTime updatedAt;
+  final int sizeBytes;
+  final DateTime createdAt;
+  final DateTime lastAccessedAt;
 
   LocalResourceEntry copyWith({
     String? trackId,
     LocalResourceKind? kind,
     String? path,
     TrackResourceOrigin? origin,
-    DateTime? updatedAt,
+    int? sizeBytes,
+    DateTime? createdAt,
+    DateTime? lastAccessedAt,
   }) {
     return LocalResourceEntry(
       trackId: trackId ?? this.trackId,
       kind: kind ?? this.kind,
       path: path ?? this.path,
       origin: origin ?? this.origin,
-      updatedAt: updatedAt ?? this.updatedAt,
+      sizeBytes: sizeBytes ?? this.sizeBytes,
+      createdAt: createdAt ?? this.createdAt,
+      lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
+import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playback/playback_restore_state.dart';
 import 'package:get_it/get_it.dart';
@@ -32,6 +33,10 @@ class PlaybackRepository {
 
   Future<Track?> getTrack(String trackId) {
     return _libraryRepository.getTrack(trackId);
+  }
+
+  Future<TrackWithResources?> getTrackWithResources(String trackId) {
+    return _libraryRepository.getTrackWithResources(trackId);
   }
 
   Future<void> saveSongLyrics(String trackId, TrackLyrics lyrics) {

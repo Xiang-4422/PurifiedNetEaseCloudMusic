@@ -486,15 +486,27 @@ class $LocalResourceEntriesTable extends LocalResourceEntries
   late final GeneratedColumn<String> origin = GeneratedColumn<String>(
       'origin', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  static const VerificationMeta _sizeBytesMeta =
+      const VerificationMeta('sizeBytes');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
+  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
+      'size_bytes', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMsMeta =
+      const VerificationMeta('createdAtMs');
+  @override
+  late final GeneratedColumn<int> createdAtMs = GeneratedColumn<int>(
+      'created_at_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _lastAccessedAtMsMeta =
+      const VerificationMeta('lastAccessedAtMs');
+  @override
+  late final GeneratedColumn<int> lastAccessedAtMs = GeneratedColumn<int>(
+      'last_accessed_at_ms', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [trackId, kind, path, origin, updatedAtMs];
+      [trackId, kind, path, origin, sizeBytes, createdAtMs, lastAccessedAtMs];
   @override
   String get aliasedName => _alias ?? 'local_resource_entries';
   @override
@@ -529,13 +541,27 @@ class $LocalResourceEntriesTable extends LocalResourceEntries
     } else if (isInserting) {
       context.missing(_originMeta);
     }
-    if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+    if (data.containsKey('size_bytes')) {
+      context.handle(_sizeBytesMeta,
+          sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta));
     } else if (isInserting) {
-      context.missing(_updatedAtMsMeta);
+      context.missing(_sizeBytesMeta);
+    }
+    if (data.containsKey('created_at_ms')) {
+      context.handle(
+          _createdAtMsMeta,
+          createdAtMs.isAcceptableOrUnknown(
+              data['created_at_ms']!, _createdAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMsMeta);
+    }
+    if (data.containsKey('last_accessed_at_ms')) {
+      context.handle(
+          _lastAccessedAtMsMeta,
+          lastAccessedAtMs.isAcceptableOrUnknown(
+              data['last_accessed_at_ms']!, _lastAccessedAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_lastAccessedAtMsMeta);
     }
     return context;
   }
@@ -554,8 +580,12 @@ class $LocalResourceEntriesTable extends LocalResourceEntries
           .read(DriftSqlType.string, data['${effectivePrefix}path'])!,
       origin: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}origin'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      sizeBytes: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}size_bytes'])!,
+      createdAtMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at_ms'])!,
+      lastAccessedAtMs: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}last_accessed_at_ms'])!,
     );
   }
 
@@ -571,13 +601,17 @@ class LocalResourceEntrie extends DataClass
   final String kind;
   final String path;
   final String origin;
-  final int updatedAtMs;
+  final int sizeBytes;
+  final int createdAtMs;
+  final int lastAccessedAtMs;
   const LocalResourceEntrie(
       {required this.trackId,
       required this.kind,
       required this.path,
       required this.origin,
-      required this.updatedAtMs});
+      required this.sizeBytes,
+      required this.createdAtMs,
+      required this.lastAccessedAtMs});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -585,7 +619,9 @@ class LocalResourceEntrie extends DataClass
     map['kind'] = Variable<String>(kind);
     map['path'] = Variable<String>(path);
     map['origin'] = Variable<String>(origin);
-    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    map['size_bytes'] = Variable<int>(sizeBytes);
+    map['created_at_ms'] = Variable<int>(createdAtMs);
+    map['last_accessed_at_ms'] = Variable<int>(lastAccessedAtMs);
     return map;
   }
 
@@ -595,7 +631,9 @@ class LocalResourceEntrie extends DataClass
       kind: Value(kind),
       path: Value(path),
       origin: Value(origin),
-      updatedAtMs: Value(updatedAtMs),
+      sizeBytes: Value(sizeBytes),
+      createdAtMs: Value(createdAtMs),
+      lastAccessedAtMs: Value(lastAccessedAtMs),
     );
   }
 
@@ -607,7 +645,9 @@ class LocalResourceEntrie extends DataClass
       kind: serializer.fromJson<String>(json['kind']),
       path: serializer.fromJson<String>(json['path']),
       origin: serializer.fromJson<String>(json['origin']),
-      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
+      createdAtMs: serializer.fromJson<int>(json['createdAtMs']),
+      lastAccessedAtMs: serializer.fromJson<int>(json['lastAccessedAtMs']),
     );
   }
   @override
@@ -618,7 +658,9 @@ class LocalResourceEntrie extends DataClass
       'kind': serializer.toJson<String>(kind),
       'path': serializer.toJson<String>(path),
       'origin': serializer.toJson<String>(origin),
-      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+      'sizeBytes': serializer.toJson<int>(sizeBytes),
+      'createdAtMs': serializer.toJson<int>(createdAtMs),
+      'lastAccessedAtMs': serializer.toJson<int>(lastAccessedAtMs),
     };
   }
 
@@ -627,13 +669,17 @@ class LocalResourceEntrie extends DataClass
           String? kind,
           String? path,
           String? origin,
-          int? updatedAtMs}) =>
+          int? sizeBytes,
+          int? createdAtMs,
+          int? lastAccessedAtMs}) =>
       LocalResourceEntrie(
         trackId: trackId ?? this.trackId,
         kind: kind ?? this.kind,
         path: path ?? this.path,
         origin: origin ?? this.origin,
-        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+        sizeBytes: sizeBytes ?? this.sizeBytes,
+        createdAtMs: createdAtMs ?? this.createdAtMs,
+        lastAccessedAtMs: lastAccessedAtMs ?? this.lastAccessedAtMs,
       );
   @override
   String toString() {
@@ -642,13 +688,16 @@ class LocalResourceEntrie extends DataClass
           ..write('kind: $kind, ')
           ..write('path: $path, ')
           ..write('origin: $origin, ')
-          ..write('updatedAtMs: $updatedAtMs')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('lastAccessedAtMs: $lastAccessedAtMs')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(trackId, kind, path, origin, updatedAtMs);
+  int get hashCode => Object.hash(
+      trackId, kind, path, origin, sizeBytes, createdAtMs, lastAccessedAtMs);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -657,7 +706,9 @@ class LocalResourceEntrie extends DataClass
           other.kind == this.kind &&
           other.path == this.path &&
           other.origin == this.origin &&
-          other.updatedAtMs == this.updatedAtMs);
+          other.sizeBytes == this.sizeBytes &&
+          other.createdAtMs == this.createdAtMs &&
+          other.lastAccessedAtMs == this.lastAccessedAtMs);
 }
 
 class LocalResourceEntriesCompanion
@@ -666,14 +717,18 @@ class LocalResourceEntriesCompanion
   final Value<String> kind;
   final Value<String> path;
   final Value<String> origin;
-  final Value<int> updatedAtMs;
+  final Value<int> sizeBytes;
+  final Value<int> createdAtMs;
+  final Value<int> lastAccessedAtMs;
   final Value<int> rowid;
   const LocalResourceEntriesCompanion({
     this.trackId = const Value.absent(),
     this.kind = const Value.absent(),
     this.path = const Value.absent(),
     this.origin = const Value.absent(),
-    this.updatedAtMs = const Value.absent(),
+    this.sizeBytes = const Value.absent(),
+    this.createdAtMs = const Value.absent(),
+    this.lastAccessedAtMs = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   LocalResourceEntriesCompanion.insert({
@@ -681,19 +736,25 @@ class LocalResourceEntriesCompanion
     required String kind,
     required String path,
     required String origin,
-    required int updatedAtMs,
+    required int sizeBytes,
+    required int createdAtMs,
+    required int lastAccessedAtMs,
     this.rowid = const Value.absent(),
   })  : trackId = Value(trackId),
         kind = Value(kind),
         path = Value(path),
         origin = Value(origin),
-        updatedAtMs = Value(updatedAtMs);
+        sizeBytes = Value(sizeBytes),
+        createdAtMs = Value(createdAtMs),
+        lastAccessedAtMs = Value(lastAccessedAtMs);
   static Insertable<LocalResourceEntrie> custom({
     Expression<String>? trackId,
     Expression<String>? kind,
     Expression<String>? path,
     Expression<String>? origin,
-    Expression<int>? updatedAtMs,
+    Expression<int>? sizeBytes,
+    Expression<int>? createdAtMs,
+    Expression<int>? lastAccessedAtMs,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -701,7 +762,9 @@ class LocalResourceEntriesCompanion
       if (kind != null) 'kind': kind,
       if (path != null) 'path': path,
       if (origin != null) 'origin': origin,
-      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (sizeBytes != null) 'size_bytes': sizeBytes,
+      if (createdAtMs != null) 'created_at_ms': createdAtMs,
+      if (lastAccessedAtMs != null) 'last_accessed_at_ms': lastAccessedAtMs,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -711,14 +774,18 @@ class LocalResourceEntriesCompanion
       Value<String>? kind,
       Value<String>? path,
       Value<String>? origin,
-      Value<int>? updatedAtMs,
+      Value<int>? sizeBytes,
+      Value<int>? createdAtMs,
+      Value<int>? lastAccessedAtMs,
       Value<int>? rowid}) {
     return LocalResourceEntriesCompanion(
       trackId: trackId ?? this.trackId,
       kind: kind ?? this.kind,
       path: path ?? this.path,
       origin: origin ?? this.origin,
-      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      sizeBytes: sizeBytes ?? this.sizeBytes,
+      createdAtMs: createdAtMs ?? this.createdAtMs,
+      lastAccessedAtMs: lastAccessedAtMs ?? this.lastAccessedAtMs,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -738,8 +805,14 @@ class LocalResourceEntriesCompanion
     if (origin.present) {
       map['origin'] = Variable<String>(origin.value);
     }
-    if (updatedAtMs.present) {
-      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    if (sizeBytes.present) {
+      map['size_bytes'] = Variable<int>(sizeBytes.value);
+    }
+    if (createdAtMs.present) {
+      map['created_at_ms'] = Variable<int>(createdAtMs.value);
+    }
+    if (lastAccessedAtMs.present) {
+      map['last_accessed_at_ms'] = Variable<int>(lastAccessedAtMs.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -754,7 +827,9 @@ class LocalResourceEntriesCompanion
           ..write('kind: $kind, ')
           ..write('path: $path, ')
           ..write('origin: $origin, ')
-          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('createdAtMs: $createdAtMs, ')
+          ..write('lastAccessedAtMs: $lastAccessedAtMs, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -790,23 +865,11 @@ class $DownloadTasksTable extends DownloadTasks
   late final GeneratedColumn<double> progress = GeneratedColumn<double>(
       'progress', aliasedName, true,
       type: DriftSqlType.double, requiredDuringInsert: false);
-  static const VerificationMeta _localPathMeta =
-      const VerificationMeta('localPath');
+  static const VerificationMeta _temporaryPathMeta =
+      const VerificationMeta('temporaryPath');
   @override
-  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
-      'local_path', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _artworkPathMeta =
-      const VerificationMeta('artworkPath');
-  @override
-  late final GeneratedColumn<String> artworkPath = GeneratedColumn<String>(
-      'artwork_path', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _lyricsPathMeta =
-      const VerificationMeta('lyricsPath');
-  @override
-  late final GeneratedColumn<String> lyricsPath = GeneratedColumn<String>(
-      'lyrics_path', aliasedName, true,
+  late final GeneratedColumn<String> temporaryPath = GeneratedColumn<String>(
+      'temporary_path', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _failureReasonMeta =
       const VerificationMeta('failureReason');
@@ -815,16 +878,8 @@ class $DownloadTasksTable extends DownloadTasks
       'failure_reason', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns => [
-        trackId,
-        status,
-        updatedAtMs,
-        progress,
-        localPath,
-        artworkPath,
-        lyricsPath,
-        failureReason
-      ];
+  List<GeneratedColumn> get $columns =>
+      [trackId, status, updatedAtMs, progress, temporaryPath, failureReason];
   @override
   String get aliasedName => _alias ?? 'download_tasks';
   @override
@@ -858,21 +913,11 @@ class $DownloadTasksTable extends DownloadTasks
       context.handle(_progressMeta,
           progress.isAcceptableOrUnknown(data['progress']!, _progressMeta));
     }
-    if (data.containsKey('local_path')) {
-      context.handle(_localPathMeta,
-          localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta));
-    }
-    if (data.containsKey('artwork_path')) {
+    if (data.containsKey('temporary_path')) {
       context.handle(
-          _artworkPathMeta,
-          artworkPath.isAcceptableOrUnknown(
-              data['artwork_path']!, _artworkPathMeta));
-    }
-    if (data.containsKey('lyrics_path')) {
-      context.handle(
-          _lyricsPathMeta,
-          lyricsPath.isAcceptableOrUnknown(
-              data['lyrics_path']!, _lyricsPathMeta));
+          _temporaryPathMeta,
+          temporaryPath.isAcceptableOrUnknown(
+              data['temporary_path']!, _temporaryPathMeta));
     }
     if (data.containsKey('failure_reason')) {
       context.handle(
@@ -897,12 +942,8 @@ class $DownloadTasksTable extends DownloadTasks
           .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
       progress: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}progress']),
-      localPath: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}local_path']),
-      artworkPath: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}artwork_path']),
-      lyricsPath: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}lyrics_path']),
+      temporaryPath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}temporary_path']),
       failureReason: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}failure_reason']),
     );
@@ -919,18 +960,14 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
   final String status;
   final int updatedAtMs;
   final double? progress;
-  final String? localPath;
-  final String? artworkPath;
-  final String? lyricsPath;
+  final String? temporaryPath;
   final String? failureReason;
   const DownloadTask(
       {required this.trackId,
       required this.status,
       required this.updatedAtMs,
       this.progress,
-      this.localPath,
-      this.artworkPath,
-      this.lyricsPath,
+      this.temporaryPath,
       this.failureReason});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -941,14 +978,8 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
     if (!nullToAbsent || progress != null) {
       map['progress'] = Variable<double>(progress);
     }
-    if (!nullToAbsent || localPath != null) {
-      map['local_path'] = Variable<String>(localPath);
-    }
-    if (!nullToAbsent || artworkPath != null) {
-      map['artwork_path'] = Variable<String>(artworkPath);
-    }
-    if (!nullToAbsent || lyricsPath != null) {
-      map['lyrics_path'] = Variable<String>(lyricsPath);
+    if (!nullToAbsent || temporaryPath != null) {
+      map['temporary_path'] = Variable<String>(temporaryPath);
     }
     if (!nullToAbsent || failureReason != null) {
       map['failure_reason'] = Variable<String>(failureReason);
@@ -964,15 +995,9 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
       progress: progress == null && nullToAbsent
           ? const Value.absent()
           : Value(progress),
-      localPath: localPath == null && nullToAbsent
+      temporaryPath: temporaryPath == null && nullToAbsent
           ? const Value.absent()
-          : Value(localPath),
-      artworkPath: artworkPath == null && nullToAbsent
-          ? const Value.absent()
-          : Value(artworkPath),
-      lyricsPath: lyricsPath == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lyricsPath),
+          : Value(temporaryPath),
       failureReason: failureReason == null && nullToAbsent
           ? const Value.absent()
           : Value(failureReason),
@@ -987,9 +1012,7 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
       status: serializer.fromJson<String>(json['status']),
       updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
       progress: serializer.fromJson<double?>(json['progress']),
-      localPath: serializer.fromJson<String?>(json['localPath']),
-      artworkPath: serializer.fromJson<String?>(json['artworkPath']),
-      lyricsPath: serializer.fromJson<String?>(json['lyricsPath']),
+      temporaryPath: serializer.fromJson<String?>(json['temporaryPath']),
       failureReason: serializer.fromJson<String?>(json['failureReason']),
     );
   }
@@ -1001,9 +1024,7 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
       'status': serializer.toJson<String>(status),
       'updatedAtMs': serializer.toJson<int>(updatedAtMs),
       'progress': serializer.toJson<double?>(progress),
-      'localPath': serializer.toJson<String?>(localPath),
-      'artworkPath': serializer.toJson<String?>(artworkPath),
-      'lyricsPath': serializer.toJson<String?>(lyricsPath),
+      'temporaryPath': serializer.toJson<String?>(temporaryPath),
       'failureReason': serializer.toJson<String?>(failureReason),
     };
   }
@@ -1013,18 +1034,15 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
           String? status,
           int? updatedAtMs,
           Value<double?> progress = const Value.absent(),
-          Value<String?> localPath = const Value.absent(),
-          Value<String?> artworkPath = const Value.absent(),
-          Value<String?> lyricsPath = const Value.absent(),
+          Value<String?> temporaryPath = const Value.absent(),
           Value<String?> failureReason = const Value.absent()}) =>
       DownloadTask(
         trackId: trackId ?? this.trackId,
         status: status ?? this.status,
         updatedAtMs: updatedAtMs ?? this.updatedAtMs,
         progress: progress.present ? progress.value : this.progress,
-        localPath: localPath.present ? localPath.value : this.localPath,
-        artworkPath: artworkPath.present ? artworkPath.value : this.artworkPath,
-        lyricsPath: lyricsPath.present ? lyricsPath.value : this.lyricsPath,
+        temporaryPath:
+            temporaryPath.present ? temporaryPath.value : this.temporaryPath,
         failureReason:
             failureReason.present ? failureReason.value : this.failureReason,
       );
@@ -1035,17 +1053,15 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
           ..write('status: $status, ')
           ..write('updatedAtMs: $updatedAtMs, ')
           ..write('progress: $progress, ')
-          ..write('localPath: $localPath, ')
-          ..write('artworkPath: $artworkPath, ')
-          ..write('lyricsPath: $lyricsPath, ')
+          ..write('temporaryPath: $temporaryPath, ')
           ..write('failureReason: $failureReason')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(trackId, status, updatedAtMs, progress,
-      localPath, artworkPath, lyricsPath, failureReason);
+  int get hashCode => Object.hash(
+      trackId, status, updatedAtMs, progress, temporaryPath, failureReason);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1054,9 +1070,7 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
           other.status == this.status &&
           other.updatedAtMs == this.updatedAtMs &&
           other.progress == this.progress &&
-          other.localPath == this.localPath &&
-          other.artworkPath == this.artworkPath &&
-          other.lyricsPath == this.lyricsPath &&
+          other.temporaryPath == this.temporaryPath &&
           other.failureReason == this.failureReason);
 }
 
@@ -1065,9 +1079,7 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
   final Value<String> status;
   final Value<int> updatedAtMs;
   final Value<double?> progress;
-  final Value<String?> localPath;
-  final Value<String?> artworkPath;
-  final Value<String?> lyricsPath;
+  final Value<String?> temporaryPath;
   final Value<String?> failureReason;
   final Value<int> rowid;
   const DownloadTasksCompanion({
@@ -1075,9 +1087,7 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
     this.status = const Value.absent(),
     this.updatedAtMs = const Value.absent(),
     this.progress = const Value.absent(),
-    this.localPath = const Value.absent(),
-    this.artworkPath = const Value.absent(),
-    this.lyricsPath = const Value.absent(),
+    this.temporaryPath = const Value.absent(),
     this.failureReason = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1086,9 +1096,7 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
     required String status,
     required int updatedAtMs,
     this.progress = const Value.absent(),
-    this.localPath = const Value.absent(),
-    this.artworkPath = const Value.absent(),
-    this.lyricsPath = const Value.absent(),
+    this.temporaryPath = const Value.absent(),
     this.failureReason = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : trackId = Value(trackId),
@@ -1099,9 +1107,7 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
     Expression<String>? status,
     Expression<int>? updatedAtMs,
     Expression<double>? progress,
-    Expression<String>? localPath,
-    Expression<String>? artworkPath,
-    Expression<String>? lyricsPath,
+    Expression<String>? temporaryPath,
     Expression<String>? failureReason,
     Expression<int>? rowid,
   }) {
@@ -1110,9 +1116,7 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
       if (status != null) 'status': status,
       if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
       if (progress != null) 'progress': progress,
-      if (localPath != null) 'local_path': localPath,
-      if (artworkPath != null) 'artwork_path': artworkPath,
-      if (lyricsPath != null) 'lyrics_path': lyricsPath,
+      if (temporaryPath != null) 'temporary_path': temporaryPath,
       if (failureReason != null) 'failure_reason': failureReason,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1123,9 +1127,7 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
       Value<String>? status,
       Value<int>? updatedAtMs,
       Value<double?>? progress,
-      Value<String?>? localPath,
-      Value<String?>? artworkPath,
-      Value<String?>? lyricsPath,
+      Value<String?>? temporaryPath,
       Value<String?>? failureReason,
       Value<int>? rowid}) {
     return DownloadTasksCompanion(
@@ -1133,9 +1135,7 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
       status: status ?? this.status,
       updatedAtMs: updatedAtMs ?? this.updatedAtMs,
       progress: progress ?? this.progress,
-      localPath: localPath ?? this.localPath,
-      artworkPath: artworkPath ?? this.artworkPath,
-      lyricsPath: lyricsPath ?? this.lyricsPath,
+      temporaryPath: temporaryPath ?? this.temporaryPath,
       failureReason: failureReason ?? this.failureReason,
       rowid: rowid ?? this.rowid,
     );
@@ -1156,14 +1156,8 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
     if (progress.present) {
       map['progress'] = Variable<double>(progress.value);
     }
-    if (localPath.present) {
-      map['local_path'] = Variable<String>(localPath.value);
-    }
-    if (artworkPath.present) {
-      map['artwork_path'] = Variable<String>(artworkPath.value);
-    }
-    if (lyricsPath.present) {
-      map['lyrics_path'] = Variable<String>(lyricsPath.value);
+    if (temporaryPath.present) {
+      map['temporary_path'] = Variable<String>(temporaryPath.value);
     }
     if (failureReason.present) {
       map['failure_reason'] = Variable<String>(failureReason.value);
@@ -1181,9 +1175,7 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
           ..write('status: $status, ')
           ..write('updatedAtMs: $updatedAtMs, ')
           ..write('progress: $progress, ')
-          ..write('localPath: $localPath, ')
-          ..write('artworkPath: $artworkPath, ')
-          ..write('lyricsPath: $lyricsPath, ')
+          ..write('temporaryPath: $temporaryPath, ')
           ..write('failureReason: $failureReason, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1255,24 +1247,6 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
   late final GeneratedColumn<String> remoteUrl = GeneratedColumn<String>(
       'remote_url', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _localPathMeta =
-      const VerificationMeta('localPath');
-  @override
-  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
-      'local_path', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _localArtworkPathMeta =
-      const VerificationMeta('localArtworkPath');
-  @override
-  late final GeneratedColumn<String> localArtworkPath = GeneratedColumn<String>(
-      'local_artwork_path', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _localLyricsPathMeta =
-      const VerificationMeta('localLyricsPath');
-  @override
-  late final GeneratedColumn<String> localLyricsPath = GeneratedColumn<String>(
-      'local_lyrics_path', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _lyricKeyMeta =
       const VerificationMeta('lyricKey');
   @override
@@ -1285,30 +1259,6 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
   late final GeneratedColumn<String> availability = GeneratedColumn<String>(
       'availability', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _downloadStateMeta =
-      const VerificationMeta('downloadState');
-  @override
-  late final GeneratedColumn<String> downloadState = GeneratedColumn<String>(
-      'download_state', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _resourceOriginMeta =
-      const VerificationMeta('resourceOrigin');
-  @override
-  late final GeneratedColumn<String> resourceOrigin = GeneratedColumn<String>(
-      'resource_origin', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _downloadProgressMeta =
-      const VerificationMeta('downloadProgress');
-  @override
-  late final GeneratedColumn<double> downloadProgress = GeneratedColumn<double>(
-      'download_progress', aliasedName, true,
-      type: DriftSqlType.double, requiredDuringInsert: false);
-  static const VerificationMeta _downloadFailureReasonMeta =
-      const VerificationMeta('downloadFailureReason');
-  @override
-  late final GeneratedColumn<String> downloadFailureReason =
-      GeneratedColumn<String>('download_failure_reason', aliasedName, true,
-          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _metadataJsonMeta =
       const VerificationMeta('metadataJson');
   @override
@@ -1327,15 +1277,8 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
         durationMs,
         artworkUrl,
         remoteUrl,
-        localPath,
-        localArtworkPath,
-        localLyricsPath,
         lyricKey,
         availability,
-        downloadState,
-        resourceOrigin,
-        downloadProgress,
-        downloadFailureReason,
         metadataJson
       ];
   @override
@@ -1411,22 +1354,6 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
       context.handle(_remoteUrlMeta,
           remoteUrl.isAcceptableOrUnknown(data['remote_url']!, _remoteUrlMeta));
     }
-    if (data.containsKey('local_path')) {
-      context.handle(_localPathMeta,
-          localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta));
-    }
-    if (data.containsKey('local_artwork_path')) {
-      context.handle(
-          _localArtworkPathMeta,
-          localArtworkPath.isAcceptableOrUnknown(
-              data['local_artwork_path']!, _localArtworkPathMeta));
-    }
-    if (data.containsKey('local_lyrics_path')) {
-      context.handle(
-          _localLyricsPathMeta,
-          localLyricsPath.isAcceptableOrUnknown(
-              data['local_lyrics_path']!, _localLyricsPathMeta));
-    }
     if (data.containsKey('lyric_key')) {
       context.handle(_lyricKeyMeta,
           lyricKey.isAcceptableOrUnknown(data['lyric_key']!, _lyricKeyMeta));
@@ -1438,34 +1365,6 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
               data['availability']!, _availabilityMeta));
     } else if (isInserting) {
       context.missing(_availabilityMeta);
-    }
-    if (data.containsKey('download_state')) {
-      context.handle(
-          _downloadStateMeta,
-          downloadState.isAcceptableOrUnknown(
-              data['download_state']!, _downloadStateMeta));
-    } else if (isInserting) {
-      context.missing(_downloadStateMeta);
-    }
-    if (data.containsKey('resource_origin')) {
-      context.handle(
-          _resourceOriginMeta,
-          resourceOrigin.isAcceptableOrUnknown(
-              data['resource_origin']!, _resourceOriginMeta));
-    } else if (isInserting) {
-      context.missing(_resourceOriginMeta);
-    }
-    if (data.containsKey('download_progress')) {
-      context.handle(
-          _downloadProgressMeta,
-          downloadProgress.isAcceptableOrUnknown(
-              data['download_progress']!, _downloadProgressMeta));
-    }
-    if (data.containsKey('download_failure_reason')) {
-      context.handle(
-          _downloadFailureReasonMeta,
-          downloadFailureReason.isAcceptableOrUnknown(
-              data['download_failure_reason']!, _downloadFailureReasonMeta));
     }
     if (data.containsKey('metadata_json')) {
       context.handle(
@@ -1504,25 +1403,10 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
           .read(DriftSqlType.string, data['${effectivePrefix}artwork_url']),
       remoteUrl: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}remote_url']),
-      localPath: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}local_path']),
-      localArtworkPath: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}local_artwork_path']),
-      localLyricsPath: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}local_lyrics_path']),
       lyricKey: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lyric_key']),
       availability: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}availability'])!,
-      downloadState: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}download_state'])!,
-      resourceOrigin: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}resource_origin'])!,
-      downloadProgress: attachedDatabase.typeMapping.read(
-          DriftSqlType.double, data['${effectivePrefix}download_progress']),
-      downloadFailureReason: attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}download_failure_reason']),
       metadataJson: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}metadata_json'])!,
     );
@@ -1545,15 +1429,8 @@ class Track extends DataClass implements Insertable<Track> {
   final int? durationMs;
   final String? artworkUrl;
   final String? remoteUrl;
-  final String? localPath;
-  final String? localArtworkPath;
-  final String? localLyricsPath;
   final String? lyricKey;
   final String availability;
-  final String downloadState;
-  final String resourceOrigin;
-  final double? downloadProgress;
-  final String? downloadFailureReason;
   final String metadataJson;
   const Track(
       {required this.trackId,
@@ -1566,15 +1443,8 @@ class Track extends DataClass implements Insertable<Track> {
       this.durationMs,
       this.artworkUrl,
       this.remoteUrl,
-      this.localPath,
-      this.localArtworkPath,
-      this.localLyricsPath,
       this.lyricKey,
       required this.availability,
-      required this.downloadState,
-      required this.resourceOrigin,
-      this.downloadProgress,
-      this.downloadFailureReason,
       required this.metadataJson});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1597,27 +1467,10 @@ class Track extends DataClass implements Insertable<Track> {
     if (!nullToAbsent || remoteUrl != null) {
       map['remote_url'] = Variable<String>(remoteUrl);
     }
-    if (!nullToAbsent || localPath != null) {
-      map['local_path'] = Variable<String>(localPath);
-    }
-    if (!nullToAbsent || localArtworkPath != null) {
-      map['local_artwork_path'] = Variable<String>(localArtworkPath);
-    }
-    if (!nullToAbsent || localLyricsPath != null) {
-      map['local_lyrics_path'] = Variable<String>(localLyricsPath);
-    }
     if (!nullToAbsent || lyricKey != null) {
       map['lyric_key'] = Variable<String>(lyricKey);
     }
     map['availability'] = Variable<String>(availability);
-    map['download_state'] = Variable<String>(downloadState);
-    map['resource_origin'] = Variable<String>(resourceOrigin);
-    if (!nullToAbsent || downloadProgress != null) {
-      map['download_progress'] = Variable<double>(downloadProgress);
-    }
-    if (!nullToAbsent || downloadFailureReason != null) {
-      map['download_failure_reason'] = Variable<String>(downloadFailureReason);
-    }
     map['metadata_json'] = Variable<String>(metadataJson);
     return map;
   }
@@ -1642,27 +1495,10 @@ class Track extends DataClass implements Insertable<Track> {
       remoteUrl: remoteUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(remoteUrl),
-      localPath: localPath == null && nullToAbsent
-          ? const Value.absent()
-          : Value(localPath),
-      localArtworkPath: localArtworkPath == null && nullToAbsent
-          ? const Value.absent()
-          : Value(localArtworkPath),
-      localLyricsPath: localLyricsPath == null && nullToAbsent
-          ? const Value.absent()
-          : Value(localLyricsPath),
       lyricKey: lyricKey == null && nullToAbsent
           ? const Value.absent()
           : Value(lyricKey),
       availability: Value(availability),
-      downloadState: Value(downloadState),
-      resourceOrigin: Value(resourceOrigin),
-      downloadProgress: downloadProgress == null && nullToAbsent
-          ? const Value.absent()
-          : Value(downloadProgress),
-      downloadFailureReason: downloadFailureReason == null && nullToAbsent
-          ? const Value.absent()
-          : Value(downloadFailureReason),
       metadataJson: Value(metadataJson),
     );
   }
@@ -1681,16 +1517,8 @@ class Track extends DataClass implements Insertable<Track> {
       durationMs: serializer.fromJson<int?>(json['durationMs']),
       artworkUrl: serializer.fromJson<String?>(json['artworkUrl']),
       remoteUrl: serializer.fromJson<String?>(json['remoteUrl']),
-      localPath: serializer.fromJson<String?>(json['localPath']),
-      localArtworkPath: serializer.fromJson<String?>(json['localArtworkPath']),
-      localLyricsPath: serializer.fromJson<String?>(json['localLyricsPath']),
       lyricKey: serializer.fromJson<String?>(json['lyricKey']),
       availability: serializer.fromJson<String>(json['availability']),
-      downloadState: serializer.fromJson<String>(json['downloadState']),
-      resourceOrigin: serializer.fromJson<String>(json['resourceOrigin']),
-      downloadProgress: serializer.fromJson<double?>(json['downloadProgress']),
-      downloadFailureReason:
-          serializer.fromJson<String?>(json['downloadFailureReason']),
       metadataJson: serializer.fromJson<String>(json['metadataJson']),
     );
   }
@@ -1708,16 +1536,8 @@ class Track extends DataClass implements Insertable<Track> {
       'durationMs': serializer.toJson<int?>(durationMs),
       'artworkUrl': serializer.toJson<String?>(artworkUrl),
       'remoteUrl': serializer.toJson<String?>(remoteUrl),
-      'localPath': serializer.toJson<String?>(localPath),
-      'localArtworkPath': serializer.toJson<String?>(localArtworkPath),
-      'localLyricsPath': serializer.toJson<String?>(localLyricsPath),
       'lyricKey': serializer.toJson<String?>(lyricKey),
       'availability': serializer.toJson<String>(availability),
-      'downloadState': serializer.toJson<String>(downloadState),
-      'resourceOrigin': serializer.toJson<String>(resourceOrigin),
-      'downloadProgress': serializer.toJson<double?>(downloadProgress),
-      'downloadFailureReason':
-          serializer.toJson<String?>(downloadFailureReason),
       'metadataJson': serializer.toJson<String>(metadataJson),
     };
   }
@@ -1733,15 +1553,8 @@ class Track extends DataClass implements Insertable<Track> {
           Value<int?> durationMs = const Value.absent(),
           Value<String?> artworkUrl = const Value.absent(),
           Value<String?> remoteUrl = const Value.absent(),
-          Value<String?> localPath = const Value.absent(),
-          Value<String?> localArtworkPath = const Value.absent(),
-          Value<String?> localLyricsPath = const Value.absent(),
           Value<String?> lyricKey = const Value.absent(),
           String? availability,
-          String? downloadState,
-          String? resourceOrigin,
-          Value<double?> downloadProgress = const Value.absent(),
-          Value<String?> downloadFailureReason = const Value.absent(),
           String? metadataJson}) =>
       Track(
         trackId: trackId ?? this.trackId,
@@ -1754,23 +1567,8 @@ class Track extends DataClass implements Insertable<Track> {
         durationMs: durationMs.present ? durationMs.value : this.durationMs,
         artworkUrl: artworkUrl.present ? artworkUrl.value : this.artworkUrl,
         remoteUrl: remoteUrl.present ? remoteUrl.value : this.remoteUrl,
-        localPath: localPath.present ? localPath.value : this.localPath,
-        localArtworkPath: localArtworkPath.present
-            ? localArtworkPath.value
-            : this.localArtworkPath,
-        localLyricsPath: localLyricsPath.present
-            ? localLyricsPath.value
-            : this.localLyricsPath,
         lyricKey: lyricKey.present ? lyricKey.value : this.lyricKey,
         availability: availability ?? this.availability,
-        downloadState: downloadState ?? this.downloadState,
-        resourceOrigin: resourceOrigin ?? this.resourceOrigin,
-        downloadProgress: downloadProgress.present
-            ? downloadProgress.value
-            : this.downloadProgress,
-        downloadFailureReason: downloadFailureReason.present
-            ? downloadFailureReason.value
-            : this.downloadFailureReason,
         metadataJson: metadataJson ?? this.metadataJson,
       );
   @override
@@ -1786,15 +1584,8 @@ class Track extends DataClass implements Insertable<Track> {
           ..write('durationMs: $durationMs, ')
           ..write('artworkUrl: $artworkUrl, ')
           ..write('remoteUrl: $remoteUrl, ')
-          ..write('localPath: $localPath, ')
-          ..write('localArtworkPath: $localArtworkPath, ')
-          ..write('localLyricsPath: $localLyricsPath, ')
           ..write('lyricKey: $lyricKey, ')
           ..write('availability: $availability, ')
-          ..write('downloadState: $downloadState, ')
-          ..write('resourceOrigin: $resourceOrigin, ')
-          ..write('downloadProgress: $downloadProgress, ')
-          ..write('downloadFailureReason: $downloadFailureReason, ')
           ..write('metadataJson: $metadataJson')
           ..write(')'))
         .toString();
@@ -1812,15 +1603,8 @@ class Track extends DataClass implements Insertable<Track> {
       durationMs,
       artworkUrl,
       remoteUrl,
-      localPath,
-      localArtworkPath,
-      localLyricsPath,
       lyricKey,
       availability,
-      downloadState,
-      resourceOrigin,
-      downloadProgress,
-      downloadFailureReason,
       metadataJson);
   @override
   bool operator ==(Object other) =>
@@ -1836,15 +1620,8 @@ class Track extends DataClass implements Insertable<Track> {
           other.durationMs == this.durationMs &&
           other.artworkUrl == this.artworkUrl &&
           other.remoteUrl == this.remoteUrl &&
-          other.localPath == this.localPath &&
-          other.localArtworkPath == this.localArtworkPath &&
-          other.localLyricsPath == this.localLyricsPath &&
           other.lyricKey == this.lyricKey &&
           other.availability == this.availability &&
-          other.downloadState == this.downloadState &&
-          other.resourceOrigin == this.resourceOrigin &&
-          other.downloadProgress == this.downloadProgress &&
-          other.downloadFailureReason == this.downloadFailureReason &&
           other.metadataJson == this.metadataJson);
 }
 
@@ -1859,15 +1636,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
   final Value<int?> durationMs;
   final Value<String?> artworkUrl;
   final Value<String?> remoteUrl;
-  final Value<String?> localPath;
-  final Value<String?> localArtworkPath;
-  final Value<String?> localLyricsPath;
   final Value<String?> lyricKey;
   final Value<String> availability;
-  final Value<String> downloadState;
-  final Value<String> resourceOrigin;
-  final Value<double?> downloadProgress;
-  final Value<String?> downloadFailureReason;
   final Value<String> metadataJson;
   final Value<int> rowid;
   const TracksCompanion({
@@ -1881,15 +1651,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
     this.durationMs = const Value.absent(),
     this.artworkUrl = const Value.absent(),
     this.remoteUrl = const Value.absent(),
-    this.localPath = const Value.absent(),
-    this.localArtworkPath = const Value.absent(),
-    this.localLyricsPath = const Value.absent(),
     this.lyricKey = const Value.absent(),
     this.availability = const Value.absent(),
-    this.downloadState = const Value.absent(),
-    this.resourceOrigin = const Value.absent(),
-    this.downloadProgress = const Value.absent(),
-    this.downloadFailureReason = const Value.absent(),
     this.metadataJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1904,15 +1667,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
     this.durationMs = const Value.absent(),
     this.artworkUrl = const Value.absent(),
     this.remoteUrl = const Value.absent(),
-    this.localPath = const Value.absent(),
-    this.localArtworkPath = const Value.absent(),
-    this.localLyricsPath = const Value.absent(),
     this.lyricKey = const Value.absent(),
     required String availability,
-    required String downloadState,
-    required String resourceOrigin,
-    this.downloadProgress = const Value.absent(),
-    this.downloadFailureReason = const Value.absent(),
     required String metadataJson,
     this.rowid = const Value.absent(),
   })  : trackId = Value(trackId),
@@ -1922,8 +1678,6 @@ class TracksCompanion extends UpdateCompanion<Track> {
         artistSearchText = Value(artistSearchText),
         artistNamesJson = Value(artistNamesJson),
         availability = Value(availability),
-        downloadState = Value(downloadState),
-        resourceOrigin = Value(resourceOrigin),
         metadataJson = Value(metadataJson);
   static Insertable<Track> custom({
     Expression<String>? trackId,
@@ -1936,15 +1690,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
     Expression<int>? durationMs,
     Expression<String>? artworkUrl,
     Expression<String>? remoteUrl,
-    Expression<String>? localPath,
-    Expression<String>? localArtworkPath,
-    Expression<String>? localLyricsPath,
     Expression<String>? lyricKey,
     Expression<String>? availability,
-    Expression<String>? downloadState,
-    Expression<String>? resourceOrigin,
-    Expression<double>? downloadProgress,
-    Expression<String>? downloadFailureReason,
     Expression<String>? metadataJson,
     Expression<int>? rowid,
   }) {
@@ -1959,16 +1706,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
       if (durationMs != null) 'duration_ms': durationMs,
       if (artworkUrl != null) 'artwork_url': artworkUrl,
       if (remoteUrl != null) 'remote_url': remoteUrl,
-      if (localPath != null) 'local_path': localPath,
-      if (localArtworkPath != null) 'local_artwork_path': localArtworkPath,
-      if (localLyricsPath != null) 'local_lyrics_path': localLyricsPath,
       if (lyricKey != null) 'lyric_key': lyricKey,
       if (availability != null) 'availability': availability,
-      if (downloadState != null) 'download_state': downloadState,
-      if (resourceOrigin != null) 'resource_origin': resourceOrigin,
-      if (downloadProgress != null) 'download_progress': downloadProgress,
-      if (downloadFailureReason != null)
-        'download_failure_reason': downloadFailureReason,
       if (metadataJson != null) 'metadata_json': metadataJson,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1985,15 +1724,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
       Value<int?>? durationMs,
       Value<String?>? artworkUrl,
       Value<String?>? remoteUrl,
-      Value<String?>? localPath,
-      Value<String?>? localArtworkPath,
-      Value<String?>? localLyricsPath,
       Value<String?>? lyricKey,
       Value<String>? availability,
-      Value<String>? downloadState,
-      Value<String>? resourceOrigin,
-      Value<double?>? downloadProgress,
-      Value<String?>? downloadFailureReason,
       Value<String>? metadataJson,
       Value<int>? rowid}) {
     return TracksCompanion(
@@ -2007,16 +1739,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
       durationMs: durationMs ?? this.durationMs,
       artworkUrl: artworkUrl ?? this.artworkUrl,
       remoteUrl: remoteUrl ?? this.remoteUrl,
-      localPath: localPath ?? this.localPath,
-      localArtworkPath: localArtworkPath ?? this.localArtworkPath,
-      localLyricsPath: localLyricsPath ?? this.localLyricsPath,
       lyricKey: lyricKey ?? this.lyricKey,
       availability: availability ?? this.availability,
-      downloadState: downloadState ?? this.downloadState,
-      resourceOrigin: resourceOrigin ?? this.resourceOrigin,
-      downloadProgress: downloadProgress ?? this.downloadProgress,
-      downloadFailureReason:
-          downloadFailureReason ?? this.downloadFailureReason,
       metadataJson: metadataJson ?? this.metadataJson,
       rowid: rowid ?? this.rowid,
     );
@@ -2055,33 +1779,11 @@ class TracksCompanion extends UpdateCompanion<Track> {
     if (remoteUrl.present) {
       map['remote_url'] = Variable<String>(remoteUrl.value);
     }
-    if (localPath.present) {
-      map['local_path'] = Variable<String>(localPath.value);
-    }
-    if (localArtworkPath.present) {
-      map['local_artwork_path'] = Variable<String>(localArtworkPath.value);
-    }
-    if (localLyricsPath.present) {
-      map['local_lyrics_path'] = Variable<String>(localLyricsPath.value);
-    }
     if (lyricKey.present) {
       map['lyric_key'] = Variable<String>(lyricKey.value);
     }
     if (availability.present) {
       map['availability'] = Variable<String>(availability.value);
-    }
-    if (downloadState.present) {
-      map['download_state'] = Variable<String>(downloadState.value);
-    }
-    if (resourceOrigin.present) {
-      map['resource_origin'] = Variable<String>(resourceOrigin.value);
-    }
-    if (downloadProgress.present) {
-      map['download_progress'] = Variable<double>(downloadProgress.value);
-    }
-    if (downloadFailureReason.present) {
-      map['download_failure_reason'] =
-          Variable<String>(downloadFailureReason.value);
     }
     if (metadataJson.present) {
       map['metadata_json'] = Variable<String>(metadataJson.value);
@@ -2105,15 +1807,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
           ..write('durationMs: $durationMs, ')
           ..write('artworkUrl: $artworkUrl, ')
           ..write('remoteUrl: $remoteUrl, ')
-          ..write('localPath: $localPath, ')
-          ..write('localArtworkPath: $localArtworkPath, ')
-          ..write('localLyricsPath: $localLyricsPath, ')
           ..write('lyricKey: $lyricKey, ')
           ..write('availability: $availability, ')
-          ..write('downloadState: $downloadState, ')
-          ..write('resourceOrigin: $resourceOrigin, ')
-          ..write('downloadProgress: $downloadProgress, ')
-          ..write('downloadFailureReason: $downloadFailureReason, ')
           ..write('metadataJson: $metadataJson, ')
           ..write('rowid: $rowid')
           ..write(')'))

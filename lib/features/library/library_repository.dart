@@ -3,13 +3,16 @@ import 'dart:io';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_music_source.dart';
 import 'package:bujuan/data/netease/netease_music_source.dart';
-import 'package:bujuan/domain/entities/local_resource_entry.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
+import 'package:bujuan/domain/entities/local_resource_entry.dart';
+import 'package:bujuan/domain/entities/local_song_entry.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
+import 'package:bujuan/domain/entities/track_resource_bundle.dart';
+import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:get_it/get_it.dart';
 
 import 'library_preference_store.dart';
@@ -28,7 +31,8 @@ class LibraryRepository {
             (GetIt.instance.isRegistered<LocalLibraryDataSource>()
                 ? GetIt.instance<LocalLibraryDataSource>()
                 : (throw StateError(
-                    'LocalLibraryDataSource is not registered'))),
+                    'LocalLibraryDataSource is not registered',
+                  ))),
         _neteaseSource = neteaseSource ?? NeteaseMusicSource(),
         _localMusicSource = localMusicSource ??
             LocalMusicSource(localDataSource: localDataSource),
@@ -97,8 +101,7 @@ class LibraryRepository {
     if (localDataSource == null) {
       return const [];
     }
-    final tracks = await localDataSource.searchTracks(keyword);
-    return Future.wait(tracks.map(_mergeTrackWithResources));
+    return localDataSource.searchTracks(keyword);
   }
 
   Future<List<PlaylistEntity>> searchPlaylists({
@@ -170,7 +173,7 @@ class LibraryRepository {
   Future<Track?> getTrack(String trackId) async {
     final localTrack = await _localDataSource?.getTrack(trackId);
     if (localTrack != null) {
-      return _mergeTrackWithResources(localTrack);
+      return localTrack;
     }
     if (isOfflineModeEnabled) {
       return null;
@@ -180,9 +183,19 @@ class LibraryRepository {
         : await _neteaseSource.getTrack(trackId);
     if (track != null) {
       await _localDataSource?.saveTracks([track]);
-      return _mergeTrackWithResources(track);
     }
-    return null;
+    return track;
+  }
+
+  Future<TrackWithResources?> getTrackWithResources(String trackId) async {
+    final track = await getTrack(trackId);
+    if (track == null) {
+      return null;
+    }
+    return TrackWithResources(
+      track: track,
+      resources: await _resourceIndexRepository.getTrackResourceBundle(trackId),
+    );
   }
 
   Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
@@ -190,24 +203,55 @@ class LibraryRepository {
     if (ids.isEmpty) {
       return const [];
     }
-    final localTracks = await _localDataSource?.getTracksByIds(ids) ?? const [];
-    return Future.wait(localTracks.map(_mergeTrackWithResources));
+    return await _localDataSource?.getTracksByIds(ids) ?? const [];
   }
 
-  Future<List<Track>> getLocalTracks({
+  Future<List<TrackWithResources>> getTracksWithResources(
+    Iterable<String> trackIds,
+  ) async {
+    final ids = trackIds.toSet().toList();
+    if (ids.isEmpty) {
+      return const [];
+    }
+    final tracks = await getTracksByIds(ids);
+    if (tracks.isEmpty) {
+      return const [];
+    }
+    final resourcesByTrackId =
+        await _resourceIndexRepository.getTrackResourceBundles(
+      tracks.map((track) => track.id),
+    );
+    return tracks
+        .map(
+          (track) => TrackWithResources(
+            track: track,
+            resources:
+                resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
+          ),
+        )
+        .toList();
+  }
+
+  Future<List<LocalSongEntry>> getLocalSongs({
     Set<TrackResourceOrigin>? origins,
-  }) async {
-    final localTracks = await _localDataSource?.getLocalTracks(origins: origins) ??
-        const <Track>[];
-    return Future.wait(localTracks.map(_mergeTrackWithResources));
+  }) {
+    return _resourceIndexRepository.listLocalSongs(origins: origins);
   }
 
   Future<String?> getPlaybackUrl(String trackId) async {
-    final localTrack = await getTrack(trackId);
-    if (localTrack?.localPath?.isNotEmpty == true) {
-      return localTrack!.localPath;
+    final trackWithResources = await getTrackWithResources(trackId);
+    final localAudio = trackWithResources?.resources.audio;
+    if (localAudio != null && await _touchIfLocalFileExists(localAudio)) {
+      return localAudio.path;
     }
+    final track = trackWithResources?.track;
     final isLocalTrack = _isLocalTrackId(trackId);
+    if (isLocalTrack && track?.sourceId.isNotEmpty == true) {
+      final localFile = File(track!.sourceId);
+      if (localFile.existsSync()) {
+        return localFile.path;
+      }
+    }
     if (isOfflineModeEnabled && !isLocalTrack) {
       return null;
     }
@@ -220,11 +264,19 @@ class LibraryRepository {
     String trackId, {
     String? qualityLevel,
   }) async {
-    final localTrack = await getTrack(trackId);
-    if (localTrack?.localPath?.isNotEmpty == true) {
-      return localTrack!.localPath;
+    final trackWithResources = await getTrackWithResources(trackId);
+    final localAudio = trackWithResources?.resources.audio;
+    if (localAudio != null && await _touchIfLocalFileExists(localAudio)) {
+      return localAudio.path;
     }
+    final track = trackWithResources?.track;
     final isLocalTrack = _isLocalTrackId(trackId);
+    if (isLocalTrack && track?.sourceId.isNotEmpty == true) {
+      final localFile = File(track!.sourceId);
+      if (localFile.existsSync()) {
+        return localFile.path;
+      }
+    }
     if (isOfflineModeEnabled && !isLocalTrack) {
       return null;
     }
@@ -233,7 +285,26 @@ class LibraryRepository {
         : _neteaseSource.getPlaybackUrl(trackId, qualityLevel: qualityLevel);
   }
 
+  Future<String> getArtworkSource(String trackId) async {
+    final trackWithResources = await getTrackWithResources(trackId);
+    if (trackWithResources == null) {
+      return '';
+    }
+    final localArtwork = trackWithResources.resources.artwork;
+    if (localArtwork != null && await _touchIfLocalFileExists(localArtwork)) {
+      return localArtwork.path;
+    }
+    return trackWithResources.track.artworkUrl ?? '';
+  }
+
   Future<TrackLyrics?> getLyrics(String trackId) async {
+    final lyricsResource =
+        (await _resourceIndexRepository.getTrackResourceBundle(trackId)).lyrics;
+    if (lyricsResource != null && await _touchIfLocalFileExists(lyricsResource)) {
+      return TrackLyrics(
+        main: await File(lyricsResource.path).readAsString(),
+      );
+    }
     final localLyrics = await _localDataSource?.getLyrics(trackId);
     if (localLyrics != null) {
       return localLyrics;
@@ -280,126 +351,82 @@ class LibraryRepository {
   }
 
   Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
-    final tracks = await _localDataSource?.getTracksByAlbumId(albumSourceId) ??
-        const <Track>[];
-    return Future.wait(tracks.map(_mergeTrackWithResources));
+    return await _localDataSource?.getTracksByAlbumId(albumSourceId) ??
+        const [];
   }
 
   Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
-    final tracks =
-        await _localDataSource?.getTracksByArtistId(artistSourceId) ??
-            const <Track>[];
-    return Future.wait(tracks.map(_mergeTrackWithResources));
+    return await _localDataSource?.getTracksByArtistId(artistSourceId) ??
+        const [];
   }
 
-  Future<List<LocalResourceEntry>> getTrackResources(String trackId) {
-    return _resourceIndexRepository.getTrackResources(trackId);
+  Future<TrackResourceBundle> getTrackResourceBundle(String trackId) {
+    return _resourceIndexRepository.getTrackResourceBundle(trackId);
   }
 
-  Future<Track?> removeLocalTrackResources(String trackId) async {
-    final track = await getTrack(trackId);
-    if (track == null) {
-      await _resourceIndexRepository.removeTrackResources(trackId);
-      return null;
-    }
-    final resources = await _resourceIndexRepository.getTrackResources(trackId);
-    final pathsToDelete = <String>{
-      if (track.localPath?.isNotEmpty == true) track.localPath!,
-      if (track.localArtworkPath?.isNotEmpty == true) track.localArtworkPath!,
-      if (track.localLyricsPath?.isNotEmpty == true) track.localLyricsPath!,
-      ...resources.map((item) => item.path).where((item) => item.isNotEmpty),
-    };
-    for (final path in pathsToDelete) {
-      final file = File(path);
-      if (file.existsSync()) {
-        await file.delete();
-      }
-    }
-    await _resourceIndexRepository.removeTrackResources(trackId);
-    return updateTrackLocalState(
-      trackId,
-      localPath: '',
-      localArtworkPath: '',
-      localLyricsPath: '',
-      downloadState: DownloadState.none,
-      resourceOrigin: TrackResourceOrigin.none,
-      downloadProgress: 0,
-      downloadFailureReason: '',
-      availability: track.sourceType == SourceType.local
-          ? TrackAvailability.localOnly
-          : TrackAvailability.unknown,
-    );
-  }
-
-  Future<Track?> updateTrackLocalState(
+  Future<void> removeLocalTrackResources(
     String trackId, {
-    String? localPath,
-    String? localArtworkPath,
-    String? localLyricsPath,
-    DownloadState? downloadState,
-    TrackResourceOrigin? resourceOrigin,
-    double? downloadProgress,
-    String? downloadFailureReason,
-    TrackAvailability? availability,
-    Map<String, Object?>? metadata,
+    required bool deleteSourceFiles,
   }) async {
-    final track = await getTrack(trackId);
-    if (track == null) {
-      return null;
+    final trackWithResources = await getTrackWithResources(trackId);
+    if (trackWithResources == null) {
+      await _resourceIndexRepository.removeTrackResources(trackId);
+      await _localDataSource?.removeLyrics(trackId);
+      return;
     }
-    final nextTrack = track.copyWith(
-      localPath: localPath ?? track.localPath,
-      localArtworkPath: localArtworkPath ?? track.localArtworkPath,
-      localLyricsPath: localLyricsPath ?? track.localLyricsPath,
-      downloadState: downloadState ?? track.downloadState,
-      resourceOrigin: resourceOrigin ?? track.resourceOrigin,
-      downloadProgress: downloadProgress ?? track.downloadProgress,
-      downloadFailureReason:
-          downloadFailureReason ?? track.downloadFailureReason,
-      availability: availability ?? track.availability,
-      metadata: metadata == null
-          ? track.metadata
-          : {
-              ...track.metadata,
-              ...metadata,
-            },
+    final track = trackWithResources.track;
+    final resources = trackWithResources.resources;
+    await _deleteResourceFile(
+      resources.audio,
+      deleteFile: deleteSourceFiles,
     );
-    await saveTrack(nextTrack);
-    return nextTrack;
+    await _deleteResourceFile(
+      resources.artwork,
+      deleteFile: deleteSourceFiles,
+    );
+    await _deleteResourceFile(
+      resources.lyrics,
+      deleteFile: deleteSourceFiles,
+    );
+    await _resourceIndexRepository.removeTrackResources(trackId);
+    await _localDataSource?.removeLyrics(trackId);
+    if (track.sourceType == SourceType.local) {
+      await _localDataSource?.removeTrack(trackId);
+    }
   }
 
-  Future<Track> _mergeTrackWithResources(Track track) async {
-    final resources =
-        await _resourceIndexRepository.getTrackResources(track.id);
-    if (resources.isEmpty) {
-      return track;
-    }
-    String? localPath = track.localPath;
-    String? localArtworkPath = track.localArtworkPath;
-    String? localLyricsPath = track.localLyricsPath;
-    var resourceOrigin = track.resourceOrigin;
-    for (final resource in resources) {
-      switch (resource.kind) {
-        case LocalResourceKind.audio:
-          localPath ??= resource.path;
-          if (resourceOrigin == TrackResourceOrigin.none) {
-            resourceOrigin = resource.origin;
-          }
-          break;
-        case LocalResourceKind.artwork:
-          localArtworkPath ??= resource.path;
-          break;
-        case LocalResourceKind.lyrics:
-          localLyricsPath ??= resource.path;
-          break;
-      }
-    }
-    return track.copyWith(
-      localPath: localPath,
-      localArtworkPath: localArtworkPath,
-      localLyricsPath: localLyricsPath,
-      resourceOrigin: resourceOrigin,
+  Future<void> removePlaybackCache() async {
+    final entries = await getLocalSongs(
+      origins: const {TrackResourceOrigin.playbackCache},
     );
+    for (final entry in entries) {
+      await removeLocalTrackResources(
+        entry.track.id,
+        deleteSourceFiles: true,
+      );
+    }
+  }
+
+  Future<void> _deleteResourceFile(
+    LocalResourceEntry? resource, {
+    required bool deleteFile,
+  }) async {
+    if (!deleteFile || resource == null) {
+      return;
+    }
+    final file = File(resource.path);
+    if (file.existsSync()) {
+      await file.delete();
+    }
+  }
+
+  Future<bool> _touchIfLocalFileExists(LocalResourceEntry resource) async {
+    final file = File(resource.path);
+    if (!file.existsSync()) {
+      return false;
+    }
+    await _resourceIndexRepository.touchResource(resource.trackId, resource.kind);
+    return true;
   }
 
   bool _isLocalTrackId(String trackId) {

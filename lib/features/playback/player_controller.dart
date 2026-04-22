@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
@@ -8,6 +7,8 @@ import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/core/storage/local_image_cache_repository.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
+import 'package:bujuan/domain/entities/track_resource_bundle.dart';
+import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
@@ -306,13 +307,6 @@ class PlayerController extends GetxController {
     String lyric = '';
     String lyricTran = '';
     if (lyric.isEmpty) {
-      final localLyricsPath =
-          currentSong.extras?['localLyricsPath'] as String? ?? '';
-      if (localLyricsPath.isNotEmpty && File(localLyricsPath).existsSync()) {
-        lyric = await File(localLyricsPath).readAsString();
-      }
-    }
-    if (lyric.isEmpty) {
       final lyrics = await _repository.fetchSongLyrics(currentSong.id) ??
           const TrackLyrics();
       lyric = lyrics.main;
@@ -442,8 +436,8 @@ class PlayerController extends GetxController {
   }
 
   Future<Track?> removeDownloadedTrackById(String trackId) async {
-    final updatedTrack =
-        await _downloadRepository.removeDownloadedTrack(trackId);
+    await _downloadRepository.removeDownloadedTrack(trackId);
+    final updatedTrack = await _repository.getTrack(trackId);
     if (updatedTrack == null) {
       return null;
     }
@@ -673,8 +667,15 @@ class PlayerController extends GetxController {
   }
 
   Future<void> _syncCurrentTrackMediaItem(Track track) async {
-    final mediaItems = MediaItemMapper.fromTrackList(
-      [track],
+    final trackWithResources = await _repository.getTrackWithResources(track.id);
+    final mediaItems = MediaItemMapper.fromTrackWithResourcesList(
+      [
+        trackWithResources ??
+            TrackWithResources(
+              track: track,
+              resources: const TrackResourceBundle(),
+            ),
+      ],
       likedSongIds: UserController.to.likedSongIds.toList(),
     );
     if (mediaItems.isEmpty) {

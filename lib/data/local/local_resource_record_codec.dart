@@ -11,7 +11,9 @@ class LocalResourceRecordCodec {
       kind: entry.kind.name,
       path: entry.path,
       origin: entry.origin.name,
-      updatedAtMs: entry.updatedAt.millisecondsSinceEpoch,
+      sizeBytes: entry.sizeBytes,
+      createdAtMs: entry.createdAt.millisecondsSinceEpoch,
+      lastAccessedAtMs: entry.lastAccessedAt.millisecondsSinceEpoch,
     );
   }
 
@@ -27,7 +29,11 @@ class LocalResourceRecordCodec {
         (item) => item.name == record.origin,
         orElse: () => TrackResourceOrigin.none,
       ),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(record.updatedAtMs),
+      sizeBytes: record.sizeBytes,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(record.createdAtMs),
+      lastAccessedAt: DateTime.fromMillisecondsSinceEpoch(
+        record.lastAccessedAtMs,
+      ),
     );
   }
 

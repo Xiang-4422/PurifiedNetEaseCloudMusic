@@ -58,8 +58,11 @@ class SearchRepository {
   }) async {
     final localTracks = await _libraryRepository.searchLocalTracks(keyword);
     if (_libraryRepository.isOfflineModeEnabled) {
-      return MediaItemMapper.fromTrackList(
-        localTracks,
+      final localTrackItems = await _libraryRepository.getTracksWithResources(
+        localTracks.map((track) => track.id),
+      );
+      return MediaItemMapper.fromTrackWithResourcesList(
+        localTrackItems,
         likedSongIds: likedSongIds,
       );
     }
@@ -68,8 +71,11 @@ class SearchRepository {
       keyword: keyword,
     );
     final tracks = _mergeById(localTracks, remoteTracks, (track) => track.id);
-    return MediaItemMapper.fromTrackList(
-      tracks,
+    final trackItems = await _libraryRepository.getTracksWithResources(
+      tracks.map((track) => track.id),
+    );
+    return MediaItemMapper.fromTrackWithResourcesList(
+      trackItems,
       likedSongIds: likedSongIds,
     );
   }

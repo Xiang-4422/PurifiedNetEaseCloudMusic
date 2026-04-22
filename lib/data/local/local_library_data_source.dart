@@ -17,10 +17,6 @@ abstract class LocalLibraryDataSource {
 
   Future<List<Track>> getTracksByIds(Iterable<String> trackIds);
 
-  Future<List<Track>> getLocalTracks({
-    Set<TrackResourceOrigin>? origins,
-  });
-
   Future<TrackLyrics?> getLyrics(String trackId);
 
   Future<PlaylistEntity?> getPlaylist(String playlistId);
@@ -42,6 +38,10 @@ abstract class LocalLibraryDataSource {
   Future<void> saveArtists(List<ArtistEntity> artists);
 
   Future<void> saveLyrics(String trackId, TrackLyrics lyrics);
+
+  Future<void> removeTrack(String trackId);
+
+  Future<void> removeLyrics(String trackId);
 
   Future<void> clearPlaylistTrackRefs(String playlistId);
 }

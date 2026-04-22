@@ -27,7 +27,9 @@ class LocalResourceEntries extends Table {
   TextColumn get kind => text()();
   TextColumn get path => text()();
   TextColumn get origin => text()();
-  IntColumn get updatedAtMs => integer()();
+  IntColumn get sizeBytes => integer()();
+  IntColumn get createdAtMs => integer()();
+  IntColumn get lastAccessedAtMs => integer()();
 
   @override
   Set<Column<Object>> get primaryKey => {trackId, kind};
@@ -38,9 +40,7 @@ class DownloadTasks extends Table {
   TextColumn get status => text()();
   IntColumn get updatedAtMs => integer()();
   RealColumn get progress => real().nullable()();
-  TextColumn get localPath => text().nullable()();
-  TextColumn get artworkPath => text().nullable()();
-  TextColumn get lyricsPath => text().nullable()();
+  TextColumn get temporaryPath => text().nullable()();
   TextColumn get failureReason => text().nullable()();
 
   @override
@@ -58,15 +58,8 @@ class Tracks extends Table {
   IntColumn get durationMs => integer().nullable()();
   TextColumn get artworkUrl => text().nullable()();
   TextColumn get remoteUrl => text().nullable()();
-  TextColumn get localPath => text().nullable()();
-  TextColumn get localArtworkPath => text().nullable()();
-  TextColumn get localLyricsPath => text().nullable()();
   TextColumn get lyricKey => text().nullable()();
   TextColumn get availability => text()();
-  TextColumn get downloadState => text()();
-  TextColumn get resourceOrigin => text()();
-  RealColumn get downloadProgress => real().nullable()();
-  TextColumn get downloadFailureReason => text().nullable()();
   TextColumn get metadataJson => text()();
 
   @override
@@ -269,18 +262,29 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
           await _createQueryIndexes();
         },
         onUpgrade: (migrator, from, to) async {
-          if (from < 2) {
-            await _createQueryIndexes();
-          }
-          if (from < 3) {
-            await migrator.createTable(userProfiles);
-            await migrator.createTable(userTrackListRefs);
-            await migrator.createTable(userPlaylistListRefs);
-            await migrator.createTable(userPlaylistSnapshots);
-            await migrator.createTable(userPlaylistStates);
-            await migrator.createTable(userRadioSubscriptions);
-            await migrator.createTable(userRadioPrograms);
-            await migrator.createTable(userSyncMarkers);
+          if (from < 4) {
+            for (final statement in const [
+              'DROP TABLE IF EXISTS playback_restore_snapshots',
+              'DROP TABLE IF EXISTS local_resource_entries',
+              'DROP TABLE IF EXISTS download_tasks',
+              'DROP TABLE IF EXISTS tracks',
+              'DROP TABLE IF EXISTS track_lyrics_entries',
+              'DROP TABLE IF EXISTS playlists',
+              'DROP TABLE IF EXISTS playlist_track_refs',
+              'DROP TABLE IF EXISTS albums',
+              'DROP TABLE IF EXISTS artists',
+              'DROP TABLE IF EXISTS user_profiles',
+              'DROP TABLE IF EXISTS user_track_list_refs',
+              'DROP TABLE IF EXISTS user_playlist_list_refs',
+              'DROP TABLE IF EXISTS user_playlist_snapshots',
+              'DROP TABLE IF EXISTS user_playlist_states',
+              'DROP TABLE IF EXISTS user_radio_subscriptions',
+              'DROP TABLE IF EXISTS user_radio_programs',
+              'DROP TABLE IF EXISTS user_sync_markers',
+            ]) {
+              await customStatement(statement);
+            }
+            await migrator.createAll();
             await _createQueryIndexes();
           }
         },
@@ -295,9 +299,6 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_tracks_album_title ON tracks (album_title)',
-    );
-    await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_tracks_download_state ON tracks (download_state)',
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_playlists_title ON playlists (title)',
@@ -316,6 +317,9 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_download_tasks_status_updated_at_ms ON download_tasks (status, updated_at_ms)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_local_resource_entries_origin_kind ON local_resource_entries (origin, kind)',
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_user_track_list_refs_user_list_track_id ON user_track_list_refs (user_id, list_kind, track_id)',

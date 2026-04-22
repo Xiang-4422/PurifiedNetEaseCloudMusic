@@ -4,14 +4,18 @@ class LocalResourceRecord {
     required this.kind,
     required this.path,
     required this.origin,
-    required this.updatedAtMs,
+    required this.sizeBytes,
+    required this.createdAtMs,
+    required this.lastAccessedAtMs,
   });
 
   final String trackId;
   final String kind;
   final String path;
   final String origin;
-  final int updatedAtMs;
+  final int sizeBytes;
+  final int createdAtMs;
+  final int lastAccessedAtMs;
 
   Map<String, Object?> toMap() {
     return {
@@ -19,7 +23,9 @@ class LocalResourceRecord {
       'kind': kind,
       'path': path,
       'origin': origin,
-      'updatedAtMs': updatedAtMs,
+      'sizeBytes': sizeBytes,
+      'createdAtMs': createdAtMs,
+      'lastAccessedAtMs': lastAccessedAtMs,
     };
   }
 
@@ -29,7 +35,9 @@ class LocalResourceRecord {
       kind: map['kind'] as String? ?? '',
       path: map['path'] as String? ?? '',
       origin: map['origin'] as String? ?? '',
-      updatedAtMs: map['updatedAtMs'] as int? ?? 0,
+      sizeBytes: map['sizeBytes'] as int? ?? 0,
+      createdAtMs: map['createdAtMs'] as int? ?? 0,
+      lastAccessedAtMs: map['lastAccessedAtMs'] as int? ?? 0,
     );
   }
 }

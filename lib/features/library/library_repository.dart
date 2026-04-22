@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_music_source.dart';
 import 'package:bujuan/data/netease/netease_music_source.dart';
@@ -5,6 +7,7 @@ import 'package:bujuan/domain/entities/local_resource_entry.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:get_it/get_it.dart';
@@ -191,6 +194,14 @@ class LibraryRepository {
     return Future.wait(localTracks.map(_mergeTrackWithResources));
   }
 
+  Future<List<Track>> getLocalTracks({
+    Set<TrackResourceOrigin>? origins,
+  }) async {
+    final localTracks = await _localDataSource?.getLocalTracks(origins: origins) ??
+        const <Track>[];
+    return Future.wait(localTracks.map(_mergeTrackWithResources));
+  }
+
   Future<String?> getPlaybackUrl(String trackId) async {
     final localTrack = await getTrack(trackId);
     if (localTrack?.localPath?.isNotEmpty == true) {
@@ -283,6 +294,41 @@ class LibraryRepository {
 
   Future<List<LocalResourceEntry>> getTrackResources(String trackId) {
     return _resourceIndexRepository.getTrackResources(trackId);
+  }
+
+  Future<Track?> removeLocalTrackResources(String trackId) async {
+    final track = await getTrack(trackId);
+    if (track == null) {
+      await _resourceIndexRepository.removeTrackResources(trackId);
+      return null;
+    }
+    final resources = await _resourceIndexRepository.getTrackResources(trackId);
+    final pathsToDelete = <String>{
+      if (track.localPath?.isNotEmpty == true) track.localPath!,
+      if (track.localArtworkPath?.isNotEmpty == true) track.localArtworkPath!,
+      if (track.localLyricsPath?.isNotEmpty == true) track.localLyricsPath!,
+      ...resources.map((item) => item.path).where((item) => item.isNotEmpty),
+    };
+    for (final path in pathsToDelete) {
+      final file = File(path);
+      if (file.existsSync()) {
+        await file.delete();
+      }
+    }
+    await _resourceIndexRepository.removeTrackResources(trackId);
+    return updateTrackLocalState(
+      trackId,
+      localPath: '',
+      localArtworkPath: '',
+      localLyricsPath: '',
+      downloadState: DownloadState.none,
+      resourceOrigin: TrackResourceOrigin.none,
+      downloadProgress: 0,
+      downloadFailureReason: '',
+      availability: track.sourceType == SourceType.local
+          ? TrackAvailability.localOnly
+          : TrackAvailability.unknown,
+    );
   }
 
   Future<Track?> updateTrackLocalState(

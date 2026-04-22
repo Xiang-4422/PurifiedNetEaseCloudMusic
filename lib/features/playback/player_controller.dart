@@ -111,6 +111,7 @@ class PlayerController extends GetxController {
       if (mediaItem == null) return;
       _syncRuntimeState(currentSong: mediaItem);
       unawaited(_repository.updateRestoreState(currentSongId: mediaItem.id));
+      unawaited(_cacheCurrentTrackForPlayback(mediaItem));
       await _updateCurPlayIndex(
         curMediaItemUpdated: !_restoringPlaybackState,
       );
@@ -753,6 +754,22 @@ class PlayerController extends GetxController {
       currentSong: updatedMediaItem,
     );
     await _playbackService.updateMediaItem(updatedMediaItem);
+  }
+
+  Future<void> _cacheCurrentTrackForPlayback(MediaItem mediaItem) async {
+    final mediaType = mediaItem.extras?['type'] as String? ?? '';
+    if (mediaItem.id.isEmpty ||
+        mediaType == MediaType.local.name ||
+        mediaType == MediaType.neteaseCache.name) {
+      return;
+    }
+    final updatedTrack = await _downloadRepository.cacheTrackForPlayback(
+      mediaItem.id,
+      preferHighQuality: SettingsController.to.isHighSoundQualityOpen.value,
+    );
+    if (updatedTrack != null) {
+      await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+    }
   }
 
   void _preloadImages() {

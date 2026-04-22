@@ -19,6 +19,7 @@ enum TrackResourceOrigin {
   none,
   artworkCache,
   managedDownload,
+  playbackCache,
   localImport,
 }
 

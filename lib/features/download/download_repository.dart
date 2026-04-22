@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/domain/entities/download_task.dart';
+import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/library/library_repository.dart';
@@ -14,6 +15,7 @@ import 'package:path_provider/path_provider.dart';
 class DownloadRepository {
   static Future<void> _downloadQueue = Future.value();
   static final Map<String, Future<Track?>> _scheduledDownloads = {};
+  static final Map<String, Future<Track?>> _scheduledPlaybackCaches = {};
   static final Map<String, CancelToken> _activeCancelTokens = {};
   static final Set<String> _cancelledTrackIds = <String>{};
 
@@ -129,6 +131,25 @@ class DownloadRepository {
     }
   }
 
+  Future<Track?> cacheTrackForPlayback(
+    String trackId, {
+    bool preferHighQuality = true,
+  }) async {
+    final existingTask = _scheduledPlaybackCaches[trackId];
+    if (existingTask != null) {
+      return existingTask;
+    }
+    final taskFuture = _performCacheTrackForPlayback(
+      trackId,
+      preferHighQuality: preferHighQuality,
+    );
+    _scheduledPlaybackCaches[trackId] = taskFuture;
+    taskFuture.whenComplete(() {
+      _scheduledPlaybackCaches.remove(trackId);
+    });
+    return taskFuture;
+  }
+
   Future<Track?> _performDownloadTrack(
     String trackId, {
     required bool preferHighQuality,
@@ -234,29 +255,12 @@ class DownloadRepository {
   }
 
   Future<Track?> removeDownloadedTrack(String trackId) async {
-    final track = await _libraryRepository.getTrack(trackId);
-    if (track == null) {
-      await clearTask(trackId);
-      return null;
-    }
-
-    await _deleteFileIfExists(track.localPath);
-    await _deleteFileIfExists(track.localArtworkPath);
-    await _deleteFileIfExists(track.localLyricsPath);
-    await _resourceIndexRepository.removeTrackResources(trackId);
     await clearTask(trackId);
+    return _libraryRepository.removeLocalTrackResources(trackId);
+  }
 
-    return _libraryRepository.updateTrackLocalState(
-      trackId,
-      localPath: '',
-      localArtworkPath: '',
-      localLyricsPath: '',
-      downloadState: DownloadState.none,
-      resourceOrigin: TrackResourceOrigin.none,
-      downloadProgress: 0,
-      downloadFailureReason: '',
-      availability: TrackAvailability.unknown,
-    );
+  Future<Track?> removeLocalTrack(String trackId) {
+    return removeDownloadedTrack(trackId);
   }
 
   Future<void> cancelTask(String trackId) async {
@@ -306,6 +310,15 @@ class DownloadRepository {
 
   Future<void> clearTask(String trackId) {
     return _taskDataSource.removeTask(trackId);
+  }
+
+  Future<void> clearPlaybackCache() async {
+    final tracks = await _libraryRepository.getLocalTracks(
+      origins: const {TrackResourceOrigin.playbackCache},
+    );
+    for (final track in tracks) {
+      await _libraryRepository.removeLocalTrackResources(track.id);
+    }
   }
 
   Future<Track?> markQueued(
@@ -408,6 +421,72 @@ class DownloadRepository {
     );
   }
 
+  Future<Track?> _performCacheTrackForPlayback(
+    String trackId, {
+    required bool preferHighQuality,
+  }) async {
+    final track = await _libraryRepository.getTrack(trackId);
+    if (track == null || track.sourceType == SourceType.local) {
+      return track;
+    }
+    if (track.localPath?.isNotEmpty == true &&
+        File(track.localPath!).existsSync()) {
+      return track;
+    }
+    try {
+      final playbackUrl = await _libraryRepository.getPlaybackUrlWithQuality(
+        trackId,
+        qualityLevel: preferHighQuality ? 'lossless' : 'exhigh',
+      );
+      if (playbackUrl == null || playbackUrl.isEmpty) {
+        return track;
+      }
+      final rootDirectory = await _ensureCacheRootDirectory();
+      final audioDirectory = await _ensureChildDirectory(rootDirectory, 'audio');
+      final artworkDirectory =
+          await _ensureChildDirectory(rootDirectory, 'artwork');
+      final lyricsDirectory =
+          await _ensureChildDirectory(rootDirectory, 'lyrics');
+      final audioPath = _buildAudioPath(track, playbackUrl, audioDirectory);
+      await _downloadBinaryFile(
+        playbackUrl,
+        audioPath,
+        onProgress: (_) async {},
+      );
+      final artworkPath = await _downloadArtworkFile(track, artworkDirectory);
+      final lyricsPath = await _writeLyricsFile(trackId, lyricsDirectory);
+      await _resourceIndexRepository.saveAudioResource(
+        trackId,
+        path: audioPath,
+        origin: TrackResourceOrigin.playbackCache,
+      );
+      if (artworkPath?.isNotEmpty == true) {
+        await _resourceIndexRepository.saveArtworkResource(
+          trackId,
+          path: artworkPath!,
+          origin: TrackResourceOrigin.playbackCache,
+        );
+      }
+      if (lyricsPath?.isNotEmpty == true) {
+        await _resourceIndexRepository.saveLyricsResource(
+          trackId,
+          path: lyricsPath!,
+          origin: TrackResourceOrigin.playbackCache,
+        );
+      }
+      return _libraryRepository.updateTrackLocalState(
+        trackId,
+        localPath: audioPath,
+        localArtworkPath: artworkPath,
+        localLyricsPath: lyricsPath,
+        resourceOrigin: TrackResourceOrigin.playbackCache,
+        availability: TrackAvailability.playable,
+      );
+    } catch (_) {
+      return track;
+    }
+  }
+
   Future<Track?> markFailed(
     String trackId, {
     String? reason,
@@ -437,6 +516,15 @@ class DownloadRepository {
     final supportDirectory = await getApplicationSupportDirectory();
     final rootDirectory =
         Directory('${supportDirectory.path}/zmusic/downloads');
+    if (!rootDirectory.existsSync()) {
+      await rootDirectory.create(recursive: true);
+    }
+    return rootDirectory;
+  }
+
+  Future<Directory> _ensureCacheRootDirectory() async {
+    final supportDirectory = await getApplicationSupportDirectory();
+    final rootDirectory = Directory('${supportDirectory.path}/zmusic/cache');
     if (!rootDirectory.existsSync()) {
       await rootDirectory.create(recursive: true);
     }

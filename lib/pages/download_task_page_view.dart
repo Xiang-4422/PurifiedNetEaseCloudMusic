@@ -1,9 +1,7 @@
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
-import 'package:bujuan/domain/entities/download_task.dart';
 import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/features/download/download_task_list_controller.dart';
-import 'package:bujuan/widget/common_widgets.dart';
+import 'package:bujuan/features/download/local_song_list_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/load_state_view.dart';
 import 'package:flutter/material.dart';
@@ -18,25 +16,36 @@ class DownloadTaskPageView extends StatefulWidget {
 
 class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
     with SingleTickerProviderStateMixin {
-  static const _cancelActiveAction = 'cancel_active';
-  static const _retryFailedAction = 'retry_failed';
-  static const _clearFailedAction = 'clear_failed';
-  static const _removeDownloadedAction = 'remove_downloaded';
-  static const _clearCompletedAction = 'clear_completed';
+  static const _clearPlaybackCacheAction = 'clear_playback_cache';
 
   late final TabController _tabController;
-  late final DownloadTaskListController _summaryController;
+  late final LocalSongListController _allController;
+  late final LocalSongListController _cacheController;
+  late final LocalSongListController _downloadController;
+  late final LocalSongListController _importController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _summaryController = DownloadTaskListController()..loadInitial();
+    _allController = LocalSongListController()..loadInitial();
+    _cacheController = LocalSongListController(
+      origins: const {TrackResourceOrigin.playbackCache},
+    )..loadInitial();
+    _downloadController = LocalSongListController(
+      origins: const {TrackResourceOrigin.managedDownload},
+    )..loadInitial();
+    _importController = LocalSongListController(
+      origins: const {TrackResourceOrigin.localImport},
+    )..loadInitial();
   }
 
   @override
   void dispose() {
-    _summaryController.dispose();
+    _allController.dispose();
+    _cacheController.dispose();
+    _downloadController.dispose();
+    _importController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -47,65 +56,47 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
       length: 4,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('下载管理'),
+          title: const Text('本地歌曲'),
           actions: [
             PopupMenuButton<String>(
               tooltip: '批量操作',
               onSelected: _handleBulkAction,
               itemBuilder: (context) => const [
                 PopupMenuItem<String>(
-                  value: _cancelActiveAction,
-                  child: Text('取消全部进行中任务'),
-                ),
-                PopupMenuItem<String>(
-                  value: _retryFailedAction,
-                  child: Text('重试全部失败任务'),
-                ),
-                PopupMenuItem<String>(
-                  value: _clearFailedAction,
-                  child: Text('清除失败记录'),
-                ),
-                PopupMenuItem<String>(
-                  value: _removeDownloadedAction,
-                  child: Text('删除全部已下载文件'),
-                ),
-                PopupMenuItem<String>(
-                  value: _clearCompletedAction,
-                  child: Text('清除已完成记录'),
+                  value: _clearPlaybackCacheAction,
+                  child: Text('删除所有缓存'),
                 ),
               ],
             ),
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(kTextTabBarHeight),
-            child: ValueListenableBuilder<LoadState<List<DownloadTaskListItemData>>>(
-              valueListenable: _summaryController.state,
+            child: ValueListenableBuilder<LoadState<List<Track>>>(
+              valueListenable: _allController.state,
               builder: (context, state, child) {
-                final items = state.data ?? const <DownloadTaskListItemData>[];
-                final activeCount = items
+                final items = state.data ?? const <Track>[];
+                final cacheCount = items
                     .where(
-                      (item) =>
-                          item.task.status == DownloadTaskStatus.queued ||
-                          item.task.status == DownloadTaskStatus.downloading,
+                      (item) => item.resourceOrigin == TrackResourceOrigin.playbackCache,
                     )
                     .length;
-                final failedCount = items
+                final downloadCount = items
                     .where(
-                      (item) => item.task.status == DownloadTaskStatus.failed,
+                      (item) => item.resourceOrigin == TrackResourceOrigin.managedDownload,
                     )
                     .length;
-                final completedCount = items
+                final importCount = items
                     .where(
-                      (item) => item.task.status == DownloadTaskStatus.completed,
+                      (item) => item.resourceOrigin == TrackResourceOrigin.localImport,
                     )
                     .length;
                 return TabBar(
                   controller: _tabController,
                   tabs: [
                     Tab(text: '全部 ${items.length}'),
-                    Tab(text: '进行中 $activeCount'),
-                    Tab(text: '失败 $failedCount'),
-                    Tab(text: '已完成 $completedCount'),
+                    Tab(text: '缓存 $cacheCount'),
+                    Tab(text: '已下载 $downloadCount'),
+                    Tab(text: '本地导入 $importCount'),
                   ],
                 );
               },
@@ -114,23 +105,22 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
         ),
         body: TabBarView(
           controller: _tabController,
-          children: const [
-            _DownloadTaskTabView(),
-            _DownloadTaskTabView(
-              statuses: {
-                DownloadTaskStatus.queued,
-                DownloadTaskStatus.downloading,
-              },
+          children: [
+            _LocalSongTabView(
+              controller: _allController,
+              onMutated: _refreshAllTabs,
             ),
-            _DownloadTaskTabView(
-              statuses: {
-                DownloadTaskStatus.failed,
-              },
+            _LocalSongTabView(
+              controller: _cacheController,
+              onMutated: _refreshAllTabs,
             ),
-            _DownloadTaskTabView(
-              statuses: {
-                DownloadTaskStatus.completed,
-              },
+            _LocalSongTabView(
+              controller: _downloadController,
+              onMutated: _refreshAllTabs,
+            ),
+            _LocalSongTabView(
+              controller: _importController,
+              onMutated: _refreshAllTabs,
             ),
           ],
         ),
@@ -139,58 +129,14 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
   }
 
   Future<void> _handleBulkAction(String action) async {
-    final requiresConfirmation = switch (action) {
-      _cancelActiveAction => true,
-      _clearFailedAction => true,
-      _removeDownloadedAction => true,
-      _clearCompletedAction => true,
-      _retryFailedAction => false,
-      _ => false,
-    };
-    if (requiresConfirmation) {
-      final confirmed = await _confirmBulkAction(action);
-      if (!confirmed) {
-        return;
-      }
+    if (action != _clearPlaybackCacheAction) {
+      return;
     }
-
-    final controller = DownloadTaskListController();
-    try {
-      switch (action) {
-        case _cancelActiveAction:
-          await controller.cancelActiveTasks();
-          break;
-        case _retryFailedAction:
-          await controller.retryAllFailedTasks();
-          break;
-        case _clearFailedAction:
-          await controller.clearFailedTasks();
-          break;
-        case _removeDownloadedAction:
-          await controller.removeAllDownloadedTracks();
-          break;
-        case _clearCompletedAction:
-          await controller.clearCompletedTasks();
-          break;
-      }
-    } finally {
-      controller.dispose();
-    }
-  }
-
-  Future<bool> _confirmBulkAction(String action) async {
-    final (title, content) = switch (action) {
-      _cancelActiveAction => ('取消全部进行中任务', '这会停止当前排队中和下载中的任务。'),
-      _clearFailedAction => ('清除失败记录', '这只会删除失败任务记录，不会删除本地文件。'),
-      _removeDownloadedAction => ('删除全部已下载文件', '这会删除所有已下载的本地文件和对应下载记录。'),
-      _clearCompletedAction => ('清除已完成记录', '这只会删除已完成任务记录，不会删除本地文件。'),
-      _ => ('确认操作', '确定继续执行这个批量操作吗？'),
-    };
-    final result = await showDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
+        title: const Text('删除所有缓存'),
+        content: const Text('这会删除自动缓存的音频、封面和歌词，不会删除手动下载和本地导入。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -203,46 +149,39 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
         ],
       ),
     );
-    return result ?? false;
+    if (confirmed != true) {
+      return;
+    }
+    await _cacheController.clearPlaybackCache();
+    await _refreshAllTabs();
+  }
+
+  Future<void> _refreshAllTabs() async {
+    await _allController.refresh();
+    await _cacheController.refresh();
+    await _downloadController.refresh();
+    await _importController.refresh();
   }
 }
 
-class _DownloadTaskTabView extends StatefulWidget {
-  const _DownloadTaskTabView({
-    this.statuses,
+class _LocalSongTabView extends StatelessWidget {
+  const _LocalSongTabView({
+    required this.controller,
+    required this.onMutated,
   });
 
-  final Set<DownloadTaskStatus>? statuses;
-
-  @override
-  State<_DownloadTaskTabView> createState() => _DownloadTaskTabViewState();
-}
-
-class _DownloadTaskTabViewState extends State<_DownloadTaskTabView> {
-  late final DownloadTaskListController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = DownloadTaskListController(statuses: widget.statuses);
-    _controller.loadInitial();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final LocalSongListController controller;
+  final Future<void> Function() onMutated;
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<LoadState<List<DownloadTaskListItemData>>>(
-      valueListenable: _controller.state,
+    return ValueListenableBuilder<LoadState<List<Track>>>(
+      valueListenable: controller.state,
       builder: (context, state, child) {
-        return LoadStateView<List<DownloadTaskListItemData>>(
+        return LoadStateView<List<Track>>(
           state: state,
           emptyView: RefreshIndicator(
-            onRefresh: _controller.refresh,
+            onRefresh: controller.refresh,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               children: const [
@@ -253,7 +192,7 @@ class _DownloadTaskTabViewState extends State<_DownloadTaskTabView> {
           ),
           builder: (items) {
             return RefreshIndicator(
-              onRefresh: _controller.refresh,
+              onRefresh: controller.refresh,
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppDimensions.paddingSmall,
@@ -262,14 +201,13 @@ class _DownloadTaskTabViewState extends State<_DownloadTaskTabView> {
                 itemCount: items.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
-                  final item = items[index];
-                  return _DownloadTaskTile(
-                    item: item,
-                    onCancel: () => _controller.cancelTask(item.task.trackId),
-                    onRetry: () => _controller.retryTask(item.task.trackId),
-                    onRemoveDownloaded: () =>
-                        _controller.removeDownloadedTrack(item.task.trackId),
-                    onClear: () => _controller.clearTask(item.task.trackId),
+                  final track = items[index];
+                  return _LocalSongTile(
+                    track: track,
+                    onDelete: () async {
+                      await controller.removeLocalTrack(track.id);
+                      await onMutated();
+                    },
                   );
                 },
               ),
@@ -281,29 +219,17 @@ class _DownloadTaskTabViewState extends State<_DownloadTaskTabView> {
   }
 }
 
-class _DownloadTaskTile extends StatelessWidget {
-  const _DownloadTaskTile({
-    required this.item,
-    required this.onCancel,
-    required this.onRetry,
-    required this.onRemoveDownloaded,
-    required this.onClear,
+class _LocalSongTile extends StatelessWidget {
+  const _LocalSongTile({
+    required this.track,
+    required this.onDelete,
   });
 
-  final DownloadTaskListItemData item;
-  final Future<void> Function() onCancel;
-  final Future<void> Function() onRetry;
-  final Future<void> Function() onRemoveDownloaded;
-  final Future<void> Function() onClear;
+  final Track track;
+  final Future<void> Function() onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final task = item.task;
-    final track = item.track;
-    final title = track?.title ?? task.trackId;
-    final subtitle = _buildSubtitle(track, task);
-    final progress = (task.progress ?? 0).clamp(0, 1).toDouble();
-
     return Material(
       color: Theme.of(context).cardColor.withValues(alpha: 0.06),
       borderRadius: BorderRadius.circular(AppDimensions.paddingSmall),
@@ -313,118 +239,37 @@ class _DownloadTaskTile extends StatelessWidget {
           vertical: AppDimensions.paddingSmall / 2,
         ),
         title: Text(
-          title,
+          track.title,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          subtitle,
+          '${track.artistNames.join(' / ')}\n${_originLabel(track.resourceOrigin)}',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: Theme.of(context).hintColor,
           ),
         ),
-        trailing: _buildTrailing(context, task, progress),
+        trailing: IconButton(
+          tooltip: '删除本地资源',
+          onPressed: onDelete,
+          icon: const Icon(TablerIcons.trash),
+        ),
       ),
     );
   }
 
-  String _buildSubtitle(Track? track, DownloadTask task) {
-    final artist = track?.artistNames.join(' / ');
-    final base = (artist?.isNotEmpty == true) ? artist! : task.trackId;
-    switch (task.status) {
-      case DownloadTaskStatus.queued:
-        return '$base\n等待下载';
-      case DownloadTaskStatus.downloading:
-        return '$base\n下载中 ${(task.progress ?? 0) * 100 ~/ 1}%';
-      case DownloadTaskStatus.completed:
-        return '$base\n已下载到本地';
-      case DownloadTaskStatus.failed:
-        final reason = _readableFailureReason(task.failureReason);
-        return '$base\n$reason';
-    }
-  }
-
-  String _readableFailureReason(String? reason) {
-    switch (reason) {
-      case null:
-      case '':
-        return '下载失败';
-      case 'download_interrupted':
-        return '下载被中断，请重试';
-      case 'playback_url_unavailable':
-        return '当前无法获取播放地址';
-      case 'track_not_found':
-        return '本地未找到歌曲信息';
-      default:
-        return reason;
-    }
-  }
-
-  Widget _buildTrailing(
-    BuildContext context,
-    DownloadTask task,
-    double progress,
-  ) {
-    switch (task.status) {
-      case DownloadTaskStatus.queued:
-      case DownloadTaskStatus.downloading:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 48,
-              height: 48,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircularPlaybackProgress(
-                    progress: progress <= 0 ? 0.04 : progress,
-                    size: 40,
-                    strokeWidth: 3,
-                    progressColor: Theme.of(context).colorScheme.primary,
-                    backgroundColor: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: .15),
-                  ),
-                  Text(
-                    '${progress * 100 ~/ 1}%',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              tooltip: '取消下载',
-              onPressed: onCancel,
-              icon: const Icon(TablerIcons.x),
-            ),
-          ],
-        );
-      case DownloadTaskStatus.completed:
-        return IconButton(
-          tooltip: '删除下载',
-          onPressed: onRemoveDownloaded,
-          icon: const Icon(TablerIcons.trash),
-        );
-      case DownloadTaskStatus.failed:
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              tooltip: '重试下载',
-              onPressed: onRetry,
-              icon: const Icon(TablerIcons.refresh),
-            ),
-            IconButton(
-              tooltip: '清除记录',
-              onPressed: onClear,
-              icon: const Icon(TablerIcons.x),
-            ),
-          ],
-        );
+  static String _originLabel(TrackResourceOrigin origin) {
+    switch (origin) {
+      case TrackResourceOrigin.playbackCache:
+        return '缓存';
+      case TrackResourceOrigin.managedDownload:
+        return '已下载';
+      case TrackResourceOrigin.localImport:
+        return '本地导入';
+      case TrackResourceOrigin.none:
+        return '本地资源';
     }
   }
 }

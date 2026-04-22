@@ -226,7 +226,7 @@ class _SettingPageViewState extends State<SettingPageView> {
         ListTile(
           contentPadding: const EdgeInsets.all(0),
           title: const Text(
-            '下载管理',
+            '本地歌曲',
             style: TextStyle(fontSize: 30),
           ),
           subtitle: Text(

@@ -22,7 +22,7 @@ class MediaItemMapper {
           : OtherUtils.normalizeImageUrl(track.artworkUrl);
       final artUri = localArtworkPath.isNotEmpty
           ? Uri.file(File(localArtworkPath).path)
-          : Uri.tryParse(OtherUtils.normalizeImageUrl(track.artworkUrl));
+          : null;
       return MediaItem(
         id: track.id,
         duration: Duration(milliseconds: track.durationMs ?? 0),

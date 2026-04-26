@@ -5,6 +5,7 @@ import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/core/storage/local_image_cache_repository.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/features/download/download_repository.dart';
@@ -31,6 +32,8 @@ class PlayerController extends GetxController {
   final PlaybackRepository _repository = PlaybackRepository();
   final PlaybackService _playbackService = Get.find<PlaybackService>();
   final DownloadRepository _downloadRepository = DownloadRepository();
+  final LocalImageCacheRepository _imageCacheRepository =
+      LocalImageCacheRepository();
 
   PlaybackService get playbackService => _playbackService;
 
@@ -108,6 +111,7 @@ class PlayerController extends GetxController {
       await _updateCurPlayIndex(
         curMediaItemUpdated: !_restoringPlaybackState,
       );
+      unawaited(_ensureCurrentTrackArtwork(mediaItem));
 
       final currentRuntimeState = runtimeState.value;
       int newIndex = currentRuntimeState.queue.indexWhere(
@@ -172,6 +176,7 @@ class PlayerController extends GetxController {
     _restoringPlaybackState = true;
     await _playbackService.restoreLastPlayState();
     _restoringPlaybackState = false;
+    await _updateCurPlayIndex();
   }
 
   void _syncSessionState({
@@ -248,23 +253,34 @@ class PlayerController extends GetxController {
   }
 
   _updateAlbumColor() async {
-    String? imageUrl = runtimeState.value.currentSong.extras?['image'];
-    if (imageUrl != null) {
+    final imageUrl = runtimeState.value.currentSong.extras?['image'] as String?;
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return;
+    }
+
+    try {
+      final imagePath = await _imageCacheRepository.resolveImagePath(imageUrl);
+      if (imagePath.isEmpty) {
+        return;
+      }
+
       Color color;
-      if (_albumColorCache.containsKey(imageUrl)) {
-        color = _albumColorCache[imageUrl]!;
+      if (_albumColorCache.containsKey(imagePath)) {
+        color = _albumColorCache[imagePath]!;
       } else {
-        color = await OtherUtils.getImageColor(imageUrl);
+        color = await OtherUtils.getImageColor(imagePath);
         // 这里只做很小的缓存就够了，再大只会把“展示态颜色”变成长期驻留内存。
         if (_albumColorCache.length > 20) {
           _albumColorCache.remove(_albumColorCache.keys.first);
         }
-        _albumColorCache[imageUrl] = color;
+        _albumColorCache[imagePath] = color;
       }
 
       SettingsController.to.albumColor.value = color;
       SettingsController.to.panelWidgetColor.value =
           color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+    } catch (_) {
+      // 取色失败只影响播放器氛围色，不能阻断后续歌词等展示态更新。
     }
   }
 
@@ -672,6 +688,63 @@ class PlayerController extends GetxController {
     await _syncCurrentTrackMediaItem(track);
   }
 
+  Future<void> _ensureCurrentTrackArtwork(MediaItem mediaItem) async {
+    if (_hasArtworkSource(mediaItem)) {
+      return;
+    }
+
+    final track = await _repository.getTrack(mediaItem.id);
+    if (track == null || runtimeState.value.currentSong.id != mediaItem.id) {
+      return;
+    }
+    final artworkSource = track.localArtworkPath?.isNotEmpty == true
+        ? track.localArtworkPath
+        : track.artworkUrl;
+    if (artworkSource?.isNotEmpty != true) {
+      return;
+    }
+    await _syncCurrentTrackArtwork(mediaItem, track);
+    await _updateAlbumColor();
+  }
+
+  bool _hasArtworkSource(MediaItem mediaItem) {
+    final image = mediaItem.extras?['image'];
+    final localArtworkPath = mediaItem.extras?['localArtworkPath'];
+    return image is String && image.isNotEmpty ||
+        localArtworkPath is String && localArtworkPath.isNotEmpty;
+  }
+
+  Future<void> _syncCurrentTrackArtwork(
+    MediaItem currentMediaItem,
+    Track track,
+  ) async {
+    final imageUrl = track.localArtworkPath?.isNotEmpty == true
+        ? track.localArtworkPath!
+        : track.artworkUrl ?? '';
+    if (imageUrl.isEmpty) {
+      return;
+    }
+
+    final updatedMediaItem = currentMediaItem.copyWith(
+      artUri: track.localArtworkPath?.isNotEmpty == true
+          ? Uri.file(File(track.localArtworkPath!).path)
+          : currentMediaItem.artUri,
+      extras: {
+        ...?currentMediaItem.extras,
+        'image': imageUrl,
+        'localArtworkPath': track.localArtworkPath ?? '',
+      },
+    );
+    final queue = runtimeState.value.queue
+        .map((item) => item.id == currentMediaItem.id ? updatedMediaItem : item)
+        .toList(growable: false);
+    _syncRuntimeState(
+      queue: queue,
+      currentSong: updatedMediaItem,
+    );
+    await _playbackService.updateMediaItem(updatedMediaItem);
+  }
+
   void _preloadImages() {
     if (isPlaying.isFalse) {
       return;
@@ -691,15 +764,16 @@ class PlayerController extends GetxController {
     }
 
     for (int index in indicesToPreload) {
-      String? imageUrl = currentRuntimeState.queue[index].extras?['image'];
-      if (imageUrl != null && imageUrl.isNotEmpty) {
-        final fullUrl = OtherUtils.buildSizedImageUrl(
-          imageUrl,
-          size: '500y500',
-        );
+      final imagePath = currentRuntimeState.queue[index].extras?['image'];
+      if (imagePath is String &&
+          imagePath.isNotEmpty &&
+          !imagePath.startsWith('http://') &&
+          !imagePath.startsWith('https://')) {
         try {
           precacheImage(
-              OtherUtils.buildCachedImageProvider(fullUrl), Get.context!);
+            FileImage(File(imagePath.split('?').first)),
+            Get.context!,
+          );
         } catch (_) {
           // 预取失败只影响切歌时的观感，不能让展示层优化反过来干扰播放主链路。
         }

@@ -5,6 +5,7 @@ import 'package:bujuan/features/radio/radio_data.dart';
 import 'package:bujuan/features/radio/radio_list_controller.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/routes/router.gr.dart';
+import 'package:bujuan/widget/artwork_display.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -109,7 +110,7 @@ class _MyRadioViewState extends State<MyRadioView> {
           child: Row(
             children: [
               SimpleExtendedImage(
-                data.coverUrl,
+                ArtworkDisplay.resolveDisplayPath(data.coverUrl),
                 width: 85,
                 height: 85,
                 borderRadius: BorderRadius.circular(10),

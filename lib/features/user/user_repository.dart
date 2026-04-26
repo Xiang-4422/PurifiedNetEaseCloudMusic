@@ -1,5 +1,4 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/data/netease/netease_user_remote_data_source.dart';
@@ -67,7 +66,7 @@ class UserRepository {
     );
     final tracks = result.tracks;
     await _libraryRepository.saveTracks(tracks);
-    return result.mediaItems;
+    return _mediaItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
   Future<List<MediaItem>> fetchFmSongs({
@@ -77,7 +76,8 @@ class UserRepository {
       likedSongIds: likedSongIds,
     );
     await _libraryRepository.saveTracks(result.tracks);
-    return result.mediaItems;
+    return _mediaItemsFromSavedTracks(result.tracks,
+        likedSongIds: likedSongIds);
   }
 
   Future<List<MediaItem>> fetchHeartBeatSongs({
@@ -93,7 +93,8 @@ class UserRepository {
       likedSongIds: likedSongIds,
     );
     await _libraryRepository.saveTracks(result.tracks);
-    return result.mediaItems;
+    return _mediaItemsFromSavedTracks(result.tracks,
+        likedSongIds: likedSongIds);
   }
 
   Future<List<MediaItem>> fetchSongsByIds({
@@ -105,7 +106,8 @@ class UserRepository {
       likedSongIds: likedSongIds,
     );
     await _libraryRepository.saveTracks(result.tracks);
-    return result.mediaItems;
+    return _mediaItemsFromSavedTracks(result.tracks,
+        likedSongIds: likedSongIds);
   }
 
   Future<List<MediaItem>> loadCachedSongsByIds({
@@ -144,11 +146,7 @@ class UserRepository {
     if (localArtworkPath.isNotEmpty) {
       return localArtworkPath;
     }
-    final artworkUrl = OtherUtils.normalizeImageUrl(track.artworkUrl);
-    if (artworkUrl.isEmpty) {
-      return '';
-    }
-    return artworkUrl;
+    return '';
   }
 
   Future<String> fetchSongAlbumUrl(String songId) async {
@@ -161,7 +159,7 @@ class UserRepository {
       likedSongIds: const [],
     );
     await _libraryRepository.saveTracks(result.tracks);
-    return artworkUrl;
+    return loadCachedSongAlbumUrl(songId);
   }
 
   Future<OperationResult> toggleLikeSong(String songId, bool like) async {
@@ -189,5 +187,21 @@ class UserRepository {
       return songId;
     }
     return 'netease:$songId';
+  }
+
+  Future<List<MediaItem>> _mediaItemsFromSavedTracks(
+    List<Track> tracks, {
+    required List<int> likedSongIds,
+  }) async {
+    if (tracks.isEmpty) {
+      return const [];
+    }
+    final mergedTracks = await _libraryRepository.getTracksByIds(
+      tracks.map((track) => track.id),
+    );
+    return MediaItemMapper.fromTrackList(
+      mergedTracks.isEmpty ? tracks : mergedTracks,
+      likedSongIds: likedSongIds,
+    );
   }
 }

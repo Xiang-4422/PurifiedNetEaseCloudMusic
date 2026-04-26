@@ -1,6 +1,5 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/radio/radio_data.dart';
 
 class RadioMediaItemMapper {
@@ -15,14 +14,12 @@ class RadioMediaItemMapper {
           (program) => MediaItem(
             id: program.mainTrackId,
             title: program.title,
-            artUri:
-                Uri.tryParse(OtherUtils.normalizeImageUrl(program.coverUrl)),
             artist: program.artistName,
             album: program.albumTitle,
             duration: Duration(milliseconds: program.durationMs),
             extras: {
               'type': MediaType.playlist.name,
-              'image': OtherUtils.normalizeImageUrl(program.coverUrl),
+              'image': '',
               'liked': likedSongIds.contains(int.tryParse(program.id)),
               'mv': 0,
             },

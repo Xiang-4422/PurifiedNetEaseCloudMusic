@@ -17,6 +17,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import '../../../common/constants/app_constants.dart';
+import '../../../widget/artwork_display.dart';
 import '../../../widget/simple_extended_image.dart';
 import '../../../widget/swipeable.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
@@ -139,8 +140,10 @@ class BottomPanelView extends GetView<AppController> {
                                       width: AppDimensions.albumMinSize,
                                       height: AppDimensions.albumMinSize,
                                       shape: BoxShape.circle,
-                                      runtimeState.currentSong.extras?['image'] ??
-                                          '',
+                                      ArtworkDisplay.resolveDisplayPath(
+                                        runtimeState.currentSong
+                                            .extras?['image'] as String?,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -257,7 +260,10 @@ class BottomPanelView extends GetView<AppController> {
                         final runtimeState =
                             controller.playbackRuntimeState.value;
                         return SimpleExtendedImage(
-                          runtimeState.currentSong.extras?['image'] ?? '',
+                          ArtworkDisplay.resolveDisplayPath(
+                            runtimeState.currentSong.extras?['image']
+                                as String?,
+                          ),
                         );
                       }),
                       onEnd: () => controller.isAlbumScaleEnded.value = true,
@@ -337,8 +343,10 @@ class BottomPanelView extends GetView<AppController> {
                               final runtimeState =
                                   controller.playbackRuntimeState.value;
                               return SimpleExtendedImage(
-                                runtimeState.queue[index].extras?['image'] ??
-                                    '',
+                                ArtworkDisplay.resolveDisplayPath(
+                                  runtimeState.queue[index].extras?['image']
+                                      as String?,
+                                ),
                               );
                             }),
                           ),
@@ -516,8 +524,8 @@ class BottomPanelView extends GetView<AppController> {
               Text(
                 mediaItem.artist ?? "未知歌手",
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color:
-                          controller.panelWidgetColor.value.withValues(alpha: 0.5),
+                      color: controller.panelWidgetColor.value
+                          .withValues(alpha: 0.5),
                     ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
@@ -1123,7 +1131,9 @@ class BottomPanelHeaderView extends GetView<AppController> {
                           child: SimpleExtendedImage(
                             width: realTimeAlbumWidth,
                             height: realTimeAlbumWidth,
-                            currentSong.extras?['image'] ?? '',
+                            ArtworkDisplay.resolveDisplayPath(
+                              currentSong.extras?['image'] as String?,
+                            ),
                           ),
                         ),
                       ),
@@ -1148,7 +1158,9 @@ class BottomPanelHeaderView extends GetView<AppController> {
                           width: AppDimensions.albumMinSize,
                           height: AppDimensions.albumMinSize,
                           shape: BoxShape.circle,
-                          currentSong.extras?['image'] ?? '',
+                          ArtworkDisplay.resolveDisplayPath(
+                            currentSong.extras?['image'] as String?,
+                          ),
                         ),
                       ),
                     ),

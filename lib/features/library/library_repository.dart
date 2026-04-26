@@ -10,6 +10,7 @@ import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:get_it/get_it.dart';
 
 import 'library_preference_store.dart';
+import 'local_artwork_cache_repository.dart';
 import 'local_resource_index_repository.dart';
 
 class LibraryRepository {
@@ -19,6 +20,7 @@ class LibraryRepository {
     LocalMusicSource? localMusicSource,
     LibraryPreferenceStore? preferenceStore,
     LocalResourceIndexRepository? resourceIndexRepository,
+    LocalArtworkCacheRepository? artworkCacheRepository,
   })  : _localDataSource = localDataSource ??
             (GetIt.instance.isRegistered<LocalLibraryDataSource>()
                 ? GetIt.instance<LocalLibraryDataSource>()
@@ -29,18 +31,32 @@ class LibraryRepository {
             LocalMusicSource(localDataSource: localDataSource),
         _preferenceStore = preferenceStore ?? const LibraryPreferenceStore(),
         _resourceIndexRepository =
-            resourceIndexRepository ?? LocalResourceIndexRepository();
+            resourceIndexRepository ?? LocalResourceIndexRepository(),
+        _artworkCacheRepository =
+            artworkCacheRepository ?? LocalArtworkCacheRepository();
 
   final LocalLibraryDataSource? _localDataSource;
   final NeteaseMusicSource _neteaseSource;
   final LocalMusicSource _localMusicSource;
   final LibraryPreferenceStore _preferenceStore;
   final LocalResourceIndexRepository _resourceIndexRepository;
+  final LocalArtworkCacheRepository _artworkCacheRepository;
 
   bool get isOfflineModeEnabled => _preferenceStore.isOfflineModeEnabled;
 
   Future<void> saveTracks(List<Track> tracks) async {
     await _localDataSource?.saveTracks(tracks);
+    if (isOfflineModeEnabled) {
+      return;
+    }
+    final tracksWithArtwork =
+        await _artworkCacheRepository.cacheTrackArtwork(tracks);
+    final updatedTracks = tracksWithArtwork
+        .where((track) => track.localArtworkPath?.isNotEmpty == true)
+        .toList();
+    if (updatedTracks.isNotEmpty) {
+      await _localDataSource?.saveTracks(updatedTracks);
+    }
   }
 
   Future<void> saveTrack(Track track) async {

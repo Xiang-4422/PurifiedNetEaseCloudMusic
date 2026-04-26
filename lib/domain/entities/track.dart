@@ -17,6 +17,7 @@ enum DownloadState {
 
 enum TrackResourceOrigin {
   none,
+  artworkCache,
   managedDownload,
   localImport,
 }

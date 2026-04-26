@@ -6,6 +6,7 @@ import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
+import 'package:bujuan/widget/artwork_display.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
 import 'package:bujuan/widget/scroll_helpers.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -58,6 +59,7 @@ class UniversalListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localPicPath = ArtworkDisplay.resolveDisplayPath(picUrl);
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
@@ -65,15 +67,15 @@ class UniversalListTile extends StatelessWidget {
         height: 56,
         child: Row(
           children: [
-            if (picUrl != null)
+            if (localPicPath.isNotEmpty)
               SimpleExtendedImage(
-                picUrl ?? '',
+                localPicPath,
                 width: 44,
                 height: 44,
                 cacheWidth: 120,
                 borderRadius: BorderRadius.circular(8),
               ),
-            if (picUrl != null)
+            if (localPicPath.isNotEmpty)
               const SizedBox(width: AppDimensions.paddingSmall),
             Expanded(
               child: Column(
@@ -268,7 +270,9 @@ class PlayListWidget extends GetView<AppController> {
                                     shape: BoxShape.rectangle,
                                     borderRadius:
                                         BorderRadius.circular(albumMargin),
-                                    playLists[index].coverUrl ?? '',
+                                    ArtworkDisplay.resolveDisplayPath(
+                                      playLists[index].coverUrl,
+                                    ),
                                   ),
                                   Obx(
                                     () => Visibility(

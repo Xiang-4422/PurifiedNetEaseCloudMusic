@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:date_format/date_format.dart';
 import 'package:bujuan/core/storage/image_color_cache_store.dart';
 import 'package:extended_image/extended_image.dart';
@@ -21,11 +20,6 @@ class OtherUtils {
   static final Map<String, Color> _imageColorMemoryCache = {};
   static final Map<String, Future<Color>> _imageColorPendingLoads = {};
 
-  static const Map<String, String> imageHttpHeaders = {
-    'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36 Edg/117.0.2045.35'
-  };
-
   static String normalizeImageUrl(String? url) {
     if (url == null || url.isEmpty || !url.startsWith('http')) {
       return url ?? '';
@@ -44,36 +38,14 @@ class OtherUtils {
         .toString();
   }
 
-  static String buildSizedImageUrl(
-    String url, {
-    String size = '500y500',
-  }) {
-    return normalizeImageUrl(url);
-  }
-
-  static CachedNetworkImageProvider buildCachedImageProvider(
-    String url,
-  ) {
-    final normalizedUrl = normalizeImageUrl(url);
-    return CachedNetworkImageProvider(
-      normalizedUrl,
-      cacheKey: normalizedUrl,
-      headers: imageHttpHeaders,
-    );
-  }
-
   static Future<PaletteGenerator> getImageColorPalette(String? url) async {
     ImageProvider imageProvider;
-    if (url == null) {
+    if (url == null || url.isEmpty || _isRemoteImageUrl(url)) {
       imageProvider = const ExtendedAssetImageProvider(placeholderImage);
     } else {
       final normalizedUrl = normalizeImageUrl(url);
-      if (normalizedUrl.startsWith('http')) {
-        imageProvider = buildCachedImageProvider(normalizedUrl);
-      } else {
-        imageProvider =
-            ExtendedFileImageProvider(File(normalizedUrl.split('?').first));
-      }
+      imageProvider =
+          ExtendedFileImageProvider(File(normalizedUrl.split('?').first));
     }
     return await PaletteGenerator.fromImageProvider(imageProvider,
         size: const Size(100, 100));
@@ -82,6 +54,9 @@ class OtherUtils {
   static Future<Color> getImageColor(String? url,
       {bool getLightColor = false}) async {
     final normalizedUrl = normalizeImageUrl(url);
+    if (_isRemoteImageUrl(normalizedUrl)) {
+      return getLightColor ? Colors.white : Colors.black;
+    }
     final cacheKey = '$normalizedUrl|${getLightColor ? 'light' : 'dark'}';
 
     final memoryCached = _imageColorMemoryCache[cacheKey];
@@ -103,7 +78,8 @@ class OtherUtils {
       return pending;
     }
 
-    final future = OtherUtils.getImageColorPalette(normalizedUrl).then((paletteGenerator) async {
+    final future = OtherUtils.getImageColorPalette(normalizedUrl)
+        .then((paletteGenerator) async {
       final color = getLightColor
           ? paletteGenerator.lightMutedColor?.color ??
               paletteGenerator.lightVibrantColor?.color ??
@@ -158,7 +134,7 @@ class OtherUtils {
   }) async {
     final normalizedUrls = urls
         .map(normalizeImageUrl)
-        .where((url) => url.isNotEmpty)
+        .where((url) => url.isNotEmpty && !_isRemoteImageUrl(url))
         .toSet()
         .toList();
     if (normalizedUrls.isEmpty) {
@@ -179,6 +155,10 @@ class OtherUtils {
       _imageColorMemoryCache.remove(_imageColorMemoryCache.keys.first);
     }
     _imageColorMemoryCache[cacheKey] = color;
+  }
+
+  static bool _isRemoteImageUrl(String url) {
+    return url.startsWith('http://') || url.startsWith('https://');
   }
 
   static String getTimeStamp(int milliseconds) {

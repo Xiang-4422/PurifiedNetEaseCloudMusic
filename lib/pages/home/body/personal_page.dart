@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
+import 'package:bujuan/widget/artwork_display.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -10,7 +11,6 @@ import 'package:lottie/lottie.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../common/constants/app_constants.dart';
-import '../../../common/constants/other.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import '../../../routes/router.gr.dart' as gr;
 import '../../../widget/common_widgets.dart';
@@ -290,8 +290,7 @@ class QuickStartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isEnabled = onTap != null;
-    final resolvedAlbumUrl =
-        OtherUtils.buildSizedImageUrl(albumUrl, size: '500y500');
+    final localAlbumPath = ArtworkDisplay.resolveDisplayPath(albumUrl);
 
     return GestureDetector(
       onTap: isEnabled ? onTap : null,
@@ -304,7 +303,7 @@ class QuickStartCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimensions.paddingSmall),
           ),
           child: AsyncImageColor(
-            imageUrl: resolvedAlbumUrl,
+            imageUrl: localAlbumPath,
             child: Column(
               children: [
                 Expanded(
@@ -341,7 +340,7 @@ class QuickStartCard extends StatelessWidget {
                 SimpleExtendedImage(
                   height: width,
                   width: width,
-                  resolvedAlbumUrl,
+                  localAlbumPath,
                 ),
               ],
             ),

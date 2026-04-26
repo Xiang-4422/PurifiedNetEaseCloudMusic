@@ -6,7 +6,7 @@ import 'package:bujuan/features/comment/comment_list_controller.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/comment/floor_comment_controller.dart';
 import 'package:bujuan/pages/talk/custom_field.dart';
-import 'package:bujuan/widget/artwork_display.dart';
+import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -194,7 +194,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
             Opacity(
               opacity: 0.8,
               child: SimpleExtendedImage.avatar(
-                ArtworkDisplay.resolveDisplayPath(comment.user.avatarUrl),
+                ArtworkPathResolver.resolveDisplayPath(comment.user.avatarUrl),
                 width: 30,
                 height: 30,
               ),
@@ -474,7 +474,7 @@ class _FoolTalkState extends State<FoolTalk> {
                   Row(
                     children: [
                       SimpleExtendedImage.avatar(
-                        ArtworkDisplay.resolveDisplayPath(
+                        ArtworkPathResolver.resolveDisplayPath(
                           widget.commentItem.user.avatarUrl,
                         ),
                         width: 60,
@@ -596,7 +596,7 @@ class _FoolTalkState extends State<FoolTalk> {
           Row(
             children: [
               SimpleExtendedImage.avatar(
-                ArtworkDisplay.resolveDisplayPath(comment.user.avatarUrl),
+                ArtworkPathResolver.resolveDisplayPath(comment.user.avatarUrl),
                 width: 60,
                 height: 60,
               ),

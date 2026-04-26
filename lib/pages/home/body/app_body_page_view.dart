@@ -13,7 +13,7 @@ import 'package:get/get.dart';
 import '../../../widget/custom_zoom_drawer/src/flutter_zoom_drawer.dart';
 import 'package:bujuan/routes/router.dart';
 
-import '../../../widget/artwork_display.dart';
+import '../../../widget/artwork_path_resolver.dart';
 import '../../../widget/simple_extended_image.dart';
 
 class AppBodyPageView extends GetView<AppController> {
@@ -134,7 +134,7 @@ class MenuView extends GetView<AppController> {
             padding: EdgeInsets.zero,
             icon: Obx(
               () => SimpleExtendedImage.avatar(
-                ArtworkDisplay.resolveDisplayPath(
+                ArtworkPathResolver.resolveDisplayPath(
                   controller.userInfo.value.avatarUrl,
                 ),
                 shape: BoxShape.circle,

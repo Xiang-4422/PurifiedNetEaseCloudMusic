@@ -2,7 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/features/user/user_profile_controller.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/features/user/user_controller.dart';
-import 'package:bujuan/widget/artwork_display.dart';
+import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/load_state_view.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -126,7 +126,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                     ),
                   ),
                   SimpleExtendedImage.avatar(
-                    ArtworkDisplay.resolveDisplayPath(userData.avatarUrl),
+                    ArtworkPathResolver.resolveDisplayPath(userData.avatarUrl),
                     width: 260,
                   ),
                 ],

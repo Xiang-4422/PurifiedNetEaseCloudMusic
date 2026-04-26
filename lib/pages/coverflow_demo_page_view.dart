@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/widget/artwork_display.dart';
+import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/cover_flow/coverflow.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -25,8 +25,7 @@ class CoverFlowDemoPageView extends StatefulWidget {
 class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
   late final PageController _controlsPageController;
   double _coverWidth = 180;
-  CoverFlowInteractionMode _interactionMode =
-      CoverFlowInteractionMode.pageSnap;
+  CoverFlowInteractionMode _interactionMode = CoverFlowInteractionMode.pageSnap;
   int _controlsPageIndex = 0;
   int? _previewIndex;
   bool _isInteracting = false;
@@ -73,7 +72,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
       );
 
   String? _resolveArtwork(MediaItem mediaItem) {
-    return ArtworkDisplay.resolvePreferredArtwork(
+    return ArtworkPathResolver.resolvePreferredArtwork(
       mediaItem.extras?['image'] as String?,
       fallbackItems: [mediaItem],
     );
@@ -312,7 +311,8 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
         final currentDisplayIndex = queue.indexWhere(
           (item) => item.id == runtimeState.currentSong.id,
         );
-        final safePlayerIndex = currentDisplayIndex >= 0 ? currentDisplayIndex : 0;
+        final safePlayerIndex =
+            currentDisplayIndex >= 0 ? currentDisplayIndex : 0;
         final displayIndex = _resolveDisplayIndex(
           queueLength: queue.length,
           playerIndex: safePlayerIndex,
@@ -807,8 +807,9 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
       showSelectedIcon: false,
       style: ButtonStyle(
         visualDensity: compact ? VisualDensity.compact : null,
-        tapTargetSize:
-            compact ? MaterialTapTargetSize.shrinkWrap : MaterialTapTargetSize.padded,
+        tapTargetSize: compact
+            ? MaterialTapTargetSize.shrinkWrap
+            : MaterialTapTargetSize.padded,
         padding: WidgetStateProperty.all(
           EdgeInsets.symmetric(
             horizontal: compact ? 10 : 14,

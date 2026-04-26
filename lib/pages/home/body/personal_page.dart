@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
-import 'package:bujuan/widget/artwork_display.dart';
+import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -290,7 +290,7 @@ class QuickStartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isEnabled = onTap != null;
-    final localAlbumPath = ArtworkDisplay.resolveDisplayPath(albumUrl);
+    final localAlbumPath = ArtworkPathResolver.resolveDisplayPath(albumUrl);
 
     return GestureDetector(
       onTap: isEnabled ? onTap : null,

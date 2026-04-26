@@ -7,7 +7,7 @@ import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
-import 'package:bujuan/widget/artwork_display.dart';
+import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -340,7 +340,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     widgetColor = albumColor.invertedColor;
   }
 
-  String? get _resolvedCoverUrl => ArtworkDisplay.resolvePreferredArtwork(
+  String? get _resolvedCoverUrl => ArtworkPathResolver.resolvePreferredArtwork(
         coverUrl,
         fallbackItems: songs,
       );

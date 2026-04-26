@@ -6,7 +6,7 @@ import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
-import 'package:bujuan/widget/artwork_display.dart';
+import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
 import 'package:bujuan/widget/scroll_helpers.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -59,7 +59,7 @@ class UniversalListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localPicPath = ArtworkDisplay.resolveDisplayPath(picUrl);
+    final localPicPath = ArtworkPathResolver.resolveDisplayPath(picUrl);
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
@@ -270,7 +270,7 @@ class PlayListWidget extends GetView<AppController> {
                                     shape: BoxShape.rectangle,
                                     borderRadius:
                                         BorderRadius.circular(albumMargin),
-                                    ArtworkDisplay.resolveDisplayPath(
+                                    ArtworkPathResolver.resolveDisplayPath(
                                       playLists[index].coverUrl,
                                     ),
                                   ),

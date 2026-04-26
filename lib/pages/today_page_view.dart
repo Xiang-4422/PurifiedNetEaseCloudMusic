@@ -9,7 +9,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import '../../widget/simple_extended_image.dart';
-import '../../widget/artwork_display.dart';
+import '../../widget/artwork_path_resolver.dart';
 
 class TodayPageView extends GetView<AppController> {
   const TodayPageView({Key? key}) : super(key: key);
@@ -17,7 +17,7 @@ class TodayPageView extends GetView<AppController> {
   @override
   Widget build(BuildContext context) {
     String albumUrl = controller.todayRecommendSongs[0].extras?['image'] ?? '';
-    final localAlbumPath = ArtworkDisplay.resolveDisplayPath(albumUrl);
+    final localAlbumPath = ArtworkPathResolver.resolveDisplayPath(albumUrl);
 
     return Container(
       color: Colors.white,

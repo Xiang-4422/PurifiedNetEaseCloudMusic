@@ -13,7 +13,7 @@ import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/app_controller.dart';
-import 'package:bujuan/widget/artwork_display.dart';
+import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 //
 import 'package:flutter/material.dart';
@@ -219,7 +219,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                                 shape: BoxShape.rectangle,
                                 borderRadius: BorderRadius.circular(
                                     AppDimensions.paddingMedium),
-                                ArtworkDisplay.resolvePreferredArtwork(
+                                ArtworkPathResolver.resolvePreferredArtwork(
                                       hotAlbums[index].artworkUrl,
                                     ) ??
                                     ''),
@@ -324,7 +324,8 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     onAlbumColor = albumColor.invertedColor;
   }
 
-  String? get _resolvedArtworkUrl => ArtworkDisplay.resolvePreferredArtwork(
+  String? get _resolvedArtworkUrl =>
+      ArtworkPathResolver.resolvePreferredArtwork(
         artist.artworkUrl,
         fallbackItems: topSongs,
       );

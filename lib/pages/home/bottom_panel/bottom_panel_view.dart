@@ -17,7 +17,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 import '../../../common/constants/app_constants.dart';
-import '../../../widget/artwork_display.dart';
+import '../../../widget/artwork_path_resolver.dart';
 import '../../../widget/simple_extended_image.dart';
 import '../../../widget/swipeable.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
@@ -140,7 +140,7 @@ class BottomPanelView extends GetView<AppController> {
                                       width: AppDimensions.albumMinSize,
                                       height: AppDimensions.albumMinSize,
                                       shape: BoxShape.circle,
-                                      ArtworkDisplay.resolveDisplayPath(
+                                      ArtworkPathResolver.resolveDisplayPath(
                                         runtimeState.currentSong
                                             .extras?['image'] as String?,
                                       ),
@@ -260,7 +260,7 @@ class BottomPanelView extends GetView<AppController> {
                         final runtimeState =
                             controller.playbackRuntimeState.value;
                         return SimpleExtendedImage(
-                          ArtworkDisplay.resolveDisplayPath(
+                          ArtworkPathResolver.resolveDisplayPath(
                             runtimeState.currentSong.extras?['image']
                                 as String?,
                           ),
@@ -343,7 +343,7 @@ class BottomPanelView extends GetView<AppController> {
                               final runtimeState =
                                   controller.playbackRuntimeState.value;
                               return SimpleExtendedImage(
-                                ArtworkDisplay.resolveDisplayPath(
+                                ArtworkPathResolver.resolveDisplayPath(
                                   runtimeState.queue[index].extras?['image']
                                       as String?,
                                 ),
@@ -1131,7 +1131,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
                           child: SimpleExtendedImage(
                             width: realTimeAlbumWidth,
                             height: realTimeAlbumWidth,
-                            ArtworkDisplay.resolveDisplayPath(
+                            ArtworkPathResolver.resolveDisplayPath(
                               currentSong.extras?['image'] as String?,
                             ),
                           ),
@@ -1158,7 +1158,7 @@ class BottomPanelHeaderView extends GetView<AppController> {
                           width: AppDimensions.albumMinSize,
                           height: AppDimensions.albumMinSize,
                           shape: BoxShape.circle,
-                          ArtworkDisplay.resolveDisplayPath(
+                          ArtworkPathResolver.resolveDisplayPath(
                             currentSong.extras?['image'] as String?,
                           ),
                         ),

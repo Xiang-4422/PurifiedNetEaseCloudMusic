@@ -20,8 +20,6 @@ class LyricsReaderModel {
       return 0;
     }
   }
-
-
 }
 
 ///lyric line model

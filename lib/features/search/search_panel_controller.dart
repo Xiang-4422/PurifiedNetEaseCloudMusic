@@ -9,8 +9,8 @@ import 'package:flutter/foundation.dart';
 /// 顶部搜索面板只需要维护一次热搜加载状态，单独拆出来可以避免页面在
 /// build 阶段继续构造请求描述，也能避免同一面板反复触发首屏请求。
 class SearchPanelController {
-  SearchPanelController({SearchRepository? repository})
-      : _repository = repository ?? SearchRepository();
+  SearchPanelController({required SearchRepository repository})
+      : _repository = repository;
 
   static const Duration _hotKeywordTtl = Duration(minutes: 30);
 

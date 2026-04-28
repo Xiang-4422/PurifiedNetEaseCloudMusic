@@ -4,17 +4,16 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:bujuan/common/constants/key.dart';
-import 'package:bujuan/data/local/user_scoped_data_source.dart';
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/domain/entities/user_library_kinds.dart';
+import 'package:bujuan/domain/entities/user_session_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/playlist/playlist_summary_data.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
-import 'package:bujuan/features/user/user_session_data.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 /// 收口账号相关的本地缓存、用户资料和快捷入口数据。
@@ -26,8 +25,13 @@ class UserController extends GetxController {
   static const String _startupSyncMarker = 'startup_home';
 
   static UserController get to => Get.find();
-  final Box box = GetIt.instance<Box>();
-  final UserRepository _repository = UserRepository();
+  UserController({
+    required UserRepository repository,
+    required this.box,
+  }) : _repository = repository;
+
+  final Box box;
+  final UserRepository _repository;
   bool _hasLocalSnapshot = false;
   Future<void>? _cacheBootstrapFuture;
   String _activeSnapshotUserId = '';
@@ -155,12 +159,13 @@ class UserController extends GetxController {
   RxList<MediaItem> fmSongs = <MediaItem>[].obs;
   RxString randomLikedSongId = ''.obs;
   RxString randomLikedSongAlbumUrl = ''.obs;
-  final List<LeftMenuBean> leftMenus = [
-    LeftMenuBean('个人中心', TablerIcons.user, Routes.user, '/home/user'),
-    LeftMenuBean('推荐歌单', TablerIcons.smart_home, Routes.index, '/home/index'),
-    LeftMenuBean(
+  final List<ShellMenuItemData> leftMenus = [
+    ShellMenuItemData('个人中心', TablerIcons.user, Routes.user, '/home/user'),
+    ShellMenuItemData(
+        '推荐歌单', TablerIcons.smart_home, Routes.index, '/home/index'),
+    ShellMenuItemData(
         '个性设置', TablerIcons.settings, Routes.setting, '/home/settingL'),
-    LeftMenuBean('捐赠', TablerIcons.coffee, Routes.coffee, ''),
+    ShellMenuItemData('捐赠', TablerIcons.coffee, Routes.coffee, ''),
   ];
 
   @override
@@ -411,11 +416,11 @@ class UserController extends GetxController {
   }
 }
 
-class LeftMenuBean {
+class ShellMenuItemData {
   final String title;
   final IconData icon;
   final String route;
   final String path;
 
-  LeftMenuBean(this.title, this.icon, this.route, this.path);
+  ShellMenuItemData(this.title, this.icon, this.route, this.path);
 }

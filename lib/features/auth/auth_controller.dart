@@ -9,8 +9,8 @@ import 'package:get/get.dart';
 
 /// 承接二维码登录流程的瞬时状态，避免登录页继续持有轮询与鉴权副作用。
 class AuthController extends GetxController {
-  AuthController({AuthRepository? repository})
-      : _repository = repository ?? AuthRepository();
+  AuthController({required AuthRepository repository})
+      : _repository = repository;
 
   final AuthRepository _repository;
 
@@ -42,9 +42,7 @@ class AuthController extends GetxController {
     if (!_repository.hasCachedLogin) {
       return;
     }
-    final userController = Get.isRegistered<UserController>()
-        ? UserController.to
-        : Get.put(UserController());
+    final userController = UserController.to;
     if (!userController.userInfo.value.isLoggedIn) {
       return;
     }
@@ -53,9 +51,7 @@ class AuthController extends GetxController {
 
   Future<void> _runBootstrap() async {
     if (_repository.hasCachedLogin) {
-      final userController = Get.isRegistered<UserController>()
-          ? UserController.to
-          : Get.put(UserController());
+      final userController = UserController.to;
       if (userController.userInfo.value.isLoggedIn) {
         loginCompleted.value = true;
         unawaited(_validateLoginStateInBackground());
@@ -102,17 +98,13 @@ class AuthController extends GetxController {
 
     if (!isLoginStateActive) {
       await _repository.setLoginFlag(false);
-      if (Get.isRegistered<UserController>()) {
-        await UserController.to.expireLoginSession();
-      }
+      await UserController.to.expireLoginSession();
       WidgetUtil.showToast('登录失效,请重新登录');
       isLoading.value = false;
       return;
     }
 
-    final userController = Get.isRegistered<UserController>()
-        ? UserController.to
-        : Get.put(UserController());
+    final userController = UserController.to;
     userController.userInfo.value = accountInfo;
     loginCompleted.value = true;
   }
@@ -120,17 +112,13 @@ class AuthController extends GetxController {
   Future<void> _validateLoginStateInBackground() async {
     final accountInfo = await _repository.fetchLoginAccountInfo();
     if (accountInfo.isLoggedIn) {
-      final userController = Get.isRegistered<UserController>()
-          ? UserController.to
-          : Get.put(UserController());
+      final userController = UserController.to;
       userController.userInfo.value = accountInfo;
       return;
     }
 
     await _repository.setLoginFlag(false);
-    if (Get.isRegistered<UserController>()) {
-      await UserController.to.expireLoginSession();
-    }
+    await UserController.to.expireLoginSession();
     WidgetUtil.showToast('登录失效,请重新登录');
     Future.microtask(() {
       final context = Get.context;

@@ -4,17 +4,10 @@ import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
-import 'package:get_it/get_it.dart';
 
 class LocalMusicSource {
-  LocalMusicSource({LocalLibraryDataSource? localDataSource})
-      : _localDataSource =
-            localDataSource ??
-            (GetIt.instance.isRegistered<LocalLibraryDataSource>()
-                ? GetIt.instance<LocalLibraryDataSource>()
-                : (throw StateError(
-                    'LocalLibraryDataSource is not registered',
-                  )));
+  LocalMusicSource({required LocalLibraryDataSource localDataSource})
+      : _localDataSource = localDataSource;
 
   final LocalLibraryDataSource _localDataSource;
 

@@ -1,6 +1,6 @@
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/data/netease/netease_comment_remote_data_source.dart';
-import 'package:bujuan/features/comment/comment_data.dart';
+import 'package:bujuan/domain/entities/comment_data.dart';
 
 class CommentRepository {
   CommentRepository({NeteaseCommentRemoteDataSource? remoteDataSource})

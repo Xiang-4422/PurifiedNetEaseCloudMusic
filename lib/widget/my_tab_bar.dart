@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// 统一TabBar风格
-class MyTabBar extends StatelessWidget implements PreferredSizeWidget{
+class MyTabBar extends StatelessWidget implements PreferredSizeWidget {
   final double? height;
   final TabController? controller;
   final Color? color;
   final List<Widget> tabs;
 
-  const MyTabBar({Key? key, required this.tabs, this.controller, this.color, this.height}) : super(key: key);
+  const MyTabBar(
+      {Key? key, required this.tabs, this.controller, this.color, this.height})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     Color widgetColor = (color ?? context.theme.colorScheme.onPrimary);
-    return  SizedBox(
+    return SizedBox(
       height: height,
       child: TabBar(
         controller: controller,
@@ -43,24 +45,27 @@ class MyTabBarItemAnimatedSwitcher extends StatelessWidget {
   final Widget replaceItem;
   final bool isTabBarVisible;
 
-  const MyTabBarItemAnimatedSwitcher({super.key, required this.isTabBarVisible, required this.tabItem, required this.replaceItem});
-  
+  const MyTabBarItemAnimatedSwitcher(
+      {super.key,
+      required this.isTabBarVisible,
+      required this.tabItem,
+      required this.replaceItem});
+
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (Widget child, Animation<double> animation) {
         //执行缩放动画
-        return ScaleTransition(scale: animation, child: FadeTransition(opacity: animation, child: child));
+        return ScaleTransition(
+            scale: animation,
+            child: FadeTransition(opacity: animation, child: child));
       },
       child: Visibility(
           key: ValueKey(isTabBarVisible),
           visible: isTabBarVisible,
           replacement: tabItem,
-          child: replaceItem
-      ),
+          child: replaceItem),
     );
-
   }
-
 }

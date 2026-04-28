@@ -5,22 +5,28 @@ import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/explore/ranking_playlist_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/playlist/playlist_summary_data.dart';
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
-import 'package:bujuan/features/shell/app_controller.dart';
+import 'package:bujuan/features/shell/home_shell_controller.dart';
+import 'package:bujuan/features/user/user_controller.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 /// 维护探索页榜单、分类歌单和加载状态。
 ///
-/// 这里暂时仍直接驱动部分旧页面交互，是因为探索页还没有完整拆成独立 view model。
 class ExplorePageController extends GetxController {
   static const Duration _playlistCatalogueTtl = Duration(hours: 12);
   static const Duration _categoryPlaylistsTtl = Duration(minutes: 30);
   static const Duration _rankingPlaylistTtl = Duration(minutes: 30);
 
-  final ExploreRepository _repository = ExploreRepository();
-  final PlaylistRepository _playlistRepository = PlaylistRepository();
+  ExplorePageController({
+    required ExploreRepository repository,
+    required PlaylistRepository playlistRepository,
+  })  : _repository = repository,
+        _playlistRepository = playlistRepository;
+
+  final ExploreRepository _repository;
+  final PlaylistRepository _playlistRepository;
 
   final Map<String, List<RankingPlaylistData>> topPlayListCategory = {
     "官方榜": [
@@ -98,12 +104,12 @@ class ExplorePageController extends GetxController {
   void onReady() {
     super.onReady();
     _initStaticState();
-    if (AppController.to.curHomePageIndex.value == 1) {
+    if (HomeShellController.to.curHomePageIndex.value == 1) {
       unawaited(_ensureBootstrapped());
       return;
     }
     _pageVisibilityWorker =
-        ever<int>(AppController.to.curHomePageIndex, (pageIndex) {
+        ever<int>(HomeShellController.to.curHomePageIndex, (pageIndex) {
       if (pageIndex != 1) {
         return;
       }
@@ -211,8 +217,8 @@ class ExplorePageController extends GetxController {
   Future<bool> _loadCachedRankingPlayListSongs() async {
     final cachedDetail = await _playlistRepository.loadLocalPlaylistDetail(
       playlistId: curTopPlayListId.value,
-      likedSongIds: AppController.to.likedSongIds.toList(),
-      currentUserId: AppController.to.userInfo.value.userId,
+      likedSongIds: UserController.to.likedSongIds.toList(),
+      currentUserId: UserController.to.userInfo.value.userId,
     );
     final cachedSongs = cachedDetail?.songs ?? const <MediaItem>[];
     if (cachedSongs.isEmpty) {
@@ -287,7 +293,7 @@ class ExplorePageController extends GetxController {
     }
     final songs = await _playlistRepository.fetchPlaylistSongs(
       playlistId: curTopPlayListId.value,
-      likedSongIds: AppController.to.likedSongIds.toList(),
+      likedSongIds: UserController.to.likedSongIds.toList(),
       offset: offset,
       limit: limit,
     );

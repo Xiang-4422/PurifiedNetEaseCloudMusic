@@ -12,7 +12,9 @@ class ParserQrc extends LyricsParse {
 
   @override
   List<LyricsLineModel> parseLines({bool isMain = true}) {
-    lyric = RegExp(r"""LyricContent="([\s\S]*)">""").firstMatch(lyric)?.group(1) ?? lyric;
+    lyric =
+        RegExp(r"""LyricContent="([\s\S]*)">""").firstMatch(lyric)?.group(1) ??
+            lyric;
     //读每一行
     var lines = lyric.split("\n");
     if (lines.isEmpty) {
@@ -30,7 +32,9 @@ class ParserQrc extends LyricsParse {
         continue;
       }
       //转时间戳
-      var ts = int.parse(advancedValuePattern.firstMatch(time)?.group(1)?.split(",")[0] ?? "0");
+      var ts = int.parse(
+          advancedValuePattern.firstMatch(time)?.group(1)?.split(",")[0] ??
+              "0");
       //移除time，拿到真实歌词
       var realLyrics = line.replaceFirst(advancedPattern, "");
       // LyricsLog.logD("匹配time:$time($ts) 真实歌词：$realLyrics");
@@ -53,7 +57,8 @@ class ParserQrc extends LyricsParse {
     var spanList = qrcPattern.allMatches(realLyrics).map((element) {
       var span = LyricSpanInfo();
 
-      span.raw = realLyrics.substring(startIndex + invalidLength, element.start);
+      span.raw =
+          realLyrics.substring(startIndex + invalidLength, element.start);
 
       var elementText = element.group(0) ?? "";
       span.index = startIndex;
@@ -71,6 +76,7 @@ class ParserQrc extends LyricsParse {
 
   @override
   bool isOK() {
-    return lyric.contains("LyricContent=") || advancedPattern.stringMatch(lyric) != null;
+    return lyric.contains("LyricContent=") ||
+        advancedPattern.stringMatch(lyric) != null;
   }
 }

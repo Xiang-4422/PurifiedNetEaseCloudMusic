@@ -1,6 +1,5 @@
 import 'package:bujuan/core/storage/cache_box.dart';
-
-import 'radio_data.dart';
+import 'package:bujuan/domain/entities/radio_data.dart';
 
 class RadioCacheStore {
   const RadioCacheStore();

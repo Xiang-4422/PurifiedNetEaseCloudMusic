@@ -17,7 +17,8 @@ typedef DrawerStyleBuilder = Widget Function(
 );
 
 class ZoomDrawer extends StatefulWidget {
-  const ZoomDrawer({super.key, 
+  const ZoomDrawer({
+    super.key,
     required this.menuScreen,
     required this.mainScreen,
     this.style = DrawerStyle.defaultStyle,
@@ -216,8 +217,9 @@ class ZoomDrawerState extends State<ZoomDrawer>
     vsync: this,
     duration: widget.duration,
     reverseDuration: widget.duration,
-  )..addStatusListener(_animationStatusListener)
-  ..addListener(_animationListener);
+  )
+    ..addStatusListener(_animationStatusListener)
+    ..addListener(_animationListener);
 
   double get _animationValue => _animationController.value;
 
@@ -241,16 +243,16 @@ class ZoomDrawerState extends State<ZoomDrawer>
     _shouldDrag = _animationController.isCompleted
         ? true
         : widget.isRtl
-        ? startDetails.globalPosition.dx > openJudgeBorder
-        : startDetails.globalPosition.dx < openJudgeBorder;
+            ? startDetails.globalPosition.dx > openJudgeBorder
+            : startDetails.globalPosition.dx < openJudgeBorder;
   }
 
   /// Update animation value continuesly upon draging.
   void _onHorizontalDragUpdate(DragUpdateDetails updateDetails) {
     /// Drag animation can be triggered when _shouldDrag is true,
     /// or when DrawerState is opening or closing
-    if (_shouldDrag == false
-        && [DrawerState.open, DrawerState.closed].contains(_stateNotifier.value)) {
+    if (_shouldDrag == false &&
+        [DrawerState.open, DrawerState.closed].contains(_stateNotifier.value)) {
       return;
     }
 
@@ -262,10 +264,8 @@ class ZoomDrawerState extends State<ZoomDrawer>
     double delta = (updateDetails.primaryDelta ?? 0) / widget.slideWidth;
     if (widget.isRtl) {
       _animationController.value -= delta * dragSensitivity;
-
     } else {
       _animationController.value += delta / dragSensitivity;
-
     }
   }
 
@@ -411,7 +411,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
         _stateNotifier.value = DrawerState.open;
         _drawerLastAction = DrawerLastAction.open;
         _absorbingMainScreen.value = widget.mainScreenAbsorbPointer;
-        for(ZooDrawerUpdateListener listener in _listeners){
+        for (ZooDrawerUpdateListener listener in _listeners) {
           listener(_animationController.value);
         }
         break;
@@ -419,7 +419,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
         _stateNotifier.value = DrawerState.closed;
         _drawerLastAction = DrawerLastAction.closed;
         _absorbingMainScreen.value = false;
-        for(ZooDrawerUpdateListener listener in _listeners){
+        for (ZooDrawerUpdateListener listener in _listeners) {
           listener(_animationController.value);
         }
         break;
@@ -427,11 +427,10 @@ class ZoomDrawerState extends State<ZoomDrawer>
   }
 
   void _animationListener() {
-    for(ZooDrawerUpdateListener listener in _listeners){
+    for (ZooDrawerUpdateListener listener in _listeners) {
       listener(_animationController.value);
     }
   }
-
 
   @override
   void initState() {
@@ -502,13 +501,11 @@ class ZoomDrawerState extends State<ZoomDrawer>
 
     /// Sliding X
     final xPosition =
-        ((widget.slideWidth - slide) * _slideDirection) *
-            slidePercent;
+        ((widget.slideWidth - slide) * _slideDirection) * slidePercent;
 
     /// Sliding Y
     final yPosition =
-        ((widget.slideHeight - slide) * _slideDirection) *
-            slidePercent;
+        ((widget.slideHeight - slide) * _slideDirection) * slidePercent;
 
     /// Scale
     final scalePercentage = scale - (widget.mainScreenScale * scalePercent);
@@ -524,13 +521,12 @@ class ZoomDrawerState extends State<ZoomDrawer>
     return OverflowBox(
       maxHeight: double.infinity,
       maxWidth: double.infinity,
-
       child: Transform(
         transform: Matrix4.translationValues(xPosition, yPosition, 0.0)
           ..rotateZ(rotationAngle)
           ..scaleByDouble(scalePercentage, scalePercentage, 1, 1),
         alignment: widget.isRtl ? Alignment.centerRight : Alignment.centerLeft,
-      
+
         // We exclude mainScreen from ClipRRect because it already has borderRadius applied
         // Only mainScreen has Scale of 1 while others has < 1
         // We apply borderRadius to shadowLayer1Color and shadowLayer2Color

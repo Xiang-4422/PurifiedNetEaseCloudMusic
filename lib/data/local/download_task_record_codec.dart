@@ -28,5 +28,4 @@ class DownloadTaskRecordCodec {
       failureReason: record.failureReason,
     );
   }
-
 }

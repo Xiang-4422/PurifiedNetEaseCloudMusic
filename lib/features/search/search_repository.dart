@@ -6,28 +6,21 @@ import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/features/playlist/playlist_summary_data.dart';
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
 import 'package:audio_service/audio_service.dart';
-import 'package:get_it/get_it.dart';
 
 class SearchRepository {
   SearchRepository({
-    LibraryRepository? libraryRepository,
+    required LibraryRepository libraryRepository,
     NeteaseSearchRemoteDataSource? remoteDataSource,
     SearchCacheStore? cacheStore,
-    UserScopedDataSource? userScopedDataSource,
-  })  : _libraryRepository = libraryRepository ??
-            (GetIt.instance.isRegistered<LibraryRepository>()
-                ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository()),
+    required UserScopedDataSource userScopedDataSource,
+  })  : _libraryRepository = libraryRepository,
         _remoteDataSource =
             remoteDataSource ?? const NeteaseSearchRemoteDataSource(),
         _cacheStore = cacheStore ?? const SearchCacheStore(),
-        _userScopedDataSource = userScopedDataSource ??
-            (GetIt.instance.isRegistered<UserScopedDataSource>()
-                ? GetIt.instance<UserScopedDataSource>()
-                : (throw StateError('UserScopedDataSource is not registered')));
+        _userScopedDataSource = userScopedDataSource;
 
   final LibraryRepository _libraryRepository;
   final NeteaseSearchRemoteDataSource _remoteDataSource;

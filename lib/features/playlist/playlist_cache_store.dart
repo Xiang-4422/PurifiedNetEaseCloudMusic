@@ -1,5 +1,5 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/core/playback/audio_service_handler.dart';
+import 'package:bujuan/core/playback/media_item_cache_codec.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
 import 'package:bujuan/core/storage/cache_timestamp_store.dart';
 
@@ -17,7 +17,7 @@ class PlaylistCacheStore {
     if (cachedSongs == null) {
       return null;
     }
-    return stringToPlayList(cachedSongs.cast<String>());
+    return decodeMediaItemCacheList(cachedSongs.cast<String>());
   }
 
   Future<void> saveSongs(
@@ -26,7 +26,7 @@ class PlaylistCacheStore {
   ) async {
     await CacheBox.instance.put(
       _songsCacheKey(playlistId),
-      await playListToString(songs),
+      await encodeMediaItemCacheList(songs),
     );
     await _touchCacheAccess(playlistId);
     await _pruneCaches();

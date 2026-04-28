@@ -3,8 +3,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
-import 'package:bujuan/features/playlist/playlist_summary_data.dart';
-import 'package:bujuan/features/shell/app_controller.dart';
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
@@ -197,8 +197,8 @@ class PlayListItem extends StatelessWidget {
 }
 
 /// 歌单卡片既负责展示，也负责触发“播放整个歌单”，因此归在 playlist feature 比挂在 common 更合适。
-class PlayListWidget extends GetView<AppController> {
-  static final PlaylistRepository _repository = PlaylistRepository();
+class PlayListWidget extends GetView<ShellController> {
+  static PlaylistRepository get _repository => Get.find<PlaylistRepository>();
 
   final double albumCountInWidget;
   final double albumMargin;

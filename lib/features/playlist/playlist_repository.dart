@@ -7,7 +7,6 @@ import 'package:bujuan/data/netease/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/domain/entities/playlist_track_ref.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
-import 'package:get_it/get_it.dart';
 
 import 'playlist_cache_store.dart';
 
@@ -68,26 +67,16 @@ class PlaylistSnapshotData {
 class PlaylistRepository {
   PlaylistRepository({
     PlaylistCacheStore? cacheStore,
-    LibraryRepository? libraryRepository,
-    LocalLibraryDataSource? localLibraryDataSource,
+    required LibraryRepository libraryRepository,
+    required LocalLibraryDataSource localLibraryDataSource,
     NeteasePlaylistRemoteDataSource? remoteDataSource,
-    UserScopedDataSource? userScopedDataSource,
+    required UserScopedDataSource userScopedDataSource,
   })  : _cacheStore = cacheStore ?? const PlaylistCacheStore(),
-        _libraryRepository = libraryRepository ??
-            (GetIt.instance.isRegistered<LibraryRepository>()
-                ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository()),
-        _localLibraryDataSource = localLibraryDataSource ??
-            (GetIt.instance.isRegistered<LocalLibraryDataSource>()
-                ? GetIt.instance<LocalLibraryDataSource>()
-                : (throw StateError(
-                    'LocalLibraryDataSource is not registered'))),
+        _libraryRepository = libraryRepository,
+        _localLibraryDataSource = localLibraryDataSource,
         _remoteDataSource =
             remoteDataSource ?? const NeteasePlaylistRemoteDataSource(),
-        _userScopedDataSource = userScopedDataSource ??
-            (GetIt.instance.isRegistered<UserScopedDataSource>()
-                ? GetIt.instance<UserScopedDataSource>()
-                : (throw StateError('UserScopedDataSource is not registered')));
+        _userScopedDataSource = userScopedDataSource;
 
   final PlaylistCacheStore _cacheStore;
   final LibraryRepository _libraryRepository;

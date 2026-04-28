@@ -17,9 +17,11 @@ class Assets {
   static const String lottieEmpty = 'assets/lottie/empty.json';
   static const String lottieEmptyStatus = 'assets/lottie/empty_status.json';
   static const String lottieLoadingDialog = 'assets/lottie/loading_dialog.json';
-  static const String lottieNoInternetConnection = 'assets/lottie/no_internet_connection.json';
-  static const String lottieNotificationRequest = 'assets/lottie/notification_request.json';
-  static const String lottiePersonalCharacter = 'assets/lottie/personal_character.json';
+  static const String lottieNoInternetConnection =
+      'assets/lottie/no_internet_connection.json';
+  static const String lottieNotificationRequest =
+      'assets/lottie/notification_request.json';
+  static const String lottiePersonalCharacter =
+      'assets/lottie/personal_character.json';
   static const String lottieVrAnimation = 'assets/lottie/vr_animation.json';
-
 }

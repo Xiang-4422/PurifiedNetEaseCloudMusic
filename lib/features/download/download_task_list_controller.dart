@@ -19,11 +19,11 @@ class DownloadTaskListItemData {
 
 class DownloadTaskListController {
   DownloadTaskListController({
-    DownloadRepository? repository,
-    LibraryRepository? libraryRepository,
+    required DownloadRepository repository,
+    required LibraryRepository libraryRepository,
     this.statuses,
-  })  : _repository = repository ?? DownloadRepository(),
-        _libraryRepository = libraryRepository ?? LibraryRepository();
+  })  : _repository = repository,
+        _libraryRepository = libraryRepository;
 
   final DownloadRepository _repository;
   final LibraryRepository _libraryRepository;
@@ -159,8 +159,8 @@ class DownloadTaskListController {
       return;
     }
     final tracksById = {
-      for (final track
-          in await _libraryRepository.getTracksByIds(tasks.map((task) => task.trackId)))
+      for (final track in await _libraryRepository
+          .getTracksByIds(tasks.map((task) => task.trackId)))
         track.id: track,
     };
     final itemData = <DownloadTaskListItemData>[];

@@ -2,25 +2,19 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_cloud_remote_data_source.dart';
+import 'package:bujuan/domain/entities/user_library_kinds.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
-import 'package:get_it/get_it.dart';
 
 class CloudRepository {
   CloudRepository({
-    LibraryRepository? libraryRepository,
-    UserScopedDataSource? userScopedDataSource,
+    required LibraryRepository libraryRepository,
+    required UserScopedDataSource userScopedDataSource,
     NeteaseCloudRemoteDataSource? remoteDataSource,
   })  : _remoteDataSource =
             remoteDataSource ?? const NeteaseCloudRemoteDataSource(),
-        _libraryRepository = libraryRepository ??
-            (GetIt.instance.isRegistered<LibraryRepository>()
-                ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository()),
-        _userScopedDataSource = userScopedDataSource ??
-            (GetIt.instance.isRegistered<UserScopedDataSource>()
-                ? GetIt.instance<UserScopedDataSource>()
-                : (throw StateError('UserScopedDataSource is not registered')));
+        _libraryRepository = libraryRepository,
+        _userScopedDataSource = userScopedDataSource;
 
   final NeteaseCloudRemoteDataSource _remoteDataSource;
   final LibraryRepository _libraryRepository;

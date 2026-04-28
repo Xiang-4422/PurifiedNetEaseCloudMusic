@@ -1,6 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/features/radio/radio_data.dart';
+import 'package:bujuan/domain/entities/radio_data.dart';
 
 class RadioMediaItemMapper {
   const RadioMediaItemMapper._();

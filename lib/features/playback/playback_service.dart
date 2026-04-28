@@ -1,14 +1,16 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/core/playback/audio_service_handler.dart';
+import 'package:bujuan/features/playback/application/audio_service_handler.dart';
+import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:get/get.dart';
 
-/// 统一持有音频服务实例，避免控制器和页面各自初始化底层播放器。
-///
-/// 当前仍处在迁移期，`AudioServiceHandler` 还承载了恢复、通知栏和队列兼容逻辑。
-/// 先把实例生命周期收口到 service，后续才能继续拆分队列编排和模式切换，而不用
-/// 让 `PlayerController` 继续直接持有底层 handler。
+/// 统一持有音频服务实例和队列编排，避免页面直接操作底层播放器。
 class PlaybackService extends GetxService {
+  PlaybackService({
+    required PlaybackRepository playbackRepository,
+  }) : _playbackRepository = playbackRepository;
+
+  final PlaybackRepository _playbackRepository;
   AudioServiceHandler? _handler;
   void Function(PlaybackMode mode)? _onRestorePlaybackMode;
   void Function(AudioServiceRepeatMode mode)? _onRepeatModeChanged;
@@ -38,7 +40,9 @@ class PlaybackService extends GetxService {
       return _handler!;
     }
     _handler = await AudioService.init(
-      builder: () => AudioServiceHandler(),
+      builder: () => AudioServiceHandler(
+        playbackRepository: _playbackRepository,
+      ),
       config: const AudioServiceConfig(
         androidStopForegroundOnPause: false,
         androidNotificationChannelId: 'com.yu4422.purrr.channel.audio',

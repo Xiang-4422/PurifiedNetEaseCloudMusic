@@ -1,29 +1,12 @@
 import 'dart:async';
 
-import 'package:bujuan/data/local/download_task_data_source.dart';
-import 'package:bujuan/core/database/app_database.dart';
-import 'package:bujuan/core/database/drift_app_database.dart';
-import 'package:bujuan/core/database/local_database_config.dart';
-import 'package:bujuan/data/local/local_library_data_source.dart';
-import 'package:bujuan/data/local/local_music_source.dart';
-import 'package:bujuan/data/local/local_resource_index_data_source.dart';
-import 'package:bujuan/data/local/playback_restore_data_source.dart';
-import 'package:bujuan/data/local/user_scoped_data_source.dart';
+import 'package:bujuan/app/bootstrap/app_binding.dart';
 import 'package:bujuan/data/netease/netease_remote_bootstrap.dart';
-import 'package:bujuan/data/netease/netease_music_source.dart';
-import 'package:bujuan/features/download/download_repository.dart';
-import 'package:bujuan/features/explore/explore_page_controller.dart';
-import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/features/playback/playback_service.dart';
-import 'package:bujuan/features/shell/app_controller.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
-import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 /// 统一收口应用启动依赖，避免初始化逻辑继续散落到 `main.dart`
 /// 或页面侧，破坏本地优先链路对单例视图的一致性假设。
@@ -35,10 +18,7 @@ Future<void> bootstrapApplication() async {
   debugProfilePaintsEnabled =
       kDebugMode && const bool.fromEnvironment('profile_flutter_paints');
   await _initUi();
-  // 这里必须在 runApp 前完成注册，否则页面和控制器会各自 new 出
-  // 分裂的本地库与 source 视图，后面的本地优先链路就不再可信。
   await _initInfrastructure();
-  _registerControllers();
 }
 
 Future<void> _initUi() async {
@@ -54,52 +34,9 @@ Future<void> _initUi() async {
 }
 
 Future<void> _initInfrastructure() async {
-  final getIt = GetIt.instance;
-  // 当前仍处在旧入口和新入口并存阶段，基础设施必须全部经由同一组
-  // 单例注册出去，否则 repository、source 和本地库会各自持有不同实例。
-  final appDatabase =
-      DriftAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
-  await appDatabase.init();
-  getIt.registerSingleton<AppDatabase>(appDatabase);
-  getIt.registerSingleton<LocalLibraryDataSource>(
-    appDatabase.localLibraryDataSource,
-  );
-  getIt.registerSingleton<PlaybackRestoreDataSource>(
-    appDatabase.playbackRestoreDataSource,
-  );
-  getIt.registerSingleton<LocalResourceIndexDataSource>(
-    appDatabase.localResourceIndexDataSource,
-  );
-  getIt.registerSingleton<DownloadTaskDataSource>(
-    appDatabase.downloadTaskDataSource,
-  );
-  getIt.registerSingleton<UserScopedDataSource>(
-    appDatabase.userScopedDataSource,
-  );
-  await Hive.initFlutter('BuJuan');
-  getIt.registerSingleton<Box>(await Hive.openBox('cache'));
   await NeteaseRemoteBootstrap.initialize(
     debug:
         kDebugMode && const bool.fromEnvironment('enable_verbose_network_logs'),
   );
-
-  final localMusicSource =
-      LocalMusicSource(localDataSource: appDatabase.localLibraryDataSource);
-  final neteaseMusicSource = NeteaseMusicSource();
-  getIt.registerSingleton<LibraryRepository>(
-    LibraryRepository(
-      localDataSource: appDatabase.localLibraryDataSource,
-      localMusicSource: localMusicSource,
-      neteaseSource: neteaseMusicSource,
-    ),
-  );
-  unawaited(DownloadRepository().recoverInterruptedTasks());
-}
-
-void _registerControllers() {
-  // 现阶段仍有旧页面直接依赖 GetX 全局控制器，先把注册收口到入口层，
-  // 避免迁移期出现多处重复 lazyPut。
-  Get.put(PlaybackService(), permanent: true);
-  Get.lazyPut<AppController>(() => AppController());
-  Get.lazyPut<ExplorePageController>(() => ExplorePageController());
+  await AppBinding.initInfrastructure();
 }

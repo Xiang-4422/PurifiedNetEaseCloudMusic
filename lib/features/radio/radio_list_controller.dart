@@ -1,17 +1,17 @@
 import 'dart:async';
 
 import 'package:bujuan/core/network/load_state.dart';
-import 'package:bujuan/features/radio/radio_data.dart';
+import 'package:bujuan/domain/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:flutter/foundation.dart';
 
 class RadioListController {
   RadioListController({
     required String userId,
-    RadioRepository? repository,
+    required RadioRepository repository,
     this.pageSize = 30,
   })  : _userId = userId,
-        _repository = repository ?? RadioRepository();
+        _repository = repository;
 
   final String _userId;
   final RadioRepository _repository;

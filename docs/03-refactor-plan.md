@@ -25,7 +25,7 @@
 | --- | --- | --- | --- |
 | Phase 0 | 文档定案 | 固定技术架构、工程结构和执行计划 | Done |
 | Phase 1 | 基础边界收口 | 停止新债继续扩散，建立 repository 和 mapper 落点 | In Progress |
-| Phase 2 | Shell 拆分 | 将 `AppController` 中的壳层状态和业务入口拆开 | In Progress |
+| Phase 2 | Shell 拆分 | 将 `ShellController` 中的壳层状态和业务入口拆开 | In Progress |
 | Phase 3 | 统一领域模型 | 建立 `Track`、`PlaylistEntity` 等统一实体，停止以网易云模型直接驱动业务 | In Progress |
 | Phase 4 | 本地优先数据层 | 引入结构化本地数据库，建立本地媒体库和同步入口 | In Progress |
 | Phase 5 | 播放链路重构 | 规范播放器状态、服务层与队列切换逻辑，播放器只消费统一实体 | In Progress |
@@ -110,7 +110,7 @@
 
 当前建议执行顺序：
 
-1. 继续缩减 `AppController / PlayerController` 中迁移期代理入口
+1. 继续缩减 `ShellController / PlayerController` 中跨职责代理入口
 2. 补齐高价值页面的本地快照优先读路径
 3. 收尾用户作用域缓存、账号隔离和刷新标记
 4. 完善 `LocalMusicSource` 的元数据提取、搜索和播放入口
@@ -255,7 +255,7 @@
 - 重构阶段计划已建立
 - 通用请求组件已通过 `RequestRepository` 统一网络访问入口
 - 旧 `RequestWidget` / `RequestLoadMoreWidget` 已删除，请求执行权已回收到 feature controller 与 repository
-- 播放主链路已开始收口到 `PlayerController`，底部面板、歌单页、专辑页、歌手页、每日推荐、榜单和个人页快捷入口已不再通过页面直接驱动 `audioHandler` 或 `AppController` 播放代理
+- 播放主链路已开始收口到 `PlayerController`，底部面板、歌单页、专辑页、歌手页、每日推荐、榜单和个人页快捷入口已不再通过页面直接驱动 `audioHandler` 或 `ShellController` 播放代理
 - `PlaybackService` 已接管底层播放器实例生命周期，`PlayerController` 不再直接初始化 `AudioServiceHandler`
 - 漫游模式续队列、喜欢歌曲播放和模式初始化已开始从 `PlayerController` 下沉到 `PlaybackService`
 - `AudioServiceHandler` 对 `PlayerController` 的直接反向依赖已移除，上层播放状态通过 `PlaybackService` 显式同步
@@ -272,10 +272,10 @@
 - 数据库层已补统一 schema 清单，并为资源索引、下载任务建立记录模型与 codec
 - 资源索引与下载任务已开始通过独立数据库数据源接口接入 `AppDatabase`，为后续正式数据库实现缩小替换面
 - 播放恢复态已统一为单快照格式，正式本地库和恢复逻辑共享该结构
-- 壳层与主播放面板已开始改用统一播放状态对象，旧散落字段暂时仅保留为兼容层
-- 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，主播放界面对旧运行态字段的依赖继续缩小
-- `PlayerController` 内部编排已优先读取统一播放状态对象，旧 `curPlaying* / curPlay* / lyrics*` 字段开始退为兼容镜像
-- `AppController` 中旧运行态与歌词态兼容 getter 已移除，壳层统一开始通过播放状态对象读取当前播放信息
+- 壳层与主播放面板已改用统一播放状态对象，散落播放字段继续退出公开入口
+- 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`
+- `PlayerController` 内部编排已优先读取统一播放状态对象
+- `ShellController` 中运行态与歌词态代理 getter 已移除，壳层统一通过播放状态对象读取当前播放信息
 - `PlayerController` 中旧 `curPlaying* / curPlay* / lyrics*` 兼容字段已移除，控制器与页面层统一以播放状态对象作为当前播放信息的事实源
 - 页面层对 `curPlayListName / curPlayListNameHeader / isPlayingLikedSongs` 的依赖已切到 `PlaybackSessionState`，会话态兼容字段开始退出壳层和控制器
 - 设置页已移除对 `Hive Box` 的直接写入
@@ -285,7 +285,7 @@
 - 删除未使用的歌单专用请求组件
 - 删除未承载职责的 `PlayListController` 和 `AlbumController`
 - 探索页榜单歌曲改为直接通过 `PlaylistRepository` 获取
-- `AppController` 已移除歌单查询、歌曲映射、喜欢状态等单点代理
+- `ShellController` 已移除歌单查询、歌曲映射、喜欢状态等单点代理
 - 漫游 / 心动模式与喜欢歌单播放逻辑已下沉到 `PlayerController`
 - 已建立第一版领域层骨架：`Track`、`PlaylistEntity`、`AlbumEntity`、`ArtistEntity`、`PlaybackQueue`
 - 已新增第一版 `NeteaseMusicSource`
@@ -364,7 +364,7 @@
 
 - 发布前数据库非破坏迁移策略还未完善
 - 用户作用域缓存、刷新标记和账号隔离仍需继续收尾
-- 播放链路和壳层仍保留部分迁移期代理入口
+- 播放链路和壳层仍保留部分跨职责代理入口
 - 下载体系仍不支持断点续传，失败后主要依赖完整重试
 
 ## 10. 分阶段计划
@@ -380,9 +380,9 @@
 范围：
 
 - [`lib/features/user/user_controller.dart`](../lib/features/user/user_controller.dart)
-- [`lib/pages/playlist_page_view.dart`](../lib/pages/playlist_page_view.dart)
-- [`lib/pages/cloud_drive_view.dart`](../lib/pages/cloud_drive_view.dart)
-- [`lib/pages/login_page_view.dart`](../lib/pages/login_page_view.dart)
+- [`lib/features/playlist/presentation/playlist_page_view.dart`](../lib/features/playlist/presentation/playlist_page_view.dart)
+- [`lib/features/cloud/presentation/cloud_drive_view.dart`](../lib/features/cloud/presentation/cloud_drive_view.dart)
+- [`lib/features/auth/presentation/login_page_view.dart`](../lib/features/auth/presentation/login_page_view.dart)
 - [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart)
 
 任务：
@@ -411,26 +411,26 @@
 目标：
 
 - 将壳层 UI 状态与业务入口解耦
-- 缩小 `AppController` 的职责范围
+- 缩小 `ShellController` 的职责范围
 
 范围：
 
-- [`lib/features/shell/app_controller.dart`](../lib/features/shell/app_controller.dart)
-- [`lib/pages/home/app_home_page_view.dart`](../lib/pages/home/app_home_page_view.dart)
-- [`lib/pages/home/body/app_body_page_view.dart`](../lib/pages/home/body/app_body_page_view.dart)
-- [`lib/pages/home/top_panel_view.dart`](../lib/pages/home/top_panel_view.dart)
+- [`lib/features/shell/shell_controller.dart`](../lib/features/shell/shell_controller.dart)
+- [`lib/features/shell/presentation/app_home_page_view.dart`](../lib/features/shell/presentation/app_home_page_view.dart)
+- [`lib/features/shell/presentation/app_body_page_view.dart`](../lib/features/shell/presentation/app_body_page_view.dart)
+- [`lib/features/search/presentation/top_panel_view.dart`](../lib/features/search/presentation/top_panel_view.dart)
 
 任务：
 
 - 拆出 Shell Controller
 - 保留壳层状态在 Shell 范围内
-- 将播放入口、歌单拉取入口、模式切换入口从 `AppController` 中迁出
+- 将播放入口、歌单拉取入口、模式切换入口从 `ShellController` 中迁出
 - 明确壳层只负责 drawer、panel、home page、返回键和搜索壳层状态
 
 验收标准：
 
-- `AppController` 不再负责歌单拉取
-- `AppController` 不再直接承载播放模式切换入口
+- `ShellController` 不再负责歌单拉取
+- `ShellController` 不再直接承载播放模式切换入口
 - 首页壳层状态可由独立 controller 管理
 
 风险：
@@ -440,7 +440,7 @@
 进度：
 
 - 已新增 `HomeShellController`
-- `AppController` 先通过代理 getter 复用新壳层 controller，避免一次性改动页面依赖
+- `ShellController` 先通过代理 getter 复用新壳层 controller，避免一次性改动页面依赖
 
 ### Phase 3: 统一领域模型
 
@@ -587,7 +587,7 @@
 
 - `lib/common`
 - 原 `lib/controllers`
-- `lib/pages`
+- `lib/features/*/presentation`
 - `lib/widget`
 - `lib/routes`
 
@@ -656,7 +656,7 @@
 
 - 阶段：`Phase 1`
 - 状态：`In Progress`
-- 完成内容：新增 cloud repository、统一 MediaItem mapper，并将云盘页面中的 MediaItem 拼装逻辑迁移到 controller/repository 方向；新增 playlist repository，将歌单详情页中的缓存和歌曲拉取逻辑迁移出页面，并开始承接 AppController 中的歌单获取逻辑；新增 auth repository 和 auth controller，将登录页中的二维码轮询、登录态落库和用户信息拉取迁移出页面；新增 album repository，将专辑详情页中的直接 API 调用迁移出页面；新增 artist repository，将歌手详情页中的详情、热门歌曲和专辑拉取迁移出页面；新增 explore repository，将探索页 controller 中的歌单目录和分类歌单请求迁移到 repository；新增 user repository，将 UserController 中的推荐歌单、用户歌单、日推、FM、心动模式、歌曲详情和退出登录迁移到 repository；新增 playback repository，将歌词请求迁移出 PlayerController；新增 search repository，将搜索面板中的请求定义迁移出 UI 文件；新增 radio repository，将电台页中的请求定义与节目映射迁移出页面
+- 完成内容：新增 cloud repository、统一 MediaItem mapper，并将云盘页面中的 MediaItem 拼装逻辑迁移到 controller/repository 方向；新增 playlist repository，将歌单详情页中的缓存和歌曲拉取逻辑迁移出页面，并开始承接 ShellController 中的歌单获取逻辑；新增 auth repository 和 auth controller，将登录页中的二维码轮询、登录态落库和用户信息拉取迁移出页面；新增 album repository，将专辑详情页中的直接 API 调用迁移出页面；新增 artist repository，将歌手详情页中的详情、热门歌曲和专辑拉取迁移出页面；新增 explore repository，将探索页 controller 中的歌单目录和分类歌单请求迁移到 repository；新增 user repository，将 UserController 中的推荐歌单、用户歌单、日推、FM、心动模式、歌曲详情和退出登录迁移到 repository；新增 playback repository，将歌词请求迁移出 PlayerController；新增 search repository，将搜索面板中的请求定义迁移出 UI 文件；新增 radio repository，将电台页中的请求定义与节目映射迁移出页面
 - 风险或阻塞：当前请求组件仍承担较多请求与分页职责，后续仍需继续收缩
 - 下一步：继续抽离歌单、登录或搜索链路中的页面直调业务逻辑
 
@@ -728,9 +728,9 @@
 
 - 阶段：`Phase 7`
 - 状态：`In Progress`
-- 完成内容：`AppController`、`PlayerController`、`UserController`、`SettingsController` 与 `ExplorePageController` 已迁入 `lib/features/*/controller`；应用入口、播放底层和迁移中的控制器已补充职责边界与兼容原因注释；旧页面和功能入口对控制器的导入已统一切到新目录
-- 风险或阻塞：页面层仍通过 `AppController` 复用较多迁移期代理入口，后续继续拆壳层和播放入口时仍会触及较大范围调用点
-- 下一步：继续缩减页面层对迁移期代理入口的依赖，并清理仍以旧控制器目录为中心的历史描述和兼容逻辑
+- 完成内容：`ShellController`、`PlayerController`、`UserController`、`SettingsController` 与 `ExplorePageController` 已归入对应 feature；应用入口和播放底层已补充职责边界注释；页面和功能入口对控制器的导入已统一切到新目录
+- 风险或阻塞：页面层仍通过 `ShellController` 复用较多跨职责代理入口，后续继续拆壳层和播放入口时仍会触及较大范围调用点
+- 下一步：继续缩减页面层对跨职责代理入口的依赖，并清理仍以旧控制器目录为中心的历史描述
 
 #### 2026-04-20
 

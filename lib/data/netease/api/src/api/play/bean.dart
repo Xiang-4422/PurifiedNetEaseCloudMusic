@@ -596,9 +596,10 @@ class PlayList {
     return 'Play{id: $id, name: $name}';
   }
 
-  factory PlayList.fromJson(Map<String, dynamic> json) => _$PlayFromJson(json);
+  factory PlayList.fromJson(Map<String, dynamic> json) =>
+      _$PlayListFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PlayToJson(this);
+  Map<String, dynamic> toJson() => _$PlayListToJson(this);
 }
 
 @JsonSerializable()
@@ -944,7 +945,6 @@ class Artist {
 
   String? picUrl;
 
-
   int? img1v1Id;
   String? img1v1Url;
   String? cover;
@@ -963,10 +963,9 @@ class Artist {
 
   Artist();
 
-  factory Artist.fromJson(Map<String, dynamic> json) =>
-      _$ArtistsFromJson(json);
+  factory Artist.fromJson(Map<String, dynamic> json) => _$ArtistFromJson(json);
 
-  Map<String, dynamic> toJson() => _$ArtistsToJson(this);
+  Map<String, dynamic> toJson() => _$ArtistToJson(this);
 }
 
 @JsonSerializable()

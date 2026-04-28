@@ -1,10 +1,9 @@
-
 import 'package:flutter/foundation.dart';
-
 
 class LogUtil {
   static const _separator = "=";
-  static const _split = "$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator";
+  static const _split =
+      "$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator";
   static var _title = "Yl-Log";
   static var _isDebug = true;
   static int _limitLength = 800;

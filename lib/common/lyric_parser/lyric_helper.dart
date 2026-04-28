@@ -1,8 +1,6 @@
-
 import 'lyrics_reader_model.dart';
 
 class LyricHelper {
-
   ///获取歌词整体高度
   static double getLyricHeight(
       List<LyricsLineModel>? lyrics, int playingIndex) {
@@ -32,7 +30,4 @@ class LyricHelper {
         0;
     return sum;
   }
-
-
-
 }

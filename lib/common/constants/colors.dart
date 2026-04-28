@@ -1,106 +1,66 @@
 import 'package:flutter/material.dart';
 
-
 class AppTheme {
   /// 亮色主题
   static ThemeData light = ThemeData.light().copyWith(
-      colorScheme: ThemeData.light().colorScheme.copyWith(
-        primary: primary,
-        onPrimary: onPrimary.withValues(alpha: 0.8),
-        secondary: secondary,
-        onSecondary: onSecondary,
-        surface: surface,
-        onSurface: onSurface,
-      ),
-      pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
-        TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
-        TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
-      }),
-      cardColor: const Color(0xFF2C2C2C),
-      iconTheme: const IconThemeData(color: Color(0xFF4D4D4D)),
-      primaryColor: const Color(0xffe56260),
-      textTheme: const TextTheme(
-        labelLarge: TextStyle(
-            fontSize: 20,
-            color: onPrimary
+    colorScheme: ThemeData.light().colorScheme.copyWith(
+          primary: primary,
+          onPrimary: onPrimary.withValues(alpha: 0.8),
+          secondary: secondary,
+          onSecondary: onSecondary,
+          surface: surface,
+          onSurface: onSurface,
         ),
-        labelMedium: TextStyle(
-            fontSize: 15,
-            color: onPrimary
-        ),
-        labelSmall: TextStyle(
-            fontSize: 10,
-            color: onPrimary
-        ),
-
-        titleLarge: TextStyle(
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-            color: onPrimary
-        ),
-        titleMedium: TextStyle(
-            fontSize: 20,
-            color: onPrimary
-        ),
-        titleSmall: TextStyle(
-            fontSize: 15,
-            color: onPrimary
-        ),
-
-        bodyLarge: TextStyle(
-            fontSize: 30,
-            color: onPrimary
-        ),
-        bodyMedium: TextStyle(
-            fontSize: 20,
-            color: onPrimary
-        ),
-        bodySmall: TextStyle(
-            fontSize: 10,
-            color: onPrimary
-        ),
-
-      ),
-      scaffoldBackgroundColor: const Color(0xFFF5F3F3),
+    pageTransitionsTheme: const PageTransitionsTheme(builders: {
+      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+    }),
+    cardColor: const Color(0xFF2C2C2C),
+    iconTheme: const IconThemeData(color: Color(0xFF4D4D4D)),
+    primaryColor: const Color(0xffe56260),
+    textTheme: const TextTheme(
+      labelLarge: TextStyle(fontSize: 20, color: onPrimary),
+      labelMedium: TextStyle(fontSize: 15, color: onPrimary),
+      labelSmall: TextStyle(fontSize: 10, color: onPrimary),
+      titleLarge: TextStyle(
+          fontSize: 25, fontWeight: FontWeight.bold, color: onPrimary),
+      titleMedium: TextStyle(fontSize: 20, color: onPrimary),
+      titleSmall: TextStyle(fontSize: 15, color: onPrimary),
+      bodyLarge: TextStyle(fontSize: 30, color: onPrimary),
+      bodyMedium: TextStyle(fontSize: 20, color: onPrimary),
+      bodySmall: TextStyle(fontSize: 10, color: onPrimary),
+    ),
+    scaffoldBackgroundColor: const Color(0xFFF5F3F3),
   );
 
   /// 黑暗模式主题
   static ThemeData dark = ThemeData.dark().copyWith(
-      colorScheme: ThemeData.dark().colorScheme.copyWith(
-            primary: primaryDark,
-            onPrimary: onPrimaryDark.withValues(alpha: 0.8),
-            secondary: onSecondary,
-            onSecondary: secondary,
-            surface: surfaceDark,
-            onSurface: onSurfaceDark,
-          ),
-      // 页面切换动画
-      pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
-        TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
-        TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
-      }),
-      cardColor: const Color(0xFFECEBEB),
-      // 网易云红色
-      primaryColor: const Color(0xffE20000),
-      // 网易云主页背景色
-      scaffoldBackgroundColor: const Color(0xFFF4F7F9),
-      textTheme: const TextTheme(
-        titleLarge: TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.bold,
-            color: onPrimaryDark
-        ) ,
-        titleMedium: TextStyle(
-            fontSize: 30,
-            color: onPrimaryDark
-        ) ,
-        titleSmall: TextStyle(
-            fontSize: 20,
-            color: onPrimaryDark
+    colorScheme: ThemeData.dark().colorScheme.copyWith(
+          primary: primaryDark,
+          onPrimary: onPrimaryDark.withValues(alpha: 0.8),
+          secondary: onSecondary,
+          onSecondary: secondary,
+          surface: surfaceDark,
+          onSurface: onSurfaceDark,
         ),
-      ),
+    // 页面切换动画
+    pageTransitionsTheme: const PageTransitionsTheme(builders: {
+      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+    }),
+    cardColor: const Color(0xFFECEBEB),
+    // 网易云红色
+    primaryColor: const Color(0xffE20000),
+    // 网易云主页背景色
+    scaffoldBackgroundColor: const Color(0xFFF4F7F9),
+    textTheme: const TextTheme(
+      titleLarge: TextStyle(
+          fontSize: 30, fontWeight: FontWeight.bold, color: onPrimaryDark),
+      titleMedium: TextStyle(fontSize: 30, color: onPrimaryDark),
+      titleSmall: TextStyle(fontSize: 20, color: onPrimaryDark),
+    ),
   );
 
   //right background

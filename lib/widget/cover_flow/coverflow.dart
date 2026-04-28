@@ -100,14 +100,14 @@ class CoverFlow extends StatefulWidget {
     this.inertialVelocityThreshold = 120,
     this.inertialFriction = .135,
     this.inertialSimulationMinDelta = .04,
-  }) : assert(itemSize.width > 0 && itemSize.height > 0),
-       assert(visibleRange >= 0),
-       assert(dragSensitivity > 0),
-       assert(pageSnapVelocityThreshold >= 0),
-       assert(inertialVelocityThreshold >= 0),
-       assert(inertialFriction > 0),
-       assert(inertialSimulationMinDelta >= 0),
-       animationCurve = animationCurve ?? Curves.easeOutQuart;
+  })  : assert(itemSize.width > 0 && itemSize.height > 0),
+        assert(visibleRange >= 0),
+        assert(dragSensitivity > 0),
+        assert(pageSnapVelocityThreshold >= 0),
+        assert(inertialVelocityThreshold >= 0),
+        assert(inertialFriction > 0),
+        assert(inertialSimulationMinDelta >= 0),
+        animationCurve = animationCurve ?? Curves.easeOutQuart;
 
   @override
   State<CoverFlow> createState() => _CoverFlowState();
@@ -252,7 +252,9 @@ class _CoverFlowState extends State<CoverFlow>
       return;
     }
     final nextPosition = (_pagePosition -
-            details.primaryDelta! / widget.itemSize.width * widget.dragSensitivity)
+            details.primaryDelta! /
+                widget.itemSize.width *
+                widget.dragSensitivity)
         .clamp(0.0, max(0, widget.itemCount - 1).toDouble());
     _pagePosition = nextPosition;
   }
@@ -329,8 +331,7 @@ class _CoverFlowState extends State<CoverFlow>
   }) {
     final friction = widget.inertialFriction.clamp(.01, 1.0);
     final velocitySign = indexVelocity.sign;
-    final projectedDistance =
-        pow(indexVelocity.abs(), .92) / (friction * 14.5);
+    final projectedDistance = pow(indexVelocity.abs(), .92) / (friction * 14.5);
     final projectedDelta = projectedDistance * velocitySign;
     final clampedDelta = projectedDelta.clamp(-4.5, 4.5);
     return (_pagePosition + clampedDelta).clamp(minPosition, maxPosition);
@@ -342,9 +343,8 @@ class _CoverFlowState extends State<CoverFlow>
   ) {
     final distance = (projectedPosition - _pagePosition).abs();
     final velocityFactor = min(280, indexVelocity.abs() * 28);
-    final milliseconds = (180 + distance * 150 + velocityFactor)
-        .round()
-        .clamp(220, 720);
+    final milliseconds =
+        (180 + distance * 150 + velocityFactor).round().clamp(220, 720);
     return Duration(milliseconds: milliseconds);
   }
 
@@ -582,12 +582,15 @@ class CoverFlowCardItems extends StatelessWidget {
     final centerTop = (_viewportHeight - itemSize.height) / 2;
     final nearGap = itemSize.width * style.nearGapFactor;
     final farGap = itemSize.width * style.farGapFactor;
-    final left = centerLeft + _resolveHorizontalOffset(distance, side, nearGap, farGap);
+    final left =
+        centerLeft + _resolveHorizontalOffset(distance, side, nearGap, farGap);
     final angle = _resolveAngle(distance, side);
     final scale = _lerpDistance(style.centerScale, style.sideScale, distance);
-    final opacity = _lerpDistance(style.centerOpacity, style.sideOpacity, distance)
-        .clamp(0.0, 1.0);
-    final top = centerTop + _lerpDistance(0, style.sideVerticalOffset, distance);
+    final opacity =
+        _lerpDistance(style.centerOpacity, style.sideOpacity, distance)
+            .clamp(0.0, 1.0);
+    final top =
+        centerTop + _lerpDistance(0, style.sideVerticalOffset, distance);
 
     final pivot = side < 0 ? itemSize.width / 2 : -itemSize.width / 2;
     final transform = Matrix4.identity()

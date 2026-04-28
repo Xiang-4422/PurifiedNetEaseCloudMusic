@@ -5,24 +5,14 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/features/playback/playback_restore_state.dart';
-import 'package:get_it/get_it.dart';
+import 'package:bujuan/domain/entities/playback_restore_state.dart';
 
 class PlaybackRepository {
   PlaybackRepository({
-    LibraryRepository? libraryRepository,
-    PlaybackRestoreDataSource? playbackRestoreDataSource,
-  })
-      : _libraryRepository = libraryRepository ??
-            (GetIt.instance.isRegistered<LibraryRepository>()
-                ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository()),
-        _playbackRestoreDataSource = playbackRestoreDataSource ??
-            (GetIt.instance.isRegistered<PlaybackRestoreDataSource>()
-                ? GetIt.instance<PlaybackRestoreDataSource>()
-                : (throw StateError(
-                    'PlaybackRestoreDataSource is not registered',
-                  )));
+    required LibraryRepository libraryRepository,
+    required PlaybackRestoreDataSource playbackRestoreDataSource,
+  })  : _libraryRepository = libraryRepository,
+        _playbackRestoreDataSource = playbackRestoreDataSource;
 
   final LibraryRepository _libraryRepository;
   final PlaybackRestoreDataSource _playbackRestoreDataSource;

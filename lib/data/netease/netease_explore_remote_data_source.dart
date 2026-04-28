@@ -40,7 +40,9 @@ class NeteaseExploreRemoteDataSource {
   }
 
   Future<List<PlaylistEntity>> fetchCategoryPlaylists(String category) async {
-    final response = await NeteaseMusicApi().categorySongList(category: category);
-    return NeteasePlaylistMapper.fromPlaylistList(response.playlists ?? const []);
+    final response =
+        await NeteaseMusicApi().categorySongList(category: category);
+    return NeteasePlaylistMapper.fromPlaylistList(
+        response.playlists ?? const []);
   }
 }

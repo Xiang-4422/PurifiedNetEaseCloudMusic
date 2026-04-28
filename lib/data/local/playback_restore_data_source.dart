@@ -1,4 +1,4 @@
-import 'package:bujuan/features/playback/playback_restore_state.dart';
+import 'package:bujuan/domain/entities/playback_restore_state.dart';
 
 abstract class PlaybackRestoreDataSource {
   Future<PlaybackRestoreState?> getRestoreState();

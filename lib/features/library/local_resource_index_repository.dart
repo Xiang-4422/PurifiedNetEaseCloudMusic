@@ -6,25 +6,13 @@ import 'package:bujuan/domain/entities/local_song_entry.dart';
 import 'package:bujuan/domain/entities/local_resource_entry.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_resource_bundle.dart';
-import 'package:get_it/get_it.dart';
 
 class LocalResourceIndexRepository {
   LocalResourceIndexRepository({
-    LocalResourceIndexDataSource? dataSource,
-    LocalLibraryDataSource? localLibraryDataSource,
-  }) : _dataSource = dataSource ??
-            (GetIt.instance.isRegistered<LocalResourceIndexDataSource>()
-                ? GetIt.instance<LocalResourceIndexDataSource>()
-                : (throw StateError(
-                    'LocalResourceIndexDataSource is not registered',
-                  ))),
-        _localLibraryDataSource =
-            localLibraryDataSource ??
-            (GetIt.instance.isRegistered<LocalLibraryDataSource>()
-                ? GetIt.instance<LocalLibraryDataSource>()
-                : (throw StateError(
-                    'LocalLibraryDataSource is not registered',
-                  )));
+    required LocalResourceIndexDataSource dataSource,
+    required LocalLibraryDataSource localLibraryDataSource,
+  })  : _dataSource = dataSource,
+        _localLibraryDataSource = localLibraryDataSource;
 
   final LocalResourceIndexDataSource _dataSource;
   final LocalLibraryDataSource _localLibraryDataSource;
@@ -53,7 +41,8 @@ class LocalResourceIndexRepository {
   Future<Map<String, TrackResourceBundle>> getTrackResourceBundles(
     Iterable<String> trackIds,
   ) async {
-    final resourcesByTrackId = await _dataSource.getTrackResourcesByIds(trackIds);
+    final resourcesByTrackId =
+        await _dataSource.getTrackResourcesByIds(trackIds);
     return resourcesByTrackId.map(
       (trackId, resources) => MapEntry(trackId, _toBundle(resources)),
     );
@@ -62,7 +51,8 @@ class LocalResourceIndexRepository {
   Future<List<LocalSongEntry>> listLocalSongs({
     Set<TrackResourceOrigin>? origins,
   }) async {
-    final audioResources = await _dataSource.listAudioResources(origins: origins);
+    final audioResources =
+        await _dataSource.listAudioResources(origins: origins);
     if (audioResources.isEmpty) {
       return const [];
     }
@@ -81,8 +71,8 @@ class LocalResourceIndexRepository {
       if (track == null) {
         continue;
       }
-      final bundle =
-          resourcesByTrackId[audioResource.trackId] ?? const TrackResourceBundle();
+      final bundle = resourcesByTrackId[audioResource.trackId] ??
+          const TrackResourceBundle();
       final totalSizeBytes = [
         bundle.audio?.sizeBytes ?? 0,
         bundle.artwork?.sizeBytes ?? 0,

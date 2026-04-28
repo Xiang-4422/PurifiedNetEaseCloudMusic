@@ -40,8 +40,11 @@ class _SwipeableState extends State<Swipeable> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _moveController = AnimationController(duration: const Duration(milliseconds: 200), vsync: this);
-    _moveAnimation = Tween<Offset>(begin: Offset.zero, end: const Offset(1.0, 0.0)).animate(_moveController!);
+    _moveController = AnimationController(
+        duration: const Duration(milliseconds: 200), vsync: this);
+    _moveAnimation =
+        Tween<Offset>(begin: Offset.zero, end: const Offset(1.0, 0.0))
+            .animate(_moveController!);
 
     var controllerValue = 0.0;
     _moveController?.animateTo(controllerValue);
@@ -103,19 +106,24 @@ class _SwipeableState extends State<Swipeable> with TickerProviderStateMixin {
     var delta = details.primaryVelocity;
     _dragExtent += delta!;
 
-    if (_dragExtent > 0 && !_pastLeftThreshold && (_moveController?.value ?? 0) > 0.2) {
+    if (_dragExtent > 0 &&
+        !_pastLeftThreshold &&
+        (_moveController?.value ?? 0) > 0.2) {
       _pastLeftThreshold = true;
       if (widget.onSwipeLeft != null) {
         widget.onSwipeLeft?.call();
       }
     }
-    if (_dragExtent < 0 && !_pastRightThreshold && (_moveController?.value ?? 0) > 0.2) {
+    if (_dragExtent < 0 &&
+        !_pastRightThreshold &&
+        (_moveController?.value ?? 0) > 0.2) {
       _pastRightThreshold = true;
       if (widget.onSwipeRight != null) {
         widget.onSwipeRight?.call();
       }
     }
-    _moveController?.animateTo(0.0, duration: const Duration(milliseconds: 200));
+    _moveController?.animateTo(0.0,
+        duration: const Duration(milliseconds: 200));
     _dragExtent = 0.0;
 
     // if (widget.onSwipeEnd != null) {
@@ -125,7 +133,9 @@ class _SwipeableState extends State<Swipeable> with TickerProviderStateMixin {
 
   void _updateMoveAnimation() {
     var end = _dragExtent.sign;
-    _moveAnimation = Tween<Offset>(begin: const Offset(0.0, 0.0), end: Offset(end, 0.0)).animate(_moveController!);
+    _moveAnimation =
+        Tween<Offset>(begin: const Offset(0.0, 0.0), end: Offset(end, 0.0))
+            .animate(_moveController!);
   }
 
   @override

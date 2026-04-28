@@ -2,18 +2,13 @@ import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
-import 'package:get_it/get_it.dart';
 
 class LocalMediaRepository {
   LocalMediaRepository({
-    LibraryRepository? libraryRepository,
-    LocalResourceIndexRepository? resourceIndexRepository,
-  })  : _libraryRepository = libraryRepository ??
-            (GetIt.instance.isRegistered<LibraryRepository>()
-                ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository()),
-        _resourceIndexRepository =
-            resourceIndexRepository ?? LocalResourceIndexRepository();
+    required LibraryRepository libraryRepository,
+    required LocalResourceIndexRepository resourceIndexRepository,
+  })  : _libraryRepository = libraryRepository,
+        _resourceIndexRepository = resourceIndexRepository;
 
   final LibraryRepository _libraryRepository;
   final LocalResourceIndexRepository _resourceIndexRepository;

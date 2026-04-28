@@ -1,18 +1,14 @@
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_radio_remote_data_source.dart';
-import 'package:bujuan/features/radio/radio_data.dart';
-import 'package:get_it/get_it.dart';
+import 'package:bujuan/domain/entities/radio_data.dart';
 
 class RadioRepository {
   RadioRepository({
-    UserScopedDataSource? userScopedDataSource,
+    required UserScopedDataSource userScopedDataSource,
     NeteaseRadioRemoteDataSource? remoteDataSource,
   })  : _remoteDataSource =
             remoteDataSource ?? const NeteaseRadioRemoteDataSource(),
-        _userScopedDataSource = userScopedDataSource ??
-            (GetIt.instance.isRegistered<UserScopedDataSource>()
-                ? GetIt.instance<UserScopedDataSource>()
-                : (throw StateError('UserScopedDataSource is not registered')));
+        _userScopedDataSource = userScopedDataSource;
 
   final NeteaseRadioRemoteDataSource _remoteDataSource;
   final UserScopedDataSource _userScopedDataSource;

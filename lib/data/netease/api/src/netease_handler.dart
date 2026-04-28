@@ -66,6 +66,7 @@ void neteaseInterceptor(
 }
 
 enum EncryptType { LinuxForward, WeApi, EApi }
+
 enum UserAgent { Random, Pc, Mobile }
 
 const userAgentList = [
@@ -85,12 +86,14 @@ const userAgentList = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/13.10586'
 ];
 
-const _BASE62 = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const _BASE62 =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const String _presetKeyLinuxForward = 'rFgB&h#%2?^eDg:Q';
 
 const _presetKeyWeApi = '0CoJUm6Qyw8W8jud';
 const _ivWeApi = '0102030405060708';
-const _publicKeyWeApi = '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDgtQn2JZ34ZC28NWYpAUd98iZ37BUrX/aKzmFbt7clFSs6sXqHauqKWqdtLkF2KexO40H1YTX8z2lSgBBOAxLsvaklV8k4cBFK9snQXE9/DDaFt6Rr7iVZMldczhC0JNgTz+SHXT6CBHuX3e9SdB1Ua44oncaTWz7OBGLbCiK45wIDAQAB\n-----END PUBLIC KEY-----';
+const _publicKeyWeApi =
+    '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDgtQn2JZ34ZC28NWYpAUd98iZ37BUrX/aKzmFbt7clFSs6sXqHauqKWqdtLkF2KexO40H1YTX8z2lSgBBOAxLsvaklV8k4cBFK9snQXE9/DDaFt6Rr7iVZMldczhC0JNgTz+SHXT6CBHuX3e9SdB1Ua44oncaTWz7OBGLbCiK45wIDAQAB\n-----END PUBLIC KEY-----';
 
 const String TAG = 'NeteaseMusicApi';
 const String HOST = 'https://music.163.com';
@@ -125,6 +128,7 @@ void _handleLinuxForward(RequestOptions option) {
 
   option.data = 'eparams=${Uri.encodeQueryComponent(encrypted.base16)}';
 }
+
 /// weapi 加密过程
 /// body: option.data + {csrfToken:''}
 /// params: base64(aes_cbc(16_random_key, base64(aes_cbc(_presetKeyWeApi,body))))
@@ -176,6 +180,7 @@ void _handleWeApi(RequestOptions option) {
   option.data =
       'params=${Uri.encodeQueryComponent(encryptedBody.base64)}&encSecKey=${Uri.encodeQueryComponent(encrypted3.base16)}';
 }
+
 void _handleEApi(RequestOptions option, List<Cookie> cookies) {
   var oldUriStr = option.uri.toString();
   option.path = oldUriStr.replaceAll(RegExp(r'\w*api'), 'eapi');
@@ -227,6 +232,7 @@ void _handleEApi(RequestOptions option, List<Cookie> cookies) {
 
   option.data = 'params=${Uri.encodeComponent(encrypted)}';
 }
+
 String _chooseUserAgent(UserAgent agent) {
   var random = Random();
   switch (agent) {

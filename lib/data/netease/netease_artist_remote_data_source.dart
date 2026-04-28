@@ -11,12 +11,13 @@ import 'package:bujuan/domain/entities/track.dart';
 class NeteaseArtistRemoteDataSource {
   const NeteaseArtistRemoteDataSource();
 
-  Future<({
-    ArtistEntity? artist,
-    List<Track> topTracks,
-    List<MediaItem> topMediaItems,
-    List<AlbumEntity> hotAlbums,
-  })> fetchArtistDetail({
+  Future<
+      ({
+        ArtistEntity? artist,
+        List<Track> topTracks,
+        List<MediaItem> topMediaItems,
+        List<AlbumEntity> hotAlbums,
+      })> fetchArtistDetail({
     required String artistId,
     required List<int> likedSongIds,
   }) async {
@@ -26,8 +27,10 @@ class NeteaseArtistRemoteDataSource {
     final artist = artistDetail.data?.artist == null
         ? null
         : NeteaseArtistMapper.fromArtist(artistDetail.data!.artist!);
-    final tracks = NeteaseTrackMapper.fromSong2List(artistSongs.songs ?? const []);
-    final albums = NeteaseAlbumMapper.fromAlbumList(artistAlbums.hotAlbums ?? const []);
+    final tracks =
+        NeteaseTrackMapper.fromSong2List(artistSongs.songs ?? const []);
+    final albums =
+        NeteaseAlbumMapper.fromAlbumList(artistAlbums.hotAlbums ?? const []);
     return (
       artist: artist,
       topTracks: tracks,

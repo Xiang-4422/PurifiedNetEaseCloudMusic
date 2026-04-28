@@ -10,4 +10,3 @@ class TrackWithResources {
   final Track track;
   final TrackResourceBundle resources;
 }
-

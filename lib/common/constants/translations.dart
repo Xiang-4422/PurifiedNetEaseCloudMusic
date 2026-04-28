@@ -42,7 +42,8 @@ class LocaleString extends Translations {
           'disconnect': 'Disconnect',
           //scanning
           'scanning': 'SCANNING',
-          'scanning_desc': 'Press and hold the button until the light begins to blink',
+          'scanning_desc':
+              'Press and hold the button until the light begins to blink',
           'cant_find_device': 'Can\'t set up your device? ',
           'get_help': 'Get Help',
           //device setting details
@@ -51,16 +52,21 @@ class LocaleString extends Translations {
           'find_earbyds_desc': 'Tap to ring earbuds now to help locate them',
           'forget_device': 'Forget Device',
           'inear_detect': 'In-Ear Detection',
-          'inear_detect_desc': 'Automatically play audio when earbuds are in and pause when remove',
+          'inear_detect_desc':
+              'Automatically play audio when earbuds are in and pause when remove',
           'tips_support': 'Tips & Support',
           'latency_mode': 'Latency Mode',
-          'latency_mode_desc': 'Select synchronisation between sound and video.',
+          'latency_mode_desc':
+              'Select synchronisation between sound and video.',
           'normal_latency': 'Normal Latency Mode',
           'low_latency': 'Low Latency Mode',
-          'low_latency_desc_1': 'Low Latency Mode optimises sound and video synchronisation for a better experience when you play games and watch video',
-          'low_latency_desc_2': 'Using this mode in an environment with lots of wireless devices may cause lag duo to signal interfarence.',
+          'low_latency_desc_1':
+              'Low Latency Mode optimises sound and video synchronisation for a better experience when you play games and watch video',
+          'low_latency_desc_2':
+              'Using this mode in an environment with lots of wireless devices may cause lag duo to signal interfarence.',
           //device setting hear
-          'equalizer_desc': 'Use the equalizer to fine-tune your sound experience:',
+          'equalizer_desc':
+              'Use the equalizer to fine-tune your sound experience:',
           'light': 'Light',
           'maximum': 'Maximum',
           //device setting touch
@@ -77,7 +83,8 @@ class LocaleString extends Translations {
           'dark_theme': 'Dark Theme',
           'submit_feedback': 'Submit Feedback',
           'improvement_plan': 'Join Improvement Plan',
-          'improvement_plan_desc_1': 'Provide feedback and usage data. Please check the ',
+          'improvement_plan_desc_1':
+              'Provide feedback and usage data. Please check the ',
           'improvement_plan_desc_2': 'Details',
           'privacy_policy': 'Privacy Policy',
           //user menu user

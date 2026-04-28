@@ -77,7 +77,8 @@ class MediaItemMapper {
     }).toList();
   }
 
-  static String _resolvePlaybackUrl(Track track, TrackResourceBundle resources) {
+  static String _resolvePlaybackUrl(
+      Track track, TrackResourceBundle resources) {
     if (resources.audio?.path.isNotEmpty == true) {
       return resources.audio!.path;
     }

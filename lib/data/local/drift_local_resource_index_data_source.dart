@@ -5,7 +5,8 @@ import 'package:drift/drift.dart' as drift;
 
 import 'local_resource_index_data_source.dart';
 
-class DriftLocalResourceIndexDataSource implements LocalResourceIndexDataSource {
+class DriftLocalResourceIndexDataSource
+    implements LocalResourceIndexDataSource {
   DriftLocalResourceIndexDataSource({required BujuanDriftDatabase database})
       : _database = database;
 
@@ -112,7 +113,9 @@ class DriftLocalResourceIndexDataSource implements LocalResourceIndexDataSource 
 
   @override
   Future<void> saveResource(LocalResourceEntry entry) {
-    return _database.into(_database.localResourceEntries).insertOnConflictUpdate(
+    return _database
+        .into(_database.localResourceEntries)
+        .insertOnConflictUpdate(
           LocalResourceEntriesCompanion(
             trackId: drift.Value(entry.trackId),
             kind: drift.Value(entry.kind.name),

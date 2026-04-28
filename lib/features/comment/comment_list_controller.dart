@@ -1,5 +1,5 @@
 import 'package:bujuan/core/network/load_state.dart';
-import 'package:bujuan/features/comment/comment_data.dart';
+import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -8,9 +8,9 @@ class CommentListController {
     required this.id,
     required this.type,
     required this.sortType,
-    CommentRepository? repository,
+    required CommentRepository repository,
     this.pageSize = 10,
-  }) : _repository = repository ?? CommentRepository();
+  }) : _repository = repository;
 
   final String id;
   final String type;

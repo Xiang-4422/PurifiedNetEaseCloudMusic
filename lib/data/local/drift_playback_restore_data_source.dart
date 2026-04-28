@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/core/database/drift_database.dart';
-import 'package:bujuan/features/playback/playback_restore_state.dart';
+import 'package:bujuan/domain/entities/playback_restore_state.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:drift/drift.dart' as drift;
 
@@ -22,7 +22,8 @@ class DriftPlaybackRestoreDataSource implements PlaybackRestoreDataSource {
     if (row == null) {
       return null;
     }
-    final queue = (jsonDecode(row.queueJson) as List?)?.cast<String>() ?? const <String>[];
+    final queue = (jsonDecode(row.queueJson) as List?)?.cast<String>() ??
+        const <String>[];
     return PlaybackRestoreState(
       playbackMode: PlaybackMode.values.firstWhere(
         (item) => item.name == row.playbackMode,

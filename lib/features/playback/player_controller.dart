@@ -31,11 +31,21 @@ import 'package:bujuan/common/constants/other.dart';
 class PlayerController extends GetxController {
   static PlayerController get to => Get.find();
 
-  final PlaybackRepository _repository = PlaybackRepository();
-  final PlaybackService _playbackService = Get.find<PlaybackService>();
-  final DownloadRepository _downloadRepository = DownloadRepository();
-  final LocalImageCacheRepository _imageCacheRepository =
-      LocalImageCacheRepository();
+  PlayerController({
+    required PlaybackRepository repository,
+    required PlaybackService playbackService,
+    required DownloadRepository downloadRepository,
+    LocalImageCacheRepository? imageCacheRepository,
+  })  : _repository = repository,
+        _playbackService = playbackService,
+        _downloadRepository = downloadRepository,
+        _imageCacheRepository =
+            imageCacheRepository ?? LocalImageCacheRepository();
+
+  final PlaybackRepository _repository;
+  final PlaybackService _playbackService;
+  final DownloadRepository _downloadRepository;
+  final LocalImageCacheRepository _imageCacheRepository;
 
   PlaybackService get playbackService => _playbackService;
 
@@ -45,7 +55,6 @@ class PlayerController extends GetxController {
 
   Rx<PlaybackMode> playbackMode = PlaybackMode.playlist.obs;
 
-  /// 旧页面还在直接订阅多个散落字段，这里先保留兼容字段，同时补一份统一会话状态。
   final Rx<PlaybackSessionState> sessionState =
       const PlaybackSessionState().obs;
   final Rx<PlaybackRuntimeState> runtimeState =
@@ -668,7 +677,8 @@ class PlayerController extends GetxController {
   }
 
   Future<void> _syncCurrentTrackMediaItem(Track track) async {
-    final trackWithResources = await _repository.getTrackWithResources(track.id);
+    final trackWithResources =
+        await _repository.getTrackWithResources(track.id);
     final mediaItems = MediaItemMapper.fromTrackWithResourcesList(
       [
         trackWithResources ??
@@ -779,10 +789,7 @@ class PlayerController extends GetxController {
   }
 
   bool _isHighQualityEnabled() {
-    if (Get.isRegistered<SettingsController>()) {
-      return Get.find<SettingsController>().isHighSoundQualityOpen.value;
-    }
-    return false;
+    return SettingsController.to.isHighSoundQualityOpen.value;
   }
 
   void _preloadImages() {

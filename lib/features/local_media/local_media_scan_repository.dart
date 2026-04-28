@@ -3,8 +3,8 @@ import 'dart:io';
 import 'local_media_repository.dart';
 
 class LocalMediaScanRepository {
-  LocalMediaScanRepository({LocalMediaRepository? localMediaRepository})
-      : _localMediaRepository = localMediaRepository ?? LocalMediaRepository();
+  LocalMediaScanRepository({required LocalMediaRepository localMediaRepository})
+      : _localMediaRepository = localMediaRepository;
 
   final LocalMediaRepository _localMediaRepository;
 

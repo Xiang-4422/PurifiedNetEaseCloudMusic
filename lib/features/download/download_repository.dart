@@ -10,7 +10,6 @@ import 'package:bujuan/domain/entities/track_resource_bundle.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
 import 'package:path_provider/path_provider.dart';
 
 class DownloadRepository {
@@ -21,22 +20,13 @@ class DownloadRepository {
   static final Set<String> _cancelledTrackIds = <String>{};
 
   DownloadRepository({
-    LibraryRepository? libraryRepository,
-    DownloadTaskDataSource? taskDataSource,
-    LocalResourceIndexRepository? resourceIndexRepository,
+    required LibraryRepository libraryRepository,
+    required DownloadTaskDataSource taskDataSource,
+    required LocalResourceIndexRepository resourceIndexRepository,
     Dio? dio,
-  })  : _libraryRepository = libraryRepository ??
-            (GetIt.instance.isRegistered<LibraryRepository>()
-                ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository()),
-        _taskDataSource = taskDataSource ??
-            (GetIt.instance.isRegistered<DownloadTaskDataSource>()
-                ? GetIt.instance<DownloadTaskDataSource>()
-                : (throw StateError(
-                    'DownloadTaskDataSource is not registered',
-                  ))),
-        _resourceIndexRepository =
-            resourceIndexRepository ?? LocalResourceIndexRepository(),
+  })  : _libraryRepository = libraryRepository,
+        _taskDataSource = taskDataSource,
+        _resourceIndexRepository = resourceIndexRepository,
         _dio = dio ?? Dio();
 
   final LibraryRepository _libraryRepository;
@@ -206,7 +196,8 @@ class DownloadRepository {
       }
 
       final rootDirectory = await _ensureDownloadRootDirectory();
-      final audioDirectory = await _ensureChildDirectory(rootDirectory, 'audio');
+      final audioDirectory =
+          await _ensureChildDirectory(rootDirectory, 'audio');
       final artworkDirectory =
           await _ensureChildDirectory(rootDirectory, 'artwork');
       final lyricsDirectory =
@@ -400,7 +391,8 @@ class DownloadRepository {
         return track;
       }
       final rootDirectory = await _ensureCacheRootDirectory();
-      final audioDirectory = await _ensureChildDirectory(rootDirectory, 'audio');
+      final audioDirectory =
+          await _ensureChildDirectory(rootDirectory, 'audio');
       final artworkDirectory =
           await _ensureChildDirectory(rootDirectory, 'artwork');
       final lyricsDirectory =
@@ -567,7 +559,8 @@ class DownloadRepository {
       return null;
     }
 
-    final lyricsPath = '${lyricsDirectory.path}/${_safeFileSegment(trackId)}.lrc';
+    final lyricsPath =
+        '${lyricsDirectory.path}/${_safeFileSegment(trackId)}.lrc';
     final lyricFile = File(lyricsPath);
     await lyricFile.writeAsString(_mergeLyricsContent(lyrics));
     return lyricFile.path;

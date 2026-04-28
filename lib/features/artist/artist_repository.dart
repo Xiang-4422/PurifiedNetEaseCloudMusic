@@ -5,7 +5,6 @@ import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
-import 'package:get_it/get_it.dart';
 
 class ArtistDetailData {
   const ArtistDetailData({
@@ -21,12 +20,9 @@ class ArtistDetailData {
 
 class ArtistRepository {
   ArtistRepository({
-    LibraryRepository? libraryRepository,
+    required LibraryRepository libraryRepository,
     NeteaseArtistRemoteDataSource? remoteDataSource,
-  })  : _libraryRepository = libraryRepository ??
-            (GetIt.instance.isRegistered<LibraryRepository>()
-                ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository()),
+  })  : _libraryRepository = libraryRepository,
         _remoteDataSource =
             remoteDataSource ?? const NeteaseArtistRemoteDataSource();
 

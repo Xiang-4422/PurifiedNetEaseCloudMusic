@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:bujuan/core/storage/cache_box.dart';
-
-import 'user_profile_data.dart';
+import 'package:bujuan/domain/entities/user_profile_data.dart';
 
 class UserProfileCacheStore {
   const UserProfileCacheStore();

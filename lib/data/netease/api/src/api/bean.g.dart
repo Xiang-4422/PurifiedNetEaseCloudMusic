@@ -6,12 +6,11 @@ part of 'bean.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-ServerStatusBean _$ServerStatusBeanFromJson(Map<String, dynamic> json) {
-  return ServerStatusBean()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?;
-}
+ServerStatusBean _$ServerStatusBeanFromJson(Map<String, dynamic> json) =>
+    ServerStatusBean()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?;
 
 Map<String, dynamic> _$ServerStatusBeanToJson(ServerStatusBean instance) =>
     <String, dynamic>{
@@ -20,16 +19,16 @@ Map<String, dynamic> _$ServerStatusBeanToJson(ServerStatusBean instance) =>
       'msg': instance.msg,
     };
 
-ServerStatusListBean _$ServerStatusListBeanFromJson(Map<String, dynamic> json) {
-  return ServerStatusListBean()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..more = json['more'] as bool?
-    ..hasMore = json['hasMore'] as bool?
-    ..count = json['count'] as int?
-    ..total = json['total'] as int?;
-}
+ServerStatusListBean _$ServerStatusListBeanFromJson(
+        Map<String, dynamic> json) =>
+    ServerStatusListBean()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..more = json['more'] as bool?
+      ..hasMore = json['hasMore'] as bool?
+      ..count = (json['count'] as num?)?.toInt()
+      ..total = (json['total'] as num?)?.toInt();
 
 Map<String, dynamic> _$ServerStatusListBeanToJson(
         ServerStatusListBean instance) =>

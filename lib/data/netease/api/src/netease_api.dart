@@ -42,14 +42,14 @@ class NeteaseMusicApi
     pathProvider = provider ?? PathProvider();
     await pathProvider.init();
     // 初始化 cookieManager
-    cookieManager = CookieManager(PersistCookieJar(storage: FileStorage(pathProvider.getCookieSavedPath())));
+    cookieManager = CookieManager(PersistCookieJar(
+        storage: FileStorage(pathProvider.getCookieSavedPath())));
     // 初始化 dio
     _initDio(Https.dio, debug, true);
     return true;
   }
 
   static Dio _initDio(Dio dio, bool debug, bool refreshToken) {
-
     dio.interceptors.add(cookieManager);
     // Dio日志拦截器
     if (debug) {
@@ -65,7 +65,8 @@ class NeteaseMusicApi
     }
     dio.interceptors.add(InterceptorsWrapper(
         onRequest: neteaseInterceptor,
-        onResponse: (Response response, ResponseInterceptorHandler handler) async {
+        onResponse:
+            (Response response, ResponseInterceptorHandler handler) async {
           var requestOptions = response.requestOptions;
 
           if (response.data is String) {
@@ -73,9 +74,9 @@ class NeteaseMusicApi
               response.data = jsonDecode(response.data);
             } catch (e) {}
           }
-          if (refreshToken
-              && NeteaseMusicApi().usc.isLogined
-              && response.data is Map) {
+          if (refreshToken &&
+              NeteaseMusicApi().usc.isLogined &&
+              response.data is Map) {
             var result = ServerStatusBean.fromJson(response.data);
             // 1. token已经更新，请求重试
             // 2. token未更新
@@ -107,9 +108,7 @@ class NeteaseMusicApi
           }
 
           handler.next(response);
-        }
-      )
-    );
+        }));
 
     return dio;
   }
@@ -158,8 +157,8 @@ class UserLoginStateController {
   }
 
   StreamSubscription listenLoginState(
-      void Function(
-          LoginState event, NeteaseAccountInfoWrap? accountInfoWrap) onChange) {
+      void Function(LoginState event, NeteaseAccountInfoWrap? accountInfoWrap)
+          onChange) {
     var controller = _controller;
     if (controller == null) {
       _controller = controller = StreamController.broadcast(sync: true);
@@ -201,7 +200,8 @@ class UserLoginStateController {
     }
   }
 
-  File _saveFile() => File("${NeteaseMusicApi.pathProvider.getDataSavedPath()}_accountInfo.json");
+  File _saveFile() => File(
+      "${NeteaseMusicApi.pathProvider.getDataSavedPath()}_accountInfo.json");
 
   _checkCreateSavePath() {
     var file = _saveFile();
@@ -228,9 +228,11 @@ class PathProvider {
   var _dataPath = '';
 
   init() async {
-    if(PlatformUtils.isWeb) return;
-    _cookiePath = "${(await getApplicationSupportDirectory()).absolute.path}/zmusic/.cookies/";
-    _dataPath = "${(await getApplicationSupportDirectory()).absolute.path}/zmusic/.data/";
+    if (PlatformUtils.isWeb) return;
+    _cookiePath =
+        "${(await getApplicationSupportDirectory()).absolute.path}/zmusic/.cookies/";
+    _dataPath =
+        "${(await getApplicationSupportDirectory()).absolute.path}/zmusic/.data/";
   }
 
   String getCookieSavedPath() {

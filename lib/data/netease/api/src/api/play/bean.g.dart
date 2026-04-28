@@ -6,18 +6,16 @@ part of 'bean.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Music _$MusicFromJson(Map<String, dynamic> json) {
-  return Music()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..size = json['size'] as int?
-    ..extension = json['extension'] as String?
-    ..sr = json['sr'] as int?
-    ..dfsId = json['dfsId'] as int?
-    ..bitrate = json['bitrate'] as int?
-    ..playTime = json['playTime'] as int?
-    ..volumeDelta = (json['volumeDelta'] as num?)?.toDouble();
-}
+Music _$MusicFromJson(Map<String, dynamic> json) => Music()
+  ..id = dynamicToString(json['id'])
+  ..name = json['name'] as String?
+  ..size = (json['size'] as num?)?.toInt()
+  ..extension = json['extension'] as String?
+  ..sr = (json['sr'] as num?)?.toInt()
+  ..dfsId = (json['dfsId'] as num?)?.toInt()
+  ..bitrate = (json['bitrate'] as num?)?.toInt()
+  ..playTime = (json['playTime'] as num?)?.toInt()
+  ..volumeDelta = (json['volumeDelta'] as num?)?.toDouble();
 
 Map<String, dynamic> _$MusicToJson(Music instance) => <String, dynamic>{
       'id': instance.id,
@@ -31,13 +29,11 @@ Map<String, dynamic> _$MusicToJson(Music instance) => <String, dynamic>{
       'volumeDelta': instance.volumeDelta,
     };
 
-Music2 _$Music2FromJson(Map<String, dynamic> json) {
-  return Music2()
-    ..br = json['br'] as int?
-    ..fid = json['fid'] as int?
-    ..size = json['size'] as int?
-    ..vd = (json['vd'] as num?)?.toDouble();
-}
+Music2 _$Music2FromJson(Map<String, dynamic> json) => Music2()
+  ..br = (json['br'] as num?)?.toInt()
+  ..fid = (json['fid'] as num?)?.toInt()
+  ..size = (json['size'] as num?)?.toInt()
+  ..vd = (json['vd'] as num?)?.toDouble();
 
 Map<String, dynamic> _$Music2ToJson(Music2 instance) => <String, dynamic>{
       'br': instance.br,
@@ -46,43 +42,38 @@ Map<String, dynamic> _$Music2ToJson(Music2 instance) => <String, dynamic>{
       'vd': instance.vd,
     };
 
-Lyrics _$LyricsFromJson(Map<String, dynamic> json) {
-  return Lyrics()..txt = json['txt'] as String?;
-}
+Lyrics _$LyricsFromJson(Map<String, dynamic> json) =>
+    Lyrics()..txt = json['txt'] as String?;
 
 Map<String, dynamic> _$LyricsToJson(Lyrics instance) => <String, dynamic>{
       'txt': instance.txt,
     };
 
-Lyrics2 _$Lyrics2FromJson(Map<String, dynamic> json) {
-  return Lyrics2()
-    ..lyric = json['lyric'] as String?
-    ..version = json['version'] as int?;
-}
+Lyrics2 _$Lyrics2FromJson(Map<String, dynamic> json) => Lyrics2()
+  ..lyric = json['lyric'] as String?
+  ..version = (json['version'] as num?)?.toInt();
 
 Map<String, dynamic> _$Lyrics2ToJson(Lyrics2 instance) => <String, dynamic>{
       'lyric': instance.lyric,
       'version': instance.version,
     };
 
-Privilege _$PrivilegeFromJson(Map<String, dynamic> json) {
-  return Privilege()
-    ..id = dynamicToString(json['id'])
-    ..fee = json['fee'] as int?
-    ..payed = json['payed'] as int?
-    ..st = json['st'] as int?
-    ..pl = json['pl'] as int?
-    ..dl = json['dl'] as int?
-    ..sp = json['sp'] as int?
-    ..cp = json['cp'] as int?
-    ..subp = json['subp'] as int?
-    ..cs = json['cs'] as bool?
-    ..maxbr = json['maxbr'] as int?
-    ..fl = json['fl'] as int?
-    ..toast = json['toast'] as bool?
-    ..flag = json['flag'] as int?
-    ..preSell = json['preSell'] as bool?;
-}
+Privilege _$PrivilegeFromJson(Map<String, dynamic> json) => Privilege()
+  ..id = dynamicToString(json['id'])
+  ..fee = (json['fee'] as num?)?.toInt()
+  ..payed = (json['payed'] as num?)?.toInt()
+  ..st = (json['st'] as num?)?.toInt()
+  ..pl = (json['pl'] as num?)?.toInt()
+  ..dl = (json['dl'] as num?)?.toInt()
+  ..sp = (json['sp'] as num?)?.toInt()
+  ..cp = (json['cp'] as num?)?.toInt()
+  ..subp = (json['subp'] as num?)?.toInt()
+  ..cs = json['cs'] as bool?
+  ..maxbr = (json['maxbr'] as num?)?.toInt()
+  ..fl = (json['fl'] as num?)?.toInt()
+  ..toast = json['toast'] as bool?
+  ..flag = (json['flag'] as num?)?.toInt()
+  ..preSell = json['preSell'] as bool?;
 
 Map<String, dynamic> _$PrivilegeToJson(Privilege instance) => <String, dynamic>{
       'id': instance.id,
@@ -102,42 +93,54 @@ Map<String, dynamic> _$PrivilegeToJson(Privilege instance) => <String, dynamic>{
       'preSell': instance.preSell,
     };
 
-Song _$SongFromJson(Map<String, dynamic> json) {
-  return Song()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..copyrightId = json['copyrightId'] as int?
-    ..disc = json['disc'] as String?
-    ..no = json['no'] as int?
-    ..fee = json['fee'] as int?
-    ..status = json['status'] as int?
-    ..starred = json['starred'] as bool?
-    ..starredNum = json['starredNum'] as int?
-    ..popularity = (json['popularity'] as num?)?.toDouble()
-    ..score = json['score'] as int?
-    ..duration = json['duration'] as int?
-    ..playedNum = json['playedNum'] as int?
-    ..dayPlays = json['dayPlays'] as int?
-    ..hearTime = json['hearTime'] as int?
-    ..ringtone = json['ringtone'] as String?
-    ..copyFrom = json['copyFrom'] as String?
-    ..commentThreadId = json['commentThreadId'] as String?
-    ..artists = (json['artists'] as List<dynamic>?)?.map((e) => Artist.fromJson(e as Map<String, dynamic>)).toList()
-    ..album = json['album'] == null ? null : Album.fromJson(json['album'] as Map<String, dynamic>)
-    ..lyrics = json['lyrics']
-    ..privilege = json['privilege'] == null ? null : Privilege.fromJson(json['privilege'] as Map<String, dynamic>)
-    ..copyright = json['copyright'] as int?
-    ..transName = json['transName'] as String?
-    ..mark = json['mark'] as int?
-    ..rtype = json['rtype'] as int?
-    ..mvid = json['mvid'] as int?
-    ..alg = json['alg'] as String?
-    ..reason = json['reason'] as String?
-    ..hMusic = json['hMusic'] == null ? null : Music.fromJson(json['hMusic'] as Map<String, dynamic>)
-    ..mMusic = json['mMusic'] == null ? null : Music.fromJson(json['mMusic'] as Map<String, dynamic>)
-    ..lMusic = json['lMusic'] == null ? null : Music.fromJson(json['lMusic'] as Map<String, dynamic>)
-    ..bMusic = json['bMusic'] == null ? null : Music.fromJson(json['bMusic'] as Map<String, dynamic>);
-}
+Song _$SongFromJson(Map<String, dynamic> json) => Song()
+  ..id = dynamicToString(json['id'])
+  ..name = json['name'] as String?
+  ..copyrightId = (json['copyrightId'] as num?)?.toInt()
+  ..disc = json['disc'] as String?
+  ..no = (json['no'] as num?)?.toInt()
+  ..fee = (json['fee'] as num?)?.toInt()
+  ..status = (json['status'] as num?)?.toInt()
+  ..starred = json['starred'] as bool?
+  ..starredNum = (json['starredNum'] as num?)?.toInt()
+  ..popularity = (json['popularity'] as num?)?.toDouble()
+  ..score = (json['score'] as num?)?.toInt()
+  ..duration = (json['duration'] as num?)?.toInt()
+  ..playedNum = (json['playedNum'] as num?)?.toInt()
+  ..dayPlays = (json['dayPlays'] as num?)?.toInt()
+  ..hearTime = (json['hearTime'] as num?)?.toInt()
+  ..ringtone = json['ringtone'] as String?
+  ..copyFrom = json['copyFrom'] as String?
+  ..commentThreadId = json['commentThreadId'] as String?
+  ..artists = (json['artists'] as List<dynamic>?)
+      ?.map((e) => Artist.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..album = json['album'] == null
+      ? null
+      : Album.fromJson(json['album'] as Map<String, dynamic>)
+  ..lyrics = json['lyrics']
+  ..privilege = json['privilege'] == null
+      ? null
+      : Privilege.fromJson(json['privilege'] as Map<String, dynamic>)
+  ..copyright = (json['copyright'] as num?)?.toInt()
+  ..transName = json['transName'] as String?
+  ..mark = (json['mark'] as num?)?.toInt()
+  ..rtype = (json['rtype'] as num?)?.toInt()
+  ..mvid = (json['mvid'] as num?)?.toInt()
+  ..alg = json['alg'] as String?
+  ..reason = json['reason'] as String?
+  ..hMusic = json['hMusic'] == null
+      ? null
+      : Music.fromJson(json['hMusic'] as Map<String, dynamic>)
+  ..mMusic = json['mMusic'] == null
+      ? null
+      : Music.fromJson(json['mMusic'] as Map<String, dynamic>)
+  ..lMusic = json['lMusic'] == null
+      ? null
+      : Music.fromJson(json['lMusic'] as Map<String, dynamic>)
+  ..bMusic = json['bMusic'] == null
+      ? null
+      : Music.fromJson(json['bMusic'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$SongToJson(Song instance) => <String, dynamic>{
       'id': instance.id,
@@ -175,34 +178,47 @@ Map<String, dynamic> _$SongToJson(Song instance) => <String, dynamic>{
       'bMusic': instance.bMusic,
     };
 
-Song2 _$Song2FromJson(Map<String, dynamic> json) {
-  return Song2()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..pst = json['pst'] as int?
-    ..t = json['t'] as int?
-    ..ar = (json['ar'] as List<dynamic>?)?.map((e) => Artist.fromJson(e as Map<String, dynamic>)).toList()
-    ..pop = (json['pop'] as num?)?.toDouble()
-    ..st = json['st'] as int?
-    ..rt = json['rt'] as String?
-    ..fee = json['fee'] as int?
-    ..v = json['v'] as int?
-    ..cf = json['cf'] as String?
-    ..al = json['al']!=null?Album.fromJson(json['al'] as Map<String, dynamic>):null
-    ..dt = json['dt'] as int?
-    ..h = json['h'] == null ? null : Music2.fromJson(json['h'] as Map<String, dynamic>)
-    ..m = json['m'] == null ? null : Music2.fromJson(json['m'] as Map<String, dynamic>)
-    ..l = json['l'] == null ? null : Music2.fromJson(json['l'] as Map<String, dynamic>)
-    ..a = json['a'] == null ? null : Music2.fromJson(json['a'] as Map<String, dynamic>)
-    ..mark = json['mark'] as int?
-    ..mv = json['mv'] as int?
-    ..rtype = json['rtype'] as int?
-    ..mst = json['mst'] as int?
-    ..cp = json['cp'] as int?
-    ..publishTime = json['publishTime'] as int?
-    ..reason = json['reason'] as String?
-    ..privilege = json['privilege'] == null ? null : Privilege.fromJson(json['privilege'] as Map<String, dynamic>);
-}
+Song2 _$Song2FromJson(Map<String, dynamic> json) => Song2()
+  ..id = dynamicToString(json['id'])
+  ..name = json['name'] as String?
+  ..pst = (json['pst'] as num?)?.toInt()
+  ..t = (json['t'] as num?)?.toInt()
+  ..ar = (json['ar'] as List<dynamic>?)
+      ?.map((e) => Artist.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..pop = (json['pop'] as num?)?.toDouble()
+  ..st = (json['st'] as num?)?.toInt()
+  ..rt = json['rt'] as String?
+  ..fee = (json['fee'] as num?)?.toInt()
+  ..v = (json['v'] as num?)?.toInt()
+  ..cf = json['cf'] as String?
+  ..al = json['al'] == null
+      ? null
+      : Album.fromJson(json['al'] as Map<String, dynamic>)
+  ..dt = (json['dt'] as num?)?.toInt()
+  ..h = json['h'] == null
+      ? null
+      : Music2.fromJson(json['h'] as Map<String, dynamic>)
+  ..m = json['m'] == null
+      ? null
+      : Music2.fromJson(json['m'] as Map<String, dynamic>)
+  ..l = json['l'] == null
+      ? null
+      : Music2.fromJson(json['l'] as Map<String, dynamic>)
+  ..a = json['a'] == null
+      ? null
+      : Music2.fromJson(json['a'] as Map<String, dynamic>)
+  ..mark = (json['mark'] as num?)?.toInt()
+  ..mv = (json['mv'] as num?)?.toInt()
+  ..rtype = (json['rtype'] as num?)?.toInt()
+  ..mst = (json['mst'] as num?)?.toInt()
+  ..cp = (json['cp'] as num?)?.toInt()
+  ..publishTime = (json['publishTime'] as num?)?.toInt()
+  ..reason = json['reason'] as String?
+  ..privilege = json['privilege'] == null
+      ? null
+      : Privilege.fromJson(json['privilege'] as Map<String, dynamic>)
+  ..available = json['available'] as bool?;
 
 Map<String, dynamic> _$Song2ToJson(Song2 instance) => <String, dynamic>{
       'id': instance.id,
@@ -230,18 +246,23 @@ Map<String, dynamic> _$Song2ToJson(Song2 instance) => <String, dynamic>{
       'publishTime': instance.publishTime,
       'reason': instance.reason,
       'privilege': instance.privilege,
+      'available': instance.available,
     };
 
-SongDetailWrap _$SongDetailWrapFromJson(Map<String, dynamic> json) {
-  return SongDetailWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..songs = (json['songs'] as List<dynamic>?)?.map((e) => Song2.fromJson(e as Map<String, dynamic>)).toList()
-    ..privileges = (json['privileges'] as List<dynamic>?)?.map((e) => Privilege.fromJson(e as Map<String, dynamic>)).toList();
-}
+SongDetailWrap _$SongDetailWrapFromJson(Map<String, dynamic> json) =>
+    SongDetailWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..songs = (json['songs'] as List<dynamic>?)
+          ?.map((e) => Song2.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..privileges = (json['privileges'] as List<dynamic>?)
+          ?.map((e) => Privilege.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$SongDetailWrapToJson(SongDetailWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$SongDetailWrapToJson(SongDetailWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -249,21 +270,19 @@ Map<String, dynamic> _$SongDetailWrapToJson(SongDetailWrap instance) => <String,
       'privileges': instance.privileges,
     };
 
-SongUrl _$SongUrlFromJson(Map<String, dynamic> json) {
-  return SongUrl()
-    ..id = dynamicToString(json['id'])
-    ..url = json['url'] as String?
-    ..br = json['br'] as int?
-    ..size = json['size'] as int?
-    ..code = json['code'] as int?
-    ..expi = json['expi'] as int?
-    ..gain = (json['gain'] as num?)?.toDouble()
-    ..fee = json['fee'] as int?
-    ..payed = json['payed'] as int?
-    ..flag = json['flag'] as int?
-    ..canExtend = json['canExtend'] as bool?
-    ..md5 = json['md5'] as String?;
-}
+SongUrl _$SongUrlFromJson(Map<String, dynamic> json) => SongUrl()
+  ..id = dynamicToString(json['id'])
+  ..url = json['url'] as String?
+  ..br = (json['br'] as num?)?.toInt()
+  ..size = (json['size'] as num?)?.toInt()
+  ..code = (json['code'] as num?)?.toInt()
+  ..expi = (json['expi'] as num?)?.toInt()
+  ..gain = (json['gain'] as num?)?.toDouble()
+  ..fee = (json['fee'] as num?)?.toInt()
+  ..payed = (json['payed'] as num?)?.toInt()
+  ..flag = (json['flag'] as num?)?.toInt()
+  ..canExtend = json['canExtend'] as bool?
+  ..md5 = json['md5'] as String?;
 
 Map<String, dynamic> _$SongUrlToJson(SongUrl instance) => <String, dynamic>{
       'id': instance.id,
@@ -280,35 +299,37 @@ Map<String, dynamic> _$SongUrlToJson(SongUrl instance) => <String, dynamic>{
       'md5': instance.md5,
     };
 
-SongUrlListWrap _$SongUrlListWrapFromJson(Map<String, dynamic> json) {
-  return SongUrlListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = (json['data'] as List<dynamic>?)?.map((e) => SongUrl.fromJson(e as Map<String, dynamic>)).toList();
-}
+SongUrlListWrap _$SongUrlListWrapFromJson(Map<String, dynamic> json) =>
+    SongUrlListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data = (json['data'] as List<dynamic>?)
+          ?.map((e) => SongUrl.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$SongUrlListWrapToJson(SongUrlListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$SongUrlListWrapToJson(SongUrlListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-SongLyricWrap _$SongLyricWrapFromJson(Map<String, dynamic> json) {
-  return SongLyricWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..sgc = json['sgc'] as bool?
-    ..sfy = json['sfy'] as bool?
-    ..qfy = json['qfy'] as bool?
-    ..lrc = Lyrics2.fromJson(json['lrc'] as Map<String, dynamic>)
-    ..klyric = Lyrics2.fromJson(json['klyric']??<String, dynamic>{})
-    ..tlyric = Lyrics2.fromJson(json['tlyric']??<String, dynamic>{});
-}
+SongLyricWrap _$SongLyricWrapFromJson(Map<String, dynamic> json) =>
+    SongLyricWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..sgc = json['sgc'] as bool?
+      ..sfy = json['sfy'] as bool?
+      ..qfy = json['qfy'] as bool?
+      ..lrc = Lyrics2.fromJson(json['lrc'] as Map<String, dynamic>)
+      ..klyric = Lyrics2.fromJson(json['klyric'] as Map<String, dynamic>)
+      ..tlyric = Lyrics2.fromJson(json['tlyric'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$SongLyricWrapToJson(SongLyricWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$SongLyricWrapToJson(SongLyricWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -320,49 +341,54 @@ Map<String, dynamic> _$SongLyricWrapToJson(SongLyricWrap instance) => <String, d
       'tlyric': instance.tlyric,
     };
 
-SongListWrap _$SongListWrapFromJson(Map<String, dynamic> json) {
-  return SongListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..songs = (json['songs'] as List<dynamic>?)?.map((e) => Song.fromJson(e as Map<String, dynamic>)).toList();
-}
+SongListWrap _$SongListWrapFromJson(Map<String, dynamic> json) => SongListWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..songs = (json['songs'] as List<dynamic>?)
+      ?.map((e) => Song.fromJson(e as Map<String, dynamic>))
+      .toList();
 
-Map<String, dynamic> _$SongListWrapToJson(SongListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$SongListWrapToJson(SongListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'songs': instance.songs,
     };
 
-SongListWrap2 _$SongListWrap2FromJson(Map<String, dynamic> json) {
-  return SongListWrap2()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = (json['data'] as List<dynamic>?)?.map((e) => Song.fromJson(e as Map<String, dynamic>)).toList();
-}
+SongListWrap2 _$SongListWrap2FromJson(Map<String, dynamic> json) =>
+    SongListWrap2()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data = (json['data'] as List<dynamic>?)
+          ?.map((e) => Song.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$SongListWrap2ToJson(SongListWrap2 instance) => <String, dynamic>{
+Map<String, dynamic> _$SongListWrap2ToJson(SongListWrap2 instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-PersonalizedSongItem _$PersonalizedSongItemFromJson(Map<String, dynamic> json) {
-  return PersonalizedSongItem()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..picUrl = json['picUrl'] as String?
-    ..copywriter = json['copywriter'] as String?
-    ..canDislike = json['canDislike'] as bool?
-    ..alg = json['alg'] as String?
-    ..type = json['type'] as int?
-    ..song = Song.fromJson(json['song'] as Map<String, dynamic>);
-}
+PersonalizedSongItem _$PersonalizedSongItemFromJson(
+        Map<String, dynamic> json) =>
+    PersonalizedSongItem()
+      ..id = dynamicToString(json['id'])
+      ..name = json['name'] as String?
+      ..picUrl = json['picUrl'] as String?
+      ..copywriter = json['copywriter'] as String?
+      ..canDislike = json['canDislike'] as bool?
+      ..alg = json['alg'] as String?
+      ..type = (json['type'] as num?)?.toInt()
+      ..song = Song.fromJson(json['song'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$PersonalizedSongItemToJson(PersonalizedSongItem instance) => <String, dynamic>{
+Map<String, dynamic> _$PersonalizedSongItemToJson(
+        PersonalizedSongItem instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'picUrl': instance.picUrl,
@@ -373,16 +399,20 @@ Map<String, dynamic> _$PersonalizedSongItemToJson(PersonalizedSongItem instance)
       'song': instance.song,
     };
 
-PersonalizedSongListWrap _$PersonalizedSongListWrapFromJson(Map<String, dynamic> json) {
-  return PersonalizedSongListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..result = (json['result'] as List<dynamic>?)?.map((e) => PersonalizedSongItem.fromJson(e as Map<String, dynamic>)).toList()
-    ..category = json['category'] as int?;
-}
+PersonalizedSongListWrap _$PersonalizedSongListWrapFromJson(
+        Map<String, dynamic> json) =>
+    PersonalizedSongListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..result = (json['result'] as List<dynamic>?)
+          ?.map((e) => PersonalizedSongItem.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..category = (json['category'] as num?)?.toInt();
 
-Map<String, dynamic> _$PersonalizedSongListWrapToJson(PersonalizedSongListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$PersonalizedSongListWrapToJson(
+        PersonalizedSongListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -390,16 +420,18 @@ Map<String, dynamic> _$PersonalizedSongListWrapToJson(PersonalizedSongListWrap i
       'category': instance.category,
     };
 
-LikeSongListWrap _$LikeSongListWrapFromJson(Map<String, dynamic> json) {
-  return LikeSongListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..checkPoint = json['checkPoint'] as int?
-    ..ids = (json['ids'] as List<dynamic>).map((e) => e as int).toList();
-}
+LikeSongListWrap _$LikeSongListWrapFromJson(Map<String, dynamic> json) =>
+    LikeSongListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..checkPoint = (json['checkPoint'] as num?)?.toInt()
+      ..ids = (json['ids'] as List<dynamic>)
+          .map((e) => (e as num).toInt())
+          .toList();
 
-Map<String, dynamic> _$LikeSongListWrapToJson(LikeSongListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$LikeSongListWrapToJson(LikeSongListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -407,24 +439,24 @@ Map<String, dynamic> _$LikeSongListWrapToJson(LikeSongListWrap instance) => <Str
       'ids': instance.ids,
     };
 
-CloudSongItem _$CloudSongItemFromJson(Map<String, dynamic> json) {
-  return CloudSongItem()
-    ..simpleSong = Song2.fromJson(json['simpleSong'] as Map<String, dynamic>)
-    ..songId = dynamicToString(json['songId'])
-    ..songName = json['songName'] as String?
-    ..fileName = json['fileName'] as String?
-    ..cover = json['cover'] as int?
-    ..fileSize = json['fileSize'] as int?
-    ..addTime = json['addTime'] as int
-    ..version = json['version'] as int?
-    ..coverId = json['coverId'] as String?
-    ..lyricId = json['lyricId'] as String?
-    ..album = json['album'] as String?
-    ..artist = json['artist'] as String?
-    ..bitrate = json['bitrate'] as int?;
-}
+CloudSongItem _$CloudSongItemFromJson(Map<String, dynamic> json) =>
+    CloudSongItem()
+      ..simpleSong = Song2.fromJson(json['simpleSong'] as Map<String, dynamic>)
+      ..songId = dynamicToString(json['songId'])
+      ..songName = json['songName'] as String?
+      ..fileName = json['fileName'] as String?
+      ..cover = (json['cover'] as num?)?.toInt()
+      ..fileSize = (json['fileSize'] as num?)?.toInt()
+      ..addTime = (json['addTime'] as num).toInt()
+      ..version = (json['version'] as num?)?.toInt()
+      ..coverId = json['coverId'] as String?
+      ..lyricId = json['lyricId'] as String?
+      ..album = json['album'] as String?
+      ..artist = json['artist'] as String?
+      ..bitrate = (json['bitrate'] as num?)?.toInt();
 
-Map<String, dynamic> _$CloudSongItemToJson(CloudSongItem instance) => <String, dynamic>{
+Map<String, dynamic> _$CloudSongItemToJson(CloudSongItem instance) =>
+    <String, dynamic>{
       'simpleSong': instance.simpleSong,
       'songId': instance.songId,
       'songName': instance.songName,
@@ -440,22 +472,24 @@ Map<String, dynamic> _$CloudSongItemToJson(CloudSongItem instance) => <String, d
       'bitrate': instance.bitrate,
     };
 
-CloudSongListWrap _$CloudSongListWrapFromJson(Map<String, dynamic> json) {
-  return CloudSongListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..more = json['more'] as bool?
-    ..hasMore = json['hasMore'] as bool?
-    ..count = json['count'] as int?
-    ..total = json['total'] as int?
-    ..size = json['size'] as String?
-    ..maxSize = json['maxSize'] as String?
-    ..upgradeSign = json['upgradeSign'] as int?
-    ..data = (json['data'] as List<dynamic>?)?.map((e) => CloudSongItem.fromJson(e as Map<String, dynamic>)).toList();
-}
+CloudSongListWrap _$CloudSongListWrapFromJson(Map<String, dynamic> json) =>
+    CloudSongListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..more = json['more'] as bool?
+      ..hasMore = json['hasMore'] as bool?
+      ..count = (json['count'] as num?)?.toInt()
+      ..total = (json['total'] as num?)?.toInt()
+      ..size = json['size'] as String?
+      ..maxSize = json['maxSize'] as String?
+      ..upgradeSign = (json['upgradeSign'] as num?)?.toInt()
+      ..data = (json['data'] as List<dynamic>?)
+          ?.map((e) => CloudSongItem.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$CloudSongListWrapToJson(CloudSongListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$CloudSongListWrapToJson(CloudSongListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -469,55 +503,72 @@ Map<String, dynamic> _$CloudSongListWrapToJson(CloudSongListWrap instance) => <S
       'data': instance.data,
     };
 
-RecommendSongReason _$RecommendSongReasonFromJson(Map<String, dynamic> json) {
-  return RecommendSongReason()
-    ..songId = dynamicToString(json['songId'])
-    ..reason = json['reason'] as String?;
-}
+RecommendSongReason _$RecommendSongReasonFromJson(Map<String, dynamic> json) =>
+    RecommendSongReason()
+      ..songId = dynamicToString(json['songId'])
+      ..reason = json['reason'] as String?;
 
-Map<String, dynamic> _$RecommendSongReasonToJson(RecommendSongReason instance) => <String, dynamic>{
+Map<String, dynamic> _$RecommendSongReasonToJson(
+        RecommendSongReason instance) =>
+    <String, dynamic>{
       'songId': instance.songId,
       'reason': instance.reason,
     };
 
-RecommendSongListWrap _$RecommendSongListWrapFromJson(Map<String, dynamic> json) {
-  return RecommendSongListWrap()
-    ..dailySongs = (json['dailySongs'] as List<dynamic>?)?.map((e) => Song2.fromJson(e as Map<String, dynamic>)).toList()
-    ..orderSongs = (json['orderSongs'] as List<dynamic>?)?.map((e) => Song2.fromJson(e as Map<String, dynamic>)).toList()
-    ..recommendReasons = (json['recommendReasons'] as List<dynamic>?)?.map((e) => RecommendSongReason.fromJson(e as Map<String, dynamic>)).toList();
-}
+RecommendSongListWrap _$RecommendSongListWrapFromJson(
+        Map<String, dynamic> json) =>
+    RecommendSongListWrap()
+      ..dailySongs = (json['dailySongs'] as List<dynamic>?)
+          ?.map((e) => Song2.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..orderSongs = (json['orderSongs'] as List<dynamic>?)
+          ?.map((e) => Song2.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..recommendReasons = (json['recommendReasons'] as List<dynamic>?)
+          ?.map((e) => RecommendSongReason.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$RecommendSongListWrapToJson(RecommendSongListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$RecommendSongListWrapToJson(
+        RecommendSongListWrap instance) =>
+    <String, dynamic>{
       'dailySongs': instance.dailySongs,
       'orderSongs': instance.orderSongs,
       'recommendReasons': instance.recommendReasons,
     };
 
-RecommendSongListWrapX _$RecommendSongListWrapXFromJson(Map<String, dynamic> json) {
-  return RecommendSongListWrapX()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = RecommendSongListWrap.fromJson(json['data'] as Map<String, dynamic>);
-}
+RecommendSongListWrapX _$RecommendSongListWrapXFromJson(
+        Map<String, dynamic> json) =>
+    RecommendSongListWrapX()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data =
+          RecommendSongListWrap.fromJson(json['data'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$RecommendSongListWrapXToJson(RecommendSongListWrapX instance) => <String, dynamic>{
+Map<String, dynamic> _$RecommendSongListWrapXToJson(
+        RecommendSongListWrapX instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-RecommendSongListHistoryWrap _$RecommendSongListHistoryWrapFromJson(Map<String, dynamic> json) {
-  return RecommendSongListHistoryWrap()
-    ..dates = (json['dates'] as List<dynamic>?)?.map((e) => e as String).toList()
-    ..purchaseUrl = json['purchaseUrl'] as String?
-    ..description = json['description'] as String?
-    ..noHistoryMessage = json['noHistoryMessage'] as String?
-    ..songs = (json['songs'] as List<dynamic>?)?.map((e) => Song2.fromJson(e as Map<String, dynamic>)).toList();
-}
+RecommendSongListHistoryWrap _$RecommendSongListHistoryWrapFromJson(
+        Map<String, dynamic> json) =>
+    RecommendSongListHistoryWrap()
+      ..dates =
+          (json['dates'] as List<dynamic>?)?.map((e) => e as String).toList()
+      ..purchaseUrl = json['purchaseUrl'] as String?
+      ..description = json['description'] as String?
+      ..noHistoryMessage = json['noHistoryMessage'] as String?
+      ..songs = (json['songs'] as List<dynamic>?)
+          ?.map((e) => Song2.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$RecommendSongListHistoryWrapToJson(RecommendSongListHistoryWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$RecommendSongListHistoryWrapToJson(
+        RecommendSongListHistoryWrap instance) =>
+    <String, dynamic>{
       'dates': instance.dates,
       'purchaseUrl': instance.purchaseUrl,
       'description': instance.description,
@@ -525,74 +576,90 @@ Map<String, dynamic> _$RecommendSongListHistoryWrapToJson(RecommendSongListHisto
       'songs': instance.songs,
     };
 
-RecommendSongListHistoryWrapX _$RecommendSongListHistoryWrapXFromJson(Map<String, dynamic> json) {
-  return RecommendSongListHistoryWrapX()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = RecommendSongListHistoryWrap.fromJson(json['data'] as Map<String, dynamic>);
-}
+RecommendSongListHistoryWrapX _$RecommendSongListHistoryWrapXFromJson(
+        Map<String, dynamic> json) =>
+    RecommendSongListHistoryWrapX()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data = RecommendSongListHistoryWrap.fromJson(
+          json['data'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$RecommendSongListHistoryWrapXToJson(RecommendSongListHistoryWrapX instance) => <String, dynamic>{
+Map<String, dynamic> _$RecommendSongListHistoryWrapXToJson(
+        RecommendSongListHistoryWrapX instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-ArtistSongListWrap _$ArtistSongListWrapFromJson(Map<String, dynamic> json) {
-  return ArtistSongListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..songs = (json['songs'] as List<dynamic>?)?.map((e) => Song2.fromJson(e as Map<String, dynamic>)).toList();
-}
+ArtistSongListWrap _$ArtistSongListWrapFromJson(Map<String, dynamic> json) =>
+    ArtistSongListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..songs = (json['songs'] as List<dynamic>?)
+          ?.map((e) => Song2.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$ArtistSongListWrapToJson(ArtistSongListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistSongListWrapToJson(ArtistSongListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'songs': instance.songs,
     };
 
-ArtistNewSongListData _$ArtistNewSongListDataFromJson(Map<String, dynamic> json) {
-  return ArtistNewSongListData()
-    ..hasMore = json['hasMore'] as bool?
-    ..newSongCount = json['newSongCount'] as int?
-    ..newWorks = (json['newWorks'] as List<dynamic>?)?.map((e) => Song2.fromJson(e as Map<String, dynamic>)).toList();
-}
+ArtistNewSongListData _$ArtistNewSongListDataFromJson(
+        Map<String, dynamic> json) =>
+    ArtistNewSongListData()
+      ..hasMore = json['hasMore'] as bool?
+      ..newSongCount = (json['newSongCount'] as num?)?.toInt()
+      ..newWorks = (json['newWorks'] as List<dynamic>?)
+          ?.map((e) => Song2.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$ArtistNewSongListDataToJson(ArtistNewSongListData instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistNewSongListDataToJson(
+        ArtistNewSongListData instance) =>
+    <String, dynamic>{
       'hasMore': instance.hasMore,
       'newSongCount': instance.newSongCount,
       'newWorks': instance.newWorks,
     };
 
-ArtistNewSongListWrap _$ArtistNewSongListWrapFromJson(Map<String, dynamic> json) {
-  return ArtistNewSongListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = ArtistNewSongListData.fromJson(json['data'] as Map<String, dynamic>);
-}
+ArtistNewSongListWrap _$ArtistNewSongListWrapFromJson(
+        Map<String, dynamic> json) =>
+    ArtistNewSongListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data =
+          ArtistNewSongListData.fromJson(json['data'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$ArtistNewSongListWrapToJson(ArtistNewSongListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistNewSongListWrapToJson(
+        ArtistNewSongListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-ArtistDetailAndSongListWrap _$ArtistDetailAndSongListWrapFromJson(Map<String, dynamic> json) {
-  return ArtistDetailAndSongListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..hotSongs = (json['hotSongs'] as List<dynamic>?)?.map((e) => Song2.fromJson(e as Map<String, dynamic>)).toList()
-    ..artist = Artist.fromJson(json['artist'] as Map<String, dynamic>);
-}
+ArtistDetailAndSongListWrap _$ArtistDetailAndSongListWrapFromJson(
+        Map<String, dynamic> json) =>
+    ArtistDetailAndSongListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..hotSongs = (json['hotSongs'] as List<dynamic>?)
+          ?.map((e) => Song2.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..artist = Artist.fromJson(json['artist'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$ArtistDetailAndSongListWrapToJson(ArtistDetailAndSongListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistDetailAndSongListWrapToJson(
+        ArtistDetailAndSongListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -600,36 +667,42 @@ Map<String, dynamic> _$ArtistDetailAndSongListWrapToJson(ArtistDetailAndSongList
       'artist': instance.artist,
     };
 
-PlayList _$PlayFromJson(Map<String, dynamic> json) {
-  return PlayList()
-    ..id = dynamicToString(json['id'])
-    ..userId = dynamicToString(json['userId'])
-    ..name = json['name'] as String?
-    ..description = json['description'] as String?
-    ..coverImgUrl = json['coverImgUrl'] as String?
-    ..picUrl = json['picUrl'] as String?
-    ..tag = json['tag'] as String?
-    ..subscribed = json['subscribed'] as bool?
-    ..tags = (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList()
-    ..copywriter = json['copywriter'] as String?
-    ..createTime = json['createTime'] as int?
-    ..updateTime = json['updateTime'] as int?
-    ..playCount = dynamicToInt(json['playCount'])
-    ..subscribedCount = json['subscribedCount'] as int?
-    ..shareCount = json['shareCount'] as int?
-    ..commentCount = json['commentCount'] as int?
-    ..trackCount = json['trackCount'] as int?
-    ..trackNumberUpdateTime = json['trackNumberUpdateTime'] as int?
-    ..commentThreadId = json['commentThreadId'] as String?
-    ..alg = json['alg'] as String?
-    ..specialType = json['specialType'] as int?
-    ..creator = json['creator'] == null ? null : NeteaseUserInfo.fromJson(json['creator'] as Map<String, dynamic>)
-    ..subscribers = (json['subscribers'] as List<dynamic>?)?.map((e) => NeteaseUserInfo.fromJson(e as Map<String, dynamic>)).toList()
-    ..tracks = (json['tracks'] as List<dynamic>?)?.map((e) => PlayTrack.fromJson(e as Map<String, dynamic>)).toList()
-    ..trackIds = (json['trackIds'] as List<dynamic>?)?.map((e) => PlayTrackId.fromJson(e as Map<String, dynamic>)).toList();
-}
+PlayList _$PlayListFromJson(Map<String, dynamic> json) => PlayList()
+  ..id = dynamicToString(json['id'])
+  ..userId = dynamicToString(json['userId'])
+  ..name = json['name'] as String?
+  ..description = json['description'] as String?
+  ..coverImgUrl = json['coverImgUrl'] as String?
+  ..picUrl = json['picUrl'] as String?
+  ..tag = json['tag'] as String?
+  ..tags = (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList()
+  ..copywriter = json['copywriter'] as String?
+  ..createTime = (json['createTime'] as num?)?.toInt()
+  ..updateTime = (json['updateTime'] as num?)?.toInt()
+  ..playCount = dynamicToInt(json['playCount'])
+  ..subscribedCount = (json['subscribedCount'] as num?)?.toInt()
+  ..shareCount = (json['shareCount'] as num?)?.toInt()
+  ..commentCount = (json['commentCount'] as num?)?.toInt()
+  ..subscribed = json['subscribed'] as bool?
+  ..trackCount = (json['trackCount'] as num?)?.toInt()
+  ..trackNumberUpdateTime = (json['trackNumberUpdateTime'] as num?)?.toInt()
+  ..commentThreadId = json['commentThreadId'] as String?
+  ..alg = json['alg'] as String?
+  ..specialType = (json['specialType'] as num?)?.toInt()
+  ..creator = json['creator'] == null
+      ? null
+      : NeteaseUserInfo.fromJson(json['creator'] as Map<String, dynamic>)
+  ..subscribers = (json['subscribers'] as List<dynamic>?)
+      ?.map((e) => NeteaseUserInfo.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..tracks = (json['tracks'] as List<dynamic>?)
+      ?.map((e) => PlayTrack.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..trackIds = (json['trackIds'] as List<dynamic>?)
+      ?.map((e) => PlayTrackId.fromJson(e as Map<String, dynamic>))
+      .toList();
 
-Map<String, dynamic> _$PlayToJson(PlayList instance) => <String, dynamic>{
+Map<String, dynamic> _$PlayListToJson(PlayList instance) => <String, dynamic>{
       'id': instance.id,
       'userId': instance.userId,
       'name': instance.name,
@@ -638,7 +711,6 @@ Map<String, dynamic> _$PlayToJson(PlayList instance) => <String, dynamic>{
       'picUrl': instance.picUrl,
       'tag': instance.tag,
       'tags': instance.tags,
-      'subscribed':instance.subscribed,
       'copywriter': instance.copywriter,
       'createTime': instance.createTime,
       'updateTime': instance.updateTime,
@@ -646,6 +718,7 @@ Map<String, dynamic> _$PlayToJson(PlayList instance) => <String, dynamic>{
       'subscribedCount': instance.subscribedCount,
       'shareCount': instance.shareCount,
       'commentCount': instance.commentCount,
+      'subscribed': instance.subscribed,
       'trackCount': instance.trackCount,
       'trackNumberUpdateTime': instance.trackNumberUpdateTime,
       'commentThreadId': instance.commentThreadId,
@@ -657,41 +730,49 @@ Map<String, dynamic> _$PlayToJson(PlayList instance) => <String, dynamic>{
       'trackIds': instance.trackIds,
     };
 
-PlayTrack _$PlayTrackFromJson(Map<String, dynamic> json) {
-  return PlayTrack()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..pst = json['pst'] as int?
-    ..t = json['t'] as int?
-    ..ar = (json['ar'] as List<dynamic>?)?.map((e) => Artist.fromJson(e as Map<String, dynamic>)).toList()
-    ..pop = (json['pop'] as num?)?.toDouble()
-    ..st = json['st'] as int?
-    ..rt = json['rt'] as String?
-    ..fee = json['fee'] as int?
-    ..v = json['v'] as int?
-    ..cf = json['cf'] as String?
-    ..al = Album.fromJson(json['al'] as Map<String, dynamic>)
-    ..dt = json['dt'] as int?
-    ..h = json['h'] == null ? null : Music2.fromJson(json['h'] as Map<String, dynamic>)
-    ..m = json['m'] == null ? null : Music2.fromJson(json['m'] as Map<String, dynamic>)
-    ..l = json['l'] == null ? null : Music2.fromJson(json['l'] as Map<String, dynamic>)
-    ..a = json['a'] == null ? null : Music2.fromJson(json['a'] as Map<String, dynamic>)
-    ..cd = json['cd'] as String?
-    ..no = json['no'] as int?
-    ..ftype = json['ftype'] as int?
-    ..rtUrls = json['rtUrls'] as List<dynamic>?
-    ..djId = json['djId'] as int?
-    ..copyright = json['copyright'] as int?
-    ..s_id = json['s_id'] as int?
-    ..mark = json['mark'] as int?
-    ..originCoverType = json['originCoverType'] as int?
-    ..single = json['single'] as int?
-    ..rtype = json['rtype'] as int?
-    ..mst = json['mst'] as int?
-    ..cp = json['cp'] as int?
-    ..mv = json['mv'] as int?
-    ..publishTime = json['publishTime'] as int?;
-}
+PlayTrack _$PlayTrackFromJson(Map<String, dynamic> json) => PlayTrack()
+  ..id = dynamicToString(json['id'])
+  ..name = json['name'] as String?
+  ..pst = (json['pst'] as num?)?.toInt()
+  ..t = (json['t'] as num?)?.toInt()
+  ..ar = (json['ar'] as List<dynamic>?)
+      ?.map((e) => Artist.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..pop = (json['pop'] as num?)?.toDouble()
+  ..st = (json['st'] as num?)?.toInt()
+  ..rt = json['rt'] as String?
+  ..fee = (json['fee'] as num?)?.toInt()
+  ..v = (json['v'] as num?)?.toInt()
+  ..cf = json['cf'] as String?
+  ..al = Album.fromJson(json['al'] as Map<String, dynamic>)
+  ..dt = (json['dt'] as num?)?.toInt()
+  ..h = json['h'] == null
+      ? null
+      : Music2.fromJson(json['h'] as Map<String, dynamic>)
+  ..m = json['m'] == null
+      ? null
+      : Music2.fromJson(json['m'] as Map<String, dynamic>)
+  ..l = json['l'] == null
+      ? null
+      : Music2.fromJson(json['l'] as Map<String, dynamic>)
+  ..a = json['a'] == null
+      ? null
+      : Music2.fromJson(json['a'] as Map<String, dynamic>)
+  ..cd = json['cd'] as String?
+  ..no = (json['no'] as num?)?.toInt()
+  ..ftype = (json['ftype'] as num?)?.toInt()
+  ..rtUrls = json['rtUrls'] as List<dynamic>?
+  ..djId = (json['djId'] as num?)?.toInt()
+  ..copyright = (json['copyright'] as num?)?.toInt()
+  ..s_id = (json['s_id'] as num?)?.toInt()
+  ..mark = (json['mark'] as num?)?.toInt()
+  ..originCoverType = (json['originCoverType'] as num?)?.toInt()
+  ..single = (json['single'] as num?)?.toInt()
+  ..rtype = (json['rtype'] as num?)?.toInt()
+  ..mst = (json['mst'] as num?)?.toInt()
+  ..cp = (json['cp'] as num?)?.toInt()
+  ..mv = (json['mv'] as num?)?.toInt()
+  ..publishTime = (json['publishTime'] as num?)?.toInt();
 
 Map<String, dynamic> _$PlayTrackToJson(PlayTrack instance) => <String, dynamic>{
       'id': instance.id,
@@ -728,16 +809,15 @@ Map<String, dynamic> _$PlayTrackToJson(PlayTrack instance) => <String, dynamic>{
       'publishTime': instance.publishTime,
     };
 
-PlayTrackId _$PlayTrackIdFromJson(Map<String, dynamic> json) {
-  return PlayTrackId()
-    ..id = dynamicToString(json['id'])
-    ..v = json['v'] as int?
-    ..t = json['t'] as int?
-    ..at = json['at'] as int?
-    ..lr = json['lr'] as int?;
-}
+PlayTrackId _$PlayTrackIdFromJson(Map<String, dynamic> json) => PlayTrackId()
+  ..id = dynamicToString(json['id'])
+  ..v = (json['v'] as num?)?.toInt()
+  ..t = (json['t'] as num?)?.toInt()
+  ..at = (json['at'] as num?)?.toInt()
+  ..lr = (json['lr'] as num?)?.toInt();
 
-Map<String, dynamic> _$PlayTrackIdToJson(PlayTrackId instance) => <String, dynamic>{
+Map<String, dynamic> _$PlayTrackIdToJson(PlayTrackId instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'v': instance.v,
       't': instance.t,
@@ -745,47 +825,55 @@ Map<String, dynamic> _$PlayTrackIdToJson(PlayTrackId instance) => <String, dynam
       'lr': instance.lr,
     };
 
-MultiPlayListWrap _$MultiPlayListWrapFromJson(Map<String, dynamic> json) {
-  return MultiPlayListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..playlists = (json['playlists'] as List<dynamic>?)?.map((e) => PlayList.fromJson(e as Map<String, dynamic>)).toList();
-}
+MultiPlayListWrap _$MultiPlayListWrapFromJson(Map<String, dynamic> json) =>
+    MultiPlayListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..playlists = (json['playlists'] as List<dynamic>?)
+          ?.map((e) => PlayList.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$MultiPlayListWrapToJson(MultiPlayListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$MultiPlayListWrapToJson(MultiPlayListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'playlists': instance.playlists,
     };
 
-MultiPlayListWrap2 _$MultiPlayListWrap2FromJson(Map<String, dynamic> json) {
-  return MultiPlayListWrap2()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..playlists = (json['playlist'] as List<dynamic>?)?.map((e) => PlayList.fromJson(e as Map<String, dynamic>)).toList();
-}
+MultiPlayListWrap2 _$MultiPlayListWrap2FromJson(Map<String, dynamic> json) =>
+    MultiPlayListWrap2()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..playlists = (json['playlists'] as List<dynamic>?)
+          ?.map((e) => PlayList.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$MultiPlayListWrap2ToJson(MultiPlayListWrap2 instance) => <String, dynamic>{
+Map<String, dynamic> _$MultiPlayListWrap2ToJson(MultiPlayListWrap2 instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
-      'playlist': instance.playlists,
+      'playlists': instance.playlists,
     };
 
-RecommendPlayListWrap _$RecommendPlayListWrapFromJson(Map<String, dynamic> json) {
-  return RecommendPlayListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..recommend = (json['recommend'] as List<dynamic>?)?.map((e) => PlayList.fromJson(e as Map<String, dynamic>)).toList()
-    ..featureFirst = json['featureFirst'] as bool?
-    ..haveRcmdSongs = json['haveRcmdSongs'] as bool?;
-}
+RecommendPlayListWrap _$RecommendPlayListWrapFromJson(
+        Map<String, dynamic> json) =>
+    RecommendPlayListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..recommend = (json['recommend'] as List<dynamic>?)
+          ?.map((e) => PlayList.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..featureFirst = json['featureFirst'] as bool?
+      ..haveRcmdSongs = json['haveRcmdSongs'] as bool?;
 
-Map<String, dynamic> _$RecommendPlayListWrapToJson(RecommendPlayListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$RecommendPlayListWrapToJson(
+        RecommendPlayListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -794,17 +882,21 @@ Map<String, dynamic> _$RecommendPlayListWrapToJson(RecommendPlayListWrap instanc
       'haveRcmdSongs': instance.haveRcmdSongs,
     };
 
-PersonalizedPlayListWrap _$PersonalizedPlayListWrapFromJson(Map<String, dynamic> json) {
-  return PersonalizedPlayListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..result = (json['result'] as List<dynamic>?)?.map((e) => PlayList.fromJson(e as Map<String, dynamic>)).toList()
-    ..hasTaste = json['hasTaste'] as bool?
-    ..category = json['category'] as int?;
-}
+PersonalizedPlayListWrap _$PersonalizedPlayListWrapFromJson(
+        Map<String, dynamic> json) =>
+    PersonalizedPlayListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..result = (json['result'] as List<dynamic>?)
+          ?.map((e) => PlayList.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..hasTaste = json['hasTaste'] as bool?
+      ..category = (json['category'] as num?)?.toInt();
 
-Map<String, dynamic> _$PersonalizedPlayListWrapToJson(PersonalizedPlayListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$PersonalizedPlayListWrapToJson(
+        PersonalizedPlayListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -813,19 +905,21 @@ Map<String, dynamic> _$PersonalizedPlayListWrapToJson(PersonalizedPlayListWrap i
       'category': instance.category,
     };
 
-PlaylistCatalogueItem _$PlaylistCatalogueItemFromJson(Map<String, dynamic> json) {
-  return PlaylistCatalogueItem()
-    ..name = json['name'] as String?
-    ..resourceCount = json['resourceCount'] as int?
-    ..imgUrl = json['imgUrl'] as String?
-    ..type = json['type'] as int?
-    ..category = json['category'] as int?
-    ..resourceType = json['resourceType'] as int?
-    ..hot = json['hot'] as bool?
-    ..activity = json['activity'] as bool?;
-}
+PlaylistCatalogueItem _$PlaylistCatalogueItemFromJson(
+        Map<String, dynamic> json) =>
+    PlaylistCatalogueItem()
+      ..name = json['name'] as String?
+      ..resourceCount = (json['resourceCount'] as num?)?.toInt()
+      ..imgUrl = json['imgUrl'] as String?
+      ..type = (json['type'] as num?)?.toInt()
+      ..category = (json['category'] as num?)?.toInt()
+      ..resourceType = (json['resourceType'] as num?)?.toInt()
+      ..hot = json['hot'] as bool?
+      ..activity = json['activity'] as bool?;
 
-Map<String, dynamic> _$PlaylistCatalogueItemToJson(PlaylistCatalogueItem instance) => <String, dynamic>{
+Map<String, dynamic> _$PlaylistCatalogueItemToJson(
+        PlaylistCatalogueItem instance) =>
+    <String, dynamic>{
       'name': instance.name,
       'resourceCount': instance.resourceCount,
       'imgUrl': instance.imgUrl,
@@ -836,42 +930,50 @@ Map<String, dynamic> _$PlaylistCatalogueItemToJson(PlaylistCatalogueItem instanc
       'activity': instance.activity,
     };
 
-PlaylistCatalogueWrap _$PlaylistCatalogueWrapFromJson(Map<String, dynamic> json) {
-  return PlaylistCatalogueWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..all = json['all'] == null ? null : PlaylistCatalogueItem.fromJson(json['all'] as Map<String, dynamic>)
-    ..sub = (json['sub'] as List<dynamic>?)?.map((e) => PlaylistCatalogueItem.fromJson(e as Map<String, dynamic>)).toList()
-    ..categories = (json['categories'] as Map<String, dynamic>?)?.map(
-      (k, e) => MapEntry(int.parse(k), e as String),
-    );
-}
+PlaylistCatalogueWrap _$PlaylistCatalogueWrapFromJson(
+        Map<String, dynamic> json) =>
+    PlaylistCatalogueWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..all = json['all'] == null
+          ? null
+          : PlaylistCatalogueItem.fromJson(json['all'] as Map<String, dynamic>)
+      ..sub = (json['sub'] as List<dynamic>?)
+          ?.map(
+              (e) => PlaylistCatalogueItem.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..categories = (json['categories'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(int.parse(k), e as String),
+      );
 
-Map<String, dynamic> _$PlaylistCatalogueWrapToJson(PlaylistCatalogueWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$PlaylistCatalogueWrapToJson(
+        PlaylistCatalogueWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'all': instance.all,
       'sub': instance.sub,
-      'categories': instance.categories?.map((k, e) => MapEntry(k.toString(), e)),
+      'categories':
+          instance.categories?.map((k, e) => MapEntry(k.toString(), e)),
     };
 
-PlaylistHotTag _$PlaylistHotTagFromJson(Map<String, dynamic> json) {
-  return PlaylistHotTag()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..category = json['category'] as int?
-    ..usedCount = json['usedCount'] as int?
-    ..type = json['type'] as int?
-    ..position = json['position'] as int?
-    ..highQuality = json['highQuality'] as int?
-    ..highQualityPos = json['highQualityPos'] as int?
-    ..officialPos = json['officialPos'] as int?
-    ..createTime = json['createTime'] as int?;
-}
+PlaylistHotTag _$PlaylistHotTagFromJson(Map<String, dynamic> json) =>
+    PlaylistHotTag()
+      ..id = dynamicToString(json['id'])
+      ..name = json['name'] as String?
+      ..category = (json['category'] as num?)?.toInt()
+      ..usedCount = (json['usedCount'] as num?)?.toInt()
+      ..type = (json['type'] as num?)?.toInt()
+      ..position = (json['position'] as num?)?.toInt()
+      ..highQuality = (json['highQuality'] as num?)?.toInt()
+      ..highQualityPos = (json['highQualityPos'] as num?)?.toInt()
+      ..officialPos = (json['officialPos'] as num?)?.toInt()
+      ..createTime = (json['createTime'] as num?)?.toInt();
 
-Map<String, dynamic> _$PlaylistHotTagToJson(PlaylistHotTag instance) => <String, dynamic>{
+Map<String, dynamic> _$PlaylistHotTagToJson(PlaylistHotTag instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'category': instance.category,
@@ -884,20 +986,24 @@ Map<String, dynamic> _$PlaylistHotTagToJson(PlaylistHotTag instance) => <String,
       'createTime': instance.createTime,
     };
 
-PlaylistHotTagsItem _$PlaylistHotTagsItemFromJson(Map<String, dynamic> json) {
-  return PlaylistHotTagsItem()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..activity = json['activity'] as bool?
-    ..hot = json['hot'] as bool?
-    ..position = json['position'] as int?
-    ..category = json['category'] as int?
-    ..createTime = json['createTime'] as int?
-    ..type = json['type'] as int?
-    ..playlistTag = json['playlistTag'] == null ? null : PlaylistHotTag.fromJson(json['playlistTag'] as Map<String, dynamic>);
-}
+PlaylistHotTagsItem _$PlaylistHotTagsItemFromJson(Map<String, dynamic> json) =>
+    PlaylistHotTagsItem()
+      ..id = dynamicToString(json['id'])
+      ..name = json['name'] as String?
+      ..activity = json['activity'] as bool?
+      ..hot = json['hot'] as bool?
+      ..position = (json['position'] as num?)?.toInt()
+      ..category = (json['category'] as num?)?.toInt()
+      ..createTime = (json['createTime'] as num?)?.toInt()
+      ..type = (json['type'] as num?)?.toInt()
+      ..playlistTag = json['playlistTag'] == null
+          ? null
+          : PlaylistHotTag.fromJson(
+              json['playlistTag'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$PlaylistHotTagsItemToJson(PlaylistHotTagsItem instance) => <String, dynamic>{
+Map<String, dynamic> _$PlaylistHotTagsItemToJson(
+        PlaylistHotTagsItem instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'activity': instance.activity,
@@ -909,51 +1015,58 @@ Map<String, dynamic> _$PlaylistHotTagsItemToJson(PlaylistHotTagsItem instance) =
       'playlistTag': instance.playlistTag,
     };
 
-PlaylistHotTagsWrap _$PlaylistHotTagsWrapFromJson(Map<String, dynamic> json) {
-  return PlaylistHotTagsWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..tags = (json['tags'] as List<dynamic>?)?.map((e) => PlaylistHotTagsItem.fromJson(e as Map<String, dynamic>)).toList();
-}
+PlaylistHotTagsWrap _$PlaylistHotTagsWrapFromJson(Map<String, dynamic> json) =>
+    PlaylistHotTagsWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..tags = (json['tags'] as List<dynamic>?)
+          ?.map((e) => PlaylistHotTagsItem.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$PlaylistHotTagsWrapToJson(PlaylistHotTagsWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$PlaylistHotTagsWrapToJson(
+        PlaylistHotTagsWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'tags': instance.tags,
     };
 
-SinglePlayListWrap _$SinglePlayListWrapFromJson(Map<String, dynamic> json) {
-  return SinglePlayListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..playlist = json['playlist'] == null ? null : PlayList.fromJson(json['playlist'] as Map<String, dynamic>);
-}
+SinglePlayListWrap _$SinglePlayListWrapFromJson(Map<String, dynamic> json) =>
+    SinglePlayListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..playlist = json['playlist'] == null
+          ? null
+          : PlayList.fromJson(json['playlist'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$SinglePlayListWrapToJson(SinglePlayListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$SinglePlayListWrapToJson(SinglePlayListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'playlist': instance.playlist,
     };
 
-PlayListDetailDynamicWrap _$PlayListDetailDynamicWrapFromJson(Map<String, dynamic> json) {
-  return PlayListDetailDynamicWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..commentCount = json['commentCount'] as int?
-    ..shareCount = json['shareCount'] as int?
-    ..playCount = json['playCount'] as int?
-    ..bookedCount = json['bookedCount'] as int?
-    ..subscribed = json['subscribed'] as bool?
-    ..remarkName = json['remarkName'] as String?
-    ..followed = json['followed'] as bool?;
-}
+PlayListDetailDynamicWrap _$PlayListDetailDynamicWrapFromJson(
+        Map<String, dynamic> json) =>
+    PlayListDetailDynamicWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..commentCount = (json['commentCount'] as num?)?.toInt()
+      ..shareCount = (json['shareCount'] as num?)?.toInt()
+      ..playCount = (json['playCount'] as num?)?.toInt()
+      ..bookedCount = (json['bookedCount'] as num?)?.toInt()
+      ..subscribed = json['subscribed'] as bool?
+      ..remarkName = json['remarkName'] as String?
+      ..followed = json['followed'] as bool?;
 
-Map<String, dynamic> _$PlayListDetailDynamicWrapToJson(PlayListDetailDynamicWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$PlayListDetailDynamicWrapToJson(
+        PlayListDetailDynamicWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -966,56 +1079,63 @@ Map<String, dynamic> _$PlayListDetailDynamicWrapToJson(PlayListDetailDynamicWrap
       'followed': instance.followed,
     };
 
-PlaymodeIntelligenceItem _$PlaymodeIntelligenceItemFromJson(Map<String, dynamic> json) {
-  return PlaymodeIntelligenceItem()
-    ..id = dynamicToString(json['id'])
-    ..recommended = json['recommended'] as bool?
-    ..alg = json['alg'] as String?
-    ..songInfo = json['songInfo'] == null ? null : Song2.fromJson(json['songInfo'] as Map<String, dynamic>);
-}
+PlaymodeIntelligenceItem _$PlaymodeIntelligenceItemFromJson(
+        Map<String, dynamic> json) =>
+    PlaymodeIntelligenceItem()
+      ..id = dynamicToString(json['id'])
+      ..recommended = json['recommended'] as bool?
+      ..alg = json['alg'] as String?
+      ..songInfo = json['songInfo'] == null
+          ? null
+          : Song2.fromJson(json['songInfo'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$PlaymodeIntelligenceItemToJson(PlaymodeIntelligenceItem instance) => <String, dynamic>{
+Map<String, dynamic> _$PlaymodeIntelligenceItemToJson(
+        PlaymodeIntelligenceItem instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'recommended': instance.recommended,
       'alg': instance.alg,
       'songInfo': instance.songInfo,
     };
 
-PlaymodeIntelligenceListWrap _$PlaymodeIntelligenceListWrapFromJson(Map<String, dynamic> json) {
-  return PlaymodeIntelligenceListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = (json['data'] as List<dynamic>?)?.map((e) => PlaymodeIntelligenceItem.fromJson(e as Map<String, dynamic>)).toList();
-}
+PlaymodeIntelligenceListWrap _$PlaymodeIntelligenceListWrapFromJson(
+        Map<String, dynamic> json) =>
+    PlaymodeIntelligenceListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data = (json['data'] as List<dynamic>?)
+          ?.map((e) =>
+              PlaymodeIntelligenceItem.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$PlaymodeIntelligenceListWrapToJson(PlaymodeIntelligenceListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$PlaymodeIntelligenceListWrapToJson(
+        PlaymodeIntelligenceListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-Artist _$ArtistsFromJson(Map<String, dynamic> json) {
-  return Artist()
-    ..id = dynamicToString(json['id'])
-    ..accountId = dynamicToString(json['accountId'])
-    ..name = json['name'] as String?
-    ..picUrl = json['picUrl'] as String?
-    ..img1v1Id = json['img1v1Id'] as int?
-    ..img1v1Url = json['img1v1Url'] as String?
-    ..cover = json['cover'] as String?
-    ..albumSize = json['albumSize'] as int?
-    ..musicSize = json['musicSize'] as int?
-    ..mvSize = json['mvSize'] as int?
-    ..topicPerson = json['topicPerson'] as int?
-    ..trans = json['trans'] as String?
-    ..briefDesc = json['briefDesc'] as String?
-    ..followed = json['followed'] as bool?
-    ..publishTime = json['publishTime'] as int?;
-}
+Artist _$ArtistFromJson(Map<String, dynamic> json) => Artist()
+  ..id = dynamicToString(json['id'])
+  ..accountId = dynamicToString(json['accountId'])
+  ..name = json['name'] as String?
+  ..picUrl = json['picUrl'] as String?
+  ..img1v1Id = (json['img1v1Id'] as num?)?.toInt()
+  ..img1v1Url = json['img1v1Url'] as String?
+  ..cover = json['cover'] as String?
+  ..albumSize = (json['albumSize'] as num?)?.toInt()
+  ..musicSize = (json['musicSize'] as num?)?.toInt()
+  ..mvSize = (json['mvSize'] as num?)?.toInt()
+  ..topicPerson = (json['topicPerson'] as num?)?.toInt()
+  ..trans = json['trans'] as String?
+  ..briefDesc = json['briefDesc'] as String?
+  ..followed = json['followed'] as bool?
+  ..publishTime = (json['publishTime'] as num?)?.toInt();
 
-Map<String, dynamic> _$ArtistsToJson(Artist instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistToJson(Artist instance) => <String, dynamic>{
       'id': instance.id,
       'accountId': instance.accountId,
       'name': instance.name,
@@ -1033,72 +1153,83 @@ Map<String, dynamic> _$ArtistsToJson(Artist instance) => <String, dynamic>{
       'publishTime': instance.publishTime,
     };
 
-ArtistsListWrap _$ArtistsListWrapFromJson(Map<String, dynamic> json) {
-  return ArtistsListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..artists = (json['artists'] as List<dynamic>?)?.map((e) => Artist.fromJson(e as Map<String, dynamic>)).toList();
-}
+ArtistsListWrap _$ArtistsListWrapFromJson(Map<String, dynamic> json) =>
+    ArtistsListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..artists = (json['artists'] as List<dynamic>?)
+          ?.map((e) => Artist.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$ArtistsListWrapToJson(ArtistsListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistsListWrapToJson(ArtistsListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'artists': instance.artists,
     };
 
-ArtistsTopListWrap _$ArtistsTopListWrapFromJson(Map<String, dynamic> json) {
-  return ArtistsTopListWrap()
-    ..artists = (json['artists'] as List<dynamic>?)?.map((e) => Artist.fromJson(e as Map<String, dynamic>)).toList()
-    ..type = json['type'] as int?
-    ..updateTime = json['updateTime'] as int?;
-}
+ArtistsTopListWrap _$ArtistsTopListWrapFromJson(Map<String, dynamic> json) =>
+    ArtistsTopListWrap()
+      ..artists = (json['artists'] as List<dynamic>?)
+          ?.map((e) => Artist.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..type = (json['type'] as num?)?.toInt()
+      ..updateTime = (json['updateTime'] as num?)?.toInt();
 
-Map<String, dynamic> _$ArtistsTopListWrapToJson(ArtistsTopListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistsTopListWrapToJson(ArtistsTopListWrap instance) =>
+    <String, dynamic>{
       'artists': instance.artists,
       'type': instance.type,
       'updateTime': instance.updateTime,
     };
 
-ArtistsTopListWrapX _$ArtistsTopListWrapXFromJson(Map<String, dynamic> json) {
-  return ArtistsTopListWrapX()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..list = json['list'] == null ? null : ArtistsTopListWrap.fromJson(json['list'] as Map<String, dynamic>);
-}
+ArtistsTopListWrapX _$ArtistsTopListWrapXFromJson(Map<String, dynamic> json) =>
+    ArtistsTopListWrapX()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..list = json['list'] == null
+          ? null
+          : ArtistsTopListWrap.fromJson(json['list'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$ArtistsTopListWrapXToJson(ArtistsTopListWrapX instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistsTopListWrapXToJson(
+        ArtistsTopListWrapX instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'list': instance.list,
     };
 
-ArtistIntroduction _$ArtistIntroductionFromJson(Map<String, dynamic> json) {
-  return ArtistIntroduction()
-    ..ti = json['ti'] as String?
-    ..txt = json['txt'] as String?;
-}
+ArtistIntroduction _$ArtistIntroductionFromJson(Map<String, dynamic> json) =>
+    ArtistIntroduction()
+      ..ti = json['ti'] as String?
+      ..txt = json['txt'] as String?;
 
-Map<String, dynamic> _$ArtistIntroductionToJson(ArtistIntroduction instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistIntroductionToJson(ArtistIntroduction instance) =>
+    <String, dynamic>{
       'ti': instance.ti,
       'txt': instance.txt,
     };
 
-ArtistDescWrap _$ArtistDescWrapFromJson(Map<String, dynamic> json) {
-  return ArtistDescWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..introduction = (json['introduction'] as List<dynamic>?)?.map((e) => ArtistIntroduction.fromJson(e as Map<String, dynamic>)).toList()
-    ..briefDesc = json['briefDesc'] as String?
-    ..count = json['count'] as int?
-    ..topicData = (json['topicData'] as List<dynamic>?)?.map((e) => TopicItem2.fromJson(e as Map<String, dynamic>)).toList();
-}
+ArtistDescWrap _$ArtistDescWrapFromJson(Map<String, dynamic> json) =>
+    ArtistDescWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..introduction = (json['introduction'] as List<dynamic>?)
+          ?.map((e) => ArtistIntroduction.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..briefDesc = json['briefDesc'] as String?
+      ..count = (json['count'] as num?)?.toInt()
+      ..topicData = (json['topicData'] as List<dynamic>?)
+          ?.map((e) => TopicItem2.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$ArtistDescWrapToJson(ArtistDescWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistDescWrapToJson(ArtistDescWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1108,58 +1239,64 @@ Map<String, dynamic> _$ArtistDescWrapToJson(ArtistDescWrap instance) => <String,
       'topicData': instance.topicData,
     };
 
-ArtistDetailData _$ArtistDetailDataFromJson(Map<String, dynamic> json) {
-  return ArtistDetailData()
-    ..blacklist = json['blacklist'] as bool?
-    ..showPriMsg = json['showPriMsg'] as bool?
-    ..videoCount = json['videoCount'] as int?
-    ..artist = json['artist'] == null ? null : Artist.fromJson(json['artist'] as Map<String, dynamic>);
-}
+ArtistDetailData _$ArtistDetailDataFromJson(Map<String, dynamic> json) =>
+    ArtistDetailData()
+      ..blacklist = json['blacklist'] as bool?
+      ..showPriMsg = json['showPriMsg'] as bool?
+      ..videoCount = (json['videoCount'] as num?)?.toInt()
+      ..artist = json['artist'] == null
+          ? null
+          : Artist.fromJson(json['artist'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$ArtistDetailDataToJson(ArtistDetailData instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistDetailDataToJson(ArtistDetailData instance) =>
+    <String, dynamic>{
       'blacklist': instance.blacklist,
       'showPriMsg': instance.showPriMsg,
       'videoCount': instance.videoCount,
       'artist': instance.artist,
     };
 
-ArtistDetailWrap _$ArtistDetailWrapFromJson(Map<String, dynamic> json) {
-  return ArtistDetailWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = json['data'] == null ? null : ArtistDetailData.fromJson(json['data'] as Map<String, dynamic>);
-}
+ArtistDetailWrap _$ArtistDetailWrapFromJson(Map<String, dynamic> json) =>
+    ArtistDetailWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data = json['data'] == null
+          ? null
+          : ArtistDetailData.fromJson(json['data'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$ArtistDetailWrapToJson(ArtistDetailWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistDetailWrapToJson(ArtistDetailWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-Album _$AlbumFromJson(Map<String, dynamic> json) {
-  return Album()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..type = json['type'] as String?
-    ..subType = json['subType'] as String?
-    ..mark = json['mark'] as int?
-    ..size = json['size'] as int?
-    ..publishTime = json['publishTime'] as int?
-    ..picUrl = json['picUrl'] as String?
-    ..tags = json['tags'] as String?
-    ..copyrightId = json['copyrightId'] as int?
-    ..companyId = json['companyId'] as int?
-    ..company = json['company'] as String?
-    ..description = json['description'] as String?
-    ..briefDesc = json['briefDesc'] as String?
-    ..artist = json['artist'] == null ? null : Artist.fromJson(json['artist'] as Map<String, dynamic>)
-    ..artists = (json['artists'] as List<dynamic>?)?.map((e) => Artist.fromJson(e as Map<String, dynamic>)).toList()
-    ..isSub = json['isSub'] as bool?
-    ..paid = json['paid'] as bool?
-    ..onSale = json['onSale'] as bool?;
-}
+Album _$AlbumFromJson(Map<String, dynamic> json) => Album()
+  ..id = dynamicToString(json['id'])
+  ..name = json['name'] as String?
+  ..type = json['type'] as String?
+  ..subType = json['subType'] as String?
+  ..mark = (json['mark'] as num?)?.toInt()
+  ..size = (json['size'] as num?)?.toInt()
+  ..publishTime = (json['publishTime'] as num?)?.toInt()
+  ..picUrl = json['picUrl'] as String?
+  ..tags = json['tags'] as String?
+  ..copyrightId = (json['copyrightId'] as num?)?.toInt()
+  ..companyId = (json['companyId'] as num?)?.toInt()
+  ..company = json['company'] as String?
+  ..description = json['description'] as String?
+  ..briefDesc = json['briefDesc'] as String?
+  ..artist = json['artist'] == null
+      ? null
+      : Artist.fromJson(json['artist'] as Map<String, dynamic>)
+  ..artists = (json['artists'] as List<dynamic>?)
+      ?.map((e) => Artist.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..isSub = json['isSub'] as bool?
+  ..paid = json['paid'] as bool?
+  ..onSale = json['onSale'] as bool?;
 
 Map<String, dynamic> _$AlbumToJson(Album instance) => <String, dynamic>{
       'id': instance.id,
@@ -1183,16 +1320,20 @@ Map<String, dynamic> _$AlbumToJson(Album instance) => <String, dynamic>{
       'onSale': instance.onSale,
     };
 
-AlbumDetailWrap _$AlbumDetailWrapFromJson(Map<String, dynamic> json) {
-  return AlbumDetailWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..songs = (json['songs'] as List<dynamic>?)?.map((e) => Song2.fromJson(e as Map<String, dynamic>)).toList()
-    ..album = json['album'] == null ? null : Album.fromJson(json['album'] as Map<String, dynamic>);
-}
+AlbumDetailWrap _$AlbumDetailWrapFromJson(Map<String, dynamic> json) =>
+    AlbumDetailWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..songs = (json['songs'] as List<dynamic>?)
+          ?.map((e) => Song2.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..album = json['album'] == null
+          ? null
+          : Album.fromJson(json['album'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$AlbumDetailWrapToJson(AlbumDetailWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$AlbumDetailWrapToJson(AlbumDetailWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1200,21 +1341,23 @@ Map<String, dynamic> _$AlbumDetailWrapToJson(AlbumDetailWrap instance) => <Strin
       'album': instance.album,
     };
 
-AlbumDetailDynamicWrap _$AlbumDetailDynamicWrapFromJson(Map<String, dynamic> json) {
-  return AlbumDetailDynamicWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..onSale = json['onSale'] as bool?
-    ..isSub = json['isSub'] as bool?
-    ..subTime = json['subTime'] as int?
-    ..commentCount = json['commentCount'] as int?
-    ..likedCount = json['likedCount'] as int?
-    ..shareCount = json['shareCount'] as int?
-    ..subCount = json['subCount'] as int?;
-}
+AlbumDetailDynamicWrap _$AlbumDetailDynamicWrapFromJson(
+        Map<String, dynamic> json) =>
+    AlbumDetailDynamicWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..onSale = json['onSale'] as bool?
+      ..isSub = json['isSub'] as bool?
+      ..subTime = (json['subTime'] as num?)?.toInt()
+      ..commentCount = (json['commentCount'] as num?)?.toInt()
+      ..likedCount = (json['likedCount'] as num?)?.toInt()
+      ..shareCount = (json['shareCount'] as num?)?.toInt()
+      ..subCount = (json['subCount'] as num?)?.toInt();
 
-Map<String, dynamic> _$AlbumDetailDynamicWrapToJson(AlbumDetailDynamicWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$AlbumDetailDynamicWrapToJson(
+        AlbumDetailDynamicWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1227,19 +1370,21 @@ Map<String, dynamic> _$AlbumDetailDynamicWrapToJson(AlbumDetailDynamicWrap insta
       'subCount': instance.subCount,
     };
 
-AlbumListWrap _$AlbumListWrapFromJson(Map<String, dynamic> json) {
-  return AlbumListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..more = json['more'] as bool?
-    ..hasMore = json['hasMore'] as bool?
-    ..count = json['count'] as int?
-    ..total = json['total'] as int?
-    ..albums = (json['albums'] as List<dynamic>?)?.map((e) => Album.fromJson(e as Map<String, dynamic>)).toList();
-}
+AlbumListWrap _$AlbumListWrapFromJson(Map<String, dynamic> json) =>
+    AlbumListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..more = json['more'] as bool?
+      ..hasMore = json['hasMore'] as bool?
+      ..count = (json['count'] as num?)?.toInt()
+      ..total = (json['total'] as num?)?.toInt()
+      ..albums = (json['albums'] as List<dynamic>?)
+          ?.map((e) => Album.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$AlbumListWrapToJson(AlbumListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$AlbumListWrapToJson(AlbumListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1250,21 +1395,24 @@ Map<String, dynamic> _$AlbumListWrapToJson(AlbumListWrap instance) => <String, d
       'albums': instance.albums,
     };
 
-ArtistAlbumListWrap _$ArtistAlbumListWrapFromJson(Map<String, dynamic> json) {
-  return ArtistAlbumListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..more = json['more'] as bool?
-    ..hasMore = json['hasMore'] as bool?
-    ..count = json['count'] as int?
-    ..total = json['total'] as int?
-    ..time = json['time'] as int?
-    ..hotAlbums = (json['hotAlbums'] as List<dynamic>?)?.map((e) => Album.fromJson(e as Map<String, dynamic>)).toList()
-    ..artist = Artist.fromJson(json['artist'] as Map<String, dynamic>);
-}
+ArtistAlbumListWrap _$ArtistAlbumListWrapFromJson(Map<String, dynamic> json) =>
+    ArtistAlbumListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..more = json['more'] as bool?
+      ..hasMore = json['hasMore'] as bool?
+      ..count = (json['count'] as num?)?.toInt()
+      ..total = (json['total'] as num?)?.toInt()
+      ..time = (json['time'] as num?)?.toInt()
+      ..hotAlbums = (json['hotAlbums'] as List<dynamic>?)
+          ?.map((e) => Album.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..artist = Artist.fromJson(json['artist'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$ArtistAlbumListWrapToJson(ArtistAlbumListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistAlbumListWrapToJson(
+        ArtistAlbumListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1277,41 +1425,39 @@ Map<String, dynamic> _$ArtistAlbumListWrapToJson(ArtistAlbumListWrap instance) =
       'artist': instance.artist,
     };
 
-MvCreator _$MvCreatorFromJson(Map<String, dynamic> json) {
-  return MvCreator()
-    ..userId = dynamicToString(json['userId'])
-    ..userName = json['userName'] as String?;
-}
+MvCreator _$MvCreatorFromJson(Map<String, dynamic> json) => MvCreator()
+  ..userId = dynamicToString(json['userId'])
+  ..userName = json['userName'] as String?;
 
 Map<String, dynamic> _$MvCreatorToJson(MvCreator instance) => <String, dynamic>{
       'userId': instance.userId,
       'userName': instance.userName,
     };
 
-Mv _$MvFromJson(Map<String, dynamic> json) {
-  return Mv()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..cover = json['cover'] as String?
-    ..playCount = json['playCount'] as int?
-    ..briefDesc = json['briefDesc'] as String?
-    ..desc = json['desc'] as String?
-    ..arTransName = json['arTransName'] as String?
-    ..artisAlias = json['artisAlias'] as String?
-    ..artisTransName = json['artisTransName'] as String?
-    ..artistName = json['artistName'] as String?
-    ..artistImgUrl = json['artistImgUrl'] as String?
-    ..artistId = json['artistId'] as int?
-    ..mvId = json['mvId'] as int?
-    ..mvName = json['mvName'] as String?
-    ..mvCoverUrl = json['mvCoverUrl'] as String?
-    ..duration = json['duration'] as int?
-    ..publishTime = dynamicToString(json['publishTime'])
-    ..publishDate = json['publishDate'] as String?
-    ..mark = json['mark'] as int?
-    ..alg = json['alg'] as String?
-    ..artists = (json['artists'] as List<dynamic>?)?.map((e) => Artist.fromJson(e as Map<String, dynamic>)).toList();
-}
+Mv _$MvFromJson(Map<String, dynamic> json) => Mv()
+  ..id = dynamicToString(json['id'])
+  ..name = json['name'] as String?
+  ..cover = json['cover'] as String?
+  ..playCount = (json['playCount'] as num?)?.toInt()
+  ..briefDesc = json['briefDesc'] as String?
+  ..desc = json['desc'] as String?
+  ..arTransName = json['arTransName'] as String?
+  ..artisAlias = json['artisAlias'] as String?
+  ..artisTransName = json['artisTransName'] as String?
+  ..artistName = json['artistName'] as String?
+  ..artistImgUrl = json['artistImgUrl'] as String?
+  ..artistId = (json['artistId'] as num?)?.toInt()
+  ..mvId = (json['mvId'] as num?)?.toInt()
+  ..mvName = json['mvName'] as String?
+  ..mvCoverUrl = json['mvCoverUrl'] as String?
+  ..duration = (json['duration'] as num?)?.toInt()
+  ..publishTime = dynamicToString(json['publishTime'])
+  ..publishDate = json['publishDate'] as String?
+  ..mark = (json['mark'] as num?)?.toInt()
+  ..alg = json['alg'] as String?
+  ..artists = (json['artists'] as List<dynamic>?)
+      ?.map((e) => Artist.fromJson(e as Map<String, dynamic>))
+      .toList();
 
 Map<String, dynamic> _$MvToJson(Mv instance) => <String, dynamic>{
       'id': instance.id,
@@ -1337,18 +1483,18 @@ Map<String, dynamic> _$MvToJson(Mv instance) => <String, dynamic>{
       'artists': instance.artists,
     };
 
-Mv2 _$Mv2FromJson(Map<String, dynamic> json) {
-  return Mv2()
-    ..type = json['type'] as int?
-    ..title = json['title'] as String?
-    ..durationms = json['durationms'] as int?
-    ..playTime = json['playTime'] as int?
-    ..vid = json['vid'] as String?
-    ..coverUrl = json['coverUrl'] as String?
-    ..aliaName = json['aliaName'] as String?
-    ..transName = json['transName'] as String?
-    ..creator = (json['creator'] as List<dynamic>?)?.map((e) => MvCreator.fromJson(e as Map<String, dynamic>)).toList();
-}
+Mv2 _$Mv2FromJson(Map<String, dynamic> json) => Mv2()
+  ..type = (json['type'] as num?)?.toInt()
+  ..title = json['title'] as String?
+  ..durationms = (json['durationms'] as num?)?.toInt()
+  ..playTime = (json['playTime'] as num?)?.toInt()
+  ..vid = json['vid'] as String?
+  ..coverUrl = json['coverUrl'] as String?
+  ..aliaName = json['aliaName'] as String?
+  ..transName = json['transName'] as String?
+  ..creator = (json['creator'] as List<dynamic>?)
+      ?.map((e) => MvCreator.fromJson(e as Map<String, dynamic>))
+      .toList();
 
 Map<String, dynamic> _$Mv2ToJson(Mv2 instance) => <String, dynamic>{
       'type': instance.type,
@@ -1362,16 +1508,14 @@ Map<String, dynamic> _$Mv2ToJson(Mv2 instance) => <String, dynamic>{
       'creator': instance.creator,
     };
 
-Mv3 _$Mv3FromJson(Map<String, dynamic> json) {
-  return Mv3()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..artistName = json['artistName'] as String?
-    ..imgurl = json['imgurl'] as String
-    ..imgurl16v9 = json['imgurl16v9'] as String
-    ..status = json['status'] as int?
-    ..artist = Artist.fromJson(json['artist'] as Map<String, dynamic>);
-}
+Mv3 _$Mv3FromJson(Map<String, dynamic> json) => Mv3()
+  ..id = dynamicToString(json['id'])
+  ..name = json['name'] as String?
+  ..artistName = json['artistName'] as String?
+  ..imgurl = json['imgurl'] as String
+  ..imgurl16v9 = json['imgurl16v9'] as String
+  ..status = (json['status'] as num?)?.toInt()
+  ..artist = Artist.fromJson(json['artist'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$Mv3ToJson(Mv3 instance) => <String, dynamic>{
       'id': instance.id,
@@ -1383,19 +1527,20 @@ Map<String, dynamic> _$Mv3ToJson(Mv3 instance) => <String, dynamic>{
       'artist': instance.artist,
     };
 
-MvListWrap _$MvListWrapFromJson(Map<String, dynamic> json) {
-  return MvListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..more = json['more'] as bool?
-    ..hasMore = json['hasMore'] as bool?
-    ..count = json['count'] as int?
-    ..total = json['total'] as int?
-    ..mvs = (json['mvs'] as List<dynamic>?)?.map((e) => Mv.fromJson(e as Map<String, dynamic>)).toList();
-}
+MvListWrap _$MvListWrapFromJson(Map<String, dynamic> json) => MvListWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..more = json['more'] as bool?
+  ..hasMore = json['hasMore'] as bool?
+  ..count = (json['count'] as num?)?.toInt()
+  ..total = (json['total'] as num?)?.toInt()
+  ..mvs = (json['mvs'] as List<dynamic>?)
+      ?.map((e) => Mv.fromJson(e as Map<String, dynamic>))
+      .toList();
 
-Map<String, dynamic> _$MvListWrapToJson(MvListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$MvListWrapToJson(MvListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1406,20 +1551,21 @@ Map<String, dynamic> _$MvListWrapToJson(MvListWrap instance) => <String, dynamic
       'mvs': instance.mvs,
     };
 
-MvListWrap2 _$MvListWrap2FromJson(Map<String, dynamic> json) {
-  return MvListWrap2()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..more = json['more'] as bool?
-    ..hasMore = json['hasMore'] as bool?
-    ..count = json['count'] as int?
-    ..total = json['total'] as int?
-    ..data = (json['data'] as List<dynamic>?)?.map((e) => Mv.fromJson(e as Map<String, dynamic>)).toList()
-    ..updateTime = json['updateTime'] as int?;
-}
+MvListWrap2 _$MvListWrap2FromJson(Map<String, dynamic> json) => MvListWrap2()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..more = json['more'] as bool?
+  ..hasMore = json['hasMore'] as bool?
+  ..count = (json['count'] as num?)?.toInt()
+  ..total = (json['total'] as num?)?.toInt()
+  ..data = (json['data'] as List<dynamic>?)
+      ?.map((e) => Mv.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..updateTime = (json['updateTime'] as num?)?.toInt();
 
-Map<String, dynamic> _$MvListWrap2ToJson(MvListWrap2 instance) => <String, dynamic>{
+Map<String, dynamic> _$MvListWrap2ToJson(MvListWrap2 instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1431,16 +1577,20 @@ Map<String, dynamic> _$MvListWrap2ToJson(MvListWrap2 instance) => <String, dynam
       'updateTime': instance.updateTime,
     };
 
-PersonalizedMvListWrap _$PersonalizedMvListWrapFromJson(Map<String, dynamic> json) {
-  return PersonalizedMvListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..result = (json['result'] as List<dynamic>?)?.map((e) => Mv.fromJson(e as Map<String, dynamic>)).toList()
-    ..category = json['category'] as int?;
-}
+PersonalizedMvListWrap _$PersonalizedMvListWrapFromJson(
+        Map<String, dynamic> json) =>
+    PersonalizedMvListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..result = (json['result'] as List<dynamic>?)
+          ?.map((e) => Mv.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..category = (json['category'] as num?)?.toInt();
 
-Map<String, dynamic> _$PersonalizedMvListWrapToJson(PersonalizedMvListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$PersonalizedMvListWrapToJson(
+        PersonalizedMvListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1448,20 +1598,22 @@ Map<String, dynamic> _$PersonalizedMvListWrapToJson(PersonalizedMvListWrap insta
       'category': instance.category,
     };
 
-ArtistMvListWrap _$ArtistMvListWrapFromJson(Map<String, dynamic> json) {
-  return ArtistMvListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..more = json['more'] as bool?
-    ..hasMore = json['hasMore'] as bool?
-    ..count = json['count'] as int?
-    ..total = json['total'] as int?
-    ..mvs = (json['mvs'] as List<dynamic>?)?.map((e) => Mv.fromJson(e as Map<String, dynamic>)).toList()
-    ..time = json['time'] as int?;
-}
+ArtistMvListWrap _$ArtistMvListWrapFromJson(Map<String, dynamic> json) =>
+    ArtistMvListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..more = json['more'] as bool?
+      ..hasMore = json['hasMore'] as bool?
+      ..count = (json['count'] as num?)?.toInt()
+      ..total = (json['total'] as num?)?.toInt()
+      ..mvs = (json['mvs'] as List<dynamic>?)
+          ?.map((e) => Mv.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..time = (json['time'] as num?)?.toInt();
 
-Map<String, dynamic> _$ArtistMvListWrapToJson(ArtistMvListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistMvListWrapToJson(ArtistMvListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1473,46 +1625,52 @@ Map<String, dynamic> _$ArtistMvListWrapToJson(ArtistMvListWrap instance) => <Str
       'time': instance.time,
     };
 
-ArtistNewMvListData _$ArtistNewMvListDataFromJson(Map<String, dynamic> json) {
-  return ArtistNewMvListData()
-    ..hasMore = json['hasMore'] as bool?
-    ..newWorks = (json['newWorks'] as List<dynamic>?)?.map((e) => Mv.fromJson(e as Map<String, dynamic>)).toList();
-}
+ArtistNewMvListData _$ArtistNewMvListDataFromJson(Map<String, dynamic> json) =>
+    ArtistNewMvListData()
+      ..hasMore = json['hasMore'] as bool?
+      ..newWorks = (json['newWorks'] as List<dynamic>?)
+          ?.map((e) => Mv.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$ArtistNewMvListDataToJson(ArtistNewMvListData instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistNewMvListDataToJson(
+        ArtistNewMvListData instance) =>
+    <String, dynamic>{
       'hasMore': instance.hasMore,
       'newWorks': instance.newWorks,
     };
 
-ArtistNewMvListWrap _$ArtistNewMvListWrapFromJson(Map<String, dynamic> json) {
-  return ArtistNewMvListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = ArtistNewMvListData.fromJson(json['data'] as Map<String, dynamic>);
-}
+ArtistNewMvListWrap _$ArtistNewMvListWrapFromJson(Map<String, dynamic> json) =>
+    ArtistNewMvListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data =
+          ArtistNewMvListData.fromJson(json['data'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$ArtistNewMvListWrapToJson(ArtistNewMvListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$ArtistNewMvListWrapToJson(
+        ArtistNewMvListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-MvDetailWrap _$MvDetailWrapFromJson(Map<String, dynamic> json) {
-  return MvDetailWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..loadingPic = json['loadingPic'] as String?
-    ..bufferPic = json['bufferPic'] as String?
-    ..loadingPicFS = json['loadingPicFS'] as String?
-    ..bufferPicFS = json['bufferPicFS'] as String?
-    ..subed = json['subed'] as bool?
-    ..data = json['data'] == null ? null : Mv.fromJson(json['data'] as Map<String, dynamic>);
-}
+MvDetailWrap _$MvDetailWrapFromJson(Map<String, dynamic> json) => MvDetailWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..loadingPic = json['loadingPic'] as String?
+  ..bufferPic = json['bufferPic'] as String?
+  ..loadingPicFS = json['loadingPicFS'] as String?
+  ..bufferPicFS = json['bufferPicFS'] as String?
+  ..subed = json['subed'] as bool?
+  ..data = json['data'] == null
+      ? null
+      : Mv.fromJson(json['data'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$MvDetailWrapToJson(MvDetailWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$MvDetailWrapToJson(MvDetailWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1524,18 +1682,18 @@ Map<String, dynamic> _$MvDetailWrapToJson(MvDetailWrap instance) => <String, dyn
       'data': instance.data,
     };
 
-MvDetailInfoWrap _$MvDetailInfoWrapFromJson(Map<String, dynamic> json) {
-  return MvDetailInfoWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..likedCount = json['likedCount'] as int?
-    ..shareCount = json['shareCount'] as int?
-    ..commentCount = json['commentCount'] as int?
-    ..liked = json['liked'] as bool?;
-}
+MvDetailInfoWrap _$MvDetailInfoWrapFromJson(Map<String, dynamic> json) =>
+    MvDetailInfoWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..likedCount = (json['likedCount'] as num?)?.toInt()
+      ..shareCount = (json['shareCount'] as num?)?.toInt()
+      ..commentCount = (json['commentCount'] as num?)?.toInt()
+      ..liked = json['liked'] as bool?;
 
-Map<String, dynamic> _$MvDetailInfoWrapToJson(MvDetailInfoWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$MvDetailInfoWrapToJson(MvDetailInfoWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1545,19 +1703,17 @@ Map<String, dynamic> _$MvDetailInfoWrapToJson(MvDetailInfoWrap instance) => <Str
       'liked': instance.liked,
     };
 
-MvUrl _$MvUrlFromJson(Map<String, dynamic> json) {
-  return MvUrl()
-    ..id = dynamicToString(json['id'])
-    ..url = json['url'] as String?
-    ..md5 = json['md5'] as String?
-    ..msg = json['msg'] as String?
-    ..r = json['r'] as int?
-    ..size = json['size'] as int?
-    ..expi = json['expi'] as int?
-    ..fee = json['fee'] as int?
-    ..mvFee = json['mvFee'] as int?
-    ..st = json['st'] as int?;
-}
+MvUrl _$MvUrlFromJson(Map<String, dynamic> json) => MvUrl()
+  ..id = dynamicToString(json['id'])
+  ..url = json['url'] as String?
+  ..md5 = json['md5'] as String?
+  ..msg = json['msg'] as String?
+  ..r = (json['r'] as num?)?.toInt()
+  ..size = (json['size'] as num?)?.toInt()
+  ..expi = (json['expi'] as num?)?.toInt()
+  ..fee = (json['fee'] as num?)?.toInt()
+  ..mvFee = (json['mvFee'] as num?)?.toInt()
+  ..st = (json['st'] as num?)?.toInt();
 
 Map<String, dynamic> _$MvUrlToJson(MvUrl instance) => <String, dynamic>{
       'id': instance.id,
@@ -1572,13 +1728,11 @@ Map<String, dynamic> _$MvUrlToJson(MvUrl instance) => <String, dynamic>{
       'st': instance.st,
     };
 
-MvUrlWrap _$MvUrlWrapFromJson(Map<String, dynamic> json) {
-  return MvUrlWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = MvUrl.fromJson(json['data'] as Map<String, dynamic>);
-}
+MvUrlWrap _$MvUrlWrapFromJson(Map<String, dynamic> json) => MvUrlWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..data = MvUrl.fromJson(json['data'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$MvUrlWrapToJson(MvUrlWrap instance) => <String, dynamic>{
       'code': instance.code,
@@ -1587,28 +1741,27 @@ Map<String, dynamic> _$MvUrlWrapToJson(MvUrlWrap instance) => <String, dynamic>{
       'data': instance.data,
     };
 
-VideoResolution _$VideoResolutionFromJson(Map<String, dynamic> json) {
-  return VideoResolution()
-    ..resolution = json['resolution'] as int?
-    ..size = json['size'] as int?;
-}
+VideoResolution _$VideoResolutionFromJson(Map<String, dynamic> json) =>
+    VideoResolution()
+      ..resolution = (json['resolution'] as num?)?.toInt()
+      ..size = (json['size'] as num?)?.toInt();
 
-Map<String, dynamic> _$VideoResolutionToJson(VideoResolution instance) => <String, dynamic>{
+Map<String, dynamic> _$VideoResolutionToJson(VideoResolution instance) =>
+    <String, dynamic>{
       'resolution': instance.resolution,
       'size': instance.size,
     };
 
-VideoUrlInfo _$VideoUrlInfoFromJson(Map<String, dynamic> json) {
-  return VideoUrlInfo()
-    ..id = json['id'] as String
-    ..url = json['url'] as String?
-    ..size = json['size'] as int?
-    ..validityTime = json['validityTime'] as int?
-    ..needPay = json['needPay'] as bool?
-    ..r = json['r'] as int?;
-}
+VideoUrlInfo _$VideoUrlInfoFromJson(Map<String, dynamic> json) => VideoUrlInfo()
+  ..id = json['id'] as String
+  ..url = json['url'] as String?
+  ..size = (json['size'] as num?)?.toInt()
+  ..validityTime = (json['validityTime'] as num?)?.toInt()
+  ..needPay = json['needPay'] as bool?
+  ..r = (json['r'] as num?)?.toInt();
 
-Map<String, dynamic> _$VideoUrlInfoToJson(VideoUrlInfo instance) => <String, dynamic>{
+Map<String, dynamic> _$VideoUrlInfoToJson(VideoUrlInfo instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'url': instance.url,
       'size': instance.size,
@@ -1617,32 +1770,38 @@ Map<String, dynamic> _$VideoUrlInfoToJson(VideoUrlInfo instance) => <String, dyn
       'r': instance.r,
     };
 
-VideoBase _$VideoBaseFromJson(Map<String, dynamic> json) {
-  return VideoBase()
-    ..vid = json['vid'] as String?
-    ..title = json['title'] as String?
-    ..description = json['description'] as String?
-    ..scm = json['scm'] as String?
-    ..alg = json['alg'] as String?
-    ..threadId = json['threadId'] as String?
-    ..coverUrl = json['coverUrl'] as String?
-    ..previewUrl = json['previewUrl'] as String?
-    ..width = json['width'] as int?
-    ..height = json['height'] as int?
-    ..praisedCount = json['praisedCount'] as int?
-    ..playTime = json['playTime'] as int?
-    ..durationms = json['durationms'] as int?
-    ..previewDurationms = json['previewDurationms'] as int?
-    ..commentCount = json['commentCount'] as int?
-    ..shareCount = json['shareCount'] as int?
-    ..praised = json['praised'] as bool?
-    ..subscribed = json['subscribed'] as bool?
-    ..hasRelatedGameAd = json['hasRelatedGameAd'] as bool?
-    ..resolutions = (json['resolutions'] as List<dynamic>?)?.map((e) => VideoResolution.fromJson(e as Map<String, dynamic>)).toList()
-    ..urlInfo = json['urlInfo'] == null ? null : VideoUrlInfo.fromJson(json['urlInfo'] as Map<String, dynamic>)
-    ..videoGroup = (json['videoGroup'] as List<dynamic>?)?.map((e) => VideoMetaItem.fromJson(e as Map<String, dynamic>)).toList()
-    ..relateSong = (json['relateSong'] as List<dynamic>?)?.map((e) => Song.fromJson(e as Map<String, dynamic>)).toList();
-}
+VideoBase _$VideoBaseFromJson(Map<String, dynamic> json) => VideoBase()
+  ..vid = json['vid'] as String?
+  ..title = json['title'] as String?
+  ..description = json['description'] as String?
+  ..scm = json['scm'] as String?
+  ..alg = json['alg'] as String?
+  ..threadId = json['threadId'] as String?
+  ..coverUrl = json['coverUrl'] as String?
+  ..previewUrl = json['previewUrl'] as String?
+  ..width = (json['width'] as num?)?.toInt()
+  ..height = (json['height'] as num?)?.toInt()
+  ..praisedCount = (json['praisedCount'] as num?)?.toInt()
+  ..playTime = (json['playTime'] as num?)?.toInt()
+  ..durationms = (json['durationms'] as num?)?.toInt()
+  ..previewDurationms = (json['previewDurationms'] as num?)?.toInt()
+  ..commentCount = (json['commentCount'] as num?)?.toInt()
+  ..shareCount = (json['shareCount'] as num?)?.toInt()
+  ..praised = json['praised'] as bool?
+  ..subscribed = json['subscribed'] as bool?
+  ..hasRelatedGameAd = json['hasRelatedGameAd'] as bool?
+  ..resolutions = (json['resolutions'] as List<dynamic>?)
+      ?.map((e) => VideoResolution.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..urlInfo = json['urlInfo'] == null
+      ? null
+      : VideoUrlInfo.fromJson(json['urlInfo'] as Map<String, dynamic>)
+  ..videoGroup = (json['videoGroup'] as List<dynamic>?)
+      ?.map((e) => VideoMetaItem.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..relateSong = (json['relateSong'] as List<dynamic>?)
+      ?.map((e) => Song.fromJson(e as Map<String, dynamic>))
+      .toList();
 
 Map<String, dynamic> _$VideoBaseToJson(VideoBase instance) => <String, dynamic>{
       'vid': instance.vid,
@@ -1670,33 +1829,39 @@ Map<String, dynamic> _$VideoBaseToJson(VideoBase instance) => <String, dynamic>{
       'relateSong': instance.relateSong,
     };
 
-Video _$VideoFromJson(Map<String, dynamic> json) {
-  return Video()
-    ..vid = json['vid'] as String?
-    ..title = json['title'] as String?
-    ..description = json['description'] as String?
-    ..scm = json['scm'] as String?
-    ..alg = json['alg'] as String?
-    ..threadId = json['threadId'] as String?
-    ..coverUrl = json['coverUrl'] as String?
-    ..previewUrl = json['previewUrl'] as String?
-    ..width = json['width'] as int?
-    ..height = json['height'] as int?
-    ..praisedCount = json['praisedCount'] as int?
-    ..playTime = json['playTime'] as int?
-    ..durationms = json['durationms'] as int?
-    ..previewDurationms = json['previewDurationms'] as int?
-    ..commentCount = json['commentCount'] as int?
-    ..shareCount = json['shareCount'] as int?
-    ..praised = json['praised'] as bool?
-    ..subscribed = json['subscribed'] as bool?
-    ..hasRelatedGameAd = json['hasRelatedGameAd'] as bool?
-    ..resolutions = (json['resolutions'] as List<dynamic>?)?.map((e) => VideoResolution.fromJson(e as Map<String, dynamic>)).toList()
-    ..urlInfo = json['urlInfo'] == null ? null : VideoUrlInfo.fromJson(json['urlInfo'] as Map<String, dynamic>)
-    ..videoGroup = (json['videoGroup'] as List<dynamic>?)?.map((e) => VideoMetaItem.fromJson(e as Map<String, dynamic>)).toList()
-    ..relateSong = (json['relateSong'] as List<dynamic>?)?.map((e) => Song.fromJson(e as Map<String, dynamic>)).toList()
-    ..creator = NeteaseUserInfo.fromJson(json['creator'] as Map<String, dynamic>);
-}
+Video _$VideoFromJson(Map<String, dynamic> json) => Video()
+  ..vid = json['vid'] as String?
+  ..title = json['title'] as String?
+  ..description = json['description'] as String?
+  ..scm = json['scm'] as String?
+  ..alg = json['alg'] as String?
+  ..threadId = json['threadId'] as String?
+  ..coverUrl = json['coverUrl'] as String?
+  ..previewUrl = json['previewUrl'] as String?
+  ..width = (json['width'] as num?)?.toInt()
+  ..height = (json['height'] as num?)?.toInt()
+  ..praisedCount = (json['praisedCount'] as num?)?.toInt()
+  ..playTime = (json['playTime'] as num?)?.toInt()
+  ..durationms = (json['durationms'] as num?)?.toInt()
+  ..previewDurationms = (json['previewDurationms'] as num?)?.toInt()
+  ..commentCount = (json['commentCount'] as num?)?.toInt()
+  ..shareCount = (json['shareCount'] as num?)?.toInt()
+  ..praised = json['praised'] as bool?
+  ..subscribed = json['subscribed'] as bool?
+  ..hasRelatedGameAd = json['hasRelatedGameAd'] as bool?
+  ..resolutions = (json['resolutions'] as List<dynamic>?)
+      ?.map((e) => VideoResolution.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..urlInfo = json['urlInfo'] == null
+      ? null
+      : VideoUrlInfo.fromJson(json['urlInfo'] as Map<String, dynamic>)
+  ..videoGroup = (json['videoGroup'] as List<dynamic>?)
+      ?.map((e) => VideoMetaItem.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..relateSong = (json['relateSong'] as List<dynamic>?)
+      ?.map((e) => Song.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..creator = NeteaseUserInfo.fromJson(json['creator'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$VideoToJson(Video instance) => <String, dynamic>{
       'vid': instance.vid,
@@ -1725,33 +1890,41 @@ Map<String, dynamic> _$VideoToJson(Video instance) => <String, dynamic>{
       'creator': instance.creator,
     };
 
-Video2 _$Video2FromJson(Map<String, dynamic> json) {
-  return Video2()
-    ..vid = json['vid'] as String?
-    ..title = json['title'] as String?
-    ..description = json['description'] as String?
-    ..scm = json['scm'] as String?
-    ..alg = json['alg'] as String?
-    ..threadId = json['threadId'] as String?
-    ..coverUrl = json['coverUrl'] as String?
-    ..previewUrl = json['previewUrl'] as String?
-    ..width = json['width'] as int?
-    ..height = json['height'] as int?
-    ..praisedCount = json['praisedCount'] as int?
-    ..playTime = json['playTime'] as int?
-    ..durationms = json['durationms'] as int?
-    ..previewDurationms = json['previewDurationms'] as int?
-    ..commentCount = json['commentCount'] as int?
-    ..shareCount = json['shareCount'] as int?
-    ..praised = json['praised'] as bool?
-    ..subscribed = json['subscribed'] as bool?
-    ..hasRelatedGameAd = json['hasRelatedGameAd'] as bool?
-    ..resolutions = (json['resolutions'] as List<dynamic>?)?.map((e) => VideoResolution.fromJson(e as Map<String, dynamic>)).toList()
-    ..urlInfo = json['urlInfo'] == null ? null : VideoUrlInfo.fromJson(json['urlInfo'] as Map<String, dynamic>)
-    ..videoGroup = (json['videoGroup'] as List<dynamic>?)?.map((e) => VideoMetaItem.fromJson(e as Map<String, dynamic>)).toList()
-    ..relateSong = (json['relateSong'] as List<dynamic>?)?.map((e) => Song.fromJson(e as Map<String, dynamic>)).toList()
-    ..creator = (json['creator'] as List<dynamic>?)?.map((e) => NeteaseUserInfo.fromJson(e as Map<String, dynamic>)).toList();
-}
+Video2 _$Video2FromJson(Map<String, dynamic> json) => Video2()
+  ..vid = json['vid'] as String?
+  ..title = json['title'] as String?
+  ..description = json['description'] as String?
+  ..scm = json['scm'] as String?
+  ..alg = json['alg'] as String?
+  ..threadId = json['threadId'] as String?
+  ..coverUrl = json['coverUrl'] as String?
+  ..previewUrl = json['previewUrl'] as String?
+  ..width = (json['width'] as num?)?.toInt()
+  ..height = (json['height'] as num?)?.toInt()
+  ..praisedCount = (json['praisedCount'] as num?)?.toInt()
+  ..playTime = (json['playTime'] as num?)?.toInt()
+  ..durationms = (json['durationms'] as num?)?.toInt()
+  ..previewDurationms = (json['previewDurationms'] as num?)?.toInt()
+  ..commentCount = (json['commentCount'] as num?)?.toInt()
+  ..shareCount = (json['shareCount'] as num?)?.toInt()
+  ..praised = json['praised'] as bool?
+  ..subscribed = json['subscribed'] as bool?
+  ..hasRelatedGameAd = json['hasRelatedGameAd'] as bool?
+  ..resolutions = (json['resolutions'] as List<dynamic>?)
+      ?.map((e) => VideoResolution.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..urlInfo = json['urlInfo'] == null
+      ? null
+      : VideoUrlInfo.fromJson(json['urlInfo'] as Map<String, dynamic>)
+  ..videoGroup = (json['videoGroup'] as List<dynamic>?)
+      ?.map((e) => VideoMetaItem.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..relateSong = (json['relateSong'] as List<dynamic>?)
+      ?.map((e) => Song.fromJson(e as Map<String, dynamic>))
+      .toList()
+  ..creator = (json['creator'] as List<dynamic>?)
+      ?.map((e) => NeteaseUserInfo.fromJson(e as Map<String, dynamic>))
+      .toList();
 
 Map<String, dynamic> _$Video2ToJson(Video2 instance) => <String, dynamic>{
       'vid': instance.vid,
@@ -1780,16 +1953,16 @@ Map<String, dynamic> _$Video2ToJson(Video2 instance) => <String, dynamic>{
       'creator': instance.creator,
     };
 
-VideoMetaItem _$VideoMetaItemFromJson(Map<String, dynamic> json) {
-  return VideoMetaItem()
-    ..id = dynamicToString(json['id'])
-    ..name = json['name'] as String?
-    ..url = json['url'] as String?
-    ..relatedVideoType = json['relatedVideoType'] as String?
-    ..selectTab = json['selectTab'] as bool?;
-}
+VideoMetaItem _$VideoMetaItemFromJson(Map<String, dynamic> json) =>
+    VideoMetaItem()
+      ..id = dynamicToString(json['id'])
+      ..name = json['name'] as String?
+      ..url = json['url'] as String?
+      ..relatedVideoType = json['relatedVideoType'] as String?
+      ..selectTab = json['selectTab'] as bool?;
 
-Map<String, dynamic> _$VideoMetaItemToJson(VideoMetaItem instance) => <String, dynamic>{
+Map<String, dynamic> _$VideoMetaItemToJson(VideoMetaItem instance) =>
+    <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'url': instance.url,
@@ -1797,29 +1970,29 @@ Map<String, dynamic> _$VideoMetaItemToJson(VideoMetaItem instance) => <String, d
       'selectTab': instance.selectTab,
     };
 
-VideoMetaListWrap _$VideoMetaListWrapFromJson(Map<String, dynamic> json) {
-  return VideoMetaListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = (json['data'] as List<dynamic>?)?.map((e) => VideoMetaItem.fromJson(e as Map<String, dynamic>)).toList();
-}
+VideoMetaListWrap _$VideoMetaListWrapFromJson(Map<String, dynamic> json) =>
+    VideoMetaListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data = (json['data'] as List<dynamic>?)
+          ?.map((e) => VideoMetaItem.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$VideoMetaListWrapToJson(VideoMetaListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$VideoMetaListWrapToJson(VideoMetaListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-VideoWrap _$VideoWrapFromJson(Map<String, dynamic> json) {
-  return VideoWrap()
-    ..type = json['type'] as int?
-    ..displayed = json['displayed'] as bool?
-    ..alg = json['alg'] as String?
-    ..extAlg = json['extAlg'] as String?
-    ..data = Video.fromJson(json['data'] as Map<String, dynamic>);
-}
+VideoWrap _$VideoWrapFromJson(Map<String, dynamic> json) => VideoWrap()
+  ..type = (json['type'] as num?)?.toInt()
+  ..displayed = json['displayed'] as bool?
+  ..alg = json['alg'] as String?
+  ..extAlg = json['extAlg'] as String?
+  ..data = Video.fromJson(json['data'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$VideoWrapToJson(VideoWrap instance) => <String, dynamic>{
       'type': instance.type,
@@ -1829,20 +2002,22 @@ Map<String, dynamic> _$VideoWrapToJson(VideoWrap instance) => <String, dynamic>{
       'data': instance.data,
     };
 
-VideoListWrapX _$VideoListWrapXFromJson(Map<String, dynamic> json) {
-  return VideoListWrapX()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..more = json['more'] as bool?
-    ..hasMore = json['hasMore'] as bool?
-    ..count = json['count'] as int?
-    ..total = json['total'] as int?
-    ..datas = (json['datas'] as List<dynamic>?)?.map((e) => VideoWrap.fromJson(e as Map<String, dynamic>)).toList()
-    ..rcmdLimit = json['rcmdLimit'] as int?;
-}
+VideoListWrapX _$VideoListWrapXFromJson(Map<String, dynamic> json) =>
+    VideoListWrapX()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..more = json['more'] as bool?
+      ..hasMore = json['hasMore'] as bool?
+      ..count = (json['count'] as num?)?.toInt()
+      ..total = (json['total'] as num?)?.toInt()
+      ..datas = (json['datas'] as List<dynamic>?)
+          ?.map((e) => VideoWrap.fromJson(e as Map<String, dynamic>))
+          .toList()
+      ..rcmdLimit = (json['rcmdLimit'] as num?)?.toInt();
 
-Map<String, dynamic> _$VideoListWrapXToJson(VideoListWrapX instance) => <String, dynamic>{
+Map<String, dynamic> _$VideoListWrapXToJson(VideoListWrapX instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1854,48 +2029,51 @@ Map<String, dynamic> _$VideoListWrapXToJson(VideoListWrapX instance) => <String,
       'rcmdLimit': instance.rcmdLimit,
     };
 
-VideoListWrap _$VideoListWrapFromJson(Map<String, dynamic> json) {
-  return VideoListWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = (json['data'] as List<dynamic>?)?.map((e) => Video2.fromJson(e as Map<String, dynamic>)).toList();
-}
+VideoListWrap _$VideoListWrapFromJson(Map<String, dynamic> json) =>
+    VideoListWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data = (json['data'] as List<dynamic>?)
+          ?.map((e) => Video2.fromJson(e as Map<String, dynamic>))
+          .toList();
 
-Map<String, dynamic> _$VideoListWrapToJson(VideoListWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$VideoListWrapToJson(VideoListWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-VideoDetailWrap _$VideoDetailWrapFromJson(Map<String, dynamic> json) {
-  return VideoDetailWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..data = Video.fromJson(json['data'] as Map<String, dynamic>);
-}
+VideoDetailWrap _$VideoDetailWrapFromJson(Map<String, dynamic> json) =>
+    VideoDetailWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..data = Video.fromJson(json['data'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$VideoDetailWrapToJson(VideoDetailWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$VideoDetailWrapToJson(VideoDetailWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'data': instance.data,
     };
 
-VideoDetailInfoWrap _$VideoDetailInfoWrapFromJson(Map<String, dynamic> json) {
-  return VideoDetailInfoWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..likedCount = json['likedCount'] as int?
-    ..shareCount = json['shareCount'] as int?
-    ..commentCount = json['commentCount'] as int?
-    ..liked = json['liked'] as bool?;
-}
+VideoDetailInfoWrap _$VideoDetailInfoWrapFromJson(Map<String, dynamic> json) =>
+    VideoDetailInfoWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..likedCount = (json['likedCount'] as num?)?.toInt()
+      ..shareCount = (json['shareCount'] as num?)?.toInt()
+      ..commentCount = (json['commentCount'] as num?)?.toInt()
+      ..liked = json['liked'] as bool?;
 
-Map<String, dynamic> _$VideoDetailInfoWrapToJson(VideoDetailInfoWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$VideoDetailInfoWrapToJson(
+        VideoDetailInfoWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -1905,15 +2083,13 @@ Map<String, dynamic> _$VideoDetailInfoWrapToJson(VideoDetailInfoWrap instance) =
       'liked': instance.liked,
     };
 
-VideoUrl _$VideoUrlFromJson(Map<String, dynamic> json) {
-  return VideoUrl()
-    ..id = dynamicToString(json['id'])
-    ..url = json['url'] as String?
-    ..size = json['size'] as int?
-    ..validityTime = json['validityTime'] as int?
-    ..needPay = json['needPay'] as bool?
-    ..r = json['r'] as int?;
-}
+VideoUrl _$VideoUrlFromJson(Map<String, dynamic> json) => VideoUrl()
+  ..id = dynamicToString(json['id'])
+  ..url = json['url'] as String?
+  ..size = (json['size'] as num?)?.toInt()
+  ..validityTime = (json['validityTime'] as num?)?.toInt()
+  ..needPay = json['needPay'] as bool?
+  ..r = (json['r'] as num?)?.toInt();
 
 Map<String, dynamic> _$VideoUrlToJson(VideoUrl instance) => <String, dynamic>{
       'id': instance.id,
@@ -1924,15 +2100,16 @@ Map<String, dynamic> _$VideoUrlToJson(VideoUrl instance) => <String, dynamic>{
       'r': instance.r,
     };
 
-VideoUrlWrap _$VideoUrlWrapFromJson(Map<String, dynamic> json) {
-  return VideoUrlWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..urls = (json['urls'] as List<dynamic>?)?.map((e) => VideoUrl.fromJson(e as Map<String, dynamic>)).toList();
-}
+VideoUrlWrap _$VideoUrlWrapFromJson(Map<String, dynamic> json) => VideoUrlWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..urls = (json['urls'] as List<dynamic>?)
+      ?.map((e) => VideoUrl.fromJson(e as Map<String, dynamic>))
+      .toList();
 
-Map<String, dynamic> _$VideoUrlWrapToJson(VideoUrlWrap instance) => <String, dynamic>{
+Map<String, dynamic> _$VideoUrlWrapToJson(VideoUrlWrap instance) =>
+    <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,

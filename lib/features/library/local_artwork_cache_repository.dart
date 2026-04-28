@@ -8,10 +8,9 @@ import 'package:path_provider/path_provider.dart';
 class LocalArtworkCacheRepository {
   LocalArtworkCacheRepository({
     Dio? dio,
-    LocalResourceIndexRepository? resourceIndexRepository,
+    required LocalResourceIndexRepository resourceIndexRepository,
   })  : _dio = dio ?? Dio(),
-        _resourceIndexRepository =
-            resourceIndexRepository ?? LocalResourceIndexRepository();
+        _resourceIndexRepository = resourceIndexRepository;
 
   final Dio _dio;
   final LocalResourceIndexRepository _resourceIndexRepository;

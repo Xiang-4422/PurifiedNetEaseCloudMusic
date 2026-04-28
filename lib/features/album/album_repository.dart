@@ -4,7 +4,6 @@ import 'package:bujuan/data/netease/netease_album_remote_data_source.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
-import 'package:get_it/get_it.dart';
 
 class AlbumDetailData {
   const AlbumDetailData({
@@ -18,12 +17,9 @@ class AlbumDetailData {
 
 class AlbumRepository {
   AlbumRepository({
-    LibraryRepository? libraryRepository,
+    required LibraryRepository libraryRepository,
     NeteaseAlbumRemoteDataSource? remoteDataSource,
-  })  : _libraryRepository = libraryRepository ??
-            (GetIt.instance.isRegistered<LibraryRepository>()
-                ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository()),
+  })  : _libraryRepository = libraryRepository,
         _remoteDataSource =
             remoteDataSource ?? const NeteaseAlbumRemoteDataSource();
 

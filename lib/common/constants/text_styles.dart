@@ -14,5 +14,3 @@ TextStyle ndotPrimaryW100S20 = const TextStyle(
   fontWeight: FontWeight.w100,
   fontSize: 20,
 );
-
-

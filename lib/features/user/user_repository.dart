@@ -6,26 +6,20 @@ import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_user_remote_data_source.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/domain/entities/user_library_kinds.dart';
+import 'package:bujuan/domain/entities/user_profile_data.dart';
 import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/features/playlist/playlist_summary_data.dart';
-import 'package:bujuan/features/user/user_profile_data.dart';
-import 'package:get_it/get_it.dart';
 
 class UserRepository {
   UserRepository({
-    LibraryRepository? libraryRepository,
+    required LibraryRepository libraryRepository,
     NeteaseUserRemoteDataSource? remoteDataSource,
-    UserScopedDataSource? userScopedDataSource,
-  })  : _libraryRepository = libraryRepository ??
-            (GetIt.instance.isRegistered<LibraryRepository>()
-                ? GetIt.instance<LibraryRepository>()
-                : LibraryRepository()),
+    required UserScopedDataSource userScopedDataSource,
+  })  : _libraryRepository = libraryRepository,
         _remoteDataSource =
             remoteDataSource ?? const NeteaseUserRemoteDataSource(),
-        _userScopedDataSource = userScopedDataSource ??
-            (GetIt.instance.isRegistered<UserScopedDataSource>()
-                ? GetIt.instance<UserScopedDataSource>()
-                : (throw StateError('UserScopedDataSource is not registered')));
+        _userScopedDataSource = userScopedDataSource;
 
   final LibraryRepository _libraryRepository;
   final NeteaseUserRemoteDataSource _remoteDataSource;
@@ -218,7 +212,8 @@ class UserRepository {
     required List<int> likedSongIds,
   }) async {
     final normalizedIds = ids.map(_toTrackId).toList();
-    final tracks = await _libraryRepository.getTracksWithResources(normalizedIds);
+    final tracks =
+        await _libraryRepository.getTracksWithResources(normalizedIds);
     if (tracks.isEmpty) {
       return const [];
     }

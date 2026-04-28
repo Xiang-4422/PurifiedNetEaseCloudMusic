@@ -7,11 +7,11 @@ import 'package:flutter/foundation.dart';
 
 class CloudPageController {
   CloudPageController({
-    CloudRepository? repository,
+    required CloudRepository repository,
     required String userId,
     required List<int> likedSongIds,
     this.pageSize = 30,
-  })  : _repository = repository ?? CloudRepository(),
+  })  : _repository = repository,
         _userId = userId,
         _likedSongIds = likedSongIds;
 

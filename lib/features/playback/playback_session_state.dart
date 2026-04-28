@@ -3,8 +3,7 @@ import 'package:bujuan/common/constants/enmu.dart';
 
 /// 播放会话状态描述“当前这次播放上下文是什么”，用于收口分散的播放展示态。
 ///
-/// 这里先只承载高频且跨页面共享的会话信息，避免在迁移期把歌词、进度等瞬时状态
-/// 一并塞进来，导致对象变化过于频繁。
+/// 这里只承载高频且跨页面共享的会话信息，避免把歌词、进度等瞬时状态一并塞进来。
 class PlaybackSessionState {
   final PlaybackMode playbackMode;
   final AudioServiceRepeatMode repeatMode;

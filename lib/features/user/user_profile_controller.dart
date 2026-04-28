@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bujuan/core/network/load_state.dart';
-import 'package:bujuan/features/user/user_profile_data.dart';
+import 'package:bujuan/domain/entities/user_profile_data.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -9,8 +9,8 @@ import 'package:flutter/foundation.dart';
 class UserProfileController {
   UserProfileController({
     required this.userId,
-    UserRepository? repository,
-  }) : _repository = repository ?? UserRepository();
+    required UserRepository repository,
+  }) : _repository = repository;
 
   final String userId;
   final UserRepository _repository;

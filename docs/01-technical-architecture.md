@@ -19,14 +19,14 @@
 
 当前项目功能完整，但职责分布仍然交叉：
 
-- [`lib/features/shell/app_controller.dart`](../lib/features/shell/app_controller.dart) 同时承担壳层 UI 状态、播放入口和部分业务编排
-- [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart) 与 [`lib/core/playback/audio_service_handler.dart`](../lib/core/playback/audio_service_handler.dart) 已形成播放链路，但仍混有缓存、API 和跨控制器依赖
+- [`lib/features/shell/shell_controller.dart`](../lib/features/shell/shell_controller.dart) 同时承担壳层 UI 状态、播放入口和部分业务编排
+- [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart) 与 [`lib/features/playback/application/audio_service_handler.dart`](../lib/features/playback/application/audio_service_handler.dart) 已形成播放链路，`MediaItem` 适配限定在播放 application/service 层
 - [`lib/features/user/user_controller.dart`](../lib/features/user/user_controller.dart) 同时承担用户状态、推荐内容、喜欢歌曲、FM、心动模式等职责
-- 多个页面仍承载用例逻辑和数据访问逻辑，例如：
-  - [`lib/pages/login_page_view.dart`](../lib/pages/login_page_view.dart)
-  - [`lib/pages/playlist_page_view.dart`](../lib/pages/playlist_page_view.dart)
-  - [`lib/pages/cloud_drive_view.dart`](../lib/pages/cloud_drive_view.dart)
-  - [`lib/pages/home/top_panel_view.dart`](../lib/pages/home/top_panel_view.dart)
+- 页面已并入对应 feature 的 `presentation` 目录，仍需继续缩小页面内用例逻辑，例如：
+  - [`lib/features/auth/presentation/login_page_view.dart`](../lib/features/auth/presentation/login_page_view.dart)
+  - [`lib/features/playlist/presentation/playlist_page_view.dart`](../lib/features/playlist/presentation/playlist_page_view.dart)
+  - [`lib/features/cloud/presentation/cloud_drive_view.dart`](../lib/features/cloud/presentation/cloud_drive_view.dart)
+  - [`lib/features/search/presentation/top_panel_view.dart`](../lib/features/search/presentation/top_panel_view.dart)
 - 旧 `request_widget` 已移除，请求执行权已从页面和通用组件回收到 feature controller 与 repository
 
 结论：
@@ -51,8 +51,11 @@
 - 搜索策略：本地优先，远程补充并回写
 - 本地音乐源是正式目标能力，不是附属功能
 - 离线下载是核心能力，不是可选增强
-- 允许在过渡期保留 `Hive + 正式本地数据库 + 旧页面/新入口` 并存
-- 允许分链路渐进迁移，不要求单个页面一次性完成全部改造
+- 现阶段保留 `GetX`，依赖装配统一通过应用级 binding 管理
+- 后期迁移 `Riverpod` 时只替换 binding/provider 与 controller 创建方式
+- `domain / data / repository` 不依赖 `GetX`、`Rx` 或全局容器读取
+- `Hive` 只保留设置、登录态和轻量缓存；正式媒体库与用户作用域数据进入 `Drift`
+- 数据库升级允许破坏式重建，不保留历史本地数据搬运逻辑
 
 ### 3.3 当前确认的产品偏好
 
@@ -203,11 +206,9 @@
 - `Flutter`
   - 继续作为唯一 UI 框架
 - `GetX`
-  - 现阶段保留，用于已有存量模块
-  - 不再扩张“大型总控 Controller”写法
-- `GetIt`
-  - 仅保留为基础设施单例容器
-  - 不再扩张到页面和业务层的任意依赖获取
+  - 现阶段保留，用于页面状态、Controller 和应用级 Binding
+  - `Rx`、`GetxController`、`Get.find` 只允许出现在 `features/*/presentation`、controller、binding、route 层
+  - 不进入 `domain / data / repository`
 - `auto_route`
   - 继续作为路由方案
 - `Dio`
@@ -251,16 +252,16 @@
 ### 6.3 Shell 协调层
 
 - 首页壳层 UI 状态与业务入口分离
-- `AppController` 的长期目标是拆薄
+- `ShellController` 的长期目标是拆薄
 - 壳层状态独立为 `features/shell/controller`
-- 页面不应直接驱动 `audioHandler`，也不应继续通过 `AppController` 充当播放代理；播放主链路统一经由 `PlayerController` 暴露入口
+- 页面不应直接驱动 `audioHandler`，也不应继续通过 `ShellController` 充当播放代理；播放主链路统一经由 `PlayerController` 暴露入口
 - `PlayerController` 不再直接初始化底层播放器实例，音频服务生命周期统一收口到 `PlaybackService`
 - 漫游模式续队列、喜欢歌曲播放和模式初始化等队列编排优先下沉到 `PlaybackService`，控制器只保留状态与交互协作
 - `AudioServiceHandler` 不再直接反向依赖 `PlayerController`，上层状态同步改为通过 `PlaybackService` 显式绑定回调
 - `AudioServiceHandler` 不再直接读取 `SettingsController` 或 `UserController`，底层所需偏好和交互入口统一通过 `PlaybackService` 注入
-- 播放模式、重复模式、当前歌单名等展示态开始收口为 `PlaybackSessionState`，旧分散字段暂时保留作为兼容层
+- 播放模式、重复模式、当前歌单名等展示态收口为 `PlaybackSessionState`
 - 播放恢复信息开始收口为 `PlaybackRestoreState`，当前项、歌单元信息、队列、模式和进度不再继续以散落 key 分别理解
-- 当前队列、当前歌曲、当前索引和当前进度开始收口为 `PlaybackRuntimeState`，旧运行态字段暂时保留作为页面兼容层
+- 当前队列、当前歌曲、当前索引和当前进度收口为 `PlaybackRuntimeState`
 - 歌词行、当前歌词索引和翻译歌词标记开始收口为 `PlaybackLyricState`，避免歌词解析结果继续散落在控制器兼容字段中
 - 播放恢复态已回收到 `PlaybackRestoreDataSource`，歌词内容改由媒体库承接
 - 播放恢复态的读写主入口已切到 `PlaybackRepository`，控制器和底层 handler 不再直接操作存储实现
@@ -285,7 +286,7 @@
 - 壳层与主播放面板已开始消费统一播放状态对象，后续页面迁移优先复用这些状态而不是继续增加散落 getter
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，旧运行态字段开始退回兼容入口
 - `PlayerController` 内部逻辑已优先读取 `sessionState / runtimeState / lyricState`，旧 `curPlaying* / curPlay* / lyrics*` 字段逐步退为页面兼容镜像
-- `AppController` 中直接暴露旧运行态与歌词态的兼容 getter 已移除，壳层统一改经 `PlaybackSessionState / PlaybackRuntimeState / PlaybackLyricState` 读取播放状态
+- `ShellController` 中直接暴露旧运行态与歌词态的兼容 getter 已移除，壳层统一改经 `PlaybackSessionState / PlaybackRuntimeState / PlaybackLyricState` 读取播放状态
 - `PlayerController` 中旧 `curPlaying* / curPlay* / lyrics*` 兼容字段已移除，播放控制器与页面层统一开始以播放状态对象为唯一事实源
 - 页面层对 `curPlayListName / curPlayListNameHeader / isPlayingLikedSongs` 的依赖已切到 `PlaybackSessionState`，会话态兼容字段开始退出壳层和控制器
 - 当前播放歌曲的下载与删除下载入口已收口到 `PlayerController`，并通过 `DownloadRepository` 回写本地资源后再同步当前 `MediaItem`
@@ -466,27 +467,36 @@ lib/
     netease/
   features/
     album/
+      presentation/
     artist/
+      presentation/
     auth/
-      controller/
+      presentation/
     cloud/
+      presentation/
     comment/
+      presentation/
     download/
+      presentation/
     explore/
-      controller/
+      presentation/
     library/
     local_media/
     playback/
-      controller/
+      application/
+      presentation/
     playlist/
+      presentation/
     radio/
+      presentation/
     search/
+      presentation/
     settings/
+      presentation/
     shell/
-      controller/
+      presentation/
     user/
-      controller/
-  pages/
+      presentation/
   routes/
   widget/
   common/
@@ -503,9 +513,9 @@ lib/
 - `data`
   - 本地数据库实现、网易云远程实现、仓库实现、领域映射
 - `features`
-  - 业务功能模块，默认直接在模块根目录放能力文件，只有角色明显分化时才增加子目录
-- `pages`
-  - 当前唯一页面层，继续承担 presentation 职责，暂不再新增第二套 presentation 目录
+  - 业务功能模块，页面、controller、application service 和 feature repository 按模块内聚
+  - `presentation` 只放页面、局部组件和展示 controller
+  - `application` 只放 feature 内部编排与平台适配入口
 - `widget`
   - 跨页面复用的通用 UI 组件和滚动行为
 - `common`
@@ -535,36 +545,35 @@ lib/
 - `lib/common`
   - 历史公共能力目录，当前保留常量、歌词解析和少量旧基础代码
 - `lib/core`
-  - 已开始承接稳定基础设施能力，当前已包含 `database / network / storage / playback`
+  - 稳定基础设施能力，当前包含 `database / network / storage / playback codec`
 - `lib/data`
   - 数据层实现细节，当前已包含 `local / netease`，远程平台代码统一归位到 `data/netease`
   - `features/**` 不再直接 import `NeteaseMusicApi` 或 `netease_api.dart`
 - `lib/domain`
   - 统一领域实体
 - `lib/features`
-  - 正式业务模块目录，当前已开始承接各 feature 的能力入口与核心 controller
+  - 正式业务模块目录，页面入口已并入 `features/*/presentation`
 - `lib/generated / lib/generator`
   - 生成代码和生成相关逻辑
-- `lib/pages`
-  - 历史页面和页面内组合组件，当前仍承担主要 UI 结构
+- `lib/features/*/presentation`
+  - feature 页面和页面内组合组件
 - `lib/routes`
   - 当前路由声明与生成入口
 - `lib/widget`
   - 通用 UI 组件和滚动辅助能力，`common` 中的共享 UI 已开始迁入这里或对应 feature
 
-保留原因：
+目录边界：
 
-- 当前仍有大量旧页面和控制器承担主流程
-- 先拆职责、再迁目录，比一次性搬文件更安全
+- 不再新增全局页面目录
+- 新页面默认进入对应 feature 的 `presentation`
+- 共享展示组件进入 `widget`，业务组件留在 feature 内
 
 ### 8.4 当前到目标目录的映射
 
 - `lib/common`
   - 逐步拆到 `core / data / widget / features`
-- 原 `lib/controllers`
-  - 已进入移除阶段，职责继续拆到 `features/*/controller`、`features/playback/service`、`features/shell/controller`
-- `lib/pages`
-  - 当前继续作为唯一页面层，只有在模块内出现稳定复用的局部组件时，才逐步往对应 `feature` 或 `widget` 迁移
+- `lib/features/*/presentation`
+  - 当前作为唯一页面层，模块内稳定复用组件继续留在对应 feature
 - `lib/routes`
   - 保留 `auto_route` 声明与生成结果，不再额外拆第三套路由目录
 - `lib/widget`
@@ -690,9 +699,9 @@ Repository 负责：
 
 重点文件：
 
-- [`lib/features/shell/app_controller.dart`](../lib/features/shell/app_controller.dart)
-- [`lib/pages/home/app_home_page_view.dart`](../lib/pages/home/app_home_page_view.dart)
-- [`lib/pages/home/body/app_body_page_view.dart`](../lib/pages/home/body/app_body_page_view.dart)
+- [`lib/features/shell/shell_controller.dart`](../lib/features/shell/shell_controller.dart)
+- [`lib/features/shell/presentation/app_home_page_view.dart`](../lib/features/shell/presentation/app_home_page_view.dart)
+- [`lib/features/shell/presentation/app_body_page_view.dart`](../lib/features/shell/presentation/app_body_page_view.dart)
 
 目标：
 
@@ -716,9 +725,9 @@ Repository 负责：
 重点文件：
 
 - [`lib/features/user/user_controller.dart`](../lib/features/user/user_controller.dart)
-- [`lib/pages/playlist_page_view.dart`](../lib/pages/playlist_page_view.dart)
-- [`lib/pages/cloud_drive_view.dart`](../lib/pages/cloud_drive_view.dart)
-- [`lib/pages/login_page_view.dart`](../lib/pages/login_page_view.dart)
+- [`lib/features/playlist/presentation/playlist_page_view.dart`](../lib/features/playlist/presentation/playlist_page_view.dart)
+- [`lib/features/cloud/presentation/cloud_drive_view.dart`](../lib/features/cloud/presentation/cloud_drive_view.dart)
+- [`lib/features/auth/presentation/login_page_view.dart`](../lib/features/auth/presentation/login_page_view.dart)
 
 目标：
 
@@ -728,10 +737,10 @@ Repository 负责：
 ## 12. 当前阶段不做的事
 
 - 不立即迁移到 `Riverpod`
+- 不引入额外服务定位器
 - 不替换 `auto_route`
 - 不替换 `Dio`
 - 不立即替换 `Hive`
-- 不进行一次性目录大搬迁
 - 不在当前阶段直接接入第二个远程音乐源
 
 这些事项只有在本地优先数据流和统一实体稳定后才允许重新评估。

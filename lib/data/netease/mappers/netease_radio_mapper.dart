@@ -1,4 +1,4 @@
-import 'package:bujuan/features/radio/radio_data.dart';
+import 'package:bujuan/domain/entities/radio_data.dart';
 import 'package:bujuan/data/netease/api/src/api/dj/bean.dart';
 
 class NeteaseRadioMapper {

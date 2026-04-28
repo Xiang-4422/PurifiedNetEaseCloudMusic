@@ -7,11 +7,11 @@ import 'package:flutter/foundation.dart';
 
 class LocalSongListController {
   LocalSongListController({
-    LibraryRepository? libraryRepository,
-    DownloadRepository? downloadRepository,
+    required LibraryRepository libraryRepository,
+    required DownloadRepository downloadRepository,
     this.origins,
-  })  : _libraryRepository = libraryRepository ?? LibraryRepository(),
-        _downloadRepository = downloadRepository ?? DownloadRepository();
+  })  : _libraryRepository = libraryRepository,
+        _downloadRepository = downloadRepository;
 
   final LibraryRepository _libraryRepository;
   final DownloadRepository _downloadRepository;

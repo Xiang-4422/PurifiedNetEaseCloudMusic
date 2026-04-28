@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/app/bootstrap/app_binding.dart';
 import 'package:bujuan/common/constants/colors.dart';
 import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
@@ -19,9 +20,8 @@ class AppRootRouter extends StatelessWidget {
 
   List<PageRouteInfo> _buildInitialRoutes() {
     final hasCachedLogin = CacheBox.instance.get(isLoginSP) == true;
-    final hasCachedUserInfo = (CacheBox.instance.get(userInfoSp) as String?)
-            ?.isNotEmpty ==
-        true;
+    final hasCachedUserInfo =
+        (CacheBox.instance.get(userInfoSp) as String?)?.isNotEmpty == true;
     if (hasCachedLogin && hasCachedUserInfo) {
       return const [AppHomeRouteView()];
     }
@@ -31,6 +31,7 @@ class AppRootRouter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp.router(
+      initialBinding: AppBinding(),
       debugShowCheckedModeBanner: false,
       showPerformanceOverlay: false,
       scrollBehavior: NoStretchBouncingScrollBehavior(),

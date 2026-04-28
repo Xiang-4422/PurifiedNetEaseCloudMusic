@@ -6,17 +6,16 @@ part of 'bean.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-NeteaseAccount _$NeteaseAccountFromJson(Map<String, dynamic> json) {
-  return NeteaseAccount()
-    ..id = dynamicToString(json['id'])
-    ..userName = json['userName'] as String?
-    ..type = json['type'] as int?
-    ..status = json['status'] as int?
-    ..createTime = json['createTime'] as int?
-    ..vipType = json['vipType'] as int?
-    ..viptypeVersion = json['viptypeVersion'] as int?
-    ..anonimousUser = json['anonimousUser'] as bool?;
-}
+NeteaseAccount _$NeteaseAccountFromJson(Map<String, dynamic> json) =>
+    NeteaseAccount()
+      ..id = dynamicToString(json['id'])
+      ..userName = json['userName'] as String?
+      ..type = (json['type'] as num?)?.toInt()
+      ..status = (json['status'] as num?)?.toInt()
+      ..createTime = (json['createTime'] as num?)?.toInt()
+      ..vipType = (json['vipType'] as num?)?.toInt()
+      ..viptypeVersion = (json['viptypeVersion'] as num?)?.toInt()
+      ..anonimousUser = json['anonimousUser'] as bool?;
 
 Map<String, dynamic> _$NeteaseAccountToJson(NeteaseAccount instance) =>
     <String, dynamic>{
@@ -31,37 +30,37 @@ Map<String, dynamic> _$NeteaseAccountToJson(NeteaseAccount instance) =>
     };
 
 NeteaseAccountProfile _$NeteaseAccountProfileFromJson(
-    Map<String, dynamic> json) {
-  return NeteaseAccountProfile()
-    ..userId = dynamicToString(json['userId'])
-    ..nickname = json['nickname'] as String?
-    ..avatarUrl = json['avatarUrl'] as String?
-    ..backgroundUrl = json['backgroundUrl'] as String?
-    ..signature = json['signature'] as String?
-    ..description = json['description'] as String?
-    ..detailDescription = json['detailDescription'] as String?
-    ..recommendReason = json['recommendReason'] as String?
-    ..gender = json['gender'] as int?
-    ..followeds = json['followeds'] as int?
-    ..authority = json['authority'] as int?
-    ..birthday = json['birthday'] as int?
-    ..city = json['city'] as int?
-    ..province = json['province'] as int?
-    ..vipType = json['vipType'] as int?
-    ..authenticationTypes = json['authenticationTypes'] as int?
-    ..authStatus = json['authStatus'] as int?
-    ..djStatus = json['djStatus'] as int?
-    ..accountStatus = json['accountStatus'] as int?
-    ..expertTags =
-        (json['expertTags'] as List<dynamic>?)?.map((e) => e as String).toList()
-    ..alg = json['alg'] as String?
-    ..followed = json['followed'] as bool?
-    ..mutual = json['mutual'] as bool?
-    ..anchor = json['anchor'] as bool?
-    ..defaultAvatar = json['defaultAvatar'] as bool?
-    ..follows = json['follows'] as int?
-    ..playlistCount = json['playlistCount'] as int?;
-}
+        Map<String, dynamic> json) =>
+    NeteaseAccountProfile()
+      ..userId = dynamicToString(json['userId'])
+      ..nickname = json['nickname'] as String?
+      ..avatarUrl = json['avatarUrl'] as String?
+      ..backgroundUrl = json['backgroundUrl'] as String?
+      ..signature = json['signature'] as String?
+      ..description = json['description'] as String?
+      ..detailDescription = json['detailDescription'] as String?
+      ..recommendReason = json['recommendReason'] as String?
+      ..gender = (json['gender'] as num?)?.toInt()
+      ..authority = (json['authority'] as num?)?.toInt()
+      ..birthday = (json['birthday'] as num?)?.toInt()
+      ..city = (json['city'] as num?)?.toInt()
+      ..province = (json['province'] as num?)?.toInt()
+      ..vipType = (json['vipType'] as num?)?.toInt()
+      ..authenticationTypes = (json['authenticationTypes'] as num?)?.toInt()
+      ..authStatus = (json['authStatus'] as num?)?.toInt()
+      ..djStatus = (json['djStatus'] as num?)?.toInt()
+      ..accountStatus = (json['accountStatus'] as num?)?.toInt()
+      ..expertTags = (json['expertTags'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList()
+      ..alg = json['alg'] as String?
+      ..followed = json['followed'] as bool?
+      ..mutual = json['mutual'] as bool?
+      ..anchor = json['anchor'] as bool?
+      ..defaultAvatar = json['defaultAvatar'] as bool?
+      ..follows = (json['follows'] as num?)?.toInt()
+      ..playlistCount = (json['playlistCount'] as num?)?.toInt()
+      ..followeds = (json['followeds'] as num?)?.toInt();
 
 Map<String, dynamic> _$NeteaseAccountProfileToJson(
         NeteaseAccountProfile instance) =>
@@ -92,23 +91,23 @@ Map<String, dynamic> _$NeteaseAccountProfileToJson(
       'defaultAvatar': instance.defaultAvatar,
       'follows': instance.follows,
       'playlistCount': instance.playlistCount,
+      'followeds': instance.followeds,
     };
 
 NeteaseAccountInfoWrap _$NeteaseAccountInfoWrapFromJson(
-    Map<String, dynamic> json) {
-  return NeteaseAccountInfoWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..loginType = json['loginType'] as int?
-    ..account = json['account'] == null
-        ? null
-        : NeteaseAccount.fromJson(json['account'] as Map<String, dynamic>)
-    ..profile = json['profile'] == null
-        ? null
-        : NeteaseAccountProfile.fromJson(
-            json['profile'] as Map<String, dynamic>);
-}
+        Map<String, dynamic> json) =>
+    NeteaseAccountInfoWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..loginType = (json['loginType'] as num?)?.toInt()
+      ..account = json['account'] == null
+          ? null
+          : NeteaseAccount.fromJson(json['account'] as Map<String, dynamic>)
+      ..profile = json['profile'] == null
+          ? null
+          : NeteaseAccountProfile.fromJson(
+              json['profile'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$NeteaseAccountInfoWrapToJson(
         NeteaseAccountInfoWrap instance) =>
@@ -122,18 +121,17 @@ Map<String, dynamic> _$NeteaseAccountInfoWrapToJson(
     };
 
 NeteaseAccountBinding _$NeteaseAccountBindingFromJson(
-    Map<String, dynamic> json) {
-  return NeteaseAccountBinding()
-    ..id = dynamicToString(json['id'])
-    ..userId = dynamicToString(json['userId'])
-    ..tokenJsonStr = json['tokenJsonStr'] as String?
-    ..url = json['url'] as String?
-    ..type = json['type'] as int?
-    ..expiresIn = json['expiresIn'] as int?
-    ..refreshTime = json['refreshTime'] as int?
-    ..bindingTime = json['bindingTime'] as int?
-    ..expired = json['expired'] as bool?;
-}
+        Map<String, dynamic> json) =>
+    NeteaseAccountBinding()
+      ..id = dynamicToString(json['id'])
+      ..userId = dynamicToString(json['userId'])
+      ..tokenJsonStr = json['tokenJsonStr'] as String?
+      ..url = json['url'] as String?
+      ..type = (json['type'] as num?)?.toInt()
+      ..expiresIn = (json['expiresIn'] as num?)?.toInt()
+      ..refreshTime = (json['refreshTime'] as num?)?.toInt()
+      ..bindingTime = (json['bindingTime'] as num?)?.toInt()
+      ..expired = json['expired'] as bool?;
 
 Map<String, dynamic> _$NeteaseAccountBindingToJson(
         NeteaseAccountBinding instance) =>
@@ -150,15 +148,14 @@ Map<String, dynamic> _$NeteaseAccountBindingToJson(
     };
 
 NeteaseAccountBindingWrap _$NeteaseAccountBindingWrapFromJson(
-    Map<String, dynamic> json) {
-  return NeteaseAccountBindingWrap()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..bindings = (json['bindings'] as List<dynamic>)
-        .map((e) => NeteaseAccountBinding.fromJson(e as Map<String, dynamic>))
-        .toList();
-}
+        Map<String, dynamic> json) =>
+    NeteaseAccountBindingWrap()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..bindings = (json['bindings'] as List<dynamic>)
+          .map((e) => NeteaseAccountBinding.fromJson(e as Map<String, dynamic>))
+          .toList();
 
 Map<String, dynamic> _$NeteaseAccountBindingWrapToJson(
         NeteaseAccountBindingWrap instance) =>
@@ -170,15 +167,14 @@ Map<String, dynamic> _$NeteaseAccountBindingWrapToJson(
     };
 
 CellPhoneCheckExistenceRet _$CellPhoneCheckExistenceRetFromJson(
-    Map<String, dynamic> json) {
-  return CellPhoneCheckExistenceRet()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..exist = json['exist'] as int?
-    ..nickname = json['nickname'] as String?
-    ..hasPassword = json['hasPassword'] as bool?;
-}
+        Map<String, dynamic> json) =>
+    CellPhoneCheckExistenceRet()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..exist = (json['exist'] as num?)?.toInt()
+      ..nickname = json['nickname'] as String?
+      ..hasPassword = json['hasPassword'] as bool?;
 
 Map<String, dynamic> _$CellPhoneCheckExistenceRetToJson(
         CellPhoneCheckExistenceRet instance) =>
@@ -191,13 +187,12 @@ Map<String, dynamic> _$CellPhoneCheckExistenceRetToJson(
       'hasPassword': instance.hasPassword,
     };
 
-AnonimousLoginRet _$AnonimousLoginRetFromJson(Map<String, dynamic> json) {
-  return AnonimousLoginRet()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..userId = dynamicToString(json['userId']);
-}
+AnonimousLoginRet _$AnonimousLoginRetFromJson(Map<String, dynamic> json) =>
+    AnonimousLoginRet()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..userId = dynamicToString(json['userId']);
 
 Map<String, dynamic> _$AnonimousLoginRetToJson(AnonimousLoginRet instance) =>
     <String, dynamic>{
@@ -207,13 +202,12 @@ Map<String, dynamic> _$AnonimousLoginRetToJson(AnonimousLoginRet instance) =>
       'userId': instance.userId,
     };
 
-QrCodeLoginKey _$QrCodeLoginKeyFromJson(Map<String, dynamic> json) {
-  return QrCodeLoginKey()
-    ..code = dynamicToInt(json['code'])
-    ..message = json['message'] as String?
-    ..msg = json['msg'] as String?
-    ..unikey = json['unikey'] as String;
-}
+QrCodeLoginKey _$QrCodeLoginKeyFromJson(Map<String, dynamic> json) =>
+    QrCodeLoginKey()
+      ..code = dynamicToInt(json['code'])
+      ..message = json['message'] as String?
+      ..msg = json['msg'] as String?
+      ..unikey = json['unikey'] as String;
 
 Map<String, dynamic> _$QrCodeLoginKeyToJson(QrCodeLoginKey instance) =>
     <String, dynamic>{

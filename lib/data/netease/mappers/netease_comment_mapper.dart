@@ -1,5 +1,5 @@
 import 'package:bujuan/data/netease/api/src/api/event/bean.dart';
-import 'package:bujuan/features/comment/comment_data.dart';
+import 'package:bujuan/domain/entities/comment_data.dart';
 
 class NeteaseCommentMapper {
   const NeteaseCommentMapper._();

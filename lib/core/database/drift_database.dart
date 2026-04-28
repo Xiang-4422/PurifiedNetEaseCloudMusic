@@ -262,33 +262,35 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
           await _createQueryIndexes();
         },
         onUpgrade: (migrator, from, to) async {
-          if (from < 4) {
-            for (final statement in const [
-              'DROP TABLE IF EXISTS playback_restore_snapshots',
-              'DROP TABLE IF EXISTS local_resource_entries',
-              'DROP TABLE IF EXISTS download_tasks',
-              'DROP TABLE IF EXISTS tracks',
-              'DROP TABLE IF EXISTS track_lyrics_entries',
-              'DROP TABLE IF EXISTS playlists',
-              'DROP TABLE IF EXISTS playlist_track_refs',
-              'DROP TABLE IF EXISTS albums',
-              'DROP TABLE IF EXISTS artists',
-              'DROP TABLE IF EXISTS user_profiles',
-              'DROP TABLE IF EXISTS user_track_list_refs',
-              'DROP TABLE IF EXISTS user_playlist_list_refs',
-              'DROP TABLE IF EXISTS user_playlist_snapshots',
-              'DROP TABLE IF EXISTS user_playlist_states',
-              'DROP TABLE IF EXISTS user_radio_subscriptions',
-              'DROP TABLE IF EXISTS user_radio_programs',
-              'DROP TABLE IF EXISTS user_sync_markers',
-            ]) {
-              await customStatement(statement);
-            }
-            await migrator.createAll();
-            await _createQueryIndexes();
-          }
+          await _dropAllTables();
+          await migrator.createAll();
+          await _createQueryIndexes();
         },
       );
+
+  Future<void> _dropAllTables() async {
+    for (final statement in const [
+      'DROP TABLE IF EXISTS playback_restore_snapshots',
+      'DROP TABLE IF EXISTS local_resource_entries',
+      'DROP TABLE IF EXISTS download_tasks',
+      'DROP TABLE IF EXISTS tracks',
+      'DROP TABLE IF EXISTS track_lyrics_entries',
+      'DROP TABLE IF EXISTS playlists',
+      'DROP TABLE IF EXISTS playlist_track_refs',
+      'DROP TABLE IF EXISTS albums',
+      'DROP TABLE IF EXISTS artists',
+      'DROP TABLE IF EXISTS user_profiles',
+      'DROP TABLE IF EXISTS user_track_list_refs',
+      'DROP TABLE IF EXISTS user_playlist_list_refs',
+      'DROP TABLE IF EXISTS user_playlist_snapshots',
+      'DROP TABLE IF EXISTS user_playlist_states',
+      'DROP TABLE IF EXISTS user_radio_subscriptions',
+      'DROP TABLE IF EXISTS user_radio_programs',
+      'DROP TABLE IF EXISTS user_sync_markers',
+    ]) {
+      await customStatement(statement);
+    }
+  }
 
   Future<void> _createQueryIndexes() async {
     await customStatement(

@@ -1,7 +1,7 @@
 import 'package:bujuan/data/netease/netease_explore_remote_data_source.dart';
 import 'package:bujuan/features/explore/explore_cache_store.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
-import 'package:bujuan/features/playlist/playlist_summary_data.dart';
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 
 class ExploreRepository {
   ExploreRepository({

@@ -1,6 +1,6 @@
 import 'package:bujuan/data/netease/api/src/api/bean.dart';
 
-class CloudEntity extends ServerStatusBean{
+class CloudEntity extends ServerStatusBean {
   // int? code;
   List<CloudData>? data;
   String? size;
@@ -10,8 +10,7 @@ class CloudEntity extends ServerStatusBean{
   String? maxSize;
 
   CloudEntity(
-      {
-      this.data,
+      {this.data,
       this.size,
       this.upgradeSign,
       this.count,
@@ -23,7 +22,7 @@ class CloudEntity extends ServerStatusBean{
     if (json['data'] != null) {
       data = <CloudData>[];
       for (var v in (json['data'] as List)) {
-        (data??[]).add(CloudData.fromJson(v));
+        (data ?? []).add(CloudData.fromJson(v));
       }
     }
     size = json['size'];
@@ -38,7 +37,7 @@ class CloudEntity extends ServerStatusBean{
     final Map<String, dynamic> data = <String, dynamic>{};
     data['code'] = code;
     if (this.data != null) {
-      data['data'] = (this.data??[]).map((v) => v.toJson()).toList();
+      data['data'] = (this.data ?? []).map((v) => v.toJson()).toList();
     }
     data['size'] = size;
     data['upgradeSign'] = upgradeSign;
@@ -209,9 +208,7 @@ class CloudDataSimplesong {
     cf = json['cf'];
     h = json['h'];
     mv = json['mv'];
-    al = json['al'] != null
-        ? CloudDataSimplesongAl.fromJson(json['al'])
-        : null;
+    al = json['al'] != null ? CloudDataSimplesongAl.fromJson(json['al']) : null;
     l = json['l'] != null ? CloudDataSimplesongL.fromJson(json['l']) : null;
     m = json['m'] != null ? CloudDataSimplesongM.fromJson(json['m']) : null;
     cp = json['cp'];
@@ -220,7 +217,7 @@ class CloudDataSimplesong {
     if (json['ar'] != null) {
       ar = <CloudDataSimplesongAr>[];
       for (var v in (json['ar'] as List)) {
-        (ar??[]).add(CloudDataSimplesongAr.fromJson(v));
+        (ar ?? []).add(CloudDataSimplesongAr.fromJson(v));
       }
     }
     rtUrl = json['rtUrl'];
@@ -267,7 +264,7 @@ class CloudDataSimplesong {
     data['djId'] = djId;
     data['crbt'] = crbt;
     if (ar != null) {
-      data['ar'] = (ar??[]).map((v) => v.toJson()).toList();
+      data['ar'] = (ar ?? []).map((v) => v.toJson()).toList();
     }
     data['rtUrl'] = rtUrl;
     data['ftype'] = ftype;

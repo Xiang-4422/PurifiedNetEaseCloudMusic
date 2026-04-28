@@ -13,7 +13,6 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/entities/track_resource_bundle.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
-import 'package:get_it/get_it.dart';
 
 import 'library_preference_store.dart';
 import 'local_artwork_cache_repository.dart';
@@ -21,28 +20,20 @@ import 'local_resource_index_repository.dart';
 
 class LibraryRepository {
   LibraryRepository({
-    LocalLibraryDataSource? localDataSource,
-    NeteaseMusicSource? neteaseSource,
-    LocalMusicSource? localMusicSource,
-    LibraryPreferenceStore? preferenceStore,
-    LocalResourceIndexRepository? resourceIndexRepository,
-    LocalArtworkCacheRepository? artworkCacheRepository,
-  })  : _localDataSource = localDataSource ??
-            (GetIt.instance.isRegistered<LocalLibraryDataSource>()
-                ? GetIt.instance<LocalLibraryDataSource>()
-                : (throw StateError(
-                    'LocalLibraryDataSource is not registered',
-                  ))),
-        _neteaseSource = neteaseSource ?? NeteaseMusicSource(),
-        _localMusicSource = localMusicSource ??
-            LocalMusicSource(localDataSource: localDataSource),
-        _preferenceStore = preferenceStore ?? const LibraryPreferenceStore(),
-        _resourceIndexRepository =
-            resourceIndexRepository ?? LocalResourceIndexRepository(),
-        _artworkCacheRepository =
-            artworkCacheRepository ?? LocalArtworkCacheRepository();
+    required LocalLibraryDataSource localDataSource,
+    required NeteaseMusicSource neteaseSource,
+    required LocalMusicSource localMusicSource,
+    required LibraryPreferenceStore preferenceStore,
+    required LocalResourceIndexRepository resourceIndexRepository,
+    required LocalArtworkCacheRepository artworkCacheRepository,
+  })  : _localDataSource = localDataSource,
+        _neteaseSource = neteaseSource,
+        _localMusicSource = localMusicSource,
+        _preferenceStore = preferenceStore,
+        _resourceIndexRepository = resourceIndexRepository,
+        _artworkCacheRepository = artworkCacheRepository;
 
-  final LocalLibraryDataSource? _localDataSource;
+  final LocalLibraryDataSource _localDataSource;
   final NeteaseMusicSource _neteaseSource;
   final LocalMusicSource _localMusicSource;
   final LibraryPreferenceStore _preferenceStore;
@@ -52,7 +43,7 @@ class LibraryRepository {
   bool get isOfflineModeEnabled => _preferenceStore.isOfflineModeEnabled;
 
   Future<void> saveTracks(List<Track> tracks) async {
-    await _localDataSource?.saveTracks(tracks);
+    await _localDataSource.saveTracks(tracks);
     if (isOfflineModeEnabled) {
       return;
     }
@@ -64,15 +55,15 @@ class LibraryRepository {
   }
 
   Future<void> savePlaylists(List<PlaylistEntity> playlists) async {
-    await _localDataSource?.savePlaylists(playlists);
+    await _localDataSource.savePlaylists(playlists);
   }
 
   Future<void> saveAlbums(List<AlbumEntity> albums) async {
-    await _localDataSource?.saveAlbums(albums);
+    await _localDataSource.saveAlbums(albums);
   }
 
   Future<void> saveArtists(List<ArtistEntity> artists) async {
-    await _localDataSource?.saveArtists(artists);
+    await _localDataSource.saveArtists(artists);
   }
 
   Future<List<Track>> searchTracks({
@@ -85,16 +76,12 @@ class LibraryRepository {
     final tracks = sourceKey == _localMusicSource.sourceKey
         ? await _localMusicSource.searchTracks(keyword)
         : await _neteaseSource.searchTracks(keyword);
-    await _localDataSource?.saveTracks(tracks);
+    await _localDataSource.saveTracks(tracks);
     return tracks;
   }
 
   Future<List<Track>> searchLocalTracks(String keyword) async {
-    final localDataSource = _localDataSource;
-    if (localDataSource == null) {
-      return const [];
-    }
-    return localDataSource.searchTracks(keyword);
+    return _localDataSource.searchTracks(keyword);
   }
 
   Future<List<PlaylistEntity>> searchPlaylists({
@@ -107,16 +94,12 @@ class LibraryRepository {
     final playlists = sourceKey == _localMusicSource.sourceKey
         ? await _localMusicSource.searchPlaylists(keyword)
         : await _neteaseSource.searchPlaylists(keyword);
-    await _localDataSource?.savePlaylists(playlists);
+    await _localDataSource.savePlaylists(playlists);
     return playlists;
   }
 
   Future<List<PlaylistEntity>> searchLocalPlaylists(String keyword) async {
-    final localDataSource = _localDataSource;
-    if (localDataSource == null) {
-      return const [];
-    }
-    return localDataSource.searchPlaylists(keyword);
+    return _localDataSource.searchPlaylists(keyword);
   }
 
   Future<List<AlbumEntity>> searchAlbums({
@@ -129,16 +112,12 @@ class LibraryRepository {
     final albums = sourceKey == _localMusicSource.sourceKey
         ? await _localMusicSource.searchAlbums(keyword)
         : await _neteaseSource.searchAlbums(keyword);
-    await _localDataSource?.saveAlbums(albums);
+    await _localDataSource.saveAlbums(albums);
     return albums;
   }
 
   Future<List<AlbumEntity>> searchLocalAlbums(String keyword) async {
-    final localDataSource = _localDataSource;
-    if (localDataSource == null) {
-      return const [];
-    }
-    return localDataSource.searchAlbums(keyword);
+    return _localDataSource.searchAlbums(keyword);
   }
 
   Future<List<ArtistEntity>> searchArtists({
@@ -151,20 +130,16 @@ class LibraryRepository {
     final artists = sourceKey == _localMusicSource.sourceKey
         ? await _localMusicSource.searchArtists(keyword)
         : await _neteaseSource.searchArtists(keyword);
-    await _localDataSource?.saveArtists(artists);
+    await _localDataSource.saveArtists(artists);
     return artists;
   }
 
   Future<List<ArtistEntity>> searchLocalArtists(String keyword) async {
-    final localDataSource = _localDataSource;
-    if (localDataSource == null) {
-      return const [];
-    }
-    return localDataSource.searchArtists(keyword);
+    return _localDataSource.searchArtists(keyword);
   }
 
   Future<Track?> getTrack(String trackId) async {
-    final localTrack = await _localDataSource?.getTrack(trackId);
+    final localTrack = await _localDataSource.getTrack(trackId);
     if (localTrack != null) {
       return localTrack;
     }
@@ -175,7 +150,7 @@ class LibraryRepository {
         ? await _localMusicSource.getTrack(trackId)
         : await _neteaseSource.getTrack(trackId);
     if (track != null) {
-      await _localDataSource?.saveTracks([track]);
+      await _localDataSource.saveTracks([track]);
     }
     return track;
   }
@@ -196,7 +171,7 @@ class LibraryRepository {
     if (ids.isEmpty) {
       return const [];
     }
-    return await _localDataSource?.getTracksByIds(ids) ?? const [];
+    return _localDataSource.getTracksByIds(ids);
   }
 
   Future<List<TrackWithResources>> getTracksWithResources(
@@ -293,12 +268,13 @@ class LibraryRepository {
   Future<TrackLyrics?> getLyrics(String trackId) async {
     final lyricsResource =
         (await _resourceIndexRepository.getTrackResourceBundle(trackId)).lyrics;
-    if (lyricsResource != null && await _touchIfLocalFileExists(lyricsResource)) {
+    if (lyricsResource != null &&
+        await _touchIfLocalFileExists(lyricsResource)) {
       return TrackLyrics(
         main: await File(lyricsResource.path).readAsString(),
       );
     }
-    final localLyrics = await _localDataSource?.getLyrics(trackId);
+    final localLyrics = await _localDataSource.getLyrics(trackId);
     if (localLyrics != null) {
       return localLyrics;
     }
@@ -309,17 +285,17 @@ class LibraryRepository {
         ? await _localMusicSource.getLyrics(trackId)
         : await _neteaseSource.getLyrics(trackId);
     if (lyrics != null) {
-      await _localDataSource?.saveLyrics(trackId, lyrics);
+      await _localDataSource.saveLyrics(trackId, lyrics);
     }
     return lyrics;
   }
 
   Future<void> saveLyrics(String trackId, TrackLyrics lyrics) async {
-    await _localDataSource?.saveLyrics(trackId, lyrics);
+    await _localDataSource.saveLyrics(trackId, lyrics);
   }
 
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
-    final localPlaylist = await _localDataSource?.getPlaylist(playlistId);
+    final localPlaylist = await _localDataSource.getPlaylist(playlistId);
     if (localPlaylist != null) {
       return localPlaylist;
     }
@@ -330,27 +306,25 @@ class LibraryRepository {
         ? await _localMusicSource.getPlaylist(playlistId)
         : await _neteaseSource.getPlaylist(playlistId);
     if (playlist != null) {
-      await _localDataSource?.savePlaylists([playlist]);
+      await _localDataSource.savePlaylists([playlist]);
     }
     return playlist;
   }
 
   Future<AlbumEntity?> getAlbum(String albumId) async {
-    return _localDataSource?.getAlbum(albumId);
+    return _localDataSource.getAlbum(albumId);
   }
 
   Future<ArtistEntity?> getArtist(String artistId) async {
-    return _localDataSource?.getArtist(artistId);
+    return _localDataSource.getArtist(artistId);
   }
 
   Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
-    return await _localDataSource?.getTracksByAlbumId(albumSourceId) ??
-        const [];
+    return _localDataSource.getTracksByAlbumId(albumSourceId);
   }
 
   Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
-    return await _localDataSource?.getTracksByArtistId(artistSourceId) ??
-        const [];
+    return _localDataSource.getTracksByArtistId(artistSourceId);
   }
 
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) {
@@ -364,7 +338,7 @@ class LibraryRepository {
     final trackWithResources = await getTrackWithResources(trackId);
     if (trackWithResources == null) {
       await _resourceIndexRepository.removeTrackResources(trackId);
-      await _localDataSource?.removeLyrics(trackId);
+      await _localDataSource.removeLyrics(trackId);
       return;
     }
     final track = trackWithResources.track;
@@ -382,9 +356,9 @@ class LibraryRepository {
       deleteFile: deleteSourceFiles,
     );
     await _resourceIndexRepository.removeTrackResources(trackId);
-    await _localDataSource?.removeLyrics(trackId);
+    await _localDataSource.removeLyrics(trackId);
     if (track.sourceType == SourceType.local) {
-      await _localDataSource?.removeTrack(trackId);
+      await _localDataSource.removeTrack(trackId);
     }
   }
 
@@ -418,7 +392,8 @@ class LibraryRepository {
     if (!file.existsSync()) {
       return false;
     }
-    await _resourceIndexRepository.touchResource(resource.trackId, resource.kind);
+    await _resourceIndexRepository.touchResource(
+        resource.trackId, resource.kind);
     return true;
   }
 

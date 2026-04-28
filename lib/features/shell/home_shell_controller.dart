@@ -1,13 +1,14 @@
 import 'dart:async';
 
+import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
-import '../../../widget/custom_zoom_drawer/src/drawer_controller.dart';
-
 class HomeShellController extends GetxController
     with GetTickerProviderStateMixin {
+  static HomeShellController get to => Get.find();
+
   late ZoomDrawerController zoomDrawerController;
   bool _zoomDrawerListenerInitialized = false;
   Timer? _closeDrawerTimer;
@@ -43,8 +44,7 @@ class HomeShellController extends GetxController
         final updatedPageIndex = (homePageController.page! + 0.5).toInt();
         if (updatedPageIndex == curHomePageIndex.value) return;
         curHomePageIndex.value = updatedPageIndex;
-        curHomePageTitle.value =
-            _resolveHomePageTitle(updatedPageIndex);
+        curHomePageTitle.value = _resolveHomePageTitle(updatedPageIndex);
         _updateCloseDrawerTimer(3000);
       });
   }

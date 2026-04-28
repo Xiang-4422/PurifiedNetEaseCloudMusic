@@ -1,12 +1,13 @@
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_radio_mapper.dart';
-import 'package:bujuan/features/radio/radio_data.dart';
+import 'package:bujuan/domain/entities/radio_data.dart';
 
 /// 播客相关远程访问统一放在 data/netease，避免 feature 继续直连平台 API。
 class NeteaseRadioRemoteDataSource {
   const NeteaseRadioRemoteDataSource();
 
-  Future<({List<RadioSummaryData> items, int itemCount})> fetchSubscribedRadios({
+  Future<({List<RadioSummaryData> items, int itemCount})>
+      fetchSubscribedRadios({
     bool total = true,
     required int offset,
     required int limit,

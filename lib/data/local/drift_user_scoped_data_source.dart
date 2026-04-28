@@ -1,7 +1,8 @@
 import 'package:bujuan/core/database/drift_database.dart' as db;
-import 'package:bujuan/features/playlist/playlist_summary_data.dart';
-import 'package:bujuan/features/radio/radio_data.dart';
-import 'package:bujuan/features/user/user_profile_data.dart';
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/domain/entities/radio_data.dart';
+import 'package:bujuan/domain/entities/user_library_kinds.dart';
+import 'package:bujuan/domain/entities/user_profile_data.dart';
 import 'package:drift/drift.dart' as drift;
 
 import 'user_scoped_data_source.dart';

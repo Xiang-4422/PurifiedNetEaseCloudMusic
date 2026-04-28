@@ -4,7 +4,7 @@ import 'package:bujuan/common/constants/key.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
 import 'package:bujuan/core/storage/cache_timestamp_store.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
-import 'package:bujuan/features/playlist/playlist_summary_data.dart';
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 
 class ExploreCacheStore {
   const ExploreCacheStore({

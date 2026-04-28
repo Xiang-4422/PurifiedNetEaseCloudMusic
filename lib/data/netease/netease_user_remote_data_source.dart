@@ -9,7 +9,7 @@ import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/features/user/user_profile_data.dart';
+import 'package:bujuan/domain/entities/user_profile_data.dart';
 
 class NeteaseUserRemoteDataSource {
   const NeteaseUserRemoteDataSource();

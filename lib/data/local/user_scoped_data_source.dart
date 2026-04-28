@@ -1,19 +1,7 @@
-import 'package:bujuan/features/playlist/playlist_summary_data.dart';
-import 'package:bujuan/features/radio/radio_data.dart';
-import 'package:bujuan/features/user/user_profile_data.dart';
-
-enum UserTrackListKind {
-  liked,
-  dailyRecommend,
-  fm,
-  cloud,
-}
-
-enum UserPlaylistListKind {
-  likedCollection,
-  userPlaylists,
-  recommended,
-}
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/domain/entities/radio_data.dart';
+import 'package:bujuan/domain/entities/user_library_kinds.dart';
+import 'package:bujuan/domain/entities/user_profile_data.dart';
 
 abstract class UserScopedDataSource {
   Future<UserProfileData?> loadProfile(String userId);

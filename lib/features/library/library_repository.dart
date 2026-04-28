@@ -56,14 +56,7 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return;
     }
-    final tracksWithArtwork =
-        await _artworkCacheRepository.cacheTrackArtwork(tracks);
-    final updatedTracks = tracksWithArtwork
-        .where((track) => track.localArtworkPath?.isNotEmpty == true)
-        .toList();
-    if (updatedTracks.isNotEmpty) {
-      await _localDataSource?.saveTracks(updatedTracks);
-    }
+    await _artworkCacheRepository.cacheTrackArtwork(tracks);
   }
 
   Future<void> saveTrack(Track track) async {

@@ -33,6 +33,14 @@ class LocalResourceIndexRepository {
     return _dataSource.getResource(trackId, LocalResourceKind.audio);
   }
 
+  Future<LocalResourceEntry?> getArtworkResource(String trackId) {
+    return _dataSource.getResource(trackId, LocalResourceKind.artwork);
+  }
+
+  Future<LocalResourceEntry?> getLyricsResource(String trackId) {
+    return _dataSource.getResource(trackId, LocalResourceKind.lyrics);
+  }
+
   Future<List<LocalResourceEntry>> getTrackResources(String trackId) {
     return _dataSource.getTrackResources(trackId);
   }

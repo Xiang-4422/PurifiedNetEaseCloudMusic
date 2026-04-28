@@ -265,6 +265,8 @@ class _LocalSongTile extends StatelessWidget {
 
   static String _originLabel(TrackResourceOrigin origin) {
     switch (origin) {
+      case TrackResourceOrigin.artworkCache:
+        return '封面缓存';
       case TrackResourceOrigin.playbackCache:
         return '缓存';
       case TrackResourceOrigin.managedDownload:

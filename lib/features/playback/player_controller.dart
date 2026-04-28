@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
@@ -705,17 +706,20 @@ class PlayerController extends GetxController {
       return;
     }
 
-    final track = await _repository.getTrack(mediaItem.id);
-    if (track == null || runtimeState.value.currentSong.id != mediaItem.id) {
+    final trackWithResources =
+        await _repository.getTrackWithResources(mediaItem.id);
+    if (trackWithResources == null ||
+        runtimeState.value.currentSong.id != mediaItem.id) {
       return;
     }
-    final artworkSource = track.localArtworkPath?.isNotEmpty == true
-        ? track.localArtworkPath
-        : track.artworkUrl;
+    final localArtworkPath = trackWithResources.resources.artwork?.path ?? '';
+    final artworkSource = localArtworkPath.isNotEmpty
+        ? localArtworkPath
+        : trackWithResources.track.artworkUrl;
     if (artworkSource?.isNotEmpty != true) {
       return;
     }
-    await _syncCurrentTrackArtwork(mediaItem, track);
+    await _syncCurrentTrackArtwork(mediaItem, trackWithResources);
     await _updateAlbumColor();
   }
 
@@ -728,23 +732,24 @@ class PlayerController extends GetxController {
 
   Future<void> _syncCurrentTrackArtwork(
     MediaItem currentMediaItem,
-    Track track,
+    TrackWithResources trackWithResources,
   ) async {
-    final imageUrl = track.localArtworkPath?.isNotEmpty == true
-        ? track.localArtworkPath!
-        : track.artworkUrl ?? '';
+    final localArtworkPath = trackWithResources.resources.artwork?.path ?? '';
+    final imageUrl = localArtworkPath.isNotEmpty
+        ? localArtworkPath
+        : trackWithResources.track.artworkUrl ?? '';
     if (imageUrl.isEmpty) {
       return;
     }
 
     final updatedMediaItem = currentMediaItem.copyWith(
-      artUri: track.localArtworkPath?.isNotEmpty == true
-          ? Uri.file(File(track.localArtworkPath!).path)
+      artUri: localArtworkPath.isNotEmpty
+          ? Uri.file(File(localArtworkPath).path)
           : currentMediaItem.artUri,
       extras: {
         ...?currentMediaItem.extras,
         'image': imageUrl,
-        'localArtworkPath': track.localArtworkPath ?? '',
+        'localArtworkPath': localArtworkPath,
       },
     );
     final queue = runtimeState.value.queue

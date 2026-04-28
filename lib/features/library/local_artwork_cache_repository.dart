@@ -34,17 +34,11 @@ class LocalArtworkCacheRepository {
   }
 
   Future<Track> cacheSingleTrackArtwork(Track track) async {
-    final existingArtworkPath = track.localArtworkPath ?? '';
-    if (existingArtworkPath.isNotEmpty &&
-        File(existingArtworkPath).existsSync()) {
-      return track;
-    }
-
     final indexedResource =
         await _resourceIndexRepository.getArtworkResource(track.id);
     final indexedPath = indexedResource?.path ?? '';
     if (indexedPath.isNotEmpty && File(indexedPath).existsSync()) {
-      return track.copyWith(localArtworkPath: indexedPath);
+      return track;
     }
 
     final artworkUrl = track.artworkUrl ?? '';
@@ -70,7 +64,7 @@ class LocalArtworkCacheRepository {
         path: artworkPath,
         origin: TrackResourceOrigin.artworkCache,
       );
-      return track.copyWith(localArtworkPath: artworkPath);
+      return track;
     } catch (_) {
       return track;
     } finally {

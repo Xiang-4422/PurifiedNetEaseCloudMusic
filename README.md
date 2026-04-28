@@ -1,10 +1,11 @@
 # PurifiedNetEaseCloudMusic
 
-项目正式架构与重构计划文档如下：
+README 是本项目文档入口。`docs/` 下文档按编号阅读：
 
-- [技术架构设计](./docs/technical-architecture.md)
-- [重构计划与进度](./docs/refactor-plan.md)
-- [代码注释规范](./docs/comment-guidelines.md)
+1. [技术架构设计](./docs/01-technical-architecture.md)
+2. [本地缓存与表结构设计](./docs/02-local-cache-architecture.md)
+3. [重构计划与进度](./docs/03-refactor-plan.md)
+4. [代码注释规范](./docs/04-comment-guidelines.md)
 
 ## 当前结论
 
@@ -24,7 +25,8 @@
 
 ## 文档使用规则
 
-- 技术方案、目录方案、边界约束，以 [`docs/technical-architecture.md`](./docs/technical-architecture.md) 为准
-- 分阶段任务、完成情况、阻塞项，以 [`docs/refactor-plan.md`](./docs/refactor-plan.md) 为准
+- 技术方案、目录方案、边界约束，以 [`docs/01-technical-architecture.md`](./docs/01-technical-architecture.md) 为准
+- 本地缓存、`Drift` 表结构、账号作用域和 ID 规则，以 [`docs/02-local-cache-architecture.md`](./docs/02-local-cache-architecture.md) 为准
+- 分阶段任务、完成情况、阻塞项，以 [`docs/03-refactor-plan.md`](./docs/03-refactor-plan.md) 为准
 - 后续每完成一个阶段性改动，都需要同步更新进度文档
-- 更完整的后续任务拆解、执行优先级和关键决策，也已固定在 [`docs/refactor-plan.md`](./docs/refactor-plan.md)
+- 更完整的后续任务拆解、执行优先级和关键决策，也已固定在 [`docs/03-refactor-plan.md`](./docs/03-refactor-plan.md)

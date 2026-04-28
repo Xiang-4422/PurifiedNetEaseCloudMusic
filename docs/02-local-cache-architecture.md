@@ -1,4 +1,4 @@
-# 本地缓存与表结构设计
+# 02. 本地缓存与表结构设计
 
 ## 1. 文档目标
 
@@ -25,7 +25,6 @@
 
 - 当前登录会话
 - 设置项
-- 播放恢复状态
 - 离线模式开关
 - 匿名公共 TTL 缓存，例如 `search hot keywords`、`explore`
 
@@ -57,11 +56,13 @@
 
 本地资源与下载过程单独建表，不混入内容实体：
 
+- `playback_restore_snapshots`
 - `local_resource_entries`
 - `download_tasks`
 
 规则：
 
+- `playback_restore_snapshots` 是播放恢复快照的事实源
 - `local_resource_entries` 是音频、封面、歌词本地文件的唯一事实源
 - `download_tasks` 只表示手动下载过程，不表示最终资源结果
 - `tracks` 不再保存本地路径、下载状态、资源来源等字段
@@ -393,7 +394,7 @@
 ## 11. 当前边界与假设
 
 - 当前只支持一个激活登录账号，但允许本地长期保留多个 `user_id` 快照
-- 重新安装 APP 是本轮默认前提，因此本文档不覆盖旧版本数据迁移策略
+- 开发期允许破坏性 schema 迁移；发布前必须补齐正式版本到正式版本之间的非破坏迁移策略
 - 电台仍保持“用户快照模型”，暂不纳入全局正式内容实体库
 - 云盘/FM/日推歌曲允许回写全局 `tracks`，账号隔离依赖 `user_track_list_refs`
 

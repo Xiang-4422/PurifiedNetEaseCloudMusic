@@ -1,4 +1,4 @@
-# 技术架构设计
+# 01. 技术架构设计
 
 ## 1. 文档目标
 
@@ -117,16 +117,16 @@
 - `Hive`
   - 登录态
   - 设置项
-  - 播放恢复状态
   - 离线模式开关
   - 极轻量配置缓存
 - 正式本地媒体库
   - 歌曲
   - 歌词
   - 歌单及歌单关系
+  - 播放恢复快照
   - 播放历史
   - 最近播放
-  - 下载记录
+  - 下载任务过程记录
   - 离线资源索引
 - 内存缓存
   - 仅作过渡层或短时性能优化
@@ -262,11 +262,11 @@
 - 播放恢复信息开始收口为 `PlaybackRestoreState`，当前项、歌单元信息、队列、模式和进度不再继续以散落 key 分别理解
 - 当前队列、当前歌曲、当前索引和当前进度开始收口为 `PlaybackRuntimeState`，旧运行态字段暂时保留作为页面兼容层
 - 歌词行、当前歌词索引和翻译歌词标记开始收口为 `PlaybackLyricState`，避免歌词解析结果继续散落在控制器兼容字段中
-- 播放恢复轻存储已回收到 `PlaybackRestoreDataSource`，歌词内容改由媒体库承接
-- 播放恢复态的读写主入口已切到 `PlaybackRepository`，控制器和底层 handler 不再直接操作轻存储
+- 播放恢复态已回收到 `PlaybackRestoreDataSource`，歌词内容改由媒体库承接
+- 播放恢复态的读写主入口已切到 `PlaybackRepository`，控制器和底层 handler 不再直接操作存储实现
 - 播放恢复态已从 `LocalLibraryDataSource` 拆出，改由独立的 `PlaybackRestoreDataSource` 承接
-- 播放恢复态会同时写入轻存储快照和恢复态数据源，为后续正式数据库接管保留稳定入口
-- 持久化层已新增独立的恢复态记录模型与 codec，后续接正式数据库时优先复用该记录格式而不是直接存业务对象
+- 播放恢复态已接入 `Drift` 的 `playback_restore_snapshots`，不再以 `Hive` 作为事实源
+- 持久化层已新增独立的恢复态记录模型与 codec，数据库实现优先复用该记录格式而不是直接存业务对象
 - 数据库层已补 `AppDatabaseSchema`，并明确恢复快照、资源索引、下载任务是优先进入正式数据库的三类记录
 - 资源索引与下载任务也已直接接入独立数据库数据源接口，当前过渡实现统一经过 `AppDatabase`
 - `DriftAppDatabase` 已落地并接管 `PlaybackRestoreDataSource`、`LocalResourceIndexDataSource`、`DownloadTaskDataSource` 和 `LocalLibraryDataSource`，播放恢复态、本地资源索引、下载任务以及媒体库中的 `Track / Lyrics / Playlist / Album / Artist` 已开始使用 `Drift` 作为正式数据库入口
@@ -281,7 +281,7 @@
 - 同一时间的下载执行会按统一队列串行调度，避免多个任务并发写文件导致状态失真
 - 下载任务在进入真实下载前会持久化目标文件路径，确保取消、异常退出和启动恢复时都能清理临时文件
 - 本地扫描已开始自动识别同目录的歌词与封面文件，导入后会直接补齐本地资源索引
-- 播放恢复态在轻存储中采用单一快照格式，后续迁正式本地库时优先复用该快照结构
+- 播放恢复态采用单一快照格式，正式本地库和恢复逻辑共享该结构
 - 壳层与主播放面板已开始消费统一播放状态对象，后续页面迁移优先复用这些状态而不是继续增加散落 getter
 - 底部播放面板的队列列表、头部信息、当前歌曲封面和进度读取已优先改用 `PlaybackRuntimeState`，旧运行态字段开始退回兼容入口
 - `PlayerController` 内部逻辑已优先读取 `sessionState / runtimeState / lyricState`，旧 `curPlaying* / curPlay* / lyrics*` 字段逐步退为页面兼容镜像
@@ -290,13 +290,13 @@
 - 页面层对 `curPlayListName / curPlayListNameHeader / isPlayingLikedSongs` 的依赖已切到 `PlaybackSessionState`，会话态兼容字段开始退出壳层和控制器
 - 当前播放歌曲的下载与删除下载入口已收口到 `PlayerController`，并通过 `DownloadRepository` 回写本地资源后再同步当前 `MediaItem`
 - 下载任务已经接入独立页面入口，设置页和当前播放面板都能直接触发下载管理、删除下载和失败重试动作
-- 下载管理页已按 `全部 / 进行中 / 失败 / 已完成` 分栏，任务不再全部堆在单列表中
-- 下载管理页已支持批量重试失败任务、清除失败记录、清除已完成记录和取消全部进行中任务
-- 下载管理页已支持批量删除全部已下载文件，下载记录清理与真实文件删除不再混成同一个动作
+- 本地歌曲管理页已按 `全部 / 缓存 / 已下载 / 本地导入` 展示本地资源，已下载状态由 `local_resource_entries` 表达
+- `download_tasks` 只承接 `queued / downloading / failed` 等下载过程状态，下载成功后以资源索引作为事实源
+- 本地歌曲管理页已支持删除自动播放缓存和删除具体本地资源，下载记录清理与真实文件删除不再混成同一个动作
 - 歌单、专辑等复用 `SongItem` 的音乐列表已接入统一下载动作，列表页不再直接依赖下载仓库
 - 歌单页和专辑页已补“下载全部”入口，批量下载统一经 `PlayerController -> DownloadRepository` 入队，不再让页面自己组织下载任务
 - 当前播放面板和歌单列表项对 `queued / downloading` 状态已支持直接取消下载，不再只展示不可操作的进行中图标
-- 下载任务页已经直接监听 Drift 下载表，任务进度、失败和完成状态会自动反映到页面，不再依赖手动刷新轮询
+- 下载任务数据源已经支持监听 Drift 下载表，任务进度与失败状态可自动反映到上层，不再依赖手动刷新轮询
 
 ### 6.4 Netease 与 Local Source
 
@@ -313,10 +313,11 @@
 - 同步器和下载器通过媒体库接口写入数据
 - `LibraryRepository` 默认按“先本地、后远程、再回写”组织读取路径
 
-在正式数据库接管前：
+当前状态：
 
-- 允许保留共享的内存版本地库实现，用于验证本地优先数据流
-- 当共享内存实现无法覆盖跨重启场景时，应先切到可持久化的过渡实现，再进入正式数据库迁移
+- `DriftAppDatabase` 已接管 `LocalLibraryDataSource`、`PlaybackRestoreDataSource`、`LocalResourceIndexDataSource`、`DownloadTaskDataSource` 和 `UserScopedDataSource`
+- 不再保留共享内存版本地库作为运行时兜底
+- 开发期仍允许破坏性 schema 迁移；发布前必须补齐非破坏升级策略
 
 ### 6.6 Sync / Download
 
@@ -348,7 +349,7 @@
 - `DownloadTask`
 - `SourceAccount`
 
-`Track` 至少应具备：
+`Track` 是内容实体，至少应具备：
 
 - 应用内主键
 - `sourceType`
@@ -358,16 +359,12 @@
 - 专辑
 - 时长
 - 封面地址
-- 本地封面路径
 - 远程播放地址
-- 本地文件路径
 - 歌词引用
-- 本地歌词路径
-- 资源来源
-- 下载状态
-- 下载进度
-- 下载失败原因
 - 可用性状态
+- 补充 metadata
+
+本地音频、封面、歌词路径不再写回 `Track`。这些资源统一由 `local_resource_entries` 记录，并通过 `TrackWithResources / TrackResourceBundle` 向播放和展示链路补齐。
 
 ### 7.2 资源管理模型
 
@@ -388,18 +385,17 @@
 
 #### 音频资源
 
-- `Track.localPath` 表示本地可直接播放的文件路径
-- `Track.resourceOrigin` 表示本地资源来自本地导入还是受管下载
+- `local_resource_entries(kind=audio)` 表示本地可直接播放的文件路径
+- `LocalResourceEntry.origin` 表示本地资源来自本地导入、受管下载、播放缓存或封面缓存
 - `Track.remoteUrl` 仅作为远程兜底播放地址
-- `Track.downloadProgress` 和 `Track.downloadFailureReason` 记录下载链路的稳定状态
-- `DownloadTask` 负责记录下载过程态，`Track` 只承载最终资源状态
-- 播放优先级固定为：`localPath > 离线缓存文件 > 远程播放地址`
-- 下载系统需要把音频文件路径和下载状态写回 `Track`
+- `DownloadTask` 负责记录下载过程态，下载成功后的最终资源状态进入 `local_resource_entries`
+- 播放优先级固定为：本地音频资源 > 离线缓存文件 > 远程播放地址
+- 下载系统需要把音频文件路径写入资源索引，并让上层通过 `TrackWithResources` 消费
 
 原因：
 
 - 播放器只需要关心当前是否存在本地可播放文件
-- 统一由 `Track` 承载音频可用性，才能让本地扫描、本地下载、远程在线播放走同一条播放入口
+- 统一由资源索引承载本地可用性，才能让本地扫描、本地下载、远程在线播放走同一条播放入口，同时避免把资源状态混回内容实体
 
 #### 歌词资源
 
@@ -423,8 +419,8 @@
 当前阶段补充：
 
 - 已新增独立本地资源索引入口，开始统一记录音频、封面、歌词三类本地资源路径
-- `Track` 继续承载最终资源结果，资源索引负责记录各类本地文件的稳定落点
-- `LibraryRepository` 需要优先汇总轨道实体与资源索引，再向上层暴露统一的本地资源视图
+- `Track` 继续承载内容事实，资源索引负责记录各类本地文件的稳定落点
+- `LibraryRepository` 需要优先汇总轨道实体与资源索引，再向上层暴露统一的 `TrackWithResources` 视图
 
 原因：
 
@@ -753,5 +749,6 @@ Repository 负责：
 
 - 先更新文档，再推进后续阶段性重构
 - 架构边界、目录职责、核心模型、资源规则、技术决策变化时，优先更新本文档
-- 阶段状态、完成项、风险和下一步以 `refactor-plan.md` 为主
-- 新核心能力落地且同时影响架构边界与阶段进度时，两份文档都要更新
+- 阶段状态、完成项、风险和下一步以 [`03-refactor-plan.md`](./03-refactor-plan.md) 为主
+- 本地缓存、表结构、账号作用域和 ID 规则以 [`02-local-cache-architecture.md`](./02-local-cache-architecture.md) 为主
+- 新核心能力落地且同时影响架构边界与阶段进度时，相关文档都要更新

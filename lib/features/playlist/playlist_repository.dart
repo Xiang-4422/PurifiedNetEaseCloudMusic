@@ -10,19 +10,28 @@ import 'package:bujuan/features/library/library_repository.dart';
 
 import 'playlist_cache_store.dart';
 
+/// 歌单详情数据，包含歌曲队列和当前用户与歌单的关系。
 class PlaylistDetailData {
+  /// 创建歌单详情数据。
   const PlaylistDetailData({
     required this.songs,
     required this.isSubscribed,
     required this.isMyPlayList,
   });
 
+  /// 歌单内可播放歌曲队列。
   final List<PlaybackQueueItem> songs;
+
+  /// 当前用户是否已收藏歌单。
   final bool isSubscribed;
+
+  /// 歌单是否属于当前用户。
   final bool isMyPlayList;
 }
 
+/// 歌单快照，保存歌单基础信息和曲目顺序。
 class PlaylistSnapshotData {
+  /// 创建歌单快照。
   const PlaylistSnapshotData({
     required this.id,
     required this.name,
@@ -32,13 +41,25 @@ class PlaylistSnapshotData {
     this.trackCount,
   });
 
+  /// 歌单缓存 id。
   final String id;
+
+  /// 歌单名称。
   final String name;
+
+  /// 歌单曲目 id，保持远程顺序。
   final List<String> trackIds;
+
+  /// 歌单创建者用户 id。
   final String? creatorUserId;
+
+  /// 歌单封面地址。
   final String? coverUrl;
+
+  /// 歌单声明的曲目总数。
   final int? trackCount;
 
+  /// 从缓存 JSON 恢复歌单快照。
   factory PlaylistSnapshotData.fromJson(Map<String, dynamic> json) {
     return PlaylistSnapshotData(
       id: json['id'] as String? ?? '',
@@ -52,6 +73,7 @@ class PlaylistSnapshotData {
     );
   }
 
+  /// 转换为缓存 JSON。
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -64,7 +86,9 @@ class PlaylistSnapshotData {
   }
 }
 
+/// 聚合歌单远程数据、曲库缓存和用户订阅状态的仓库。
 class PlaylistRepository {
+  /// 创建歌单仓库。
   PlaylistRepository({
     required PlaylistCacheStore cacheStore,
     required LibraryRepository libraryRepository,
@@ -84,6 +108,7 @@ class PlaylistRepository {
   final NeteasePlaylistRemoteDataSource _remoteDataSource;
   final UserScopedDataSource _userScopedDataSource;
 
+  /// 拉取歌单快照，并同步歌单基础信息和订阅状态缓存。
   Future<PlaylistSnapshotData> fetchPlaylistSnapshot(
     String playlistId, {
     String? currentUserId,
@@ -126,6 +151,7 @@ class PlaylistRepository {
     return playlistSnapshot;
   }
 
+  /// 拉取歌单歌曲，并转换为播放队列项。
   Future<List<PlaybackQueueItem>> fetchPlaylistSongs({
     required String playlistId,
     required List<int> likedSongIds,
@@ -157,14 +183,17 @@ class PlaylistRepository {
     return queueItems;
   }
 
+  /// 读取缓存的歌单歌曲队列。
   Future<List<PlaybackQueueItem>?> loadCachedSongs(String playlistId) async {
     return _cacheStore.loadSongs(_toCachePlaylistId(playlistId));
   }
 
+  /// 读取缓存的歌单快照。
   Future<PlaylistSnapshotData?> loadCachedSnapshot(String playlistId) {
     return _cacheStore.loadSnapshot(_toCachePlaylistId(playlistId));
   }
 
+  /// 判断歌单缓存是否仍在 TTL 内。
   Future<bool> isCacheFresh(
     String playlistId, {
     required Duration ttl,
@@ -172,6 +201,7 @@ class PlaylistRepository {
     return _cacheStore.isFresh(_toCachePlaylistId(playlistId), ttl: ttl);
   }
 
+  /// 从本地曲库和缓存组合歌单详情。
   Future<PlaylistDetailData?> loadLocalPlaylistDetail({
     required String playlistId,
     required List<int> likedSongIds,
@@ -211,6 +241,7 @@ class PlaylistRepository {
     );
   }
 
+  /// 拉取完整歌单详情并刷新本地缓存。
   Future<PlaylistDetailData> fetchPlaylistDetail({
     required String playlistId,
     required List<int> likedSongIds,
@@ -278,6 +309,7 @@ class PlaylistRepository {
     );
   }
 
+  /// 切换当前用户对歌单的收藏状态。
   Future<OperationResult> toggleSubscription(
     String playlistId, {
     required bool subscribe,
@@ -300,6 +332,7 @@ class PlaylistRepository {
     );
   }
 
+  /// 添加或移除歌单歌曲，成功后失效本地歌单缓存。
   Future<OperationResult> manipulateTracks(
     String playlistId,
     String songId, {

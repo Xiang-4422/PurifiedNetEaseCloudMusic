@@ -6,13 +6,16 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 
 import 'playlist_repository.dart';
 
+/// 保存歌单快照和歌单歌曲队列缓存。
 class PlaylistCacheStore {
+  /// 创建歌单缓存存储。
   const PlaylistCacheStore({
     required AppCacheDataSource cacheDataSource,
   }) : _cacheDataSource = cacheDataSource;
 
   final AppCacheDataSource _cacheDataSource;
 
+  /// 读取缓存的歌单歌曲队列。
   Future<List<PlaybackQueueItem>?> loadSongs(String playlistId) async {
     final payloadJson =
         await _cacheDataSource.loadPayloadJson(_songsCacheKey(playlistId));
@@ -28,6 +31,7 @@ class PlaylistCacheStore {
     );
   }
 
+  /// 保存歌单歌曲队列缓存。
   Future<void> saveSongs(
     String playlistId,
     List<PlaybackQueueItem> songs,
@@ -40,6 +44,7 @@ class PlaylistCacheStore {
     await _pruneCaches();
   }
 
+  /// 读取缓存的歌单快照。
   Future<PlaylistSnapshotData?> loadSnapshot(String playlistId) async {
     final payloadJson =
         await _cacheDataSource.loadPayloadJson(_snapshotCacheKey(playlistId));
@@ -57,6 +62,7 @@ class PlaylistCacheStore {
     );
   }
 
+  /// 保存歌单快照缓存。
   Future<void> saveSnapshot(
     String playlistId,
     PlaylistSnapshotData snapshot,
@@ -69,6 +75,7 @@ class PlaylistCacheStore {
     await _pruneCaches();
   }
 
+  /// 删除指定歌单的歌曲、快照和刷新标记缓存。
   Future<void> invalidate(String playlistId) async {
     await _cacheDataSource.delete(_songsCacheKey(playlistId));
     await _cacheDataSource.delete(_snapshotCacheKey(playlistId));
@@ -80,6 +87,7 @@ class PlaylistCacheStore {
   String _snapshotCacheKey(String playlistId) =>
       'PLAYLIST_SNAPSHOT_$playlistId';
 
+  /// 更新歌单缓存刷新时间。
   Future<void> touchRefresh(String playlistId) {
     return _cacheDataSource.save(
       cacheKey: _refreshCacheKey(playlistId),
@@ -87,6 +95,7 @@ class PlaylistCacheStore {
     );
   }
 
+  /// 判断歌单缓存是否仍在 TTL 内。
   Future<bool> isFresh(
     String playlistId, {
     required Duration ttl,

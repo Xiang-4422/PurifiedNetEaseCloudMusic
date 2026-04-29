@@ -7,29 +7,55 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
+/// 首页壳层控制器，管理抽屉、首页分页和顶部搜索面板。
 class HomeShellController extends GetxController
     with GetTickerProviderStateMixin {
+  /// 当前首页壳层控制器实例。
   static HomeShellController get to => Get.find();
 
+  /// 首页抽屉控制器。
   late ZoomDrawerController zoomDrawerController;
   bool _zoomDrawerListenerInitialized = false;
   Timer? _closeDrawerTimer;
   String _defaultHomePageTitle = '';
 
+  /// 抽屉是否完全关闭。
   RxBool isDrawerClosed = true.obs;
 
+  /// 首页主分页控制器。
   late PageController homePageController;
+
+  /// 当前首页分页索引。
   RxInt curHomePageIndex = 0.obs;
+
+  /// 当前首页标题。
   RxString curHomePageTitle = ''.obs;
 
+  /// 顶部搜索面板控制器。
   PanelController topPanelController = PanelController();
+
+  /// 顶部搜索面板动画控制器。
   late AnimationController topPanelAnimationController;
+
+  /// 搜索输入框控制器。
   late TextEditingController searchTextEditingController;
+
+  /// 顶部搜索面板是否完全打开。
   RxBool topPanelFullyOpened = false.obs;
+
+  /// 顶部搜索面板是否完全关闭。
   RxBool topPanelFullyClosed = true.obs;
+
+  /// 当前搜索输入内容。
   RxString searchContent = ''.obs;
+
+  /// 搜索输入框焦点。
   final FocusNode searchFocusNode = FocusNode();
+
+  /// 当前键盘高度。
   RxDouble keyBoardHeight = 0.0.obs;
+
+  /// 左侧抽屉菜单项。
   final List<ShellMenuItemData> leftMenus = [
     ShellMenuItemData('个人中心', TablerIcons.user, Routes.user, '/home/user'),
     ShellMenuItemData(
@@ -67,10 +93,12 @@ class HomeShellController extends GetxController
       });
   }
 
+  /// 初始化首页默认标题。
   void init({required String initialTitle}) {
     updateDefaultTitle(initialTitle);
   }
 
+  /// 更新首页默认标题，当前停留首页时同步标题。
   void updateDefaultTitle(String title) {
     _defaultHomePageTitle = title;
     if (curHomePageIndex.value == 0) {
@@ -78,6 +106,7 @@ class HomeShellController extends GetxController
     }
   }
 
+  /// 初始化抽屉开合监听。
   void initZoomDrawerListener() {
     if (_zoomDrawerListenerInitialized) {
       return;
@@ -98,6 +127,7 @@ class HomeShellController extends GetxController
     });
   }
 
+  /// 同步顶部搜索面板滑动进度。
   void onTopPanelSlide(double openDegree) {
     topPanelAnimationController.value = openDegree;
 
@@ -114,6 +144,7 @@ class HomeShellController extends GetxController
     }
   }
 
+  /// 处理返回键，优先关闭搜索面板、底部面板和抽屉。
   bool handleWillPop({required PanelController bottomPanelController}) {
     if (topPanelController.isPanelOpen) {
       if (topPanelController.isAttached) {
@@ -145,6 +176,7 @@ class HomeShellController extends GetxController
     return false;
   }
 
+  /// 根据窗口信息更新键盘高度。
   void updateKeyboardHeight(BuildContext context) {
     keyBoardHeight.value = MediaQuery.of(context).viewInsets.bottom;
   }
@@ -189,11 +221,20 @@ class HomeShellController extends GetxController
   }
 }
 
+/// 首页抽屉菜单项数据。
 class ShellMenuItemData {
+  /// 菜单标题。
   final String title;
+
+  /// 菜单图标。
   final IconData icon;
+
+  /// 菜单对应路由名。
   final String route;
+
+  /// 菜单对应路径。
   final String path;
 
+  /// 创建首页抽屉菜单项数据。
   ShellMenuItemData(this.title, this.icon, this.route, this.path);
 }

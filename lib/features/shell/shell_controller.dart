@@ -12,56 +12,92 @@ import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
 /// 统一承接首页壳层、抽屉、顶部搜索面板和底部播放面板的 UI 协调。
 class ShellController extends SuperController
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
+  /// 当前壳层控制器实例。
   static ShellController get to => Get.find();
   HomeShellController get _homeShellController =>
       Get.find<HomeShellController>();
   ShellPlaybackPort get _playbackPort => Get.find<ShellPlaybackPort>();
   ShellUserPort get _userPort => Get.find<ShellUserPort>();
 
+  /// 壳层当前构建上下文，用于响应系统窗口和主题变化。
   late BuildContext buildContext;
 
+  /// 首页抽屉控制器。
   ZoomDrawerController get zoomDrawerController =>
       _homeShellController.zoomDrawerController;
+
+  /// 抽屉是否完全关闭。
   RxBool get isDrawerClosed => _homeShellController.isDrawerClosed;
+
+  /// 首页主分页控制器。
   PageController get homePageController =>
       _homeShellController.homePageController;
+
+  /// 当前首页分页索引。
   RxInt get curHomePageIndex => _homeShellController.curHomePageIndex;
+
+  /// 当前首页标题。
   RxString get curHomePageTitle => _homeShellController.curHomePageTitle;
 
   bool _uiControllersInitialized = false;
   PageController? _albumPageController;
+
+  /// 底部面板是否展示大封面模式。
   RxBool isBigAlbum = true.obs;
+
+  /// 专辑封面缩放动画是否结束。
   RxBool isAlbumScaleEnded = true.obs;
+
+  /// 专辑页是否正在由用户手势滚动。
   bool isAlbumScrollingManully = false;
+
+  /// 专辑页是否正在由程序同步滚动。
   bool isAlbumScrollingProgrammatic = false;
+
+  /// 专辑页是否处于滚动状态。
   RxBool isAlbumScrolling = false.obs;
 
+  /// 底部播放面板控制器。
   PanelController bottomPanelController = PanelController();
   AnimationController? _bottomPanelAnimationController;
+
+  /// 底部播放面板是否完全关闭。
   RxBool bottomPanelFullyClosed = true.obs;
+
+  /// 底部播放面板是否打开超过一半。
   RxBool bottomPanelOpened50 = false.obs;
+
+  /// 底部播放面板是否完全打开。
   RxBool bottomPanelFullyOpened = false.obs;
   PageController? _bottomPanelPageController;
+
+  /// 当前底部面板页面索引。
   RxInt curPanelPageIndex = 1.obs;
   TabController? _bottomPanelTabController;
   TabController? _bottomPanelCommentTabController;
+
+  /// 播放队列列表滚动控制器。
   ScrollController playListScrollController = ScrollController();
 
+  /// 专辑封面分页控制器。
   PageController get albumPageController {
     _ensureUiControllersInitialized();
     return _albumPageController!;
   }
 
+  /// 底部播放面板动画控制器。
   AnimationController get bottomPanelAnimationController {
     _ensureUiControllersInitialized();
     return _bottomPanelAnimationController!;
   }
 
+  /// 底部播放面板分页控制器。
   PageController get bottomPanelPageController {
     _ensureUiControllersInitialized();
     return _bottomPanelPageController!;
   }
 
+  /// 立即跳转到底部面板指定页面。
   void jumpBottomPanelToPage(int page) {
     _ensureUiControllersInitialized();
     final controller = _bottomPanelPageController;
@@ -70,6 +106,7 @@ class ShellController extends SuperController
     }
   }
 
+  /// 动画切换到底部面板指定页面。
   Future<void> animateBottomPanelToPage(
     int page, {
     Duration duration = const Duration(milliseconds: 300),
@@ -86,54 +123,80 @@ class ShellController extends SuperController
     }
   }
 
+  /// 打开底部播放面板。
   Future<void> openBottomPanel() async {
     if (bottomPanelController.isAttached) {
       await bottomPanelController.open();
     }
   }
 
+  /// 关闭底部播放面板。
   Future<void> closeBottomPanel() async {
     if (bottomPanelController.isAttached) {
       await bottomPanelController.close();
     }
   }
 
+  /// 打开顶部搜索面板。
   Future<void> openTopPanel() async {
     if (topPanelController.isAttached) {
       await topPanelController.open();
     }
   }
 
+  /// 关闭顶部搜索面板。
   Future<void> closeTopPanel() async {
     if (topPanelController.isAttached) {
       await topPanelController.close();
     }
   }
 
+  /// 底部面板主 tab 控制器。
   TabController get bottomPanelTabController {
     _ensureUiControllersInitialized();
     return _bottomPanelTabController!;
   }
 
+  /// 底部面板评论 tab 控制器。
   TabController get bottomPanelCommentTabController {
     _ensureUiControllersInitialized();
     return _bottomPanelCommentTabController!;
   }
 
+  /// 顶部搜索面板控制器。
   PanelController get topPanelController =>
       _homeShellController.topPanelController;
+
+  /// 顶部搜索面板动画控制器。
   AnimationController get topPanelAnimationController =>
       _homeShellController.topPanelAnimationController;
+
+  /// 搜索输入框控制器。
   TextEditingController get searchTextEditingController =>
       _homeShellController.searchTextEditingController;
+
+  /// 顶部搜索面板是否完全打开。
   RxBool get topPanelFullyOpened => _homeShellController.topPanelFullyOpened;
+
+  /// 顶部搜索面板是否完全关闭。
   RxBool get topPanelFullyClosed => _homeShellController.topPanelFullyClosed;
+
+  /// 当前搜索输入内容。
   RxString get searchContent => _homeShellController.searchContent;
+
+  /// 搜索输入框焦点。
   FocusNode get searchFocusNode => _homeShellController.searchFocusNode;
+
+  /// 当前键盘高度。
   RxDouble get keyBoardHeight => _homeShellController.keyBoardHeight;
 
+  /// 歌词列表定位控制器。
   ItemScrollController lyricScrollController = ItemScrollController();
+
+  /// 歌词是否正在由用户滚动。
   bool isLyricScrollingByUser = false;
+
+  /// 歌词是否正在由播放进度自动滚动。
   bool isLyricScrollingByItself = false;
 
   @override
@@ -174,6 +237,7 @@ class ShellController extends SuperController
 
   Timer? _albumDebounceTimer;
 
+  /// 响应专辑页用户切换，并同步播放队列索引。
   void onAlbumPageChanged(int index) {
     if (isAlbumScrollingProgrammatic) return;
     _albumDebounceTimer?.cancel();
@@ -252,6 +316,7 @@ class ShellController extends SuperController
     _albumPageController = PageController();
   }
 
+  /// 代理初始化首页抽屉监听。
   Future<void> initZoomDrawerListener() async {
     _homeShellController.initZoomDrawerListener();
   }
@@ -300,7 +365,8 @@ class ShellController extends SuperController
     ));
   }
 
-  onBottomPanelSlide(double openDegree) {
+  /// 同步底部播放面板滑动进度。
+  void onBottomPanelSlide(double openDegree) {
     bottomPanelAnimationController.value = openDegree;
 
     if (bottomPanelFullyClosed.value != (openDegree == 0.0)) {
@@ -317,11 +383,13 @@ class ShellController extends SuperController
     }
   }
 
-  onTopPanelSlide(double openDegree) {
+  /// 同步顶部搜索面板滑动进度。
+  void onTopPanelSlide(double openDegree) {
     _homeShellController.onTopPanelSlide(openDegree);
   }
 
-  onWillPop() {
+  /// 处理壳层返回键。
+  void onWillPop() {
     if (!_homeShellController.handleWillPop(
         bottomPanelController: bottomPanelController)) {
       SystemNavigator.pop();
@@ -341,7 +409,8 @@ class ShellController extends SuperController
     }
   }
 
-  syncAlbumPage() {
+  /// 将专辑页同步到当前播放索引。
+  void syncAlbumPage() {
     if (isAlbumScrollingProgrammatic) {
       return;
     }

@@ -1,4 +1,6 @@
+/// 用户资料数据。
 class UserProfileData {
+  /// 创建用户资料数据。
   const UserProfileData({
     required this.userId,
     required this.nickname,
@@ -9,14 +11,28 @@ class UserProfileData {
     required this.avatarUrl,
   });
 
+  /// 用户 id。
   final String userId;
+
+  /// 用户昵称。
   final String nickname;
+
+  /// 用户签名。
   final String signature;
+
+  /// 关注数量。
   final int follows;
+
+  /// 粉丝数量。
   final int followeds;
+
+  /// 歌单数量。
   final int playlistCount;
+
+  /// 头像地址。
   final String avatarUrl;
 
+  /// 从 JSON 创建用户资料数据。
   factory UserProfileData.fromJson(Map<String, dynamic> json) {
     return UserProfileData(
       userId: json['userId'] as String? ?? '',
@@ -29,6 +45,7 @@ class UserProfileData {
     );
   }
 
+  /// 转为可持久化 JSON。
   Map<String, dynamic> toJson() {
     return {
       'userId': userId,

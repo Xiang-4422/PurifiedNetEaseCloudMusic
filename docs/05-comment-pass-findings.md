@@ -73,3 +73,17 @@
 - **现象**：`ImageColorCacheStore` 直接读取 `CacheBox.instance`，而不是通过构造函数注入存储实例。
 - **风险**：虽然这是轻量视觉缓存，仍会让测试替身和未来存储替换成本变高。
 - **建议**：后续改为构造函数注入轻量 key-value store，`CacheBox` 只保留在 app binding 或 storage adapter 层。
+
+### 9. 领域实体仍承担 JSON 编解码
+
+- **位置**：`lib/domain/entities/playlist_summary_data.dart`、`lib/domain/entities/radio_data.dart`、`lib/domain/entities/user_profile_data.dart`、`lib/domain/entities/user_session_data.dart`、`lib/domain/entities/playback_queue_item.dart`、`lib/domain/entities/playback_restore_state.dart`。
+- **现象**：部分 domain entity 内部直接包含 `fromJson`、`toJson`。
+- **风险**：domain 层虽然仍是纯 Dart，但持久化和传输格式开始进入实体本身，后续数据格式变化会影响领域模型。
+- **建议**：后续按风险逐步把 JSON 编解码迁到 data mapper 或 cache codec，domain entity 只保留业务字段和纯规则。
+
+### 10. PlaybackQueueItem 仍保留播放适配层兼容字段
+
+- **位置**：`lib/domain/entities/playback_queue_item.dart`。
+- **现象**：`album`、`artist`、`artUri`、`extras` 更接近 audio service 或展示适配字段，而不是纯播放队列实体字段。
+- **风险**：播放 adapter 的需求会继续影响 domain entity 形状，削弱 `MediaItem` 边界清理后的隔离效果。
+- **建议**：后续将这些 getter 移到 playback adapter/mapper，domain 保留原始字段和最小派生规则。

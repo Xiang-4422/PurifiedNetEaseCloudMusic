@@ -1,23 +1,43 @@
 import 'source_type.dart';
 
+/// 曲目可播放状态。
 enum TrackAvailability {
+  /// 未知状态。
   unknown,
+
+  /// 可在线播放。
   playable,
+
+  /// 不可播放。
   unavailable,
+
+  /// 仅本地可用。
   localOnly,
 }
 
+/// 曲目资源来源。
 enum TrackResourceOrigin {
+  /// 无来源。
   none,
+
+  /// 封面缓存。
   artworkCache,
+
+  /// 正式下载资源。
   managedDownload,
+
+  /// 播放缓存资源。
   playbackCache,
+
+  /// 本地导入资源。
   localImport,
 }
 
+/// 曲目领域实体。
 class Track {
   static const Object _unset = Object();
 
+  /// 创建曲目实体。
   const Track({
     required this.id,
     required this.sourceType,
@@ -33,19 +53,43 @@ class Track {
     this.metadata = const {},
   });
 
+  /// 应用内部曲目 id。
   final String id;
+
+  /// 曲目来源类型。
   final SourceType sourceType;
+
+  /// 来源侧曲目 id。
   final String sourceId;
+
+  /// 曲目标题。
   final String title;
+
+  /// 歌手名称列表。
   final List<String> artistNames;
+
+  /// 专辑标题。
   final String? albumTitle;
+
+  /// 曲目时长，单位毫秒。
   final int? durationMs;
+
+  /// 封面地址。
   final String? artworkUrl;
+
+  /// 远程播放地址。
   final String? remoteUrl;
+
+  /// 歌词键。
   final String? lyricKey;
+
+  /// 曲目可播放状态。
   final TrackAvailability availability;
+
+  /// 扩展元数据。
   final Map<String, Object?> metadata;
 
+  /// 复制曲目实体并替换指定字段。
   Track copyWith({
     String? id,
     SourceType? sourceType,

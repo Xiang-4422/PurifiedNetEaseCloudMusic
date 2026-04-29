@@ -1,8 +1,10 @@
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 
+/// 播放队列项实体，作为 UI、repository 和播放 service 之间的统一播放模型。
 class PlaybackQueueItem {
   static const Object _unset = Object();
 
+  /// 创建播放队列项。
   const PlaybackQueueItem({
     required this.id,
     required this.sourceId,
@@ -21,6 +23,7 @@ class PlaybackQueueItem {
     this.metadata = const {},
   });
 
+  /// 创建空播放队列项。
   const PlaybackQueueItem.empty()
       : id = '',
         sourceId = '',
@@ -38,24 +41,55 @@ class PlaybackQueueItem {
         isCached = false,
         metadata = const {};
 
+  /// 应用内部曲目 id。
   final String id;
+
+  /// 来源侧曲目 id。
   final String sourceId;
+
+  /// 曲目标题。
   final String title;
+
+  /// 专辑标题。
   final String? albumTitle;
+
+  /// 歌手名称列表。
   final List<String> artistNames;
+
+  /// 歌手 id 列表。
   final List<String> artistIds;
+
+  /// 曲目时长。
   final Duration? duration;
+
+  /// 远程封面地址。
   final String? artworkUrl;
+
+  /// 本地封面路径。
   final String? localArtworkPath;
+
+  /// 播放媒体类型。
   final MediaType mediaType;
+
+  /// 播放地址。
   final String? playbackUrl;
+
+  /// 歌词键。
   final String? lyricKey;
+
+  /// 当前用户是否喜欢。
   final bool isLiked;
+
+  /// 是否已有本地缓存音频。
   final bool isCached;
+
+  /// 扩展元数据。
   final Map<String, dynamic> metadata;
 
+  /// 兼容播放适配层使用的专辑名。
   String? get album => albumTitle;
 
+  /// 拼接后的歌手名。
   String? get artist {
     if (artistNames.isEmpty) {
       return null;
@@ -63,6 +97,7 @@ class PlaybackQueueItem {
     return artistNames.join(' / ');
   }
 
+  /// 播放适配层使用的封面 URI。
   Uri? get artUri {
     final source =
         localArtworkPath?.isNotEmpty == true ? localArtworkPath : artworkUrl;
@@ -72,6 +107,7 @@ class PlaybackQueueItem {
     return Uri.tryParse(source);
   }
 
+  /// 播放适配层使用的扩展字段。
   Map<String, dynamic>? get extras {
     return {
       ...metadata,
@@ -90,6 +126,7 @@ class PlaybackQueueItem {
     };
   }
 
+  /// 复制播放队列项并替换指定字段。
   PlaybackQueueItem copyWith({
     String? id,
     String? sourceId,
@@ -136,6 +173,7 @@ class PlaybackQueueItem {
     );
   }
 
+  /// 从 JSON 创建播放队列项。
   factory PlaybackQueueItem.fromJson(Map<String, dynamic> json) {
     return PlaybackQueueItem(
       id: json['id'] as String? ?? '',
@@ -163,6 +201,7 @@ class PlaybackQueueItem {
     );
   }
 
+  /// 转为可持久化 JSON。
   Map<String, dynamic> toJson() {
     return {
       'id': id,

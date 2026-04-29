@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/domain/entities/user_library_kinds.dart';
@@ -174,7 +174,7 @@ class RecommendationController extends GetxController {
     _homeImageColorPrewarmTimer?.cancel();
     _homeImageColorPrewarmTimer = Timer(const Duration(milliseconds: 120), () {
       unawaited(
-        OtherUtils.prewarmImageColors(
+        ImageColorService.prewarm(
           [
             todayRecommendSongs.isNotEmpty
                 ? todayRecommendSongs.first.artworkUrl

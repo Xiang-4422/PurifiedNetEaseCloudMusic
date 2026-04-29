@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/app/ui/toast_service.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/routes/router.dart';
@@ -72,7 +72,7 @@ class AuthController extends GetxController {
 
     final qrCodeLoginKey = await _repository.createQrCodeKey();
     if (!qrCodeLoginKey.success) {
-      WidgetUtil.showToast(qrCodeLoginKey.message ?? '未知错误');
+      ToastService.show(qrCodeLoginKey.message ?? '未知错误');
       return;
     }
 
@@ -99,7 +99,7 @@ class AuthController extends GetxController {
     if (!isLoginStateActive) {
       await _repository.setLoginFlag(false);
       await UserSessionController.to.expireLoginSession();
-      WidgetUtil.showToast('登录失效,请重新登录');
+      ToastService.show('登录失效,请重新登录');
       isLoading.value = false;
       return;
     }
@@ -119,7 +119,7 @@ class AuthController extends GetxController {
 
     await _repository.setLoginFlag(false);
     await UserSessionController.to.expireLoginSession();
-    WidgetUtil.showToast('登录失效,请重新登录');
+    ToastService.show('登录失效,请重新登录');
     Future.microtask(() {
       final context = Get.context;
       if (context != null) {

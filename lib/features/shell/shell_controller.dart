@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/settings/settings_controller.dart';
+import 'package:bujuan/app/presentation_adapters/shell_playback_port.dart';
+import 'package:bujuan/app/presentation_adapters/shell_user_port.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -16,9 +15,8 @@ class ShellController extends SuperController
   static ShellController get to => Get.find();
   HomeShellController get _homeShellController =>
       Get.find<HomeShellController>();
-  SettingsController get _settingsController => SettingsController.to;
-  UserSessionController get _sessionController => UserSessionController.to;
-  PlayerController get _playerController => PlayerController.to;
+  ShellPlaybackPort get _playbackPort => Get.find<ShellPlaybackPort>();
+  ShellUserPort get _userPort => Get.find<ShellUserPort>();
 
   late BuildContext buildContext;
 
@@ -142,14 +140,13 @@ class ShellController extends SuperController
   Future<void> onInit() async {
     super.onInit();
     _homeShellController;
-    _settingsController;
-    _sessionController;
-    _playerController;
+    _playbackPort;
+    _userPort;
 
     _ensureUiControllersInitialized();
     WidgetsBinding.instance.addObserver(this);
 
-    ever(_playerController.lyricState, (lyricState) {
+    ever(_playbackPort.lyricState(), (lyricState) {
       final index = lyricState.currentIndex;
       if (index >= 0 &&
           !isLyricScrollingByUser &&
@@ -163,14 +160,14 @@ class ShellController extends SuperController
       }
     });
 
-    ever<int>(_playerController.currentQueueIndex, (currentIndex) {
+    ever<int>(_playbackPort.currentQueueIndex(), (currentIndex) {
       if (currentIndex < 0) {
         return;
       }
       _animatePlayListToCurSong();
       _animateAlbumPageViewToCurSong();
     });
-    ever(_sessionController.userInfo, (info) {
+    ever(_userPort.userInfo(), (info) {
       _homeShellController.updateDefaultTitle(info.nickname);
     });
   }
@@ -181,8 +178,8 @@ class ShellController extends SuperController
     if (isAlbumScrollingProgrammatic) return;
     _albumDebounceTimer?.cancel();
     _albumDebounceTimer = Timer(const Duration(milliseconds: 300), () {
-      if (_playerController.runtimeState.value.currentIndex != index) {
-        _playerController.playQueueIndex(index);
+      if (_playbackPort.runtimeState().currentIndex != index) {
+        _playbackPort.playQueueIndex(index);
       }
     });
   }
@@ -193,7 +190,7 @@ class ShellController extends SuperController
     }
     _uiControllersInitialized = true;
     _homeShellController.init(
-      initialTitle: _sessionController.userInfo.value.nickname,
+      initialTitle: _userPort.currentNickname(),
     );
     _bottomPanelAnimationController = AnimationController(vsync: this);
     _bottomPanelTabController =
@@ -230,10 +227,10 @@ class ShellController extends SuperController
           curPanelPageIndex.value = newPanelPageIndex;
           // 切换到正在播放列表页，滚动到当前播放
           if (newPanelPageIndex == 0) await _animatePlayListToCurSong();
-          if (_playerController.isFullScreenLyricOpen.isFalse) {
-            _playerController.updateFullScreenLyricTimerCounter(
+          if (!_playbackPort.isFullScreenLyricOpen()) {
+            _playbackPort.updateFullScreenLyricTimerCounter(
                 cancelTimer: newPanelPageIndex != 1 &&
-                    _playerController.isFullScreenLyricOpen.isFalse);
+                    !_playbackPort.isFullScreenLyricOpen());
           }
         }
         // 避免循环监听
@@ -334,7 +331,7 @@ class ShellController extends SuperController
   // 列表页打开时直接滚到当前播放项，可以减少“当前歌曲已变但列表还停在旧位置”的错觉。
   _animatePlayListToCurSong() {
     if (playListScrollController.hasClients) {
-      final currentIndex = _playerController.currentQueueIndex.value;
+      final currentIndex = _playbackPort.currentQueueIndex().value;
       if (currentIndex < 0) {
         return;
       }
@@ -355,7 +352,7 @@ class ShellController extends SuperController
   _animateAlbumPageViewToCurSong() {
     if (albumPageController.hasClients) {
       if (isAlbumScrollingManully) return;
-      final currentIndex = _playerController.currentQueueIndex.value;
+      final currentIndex = _playbackPort.currentQueueIndex().value;
       if (currentIndex < 0) {
         return;
       }

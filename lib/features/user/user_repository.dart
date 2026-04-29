@@ -1,5 +1,5 @@
+import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/domain/entities/playback_media_type.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
@@ -235,7 +235,7 @@ class UserRepository {
     if (artworkSource.isEmpty) {
       return '';
     }
-    return OtherUtils.normalizeImageUrl(artworkSource);
+    return ImageUrlNormalizer.normalize(artworkSource);
   }
 
   Future<String> fetchSongAlbumUrl(String songId) async {

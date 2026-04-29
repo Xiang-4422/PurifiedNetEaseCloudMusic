@@ -4,7 +4,7 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/features/comment/application/comment_content_port.dart';
+import 'package:bujuan/app/presentation_adapters/comment_content_port.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/presentation/lyric_view.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';

@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/app/ui/toast_service.dart';
 import 'package:bujuan/common/constants/icon.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -82,7 +82,7 @@ class UpdateView extends StatelessWidget {
                   onTap: () async {
                     Clipboard.setData(const ClipboardData(text: '2697'))
                         .then((value) async {
-                      WidgetUtil.showToast('复制成功');
+                      ToastService.show('复制成功');
                       await launchUrl(
                         Uri.parse(downloadUrl),
                         mode: LaunchMode.externalApplication,

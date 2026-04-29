@@ -3,9 +3,9 @@ import 'dart:math';
 
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
+import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/playback_action_port.dart';
@@ -322,7 +322,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _updateArtworkColors(String? artworkPath) async {
-    albumColor = await OtherUtils.getImageColor(artworkPath);
+    albumColor = await ImageColorService.dominantColor(artworkPath);
     widgetColor = albumColor.invertedColor;
   }
 

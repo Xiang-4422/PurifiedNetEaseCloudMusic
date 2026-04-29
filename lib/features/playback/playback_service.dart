@@ -30,6 +30,7 @@ class PlaybackService extends GetxService {
       _onPlaylistMetaChanged;
   bool Function()? _isHighQualityEnabled;
   Future<void> Function(PlaybackQueueItem item)? _onToggleLike;
+  void Function(String message)? _onToast;
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
 
@@ -82,6 +83,7 @@ class PlaybackService extends GetxService {
         onPlaylistMetaChanged,
     bool Function()? isHighQualityEnabled,
     Future<void> Function(PlaybackQueueItem item)? onToggleLike,
+    void Function(String message)? onToast,
     bool Function()? isPlaylistMode,
     bool Function()? isRoamingMode,
   }) {
@@ -90,6 +92,7 @@ class PlaybackService extends GetxService {
     _onPlaylistMetaChanged = onPlaylistMetaChanged;
     _isHighQualityEnabled = isHighQualityEnabled;
     _onToggleLike = onToggleLike;
+    _onToast = onToast;
     _isPlaylistMode = isPlaylistMode;
     _isRoamingMode = isRoamingMode;
     _applyHandlerBindings();
@@ -109,6 +112,7 @@ class PlaybackService extends GetxService {
           ? null
           : (mediaItem) =>
               _onToggleLike!(PlaybackQueueItemAdapter.fromMediaItem(mediaItem)),
+      onToast: _onToast,
       isPlaylistMode: _isPlaylistMode,
       isRoamingMode: _isRoamingMode,
     );

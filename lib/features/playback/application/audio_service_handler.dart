@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/playback/application/audio_service_queue_synchronizer.dart';
 import 'package:bujuan/features/playback/application/playback_engine_adapter.dart';
 import 'package:bujuan/features/playback/application/playback_notification_controls_presenter.dart';
@@ -73,6 +72,7 @@ class AudioServiceHandler extends BaseAudioHandler
       _handlePlaylistMetaChanged;
   bool Function()? _isHighQualityEnabled;
   Future<void> Function(MediaItem mediaItem)? _handleToggleLike;
+  void Function(String message)? _handleToast;
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
   Duration _pendingRestorePosition = Duration.zero;
@@ -88,6 +88,7 @@ class AudioServiceHandler extends BaseAudioHandler
         onPlaylistMetaChanged,
     bool Function()? isHighQualityEnabled,
     Future<void> Function(MediaItem mediaItem)? onToggleLike,
+    void Function(String message)? onToast,
     bool Function()? isPlaylistMode,
     bool Function()? isRoamingMode,
   }) {
@@ -96,6 +97,7 @@ class AudioServiceHandler extends BaseAudioHandler
     _handlePlaylistMetaChanged = onPlaylistMetaChanged;
     _isHighQualityEnabled = isHighQualityEnabled;
     _handleToggleLike = onToggleLike;
+    _handleToast = onToast;
     _isPlaylistMode = isPlaylistMode;
     _isRoamingMode = isRoamingMode;
   }
@@ -315,7 +317,7 @@ class AudioServiceHandler extends BaseAudioHandler
         // 漫游模式的补队列是异步触发的，直接回环会把“加载中”和“切回第一首”
         // 混成同一个动作，结果会让队列状态和 UI 都更难解释。
         if (_isRoamingMode?.call() ?? false) {
-          WidgetUtil.showToast('正在加载漫游歌曲...');
+          _handleToast?.call('正在加载漫游歌曲...');
           return;
         }
         newIndex = 0;

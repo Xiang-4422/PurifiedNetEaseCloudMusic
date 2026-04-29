@@ -287,7 +287,8 @@ void main() {
             final path = _relativePath(file);
             return path.startsWith('lib/features/') &&
                 path.contains('/presentation/') &&
-                !path.startsWith('lib/features/playback/presentation/');
+                !path.startsWith('lib/features/playback/presentation/') &&
+                !path.startsWith('lib/features/debug/presentation/');
           })
           .where((file) =>
               _contains(file, 'features/playback/player_controller.dart'))
@@ -439,6 +440,176 @@ void main() {
         violations,
         isEmpty,
         reason: 'core/data/domain 不能继续依赖 common/constants 中的 UI 或历史混合常量。',
+      );
+    });
+
+    test('feature application layer stays pure Dart', () {
+      final applicationFiles = _dartFiles(libDirectory).where((file) {
+        final path = _relativePath(file);
+        return path.startsWith('lib/features/') &&
+            path.contains('/application/');
+      });
+
+      final violations = applicationFiles
+          .where(
+            (file) => _containsAny(file, const [
+              'package:flutter/',
+              'package:get/get.dart',
+              'BuildContext',
+              'Widget',
+              'Color ',
+              'Get.find',
+              '.obs',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'feature application 层必须保持纯 Dart；需要 Widget/BuildContext/Color 的组合放到 app presentation adapter。',
+      );
+    });
+
+    test('app routing does not read local storage details directly', () {
+      final routingFiles =
+          _dartFiles(Directory('${projectRoot.path}/lib/app/routing'));
+      final violations = routingFiles
+          .where(
+            (file) => _containsAny(file, const [
+              'CacheBox.instance',
+              'common/constants/key.dart',
+              'package:hive/',
+              'package:hive_flutter/',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'app routing 只能消费启动态解析结果，不能直接读取 Hive/CacheBox 或登录态 key。',
+      );
+    });
+
+    test('presentation adapter imports stay isolated in bootstrap', () {
+      final bootstrapFiles =
+          _dartFiles(Directory('${projectRoot.path}/lib/app/bootstrap'));
+      final violations = bootstrapFiles
+          .where((file) {
+            final path = _relativePath(file);
+            return path !=
+                'lib/app/bootstrap/registrars/presentation_adapter_registrar.dart';
+          })
+          .where((file) => _contains(file, '/presentation/'))
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'AppBinding 和普通 registrar 不能直接构造 presentation，只有 presentation adapter registrar 可以承接 Widget/route adapter。',
+      );
+    });
+
+    test('legacy mixed constants are no longer imported by business code', () {
+      final violations = _dartFiles(libDirectory)
+          .where((file) =>
+              _relativePath(file) != 'lib/common/constants/other.dart')
+          .where((file) => _contains(file, 'common/constants/other.dart'))
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'common/constants/other.dart 只保留历史兼容壳，新业务代码必须依赖 app/core 下的明确服务。',
+      );
+    });
+
+    test('old UI port application files stay removed', () {
+      const removedFiles = [
+        'lib/features/comment/application/comment_content_port.dart',
+        'lib/features/settings/application/settings_navigation_port.dart',
+        'lib/features/playback/application/playback_theme_port.dart',
+        'lib/features/playback/application/playback_artwork_presenter.dart',
+      ];
+      final existing = removedFiles
+          .where((path) => File('${projectRoot.path}/$path').existsSync())
+          .toList();
+
+      expect(
+        existing,
+        isEmpty,
+        reason:
+            '依赖 Widget/BuildContext/Color 的 port/presenter 不能回到纯 application 层。',
+      );
+    });
+
+    test('composition root is split into focused registrars', () {
+      const expectedRegistrars = [
+        'infrastructure_registrar.dart',
+        'repository_registrar.dart',
+        'playback_registrar.dart',
+        'user_registrar.dart',
+        'feature_controller_registrar.dart',
+        'presentation_adapter_registrar.dart',
+      ];
+      final missing = expectedRegistrars
+          .where(
+            (name) => !File(
+              '${projectRoot.path}/lib/app/bootstrap/registrars/$name',
+            ).existsSync(),
+          )
+          .toList();
+
+      expect(
+        missing,
+        isEmpty,
+        reason: 'AppBinding 必须保持轻量入口，具体注册职责拆到 registrar，避免组合根重新膨胀。',
+      );
+    });
+
+    test('shell controller uses composition ports for cross-feature state', () {
+      final shellController = File(
+        '${projectRoot.path}/lib/features/shell/shell_controller.dart',
+      );
+      final violations = <String>[
+        if (_containsAny(shellController, const [
+          'features/playback/player_controller.dart',
+          'features/settings/settings_controller.dart',
+          'features/user/user_session_controller.dart',
+        ]))
+          _relativePath(shellController),
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'ShellController 只协调壳层 UI；播放、设置、用户状态应通过 app presentation adapter port 接入。',
+      );
+    });
+
+    test('demo pages stay in debug feature', () {
+      expect(
+        File(
+          '${projectRoot.path}/lib/features/playback/presentation/coverflow_demo_page_view.dart',
+        ).existsSync(),
+        isFalse,
+        reason: '实验性 demo 页面不能继续混在正式 playback presentation 目录。',
+      );
+      expect(
+        File(
+          '${projectRoot.path}/lib/features/debug/presentation/coverflow_demo_page_view.dart',
+        ).existsSync(),
+        isTrue,
+        reason: '实验性 demo 页面应归类到 debug feature。',
       );
     });
   });

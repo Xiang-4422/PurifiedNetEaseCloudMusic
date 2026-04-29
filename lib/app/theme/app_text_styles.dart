@@ -1,7 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:get/get.dart';
-
-var context = Get.context;
 
 TextStyle spaceGroteskPrimaryW200S12 = const TextStyle(
   fontFamily: 'space_grotesk',

@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
-import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/app/ui/toast_service.dart';
+import 'package:bujuan/core/time/date_time_formatter.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/comment/comment_item_controller.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
@@ -225,7 +226,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                             children: [
                               TextSpan(
                                 text:
-                                    '\n${OtherUtils.formatDate2Str(comment.time)}',
+                                    '\n${DateTimeFormatter.commentTime(comment.time)}',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: stringColor.withValues(alpha: 0.4),
@@ -438,7 +439,7 @@ class _FoolTalkState extends State<FoolTalk> {
                             children: [
                               TextSpan(
                                 text:
-                                    ' (${OtherUtils.formatDate2Str(widget.commentItem.time)}) ',
+                                    ' (${DateTimeFormatter.commentTime(widget.commentItem.time)}) ',
                                 style: const TextStyle(
                                   fontSize: 22,
                                   color: Colors.grey,
@@ -556,7 +557,8 @@ class _FoolTalkState extends State<FoolTalk> {
                     ),
                     children: [
                       TextSpan(
-                        text: ' (${OtherUtils.formatDate2Str(comment.time)}) ',
+                        text:
+                            ' (${DateTimeFormatter.commentTime(comment.time)}) ',
                         style: const TextStyle(
                           fontSize: 22,
                           color: Colors.grey,
@@ -611,9 +613,9 @@ class _FoolTalkState extends State<FoolTalk> {
       commentId: widget.commentItem.commentId,
     );
     if (errorMessage == null) {
-      WidgetUtil.showToast('评论成功');
+      ToastService.show('评论成功');
     } else {
-      WidgetUtil.showToast(errorMessage);
+      ToastService.show(errorMessage);
     }
   }
 }

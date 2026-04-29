@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/core/storage/local_image_cache_repository.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
@@ -37,7 +37,7 @@ class PlaybackArtworkPresenter {
       return cachedColor;
     }
 
-    final color = await OtherUtils.getImageColor(imagePath);
+    final color = await ImageColorService.dominantColor(imagePath);
     if (_albumColorCache.length > 20) {
       _albumColorCache.remove(_albumColorCache.keys.first);
     }

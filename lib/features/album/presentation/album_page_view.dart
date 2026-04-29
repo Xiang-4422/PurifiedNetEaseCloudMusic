@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
+import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/album/album_page_controller.dart';
@@ -210,7 +210,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
   }
 
   Future<void> _updateAlbumColor(String? artworkPath) async {
-    albumColor = await OtherUtils.getImageColor(artworkPath);
+    albumColor = await ImageColorService.dominantColor(artworkPath);
     onAlbumColor = albumColor.invertedColor;
   }
 

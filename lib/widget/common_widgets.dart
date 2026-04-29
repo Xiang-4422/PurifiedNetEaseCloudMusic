@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:flutter/material.dart';
 
 /// 长按时从原位置展开覆盖层，避免每个需要预览的入口各自维护一套 overlay 动画。
@@ -158,7 +158,7 @@ class _AsyncImageColorState extends State<AsyncImageColor> {
   @override
   void initState() {
     super.initState();
-    _bgColor = OtherUtils.peekCachedImageColor(
+    _bgColor = ImageColorService.peekCachedColor(
           widget.imageUrl,
           getLightColor: widget.getLightColor,
         ) ??
@@ -173,7 +173,7 @@ class _AsyncImageColorState extends State<AsyncImageColor> {
         oldWidget.getLightColor != widget.getLightColor ||
         oldWidget.fallbackColor != widget.fallbackColor ||
         oldWidget.deferLoadUntilPostFrame != widget.deferLoadUntilPostFrame) {
-      _bgColor = OtherUtils.peekCachedImageColor(
+      _bgColor = ImageColorService.peekCachedColor(
             widget.imageUrl,
             getLightColor: widget.getLightColor,
           ) ??
@@ -183,7 +183,7 @@ class _AsyncImageColorState extends State<AsyncImageColor> {
   }
 
   void _scheduleLoadColorIfNeeded() {
-    final cachedColor = OtherUtils.peekCachedImageColor(
+    final cachedColor = ImageColorService.peekCachedColor(
       widget.imageUrl,
       getLightColor: widget.getLightColor,
     );
@@ -209,7 +209,7 @@ class _AsyncImageColorState extends State<AsyncImageColor> {
 
   Future<void> _loadColor() async {
     final loadVersion = ++_loadVersion;
-    final color = await OtherUtils.getImageColor(
+    final color = await ImageColorService.dominantColor(
       widget.imageUrl,
       getLightColor: widget.getLightColor,
     );

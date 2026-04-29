@@ -1,11 +1,12 @@
 import 'dart:io';
 
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
+import 'package:bujuan/app/ui/dialog_service.dart';
+import 'package:bujuan/app/ui/toast_service.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
-import 'package:bujuan/features/settings/application/settings_navigation_port.dart';
+import 'package:bujuan/app/presentation_adapters/settings_navigation_port.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -45,20 +46,20 @@ class _SettingPageViewState extends State<SettingPageView> {
   Future<void> _scanLocalMedia() async {
     final permissionGranted = await _requestLocalMediaPermission();
     if (!permissionGranted) {
-      WidgetUtil.showToast('未获得本地音频读取权限');
+      ToastService.show('未获得本地音频读取权限');
       return;
     }
 
     final directoryPaths = await _resolveDefaultScanDirectories();
     if (directoryPaths.isEmpty) {
-      WidgetUtil.showToast('未找到可扫描的本地目录');
+      ToastService.show('未找到可扫描的本地目录');
       return;
     }
 
     if (!mounted) {
       return;
     }
-    WidgetUtil.showLoadingDialog(context);
+    DialogService.showLoading(context);
     try {
       final importedCount = await _localMediaScanController.importDirectories(
         directoryPaths,
@@ -68,16 +69,16 @@ class _SettingPageViewState extends State<SettingPageView> {
       }
       Navigator.of(context).pop();
       if (importedCount <= 0) {
-        WidgetUtil.showToast('未发现可导入的本地音频');
+        ToastService.show('未发现可导入的本地音频');
         return;
       }
-      WidgetUtil.showToast('已导入 $importedCount 首本地音乐');
+      ToastService.show('已导入 $importedCount 首本地音乐');
     } catch (_) {
       if (!mounted) {
         return;
       }
       Navigator.of(context).pop();
-      WidgetUtil.showToast('扫描本地音乐失败');
+      ToastService.show('扫描本地音乐失败');
     }
   }
 
@@ -326,7 +327,7 @@ class _SettingPageViewState extends State<SettingPageView> {
         //     color: Theme.of(context).cardColor.withOpacity(.6),
         //   ),
         //   onTap: () async {
-        //     WidgetUtil.showLoadingDialog(context);
+        //     DialogService.showLoading(context);
         //     await Downloader.clearCachedFiles();
         //     if (mounted) Navigator.of(context).pop();
         //   },

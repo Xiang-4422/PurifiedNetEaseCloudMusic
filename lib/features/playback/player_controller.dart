@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
+import 'package:bujuan/app/presentation_adapters/playback_theme_port.dart';
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
@@ -7,12 +9,11 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
-import 'package:bujuan/features/playback/application/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
-import 'package:bujuan/features/playback/application/playback_theme_port.dart';
+import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
@@ -22,8 +23,6 @@ import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-
-import 'package:bujuan/common/constants/other.dart';
 
 /// 面向页面暴露播放状态和播放模式切换入口。
 ///
@@ -43,6 +42,7 @@ class PlayerController extends GetxController {
     required CurrentTrackDownloadUseCase downloadUseCase,
     required PlaybackPreferencePort preferencePort,
     required PlaybackThemePort themePort,
+    required PlaybackToastPort toastPort,
   })  : _playbackService = playbackService,
         _queueStore = queueStore,
         _queueCoordinator = queueCoordinator,
@@ -52,7 +52,8 @@ class PlayerController extends GetxController {
         _artworkPresenter = artworkPresenter,
         _downloadUseCase = downloadUseCase,
         _preferencePort = preferencePort,
-        _themePort = themePort;
+        _themePort = themePort,
+        _toastPort = toastPort;
 
   final PlaybackService _playbackService;
   final PlaybackQueueStore _queueStore;
@@ -64,6 +65,7 @@ class PlayerController extends GetxController {
   final CurrentTrackDownloadUseCase _downloadUseCase;
   final PlaybackPreferencePort _preferencePort;
   final PlaybackThemePort _themePort;
+  final PlaybackToastPort _toastPort;
 
   PlaybackService get playbackService => _playbackService;
 
@@ -122,6 +124,7 @@ class PlayerController extends GetxController {
       },
       isHighQualityEnabled: _preferencePort.isHighQualityEnabled,
       onToggleLike: _toggleLikeFromPlayback,
+      onToast: _toastPort.show,
       isPlaylistMode: () => playbackMode.value == PlaybackMode.playlist,
       isRoamingMode: () => playbackMode.value == PlaybackMode.roaming,
     );
@@ -471,7 +474,7 @@ class PlayerController extends GetxController {
   }
 
   Future<void> quitFmMode({bool showToast = true}) async {
-    if (showToast) WidgetUtil.showToast('已经退出漫游模式');
+    if (showToast) _toastPort.show('已经退出漫游模式');
     if (playbackMode.value == PlaybackMode.roaming) {
       _syncSessionState(playbackMode: PlaybackMode.playlist);
     }
@@ -492,7 +495,7 @@ class PlayerController extends GetxController {
   }
 
   Future<void> quitHeartBeatMode({bool showToast = true}) async {
-    if (showToast) WidgetUtil.showToast('已经退出心动模式');
+    if (showToast) _toastPort.show('已经退出心动模式');
     if (playbackMode.value == PlaybackMode.heartbeat) {
       _syncSessionState(playbackMode: PlaybackMode.playlist);
     }

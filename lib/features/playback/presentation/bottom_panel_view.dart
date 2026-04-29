@@ -4,7 +4,9 @@ import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/presentation/bottom_panel_artwork_layer.dart';
 import 'package:bujuan/features/playback/presentation/bottom_panel_comment_page.dart';
+import 'package:bujuan/features/playback/presentation/bottom_panel_header.dart';
 import 'package:bujuan/features/playback/presentation/bottom_panel_playback_controls.dart';
 import 'package:bujuan/features/playback/presentation/bottom_panel_queue_view.dart';
 import 'package:bujuan/features/playback/presentation/lyric_view.dart';
@@ -68,90 +70,7 @@ class BottomPanelView extends GetView<ShellController> {
         // 内容
         Column(
           children: [
-            // 歌名&歌手
-            Container(
-              margin: EdgeInsets.only(top: context.mediaQueryPadding.top),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.paddingLarge),
-              height: AppDimensions.appBarHeight,
-              width: context.width,
-              child: Obx(() => Visibility(
-                    visible: controller.bottomPanelFullyOpened.isTrue,
-                    child: Builder(builder: (context) {
-                      final currentSong =
-                          PlayerController.to.currentSongState.value;
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  currentSong.title,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: context.textTheme.titleLarge?.copyWith(
-                                    color: SettingsController
-                                        .to.panelWidgetColor.value,
-                                  ),
-                                ),
-                                Text(
-                                  currentSong.artist ?? '',
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                  style: context.textTheme.titleLarge?.copyWith(
-                                    fontSize: context
-                                            .textTheme.titleLarge!.fontSize! /
-                                        2,
-                                    color: SettingsController
-                                        .to.panelWidgetColor.value
-                                        .withValues(alpha: 0.5),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Obx(() => Offstage(
-                                offstage: controller.isBigAlbum.isTrue,
-                                child: Visibility(
-                                  visible: controller.isAlbumScaleEnded.isTrue,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      if (PlayerController
-                                          .to.isFullScreenLyricOpen.isTrue) {
-                                        PlayerController
-                                            .to
-                                            .isFullScreenLyricOpen
-                                            .value = false;
-                                      } else {
-                                        controller.isAlbumScaleEnded.value =
-                                            false;
-                                        controller.isBigAlbum.value = true;
-                                        PlayerController.to
-                                            .updateFullScreenLyricTimerCounter(
-                                                cancelTimer: true);
-                                      }
-                                    },
-                                    child: SimpleExtendedImage(
-                                      width: AppDimensions.albumMinSize,
-                                      height: AppDimensions.albumMinSize,
-                                      shape: BoxShape.circle,
-                                      ArtworkPathResolver.resolveDisplayPath(
-                                        PlayerController.to.currentSongState
-                                            .value.artworkUrl,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )),
-                        ],
-                      );
-                    }),
-                  )),
-            ),
+            BottomPanelHeader(controller: controller),
             // 专辑占位
             Obx(() => Offstage(
                   offstage: controller.isBigAlbum.isFalse,
@@ -224,136 +143,8 @@ class BottomPanelView extends GetView<ShellController> {
             )
           ],
         ),
-        // 专辑缩放临时动画图层
-        Obx(() => Offstage(
-              offstage: controller.isAlbumScaleEnded.isTrue,
-              child: Container(
-                alignment: Alignment.topRight,
-                child: Obx(() => AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: controller.isBigAlbum.isTrue
-                          ? EdgeInsets.only(
-                              right: AppDimensions.paddingLarge,
-                              top: AppDimensions.appBarHeight +
-                                  context.mediaQueryPadding.top +
-                                  AppDimensions.paddingLarge)
-                          : EdgeInsets.only(
-                              right: AppDimensions.paddingLarge,
-                              top: context.mediaQueryPadding.top +
-                                  AppDimensions.paddingSmall),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(
-                            controller.isBigAlbum.isTrue
-                                ? AppDimensions.paddingLarge / 2
-                                : AppDimensions.albumMinSize),
-                      ),
-                      clipBehavior: Clip.hardEdge,
-                      width: controller.isBigAlbum.isTrue
-                          ? context.width - AppDimensions.paddingLarge * 2
-                          : AppDimensions.albumMinSize,
-                      height: controller.isBigAlbum.isTrue
-                          ? context.width - AppDimensions.paddingLarge * 2
-                          : AppDimensions.albumMinSize,
-                      child: Obx(() {
-                        return SimpleExtendedImage(
-                          ArtworkPathResolver.resolveDisplayPath(
-                            PlayerController
-                                    .to.currentSongState.value.artworkUrl ??
-                                PlayerController
-                                    .to.currentSongState.value.localArtworkPath,
-                          ),
-                        );
-                      }),
-                      onEnd: () => controller.isAlbumScaleEnded.value = true,
-                    )),
-              ),
-            )),
-        // 专辑单独图层
-        Obx(() => Offstage(
-              offstage: controller.bottomPanelFullyOpened.isFalse ||
-                  controller.isBigAlbum.isFalse ||
-                  controller.isAlbumScaleEnded.isFalse,
-              child: Container(
-                margin: EdgeInsets.only(
-                    top: context.mediaQueryPadding.top +
-                        AppDimensions.appBarHeight),
-                height: context.width,
-                child: NotificationListener<ScrollNotification>(
-                  // 监听滚动状态
-                  onNotification: (notification) {
-                    // 判断滚动是否是用户手势触发
-                    if (notification is ScrollStartNotification) {
-                      if (notification.dragDetails != null) {
-                        // 用户开始手动拖拽，如果是程序动画中，则劫持它
-                        controller.isAlbumScrollingManully = true;
-                        controller.isAlbumScrollingProgrammatic = false;
-                      }
-                    } else if (notification is ScrollEndNotification) {
-                      controller.isAlbumScrollingManully = false;
-                    }
-                    // 返回 false 让通知继续冒泡，以便 itemPositionsNotifier 也能收到
-                    return false;
-                  },
-                  child: PageView.builder(
-                    controller: controller.albumPageController,
-                    itemCount: PlayerController.to.queueState.length,
-                    allowImplicitScrolling: true,
-
-                    // TODO YU4422：切歌卡顿
-                    onPageChanged: (index) {
-                      controller.onAlbumPageChanged(index);
-                    },
-                    itemBuilder: (BuildContext context, int index) {
-                      return AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 800),
-                        transitionBuilder:
-                            (Widget child, Animation<double> animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
-                        child: Container(
-                          clipBehavior: Clip.hardEdge,
-                          margin:
-                              const EdgeInsets.all(AppDimensions.paddingLarge),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                                AppDimensions.paddingLarge / 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.4),
-                                blurRadius: 12, // 模糊半径
-                                spreadRadius: 2, // 扩散半径
-                              )
-                            ],
-                          ),
-                          child: GestureDetector(
-                            onTap: () {
-                              controller.isAlbumScaleEnded.value = false;
-                              controller.isBigAlbum.value = false;
-                              if (controller.curPanelPageIndex.value == 1) {
-                                PlayerController.to
-                                    .updateFullScreenLyricTimerCounter();
-                              }
-                            },
-                            child: Obx(() => SimpleExtendedImage(
-                                  ArtworkPathResolver.resolveDisplayPath(
-                                    PlayerController
-                                            .to.queueState[index].artworkUrl ??
-                                        PlayerController.to.queueState[index]
-                                            .localArtworkPath,
-                                  ),
-                                )),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            )),
+        BottomPanelArtworkTransitionLayer(controller: controller),
+        BottomPanelArtworkPageLayer(controller: controller),
 
         // 页面指示TabBar
         Container(

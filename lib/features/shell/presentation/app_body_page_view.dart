@@ -2,9 +2,11 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/explore/presentation/explore_page.dart';
 import 'package:bujuan/features/settings/presentation/setting_page.dart';
+import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/shell/presentation/coffee_page.dart';
 import 'package:bujuan/features/user/presentation/personal_page.dart';
+import 'package:bujuan/features/user/user_controller.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/custom_zoom_drawer/src/flutter_zoom_drawer.dart';
@@ -22,7 +24,7 @@ class AppBodyPageView extends GetView<ShellController> {
         Container(
           color: context.theme.colorScheme.primary,
           child: ZoomDrawer(
-            controller: controller.zoomDrawerController,
+            controller: HomeShellController.to.zoomDrawerController,
 
             // 侧边抽屉配置
             // menuScreenTapClose: true,
@@ -63,22 +65,22 @@ class DrawerMainScreenView extends GetView<ShellController> {
     switch (index) {
       case 0:
         return Obx(() => AbsorbPointer(
-              absorbing: !ShellController.to.isDrawerClosed.value,
+              absorbing: !HomeShellController.to.isDrawerClosed.value,
               child: const PersonalPageView(),
             ));
       case 1:
         return Obx(() => AbsorbPointer(
-              absorbing: !ShellController.to.isDrawerClosed.value,
+              absorbing: !HomeShellController.to.isDrawerClosed.value,
               child: const ExplorePageView(),
             ));
       case 2:
         return Obx(() => AbsorbPointer(
-              absorbing: !ShellController.to.isDrawerClosed.value,
+              absorbing: !HomeShellController.to.isDrawerClosed.value,
               child: const SettingPageView(),
             ));
       case 3:
         return Obx(() => AbsorbPointer(
-              absorbing: !ShellController.to.isDrawerClosed.value,
+              absorbing: !HomeShellController.to.isDrawerClosed.value,
               child: const CoffeePageView(),
             ));
       default:
@@ -92,11 +94,11 @@ class DrawerMainScreenView extends GetView<ShellController> {
       width: context.width,
       height: context.height,
       child: Obx(() => PageView.builder(
-            physics: controller.isDrawerClosed.value
+            physics: HomeShellController.to.isDrawerClosed.value
                 ? const NeverScrollableScrollPhysics()
                 : const PageScrollPhysics(),
             scrollDirection: Axis.vertical,
-            controller: controller.homePageController,
+            controller: HomeShellController.to.homePageController,
             itemCount: 4,
             itemBuilder: (context, index) => _buildPage(index),
           )),
@@ -126,14 +128,14 @@ class MenuView extends GetView<ShellController> {
             icon: Obx(
               () => SimpleExtendedImage.avatar(
                 ArtworkPathResolver.resolveDisplayPath(
-                  controller.userInfo.value.avatarUrl,
+                  UserController.to.userInfo.value.avatarUrl,
                 ),
                 shape: BoxShape.circle,
               ),
             ),
             onPressed: () {
               final router = context.router;
-              controller.zoomDrawerController.close?.call();
+              HomeShellController.to.zoomDrawerController.close?.call();
               Future.delayed(const Duration(milliseconds: 200), () {
                 router.pushNamed(Routes.userProfile);
               });
@@ -146,8 +148,9 @@ class MenuView extends GetView<ShellController> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children:
-                        controller.curHomePageTitle.value.split("").map((c) {
+                    children: HomeShellController.to.curHomePageTitle.value
+                        .split("")
+                        .map((c) {
                       return Text(
                         c,
                         style: context.textTheme.titleLarge,
@@ -162,23 +165,28 @@ class MenuView extends GetView<ShellController> {
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: List.generate(controller.leftMenus.length, (index) {
+              children:
+                  List.generate(UserController.to.leftMenus.length, (index) {
                 return IconButton(
                   onPressed: () {
                     int onePageAnimationTime = 200;
                     Duration animationTime = Duration(
                         milliseconds: onePageAnimationTime *
-                            (controller.homePageController.page! - index)
+                            (HomeShellController.to.homePageController.page! -
+                                    index)
                                 .abs()
                                 .toInt());
-                    controller.homePageController.animateToPage(index,
-                        duration: animationTime, curve: Curves.linear);
+                    HomeShellController.to.homePageController.animateToPage(
+                        index,
+                        duration: animationTime,
+                        curve: Curves.linear);
                   },
-                  icon: Obx(() => Icon(controller.leftMenus[index].icon,
+                  icon: Obx(() => Icon(UserController.to.leftMenus[index].icon,
                       size: AppDimensions.albumMinSize * 2 / 3,
-                      color: controller.curHomePageIndex.value == index
-                          ? Theme.of(context).primaryColor
-                          : Theme.of(context).iconTheme.color)),
+                      color:
+                          HomeShellController.to.curHomePageIndex.value == index
+                              ? Theme.of(context).primaryColor
+                              : Theme.of(context).iconTheme.color)),
                 );
               }),
             ),

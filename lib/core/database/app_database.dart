@@ -1,4 +1,5 @@
 import 'package:bujuan/data/local/download_task_data_source.dart';
+import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
@@ -19,6 +20,8 @@ abstract class AppDatabase {
   LocalResourceIndexDataSource get localResourceIndexDataSource;
 
   DownloadTaskDataSource get downloadTaskDataSource;
+
+  AppCacheDataSource get appCacheDataSource;
 
   UserScopedDataSource get userScopedDataSource;
 }

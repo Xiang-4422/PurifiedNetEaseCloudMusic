@@ -1,7 +1,7 @@
-import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/netease/netease_album_remote_data_source.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 
@@ -12,7 +12,7 @@ class AlbumDetailData {
   });
 
   final AlbumEntity album;
-  final List<MediaItem> albumSongs;
+  final List<PlaybackQueueItem> albumSongs;
 }
 
 class AlbumRepository {
@@ -37,7 +37,10 @@ class AlbumRepository {
     final tracks = await _libraryRepository.getTracksByAlbumId(albumId);
     return AlbumDetailData(
       album: album,
-      albumSongs: _mapTracksToMediaItems(tracks, likedSongIds: likedSongIds),
+      albumSongs: _mapTracksToPlaybackQueueItems(
+        tracks,
+        likedSongIds: likedSongIds,
+      ),
     );
   }
 
@@ -47,7 +50,6 @@ class AlbumRepository {
   }) async {
     final result = await _remoteDataSource.fetchAlbumDetail(
       albumId: albumId,
-      likedSongIds: likedSongIds,
     );
     final album = result.album;
     final tracks = result.tracks;
@@ -57,17 +59,23 @@ class AlbumRepository {
     await _libraryRepository.saveTracks(tracks);
     return AlbumDetailData(
       album: album!,
-      albumSongs: result.mediaItems,
+      albumSongs: _mapTracksToPlaybackQueueItems(
+        tracks,
+        likedSongIds: likedSongIds,
+      ),
     );
   }
 
-  List<MediaItem> _mapTracksToMediaItems(
+  List<PlaybackQueueItem> _mapTracksToPlaybackQueueItems(
     List<Track> tracks, {
     required List<int> likedSongIds,
   }) {
     if (tracks.isEmpty) {
       return const [];
     }
-    return MediaItemMapper.fromTrackList(tracks, likedSongIds: likedSongIds);
+    return PlaybackQueueItemMapper.fromTrackList(
+      tracks,
+      likedSongIds: likedSongIds,
+    );
   }
 }

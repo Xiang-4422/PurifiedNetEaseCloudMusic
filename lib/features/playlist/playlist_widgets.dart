@@ -1,10 +1,10 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
-import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/features/user/user_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
@@ -116,7 +116,7 @@ class UniversalListTile extends StatelessWidget {
 /// `SongItem` 统一承接“点击即按当前上下文播放”的行为，避免每个页面再手写一次播放入口。
 class SongItem extends StatefulWidget {
   final int index;
-  final List<MediaItem> playlist;
+  final List<PlaybackQueueItem> playlist;
   final String playListName;
   final String playListHeader;
   final Function()? beforeOnTap;
@@ -143,11 +143,11 @@ class SongItem extends StatefulWidget {
 class _SongItemState extends State<SongItem> {
   @override
   Widget build(BuildContext context) {
-    final mediaItem = widget.playlist[widget.index];
+    final item = widget.playlist[widget.index];
     return UniversalListTile(
-      picUrl: widget.showPic ? (mediaItem.extras?['image']) : null,
-      titleString: mediaItem.title,
-      subTitleString: mediaItem.artist,
+      picUrl: widget.showPic ? item.artworkUrl : null,
+      titleString: item.title,
+      subTitleString: item.artist,
       stringColor: widget.stringColor,
       onTap: () async {
         if (widget.beforeOnTap != null) {
@@ -197,7 +197,7 @@ class PlayListItem extends StatelessWidget {
 }
 
 /// 歌单卡片既负责展示，也负责触发“播放整个歌单”，因此归在 playlist feature 比挂在 common 更合适。
-class PlayListWidget extends GetView<ShellController> {
+class PlayListWidget extends StatelessWidget {
   static PlaylistRepository get _repository => Get.find<PlaylistRepository>();
 
   final double albumCountInWidget;
@@ -276,18 +276,19 @@ class PlayListWidget extends GetView<ShellController> {
                                   ),
                                   Obx(
                                     () => Visibility(
-                                      visible: controller.isPlaying.isTrue &&
-                                          controller.playbackSessionState.value
+                                      visible: PlayerController
+                                              .to.isPlaying.isTrue &&
+                                          PlayerController.to.sessionState.value
                                                   .playlistName ==
                                               playLists[index].title,
                                       replacement: IconButton(
                                         onPressed: () {
-                                          if (controller.playbackSessionState
+                                          if (PlayerController.to.sessionState
                                                   .value.playlistName !=
                                               playLists[index].title) {
                                             _playPlaylist(playLists[index]);
                                           } else {
-                                            controller.playOrPause();
+                                            PlayerController.to.playOrPause();
                                           }
                                         },
                                         icon: const Icon(
@@ -353,10 +354,10 @@ class PlayListWidget extends GetView<ShellController> {
     final details = await _repository.fetchPlaylistSnapshot(playlist.id);
     final songs = await _repository.fetchPlaylistSongs(
       playlistId: playlist.id,
-      likedSongIds: controller.likedSongIds.toList(),
+      likedSongIds: UserController.to.likedSongIds.toList(),
       playlistSnapshot: details,
     );
-    await controller.playerController.playPlaylist(
+    await PlayerController.to.playPlaylist(
       songs,
       0,
       playListName: details.name,

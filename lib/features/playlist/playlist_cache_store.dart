@@ -1,39 +1,52 @@
-import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/core/playback/media_item_cache_codec.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
-import 'package:bujuan/core/storage/cache_timestamp_store.dart';
+import 'dart:convert';
+
+import 'package:bujuan/core/playback/playback_queue_item_cache_codec.dart';
+import 'package:bujuan/data/local/app_cache_data_source.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 
 import 'playlist_repository.dart';
 
 class PlaylistCacheStore {
   const PlaylistCacheStore({
-    CacheTimestampStore? timestampStore,
-  }) : _timestampStore = timestampStore ?? const CacheTimestampStore();
+    required AppCacheDataSource cacheDataSource,
+  }) : _cacheDataSource = cacheDataSource;
 
-  final CacheTimestampStore _timestampStore;
+  final AppCacheDataSource _cacheDataSource;
 
-  Future<List<MediaItem>?> loadSongs(String playlistId) async {
-    final cachedSongs = CacheBox.instance.get(_songsCacheKey(playlistId));
-    if (cachedSongs == null) {
+  Future<List<PlaybackQueueItem>?> loadSongs(String playlistId) async {
+    final payloadJson =
+        await _cacheDataSource.loadPayloadJson(_songsCacheKey(playlistId));
+    if (payloadJson == null) {
       return null;
     }
-    return decodeMediaItemCacheList(cachedSongs.cast<String>());
+    final cachedSongs = jsonDecode(payloadJson);
+    if (cachedSongs is! List) {
+      return null;
+    }
+    return decodePlaybackQueueItemCacheList(
+      cachedSongs.map((item) => '$item').toList(),
+    );
   }
 
   Future<void> saveSongs(
     String playlistId,
-    List<MediaItem> songs,
+    List<PlaybackQueueItem> songs,
   ) async {
-    await CacheBox.instance.put(
-      _songsCacheKey(playlistId),
-      await encodeMediaItemCacheList(songs),
+    await _cacheDataSource.save(
+      cacheKey: _songsCacheKey(playlistId),
+      payloadJson: jsonEncode(await encodePlaybackQueueItemCacheList(songs)),
     );
     await _touchCacheAccess(playlistId);
     await _pruneCaches();
   }
 
   Future<PlaylistSnapshotData?> loadSnapshot(String playlistId) async {
-    final cachedSnapshot = CacheBox.instance.get(_snapshotCacheKey(playlistId));
+    final payloadJson =
+        await _cacheDataSource.loadPayloadJson(_snapshotCacheKey(playlistId));
+    if (payloadJson == null) {
+      return null;
+    }
+    final cachedSnapshot = jsonDecode(payloadJson);
     if (cachedSnapshot is! Map) {
       return null;
     }
@@ -48,18 +61,18 @@ class PlaylistCacheStore {
     String playlistId,
     PlaylistSnapshotData snapshot,
   ) async {
-    await CacheBox.instance.put(
-      _snapshotCacheKey(playlistId),
-      snapshot.toJson(),
+    await _cacheDataSource.save(
+      cacheKey: _snapshotCacheKey(playlistId),
+      payloadJson: jsonEncode(snapshot.toJson()),
     );
     await _touchCacheAccess(playlistId);
     await _pruneCaches();
   }
 
   Future<void> invalidate(String playlistId) async {
-    await CacheBox.instance.delete(_songsCacheKey(playlistId));
-    await CacheBox.instance.delete(_snapshotCacheKey(playlistId));
-    await _timestampStore.clear(_refreshCacheKey(playlistId));
+    await _cacheDataSource.delete(_songsCacheKey(playlistId));
+    await _cacheDataSource.delete(_snapshotCacheKey(playlistId));
+    await _cacheDataSource.delete(_refreshCacheKey(playlistId));
   }
 
   String _songsCacheKey(String playlistId) => 'PLAYLIST_SONGS_$playlistId';
@@ -68,21 +81,25 @@ class PlaylistCacheStore {
       'PLAYLIST_SNAPSHOT_$playlistId';
 
   Future<void> touchRefresh(String playlistId) {
-    return _timestampStore.markUpdated(_refreshCacheKey(playlistId));
+    return _cacheDataSource.save(
+      cacheKey: _refreshCacheKey(playlistId),
+      payloadJson: '{}',
+    );
   }
 
-  bool isFresh(
+  Future<bool> isFresh(
     String playlistId, {
     required Duration ttl,
   }) {
-    return _timestampStore.isFresh(
+    return _cacheDataSource.isFresh(
       _refreshCacheKey(playlistId),
       ttl: ttl,
     );
   }
 
   Future<void> _touchCacheAccess(String playlistId) async {
-    final raw = CacheBox.instance.get(_playlistAccessKey);
+    final rawJson = await _cacheDataSource.loadPayloadJson(_playlistAccessKey);
+    final raw = rawJson == null ? null : jsonDecode(rawJson);
     final accessMap = <String, int>{};
     if (raw is Map) {
       for (final entry in raw.entries) {
@@ -90,12 +107,16 @@ class PlaylistCacheStore {
       }
     }
     accessMap[playlistId] = DateTime.now().millisecondsSinceEpoch;
-    await CacheBox.instance.put(_playlistAccessKey, accessMap);
+    await _cacheDataSource.save(
+      cacheKey: _playlistAccessKey,
+      payloadJson: jsonEncode(accessMap),
+    );
     await touchRefresh(playlistId);
   }
 
   Future<void> _pruneCaches() async {
-    final raw = CacheBox.instance.get(_playlistAccessKey);
+    final rawJson = await _cacheDataSource.loadPayloadJson(_playlistAccessKey);
+    final raw = rawJson == null ? null : jsonDecode(rawJson);
     if (raw is! Map) {
       return;
     }
@@ -118,11 +139,14 @@ class PlaylistCacheStore {
       nextMap[entry.key] = entry.value;
     }
     for (final playlistId in removeIds) {
-      await CacheBox.instance.delete(_songsCacheKey(playlistId));
-      await CacheBox.instance.delete(_snapshotCacheKey(playlistId));
-      await _timestampStore.clear(_refreshCacheKey(playlistId));
+      await _cacheDataSource.delete(_songsCacheKey(playlistId));
+      await _cacheDataSource.delete(_snapshotCacheKey(playlistId));
+      await _cacheDataSource.delete(_refreshCacheKey(playlistId));
     }
-    await CacheBox.instance.put(_playlistAccessKey, nextMap);
+    await _cacheDataSource.save(
+      cacheKey: _playlistAccessKey,
+      payloadJson: jsonEncode(nextMap),
+    );
   }
 
   static const String _playlistAccessKey = 'PLAYLIST_CACHE_LAST_ACCESS';

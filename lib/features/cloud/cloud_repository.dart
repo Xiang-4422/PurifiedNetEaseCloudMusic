@@ -1,7 +1,7 @@
-import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_cloud_remote_data_source.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/user_library_kinds.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
@@ -20,7 +20,7 @@ class CloudRepository {
   final LibraryRepository _libraryRepository;
   final UserScopedDataSource _userScopedDataSource;
 
-  Future<List<MediaItem>> loadCachedSongs({
+  Future<List<PlaybackQueueItem>> loadCachedSongs({
     required String userId,
     required List<int> likedSongIds,
   }) async {
@@ -40,7 +40,7 @@ class CloudRepository {
         .map((trackId) => tracksById[trackId])
         .whereType<TrackWithResources>()
         .toList();
-    return MediaItemMapper.fromTrackWithResourcesList(
+    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
       orderedTracks,
       likedSongIds: likedSongIds,
     );
@@ -55,9 +55,12 @@ class CloudRepository {
     final result = await _remoteDataSource.fetchCloudSongs(
       offset: offset,
       limit: limit,
-      likedSongIds: likedSongIds,
     );
     await _libraryRepository.saveTracks(result.tracks);
+    final items = PlaybackQueueItemMapper.fromTrackList(
+      result.tracks,
+      likedSongIds: likedSongIds,
+    );
     final trackIds = result.tracks.map((track) => track.id).toList();
     if (offset == 0) {
       await _userScopedDataSource.replaceTrackList(
@@ -74,7 +77,7 @@ class CloudRepository {
       );
     }
     return CloudSongPage(
-      items: result.items,
+      items: items,
       hasMore: result.itemCount >= limit,
       nextOffset: offset + result.itemCount,
     );
@@ -88,7 +91,7 @@ class CloudSongPage {
     required this.nextOffset,
   });
 
-  final List<MediaItem> items;
+  final List<PlaybackQueueItem> items;
   final bool hasMore;
   final int nextOffset;
 }

@@ -47,6 +47,15 @@ class DownloadTasks extends Table {
   Set<Column<Object>> get primaryKey => {trackId};
 }
 
+class AppCacheEntries extends Table {
+  TextColumn get cacheKey => text()();
+  TextColumn get payloadJson => text()();
+  IntColumn get updatedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {cacheKey};
+}
+
 class Tracks extends Table {
   TextColumn get trackId => text()();
   TextColumn get sourceType => text()();
@@ -230,6 +239,7 @@ class UserSyncMarkers extends Table {
     PlaybackRestoreSnapshots,
     LocalResourceEntries,
     DownloadTasks,
+    AppCacheEntries,
     Tracks,
     TrackLyricsEntries,
     Playlists,
@@ -273,6 +283,7 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
       'DROP TABLE IF EXISTS playback_restore_snapshots',
       'DROP TABLE IF EXISTS local_resource_entries',
       'DROP TABLE IF EXISTS download_tasks',
+      'DROP TABLE IF EXISTS app_cache_entries',
       'DROP TABLE IF EXISTS tracks',
       'DROP TABLE IF EXISTS track_lyrics_entries',
       'DROP TABLE IF EXISTS playlists',
@@ -319,6 +330,9 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_download_tasks_status_updated_at_ms ON download_tasks (status, updated_at_ms)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_app_cache_entries_updated_at_ms ON app_cache_entries (updated_at_ms)',
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_local_resource_entries_origin_kind ON local_resource_entries (origin, kind)',

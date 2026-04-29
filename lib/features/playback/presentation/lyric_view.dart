@@ -1,3 +1,5 @@
+import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:bujuan/widget/scroll_helpers.dart';
@@ -34,7 +36,7 @@ class LyricView extends GetView<ShellController> {
         behavior: const NoGlowScrollBehavior(),
         child: Obx(
           () {
-            final lyricState = controller.playbackLyricState.value;
+            final lyricState = PlayerController.to.lyricState.value;
             return ScrollablePositionedList.builder(
               itemScrollController: controller.lyricScrollController,
               itemCount: lyricState.lines.length + 2,
@@ -56,12 +58,12 @@ class LyricView extends GetView<ShellController> {
                   if (extText.isNotEmpty) extText = '\n$extText';
                   child = Obx(() {
                     bool isActive =
-                        controller.playbackLyricState.value.currentIndex ==
+                        PlayerController.to.lyricState.value.currentIndex ==
                             index;
                     return AnimatedDefaultTextStyle(
                       style: context.theme.textTheme.titleLarge!.copyWith(
                         fontFamily: 'monospace', // 指定使用系统等宽字体
-                        color: controller.panelWidgetColor.value
+                        color: SettingsController.to.panelWidgetColor.value
                             .withValues(alpha: isActive ? 1 : 0.2),
                         fontWeight:
                             isActive ? FontWeight.bold : FontWeight.normal,

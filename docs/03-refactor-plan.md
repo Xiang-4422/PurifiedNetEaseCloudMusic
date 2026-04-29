@@ -41,7 +41,7 @@
 - 统一歌词缓存策略，减少 `PlayerController` 中直接处理缓存 key 的逻辑
 - 登录、首页壳层、搜索面板继续移除页面级业务流程
 - 清理只做转发的 controller 方法与空壳类
-- 继续减少页面中手工拼装 `MediaItem`
+- 继续减少播放展示层对 audio_service 细节的了解，页面默认消费 `PlaybackQueueItem`
 
 ### B. 落实本地优先数据层
 
@@ -89,7 +89,7 @@
 - 统一播放队列模型
 - 梳理普通歌单、漫游、心动、喜欢歌曲、本地播放等模式
 - 规范播放恢复：队列、进度、模式、当前项
-- 让 `MediaItem` 逐步退回到最终播放适配层
+- `MediaItem` 已退回到播放 adapter/service/application 边界，后续继续压缩内部适配代码
 
 ### G. 工程结构收口
 
@@ -199,6 +199,7 @@
 - 继续缩小 `common`
 - 继续理顺 `pages` 与 `features` 的边界
 - 继续整理 `widget` 中的历史组件和预留组件
+- 架构边界通过 `test/architecture/architecture_boundary_test.dart` 固定，防止 `lib/pages`、GetIt、旧播放队列模型和 GetX 反向依赖复活
 
 ### 6.8 测试与验证
 
@@ -251,6 +252,14 @@
 ### 已完成
 
 - 架构分析完成
+- 已新增架构守护测试：禁止 `lib/pages` 复活，禁止 `GetIt/get_it/AppController/MediaItemBean`，禁止 `core/data/domain` 依赖 GetX 或反向 import features，禁止业务 cache store 直接读取 `CacheBox.instance`
+- `ShellController` 已继续瘦身，user/settings/player 代理 getter 与播放代理方法已移除；页面改为直接读取 `UserController`、`PlayerController`、`SettingsController`、`HomeShellController`
+- 已新增 `PlaybackQueueItem` 与 `PlaybackQueueItemAdapter`，repository、controller、页面之间不再传递 `MediaItem`
+- `AlbumRepository`、`ArtistRepository`、`PlaylistRepository`、`CloudRepository`、`SearchRepository`、`UserRepository` 已改为返回领域实体或 `PlaybackQueueItem`
+- 网易云 remote data source 已停止返回 `MediaItem`，只返回领域实体或 `Track`
+- `PlayerController` 与 `PlaybackService` 对外播放入口已改为接收 `List<PlaybackQueueItem>`，`MediaItem` 限定在 audio_service 适配层
+- 已新增 Drift-backed `AppCacheDataSource` 与 `app_cache_entries`，业务缓存 store 不再直接读取 `CacheBox.instance`
+- `SearchCacheStore`、`ExploreCacheStore`、`PlaylistCacheStore`、`CloudCacheStore`、`RadioCacheStore`、`UserProfileCacheStore` 已迁到 Drift 通用缓存接口
 - 技术架构文档已建立
 - 重构阶段计划已建立
 - 通用请求组件已通过 `RequestRepository` 统一网络访问入口
@@ -287,21 +296,21 @@
 - 探索页榜单歌曲改为直接通过 `PlaylistRepository` 获取
 - `ShellController` 已移除歌单查询、歌曲映射、喜欢状态等单点代理
 - 漫游 / 心动模式与喜欢歌单播放逻辑已下沉到 `PlayerController`
-- 已建立第一版领域层骨架：`Track`、`PlaylistEntity`、`AlbumEntity`、`ArtistEntity`、`PlaybackQueue`
+- 已建立第一版领域层骨架：`Track`、`PlaylistEntity`、`AlbumEntity`、`ArtistEntity`、`PlaybackQueueItem`
 - 已新增第一版 `NeteaseMusicSource`
 - 已建立 `NeteaseMusicSource`、`LocalMusicSource` 与 `LibraryRepository` 骨架
 - 播放歌词和在线播放地址已改由 `PlaybackRepository -> LibraryRepository -> NeteaseMusicSource / LocalMusicSource` 获取
 - `feature repository -> 网易云 API` 直连已全部下沉到 `data/netease/**`，`features/**` 不再直接 import `NeteaseMusicApi`
-- 专辑页、歌手页和部分用户歌曲链路已改为通过统一实体构建 `MediaItem`
+- 专辑页、歌手页和用户歌曲链路已改为通过统一实体构建 `PlaybackQueueItem`
 - 歌单页路由参数已改为 `playlistId / playlistName / coverUrl / trackCount`，页面不再直接依赖网易云 `PlayList` bean
 - 用户资料页与 `UserProfileController` 已改为消费 feature 自己的用户资料模型，不再直接依赖 `NeteaseUserDetail`
 - 用户会话、推荐歌单、用户歌单和探索页歌单分类已改为消费 feature 自己的数据模型，壳层与页面已不再直接依赖 `NeteaseAccountInfoWrap / PlayList / PlaylistCatalogueItem`
 - 播客列表、播客详情和对应 controller 已改为消费 `RadioSummaryData / RadioProgramData`，不再直接依赖 `DjRadio / DjProgram`
 - 评论列表、楼中楼和评论弹层已改为消费 `CommentData`，不再直接依赖网易云评论 bean
-- 云盘页与 `CloudPageController` 已改为直接消费 `MediaItem` 列表，不再直接依赖 `CloudSongItem`
+- 云盘页与 `CloudPageController` 已改为直接消费 `PlaybackQueueItem` 列表，不再直接依赖 `CloudSongItem`
 - 底部播放面板的歌手跳转已改为消费应用侧作者字段，不再通过 `Artist.fromJson` 反解网易云作者 bean
 - 认证轮询、评论发送/点赞、歌单订阅、喜欢歌曲和退出登录已改为返回应用侧结果对象，不再把网易云 `ServerStatusBean / CommentWrap / QrCodeLoginKey` 暴露给控制器和页面
-- 云盘、FM 和播客节目列表的 `MediaItem` 拼装已归位到专用 mapper，feature repository 不再手写平台字段
+- 云盘、FM 和播客节目列表的播放队列拼装已归位到专用 mapper，feature repository 不再手写平台字段
 - 已新增本地媒体库数据源协议，`LibraryRepository` 开始按“先本地、后远程、再回写”组织读取路径
 - 已新增进程内本地媒体库占位实现，并进一步切到可持久化过渡实现
 - 搜索面板中的单曲、歌单、专辑、歌手结果已接入统一媒体库入口
@@ -317,16 +326,16 @@
 - 用户数据链路已开始把推荐歌单、用户歌单、日推、FM、心动模式和按 ID 拉取的歌曲明细写回本地媒体库
 - 专辑和歌手详情链路已开始把专辑、歌手及其歌曲明细同步写回本地媒体库
 - `LibraryRepository` 已补齐资源索引汇总和可用性读取入口，并新增 `LocalMediaRepository` 作为本地扫描导入骨架
-- `TrackWithResources -> MediaItem -> AudioServiceHandler` 已开始透传本地文件状态，本地导入和已缓存歌曲可以按本地音频资源优先播放
+- `TrackWithResources -> PlaybackQueueItem -> AudioServiceHandler` 已开始透传本地文件状态，本地导入和已缓存歌曲可以按本地音频资源优先播放
 - 已新增 `DownloadRepository`，开始将排队、下载中、下载失败等过程态写入 `download_tasks`，下载成功后的资源事实写入 `local_resource_entries`
 - 已新增 `LocalMediaScanRepository`，开始提供本地目录扫描、音频文件过滤和批量导入入口
-- `TrackWithResources -> MediaItem` 已开始优先透传本地封面路径和本地歌词路径，播放器可直接优先使用本地歌词文件
+- `TrackWithResources -> PlaybackQueueItem` 已开始优先透传本地封面路径和本地歌词路径，播放器可直接优先使用本地歌词文件
 - 本地封面路径和本地歌词路径已从临时 metadata 收口到 `local_resource_entries`，下载和展示链路开始共享同一套资源索引
 - 下载进度和失败原因已从临时 metadata 收口到 `download_tasks`，资源来源收口到 `local_resource_entries.origin`
 - 已新增 `DownloadTask` 过渡模型，下载过程态开始从 `Track` 最终状态中拆开存放
 - `DownloadRepository` 已补齐下载任务查询与清理入口，为后续下载列表和任务恢复预留统一入口
 - `DownloadRepository` 已补实际下载执行入口，开始负责音频、封面、歌词文件落盘与本地资源状态回写
-- 当前播放歌曲的下载入口已接到 `PlayerController`，下载完成后会同步刷新当前播放 `MediaItem`
+- 当前播放歌曲的下载入口已接到 `PlayerController`，下载完成后会同步刷新当前播放 `PlaybackQueueItem`
 - 本地扫描已补同目录歌词与封面识别，导入后会同步写入本地资源索引，并已在设置页提供默认目录扫描入口
 - 已新增独立本地资源索引入口，下载链路和本地导入链路开始统一记录音频、封面、歌词资源路径
 - `LibraryRepository` 已开始汇总轨道实体和资源索引，搜索与播放链路会优先读取补全后的本地资源视图
@@ -388,7 +397,7 @@
 任务：
 
 - 新建 repository 基础目录
-- 新建统一的 `MediaItem` mapper
+- 新建统一的 `PlaybackQueueItem` mapper
 - 新增基础数据访问封装，禁止新增页面直调 `NeteaseMusicApi`
 - 新增基础存储访问封装，禁止新增页面直连 `Hive`
 - 将新改动中的模型转换统一收口
@@ -399,7 +408,7 @@
 - 新增代码中，页面层不再直接访问 `NeteaseMusicApi`
 - 新增代码中，页面层不再直接访问 `Hive Box`
 - 至少一个业务链路完成 repository 化
-- 至少一个 `MediaItem` 转换入口完成统一
+- 至少一个 `PlaybackQueueItem` 转换入口完成统一
 - 通用请求组件不再直接依赖底层网络代理
 
 风险：

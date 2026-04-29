@@ -3,7 +3,7 @@ import 'database_collection_schema.dart';
 class AppDatabaseSchema {
   const AppDatabaseSchema._();
 
-  static const int schemaVersion = 4;
+  static const int schemaVersion = 5;
 
   static const DatabaseCollectionSchema playbackRestoreSnapshots =
       DatabaseCollectionSchema(
@@ -33,10 +33,18 @@ class AppDatabaseSchema {
     description: '用户作用域的关系与快照缓存',
   );
 
+  static const DatabaseCollectionSchema appCacheEntries =
+      DatabaseCollectionSchema(
+    name: 'app_cache_entries',
+    version: 1,
+    description: '通用业务缓存 JSON 记录',
+  );
+
   static const List<DatabaseCollectionSchema> collections = [
     playbackRestoreSnapshots,
     localResourceEntries,
     downloadTasks,
     userScopedCache,
+    appCacheEntries,
   ];
 }

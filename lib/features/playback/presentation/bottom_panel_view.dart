@@ -1,11 +1,13 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/comment/presentation/comment_widget.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/presentation/lyric_view.dart';
+import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
@@ -24,19 +26,14 @@ import 'package:get/get.dart';
 class BottomPanelView extends GetView<ShellController> {
   const BottomPanelView({Key? key}) : super(key: key);
 
-  List<_ArtistChipData> _artistEntries(MediaItem mediaItem) {
-    final artistNames = (mediaItem.extras?['artistNames'] as List?)
-            ?.map((artist) => '$artist')
-            .where((artist) => artist.isNotEmpty)
-            .toList() ??
-        (mediaItem.artist ?? '')
+  List<_ArtistChipData> _artistEntries(PlaybackQueueItem item) {
+    final artistNames = item.artistNames.isNotEmpty
+        ? item.artistNames
+        : (item.artist ?? '')
             .split(' / ')
             .where((artist) => artist.isNotEmpty)
             .toList();
-    final artistIds = (mediaItem.extras?['artistIds'] as List?)
-            ?.map((artistId) => '$artistId')
-            .toList() ??
-        const <String>[];
+    final artistIds = item.artistIds;
     return List.generate(
       artistNames.length,
       (index) => _ArtistChipData(
@@ -63,7 +60,7 @@ class BottomPanelView extends GetView<ShellController> {
                   padding: EdgeInsets.zero,
                   borderRadius: BorderRadius.all(Radius.circular(
                       AppDimensions.phoneCornerRadius * (1 - panelOpenDegree))),
-                  color: controller.albumColor.value
+                  color: SettingsController.to.albumColor.value
                       .withValues(alpha: 0.5 + 0.5 * panelOpenDegree),
                   child: Container(),
                 ));
@@ -82,7 +79,8 @@ class BottomPanelView extends GetView<ShellController> {
               child: Obx(() => Visibility(
                     visible: controller.bottomPanelFullyOpened.isTrue,
                     child: Builder(builder: (context) {
-                      final currentSong = controller.currentSong.value;
+                      final currentSong =
+                          PlayerController.to.currentSongState.value;
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -97,7 +95,8 @@ class BottomPanelView extends GetView<ShellController> {
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                   style: context.textTheme.titleLarge?.copyWith(
-                                    color: controller.panelWidgetColor.value,
+                                    color: SettingsController
+                                        .to.panelWidgetColor.value,
                                   ),
                                 ),
                                 Text(
@@ -108,7 +107,8 @@ class BottomPanelView extends GetView<ShellController> {
                                     fontSize: context
                                             .textTheme.titleLarge!.fontSize! /
                                         2,
-                                    color: controller.panelWidgetColor.value
+                                    color: SettingsController
+                                        .to.panelWidgetColor.value
                                         .withValues(alpha: 0.5),
                                   ),
                                 ),
@@ -121,15 +121,17 @@ class BottomPanelView extends GetView<ShellController> {
                                   visible: controller.isAlbumScaleEnded.isTrue,
                                   child: GestureDetector(
                                     onTap: () {
-                                      if (controller
-                                          .isFullScreenLyricOpen.isTrue) {
-                                        controller.isFullScreenLyricOpen.value =
-                                            false;
+                                      if (PlayerController
+                                          .to.isFullScreenLyricOpen.isTrue) {
+                                        PlayerController
+                                            .to
+                                            .isFullScreenLyricOpen
+                                            .value = false;
                                       } else {
                                         controller.isAlbumScaleEnded.value =
                                             false;
                                         controller.isBigAlbum.value = true;
-                                        controller
+                                        PlayerController.to
                                             .updateFullScreenLyricTimerCounter(
                                                 cancelTimer: true);
                                       }
@@ -139,8 +141,8 @@ class BottomPanelView extends GetView<ShellController> {
                                       height: AppDimensions.albumMinSize,
                                       shape: BoxShape.circle,
                                       ArtworkPathResolver.resolveDisplayPath(
-                                        controller.currentSong.value
-                                            .extras?['image'] as String?,
+                                        PlayerController.to.currentSongState
+                                            .value.artworkUrl,
                                       ),
                                     ),
                                   ),
@@ -189,8 +191,8 @@ class BottomPanelView extends GetView<ShellController> {
                                   begin: Alignment.topCenter, // 渐变开始于顶部
                                   end: Alignment.bottomCenter, // 渐变结束于底部
                                   colors: [
-                                    controller.albumColor.value,
-                                    controller.albumColor.value
+                                    SettingsController.to.albumColor.value,
+                                    SettingsController.to.albumColor.value
                                         .withValues(alpha: 0),
                                   ],
                                 ),
@@ -204,9 +206,9 @@ class BottomPanelView extends GetView<ShellController> {
                                   begin: Alignment.topCenter, // 渐变开始于顶部
                                   end: Alignment.bottomCenter, // 渐变结束于底部
                                   colors: [
-                                    controller.albumColor.value
+                                    SettingsController.to.albumColor.value
                                         .withValues(alpha: 0),
-                                    controller.albumColor.value,
+                                    SettingsController.to.albumColor.value,
                                   ],
                                 ),
                               ),
@@ -257,8 +259,10 @@ class BottomPanelView extends GetView<ShellController> {
                       child: Obx(() {
                         return SimpleExtendedImage(
                           ArtworkPathResolver.resolveDisplayPath(
-                            controller.currentSong.value.extras?['image']
-                                as String?,
+                            PlayerController
+                                    .to.currentSongState.value.artworkUrl ??
+                                PlayerController
+                                    .to.currentSongState.value.localArtworkPath,
                           ),
                         );
                       }),
@@ -294,7 +298,7 @@ class BottomPanelView extends GetView<ShellController> {
                   },
                   child: PageView.builder(
                     controller: controller.albumPageController,
-                    itemCount: controller.playbackQueue.length,
+                    itemCount: PlayerController.to.queueState.length,
                     allowImplicitScrolling: true,
 
                     // TODO YU4422：切歌卡顿
@@ -331,13 +335,16 @@ class BottomPanelView extends GetView<ShellController> {
                               controller.isAlbumScaleEnded.value = false;
                               controller.isBigAlbum.value = false;
                               if (controller.curPanelPageIndex.value == 1) {
-                                controller.updateFullScreenLyricTimerCounter();
+                                PlayerController.to
+                                    .updateFullScreenLyricTimerCounter();
                               }
                             },
                             child: Obx(() => SimpleExtendedImage(
                                   ArtworkPathResolver.resolveDisplayPath(
-                                    controller.playbackQueue[index]
-                                        .extras?['image'] as String?,
+                                    PlayerController
+                                            .to.queueState[index].artworkUrl ??
+                                        PlayerController.to.queueState[index]
+                                            .localArtworkPath,
                                   ),
                                 )),
                           ),
@@ -354,16 +361,16 @@ class BottomPanelView extends GetView<ShellController> {
           alignment: Alignment.bottomCenter,
           child: Obx(
             () => Container(
-              color: controller.albumColor.value,
+              color: SettingsController.to.albumColor.value,
               child: Obx(() {
-                final sessionState = controller.playbackSessionState.value;
+                final sessionState = PlayerController.to.sessionState.value;
                 return Container(
                   height: albumPadding,
                   margin: EdgeInsets.symmetric(horizontal: albumPadding),
                   clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     color: controller.isBigAlbum.isTrue
-                        ? controller.panelWidgetColor.value
+                        ? SettingsController.to.panelWidgetColor.value
                             .withValues(alpha: 0.05)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(albumPadding),
@@ -378,14 +385,16 @@ class BottomPanelView extends GetView<ShellController> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: albumPadding / 2),
                             decoration: BoxDecoration(
-                              color: controller.panelWidgetColor.value
+                              color: SettingsController
+                                  .to.panelWidgetColor.value
                                   .withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(albumPadding),
                             ),
                             child: Text(
                               sessionState.playlistHeader,
                               style: context.textTheme.titleMedium?.copyWith(
-                                  color: controller.panelWidgetColor.value
+                                  color: SettingsController
+                                      .to.panelWidgetColor.value
                                       .withValues(alpha: 0.5)),
                             ),
                           ),
@@ -398,7 +407,8 @@ class BottomPanelView extends GetView<ShellController> {
                               child: Text(
                                 sessionState.playlistName,
                                 style: context.textTheme.titleMedium?.copyWith(
-                                    color: controller.panelWidgetColor.value
+                                    color: SettingsController
+                                        .to.panelWidgetColor.value
                                         .withValues(alpha: 0.5)),
                               ),
                             ),
@@ -408,16 +418,18 @@ class BottomPanelView extends GetView<ShellController> {
                     ),
                     tabItem: MyTabBar(
                       height: albumPadding,
-                      color: controller.panelWidgetColor.value,
+                      color: SettingsController.to.panelWidgetColor.value,
                       controller: controller.bottomPanelTabController,
                       tabs: [
                         Text("播放列表",
                             style: context.textTheme.titleMedium?.copyWith(
-                                color: controller.panelWidgetColor.value
+                                color: SettingsController
+                                    .to.panelWidgetColor.value
                                     .withValues(alpha: 0.5))),
                         Text("正在播放",
                             style: context.textTheme.titleMedium?.copyWith(
-                                color: controller.panelWidgetColor.value
+                                color: SettingsController
+                                    .to.panelWidgetColor.value
                                     .withValues(alpha: 0.5))),
                         Obx(() => MyTabBarItemAnimatedSwitcher(
                               isTabBarVisible:
@@ -425,26 +437,27 @@ class BottomPanelView extends GetView<ShellController> {
                               tabItem: Text("歌曲评论",
                                   style: context.textTheme.titleMedium
                                       ?.copyWith(
-                                          color: controller
-                                              .panelWidgetColor.value
+                                          color: SettingsController
+                                              .to.panelWidgetColor.value
                                               .withValues(alpha: 0.5))),
                               replaceItem: MyTabBar(
                                 height: albumPadding,
                                 controller:
                                     controller.bottomPanelCommentTabController,
-                                color: controller.panelWidgetColor.value,
+                                color: SettingsController
+                                    .to.panelWidgetColor.value,
                                 tabs: [
                                   Text("热",
                                       style: context.textTheme.titleMedium
                                           ?.copyWith(
-                                              color: controller
-                                                  .panelWidgetColor.value
+                                              color: SettingsController
+                                                  .to.panelWidgetColor.value
                                                   .withValues(alpha: 0.5))),
                                   Text("新",
                                       style: context.textTheme.titleMedium
                                           ?.copyWith(
-                                              color: controller
-                                                  .panelWidgetColor.value
+                                              color: SettingsController
+                                                  .to.panelWidgetColor.value
                                                   .withValues(alpha: 0.5))),
                                 ],
                               ),
@@ -475,10 +488,10 @@ class BottomPanelView extends GetView<ShellController> {
               physics: const ClampingScrollPhysics(),
               itemExtent: 55,
               padding: EdgeInsets.symmetric(vertical: albumPadding),
-              itemCount: controller.playbackQueue.length,
+              itemCount: PlayerController.to.queueState.length,
               itemBuilder: (context, index) {
                 return _buildSongItem(
-                  controller.playbackQueue[index],
+                  PlayerController.to.queueState[index],
                   index,
                   context,
                 );
@@ -490,11 +503,15 @@ class BottomPanelView extends GetView<ShellController> {
     );
   }
 
-  Widget _buildSongItem(MediaItem mediaItem, int index, BuildContext context) {
+  Widget _buildSongItem(
+    PlaybackQueueItem item,
+    int index,
+    BuildContext context,
+  ) {
     return GestureDetector(
-      onTap: () => controller.playerController.playQueueIndex(index),
+      onTap: () => PlayerController.to.playQueueIndex(index),
       child: Obx(() {
-        final isCurrent = controller.playbackQueueIndex.value == index;
+        final isCurrent = PlayerController.to.currentQueueIndex.value == index;
         return Container(
           color: Colors.transparent,
           alignment: AlignmentDirectional.centerStart,
@@ -503,19 +520,19 @@ class BottomPanelView extends GetView<ShellController> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                mediaItem.title,
+                item.title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: isCurrent
                           ? Colors.red
-                          : controller.panelWidgetColor.value,
+                          : SettingsController.to.panelWidgetColor.value,
                     ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
               Text(
-                mediaItem.artist ?? "未知歌手",
+                item.artist ?? "未知歌手",
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: controller.panelWidgetColor.value
+                      color: SettingsController.to.panelWidgetColor.value
                           .withValues(alpha: 0.5),
                     ),
                 overflow: TextOverflow.ellipsis,
@@ -532,21 +549,21 @@ class BottomPanelView extends GetView<ShellController> {
   Widget _buildCurPlayingPage(BuildContext context) {
     double albumPadding = AppDimensions.paddingLarge;
     double remainWidth = context.width - albumPadding * 2;
-    double textWidth = _measureTextWidth(
-            "歌手：", TextStyle(color: controller.panelWidgetColor.value)) +
+    double textWidth = _measureTextWidth("歌手：",
+            TextStyle(color: SettingsController.to.panelWidgetColor.value)) +
         albumPadding +
         4;
     return KeepAliveWrapper(
       child: Listener(
         behavior: HitTestBehavior.translucent,
         onPointerDown: (event) {
-          controller.updateFullScreenLyricTimerCounter();
+          PlayerController.to.updateFullScreenLyricTimerCounter();
         },
         onPointerMove: (event) {
-          controller.updateFullScreenLyricTimerCounter();
+          PlayerController.to.updateFullScreenLyricTimerCounter();
         },
         onPointerUp: (event) {
-          controller.updateFullScreenLyricTimerCounter();
+          PlayerController.to.updateFullScreenLyricTimerCounter();
         },
         child: Stack(
           children: [
@@ -556,13 +573,13 @@ class BottomPanelView extends GetView<ShellController> {
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: () {
-                    if (controller.isFullScreenLyricOpen.isTrue) {
-                      controller.isFullScreenLyricOpen.value = false;
+                    if (PlayerController.to.isFullScreenLyricOpen.isTrue) {
+                      PlayerController.to.isFullScreenLyricOpen.value = false;
                     } else {
                       controller.isAlbumScaleEnded.value = false;
                       controller.isBigAlbum.value = true;
-                      controller.updateFullScreenLyricTimerCounter(
-                          cancelTimer: true);
+                      PlayerController.to
+                          .updateFullScreenLyricTimerCounter(cancelTimer: true);
                     }
                   },
                   child: Container(
@@ -572,7 +589,7 @@ class BottomPanelView extends GetView<ShellController> {
                 ))),
             // 控制、进度条、页面指示占位
             Obx(() => Offstage(
-                  offstage: controller.isFullScreenLyricOpen.isTrue &&
+                  offstage: PlayerController.to.isFullScreenLyricOpen.isTrue &&
                       controller.isBigAlbum.isFalse,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -601,8 +618,8 @@ class BottomPanelView extends GetView<ShellController> {
                                           children: [
                                             Container(
                                               decoration: BoxDecoration(
-                                                color: controller
-                                                    .panelWidgetColor.value
+                                                color: SettingsController
+                                                    .to.panelWidgetColor.value
                                                     .withValues(alpha: 0.1),
                                                 borderRadius:
                                                     BorderRadius.circular(
@@ -620,7 +637,8 @@ class BottomPanelView extends GetView<ShellController> {
                                                       child: Text(
                                                         "专辑：",
                                                         style: TextStyle(
-                                                          color: controller
+                                                          color: SettingsController
+                                                              .to
                                                               .panelWidgetColor
                                                               .value,
                                                         ),
@@ -630,11 +648,13 @@ class BottomPanelView extends GetView<ShellController> {
                                                   GestureDetector(
                                                     onTap: () async {
                                                       final runtimeState =
-                                                          controller
-                                                              .playbackRuntimeState
+                                                          PlayerController
+                                                              .to
+                                                              .runtimeState
                                                               .value;
-                                                      if (controller
-                                                          .playbackRuntimeState
+                                                      if (PlayerController
+                                                          .to
+                                                          .runtimeState
                                                           .value
                                                           .currentSong
                                                           .album
@@ -652,7 +672,7 @@ class BottomPanelView extends GetView<ShellController> {
                                                               queryParams: {
                                                             'albumId': runtimeState
                                                                     .currentSong
-                                                                    .extras?[
+                                                                    .metadata[
                                                                 'albumId']
                                                           }));
                                                     },
@@ -660,7 +680,8 @@ class BottomPanelView extends GetView<ShellController> {
                                                       alignment:
                                                           Alignment.center,
                                                       decoration: BoxDecoration(
-                                                        color: controller
+                                                        color: SettingsController
+                                                            .to
                                                             .panelWidgetColor
                                                             .value
                                                             .withValues(
@@ -683,8 +704,9 @@ class BottomPanelView extends GetView<ShellController> {
                                                                       albumPadding /
                                                                           2),
                                                           child: Obx(() => Text(
-                                                                controller
-                                                                    .playbackRuntimeState
+                                                                PlayerController
+                                                                    .to
+                                                                    .runtimeState
                                                                     .value
                                                                     .currentSong
                                                                     .album
@@ -694,7 +716,8 @@ class BottomPanelView extends GetView<ShellController> {
                                                                     TextAlign
                                                                         .center,
                                                                 style: TextStyle(
-                                                                    color: controller
+                                                                    color: SettingsController
+                                                                        .to
                                                                         .panelWidgetColor
                                                                         .value),
                                                                 overflow:
@@ -720,8 +743,8 @@ class BottomPanelView extends GetView<ShellController> {
                                           Container(
                                             clipBehavior: Clip.hardEdge,
                                             decoration: BoxDecoration(
-                                              color: controller
-                                                  .panelWidgetColor.value
+                                              color: SettingsController
+                                                  .to.panelWidgetColor.value
                                                   .withValues(alpha: 0.1),
                                               borderRadius:
                                                   BorderRadius.circular(
@@ -737,7 +760,8 @@ class BottomPanelView extends GetView<ShellController> {
                                                     child: Text(
                                                       "歌手：",
                                                       style: TextStyle(
-                                                        color: controller
+                                                        color: SettingsController
+                                                            .to
                                                             .panelWidgetColor
                                                             .value,
                                                       ),
@@ -755,8 +779,9 @@ class BottomPanelView extends GetView<ShellController> {
                                                     child: Row(
                                                         mainAxisSize:
                                                             MainAxisSize.min,
-                                                        children: controller
-                                                                .playbackRuntimeState
+                                                        children: PlayerController
+                                                                .to
+                                                                .runtimeState
                                                                 .value
                                                                 .currentSong
                                                                 .artist
@@ -765,7 +790,8 @@ class BottomPanelView extends GetView<ShellController> {
                                                                 Text(
                                                                   "未知歌手",
                                                                   style: TextStyle(
-                                                                      color: controller
+                                                                      color: SettingsController
+                                                                          .to
                                                                           .panelWidgetColor
                                                                           .value),
                                                                   overflow:
@@ -778,8 +804,9 @@ class BottomPanelView extends GetView<ShellController> {
                                                               ]
                                                             : [
                                                                 for (final artist
-                                                                    in _artistEntries(controller
-                                                                        .playbackRuntimeState
+                                                                    in _artistEntries(PlayerController
+                                                                        .to
+                                                                        .runtimeState
                                                                         .value
                                                                         .currentSong))
                                                                   Container(
@@ -792,7 +819,8 @@ class BottomPanelView extends GetView<ShellController> {
                                                                                 2),
                                                                     decoration:
                                                                         BoxDecoration(
-                                                                      color: controller
+                                                                      color: SettingsController
+                                                                          .to
                                                                           .panelWidgetColor
                                                                           .value
                                                                           .withValues(
@@ -816,7 +844,7 @@ class BottomPanelView extends GetView<ShellController> {
                                                                               },
                                                                               child: Text(
                                                                                 artist.name,
-                                                                                style: TextStyle(color: controller.panelWidgetColor.value),
+                                                                                style: TextStyle(color: SettingsController.to.panelWidgetColor.value),
                                                                                 overflow: TextOverflow.ellipsis,
                                                                                 textAlign: TextAlign.center,
                                                                               ),
@@ -862,8 +890,8 @@ class BottomPanelView extends GetView<ShellController> {
 
   Widget _buildProgressBar(BuildContext context) {
     return Obx(() {
-      final currentSong = controller.currentSong.value;
-      final currentPosition = controller.currentPosition.value;
+      final currentSong = PlayerController.to.currentSongState.value;
+      final currentPosition = PlayerController.to.currentPositionState.value;
       return ProgressBar(
         progress: currentPosition,
         buffered: currentPosition,
@@ -871,17 +899,19 @@ class BottomPanelView extends GetView<ShellController> {
         barHeight: AppDimensions.paddingLarge,
         barCapShape: BarCapShape.round,
         progressBarColor:
-            controller.panelWidgetColor.value.withValues(alpha: .1),
-        baseBarColor: controller.panelWidgetColor.value.withValues(alpha: .05),
+            SettingsController.to.panelWidgetColor.value.withValues(alpha: .1),
+        baseBarColor:
+            SettingsController.to.panelWidgetColor.value.withValues(alpha: .05),
         bufferedBarColor: Colors.transparent,
-        thumbColor: controller.panelWidgetColor.value.withValues(alpha: .05),
+        thumbColor:
+            SettingsController.to.panelWidgetColor.value.withValues(alpha: .05),
         thumbRadius: AppDimensions.paddingLarge / 2,
         thumbGlowRadius: AppDimensions.paddingLarge * 2 / 3,
         thumbCanPaintOutsideBar: false,
         timeLabelLocation: TimeLabelLocation.below,
         // timeLabelPadding: 0,
         timeLabelTextStyle: const TextStyle(fontSize: 0),
-        onSeek: (duration) => controller.playerController.seekTo(duration),
+        onSeek: (duration) => PlayerController.to.seekTo(duration),
       );
     });
   }
@@ -891,9 +921,9 @@ class BottomPanelView extends GetView<ShellController> {
       padding:
           const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
       child: Obx(() {
-        final currentSong = controller.currentSong.value;
-        final currentSongId = int.tryParse(currentSong.id);
-        final isLiked = controller.likedSongIds.contains(currentSongId);
+        final currentSong = PlayerController.to.currentSongState.value;
+        final currentSongId = int.tryParse(currentSong.sourceId);
+        final isLiked = UserController.to.likedSongIds.contains(currentSongId);
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -906,49 +936,49 @@ class BottomPanelView extends GetView<ShellController> {
                     size: 30,
                     color: isLiked
                         ? Colors.red
-                        : controller.panelWidgetColor.value))),
+                        : SettingsController.to.panelWidgetColor.value))),
             // 上一首
             _buildButtonBackground(GestureDetector(
                 onTap: () {
-                  controller.playerController.skipToPreviousTrack();
+                  PlayerController.to.skipToPreviousTrack();
                 },
                 child: Obx(
                   () => Icon(
                     TablerIcons.player_skip_back_filled,
                     size: 30,
-                    color: controller.panelWidgetColor.value,
+                    color: SettingsController.to.panelWidgetColor.value,
                   ),
                 ))),
             // 播放按钮
             _buildButtonBackground(GestureDetector(
-              onTap: () => controller.playOrPause(),
+              onTap: () => PlayerController.to.playOrPause(),
               child: Obx(() => Icon(
-                    controller.isPlaying.value
+                    PlayerController.to.isPlaying.value
                         ? TablerIcons.player_pause_filled
                         : TablerIcons.player_play_filled,
                     size: 60,
-                    color: controller.panelWidgetColor.value,
+                    color: SettingsController.to.panelWidgetColor.value,
                   )),
             )),
             // 下一首
             _buildButtonBackground(GestureDetector(
                 onTap: () {
-                  controller.playerController.skipToNextTrack();
+                  PlayerController.to.skipToNextTrack();
                 },
                 child: Obx(() => Icon(
                       TablerIcons.player_skip_forward_filled,
                       size: 30,
-                      color: controller.panelWidgetColor.value,
+                      color: SettingsController.to.panelWidgetColor.value,
                     )))),
             // 循环模式
             _buildButtonBackground(GestureDetector(
                 onTap: () async {
-                  await controller.playerController.handleRepeatModeTap();
+                  await PlayerController.to.handleRepeatModeTap();
                 },
                 child: Obx(() => Icon(
-                      controller.getRepeatIcon(),
+                      PlayerController.to.getRepeatIcon(),
                       size: 30,
-                      color: controller.panelWidgetColor.value,
+                      color: SettingsController.to.panelWidgetColor.value,
                     )))),
           ],
         );
@@ -961,7 +991,7 @@ class BottomPanelView extends GetView<ShellController> {
           blur: controller.isBigAlbum.isTrue ? 0 : 5,
           padding: const EdgeInsets.all(10),
           borderRadius: BorderRadius.circular(100),
-          color: controller.panelWidgetColor.value.withValues(
+          color: SettingsController.to.panelWidgetColor.value.withValues(
             alpha: controller.isBigAlbum.isTrue ? 0 : 0.05,
           ),
           child: child,
@@ -976,7 +1006,7 @@ class BottomPanelView extends GetView<ShellController> {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: albumPadding),
         child: Obx(() {
-          final currentSong = controller.currentSong.value;
+          final currentSong = PlayerController.to.currentSongState.value;
           return CommentWidget(
             key: ValueKey(currentSong.id),
             context: context,
@@ -985,7 +1015,7 @@ class BottomPanelView extends GetView<ShellController> {
             commentType: commentType,
             listPaddingTop: albumPadding,
             listPaddingBottom: albumPadding,
-            stringColor: controller.panelWidgetColor.value,
+            stringColor: SettingsController.to.panelWidgetColor.value,
           );
         }),
       ),
@@ -1009,7 +1039,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final currentSong = controller.currentSong.value;
+      final currentSong = PlayerController.to.currentSongState.value;
       if (currentSong.id.isEmpty) {
         return const SizedBox.shrink();
       }
@@ -1072,9 +1102,9 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                         child: Swipeable(
                           background: const SizedBox.shrink(),
                           onSwipeLeft: () =>
-                              controller.playerController.skipToPreviousTrack(),
+                              PlayerController.to.skipToPreviousTrack(),
                           onSwipeRight: () =>
-                              controller.playerController.skipToNextTrack(),
+                              PlayerController.to.skipToNextTrack(),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1084,7 +1114,8 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: context.textTheme.titleLarge?.copyWith(
-                                  color: controller.panelWidgetColor.value,
+                                  color: SettingsController
+                                      .to.panelWidgetColor.value,
                                 ),
                               ),
                               Text(
@@ -1095,7 +1126,8 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                   fontSize:
                                       context.textTheme.titleLarge!.fontSize! /
                                           2,
-                                  color: controller.panelWidgetColor.value
+                                  color: SettingsController
+                                      .to.panelWidgetColor.value
                                       .withValues(alpha: 0.5),
                                 ),
                               ),
@@ -1121,7 +1153,8 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                             width: realTimeAlbumWidth,
                             height: realTimeAlbumWidth,
                             ArtworkPathResolver.resolveDisplayPath(
-                              currentSong.extras?['image'] as String?,
+                              currentSong.artworkUrl ??
+                                  currentSong.localArtworkPath,
                             ),
                           ),
                         ),
@@ -1148,7 +1181,8 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                           height: AppDimensions.albumMinSize,
                           shape: BoxShape.circle,
                           ArtworkPathResolver.resolveDisplayPath(
-                            currentSong.extras?['image'] as String?,
+                            currentSong.artworkUrl ??
+                                currentSong.localArtworkPath,
                           ),
                         ),
                       ),
@@ -1167,31 +1201,32 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                         0) >
                                     0)
                                   Obx(() {
-                                    final currentDuration =
-                                        controller.currentPosition.value;
+                                    final currentDuration = PlayerController
+                                        .to.currentPositionState.value;
                                     return CircularPlaybackProgress(
                                       progress: currentDuration.inMilliseconds /
                                           currentSong.duration!.inMilliseconds,
                                       size: AppDimensions.albumMinSize,
                                       strokeWidth: 2,
-                                      progressColor:
-                                          controller.panelWidgetColor.value,
-                                      backgroundColor: controller
-                                          .panelWidgetColor.value
+                                      progressColor: SettingsController
+                                          .to.panelWidgetColor.value,
+                                      backgroundColor: SettingsController
+                                          .to.panelWidgetColor.value
                                           .withAlpha(50),
                                     );
                                   }),
                                 // 播放按钮
                                 IconButton(
-                                    onPressed: () => controller.playOrPause(),
+                                    onPressed: () =>
+                                        PlayerController.to.playOrPause(),
                                     padding: const EdgeInsets.all(
                                         AppDimensions.albumMinSize * 1 / 3 / 2),
                                     icon: Obx(() => Icon(
-                                          controller.isPlaying.value
+                                          PlayerController.to.isPlaying.value
                                               ? TablerIcons.player_pause_filled
                                               : TablerIcons.player_play_filled,
-                                          color:
-                                              controller.panelWidgetColor.value,
+                                          color: SettingsController
+                                              .to.panelWidgetColor.value,
                                           size: AppDimensions.albumMinSize *
                                               2 /
                                               3,

@@ -1,17 +1,11 @@
 import 'dart:async';
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/playback/playback_runtime_state.dart';
-import 'package:bujuan/features/playback/playback_session_state.dart';
-import 'package:bujuan/features/playback/playback_lyric_state.dart';
-import 'package:bujuan/features/playback/playback_service.dart';
-import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/user/user_controller.dart';
-import 'package:bujuan/domain/entities/user_session_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -24,65 +18,25 @@ import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
 class ShellController extends SuperController
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
   static ShellController get to => Get.find();
-  HomeShellController get shellController => Get.find<HomeShellController>();
-
-  SettingsController get settingsController => SettingsController.to;
-  UserController get userController => UserController.to;
-  PlayerController get playerController => PlayerController.to;
-
-  RxBool get isGradientBackground => settingsController.isGradientBackground;
-  RxBool get isRoundAlbumOpen => settingsController.isRoundAlbumOpen;
-  RxBool get isHighSoundQualityOpen =>
-      settingsController.isHighSoundQualityOpen;
-  RxBool get isOfflineModeEnabled => settingsController.isOfflineModeEnabled;
-  Rx<Color> get albumColor => settingsController.albumColor;
-  Rx<Color> get panelWidgetColor => settingsController.panelWidgetColor;
-
-  Rx<UserSessionData> get userInfo => userController.userInfo;
-  List<PlaylistSummaryData> get userPlayLists => userController.userPlayLists;
-  RxList<PlaylistSummaryData> get recoPlayLists => userController.recoPlayLists;
-  Rx<PlaylistSummaryData> get userLikedSongPlayList =>
-      userController.userLikedSongPlayList;
-  RxList<int> get likedSongIds => userController.likedSongIds;
-  RxList<MediaItem> get likedSongs => userController.likedSongs;
-  RxList<MediaItem> get fmSongs => userController.fmSongs;
-  RxList<MediaItem> get todayRecommendSongs =>
-      userController.todayRecommendSongs;
-
-  RxBool get isPlaying => playerController.isPlaying;
-  Rx<PlaybackSessionState> get playbackSessionState =>
-      playerController.sessionState;
-  Rx<PlaybackRuntimeState> get playbackRuntimeState =>
-      playerController.runtimeState;
-  Rx<MediaItem> get currentSong => playerController.currentSongState;
-  Rx<Duration> get currentPosition => playerController.currentPositionState;
-  RxList<MediaItem> get playbackQueue => playerController.queueState;
-  RxInt get playbackQueueIndex => playerController.currentQueueIndex;
-  Rx<PlaybackLyricState> get playbackLyricState => playerController.lyricState;
-  Rx<AudioServiceRepeatMode> get curRepeatMode =>
-      playerController.curRepeatMode;
-  RxBool get isFmMode => playerController.isFmMode;
-  RxBool get isHeartBeatMode => playerController.isHeartBeatMode;
-  RxBool get isFullScreenLyricOpen => playerController.isFullScreenLyricOpen;
-  PlaybackService get playbackService => playerController.playbackService;
+  HomeShellController get _homeShellController =>
+      Get.find<HomeShellController>();
+  SettingsController get _settingsController => SettingsController.to;
+  UserController get _userController => UserController.to;
+  PlayerController get _playerController => PlayerController.to;
 
   late BuildContext buildContext;
 
   RxBool dateLoaded = false.obs;
 
-  RxString get randomLikedSongAlbumUrl =>
-      userController.randomLikedSongAlbumUrl;
-  RxString get randomLikedSongId => userController.randomLikedSongId;
-
   RefreshController refreshController = RefreshController();
 
-  List<ShellMenuItemData> get leftMenus => userController.leftMenus;
   ZoomDrawerController get zoomDrawerController =>
-      shellController.zoomDrawerController;
-  RxBool get isDrawerClosed => shellController.isDrawerClosed;
-  PageController get homePageController => shellController.homePageController;
-  RxInt get curHomePageIndex => shellController.curHomePageIndex;
-  RxString get curHomePageTitle => shellController.curHomePageTitle;
+      _homeShellController.zoomDrawerController;
+  RxBool get isDrawerClosed => _homeShellController.isDrawerClosed;
+  PageController get homePageController =>
+      _homeShellController.homePageController;
+  RxInt get curHomePageIndex => _homeShellController.curHomePageIndex;
+  RxString get curHomePageTitle => _homeShellController.curHomePageTitle;
 
   bool _uiControllersInitialized = false;
   PageController? _albumPageController;
@@ -177,16 +131,17 @@ class ShellController extends SuperController
     return _bottomPanelCommentTabController!;
   }
 
-  PanelController get topPanelController => shellController.topPanelController;
+  PanelController get topPanelController =>
+      _homeShellController.topPanelController;
   AnimationController get topPanelAnimationController =>
-      shellController.topPanelAnimationController;
+      _homeShellController.topPanelAnimationController;
   TextEditingController get searchTextEditingController =>
-      shellController.searchTextEditingController;
-  RxBool get topPanelFullyOpened => shellController.topPanelFullyOpened;
-  RxBool get topPanelFullyClosed => shellController.topPanelFullyClosed;
-  RxString get searchContent => shellController.searchContent;
-  FocusNode get searchFocusNode => shellController.searchFocusNode;
-  RxDouble get keyBoardHeight => shellController.keyBoardHeight;
+      _homeShellController.searchTextEditingController;
+  RxBool get topPanelFullyOpened => _homeShellController.topPanelFullyOpened;
+  RxBool get topPanelFullyClosed => _homeShellController.topPanelFullyClosed;
+  RxString get searchContent => _homeShellController.searchContent;
+  FocusNode get searchFocusNode => _homeShellController.searchFocusNode;
+  RxDouble get keyBoardHeight => _homeShellController.keyBoardHeight;
 
   ItemScrollController lyricScrollController = ItemScrollController();
   bool isLyricScrollingByUser = false;
@@ -195,15 +150,15 @@ class ShellController extends SuperController
   @override
   Future<void> onInit() async {
     super.onInit();
-    shellController;
-    settingsController;
-    userController;
-    playerController;
+    _homeShellController;
+    _settingsController;
+    _userController;
+    _playerController;
 
     _ensureUiControllersInitialized();
     WidgetsBinding.instance.addObserver(this);
 
-    ever(playbackLyricState, (lyricState) {
+    ever(_playerController.lyricState, (lyricState) {
       final index = lyricState.currentIndex;
       if (index >= 0 &&
           !isLyricScrollingByUser &&
@@ -217,20 +172,20 @@ class ShellController extends SuperController
       }
     });
 
-    ever<int>(playbackQueueIndex, (currentIndex) {
+    ever<int>(_playerController.currentQueueIndex, (currentIndex) {
       if (currentIndex < 0) {
         return;
       }
       _animatePlayListToCurSong();
       _animateAlbumPageViewToCurSong();
     });
-    ever<List<MediaItem>>(todayRecommendSongs, (_) {
+    ever<List<PlaybackQueueItem>>(_userController.todayRecommendSongs, (_) {
       _scheduleHomeImageColorPrewarm();
     });
-    ever<List<MediaItem>>(fmSongs, (_) {
+    ever<List<PlaybackQueueItem>>(_userController.fmSongs, (_) {
       _scheduleHomeImageColorPrewarm();
     });
-    ever<String>(randomLikedSongAlbumUrl, (_) {
+    ever<String>(_userController.randomLikedSongAlbumUrl, (_) {
       _scheduleHomeImageColorPrewarm();
     });
   }
@@ -241,8 +196,8 @@ class ShellController extends SuperController
     if (isAlbumScrollingProgrammatic) return;
     _albumDebounceTimer?.cancel();
     _albumDebounceTimer = Timer(const Duration(milliseconds: 300), () {
-      if (playbackRuntimeState.value.currentIndex != index) {
-        playerController.playQueueIndex(index);
+      if (_playerController.runtimeState.value.currentIndex != index) {
+        _playerController.playQueueIndex(index);
       }
     });
   }
@@ -252,7 +207,9 @@ class ShellController extends SuperController
       return;
     }
     _uiControllersInitialized = true;
-    shellController.init(initialTitle: userInfo.value.nickname);
+    _homeShellController.init(
+      initialTitle: _userController.userInfo.value.nickname,
+    );
     _bottomPanelAnimationController = AnimationController(vsync: this);
     _bottomPanelTabController =
         TabController(length: 3, initialIndex: 1, vsync: this)
@@ -288,10 +245,10 @@ class ShellController extends SuperController
           curPanelPageIndex.value = newPanelPageIndex;
           // 切换到正在播放列表页，滚动到当前播放
           if (newPanelPageIndex == 0) await _animatePlayListToCurSong();
-          if (isFullScreenLyricOpen.isFalse) {
-            playerController.updateFullScreenLyricTimerCounter(
-                cancelTimer:
-                    newPanelPageIndex != 1 && isFullScreenLyricOpen.isFalse);
+          if (_playerController.isFullScreenLyricOpen.isFalse) {
+            _playerController.updateFullScreenLyricTimerCounter(
+                cancelTimer: newPanelPageIndex != 1 &&
+                    _playerController.isFullScreenLyricOpen.isFalse);
           }
         }
         // 避免循环监听
@@ -316,14 +273,14 @@ class ShellController extends SuperController
   @override
   Future<void> onReady() async {
     super.onReady();
-    await userController.ensureCacheLoaded();
-    if (userController.hasLocalSnapshot) {
+    await _userController.ensureCacheLoaded();
+    if (_userController.hasLocalSnapshot) {
       dateLoaded.value = true;
       _scheduleHomeImageColorPrewarm();
       unawaited(
         Get.find<AuthController>().validateLoginStateInBackgroundIfNeeded(),
       );
-      if (await userController.shouldRefreshStartupData()) {
+      if (await _userController.shouldRefreshStartupData()) {
         unawaited(updateData());
       }
       return;
@@ -332,12 +289,12 @@ class ShellController extends SuperController
   }
 
   Future<void> initZoomDrawerListener() async {
-    shellController.initZoomDrawerListener();
+    _homeShellController.initZoomDrawerListener();
   }
 
   /// 首页刷新从壳层发起，避免抽屉和主页内容重复拉取同一份启动数据。
   Future<void> updateData() async {
-    await userController.updateUserData();
+    await _userController.updateUserData();
     dateLoaded.value = true;
     _scheduleHomeImageColorPrewarm();
 
@@ -346,7 +303,7 @@ class ShellController extends SuperController
   }
 
   updateRecoPlayLists({bool getMore = false}) async {
-    await userController.updateRecoPlayLists(getMore: getMore);
+    await _userController.updateRecoPlayLists(getMore: getMore);
     refreshController.loadComplete();
   }
 
@@ -375,7 +332,7 @@ class ShellController extends SuperController
   @override
   void didChangeMetrics() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      shellController.updateKeyboardHeight(buildContext);
+      _homeShellController.updateKeyboardHeight(buildContext);
     });
   }
 
@@ -393,20 +350,6 @@ class ShellController extends SuperController
       systemNavigationBarColor: Colors.transparent,
       systemNavigationBarContrastEnforced: false,
     ));
-  }
-
-  IconData getRepeatIcon() => playerController.getRepeatIcon();
-
-  playOrPause() => playerController.playOrPause();
-
-  playNewPlayList(List<MediaItem> playList, int index,
-      {String playListName = "无名歌单", String playListNameHeader = ""}) async {
-    await playerController.playPlaylist(
-      playList,
-      index,
-      playListName: playListName,
-      playListNameHeader: playListNameHeader,
-    );
   }
 
   onBottomPanelSlide(double openDegree) {
@@ -427,25 +370,20 @@ class ShellController extends SuperController
   }
 
   onTopPanelSlide(double openDegree) {
-    shellController.onTopPanelSlide(openDegree);
+    _homeShellController.onTopPanelSlide(openDegree);
   }
 
   onWillPop() {
-    if (!shellController.handleWillPop(
+    if (!_homeShellController.handleWillPop(
         bottomPanelController: bottomPanelController)) {
       SystemNavigator.pop();
     }
   }
 
-  updateFullScreenLyricTimerCounter({bool cancelTimer = false}) {
-    playerController.updateFullScreenLyricTimerCounter(
-        cancelTimer: cancelTimer);
-  }
-
   // 列表页打开时直接滚到当前播放项，可以减少“当前歌曲已变但列表还停在旧位置”的错觉。
   _animatePlayListToCurSong() {
     if (playListScrollController.hasClients) {
-      final currentIndex = playbackQueueIndex.value;
+      final currentIndex = _playerController.currentQueueIndex.value;
       if (currentIndex < 0) {
         return;
       }
@@ -468,13 +406,13 @@ class ShellController extends SuperController
       unawaited(
         OtherUtils.prewarmImageColors(
           [
-            todayRecommendSongs.isNotEmpty
-                ? (todayRecommendSongs.first.extras?['image'] as String?)
+            _userController.todayRecommendSongs.isNotEmpty
+                ? _userController.todayRecommendSongs.first.artworkUrl
                 : null,
-            fmSongs.isNotEmpty
-                ? (fmSongs.first.extras?['image'] as String?)
+            _userController.fmSongs.isNotEmpty
+                ? _userController.fmSongs.first.artworkUrl
                 : null,
-            randomLikedSongAlbumUrl.value,
+            _userController.randomLikedSongAlbumUrl.value,
           ],
         ),
       );
@@ -485,7 +423,7 @@ class ShellController extends SuperController
   _animateAlbumPageViewToCurSong() {
     if (albumPageController.hasClients) {
       if (isAlbumScrollingManully) return;
-      final currentIndex = playbackQueueIndex.value;
+      final currentIndex = _playerController.currentQueueIndex.value;
       if (currentIndex < 0) {
         return;
       }

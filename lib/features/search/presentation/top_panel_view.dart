@@ -1,14 +1,16 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/search/search_repository.dart';
+import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/features/user/user_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/load_state_view.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
@@ -36,12 +38,12 @@ class _TopPanelViewState extends State<TopPanelView> {
   @override
   void initState() {
     super.initState();
-    if (!controller.isOfflineModeEnabled.value &&
+    if (!SettingsController.to.isOfflineModeEnabled.value &&
         controller.topPanelFullyClosed.isFalse) {
       TopPanelView._searchPanelController.loadInitial();
     }
     _panelOpenWorker = ever<bool>(controller.topPanelFullyClosed, (closed) {
-      if (closed || controller.isOfflineModeEnabled.value) {
+      if (closed || SettingsController.to.isOfflineModeEnabled.value) {
         return;
       }
       TopPanelView._searchPanelController.loadInitial();
@@ -49,8 +51,8 @@ class _TopPanelViewState extends State<TopPanelView> {
     _searchWorker = ever<String>(controller.searchContent, (keyword) {
       TopPanelView._searchPanelController.search(
         keyword,
-        likedSongIds: controller.likedSongIds.toList(),
-        currentUserId: controller.userInfo.value.userId,
+        likedSongIds: UserController.to.likedSongIds.toList(),
+        currentUserId: UserController.to.userInfo.value.userId,
       );
     });
   }
@@ -126,9 +128,10 @@ class _TopPanelViewState extends State<TopPanelView> {
                       child: _buildTopPanelCard(
                           context,
                           Obx(
-                            () => controller.isOfflineModeEnabled.value
-                                ? _buildOfflineSearchHint(context)
-                                : _buildHotKeywordList(),
+                            () =>
+                                SettingsController.to.isOfflineModeEnabled.value
+                                    ? _buildOfflineSearchHint(context)
+                                    : _buildHotKeywordList(),
                           )).marginOnly(top: AppDimensions.paddingSmall),
                     )),
               ),
@@ -306,7 +309,7 @@ class _TopPanelViewState extends State<TopPanelView> {
     return ValueListenableBuilder(
       valueListenable: TopPanelView._searchPanelController.songState,
       builder: (context, state, child) {
-        return LoadStateView<List<MediaItem>>(
+        return LoadStateView<List<PlaybackQueueItem>>(
           state: state,
           builder: (list) => ListView.builder(
             itemBuilder: (context, index) => SongItem(

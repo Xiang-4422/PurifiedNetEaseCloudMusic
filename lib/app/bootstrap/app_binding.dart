@@ -4,6 +4,7 @@ import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/drift_app_database.dart';
 import 'package:bujuan/core/database/local_database_config.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
+import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_music_source.dart';
@@ -18,6 +19,7 @@ import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/download/download_repository.dart';
+import 'package:bujuan/features/explore/explore_cache_store.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/library/library_preference_store.dart';
@@ -28,8 +30,10 @@ import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playlist/playlist_cache_store.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
+import 'package:bujuan/features/search/search_cache_store.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
@@ -58,6 +62,16 @@ class AppBinding extends Bindings {
     final userScopedDataSource = appDatabase.userScopedDataSource;
     final downloadTaskDataSource = appDatabase.downloadTaskDataSource;
     final playbackRestoreDataSource = appDatabase.playbackRestoreDataSource;
+    final appCacheDataSource = appDatabase.appCacheDataSource;
+    final playlistCacheStore = PlaylistCacheStore(
+      cacheDataSource: appCacheDataSource,
+    );
+    final searchCacheStore = SearchCacheStore(
+      cacheDataSource: appCacheDataSource,
+    );
+    final exploreCacheStore = ExploreCacheStore(
+      cacheDataSource: appCacheDataSource,
+    );
     final localMusicSource =
         LocalMusicSource(localDataSource: localLibraryDataSource);
     final localResourceIndexRepository = LocalResourceIndexRepository(
@@ -102,6 +116,7 @@ class AppBinding extends Bindings {
       permanent: true,
     );
     Get.put<DownloadTaskDataSource>(downloadTaskDataSource, permanent: true);
+    Get.put<AppCacheDataSource>(appCacheDataSource, permanent: true);
     Get.put<UserScopedDataSource>(userScopedDataSource, permanent: true);
     Get.put<LocalMusicSource>(localMusicSource, permanent: true);
     Get.put<LocalResourceIndexRepository>(
@@ -123,6 +138,7 @@ class AppBinding extends Bindings {
     );
     Get.put<PlaylistRepository>(
       PlaylistRepository(
+        cacheStore: playlistCacheStore,
         libraryRepository: libraryRepository,
         localLibraryDataSource: localLibraryDataSource,
         userScopedDataSource: userScopedDataSource,
@@ -151,6 +167,7 @@ class AppBinding extends Bindings {
     Get.put<SearchRepository>(
       SearchRepository(
         libraryRepository: libraryRepository,
+        cacheStore: searchCacheStore,
         userScopedDataSource: userScopedDataSource,
       ),
       permanent: true,
@@ -165,7 +182,10 @@ class AppBinding extends Bindings {
     Get.put<DownloadRepository>(downloadRepository, permanent: true);
     Get.put<PlaybackRepository>(playbackRepository, permanent: true);
     Get.put<CommentRepository>(CommentRepository(), permanent: true);
-    Get.put<ExploreRepository>(ExploreRepository(), permanent: true);
+    Get.put<ExploreRepository>(
+      ExploreRepository(cacheStore: exploreCacheStore),
+      permanent: true,
+    );
 
     unawaited(downloadRepository.recoverInterruptedTasks());
   }

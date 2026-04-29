@@ -1,7 +1,7 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:flutter/foundation.dart';
@@ -17,7 +17,7 @@ class SearchPanelController {
   final SearchRepository _repository;
   final ValueNotifier<LoadState<List<String>>> hotKeywordState =
       ValueNotifier(const LoadState.loading());
-  final ValueNotifier<LoadState<List<MediaItem>>> songState =
+  final ValueNotifier<LoadState<List<PlaybackQueueItem>>> songState =
       ValueNotifier(const LoadState.empty());
   final ValueNotifier<LoadState<List<PlaylistEntity>>> playlistState =
       ValueNotifier(const LoadState.empty());
@@ -35,7 +35,7 @@ class SearchPanelController {
     }
     final cachedKeywords = await _repository.loadCachedHotKeywords();
     final shouldRefresh = force ||
-        !_repository.isHotKeywordCacheFresh(ttl: _hotKeywordTtl) ||
+        !(await _repository.isHotKeywordCacheFresh(ttl: _hotKeywordTtl)) ||
         cachedKeywords == null ||
         cachedKeywords.isEmpty;
     if (cachedKeywords != null && cachedKeywords.isNotEmpty) {
@@ -95,7 +95,7 @@ class SearchPanelController {
     required List<int> likedSongIds,
   }) async {
     try {
-      final songs = await _repository.searchTrackMediaItems(
+      final songs = await _repository.searchTrackQueueItems(
         keyword,
         likedSongIds: likedSongIds,
       );

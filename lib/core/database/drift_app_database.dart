@@ -2,7 +2,9 @@ import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/app_database_schema.dart';
 import 'package:bujuan/core/database/database_collection_schema.dart';
 import 'package:bujuan/core/database/drift_database.dart';
+import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/data/local/download_task_data_source.dart';
+import 'package:bujuan/data/local/drift_app_cache_data_source.dart';
 import 'package:bujuan/data/local/drift_download_task_data_source.dart';
 import 'package:bujuan/data/local/drift_local_library_data_source.dart';
 import 'package:bujuan/data/local/drift_local_resource_index_data_source.dart';
@@ -22,6 +24,7 @@ class DriftAppDatabase implements AppDatabase {
   late final PlaybackRestoreDataSource _playbackRestoreDataSource;
   late final LocalResourceIndexDataSource _localResourceIndexDataSource;
   late final DownloadTaskDataSource _downloadTaskDataSource;
+  late final AppCacheDataSource _appCacheDataSource;
   late final UserScopedDataSource _userScopedDataSource;
 
   @override
@@ -33,6 +36,7 @@ class DriftAppDatabase implements AppDatabase {
     _localResourceIndexDataSource =
         DriftLocalResourceIndexDataSource(database: _database);
     _downloadTaskDataSource = DriftDownloadTaskDataSource(database: _database);
+    _appCacheDataSource = DriftAppCacheDataSource(database: _database);
     _userScopedDataSource = DriftUserScopedDataSource(database: _database);
   }
 
@@ -56,6 +60,9 @@ class DriftAppDatabase implements AppDatabase {
 
   @override
   DownloadTaskDataSource get downloadTaskDataSource => _downloadTaskDataSource;
+
+  @override
+  AppCacheDataSource get appCacheDataSource => _appCacheDataSource;
 
   @override
   UserScopedDataSource get userScopedDataSource => _userScopedDataSource;

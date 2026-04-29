@@ -4,8 +4,9 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/core/storage/local_image_cache_repository.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/entities/track_resource_bundle.dart';
@@ -60,10 +61,10 @@ class PlayerController extends GetxController {
   final Rx<PlaybackRuntimeState> runtimeState =
       const PlaybackRuntimeState().obs;
   final Rx<PlaybackLyricState> lyricState = const PlaybackLyricState().obs;
-  final Rx<MediaItem> currentSongState =
-      const MediaItem(id: '', title: '暂无').obs;
+  final Rx<PlaybackQueueItem> currentSongState =
+      const PlaybackQueueItem.empty().obs;
   final Rx<Duration> currentPositionState = Duration.zero.obs;
-  final RxList<MediaItem> queueState = <MediaItem>[].obs;
+  final RxList<PlaybackQueueItem> queueState = <PlaybackQueueItem>[].obs;
   final RxInt currentQueueIndex = (-1).obs;
 
   // 取色是高频但纯展示性质的操作，做小缓存可以明显减少切歌时的同步卡顿。
@@ -113,20 +114,20 @@ class PlayerController extends GetxController {
     );
     await _playbackService.ensureInitialized();
 
-    _playbackService.queueStream.listen((mediaItems) async {
-      _syncRuntimeState(queue: mediaItems);
-      await _updateCurPlayIndex(curMediaItemUpdated: false);
+    _playbackService.queueStream.listen((queueItems) async {
+      _syncRuntimeState(queue: queueItems);
+      await _updateCurPlayIndex(currentItemUpdated: false);
     });
 
-    _playbackService.mediaItemStream.listen((mediaItem) async {
-      if (mediaItem == null) return;
-      _syncRuntimeState(currentSong: mediaItem);
-      unawaited(_repository.updateRestoreState(currentSongId: mediaItem.id));
-      unawaited(_cacheCurrentTrackForPlayback(mediaItem));
+    _playbackService.mediaItemStream.listen((queueItem) async {
+      if (queueItem == null) return;
+      _syncRuntimeState(currentSong: queueItem);
+      unawaited(_repository.updateRestoreState(currentSongId: queueItem.id));
+      unawaited(_cacheCurrentTrackForPlayback(queueItem));
       await _updateCurPlayIndex(
-        curMediaItemUpdated: !_restoringPlaybackState,
+        currentItemUpdated: !_restoringPlaybackState,
       );
-      unawaited(_ensureCurrentTrackArtwork(mediaItem));
+      unawaited(_ensureCurrentTrackArtwork(queueItem));
 
       final currentRuntimeState = runtimeState.value;
       int newIndex = currentRuntimeState.queue.indexWhere(
@@ -217,8 +218,8 @@ class PlayerController extends GetxController {
   }
 
   void _syncRuntimeState({
-    List<MediaItem>? queue,
-    MediaItem? currentSong,
+    List<PlaybackQueueItem>? queue,
+    PlaybackQueueItem? currentSong,
     int? currentIndex,
     Duration? currentPosition,
   }) {
@@ -257,13 +258,13 @@ class PlayerController extends GetxController {
     lyricState.value = nextState;
   }
 
-  _updateCurPlayIndex({bool curMediaItemUpdated = true}) async {
+  _updateCurPlayIndex({bool currentItemUpdated = true}) async {
     final currentRuntimeState = runtimeState.value;
     final currentIndex = currentRuntimeState.queue.indexWhere(
       (element) => element.id == currentRuntimeState.currentSong.id,
     );
     _syncRuntimeState(currentIndex: currentIndex);
-    if (curMediaItemUpdated) {
+    if (currentItemUpdated) {
       // 切歌时先让索引和主播放状态更新到 UI，再延后取色、歌词和图片预取，
       // 否则首页大面板和歌词页切换会先被这些耗时任务阻塞。
       Future.microtask(() async {
@@ -275,7 +276,8 @@ class PlayerController extends GetxController {
   }
 
   _updateAlbumColor() async {
-    final imageUrl = runtimeState.value.currentSong.extras?['image'] as String?;
+    final currentSong = runtimeState.value.currentSong;
+    final imageUrl = currentSong.artworkUrl ?? currentSong.localArtworkPath;
     if (imageUrl == null || imageUrl.isEmpty) {
       return;
     }
@@ -363,7 +365,7 @@ class PlayerController extends GetxController {
   /// 播放列表切换先统一走播放控制器，避免页面继续直接触碰 `audioHandler`
   /// 并各自处理模式退出逻辑。
   Future<void> playPlaylist(
-    List<MediaItem> playList,
+    List<PlaybackQueueItem> playList,
     int index, {
     String playListName = "无名歌单",
     String playListNameHeader = "",
@@ -384,6 +386,17 @@ class PlayerController extends GetxController {
 
   Future<void> playQueueIndex(int index) {
     return _playbackService.playIndex(audioSourceIndex: index, playNow: true);
+  }
+
+  Future<void> updatePlaybackQueueItem(PlaybackQueueItem item) async {
+    final queue = runtimeState.value.queue
+        .map((queueItem) => queueItem.id == item.id ? item : queueItem)
+        .toList(growable: false);
+    _syncRuntimeState(
+      queue: queue,
+      currentSong: runtimeState.value.currentSong.id == item.id ? item : null,
+    );
+    await _playbackService.updateQueueItem(item);
   }
 
   /// 下载入口直接挂在播放控制器，是为了让“当前播放歌曲”的下载状态与播放 UI
@@ -441,7 +454,7 @@ class PlayerController extends GetxController {
     if (updatedTrack == null) {
       return null;
     }
-    await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+    await _maybeSyncCurrentQueueItem(updatedTrack);
     return updatedTrack;
   }
 
@@ -451,7 +464,7 @@ class PlayerController extends GetxController {
     if (updatedTrack == null) {
       return null;
     }
-    await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+    await _maybeSyncCurrentQueueItem(updatedTrack);
     return updatedTrack;
   }
 
@@ -461,7 +474,7 @@ class PlayerController extends GetxController {
     if (updatedTrack == null) {
       return null;
     }
-    await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+    await _maybeSyncCurrentQueueItem(updatedTrack);
     return updatedTrack;
   }
 
@@ -476,7 +489,7 @@ class PlayerController extends GetxController {
     if (updatedTrack == null) {
       return null;
     }
-    await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+    await _maybeSyncCurrentQueueItem(updatedTrack);
     return updatedTrack;
   }
 
@@ -599,7 +612,7 @@ class PlayerController extends GetxController {
   }
 
   Future<void> _initRoamingMode() async {
-    List<MediaItem> fmSongs = [];
+    final fmSongs = <PlaybackQueueItem>[];
     if (UserController.to.fmSongs.isNotEmpty) {
       fmSongs.addAll(UserController.to.fmSongs);
     } else {
@@ -617,7 +630,7 @@ class PlayerController extends GetxController {
   }
 
   Future<void> _initHeartBeatMode(String startSongId, bool fromPlayAll) async {
-    List<MediaItem> songs = await UserController.to.getHeartBeatSongs(
+    final songs = await UserController.to.getHeartBeatSongs(
         startSongId, UserController.to.randomLikedSongId.value, fromPlayAll);
 
     final started = await _playbackService.startHeartBeatMode(
@@ -676,10 +689,10 @@ class PlayerController extends GetxController {
     }
   }
 
-  Future<void> _syncCurrentTrackMediaItem(Track track) async {
+  Future<void> _syncCurrentQueueItem(Track track) async {
     final trackWithResources =
         await _repository.getTrackWithResources(track.id);
-    final mediaItems = MediaItemMapper.fromTrackWithResourcesList(
+    final queueItems = PlaybackQueueItemMapper.fromTrackWithResourcesList(
       [
         trackWithResources ??
             TrackWithResources(
@@ -689,37 +702,36 @@ class PlayerController extends GetxController {
       ],
       likedSongIds: UserController.to.likedSongIds.toList(),
     );
-    if (mediaItems.isEmpty) {
+    if (queueItems.isEmpty) {
       return;
     }
 
-    final updatedMediaItem = mediaItems.first;
+    final updatedItem = queueItems.first;
     final queue = runtimeState.value.queue
-        .map((item) => item.id == updatedMediaItem.id ? updatedMediaItem : item)
+        .map((item) => item.id == updatedItem.id ? updatedItem : item)
         .toList(growable: false);
     _syncRuntimeState(
       queue: queue,
-      currentSong: updatedMediaItem,
+      currentSong: updatedItem,
     );
-    await _playbackService.updateMediaItem(updatedMediaItem);
+    await _playbackService.updateQueueItem(updatedItem);
   }
 
-  Future<void> _maybeSyncCurrentTrackMediaItem(Track track) async {
+  Future<void> _maybeSyncCurrentQueueItem(Track track) async {
     if (runtimeState.value.currentSong.id != track.id) {
       return;
     }
-    await _syncCurrentTrackMediaItem(track);
+    await _syncCurrentQueueItem(track);
   }
 
-  Future<void> _ensureCurrentTrackArtwork(MediaItem mediaItem) async {
-    if (_hasArtworkSource(mediaItem)) {
+  Future<void> _ensureCurrentTrackArtwork(PlaybackQueueItem item) async {
+    if (_hasArtworkSource(item)) {
       return;
     }
 
-    final trackWithResources =
-        await _repository.getTrackWithResources(mediaItem.id);
+    final trackWithResources = await _repository.getTrackWithResources(item.id);
     if (trackWithResources == null ||
-        runtimeState.value.currentSong.id != mediaItem.id) {
+        runtimeState.value.currentSong.id != item.id) {
       return;
     }
     final localArtworkPath = trackWithResources.resources.artwork?.path ?? '';
@@ -729,19 +741,17 @@ class PlayerController extends GetxController {
     if (artworkSource?.isNotEmpty != true) {
       return;
     }
-    await _syncCurrentTrackArtwork(mediaItem, trackWithResources);
+    await _syncCurrentTrackArtwork(item, trackWithResources);
     await _updateAlbumColor();
   }
 
-  bool _hasArtworkSource(MediaItem mediaItem) {
-    final image = mediaItem.extras?['image'];
-    final localArtworkPath = mediaItem.extras?['localArtworkPath'];
-    return image is String && image.isNotEmpty ||
-        localArtworkPath is String && localArtworkPath.isNotEmpty;
+  bool _hasArtworkSource(PlaybackQueueItem item) {
+    return item.artworkUrl?.isNotEmpty == true ||
+        item.localArtworkPath?.isNotEmpty == true;
   }
 
   Future<void> _syncCurrentTrackArtwork(
-    MediaItem currentMediaItem,
+    PlaybackQueueItem currentItem,
     TrackWithResources trackWithResources,
   ) async {
     final localArtworkPath = trackWithResources.resources.artwork?.path ?? '';
@@ -752,39 +762,32 @@ class PlayerController extends GetxController {
       return;
     }
 
-    final updatedMediaItem = currentMediaItem.copyWith(
-      artUri: localArtworkPath.isNotEmpty
-          ? Uri.file(File(localArtworkPath).path)
-          : currentMediaItem.artUri,
-      extras: {
-        ...?currentMediaItem.extras,
-        'image': imageUrl,
-        'localArtworkPath': localArtworkPath,
-      },
+    final updatedItem = currentItem.copyWith(
+      artworkUrl: imageUrl,
+      localArtworkPath: localArtworkPath.isEmpty ? null : localArtworkPath,
     );
     final queue = runtimeState.value.queue
-        .map((item) => item.id == currentMediaItem.id ? updatedMediaItem : item)
+        .map((item) => item.id == currentItem.id ? updatedItem : item)
         .toList(growable: false);
     _syncRuntimeState(
       queue: queue,
-      currentSong: updatedMediaItem,
+      currentSong: updatedItem,
     );
-    await _playbackService.updateMediaItem(updatedMediaItem);
+    await _playbackService.updateQueueItem(updatedItem);
   }
 
-  Future<void> _cacheCurrentTrackForPlayback(MediaItem mediaItem) async {
-    final mediaType = mediaItem.extras?['type'] as String? ?? '';
-    if (mediaItem.id.isEmpty ||
-        mediaType == MediaType.local.name ||
-        mediaType == MediaType.neteaseCache.name) {
+  Future<void> _cacheCurrentTrackForPlayback(PlaybackQueueItem item) async {
+    if (item.id.isEmpty ||
+        item.mediaType == MediaType.local ||
+        item.mediaType == MediaType.neteaseCache) {
       return;
     }
     final updatedTrack = await _downloadRepository.cacheTrackForPlayback(
-      mediaItem.id,
+      item.id,
       preferHighQuality: _isHighQualityEnabled(),
     );
     if (updatedTrack != null) {
-      await _maybeSyncCurrentTrackMediaItem(updatedTrack);
+      await _maybeSyncCurrentQueueItem(updatedTrack);
     }
   }
 
@@ -811,8 +814,9 @@ class PlayerController extends GetxController {
     }
 
     for (int index in indicesToPreload) {
-      final imagePath = currentRuntimeState.queue[index].extras?['image'];
-      if (imagePath is String &&
+      final imagePath = currentRuntimeState.queue[index].artworkUrl ??
+          currentRuntimeState.queue[index].localArtworkPath;
+      if (imagePath != null &&
           imagePath.isNotEmpty &&
           !imagePath.startsWith('http://') &&
           !imagePath.startsWith('https://')) {

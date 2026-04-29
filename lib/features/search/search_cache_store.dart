@@ -1,16 +1,22 @@
+import 'dart:convert';
+
 import 'package:bujuan/common/constants/key.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
-import 'package:bujuan/core/storage/cache_timestamp_store.dart';
+import 'package:bujuan/data/local/app_cache_data_source.dart';
 
 class SearchCacheStore {
   const SearchCacheStore({
-    CacheTimestampStore? timestampStore,
-  }) : _timestampStore = timestampStore ?? const CacheTimestampStore();
+    required AppCacheDataSource cacheDataSource,
+  }) : _cacheDataSource = cacheDataSource;
 
-  final CacheTimestampStore _timestampStore;
+  final AppCacheDataSource _cacheDataSource;
 
   Future<List<String>?> loadHotKeywords() async {
-    final cachedKeywords = CacheBox.instance.get(searchHotKeywordsSp);
+    final payloadJson =
+        await _cacheDataSource.loadPayloadJson(searchHotKeywordsSp);
+    if (payloadJson == null) {
+      return null;
+    }
+    final cachedKeywords = jsonDecode(payloadJson);
     if (cachedKeywords is! List) {
       return null;
     }
@@ -18,15 +24,17 @@ class SearchCacheStore {
   }
 
   Future<void> saveHotKeywords(List<String> keywords) async {
-    await CacheBox.instance.put(searchHotKeywordsSp, keywords);
-    await _timestampStore.markUpdated(searchHotKeywordsLastRefreshSp);
+    await _cacheDataSource.save(
+      cacheKey: searchHotKeywordsSp,
+      payloadJson: jsonEncode(keywords),
+    );
   }
 
-  bool isHotKeywordsFresh({
+  Future<bool> isHotKeywordsFresh({
     required Duration ttl,
   }) {
-    return _timestampStore.isFresh(
-      searchHotKeywordsLastRefreshSp,
+    return _cacheDataSource.isFresh(
+      searchHotKeywordsSp,
       ttl: ttl,
     );
   }

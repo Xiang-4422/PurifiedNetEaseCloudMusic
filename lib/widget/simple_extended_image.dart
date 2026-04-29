@@ -8,9 +8,8 @@ import 'package:flutter/material.dart';
 /// 本地缓存图片展示组件。
 ///
 /// 这个组件最终只使用本地文件渲染图片，并提供统一的裁剪、占位和解码尺寸控制。
-/// 调用方应优先传入 `Track.localArtworkPath`、`MediaItem.extras['localArtworkPath']`
-/// 或其他已落盘路径；如果传入远程 URL，组件会先通过应用本地图片缓存落盘，再用
-/// 缓存文件显示，不会直接使用网络图片 Provider 渲染。
+/// 调用方应优先传入本地封面路径或其他已落盘路径；如果传入远程 URL，
+/// 组件会先通过应用本地图片缓存落盘，再用缓存文件显示，不会直接使用网络图片 Provider 渲染。
 ///
 /// 空字符串或缓存失败时会显示占位。
 class SimpleExtendedImage extends StatefulWidget {

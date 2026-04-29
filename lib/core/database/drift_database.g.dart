@@ -1183,6 +1183,235 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
   }
 }
 
+class $AppCacheEntriesTable extends AppCacheEntries
+    with TableInfo<$AppCacheEntriesTable, AppCacheEntrie> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppCacheEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _cacheKeyMeta =
+      const VerificationMeta('cacheKey');
+  @override
+  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
+      'cache_key', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _payloadJsonMeta =
+      const VerificationMeta('payloadJson');
+  @override
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
+      'payload_json', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta =
+      const VerificationMeta('updatedAtMs');
+  @override
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
+      'updated_at_ms', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [cacheKey, payloadJson, updatedAtMs];
+  @override
+  String get aliasedName => _alias ?? 'app_cache_entries';
+  @override
+  String get actualTableName => 'app_cache_entries';
+  @override
+  VerificationContext validateIntegrity(Insertable<AppCacheEntrie> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('cache_key')) {
+      context.handle(_cacheKeyMeta,
+          cacheKey.isAcceptableOrUnknown(data['cache_key']!, _cacheKeyMeta));
+    } else if (isInserting) {
+      context.missing(_cacheKeyMeta);
+    }
+    if (data.containsKey('payload_json')) {
+      context.handle(
+          _payloadJsonMeta,
+          payloadJson.isAcceptableOrUnknown(
+              data['payload_json']!, _payloadJsonMeta));
+    } else if (isInserting) {
+      context.missing(_payloadJsonMeta);
+    }
+    if (data.containsKey('updated_at_ms')) {
+      context.handle(
+          _updatedAtMsMeta,
+          updatedAtMs.isAcceptableOrUnknown(
+              data['updated_at_ms']!, _updatedAtMsMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMsMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {cacheKey};
+  @override
+  AppCacheEntrie map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppCacheEntrie(
+      cacheKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}cache_key'])!,
+      payloadJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}payload_json'])!,
+      updatedAtMs: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+    );
+  }
+
+  @override
+  $AppCacheEntriesTable createAlias(String alias) {
+    return $AppCacheEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class AppCacheEntrie extends DataClass implements Insertable<AppCacheEntrie> {
+  final String cacheKey;
+  final String payloadJson;
+  final int updatedAtMs;
+  const AppCacheEntrie(
+      {required this.cacheKey,
+      required this.payloadJson,
+      required this.updatedAtMs});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['cache_key'] = Variable<String>(cacheKey);
+    map['payload_json'] = Variable<String>(payloadJson);
+    map['updated_at_ms'] = Variable<int>(updatedAtMs);
+    return map;
+  }
+
+  AppCacheEntriesCompanion toCompanion(bool nullToAbsent) {
+    return AppCacheEntriesCompanion(
+      cacheKey: Value(cacheKey),
+      payloadJson: Value(payloadJson),
+      updatedAtMs: Value(updatedAtMs),
+    );
+  }
+
+  factory AppCacheEntrie.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppCacheEntrie(
+      cacheKey: serializer.fromJson<String>(json['cacheKey']),
+      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'cacheKey': serializer.toJson<String>(cacheKey),
+      'payloadJson': serializer.toJson<String>(payloadJson),
+      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
+    };
+  }
+
+  AppCacheEntrie copyWith(
+          {String? cacheKey, String? payloadJson, int? updatedAtMs}) =>
+      AppCacheEntrie(
+        cacheKey: cacheKey ?? this.cacheKey,
+        payloadJson: payloadJson ?? this.payloadJson,
+        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('AppCacheEntrie(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('updatedAtMs: $updatedAtMs')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(cacheKey, payloadJson, updatedAtMs);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppCacheEntrie &&
+          other.cacheKey == this.cacheKey &&
+          other.payloadJson == this.payloadJson &&
+          other.updatedAtMs == this.updatedAtMs);
+}
+
+class AppCacheEntriesCompanion extends UpdateCompanion<AppCacheEntrie> {
+  final Value<String> cacheKey;
+  final Value<String> payloadJson;
+  final Value<int> updatedAtMs;
+  final Value<int> rowid;
+  const AppCacheEntriesCompanion({
+    this.cacheKey = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    this.updatedAtMs = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AppCacheEntriesCompanion.insert({
+    required String cacheKey,
+    required String payloadJson,
+    required int updatedAtMs,
+    this.rowid = const Value.absent(),
+  })  : cacheKey = Value(cacheKey),
+        payloadJson = Value(payloadJson),
+        updatedAtMs = Value(updatedAtMs);
+  static Insertable<AppCacheEntrie> custom({
+    Expression<String>? cacheKey,
+    Expression<String>? payloadJson,
+    Expression<int>? updatedAtMs,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (cacheKey != null) 'cache_key': cacheKey,
+      if (payloadJson != null) 'payload_json': payloadJson,
+      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AppCacheEntriesCompanion copyWith(
+      {Value<String>? cacheKey,
+      Value<String>? payloadJson,
+      Value<int>? updatedAtMs,
+      Value<int>? rowid}) {
+    return AppCacheEntriesCompanion(
+      cacheKey: cacheKey ?? this.cacheKey,
+      payloadJson: payloadJson ?? this.payloadJson,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (cacheKey.present) {
+      map['cache_key'] = Variable<String>(cacheKey.value);
+    }
+    if (payloadJson.present) {
+      map['payload_json'] = Variable<String>(payloadJson.value);
+    }
+    if (updatedAtMs.present) {
+      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppCacheEntriesCompanion(')
+          ..write('cacheKey: $cacheKey, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('updatedAtMs: $updatedAtMs, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -6464,6 +6693,8 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
   late final $LocalResourceEntriesTable localResourceEntries =
       $LocalResourceEntriesTable(this);
   late final $DownloadTasksTable downloadTasks = $DownloadTasksTable(this);
+  late final $AppCacheEntriesTable appCacheEntries =
+      $AppCacheEntriesTable(this);
   late final $TracksTable tracks = $TracksTable(this);
   late final $TrackLyricsEntriesTable trackLyricsEntries =
       $TrackLyricsEntriesTable(this);
@@ -6495,6 +6726,7 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
         playbackRestoreSnapshots,
         localResourceEntries,
         downloadTasks,
+        appCacheEntries,
         tracks,
         trackLyricsEntries,
         playlists,

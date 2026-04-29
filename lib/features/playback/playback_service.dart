@@ -1,6 +1,8 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/audio_service_handler.dart';
+import 'package:bujuan/features/playback/application/playback_queue_item_adapter.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:get/get.dart';
 
@@ -17,7 +19,7 @@ class PlaybackService extends GetxService {
   void Function(String playlistName, String playlistHeader, bool isLikedSongs)?
       _onPlaylistMetaChanged;
   bool Function()? _isHighQualityEnabled;
-  Future<void> Function(MediaItem mediaItem)? _onToggleLike;
+  Future<void> Function(PlaybackQueueItem item)? _onToggleLike;
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
 
@@ -29,9 +31,14 @@ class PlaybackService extends GetxService {
     return handler;
   }
 
-  Stream<List<MediaItem>> get queueStream => handler.queue;
+  Stream<List<PlaybackQueueItem>> get queueStream =>
+      handler.queue.map(PlaybackQueueItemAdapter.fromMediaItems);
 
-  Stream<MediaItem?> get mediaItemStream => handler.mediaItem;
+  Stream<PlaybackQueueItem?> get mediaItemStream => handler.mediaItem.map(
+        (mediaItem) => mediaItem == null
+            ? null
+            : PlaybackQueueItemAdapter.fromMediaItem(mediaItem),
+      );
 
   Stream<PlaybackState> get playbackStateStream => handler.playbackState;
 
@@ -62,7 +69,7 @@ class PlaybackService extends GetxService {
             String playlistName, String playlistHeader, bool isLikedSongs)?
         onPlaylistMetaChanged,
     bool Function()? isHighQualityEnabled,
-    Future<void> Function(MediaItem mediaItem)? onToggleLike,
+    Future<void> Function(PlaybackQueueItem item)? onToggleLike,
     bool Function()? isPlaylistMode,
     bool Function()? isRoamingMode,
   }) {
@@ -82,7 +89,10 @@ class PlaybackService extends GetxService {
       onRepeatModeChanged: _onRepeatModeChanged,
       onPlaylistMetaChanged: _onPlaylistMetaChanged,
       isHighQualityEnabled: _isHighQualityEnabled,
-      onToggleLike: _onToggleLike,
+      onToggleLike: _onToggleLike == null
+          ? null
+          : (mediaItem) =>
+              _onToggleLike!(PlaybackQueueItemAdapter.fromMediaItem(mediaItem)),
       isPlaylistMode: _isPlaylistMode,
       isRoamingMode: _isRoamingMode,
     );
@@ -95,7 +105,7 @@ class PlaybackService extends GetxService {
   Future<void> pause() => handler.pause();
 
   Future<void> changePlayList(
-    List<MediaItem> playList, {
+    List<PlaybackQueueItem> playList, {
     int index = 0,
     bool needStore = true,
     required String playListName,
@@ -104,7 +114,7 @@ class PlaybackService extends GetxService {
     required bool playNow,
   }) {
     return handler.changePlayList(
-      playList,
+      PlaybackQueueItemAdapter.toMediaItems(playList),
       index: index,
       needStore: needStore,
       playListName: playListName,
@@ -132,13 +142,13 @@ class PlaybackService extends GetxService {
     return handler.changeRepeatMode(newRepeatMode: newRepeatMode);
   }
 
-  Future<void> updateMediaItem(MediaItem mediaItem) {
-    return handler.updateMediaItem(mediaItem);
+  Future<void> updateQueueItem(PlaybackQueueItem item) {
+    return handler.updateMediaItem(PlaybackQueueItemAdapter.toMediaItem(item));
   }
 
   /// 队列切换和播放源更新先统一收口在 service，避免控制器继续直接编排底层 handler。
   Future<void> playPlaylist(
-    List<MediaItem> playList,
+    List<PlaybackQueueItem> playList,
     int index, {
     required String playListName,
     String playListNameHeader = "",
@@ -159,8 +169,8 @@ class PlaybackService extends GetxService {
 
   /// 漫游模式的续队列需要和当前队列裁剪、自动切歌一起生效，留在 service 里更容易保证行为一致。
   Future<void> appendRoamingSongs({
-    required List<MediaItem> currentQueue,
-    required List<MediaItem> incomingSongs,
+    required List<PlaybackQueueItem> currentQueue,
+    required List<PlaybackQueueItem> incomingSongs,
     required String currentSongId,
     required bool shouldAutoPlayNext,
     required int fallbackIndex,
@@ -204,13 +214,13 @@ class PlaybackService extends GetxService {
   }
 
   Future<void> playLikedSongs({
-    required List<MediaItem> likedSongs,
+    required List<PlaybackQueueItem> likedSongs,
     required List<int> likedSongIds,
-    required MediaItem currentSong,
+    required PlaybackQueueItem currentSong,
   }) async {
     int playIndex;
     final playList = [...likedSongs];
-    if (likedSongIds.contains(int.parse(currentSong.id))) {
+    if (likedSongIds.contains(int.tryParse(currentSong.sourceId))) {
       playIndex = likedSongs.indexWhere((song) => song.id == currentSong.id);
     } else {
       playIndex = 0;
@@ -227,7 +237,7 @@ class PlaybackService extends GetxService {
   }
 
   Future<bool> startRoamingMode({
-    required List<MediaItem> fmSongs,
+    required List<PlaybackQueueItem> fmSongs,
     required AudioServiceRepeatMode currentRepeatMode,
   }) async {
     if (fmSongs.isEmpty) {
@@ -251,7 +261,7 @@ class PlaybackService extends GetxService {
   }
 
   Future<bool> startHeartBeatMode({
-    required List<MediaItem> songs,
+    required List<PlaybackQueueItem> songs,
     required AudioServiceRepeatMode currentRepeatMode,
   }) async {
     if (songs.isEmpty) {

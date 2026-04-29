@@ -1,20 +1,24 @@
 import 'dart:convert';
 
 import 'package:bujuan/common/constants/key.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
-import 'package:bujuan/core/storage/cache_timestamp_store.dart';
+import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 
 class ExploreCacheStore {
   const ExploreCacheStore({
-    CacheTimestampStore? timestampStore,
-  }) : _timestampStore = timestampStore ?? const CacheTimestampStore();
+    required AppCacheDataSource cacheDataSource,
+  }) : _cacheDataSource = cacheDataSource;
 
-  final CacheTimestampStore _timestampStore;
+  final AppCacheDataSource _cacheDataSource;
 
   Future<ExplorePlaylistCatalogueData?> loadPlaylistCatalogue() async {
-    final cached = CacheBox.instance.get(explorePlaylistCatalogueSp);
+    final payloadJson =
+        await _cacheDataSource.loadPayloadJson(explorePlaylistCatalogueSp);
+    if (payloadJson == null) {
+      return null;
+    }
+    final cached = jsonDecode(payloadJson);
     if (cached is! Map) {
       return null;
     }
@@ -42,21 +46,22 @@ class ExploreCacheStore {
   Future<void> savePlaylistCatalogue(
     ExplorePlaylistCatalogueData data,
   ) async {
-    await CacheBox.instance.put(
-      explorePlaylistCatalogueSp,
-      {
-        'categoryNames': data.categoryNames,
-        'tagsByCategory': data.tagsByCategory,
-      },
+    await _cacheDataSource.save(
+      cacheKey: explorePlaylistCatalogueSp,
+      payloadJson: jsonEncode(
+        {
+          'categoryNames': data.categoryNames,
+          'tagsByCategory': data.tagsByCategory,
+        },
+      ),
     );
-    await _timestampStore.markUpdated(explorePlaylistCatalogueLastRefreshSp);
   }
 
-  bool isPlaylistCatalogueFresh({
+  Future<bool> isPlaylistCatalogueFresh({
     required Duration ttl,
   }) {
-    return _timestampStore.isFresh(
-      explorePlaylistCatalogueLastRefreshSp,
+    return _cacheDataSource.isFresh(
+      explorePlaylistCatalogueSp,
       ttl: ttl,
     );
   }
@@ -64,7 +69,12 @@ class ExploreCacheStore {
   Future<List<PlaylistSummaryData>?> loadCategoryPlaylists(
     String category,
   ) async {
-    final cached = CacheBox.instance.get(_categoryPlaylistKey(category));
+    final payloadJson =
+        await _cacheDataSource.loadPayloadJson(_categoryPlaylistKey(category));
+    if (payloadJson == null) {
+      return null;
+    }
+    final cached = jsonDecode(payloadJson);
     if (cached is! List) {
       return null;
     }
@@ -83,26 +93,24 @@ class ExploreCacheStore {
     String category,
     List<PlaylistSummaryData> playlists,
   ) async {
-    await CacheBox.instance.put(
-      _categoryPlaylistKey(category),
-      playlists.map((item) => jsonDecode(jsonEncode(item.toJson()))).toList(),
+    await _cacheDataSource.save(
+      cacheKey: _categoryPlaylistKey(category),
+      payloadJson: jsonEncode(
+        playlists.map((item) => item.toJson()).toList(),
+      ),
     );
-    await _timestampStore.markUpdated(_categoryPlaylistRefreshKey(category));
   }
 
-  bool isCategoryPlaylistsFresh(
+  Future<bool> isCategoryPlaylistsFresh(
     String category, {
     required Duration ttl,
   }) {
-    return _timestampStore.isFresh(
-      _categoryPlaylistRefreshKey(category),
+    return _cacheDataSource.isFresh(
+      _categoryPlaylistKey(category),
       ttl: ttl,
     );
   }
 
   String _categoryPlaylistKey(String category) =>
       'EXPLORE_CATEGORY_PLAYLISTS_${Uri.encodeComponent(category)}';
-
-  String _categoryPlaylistRefreshKey(String category) =>
-      'EXPLORE_CATEGORY_PLAYLISTS_REFRESH_${Uri.encodeComponent(category)}';
 }

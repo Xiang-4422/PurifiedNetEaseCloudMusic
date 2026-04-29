@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/cover_flow/coverflow.dart';
@@ -71,10 +71,10 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
         sideVerticalOffset: _sideVerticalOffset,
       );
 
-  String? _resolveArtwork(MediaItem mediaItem) {
+  String? _resolveArtwork(PlaybackQueueItem item) {
     return ArtworkPathResolver.resolvePreferredArtwork(
-      mediaItem.extras?['image'] as String?,
-      fallbackItems: [mediaItem],
+      item.artworkUrl,
+      fallbackItems: [item],
     );
   }
 
@@ -116,8 +116,8 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
     });
   }
 
-  Widget _buildCoverWidget(MediaItem mediaItem, int index) {
-    final imageUrl = _resolveArtwork(mediaItem);
+  Widget _buildCoverWidget(PlaybackQueueItem item, int index) {
+    final imageUrl = _resolveArtwork(item);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor.withValues(alpha: .12),
@@ -158,7 +158,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  mediaItem.title,
+                  item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -169,7 +169,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '${mediaItem.artist ?? '未知歌手'} · ${index + 1}',
+                  '${item.artist ?? '未知歌手'} · ${index + 1}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -186,7 +186,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
   }
 
   Widget _buildCoverFlowStage({
-    required List<MediaItem> queue,
+    required List<PlaybackQueueItem> queue,
     required int displayIndex,
     required double cardExtent,
     required bool isLandscape,
@@ -222,7 +222,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
     );
   }
 
-  Widget _buildPreviewHeader(MediaItem displayItem, int queueLength) {
+  Widget _buildPreviewHeader(PlaybackQueueItem displayItem, int queueLength) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -278,7 +278,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
   }
 
   Widget _buildPortraitPreview({
-    required List<MediaItem> queue,
+    required List<PlaybackQueueItem> queue,
     required int displayIndex,
     required double cardExtent,
   }) {
@@ -311,15 +311,6 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
         final currentDisplayIndex = queue.indexWhere(
           (item) => item.id == runtimeState.currentSong.id,
         );
-        final safePlayerIndex =
-            currentDisplayIndex >= 0 ? currentDisplayIndex : 0;
-        final displayIndex = _resolveDisplayIndex(
-          queueLength: queue.length,
-          playerIndex: safePlayerIndex,
-        );
-        final displayItem = queue[displayIndex];
-        final currentArtwork = _resolveArtwork(displayItem) ?? '';
-
         if (queue.isEmpty) {
           return Stack(
             fit: StackFit.expand,
@@ -350,6 +341,14 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
             ],
           );
         }
+        final safePlayerIndex =
+            currentDisplayIndex >= 0 ? currentDisplayIndex : 0;
+        final displayIndex = _resolveDisplayIndex(
+          queueLength: queue.length,
+          playerIndex: safePlayerIndex,
+        );
+        final displayItem = queue[displayIndex];
+        final currentArtwork = _resolveArtwork(displayItem) ?? '';
 
         final cardExtent = _resolveCardExtent(
           screenSize,

@@ -1,9 +1,9 @@
-import 'package:audio_service/audio_service.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:bujuan/common/constants/key.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/domain/entities/user_library_kinds.dart';
 import 'package:bujuan/domain/entities/user_session_data.dart';
@@ -154,9 +154,9 @@ class UserController extends GetxController {
   Rx<PlaylistSummaryData> userLikedSongPlayList =
       const PlaylistSummaryData(id: '', title: '').obs;
   RxList<int> likedSongIds = <int>[].obs;
-  RxList<MediaItem> likedSongs = <MediaItem>[].obs;
-  RxList<MediaItem> todayRecommendSongs = <MediaItem>[].obs;
-  RxList<MediaItem> fmSongs = <MediaItem>[].obs;
+  RxList<PlaybackQueueItem> likedSongs = <PlaybackQueueItem>[].obs;
+  RxList<PlaybackQueueItem> todayRecommendSongs = <PlaybackQueueItem>[].obs;
+  RxList<PlaybackQueueItem> fmSongs = <PlaybackQueueItem>[].obs;
   RxString randomLikedSongId = ''.obs;
   RxString randomLikedSongAlbumUrl = ''.obs;
   final List<ShellMenuItemData> leftMenus = [
@@ -280,7 +280,7 @@ class UserController extends GetxController {
     }
   }
 
-  Future<void> toggleLikeStatus(MediaItem curSong) async {
+  Future<void> toggleLikeStatus(PlaybackQueueItem curSong) async {
     final userId = userInfo.value.userId;
     final songId = _resolveSongSourceId(curSong);
     final numericSongId = int.tryParse(songId);
@@ -292,8 +292,8 @@ class UserController extends GetxController {
     final serverStatusBean =
         await _repository.toggleLikeSong(userId, songId, !isLiked);
     if (serverStatusBean.success) {
-      await PlayerController.to.playbackService
-          .updateMediaItem(curSong..extras?['liked'] = !isLiked);
+      final updatedSong = curSong.copyWith(isLiked: !isLiked);
+      await PlayerController.to.updatePlaybackQueueItem(updatedSong);
 
       if (isLiked) {
         likedSongIds.remove(numericSongId);
@@ -303,14 +303,14 @@ class UserController extends GetxController {
       } else {
         likedSongIds.add(numericSongId);
         if (likedSongs.isNotEmpty) {
-          likedSongs.add(curSong);
+          likedSongs.add(updatedSong);
         }
       }
       await _refreshRandomLikedSong();
     }
   }
 
-  Future<List<MediaItem>> getTodayRecommendSongs() async {
+  Future<List<PlaybackQueueItem>> getTodayRecommendSongs() async {
     final userId = userInfo.value.userId;
     if (userId.isEmpty || userId == "-1") {
       return const [];
@@ -322,7 +322,7 @@ class UserController extends GetxController {
     return todayRecommendSongs;
   }
 
-  Future<List<MediaItem>> getFmSongs() async {
+  Future<List<PlaybackQueueItem>> getFmSongs() async {
     final userId = userInfo.value.userId;
     if (userId.isEmpty || userId == "-1") {
       return const [];
@@ -333,7 +333,7 @@ class UserController extends GetxController {
     );
   }
 
-  Future<List<MediaItem>> getHeartBeatSongs(
+  Future<List<PlaybackQueueItem>> getHeartBeatSongs(
       String startSongId, String randomLikedSongId, bool fromPlayAll) async {
     return _repository.fetchHeartBeatSongs(
       startSongId: startSongId,
@@ -343,7 +343,7 @@ class UserController extends GetxController {
     );
   }
 
-  Future<List<MediaItem>> getSongsByIds(List<String> ids) async {
+  Future<List<PlaybackQueueItem>> getSongsByIds(List<String> ids) async {
     return _repository.fetchSongsByIds(
       ids: ids,
       likedSongIds: likedSongIds.toList(),
@@ -392,10 +392,9 @@ class UserController extends GetxController {
     randomLikedSongAlbumUrl.value = nextRandomLikedSongAlbumUrl;
   }
 
-  String _resolveSongSourceId(MediaItem song) {
-    final extraSourceId = song.extras?['sourceId']?.toString() ?? '';
-    if (extraSourceId.isNotEmpty) {
-      return extraSourceId;
+  String _resolveSongSourceId(PlaybackQueueItem song) {
+    if (song.sourceId.isNotEmpty) {
+      return song.sourceId;
     }
     if (song.id.startsWith('netease:')) {
       return song.id.substring('netease:'.length);

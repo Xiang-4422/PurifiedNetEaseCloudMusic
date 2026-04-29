@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -19,7 +19,7 @@ class CloudPageController {
   final String _userId;
   final List<int> _likedSongIds;
   final int pageSize;
-  final ValueNotifier<PagedState<MediaItem>> state =
+  final ValueNotifier<PagedState<PlaybackQueueItem>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;

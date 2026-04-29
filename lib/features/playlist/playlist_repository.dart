@@ -1,8 +1,8 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/operation_result.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/data/netease/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/domain/entities/playlist_track_ref.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
@@ -17,7 +17,7 @@ class PlaylistDetailData {
     required this.isMyPlayList,
   });
 
-  final List<MediaItem> songs;
+  final List<PlaybackQueueItem> songs;
   final bool isSubscribed;
   final bool isMyPlayList;
 }
@@ -66,12 +66,12 @@ class PlaylistSnapshotData {
 
 class PlaylistRepository {
   PlaylistRepository({
-    PlaylistCacheStore? cacheStore,
+    required PlaylistCacheStore cacheStore,
     required LibraryRepository libraryRepository,
     required LocalLibraryDataSource localLibraryDataSource,
     NeteasePlaylistRemoteDataSource? remoteDataSource,
     required UserScopedDataSource userScopedDataSource,
-  })  : _cacheStore = cacheStore ?? const PlaylistCacheStore(),
+  })  : _cacheStore = cacheStore,
         _libraryRepository = libraryRepository,
         _localLibraryDataSource = localLibraryDataSource,
         _remoteDataSource =
@@ -126,7 +126,7 @@ class PlaylistRepository {
     return playlistSnapshot;
   }
 
-  Future<List<MediaItem>> fetchPlaylistSongs({
+  Future<List<PlaybackQueueItem>> fetchPlaylistSongs({
     required String playlistId,
     required List<int> likedSongIds,
     int offset = 0,
@@ -141,20 +141,23 @@ class PlaylistRepository {
     if (offset >= songIds.length) {
       return const [];
     }
-    final result = await _remoteDataSource.fetchPlaylistSongs(
+    final tracks = await _remoteDataSource.fetchPlaylistSongs(
       songIds: songIds,
       offset: offset,
       limit: limit,
+    );
+    await _libraryRepository.saveTracks(tracks);
+    final queueItems = PlaybackQueueItemMapper.fromTrackList(
+      tracks,
       likedSongIds: likedSongIds,
     );
-    await _libraryRepository.saveTracks(result.tracks);
-    if (result.mediaItems.isNotEmpty) {
+    if (queueItems.isNotEmpty) {
       await _cacheStore.touchRefresh(_toCachePlaylistId(playlistId));
     }
-    return result.mediaItems;
+    return queueItems;
   }
 
-  Future<List<MediaItem>?> loadCachedSongs(String playlistId) async {
+  Future<List<PlaybackQueueItem>?> loadCachedSongs(String playlistId) async {
     return _cacheStore.loadSongs(_toCachePlaylistId(playlistId));
   }
 
@@ -162,7 +165,7 @@ class PlaylistRepository {
     return _cacheStore.loadSnapshot(_toCachePlaylistId(playlistId));
   }
 
-  bool isCacheFresh(
+  Future<bool> isCacheFresh(
     String playlistId, {
     required Duration ttl,
   }) {
@@ -191,7 +194,7 @@ class PlaylistRepository {
         : null;
     final songs = localSongs.isNotEmpty
         ? localSongs
-        : (cachedSongs ?? const <MediaItem>[]);
+        : (cachedSongs ?? const <PlaybackQueueItem>[]);
 
     final snapshotAvailable = localPlaylist != null || cachedSnapshot != null;
     if (!snapshotAvailable && songs.isEmpty) {
@@ -248,7 +251,7 @@ class PlaylistRepository {
     );
   }
 
-  Future<List<MediaItem>> _loadLocalSongs(
+  Future<List<PlaybackQueueItem>> _loadLocalSongs(
     List<String> trackIds, {
     required List<int> likedSongIds,
   }) async {
@@ -269,7 +272,7 @@ class PlaylistRepository {
     if (orderedTracks.isEmpty) {
       return const [];
     }
-    return MediaItemMapper.fromTrackWithResourcesList(
+    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
       orderedTracks,
       likedSongIds: likedSongIds,
     );

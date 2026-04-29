@@ -1,9 +1,10 @@
-import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/core/network/operation_result.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_user_remote_data_source.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
@@ -53,7 +54,7 @@ class UserRepository {
     return _userScopedDataSource.loadPlaylistItems(userId, kind);
   }
 
-  Future<List<MediaItem>> loadCachedTrackList({
+  Future<List<PlaybackQueueItem>> loadCachedTrackList({
     required String userId,
     required UserTrackListKind kind,
     required List<int> likedSongIds,
@@ -143,71 +144,65 @@ class UserRepository {
     return summaries;
   }
 
-  Future<List<MediaItem>> fetchTodayRecommendSongs({
+  Future<List<PlaybackQueueItem>> fetchTodayRecommendSongs({
     required String userId,
     required List<int> likedSongIds,
   }) async {
-    final result = await _remoteDataSource.fetchTodayRecommendSongs(
-      likedSongIds: likedSongIds,
-    );
-    final tracks = result.tracks;
+    final tracks = await _remoteDataSource.fetchTodayRecommendSongs();
     await _libraryRepository.saveTracks(tracks);
     await _userScopedDataSource.replaceTrackList(
       userId,
       UserTrackListKind.dailyRecommend,
       tracks.map((track) => track.id).toList(),
     );
-    return _mediaItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
+    return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
-  Future<List<MediaItem>> fetchFmSongs({
+  Future<List<PlaybackQueueItem>> fetchFmSongs({
     required String userId,
     required List<int> likedSongIds,
   }) async {
-    final result = await _remoteDataSource.fetchFmSongs(
-      likedSongIds: likedSongIds,
-    );
-    await _libraryRepository.saveTracks(result.tracks);
+    final tracks = await _remoteDataSource.fetchFmSongs();
+    await _libraryRepository.saveTracks(tracks);
     await _userScopedDataSource.replaceTrackList(
       userId,
       UserTrackListKind.fm,
-      result.tracks.map((track) => track.id).toList(),
+      tracks.map((track) => track.id).toList(),
     );
-    return _mediaItemsFromSavedTracks(result.tracks,
-        likedSongIds: likedSongIds);
+    return _queueItemsFromSavedTracks(
+      tracks,
+      likedSongIds: likedSongIds,
+      mediaType: MediaType.fm,
+    );
   }
 
-  Future<List<MediaItem>> fetchHeartBeatSongs({
+  Future<List<PlaybackQueueItem>> fetchHeartBeatSongs({
     required String startSongId,
     required String randomLikedSongId,
     required bool fromPlayAll,
     required List<int> likedSongIds,
   }) async {
-    final result = await _remoteDataSource.fetchHeartBeatSongs(
+    final tracks = await _remoteDataSource.fetchHeartBeatSongs(
       startSongId: startSongId,
       randomLikedSongId: randomLikedSongId,
       fromPlayAll: fromPlayAll,
-      likedSongIds: likedSongIds,
     );
-    await _libraryRepository.saveTracks(result.tracks);
-    return _mediaItemsFromSavedTracks(result.tracks,
-        likedSongIds: likedSongIds);
+    await _libraryRepository.saveTracks(tracks);
+    return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
-  Future<List<MediaItem>> fetchSongsByIds({
+  Future<List<PlaybackQueueItem>> fetchSongsByIds({
     required List<String> ids,
     required List<int> likedSongIds,
   }) async {
-    final result = await _remoteDataSource.fetchSongsByIds(
+    final tracks = await _remoteDataSource.fetchSongsByIds(
       ids: ids,
-      likedSongIds: likedSongIds,
     );
-    await _libraryRepository.saveTracks(result.tracks);
-    return _mediaItemsFromSavedTracks(result.tracks,
-        likedSongIds: likedSongIds);
+    await _libraryRepository.saveTracks(tracks);
+    return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
-  Future<List<MediaItem>> loadCachedSongsByIds({
+  Future<List<PlaybackQueueItem>> loadCachedSongsByIds({
     required List<String> ids,
     required List<int> likedSongIds,
   }) async {
@@ -227,7 +222,7 @@ class UserRepository {
     if (orderedTracks.isEmpty) {
       return const [];
     }
-    return MediaItemMapper.fromTrackWithResourcesList(
+    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
       orderedTracks,
       likedSongIds: likedSongIds,
     );
@@ -250,9 +245,8 @@ class UserRepository {
     }
     final result = await _remoteDataSource.fetchSongsByIds(
       ids: [songId],
-      likedSongIds: const [],
     );
-    await _libraryRepository.saveTracks(result.tracks);
+    await _libraryRepository.saveTracks(result);
     return loadCachedSongAlbumUrl(songId);
   }
 
@@ -299,9 +293,10 @@ class UserRepository {
     return 'netease:$songId';
   }
 
-  Future<List<MediaItem>> _mediaItemsFromSavedTracks(
+  Future<List<PlaybackQueueItem>> _queueItemsFromSavedTracks(
     List<Track> tracks, {
     required List<int> likedSongIds,
+    MediaType? mediaType,
   }) async {
     if (tracks.isEmpty) {
       return const [];
@@ -309,9 +304,10 @@ class UserRepository {
     final mergedTracks = await _libraryRepository.getTracksByIds(
       tracks.map((track) => track.id),
     );
-    return MediaItemMapper.fromTrackList(
+    return PlaybackQueueItemMapper.fromTrackList(
       mergedTracks.isEmpty ? tracks : mergedTracks,
       likedSongIds: likedSongIds,
+      mediaType: mediaType,
     );
   }
 

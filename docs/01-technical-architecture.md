@@ -17,10 +17,10 @@
 
 ## 2. 当前仓库现状
 
-当前项目功能完整，但职责分布仍然交叉：
+当前项目功能完整，核心兼容层已经开始退出，剩余问题集中在部分控制器仍偏厚：
 
-- [`lib/features/shell/shell_controller.dart`](../lib/features/shell/shell_controller.dart) 同时承担壳层 UI 状态、播放入口和部分业务编排
-- [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart) 与 [`lib/features/playback/application/audio_service_handler.dart`](../lib/features/playback/application/audio_service_handler.dart) 已形成播放链路，`MediaItem` 适配限定在播放 application/service 层
+- [`lib/features/shell/shell_controller.dart`](../lib/features/shell/shell_controller.dart) 只保留底部播放面板、顶部搜索面板、抽屉返回键、歌词滚动和专辑页 UI 协调，不再作为 user/settings/player 总代理
+- [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart) 与 [`lib/features/playback/application/audio_service_handler.dart`](../lib/features/playback/application/audio_service_handler.dart) 已形成播放链路，页面和 repository 消费 `PlaybackQueueItem`，`MediaItem` 只留在 audio_service 适配边界
 - [`lib/features/user/user_controller.dart`](../lib/features/user/user_controller.dart) 同时承担用户状态、推荐内容、喜欢歌曲、FM、心动模式等职责
 - 页面已并入对应 feature 的 `presentation` 目录，仍需继续缩小页面内用例逻辑，例如：
   - [`lib/features/auth/presentation/login_page_view.dart`](../lib/features/auth/presentation/login_page_view.dart)
@@ -55,6 +55,7 @@
 - 后期迁移 `Riverpod` 时只替换 binding/provider 与 controller 创建方式
 - `domain / data / repository` 不依赖 `GetX`、`Rx` 或全局容器读取
 - `Hive` 只保留设置、登录态和轻量缓存；正式媒体库与用户作用域数据进入 `Drift`
+- 业务列表缓存统一进入 Drift `app_cache_entries`，不再直接读写 `CacheBox.instance`
 - 数据库升级允许破坏式重建，不保留历史本地数据搬运逻辑
 
 ### 3.3 当前确认的产品偏好
@@ -95,13 +96,13 @@
 
 后续默认数据流如下：
 
-`UI / Controller -> Repository / Service -> Local Library -> Netease / Local -> Remote`
+`UI / Controller -> Repository / Service -> Local Library / App Cache -> Netease / Local -> Remote`
 
 规则：
 
 - UI 优先读取本地数据库或本地缓存，不直接依赖远程响应
 - 远程接口、扫描器、下载器负责写入本地库，而不是直接成为页面数据源
-- 播放器优先消费统一媒体实体与本地可播放地址
+- 播放器对外优先消费 `PlaybackQueueItem` 与本地可播放地址
 - 远程请求主要承担同步、补全和刷新职责
 
 ### 4.3 本地优先规则
@@ -121,7 +122,11 @@
   - 登录态
   - 设置项
   - 离线模式开关
-  - 极轻量配置缓存
+  - 轻量 session 与视觉缓存
+- Drift 通用业务缓存
+  - `app_cache_entries`
+  - 热搜、探索页、歌单详情快照等 JSON TTL 缓存
+  - 只作为页面首屏缓存，不作为媒体库事实源
 - 正式本地媒体库
   - 歌曲
   - 歌词
@@ -242,9 +247,11 @@
 - controller 负责首次加载、刷新、分页和游标推进
 - 通用组件不再执行请求、不再解析 JSON、不再管理分页参数
 
-### 6.2 Mapper
+### 6.2 PlaybackQueueItem 与 Mapper
 
-- 所有 `Song2`、`CloudSongItem`、歌单详情等到 `MediaItem` 的转换统一收口
+- repository、controller、页面之间统一传递 `PlaybackQueueItem`
+- `PlaybackQueueItem` 字段固定为播放队列需要的领域数据，不依赖 audio_service
+- `PlaybackQueueItem <-> MediaItem` 转换只允许在播放 adapter/service/application 边界
 - 页面和零散组件中禁止重复拼装 `MediaItem`
 - 平台 Bean 到领域实体的转换统一收口到 `data/mappers`
 - 专辑页、歌手页、推荐歌曲等展示链路优先消费统一实体，不再让页面直接依赖网易云 `Album`、`Artist`、`Song2`
@@ -252,8 +259,11 @@
 ### 6.3 Shell 协调层
 
 - 首页壳层 UI 状态与业务入口分离
-- `ShellController` 的长期目标是拆薄
-- 壳层状态独立为 `features/shell/controller`
+- `ShellController` 只负责壳层 UI 协调，不代理 user/settings/player 数据
+- 首页抽屉和 tab 状态读取 `HomeShellController`
+- 用户数据读取 `UserController`
+- 播放动作和播放状态读取 `PlayerController`
+- 设置和主题色读取 `SettingsController`
 - 页面不应直接驱动 `audioHandler`，也不应继续通过 `ShellController` 充当播放代理；播放主链路统一经由 `PlayerController` 暴露入口
 - `PlayerController` 不再直接初始化底层播放器实例，音频服务生命周期统一收口到 `PlaybackService`
 - 漫游模式续队列、喜欢歌曲播放和模式初始化等队列编排优先下沉到 `PlaybackService`，控制器只保留状态与交互协作
@@ -289,7 +299,7 @@
 - `ShellController` 中直接暴露旧运行态与歌词态的兼容 getter 已移除，壳层统一改经 `PlaybackSessionState / PlaybackRuntimeState / PlaybackLyricState` 读取播放状态
 - `PlayerController` 中旧 `curPlaying* / curPlay* / lyrics*` 兼容字段已移除，播放控制器与页面层统一开始以播放状态对象为唯一事实源
 - 页面层对 `curPlayListName / curPlayListNameHeader / isPlayingLikedSongs` 的依赖已切到 `PlaybackSessionState`，会话态兼容字段开始退出壳层和控制器
-- 当前播放歌曲的下载与删除下载入口已收口到 `PlayerController`，并通过 `DownloadRepository` 回写本地资源后再同步当前 `MediaItem`
+- 当前播放歌曲的下载与删除下载入口已收口到 `PlayerController`，并通过 `DownloadRepository` 回写本地资源后再同步当前 `PlaybackQueueItem`
 - 下载任务已经接入独立页面入口，设置页和当前播放面板都能直接触发下载管理、删除下载和失败重试动作
 - 本地歌曲管理页已按 `全部 / 缓存 / 已下载 / 本地导入` 展示本地资源，已下载状态由 `local_resource_entries` 表达
 - `download_tasks` 只承接 `queued / downloading / failed` 等下载过程状态，下载成功后以资源索引作为事实源
@@ -335,8 +345,8 @@
 
 `MediaItem` 的定位：
 
-- 播放层适配模型
-- 用于 `audio_service` 和播放队列
+- 播放层适配模型，只服务 `audio_service`、通知栏和底层 handler
+- 不再作为 repository、controller、页面之间的应用层队列模型
 
 应用层长期核心实体包括：
 
@@ -346,7 +356,7 @@
 - `ArtistEntity`
 - `PlaylistEntity`
 - `PlaylistTrackRef`
-- `PlaybackQueue`
+- `PlaybackQueueItem`
 - `DownloadTask`
 - `SourceAccount`
 

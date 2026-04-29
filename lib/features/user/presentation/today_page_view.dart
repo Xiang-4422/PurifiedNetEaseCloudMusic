@@ -2,7 +2,7 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
-import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/features/user/user_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -10,12 +10,13 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
-class TodayPageView extends GetView<ShellController> {
+class TodayPageView extends StatelessWidget {
   const TodayPageView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    String albumUrl = controller.todayRecommendSongs[0].extras?['image'] ?? '';
+    final songs = UserController.to.todayRecommendSongs;
+    final albumUrl = songs.isEmpty ? '' : songs.first.artworkUrl ?? '';
     final localAlbumPath = ArtworkPathResolver.resolveDisplayPath(albumUrl);
 
     return Container(
@@ -88,7 +89,7 @@ class TodayPageView extends GetView<ShellController> {
                           color: Colors.white,
                         ),
                         onPressed: () => PlayerController.to.playPlaylist(
-                              controller.todayRecommendSongs,
+                              songs,
                               0,
                               playListName: "每日推荐",
                             )),
@@ -108,15 +109,15 @@ class TodayPageView extends GetView<ShellController> {
         ),
         SliverList(
           delegate: SliverChildBuilderDelegate(
-            childCount: controller.todayRecommendSongs.length + 1,
+            childCount: songs.length + 1,
             (BuildContext context, int index) {
-              if (index == controller.todayRecommendSongs.length) {
+              if (index == songs.length) {
                 return const SizedBox(
                   height: AppDimensions.bottomPanelHeaderHeight,
                 );
               }
               return SongItem(
-                      playlist: controller.todayRecommendSongs,
+                      playlist: songs,
                       index: index,
                       playListName: "今日推荐",
                       stringColor: Colors.black,

@@ -6,9 +6,12 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/features/user/user_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -41,8 +44,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   String playlistName = '';
   String? coverUrl;
   int? trackCount;
-  List<MediaItem> songs = <MediaItem>[];
-  int loadedMediaItemCount = 0;
+  List<PlaybackQueueItem> songs = <PlaybackQueueItem>[];
+  int loadedSongCount = 0;
 
   bool isSubscribed = false;
   bool isMyPlayList = false;
@@ -103,7 +106,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            "歌单·${trackCount ?? loadedMediaItemCount}首",
+                            "歌单·${trackCount ?? loadedSongCount}首",
                             style: context.textTheme.titleSmall?.copyWith(
                               color: widgetColor.withValues(alpha: 0.8),
                             ),
@@ -135,22 +138,17 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                 onPressed: () async {
-                                  await ShellController.to.playerController
-                                      .setRepeatMode(
-                                          AudioServiceRepeatMode.all);
+                                  await PlayerController.to.setRepeatMode(
+                                      AudioServiceRepeatMode.all);
                                   ShellController.to.jumpBottomPanelToPage(0);
                                   ShellController.to.openBottomPanel();
                                   // 根据当前播放模式，决定从哪个位置开始播放
-                                  int startIndex = ShellController
-                                              .to
-                                              .playbackSessionState
-                                              .value
-                                              .repeatMode ==
+                                  int startIndex = PlayerController.to
+                                              .sessionState.value.repeatMode ==
                                           AudioServiceRepeatMode.none
-                                      ? Random().nextInt(loadedMediaItemCount)
+                                      ? Random().nextInt(loadedSongCount)
                                       : 0;
-                                  await ShellController.to.playerController
-                                      .playPlaylist(
+                                  await PlayerController.to.playPlaylist(
                                     songs,
                                     startIndex,
                                     playListName: playlistName,
@@ -200,22 +198,17 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                 onPressed: () async {
-                                  await ShellController.to.playerController
-                                      .setRepeatMode(
-                                          AudioServiceRepeatMode.none);
+                                  await PlayerController.to.setRepeatMode(
+                                      AudioServiceRepeatMode.none);
                                   ShellController.to.jumpBottomPanelToPage(0);
                                   ShellController.to.openBottomPanel();
                                   // 根据当前播放模式，决定从哪个位置开始播放
-                                  int startIndex = ShellController
-                                              .to
-                                              .playbackSessionState
-                                              .value
-                                              .repeatMode ==
+                                  int startIndex = PlayerController.to
+                                              .sessionState.value.repeatMode ==
                                           AudioServiceRepeatMode.none
-                                      ? Random().nextInt(loadedMediaItemCount)
+                                      ? Random().nextInt(loadedSongCount)
                                       : 0;
-                                  await ShellController.to.playerController
-                                      .playPlaylist(
+                                  await PlayerController.to.playPlaylist(
                                     songs,
                                     startIndex,
                                     playListName: widget.playlistName,
@@ -259,7 +252,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                             },
                           );
                         },
-                        childCount: loadedMediaItemCount,
+                        childCount: loadedSongCount,
                       ),
                     ),
                   ),
@@ -277,8 +270,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   Future<void> _loadPlaylistData() async {
     final localDetail = await _repository.loadLocalPlaylistDetail(
       playlistId: widget.playlistId,
-      likedSongIds: ShellController.to.likedSongIds.toList(),
-      currentUserId: ShellController.to.userInfo.value.userId,
+      likedSongIds: UserController.to.likedSongIds.toList(),
+      currentUserId: UserController.to.userInfo.value.userId,
     );
     final cachedSnapshot =
         await _repository.loadCachedSnapshot(widget.playlistId);
@@ -289,7 +282,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     }
     if (localDetail != null) {
       songs = localDetail.songs;
-      loadedMediaItemCount = songs.length;
+      loadedSongCount = songs.length;
       isSubscribed = localDetail.isSubscribed;
       isMyPlayList = localDetail.isMyPlayList;
       await _updateArtworkColors(_resolvedCoverUrl);
@@ -312,8 +305,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     }
     final data = await _repository.fetchPlaylistDetail(
       playlistId: widget.playlistId,
-      likedSongIds: ShellController.to.likedSongIds.toList(),
-      currentUserId: ShellController.to.userInfo.value.userId,
+      likedSongIds: UserController.to.likedSongIds.toList(),
+      currentUserId: UserController.to.userInfo.value.userId,
     );
     final snapshot = await _repository.loadCachedSnapshot(widget.playlistId);
     if (snapshot != null) {
@@ -322,7 +315,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       trackCount = snapshot.trackCount ?? trackCount;
     }
     songs = data.songs;
-    loadedMediaItemCount = songs.length;
+    loadedSongCount = songs.length;
     isSubscribed = data.isSubscribed;
     isMyPlayList = data.isMyPlayList;
     await _updateArtworkColors(_resolvedCoverUrl);
@@ -345,7 +338,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     final value = await _repository.toggleSubscription(
       widget.playlistId,
       subscribe: !isSubscribed,
-      currentUserId: ShellController.to.userInfo.value.userId,
+      currentUserId: UserController.to.userInfo.value.userId,
     );
     if (value.success && mounted) {
       setState(() {

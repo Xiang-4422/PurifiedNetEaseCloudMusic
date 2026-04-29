@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
@@ -8,6 +7,7 @@ import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
@@ -35,7 +35,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
   late String artistId;
   late ArtistEntity artist;
 
-  final List<MediaItem> topSongs = [];
+  final List<PlaybackQueueItem> topSongs = [];
   final List<AlbumEntity> hotAlbums = [];
 
   bool loading = true;

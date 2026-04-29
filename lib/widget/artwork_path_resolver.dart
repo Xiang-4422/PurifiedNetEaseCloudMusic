@@ -1,4 +1,4 @@
-import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 
 /// 封面展示路径选择工具。
 ///
@@ -21,14 +21,14 @@ class ArtworkPathResolver {
   /// 本地文件渲染。
   static String? resolvePreferredArtwork(
     String? artworkUrl, {
-    Iterable<MediaItem> fallbackItems = const <MediaItem>[],
+    Iterable<PlaybackQueueItem> fallbackItems = const <PlaybackQueueItem>[],
   }) {
     for (final item in fallbackItems) {
-      final localArtworkPath = '${item.extras?['localArtworkPath'] ?? ''}';
+      final localArtworkPath = item.localArtworkPath ?? '';
       if (_isLocalPath(localArtworkPath)) {
         return localArtworkPath;
       }
-      final image = '${item.extras?['image'] ?? ''}';
+      final image = item.artworkUrl ?? '';
       if (_isLocalPath(image)) {
         return image;
       }
@@ -37,7 +37,7 @@ class ArtworkPathResolver {
       return artworkUrl;
     }
     for (final item in fallbackItems) {
-      final image = '${item.extras?['image'] ?? ''}';
+      final image = item.artworkUrl ?? '';
       if (_isLocalPath(image)) {
         return image;
       }

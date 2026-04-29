@@ -6,10 +6,10 @@ import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 class ExploreRepository {
   ExploreRepository({
     NeteaseExploreRemoteDataSource? remoteDataSource,
-    ExploreCacheStore? cacheStore,
+    required ExploreCacheStore cacheStore,
   })  : _remoteDataSource =
             remoteDataSource ?? const NeteaseExploreRemoteDataSource(),
-        _cacheStore = cacheStore ?? const ExploreCacheStore();
+        _cacheStore = cacheStore;
 
   final NeteaseExploreRemoteDataSource _remoteDataSource;
   final ExploreCacheStore _cacheStore;
@@ -18,7 +18,7 @@ class ExploreRepository {
     return _cacheStore.loadPlaylistCatalogue();
   }
 
-  bool isPlaylistCatalogueFresh({
+  Future<bool> isPlaylistCatalogueFresh({
     required Duration ttl,
   }) {
     return _cacheStore.isPlaylistCatalogueFresh(ttl: ttl);
@@ -40,7 +40,7 @@ class ExploreRepository {
     return _cacheStore.loadCategoryPlaylists(category);
   }
 
-  bool isCategoryPlaylistsFresh(
+  Future<bool> isCategoryPlaylistsFresh(
     String category, {
     required Duration ttl,
   }) {

@@ -1,6 +1,6 @@
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
@@ -48,7 +48,7 @@ class _CloudDriveViewState extends State<CloudDriveView> {
               MediaQuery.of(context).padding.top + AppDimensions.appBarHeight,
         ),
         Expanded(
-          child: ValueListenableBuilder<PagedState<MediaItem>>(
+          child: ValueListenableBuilder<PagedState<PlaybackQueueItem>>(
             valueListenable: _controller.state,
             builder: (context, state, child) {
               if (state.initialLoading) {

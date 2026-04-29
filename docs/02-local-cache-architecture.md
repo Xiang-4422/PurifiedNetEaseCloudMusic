@@ -14,7 +14,8 @@
 - 用户相关数据按 `user_id` 隔离，不允许跨账号串读
 - `local_resource_entries` 是音频、封面、歌词的唯一本地资源事实源
 - 页面默认采用“本地优先 + 后台刷新”
-- `Hive` 只承接会话、设置和匿名公共轻缓存，不再承接账号事实数据
+- `Hive` 只承接会话、设置和轻量视觉缓存，不再承接业务列表缓存或账号事实数据
+- 业务列表 TTL 缓存统一进入 Drift `app_cache_entries`
 - `Repository` 负责远端数据回写本地，页面不直接依赖远端响应作为事实源
 
 ## 3. 存储分层
@@ -26,7 +27,7 @@
 - 当前登录会话
 - 设置项
 - 离线模式开关
-- 匿名公共 TTL 缓存，例如 `search hot keywords`、`explore`
+- 轻量视觉缓存，例如图片取色
 
 禁止再把以下数据写入 `Hive` 作为事实源：
 
@@ -38,6 +39,7 @@
 - 推荐歌单
 - 歌单订阅态
 - 电台订阅与节目列表
+- 热搜、探索页、歌单详情、云盘等业务列表缓存
 
 ### 3.2 Drift 全局实体表
 
@@ -59,12 +61,14 @@
 - `playback_restore_snapshots`
 - `local_resource_entries`
 - `download_tasks`
+- `app_cache_entries`
 
 规则：
 
 - `playback_restore_snapshots` 是播放恢复快照的事实源
 - `local_resource_entries` 是音频、封面、歌词本地文件的唯一事实源
 - `download_tasks` 只表示手动下载过程，不表示最终资源结果
+- `app_cache_entries` 承接通用业务 JSON 缓存，按 `cache_key`、`payload_json`、`updated_at_ms` 存储
 - `tracks` 不再保存本地路径、下载状态、资源来源等字段
 
 ### 3.4 Drift 用户作用域表
@@ -218,13 +222,26 @@
 
 统一读取路径：
 
-`user_track_list_refs -> tracks -> 内存重排 -> MediaItem`
+`user_track_list_refs -> tracks -> 内存重排 -> PlaybackQueueItem`
 
 规则：
 
 - 先查当前用户列表关系和顺序
 - 再批量查全局 `tracks`
 - 不允许从旧 `Hive` 用户 key 读首屏数据
+
+### 6.2.1 通用业务缓存
+
+读取路径：
+
+`Repository -> CacheStore -> AppCacheDataSource -> app_cache_entries`
+
+规则：
+
+- `SearchCacheStore`、`ExploreCacheStore`、`PlaylistCacheStore`、`CloudCacheStore`、`RadioCacheStore`、`UserProfileCacheStore` 不再读取 `CacheBox.instance`
+- TTL 判断基于 `app_cache_entries.updated_at_ms`
+- 缓存内容统一保存为 JSON 字符串
+- 这类缓存只能服务首屏与短时刷新判断，不能替代正式媒体库和用户作用域表
 
 ### 6.3 用户歌单 / 推荐歌单 / 我喜欢的音乐
 
@@ -651,7 +668,7 @@ Field-Key Relation：
 
 - 先读关系和顺序
 - 再批量读 `tracks`
-- 再内存重排装配页面和 `MediaItem`
+- 再内存重排装配页面和 `PlaybackQueueItem`
 
 典型写路径与失效：
 

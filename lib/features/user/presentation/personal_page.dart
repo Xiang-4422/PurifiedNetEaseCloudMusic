@@ -1,7 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/features/user/user_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/common_widgets.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -82,12 +84,12 @@ class PersonalPageView extends GetView<ShellController> {
                               child: QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl:
-                                    controller.todayRecommendSongs.isNotEmpty
-                                        ? (controller.todayRecommendSongs[0]
-                                                .extras?['image'] ??
-                                            '')
-                                        : '',
+                                albumUrl: UserController
+                                        .to.todayRecommendSongs.isNotEmpty
+                                    ? (UserController.to.todayRecommendSongs[0]
+                                            .artworkUrl ??
+                                        '')
+                                    : '',
                                 icon: TablerIcons.calendar,
                                 title: "每日推荐",
                                 onTap: () => context.router
@@ -96,12 +98,13 @@ class PersonalPageView extends GetView<ShellController> {
                               builder: (_) {
                                 return ListView.builder(
                                   padding: EdgeInsets.zero,
-                                  itemCount:
-                                      controller.todayRecommendSongs.length,
+                                  itemCount: UserController
+                                      .to.todayRecommendSongs.length,
                                   itemBuilder:
                                       (BuildContext context, int index) {
                                     return SongItem(
-                                      playlist: controller.todayRecommendSongs,
+                                      playlist:
+                                          UserController.to.todayRecommendSongs,
                                       index: index,
                                       playListName: '',
                                     );
@@ -110,22 +113,22 @@ class PersonalPageView extends GetView<ShellController> {
                               },
                             ),
                             Visibility(
-                              visible: controller.isPlaying.isTrue &&
-                                  (controller.playbackSessionState.value
-                                          .playlistName ==
+                              visible: PlayerController.to.isPlaying.isTrue &&
+                                  (PlayerController
+                                          .to.sessionState.value.playlistName ==
                                       "每日推荐"),
                               replacement: IconButton(
                                   onPressed: () {
-                                    if (controller.playbackSessionState.value
+                                    if (PlayerController.to.sessionState.value
                                             .playlistName !=
                                         "每日推荐") {
-                                      controller.playerController.playPlaylist(
-                                        controller.todayRecommendSongs,
+                                      PlayerController.to.playPlaylist(
+                                        UserController.to.todayRecommendSongs,
                                         0,
                                         playListName: "每日推荐",
                                       );
                                     } else {
-                                      controller.playOrPause();
+                                      PlayerController.to.playOrPause();
                                     }
                                   },
                                   icon: const Icon(
@@ -143,15 +146,16 @@ class PersonalPageView extends GetView<ShellController> {
                           alignment: Alignment.bottomRight,
                           children: [
                             Obx(() {
-                              final currentSong = controller.currentSong.value;
+                              final currentSong =
+                                  PlayerController.to.currentSongState.value;
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: controller.isFmMode.isTrue
-                                    ? (currentSong.extras?['image'] ?? '')
-                                    : (controller.fmSongs.isNotEmpty
-                                        ? (controller
-                                                .fmSongs[0].extras?['image'] ??
+                                albumUrl: PlayerController.to.isFmMode.isTrue
+                                    ? (currentSong.artworkUrl ?? '')
+                                    : (UserController.to.fmSongs.isNotEmpty
+                                        ? (UserController
+                                                .to.fmSongs[0].artworkUrl ??
                                             '')
                                         : ''),
                                 icon: TablerIcons.infinity,
@@ -159,13 +163,14 @@ class PersonalPageView extends GetView<ShellController> {
                                 onTap: () {
                                   controller.jumpBottomPanelToPage(1);
                                   controller.openBottomPanel();
-                                  controller.playerController.openFmMode();
+                                  PlayerController.to.openFmMode();
                                 },
                               );
                             }),
                             Offstage(
-                                offstage: controller.isFmMode.isFalse ||
-                                    controller.isPlaying.isFalse,
+                                offstage:
+                                    PlayerController.to.isFmMode.isFalse ||
+                                        PlayerController.to.isPlaying.isFalse,
                                 child: Lottie.asset(
                                     'assets/lottie/music_playing.json',
                                     width: 50)),
@@ -175,28 +180,32 @@ class PersonalPageView extends GetView<ShellController> {
                           alignment: Alignment.bottomRight,
                           children: [
                             Obx(() {
-                              final currentSong = controller.currentSong.value;
+                              final currentSong =
+                                  PlayerController.to.currentSongState.value;
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: controller.isHeartBeatMode.isTrue
-                                    ? (currentSong.extras?['image'] ?? '')
-                                    : controller.randomLikedSongAlbumUrl.value,
+                                albumUrl:
+                                    PlayerController.to.isHeartBeatMode.isTrue
+                                        ? (currentSong.artworkUrl ?? '')
+                                        : UserController
+                                            .to.randomLikedSongAlbumUrl.value,
                                 icon: TablerIcons.heartbeat,
                                 title: "心动模式",
                                 onTap: () {
                                   controller.jumpBottomPanelToPage(1);
                                   controller.openBottomPanel();
-                                  controller.playerController.openHeartBeatMode(
-                                    controller.randomLikedSongId.value,
+                                  PlayerController.to.openHeartBeatMode(
+                                    UserController.to.randomLikedSongId.value,
                                     fromPlayAll: true,
                                   );
                                 },
                               );
                             }),
                             Offstage(
-                                offstage: controller.isHeartBeatMode.isFalse ||
-                                    controller.isPlaying.isFalse,
+                                offstage: PlayerController
+                                        .to.isHeartBeatMode.isFalse ||
+                                    PlayerController.to.isPlaying.isFalse,
                                 child: Lottie.asset(
                                     'assets/lottie/music_playing.json',
                                     width: 50)),
@@ -216,14 +225,14 @@ class PersonalPageView extends GetView<ShellController> {
           // 我的歌单
           SliverToBoxAdapter(
               child: PlayListWidget(
-            playLists: controller.userPlayLists,
+            playLists: UserController.to.userPlayLists,
             albumCountInWidget: 3.2,
             albumMargin: AppDimensions.paddingSmall,
             showSongCount: false,
           )),
           // 我的喜欢
           SliverToBoxAdapter(
-              child: PlayListItem(controller.userLikedSongPlayList.value)
+              child: PlayListItem(UserController.to.userLikedSongPlayList.value)
                   .paddingSymmetric(horizontal: AppDimensions.paddingSmall)),
 
           // 推荐歌单 Header
@@ -247,9 +256,9 @@ class PersonalPageView extends GetView<ShellController> {
           ),
           // 推荐歌单列表
           SliverList.builder(
-            itemCount: controller.recoPlayLists.length,
+            itemCount: UserController.to.recoPlayLists.length,
             itemBuilder: (BuildContext context, int index) {
-              return PlayListItem(controller.recoPlayLists[index])
+              return PlayListItem(UserController.to.recoPlayLists[index])
                   .paddingSymmetric(horizontal: AppDimensions.paddingSmall);
             },
           ),

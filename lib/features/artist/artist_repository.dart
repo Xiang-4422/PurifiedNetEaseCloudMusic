@@ -1,8 +1,8 @@
-import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/netease/netease_artist_remote_data_source.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 
@@ -14,7 +14,7 @@ class ArtistDetailData {
   });
 
   final ArtistEntity artist;
-  final List<MediaItem> topSongs;
+  final List<PlaybackQueueItem> topSongs;
   final List<AlbumEntity> hotAlbums;
 }
 
@@ -41,7 +41,10 @@ class ArtistRepository {
     final hotAlbums = await _libraryRepository.searchLocalAlbums(artist.name);
     return ArtistDetailData(
       artist: artist,
-      topSongs: _mapTracksToMediaItems(topTracks, likedSongIds: likedSongIds),
+      topSongs: _mapTracksToPlaybackQueueItems(
+        topTracks,
+        likedSongIds: likedSongIds,
+      ),
       hotAlbums: hotAlbums
           .where((album) => album.artistNames.contains(artist.name))
           .toList(),
@@ -54,7 +57,6 @@ class ArtistRepository {
   }) async {
     final result = await _remoteDataSource.fetchArtistDetail(
       artistId: artistId,
-      likedSongIds: likedSongIds,
     );
     final artist = result.artist;
     final tracks = result.topTracks;
@@ -67,18 +69,24 @@ class ArtistRepository {
 
     return ArtistDetailData(
       artist: artist!,
-      topSongs: result.topMediaItems,
+      topSongs: _mapTracksToPlaybackQueueItems(
+        tracks,
+        likedSongIds: likedSongIds,
+      ),
       hotAlbums: albums,
     );
   }
 
-  List<MediaItem> _mapTracksToMediaItems(
+  List<PlaybackQueueItem> _mapTracksToPlaybackQueueItems(
     List<Track> tracks, {
     required List<int> likedSongIds,
   }) {
     if (tracks.isEmpty) {
       return const [];
     }
-    return MediaItemMapper.fromTrackList(tracks, likedSongIds: likedSongIds);
+    return PlaybackQueueItemMapper.fromTrackList(
+      tracks,
+      likedSongIds: likedSongIds,
+    );
   }
 }

@@ -1,5 +1,3 @@
-import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_album_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
@@ -13,10 +11,8 @@ class NeteaseAlbumRemoteDataSource {
       ({
         AlbumEntity? album,
         List<Track> tracks,
-        List<MediaItem> mediaItems,
       })> fetchAlbumDetail({
     required String albumId,
-    required List<int> likedSongIds,
   }) async {
     final albumDetail = await NeteaseMusicApi().albumDetail(albumId);
     final album = albumDetail.album == null
@@ -27,10 +23,6 @@ class NeteaseAlbumRemoteDataSource {
     return (
       album: album,
       tracks: tracks,
-      mediaItems: MediaItemMapper.fromTrackList(
-        tracks,
-        likedSongIds: likedSongIds,
-      ),
     );
   }
 }

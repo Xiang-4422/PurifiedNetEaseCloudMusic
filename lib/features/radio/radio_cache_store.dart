@@ -1,11 +1,22 @@
-import 'package:bujuan/core/storage/cache_box.dart';
+import 'dart:convert';
+
+import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/domain/entities/radio_data.dart';
 
 class RadioCacheStore {
-  const RadioCacheStore();
+  const RadioCacheStore({
+    required AppCacheDataSource cacheDataSource,
+  }) : _cacheDataSource = cacheDataSource;
+
+  final AppCacheDataSource _cacheDataSource;
 
   Future<List<RadioSummaryData>?> loadSubscribedRadios() async {
-    final cachedItems = CacheBox.instance.get(_subscribedRadioKey);
+    final payloadJson =
+        await _cacheDataSource.loadPayloadJson(_subscribedRadioKey);
+    if (payloadJson == null) {
+      return null;
+    }
+    final cachedItems = jsonDecode(payloadJson);
     if (cachedItems is! List) {
       return null;
     }
@@ -21,14 +32,19 @@ class RadioCacheStore {
   }
 
   Future<void> saveSubscribedRadios(List<RadioSummaryData> items) async {
-    await CacheBox.instance.put(
-      _subscribedRadioKey,
-      items.map((item) => item.toJson()).toList(),
+    await _cacheDataSource.save(
+      cacheKey: _subscribedRadioKey,
+      payloadJson: jsonEncode(items.map((item) => item.toJson()).toList()),
     );
   }
 
   Future<List<RadioProgramData>?> loadPrograms(String radioId) async {
-    final cachedItems = CacheBox.instance.get(_programKey(radioId));
+    final payloadJson =
+        await _cacheDataSource.loadPayloadJson(_programKey(radioId));
+    if (payloadJson == null) {
+      return null;
+    }
+    final cachedItems = jsonDecode(payloadJson);
     if (cachedItems is! List) {
       return null;
     }
@@ -47,9 +63,9 @@ class RadioCacheStore {
     String radioId,
     List<RadioProgramData> items,
   ) async {
-    await CacheBox.instance.put(
-      _programKey(radioId),
-      items.map((item) => item.toJson()).toList(),
+    await _cacheDataSource.save(
+      cacheKey: _programKey(radioId),
+      payloadJson: jsonEncode(items.map((item) => item.toJson()).toList()),
     );
   }
 

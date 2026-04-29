@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/explore/ranking_playlist_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
@@ -91,7 +91,7 @@ class ExplorePageController extends GetxController {
       <RankingPlaylistData>[].obs;
   RxString curTopPlayListName = "".obs;
   RxString curTopPlayListId = "".obs;
-  RxList<MediaItem> curTopPlayListSongs = <MediaItem>[].obs;
+  RxList<PlaybackQueueItem> curTopPlayListSongs = <PlaybackQueueItem>[].obs;
   RxList<PlaylistSummaryData> playLists = <PlaylistSummaryData>[].obs;
 
   RxBool loading = true.obs;
@@ -127,7 +127,7 @@ class ExplorePageController extends GetxController {
     final hasCachedData = await _loadCachedInitialData();
     if (hasCachedData) {
       loading.value = false;
-      if (_shouldRefreshInitialData()) {
+      if (await _shouldRefreshInitialData()) {
         unawaited(updateData());
       }
       return;
@@ -168,16 +168,18 @@ class ExplorePageController extends GetxController {
     return hasCachedData;
   }
 
-  bool _shouldRefreshInitialData() {
-    return !_repository.isPlaylistCatalogueFresh(ttl: _playlistCatalogueTtl) ||
-        !_repository.isCategoryPlaylistsFresh(
+  Future<bool> _shouldRefreshInitialData() async {
+    return !(await _repository.isPlaylistCatalogueFresh(
+          ttl: _playlistCatalogueTtl,
+        )) ||
+        !(await _repository.isCategoryPlaylistsFresh(
           curTag.value,
           ttl: _categoryPlaylistsTtl,
-        ) ||
-        !_playlistRepository.isCacheFresh(
+        )) ||
+        !(await _playlistRepository.isCacheFresh(
           curTopPlayListId.value,
           ttl: _rankingPlaylistTtl,
-        ) ||
+        )) ||
         tagCategorys.isEmpty ||
         playLists.isEmpty ||
         curTopPlayListSongs.isEmpty;
@@ -220,7 +222,7 @@ class ExplorePageController extends GetxController {
       likedSongIds: UserController.to.likedSongIds.toList(),
       currentUserId: UserController.to.userInfo.value.userId,
     );
-    final cachedSongs = cachedDetail?.songs ?? const <MediaItem>[];
+    final cachedSongs = cachedDetail?.songs ?? const <PlaybackQueueItem>[];
     if (cachedSongs.isEmpty) {
       return false;
     }
@@ -244,7 +246,9 @@ class ExplorePageController extends GetxController {
   Future<void> _refreshPlaylistCatalogue({bool force = false}) async {
     if (!force &&
         tagCategorys.isNotEmpty &&
-        _repository.isPlaylistCatalogueFresh(ttl: _playlistCatalogueTtl)) {
+        await _repository.isPlaylistCatalogueFresh(
+          ttl: _playlistCatalogueTtl,
+        )) {
       return;
     }
     final catalogue = await _repository.fetchPlaylistCatalogue();
@@ -255,7 +259,7 @@ class ExplorePageController extends GetxController {
     if (!force) {
       final hasCachedPlayLists = await _loadCachedPlayLists();
       if (hasCachedPlayLists &&
-          _repository.isCategoryPlaylistsFresh(
+          await _repository.isCategoryPlaylistsFresh(
             curTag.value,
             ttl: _categoryPlaylistsTtl,
           )) {
@@ -281,7 +285,7 @@ class ExplorePageController extends GetxController {
     if (offset == 0 && !force) {
       final hasCachedSongs = await _loadCachedRankingPlayListSongs();
       if (hasCachedSongs &&
-          _playlistRepository.isCacheFresh(
+          await _playlistRepository.isCacheFresh(
             curTopPlayListId.value,
             ttl: _rankingPlaylistTtl,
           )) {

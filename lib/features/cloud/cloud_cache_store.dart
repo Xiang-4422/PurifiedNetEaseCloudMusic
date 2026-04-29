@@ -1,22 +1,34 @@
-import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/core/playback/media_item_cache_codec.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
+import 'dart:convert';
+
+import 'package:bujuan/core/playback/playback_queue_item_cache_codec.dart';
+import 'package:bujuan/data/local/app_cache_data_source.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 
 class CloudCacheStore {
-  const CloudCacheStore();
+  const CloudCacheStore({
+    required AppCacheDataSource cacheDataSource,
+  }) : _cacheDataSource = cacheDataSource;
 
-  Future<List<MediaItem>?> loadSongs() async {
-    final cachedSongs = CacheBox.instance.get(_cloudSongsKey);
-    if (cachedSongs == null) {
+  final AppCacheDataSource _cacheDataSource;
+
+  Future<List<PlaybackQueueItem>?> loadSongs() async {
+    final payloadJson = await _cacheDataSource.loadPayloadJson(_cloudSongsKey);
+    if (payloadJson == null) {
       return null;
     }
-    return decodeMediaItemCacheList(cachedSongs.cast<String>());
+    final cachedSongs = jsonDecode(payloadJson);
+    if (cachedSongs is! List) {
+      return null;
+    }
+    return decodePlaybackQueueItemCacheList(
+      cachedSongs.map((item) => '$item').toList(),
+    );
   }
 
-  Future<void> saveSongs(List<MediaItem> songs) async {
-    await CacheBox.instance.put(
-      _cloudSongsKey,
-      await encodeMediaItemCacheList(songs),
+  Future<void> saveSongs(List<PlaybackQueueItem> songs) async {
+    await _cacheDataSource.save(
+      cacheKey: _cloudSongsKey,
+      payloadJson: jsonEncode(await encodePlaybackQueueItemCacheList(songs)),
     );
   }
 

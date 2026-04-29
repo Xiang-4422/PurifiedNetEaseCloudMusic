@@ -1,7 +1,5 @@
 import 'dart:math';
 
-import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
@@ -33,18 +31,13 @@ class NeteasePlaylistRemoteDataSource {
     );
   }
 
-  Future<
-      ({
-        List<Track> tracks,
-        List<MediaItem> mediaItems,
-      })> fetchPlaylistSongs({
+  Future<List<Track>> fetchPlaylistSongs({
     required List<String> songIds,
     required int offset,
     required int limit,
-    required List<int> likedSongIds,
   }) async {
     if (offset >= songIds.length) {
-      return (tracks: <Track>[], mediaItems: <MediaItem>[]);
+      return const [];
     }
 
     final targetIds = songIds.sublist(offset);
@@ -65,13 +58,7 @@ class NeteasePlaylistRemoteDataSource {
       );
     }
 
-    return (
-      tracks: tracks,
-      mediaItems: MediaItemMapper.fromTrackList(
-        tracks,
-        likedSongIds: likedSongIds,
-      ),
-    );
+    return tracks;
   }
 
   Future<({bool success, String? message})> toggleSubscription(

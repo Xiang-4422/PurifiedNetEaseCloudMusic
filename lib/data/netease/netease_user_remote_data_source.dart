@@ -1,10 +1,7 @@
 import 'dart:math';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
-import 'package:bujuan/data/netease/mappers/netease_media_item_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
@@ -47,49 +44,29 @@ class NeteaseUserRemoteDataSource {
     return NeteasePlaylistMapper.fromPlaylistList(wrap.playlists ?? const []);
   }
 
-  Future<({List<Track> tracks, List<MediaItem> mediaItems})>
-      fetchTodayRecommendSongs({
-    required List<int> likedSongIds,
-  }) async {
+  Future<List<Track>> fetchTodayRecommendSongs() async {
     final wrap = await NeteaseMusicApi().recommendSongList();
     if (wrap.code != 200) {
-      return (tracks: <Track>[], mediaItems: <MediaItem>[]);
+      return const [];
     }
-    final tracks = NeteaseTrackMapper.fromSong2List(
+    return NeteaseTrackMapper.fromSong2List(
       wrap.data.dailySongs ?? const [],
     );
-    return (
-      tracks: tracks,
-      mediaItems: MediaItemMapper.fromTrackList(
-        tracks,
-        likedSongIds: likedSongIds,
-      ),
-    );
   }
 
-  Future<({List<Track> tracks, List<MediaItem> mediaItems})> fetchFmSongs({
-    required List<int> likedSongIds,
-  }) async {
+  Future<List<Track>> fetchFmSongs() async {
     final wrap = await NeteaseMusicApi().userRadio();
     if (wrap.code != 200) {
-      return (tracks: <Track>[], mediaItems: <MediaItem>[]);
+      return const [];
     }
     final fmSongs = wrap.data ?? const [];
-    return (
-      tracks: NeteaseTrackMapper.fromSongList(fmSongs),
-      mediaItems: NeteaseMediaItemMapper.fromFmSongs(
-        fmSongs,
-        likedSongIds: likedSongIds,
-      ),
-    );
+    return NeteaseTrackMapper.fromSongList(fmSongs);
   }
 
-  Future<({List<Track> tracks, List<MediaItem> mediaItems})>
-      fetchHeartBeatSongs({
+  Future<List<Track>> fetchHeartBeatSongs({
     required String startSongId,
     required String randomLikedSongId,
     required bool fromPlayAll,
-    required List<int> likedSongIds,
   }) async {
     final wrap = await NeteaseMusicApi().playmodeIntelligenceList(
       startSongId,
@@ -98,26 +75,18 @@ class NeteaseUserRemoteDataSource {
       count: 20,
     );
     if (wrap.code != 200) {
-      return (tracks: <Track>[], mediaItems: <MediaItem>[]);
+      return const [];
     }
 
     final validSongs = (wrap.data ?? [])
         .where((song) => song.songInfo != null && song.songInfo!.id.isNotEmpty)
         .map((song) => song.songInfo!)
         .toList();
-    final tracks = NeteaseTrackMapper.fromSong2List(validSongs);
-    return (
-      tracks: tracks,
-      mediaItems: MediaItemMapper.fromTrackList(
-        tracks,
-        likedSongIds: likedSongIds,
-      ),
-    );
+    return NeteaseTrackMapper.fromSong2List(validSongs);
   }
 
-  Future<({List<Track> tracks, List<MediaItem> mediaItems})> fetchSongsByIds({
+  Future<List<Track>> fetchSongsByIds({
     required List<String> ids,
-    required List<int> likedSongIds,
   }) async {
     final tracks = <Track>[];
     while (tracks.length != ids.length) {
@@ -128,13 +97,7 @@ class NeteaseUserRemoteDataSource {
         NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []),
       );
     }
-    return (
-      tracks: tracks,
-      mediaItems: MediaItemMapper.fromTrackList(
-        tracks,
-        likedSongIds: likedSongIds,
-      ),
-    );
+    return tracks;
   }
 
   Future<String> fetchSongAlbumUrl(String songId) async {

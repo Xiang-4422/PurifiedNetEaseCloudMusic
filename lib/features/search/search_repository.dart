@@ -2,24 +2,24 @@ import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/netease_search_remote_data_source.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
-import 'package:bujuan/core/playback/media_item_mapper.dart';
+import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
-import 'package:audio_service/audio_service.dart';
 
 class SearchRepository {
   SearchRepository({
     required LibraryRepository libraryRepository,
     NeteaseSearchRemoteDataSource? remoteDataSource,
-    SearchCacheStore? cacheStore,
+    required SearchCacheStore cacheStore,
     required UserScopedDataSource userScopedDataSource,
   })  : _libraryRepository = libraryRepository,
         _remoteDataSource =
             remoteDataSource ?? const NeteaseSearchRemoteDataSource(),
-        _cacheStore = cacheStore ?? const SearchCacheStore(),
+        _cacheStore = cacheStore,
         _userScopedDataSource = userScopedDataSource;
 
   final LibraryRepository _libraryRepository;
@@ -31,7 +31,7 @@ class SearchRepository {
     return _cacheStore.loadHotKeywords();
   }
 
-  bool isHotKeywordCacheFresh({
+  Future<bool> isHotKeywordCacheFresh({
     required Duration ttl,
   }) {
     return _cacheStore.isHotKeywordsFresh(ttl: ttl);
@@ -45,7 +45,7 @@ class SearchRepository {
     return keywords;
   }
 
-  Future<List<MediaItem>> searchTrackMediaItems(
+  Future<List<PlaybackQueueItem>> searchTrackQueueItems(
     String keyword, {
     required List<int> likedSongIds,
   }) async {
@@ -54,7 +54,7 @@ class SearchRepository {
       final localTrackItems = await _libraryRepository.getTracksWithResources(
         localTracks.map((track) => track.id),
       );
-      return MediaItemMapper.fromTrackWithResourcesList(
+      return PlaybackQueueItemMapper.fromTrackWithResourcesList(
         localTrackItems,
         likedSongIds: likedSongIds,
       );
@@ -67,7 +67,7 @@ class SearchRepository {
     final trackItems = await _libraryRepository.getTracksWithResources(
       tracks.map((track) => track.id),
     );
-    return MediaItemMapper.fromTrackWithResourcesList(
+    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
       trackItems,
       likedSongIds: likedSongIds,
     );

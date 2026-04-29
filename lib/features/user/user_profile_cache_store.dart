@@ -1,13 +1,22 @@
 import 'dart:convert';
 
-import 'package:bujuan/core/storage/cache_box.dart';
+import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/domain/entities/user_profile_data.dart';
 
 class UserProfileCacheStore {
-  const UserProfileCacheStore();
+  const UserProfileCacheStore({
+    required AppCacheDataSource cacheDataSource,
+  }) : _cacheDataSource = cacheDataSource;
+
+  final AppCacheDataSource _cacheDataSource;
 
   Future<UserProfileData?> loadProfile(String userId) async {
-    final cachedProfile = CacheBox.instance.get(_profileCacheKey(userId));
+    final payloadJson =
+        await _cacheDataSource.loadPayloadJson(_profileCacheKey(userId));
+    if (payloadJson == null) {
+      return null;
+    }
+    final cachedProfile = jsonDecode(payloadJson);
     if (cachedProfile is! Map) {
       return null;
     }
@@ -19,23 +28,18 @@ class UserProfileCacheStore {
   }
 
   Future<void> saveProfile(UserProfileData profile) async {
-    await CacheBox.instance.put(
-      _profileCacheKey(profile.userId),
-      jsonDecode(jsonEncode(profile.toJson())),
+    await _cacheDataSource.save(
+      cacheKey: _profileCacheKey(profile.userId),
+      payloadJson: jsonEncode(profile.toJson()),
     );
   }
 
   Future<void> clearProfile(String userId) {
-    return CacheBox.instance.delete(_profileCacheKey(userId));
+    return _cacheDataSource.delete(_profileCacheKey(userId));
   }
 
-  Future<void> clearAllProfiles() async {
-    final keys = CacheBox.instance.keys
-        .where((key) => '$key'.startsWith(_profileKeyPrefix))
-        .toList();
-    for (final key in keys) {
-      await CacheBox.instance.delete(key);
-    }
+  Future<void> clearAllProfiles() {
+    return _cacheDataSource.deleteByPrefix(_profileKeyPrefix);
   }
 
   String _profileCacheKey(String userId) => 'USER_PROFILE_$userId';

@@ -23,12 +23,12 @@
 - [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart) 只保留播放 UI 状态和命令入口，音频流同步、模式命令、歌词 UI 计时分别由 `PlaybackStateSynchronizer`、`PlaybackModeCommandService`、`PlaybackLyricUiStateController` 承接
 - [`lib/features/playback/application/audio_service_handler.dart`](../lib/features/playback/application/audio_service_handler.dart) 保持在 audio_service/just_audio 边界，页面和 repository 消费 `PlaybackQueueItem`，`MediaItem` 只留在 audio_service 适配边界
 - 用户侧状态已拆分为 `UserSessionController`、`UserLibraryController`、`RecommendationController`，分别承接登录态、账号资料库和首页推荐内容
-- `DownloadRepository` 已缩为下载业务门面，内部职责拆到 `DownloadTaskQueue`、`DownloadFileStore`、`DownloadResourceWriter`、`DownloadRecoveryService`
+- `DownloadRepository` 已缩为下载业务门面，内部职责拆到 `DownloadTaskQueue`、`DownloadQueuePlanner`、`DownloadTaskStateStore`、`DownloadFileStore`、`DownloadResourceWriter`、`DownloadRecoveryService`
 - 应用装配仍保留单一 `AppBinding` 入口，内部拆为 infrastructure、repository、playback、user、feature controller、presentation adapter registrar
-- 页面用例已开始进入 application service/usecase，歌单详情、搜索、用户首页和下载队列/删除/恢复都有明确应用层入口
-- Drift 手写访问开始按 `TrackDao / PlaylistDao / UserDao / DownloadTaskDao / ResourceDao / CacheDao` 分类，data source 保留 facade 和组合职责
+- 页面用例已进入 application service/usecase，歌单详情、搜索、用户首页和下载队列/删除/恢复都有实际应用层编排入口，不再只是 repository 薄转发
+- Drift 手写访问已按 `TrackDao / PlaylistDao / UserDao / DownloadTaskDao / ResourceDao / CacheDao` 分类下沉，data source 保留 facade 和组合职责
 - `common/constants/other.dart`、旧 `log.dart`、旧 `platform_utils.dart` 已删除，toast、dialog、图片取色、时间格式、平台判断和日志分别进入 app/core 明确服务
-- 架构守护测试已经覆盖 GetX、MediaItem、CacheBox、presentation repository 直连、feature 横向 presentation import、共享 widget 依赖、data/common Flutter 泄漏、应用服务/usecase、DAO 落点等边界
+- 架构守护测试已经覆盖 GetX、MediaItem、CacheBox、presentation repository 直连、feature 横向 presentation import、共享 widget 依赖、data/common Flutter 泄漏、应用服务/usecase 实际使用、DAO 实际方法落点和大文件软风险报告
 - 页面已并入对应 feature 的 `presentation` 目录，仍需继续缩小页面内用例逻辑，例如：
   - [`lib/features/auth/presentation/login_page_view.dart`](../lib/features/auth/presentation/login_page_view.dart)
   - [`lib/features/playlist/presentation/playlist_page_view.dart`](../lib/features/playlist/presentation/playlist_page_view.dart)

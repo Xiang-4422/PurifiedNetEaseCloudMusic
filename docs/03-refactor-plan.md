@@ -254,6 +254,7 @@
 - 架构分析完成
 - 九项架构治理已完成阶段性落地：补齐架构守护、拆分下载仓库内部职责、收口播放恢复模型、拆分应用装配根、收紧歌单与探索横向依赖、拆分评论与播放面板状态层、清理 data/common Flutter 泄漏，并同步架构文档
 - 架构一次性整治已继续落地：应用组合层边界已提交为基线，播放控制器的状态同步/模式命令/歌词 UI 计时已拆出，底部播放面板和评论展示已拆成子视图，旧混合常量入口已删除，应用服务/usecase 与 Drift DAO 分类入口已补齐并进入架构守护
+- 架构落实深度与防回退已完成：搜索、歌单、用户首页 application service 已被 controller/factory 实际依赖；下载队列规划和任务状态推进已从 `DownloadRepository` 下沉；`TrackDao / PlaylistDao / UserDao / DownloadTaskDao / ResourceDao / CacheDao` 已承接实际 Drift 读写方法；`PlayerController`、`bottom_panel_view.dart`、`DownloadRepository` 和主要 Drift facade 已降出大文件软风险报告
 - 已新增架构守护测试：禁止 `lib/pages` 复活，禁止 `GetIt/get_it/AppController/MediaItemBean`，禁止 `core/data/domain` 依赖 GetX 或反向 import features，禁止业务 cache store 直接读取 `CacheBox.instance`，并继续约束 presentation、widget、repository 和 feature repository 横向依赖
 - `ShellController` 已继续瘦身，user/settings/player 代理 getter、播放代理方法和首页数据刷新入口已移除；页面改为分别读取 `UserSessionController`、`UserLibraryController`、`RecommendationController`、`PlayerController`、`SettingsController`、`HomeShellController`
 - 旧 `UserController` 已拆分为 `UserSessionController`、`UserLibraryController`、`RecommendationController`，登录态、账号资料库和首页推荐内容不再共用一个总控入口
@@ -263,7 +264,7 @@
 - `PlayerController` 与 `PlaybackService` 对外播放入口已改为接收 `List<PlaybackQueueItem>`，`MediaItem` 限定在 audio_service 适配层
 - `PlaybackQueueStore` 已改为持久化 `PlaybackQueueItem` JSON，恢复快照不再暴露 `MediaItem`
 - `PlaybackSessionState`、`PlayerController` 和恢复链路公开重复模式已切到 domain `PlaybackRepeatMode`
-- `DownloadRepository` 已拆出 `DownloadTaskQueue`、`DownloadFileStore`、`DownloadResourceWriter`、`DownloadRecoveryService`，公开业务 API 保持不变
+- `DownloadRepository` 已拆出 `DownloadTaskQueue`、`DownloadQueuePlanner`、`DownloadTaskStateStore`、`DownloadFileStore`、`DownloadResourceWriter`、`DownloadRecoveryService`，公开业务 API 保持不变
 - 下载流程已补 `QueueDownloadUseCase`、`RemoveDownloadUseCase`、`RecoverDownloadsUseCase`，页面流程不再只能落在 repository 门面上
 - `AppBinding` 已拆成分组 registrar，feature page controller 的依赖创建集中到 `FeatureControllerFactory`
 - `AppBinding` 当前只保留应用级唯一入口，presentation adapter、controller factory、playback/user/repository/infrastructure 注册职责已分文件管理
@@ -271,9 +272,9 @@
 - `ExplorePageController` 已改为依赖 `ExploreApplicationService`，不再直接持有 playlist repository、播放 controller 和用户 controller
 - `comment_widget.dart` 已拆出评论列表、评论项和回复弹层状态 controller；底部播放面板已新增状态 presenter，后续继续迁出页面内状态计算
 - `comment_widget.dart` 当前只保留评论列表组合入口，评论项与楼层回复弹层已拆到独立 presentation 组件
-- `bottom_panel_view.dart` 已拆出队列列表、播放控制/进度条、评论页子视图，主文件继续保留整体布局和动画协调
+- `bottom_panel_view.dart` 已拆出队列列表、播放控制/进度条、评论页、头部、封面动画和封面 PageView 子视图，主文件继续保留整体布局和动画协调
 - data/netease 与歌词解析模型已清理 Flutter import，架构测试开始守护 data 与 lyric parser 纯 Dart 边界
-- Drift DAO 分类入口已建立，`TrackDao / PlaylistDao / UserDao / DownloadTaskDao / ResourceDao / CacheDao` 作为后续继续下沉 SQL 细节的固定落点
+- Drift DAO 分类入口已做实，`TrackDao / PlaylistDao / UserDao / DownloadTaskDao / ResourceDao / CacheDao` 已承接实际查询、保存、状态和资源索引读写，data source 只保留 facade 和少量组合职责
 - `common/constants/other.dart`、旧 `log.dart`、旧 `platform_utils.dart` 已删除，架构测试禁止旧混合常量入口复活
 - 已明确数据库只服务当前版本，保留 destructive reset，不承诺应用升级数据迁移
 - 已新增 Drift-backed `AppCacheDataSource` 与 `app_cache_entries`，业务缓存 store 不再直接读取 `CacheBox.instance`

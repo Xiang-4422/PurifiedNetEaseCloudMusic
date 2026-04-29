@@ -7,18 +7,24 @@ import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
+/// 当前歌曲下载结果，包含曲目和可选的播放队列项更新。
 class CurrentTrackDownloadResult {
+  /// 创建当前歌曲下载结果。
   const CurrentTrackDownloadResult({
     required this.track,
     required this.queueItem,
   });
 
+  /// 下载流程返回的曲目。
   final Track track;
+
+  /// 需要同步到当前播放队列的队列项。
   final PlaybackQueueItem? queueItem;
 }
 
 /// 当前歌曲下载相关用例，负责把下载结果转换回播放队列模型。
 class CurrentTrackDownloadUseCase {
+  /// 创建当前歌曲下载用例。
   CurrentTrackDownloadUseCase({
     required DownloadRepository downloadRepository,
     required PlaybackRepository playbackRepository,
@@ -31,6 +37,7 @@ class CurrentTrackDownloadUseCase {
   final PlaybackRepository _playbackRepository;
   final PlaybackUserContentPort _userContentPort;
 
+  /// 下载指定曲目并返回队列项更新结果。
   Future<CurrentTrackDownloadResult?> downloadTrackById(
     String trackId, {
     bool preferHighQuality = true,
@@ -42,6 +49,7 @@ class CurrentTrackDownloadUseCase {
     return _buildResult(updatedTrack);
   }
 
+  /// 删除指定曲目下载并返回队列项更新结果。
   Future<CurrentTrackDownloadResult?> removeDownloadedTrackById(
     String trackId,
   ) async {
@@ -49,6 +57,7 @@ class CurrentTrackDownloadUseCase {
     return _buildResult(await _playbackRepository.getTrack(trackId));
   }
 
+  /// 取消指定曲目下载并返回队列项更新结果。
   Future<CurrentTrackDownloadResult?> cancelTrackDownloadById(
     String trackId,
   ) async {
@@ -56,6 +65,7 @@ class CurrentTrackDownloadUseCase {
     return _buildResult(await _playbackRepository.getTrack(trackId));
   }
 
+  /// 重试指定曲目下载并返回队列项更新结果。
   Future<CurrentTrackDownloadResult?> retryTrackDownloadById(
     String trackId, {
     bool preferHighQuality = true,
@@ -67,6 +77,7 @@ class CurrentTrackDownloadUseCase {
     return _buildResult(updatedTrack);
   }
 
+  /// 批量加入下载队列。
   Future<void> queueTrackDownloads(
     Iterable<String> trackIds, {
     bool preferHighQuality = true,
@@ -77,6 +88,7 @@ class CurrentTrackDownloadUseCase {
     );
   }
 
+  /// 为播放缓存指定曲目并返回队列项更新结果。
   Future<PlaybackQueueItem?> cacheTrackForPlayback(
     String trackId, {
     required bool preferHighQuality,

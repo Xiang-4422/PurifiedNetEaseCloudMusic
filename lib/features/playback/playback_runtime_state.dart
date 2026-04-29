@@ -5,11 +5,19 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 /// 歌词、取色和面板展示动画仍保持独立，因为它们更新频率更高，也更偏视图层。
 /// 这里先收口跨页面最常用的运行态，避免继续在控制器里分散维护多组 Rx 字段。
 class PlaybackRuntimeState {
+  /// 当前播放队列。
   final List<PlaybackQueueItem> queue;
+
+  /// 当前播放歌曲。
   final PlaybackQueueItem currentSong;
+
+  /// 当前播放歌曲在队列中的索引。
   final int currentIndex;
+
+  /// 当前播放进度。
   final Duration currentPosition;
 
+  /// 创建运行时播放状态。
   const PlaybackRuntimeState({
     this.queue = const <PlaybackQueueItem>[],
     this.currentSong = const PlaybackQueueItem.empty(),
@@ -17,6 +25,7 @@ class PlaybackRuntimeState {
     this.currentPosition = Duration.zero,
   });
 
+  /// 复制运行时状态并替换指定字段。
   PlaybackRuntimeState copyWith({
     List<PlaybackQueueItem>? queue,
     PlaybackQueueItem? currentSong,

@@ -2,8 +2,10 @@ import 'package:audio_service/audio_service.dart';
 
 /// 根据当前播放态生成通知栏 controls，避免 handler 内散落按钮拼装细节。
 class PlaybackNotificationControlsPresenter {
+  /// 创建通知栏控制按钮 presenter。
   const PlaybackNotificationControlsPresenter();
 
+  /// 根据播放状态和喜欢状态构建通知栏按钮。
   List<MediaControl> buildControls({
     required bool isPlaying,
     required bool isLiked,

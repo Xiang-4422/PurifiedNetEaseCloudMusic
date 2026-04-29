@@ -3,11 +3,13 @@ import 'package:bujuan/features/playback/playback_service.dart';
 
 /// 承接播放队列的裁剪、追加和去重规则。
 class PlaybackQueueCoordinator {
+  /// 创建播放队列协调器。
   PlaybackQueueCoordinator({required PlaybackService playbackService})
       : _playbackService = playbackService;
 
   final PlaybackService _playbackService;
 
+  /// 追加漫游歌曲并按需自动播放下一首。
   Future<void> appendRoamingSongs({
     required List<PlaybackQueueItem> currentQueue,
     required List<PlaybackQueueItem> incomingSongs,

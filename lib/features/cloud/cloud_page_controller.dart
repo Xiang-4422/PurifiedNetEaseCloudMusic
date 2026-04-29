@@ -5,7 +5,9 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:flutter/foundation.dart';
 
+/// 云盘歌曲分页页面控制器。
 class CloudPageController {
+  /// 创建云盘页面控制器。
   CloudPageController({
     required CloudRepository repository,
     required String userId,
@@ -18,12 +20,17 @@ class CloudPageController {
   final CloudRepository _repository;
   final String _userId;
   final List<int> _likedSongIds;
+
+  /// 每次请求的云盘歌曲数量。
   final int pageSize;
+
+  /// 云盘歌曲分页加载状态。
   final ValueNotifier<PagedState<PlaybackQueueItem>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
 
+  /// 首次加载云盘歌曲，优先展示本地缓存。
   Future<void> loadInitial() async {
     if (_userId.isEmpty) {
       state.value = const PagedState(items: [], hasMore: false);
@@ -46,6 +53,7 @@ class CloudPageController {
     await _reload();
   }
 
+  /// 刷新云盘第一页数据。
   Future<bool> refresh() async {
     state.value = state.value.copyWith(
       refreshing: true,
@@ -54,6 +62,7 @@ class CloudPageController {
     return _reload();
   }
 
+  /// 加载下一页云盘歌曲。
   Future<bool> loadMore() async {
     final currentState = state.value;
     if (currentState.loadingMore || !currentState.hasMore) {
@@ -109,6 +118,7 @@ class CloudPageController {
     }
   }
 
+  /// 释放页面状态监听器。
   void dispose() {
     state.dispose();
   }

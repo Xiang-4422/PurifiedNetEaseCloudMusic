@@ -5,13 +5,16 @@ import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 
+/// 保存探索页歌单分类与分类歌单缓存。
 class ExploreCacheStore {
+  /// 创建探索页缓存存储。
   const ExploreCacheStore({
     required AppCacheDataSource cacheDataSource,
   }) : _cacheDataSource = cacheDataSource;
 
   final AppCacheDataSource _cacheDataSource;
 
+  /// 读取缓存的歌单分类目录。
   Future<ExplorePlaylistCatalogueData?> loadPlaylistCatalogue() async {
     final payloadJson =
         await _cacheDataSource.loadPayloadJson(explorePlaylistCatalogueSp);
@@ -43,6 +46,7 @@ class ExploreCacheStore {
     );
   }
 
+  /// 保存歌单分类目录缓存。
   Future<void> savePlaylistCatalogue(
     ExplorePlaylistCatalogueData data,
   ) async {
@@ -57,6 +61,7 @@ class ExploreCacheStore {
     );
   }
 
+  /// 判断歌单分类目录缓存是否仍在 TTL 内。
   Future<bool> isPlaylistCatalogueFresh({
     required Duration ttl,
   }) {
@@ -66,6 +71,7 @@ class ExploreCacheStore {
     );
   }
 
+  /// 读取指定分类下缓存的歌单列表。
   Future<List<PlaylistSummaryData>?> loadCategoryPlaylists(
     String category,
   ) async {
@@ -89,6 +95,7 @@ class ExploreCacheStore {
         .toList();
   }
 
+  /// 保存指定分类下的歌单列表缓存。
   Future<void> saveCategoryPlaylists(
     String category,
     List<PlaylistSummaryData> playlists,
@@ -101,6 +108,7 @@ class ExploreCacheStore {
     );
   }
 
+  /// 判断指定分类歌单缓存是否仍在 TTL 内。
   Future<bool> isCategoryPlaylistsFresh(
     String category, {
     required Duration ttl,

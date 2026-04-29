@@ -3,7 +3,9 @@ import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';
 
+/// 评论列表分页控制器。
 class CommentListController {
+  /// 创建评论列表控制器。
   CommentListController({
     required this.id,
     required this.type,
@@ -12,22 +14,33 @@ class CommentListController {
     this.pageSize = 10,
   }) : _repository = repository;
 
+  /// 评论资源 id。
   final String id;
+
+  /// 评论资源类型。
   final String type;
+
+  /// 评论排序类型。
   final int sortType;
+
+  /// 每页评论数量。
   final int pageSize;
   final CommentRepository _repository;
+
+  /// 评论分页加载状态。
   final ValueNotifier<PagedState<CommentData>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _pageNo = 1;
   String? _cursor;
 
+  /// 首次加载评论列表。
   Future<void> loadInitial() async {
     state.value = PagedState.initialLoading();
     await _reload();
   }
 
+  /// 刷新评论第一页。
   Future<bool> refresh() async {
     state.value = state.value.copyWith(
       refreshing: true,
@@ -36,6 +49,7 @@ class CommentListController {
     return _reload();
   }
 
+  /// 加载下一页评论。
   Future<bool> loadMore() async {
     final currentState = state.value;
     if (currentState.loadingMore || !currentState.hasMore) {
@@ -96,6 +110,7 @@ class CommentListController {
     }
   }
 
+  /// 释放评论列表状态监听器。
   void dispose() {
     state.dispose();
   }

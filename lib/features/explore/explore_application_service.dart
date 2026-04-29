@@ -6,6 +6,7 @@ import 'package:bujuan/features/playlist/playlist_repository.dart';
 
 /// 探索页应用服务，集中组合探索接口、歌单详情和播放入口。
 class ExploreApplicationService {
+  /// 创建探索页应用服务。
   ExploreApplicationService({
     required ExploreRepository exploreRepository,
     required PlaylistRepository playlistRepository,
@@ -34,22 +35,27 @@ class ExploreApplicationService {
     String playListNameHeader,
   }) _playPlaylist;
 
+  /// 读取缓存的歌单分类目录。
   Future<ExplorePlaylistCatalogueData?> loadCachedPlaylistCatalogue() {
     return _exploreRepository.loadCachedPlaylistCatalogue();
   }
 
+  /// 判断歌单分类目录缓存是否仍在 TTL 内。
   Future<bool> isPlaylistCatalogueFresh({required Duration ttl}) {
     return _exploreRepository.isPlaylistCatalogueFresh(ttl: ttl);
   }
 
+  /// 拉取最新歌单分类目录。
   Future<ExplorePlaylistCatalogueData> fetchPlaylistCatalogue() {
     return _exploreRepository.fetchPlaylistCatalogue();
   }
 
+  /// 读取指定分类下缓存的歌单列表。
   Future<List<PlaylistSummaryData>?> loadCachedCategoryPlaylists(String tag) {
     return _exploreRepository.loadCachedCategoryPlaylists(tag);
   }
 
+  /// 判断指定分类歌单缓存是否仍在 TTL 内。
   Future<bool> isCategoryPlaylistsFresh(
     String tag, {
     required Duration ttl,
@@ -57,10 +63,12 @@ class ExploreApplicationService {
     return _exploreRepository.isCategoryPlaylistsFresh(tag, ttl: ttl);
   }
 
+  /// 拉取指定分类下的歌单列表。
   Future<List<PlaylistSummaryData>> fetchCategoryPlaylists(String tag) {
     return _exploreRepository.fetchCategoryPlaylists(tag);
   }
 
+  /// 判断排行榜歌单缓存是否仍在 TTL 内。
   Future<bool> isRankingPlaylistFresh(
     String playlistId, {
     required Duration ttl,
@@ -68,6 +76,7 @@ class ExploreApplicationService {
     return _playlistRepository.isCacheFresh(playlistId, ttl: ttl);
   }
 
+  /// 读取缓存的排行榜歌曲队列。
   Future<List<PlaybackQueueItem>> loadCachedRankingSongs(
       String playlistId) async {
     final cachedDetail = await _playlistRepository.loadLocalPlaylistDetail(
@@ -78,6 +87,7 @@ class ExploreApplicationService {
     return cachedDetail?.songs ?? const <PlaybackQueueItem>[];
   }
 
+  /// 拉取排行榜歌曲队列。
   Future<List<PlaybackQueueItem>> fetchRankingSongs(
     String playlistId, {
     int offset = 0,
@@ -91,6 +101,7 @@ class ExploreApplicationService {
     );
   }
 
+  /// 从首曲开始播放排行榜歌曲。
   Future<void> playRankingSongs(
     List<PlaybackQueueItem> songs, {
     required String playlistName,

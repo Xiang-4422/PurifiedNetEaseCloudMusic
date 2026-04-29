@@ -5,7 +5,9 @@ import 'package:bujuan/domain/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:flutter/foundation.dart';
 
+/// 用户订阅电台分页控制器。
 class RadioListController {
+  /// 创建电台列表控制器。
   RadioListController({
     required String userId,
     required RadioRepository repository,
@@ -15,12 +17,17 @@ class RadioListController {
 
   final String _userId;
   final RadioRepository _repository;
+
+  /// 每页电台数量。
   final int pageSize;
+
+  /// 订阅电台分页状态。
   final ValueNotifier<PagedState<RadioSummaryData>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
 
+  /// 首次加载订阅电台，优先展示缓存。
   Future<void> loadInitial() async {
     if (_userId.isEmpty) {
       state.value = const PagedState(items: [], hasMore: false);
@@ -40,6 +47,7 @@ class RadioListController {
     await _reload();
   }
 
+  /// 刷新订阅电台第一页。
   Future<bool> refresh() async {
     state.value = state.value.copyWith(
       refreshing: true,
@@ -48,6 +56,7 @@ class RadioListController {
     return _reload();
   }
 
+  /// 加载下一页订阅电台。
   Future<bool> loadMore() async {
     final currentState = state.value;
     if (currentState.loadingMore || !currentState.hasMore) {
@@ -101,6 +110,7 @@ class RadioListController {
     }
   }
 
+  /// 释放订阅电台状态监听器。
   void dispose() {
     state.dispose();
   }

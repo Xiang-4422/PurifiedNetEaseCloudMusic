@@ -9,20 +9,31 @@ import 'package:get/get.dart';
 
 /// 承接二维码登录流程的瞬时状态，避免登录页继续持有轮询与鉴权副作用。
 class AuthController extends GetxController {
+  /// 创建二维码登录控制器。
   AuthController({required AuthRepository repository})
       : _repository = repository;
 
   final AuthRepository _repository;
 
+  /// 当前二维码图片地址。
   final qrCodeUrl = ''.obs;
+
+  /// 登录页展示给用户的二维码状态提示。
   final hintText = '扫描二维码登录'.obs;
+
+  /// 是否正在加载登录账号信息。
   final isLoading = false.obs;
+
+  /// 当前二维码是否已经失效并需要重新获取。
   final qrCodeNeedRefresh = true.obs;
+
+  /// 本轮登录流程是否已经完成。
   final loginCompleted = false.obs;
 
   Timer? _qrPollingTimer;
   Future<void>? _bootstrapFuture;
 
+  /// 启动登录页状态；有缓存登录时优先校验账号状态，否则刷新二维码。
   Future<void> bootstrap() async {
     final pending = _bootstrapFuture;
     if (pending != null) {
@@ -38,6 +49,7 @@ class AuthController extends GetxController {
     }
   }
 
+  /// 在后台校验已缓存登录态是否仍然有效。
   Future<void> validateLoginStateInBackgroundIfNeeded() async {
     if (!_repository.hasCachedLogin) {
       return;
@@ -65,6 +77,7 @@ class AuthController extends GetxController {
     await refreshQrCode();
   }
 
+  /// 重新获取二维码并启动轮询。
   Future<void> refreshQrCode() async {
     if (!qrCodeNeedRefresh.value) {
       return;
@@ -82,6 +95,7 @@ class AuthController extends GetxController {
     _startPolling(qrCodeLoginKey.unikey);
   }
 
+  /// 消费登录完成事件，避免页面重复跳转。
   void consumeLoginCompleted() {
     loginCompleted.value = false;
   }

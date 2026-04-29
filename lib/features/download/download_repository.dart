@@ -14,7 +14,9 @@ import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:dio/dio.dart';
 
+/// 下载业务门面，组合任务队列、文件写入、资源索引和恢复流程。
 class DownloadRepository {
+  /// 创建下载仓库。
   DownloadRepository({
     required LibraryRepository libraryRepository,
     required DownloadTaskDataSource taskDataSource,
@@ -59,6 +61,7 @@ class DownloadRepository {
   final DownloadQueuePlanner _queuePlanner;
   final DownloadTaskStateStore _taskStateStore;
 
+  /// 恢复上次启动中断的下载任务。
   Future<List<DownloadTask>> recoverInterruptedTasks() async {
     return _recoveryService.recoverInterruptedTasks(
       markInterruptedFailed: (trackId) => _taskStateStore.markFailed(
@@ -69,6 +72,7 @@ class DownloadRepository {
     );
   }
 
+  /// 下载指定曲目，返回下载完成或已存在资源对应的曲目。
   Future<Track?> downloadTrack(
     String trackId, {
     bool preferHighQuality = true,
@@ -89,6 +93,7 @@ class DownloadRepository {
     );
   }
 
+  /// 批量加入下载队列，内部会跳过已下载或已排队曲目。
   Future<void> queueTracks(
     Iterable<String> trackIds, {
     bool preferHighQuality = true,
@@ -100,6 +105,7 @@ class DownloadRepository {
     );
   }
 
+  /// 为播放临时缓存曲目资源，不写入正式下载任务列表。
   Future<Track?> cacheTrackForPlayback(
     String trackId, {
     bool preferHighQuality = true,
@@ -222,6 +228,7 @@ class DownloadRepository {
     }
   }
 
+  /// 删除已下载曲目的本地资源。
   Future<void> removeDownloadedTrack(String trackId) async {
     await _taskStateStore.clearTask(trackId);
     final trackWithResources = await _libraryRepository.getTrackWithResources(
@@ -234,10 +241,12 @@ class DownloadRepository {
     );
   }
 
+  /// 删除本地曲目资源入口，当前复用下载删除流程。
   Future<void> removeLocalTrack(String trackId) {
     return removeDownloadedTrack(trackId);
   }
 
+  /// 取消指定下载任务并清理临时文件。
   Future<void> cancelTask(String trackId) async {
     _taskQueue.markCancelled(trackId);
     final currentTask = await _taskDataSource.getTask(trackId);
@@ -246,10 +255,12 @@ class DownloadRepository {
     await _clearCancelledTask(trackId);
   }
 
+  /// 读取指定曲目的下载任务。
   Future<DownloadTask?> getTask(String trackId) {
     return _taskStateStore.getTask(trackId);
   }
 
+  /// 重试指定下载任务。
   Future<Track?> retryTask(
     String trackId, {
     bool preferHighQuality = true,
@@ -263,18 +274,21 @@ class DownloadRepository {
     );
   }
 
+  /// 读取下载任务列表，可按状态过滤。
   Future<List<DownloadTask>> getTasks({
     Set<DownloadTaskStatus>? statuses,
   }) {
     return _taskStateStore.getTasks(statuses: statuses);
   }
 
+  /// 监听下载任务列表变化，可按状态过滤。
   Stream<List<DownloadTask>> watchTasks({
     Set<DownloadTaskStatus>? statuses,
   }) {
     return _taskStateStore.watchTasks(statuses: statuses);
   }
 
+  /// 读取排队中和下载中的任务。
   Future<List<DownloadTask>> getActiveTasks() {
     return getTasks(
       statuses: const {
@@ -284,10 +298,12 @@ class DownloadRepository {
     );
   }
 
+  /// 清除指定曲目的下载任务状态。
   Future<void> clearTask(String trackId) {
     return _taskStateStore.clearTask(trackId);
   }
 
+  /// 清理播放缓存资源。
   Future<void> clearPlaybackCache() {
     return _libraryRepository.removePlaybackCache();
   }

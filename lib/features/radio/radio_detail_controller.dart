@@ -5,7 +5,9 @@ import 'package:bujuan/domain/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:flutter/foundation.dart';
 
+/// 电台节目分页控制器。
 class RadioDetailController {
+  /// 创建电台详情控制器。
   RadioDetailController({
     required this.radioId,
     required String userId,
@@ -15,16 +17,24 @@ class RadioDetailController {
   })  : _userId = userId,
         _repository = repository;
 
+  /// 电台 id。
   final String radioId;
   final String _userId;
   final RadioRepository _repository;
+
+  /// 每页节目数量。
   final int pageSize;
+
+  /// 节目排序是否为升序。
   final bool asc;
+
+  /// 电台节目分页状态。
   final ValueNotifier<PagedState<RadioProgramData>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
 
+  /// 首次加载节目列表，优先展示缓存。
   Future<void> loadInitial() async {
     if (_userId.isEmpty) {
       state.value = const PagedState(items: [], hasMore: false);
@@ -48,6 +58,7 @@ class RadioDetailController {
     await _reload();
   }
 
+  /// 刷新节目第一页。
   Future<bool> refresh() async {
     state.value = state.value.copyWith(
       refreshing: true,
@@ -56,6 +67,7 @@ class RadioDetailController {
     return _reload();
   }
 
+  /// 加载下一页节目。
   Future<bool> loadMore() async {
     final currentState = state.value;
     if (currentState.loadingMore || !currentState.hasMore) {
@@ -113,6 +125,7 @@ class RadioDetailController {
     }
   }
 
+  /// 释放节目列表状态监听器。
   void dispose() {
     state.dispose();
   }

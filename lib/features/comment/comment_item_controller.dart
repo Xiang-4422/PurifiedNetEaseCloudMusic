@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 /// 评论项状态控制器，避免回复展开、点赞和楼层分页状态继续散在 widget 内。
 class CommentItemController extends ChangeNotifier {
+  /// 创建评论项控制器。
   CommentItemController({
     required CommentData comment,
     required this.isReply,
@@ -13,6 +14,7 @@ class CommentItemController extends ChangeNotifier {
         _unExpandedReplyCount = comment.replyCount,
         _floorController = floorController;
 
+  /// 当前评论是否是楼层回复。
   final bool isReply;
   final FloorCommentController _floorController;
 
@@ -21,14 +23,19 @@ class CommentItemController extends ChangeNotifier {
   int _unExpandedReplyCount;
   bool _isReplyVisible = false;
 
+  /// 当前评论数据。
   CommentData get comment => _comment;
 
+  /// 当前评论的回复总数。
   int get replyCount => _replyCount;
 
+  /// 尚未展开展示的回复数量。
   int get unExpandedReplyCount => _unExpandedReplyCount;
 
+  /// 回复列表是否处于展开状态。
   bool get isReplyVisible => _isReplyVisible;
 
+  /// 切换当前评论的点赞状态。
   Future<void> toggleLike() async {
     final liked = !_comment.liked;
     final success = await _floorController.toggleLike(
@@ -45,12 +52,14 @@ class CommentItemController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 收起当前评论的楼层回复。
   void fold() {
     _isReplyVisible = false;
     _unExpandedReplyCount = _replyCount;
     notifyListeners();
   }
 
+  /// 展开当前评论的楼层回复，并按需加载更多回复。
   Future<void> expand() async {
     if (!_isReplyVisible && _floorController.state.value.items.isNotEmpty) {
       _isReplyVisible = true;
@@ -68,6 +77,7 @@ class CommentItemController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// 在展开和收起之间切换楼层回复可见性。
   Future<void> toggleReplyVisibility() async {
     if (isReply) {
       return;

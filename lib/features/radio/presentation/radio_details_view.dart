@@ -3,7 +3,7 @@ import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/domain/entities/radio_data.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
 import 'package:bujuan/features/radio/radio_playback_queue_item_mapper.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
@@ -23,6 +23,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
   late final String _radioId;
   late final String _radioName;
   late final RadioDetailController _controller;
+  final PlaybackActionPort _playbackAction = Get.find<PlaybackActionPort>();
   final RefreshController _refreshController = RefreshController();
 
   @override
@@ -99,7 +100,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
                   index: index,
                   playlist: queueItems,
                   playListName: _radioName,
-                  onPlay: PlayerController.to.playPlaylist,
+                  onPlay: _playbackAction.playPlaylist,
                 );
               },
               itemCount: state.items.length,

@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
@@ -110,7 +110,7 @@ class NeteaseUserRemoteDataSource {
     if (tracks.isEmpty) {
       return '';
     }
-    return OtherUtils.normalizeImageUrl(tracks.first.artworkUrl);
+    return ImageUrlNormalizer.normalize(tracks.first.artworkUrl);
   }
 
   Future<({bool success, String? message})> toggleLikeSong(

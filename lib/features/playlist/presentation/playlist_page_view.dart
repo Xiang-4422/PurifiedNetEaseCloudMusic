@@ -8,7 +8,7 @@ import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
@@ -41,6 +41,7 @@ class PlayListPageView extends StatefulWidget {
 class _PlayListPageViewState extends State<PlayListPageView> {
   final PlaylistPageController _controller =
       Get.find<FeatureControllerFactory>().playlistPage();
+  final PlaybackActionPort _playbackAction = Get.find<PlaybackActionPort>();
 
   String playlistName = '';
   String? coverUrl;
@@ -139,17 +140,18 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                 onPressed: () async {
-                                  await PlayerController.to
+                                  await _playbackAction
                                       .setRepeatMode(PlaybackRepeatMode.all);
                                   ShellController.to.jumpBottomPanelToPage(0);
                                   ShellController.to.openBottomPanel();
                                   // 根据当前播放模式，决定从哪个位置开始播放
-                                  int startIndex = PlayerController.to
-                                              .sessionState.value.repeatMode ==
+                                  int startIndex = _playbackAction
+                                              .sessionState()
+                                              .repeatMode ==
                                           PlaybackRepeatMode.none
                                       ? Random().nextInt(loadedSongCount)
                                       : 0;
-                                  await PlayerController.to.playPlaylist(
+                                  await _playbackAction.playPlaylist(
                                     songs,
                                     startIndex,
                                     playListName: playlistName,
@@ -199,17 +201,18 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                 onPressed: () async {
-                                  await PlayerController.to
+                                  await _playbackAction
                                       .setRepeatMode(PlaybackRepeatMode.none);
                                   ShellController.to.jumpBottomPanelToPage(0);
                                   ShellController.to.openBottomPanel();
                                   // 根据当前播放模式，决定从哪个位置开始播放
-                                  int startIndex = PlayerController.to
-                                              .sessionState.value.repeatMode ==
+                                  int startIndex = _playbackAction
+                                              .sessionState()
+                                              .repeatMode ==
                                           PlaybackRepeatMode.none
                                       ? Random().nextInt(loadedSongCount)
                                       : 0;
-                                  await PlayerController.to.playPlaylist(
+                                  await _playbackAction.playPlaylist(
                                     songs,
                                     startIndex,
                                     playListName: widget.playlistName,
@@ -251,7 +254,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               ShellController.to.jumpBottomPanelToPage(0);
                               ShellController.to.openBottomPanel();
                             },
-                            onPlay: PlayerController.to.playPlaylist,
+                            onPlay: _playbackAction.playPlaylist,
                           );
                         },
                         childCount: loadedSongCount,

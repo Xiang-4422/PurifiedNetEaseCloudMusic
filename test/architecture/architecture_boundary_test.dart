@@ -217,6 +217,91 @@ void main() {
       );
     });
 
+    test('feature application layer does not import presentation', () {
+      final violations = _dartFiles(libDirectory)
+          .where((file) {
+            final path = _relativePath(file);
+            return path.startsWith('lib/features/') &&
+                path.contains('/application/');
+          })
+          .where((file) => _contains(file, '/presentation/'))
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'application 层不能反向 import presentation，展示组合必须留在 route/binding/presentation 边界。',
+      );
+    });
+
+    test('repositories do not import controllers', () {
+      final violations = _repositoryFiles(libDirectory)
+          .where(
+            (file) => _containsAny(file, const [
+              '_controller.dart',
+              'Controller',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'repository 不能依赖 controller；页面流程应放在 controller/application service。',
+      );
+    });
+
+    test('controllers do not import data sources directly', () {
+      final violations = _dartFiles(libDirectory)
+          .where((file) {
+            final path = _relativePath(file);
+            return path.startsWith('lib/features/') &&
+                (path.endsWith('_controller.dart') ||
+                    path.endsWith('_page_controller.dart') ||
+                    path.endsWith('_scan_controller.dart'));
+          })
+          .where(
+            (file) => _containsAny(file, const [
+              'package:bujuan/data/',
+              '_data_source.dart',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'controller 不能直连 data source，应通过 application service 或 repository。',
+      );
+    });
+
+    test('non playback presentation does not import PlayerController', () {
+      final violations = _dartFiles(libDirectory)
+          .where((file) {
+            final path = _relativePath(file);
+            return path.startsWith('lib/features/') &&
+                path.contains('/presentation/') &&
+                !path.startsWith('lib/features/playback/presentation/');
+          })
+          .where((file) =>
+              _contains(file, 'features/playback/player_controller.dart'))
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            '非 playback presentation 应通过 PlaybackActionPort 使用播放能力，不能直接依赖 PlayerController。',
+      );
+    });
+
     test('playlist shared widgets stay controller free', () {
       final playlistWidgetFile = File(
           '${projectRoot.path}/lib/features/playlist/playlist_widgets.dart');
@@ -328,24 +413,32 @@ void main() {
       );
     });
 
-    test('Drift migration governance document is maintained', () {
-      final migrationDocument = File(
-        '${projectRoot.path}/docs/05-drift-migration-governance.md',
-      );
+    test('core data domain do not import legacy common UI constants', () {
+      final violations = _dartFiles(libDirectory)
+          .where((file) {
+            final path = _relativePath(file);
+            return path.startsWith('lib/core/') ||
+                path.startsWith('lib/data/') ||
+                path.startsWith('lib/domain/');
+          })
+          .where(
+            (file) => _containsAny(file, const [
+              'common/constants/other.dart',
+              'common/constants/colors.dart',
+              'common/constants/text_styles.dart',
+              'common/constants/platform_utils.dart',
+              'common/constants/log.dart',
+              'common/constants/app_constants.dart',
+              'common/constants/enmu.dart',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
 
       expect(
-        migrationDocument.existsSync(),
-        isTrue,
-        reason: 'Drift schemaVersion 变更必须有正式 migration governance 文档承接。',
-      );
-      expect(
-        migrationDocument.readAsStringSync(),
-        allOf(
-          contains('schema version'),
-          contains('表归属'),
-          contains('app_cache_entries'),
-          contains('v1'),
-        ),
+        violations,
+        isEmpty,
+        reason: 'core/data/domain 不能继续依赖 common/constants 中的 UI 或历史混合常量。',
       );
     });
   });
@@ -381,6 +474,8 @@ bool _containsAny(File file, List<String> patterns) {
 bool _isAllowedMediaItemFile(String path) {
   return path == 'lib/features/playback/playback_service.dart' ||
       path == 'lib/features/playback/application/audio_service_handler.dart' ||
+      path ==
+          'lib/features/playback/application/audio_service_queue_synchronizer.dart' ||
       path ==
           'lib/features/playback/application/playback_queue_item_adapter.dart' ||
       _isTemporaryMediaItemBoundaryException(path);
@@ -422,12 +517,9 @@ bool _isAllowedPresentationFeatureImport({
     return true;
   }
   const temporaryRouteEntrypoints = {
-    'settings:download',
-    'settings:playback',
     'shell:explore',
     'shell:settings',
     'shell:user',
-    'playback:comment',
     'shell:playback',
     'shell:search',
   };

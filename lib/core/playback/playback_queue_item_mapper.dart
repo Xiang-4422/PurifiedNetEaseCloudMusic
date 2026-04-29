@@ -1,5 +1,5 @@
-import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/domain/entities/playback_media_type.dart';
+import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
@@ -41,7 +41,7 @@ class PlaybackQueueItemMapper {
       final localLyricsPath = _emptyToNull(resources.lyrics?.path);
       final localAudioPath = _emptyToNull(resources.audio?.path);
       final artworkUrl = localArtworkPath ??
-          _emptyToNull(OtherUtils.normalizeImageUrl(track.artworkUrl));
+          _emptyToNull(ImageUrlNormalizer.normalize(track.artworkUrl));
       final artistIds = (track.metadata['artistIds'] as List? ?? const [])
           .map((item) => '$item')
           .toList();

@@ -1,6 +1,6 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playlist/application/playlist_playback_action.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/widget/data_widget.dart';
@@ -15,6 +15,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
 
   @override
   Widget build(BuildContext context) {
+    final playbackAction = Get.find<PlaybackActionPort>();
     return Obx(() {
       if (controller.loading.isTrue) return const LoadingView();
       return SmartRefresher(
@@ -174,9 +175,9 @@ class ExplorePageView extends GetView<ExplorePageController> {
                     albumCountInWidget: 3.2,
                     albumMargin: AppDimensions.paddingSmall,
                     showSongCount: false,
-                    isPlaying: PlayerController.to.isPlaying.value,
+                    isPlaying: playbackAction.isPlaying(),
                     playingPlaylistName:
-                        PlayerController.to.sessionState.value.playlistName,
+                        playbackAction.sessionState().playlistName,
                     onPlayPlaylist: Get.find<PlaylistPlaybackAction>().play,
                   )),
             ),
@@ -375,7 +376,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                 playlist: controller.curTopPlayListSongs,
                 playListName: controller.curTopPlayListName.value,
                 showIndex: true,
-                onPlay: PlayerController.to.playPlaylist,
+                onPlay: playbackAction.playPlaylist,
               ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
               addAutomaticKeepAlives: false,
               addRepaintBoundaries: false,

@@ -4,7 +4,7 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/features/comment/presentation/comment_widget.dart';
+import 'package:bujuan/features/comment/application/comment_content_port.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/presentation/lyric_view.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
@@ -25,6 +25,8 @@ import 'package:get/get.dart';
 
 class BottomPanelView extends GetView<ShellController> {
   const BottomPanelView({Key? key}) : super(key: key);
+
+  CommentContentPort get _commentContentPort => Get.find<CommentContentPort>();
 
   List<_ArtistChipData> _artistEntries(PlaybackQueueItem item) {
     final artistNames = item.artistNames.isNotEmpty
@@ -1016,11 +1018,9 @@ class BottomPanelView extends GetView<ShellController> {
         padding: EdgeInsets.symmetric(horizontal: albumPadding),
         child: Obx(() {
           final currentSong = PlayerController.to.currentSongState.value;
-          return CommentWidget(
-            key: ValueKey(currentSong.id),
+          return _commentContentPort.buildSongComments(
             context: context,
-            id: currentSong.id,
-            idType: "song",
+            songId: currentSong.id,
             commentType: commentType,
             listPaddingTop: albumPadding,
             listPaddingBottom: albumPadding,

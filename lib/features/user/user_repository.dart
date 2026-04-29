@@ -1,4 +1,4 @@
-import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';

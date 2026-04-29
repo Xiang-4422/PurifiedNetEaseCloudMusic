@@ -1,4 +1,4 @@
-import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/domain/entities/playback_media_type.dart';
 
 class PlaybackQueueItem {
   static const Object _unset = Object();

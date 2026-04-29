@@ -1,6 +1,6 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -15,6 +15,7 @@ class TodayPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final playbackAction = Get.find<PlaybackActionPort>();
     final songs = RecommendationController.to.todayRecommendSongs;
     final albumUrl = songs.isEmpty ? '' : songs.first.artworkUrl ?? '';
     final localAlbumPath = ArtworkPathResolver.resolveDisplayPath(albumUrl);
@@ -88,7 +89,7 @@ class TodayPageView extends StatelessWidget {
                           TablerIcons.player_play_filled,
                           color: Colors.white,
                         ),
-                        onPressed: () => PlayerController.to.playPlaylist(
+                        onPressed: () => playbackAction.playPlaylist(
                               songs,
                               0,
                               playListName: "每日推荐",
@@ -122,7 +123,7 @@ class TodayPageView extends StatelessWidget {
                       playListName: "今日推荐",
                       stringColor: Colors.black,
                       showIndex: true,
-                      onPlay: PlayerController.to.playPlaylist)
+                      onPlay: playbackAction.playPlaylist)
                   .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
             },
           ),

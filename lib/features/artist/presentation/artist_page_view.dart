@@ -10,7 +10,7 @@ import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/artist/artist_page_controller.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -33,6 +33,7 @@ class ArtistPageView extends StatefulWidget {
 class _ArtistPageViewState extends State<ArtistPageView> {
   final ArtistPageController _controller =
       Get.find<FeatureControllerFactory>().artistPage();
+  final PlaybackActionPort _playbackAction = Get.find<PlaybackActionPort>();
   late String artistId;
   late ArtistEntity artist;
 
@@ -152,7 +153,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                               TablerIcons.player_play_filled,
                               color: Colors.white,
                             ),
-                            onPressed: () => PlayerController.to.playPlaylist(
+                            onPressed: () => _playbackAction.playPlaylist(
                                   topSongs,
                                   0,
                                   playListName: artist.name,
@@ -276,7 +277,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                           playListHeader: "歌手",
                           stringColor: onAlbumColor,
                           showIndex: true,
-                          onPlay: PlayerController.to.playPlaylist)
+                          onPlay: _playbackAction.playPlaylist)
                       .paddingSymmetric(
                           horizontal: AppDimensions.paddingMedium);
                 },

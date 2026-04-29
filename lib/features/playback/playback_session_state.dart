@@ -1,4 +1,4 @@
-import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 
 /// 播放会话状态描述“当前这次播放上下文是什么”，用于收口分散的播放展示态。

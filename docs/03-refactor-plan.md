@@ -115,7 +115,7 @@
 3. 收尾用户作用域缓存、账号隔离和刷新标记
 4. 完善 `LocalMusicSource` 的元数据提取、搜索和播放入口
 5. 明确下载失败后的自动恢复、断点续传和文件清理边界
-6. 为 `Drift` 发布前非破坏迁移策略补验收标准
+6. 固定 `Drift` destructive reset 的当前版本假设，并记录表归属
 
 ## 6. 剩余待重构项
 
@@ -139,7 +139,7 @@
 
 剩余内容：
 
-- 补齐发布前非破坏数据库迁移策略
+- 固定当前版本数据库 destructive reset 假设，并继续记录表归属
 - 继续收尾用户作用域表、刷新标记和账号隔离读写路径
 - 让播放历史、最近播放等剩余长期数据都有稳定本地落点
 - 继续优化本地搜索、歌单关系查询和高频读路径
@@ -252,7 +252,7 @@
 ### 已完成
 
 - 架构分析完成
-- 九项架构治理已完成阶段性落地：补齐架构守护、拆分下载仓库内部职责、收口播放恢复模型、拆分应用装配根、收紧歌单与探索横向依赖、拆分评论与播放面板状态层、清理 data/common Flutter 泄漏、补 Drift migration 治理文档并同步架构文档
+- 九项架构治理已完成阶段性落地：补齐架构守护、拆分下载仓库内部职责、收口播放恢复模型、拆分应用装配根、收紧歌单与探索横向依赖、拆分评论与播放面板状态层、清理 data/common Flutter 泄漏，并同步架构文档
 - 已新增架构守护测试：禁止 `lib/pages` 复活，禁止 `GetIt/get_it/AppController/MediaItemBean`，禁止 `core/data/domain` 依赖 GetX 或反向 import features，禁止业务 cache store 直接读取 `CacheBox.instance`，并继续约束 presentation、widget、repository 和 feature repository 横向依赖
 - `ShellController` 已继续瘦身，user/settings/player 代理 getter、播放代理方法和首页数据刷新入口已移除；页面改为分别读取 `UserSessionController`、`UserLibraryController`、`RecommendationController`、`PlayerController`、`SettingsController`、`HomeShellController`
 - 旧 `UserController` 已拆分为 `UserSessionController`、`UserLibraryController`、`RecommendationController`，登录态、账号资料库和首页推荐内容不再共用一个总控入口
@@ -268,7 +268,7 @@
 - `ExplorePageController` 已改为依赖 `ExploreApplicationService`，不再直接持有 playlist repository、播放 controller 和用户 controller
 - `comment_widget.dart` 已拆出评论列表、评论项和回复弹层状态 controller；底部播放面板已新增状态 presenter，后续继续迁出页面内状态计算
 - data/netease 与歌词解析模型已清理 Flutter import，架构测试开始守护 data 与 lyric parser 纯 Dart 边界
-- 已新增 Drift migration 治理文档，记录 schema version、表归属、缓存表 TTL/清理策略和发布前非破坏迁移要求
+- 已明确数据库只服务当前版本，保留 destructive reset，不承诺应用升级数据迁移
 - 已新增 Drift-backed `AppCacheDataSource` 与 `app_cache_entries`，业务缓存 store 不再直接读取 `CacheBox.instance`
 - `SearchCacheStore`、`ExploreCacheStore`、`PlaylistCacheStore`、`CloudCacheStore`、`RadioCacheStore`、`UserProfileCacheStore` 已迁到 Drift 通用缓存接口
 - 技术架构文档已建立
@@ -383,7 +383,7 @@
 
 ### 当前阻塞与下一步
 
-- 发布前数据库非破坏 migration 代码还未实现；当前已有治理文档，但 `onUpgrade` 仍是开发期 destructive reset
+- 数据库当前保留 destructive reset；后续只需要继续维护表归属和 schema 变更记录
 - 用户作用域缓存、刷新标记和账号隔离仍需继续收尾
 - 播放链路仍需继续缩小 handler 与 controller 的状态同步面，底部播放面板还有可继续迁出的展示状态
 - 下载体系仍不支持断点续传，失败后主要依赖完整重试

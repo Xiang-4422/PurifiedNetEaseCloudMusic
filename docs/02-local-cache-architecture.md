@@ -411,16 +411,14 @@
 ## 11. 当前边界与假设
 
 - 当前只支持一个激活登录账号，但允许本地长期保留多个 `user_id` 快照
-- 开发期允许破坏性 schema 迁移；发布前必须补齐正式版本到正式版本之间的非破坏迁移策略
+- 数据库只服务当前版本，允许破坏性 schema 迁移，不承诺应用升级数据迁移
 - 电台仍保持“用户快照模型”，暂不纳入全局正式内容实体库
 - 云盘/FM/日推歌曲允许回写全局 `tracks`，账号隔离依赖 `user_track_list_refs`
 
-### 11.1 Drift schema 迁移治理
+### 11.1 Drift schema 变更治理
 
-- 详细治理规范见 [`05-drift-migration-governance.md`](./05-drift-migration-governance.md)
 - 每次提升 Drift `schemaVersion`，必须同步记录表结构变更、数据归属变化和是否允许清表重建
-- 开发期仍可 destructive reset，但只能作为本地开发策略，不能替代发布版本迁移方案
-- 发布前必须为正式版本到正式版本的升级补齐 migration plan，至少覆盖新增列默认值、表拆分、索引变更和缓存表清理策略
+- 当前项目不承诺应用升级数据迁移，`onUpgrade` 可以继续 destructive reset
 - `app_cache_entries` 属于可丢弃业务缓存，迁移失败时可以按 cache key 或整表清理；媒体库、用户作用域关系、下载任务和资源索引不能用缓存清理策略处理
 - schema 变更必须能从文档追溯到表所有者：媒体库归 `LibraryRepository`，用户作用域归 `UserRepository`，播放恢复归 playback application，下载任务归 `DownloadRepository`
 

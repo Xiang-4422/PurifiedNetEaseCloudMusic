@@ -1,4 +1,4 @@
-import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_cache_codec.dart';

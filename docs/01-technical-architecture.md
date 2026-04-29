@@ -59,7 +59,7 @@
 - `domain / data / repository` 不依赖 `GetX`、`Rx` 或全局容器读取
 - `Hive` 只保留设置、登录态和轻量缓存；正式媒体库与用户作用域数据进入 `Drift`
 - 业务列表缓存统一进入 Drift `app_cache_entries`，不再直接读写 `CacheBox.instance`
-- 数据库升级允许破坏式重建，不保留历史本地数据搬运逻辑
+- 数据库只服务当前版本，允许破坏式重建，不承诺应用升级数据迁移
 
 ### 3.3 当前确认的产品偏好
 
@@ -338,7 +338,7 @@
 
 - `DriftAppDatabase` 已接管 `LocalLibraryDataSource`、`PlaybackRestoreDataSource`、`LocalResourceIndexDataSource`、`DownloadTaskDataSource` 和 `UserScopedDataSource`
 - 不再保留共享内存版本地库作为运行时兜底
-- 开发期仍允许破坏性 schema 迁移；发布前必须补齐非破坏升级策略
+- 数据库只服务当前版本，当前允许破坏性 schema 迁移，不承诺应用升级数据迁移
 
 ### 6.6 Sync / Download
 
@@ -720,7 +720,7 @@ Repository 禁止：
 - presentation 禁止直连 repository 和 `data/netease`
 - 共享 `lib/widget` 禁止读取 feature controller、repository 或 data
 - repository 禁止 Flutter UI、GetX 和非白名单 feature 横向依赖
-- Drift migration 治理文档必须存在并记录当前 schema
+- 数据库只服务当前版本，架构守护不要求应用升级迁移文档
 
 ## 10. 渐进执行策略
 

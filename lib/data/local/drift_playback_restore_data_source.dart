@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/core/database/drift_database.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/playback_restore_state.dart';

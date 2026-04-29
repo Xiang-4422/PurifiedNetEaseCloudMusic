@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/features/playback/application/audio_service_queue_synchronizer.dart';
+import 'package:bujuan/features/playback/application/playback_engine_adapter.dart';
+import 'package:bujuan/features/playback/application/playback_notification_controls_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_adapter.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_restore_coordinator.dart';
@@ -22,11 +23,18 @@ class AudioServiceHandler extends BaseAudioHandler
     required PlaybackQueueStore queueStore,
     required PlaybackRestoreCoordinator restoreCoordinator,
     required PlaybackSourceResolver sourceResolver,
+    PlaybackEngineAdapter? engineAdapter,
+    AudioServiceQueueSynchronizer? queueSynchronizer,
+    PlaybackNotificationControlsPresenter? notificationControlsPresenter,
   })  : _queueStore = queueStore,
         _restoreCoordinator = restoreCoordinator,
-        _sourceResolver = sourceResolver {
-    _player = AudioPlayer();
-    _player.playbackEventStream.listen((PlaybackEvent event) {
+        _sourceResolver = sourceResolver,
+        _engine = engineAdapter ?? PlaybackEngineAdapter(),
+        _queueSynchronizer =
+            queueSynchronizer ?? AudioServiceQueueSynchronizer(),
+        _notificationControlsPresenter = notificationControlsPresenter ??
+            const PlaybackNotificationControlsPresenter() {
+    _engine.playbackEventStream.listen((PlaybackEvent event) {
       playbackState.add(playbackState.value.copyWith(
         systemActions: const {
           MediaAction.seek,
@@ -38,26 +46,27 @@ class AudioServiceHandler extends BaseAudioHandler
           ProcessingState.buffering: AudioProcessingState.buffering,
           ProcessingState.ready: AudioProcessingState.ready,
           ProcessingState.completed: AudioProcessingState.completed,
-        }[_player.processingState]!,
-        shuffleMode: (_player.shuffleModeEnabled)
+        }[_engine.processingState]!,
+        shuffleMode: (_engine.shuffleModeEnabled)
             ? AudioServiceShuffleMode.all
             : AudioServiceShuffleMode.none,
-        playing: _player.playing,
-        updatePosition: _player.position,
-        bufferedPosition: _player.bufferedPosition,
-        speed: _player.speed,
-        queueIndex: _curIndex,
+        playing: _engine.playing,
+        updatePosition: _engine.position,
+        bufferedPosition: _engine.bufferedPosition,
+        speed: _engine.speed,
+        queueIndex: _queueSynchronizer.currentIndex,
       ));
     });
     _updateMediaControls();
   }
 
-  late final AudioPlayer _player;
   final PlaybackQueueStore _queueStore;
   final PlaybackRestoreCoordinator _restoreCoordinator;
   final PlaybackSourceResolver _sourceResolver;
+  final PlaybackEngineAdapter _engine;
+  final AudioServiceQueueSynchronizer _queueSynchronizer;
+  final PlaybackNotificationControlsPresenter _notificationControlsPresenter;
 
-  final List<MediaItem> _originalSongs = <MediaItem>[];
   void Function(PlaybackMode mode)? _handleRestoredPlaybackMode;
   void Function(AudioServiceRepeatMode mode)? _handleRepeatModeChanged;
   void Function(String playlistName, String playlistHeader, bool isLikedSongs)?
@@ -67,8 +76,6 @@ class AudioServiceHandler extends BaseAudioHandler
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
   Duration _pendingRestorePosition = Duration.zero;
-
-  int _curIndex = -1;
 
   AudioServiceRepeatMode curRepeatMode = AudioServiceRepeatMode.all;
 
@@ -144,15 +151,13 @@ class AudioServiceHandler extends BaseAudioHandler
     _updateMediaControls();
   }
 
-  /// 随机模式切换依赖 `_originalSongs` 保留原始顺序，否则来回切模式会不断
+  /// 随机模式切换依赖原始顺序备份，否则来回切模式会不断
   /// 在已打乱结果上再次打乱，用户无法回到真正的原歌单顺序。
   reorderPlayList({bool shufflePlayList = false}) async {
-    var playListCopy = <MediaItem>[..._originalSongs];
-    if (shufflePlayList) playListCopy.shuffle();
-    String curSongId = queue.value[_curIndex].id;
-    int curNewIndex =
-        playListCopy.indexWhere((element) => element.id == curSongId);
-    _curIndex = curNewIndex;
+    final playListCopy = _queueSynchronizer.reorder(
+      currentQueue: queue.value,
+      shuffle: shufflePlayList,
+    );
     await updateQueue(playListCopy);
   }
 
@@ -167,16 +172,13 @@ class AudioServiceHandler extends BaseAudioHandler
       String playListNameHeader = "",
       required bool changePlayerSource,
       required bool playNow}) async {
-    _originalSongs
-      ..clear()
-      ..addAll(playList);
-    var playListCopy = <MediaItem>[...playList];
-    if (curRepeatMode == AudioServiceRepeatMode.none &&
-        (_isPlaylistMode?.call() ?? true)) {
-      playListCopy.shuffle();
-      index = playListCopy
-          .indexWhere((element) => element.id == playList[index].id);
-    }
+    final playListCopy = _queueSynchronizer.buildPlayableQueue(
+      queue: playList,
+      index: index,
+      shouldShuffle: curRepeatMode == AudioServiceRepeatMode.none &&
+          (_isPlaylistMode?.call() ?? true),
+    );
+    index = _queueSynchronizer.currentIndex;
     await updateQueue(playListCopy);
     _handlePlaylistMetaChanged?.call(
       playListName,
@@ -186,10 +188,13 @@ class AudioServiceHandler extends BaseAudioHandler
     if (changePlayerSource) {
       await playIndex(audioSourceIndex: index, playNow: playNow);
     } else {
-      _curIndex = index;
-      if (_curIndex >= 0 && _curIndex < playListCopy.length) {
-        mediaItem.add(playListCopy[_curIndex]);
-        playbackState.add(playbackState.value.copyWith(queueIndex: _curIndex));
+      _queueSynchronizer.currentIndex = index;
+      if (_queueSynchronizer.currentIndex >= 0 &&
+          _queueSynchronizer.currentIndex < playListCopy.length) {
+        mediaItem.add(playListCopy[_queueSynchronizer.currentIndex]);
+        playbackState.add(playbackState.value.copyWith(
+          queueIndex: _queueSynchronizer.currentIndex,
+        ));
         _updateMediaControls();
       }
     }
@@ -197,7 +202,9 @@ class AudioServiceHandler extends BaseAudioHandler
       await _queueStore.saveQueueSnapshot(
         playlistName: playListName,
         playlistHeader: playListNameHeader,
-        originalSongs: PlaybackQueueItemAdapter.fromMediaItems(_originalSongs),
+        originalSongs: PlaybackQueueItemAdapter.fromMediaItems(
+          _queueSynchronizer.originalSongs,
+        ),
       );
     } else {
       await _queueStore.savePlaylistMeta(
@@ -212,8 +219,8 @@ class AudioServiceHandler extends BaseAudioHandler
   /// `MediaItem.extras['type']` 是通知栏和播放器之间的播放源契约，必须在
   /// 调用 `just_audio` 前完成源类型收敛。
   playIndex({required int audioSourceIndex, required bool playNow}) async {
-    bool isNext = audioSourceIndex >= _curIndex;
-    _curIndex = audioSourceIndex;
+    bool isNext = audioSourceIndex >= _queueSynchronizer.currentIndex;
+    _queueSynchronizer.currentIndex = audioSourceIndex;
     MediaItem newIndexMediaItem = queue.value[audioSourceIndex];
     mediaItem.add(newIndexMediaItem);
     final source = await _sourceResolver.resolve(
@@ -226,21 +233,16 @@ class AudioServiceHandler extends BaseAudioHandler
     }
     switch (source.kind) {
       case PlaybackResolvedSourceKind.filePath:
-        await _player.setFilePath(url);
+        await _engine.setSource(source);
         break;
       case PlaybackResolvedSourceKind.neteaseCacheStream:
-        await _player.setAudioSource(
-          StreamSource(url, source.fileType),
-        );
-        break;
       case PlaybackResolvedSourceKind.url:
-        await _player.setUrl(url);
-        break;
       case PlaybackResolvedSourceKind.empty:
+        await _engine.setSource(source);
         break;
     }
     if (_pendingRestorePosition > Duration.zero) {
-      await _player.seek(_pendingRestorePosition);
+      await _engine.seek(_pendingRestorePosition);
       _pendingRestorePosition = Duration.zero;
     }
     if (playNow) {
@@ -256,14 +258,14 @@ class AudioServiceHandler extends BaseAudioHandler
   Future<void> removeQueueItem(MediaItem mediaItem) async {}
   @override
   Future<void> removeQueueItemAt(int index) async {
-    if (index < _curIndex) _curIndex--;
+    _queueSynchronizer.removeAt(index);
     final newQueue = queue.value..removeAt(index);
     queue.add(newQueue);
   }
 
   @override
   Future<void> rewind() async {
-    final mediaItem = queue.value[_curIndex];
+    final mediaItem = queue.value[_queueSynchronizer.currentIndex];
     if (_handleToggleLike != null) {
       await _handleToggleLike!(mediaItem);
     }
@@ -271,20 +273,23 @@ class AudioServiceHandler extends BaseAudioHandler
 
   @override
   Future<void> pause() async {
-    await _player.pause();
+    await _engine.pause();
     _updateMediaControls();
   }
 
   @override
   Future<void> play() async {
-    if (_player.audioSource == null &&
+    if (!_engine.hasAudioSource &&
         queue.value.isNotEmpty &&
-        _curIndex >= 0 &&
-        _curIndex < queue.value.length) {
-      await playIndex(audioSourceIndex: _curIndex, playNow: true);
+        _queueSynchronizer.currentIndex >= 0 &&
+        _queueSynchronizer.currentIndex < queue.value.length) {
+      await playIndex(
+        audioSourceIndex: _queueSynchronizer.currentIndex,
+        playNow: true,
+      );
       return;
     }
-    await _player.play();
+    await _engine.play();
     _updateMediaControls();
   }
 
@@ -296,16 +301,16 @@ class AudioServiceHandler extends BaseAudioHandler
 
   @override
   Future<void> seek(Duration position) async {
-    await _player.seek(position);
+    await _engine.seek(position);
   }
 
   @override
   Future<void> skipToNext() async {
     int newIndex;
     if (curRepeatMode == AudioServiceRepeatMode.one) {
-      newIndex = _curIndex;
+      newIndex = _queueSynchronizer.currentIndex;
     } else {
-      newIndex = _curIndex + 1;
+      newIndex = _queueSynchronizer.currentIndex + 1;
       if (newIndex == queue.value.length) {
         // 漫游模式的补队列是异步触发的，直接回环会把“加载中”和“切回第一首”
         // 混成同一个动作，结果会让队列状态和 UI 都更难解释。
@@ -323,9 +328,9 @@ class AudioServiceHandler extends BaseAudioHandler
   Future<void> skipToPrevious() async {
     int newIndex;
     if (curRepeatMode == AudioServiceRepeatMode.one) {
-      newIndex = _curIndex;
+      newIndex = _queueSynchronizer.currentIndex;
     } else {
-      newIndex = _curIndex - 1;
+      newIndex = _queueSynchronizer.currentIndex - 1;
       if (newIndex < 0) {
         newIndex = queue.value.length - 1;
       }
@@ -343,7 +348,7 @@ class AudioServiceHandler extends BaseAudioHandler
   @override
   Future<void> onTaskRemoved() async {
     await stop();
-    await _player.dispose();
+    await _engine.dispose();
   }
 
   /// 通知栏按钮仍以 `MediaItem.extras['liked']` 为准。
@@ -351,44 +356,14 @@ class AudioServiceHandler extends BaseAudioHandler
   /// 这里没有直接改成统一领域模型，是因为当前通知栏状态刷新仍跟着
   /// `audio_service` 的 `MediaItem` 流转，贸然拆开会先破坏现有按钮状态。
   _updateMediaControls() {
-    bool isLiked = mediaItem.value?.extras?['liked'] ?? false;
-    playbackState.add(playbackState.value.copyWith(controls: [
-      MediaControl(
-          label: 'rewind',
-          action: MediaAction.rewind,
-          androidIcon: isLiked
-              ? 'drawable/audio_service_like'
-              : 'drawable/audio_service_unlike'),
-      MediaControl.skipToPrevious,
-      _player.playing ? MediaControl.pause : MediaControl.play,
-      MediaControl.skipToNext,
-      MediaControl.stop,
-    ]));
-  }
-}
-
-// ignore: experimental_member_use
-class StreamSource extends StreamAudioSource {
-  String uri;
-  String fileType;
-
-  /// `.uc!` 缓存文件需要按网易云本地格式解密后再交给播放器。
-  StreamSource(this.uri, this.fileType);
-
-  @override
-  // ignore: experimental_member_use
-  Future<StreamAudioResponse> request([int? start, int? end]) async {
-    // `.uc!` 不是标准媒体文件，播放器只能接收解密后的字节流。
-    Uint8List fileBytes = Uint8List.fromList(
-        File(uri).readAsBytesSync().map((e) => e ^ 0xa3).toList());
-
-    // ignore: experimental_member_use
-    return StreamAudioResponse(
-      sourceLength: fileBytes.length,
-      contentLength: (end ?? fileBytes.length) - (start ?? 0),
-      offset: start ?? 0,
-      stream: Stream.fromIterable([fileBytes.sublist(start ?? 0, end)]),
-      contentType: fileType,
+    final isLiked = mediaItem.value?.extras?['liked'] ?? false;
+    playbackState.add(
+      playbackState.value.copyWith(
+        controls: _notificationControlsPresenter.buildControls(
+          isPlaying: _engine.playing,
+          isLiked: isLiked,
+        ),
+      ),
     );
   }
 }

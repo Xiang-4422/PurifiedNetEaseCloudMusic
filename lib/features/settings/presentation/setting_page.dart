@@ -4,9 +4,8 @@ import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
-import 'package:bujuan/features/download/presentation/download_task_page_view.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
-import 'package:bujuan/features/playback/presentation/coverflow_demo_page_view.dart';
+import 'package:bujuan/features/settings/application/settings_navigation_port.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -25,6 +24,8 @@ class SettingPageView extends StatefulWidget {
 class _SettingPageViewState extends State<SettingPageView> {
   final LocalMediaScanController _localMediaScanController =
       Get.find<FeatureControllerFactory>().localMediaScan();
+  final SettingsNavigationPort _navigationPort =
+      Get.find<SettingsNavigationPort>();
 
   String version = '1.0.0';
 
@@ -245,13 +246,7 @@ class _SettingPageViewState extends State<SettingPageView> {
             size: 32,
             color: Theme.of(context).cardColor.withValues(alpha: .5),
           ),
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const DownloadTaskPageView(),
-              ),
-            );
-          },
+          onTap: () => _navigationPort.openLocalSongs(context),
         ),
         ListTile(
           contentPadding: const EdgeInsets.all(0),
@@ -291,14 +286,7 @@ class _SettingPageViewState extends State<SettingPageView> {
             size: 32,
             color: Theme.of(context).cardColor.withValues(alpha: .5),
           ),
-          onTap: () {
-            Navigator.of(context, rootNavigator: true).push(
-              MaterialPageRoute(
-                builder: (_) => const CoverFlowDemoPageView(),
-                fullscreenDialog: true,
-              ),
-            );
-          },
+          onTap: () => _navigationPort.openCoverFlowDemo(context),
         ),
         ListTile(
           contentPadding: const EdgeInsets.all(0),

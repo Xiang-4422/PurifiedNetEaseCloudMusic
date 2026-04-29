@@ -9,7 +9,7 @@ import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/album/album_page_controller.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
@@ -28,6 +28,7 @@ class AlbumPageView extends StatefulWidget {
 class _AlbumPageViewState extends State<AlbumPageView> {
   final AlbumPageController _controller =
       Get.find<FeatureControllerFactory>().albumPage();
+  final PlaybackActionPort _playbackAction = Get.find<PlaybackActionPort>();
   late String albumId;
   late AlbumEntity album;
   List<PlaybackQueueItem> albumSongs = [];
@@ -141,7 +142,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                             TablerIcons.player_play_filled,
                             color: Colors.white,
                           ),
-                          onPressed: () => PlayerController.to.playPlaylist(
+                          onPressed: () => _playbackAction.playPlaylist(
                                 albumSongs,
                                 0,
                                 playListName: album.title,
@@ -178,7 +179,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                         stringColor: onAlbumColor,
                         showPic: false,
                         showIndex: true,
-                        onPlay: PlayerController.to.playPlaylist)
+                        onPlay: _playbackAction.playPlaylist)
                     .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
               },
             ),

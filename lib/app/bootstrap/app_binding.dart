@@ -18,8 +18,11 @@ import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
+import 'package:bujuan/features/comment/application/comment_content_port.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
+import 'package:bujuan/features/comment/presentation/comment_widget.dart';
 import 'package:bujuan/features/download/download_repository.dart';
+import 'package:bujuan/features/download/presentation/download_task_page_view.dart';
 import 'package:bujuan/features/explore/explore_application_service.dart';
 import 'package:bujuan/features/explore/explore_cache_store.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
@@ -30,23 +33,29 @@ import 'package:bujuan/features/library/local_artwork_cache_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
+import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playback/application/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_restore_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
+import 'package:bujuan/features/playback/application/playback_theme_port.dart';
+import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/presentation/coverflow_demo_page_view.dart';
 import 'package:bujuan/features/playlist/application/playlist_playback_action.dart';
 import 'package:bujuan/features/playlist/playlist_cache_store.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
 import 'package:bujuan/features/search/search_repository.dart';
+import 'package:bujuan/features/settings/application/settings_navigation_port.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
@@ -55,6 +64,7 @@ import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -338,6 +348,31 @@ class AppBinding extends Bindings {
       ),
       permanent: true,
     );
+    Get.put<PlaybackUiCommandService>(
+      PlaybackUiCommandService(
+        playbackService: Get.find<PlaybackService>(),
+        modeCoordinator: Get.find<PlaybackModeCoordinator>(),
+      ),
+      permanent: true,
+    );
+    Get.put<PlaybackPreferencePort>(
+      PlaybackPreferencePort(
+        isHighQualityEnabled: () =>
+            Get.find<SettingsController>().isHighSoundQualityOpen.value,
+      ),
+      permanent: true,
+    );
+    Get.put<PlaybackThemePort>(
+      PlaybackThemePort(
+        applyDominantColor: (color) {
+          final settingsController = Get.find<SettingsController>();
+          settingsController.albumColor.value = color;
+          settingsController.panelWidgetColor.value =
+              color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+        },
+      ),
+      permanent: true,
+    );
     Get.put<PlaybackLyricsPresenter>(
       PlaybackLyricsPresenter(repository: Get.find<PlaybackRepository>()),
       permanent: true,
@@ -351,6 +386,85 @@ class AppBinding extends Bindings {
         downloadRepository: Get.find<DownloadRepository>(),
         playbackRepository: Get.find<PlaybackRepository>(),
         userContentPort: Get.find<PlaybackUserContentPort>(),
+      ),
+      permanent: true,
+    );
+    Get.put<PlaybackActionPort>(
+      PlaybackActionPort(
+        playPlaylist: (
+          playList,
+          index, {
+          playListName = '无名歌单',
+          playListNameHeader = '',
+        }) =>
+            Get.find<PlayerController>().playPlaylist(
+          playList,
+          index,
+          playListName: playListName,
+          playListNameHeader: playListNameHeader,
+        ),
+        playOrPause: () => Get.find<PlayerController>().playOrPause(),
+        skipToPrevious: () =>
+            Get.find<PlayerController>().skipToPreviousTrack(),
+        skipToNext: () => Get.find<PlayerController>().skipToNextTrack(),
+        seekTo: (position) => Get.find<PlayerController>().seekTo(position),
+        setRepeatMode: (repeatMode) =>
+            Get.find<PlayerController>().setRepeatMode(repeatMode),
+        openFmMode: () => Get.find<PlayerController>().openFmMode(),
+        openHeartBeatMode: (startSongId, {required fromPlayAll}) =>
+            Get.find<PlayerController>().openHeartBeatMode(
+          startSongId,
+          fromPlayAll: fromPlayAll,
+        ),
+        currentSong: () => Get.find<PlayerController>().currentSongState.value,
+        isPlaying: () => Get.find<PlayerController>().isPlaying.value,
+        isFmMode: () => Get.find<PlayerController>().isFmModeValue,
+        isHeartBeatMode: () =>
+            Get.find<PlayerController>().isHeartBeatModeValue,
+        sessionState: () => Get.find<PlayerController>().sessionState.value,
+      ),
+      permanent: true,
+    );
+    Get.put<SettingsNavigationPort>(
+      SettingsNavigationPort(
+        openLocalSongs: (context) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const DownloadTaskPageView(),
+            ),
+          );
+        },
+        openCoverFlowDemo: (context) {
+          Navigator.of(context, rootNavigator: true).push(
+            MaterialPageRoute(
+              builder: (_) => const CoverFlowDemoPageView(),
+              fullscreenDialog: true,
+            ),
+          );
+        },
+      ),
+      permanent: true,
+    );
+    Get.put<CommentContentPort>(
+      CommentContentPort(
+        buildSongComments: ({
+          required context,
+          required songId,
+          required commentType,
+          required listPaddingTop,
+          required listPaddingBottom,
+          required stringColor,
+        }) =>
+            CommentWidget(
+          key: ValueKey(songId),
+          context: context,
+          id: songId,
+          idType: 'song',
+          commentType: commentType,
+          listPaddingTop: listPaddingTop,
+          listPaddingBottom: listPaddingBottom,
+          stringColor: stringColor,
+        ),
       ),
       permanent: true,
     );
@@ -413,11 +527,13 @@ class AppBinding extends Bindings {
         playbackService: Get.find<PlaybackService>(),
         queueStore: Get.find<PlaybackQueueStore>(),
         queueCoordinator: Get.find<PlaybackQueueCoordinator>(),
-        modeCoordinator: Get.find<PlaybackModeCoordinator>(),
+        commandService: Get.find<PlaybackUiCommandService>(),
         userContentPort: Get.find<PlaybackUserContentPort>(),
         lyricsPresenter: Get.find<PlaybackLyricsPresenter>(),
         artworkPresenter: Get.find<PlaybackArtworkPresenter>(),
         downloadUseCase: Get.find<CurrentTrackDownloadUseCase>(),
+        preferencePort: Get.find<PlaybackPreferencePort>(),
+        themePort: Get.find<PlaybackThemePort>(),
       ),
       fenix: true,
     );

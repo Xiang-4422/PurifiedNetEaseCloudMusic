@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/domain/entities/playback_media_type.dart';
+import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
@@ -8,15 +9,16 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
-import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
+import 'package:bujuan/features/playback/application/playback_theme_port.dart';
+import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
-import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
@@ -34,28 +36,34 @@ class PlayerController extends GetxController {
     required PlaybackService playbackService,
     required PlaybackQueueStore queueStore,
     required PlaybackQueueCoordinator queueCoordinator,
-    required PlaybackModeCoordinator modeCoordinator,
+    required PlaybackUiCommandService commandService,
     required PlaybackUserContentPort userContentPort,
     required PlaybackLyricsPresenter lyricsPresenter,
     required PlaybackArtworkPresenter artworkPresenter,
     required CurrentTrackDownloadUseCase downloadUseCase,
+    required PlaybackPreferencePort preferencePort,
+    required PlaybackThemePort themePort,
   })  : _playbackService = playbackService,
         _queueStore = queueStore,
         _queueCoordinator = queueCoordinator,
-        _modeCoordinator = modeCoordinator,
+        _commandService = commandService,
         _userContentPort = userContentPort,
         _lyricsPresenter = lyricsPresenter,
         _artworkPresenter = artworkPresenter,
-        _downloadUseCase = downloadUseCase;
+        _downloadUseCase = downloadUseCase,
+        _preferencePort = preferencePort,
+        _themePort = themePort;
 
   final PlaybackService _playbackService;
   final PlaybackQueueStore _queueStore;
   final PlaybackQueueCoordinator _queueCoordinator;
-  final PlaybackModeCoordinator _modeCoordinator;
+  final PlaybackUiCommandService _commandService;
   final PlaybackUserContentPort _userContentPort;
   final PlaybackLyricsPresenter _lyricsPresenter;
   final PlaybackArtworkPresenter _artworkPresenter;
   final CurrentTrackDownloadUseCase _downloadUseCase;
+  final PlaybackPreferencePort _preferencePort;
+  final PlaybackThemePort _themePort;
 
   PlaybackService get playbackService => _playbackService;
 
@@ -112,8 +120,7 @@ class PlayerController extends GetxController {
           isPlayingLikedSongs: isLikedSongs,
         );
       },
-      isHighQualityEnabled: () =>
-          SettingsController.to.isHighSoundQualityOpen.value,
+      isHighQualityEnabled: _preferencePort.isHighQualityEnabled,
       onToggleLike: _toggleLikeFromPlayback,
       isPlaylistMode: () => playbackMode.value == PlaybackMode.playlist,
       isRoamingMode: () => playbackMode.value == PlaybackMode.roaming,
@@ -288,9 +295,7 @@ class PlayerController extends GetxController {
       if (color == null) {
         return;
       }
-      SettingsController.to.albumColor.value = color;
-      SettingsController.to.panelWidgetColor.value =
-          color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+      _themePort.applyDominantColor(color);
     } catch (_) {
       // 取色失败只影响播放器氛围色，不能阻断后续歌词等展示态更新。
     }
@@ -305,10 +310,8 @@ class PlayerController extends GetxController {
         await _lyricsPresenter.loadLyrics(runtimeState.value.currentSong);
   }
 
-  playOrPause() async {
-    isPlaying.value
-        ? await _playbackService.pause()
-        : await _playbackService.play();
+  Future<void> playOrPause() async {
+    await _commandService.playOrPause(isPlaying: isPlaying.value);
   }
 
   /// 播放列表切换先统一走播放控制器，避免页面继续直接触碰 `audioHandler`
@@ -319,22 +322,20 @@ class PlayerController extends GetxController {
     String playListName = "无名歌单",
     String playListNameHeader = "",
   }) async {
-    if (isFmMode.isTrue) {
-      await quitFmMode(showToast: false);
-    }
-    if (isHeartBeatMode.isTrue) {
-      await quitHeartBeatMode(showToast: false);
-    }
-    await _playbackService.playPlaylist(
+    await _commandService.playPlaylist(
       playList,
       index,
       playListName: playListName,
       playListNameHeader: playListNameHeader,
+      isFmMode: isFmModeValue,
+      isHeartBeatMode: isHeartBeatModeValue,
+      quitFmMode: quitFmMode,
+      quitHeartBeatMode: quitHeartBeatMode,
     );
   }
 
   Future<void> playQueueIndex(int index) {
-    return _playbackService.playIndex(audioSourceIndex: index, playNow: true);
+    return _commandService.playQueueIndex(index);
   }
 
   Future<void> updatePlaybackQueueItem(PlaybackQueueItem item) async {
@@ -446,23 +447,23 @@ class PlayerController extends GetxController {
   }
 
   Future<void> seekTo(Duration position) {
-    return _playbackService.seek(position);
+    return _commandService.seekTo(position);
   }
 
   Future<void> skipToPreviousTrack() {
-    return _playbackService.skipToPrevious();
+    return _commandService.skipToPreviousTrack();
   }
 
   Future<void> skipToNextTrack() {
-    return _playbackService.skipToNext();
+    return _commandService.skipToNextTrack();
   }
 
   Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) {
-    return _playbackService.changeRepeatMode(newRepeatMode: repeatMode);
+    return _commandService.setRepeatMode(repeatMode);
   }
 
   Future<void> cycleRepeatMode() {
-    return _playbackService.changeRepeatMode();
+    return _commandService.cycleRepeatMode();
   }
 
   Future<void> openFmMode() async {
@@ -498,7 +499,7 @@ class PlayerController extends GetxController {
   }
 
   Future<void> playUserLikedSongs() async {
-    await _modeCoordinator.playLikedSongs(
+    await _commandService.playLikedSongs(
       currentSong: runtimeState.value.currentSong,
     );
   }
@@ -527,48 +528,23 @@ class PlayerController extends GetxController {
   }
 
   Future<void> switchMode(PlaybackMode newMode, {dynamic contextData}) async {
-    if (playbackMode.value == newMode && newMode != PlaybackMode.playlist) {
-      if (isPlaying.isFalse) await playOrPause();
-      return;
-    }
-
-    _syncSessionState(playbackMode: newMode);
-
-    switch (newMode) {
-      case PlaybackMode.roaming:
-        await _initRoamingMode();
-        break;
-      case PlaybackMode.heartbeat:
-        if (contextData is Map && contextData.containsKey('startSongId')) {
-          await _initHeartBeatMode(
-              contextData['startSongId'], contextData['fromPlayAll'] ?? true);
-        }
-        break;
-      case PlaybackMode.playlist:
-        // 播放列表模式本身不需要额外初始化，真正的队列切换统一通过播放入口完成。
-        break;
-    }
-  }
-
-  Future<void> _initRoamingMode() async {
-    final started = await _modeCoordinator.startRoamingMode(
-      currentRepeatMode: sessionState.value.repeatMode,
+    await _commandService.switchMode(
+      currentMode: playbackMode.value,
+      newMode: newMode,
+      isPlaying: isPlaying.value,
+      syncMode: (mode) async => _syncSessionState(playbackMode: mode),
+      playOrPauseWhenPaused: playOrPause,
+      startRoaming: () => _commandService.startRoamingMode(
+        currentRepeatMode: sessionState.value.repeatMode,
+      ),
+      startHeartBeat: (startSongId, fromPlayAll) =>
+          _commandService.startHeartBeatMode(
+        startSongId: startSongId,
+        fromPlayAll: fromPlayAll,
+        currentRepeatMode: sessionState.value.repeatMode,
+      ),
+      contextData: contextData,
     );
-    if (!started) {
-      // Fallback or error
-      _syncSessionState(playbackMode: PlaybackMode.playlist);
-    }
-  }
-
-  Future<void> _initHeartBeatMode(String startSongId, bool fromPlayAll) async {
-    final started = await _modeCoordinator.startHeartBeatMode(
-      startSongId: startSongId,
-      fromPlayAll: fromPlayAll,
-      currentRepeatMode: sessionState.value.repeatMode,
-    );
-    if (!started) {
-      _syncSessionState(playbackMode: PlaybackMode.playlist);
-    }
   }
 
   IconData getRepeatIcon() {
@@ -657,15 +633,11 @@ class PlayerController extends GetxController {
     }
     final updatedItem = await _downloadUseCase.cacheTrackForPlayback(
       item.id,
-      preferHighQuality: _isHighQualityEnabled(),
+      preferHighQuality: _preferencePort.isHighQualityEnabled(),
     );
     if (updatedItem != null && runtimeState.value.currentSong.id == item.id) {
       await _syncCurrentQueueItem(updatedItem);
     }
-  }
-
-  bool _isHighQualityEnabled() {
-    return SettingsController.to.isHighSoundQualityOpen.value;
   }
 
   void _preloadImages() {

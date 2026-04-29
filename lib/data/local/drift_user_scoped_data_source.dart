@@ -5,47 +5,27 @@ import 'package:bujuan/domain/entities/user_library_kinds.dart';
 import 'package:bujuan/domain/entities/user_profile_data.dart';
 import 'package:drift/drift.dart' as drift;
 
+import 'dao/user_dao.dart';
 import 'user_scoped_data_source.dart';
 
 class DriftUserScopedDataSource implements UserScopedDataSource {
-  DriftUserScopedDataSource({required db.BujuanDriftDatabase database})
-      : _database = database;
+  DriftUserScopedDataSource({
+    required db.BujuanDriftDatabase database,
+    required UserDao userDao,
+  })  : _database = database,
+        _userDao = userDao;
 
   final db.BujuanDriftDatabase _database;
+  final UserDao _userDao;
 
   @override
-  Future<UserProfileData?> loadProfile(String userId) async {
-    final row = await (_database.select(_database.userProfiles)
-          ..where((tbl) => tbl.userId.equals(userId)))
-        .getSingleOrNull();
-    if (row == null) {
-      return null;
-    }
-    return UserProfileData(
-      userId: row.userId,
-      nickname: row.nickname,
-      signature: row.signature,
-      follows: row.follows,
-      followeds: row.followeds,
-      playlistCount: row.playlistCount,
-      avatarUrl: row.avatarUrl,
-    );
+  Future<UserProfileData?> loadProfile(String userId) {
+    return _userDao.loadProfile(userId);
   }
 
   @override
   Future<void> saveProfile(UserProfileData profile) {
-    return _database.into(_database.userProfiles).insertOnConflictUpdate(
-          db.UserProfilesCompanion(
-            userId: drift.Value(profile.userId),
-            nickname: drift.Value(profile.nickname),
-            signature: drift.Value(profile.signature),
-            follows: drift.Value(profile.follows),
-            followeds: drift.Value(profile.followeds),
-            playlistCount: drift.Value(profile.playlistCount),
-            avatarUrl: drift.Value(profile.avatarUrl),
-            updatedAtMs: drift.Value(DateTime.now().millisecondsSinceEpoch),
-          ),
-        );
+    return _userDao.saveProfile(profile);
   }
 
   @override
@@ -548,38 +528,18 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
   }
 
   @override
-  Future<DateTime?> loadSyncMarker(String userId, String markerKey) async {
-    final row = await (_database.select(_database.userSyncMarkers)
-          ..where(
-            (tbl) =>
-                tbl.userId.equals(userId) & tbl.markerKey.equals(markerKey),
-          ))
-        .getSingleOrNull();
-    if (row == null) {
-      return null;
-    }
-    return DateTime.fromMillisecondsSinceEpoch(row.updatedAtMs);
+  Future<DateTime?> loadSyncMarker(String userId, String markerKey) {
+    return _userDao.loadSyncMarker(userId, markerKey);
   }
 
   @override
   Future<void> markSyncMarkerUpdated(String userId, String markerKey) {
-    return _database.into(_database.userSyncMarkers).insertOnConflictUpdate(
-          db.UserSyncMarkersCompanion(
-            userId: drift.Value(userId),
-            markerKey: drift.Value(markerKey),
-            updatedAtMs: drift.Value(DateTime.now().millisecondsSinceEpoch),
-          ),
-        );
+    return _userDao.markSyncMarkerUpdated(userId, markerKey);
   }
 
   @override
   Future<void> clearSyncMarker(String userId, String markerKey) {
-    return (_database.delete(_database.userSyncMarkers)
-          ..where(
-            (tbl) =>
-                tbl.userId.equals(userId) & tbl.markerKey.equals(markerKey),
-          ))
-        .go();
+    return _userDao.clearSyncMarker(userId, markerKey);
   }
 
   Future<List<PlaylistSummaryData>> _loadPlaylistSummariesFromRefs(

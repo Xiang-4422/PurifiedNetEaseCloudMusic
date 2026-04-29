@@ -720,6 +720,21 @@ void main() {
           'saveResource(',
           'listAudioResources(',
         ],
+        'lib/data/local/dao/track_dao.dart': [
+          'getTrack(',
+          'saveTracks(',
+          'getLyrics(',
+        ],
+        'lib/data/local/dao/playlist_dao.dart': [
+          'getPlaylist(',
+          'savePlaylists(',
+          'loadTrackRefsByPlaylistIds(',
+        ],
+        'lib/data/local/dao/user_dao.dart': [
+          'loadProfile(',
+          'saveProfile(',
+          'loadSyncMarker(',
+        ],
       };
       final violations = <String>[];
       for (final entry in expectedMethods.entries) {

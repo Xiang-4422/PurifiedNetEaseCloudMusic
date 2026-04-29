@@ -5,7 +5,10 @@ import 'package:bujuan/core/database/drift_database.dart';
 import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/data/local/dao/cache_dao.dart';
 import 'package:bujuan/data/local/dao/download_task_dao.dart';
+import 'package:bujuan/data/local/dao/playlist_dao.dart';
 import 'package:bujuan/data/local/dao/resource_dao.dart';
+import 'package:bujuan/data/local/dao/track_dao.dart';
+import 'package:bujuan/data/local/dao/user_dao.dart';
 import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/data/local/drift_app_cache_data_source.dart';
 import 'package:bujuan/data/local/drift_download_task_data_source.dart';
@@ -33,7 +36,10 @@ class DriftAppDatabase implements AppDatabase {
   @override
   Future<void> init() async {
     _database = BujuanDriftDatabase(databaseName: databaseName);
-    _localLibraryDataSource = DriftLocalLibraryDataSource(database: _database);
+    _localLibraryDataSource = DriftLocalLibraryDataSource(
+      trackDao: TrackDao(database: _database),
+      playlistDao: PlaylistDao(database: _database),
+    );
     _playbackRestoreDataSource =
         DriftPlaybackRestoreDataSource(database: _database);
     _localResourceIndexDataSource =
@@ -46,7 +52,10 @@ class DriftAppDatabase implements AppDatabase {
     _appCacheDataSource = DriftAppCacheDataSource(
       dao: CacheDao(database: _database),
     );
-    _userScopedDataSource = DriftUserScopedDataSource(database: _database);
+    _userScopedDataSource = DriftUserScopedDataSource(
+      database: _database,
+      userDao: UserDao(database: _database),
+    );
   }
 
   @override

@@ -1,15 +1,11 @@
 import 'dart:async';
 
+import 'package:bujuan/features/explore/explore_application_service.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
-import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/explore/ranking_playlist_data.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
-import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
@@ -21,13 +17,10 @@ class ExplorePageController extends GetxController {
   static const Duration _rankingPlaylistTtl = Duration(minutes: 30);
 
   ExplorePageController({
-    required ExploreRepository repository,
-    required PlaylistRepository playlistRepository,
-  })  : _repository = repository,
-        _playlistRepository = playlistRepository;
+    required ExploreApplicationService applicationService,
+  }) : _applicationService = applicationService;
 
-  final ExploreRepository _repository;
-  final PlaylistRepository _playlistRepository;
+  final ExploreApplicationService _applicationService;
 
   final Map<String, List<RankingPlaylistData>> topPlayListCategory = {
     "官方榜": [
@@ -170,14 +163,14 @@ class ExplorePageController extends GetxController {
   }
 
   Future<bool> _shouldRefreshInitialData() async {
-    return !(await _repository.isPlaylistCatalogueFresh(
+    return !(await _applicationService.isPlaylistCatalogueFresh(
           ttl: _playlistCatalogueTtl,
         )) ||
-        !(await _repository.isCategoryPlaylistsFresh(
+        !(await _applicationService.isCategoryPlaylistsFresh(
           curTag.value,
           ttl: _categoryPlaylistsTtl,
         )) ||
-        !(await _playlistRepository.isCacheFresh(
+        !(await _applicationService.isRankingPlaylistFresh(
           curTopPlayListId.value,
           ttl: _rankingPlaylistTtl,
         )) ||
@@ -187,7 +180,8 @@ class ExplorePageController extends GetxController {
   }
 
   Future<bool> _loadCachedPlaylistCatalogue() async {
-    final cachedCatalogue = await _repository.loadCachedPlaylistCatalogue();
+    final cachedCatalogue =
+        await _applicationService.loadCachedPlaylistCatalogue();
     if (cachedCatalogue == null) {
       return false;
     }
@@ -207,7 +201,7 @@ class ExplorePageController extends GetxController {
 
   Future<bool> _loadCachedPlayLists() async {
     final cachedPlayLists =
-        await _repository.loadCachedCategoryPlaylists(curTag.value);
+        await _applicationService.loadCachedCategoryPlaylists(curTag.value);
     if (cachedPlayLists == null || cachedPlayLists.isEmpty) {
       return false;
     }
@@ -218,12 +212,9 @@ class ExplorePageController extends GetxController {
   }
 
   Future<bool> _loadCachedRankingPlayListSongs() async {
-    final cachedDetail = await _playlistRepository.loadLocalPlaylistDetail(
-      playlistId: curTopPlayListId.value,
-      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-      currentUserId: UserSessionController.to.userInfo.value.userId,
+    final cachedSongs = await _applicationService.loadCachedRankingSongs(
+      curTopPlayListId.value,
     );
-    final cachedSongs = cachedDetail?.songs ?? const <PlaybackQueueItem>[];
     if (cachedSongs.isEmpty) {
       return false;
     }
@@ -247,12 +238,12 @@ class ExplorePageController extends GetxController {
   Future<void> _refreshPlaylistCatalogue({bool force = false}) async {
     if (!force &&
         tagCategorys.isNotEmpty &&
-        await _repository.isPlaylistCatalogueFresh(
+        await _applicationService.isPlaylistCatalogueFresh(
           ttl: _playlistCatalogueTtl,
         )) {
       return;
     }
-    final catalogue = await _repository.fetchPlaylistCatalogue();
+    final catalogue = await _applicationService.fetchPlaylistCatalogue();
     _applyPlaylistCatalogue(catalogue);
   }
 
@@ -260,14 +251,14 @@ class ExplorePageController extends GetxController {
     if (!force) {
       final hasCachedPlayLists = await _loadCachedPlayLists();
       if (hasCachedPlayLists &&
-          await _repository.isCategoryPlaylistsFresh(
+          await _applicationService.isCategoryPlaylistsFresh(
             curTag.value,
             ttl: _categoryPlaylistsTtl,
           )) {
         return;
       }
     }
-    final data = await _repository.fetchCategoryPlaylists(curTag.value);
+    final data = await _applicationService.fetchCategoryPlaylists(curTag.value);
     playLists
       ..clear()
       ..addAll(data);
@@ -286,7 +277,7 @@ class ExplorePageController extends GetxController {
     if (offset == 0 && !force) {
       final hasCachedSongs = await _loadCachedRankingPlayListSongs();
       if (hasCachedSongs &&
-          await _playlistRepository.isCacheFresh(
+          await _applicationService.isRankingPlaylistFresh(
             curTopPlayListId.value,
             ttl: _rankingPlaylistTtl,
           )) {
@@ -296,9 +287,8 @@ class ExplorePageController extends GetxController {
     if (offset == 0) {
       curTopPlayListSongs.clear();
     }
-    final songs = await _playlistRepository.fetchPlaylistSongs(
-      playlistId: curTopPlayListId.value,
-      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
+    final songs = await _applicationService.fetchRankingSongs(
+      curTopPlayListId.value,
       offset: offset,
       limit: limit,
     );
@@ -320,10 +310,9 @@ class ExplorePageController extends GetxController {
       limit: -1,
       force: true,
     );
-    await PlayerController.to.playPlaylist(
+    await _applicationService.playRankingSongs(
       curTopPlayListSongs,
-      0,
-      playListName: curTopPlayListName.value,
+      playlistName: curTopPlayListName.value,
     );
   }
 

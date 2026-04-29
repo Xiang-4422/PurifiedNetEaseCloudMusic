@@ -20,6 +20,7 @@ import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/download/download_repository.dart';
+import 'package:bujuan/features/explore/explore_application_service.dart';
 import 'package:bujuan/features/explore/explore_cache_store.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
@@ -249,7 +250,24 @@ class AppBinding extends Bindings {
       permanent: true,
     );
     Get.put<PlaylistPlaybackAction>(
-      PlaylistPlaybackAction(repository: Get.find<PlaylistRepository>()),
+      PlaylistPlaybackAction(
+        repository: Get.find<PlaylistRepository>(),
+        currentPlaylistName: () =>
+            Get.find<PlayerController>().sessionState.value.playlistName,
+        toggleCurrentPlayback: () => Get.find<PlayerController>().playOrPause(),
+        playPlaylist: (
+          playlist,
+          index, {
+          required playListName,
+          playListNameHeader = '',
+        }) =>
+            Get.find<PlayerController>().playPlaylist(
+          playlist,
+          index,
+          playListName: playListName,
+          playListNameHeader: playListNameHeader,
+        ),
+      ),
       permanent: true,
     );
   }
@@ -368,6 +386,28 @@ class AppBinding extends Bindings {
   }
 
   void _registerControllers() {
+    Get.put<ExploreApplicationService>(
+      ExploreApplicationService(
+        exploreRepository: Get.find<ExploreRepository>(),
+        playlistRepository: Get.find<PlaylistRepository>(),
+        likedSongIds: () => Get.find<UserLibraryController>().likedSongIds,
+        currentUserId: () =>
+            Get.find<UserSessionController>().userInfo.value.userId,
+        playPlaylist: (
+          playlist,
+          index, {
+          required playListName,
+          playListNameHeader = '',
+        }) =>
+            Get.find<PlayerController>().playPlaylist(
+          playlist,
+          index,
+          playListName: playListName,
+          playListNameHeader: playListNameHeader,
+        ),
+      ),
+      permanent: true,
+    );
     Get.lazyPut(
       () => PlayerController(
         playbackService: Get.find<PlaybackService>(),
@@ -387,8 +427,7 @@ class AppBinding extends Bindings {
     );
     Get.lazyPut(
       () => ExplorePageController(
-        repository: Get.find<ExploreRepository>(),
-        playlistRepository: Get.find<PlaylistRepository>(),
+        applicationService: Get.find<ExploreApplicationService>(),
       ),
       fenix: true,
     );

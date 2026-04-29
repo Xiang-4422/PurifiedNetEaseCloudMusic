@@ -22,6 +22,9 @@
 - [`lib/features/shell/shell_controller.dart`](../lib/features/shell/shell_controller.dart) 只保留底部播放面板、顶部搜索面板、抽屉返回键、歌词滚动和专辑页 UI 协调，不再作为 user/settings/player 总代理
 - [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart) 与 [`lib/features/playback/application/audio_service_handler.dart`](../lib/features/playback/application/audio_service_handler.dart) 已形成播放链路，页面和 repository 消费 `PlaybackQueueItem`，`MediaItem` 只留在 audio_service 适配边界
 - 用户侧状态已拆分为 `UserSessionController`、`UserLibraryController`、`RecommendationController`，分别承接登录态、账号资料库和首页推荐内容
+- `DownloadRepository` 已缩为下载业务门面，内部职责拆到 `DownloadTaskQueue`、`DownloadFileStore`、`DownloadResourceWriter`、`DownloadRecoveryService`
+- 应用装配仍保留单一 `AppBinding` 入口，内部按 infrastructure、repository、playback application、user application、controller、feature factory 分组注册
+- 架构守护测试已经覆盖 GetX、MediaItem、CacheBox、presentation repository 直连、feature 横向 presentation import、共享 widget 依赖、data/common Flutter 泄漏等边界
 - 页面已并入对应 feature 的 `presentation` 目录，仍需继续缩小页面内用例逻辑，例如：
   - [`lib/features/auth/presentation/login_page_view.dart`](../lib/features/auth/presentation/login_page_view.dart)
   - [`lib/features/playlist/presentation/playlist_page_view.dart`](../lib/features/playlist/presentation/playlist_page_view.dart)
@@ -214,6 +217,7 @@
   - 现阶段保留，用于页面状态、Controller 和应用级 Binding
   - `Rx`、`GetxController`、`Get.find` 只允许出现在 `features/*/presentation`、controller、binding、route 层
   - 不进入 `domain / data / repository`
+  - application service 和 page controller 默认使用构造函数注入，禁止新增静态 `create()` 再从 `Get.find` 读依赖
 - `auto_route`
   - 继续作为路由方案
 - `Dio`
@@ -252,6 +256,8 @@
 - repository、controller、页面之间统一传递 `PlaybackQueueItem`
 - `PlaybackQueueItem` 字段固定为播放队列需要的领域数据，不依赖 audio_service
 - `PlaybackQueueItem <-> MediaItem` 转换只允许在播放 adapter/service/application 边界
+- `PlaybackQueueStore` 持久化 `PlaybackQueueItem` JSON，不能把 `MediaItem` 写成恢复快照事实
+- controller/application 层公开重复模式使用领域枚举 `PlaybackRepeatMode`，`AudioServiceRepeatMode` 只留在 audio_service 边界 mapper
 - 页面和零散组件中禁止重复拼装 `MediaItem`
 - 平台 Bean 到领域实体的转换统一收口到 `data/mappers`
 - 专辑页、歌手页、推荐歌曲等展示链路优先消费统一实体，不再让页面直接依赖网易云 `Album`、`Artist`、`Song2`
@@ -530,6 +536,7 @@ lib/
   - 业务功能模块，页面、controller、application service 和 feature repository 按模块内聚
   - `presentation` 只放页面、局部组件和展示 controller
   - `application` 只放 feature 内部编排与平台适配入口
+  - 跨 feature 行为优先进入 application service 或显式 port，不允许 presentation 直接横向 import 其他 feature 页面
 - `widget`
   - 跨页面复用的通用 UI 组件和滚动行为
 - `common`
@@ -623,6 +630,8 @@ lib/
 - `MediaItem` 拼装
 - 分页参数管理
 - 业务流程协调
+- 直接 import feature repository 或 `data/netease`
+- 直接横向 import 其他 feature 的 presentation 页面，route 入口例外必须显式记录
 
 补充：
 
@@ -643,6 +652,8 @@ Controller 禁止继续膨胀为：
 - 缓存实现层
 - 本地数据库实现层
 - 多模块总控层
+- 下载文件系统和队列调度实现层
+- audio_service 适配层
 
 ### 9.3 Repository
 
@@ -652,6 +663,13 @@ Repository 负责：
 - 访问本地缓存与本地数据库
 - 合并远程和本地数据
 - 输出面向业务的结果
+
+Repository 禁止：
+
+- import Flutter UI 包或 GetX
+- 返回 `MediaItem`
+- 直接承担页面流程编排
+- 随意横向 import 其他 feature repository
 
 默认优先级：
 
@@ -687,6 +705,22 @@ Repository 负责：
 - 不允许在页面中直接随意获取
 - 不允许成为每个 Controller 的默认直连依赖
 - 后续新增数据库实例、下载器、文件扫描器同样属于基础设施
+
+### 9.7 架构守护测试
+
+长期守护入口是 [`test/architecture/architecture_boundary_test.dart`](../test/architecture/architecture_boundary_test.dart)。
+
+当前至少覆盖：
+
+- 禁止 `lib/pages`、GetIt、旧 `AppController`、旧 `MediaItemBean` 复活
+- `core/data/domain` 禁止 GetX 和反向 import features
+- `domain` 禁止 Flutter、audio_service、just_audio
+- `data` 和歌词解析模型禁止 Flutter 泄漏
+- `MediaItem` 限定在播放 adapter/service 边界
+- presentation 禁止直连 repository 和 `data/netease`
+- 共享 `lib/widget` 禁止读取 feature controller、repository 或 data
+- repository 禁止 Flutter UI、GetX 和非白名单 feature 横向依赖
+- Drift migration 治理文档必须存在并记录当前 schema
 
 ## 10. 渐进执行策略
 

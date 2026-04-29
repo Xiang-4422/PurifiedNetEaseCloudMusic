@@ -417,6 +417,7 @@
 
 ### 11.1 Drift schema 迁移治理
 
+- 详细治理规范见 [`05-drift-migration-governance.md`](./05-drift-migration-governance.md)
 - 每次提升 Drift `schemaVersion`，必须同步记录表结构变更、数据归属变化和是否允许清表重建
 - 开发期仍可 destructive reset，但只能作为本地开发策略，不能替代发布版本迁移方案
 - 发布前必须为正式版本到正式版本的升级补齐 migration plan，至少覆盖新增列默认值、表拆分、索引变更和缓存表清理策略

@@ -252,6 +252,7 @@
 ### 已完成
 
 - 架构分析完成
+- 九项架构治理已完成阶段性落地：补齐架构守护、拆分下载仓库内部职责、收口播放恢复模型、拆分应用装配根、收紧歌单与探索横向依赖、拆分评论与播放面板状态层、清理 data/common Flutter 泄漏、补 Drift migration 治理文档并同步架构文档
 - 已新增架构守护测试：禁止 `lib/pages` 复活，禁止 `GetIt/get_it/AppController/MediaItemBean`，禁止 `core/data/domain` 依赖 GetX 或反向 import features，禁止业务 cache store 直接读取 `CacheBox.instance`，并继续约束 presentation、widget、repository 和 feature repository 横向依赖
 - `ShellController` 已继续瘦身，user/settings/player 代理 getter、播放代理方法和首页数据刷新入口已移除；页面改为分别读取 `UserSessionController`、`UserLibraryController`、`RecommendationController`、`PlayerController`、`SettingsController`、`HomeShellController`
 - 旧 `UserController` 已拆分为 `UserSessionController`、`UserLibraryController`、`RecommendationController`，登录态、账号资料库和首页推荐内容不再共用一个总控入口
@@ -259,6 +260,15 @@
 - `AlbumRepository`、`ArtistRepository`、`PlaylistRepository`、`CloudRepository`、`SearchRepository`、`UserRepository` 已改为返回领域实体或 `PlaybackQueueItem`
 - 网易云 remote data source 已停止返回 `MediaItem`，只返回领域实体或 `Track`
 - `PlayerController` 与 `PlaybackService` 对外播放入口已改为接收 `List<PlaybackQueueItem>`，`MediaItem` 限定在 audio_service 适配层
+- `PlaybackQueueStore` 已改为持久化 `PlaybackQueueItem` JSON，恢复快照不再暴露 `MediaItem`
+- `PlaybackSessionState`、`PlayerController` 和恢复链路公开重复模式已切到 domain `PlaybackRepeatMode`
+- `DownloadRepository` 已拆出 `DownloadTaskQueue`、`DownloadFileStore`、`DownloadResourceWriter`、`DownloadRecoveryService`，公开业务 API 保持不变
+- `AppBinding` 已拆成分组 registrar，feature page controller 的依赖创建集中到 `FeatureControllerFactory`
+- `playlist_widgets.dart` 和 `SongItem` 已移除对 `PlayerController` 的直接依赖，播放行为改由字段与回调注入
+- `ExplorePageController` 已改为依赖 `ExploreApplicationService`，不再直接持有 playlist repository、播放 controller 和用户 controller
+- `comment_widget.dart` 已拆出评论列表、评论项和回复弹层状态 controller；底部播放面板已新增状态 presenter，后续继续迁出页面内状态计算
+- data/netease 与歌词解析模型已清理 Flutter import，架构测试开始守护 data 与 lyric parser 纯 Dart 边界
+- 已新增 Drift migration 治理文档，记录 schema version、表归属、缓存表 TTL/清理策略和发布前非破坏迁移要求
 - 已新增 Drift-backed `AppCacheDataSource` 与 `app_cache_entries`，业务缓存 store 不再直接读取 `CacheBox.instance`
 - `SearchCacheStore`、`ExploreCacheStore`、`PlaylistCacheStore`、`CloudCacheStore`、`RadioCacheStore`、`UserProfileCacheStore` 已迁到 Drift 通用缓存接口
 - 技术架构文档已建立
@@ -373,9 +383,9 @@
 
 ### 当前阻塞与下一步
 
-- 发布前数据库非破坏迁移策略还未完善
+- 发布前数据库非破坏 migration 代码还未实现；当前已有治理文档，但 `onUpgrade` 仍是开发期 destructive reset
 - 用户作用域缓存、刷新标记和账号隔离仍需继续收尾
-- 播放链路和壳层仍保留部分跨职责代理入口
+- 播放链路仍需继续缩小 handler 与 controller 的状态同步面，底部播放面板还有可继续迁出的展示状态
 - 下载体系仍不支持断点续传，失败后主要依赖完整重试
 
 ## 10. 分阶段计划

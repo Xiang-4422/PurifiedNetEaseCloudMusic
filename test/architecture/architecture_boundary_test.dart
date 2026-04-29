@@ -327,6 +327,27 @@ void main() {
             '业务列表缓存应使用 Drift-backed AppCacheDataSource，Hive 只保留登录态、设置和轻量视觉缓存。',
       );
     });
+
+    test('Drift migration governance document is maintained', () {
+      final migrationDocument = File(
+        '${projectRoot.path}/docs/05-drift-migration-governance.md',
+      );
+
+      expect(
+        migrationDocument.existsSync(),
+        isTrue,
+        reason: 'Drift schemaVersion 变更必须有正式 migration governance 文档承接。',
+      );
+      expect(
+        migrationDocument.readAsStringSync(),
+        allOf(
+          contains('schema version'),
+          contains('表归属'),
+          contains('app_cache_entries'),
+          contains('v1'),
+        ),
+      );
+    });
   });
 }
 

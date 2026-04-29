@@ -7,7 +7,10 @@ import 'package:flutter/material.dart';
 
 import 'drawer_styles/drawer_styles.dart';
 
-/// Build custom style with (context, animationValue, slideWidth, menuScreen, mainScreen) {}
+/// 自定义抽屉动画样式构建器。
+///
+/// [animationValue] 表示当前开合进度，[slideWidth] 是抽屉目标宽度，
+/// 返回值需要自行组合菜单和主内容。
 typedef DrawerStyleBuilder = Widget Function(
   BuildContext context,
   double animationValue,
@@ -16,7 +19,9 @@ typedef DrawerStyleBuilder = Widget Function(
   Widget mainScreen,
 );
 
+/// 支持多种动画样式的侧边抽屉容器。
 class ZoomDrawer extends StatefulWidget {
+  /// 创建抽屉容器，并注入菜单页、主页面和动画配置。
   const ZoomDrawer({
     super.key,
     required this.menuScreen,
@@ -58,84 +63,82 @@ class ZoomDrawer extends StatefulWidget {
     this.drawerStyleBuilder,
   });
 
-  /// Layout style
+  /// 抽屉动画布局样式。
   final DrawerStyle style;
 
-  /// controller to have access to the open/close/toggle function of the drawer
+  /// 外部控制抽屉开合的命令控制器。
   final ZoomDrawerController? controller;
 
-  /// Screen containing the menu/bottom screen
+  /// 抽屉展开后露出的菜单页面。
   final Widget menuScreen;
 
-  /// Screen containing the main content to display
+  /// 抽屉关闭时展示的主页面。
   final Widget mainScreen;
 
-  /// MainScreen scale factor
+  /// 主页面在抽屉打开时的缩放比例。
   final double mainScreenScale;
 
-  /// Sliding width of the drawer
+  /// 抽屉滑出的目标宽度。
   final double slideWidth;
 
-  /// Sliding height of the drawer
+  /// 抽屉滑出时叠加的垂直位移。
   final double slideHeight;
 
-  /// menuScreen Width
-  /// Set it to double.infinity to make it take screen width
+  /// 菜单页面宽度；设置为 [double.infinity] 时占满屏幕宽度。
   final double? menuScreenWidth;
 
-  /// Border radius of the slide content
+  /// 主页面在动画过程中的圆角半径。
   final double borderRadius;
 
-  /// Rotation angle of the drawer
+  /// 默认样式下主页面旋转角度，单位为度。
   final double angle;
 
-  /// Background color of the menuScreen
+  /// 菜单页面背景色。
   final Color menuBackgroundColor;
 
-  /// Background color of the drawer shadows
+  /// 抽屉阴影层默认背景色。
   final Color drawerShadowsBackgroundColor;
 
-  /// First shadow background color
+  /// 第一层阴影颜色；为空时使用默认阴影背景色派生。
   final Color? shadowLayer1Color;
 
-  /// Second shadow background color
+  /// 第二层阴影颜色；为空时使用默认阴影背景色派生。
   final Color? shadowLayer2Color;
 
-  /// Boolean, whether to show the drawer shadows - Applies to defaultStyle only
+  /// 是否显示默认样式的双层阴影。
   final bool showShadow;
 
-  /// Close drawer on android back button
-  /// Note: This won't work if you are using PopScope in mainScreen,
-  /// If that is the case, you have to manually close the drawer from there
-  /// By using ZoomDrawer.of(context)?.close()
+  /// Android 返回键是否优先关闭抽屉。
+  ///
+  /// 如果主页面使用自己的 [PopScope]，需要在主页面内自行调用
+  /// `ZoomDrawer.of(context)?.close()`。
   final bool androidCloseOnBackTap;
 
-  /// Make menuScreen slide along with mainScreen animation
-  /// Has no effects to style1
+  /// 菜单页面是否跟随主页面动画移动；对 [DrawerStyle.style1] 无效。
   final bool moveMenuScreen;
 
-  /// Drawer slide out curve
+  /// 抽屉打开动画曲线。
   final Curve openCurve;
 
-  /// Drawer slide in curve
+  /// 抽屉关闭动画曲线。
   final Curve closeCurve;
 
-  /// Drawer forward Duration
+  /// 抽屉打开动画时长。
   final Duration duration;
 
-  /// Drawer reverse Duration
+  /// 抽屉关闭动画时长。
   final Duration reverseDuration;
 
-  /// Disable swipe gesture
+  /// 是否禁用手势拖拽。
   final bool disableDragGesture;
 
-  /// display the drawer in RTL
+  /// 是否按从右到左布局展示抽屉。
   final bool isRtl;
 
-  /// Depreciated: Set [borderRadius] to 0 instead
+  /// 兼容旧接口的主页面裁剪开关，新代码应改用 [borderRadius]。
   final bool clipMainScreen;
 
-  /// The offset to trigger drawer drag
+  /// 允许触发抽屉拖拽的屏幕边缘宽度。
   final double dragOffset;
 
   /// 默认为1，手指拖多少，抽屉展开多少。取大于零的值，调节抽屉展开灵敏度
@@ -144,34 +147,34 @@ class ZoomDrawer extends StatefulWidget {
   /// 默认为1，手指拖多少，抽屉展开多少。取大于零的值，调节抽屉展开灵敏度
   final double closeDragSensitivity;
 
-  /// Color of the main screen's cover overlay
+  /// 主页面遮罩颜色。
   final Color? mainScreenOverlayColor;
 
-  /// Color of the menu screen's cover overlay
+  /// 菜单页面遮罩颜色。
   final Color? menuScreenOverlayColor;
 
-  /// The BlendMode of the [mainScreenOverlayColor] and [menuScreenOverlayColor] filter
+  /// 主页面和菜单页面遮罩使用的混合模式。
   final BlendMode overlayBlend;
 
-  /// Apply a Blur amount to the mainScreen
+  /// 主页面遮罩叠加的模糊强度。
   final double? overlayBlur;
 
-  /// The Shadow of the mainScreenWidget
+  /// 主页面容器阴影。
   final List<BoxShadow>? boxShadow;
 
-  /// Close drawer when tapping menuScreen
+  /// 点击菜单页面时是否关闭抽屉。
   final bool menuScreenTapClose;
 
-  /// Close drawer when tapping mainScreen
+  /// 点击主页面时是否关闭抽屉。
   final bool mainScreenTapClose;
 
-  /// Prevent touches to mainScreen while drawer is open
+  /// 抽屉打开时是否阻止主页面接收触摸事件。
   final bool mainScreenAbsorbPointer;
 
-  /// Shrinks the mainScreen by [slideWidth]
+  /// 是否按 [slideWidth] 收缩主页面可用区域。
   final bool shrinkMainScreen;
 
-  /// Build custom animated style to override [DrawerStyle]
+  /// 自定义动画样式构建器，存在时覆盖 [DrawerStyle]。
   /// ```dart
   /// drawerStyleBuilder: (context, animationValue, slideWidth, menuScreen, mainScreen) {
   ///     double slide = slideWidth * animationValue;
@@ -190,11 +193,12 @@ class ZoomDrawer extends StatefulWidget {
   @override
   ZoomDrawerState createState() => ZoomDrawerState();
 
-  /// static function to provide the drawer state
+  /// 从当前上下文向上查找最近的抽屉状态对象。
   static ZoomDrawerState? of(BuildContext context) =>
       context.findAncestorStateOfType<ZoomDrawerState>();
 }
 
+/// [ZoomDrawer] 的运行状态，负责动画、手势和控制器回调。
 class ZoomDrawerState extends State<ZoomDrawer>
     with SingleTickerProviderStateMixin {
   /// Triggers drag animation
@@ -211,6 +215,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
   final ValueNotifier<DrawerState> _stateNotifier =
       ValueNotifier(DrawerState.closed);
 
+  /// 当前抽屉动画状态的通知器。
   ValueNotifier<DrawerState> get stateNotifier => _stateNotifier;
 
   late final AnimationController _animationController = AnimationController(
@@ -227,12 +232,13 @@ class ZoomDrawerState extends State<ZoomDrawer>
   /// Very useful case you want to know the drawer is either open or closed
   DrawerLastAction _drawerLastAction = DrawerLastAction.closed;
 
+  /// 最近一次完成的抽屉开合动作。
   DrawerLastAction get drawerLastAction => _drawerLastAction;
 
-  /// Check whether drawer is open
+  /// 判断抽屉是否处于完全打开状态。
   bool isOpen() => stateNotifier.value == DrawerState.open;
 
-  /// Check whether drawer is open
+  /// 监听抽屉动画展开比例变化。
   void addListener(listener) => _listeners.add(listener);
 
   /// Decides if drag animation should start according to dragOffset

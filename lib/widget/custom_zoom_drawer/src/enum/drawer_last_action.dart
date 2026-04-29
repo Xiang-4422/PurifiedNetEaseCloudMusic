@@ -1,3 +1,8 @@
-/// Drawer last action enum
-/// To detect last action from drawer if it was opened or closed.
-enum DrawerLastAction { open, closed }
+/// 抽屉最近一次完成的稳定动作。
+enum DrawerLastAction {
+  /// 最近一次动作将抽屉打开。
+  open,
+
+  /// 最近一次动作将抽屉关闭。
+  closed,
+}

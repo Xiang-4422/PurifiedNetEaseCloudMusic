@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+/// 抽屉样式 3，主页面带透视旋转并露出菜单。
 class Style3Widget extends StatelessWidget {
+  /// 创建样式 3 的抽屉布局。
   const Style3Widget({
     Key? key,
     required this.animationValue,
@@ -14,12 +16,25 @@ class Style3Widget extends StatelessWidget {
     required this.isRtl,
   }) : super(key: key);
 
+  /// 抽屉动画进度，取值通常为 0 到 1。
   final double animationValue;
+
+  /// 主页面水平旋转和位移方向。
   final int slideDirection;
+
+  /// 主页面滑出的参考宽度。
   final double slideWidth;
+
+  /// 抽屉打开时主页面缩小的比例。
   final double mainScreenScale;
+
+  /// 是否按从右到左布局展示。
   final bool isRtl;
+
+  /// 抽屉打开后露出的菜单内容。
   final Widget menuScreenWidget;
+
+  /// 随动画平移、缩放和旋转的主内容。
   final Widget mainScreenWidget;
 
   @override

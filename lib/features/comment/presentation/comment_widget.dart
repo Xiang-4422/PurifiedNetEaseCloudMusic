@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// 评论列表组件。
 class CommentWidget extends StatefulWidget {
+  /// 创建评论列表组件。
   const CommentWidget({
     super.key,
     required this.context,
@@ -20,12 +22,25 @@ class CommentWidget extends StatefulWidget {
     required this.stringColor,
   });
 
+  /// 父级页面上下文。
   final BuildContext context;
+
+  /// 评论排序类型。
   final int commentType;
+
+  /// 评论资源 id。
   final String id;
+
+  /// 评论资源类型。
   final String idType;
+
+  /// 列表顶部占位高度。
   final double listPaddingTop;
+
+  /// 列表底部占位高度。
   final double listPaddingBottom;
+
+  /// 评论文本颜色。
   final Color stringColor;
 
   @override

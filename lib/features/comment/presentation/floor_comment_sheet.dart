@@ -15,7 +15,9 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// 楼层回复弹层页面。
 class FoolTalk extends StatefulWidget {
+  /// 创建楼层回复弹层。
   const FoolTalk({
     super.key,
     required this.commentItem,
@@ -24,9 +26,16 @@ class FoolTalk extends StatefulWidget {
     required this.backGroundColor,
   });
 
+  /// 父评论数据。
   final CommentData commentItem;
+
+  /// 评论资源 id。
   final String id;
+
+  /// 评论资源类型。
   final String type;
+
+  /// 弹层背景颜色。
   final Color backGroundColor;
 
   @override
@@ -279,9 +288,14 @@ class _FoolTalkState extends State<FoolTalk> {
   }
 }
 
+/// 回复弹层 tab 数据。
 class TalkItem {
+  /// 创建回复弹层 tab 数据。
   TalkItem(this.title, this.type);
 
+  /// tab 标题。
   String title;
+
+  /// tab 对应评论类型。
   int type;
 }

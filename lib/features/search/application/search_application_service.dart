@@ -5,7 +5,9 @@ import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/core/network/load_state.dart';
 
+/// 搜索结果状态。
 class SearchResultState {
+  /// 创建搜索结果状态。
   const SearchResultState({
     required this.songs,
     required this.playlists,
@@ -13,20 +15,31 @@ class SearchResultState {
     required this.artists,
   });
 
+  /// 歌曲搜索状态。
   final LoadState<List<PlaybackQueueItem>> songs;
+
+  /// 歌单搜索状态。
   final LoadState<List<PlaylistEntity>> playlists;
+
+  /// 专辑搜索状态。
   final LoadState<List<AlbumEntity>> albums;
+
+  /// 歌手搜索状态。
   final LoadState<List<ArtistEntity>> artists;
 }
 
+/// 搜索应用服务，负责热搜和多类型搜索编排。
 class SearchApplicationService {
+  /// 创建搜索应用服务。
   SearchApplicationService({required SearchRepository repository})
       : _repository = repository;
 
+  /// 热搜关键词缓存 TTL。
   static const Duration hotKeywordTtl = Duration(minutes: 30);
 
   final SearchRepository _repository;
 
+  /// 加载初始热搜关键词。
   Future<LoadState<List<String>>> loadInitialHotKeywords({
     bool force = false,
   }) async {
@@ -52,6 +65,7 @@ class SearchApplicationService {
     }
   }
 
+  /// 搜索歌曲、歌单、专辑和歌手。
   Future<SearchResultState> searchAll(
     String keyword, {
     required List<int> likedSongIds,

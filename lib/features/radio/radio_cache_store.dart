@@ -3,13 +3,16 @@ import 'dart:convert';
 import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/domain/entities/radio_data.dart';
 
+/// 电台缓存存储。
 class RadioCacheStore {
+  /// 创建电台缓存存储。
   const RadioCacheStore({
     required AppCacheDataSource cacheDataSource,
   }) : _cacheDataSource = cacheDataSource;
 
   final AppCacheDataSource _cacheDataSource;
 
+  /// 加载已订阅电台缓存。
   Future<List<RadioSummaryData>?> loadSubscribedRadios() async {
     final payloadJson =
         await _cacheDataSource.loadPayloadJson(_subscribedRadioKey);
@@ -31,6 +34,7 @@ class RadioCacheStore {
         .toList();
   }
 
+  /// 保存已订阅电台缓存。
   Future<void> saveSubscribedRadios(List<RadioSummaryData> items) async {
     await _cacheDataSource.save(
       cacheKey: _subscribedRadioKey,
@@ -38,6 +42,7 @@ class RadioCacheStore {
     );
   }
 
+  /// 加载电台节目缓存。
   Future<List<RadioProgramData>?> loadPrograms(String radioId) async {
     final payloadJson =
         await _cacheDataSource.loadPayloadJson(_programKey(radioId));
@@ -59,6 +64,7 @@ class RadioCacheStore {
         .toList();
   }
 
+  /// 保存电台节目缓存。
   Future<void> savePrograms(
     String radioId,
     List<RadioProgramData> items,

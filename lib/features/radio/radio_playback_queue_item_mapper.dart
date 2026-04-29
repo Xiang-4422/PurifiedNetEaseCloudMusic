@@ -2,9 +2,12 @@ import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/radio_data.dart';
 
+/// 电台节目到播放队列项的 mapper。
 class RadioPlaybackQueueItemMapper {
+  /// 禁止实例化电台播放队列 mapper。
   const RadioPlaybackQueueItemMapper._();
 
+  /// 将电台节目列表转换为播放队列项列表。
   static List<PlaybackQueueItem> fromPrograms(
     List<RadioProgramData> programs, {
     required List<int> likedSongIds,

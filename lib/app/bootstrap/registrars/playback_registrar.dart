@@ -16,9 +16,12 @@ import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:get/get.dart';
 
+/// 播放应用层注册器，统一装配播放服务、队列、模式和下载用例。
 class PlaybackRegistrar {
+  /// 禁止实例化播放注册器。
   const PlaybackRegistrar._();
 
+  /// 注册播放链路需要的 application service 与 port。
   static void register() {
     Get.put<PlaybackQueueStore>(
       PlaybackQueueStore(repository: Get.find<PlaybackRepository>()),

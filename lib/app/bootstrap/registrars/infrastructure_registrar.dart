@@ -26,9 +26,12 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+/// 基础设施注册器，负责初始化本地存储、数据库和底层数据源。
 class InfrastructureRegistrar {
+  /// 禁止实例化基础设施注册器。
   const InfrastructureRegistrar._();
 
+  /// 初始化基础设施并注册底层 data source 与基础 repository。
   static Future<void> init() async {
     final appDatabase =
         DriftAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
@@ -111,6 +114,7 @@ class InfrastructureRegistrar {
     unawaited(downloadRepository.recoverInterruptedTasks());
   }
 
+  /// 将已创建的基础设施实例注册到 GetX 容器。
   static void registerInfrastructure({
     required AppDatabase appDatabase,
     required LocalLibraryDataSource localLibraryDataSource,

@@ -29,6 +29,7 @@ import 'package:bujuan/features/user/user_session_controller.dart';
 
 /// 页面级控制器工厂，集中承接 GetX 装配到构造函数注入的边界。
 class FeatureControllerFactory {
+  /// 创建页面级控制器工厂，并注入页面控制器需要的仓库和共享控制器。
   const FeatureControllerFactory({
     required AlbumRepository albumRepository,
     required ArtistRepository artistRepository,
@@ -71,14 +72,17 @@ class FeatureControllerFactory {
   final UserSessionController _userSessionController;
   final UserLibraryController _userLibraryController;
 
+  /// 创建专辑详情页控制器。
   AlbumPageController albumPage() {
     return AlbumPageController(repository: _albumRepository);
   }
 
+  /// 创建歌手详情页控制器。
   ArtistPageController artistPage() {
     return ArtistPageController(repository: _artistRepository);
   }
 
+  /// 创建云盘页控制器。
   CloudPageController cloudPage({int pageSize = 30}) {
     return CloudPageController(
       repository: _cloudRepository,
@@ -88,6 +92,7 @@ class FeatureControllerFactory {
     );
   }
 
+  /// 创建评论列表控制器。
   CommentListController commentList({
     required String id,
     required String type,
@@ -103,6 +108,7 @@ class FeatureControllerFactory {
     );
   }
 
+  /// 创建楼层评论控制器。
   FloorCommentController floorComment({
     required String id,
     required String type,
@@ -118,6 +124,7 @@ class FeatureControllerFactory {
     );
   }
 
+  /// 创建本地歌曲列表控制器。
   LocalSongListController localSongList({
     Set<TrackResourceOrigin>? origins,
   }) {
@@ -128,6 +135,7 @@ class FeatureControllerFactory {
     );
   }
 
+  /// 创建本地媒体扫描控制器。
   LocalMediaScanController localMediaScan() {
     return LocalMediaScanController(
       scanRepository: LocalMediaScanRepository(
@@ -136,6 +144,7 @@ class FeatureControllerFactory {
     );
   }
 
+  /// 创建歌单详情页控制器。
   PlaylistPageController playlistPage() {
     return PlaylistPageController(
       detailService: PlaylistDetailService(
@@ -146,6 +155,7 @@ class FeatureControllerFactory {
     );
   }
 
+  /// 创建电台列表控制器。
   RadioListController radioList({int pageSize = 30}) {
     return RadioListController(
       userId: _userSessionController.userInfo.value.userId,
@@ -154,6 +164,7 @@ class FeatureControllerFactory {
     );
   }
 
+  /// 创建电台详情控制器。
   RadioDetailController radioDetail({
     required String radioId,
     int pageSize = 30,
@@ -168,10 +179,12 @@ class FeatureControllerFactory {
     );
   }
 
+  /// 创建搜索面板控制器。
   SearchPanelController searchPanel() {
     return SearchPanelController(service: _searchApplicationService);
   }
 
+  /// 创建用户资料页控制器。
   UserProfileController userProfile() {
     return UserProfileController(
       userId: _userSessionController.userInfo.value.userId,

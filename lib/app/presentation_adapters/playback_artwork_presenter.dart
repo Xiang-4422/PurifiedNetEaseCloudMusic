@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 /// 播放封面相关的展示策略：补全封面、取色和本地图片预取。
 class PlaybackArtworkPresenter {
+  /// 创建播放封面展示策略实例。
   PlaybackArtworkPresenter({
     required PlaybackRepository repository,
     LocalImageCacheRepository? imageCacheRepository,
@@ -21,6 +22,7 @@ class PlaybackArtworkPresenter {
 
   final Map<String, Color> _albumColorCache = {};
 
+  /// 解析队列项封面的主色，用于同步播放面板主题色。
   Future<Color?> resolveDominantColor(PlaybackQueueItem item) async {
     final imageUrl = item.artworkUrl ?? item.localArtworkPath;
     if (imageUrl == null || imageUrl.isEmpty) {
@@ -45,6 +47,7 @@ class PlaybackArtworkPresenter {
     return color;
   }
 
+  /// 在当前队列项缺少封面时，从本地资源索引补全封面地址。
   Future<PlaybackQueueItem?> resolveMissingArtwork(
     PlaybackQueueItem currentItem,
   ) async {
@@ -70,6 +73,7 @@ class PlaybackArtworkPresenter {
     );
   }
 
+  /// 预取当前歌曲前后若干首的本地封面，降低切歌时的图片闪烁。
   void preloadQueueArtwork({
     required List<PlaybackQueueItem> queue,
     required int currentIndex,

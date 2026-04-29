@@ -20,9 +20,12 @@ import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:get/get.dart';
 
+/// Repository 注册器，统一装配业务仓库实例。
 class RepositoryRegistrar {
+  /// 禁止实例化 repository 注册器。
   const RepositoryRegistrar._();
 
+  /// 注册所有仓库，并保持仓库依赖由构造函数显式传入。
   static void register({
     required LibraryRepository libraryRepository,
     required UserScopedDataSource userScopedDataSource,

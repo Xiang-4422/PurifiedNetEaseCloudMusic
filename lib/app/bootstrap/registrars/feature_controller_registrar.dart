@@ -38,9 +38,12 @@ import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:get/get.dart';
 
+/// Feature 控制器注册器，集中注册页面控制器和 feature application service。
 class FeatureControllerRegistrar {
+  /// 禁止实例化 feature 控制器注册器。
   const FeatureControllerRegistrar._();
 
+  /// 注册 feature application、页面控制器和页面控制器工厂。
   static void register() {
     _registerFeatureApplications();
     _registerControllers();

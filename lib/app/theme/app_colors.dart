@@ -4,17 +4,29 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
+  /// 应用主色。
   static const Color primaryColor = Color(0xFF1976D2);
+
+  /// 应用强调色。
   static const Color accentColor = Color(0xFFFFA000);
 
+  /// 默认页面背景色。
   static const Color backgroundColor = Color(0xFFF5F5F5);
+
+  /// 主要文本颜色。
   static const Color textColorPrimary = Colors.black87;
+
+  /// 次要文本颜色。
   static const Color textColorSecondary = Colors.black54;
 
+  /// 成功状态颜色。
   static const Color successColor = Colors.green;
+
+  /// 错误状态颜色。
   static const Color errorColor = Colors.red;
 }
 
+/// 应用主题定义，集中提供亮色和暗色主题及基础色板。
 class AppTheme {
   /// 亮色主题
   static ThemeData light = ThemeData.light().copyWith(
@@ -81,27 +93,57 @@ class AppTheme {
     ),
   );
 
+  /// 暗色主题主色。
   static const primaryDark = Color(0xFF1c1d1f);
+
+  /// 暗色主题主色上的内容色。
   static const onPrimaryDark = Color(0xF9F1F1F1);
+
+  /// 亮色主题主色。
   static const primary = Colors.white;
+
+  /// 亮色主题主色上的内容色。
   static const onPrimary = Color(0xFF1c1d1f);
 
+  /// 暗色主题表面色。
   static const surfaceDark = Color(0xFF333436);
+
+  /// 暗色主题表面上的内容色。
   static const onSurfaceDark = Color(0xFF2C2B2B);
+
+  /// 亮色主题表面色。
   static const surface = Color(0xff787878);
+
+  /// 亮色主题表面上的内容色。
   static const onSurface = Color(0xFFAEAEAE);
 
+  /// 次级背景色。
   static const secondary = Color(0xFF1C1B1B);
+
+  /// 次级背景上的内容色。
   static const onSecondary = Colors.white;
 
+  /// 最低区间提示色。
   static const min = Colors.red;
+
+  /// 中间区间提示色。
   static const middle = Colors.yellow;
+
+  /// 最高区间提示色。
   static const max = Colors.green;
+
+  /// 空状态提示色。
   static const empty = Colors.grey;
 
+  /// 红色动作色。
   static const red = Colors.red;
+
+  /// 红色背景上的内容色。
   static const onRed = Colors.white;
 
+  /// 图标描边色。
   static const iconBorder = Colors.white;
+
+  /// 顶部文字颜色。
   static const topTextColor = Colors.white;
 }

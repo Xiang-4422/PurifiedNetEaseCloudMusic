@@ -11,6 +11,7 @@ import 'app_router_observer.dart';
 
 /// 统一应用级路由壳层，避免主题、滚动行为和导航观察者继续分散到页面侧。
 class AppRootRouter extends StatelessWidget {
+  /// 创建应用根路由组件。
   AppRootRouter({Key? key}) : super(key: key);
 
   // 根路由在应用生命周期内保持单例语义更稳，避免 rebuild 时重新生成

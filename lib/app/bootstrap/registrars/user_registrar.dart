@@ -9,9 +9,12 @@ import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:get/get.dart';
 
+/// 用户与设置相关控制器注册器。
 class UserRegistrar {
+  /// 禁止实例化用户注册器。
   const UserRegistrar._();
 
+  /// 注册用户 session、用户资料、推荐和设置相关控制器。
   static void register() {
     Get.lazyPut(() => HomeShellController(), fenix: true);
     Get.lazyPut(() => SettingsController(), fenix: true);

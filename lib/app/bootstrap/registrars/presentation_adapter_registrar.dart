@@ -16,9 +16,12 @@ import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 展示层适配器注册器，集中装配依赖 Flutter UI 类型的 port。
 class PresentationAdapterRegistrar {
+  /// 禁止实例化展示层适配器注册器。
   const PresentationAdapterRegistrar._();
 
+  /// 注册 toast、主题、路由和评论内容等展示层 adapter。
   static void register() {
     Get.put<PlaybackToastPort>(
       const PlaybackToastPort(show: ToastService.show),

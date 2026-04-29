@@ -5,7 +5,9 @@ import '../../../src/api/event/bean.dart';
 import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 
+/// 动态、评论、私信和资源互动相关接口。
 mixin ApiEvent {
+  /// 构建指定用户动态列表请求元数据。
   DioMetaData eventListDioMetaData(String userId,
       {int limit = 30, int lastTime = -1}) {
     var params = {'userId': userId, 'time': lastTime, 'limit': limit};
@@ -25,6 +27,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建当前用户动态列表请求元数据。
   DioMetaData eventMyListDioMetaData({int limit = 30, int lastTime = -1}) {
     var params = {'lasttime': lastTime, 'pagesize': limit};
     return DioMetaData(joinUri('/weapi/v1/event/get'),
@@ -42,6 +45,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建转发动态请求元数据。
   DioMetaData eventForwardDioMetaData(String userId, String evId,
       {String forwards = ''}) {
     var params = {'eventUserId': userId, 'id': evId, 'forwards': forwards};
@@ -62,6 +66,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建删除动态请求元数据。
   DioMetaData eventDeleteDioMetaData(String evId) {
     var params = {'id': evId};
     return DioMetaData(joinUri('/weapi/event/delete'),
@@ -79,6 +84,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建分享资源到动态请求元数据。
   DioMetaData shareResourceDioMetaData(String id,
       {String type = 'song', String msg = ''}) {
     var params = {'id': id, 'type': type, 'msg': msg};
@@ -100,6 +106,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建动态评论列表请求元数据。
   DioMetaData eventCommentListDioMetaData(String threadId,
       {int offset = 0, int limit = 30, int beforeTime = 0}) {
     var params = {'limit': limit, 'offset': offset, 'beforeTime': beforeTime};
@@ -120,6 +127,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建热门话题列表请求元数据。
   DioMetaData topicHotListDioMetaData({int offset = 0, int limit = 20}) {
     var params = {'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/api/act/hot'),
@@ -135,6 +143,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建热门话题动态详情请求元数据。
   DioMetaData hotTopicDetailEventDioMetaData(String actid) {
     var params = {'actid': actid};
     return DioMetaData(joinUri('/api/act/event/hot'),
@@ -150,6 +159,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建话题详情请求元数据。
   DioMetaData topicDetailDioMetaData(String actid) {
     var params = {'actid': actid};
     return DioMetaData(joinUri('/api/act/detail'),
@@ -165,6 +175,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建旧版评论列表请求元数据。
   DioMetaData commentListDioMetaData(String id, String type,
       {int offset = 0, int limit = 20, int beforeTime = 0}) {
     String typeKey = type2key(type);
@@ -191,6 +202,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建新版评论列表请求元数据。
   DioMetaData commentListDioMetaData2(String id, String type,
       {int pageNo = 1,
       int pageSize = 20,
@@ -232,6 +244,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建热门评论列表请求元数据。
   DioMetaData hotCommentListDioMetaData(String id, String type,
       {int offset = 0, int limit = 20, int beforeTime = 0}) {
     String typeKey = type2key(type);
@@ -258,6 +271,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建热墙评论列表请求元数据。
   DioMetaData hotwallCommentListDioMetaData() {
     return DioMetaData(joinUri('/api/comment/hotwall/list/get'),
         data: {}, options: joinOptions());
@@ -272,6 +286,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建用户评论列表请求元数据。
   DioMetaData userCommentsDioMetaData(String userId,
       {int beforeTime = -1, int limit = 30, bool total = true}) {
     var params = {
@@ -296,6 +311,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建用户评论历史请求元数据。
   DioMetaData userCommentsHistoryDioMetaData(String userId,
       {int time = 0,
       int limit = 10,
@@ -330,6 +346,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建楼层评论请求元数据。
   DioMetaData floorCommentsDioMetaData(
       String id, String type, String parentCommentId,
       {int time = -1, int limit = 20}) {
@@ -356,6 +373,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建资源转发列表请求元数据。
   DioMetaData forwardsDioMetaData(
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'limit': limit, 'offset': offset, 'total': total};
@@ -376,6 +394,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建评论点赞请求元数据。
   DioMetaData likeCommentDioMetaData(
       String id, String commentId, String type, bool like,
       {String? threadId}) {
@@ -410,6 +429,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建评论发布、回复或删除请求元数据。
   DioMetaData commentDioMetaData(String id, String type, String op,
       {String? commentId, String? threadId, String? content}) {
     String typeKey = type2key(type);
@@ -467,6 +487,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建资源点赞请求元数据。
   DioMetaData likeResourceDioMetaData(String id, String type, bool like,
       {String? commentId, String? threadId, String? content}) {
     String typeKey = type2key(type);
@@ -498,6 +519,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建抱一抱评论列表请求元数据。
   DioMetaData hugCommentListDioMetaData(
     String id,
     String type,
@@ -547,6 +569,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建抱一抱评论请求元数据。
   DioMetaData hugCommentDioMetaData(
       String id, String type, String userId, String commentId) {
     String typeKey = type2key(type);
@@ -572,6 +595,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 将评论资源类型转换为接口需要的 thread key。
   String type2key(String type) {
     String typeKey = 'R_SO_4_';
     switch (type) {
@@ -600,6 +624,7 @@ mixin ApiEvent {
     return typeKey;
   }
 
+  /// 构建最近联系用户请求元数据。
   DioMetaData recentContactUsersDioMetaData() {
     var params = {};
     return DioMetaData(joinUri('/api/msg/recentcontact/get'),
@@ -616,6 +641,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建私信会话列表请求元数据。
   DioMetaData privateMsgListUsersDioMetaData(
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'limit': limit, 'offset': offset, 'total': total};
@@ -635,6 +661,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建发送私信请求元数据。
   DioMetaData sendPrivateMsgDioMetaData(String msg, String userId,
       {String type = 'text', String playlist = ''}) {
     var params = {
@@ -659,6 +686,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建指定用户私信列表请求元数据。
   DioMetaData privateMsgListUserDioMetaData(String userId,
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {
@@ -683,6 +711,7 @@ mixin ApiEvent {
     });
   }
 
+  /// 构建通知消息列表请求元数据。
   DioMetaData msgNoticesDioMetaData({int limit = 30, int lasttime = -1}) {
     var params = {'limit': limit, 'lasttime ': lasttime};
     return DioMetaData(joinUri('/api/msg/notices'),

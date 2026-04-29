@@ -7,7 +7,9 @@ import '../../../src/api/bean.dart';
 import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 
+/// 用户资料、关注、收藏、歌单管理和数字专辑相关接口。
 mixin ApiUser {
+  /// 构建用户设置请求元数据。
   DioMetaData userSettingDioMetaData() {
     return DioMetaData(joinUri('/api/user/setting'),
         data: {}, options: joinOptions());
@@ -23,6 +25,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建用户账号绑定信息请求元数据。
   DioMetaData userBindingsDioMetaData(String userId) {
     return DioMetaData(joinUri('/api/v1/user/bindings/$userId'),
         data: {}, options: joinOptions());
@@ -38,6 +41,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建用户详情请求元数据。
   DioMetaData userDetailDioMetaData(String userId) {
     return DioMetaData(joinUri('/weapi/v1/user/detail/$userId'),
         data: {}, options: joinOptions());
@@ -53,6 +57,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建用户计数信息请求元数据。
   DioMetaData userSubcountDioMetaData() {
     return DioMetaData(joinUri('/weapi/subcount'),
         data: {}, options: joinOptions());
@@ -68,6 +73,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建用户等级请求元数据。
   DioMetaData userLevelDioMetaData() {
     return DioMetaData(joinUri('/weapi/user/level'),
         data: {}, options: joinOptions());
@@ -84,6 +90,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建更新用户资料请求元数据。
   DioMetaData userUpdateProfileDioMetaData(int gender, int birthday,
       String nickname, int province, int city, String signature,
       {String avatarImgId = '0'}) {
@@ -121,6 +128,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建更新用户头像请求元数据。
   DioMetaData userUpdateProfileAvatarDioMetaData(String imgid) {
     var params = {'imgid': imgid};
     return DioMetaData(joinUri('/weapi/user/avatar/upload/v1'),
@@ -141,6 +149,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建用户歌单列表请求元数据。
   DioMetaData userPlayListDioMetaData(String userId,
       {int offset = 0, int limit = 30}) {
     var params = {'uid': userId, 'limit': limit, 'offset': offset};
@@ -159,6 +168,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建批量更新用户歌单信息请求元数据。
   DioMetaData updateUserPlayListInfoDioMetaData(
       String id, String name, String desc, List<String> tags) {
     var params = {
@@ -184,6 +194,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建更新用户歌单描述请求元数据。
   DioMetaData updateUserPlayListDescDioMetaData(String id, String desc) {
     var params = {'id': id, 'desc': desc};
     return DioMetaData(joinUri('/eapi/playlist/desc/update'),
@@ -204,6 +215,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建更新用户歌单名称请求元数据。
   DioMetaData updateUserPlayListNameDioMetaData(String id, String name) {
     var params = {'id': id, 'name': name};
     return DioMetaData(joinUri('/eapi/playlist/update/name'),
@@ -224,6 +236,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建更新用户歌单标签请求元数据。
   DioMetaData updateUserPlayListTagsDioMetaData(String id, List<String> tags) {
     var params = {'id': id, 'tags': tags.join(',')};
     return DioMetaData(joinUri('/eapi/playlist/tags/update'),
@@ -245,6 +258,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建用户关注列表请求元数据。
   DioMetaData userFollowListDioMetaData(String userId,
       {int offset = 0, int limit = 30, bool order = true}) {
     var params = {'limit': limit, 'offset': offset};
@@ -264,6 +278,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建用户签到请求元数据。
   DioMetaData userSignDioMetaData({String clientType = 'android'}) {
     var params = {'type': clientType == 'android' ? 0 : 1};
     return DioMetaData(joinUri('/weapi/point/dailyTask'),
@@ -282,6 +297,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建用户粉丝列表请求元数据。
   DioMetaData userFollowedListDioMetaData(String userId,
       {int limit = 30, int lastTime = -1}) {
     var params = {'userId': userId, 'time': lastTime, 'limit': limit};
@@ -304,6 +320,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建关注或取消关注用户请求元数据。
   DioMetaData userFollowDioMetaData(String userId, bool follow) {
     return DioMetaData(
         joinUri('/weapi/user/${follow ? 'follow' : 'delfollow'}/$userId'),
@@ -321,6 +338,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建收藏或取消收藏歌手请求元数据。
   DioMetaData artistSubDioMetaData(String artistId, bool sub) {
     // 批量?
     var params = {'artistId': artistId, 'artistIds': '[$artistId]'};
@@ -338,6 +356,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建收藏歌手列表请求元数据。
   DioMetaData artistSubListDioMetaData(
       {bool total = true, int offset = 0, int limit = 30}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -357,6 +376,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建订阅或取消订阅播客请求元数据。
   DioMetaData djRadioSubDioMetaData(String radioId, bool sub) {
     var params = {'id': radioId};
     return DioMetaData(joinUri('/weapi/djradio/${sub ? 'sub' : 'unsub'}'),
@@ -373,6 +393,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建订阅播客列表请求元数据。
   DioMetaData djRadioSubListDioMetaData(
       {bool total = true, int offset = 0, int limit = 30}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -392,6 +413,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建收藏或取消收藏视频请求元数据。
   DioMetaData videoSubDioMetaData(String videoId, bool sub) {
     var params = {'id': videoId};
     return DioMetaData(
@@ -410,6 +432,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建收藏或取消收藏 MV 请求元数据。
   DioMetaData mvSubDioMetaData(String mvId, bool sub) {
     // 批量?
     var params = {'mvId': mvId, 'mvIds': '[$mvId]'};
@@ -427,6 +450,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建收藏 MV 列表请求元数据。
   DioMetaData mvSubListDioMetaData(
       {bool total = true, int offset = 0, int limit = 30}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -446,6 +470,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建用户播放记录请求元数据。
   DioMetaData userPlayRecordListDioMetaData(String userId, bool weekData) {
     var params = {
       'uid': userId,
@@ -466,6 +491,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建收藏或取消收藏专辑请求元数据。
   DioMetaData albumSubDioMetaData(String albumId, bool sub) {
     var params = {'id': albumId};
     return DioMetaData(joinUri('/api/album/${sub ? 'sub' : 'unsub'}'),
@@ -482,6 +508,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建收藏专辑列表请求元数据。
   DioMetaData albumSubListDioMetaData(
       {bool total = true, int offset = 0, int limit = 30}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -501,6 +528,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建收藏或取消收藏歌单请求元数据。
   DioMetaData playlistSubDioMetaData(String pid, bool sub) {
     var params = {'id': pid};
     return DioMetaData(
@@ -519,6 +547,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建创建歌单请求元数据。
   DioMetaData playlistCreateDioMetaData(String name, bool privacy) {
     var params = {'name': name, 'privacy': privacy ? '10' : '0'};
     return DioMetaData(joinUri('/weapi/playlist/create'),
@@ -537,12 +566,14 @@ mixin ApiUser {
     });
   }
 
+  /// 构建删除歌单请求元数据。
   DioMetaData playlistDeleteDioMetaData(List<String> pids) {
     var params = {'ids': jsonEncode(pids)};
     return DioMetaData(joinUri('/weapi/playlist/remove'),
         data: params, options: joinOptions(cookies: {'os': 'pc'}));
   }
 
+  /// 构建更新歌单封面请求元数据。
   DioMetaData playlistUpdateCoverDioMetaData(String pid, String coverImgId) {
     var params = {'id': pid, 'coverImgId': coverImgId};
     return DioMetaData(joinUri('/weapi/playlist/cover/update'),
@@ -573,6 +604,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建更新歌单排序请求元数据。
   DioMetaData playlistUpdateOrderDioMetaData(List<String> pids) {
     var params = {'ids': jsonEncode(pids)};
     return DioMetaData(joinUri('/api/playlist/order/update'),
@@ -589,6 +621,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建歌单歌曲增删请求元数据。
   DioMetaData playlistManipulateTracksDioMetaData(
       String pid, String trackId, bool add) {
     // 批量?
@@ -612,6 +645,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建购买数字专辑请求元数据。
   DioMetaData orderingDigitalAlbumDioMetaData(String albumId,
       {int payment = 3, int quantity = 1}) {
     var params = {
@@ -643,6 +677,7 @@ mixin ApiUser {
     });
   }
 
+  /// 构建已购数字专辑请求元数据。
   DioMetaData purchasedDigitalAlbumDioMetaData(
       {bool total = true, int offset = 0, int limit = 30}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};

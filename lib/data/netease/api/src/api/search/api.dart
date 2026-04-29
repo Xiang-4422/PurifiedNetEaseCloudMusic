@@ -4,11 +4,13 @@ import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 import 'bean.dart';
 
+/// 搜索、热搜和搜索建议相关接口。
 mixin ApiSearch {
   Uri _searchUrl(bool cloudSearch) => cloudSearch
       ? joinUri('/weapi/cloudsearch/pc')
       : joinUri('/weapi/search/get');
 
+  /// 构建单曲搜索请求元数据。
   DioMetaData searchSongDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1, 'limit': limit, 'offset': offset};
@@ -27,6 +29,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建专辑搜索请求元数据。
   DioMetaData searchAlbumDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 10, 'limit': limit, 'offset': offset};
@@ -45,6 +48,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建歌手搜索请求元数据。
   DioMetaData searchArtistsDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 100, 'limit': limit, 'offset': offset};
@@ -63,6 +67,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建歌单搜索请求元数据。
   DioMetaData searchPlaylistDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1000, 'limit': limit, 'offset': offset};
@@ -81,6 +86,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建用户搜索请求元数据。
   DioMetaData searchUserDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1002, 'limit': limit, 'offset': offset};
@@ -99,6 +105,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建 MV 搜索请求元数据。
   DioMetaData searchMvDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1004, 'limit': limit, 'offset': offset};
@@ -117,6 +124,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建歌词搜索请求元数据。
   DioMetaData searchLyricsDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1006, 'limit': limit, 'offset': offset};
@@ -135,6 +143,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建播客搜索请求元数据。
   DioMetaData searchDjradioDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1009, 'limit': limit, 'offset': offset};
@@ -153,6 +162,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建视频搜索请求元数据。
   DioMetaData searchVideoDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1014, 'limit': limit, 'offset': offset};
@@ -171,6 +181,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建综合搜索请求元数据。
   DioMetaData searchComplexDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1018, 'limit': limit, 'offset': offset};
@@ -189,6 +200,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建默认搜索关键词请求元数据。
   DioMetaData searchDefaultKeyDioMetaData() {
     return DioMetaData(
         Uri.parse(
@@ -208,6 +220,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建简略热搜词请求元数据。
   DioMetaData searchHotKeyDioMetaData() {
     return DioMetaData(joinUri('/weapi/search/hot'),
         data: {'type': 1111},
@@ -223,6 +236,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建详细热搜词请求元数据。
   DioMetaData searchHotKeyDetailedDioMetaData() {
     return DioMetaData(joinUri('/weapi/hotsearchlist/get'),
         data: {}, options: joinOptions());
@@ -237,6 +251,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建搜索建议请求元数据。
   DioMetaData searchSuggestDioMetaData(String keyword,
       {String type = 'mobile'}) {
     var params = {'s': keyword};
@@ -258,6 +273,7 @@ mixin ApiSearch {
     });
   }
 
+  /// 构建多重匹配搜索请求元数据。
   DioMetaData searchMultiMatchDioMetaData(String keyword) {
     var params = {'s': keyword, 'type': '1'};
     return DioMetaData(joinUri('/weapi/search/suggest/multimatch'),

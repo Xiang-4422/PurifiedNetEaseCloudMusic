@@ -9,6 +9,7 @@ import '../../../src/api/bean.dart';
 import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 
+/// 播放、歌单、歌曲、歌手、专辑、MV 和视频相关接口。
 mixin ApiPlay {
   String _normalizeImageUrl(String url) {
     final uri = Uri.tryParse(url);
@@ -35,6 +36,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌单收藏者列表请求元数据。
   DioMetaData playlistSubscribersDioMetaData(String pid,
       {int offset = 0, int limit = 30}) {
     var params = {'id': pid, 'limit': limit, 'offset': offset};
@@ -52,6 +54,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌单收藏或取消收藏请求元数据。
   DioMetaData subscribePlayListDioMetaData(String pid,
       {bool subscribe = true}) {
     var params = {'id': pid};
@@ -70,6 +73,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌单分类请求元数据。
   DioMetaData playlistCatalogueDioMetaData() {
     return DioMetaData(joinUri('/weapi/playlist/catalogue'),
         data: {}, options: joinOptions());
@@ -84,6 +88,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建热门歌单标签请求元数据。
   DioMetaData playlistHotTagsDioMetaData() {
     return DioMetaData(joinUri('/weapi/playlist/hottags'),
         data: {}, options: joinOptions());
@@ -98,6 +103,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建精品歌单标签请求元数据。
   DioMetaData highqualityPlaylistHotTagsDioMetaData() {
     return DioMetaData(joinUri('/api/playlist/highquality/tags'),
         data: {}, options: joinOptions());
@@ -118,6 +124,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建精品歌单列表请求元数据。
   DioMetaData highqualityPlayListDioMetaData(
       {String category = '全部',
       int limit = 30,
@@ -166,6 +173,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌曲相关歌单请求元数据。
   DioMetaData relatedPlayListDioMetaData(String songId) {
     return DioMetaData(joinUri('/playlist?id=$songId'),
         options: joinOptions(userAgent: UserAgent.Pc));
@@ -181,6 +189,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建推荐歌单请求元数据。
   DioMetaData personalizedPlaylistDioMetaData(
       {int offset = 0, int limit = 30}) {
     var params = {'limit': limit, 'offset': offset, 'n': 1000};
@@ -198,6 +207,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建每日推荐歌单请求元数据。
   DioMetaData recommendPlaylistDioMetaData() {
     return DioMetaData(joinUri('/weapi/v1/discovery/recommend/resource'),
         data: {}, options: joinOptions());
@@ -219,6 +229,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建心动模式智能播放请求元数据。
   DioMetaData playmodeIntelligenceListDioMetaData(
       String songId, String playlistId, bool fromPlayAll,
       {String? startMusicId, int count = 1}) {
@@ -245,6 +256,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建相似歌单请求元数据。
   DioMetaData playListSimiListDioMetaData(String songId,
       {int offset = 0, int limit = 30}) {
     var params = {'songid': songId, 'limit': limit, 'offset': offset};
@@ -264,6 +276,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌单详情请求元数据。
   DioMetaData playListDetailDioMetaData(String categoryId, {int subCount = 5}) {
     var params = {
       'id': categoryId,
@@ -288,6 +301,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌单动态信息请求元数据。
   DioMetaData playListDetailDynamicDioMetaData(String playlistId,
       {int subCount = 8}) {
     var params = {'id': playlistId, 'n': 1000, 's': '$subCount'};
@@ -319,6 +333,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建按分类获取歌单歌曲请求元数据。
   DioMetaData categorySongListDioMetaData({
     String category = '全部',
     String order = 'hot',
@@ -347,6 +362,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建每日推荐歌曲请求元数据。
   DioMetaData recommendSongListDioMetaData() {
     return DioMetaData(joinUri('/api/v3/discovery/recommend/songs'),
         data: {}, options: joinOptions(cookies: {'os': 'ios'}));
@@ -362,6 +378,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建推荐歌曲历史请求元数据。
   DioMetaData recommendSongListHistoryDioMetaData() {
     return DioMetaData(joinUri('/api/discovery/recommend/songs/history/recent'),
         data: {}, options: joinOptions(cookies: {'os': 'ios'}));
@@ -378,6 +395,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建推荐歌曲历史详情请求元数据。
   DioMetaData recommendSongListHistoryDetailDioMetaData({String date = ''}) {
     var params = {'date': date};
     return DioMetaData(joinUri('/api/discovery/recommend/songs/history/detail'),
@@ -396,6 +414,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建云贝推荐歌曲请求元数据。
   DioMetaData yunbeiRecommendSongDioMetaData(String songId,
       {String reason = '好歌献给你', String fromUserId = '-1'}) {
     return DioMetaData(joinUri('/weapi/yunbei/rcmd/song/submit'),
@@ -420,6 +439,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建云贝推荐歌曲历史列表请求元数据。
   DioMetaData yunbeiRecommendSongHistoryListDioMetaData(
       {int size = 20, String cursor = ''}) {
     return DioMetaData(joinUri('/weapi/yunbei/rcmd/song/history/list'),
@@ -440,6 +460,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建私人 FM 请求元数据。
   DioMetaData userRadioDioMetaData() {
     return DioMetaData(joinUri('/weapi/v1/radio/get'),
         data: {}, options: joinOptions());
@@ -456,6 +477,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建私人 FM 垃圾桶请求元数据。
   DioMetaData userRadioTrashDioMetaData(String songId,
       {int time = 3, String alg = 'RT'}) {
     var params = {'songId': songId};
@@ -474,6 +496,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建推荐新歌请求元数据。
   DioMetaData personalizedSongListDioMetaData() {
     var params = {'type': 'recommend'};
     return DioMetaData(joinUri('/api/personalized/newsong'),
@@ -490,6 +513,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建新歌速递请求元数据。
   DioMetaData newSongListDioMetaData({String areaId = '0'}) {
     var params = {'areaId': areaId, 'total': true};
     return DioMetaData(joinUri('/weapi/v1/discovery/new/songs'),
@@ -505,6 +529,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建听歌相似用户请求元数据。
   DioMetaData userSongSimiListDioMetaData(String songId) {
     var params = {'songid': songId};
     return DioMetaData(joinUri('/weapi/discovery/simiUser'),
@@ -521,6 +546,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建相似歌曲请求元数据。
   DioMetaData songSimiListDioMetaData(String songId,
       {int offset = 0, int limit = 30}) {
     var params = {'songid': songId, 'limit': limit, 'offset': offset};
@@ -537,6 +563,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建喜欢歌曲 id 列表请求元数据。
   DioMetaData likeSongListDioMetaData(String userId) {
     var params = {'uid': userId};
     return DioMetaData(joinUri('/weapi/song/like/get'),
@@ -553,6 +580,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建云盘歌曲列表请求元数据。
   DioMetaData cloudSongDioMetaData({int offset = 0, int limit = 30}) {
     var params = {'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/weapi/v1/cloud/get'),
@@ -569,6 +597,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建云盘歌曲详情请求元数据。
   DioMetaData cloudSongDetailDioMetaData(List<String> songIds) {
     var params = {'songIds': songIds};
     return DioMetaData(joinUri('/weapi/v1/cloud/get/byids'),
@@ -585,6 +614,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建删除云盘歌曲请求元数据。
   DioMetaData cloudSongDeleteDioMetaData(List<String> songIds) {
     var params = {'songIds': songIds};
     return DioMetaData(joinUri('/weapi/cloud/del'),
@@ -603,6 +633,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建云盘歌曲匹配请求元数据。
   DioMetaData cloudUserSongMatchDioMetaData(
       String userId, String songId, String adjustSongId) {
     var params = {
@@ -625,6 +656,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建喜欢或取消喜欢歌曲请求元数据。
   DioMetaData likeSongDioMetaData(String songId, bool like,
       {int time = 3, String alg = 'itembased'}) {
     var params = {'trackId': songId, 'like': like};
@@ -653,6 +685,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌曲详情请求元数据。
   DioMetaData songDetailDioMetaData(List<String> songIds) {
     var params = {
       // 'ids': songIds,
@@ -675,6 +708,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌曲播放地址请求元数据。
   DioMetaData songUrlDioMetaData(List<String> songIds, {int br = 999000}) {
     var params = {'ids': songIds, 'br': br};
     return DioMetaData(
@@ -701,6 +735,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌曲下载地址请求元数据。
   DioMetaData songDownloadUrlDioMetaData(List<String> songIds,
       {String level = 'exhigh'}) {
     var params = {
@@ -726,6 +761,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌曲歌词请求元数据。
   DioMetaData songLyricDioMetaData(String songId) {
     var params = {'id': songId, 'lv': -1, 'kv': -1, 'tv': -1};
     return DioMetaData(joinUri('/api/song/lyric'),
@@ -746,6 +782,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌曲可用性检查请求元数据。
   DioMetaData songAvailableCheckDioMetaData(List<String> songIds,
       {int br = 999000}) {
     var params = {'ids': songIds, 'br': br};
@@ -771,6 +808,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌手列表请求元数据。
   DioMetaData artistListDioMetaData(int initial,
       {int offset = 0,
       int limit = 30,
@@ -800,6 +838,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建热门歌手请求元数据。
   DioMetaData topArtistDioMetaData(
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -819,6 +858,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌手排行榜请求元数据。
   DioMetaData artistTopListDioMetaData(
       {int type = 1, int offset = 0, int limit = 30, bool total = true}) {
     var params = {
@@ -840,6 +880,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建相似歌手请求元数据。
   DioMetaData artistSimiListDioMetaData(String artistId) {
     var params = {'artistid': artistId};
     return DioMetaData(joinUri('/weapi/discovery/simiArtist'),
@@ -855,6 +896,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌手描述请求元数据。
   DioMetaData artistDescDioMetaData(String artistId) {
     var params = {'id': artistId};
     return DioMetaData(joinUri('/weapi/artist/introduction'),
@@ -870,6 +912,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌手详情请求元数据。
   DioMetaData artistDetailDioMetaData(String artistId) {
     var params = {'id': artistId};
     return DioMetaData(joinUri('/api/artist/head/info/get'),
@@ -885,6 +928,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌手热门歌曲请求元数据。
   DioMetaData artistTopSongListDioMetaData(String artistId) {
     var params = {'id': artistId};
     return DioMetaData(joinUri('/api/artist/top/song'),
@@ -908,6 +952,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌手全部歌曲请求元数据。
   DioMetaData artistALLSongListDioMetaData(
     String artistId, {
     bool privateCloud = true,
@@ -940,6 +985,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建关注歌手新歌请求元数据。
   DioMetaData artistFollowedNewSongListDioMetaData(
       {int before = 0, int limit = 20}) {
     var params = {'limit': limit, 'startTimestamp': before};
@@ -957,6 +1003,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌手详情和歌曲列表请求元数据。
   DioMetaData artistDetailAndSongListDioMetaData(String artistId) {
     return DioMetaData(joinUri('/weapi/v1/artist/$artistId'),
         data: {}, options: joinOptions());
@@ -986,6 +1033,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建全部 MV 列表请求元数据。
   DioMetaData allMvListDioMetaData(
       {String area = '全部',
       String type = '全部',
@@ -1015,6 +1063,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建 MV 排行榜请求元数据。
   DioMetaData topMvListDioMetaData(
       {String area = '', int offset = 0, int limit = 30, bool total = true}) {
     var params = {
@@ -1039,6 +1088,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建最新 MV 请求元数据。
   DioMetaData newestMvListDioMetaData(
       {String area = '', int offset = 0, int limit = 30, bool total = true}) {
     var params = {
@@ -1064,6 +1114,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建网易出品 MV 请求元数据。
   DioMetaData neteaseMvListDioMetaData(
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -1082,6 +1133,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建推荐 MV 请求元数据。
   DioMetaData personalizedMvListDioMetaData() {
     return DioMetaData(joinUri('/weapi/personalized/mv'),
         data: {}, options: joinOptions());
@@ -1098,6 +1150,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌手 MV 列表请求元数据。
   DioMetaData artistMvListDioMetaData(String artistId,
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {
@@ -1122,6 +1175,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建关注歌手新 MV 请求元数据。
   DioMetaData artistFollowedNewMvListDioMetaData(
       {int before = 0, int limit = 20}) {
     if (before == 0) {
@@ -1142,6 +1196,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建相似 MV 请求元数据。
   DioMetaData mvSimiListDioMetaData(String mvId) {
     var params = {'mvid': mvId};
     return DioMetaData(joinUri('/weapi/discovery/simiMV'),
@@ -1157,6 +1212,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建 MV 详情请求元数据。
   DioMetaData mvDetailDioMetaData(String mvId) {
     var params = {'id': mvId};
     return DioMetaData(joinUri('/weapi/mv/detail'),
@@ -1172,6 +1228,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建 MV 动态信息请求元数据。
   DioMetaData mvDetailInfoDioMetaData(String mvId) {
     var params = {'threadid': 'R_MV_5_$mvId', 'composeliked': true};
     return DioMetaData(joinUri('/api/comment/commentthread/info'),
@@ -1187,6 +1244,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建 MV 播放地址请求元数据。
   DioMetaData mvUrlDioMetaData(String mvId, {int resolution = 1080}) {
     var params = {'id': mvId, 'r': resolution};
     return DioMetaData(joinUri('/weapi/song/enhance/play/mv/url'),
@@ -1204,6 +1262,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建视频分类列表请求元数据。
   DioMetaData videoCategoryListDioMetaData(
       {int offset = 0, int limit = 99, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -1220,6 +1279,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建视频分组列表请求元数据。
   DioMetaData videoGroupListDioMetaData() {
     return DioMetaData(joinUri('/api/cloudvideo/group/list'),
         data: {}, options: joinOptions());
@@ -1237,6 +1297,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建指定分组视频列表请求元数据。
   DioMetaData videoListByGroupDioMetaData(String groupId,
       {int offset = 0, bool total = true}) {
     var params = {
@@ -1260,6 +1321,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建其他视频列表请求元数据。
   DioMetaData videoListOtherDioMetaData(String groupId,
       {int offset = 0, bool total = true}) {
     var params = {
@@ -1281,6 +1343,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建视频列表请求元数据。
   DioMetaData videoListDioMetaData({int offset = 0}) {
     var params = {
       "offset": offset,
@@ -1304,6 +1367,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建相关视频列表请求元数据。
   DioMetaData relatedVideoListDioMetaData(String videoId) {
     var params = {
       'id': videoId,
@@ -1322,6 +1386,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建视频详情请求元数据。
   DioMetaData videoDetailDioMetaData(String videoId) {
     var params = {'id': videoId};
     return DioMetaData(joinUri('/weapi/cloudvideo/v1/video/detail'),
@@ -1337,6 +1402,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建视频动态信息请求元数据。
   DioMetaData videoDetailInfoDioMetaData(String videoId) {
     var params = {'threadid': 'R_VI_62_$videoId', 'composeliked': true};
     return DioMetaData(joinUri('/api/comment/commentthread/info'),
@@ -1353,6 +1419,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建视频播放地址请求元数据。
   DioMetaData videoUrlDioMetaData(List<String> videoIds,
       {int resolution = 1080}) {
     var params = {'ids': jsonEncode(videoIds), 'resolution': resolution};
@@ -1369,6 +1436,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建 Mlog 喜欢列表请求元数据。
   DioMetaData mlogMylikeDioMetaData({int time = -1, int limit = 12}) {
     var params = {'time': time, 'limit': limit};
     return DioMetaData(joinUri('/api/mlog/playlist/mylike/bytime/get'),
@@ -1386,6 +1454,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建歌手专辑列表请求元数据。
   DioMetaData artistAlbumListDioMetaData(String artistId,
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -1404,6 +1473,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建新碟列表请求元数据。
   DioMetaData newAlbumListDioMetaData(
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -1436,6 +1506,7 @@ mixin ApiPlay {
     });
   }
 
+  /// 构建按地区筛选的新碟列表请求元数据。
   DioMetaData newAlbumListByAreaDioMetaData(
       {String area = 'ALL',
       String type = "new",

@@ -5,7 +5,9 @@ import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 import 'bean.dart';
 
+/// 播客、电台和节目相关接口。
 mixin ApiDj {
+  /// 构建播客 banner 请求元数据。
   DioMetaData djRadioBannerDioMetaData() {
     return DioMetaData(joinUri('/weapi/djradio/banner/get'),
         data: {}, options: joinOptions(cookies: {'os': 'pc'}));
@@ -20,6 +22,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建播客分类请求元数据。
   DioMetaData djRadioCategoryDioMetaData() {
     return DioMetaData(joinUri('/weapi/djradio/category/get'),
         data: {}, options: joinOptions());
@@ -34,6 +37,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建推荐播客分类请求元数据。
   DioMetaData recommendDjRadioCategoryDioMetaData() {
     return DioMetaData(joinUri('/weapi/djradio/home/category/recommend'),
         data: {}, options: joinOptions());
@@ -48,6 +52,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建排除热门后的播客分类请求元数据。
   DioMetaData excludeHotDjRadioCategoryDioMetaData() {
     return DioMetaData(joinUri('/weapi/djradio/category/excludehot'),
         data: {}, options: joinOptions());
@@ -62,6 +67,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建指定用户播客列表请求元数据。
   DioMetaData userDjRadioListDioMetaData(String userId) {
     var params = {'userId': userId};
     return DioMetaData(joinUri('/weapi/djradio/get/byuser'),
@@ -77,6 +83,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建今日优选播客列表请求元数据。
   DioMetaData todayPreferredDjRadioListDioMetaData({int page = 0}) {
     var params = {'page': page};
     return DioMetaData(joinUri('/weapi/djradio/home/today/perfered'),
@@ -93,6 +100,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建推荐播客列表请求元数据。
   DioMetaData recommendDjRadioListDioMetaData() {
     return DioMetaData(joinUri('/weapi/djradio/recommend/v1'),
         data: {}, options: joinOptions());
@@ -107,6 +115,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建按分类推荐播客列表请求元数据。
   DioMetaData recommendDjRadioListByCategoryDioMetaData(String cateId) {
     var params = {'cateId': cateId};
     return DioMetaData(joinUri('/weapi/djradio/recommend'),
@@ -122,6 +131,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建热门播客列表请求元数据。
   DioMetaData hotDjRadioListDioMetaData({int offset = 0, int limit = 30}) {
     var params = {'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/weapi/djradio/hot/v1'),
@@ -137,6 +147,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建指定分类热门播客列表请求元数据。
   DioMetaData hotDjRadioListByCategoryDioMetaData(String cateId,
       {int offset = 0, int limit = 30}) {
     var params = {'cateId': cateId, 'limit': limit, 'offset': offset};
@@ -155,6 +166,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建播客排行榜请求元数据。
   DioMetaData djRadioTopListDioMetaData(
       {String type = 'new', int offset = 0, int limit = 100}) {
     var params = {
@@ -178,6 +190,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建个性推荐播客请求元数据。
   DioMetaData djRadioPersonalizeDioMetaData({int limit = 6}) {
     var params = {
       'limit': limit,
@@ -196,6 +209,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建付费精品播客排行榜请求元数据。
   DioMetaData djRadioPayTopListDioMetaData({int limit = 100}) {
     var params = {'limit': limit};
     return DioMetaData(joinUri('/api/djradio/toplist/pay'),
@@ -211,6 +225,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建付费礼物播客排行榜请求元数据。
   DioMetaData djRadioPayGiftTopListDioMetaData(
       {int offset = 0, int limit = 30}) {
     var params = {'limit': limit, 'offset': offset};
@@ -228,6 +243,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建播客详情请求元数据。
   DioMetaData djRadioDetailDioMetaData(String radioId) {
     var params = {'id': radioId};
     return DioMetaData(joinUri('/api/djradio/v2/get'),
@@ -243,6 +259,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建播客节目列表请求元数据。
   DioMetaData djProgramListDioMetaData(String radioId,
       {int offset = 0, int limit = 30, bool asc = true}) {
     var params = {
@@ -266,6 +283,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建节目小时榜请求元数据。
   DioMetaData djProgramHoursTopListDioMetaData({int limit = 100}) {
     var params = {'limit': limit};
     return DioMetaData(joinUri('/api/djprogram/toplist/hours'),
@@ -281,6 +299,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建指定用户节目列表请求元数据。
   DioMetaData userDjProgramsListDioMetaData(String userId,
       {int offset = 0, int limit = 30}) {
     var params = {'limit': limit, 'offset': offset};
@@ -299,6 +318,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建节目排行榜请求元数据。
   DioMetaData djProgramsTopListDioMetaData({int offset = 0, int limit = 100}) {
     var params = {'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/api/program/toplist/v1'),
@@ -315,6 +335,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建个性化推荐节目请求元数据。
   DioMetaData personalizedProgramDjListDioMetaData() {
     return DioMetaData(joinUri('/weapi/personalized/djprogram'),
         data: {}, options: joinOptions());
@@ -329,6 +350,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建推荐节目列表请求元数据。
   DioMetaData recommendDjProgramListDioMetaData(
       {String cateId = '', int offset = 0, int limit = 30}) {
     var params = {'cateId': cateId, 'limit': limit, 'offset': offset};
@@ -347,6 +369,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建节目详情请求元数据。
   DioMetaData djProgramDetailDioMetaData(String programId) {
     var params = {'id': programId};
     return DioMetaData(joinUri('/weapi/dj/program/detail'),
@@ -362,6 +385,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建主播小时榜请求元数据。
   DioMetaData djHoursTopListDioMetaData({int limit = 100}) {
     var params = {'limit': limit};
     return DioMetaData(joinUri('/api/dj/toplist/hours'),
@@ -377,6 +401,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建主播新人榜请求元数据。
   DioMetaData djNewcomerTopListDioMetaData({int offset = 0, int limit = 100}) {
     var params = {'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/api/dj/toplist/newcomer'),
@@ -393,6 +418,7 @@ mixin ApiDj {
     });
   }
 
+  /// 构建主播热门榜请求元数据。
   DioMetaData djPopularTopListDioMetaData({int limit = 100}) {
     var params = {'limit': limit};
     return DioMetaData(joinUri('/api/dj/toplist/popular'),

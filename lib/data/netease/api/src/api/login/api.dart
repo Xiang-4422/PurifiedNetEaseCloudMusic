@@ -11,7 +11,9 @@ import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 import 'package:pointycastle/digests/md5.dart';
 
+/// 登录、验证码、注册和登出相关接口。
 mixin ApiLogin {
+  /// 构建登录保护状态请求元数据。
   DioMetaData loginProtectDioMetaData() {
     var params = {};
     return DioMetaData(joinUri('/api/usersafe/loginprotect/status/get'),
@@ -27,6 +29,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建匿名登录请求元数据。
   DioMetaData loginAnonimousDioMetaData() {
     var base64 = const Base64Encoder();
     var deviceId = Uri.encodeComponent(base64.convert(utf8
@@ -55,6 +58,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建手机号密码登录请求元数据。
   DioMetaData loginCellPhoneDioMetaData(String phone, String password,
       {String countryCode = ''}) {
     var params = {
@@ -87,6 +91,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建邮箱密码登录请求元数据。
   DioMetaData loginEmailDioMetaData(String phone, String password) {
     var params = {
       'username': phone,
@@ -112,6 +117,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建二维码登录 key 请求元数据。
   DioMetaData loginQrCodeKeyDioMetaData() {
     var params = {'type': 1, 'timerstamp': '${DateTime.now()}'};
     return DioMetaData(joinUri('/weapi/login/qrcode/unikey'),
@@ -132,6 +138,7 @@ mixin ApiLogin {
     return joinUri('/login?codekey=$key').toString();
   }
 
+  /// 构建二维码登录状态查询请求元数据。
   DioMetaData loginQrCodeCheckDioMetaData(String key) {
     var params = {'key': key, 'type': 1, 'timerstamp': '${DateTime.now()}'};
     return DioMetaData(joinUri('/weapi/login/qrcode/client/login'),
@@ -151,6 +158,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建当前账号信息请求元数据。
   DioMetaData loginAccountInfoDioMetaData() {
     return DioMetaData(joinUri('/weapi/w/nuser/account/get'),
         data: {}, options: joinOptions());
@@ -189,6 +197,7 @@ mixin ApiLogin {
 
   var _loginRefreshVersion = 0;
 
+  /// 登录 token 刷新版本，用于区分 Cookie 是否已被刷新。
   get loginRefreshVersion {
     return _loginRefreshVersion;
   }
@@ -211,6 +220,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建发送手机验证码请求元数据。
   DioMetaData captchaSendDioMetaData(String phone, {String ctcode = '86'}) {
     var params = {'ctcode': ctcode, 'cellphone': phone};
     return DioMetaData(joinUri('/weapi/sms/captcha/sent'),
@@ -227,6 +237,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建校验手机验证码请求元数据。
   DioMetaData captchaVerifyDioMetaData(String phone, String captcha,
       {String ctcode = '86'}) {
     var params = {'ctcode': ctcode, 'cellphone': phone, 'captcha': captcha};
@@ -246,6 +257,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建手机号注册请求元数据。
   DioMetaData registerCellPhoneDioMetaData(
       String phone, String password, String captcha,
       {String nickname = ''}) {
@@ -273,6 +285,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建手机号存在性检查请求元数据。
   DioMetaData checkCellPhoneExistenceDioMetaData(String phone,
       {String countrycode = ''}) {
     var params = {'cellphone': phone, 'countrycode': countrycode};
@@ -295,6 +308,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建初始化昵称请求元数据。
   DioMetaData initNicknameDioMetaData(String nickname) {
     var params = {'nickname': nickname};
     return DioMetaData(joinUri('/eapi/activate/initProfile'),
@@ -314,6 +328,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建重新绑定手机号请求元数据。
   DioMetaData rebindCellPhoneDioMetaData(
       String phone, String captcha, String oldcaptcha,
       {String ctcode = '86'}) {
@@ -342,6 +357,7 @@ mixin ApiLogin {
     });
   }
 
+  /// 构建登出请求元数据。
   DioMetaData logoutDioMetaData() {
     return DioMetaData(joinUri('/weapi/logout'),
         data: {}, options: joinOptions());

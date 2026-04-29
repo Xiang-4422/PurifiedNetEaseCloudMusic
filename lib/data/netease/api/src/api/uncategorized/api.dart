@@ -7,7 +7,9 @@ import '../../../src/api/uncategorized/bean.dart';
 import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 
+/// 首页、榜单、上传和批量请求等未归类接口。
 mixin ApiUncategorized {
+  /// 构建首页轮播图请求元数据。
   DioMetaData homeBannerListDioMetaData({String clientType = 'android'}) {
     var params = {'clientType': clientType};
     return DioMetaData(joinUri('/api/v2/banner/get'),
@@ -24,6 +26,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建首页发现 block page 请求元数据。
   DioMetaData homeBlockPageDioMetaData(
       {bool refresh = true, String cursor = ''}) {
     var params = {"refresh": refresh, "cursor": cursor};
@@ -41,6 +44,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建首页 dragon ball 请求元数据。
   DioMetaData homeDragonBallStaticDioMetaData() {
     return DioMetaData(joinUri('/api/homepage/dragon/ball/static'),
         data: {},
@@ -59,6 +63,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建国家编码列表请求元数据。
   DioMetaData countriesCodeListDioMetaData() {
     return DioMetaData(
         Uri.parse('http://interface3.music.163.com/eapi/lbs/countries/v1'),
@@ -76,6 +81,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建独家放送推荐请求元数据。
   DioMetaData personalizedPrivateContentDioMetaData() {
     return DioMetaData(joinUri('/weapi/personalized/privatecontent'),
         data: {}, options: joinOptions());
@@ -90,6 +96,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建独家放送分页列表请求元数据。
   DioMetaData personalizedPrivateContentListDioMetaData(
       {int offset = 0, int limit = 60, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -108,6 +115,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建榜单摘要请求元数据。
   DioMetaData topListDioMetaData() {
     return DioMetaData(joinUri('/api/toplist'),
         data: {}, options: joinOptions(encryptType: EncryptType.WeApi));
@@ -120,6 +128,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建榜单详情请求元数据。
   DioMetaData topListDetailDioMetaData() {
     return DioMetaData(joinUri('/weapi/toplist/detail'),
         data: {}, options: joinOptions());
@@ -134,6 +143,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建音乐日历详情请求元数据。
   DioMetaData mcalendarDetailDioMetaData({int startTime = 0, int endTime = 0}) {
     if (startTime == 0) {
       startTime = DateTime.now().millisecondsSinceEpoch;
@@ -159,6 +169,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建听歌识曲请求元数据。
   DioMetaData audioMatchDioMetaData(
       {String? algorithmCode,
       int? times,
@@ -200,6 +211,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建一起听状态请求元数据。
   DioMetaData listenTogetherStatusDioMetaData() {
     return DioMetaData(joinUri('/api/listen/together/status/get'),
         data: {}, options: joinOptions());
@@ -302,6 +314,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建批量接口请求元数据。
   DioMetaData batchApiDioMetaData(List<DioMetaData> dioMetaDatas) {
     Map<String, dynamic> params = {};
     for (var element in dioMetaDatas) {
@@ -323,6 +336,7 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 构建 Web 日志上报请求元数据。
   DioMetaData weblogDioMetaData(
       String id, String sourceId, String action, String type, String end,
       {int download = 0, int wifi = 0, int time = 0}) {

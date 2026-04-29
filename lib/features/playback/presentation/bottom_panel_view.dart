@@ -1,21 +1,20 @@
-import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
+import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/app/presentation_adapters/comment_content_port.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/presentation/bottom_panel_comment_page.dart';
+import 'package:bujuan/features/playback/presentation/bottom_panel_playback_controls.dart';
+import 'package:bujuan/features/playback/presentation/bottom_panel_queue_view.dart';
 import 'package:bujuan/features/playback/presentation/lyric_view.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/common_widgets.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
-import 'package:bujuan/widget/scroll_helpers.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:bujuan/widget/swipeable.dart';
 import 'package:flutter/material.dart';
@@ -25,8 +24,6 @@ import 'package:get/get.dart';
 
 class BottomPanelView extends GetView<ShellController> {
   const BottomPanelView({Key? key}) : super(key: key);
-
-  CommentContentPort get _commentContentPort => Get.find<CommentContentPort>();
 
   List<_ArtistChipData> _artistEntries(PlaybackQueueItem item) {
     final artistNames = item.artistNames.isNotEmpty
@@ -178,8 +175,8 @@ class BottomPanelView extends GetView<ShellController> {
                     children: [
                       _buildCurPlayingListPage(context),
                       _buildCurPlayingPage(context),
-                      _buildCommentPage(context, 2),
-                      _buildCommentPage(context, 3),
+                      const BottomPanelCommentPage(commentType: 2),
+                      const BottomPanelCommentPage(commentType: 3),
                     ],
                   ),
                   Obx(() => Offstage(
@@ -478,73 +475,7 @@ class BottomPanelView extends GetView<ShellController> {
 
   /// 播放列表页
   Widget _buildCurPlayingListPage(BuildContext context) {
-    double albumPadding = AppDimensions.paddingLarge;
-    return KeepAliveWrapper(
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: albumPadding),
-        child: ScrollConfiguration(
-          behavior: const NoGlowScrollBehavior(),
-          child: Obx(
-            () => ListView.builder(
-              controller: controller.playListScrollController,
-              physics: const ClampingScrollPhysics(),
-              itemExtent: 55,
-              padding: EdgeInsets.symmetric(vertical: albumPadding),
-              itemCount: PlayerController.to.queueState.length,
-              itemBuilder: (context, index) {
-                return _buildSongItem(
-                  PlayerController.to.queueState[index],
-                  index,
-                  context,
-                );
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSongItem(
-    PlaybackQueueItem item,
-    int index,
-    BuildContext context,
-  ) {
-    return GestureDetector(
-      onTap: () => PlayerController.to.playQueueIndex(index),
-      child: Obx(() {
-        final isCurrent = PlayerController.to.currentQueueIndex.value == index;
-        return Container(
-          color: Colors.transparent,
-          alignment: AlignmentDirectional.centerStart,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                item.title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: isCurrent
-                          ? Colors.red
-                          : SettingsController.to.panelWidgetColor.value,
-                    ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-              Text(
-                item.artist ?? "未知歌手",
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: SettingsController.to.panelWidgetColor.value
-                          .withValues(alpha: 0.5),
-                    ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ],
-          ),
-        );
-      }),
-    );
+    return const BottomPanelQueueView();
   }
 
   /// 默认页（歌词）
@@ -863,13 +794,13 @@ class BottomPanelView extends GetView<ShellController> {
                                       ),
                                     ).marginOnly(top: albumPadding),
                                     // 播放进度条
-                                    _buildProgressBar(context)
+                                    const BottomPanelProgressBar()
                                         .marginOnly(top: albumPadding),
                                   ]),
                             ),
                           )),
                       // 播放控制
-                      Expanded(child: _buildPlayController(context)),
+                      const Expanded(child: BottomPanelPlaybackControls()),
                     ],
                   ),
                 )),
@@ -890,146 +821,6 @@ class BottomPanelView extends GetView<ShellController> {
     return textPainter.size.width; // 返回计算出的宽度
   }
 
-  Widget _buildProgressBar(BuildContext context) {
-    return Obx(() {
-      final currentSong = PlayerController.to.currentSongState.value;
-      final currentPosition = PlayerController.to.currentPositionState.value;
-      return ProgressBar(
-        progress: currentPosition,
-        buffered: currentPosition,
-        total: currentSong.duration ?? const Duration(seconds: 10),
-        barHeight: AppDimensions.paddingLarge,
-        barCapShape: BarCapShape.round,
-        progressBarColor:
-            SettingsController.to.panelWidgetColor.value.withValues(alpha: .1),
-        baseBarColor:
-            SettingsController.to.panelWidgetColor.value.withValues(alpha: .05),
-        bufferedBarColor: Colors.transparent,
-        thumbColor:
-            SettingsController.to.panelWidgetColor.value.withValues(alpha: .05),
-        thumbRadius: AppDimensions.paddingLarge / 2,
-        thumbGlowRadius: AppDimensions.paddingLarge * 2 / 3,
-        thumbCanPaintOutsideBar: false,
-        timeLabelLocation: TimeLabelLocation.below,
-        // timeLabelPadding: 0,
-        timeLabelTextStyle: const TextStyle(fontSize: 0),
-        onSeek: (duration) => PlayerController.to.seekTo(duration),
-      );
-    });
-  }
-
-  Widget _buildPlayController(BuildContext context) {
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
-      child: Obx(() {
-        final currentSong = PlayerController.to.currentSongState.value;
-        final currentSongId = int.tryParse(currentSong.sourceId);
-        final isLiked =
-            UserLibraryController.to.likedSongIds.contains(currentSongId);
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // 喜欢按钮
-            _buildButtonBackground(GestureDetector(
-                onTap: () async {
-                  final updatedSong = await UserLibraryController.to
-                      .toggleLikeStatus(currentSong);
-                  if (updatedSong != null) {
-                    await PlayerController.to.updatePlaybackQueueItem(
-                      updatedSong,
-                    );
-                  }
-                },
-                child: Icon(
-                    isLiked ? TablerIcons.heart_filled : TablerIcons.heart,
-                    size: 30,
-                    color: isLiked
-                        ? Colors.red
-                        : SettingsController.to.panelWidgetColor.value))),
-            // 上一首
-            _buildButtonBackground(GestureDetector(
-                onTap: () {
-                  PlayerController.to.skipToPreviousTrack();
-                },
-                child: Obx(
-                  () => Icon(
-                    TablerIcons.player_skip_back_filled,
-                    size: 30,
-                    color: SettingsController.to.panelWidgetColor.value,
-                  ),
-                ))),
-            // 播放按钮
-            _buildButtonBackground(GestureDetector(
-              onTap: () => PlayerController.to.playOrPause(),
-              child: Obx(() => Icon(
-                    PlayerController.to.isPlaying.value
-                        ? TablerIcons.player_pause_filled
-                        : TablerIcons.player_play_filled,
-                    size: 60,
-                    color: SettingsController.to.panelWidgetColor.value,
-                  )),
-            )),
-            // 下一首
-            _buildButtonBackground(GestureDetector(
-                onTap: () {
-                  PlayerController.to.skipToNextTrack();
-                },
-                child: Obx(() => Icon(
-                      TablerIcons.player_skip_forward_filled,
-                      size: 30,
-                      color: SettingsController.to.panelWidgetColor.value,
-                    )))),
-            // 循环模式
-            _buildButtonBackground(GestureDetector(
-                onTap: () async {
-                  await PlayerController.to.handleRepeatModeTap();
-                },
-                child: Obx(() => Icon(
-                      PlayerController.to.getRepeatIcon(),
-                      size: 30,
-                      color: SettingsController.to.panelWidgetColor.value,
-                    )))),
-          ],
-        );
-      }),
-    );
-  }
-
-  Widget _buildButtonBackground(Widget child) {
-    return Obx(() => BlurryContainer(
-          blur: controller.isBigAlbum.isTrue ? 0 : 5,
-          padding: const EdgeInsets.all(10),
-          borderRadius: BorderRadius.circular(100),
-          color: SettingsController.to.panelWidgetColor.value.withValues(
-            alpha: controller.isBigAlbum.isTrue ? 0 : 0.05,
-          ),
-          child: child,
-        ));
-  }
-
-  /// 评论页
-  Widget _buildCommentPage(BuildContext context, int commentType) {
-    double albumPadding = AppDimensions.paddingLarge;
-
-    return KeepAliveWrapper(
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: albumPadding),
-        child: Obx(() {
-          final currentSong = PlayerController.to.currentSongState.value;
-          return _commentContentPort.buildSongComments(
-            context: context,
-            songId: currentSong.id,
-            commentType: commentType,
-            listPaddingTop: albumPadding,
-            listPaddingBottom: albumPadding,
-            stringColor: SettingsController.to.panelWidgetColor.value,
-          );
-        }),
-      ),
-    );
-  }
 }
 
 class _ArtistChipData {

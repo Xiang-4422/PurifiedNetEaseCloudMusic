@@ -30,6 +30,7 @@ import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/application/playlist_playback_action.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
+import 'package:bujuan/features/search/application/search_application_service.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
@@ -150,6 +151,10 @@ class FeatureControllerRegistrar {
       ),
       permanent: true,
     );
+    Get.put<SearchApplicationService>(
+      SearchApplicationService(repository: Get.find<SearchRepository>()),
+      permanent: true,
+    );
   }
 
   static void _registerControllers() {
@@ -194,7 +199,7 @@ class FeatureControllerRegistrar {
         localMediaRepository: Get.find<LocalMediaRepository>(),
         playlistRepository: Get.find<PlaylistRepository>(),
         radioRepository: Get.find<RadioRepository>(),
-        searchRepository: Get.find<SearchRepository>(),
+        searchApplicationService: Get.find<SearchApplicationService>(),
         userRepository: Get.find<UserRepository>(),
         userSessionController: Get.find<UserSessionController>(),
         userLibraryController: Get.find<UserLibraryController>(),

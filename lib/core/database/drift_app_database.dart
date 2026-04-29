@@ -3,6 +3,9 @@ import 'package:bujuan/core/database/app_database_schema.dart';
 import 'package:bujuan/core/database/database_collection_schema.dart';
 import 'package:bujuan/core/database/drift_database.dart';
 import 'package:bujuan/data/local/app_cache_data_source.dart';
+import 'package:bujuan/data/local/dao/cache_dao.dart';
+import 'package:bujuan/data/local/dao/download_task_dao.dart';
+import 'package:bujuan/data/local/dao/resource_dao.dart';
 import 'package:bujuan/data/local/download_task_data_source.dart';
 import 'package:bujuan/data/local/drift_app_cache_data_source.dart';
 import 'package:bujuan/data/local/drift_download_task_data_source.dart';
@@ -34,9 +37,15 @@ class DriftAppDatabase implements AppDatabase {
     _playbackRestoreDataSource =
         DriftPlaybackRestoreDataSource(database: _database);
     _localResourceIndexDataSource =
-        DriftLocalResourceIndexDataSource(database: _database);
-    _downloadTaskDataSource = DriftDownloadTaskDataSource(database: _database);
-    _appCacheDataSource = DriftAppCacheDataSource(database: _database);
+        DriftLocalResourceIndexDataSource(
+      dao: ResourceDao(database: _database),
+    );
+    _downloadTaskDataSource = DriftDownloadTaskDataSource(
+      dao: DownloadTaskDao(database: _database),
+    );
+    _appCacheDataSource = DriftAppCacheDataSource(
+      dao: CacheDao(database: _database),
+    );
     _userScopedDataSource = DriftUserScopedDataSource(database: _database);
   }
 

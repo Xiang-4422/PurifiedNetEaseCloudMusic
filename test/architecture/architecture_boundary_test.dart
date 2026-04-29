@@ -352,6 +352,12 @@ void main() {
               'Get.lazyPut',
               'Rx<',
               '.obs',
+              'ToastService',
+              'DialogService',
+              'BuildContext',
+              'Widget',
+              'Navigator',
+              'showDialog',
             ]),
           )
           .map(_relativePath)
@@ -651,6 +657,35 @@ void main() {
       );
     });
 
+    test('application services are actual controller dependencies', () {
+      const expectedUsage = {
+        'lib/features/search/search_panel_controller.dart':
+            'SearchApplicationService',
+        'lib/features/playlist/playlist_page_controller.dart':
+            'PlaylistDetailService',
+        'lib/features/user/recommendation_controller.dart':
+            'UserHomeApplicationService',
+        'lib/app/bootstrap/feature_controller_factory.dart':
+            'SearchApplicationService',
+        'lib/app/bootstrap/registrars/user_registrar.dart':
+            'UserHomeApplicationService',
+      };
+      final violations = expectedUsage.entries
+          .where((entry) {
+            final file = File('${projectRoot.path}/${entry.key}');
+            return !file.existsSync() || !_contains(file, entry.value);
+          })
+          .map((entry) => '${entry.key} missing ${entry.value}')
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'application service/usecase 不能只是空入口，页面 controller 和 registrar 必须实际依赖它。',
+      );
+    });
+
     test('drift dao layer exists', () {
       const expectedFiles = [
         'lib/data/local/dao/track_dao.dart',
@@ -670,6 +705,73 @@ void main() {
         reason:
             'Drift 手写数据访问必须有 DAO 分类入口，data source 只能保留 facade/组合职责。',
       );
+    });
+
+    test('drift dao layer owns real data access methods', () {
+      const expectedMethods = {
+        'lib/data/local/dao/cache_dao.dart': ['load(', 'save(', 'delete('],
+        'lib/data/local/dao/download_task_dao.dart': [
+          'getTask(',
+          'saveTask(',
+          'watchTasks(',
+        ],
+        'lib/data/local/dao/resource_dao.dart': [
+          'getResource(',
+          'saveResource(',
+          'listAudioResources(',
+        ],
+      };
+      final violations = <String>[];
+      for (final entry in expectedMethods.entries) {
+        final file = File('${projectRoot.path}/${entry.key}');
+        if (!file.existsSync()) {
+          violations.add('${entry.key} missing');
+          continue;
+        }
+        final content = file.readAsStringSync();
+        for (final method in entry.value) {
+          if (!content.contains(method)) {
+            violations.add('${entry.key} missing $method');
+          }
+        }
+        if (content.contains('BujuanDriftDatabase get database')) {
+          violations.add('${entry.key} exposes raw database');
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'DAO 不能只是 database 占位壳，必须承接实际 Drift 读写方法且不向上暴露 raw database。',
+      );
+    });
+
+    test('large architecture files are reported as soft risks', () {
+      const watchedFiles = {
+        'lib/features/playback/player_controller.dart': 450,
+        'lib/features/playback/presentation/bottom_panel_view.dart': 900,
+        'lib/features/download/download_repository.dart': 360,
+        'lib/data/local/drift_local_library_data_source.dart': 360,
+        'lib/data/local/drift_user_scoped_data_source.dart': 500,
+      };
+      final risks = <String>[];
+      for (final entry in watchedFiles.entries) {
+        final file = File('${projectRoot.path}/${entry.key}');
+        if (!file.existsSync()) {
+          continue;
+        }
+        final lineCount = file.readAsLinesSync().length;
+        if (lineCount > entry.value) {
+          risks.add('${entry.key}: $lineCount > ${entry.value}');
+        }
+      }
+      if (risks.isNotEmpty) {
+        // 软报告：历史大文件不直接阻断测试，但输出会提醒后续提交不要继续堆职责。
+        // ignore: avoid_print
+        print('Architecture size risks: ${risks.join(', ')}');
+      }
+      expect(risks, isA<List<String>>());
     });
   });
 }

@@ -3,10 +3,9 @@ import 'dart:async';
 import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
-import 'package:bujuan/domain/entities/user_library_kinds.dart';
 import 'package:bujuan/domain/entities/user_session_data.dart';
+import 'package:bujuan/features/user/application/user_home_application_service.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
-import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -19,16 +18,16 @@ class RecommendationController extends GetxController {
   static RecommendationController get to => Get.find();
 
   RecommendationController({
-    required UserRepository repository,
+    required UserHomeApplicationService homeService,
     required UserSessionController sessionController,
     required UserLibraryController libraryController,
     Future<void> Function()? validateLoginStateInBackground,
-  })  : _repository = repository,
+  })  : _homeService = homeService,
         _sessionController = sessionController,
         _libraryController = libraryController,
         _validateLoginStateInBackground = validateLoginStateInBackground;
 
-  final UserRepository _repository;
+  final UserHomeApplicationService _homeService;
   final UserSessionController _sessionController;
   final UserLibraryController _libraryController;
   final Future<void> Function()? _validateLoginStateInBackground;
@@ -100,11 +99,12 @@ class RecommendationController extends GetxController {
     if (userId.isEmpty) {
       return true;
     }
-    return !(await _repository.isSyncMarkerFresh(
+    return _homeService.shouldRefreshStartupData(
       userId: userId,
       markerKey: _startupSyncMarker,
       ttl: _startupDataTtl,
-    ));
+      hasLocalSnapshot: _hasLocalSnapshot,
+    );
   }
 
   Future<void> updateData() async {
@@ -122,7 +122,7 @@ class RecommendationController extends GetxController {
       updateRecoPlayLists(),
     ]);
     _hasLocalSnapshot = true;
-    await _repository.markSyncMarkerUpdated(
+    await _homeService.markStartupDataUpdated(
       userId: userId,
       markerKey: _startupSyncMarker,
     );
@@ -137,7 +137,7 @@ class RecommendationController extends GetxController {
     if (userId.isEmpty || userId == '-1') {
       return;
     }
-    final data = await _repository.fetchRecommendedPlaylists(
+    final data = await _homeService.fetchRecommendedPlaylists(
       userId: userId,
       offset: getMore ? recoPlayLists.length : 0,
     );
@@ -153,7 +153,7 @@ class RecommendationController extends GetxController {
     if (userId.isEmpty || userId == '-1') {
       return const [];
     }
-    return _repository.fetchTodayRecommendSongs(
+    return _homeService.fetchTodayRecommendSongs(
       userId: userId,
       likedSongIds: _libraryController.likedSongIds.toList(),
     );
@@ -164,7 +164,7 @@ class RecommendationController extends GetxController {
     if (userId.isEmpty || userId == '-1') {
       return const [];
     }
-    return _repository.fetchFmSongs(
+    return _homeService.fetchFmSongs(
       userId: userId,
       likedSongIds: _libraryController.likedSongIds.toList(),
     );
@@ -203,42 +203,28 @@ class RecommendationController extends GetxController {
       return;
     }
 
-    var hasCachedData = false;
-    final cachedReco = await _repository.loadCachedPlaylistList(
-      userId,
-      UserPlaylistListKind.recommended,
-    );
-    recoPlayLists.addAll(cachedReco);
-    hasCachedData = hasCachedData || cachedReco.isNotEmpty;
-
-    final cachedTodaySongs = await _repository.loadCachedTrackList(
+    final snapshot = await _homeService.loadLocalSnapshot(
       userId: userId,
-      kind: UserTrackListKind.dailyRecommend,
       likedSongIds: _libraryController.likedSongIds.toList(),
     );
-    todayRecommendSongs.addAll(cachedTodaySongs);
-    hasCachedData = hasCachedData || cachedTodaySongs.isNotEmpty;
-
-    final cachedFmSongs = await _repository.loadCachedTrackList(
-      userId: userId,
-      kind: UserTrackListKind.fm,
-      likedSongIds: _libraryController.likedSongIds.toList(),
-    );
-    fmSongs.addAll(cachedFmSongs);
-    hasCachedData = hasCachedData || cachedFmSongs.isNotEmpty;
-    _hasLocalSnapshot = hasCachedData;
+    recoPlayLists.addAll(snapshot.recommendedPlaylists);
+    todayRecommendSongs.addAll(snapshot.todayRecommendSongs);
+    fmSongs.addAll(snapshot.fmSongs);
+    _hasLocalSnapshot = snapshot.hasData;
   }
 
   Future<void> _updateQuickStartCardData() async {
-    final nextTodayRecommendSongs = await getTodayRecommendSongs();
+    final snapshot = await _homeService.refreshQuickStartData(
+      userId: _sessionController.userInfo.value.userId,
+      likedSongIds: _libraryController.likedSongIds.toList(),
+    );
     todayRecommendSongs
       ..clear()
-      ..addAll(nextTodayRecommendSongs);
+      ..addAll(snapshot.todayRecommendSongs);
 
-    final nextFmSongs = await getFmSongs();
     fmSongs
       ..clear()
-      ..addAll(nextFmSongs);
+      ..addAll(snapshot.fmSongs);
   }
 
   @override

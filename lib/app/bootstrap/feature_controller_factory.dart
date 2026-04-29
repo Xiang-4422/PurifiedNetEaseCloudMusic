@@ -20,8 +20,8 @@ import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
 import 'package:bujuan/features/radio/radio_list_controller.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
+import 'package:bujuan/features/search/application/search_application_service.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
-import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_profile_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
@@ -39,7 +39,7 @@ class FeatureControllerFactory {
     required LocalMediaRepository localMediaRepository,
     required PlaylistRepository playlistRepository,
     required RadioRepository radioRepository,
-    required SearchRepository searchRepository,
+    required SearchApplicationService searchApplicationService,
     required UserRepository userRepository,
     required UserSessionController userSessionController,
     required UserLibraryController userLibraryController,
@@ -52,7 +52,7 @@ class FeatureControllerFactory {
         _localMediaRepository = localMediaRepository,
         _playlistRepository = playlistRepository,
         _radioRepository = radioRepository,
-        _searchRepository = searchRepository,
+        _searchApplicationService = searchApplicationService,
         _userRepository = userRepository,
         _userSessionController = userSessionController,
         _userLibraryController = userLibraryController;
@@ -66,7 +66,7 @@ class FeatureControllerFactory {
   final LocalMediaRepository _localMediaRepository;
   final PlaylistRepository _playlistRepository;
   final RadioRepository _radioRepository;
-  final SearchRepository _searchRepository;
+  final SearchApplicationService _searchApplicationService;
   final UserRepository _userRepository;
   final UserSessionController _userSessionController;
   final UserLibraryController _userLibraryController;
@@ -169,7 +169,7 @@ class FeatureControllerFactory {
   }
 
   SearchPanelController searchPanel() {
-    return SearchPanelController(repository: _searchRepository);
+    return SearchPanelController(service: _searchApplicationService);
   }
 
   UserProfileController userProfile() {

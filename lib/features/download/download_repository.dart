@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:bujuan/data/local/download_task_data_source.dart';
@@ -6,8 +5,10 @@ import 'package:bujuan/domain/entities/download_task.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/download/application/download_file_store.dart';
+import 'package:bujuan/features/download/application/download_queue_planner.dart';
 import 'package:bujuan/features/download/application/download_recovery_service.dart';
 import 'package:bujuan/features/download/application/download_resource_writer.dart';
+import 'package:bujuan/features/download/application/download_task_state_store.dart';
 import 'package:bujuan/features/download/application/download_task_queue.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
@@ -23,6 +24,8 @@ class DownloadRepository {
     DownloadFileStore? fileStore,
     DownloadResourceWriter? resourceWriter,
     DownloadRecoveryService? recoveryService,
+    DownloadQueuePlanner? queuePlanner,
+    DownloadTaskStateStore? taskStateStore,
   })  : _libraryRepository = libraryRepository,
         _taskDataSource = taskDataSource,
         _taskQueue = taskQueue ?? DownloadTaskQueue(),
@@ -35,6 +38,16 @@ class DownloadRepository {
             DownloadRecoveryService(
               taskDataSource: taskDataSource,
               fileStore: fileStore ?? DownloadFileStore(dio: dio),
+            ),
+        _queuePlanner = queuePlanner ??
+            DownloadQueuePlanner(
+              libraryRepository: libraryRepository,
+              taskDataSource: taskDataSource,
+            ),
+        _taskStateStore = taskStateStore ??
+            DownloadTaskStateStore(
+              taskDataSource: taskDataSource,
+              libraryRepository: libraryRepository,
             );
 
   final LibraryRepository _libraryRepository;
@@ -43,11 +56,15 @@ class DownloadRepository {
   final DownloadFileStore _fileStore;
   final DownloadResourceWriter _resourceWriter;
   final DownloadRecoveryService _recoveryService;
+  final DownloadQueuePlanner _queuePlanner;
+  final DownloadTaskStateStore _taskStateStore;
 
   Future<List<DownloadTask>> recoverInterruptedTasks() async {
     return _recoveryService.recoverInterruptedTasks(
-      markInterruptedFailed: (trackId) =>
-          markFailed(trackId, reason: 'download_interrupted'),
+      markInterruptedFailed: (trackId) => _taskStateStore.markFailed(
+        trackId,
+        reason: 'download_interrupted',
+      ),
       restartQueuedTask: downloadTrack,
     );
   }
@@ -61,7 +78,7 @@ class DownloadRepository {
     if (existingTask != null) {
       return existingTask;
     }
-    await markQueued(trackId);
+    await _taskStateStore.markQueued(trackId);
 
     return _taskQueue.scheduleDownload(
       trackId,
@@ -76,41 +93,11 @@ class DownloadRepository {
     Iterable<String> trackIds, {
     bool preferHighQuality = true,
   }) async {
-    final candidateIds = trackIds.toSet().toList();
-    if (candidateIds.isEmpty) {
-      return;
-    }
-    final tracksWithResources =
-        await _libraryRepository.getTracksWithResources(candidateIds);
-    final tracksById = {
-      for (final item in tracksWithResources) item.track.id: item,
-    };
-    for (final trackId in candidateIds) {
-      final trackWithResources = tracksById[trackId];
-      final currentTask = await _taskDataSource.getTask(trackId);
-      if (currentTask != null &&
-          {
-            DownloadTaskStatus.queued,
-            DownloadTaskStatus.downloading,
-          }.contains(currentTask.status)) {
-        continue;
-      }
-      if (trackWithResources == null) {
-        continue;
-      }
-      final track = trackWithResources.track;
-      final audioResource = trackWithResources.resources.audio;
-      if (track.sourceType == SourceType.local ||
-          audioResource?.origin == TrackResourceOrigin.managedDownload) {
-        continue;
-      }
-      unawaited(
-        downloadTrack(
-          trackId,
-          preferHighQuality: preferHighQuality,
-        ),
-      );
-    }
+    return _queuePlanner.queueTracks(
+      trackIds,
+      downloadTrack: downloadTrack,
+      preferHighQuality: preferHighQuality,
+    );
   }
 
   Future<Track?> cacheTrackForPlayback(
@@ -142,13 +129,13 @@ class DownloadRepository {
       trackId,
     );
     if (trackWithResources == null) {
-      await markFailed(trackId, reason: 'track_not_found');
+      await _taskStateStore.markFailed(trackId, reason: 'track_not_found');
       return null;
     }
 
     final track = trackWithResources.track;
     if (track.sourceType == SourceType.local) {
-      await clearTask(trackId);
+      await _taskStateStore.clearTask(trackId);
       return track;
     }
     final audioResource = trackWithResources.resources.audio;
@@ -160,7 +147,7 @@ class DownloadRepository {
           trackWithResources.resources,
         );
       }
-      await clearTask(trackId);
+      await _taskStateStore.clearTask(trackId);
       return track;
     }
 
@@ -175,7 +162,10 @@ class DownloadRepository {
         qualityLevel: preferHighQuality ? 'lossless' : 'exhigh',
       );
       if (playbackUrl == null || playbackUrl.isEmpty) {
-        return markFailed(trackId, reason: 'playback_url_unavailable');
+        return _taskStateStore.markFailed(
+          trackId,
+          reason: 'playback_url_unavailable',
+        );
       }
 
       final directories = await _fileStore.ensureDownloadDirectories();
@@ -184,11 +174,11 @@ class DownloadRepository {
       final audioPath =
           _fileStore.buildAudioPath(track, playbackUrl, directories.audio);
       final temporaryPath = '$audioPath.download';
-      await markQueued(trackId, temporaryPath: temporaryPath);
+      await _taskStateStore.markQueued(trackId, temporaryPath: temporaryPath);
       await _fileStore.downloadBinaryFile(
         playbackUrl,
         audioPath,
-        onProgress: (progress) => markDownloading(
+        onProgress: (progress) => _taskStateStore.markDownloading(
           trackId,
           progress: progress,
           temporaryPath: temporaryPath,
@@ -217,23 +207,23 @@ class DownloadRepository {
         artworkPath: artworkPath,
         lyricsPath: lyricsPath,
       );
-      await clearTask(trackId);
+      await _taskStateStore.clearTask(trackId);
       return track;
     } on DioException catch (error) {
       if (CancelToken.isCancel(error)) {
         await _clearCancelledTask(trackId);
         return null;
       }
-      return markFailed(trackId, reason: error.toString());
+      return _taskStateStore.markFailed(trackId, reason: error.toString());
     } catch (error) {
-      return markFailed(trackId, reason: error.toString());
+      return _taskStateStore.markFailed(trackId, reason: error.toString());
     } finally {
       _taskQueue.finishActiveTask(trackId);
     }
   }
 
   Future<void> removeDownloadedTrack(String trackId) async {
-    await clearTask(trackId);
+    await _taskStateStore.clearTask(trackId);
     final trackWithResources = await _libraryRepository.getTrackWithResources(
       trackId,
     );
@@ -257,7 +247,7 @@ class DownloadRepository {
   }
 
   Future<DownloadTask?> getTask(String trackId) {
-    return _taskDataSource.getTask(trackId);
+    return _taskStateStore.getTask(trackId);
   }
 
   Future<Track?> retryTask(
@@ -276,13 +266,13 @@ class DownloadRepository {
   Future<List<DownloadTask>> getTasks({
     Set<DownloadTaskStatus>? statuses,
   }) {
-    return _taskDataSource.getTasks(statuses: statuses);
+    return _taskStateStore.getTasks(statuses: statuses);
   }
 
   Stream<List<DownloadTask>> watchTasks({
     Set<DownloadTaskStatus>? statuses,
   }) {
-    return _taskDataSource.watchTasks(statuses: statuses);
+    return _taskStateStore.watchTasks(statuses: statuses);
   }
 
   Future<List<DownloadTask>> getActiveTasks() {
@@ -295,46 +285,11 @@ class DownloadRepository {
   }
 
   Future<void> clearTask(String trackId) {
-    return _taskDataSource.removeTask(trackId);
+    return _taskStateStore.clearTask(trackId);
   }
 
   Future<void> clearPlaybackCache() {
     return _libraryRepository.removePlaybackCache();
-  }
-
-  Future<Track?> markQueued(
-    String trackId, {
-    String? temporaryPath,
-  }) async {
-    final currentTask = await _taskDataSource.getTask(trackId);
-    await _taskDataSource.saveTask(
-      DownloadTask(
-        trackId: trackId,
-        status: DownloadTaskStatus.queued,
-        updatedAt: DateTime.now(),
-        progress: 0,
-        temporaryPath: temporaryPath ?? currentTask?.temporaryPath,
-      ),
-    );
-    return _libraryRepository.getTrack(trackId);
-  }
-
-  Future<Track?> markDownloading(
-    String trackId, {
-    double? progress,
-    String? temporaryPath,
-  }) async {
-    final currentTask = await _taskDataSource.getTask(trackId);
-    await _taskDataSource.saveTask(
-      DownloadTask(
-        trackId: trackId,
-        status: DownloadTaskStatus.downloading,
-        updatedAt: DateTime.now(),
-        progress: progress ?? 0,
-        temporaryPath: temporaryPath ?? currentTask?.temporaryPath,
-      ),
-    );
-    return _libraryRepository.getTrack(trackId);
   }
 
   Future<Track?> _performCacheTrackForPlayback(
@@ -389,26 +344,8 @@ class DownloadRepository {
     }
   }
 
-  Future<Track?> markFailed(
-    String trackId, {
-    String? reason,
-  }) async {
-    final currentTask = await _taskDataSource.getTask(trackId);
-    await _taskDataSource.saveTask(
-      DownloadTask(
-        trackId: trackId,
-        status: DownloadTaskStatus.failed,
-        updatedAt: DateTime.now(),
-        progress: currentTask?.progress,
-        temporaryPath: currentTask?.temporaryPath,
-        failureReason: reason,
-      ),
-    );
-    return _libraryRepository.getTrack(trackId);
-  }
-
   Future<void> _clearCancelledTask(String trackId) async {
-    await clearTask(trackId);
+    await _taskStateStore.clearTask(trackId);
     _taskQueue.clearCancelled(trackId);
   }
 }

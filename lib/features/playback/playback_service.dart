@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 
 /// 统一持有音频服务实例和队列编排，避免页面直接操作底层播放器。
 class PlaybackService extends GetxService {
+  /// 创建播放服务。
   PlaybackService({
     required PlaybackQueueStore queueStore,
     required PlaybackRestoreCoordinator restoreCoordinator,
@@ -34,6 +35,7 @@ class PlaybackService extends GetxService {
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
 
+  /// 已初始化的 audio_service handler。
   AudioServiceHandler get handler {
     final handler = _handler;
     if (handler == null) {
@@ -42,17 +44,21 @@ class PlaybackService extends GetxService {
     return handler;
   }
 
+  /// 播放队列流。
   Stream<List<PlaybackQueueItem>> get queueStream =>
       handler.queue.map(PlaybackQueueItemAdapter.fromMediaItems);
 
+  /// 当前媒体项流。
   Stream<PlaybackQueueItem?> get mediaItemStream => handler.mediaItem.map(
         (mediaItem) => mediaItem == null
             ? null
             : PlaybackQueueItemAdapter.fromMediaItem(mediaItem),
       );
 
+  /// 底层播放状态流。
   Stream<PlaybackState> get playbackStateStream => handler.playbackState;
 
+  /// 初始化 audio_service handler。
   Future<AudioServiceHandler> ensureInitialized() async {
     if (_handler != null) {
       return _handler!;
@@ -118,12 +124,16 @@ class PlaybackService extends GetxService {
     );
   }
 
+  /// 恢复上次播放状态。
   Future<void> restoreLastPlayState() => handler.restoreLastPlayState();
 
+  /// 开始播放。
   Future<void> play() => handler.play();
 
+  /// 暂停播放。
   Future<void> pause() => handler.pause();
 
+  /// 切换播放队列。
   Future<void> changePlayList(
     List<PlaybackQueueItem> playList, {
     int index = 0,
@@ -144,6 +154,7 @@ class PlaybackService extends GetxService {
     );
   }
 
+  /// 播放队列中的指定索引。
   Future<void> playIndex({
     required int audioSourceIndex,
     required bool playNow,
@@ -152,12 +163,16 @@ class PlaybackService extends GetxService {
         audioSourceIndex: audioSourceIndex, playNow: playNow);
   }
 
+  /// 跳转到指定播放进度。
   Future<void> seek(Duration position) => handler.seek(position);
 
+  /// 跳到上一首。
   Future<void> skipToPrevious() => handler.skipToPrevious();
 
+  /// 跳到下一首。
   Future<void> skipToNext() => handler.skipToNext();
 
+  /// 切换或设置重复播放模式。
   Future<void> changeRepeatMode({PlaybackRepeatMode? newRepeatMode}) {
     return handler.changeRepeatMode(
       newRepeatMode: newRepeatMode == null
@@ -166,6 +181,7 @@ class PlaybackService extends GetxService {
     );
   }
 
+  /// 更新队列中的单个媒体项。
   Future<void> updateQueueItem(PlaybackQueueItem item) {
     return handler.updateMediaItem(PlaybackQueueItemAdapter.toMediaItem(item));
   }

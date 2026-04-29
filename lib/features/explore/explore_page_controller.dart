@@ -16,12 +16,14 @@ class ExplorePageController extends GetxController {
   static const Duration _categoryPlaylistsTtl = Duration(minutes: 30);
   static const Duration _rankingPlaylistTtl = Duration(minutes: 30);
 
+  /// 创建探索页控制器。
   ExplorePageController({
     required ExploreApplicationService applicationService,
   }) : _applicationService = applicationService;
 
   final ExploreApplicationService _applicationService;
 
+  /// 榜单分类和榜单基础数据。
   final Map<String, List<RankingPlaylistData>> topPlayListCategory = {
     "官方榜": [
       const RankingPlaylistData(name: '云音乐新歌榜', id: '3779629'),
@@ -70,26 +72,50 @@ class ExplorePageController extends GetxController {
     ]
   };
 
+  /// 歌单标签分类名称列表。
   RxList tagCategorys = <String>[].obs;
+
+  /// 分类到标签列表的映射。
   RxMap tags = {}.obs;
 
+  /// 当前选中的标签分类名称。
   RxString curTagCategoryName = "".obs;
+
+  /// 当前选中的歌单标签。
   RxString curTag = "全部".obs;
 
+  /// 是否展示分类选择器。
   RxBool showChooseCategory = false.obs;
+
+  /// 是否展示歌单选择器。
   RxBool showChoosePlayList = false.obs;
 
+  /// 榜单分类名称列表。
   List<String> topPlayListCategoryNames = [];
+
+  /// 当前榜单分类名称。
   RxString curTopPlayListCategoryName = "".obs;
+
+  /// 当前榜单分类下的榜单列表。
   RxList<RankingPlaylistData> curCategoryTopPlayLists =
       <RankingPlaylistData>[].obs;
+
+  /// 当前榜单名称。
   RxString curTopPlayListName = "".obs;
+
+  /// 当前榜单 id。
   RxString curTopPlayListId = "".obs;
+
+  /// 当前榜单歌曲队列。
   RxList<PlaybackQueueItem> curTopPlayListSongs = <PlaybackQueueItem>[].obs;
+
+  /// 当前标签下的歌单列表。
   RxList<PlaylistSummaryData> playLists = <PlaylistSummaryData>[].obs;
 
+  /// 探索页是否处于首屏加载中。
   RxBool loading = true.obs;
 
+  /// 探索页刷新控制器。
   RefreshController refreshController = RefreshController();
   Worker? _pageVisibilityWorker;
   bool _bootstrapped = false;
@@ -225,6 +251,7 @@ class ExplorePageController extends GetxController {
     return true;
   }
 
+  /// 刷新探索页分类歌单和榜单数据。
   Future<void> updateData({bool force = false}) async {
     await _refreshPlaylistCatalogue(force: force);
     await Future.wait([
@@ -247,6 +274,7 @@ class ExplorePageController extends GetxController {
     _applyPlaylistCatalogue(catalogue);
   }
 
+  /// 刷新当前标签下的歌单列表。
   Future<void> updatePlayLists({bool force = false}) async {
     if (!force) {
       final hasCachedPlayLists = await _loadCachedPlayLists();
@@ -264,11 +292,13 @@ class ExplorePageController extends GetxController {
       ..addAll(data);
   }
 
-  changeCurRankingPlayList(String rankingPlayListid) {
+  /// 切换当前排行榜歌单。
+  void changeCurRankingPlayList(String rankingPlayListid) {
     curTopPlayListId.value = rankingPlayListid;
     unawaited(updateRankingPlayListSongs());
   }
 
+  /// 刷新或分页加载当前排行榜歌曲。
   Future<void> updateRankingPlayListSongs({
     int offset = 0,
     int limit = 10,
@@ -304,6 +334,7 @@ class ExplorePageController extends GetxController {
     refreshController.loadComplete();
   }
 
+  /// 播放当前排行榜全部歌曲。
   Future<void> playCurRankingPlayListSongs() async {
     await updateRankingPlayListSongs(
       offset: curTopPlayListSongs.length,
@@ -316,7 +347,8 @@ class ExplorePageController extends GetxController {
     );
   }
 
-  changeCurTopPlayListCategory(String name) {
+  /// 切换榜单分类。
+  void changeCurTopPlayListCategory(String name) {
     curTopPlayListCategoryName.value = name;
     showChooseCategory.value = false;
     showChoosePlayList.value = false;
@@ -327,7 +359,8 @@ class ExplorePageController extends GetxController {
     changeCurTopPlayList(curCategoryTopPlayLists[0]);
   }
 
-  changeCurTopPlayList(RankingPlaylistData topPlayList) {
+  /// 切换当前榜单。
+  void changeCurTopPlayList(RankingPlaylistData topPlayList) {
     curTopPlayListName.value = topPlayList.name;
     curTopPlayListId.value = topPlayList.id;
     showChooseCategory.value = false;

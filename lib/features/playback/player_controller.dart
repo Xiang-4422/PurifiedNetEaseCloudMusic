@@ -29,8 +29,10 @@ part 'player_download_commands.dart';
 /// 底层播放细节仍由 `PlaybackService -> AudioServiceHandler` 承接，这里主要负责把
 /// 音频服务、歌词状态、全屏歌词状态和用户侧模式切换组织成可绑定的 UI 状态。
 class PlayerController extends GetxController {
+  /// 当前播放控制器实例。
   static PlayerController get to => Get.find();
 
+  /// 创建播放控制器。
   PlayerController({
     required PlaybackService playbackService,
     required PlaybackQueueStore queueStore,
@@ -67,32 +69,56 @@ class PlayerController extends GetxController {
   final CurrentTrackDownloadUseCase _downloadUseCase;
   final PlaybackThemePort _themePort;
 
+  /// 播放服务门面。
   PlaybackService get playbackService => _playbackService;
 
+  /// 当前是否正在播放。
   RxBool isPlaying = false.obs;
 
+  /// 当前重复播放模式。
   Rx<PlaybackRepeatMode> curRepeatMode = PlaybackRepeatMode.all.obs;
 
+  /// 当前播放模式。
   Rx<PlaybackMode> playbackMode = PlaybackMode.playlist.obs;
 
+  /// 当前播放会话状态。
   final Rx<PlaybackSessionState> sessionState =
       const PlaybackSessionState().obs;
+
+  /// 当前播放运行态。
   final Rx<PlaybackRuntimeState> runtimeState =
       const PlaybackRuntimeState().obs;
+
+  /// 当前歌词状态。
   final Rx<PlaybackLyricState> lyricState = const PlaybackLyricState().obs;
+
+  /// 当前播放歌曲状态。
   final Rx<PlaybackQueueItem> currentSongState =
       const PlaybackQueueItem.empty().obs;
+
+  /// 当前播放进度状态。
   final Rx<Duration> currentPositionState = Duration.zero.obs;
+
+  /// 当前播放队列状态。
   final RxList<PlaybackQueueItem> queueState = <PlaybackQueueItem>[].obs;
+
+  /// 当前播放队列索引。
   final RxInt currentQueueIndex = (-1).obs;
 
+  /// 当前是否是 FM 模式。
   bool get isFmModeValue => playbackMode.value == PlaybackMode.roaming;
+
+  /// 当前是否是 FM 模式的响应式兼容 getter。
   RxBool get isFmMode => (playbackMode.value == PlaybackMode.roaming).obs;
 
+  /// 当前是否是心动模式。
   bool get isHeartBeatModeValue => playbackMode.value == PlaybackMode.heartbeat;
+
+  /// 当前是否是心动模式的响应式兼容 getter。
   RxBool get isHeartBeatMode =>
       (playbackMode.value == PlaybackMode.heartbeat).obs;
 
+  /// 全屏歌词是否打开。
   RxBool isFullScreenLyricOpen = false.obs;
 
   @override
@@ -224,6 +250,7 @@ class PlayerController extends GetxController {
         await _lyricsPresenter.loadLyrics(runtimeState.value.currentSong);
   }
 
+  /// 播放或暂停当前歌曲。
   Future<void> playOrPause() async {
     await _commandService.playOrPause(isPlaying: isPlaying.value);
   }
@@ -248,10 +275,12 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// 播放队列中的指定索引。
   Future<void> playQueueIndex(int index) {
     return _commandService.playQueueIndex(index);
   }
 
+  /// 更新播放队列中的指定队列项。
   Future<void> updatePlaybackQueueItem(PlaybackQueueItem item) async {
     final queue = runtimeState.value.queue
         .map((queueItem) => queueItem.id == item.id ? item : queueItem)
@@ -270,30 +299,37 @@ class PlayerController extends GetxController {
     }
   }
 
+  /// 跳转到指定播放进度。
   Future<void> seekTo(Duration position) {
     return _commandService.seekTo(position);
   }
 
+  /// 跳到上一首。
   Future<void> skipToPreviousTrack() {
     return _commandService.skipToPreviousTrack();
   }
 
+  /// 跳到下一首。
   Future<void> skipToNextTrack() {
     return _commandService.skipToNextTrack();
   }
 
+  /// 设置重复播放模式。
   Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) {
     return _commandService.setRepeatMode(repeatMode);
   }
 
+  /// 循环切换重复播放模式。
   Future<void> cycleRepeatMode() {
     return _commandService.cycleRepeatMode();
   }
 
+  /// 打开 FM 漫游模式。
   Future<void> openFmMode() async {
     await switchMode(PlaybackMode.roaming);
   }
 
+  /// 退出 FM 漫游模式。
   Future<void> quitFmMode({bool showToast = true}) async {
     await _modeCommandService.quitFmMode(
       currentMode: playbackMode.value,
@@ -302,6 +338,7 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// 打开心动模式。
   Future<void> openHeartBeatMode(
     String startSongId, {
     required bool fromPlayAll,
@@ -316,6 +353,7 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// 退出心动模式。
   Future<void> quitHeartBeatMode({bool showToast = true}) async {
     await _modeCommandService.quitHeartBeatMode(
       currentMode: playbackMode.value,
@@ -324,6 +362,7 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// 播放当前用户喜欢歌曲列表。
   Future<void> playUserLikedSongs() async {
     await _commandService.playLikedSongs(
       currentSong: runtimeState.value.currentSong,
@@ -344,6 +383,7 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// 切换播放模式。
   Future<void> switchMode(PlaybackMode newMode, {dynamic contextData}) async {
     await _modeCommandService.switchMode(
       currentMode: playbackMode.value,
@@ -356,6 +396,7 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// 返回当前重复或播放模式对应的图标。
   IconData getRepeatIcon() {
     IconData icon;
     if (playbackMode.value == PlaybackMode.roaming) {
@@ -379,7 +420,8 @@ class PlayerController extends GetxController {
     return icon;
   }
 
-  updateFullScreenLyricTimerCounter({bool cancelTimer = false}) {
+  /// 更新全屏歌词自动打开计时。
+  void updateFullScreenLyricTimerCounter({bool cancelTimer = false}) {
     _lyricUiStateController.updateFullScreenLyricTimerCounter(
       isPlaying: isPlaying.value,
       setFullScreenLyricOpen: (value) => isFullScreenLyricOpen.value = value,

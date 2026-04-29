@@ -7,6 +7,7 @@ import 'package:bujuan/features/download/application/download_file_store.dart';
 
 /// 启动恢复服务，负责把中断中的下载任务转成可重试状态并恢复 queued 任务。
 class DownloadRecoveryService {
+  /// 创建下载恢复服务。
   DownloadRecoveryService({
     required DownloadTaskDataSource taskDataSource,
     required DownloadFileStore fileStore,
@@ -16,6 +17,7 @@ class DownloadRecoveryService {
   final DownloadTaskDataSource _taskDataSource;
   final DownloadFileStore _fileStore;
 
+  /// 恢复中断下载任务。
   Future<List<DownloadTask>> recoverInterruptedTasks({
     required Future<Track?> Function(String trackId) markInterruptedFailed,
     required Future<Track?> Function(String trackId) restartQueuedTask,

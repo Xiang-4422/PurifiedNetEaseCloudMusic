@@ -5,24 +5,33 @@ import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// 下载和播放缓存目录集合。
 class DownloadDirectories {
+  /// 创建下载目录集合。
   const DownloadDirectories({
     required this.audio,
     required this.artwork,
     required this.lyrics,
   });
 
+  /// 音频目录。
   final Directory audio;
+
+  /// 封面目录。
   final Directory artwork;
+
+  /// 歌词目录。
   final Directory lyrics;
 }
 
 /// 下载文件存储策略，负责目录、临时文件、目标路径和二进制写入。
 class DownloadFileStore {
+  /// 创建下载文件存储策略。
   DownloadFileStore({Dio? dio}) : _dio = dio ?? Dio();
 
   final Dio _dio;
 
+  /// 确保正式下载目录存在。
   Future<DownloadDirectories> ensureDownloadDirectories() async {
     final rootDirectory = await _ensureRootDirectory('downloads');
     return DownloadDirectories(
@@ -32,6 +41,7 @@ class DownloadFileStore {
     );
   }
 
+  /// 确保播放缓存目录存在。
   Future<DownloadDirectories> ensureCacheDirectories() async {
     final rootDirectory = await _ensureRootDirectory('cache');
     return DownloadDirectories(
@@ -41,6 +51,7 @@ class DownloadFileStore {
     );
   }
 
+  /// 构建音频目标文件路径。
   String buildAudioPath(
     Track track,
     String playbackUrl,
@@ -50,6 +61,7 @@ class DownloadFileStore {
     return '${audioDirectory.path}/${_safeTrackFileName(track)}$extension';
   }
 
+  /// 下载二进制文件到目标路径。
   Future<void> downloadBinaryFile(
     String url,
     String outputPath, {
@@ -89,6 +101,7 @@ class DownloadFileStore {
     await File(temporaryPath).rename(outputPath);
   }
 
+  /// 下载封面文件。
   Future<String?> downloadArtworkFile(
     Track track,
     Directory artworkDirectory,
@@ -113,6 +126,7 @@ class DownloadFileStore {
     }
   }
 
+  /// 写入歌词文件。
   Future<String?> writeLyricsFile(
     String trackId,
     Directory lyricsDirectory,
@@ -129,6 +143,7 @@ class DownloadFileStore {
     return lyricFile.path;
   }
 
+  /// 删除临时下载文件。
   Future<void> deleteTemporaryDownloadIfExists(String? temporaryPath) {
     if (temporaryPath == null || temporaryPath.isEmpty) {
       return Future.value();
@@ -136,6 +151,7 @@ class DownloadFileStore {
     return deleteFileIfExists(temporaryPath);
   }
 
+  /// 删除指定文件。
   Future<void> deleteFileIfExists(String? path) async {
     if (path == null || path.isEmpty) {
       return;
@@ -146,6 +162,7 @@ class DownloadFileStore {
     }
   }
 
+  /// 清理残留临时下载文件。
   Future<void> cleanupOrphanTemporaryFiles() async {
     final rootDirectory = await _ensureRootDirectory('downloads');
     if (!rootDirectory.existsSync()) {

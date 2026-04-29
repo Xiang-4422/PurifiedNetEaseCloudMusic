@@ -11,35 +11,43 @@ class DownloadTaskQueue {
   static final Map<String, CancelToken> _activeCancelTokens = {};
   static final Set<String> _cancelledTrackIds = <String>{};
 
+  /// 指定曲目是否已被取消。
   bool isCancelled(String trackId) => _cancelledTrackIds.contains(trackId);
 
+  /// 清理指定曲目的取消标记。
   void clearCancelled(String trackId) {
     _cancelledTrackIds.remove(trackId);
   }
 
+  /// 标记指定曲目已取消并触发取消 token。
   void markCancelled(String trackId) {
     _cancelledTrackIds.add(trackId);
     _activeCancelTokens[trackId]?.cancel('download_cancelled');
   }
 
+  /// 创建指定曲目的取消 token。
   CancelToken createCancelToken(String trackId) {
     final cancelToken = CancelToken();
     _activeCancelTokens[trackId] = cancelToken;
     return cancelToken;
   }
 
+  /// 结束指定曲目的活跃任务。
   void finishActiveTask(String trackId) {
     _activeCancelTokens.remove(trackId);
   }
 
+  /// 获取已存在的正式下载任务。
   Future<Track?>? existingDownload(String trackId) {
     return _scheduledDownloads[trackId];
   }
 
+  /// 获取已存在的播放缓存任务。
   Future<Track?>? existingPlaybackCache(String trackId) {
     return _scheduledPlaybackCaches[trackId];
   }
 
+  /// 调度正式下载任务。
   Future<Track?> scheduleDownload(
     String trackId,
     Future<Track?> Function() operation,
@@ -52,6 +60,7 @@ class DownloadTaskQueue {
     return taskFuture;
   }
 
+  /// 调度播放缓存任务。
   Future<Track?> schedulePlaybackCache(
     String trackId,
     Future<Track?> Function() operation,

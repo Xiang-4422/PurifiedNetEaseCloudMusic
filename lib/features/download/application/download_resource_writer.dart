@@ -4,12 +4,14 @@ import 'package:bujuan/features/library/local_resource_index_repository.dart';
 
 /// 下载资源索引写入器，集中处理缓存资源和正式下载资源的归属。
 class DownloadResourceWriter {
+  /// 创建下载资源索引写入器。
   DownloadResourceWriter({
     required LocalResourceIndexRepository resourceIndexRepository,
   }) : _resourceIndexRepository = resourceIndexRepository;
 
   final LocalResourceIndexRepository _resourceIndexRepository;
 
+  /// 保存正式下载资源索引。
   Future<void> saveManagedDownloadResources(
     String trackId, {
     required String localPath,
@@ -25,6 +27,7 @@ class DownloadResourceWriter {
     );
   }
 
+  /// 保存播放缓存资源索引。
   Future<void> savePlaybackCacheResources(
     String trackId, {
     required String audioPath,
@@ -40,6 +43,7 @@ class DownloadResourceWriter {
     );
   }
 
+  /// 将已有资源提升为正式下载资源。
   Future<void> promoteResourcesToManagedDownload(
     String trackId,
     TrackResourceBundle bundle,

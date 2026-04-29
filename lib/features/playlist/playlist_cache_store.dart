@@ -6,16 +6,13 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 
 import 'playlist_repository.dart';
 
-/// PlaylistCacheStore。
 class PlaylistCacheStore {
-  /// 创建 PlaylistCacheStore。
   const PlaylistCacheStore({
     required AppCacheDataSource cacheDataSource,
   }) : _cacheDataSource = cacheDataSource;
 
   final AppCacheDataSource _cacheDataSource;
 
-  /// loadSongs。
   Future<List<PlaybackQueueItem>?> loadSongs(String playlistId) async {
     final payloadJson =
         await _cacheDataSource.loadPayloadJson(_songsCacheKey(playlistId));
@@ -31,7 +28,6 @@ class PlaylistCacheStore {
     );
   }
 
-  /// saveSongs。
   Future<void> saveSongs(
     String playlistId,
     List<PlaybackQueueItem> songs,
@@ -44,7 +40,6 @@ class PlaylistCacheStore {
     await _pruneCaches();
   }
 
-  /// loadSnapshot。
   Future<PlaylistSnapshotData?> loadSnapshot(String playlistId) async {
     final payloadJson =
         await _cacheDataSource.loadPayloadJson(_snapshotCacheKey(playlistId));
@@ -62,7 +57,6 @@ class PlaylistCacheStore {
     );
   }
 
-  /// saveSnapshot。
   Future<void> saveSnapshot(
     String playlistId,
     PlaylistSnapshotData snapshot,
@@ -75,7 +69,6 @@ class PlaylistCacheStore {
     await _pruneCaches();
   }
 
-  /// invalidate。
   Future<void> invalidate(String playlistId) async {
     await _cacheDataSource.delete(_songsCacheKey(playlistId));
     await _cacheDataSource.delete(_snapshotCacheKey(playlistId));
@@ -87,7 +80,6 @@ class PlaylistCacheStore {
   String _snapshotCacheKey(String playlistId) =>
       'PLAYLIST_SNAPSHOT_$playlistId';
 
-  /// touchRefresh。
   Future<void> touchRefresh(String playlistId) {
     return _cacheDataSource.save(
       cacheKey: _refreshCacheKey(playlistId),
@@ -95,7 +87,6 @@ class PlaylistCacheStore {
     );
   }
 
-  /// isFresh。
   Future<bool> isFresh(
     String playlistId, {
     required Duration ttl,

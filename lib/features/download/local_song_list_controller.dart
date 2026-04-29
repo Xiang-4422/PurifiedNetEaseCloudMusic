@@ -5,9 +5,7 @@ import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:flutter/foundation.dart';
 
-/// LocalSongListController。
 class LocalSongListController {
-  /// 创建 LocalSongListController。
   LocalSongListController({
     required LibraryRepository libraryRepository,
     required DownloadRepository downloadRepository,
@@ -17,18 +15,13 @@ class LocalSongListController {
 
   final LibraryRepository _libraryRepository;
   final DownloadRepository _downloadRepository;
-
-  /// origins。
   final Set<TrackResourceOrigin>? origins;
 
-  /// state。
   final ValueNotifier<LoadState<List<LocalSongEntry>>> state =
       ValueNotifier(const LoadState.loading());
 
-  /// loadInitial。
   Future<void> loadInitial() => refresh();
 
-  /// refresh。
   Future<void> refresh() async {
     state.value = const LoadState.loading();
     try {
@@ -43,19 +36,16 @@ class LocalSongListController {
     }
   }
 
-  /// removeLocalTrack。
   Future<void> removeLocalTrack(String trackId) async {
     await _downloadRepository.removeLocalTrack(trackId);
     await refresh();
   }
 
-  /// clearPlaybackCache。
   Future<void> clearPlaybackCache() async {
     await _downloadRepository.clearPlaybackCache();
     await refresh();
   }
 
-  /// dispose。
   void dispose() {
     state.dispose();
   }

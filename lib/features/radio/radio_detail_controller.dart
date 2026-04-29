@@ -5,9 +5,7 @@ import 'package:bujuan/domain/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:flutter/foundation.dart';
 
-/// RadioDetailController。
 class RadioDetailController {
-  /// 创建 RadioDetailController。
   RadioDetailController({
     required this.radioId,
     required String userId,
@@ -17,24 +15,16 @@ class RadioDetailController {
   })  : _userId = userId,
         _repository = repository;
 
-  /// radioId。
   final String radioId;
   final String _userId;
   final RadioRepository _repository;
-
-  /// pageSize。
   final int pageSize;
-
-  /// asc。
   final bool asc;
-
-  /// state。
   final ValueNotifier<PagedState<RadioProgramData>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
 
-  /// loadInitial。
   Future<void> loadInitial() async {
     if (_userId.isEmpty) {
       state.value = const PagedState(items: [], hasMore: false);
@@ -58,7 +48,6 @@ class RadioDetailController {
     await _reload();
   }
 
-  /// refresh。
   Future<bool> refresh() async {
     state.value = state.value.copyWith(
       refreshing: true,
@@ -67,7 +56,6 @@ class RadioDetailController {
     return _reload();
   }
 
-  /// loadMore。
   Future<bool> loadMore() async {
     final currentState = state.value;
     if (currentState.loadingMore || !currentState.hasMore) {
@@ -125,7 +113,6 @@ class RadioDetailController {
     }
   }
 
-  /// dispose。
   void dispose() {
     state.dispose();
   }

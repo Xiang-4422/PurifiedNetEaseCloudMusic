@@ -10,9 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-/// CloudDriveView。
 class CloudDriveView extends StatefulWidget {
-  /// 创建 CloudDriveView。
   const CloudDriveView({Key? key}) : super(key: key);
 
   @override

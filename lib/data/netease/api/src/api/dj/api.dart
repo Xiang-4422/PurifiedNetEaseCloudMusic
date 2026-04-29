@@ -5,9 +5,7 @@ import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 import 'bean.dart';
 
-/// 公开成员。
 mixin ApiDj {
-  /// djRadioBannerDioMetaData。
   DioMetaData djRadioBannerDioMetaData() {
     return DioMetaData(joinUri('/weapi/djradio/banner/get'),
         data: {}, options: joinOptions(cookies: {'os': 'pc'}));
@@ -22,7 +20,6 @@ mixin ApiDj {
     });
   }
 
-  /// djRadioCategoryDioMetaData。
   DioMetaData djRadioCategoryDioMetaData() {
     return DioMetaData(joinUri('/weapi/djradio/category/get'),
         data: {}, options: joinOptions());
@@ -37,7 +34,6 @@ mixin ApiDj {
     });
   }
 
-  /// recommendDjRadioCategoryDioMetaData。
   DioMetaData recommendDjRadioCategoryDioMetaData() {
     return DioMetaData(joinUri('/weapi/djradio/home/category/recommend'),
         data: {}, options: joinOptions());
@@ -52,7 +48,6 @@ mixin ApiDj {
     });
   }
 
-  /// excludeHotDjRadioCategoryDioMetaData。
   DioMetaData excludeHotDjRadioCategoryDioMetaData() {
     return DioMetaData(joinUri('/weapi/djradio/category/excludehot'),
         data: {}, options: joinOptions());
@@ -67,7 +62,6 @@ mixin ApiDj {
     });
   }
 
-  /// userDjRadioListDioMetaData。
   DioMetaData userDjRadioListDioMetaData(String userId) {
     var params = {'userId': userId};
     return DioMetaData(joinUri('/weapi/djradio/get/byuser'),
@@ -83,7 +77,6 @@ mixin ApiDj {
     });
   }
 
-  /// todayPreferredDjRadioListDioMetaData。
   DioMetaData todayPreferredDjRadioListDioMetaData({int page = 0}) {
     var params = {'page': page};
     return DioMetaData(joinUri('/weapi/djradio/home/today/perfered'),
@@ -100,7 +93,6 @@ mixin ApiDj {
     });
   }
 
-  /// recommendDjRadioListDioMetaData。
   DioMetaData recommendDjRadioListDioMetaData() {
     return DioMetaData(joinUri('/weapi/djradio/recommend/v1'),
         data: {}, options: joinOptions());
@@ -115,7 +107,6 @@ mixin ApiDj {
     });
   }
 
-  /// recommendDjRadioListByCategoryDioMetaData。
   DioMetaData recommendDjRadioListByCategoryDioMetaData(String cateId) {
     var params = {'cateId': cateId};
     return DioMetaData(joinUri('/weapi/djradio/recommend'),
@@ -131,7 +122,6 @@ mixin ApiDj {
     });
   }
 
-  /// hotDjRadioListDioMetaData。
   DioMetaData hotDjRadioListDioMetaData({int offset = 0, int limit = 30}) {
     var params = {'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/weapi/djradio/hot/v1'),
@@ -147,7 +137,6 @@ mixin ApiDj {
     });
   }
 
-  /// hotDjRadioListByCategoryDioMetaData。
   DioMetaData hotDjRadioListByCategoryDioMetaData(String cateId,
       {int offset = 0, int limit = 30}) {
     var params = {'cateId': cateId, 'limit': limit, 'offset': offset};
@@ -166,7 +155,6 @@ mixin ApiDj {
     });
   }
 
-  /// djRadioTopListDioMetaData。
   DioMetaData djRadioTopListDioMetaData(
       {String type = 'new', int offset = 0, int limit = 100}) {
     var params = {
@@ -190,7 +178,6 @@ mixin ApiDj {
     });
   }
 
-  /// djRadioPersonalizeDioMetaData。
   DioMetaData djRadioPersonalizeDioMetaData({int limit = 6}) {
     var params = {
       'limit': limit,
@@ -209,7 +196,6 @@ mixin ApiDj {
     });
   }
 
-  /// djRadioPayTopListDioMetaData。
   DioMetaData djRadioPayTopListDioMetaData({int limit = 100}) {
     var params = {'limit': limit};
     return DioMetaData(joinUri('/api/djradio/toplist/pay'),
@@ -225,7 +211,6 @@ mixin ApiDj {
     });
   }
 
-  /// djRadioPayGiftTopListDioMetaData。
   DioMetaData djRadioPayGiftTopListDioMetaData(
       {int offset = 0, int limit = 30}) {
     var params = {'limit': limit, 'offset': offset};
@@ -243,7 +228,6 @@ mixin ApiDj {
     });
   }
 
-  /// djRadioDetailDioMetaData。
   DioMetaData djRadioDetailDioMetaData(String radioId) {
     var params = {'id': radioId};
     return DioMetaData(joinUri('/api/djradio/v2/get'),
@@ -259,7 +243,6 @@ mixin ApiDj {
     });
   }
 
-  /// djProgramListDioMetaData。
   DioMetaData djProgramListDioMetaData(String radioId,
       {int offset = 0, int limit = 30, bool asc = true}) {
     var params = {
@@ -283,7 +266,6 @@ mixin ApiDj {
     });
   }
 
-  /// djProgramHoursTopListDioMetaData。
   DioMetaData djProgramHoursTopListDioMetaData({int limit = 100}) {
     var params = {'limit': limit};
     return DioMetaData(joinUri('/api/djprogram/toplist/hours'),
@@ -299,7 +281,6 @@ mixin ApiDj {
     });
   }
 
-  /// userDjProgramsListDioMetaData。
   DioMetaData userDjProgramsListDioMetaData(String userId,
       {int offset = 0, int limit = 30}) {
     var params = {'limit': limit, 'offset': offset};
@@ -318,7 +299,6 @@ mixin ApiDj {
     });
   }
 
-  /// djProgramsTopListDioMetaData。
   DioMetaData djProgramsTopListDioMetaData({int offset = 0, int limit = 100}) {
     var params = {'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/api/program/toplist/v1'),
@@ -335,7 +315,6 @@ mixin ApiDj {
     });
   }
 
-  /// personalizedProgramDjListDioMetaData。
   DioMetaData personalizedProgramDjListDioMetaData() {
     return DioMetaData(joinUri('/weapi/personalized/djprogram'),
         data: {}, options: joinOptions());
@@ -350,7 +329,6 @@ mixin ApiDj {
     });
   }
 
-  /// recommendDjProgramListDioMetaData。
   DioMetaData recommendDjProgramListDioMetaData(
       {String cateId = '', int offset = 0, int limit = 30}) {
     var params = {'cateId': cateId, 'limit': limit, 'offset': offset};
@@ -369,7 +347,6 @@ mixin ApiDj {
     });
   }
 
-  /// djProgramDetailDioMetaData。
   DioMetaData djProgramDetailDioMetaData(String programId) {
     var params = {'id': programId};
     return DioMetaData(joinUri('/weapi/dj/program/detail'),
@@ -385,7 +362,6 @@ mixin ApiDj {
     });
   }
 
-  /// djHoursTopListDioMetaData。
   DioMetaData djHoursTopListDioMetaData({int limit = 100}) {
     var params = {'limit': limit};
     return DioMetaData(joinUri('/api/dj/toplist/hours'),
@@ -401,7 +377,6 @@ mixin ApiDj {
     });
   }
 
-  /// djNewcomerTopListDioMetaData。
   DioMetaData djNewcomerTopListDioMetaData({int offset = 0, int limit = 100}) {
     var params = {'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/api/dj/toplist/newcomer'),
@@ -418,7 +393,6 @@ mixin ApiDj {
     });
   }
 
-  /// djPopularTopListDioMetaData。
   DioMetaData djPopularTopListDioMetaData({int limit = 100}) {
     var params = {'limit': limit};
     return DioMetaData(joinUri('/api/dj/toplist/popular'),

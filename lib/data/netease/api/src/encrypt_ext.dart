@@ -3,9 +3,7 @@ import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart';
 import 'package:pointycastle/export.dart' hide Algorithm;
 
-/// NoPaddingEncoding。
 class NoPaddingEncoding extends PKCS1Encoding {
-  /// 创建 NoPaddingEncoding。
   NoPaddingEncoding(this._engine) : super(_engine);
 
   final AsymmetricBlockCipher _engine;
@@ -72,12 +70,8 @@ class NoPaddingEncoding extends PKCS1Encoding {
   }
 }
 
-/// AbstractRSAExt。
 abstract class AbstractRSAExt {
-  /// publicKey。
   final RSAPublicKey? publicKey;
-
-  /// privateKey。
   final RSAPrivateKey? privateKey;
 
   PublicKeyParameter<RSAPublicKey>? get _publicKeyParams =>
@@ -87,16 +81,13 @@ abstract class AbstractRSAExt {
       privateKey != null ? PrivateKeyParameter(privateKey!) : null;
   final AsymmetricBlockCipher _cipher;
 
-  /// 创建 AbstractRSAExt。
   AbstractRSAExt({
     required this.publicKey,
     required this.privateKey,
   }) : _cipher = NoPaddingEncoding(RSAEngine());
 }
 
-/// RSAExt。
 class RSAExt extends AbstractRSAExt implements Algorithm {
-  /// 创建 RSAExt。
   RSAExt({RSAPublicKey? publicKey, RSAPrivateKey? privateKey})
       : super(publicKey: publicKey, privateKey: privateKey);
 

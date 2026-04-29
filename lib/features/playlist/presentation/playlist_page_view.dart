@@ -20,9 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
-/// PlayListPageView。
 class PlayListPageView extends StatefulWidget {
-  /// 创建 PlayListPageView。
   const PlayListPageView({
     required this.playlistId,
     required this.playlistName,
@@ -31,16 +29,9 @@ class PlayListPageView extends StatefulWidget {
     super.key,
   });
 
-  /// playlistId。
   final String playlistId;
-
-  /// playlistName。
   final String playlistName;
-
-  /// coverUrl。
   final String? coverUrl;
-
-  /// trackCount。
   final int? trackCount;
 
   @override

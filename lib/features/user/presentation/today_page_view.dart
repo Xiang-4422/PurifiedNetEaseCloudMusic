@@ -10,9 +10,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
-/// TodayPageView。
 class TodayPageView extends StatelessWidget {
-  /// 创建 TodayPageView。
   const TodayPageView({Key? key}) : super(key: key);
 
   @override

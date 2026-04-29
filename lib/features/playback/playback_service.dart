@@ -12,7 +12,6 @@ import 'package:get/get.dart';
 
 /// 统一持有音频服务实例和队列编排，避免页面直接操作底层播放器。
 class PlaybackService extends GetxService {
-  /// 创建 PlaybackService。
   PlaybackService({
     required PlaybackQueueStore queueStore,
     required PlaybackRestoreCoordinator restoreCoordinator,
@@ -35,7 +34,6 @@ class PlaybackService extends GetxService {
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
 
-  /// handler。
   AudioServiceHandler get handler {
     final handler = _handler;
     if (handler == null) {
@@ -44,21 +42,17 @@ class PlaybackService extends GetxService {
     return handler;
   }
 
-  /// queueStream。
   Stream<List<PlaybackQueueItem>> get queueStream =>
       handler.queue.map(PlaybackQueueItemAdapter.fromMediaItems);
 
-  /// mediaItemStream。
   Stream<PlaybackQueueItem?> get mediaItemStream => handler.mediaItem.map(
         (mediaItem) => mediaItem == null
             ? null
             : PlaybackQueueItemAdapter.fromMediaItem(mediaItem),
       );
 
-  /// playbackStateStream。
   Stream<PlaybackState> get playbackStateStream => handler.playbackState;
 
-  /// ensureInitialized。
   Future<AudioServiceHandler> ensureInitialized() async {
     if (_handler != null) {
       return _handler!;
@@ -124,16 +118,12 @@ class PlaybackService extends GetxService {
     );
   }
 
-  /// restoreLastPlayState。
   Future<void> restoreLastPlayState() => handler.restoreLastPlayState();
 
-  /// play。
   Future<void> play() => handler.play();
 
-  /// pause。
   Future<void> pause() => handler.pause();
 
-  /// changePlayList。
   Future<void> changePlayList(
     List<PlaybackQueueItem> playList, {
     int index = 0,
@@ -154,7 +144,6 @@ class PlaybackService extends GetxService {
     );
   }
 
-  /// playIndex。
   Future<void> playIndex({
     required int audioSourceIndex,
     required bool playNow,
@@ -163,16 +152,12 @@ class PlaybackService extends GetxService {
         audioSourceIndex: audioSourceIndex, playNow: playNow);
   }
 
-  /// seek。
   Future<void> seek(Duration position) => handler.seek(position);
 
-  /// skipToPrevious。
   Future<void> skipToPrevious() => handler.skipToPrevious();
 
-  /// skipToNext。
   Future<void> skipToNext() => handler.skipToNext();
 
-  /// changeRepeatMode。
   Future<void> changeRepeatMode({PlaybackRepeatMode? newRepeatMode}) {
     return handler.changeRepeatMode(
       newRepeatMode: newRepeatMode == null
@@ -181,7 +166,6 @@ class PlaybackService extends GetxService {
     );
   }
 
-  /// updateQueueItem。
   Future<void> updateQueueItem(PlaybackQueueItem item) {
     return handler.updateMediaItem(PlaybackQueueItemAdapter.toMediaItem(item));
   }

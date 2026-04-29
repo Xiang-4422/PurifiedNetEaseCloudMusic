@@ -23,9 +23,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
-/// ArtistPageView。
 class ArtistPageView extends StatefulWidget {
-  /// 创建 ArtistPageView。
   const ArtistPageView({Key? key}) : super(key: key);
 
   @override

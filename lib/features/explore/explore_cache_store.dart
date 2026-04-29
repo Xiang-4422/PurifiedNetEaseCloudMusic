@@ -5,16 +5,13 @@ import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 
-/// ExploreCacheStore。
 class ExploreCacheStore {
-  /// 创建 ExploreCacheStore。
   const ExploreCacheStore({
     required AppCacheDataSource cacheDataSource,
   }) : _cacheDataSource = cacheDataSource;
 
   final AppCacheDataSource _cacheDataSource;
 
-  /// loadPlaylistCatalogue。
   Future<ExplorePlaylistCatalogueData?> loadPlaylistCatalogue() async {
     final payloadJson =
         await _cacheDataSource.loadPayloadJson(explorePlaylistCatalogueSp);
@@ -46,7 +43,6 @@ class ExploreCacheStore {
     );
   }
 
-  /// savePlaylistCatalogue。
   Future<void> savePlaylistCatalogue(
     ExplorePlaylistCatalogueData data,
   ) async {
@@ -61,7 +57,6 @@ class ExploreCacheStore {
     );
   }
 
-  /// isPlaylistCatalogueFresh。
   Future<bool> isPlaylistCatalogueFresh({
     required Duration ttl,
   }) {
@@ -71,7 +66,6 @@ class ExploreCacheStore {
     );
   }
 
-  /// loadCategoryPlaylists。
   Future<List<PlaylistSummaryData>?> loadCategoryPlaylists(
     String category,
   ) async {
@@ -95,7 +89,6 @@ class ExploreCacheStore {
         .toList();
   }
 
-  /// saveCategoryPlaylists。
   Future<void> saveCategoryPlaylists(
     String category,
     List<PlaylistSummaryData> playlists,
@@ -108,7 +101,6 @@ class ExploreCacheStore {
     );
   }
 
-  /// isCategoryPlaylistsFresh。
   Future<bool> isCategoryPlaylistsFresh(
     String category, {
     required Duration ttl,

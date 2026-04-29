@@ -8,12 +8,9 @@ import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 // TODO YU4422 歌词换行、歌词丝滑缩放
-/// LyricView。
 class LyricView extends GetView<ShellController> {
-  /// lyricPadding。
   final EdgeInsetsGeometry lyricPadding;
 
-  /// 创建 LyricView。
   const LyricView(this.lyricPadding, {super.key});
 
   @override

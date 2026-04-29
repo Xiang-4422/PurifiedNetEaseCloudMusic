@@ -14,9 +14,7 @@ import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// AppBodyPageView。
 class AppBodyPageView extends GetView<ShellController> {
-  /// 创建 AppBodyPageView。
   const AppBodyPageView({super.key});
 
   @override
@@ -60,9 +58,7 @@ class AppBodyPageView extends GetView<ShellController> {
   }
 }
 
-/// DrawerMainScreenView。
 class DrawerMainScreenView extends GetView<ShellController> {
-  /// 创建 DrawerMainScreenView。
   const DrawerMainScreenView({Key? key}) : super(key: key);
 
   Widget _buildPage(int index) {
@@ -110,9 +106,7 @@ class DrawerMainScreenView extends GetView<ShellController> {
   }
 }
 
-/// MenuView。
 class MenuView extends GetView<ShellController> {
-  /// 创建 MenuView。
   const MenuView({super.key});
 
   @override

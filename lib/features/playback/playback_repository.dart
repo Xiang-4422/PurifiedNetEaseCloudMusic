@@ -7,9 +7,7 @@ import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 
-/// PlaybackRepository。
 class PlaybackRepository {
-  /// 创建 PlaybackRepository。
   PlaybackRepository({
     required LibraryRepository libraryRepository,
     required PlaybackRestoreDataSource playbackRestoreDataSource,
@@ -19,27 +17,22 @@ class PlaybackRepository {
   final LibraryRepository _libraryRepository;
   final PlaybackRestoreDataSource _playbackRestoreDataSource;
 
-  /// fetchSongLyrics。
   Future<TrackLyrics?> fetchSongLyrics(String trackId) {
     return _libraryRepository.getLyrics(trackId);
   }
 
-  /// getTrack。
   Future<Track?> getTrack(String trackId) {
     return _libraryRepository.getTrack(trackId);
   }
 
-  /// getTrackWithResources。
   Future<TrackWithResources?> getTrackWithResources(String trackId) {
     return _libraryRepository.getTrackWithResources(trackId);
   }
 
-  /// saveSongLyrics。
   Future<void> saveSongLyrics(String trackId, TrackLyrics lyrics) {
     return _libraryRepository.saveLyrics(trackId, lyrics);
   }
 
-  /// getRestoreState。
   Future<PlaybackRestoreState> getRestoreState() async {
     final localState = await _playbackRestoreDataSource.getRestoreState();
     if (localState != null && localState.hasSnapshotData) {
@@ -48,7 +41,6 @@ class PlaybackRepository {
     return const PlaybackRestoreState();
   }
 
-  /// updateRestoreState。
   Future<void> updateRestoreState({
     PlaybackMode? playbackMode,
     PlaybackRepeatMode? repeatMode,
@@ -70,7 +62,6 @@ class PlaybackRepository {
     await _playbackRestoreDataSource.saveRestoreState(nextState);
   }
 
-  /// fetchPlaybackUrl。
   Future<String?> fetchPlaybackUrl(
     String trackId, {
     required bool preferHighQuality,

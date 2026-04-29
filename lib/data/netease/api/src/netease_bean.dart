@@ -8,77 +8,37 @@ export '../src/api/search/bean.dart';
 export '../src/api/uncategorized/bean.dart';
 export '../src/api/user/bean.dart';
 
-/// RET_CODE_UNKNOW。
 const int RET_CODE_UNKNOW = -233;
-
-/// RET_CODE_OK。
 const int RET_CODE_OK = 200;
-
-/// RET_CODE_NO_PERMISSION。
 const int RET_CODE_NO_PERMISSION = -2;
-
-/// RET_CODE_OK_FOLLOW。
 const int RET_CODE_OK_FOLLOW = 201;
 // title: "风险提示",subtitle: "请您尝试切换网络或设备再尝试操作哦~",buttonMsg: "查看详情",buttonUrl: "http://163.lu/EmUzy2"
-/// RET_CODE_RISK_WARNING。
 const int RET_CODE_RISK_WARNING = 250;
-
-/// RET_CODE_CHEATING。
 const int RET_CODE_CHEATING = -460;
-
-/// RET_CODE_NEED_LOGIN。
 const int RET_CODE_NEED_LOGIN = 301;
-
-/// RET_CODE_ILLEGAL。
 const int RET_CODE_ILLEGAL = 400;
-
-/// RET_CODE_ILLEGAL_REQUEST。
 const int RET_CODE_ILLEGAL_REQUEST = 403;
-
-/// RET_CODE_REQUEST_NOT_FOUNT。
 const int RET_CODE_REQUEST_NOT_FOUNT = 404;
 //用户已初始化
-/// RET_CODE_HAS_INIT。
 const int RET_CODE_HAS_INIT = 408;
-
-/// RET_CODE_ACCOUNT_NOT_FOUND。
 const int RET_CODE_ACCOUNT_NOT_FOUND = 501;
-
-/// RET_CODE_UPDATE_PROFILE_OCCUPY。
 const int RET_CODE_UPDATE_PROFILE_OCCUPY = 505;
 
-/// RET_CODE_CAPTCHA_VERIFY_FAIL。
 const int RET_CODE_CAPTCHA_VERIFY_FAIL = 503;
-
-/// RET_CODE_CAPTCHA_VERIFY_FREQUENTLY。
 const int RET_CODE_CAPTCHA_VERIFY_FREQUENTLY = 405;
 
 //未付费歌曲无法收藏
-/// RET_CODE_UNPAID。
 const int RET_CODE_UNPAID = 512;
 
-/// RetCode。
 enum RetCode {
-  /// Ok。
   Ok,
-
-  /// NeedLogin。
   NeedLogin,
-
-  /// IllegalArgument。
   IllegalArgument,
-
-  /// IllegalRequest。
   IllegalRequest,
-
-  /// RequestNotFount。
   RequestNotFount,
-
-  /// 公开成员。
   UnKnow
 }
 
-/// valueOfCode。
 RetCode valueOfCode(int code) {
   switch (code) {
     case RET_CODE_OK:

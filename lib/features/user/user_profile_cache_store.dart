@@ -3,16 +3,13 @@ import 'dart:convert';
 import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/domain/entities/user_profile_data.dart';
 
-/// UserProfileCacheStore。
 class UserProfileCacheStore {
-  /// 创建 UserProfileCacheStore。
   const UserProfileCacheStore({
     required AppCacheDataSource cacheDataSource,
   }) : _cacheDataSource = cacheDataSource;
 
   final AppCacheDataSource _cacheDataSource;
 
-  /// loadProfile。
   Future<UserProfileData?> loadProfile(String userId) async {
     final payloadJson =
         await _cacheDataSource.loadPayloadJson(_profileCacheKey(userId));
@@ -30,7 +27,6 @@ class UserProfileCacheStore {
     );
   }
 
-  /// saveProfile。
   Future<void> saveProfile(UserProfileData profile) async {
     await _cacheDataSource.save(
       cacheKey: _profileCacheKey(profile.userId),
@@ -38,12 +34,10 @@ class UserProfileCacheStore {
     );
   }
 
-  /// clearProfile。
   Future<void> clearProfile(String userId) {
     return _cacheDataSource.delete(_profileCacheKey(userId));
   }
 
-  /// clearAllProfiles。
   Future<void> clearAllProfiles() {
     return _cacheDataSource.deleteByPrefix(_profileKeyPrefix);
   }

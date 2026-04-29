@@ -7,9 +7,7 @@ import '../../../src/api/uncategorized/bean.dart';
 import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 
-/// 公开成员。
 mixin ApiUncategorized {
-  /// homeBannerListDioMetaData。
   DioMetaData homeBannerListDioMetaData({String clientType = 'android'}) {
     var params = {'clientType': clientType};
     return DioMetaData(joinUri('/api/v2/banner/get'),
@@ -26,7 +24,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// homeBlockPageDioMetaData。
   DioMetaData homeBlockPageDioMetaData(
       {bool refresh = true, String cursor = ''}) {
     var params = {"refresh": refresh, "cursor": cursor};
@@ -44,7 +41,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// homeDragonBallStaticDioMetaData。
   DioMetaData homeDragonBallStaticDioMetaData() {
     return DioMetaData(joinUri('/api/homepage/dragon/ball/static'),
         data: {},
@@ -63,7 +59,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// countriesCodeListDioMetaData。
   DioMetaData countriesCodeListDioMetaData() {
     return DioMetaData(
         Uri.parse('http://interface3.music.163.com/eapi/lbs/countries/v1'),
@@ -81,7 +76,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// personalizedPrivateContentDioMetaData。
   DioMetaData personalizedPrivateContentDioMetaData() {
     return DioMetaData(joinUri('/weapi/personalized/privatecontent'),
         data: {}, options: joinOptions());
@@ -96,7 +90,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// personalizedPrivateContentListDioMetaData。
   DioMetaData personalizedPrivateContentListDioMetaData(
       {int offset = 0, int limit = 60, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -115,7 +108,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// topListDioMetaData。
   DioMetaData topListDioMetaData() {
     return DioMetaData(joinUri('/api/toplist'),
         data: {}, options: joinOptions(encryptType: EncryptType.WeApi));
@@ -128,7 +120,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// topListDetailDioMetaData。
   DioMetaData topListDetailDioMetaData() {
     return DioMetaData(joinUri('/weapi/toplist/detail'),
         data: {}, options: joinOptions());
@@ -143,7 +134,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// mcalendarDetailDioMetaData。
   DioMetaData mcalendarDetailDioMetaData({int startTime = 0, int endTime = 0}) {
     if (startTime == 0) {
       startTime = DateTime.now().millisecondsSinceEpoch;
@@ -169,7 +159,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// audioMatchDioMetaData。
   DioMetaData audioMatchDioMetaData(
       {String? algorithmCode,
       int? times,
@@ -211,7 +200,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// listenTogetherStatusDioMetaData。
   DioMetaData listenTogetherStatusDioMetaData() {
     return DioMetaData(joinUri('/api/listen/together/status/get'),
         data: {}, options: joinOptions());
@@ -314,7 +302,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// batchApiDioMetaData。
   DioMetaData batchApiDioMetaData(List<DioMetaData> dioMetaDatas) {
     Map<String, dynamic> params = {};
     for (var element in dioMetaDatas) {
@@ -336,7 +323,6 @@ mixin ApiUncategorized {
     });
   }
 
-  /// weblogDioMetaData。
   DioMetaData weblogDioMetaData(
       String id, String sourceId, String action, String type, String end,
       {int download = 0, int wifi = 0, int time = 0}) {

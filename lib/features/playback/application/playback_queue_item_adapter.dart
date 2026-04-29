@@ -4,11 +4,9 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 
-/// PlaybackQueueItemAdapter。
 class PlaybackQueueItemAdapter {
   const PlaybackQueueItemAdapter._();
 
-  /// toMediaItem。
   static MediaItem toMediaItem(PlaybackQueueItem item) {
     return MediaItem(
       id: item.id,
@@ -35,12 +33,10 @@ class PlaybackQueueItemAdapter {
     );
   }
 
-  /// toMediaItems。
   static List<MediaItem> toMediaItems(List<PlaybackQueueItem> items) {
     return items.map(toMediaItem).toList();
   }
 
-  /// fromMediaItem。
   static PlaybackQueueItem fromMediaItem(MediaItem item) {
     final extras = item.extras ?? const <String, dynamic>{};
     final localArtworkPath = _stringOrNull(extras['localArtworkPath']);
@@ -71,7 +67,6 @@ class PlaybackQueueItemAdapter {
     );
   }
 
-  /// fromMediaItems。
   static List<PlaybackQueueItem> fromMediaItems(List<MediaItem> items) {
     return items.map(fromMediaItem).toList();
   }

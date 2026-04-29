@@ -5,32 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/adapters.dart';
 
-/// SettingsController。
 class SettingsController extends GetxController {
-  /// to。
   static SettingsController get to => Get.find();
 
-  /// box。
   final Box box = CacheBox.instance;
   final LibraryPreferenceStore _libraryPreferenceStore =
       const LibraryPreferenceStore();
 
-  /// isGradientBackground。
   RxBool isGradientBackground = false.obs;
-
-  /// isRoundAlbumOpen。
   RxBool isRoundAlbumOpen = false.obs;
-
-  /// isHighSoundQualityOpen。
   RxBool isHighSoundQualityOpen = false.obs;
-
-  /// isOfflineModeEnabled。
   RxBool isOfflineModeEnabled = false.obs;
-
-  /// albumColor。
   Rx<Color> albumColor = Colors.white.obs;
-
-  /// panelWidgetColor。
   Rx<Color> panelWidgetColor = Colors.white.obs;
 
   @override
@@ -47,7 +33,6 @@ class SettingsController extends GetxController {
     isOfflineModeEnabled.value = _libraryPreferenceStore.isOfflineModeEnabled;
   }
 
-  /// toggleGradientBackground。
   Future<void> toggleGradientBackground() async {
     await _updateBoolSetting(
       target: isGradientBackground,
@@ -55,7 +40,6 @@ class SettingsController extends GetxController {
     );
   }
 
-  /// toggleRoundAlbumOpen。
   Future<void> toggleRoundAlbumOpen() async {
     await _updateBoolSetting(
       target: isRoundAlbumOpen,
@@ -63,7 +47,6 @@ class SettingsController extends GetxController {
     );
   }
 
-  /// toggleHighSoundQualityOpen。
   Future<void> toggleHighSoundQualityOpen() async {
     await _updateBoolSetting(
       target: isHighSoundQualityOpen,
@@ -71,14 +54,12 @@ class SettingsController extends GetxController {
     );
   }
 
-  /// toggleOfflineMode。
   Future<void> toggleOfflineMode() async {
     final nextValue = !isOfflineModeEnabled.value;
     isOfflineModeEnabled.value = nextValue;
     await _libraryPreferenceStore.saveOfflineMode(nextValue);
   }
 
-  /// updateLoginStatus。
   Future<void> updateLoginStatus(bool value) async {
     await box.put(isLoginSP, value);
   }

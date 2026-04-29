@@ -9,9 +9,7 @@ import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// CommentItemWidget。
 class CommentItemWidget extends StatefulWidget {
-  /// 创建 CommentItemWidget。
   const CommentItemWidget({
     super.key,
     required this.comment,
@@ -21,19 +19,10 @@ class CommentItemWidget extends StatefulWidget {
     this.isReply = false,
   });
 
-  /// id。
   final String id;
-
-  /// idType。
   final String idType;
-
-  /// comment。
   final CommentData comment;
-
-  /// stringColor。
   final Color stringColor;
-
-  /// isReply。
   final bool isReply;
 
   @override

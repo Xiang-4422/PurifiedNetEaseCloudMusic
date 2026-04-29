@@ -3,9 +3,7 @@ import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';
 
-/// CommentListController。
 class CommentListController {
-  /// 创建 CommentListController。
   CommentListController({
     required this.id,
     required this.type,
@@ -14,33 +12,22 @@ class CommentListController {
     this.pageSize = 10,
   }) : _repository = repository;
 
-  /// id。
   final String id;
-
-  /// type。
   final String type;
-
-  /// sortType。
   final int sortType;
-
-  /// pageSize。
   final int pageSize;
   final CommentRepository _repository;
-
-  /// state。
   final ValueNotifier<PagedState<CommentData>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _pageNo = 1;
   String? _cursor;
 
-  /// loadInitial。
   Future<void> loadInitial() async {
     state.value = PagedState.initialLoading();
     await _reload();
   }
 
-  /// refresh。
   Future<bool> refresh() async {
     state.value = state.value.copyWith(
       refreshing: true,
@@ -49,7 +36,6 @@ class CommentListController {
     return _reload();
   }
 
-  /// loadMore。
   Future<bool> loadMore() async {
     final currentState = state.value;
     if (currentState.loadingMore || !currentState.hasMore) {
@@ -110,7 +96,6 @@ class CommentListController {
     }
   }
 
-  /// dispose。
   void dispose() {
     state.dispose();
   }

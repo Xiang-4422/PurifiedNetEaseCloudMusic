@@ -6,21 +6,12 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-/// CoverFlowItemBuilder。
 typedef CoverFlowItemBuilder = Widget Function(BuildContext context, int index);
-
-/// CoverFlowItemKeyBuilder。
 typedef CoverFlowItemKeyBuilder = Key? Function(int index);
-
-/// CoverFlowItemWidgetBuilder。
 typedef CoverFlowItemWidgetBuilder = Widget Function(int index);
 
-/// CoverFlowInteractionMode。
 enum CoverFlowInteractionMode {
-  /// pageSnap。
   pageSnap,
-
-  /// inertialSnap。
   inertialSnap,
 }
 
@@ -29,37 +20,17 @@ enum CoverFlowInteractionMode {
 /// 默认值保持当前封面流效果不变，但把关键比例显式暴露出来，后续如果要调整成更平或更夸张
 /// 的版本，不需要再回到组件内部改公式。
 class CoverFlowStyle {
-  /// nearGapFactor。
   final double nearGapFactor;
-
-  /// farGapFactor。
   final double farGapFactor;
-
-  /// nearAngle。
   final double nearAngle;
-
-  /// farAngle。
   final double farAngle;
-
-  /// perspective。
   final double perspective;
-
-  /// centerScale。
   final double centerScale;
-
-  /// sideScale。
   final double sideScale;
-
-  /// centerOpacity。
   final double centerOpacity;
-
-  /// sideOpacity。
   final double sideOpacity;
-
-  /// sideVerticalOffset。
   final double sideVerticalOffset;
 
-  /// 创建 CoverFlowStyle。
   const CoverFlowStyle({
     this.nearGapFactor = .5,
     this.farGapFactor = .4,
@@ -82,73 +53,29 @@ class CoverFlowStyle {
 /// - 子项仍然能接收点击、语义和焦点；
 /// - 上层可以通过稳定 key 管理重排后的子树复用。
 class CoverFlow extends StatefulWidget {
-  /// itemCount。
   final int itemCount;
-
-  /// itemBuilder。
   final CoverFlowItemBuilder itemBuilder;
-
-  /// itemKeyBuilder。
   final CoverFlowItemKeyBuilder? itemKeyBuilder;
-
-  /// itemSize。
   final Size itemSize;
-
-  /// currentIndex。
   final int currentIndex;
-
-  /// visibleRange。
   final int visibleRange;
-
-  /// onIndexChanged。
   final ValueChanged<int>? onIndexChanged;
-
-  /// onTapItem。
   final ValueChanged<int>? onTapItem;
-
-  /// onInteractionStart。
   final VoidCallback? onInteractionStart;
-
-  /// onInteractionEnd。
   final ValueChanged<int>? onInteractionEnd;
-
-  /// style。
   final CoverFlowStyle style;
-
-  /// interactionMode。
   final CoverFlowInteractionMode interactionMode;
-
-  /// padding。
   final EdgeInsetsGeometry padding;
-
-  /// clipBehavior。
   final Clip clipBehavior;
-
-  /// animationCurve。
   final Curve animationCurve;
-
-  /// animationBaseDuration。
   final Duration animationBaseDuration;
-
-  /// animationPerItemDuration。
   final Duration animationPerItemDuration;
-
-  /// dragSensitivity。
   final double dragSensitivity;
-
-  /// pageSnapVelocityThreshold。
   final double pageSnapVelocityThreshold;
-
-  /// inertialVelocityThreshold。
   final double inertialVelocityThreshold;
-
-  /// inertialFriction。
   final double inertialFriction;
-
-  /// inertialSimulationMinDelta。
   final double inertialSimulationMinDelta;
 
-  /// 创建 CoverFlow。
   CoverFlow({
     super.key,
     required this.itemCount,
@@ -529,45 +456,20 @@ class _CoverFlowState extends State<CoverFlow>
   }
 }
 
-/// CoverFlowCardItems。
 class CoverFlowCardItems extends StatelessWidget {
-  /// itemCount。
   final int itemCount;
-
-  /// itemBuilder。
   final CoverFlowItemWidgetBuilder itemBuilder;
-
-  /// itemKeyBuilder。
   final CoverFlowItemKeyBuilder? itemKeyBuilder;
-
-  /// pagePosition。
   final double pagePosition;
-
-  /// maxHeight。
   final double maxHeight;
-
-  /// maxWidth。
   final double maxWidth;
-
-  /// itemSize。
   final Size itemSize;
-
-  /// visibleRange。
   final int visibleRange;
-
-  /// style。
   final CoverFlowStyle style;
-
-  /// padding。
   final EdgeInsets padding;
-
-  /// clipBehavior。
   final Clip clipBehavior;
-
-  /// onTapItem。
   final ValueChanged<int>? onTapItem;
 
-  /// 创建 CoverFlowCardItems。
   const CoverFlowCardItems({
     super.key,
     required this.itemCount,

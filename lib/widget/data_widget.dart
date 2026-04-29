@@ -2,18 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'package:lottie/lottie.dart';
 
-/// RequestChildBuilder。
 typedef RequestChildBuilder<T> = Widget Function(T data);
 
-/// DataWidget。
 class DataWidget<T> extends StatefulWidget {
-  /// builder。
   final AsyncWidgetBuilder<T> builder;
-
-  /// future。
   final Future<T>? future;
 
-  /// 创建 DataWidget。
   const DataWidget({Key? key, required this.builder, this.future})
       : super(key: key);
 
@@ -31,24 +25,13 @@ class _DataWidgetState<T> extends State<DataWidget<T>> {
   }
 }
 
-/// DataView。
 class DataView<T> extends StatefulWidget {
-  /// snapshot。
   final AsyncSnapshot<T> snapshot;
-
-  /// childBuilder。
   final Widget childBuilder;
-
-  /// emptyView。
   final Widget? emptyView;
-
-  /// errorView。
   final Widget? errorView;
-
-  /// loadingView。
   final Widget? loadingView;
 
-  /// 创建 DataView。
   const DataView(
       {Key? key,
       required this.snapshot,
@@ -78,12 +61,9 @@ class _DataViewState<T> extends State<DataView<T>> {
   }
 }
 
-/// LoadingView。
 class LoadingView extends StatelessWidget {
-  /// tips。
   final String? tips;
 
-  /// 创建 LoadingView。
   const LoadingView({Key? key, this.tips}) : super(key: key);
 
   @override
@@ -98,9 +78,7 @@ class LoadingView extends StatelessWidget {
   }
 }
 
-/// EmptyView。
 class EmptyView extends StatelessWidget {
-  /// 创建 EmptyView。
   const EmptyView({Key? key}) : super(key: key);
 
   @override
@@ -125,9 +103,7 @@ class EmptyView extends StatelessWidget {
   }
 }
 
-/// ErrorView。
 class ErrorView extends StatelessWidget {
-  /// 创建 ErrorView。
   const ErrorView({Key? key}) : super(key: key);
 
   @override

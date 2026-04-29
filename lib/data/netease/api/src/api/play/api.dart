@@ -9,7 +9,6 @@ import '../../../src/api/bean.dart';
 import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 
-/// 公开成员。
 mixin ApiPlay {
   String _normalizeImageUrl(String url) {
     final uri = Uri.tryParse(url);
@@ -36,7 +35,6 @@ mixin ApiPlay {
     });
   }
 
-  /// playlistSubscribersDioMetaData。
   DioMetaData playlistSubscribersDioMetaData(String pid,
       {int offset = 0, int limit = 30}) {
     var params = {'id': pid, 'limit': limit, 'offset': offset};
@@ -54,7 +52,6 @@ mixin ApiPlay {
     });
   }
 
-  /// subscribePlayListDioMetaData。
   DioMetaData subscribePlayListDioMetaData(String pid,
       {bool subscribe = true}) {
     var params = {'id': pid};
@@ -73,7 +70,6 @@ mixin ApiPlay {
     });
   }
 
-  /// playlistCatalogueDioMetaData。
   DioMetaData playlistCatalogueDioMetaData() {
     return DioMetaData(joinUri('/weapi/playlist/catalogue'),
         data: {}, options: joinOptions());
@@ -88,7 +84,6 @@ mixin ApiPlay {
     });
   }
 
-  /// playlistHotTagsDioMetaData。
   DioMetaData playlistHotTagsDioMetaData() {
     return DioMetaData(joinUri('/weapi/playlist/hottags'),
         data: {}, options: joinOptions());
@@ -103,7 +98,6 @@ mixin ApiPlay {
     });
   }
 
-  /// highqualityPlaylistHotTagsDioMetaData。
   DioMetaData highqualityPlaylistHotTagsDioMetaData() {
     return DioMetaData(joinUri('/api/playlist/highquality/tags'),
         data: {}, options: joinOptions());
@@ -124,7 +118,6 @@ mixin ApiPlay {
     });
   }
 
-  /// highqualityPlayListDioMetaData。
   DioMetaData highqualityPlayListDioMetaData(
       {String category = '全部',
       int limit = 30,
@@ -173,7 +166,6 @@ mixin ApiPlay {
     });
   }
 
-  /// relatedPlayListDioMetaData。
   DioMetaData relatedPlayListDioMetaData(String songId) {
     return DioMetaData(joinUri('/playlist?id=$songId'),
         options: joinOptions(userAgent: UserAgent.Pc));
@@ -189,7 +181,6 @@ mixin ApiPlay {
     });
   }
 
-  /// personalizedPlaylistDioMetaData。
   DioMetaData personalizedPlaylistDioMetaData(
       {int offset = 0, int limit = 30}) {
     var params = {'limit': limit, 'offset': offset, 'n': 1000};
@@ -207,7 +198,6 @@ mixin ApiPlay {
     });
   }
 
-  /// recommendPlaylistDioMetaData。
   DioMetaData recommendPlaylistDioMetaData() {
     return DioMetaData(joinUri('/weapi/v1/discovery/recommend/resource'),
         data: {}, options: joinOptions());
@@ -229,7 +219,6 @@ mixin ApiPlay {
     });
   }
 
-  /// playmodeIntelligenceListDioMetaData。
   DioMetaData playmodeIntelligenceListDioMetaData(
       String songId, String playlistId, bool fromPlayAll,
       {String? startMusicId, int count = 1}) {
@@ -256,7 +245,6 @@ mixin ApiPlay {
     });
   }
 
-  /// playListSimiListDioMetaData。
   DioMetaData playListSimiListDioMetaData(String songId,
       {int offset = 0, int limit = 30}) {
     var params = {'songid': songId, 'limit': limit, 'offset': offset};
@@ -276,7 +264,6 @@ mixin ApiPlay {
     });
   }
 
-  /// playListDetailDioMetaData。
   DioMetaData playListDetailDioMetaData(String categoryId, {int subCount = 5}) {
     var params = {
       'id': categoryId,
@@ -301,7 +288,6 @@ mixin ApiPlay {
     });
   }
 
-  /// playListDetailDynamicDioMetaData。
   DioMetaData playListDetailDynamicDioMetaData(String playlistId,
       {int subCount = 8}) {
     var params = {'id': playlistId, 'n': 1000, 's': '$subCount'};
@@ -333,7 +319,6 @@ mixin ApiPlay {
     });
   }
 
-  /// categorySongListDioMetaData。
   DioMetaData categorySongListDioMetaData({
     String category = '全部',
     String order = 'hot',
@@ -362,7 +347,6 @@ mixin ApiPlay {
     });
   }
 
-  /// recommendSongListDioMetaData。
   DioMetaData recommendSongListDioMetaData() {
     return DioMetaData(joinUri('/api/v3/discovery/recommend/songs'),
         data: {}, options: joinOptions(cookies: {'os': 'ios'}));
@@ -378,7 +362,6 @@ mixin ApiPlay {
     });
   }
 
-  /// recommendSongListHistoryDioMetaData。
   DioMetaData recommendSongListHistoryDioMetaData() {
     return DioMetaData(joinUri('/api/discovery/recommend/songs/history/recent'),
         data: {}, options: joinOptions(cookies: {'os': 'ios'}));
@@ -395,7 +378,6 @@ mixin ApiPlay {
     });
   }
 
-  /// recommendSongListHistoryDetailDioMetaData。
   DioMetaData recommendSongListHistoryDetailDioMetaData({String date = ''}) {
     var params = {'date': date};
     return DioMetaData(joinUri('/api/discovery/recommend/songs/history/detail'),
@@ -414,7 +396,6 @@ mixin ApiPlay {
     });
   }
 
-  /// yunbeiRecommendSongDioMetaData。
   DioMetaData yunbeiRecommendSongDioMetaData(String songId,
       {String reason = '好歌献给你', String fromUserId = '-1'}) {
     return DioMetaData(joinUri('/weapi/yunbei/rcmd/song/submit'),
@@ -439,7 +420,6 @@ mixin ApiPlay {
     });
   }
 
-  /// yunbeiRecommendSongHistoryListDioMetaData。
   DioMetaData yunbeiRecommendSongHistoryListDioMetaData(
       {int size = 20, String cursor = ''}) {
     return DioMetaData(joinUri('/weapi/yunbei/rcmd/song/history/list'),
@@ -460,7 +440,6 @@ mixin ApiPlay {
     });
   }
 
-  /// userRadioDioMetaData。
   DioMetaData userRadioDioMetaData() {
     return DioMetaData(joinUri('/weapi/v1/radio/get'),
         data: {}, options: joinOptions());
@@ -477,7 +456,6 @@ mixin ApiPlay {
     });
   }
 
-  /// userRadioTrashDioMetaData。
   DioMetaData userRadioTrashDioMetaData(String songId,
       {int time = 3, String alg = 'RT'}) {
     var params = {'songId': songId};
@@ -496,7 +474,6 @@ mixin ApiPlay {
     });
   }
 
-  /// personalizedSongListDioMetaData。
   DioMetaData personalizedSongListDioMetaData() {
     var params = {'type': 'recommend'};
     return DioMetaData(joinUri('/api/personalized/newsong'),
@@ -513,7 +490,6 @@ mixin ApiPlay {
     });
   }
 
-  /// newSongListDioMetaData。
   DioMetaData newSongListDioMetaData({String areaId = '0'}) {
     var params = {'areaId': areaId, 'total': true};
     return DioMetaData(joinUri('/weapi/v1/discovery/new/songs'),
@@ -529,7 +505,6 @@ mixin ApiPlay {
     });
   }
 
-  /// userSongSimiListDioMetaData。
   DioMetaData userSongSimiListDioMetaData(String songId) {
     var params = {'songid': songId};
     return DioMetaData(joinUri('/weapi/discovery/simiUser'),
@@ -546,7 +521,6 @@ mixin ApiPlay {
     });
   }
 
-  /// songSimiListDioMetaData。
   DioMetaData songSimiListDioMetaData(String songId,
       {int offset = 0, int limit = 30}) {
     var params = {'songid': songId, 'limit': limit, 'offset': offset};
@@ -563,7 +537,6 @@ mixin ApiPlay {
     });
   }
 
-  /// likeSongListDioMetaData。
   DioMetaData likeSongListDioMetaData(String userId) {
     var params = {'uid': userId};
     return DioMetaData(joinUri('/weapi/song/like/get'),
@@ -580,7 +553,6 @@ mixin ApiPlay {
     });
   }
 
-  /// cloudSongDioMetaData。
   DioMetaData cloudSongDioMetaData({int offset = 0, int limit = 30}) {
     var params = {'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/weapi/v1/cloud/get'),
@@ -597,7 +569,6 @@ mixin ApiPlay {
     });
   }
 
-  /// cloudSongDetailDioMetaData。
   DioMetaData cloudSongDetailDioMetaData(List<String> songIds) {
     var params = {'songIds': songIds};
     return DioMetaData(joinUri('/weapi/v1/cloud/get/byids'),
@@ -614,7 +585,6 @@ mixin ApiPlay {
     });
   }
 
-  /// cloudSongDeleteDioMetaData。
   DioMetaData cloudSongDeleteDioMetaData(List<String> songIds) {
     var params = {'songIds': songIds};
     return DioMetaData(joinUri('/weapi/cloud/del'),
@@ -633,7 +603,6 @@ mixin ApiPlay {
     });
   }
 
-  /// cloudUserSongMatchDioMetaData。
   DioMetaData cloudUserSongMatchDioMetaData(
       String userId, String songId, String adjustSongId) {
     var params = {
@@ -656,7 +625,6 @@ mixin ApiPlay {
     });
   }
 
-  /// likeSongDioMetaData。
   DioMetaData likeSongDioMetaData(String songId, bool like,
       {int time = 3, String alg = 'itembased'}) {
     var params = {'trackId': songId, 'like': like};
@@ -685,7 +653,6 @@ mixin ApiPlay {
     });
   }
 
-  /// songDetailDioMetaData。
   DioMetaData songDetailDioMetaData(List<String> songIds) {
     var params = {
       // 'ids': songIds,
@@ -708,7 +675,6 @@ mixin ApiPlay {
     });
   }
 
-  /// songUrlDioMetaData。
   DioMetaData songUrlDioMetaData(List<String> songIds, {int br = 999000}) {
     var params = {'ids': songIds, 'br': br};
     return DioMetaData(
@@ -735,7 +701,6 @@ mixin ApiPlay {
     });
   }
 
-  /// songDownloadUrlDioMetaData。
   DioMetaData songDownloadUrlDioMetaData(List<String> songIds,
       {String level = 'exhigh'}) {
     var params = {
@@ -761,7 +726,6 @@ mixin ApiPlay {
     });
   }
 
-  /// songLyricDioMetaData。
   DioMetaData songLyricDioMetaData(String songId) {
     var params = {'id': songId, 'lv': -1, 'kv': -1, 'tv': -1};
     return DioMetaData(joinUri('/api/song/lyric'),
@@ -782,7 +746,6 @@ mixin ApiPlay {
     });
   }
 
-  /// songAvailableCheckDioMetaData。
   DioMetaData songAvailableCheckDioMetaData(List<String> songIds,
       {int br = 999000}) {
     var params = {'ids': songIds, 'br': br};
@@ -808,7 +771,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistListDioMetaData。
   DioMetaData artistListDioMetaData(int initial,
       {int offset = 0,
       int limit = 30,
@@ -838,7 +800,6 @@ mixin ApiPlay {
     });
   }
 
-  /// topArtistDioMetaData。
   DioMetaData topArtistDioMetaData(
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -858,7 +819,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistTopListDioMetaData。
   DioMetaData artistTopListDioMetaData(
       {int type = 1, int offset = 0, int limit = 30, bool total = true}) {
     var params = {
@@ -880,7 +840,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistSimiListDioMetaData。
   DioMetaData artistSimiListDioMetaData(String artistId) {
     var params = {'artistid': artistId};
     return DioMetaData(joinUri('/weapi/discovery/simiArtist'),
@@ -896,7 +855,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistDescDioMetaData。
   DioMetaData artistDescDioMetaData(String artistId) {
     var params = {'id': artistId};
     return DioMetaData(joinUri('/weapi/artist/introduction'),
@@ -912,7 +870,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistDetailDioMetaData。
   DioMetaData artistDetailDioMetaData(String artistId) {
     var params = {'id': artistId};
     return DioMetaData(joinUri('/api/artist/head/info/get'),
@@ -928,7 +885,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistTopSongListDioMetaData。
   DioMetaData artistTopSongListDioMetaData(String artistId) {
     var params = {'id': artistId};
     return DioMetaData(joinUri('/api/artist/top/song'),
@@ -952,7 +908,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistALLSongListDioMetaData。
   DioMetaData artistALLSongListDioMetaData(
     String artistId, {
     bool privateCloud = true,
@@ -985,7 +940,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistFollowedNewSongListDioMetaData。
   DioMetaData artistFollowedNewSongListDioMetaData(
       {int before = 0, int limit = 20}) {
     var params = {'limit': limit, 'startTimestamp': before};
@@ -1003,7 +957,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistDetailAndSongListDioMetaData。
   DioMetaData artistDetailAndSongListDioMetaData(String artistId) {
     return DioMetaData(joinUri('/weapi/v1/artist/$artistId'),
         data: {}, options: joinOptions());
@@ -1033,7 +986,6 @@ mixin ApiPlay {
     });
   }
 
-  /// allMvListDioMetaData。
   DioMetaData allMvListDioMetaData(
       {String area = '全部',
       String type = '全部',
@@ -1063,7 +1015,6 @@ mixin ApiPlay {
     });
   }
 
-  /// topMvListDioMetaData。
   DioMetaData topMvListDioMetaData(
       {String area = '', int offset = 0, int limit = 30, bool total = true}) {
     var params = {
@@ -1088,7 +1039,6 @@ mixin ApiPlay {
     });
   }
 
-  /// newestMvListDioMetaData。
   DioMetaData newestMvListDioMetaData(
       {String area = '', int offset = 0, int limit = 30, bool total = true}) {
     var params = {
@@ -1114,7 +1064,6 @@ mixin ApiPlay {
     });
   }
 
-  /// neteaseMvListDioMetaData。
   DioMetaData neteaseMvListDioMetaData(
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -1133,7 +1082,6 @@ mixin ApiPlay {
     });
   }
 
-  /// personalizedMvListDioMetaData。
   DioMetaData personalizedMvListDioMetaData() {
     return DioMetaData(joinUri('/weapi/personalized/mv'),
         data: {}, options: joinOptions());
@@ -1150,7 +1098,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistMvListDioMetaData。
   DioMetaData artistMvListDioMetaData(String artistId,
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {
@@ -1175,7 +1122,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistFollowedNewMvListDioMetaData。
   DioMetaData artistFollowedNewMvListDioMetaData(
       {int before = 0, int limit = 20}) {
     if (before == 0) {
@@ -1196,7 +1142,6 @@ mixin ApiPlay {
     });
   }
 
-  /// mvSimiListDioMetaData。
   DioMetaData mvSimiListDioMetaData(String mvId) {
     var params = {'mvid': mvId};
     return DioMetaData(joinUri('/weapi/discovery/simiMV'),
@@ -1212,7 +1157,6 @@ mixin ApiPlay {
     });
   }
 
-  /// mvDetailDioMetaData。
   DioMetaData mvDetailDioMetaData(String mvId) {
     var params = {'id': mvId};
     return DioMetaData(joinUri('/weapi/mv/detail'),
@@ -1228,7 +1172,6 @@ mixin ApiPlay {
     });
   }
 
-  /// mvDetailInfoDioMetaData。
   DioMetaData mvDetailInfoDioMetaData(String mvId) {
     var params = {'threadid': 'R_MV_5_$mvId', 'composeliked': true};
     return DioMetaData(joinUri('/api/comment/commentthread/info'),
@@ -1244,7 +1187,6 @@ mixin ApiPlay {
     });
   }
 
-  /// mvUrlDioMetaData。
   DioMetaData mvUrlDioMetaData(String mvId, {int resolution = 1080}) {
     var params = {'id': mvId, 'r': resolution};
     return DioMetaData(joinUri('/weapi/song/enhance/play/mv/url'),
@@ -1262,7 +1204,6 @@ mixin ApiPlay {
     });
   }
 
-  /// videoCategoryListDioMetaData。
   DioMetaData videoCategoryListDioMetaData(
       {int offset = 0, int limit = 99, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -1279,7 +1220,6 @@ mixin ApiPlay {
     });
   }
 
-  /// videoGroupListDioMetaData。
   DioMetaData videoGroupListDioMetaData() {
     return DioMetaData(joinUri('/api/cloudvideo/group/list'),
         data: {}, options: joinOptions());
@@ -1297,7 +1237,6 @@ mixin ApiPlay {
     });
   }
 
-  /// videoListByGroupDioMetaData。
   DioMetaData videoListByGroupDioMetaData(String groupId,
       {int offset = 0, bool total = true}) {
     var params = {
@@ -1321,7 +1260,6 @@ mixin ApiPlay {
     });
   }
 
-  /// videoListOtherDioMetaData。
   DioMetaData videoListOtherDioMetaData(String groupId,
       {int offset = 0, bool total = true}) {
     var params = {
@@ -1343,7 +1281,6 @@ mixin ApiPlay {
     });
   }
 
-  /// videoListDioMetaData。
   DioMetaData videoListDioMetaData({int offset = 0}) {
     var params = {
       "offset": offset,
@@ -1367,7 +1304,6 @@ mixin ApiPlay {
     });
   }
 
-  /// relatedVideoListDioMetaData。
   DioMetaData relatedVideoListDioMetaData(String videoId) {
     var params = {
       'id': videoId,
@@ -1386,7 +1322,6 @@ mixin ApiPlay {
     });
   }
 
-  /// videoDetailDioMetaData。
   DioMetaData videoDetailDioMetaData(String videoId) {
     var params = {'id': videoId};
     return DioMetaData(joinUri('/weapi/cloudvideo/v1/video/detail'),
@@ -1402,7 +1337,6 @@ mixin ApiPlay {
     });
   }
 
-  /// videoDetailInfoDioMetaData。
   DioMetaData videoDetailInfoDioMetaData(String videoId) {
     var params = {'threadid': 'R_VI_62_$videoId', 'composeliked': true};
     return DioMetaData(joinUri('/api/comment/commentthread/info'),
@@ -1419,7 +1353,6 @@ mixin ApiPlay {
     });
   }
 
-  /// videoUrlDioMetaData。
   DioMetaData videoUrlDioMetaData(List<String> videoIds,
       {int resolution = 1080}) {
     var params = {'ids': jsonEncode(videoIds), 'resolution': resolution};
@@ -1436,7 +1369,6 @@ mixin ApiPlay {
     });
   }
 
-  /// mlogMylikeDioMetaData。
   DioMetaData mlogMylikeDioMetaData({int time = -1, int limit = 12}) {
     var params = {'time': time, 'limit': limit};
     return DioMetaData(joinUri('/api/mlog/playlist/mylike/bytime/get'),
@@ -1454,7 +1386,6 @@ mixin ApiPlay {
     });
   }
 
-  /// artistAlbumListDioMetaData。
   DioMetaData artistAlbumListDioMetaData(String artistId,
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -1473,7 +1404,6 @@ mixin ApiPlay {
     });
   }
 
-  /// newAlbumListDioMetaData。
   DioMetaData newAlbumListDioMetaData(
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -1506,7 +1436,6 @@ mixin ApiPlay {
     });
   }
 
-  /// newAlbumListByAreaDioMetaData。
   DioMetaData newAlbumListByAreaDioMetaData(
       {String area = 'ALL',
       String type = "new",

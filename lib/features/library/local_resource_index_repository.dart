@@ -7,9 +7,7 @@ import 'package:bujuan/domain/entities/local_resource_entry.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_resource_bundle.dart';
 
-/// LocalResourceIndexRepository。
 class LocalResourceIndexRepository {
-  /// 创建 LocalResourceIndexRepository。
   LocalResourceIndexRepository({
     required LocalResourceIndexDataSource dataSource,
     required LocalLibraryDataSource localLibraryDataSource,
@@ -19,33 +17,27 @@ class LocalResourceIndexRepository {
   final LocalResourceIndexDataSource _dataSource;
   final LocalLibraryDataSource _localLibraryDataSource;
 
-  /// getPrimaryAudioResource。
   Future<LocalResourceEntry?> getPrimaryAudioResource(String trackId) {
     return _dataSource.getResource(trackId, LocalResourceKind.audio);
   }
 
-  /// getArtworkResource。
   Future<LocalResourceEntry?> getArtworkResource(String trackId) {
     return _dataSource.getResource(trackId, LocalResourceKind.artwork);
   }
 
-  /// getLyricsResource。
   Future<LocalResourceEntry?> getLyricsResource(String trackId) {
     return _dataSource.getResource(trackId, LocalResourceKind.lyrics);
   }
 
-  /// getTrackResources。
   Future<List<LocalResourceEntry>> getTrackResources(String trackId) {
     return _dataSource.getTrackResources(trackId);
   }
 
-  /// getTrackResourceBundle。
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) async {
     final resources = await _dataSource.getTrackResources(trackId);
     return _toBundle(resources);
   }
 
-  /// getTrackResourceBundles。
   Future<Map<String, TrackResourceBundle>> getTrackResourceBundles(
     Iterable<String> trackIds,
   ) async {
@@ -56,7 +48,6 @@ class LocalResourceIndexRepository {
     );
   }
 
-  /// listLocalSongs。
   Future<List<LocalSongEntry>> listLocalSongs({
     Set<TrackResourceOrigin>? origins,
   }) async {
@@ -104,7 +95,6 @@ class LocalResourceIndexRepository {
     return entries;
   }
 
-  /// saveAudioResource。
   Future<void> saveAudioResource(
     String trackId, {
     required String path,
@@ -118,7 +108,6 @@ class LocalResourceIndexRepository {
     );
   }
 
-  /// saveArtworkResource。
   Future<void> saveArtworkResource(
     String trackId, {
     required String path,
@@ -132,7 +121,6 @@ class LocalResourceIndexRepository {
     );
   }
 
-  /// saveLyricsResource。
   Future<void> saveLyricsResource(
     String trackId, {
     required String path,
@@ -146,7 +134,6 @@ class LocalResourceIndexRepository {
     );
   }
 
-  /// touchResource。
   Future<void> touchResource(String trackId, LocalResourceKind kind) {
     return _dataSource.touchResource(
       trackId,
@@ -155,12 +142,10 @@ class LocalResourceIndexRepository {
     );
   }
 
-  /// removeTrackResources。
   Future<void> removeTrackResources(String trackId) {
     return _dataSource.removeTrackResources(trackId);
   }
 
-  /// removeResourcesByOrigin。
   Future<void> removeResourcesByOrigin(TrackResourceOrigin origin) {
     return _dataSource.removeResourcesByOrigin(origin);
   }

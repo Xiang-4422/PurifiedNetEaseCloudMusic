@@ -9,9 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
-/// AppHomePageView。
 class AppHomePageView extends GetView<ShellController> {
-  /// 创建 AppHomePageView。
   const AppHomePageView({
     Key? key,
   }) : super(key: key);

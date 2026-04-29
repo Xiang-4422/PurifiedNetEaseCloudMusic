@@ -7,24 +7,18 @@ import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
-/// CurrentTrackDownloadResult。
 class CurrentTrackDownloadResult {
-  /// 创建 CurrentTrackDownloadResult。
   const CurrentTrackDownloadResult({
     required this.track,
     required this.queueItem,
   });
 
-  /// track。
   final Track track;
-
-  /// queueItem。
   final PlaybackQueueItem? queueItem;
 }
 
 /// 当前歌曲下载相关用例，负责把下载结果转换回播放队列模型。
 class CurrentTrackDownloadUseCase {
-  /// 创建 CurrentTrackDownloadUseCase。
   CurrentTrackDownloadUseCase({
     required DownloadRepository downloadRepository,
     required PlaybackRepository playbackRepository,
@@ -37,7 +31,6 @@ class CurrentTrackDownloadUseCase {
   final PlaybackRepository _playbackRepository;
   final PlaybackUserContentPort _userContentPort;
 
-  /// downloadTrackById。
   Future<CurrentTrackDownloadResult?> downloadTrackById(
     String trackId, {
     bool preferHighQuality = true,
@@ -49,7 +42,6 @@ class CurrentTrackDownloadUseCase {
     return _buildResult(updatedTrack);
   }
 
-  /// removeDownloadedTrackById。
   Future<CurrentTrackDownloadResult?> removeDownloadedTrackById(
     String trackId,
   ) async {
@@ -57,7 +49,6 @@ class CurrentTrackDownloadUseCase {
     return _buildResult(await _playbackRepository.getTrack(trackId));
   }
 
-  /// cancelTrackDownloadById。
   Future<CurrentTrackDownloadResult?> cancelTrackDownloadById(
     String trackId,
   ) async {
@@ -65,7 +56,6 @@ class CurrentTrackDownloadUseCase {
     return _buildResult(await _playbackRepository.getTrack(trackId));
   }
 
-  /// retryTrackDownloadById。
   Future<CurrentTrackDownloadResult?> retryTrackDownloadById(
     String trackId, {
     bool preferHighQuality = true,
@@ -77,7 +67,6 @@ class CurrentTrackDownloadUseCase {
     return _buildResult(updatedTrack);
   }
 
-  /// queueTrackDownloads。
   Future<void> queueTrackDownloads(
     Iterable<String> trackIds, {
     bool preferHighQuality = true,
@@ -88,7 +77,6 @@ class CurrentTrackDownloadUseCase {
     );
   }
 
-  /// cacheTrackForPlayback。
   Future<PlaybackQueueItem?> cacheTrackForPlayback(
     String trackId, {
     required bool preferHighQuality,

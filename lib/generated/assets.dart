@@ -2,63 +2,26 @@
 class Assets {
   Assets._();
 
-  /// fontIconfont。
   static const String fontIconfont = 'assets/font/iconfont.ttf';
-
-  /// imagesCoffee。
   static const String imagesCoffee = 'assets/images/coffee.jpg';
-
-  /// imagesError。
   static const String imagesError = 'assets/images/error.svg';
-
-  /// imagesLoading。
   static const String imagesLoading = 'assets/images/loading.svg';
-
-  /// imagesLocalSong。
   static const String imagesLocalSong = 'assets/images/local_song.svg';
-
-  /// imagesLoginTop。
   static const String imagesLoginTop = 'assets/images/login_top.svg';
-
-  /// imagesLogo。
   static const String imagesLogo = 'assets/images/logo.png';
-
-  /// imagesMeTop。
   static const String imagesMeTop = 'assets/images/me_top.svg';
-
-  /// imagesNeteaseCache。
   static const String imagesNeteaseCache = 'assets/images/netease_cache.svg';
-
-  /// imagesPlaceholder。
   static const String imagesPlaceholder = 'assets/images/placeholder.png';
-
-  /// imagesSplash。
   static const String imagesSplash = 'assets/images/splash.svg';
-
-  /// imagesUpdate。
   static const String imagesUpdate = 'assets/images/update.svg';
-
-  /// lottieEmpty。
   static const String lottieEmpty = 'assets/lottie/empty.json';
-
-  /// lottieEmptyStatus。
   static const String lottieEmptyStatus = 'assets/lottie/empty_status.json';
-
-  /// lottieLoadingDialog。
   static const String lottieLoadingDialog = 'assets/lottie/loading_dialog.json';
-
-  /// lottieNoInternetConnection。
   static const String lottieNoInternetConnection =
       'assets/lottie/no_internet_connection.json';
-
-  /// lottieNotificationRequest。
   static const String lottieNotificationRequest =
       'assets/lottie/notification_request.json';
-
-  /// lottiePersonalCharacter。
   static const String lottiePersonalCharacter =
       'assets/lottie/personal_character.json';
-
-  /// lottieVrAnimation。
   static const String lottieVrAnimation = 'assets/lottie/vr_animation.json';
 }

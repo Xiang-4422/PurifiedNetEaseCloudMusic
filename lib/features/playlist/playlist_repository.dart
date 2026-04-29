@@ -10,28 +10,19 @@ import 'package:bujuan/features/library/library_repository.dart';
 
 import 'playlist_cache_store.dart';
 
-/// PlaylistDetailData。
 class PlaylistDetailData {
-  /// 创建 PlaylistDetailData。
   const PlaylistDetailData({
     required this.songs,
     required this.isSubscribed,
     required this.isMyPlayList,
   });
 
-  /// songs。
   final List<PlaybackQueueItem> songs;
-
-  /// isSubscribed。
   final bool isSubscribed;
-
-  /// isMyPlayList。
   final bool isMyPlayList;
 }
 
-/// PlaylistSnapshotData。
 class PlaylistSnapshotData {
-  /// 创建 PlaylistSnapshotData。
   const PlaylistSnapshotData({
     required this.id,
     required this.name,
@@ -41,25 +32,13 @@ class PlaylistSnapshotData {
     this.trackCount,
   });
 
-  /// id。
   final String id;
-
-  /// name。
   final String name;
-
-  /// trackIds。
   final List<String> trackIds;
-
-  /// creatorUserId。
   final String? creatorUserId;
-
-  /// coverUrl。
   final String? coverUrl;
-
-  /// trackCount。
   final int? trackCount;
 
-  /// 创建 PlaylistSnapshotData。
   factory PlaylistSnapshotData.fromJson(Map<String, dynamic> json) {
     return PlaylistSnapshotData(
       id: json['id'] as String? ?? '',
@@ -73,7 +52,6 @@ class PlaylistSnapshotData {
     );
   }
 
-  /// toJson。
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -86,9 +64,7 @@ class PlaylistSnapshotData {
   }
 }
 
-/// PlaylistRepository。
 class PlaylistRepository {
-  /// 创建 PlaylistRepository。
   PlaylistRepository({
     required PlaylistCacheStore cacheStore,
     required LibraryRepository libraryRepository,
@@ -108,7 +84,6 @@ class PlaylistRepository {
   final NeteasePlaylistRemoteDataSource _remoteDataSource;
   final UserScopedDataSource _userScopedDataSource;
 
-  /// fetchPlaylistSnapshot。
   Future<PlaylistSnapshotData> fetchPlaylistSnapshot(
     String playlistId, {
     String? currentUserId,
@@ -151,7 +126,6 @@ class PlaylistRepository {
     return playlistSnapshot;
   }
 
-  /// fetchPlaylistSongs。
   Future<List<PlaybackQueueItem>> fetchPlaylistSongs({
     required String playlistId,
     required List<int> likedSongIds,
@@ -183,17 +157,14 @@ class PlaylistRepository {
     return queueItems;
   }
 
-  /// loadCachedSongs。
   Future<List<PlaybackQueueItem>?> loadCachedSongs(String playlistId) async {
     return _cacheStore.loadSongs(_toCachePlaylistId(playlistId));
   }
 
-  /// loadCachedSnapshot。
   Future<PlaylistSnapshotData?> loadCachedSnapshot(String playlistId) {
     return _cacheStore.loadSnapshot(_toCachePlaylistId(playlistId));
   }
 
-  /// isCacheFresh。
   Future<bool> isCacheFresh(
     String playlistId, {
     required Duration ttl,
@@ -201,7 +172,6 @@ class PlaylistRepository {
     return _cacheStore.isFresh(_toCachePlaylistId(playlistId), ttl: ttl);
   }
 
-  /// loadLocalPlaylistDetail。
   Future<PlaylistDetailData?> loadLocalPlaylistDetail({
     required String playlistId,
     required List<int> likedSongIds,
@@ -241,7 +211,6 @@ class PlaylistRepository {
     );
   }
 
-  /// fetchPlaylistDetail。
   Future<PlaylistDetailData> fetchPlaylistDetail({
     required String playlistId,
     required List<int> likedSongIds,
@@ -309,7 +278,6 @@ class PlaylistRepository {
     );
   }
 
-  /// toggleSubscription。
   Future<OperationResult> toggleSubscription(
     String playlistId, {
     required bool subscribe,
@@ -332,7 +300,6 @@ class PlaylistRepository {
     );
   }
 
-  /// manipulateTracks。
   Future<OperationResult> manipulateTracks(
     String playlistId,
     String songId, {

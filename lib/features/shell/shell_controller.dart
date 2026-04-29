@@ -12,92 +12,56 @@ import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
 /// 统一承接首页壳层、抽屉、顶部搜索面板和底部播放面板的 UI 协调。
 class ShellController extends SuperController
     with GetTickerProviderStateMixin, WidgetsBindingObserver {
-  /// to。
   static ShellController get to => Get.find();
   HomeShellController get _homeShellController =>
       Get.find<HomeShellController>();
   ShellPlaybackPort get _playbackPort => Get.find<ShellPlaybackPort>();
   ShellUserPort get _userPort => Get.find<ShellUserPort>();
 
-  /// buildContext。
   late BuildContext buildContext;
 
-  /// zoomDrawerController。
   ZoomDrawerController get zoomDrawerController =>
       _homeShellController.zoomDrawerController;
-
-  /// isDrawerClosed。
   RxBool get isDrawerClosed => _homeShellController.isDrawerClosed;
-
-  /// homePageController。
   PageController get homePageController =>
       _homeShellController.homePageController;
-
-  /// curHomePageIndex。
   RxInt get curHomePageIndex => _homeShellController.curHomePageIndex;
-
-  /// curHomePageTitle。
   RxString get curHomePageTitle => _homeShellController.curHomePageTitle;
 
   bool _uiControllersInitialized = false;
   PageController? _albumPageController;
-
-  /// isBigAlbum。
   RxBool isBigAlbum = true.obs;
-
-  /// isAlbumScaleEnded。
   RxBool isAlbumScaleEnded = true.obs;
-
-  /// isAlbumScrollingManully。
   bool isAlbumScrollingManully = false;
-
-  /// isAlbumScrollingProgrammatic。
   bool isAlbumScrollingProgrammatic = false;
-
-  /// isAlbumScrolling。
   RxBool isAlbumScrolling = false.obs;
 
-  /// bottomPanelController。
   PanelController bottomPanelController = PanelController();
   AnimationController? _bottomPanelAnimationController;
-
-  /// bottomPanelFullyClosed。
   RxBool bottomPanelFullyClosed = true.obs;
-
-  /// bottomPanelOpened50。
   RxBool bottomPanelOpened50 = false.obs;
-
-  /// bottomPanelFullyOpened。
   RxBool bottomPanelFullyOpened = false.obs;
   PageController? _bottomPanelPageController;
-
-  /// curPanelPageIndex。
   RxInt curPanelPageIndex = 1.obs;
   TabController? _bottomPanelTabController;
   TabController? _bottomPanelCommentTabController;
-
-  /// playListScrollController。
   ScrollController playListScrollController = ScrollController();
 
-  /// albumPageController。
   PageController get albumPageController {
     _ensureUiControllersInitialized();
     return _albumPageController!;
   }
 
-  /// bottomPanelAnimationController。
   AnimationController get bottomPanelAnimationController {
     _ensureUiControllersInitialized();
     return _bottomPanelAnimationController!;
   }
 
-  /// bottomPanelPageController。
   PageController get bottomPanelPageController {
     _ensureUiControllersInitialized();
     return _bottomPanelPageController!;
   }
 
-  /// jumpBottomPanelToPage。
   void jumpBottomPanelToPage(int page) {
     _ensureUiControllersInitialized();
     final controller = _bottomPanelPageController;
@@ -106,7 +70,6 @@ class ShellController extends SuperController
     }
   }
 
-  /// animateBottomPanelToPage。
   Future<void> animateBottomPanelToPage(
     int page, {
     Duration duration = const Duration(milliseconds: 300),
@@ -123,80 +86,54 @@ class ShellController extends SuperController
     }
   }
 
-  /// openBottomPanel。
   Future<void> openBottomPanel() async {
     if (bottomPanelController.isAttached) {
       await bottomPanelController.open();
     }
   }
 
-  /// closeBottomPanel。
   Future<void> closeBottomPanel() async {
     if (bottomPanelController.isAttached) {
       await bottomPanelController.close();
     }
   }
 
-  /// openTopPanel。
   Future<void> openTopPanel() async {
     if (topPanelController.isAttached) {
       await topPanelController.open();
     }
   }
 
-  /// closeTopPanel。
   Future<void> closeTopPanel() async {
     if (topPanelController.isAttached) {
       await topPanelController.close();
     }
   }
 
-  /// bottomPanelTabController。
   TabController get bottomPanelTabController {
     _ensureUiControllersInitialized();
     return _bottomPanelTabController!;
   }
 
-  /// bottomPanelCommentTabController。
   TabController get bottomPanelCommentTabController {
     _ensureUiControllersInitialized();
     return _bottomPanelCommentTabController!;
   }
 
-  /// topPanelController。
   PanelController get topPanelController =>
       _homeShellController.topPanelController;
-
-  /// topPanelAnimationController。
   AnimationController get topPanelAnimationController =>
       _homeShellController.topPanelAnimationController;
-
-  /// searchTextEditingController。
   TextEditingController get searchTextEditingController =>
       _homeShellController.searchTextEditingController;
-
-  /// topPanelFullyOpened。
   RxBool get topPanelFullyOpened => _homeShellController.topPanelFullyOpened;
-
-  /// topPanelFullyClosed。
   RxBool get topPanelFullyClosed => _homeShellController.topPanelFullyClosed;
-
-  /// searchContent。
   RxString get searchContent => _homeShellController.searchContent;
-
-  /// searchFocusNode。
   FocusNode get searchFocusNode => _homeShellController.searchFocusNode;
-
-  /// keyBoardHeight。
   RxDouble get keyBoardHeight => _homeShellController.keyBoardHeight;
 
-  /// lyricScrollController。
   ItemScrollController lyricScrollController = ItemScrollController();
-
-  /// isLyricScrollingByUser。
   bool isLyricScrollingByUser = false;
-
-  /// isLyricScrollingByItself。
   bool isLyricScrollingByItself = false;
 
   @override
@@ -237,7 +174,6 @@ class ShellController extends SuperController
 
   Timer? _albumDebounceTimer;
 
-  /// onAlbumPageChanged。
   void onAlbumPageChanged(int index) {
     if (isAlbumScrollingProgrammatic) return;
     _albumDebounceTimer?.cancel();
@@ -316,7 +252,6 @@ class ShellController extends SuperController
     _albumPageController = PageController();
   }
 
-  /// initZoomDrawerListener。
   Future<void> initZoomDrawerListener() async {
     _homeShellController.initZoomDrawerListener();
   }
@@ -365,7 +300,6 @@ class ShellController extends SuperController
     ));
   }
 
-  /// onBottomPanelSlide。
   onBottomPanelSlide(double openDegree) {
     bottomPanelAnimationController.value = openDegree;
 
@@ -383,12 +317,10 @@ class ShellController extends SuperController
     }
   }
 
-  /// onTopPanelSlide。
   onTopPanelSlide(double openDegree) {
     _homeShellController.onTopPanelSlide(openDegree);
   }
 
-  /// onWillPop。
   onWillPop() {
     if (!_homeShellController.handleWillPop(
         bottomPanelController: bottomPanelController)) {
@@ -409,7 +341,6 @@ class ShellController extends SuperController
     }
   }
 
-  /// syncAlbumPage。
   syncAlbumPage() {
     if (isAlbumScrollingProgrammatic) {
       return;

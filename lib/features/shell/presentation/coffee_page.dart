@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 
-/// CoffeePageView。
 class CoffeePageView extends GetView<ShellController> {
-  /// 创建 CoffeePageView。
   const CoffeePageView({Key? key}) : super(key: key);
 
   @override

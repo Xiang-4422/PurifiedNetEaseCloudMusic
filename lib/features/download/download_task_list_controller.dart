@@ -7,24 +7,17 @@ import 'dart:async';
 
 import 'download_repository.dart';
 
-/// DownloadTaskListItemData。
 class DownloadTaskListItemData {
-  /// 创建 DownloadTaskListItemData。
   const DownloadTaskListItemData({
     required this.task,
     this.track,
   });
 
-  /// task。
   final DownloadTask task;
-
-  /// track。
   final Track? track;
 }
 
-/// DownloadTaskListController。
 class DownloadTaskListController {
-  /// 创建 DownloadTaskListController。
   DownloadTaskListController({
     required DownloadRepository repository,
     required LibraryRepository libraryRepository,
@@ -34,16 +27,11 @@ class DownloadTaskListController {
 
   final DownloadRepository _repository;
   final LibraryRepository _libraryRepository;
-
-  /// statuses。
   final Set<DownloadTaskStatus>? statuses;
   StreamSubscription<List<DownloadTask>>? _tasksSubscription;
-
-  /// state。
   final ValueNotifier<LoadState<List<DownloadTaskListItemData>>> state =
       ValueNotifier(const LoadState.loading());
 
-  /// loadInitial。
   Future<void> loadInitial() async {
     state.value = const LoadState.loading();
     await _tasksSubscription?.cancel();
@@ -58,12 +46,10 @@ class DownloadTaskListController {
     await _reload();
   }
 
-  /// refresh。
   Future<void> refresh() {
     return _reload();
   }
 
-  /// retryTask。
   Future<void> retryTask(
     String trackId, {
     bool preferHighQuality = true,
@@ -75,19 +61,16 @@ class DownloadTaskListController {
     await _reload();
   }
 
-  /// clearTask。
   Future<void> clearTask(String trackId) async {
     await _repository.clearTask(trackId);
     await _reload();
   }
 
-  /// cancelTask。
   Future<void> cancelTask(String trackId) async {
     await _repository.cancelTask(trackId);
     await _reload();
   }
 
-  /// cancelActiveTasks。
   Future<void> cancelActiveTasks() async {
     final activeTasks = await _repository.getTasks(
       statuses: const {
@@ -101,13 +84,11 @@ class DownloadTaskListController {
     await _reload();
   }
 
-  /// removeDownloadedTrack。
   Future<void> removeDownloadedTrack(String trackId) async {
     await _repository.removeDownloadedTrack(trackId);
     await _reload();
   }
 
-  /// retryAllFailedTasks。
   Future<void> retryAllFailedTasks({
     bool preferHighQuality = true,
   }) async {
@@ -125,7 +106,6 @@ class DownloadTaskListController {
     await _reload();
   }
 
-  /// clearFailedTasks。
   Future<void> clearFailedTasks() async {
     final failedTasks = await _repository.getTasks(
       statuses: const {
@@ -138,7 +118,6 @@ class DownloadTaskListController {
     await _reload();
   }
 
-  /// clearCompletedTasks。
   Future<void> clearCompletedTasks() async {
     final completedTasks = await _repository.getTasks(
       statuses: const {
@@ -151,7 +130,6 @@ class DownloadTaskListController {
     await _reload();
   }
 
-  /// removeAllDownloadedTracks。
   Future<void> removeAllDownloadedTracks() async {
     final completedTasks = await _repository.getTasks(
       statuses: const {
@@ -197,7 +175,6 @@ class DownloadTaskListController {
     state.value = LoadState.data(itemData);
   }
 
-  /// dispose。
   void dispose() {
     _tasksSubscription?.cancel();
     state.dispose();

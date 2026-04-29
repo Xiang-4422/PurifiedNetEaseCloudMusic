@@ -3,9 +3,7 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 
-/// LocalMediaRepository。
 class LocalMediaRepository {
-  /// 创建 LocalMediaRepository。
   LocalMediaRepository({
     required LibraryRepository libraryRepository,
     required LocalResourceIndexRepository resourceIndexRepository,
@@ -15,7 +13,6 @@ class LocalMediaRepository {
   final LibraryRepository _libraryRepository;
   final LocalResourceIndexRepository _resourceIndexRepository;
 
-  /// importLocalTrack。
   Future<Track> importLocalTrack({
     required String filePath,
     required String title,
@@ -62,7 +59,6 @@ class LocalMediaRepository {
     return track;
   }
 
-  /// importLocalTracks。
   Future<List<Track>> importLocalTracks(List<LocalTrackImport> tracks) async {
     final importedTracks = tracks
         .map(
@@ -109,7 +105,6 @@ class LocalMediaRepository {
     return importedTracks;
   }
 
-  /// buildTrackTitleFromPath。
   String buildTrackTitleFromPath(String filePath) {
     final normalizedPath = filePath.replaceAll('\\', '/');
     final fileName = normalizedPath.split('/').last;
@@ -125,9 +120,7 @@ class LocalMediaRepository {
   }
 }
 
-/// LocalTrackImport。
 class LocalTrackImport {
-  /// 创建 LocalTrackImport。
   const LocalTrackImport({
     required this.filePath,
     required this.title,
@@ -140,30 +133,13 @@ class LocalTrackImport {
     this.metadata = const {},
   });
 
-  /// filePath。
   final String filePath;
-
-  /// title。
   final String title;
-
-  /// artistNames。
   final List<String> artistNames;
-
-  /// albumTitle。
   final String? albumTitle;
-
-  /// durationMs。
   final int? durationMs;
-
-  /// artworkUrl。
   final String? artworkUrl;
-
-  /// localArtworkPath。
   final String? localArtworkPath;
-
-  /// localLyricsPath。
   final String? localLyricsPath;
-
-  /// metadata。
   final Map<String, Object?> metadata;
 }

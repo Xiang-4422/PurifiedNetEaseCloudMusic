@@ -4,7 +4,6 @@ import 'enum/drawer_last_action.dart';
 import 'enum/drawer_state.dart';
 import 'flutter_zoom_drawer.dart';
 
-/// ZoomDrawerContext。
 extension ZoomDrawerContext on BuildContext {
   /// Drawer
   ZoomDrawerState? get drawer => ZoomDrawer.of(this);

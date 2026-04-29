@@ -8,9 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-/// CommentWidget。
 class CommentWidget extends StatefulWidget {
-  /// 创建 CommentWidget。
   const CommentWidget({
     super.key,
     required this.context,
@@ -22,25 +20,12 @@ class CommentWidget extends StatefulWidget {
     required this.stringColor,
   });
 
-  /// context。
   final BuildContext context;
-
-  /// commentType。
   final int commentType;
-
-  /// id。
   final String id;
-
-  /// idType。
   final String idType;
-
-  /// listPaddingTop。
   final double listPaddingTop;
-
-  /// listPaddingBottom。
   final double listPaddingBottom;
-
-  /// stringColor。
   final Color stringColor;
 
   @override

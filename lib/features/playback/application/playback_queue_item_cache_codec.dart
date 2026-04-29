@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 
-/// decodePlaybackQueueItemCacheList。
 Future<List<PlaybackQueueItem>> decodePlaybackQueueItemCacheList(
   List<String> cachedItems,
 ) {
@@ -20,7 +19,6 @@ List<PlaybackQueueItem> _decodePlaybackQueueItemCacheList(
   }).toList();
 }
 
-/// encodePlaybackQueueItemCacheList。
 Future<List<String>> encodePlaybackQueueItemCacheList(
   List<PlaybackQueueItem> items,
 ) {

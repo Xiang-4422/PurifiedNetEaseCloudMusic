@@ -1,11 +1,9 @@
 import 'dart:async';
 
-/// PlaybackLyricUiStateController。
 class PlaybackLyricUiStateController {
   Timer? _fullScreenLyricTimer;
   double _fullScreenLyricTimerCounter = 0.0;
 
-  /// updateFullScreenLyricTimerCounter。
   void updateFullScreenLyricTimerCounter({
     required bool isPlaying,
     required void Function(bool isOpen) setFullScreenLyricOpen,
@@ -37,7 +35,6 @@ class PlaybackLyricUiStateController {
     }
   }
 
-  /// resolveCurrentLyricIndex。
   int resolveCurrentLyricIndex({
     required Iterable<dynamic> lines,
     required Duration position,
@@ -47,7 +44,6 @@ class PlaybackLyricUiStateController {
         );
   }
 
-  /// dispose。
   void dispose() {
     _fullScreenLyricTimer?.cancel();
     _fullScreenLyricTimer = null;

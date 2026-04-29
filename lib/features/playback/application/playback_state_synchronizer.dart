@@ -16,7 +16,6 @@ import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
-/// PlaybackSessionSync。
 typedef PlaybackSessionSync = void Function({
   PlaybackMode? playbackMode,
   PlaybackRepeatMode? repeatMode,
@@ -25,7 +24,6 @@ typedef PlaybackSessionSync = void Function({
   bool? isPlayingLikedSongs,
 });
 
-/// PlaybackRuntimeSync。
 typedef PlaybackRuntimeSync = void Function({
   List<PlaybackQueueItem>? queue,
   PlaybackQueueItem? currentSong,
@@ -33,9 +31,7 @@ typedef PlaybackRuntimeSync = void Function({
   Duration? currentPosition,
 });
 
-/// PlaybackStateSynchronizer。
 class PlaybackStateSynchronizer {
-  /// 创建 PlaybackStateSynchronizer。
   PlaybackStateSynchronizer({
     required PlaybackService playbackService,
     required PlaybackQueueStore queueStore,
@@ -68,7 +64,6 @@ class PlaybackStateSynchronizer {
   bool _isFetchingFm = false;
   bool _restoringPlaybackState = false;
 
-  /// start。
   Future<void> start({
     required PlaybackSessionSync syncSessionState,
     required PlaybackRuntimeSync syncRuntimeState,
@@ -159,7 +154,8 @@ class PlaybackStateSynchronizer {
           _lastStoredPositionSecond = currentSecond;
           unawaited(_queueStore.savePosition(newCurPlayingDuration));
         }
-        final newLyricIndex = _lyricUiStateController.resolveCurrentLyricIndex(
+        final newLyricIndex =
+            _lyricUiStateController.resolveCurrentLyricIndex(
           lines: lyricState().lines,
           position: newCurPlayingDuration,
         );
@@ -230,7 +226,6 @@ class PlaybackStateSynchronizer {
     }
   }
 
-  /// dispose。
   Future<void> dispose() async {
     for (final subscription in _subscriptions) {
       await subscription.cancel();

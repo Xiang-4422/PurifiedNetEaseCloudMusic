@@ -1,11 +1,9 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 
-/// PlaybackRepeatModeMapper。
 class PlaybackRepeatModeMapper {
   const PlaybackRepeatModeMapper._();
 
-  /// toAudioService。
   static AudioServiceRepeatMode toAudioService(PlaybackRepeatMode mode) {
     switch (mode) {
       case PlaybackRepeatMode.none:
@@ -19,7 +17,6 @@ class PlaybackRepeatModeMapper {
     }
   }
 
-  /// fromAudioService。
   static PlaybackRepeatMode fromAudioService(AudioServiceRepeatMode mode) {
     switch (mode) {
       case AudioServiceRepeatMode.none:

@@ -5,7 +5,6 @@ import 'package:bujuan/features/user/user_library_controller.dart';
 
 /// 歌单卡片触发播放时的应用动作，避免 UI 组件直接读取 repository。
 class PlaylistPlaybackAction {
-  /// 创建 PlaylistPlaybackAction。
   PlaylistPlaybackAction({
     required PlaylistRepository repository,
     required String Function() currentPlaylistName,
@@ -31,7 +30,6 @@ class PlaylistPlaybackAction {
     String playListNameHeader,
   }) _playPlaylist;
 
-  /// play。
   Future<void> play(PlaylistSummaryData playlist) async {
     if (_currentPlaylistName() == playlist.title) {
       await _toggleCurrentPlayback();

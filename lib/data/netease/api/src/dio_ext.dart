@@ -1,47 +1,32 @@
 import 'package:dio/dio.dart';
 
-/// Https。
 class Https {
   Https._inner();
 
   static Dio? _dio;
   static DioProxy? _dioProxy;
 
-  /// optHeader。
   static Map<String, String> optHeader = {};
 
-  /// dio。
   static Dio get dio => _dio ??= Dio(BaseOptions(
       connectTimeout: const Duration(seconds: 8), headers: optHeader));
 
-  /// dioProxy。
   static DioProxy get dioProxy => _dioProxy ??= DioProxy();
 }
 
-/// DioMetaData。
 class DioMetaData {
-  /// uri。
   late Uri uri;
-
-  /// data。
   dynamic data;
-
-  /// options。
   Options? options;
 
-  /// error。
   Error? error;
 
-  /// 创建 DioMetaData。
   DioMetaData(this.uri, {this.data, this.options});
 
-  /// 创建 DioMetaData。
   DioMetaData.error(this.error);
 }
 
-/// DioProxy。
 class DioProxy {
-  /// 公开成员。
   Future<Response<T>> postUri<T>(
     DioMetaData metaData, {
     CancelToken? cancelToken,
@@ -62,7 +47,6 @@ class DioProxy {
     }
   }
 
-  /// 公开成员。
   Future<Response<T>> getUri<T>(
     DioMetaData metaData, {
     CancelToken? cancelToken,
@@ -76,7 +60,6 @@ class DioProxy {
     return Https.dio.getUri(metaData.uri, options: metaData.options);
   }
 
-  /// 公开成员。
   Future<Response<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -91,7 +74,6 @@ class DioProxy {
         onReceiveProgress: onReceiveProgress);
   }
 
-  /// 公开成员。
   Future<Response<T>> post<T>(
     String path, {
     Map<String, dynamic>? data,

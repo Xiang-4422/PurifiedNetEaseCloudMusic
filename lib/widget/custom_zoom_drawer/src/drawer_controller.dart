@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'enum/drawer_state.dart';
 
-/// ZoomDrawerController。
 class ZoomDrawerController {
   /// Open drawer
   TickerFuture? Function()? open;
@@ -16,7 +15,6 @@ class ZoomDrawerController {
   /// Determine if status of drawer equals to Open
   bool Function()? isOpen;
 
-  /// Function。
   void Function(ZooDrawerUpdateListener listener)? addListener;
 
   /// Drawer state notifier
@@ -24,5 +22,4 @@ class ZoomDrawerController {
   ValueNotifier<DrawerState>? stateNotifier;
 }
 
-/// ZooDrawerUpdateListener。
 typedef ZooDrawerUpdateListener = void Function(double openedDegree);

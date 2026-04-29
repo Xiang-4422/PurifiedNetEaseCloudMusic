@@ -5,9 +5,7 @@ import '../../../src/api/event/bean.dart';
 import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 
-/// 公开成员。
 mixin ApiEvent {
-  /// eventListDioMetaData。
   DioMetaData eventListDioMetaData(String userId,
       {int limit = 30, int lastTime = -1}) {
     var params = {'userId': userId, 'time': lastTime, 'limit': limit};
@@ -27,7 +25,6 @@ mixin ApiEvent {
     });
   }
 
-  /// eventMyListDioMetaData。
   DioMetaData eventMyListDioMetaData({int limit = 30, int lastTime = -1}) {
     var params = {'lasttime': lastTime, 'pagesize': limit};
     return DioMetaData(joinUri('/weapi/v1/event/get'),
@@ -45,7 +42,6 @@ mixin ApiEvent {
     });
   }
 
-  /// eventForwardDioMetaData。
   DioMetaData eventForwardDioMetaData(String userId, String evId,
       {String forwards = ''}) {
     var params = {'eventUserId': userId, 'id': evId, 'forwards': forwards};
@@ -66,7 +62,6 @@ mixin ApiEvent {
     });
   }
 
-  /// eventDeleteDioMetaData。
   DioMetaData eventDeleteDioMetaData(String evId) {
     var params = {'id': evId};
     return DioMetaData(joinUri('/weapi/event/delete'),
@@ -84,7 +79,6 @@ mixin ApiEvent {
     });
   }
 
-  /// shareResourceDioMetaData。
   DioMetaData shareResourceDioMetaData(String id,
       {String type = 'song', String msg = ''}) {
     var params = {'id': id, 'type': type, 'msg': msg};
@@ -106,7 +100,6 @@ mixin ApiEvent {
     });
   }
 
-  /// eventCommentListDioMetaData。
   DioMetaData eventCommentListDioMetaData(String threadId,
       {int offset = 0, int limit = 30, int beforeTime = 0}) {
     var params = {'limit': limit, 'offset': offset, 'beforeTime': beforeTime};
@@ -127,7 +120,6 @@ mixin ApiEvent {
     });
   }
 
-  /// topicHotListDioMetaData。
   DioMetaData topicHotListDioMetaData({int offset = 0, int limit = 20}) {
     var params = {'limit': limit, 'offset': offset};
     return DioMetaData(joinUri('/api/act/hot'),
@@ -143,7 +135,6 @@ mixin ApiEvent {
     });
   }
 
-  /// hotTopicDetailEventDioMetaData。
   DioMetaData hotTopicDetailEventDioMetaData(String actid) {
     var params = {'actid': actid};
     return DioMetaData(joinUri('/api/act/event/hot'),
@@ -159,7 +150,6 @@ mixin ApiEvent {
     });
   }
 
-  /// topicDetailDioMetaData。
   DioMetaData topicDetailDioMetaData(String actid) {
     var params = {'actid': actid};
     return DioMetaData(joinUri('/api/act/detail'),
@@ -175,7 +165,6 @@ mixin ApiEvent {
     });
   }
 
-  /// commentListDioMetaData。
   DioMetaData commentListDioMetaData(String id, String type,
       {int offset = 0, int limit = 20, int beforeTime = 0}) {
     String typeKey = type2key(type);
@@ -202,7 +191,6 @@ mixin ApiEvent {
     });
   }
 
-  /// commentListDioMetaData2。
   DioMetaData commentListDioMetaData2(String id, String type,
       {int pageNo = 1,
       int pageSize = 20,
@@ -244,7 +232,6 @@ mixin ApiEvent {
     });
   }
 
-  /// hotCommentListDioMetaData。
   DioMetaData hotCommentListDioMetaData(String id, String type,
       {int offset = 0, int limit = 20, int beforeTime = 0}) {
     String typeKey = type2key(type);
@@ -271,7 +258,6 @@ mixin ApiEvent {
     });
   }
 
-  /// hotwallCommentListDioMetaData。
   DioMetaData hotwallCommentListDioMetaData() {
     return DioMetaData(joinUri('/api/comment/hotwall/list/get'),
         data: {}, options: joinOptions());
@@ -286,7 +272,6 @@ mixin ApiEvent {
     });
   }
 
-  /// userCommentsDioMetaData。
   DioMetaData userCommentsDioMetaData(String userId,
       {int beforeTime = -1, int limit = 30, bool total = true}) {
     var params = {
@@ -311,7 +296,6 @@ mixin ApiEvent {
     });
   }
 
-  /// userCommentsHistoryDioMetaData。
   DioMetaData userCommentsHistoryDioMetaData(String userId,
       {int time = 0,
       int limit = 10,
@@ -346,7 +330,6 @@ mixin ApiEvent {
     });
   }
 
-  /// floorCommentsDioMetaData。
   DioMetaData floorCommentsDioMetaData(
       String id, String type, String parentCommentId,
       {int time = -1, int limit = 20}) {
@@ -373,7 +356,6 @@ mixin ApiEvent {
     });
   }
 
-  /// forwardsDioMetaData。
   DioMetaData forwardsDioMetaData(
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'limit': limit, 'offset': offset, 'total': total};
@@ -394,7 +376,6 @@ mixin ApiEvent {
     });
   }
 
-  /// likeCommentDioMetaData。
   DioMetaData likeCommentDioMetaData(
       String id, String commentId, String type, bool like,
       {String? threadId}) {
@@ -429,7 +410,6 @@ mixin ApiEvent {
     });
   }
 
-  /// commentDioMetaData。
   DioMetaData commentDioMetaData(String id, String type, String op,
       {String? commentId, String? threadId, String? content}) {
     String typeKey = type2key(type);
@@ -487,7 +467,6 @@ mixin ApiEvent {
     });
   }
 
-  /// likeResourceDioMetaData。
   DioMetaData likeResourceDioMetaData(String id, String type, bool like,
       {String? commentId, String? threadId, String? content}) {
     String typeKey = type2key(type);
@@ -519,7 +498,6 @@ mixin ApiEvent {
     });
   }
 
-  /// hugCommentListDioMetaData。
   DioMetaData hugCommentListDioMetaData(
     String id,
     String type,
@@ -569,7 +547,6 @@ mixin ApiEvent {
     });
   }
 
-  /// hugCommentDioMetaData。
   DioMetaData hugCommentDioMetaData(
       String id, String type, String userId, String commentId) {
     String typeKey = type2key(type);
@@ -595,7 +572,6 @@ mixin ApiEvent {
     });
   }
 
-  /// type2key。
   String type2key(String type) {
     String typeKey = 'R_SO_4_';
     switch (type) {
@@ -624,7 +600,6 @@ mixin ApiEvent {
     return typeKey;
   }
 
-  /// recentContactUsersDioMetaData。
   DioMetaData recentContactUsersDioMetaData() {
     var params = {};
     return DioMetaData(joinUri('/api/msg/recentcontact/get'),
@@ -641,7 +616,6 @@ mixin ApiEvent {
     });
   }
 
-  /// privateMsgListUsersDioMetaData。
   DioMetaData privateMsgListUsersDioMetaData(
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {'limit': limit, 'offset': offset, 'total': total};
@@ -661,7 +635,6 @@ mixin ApiEvent {
     });
   }
 
-  /// sendPrivateMsgDioMetaData。
   DioMetaData sendPrivateMsgDioMetaData(String msg, String userId,
       {String type = 'text', String playlist = ''}) {
     var params = {
@@ -686,7 +659,6 @@ mixin ApiEvent {
     });
   }
 
-  /// privateMsgListUserDioMetaData。
   DioMetaData privateMsgListUserDioMetaData(String userId,
       {int offset = 0, int limit = 30, bool total = true}) {
     var params = {
@@ -711,7 +683,6 @@ mixin ApiEvent {
     });
   }
 
-  /// msgNoticesDioMetaData。
   DioMetaData msgNoticesDioMetaData({int limit = 30, int lasttime = -1}) {
     var params = {'limit': limit, 'lasttime ': lasttime};
     return DioMetaData(joinUri('/api/msg/notices'),

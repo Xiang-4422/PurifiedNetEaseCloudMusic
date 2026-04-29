@@ -6,37 +6,27 @@ import 'package:just_audio/just_audio.dart';
 
 /// 封装 `just_audio` 细节，避免 audio_service handler 继续直接处理文件源和缓存流。
 class PlaybackEngineAdapter {
-  /// 创建 PlaybackEngineAdapter。
   PlaybackEngineAdapter({AudioPlayer? player})
       : _player = player ?? AudioPlayer();
 
   final AudioPlayer _player;
 
-  /// playbackEventStream。
   Stream<PlaybackEvent> get playbackEventStream => _player.playbackEventStream;
 
-  /// processingState。
   ProcessingState get processingState => _player.processingState;
 
-  /// shuffleModeEnabled。
   bool get shuffleModeEnabled => _player.shuffleModeEnabled;
 
-  /// playing。
   bool get playing => _player.playing;
 
-  /// position。
   Duration get position => _player.position;
 
-  /// bufferedPosition。
   Duration get bufferedPosition => _player.bufferedPosition;
 
-  /// speed。
   double get speed => _player.speed;
 
-  /// hasAudioSource。
   bool get hasAudioSource => _player.audioSource != null;
 
-  /// setSource。
   Future<void> setSource(PlaybackResolvedSource source) {
     switch (source.kind) {
       case PlaybackResolvedSourceKind.filePath:
@@ -52,29 +42,20 @@ class PlaybackEngineAdapter {
     }
   }
 
-  /// play。
   Future<void> play() => _player.play();
 
-  /// pause。
   Future<void> pause() => _player.pause();
 
-  /// seek。
   Future<void> seek(Duration position) => _player.seek(position);
 
-  /// dispose。
   Future<void> dispose() => _player.dispose();
 }
 
 // ignore: experimental_member_use
-/// NeteaseCacheStreamSource。
 class NeteaseCacheStreamSource extends StreamAudioSource {
-  /// 创建 NeteaseCacheStreamSource。
   NeteaseCacheStreamSource(this.uri, this.fileType);
 
-  /// uri。
   final String uri;
-
-  /// fileType。
   final String fileType;
 
   @override

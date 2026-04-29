@@ -24,9 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
-/// BottomPanelView。
 class BottomPanelView extends GetView<ShellController> {
-  /// 创建 BottomPanelView。
   const BottomPanelView({Key? key}) : super(key: key);
 
   List<_ArtistChipData> _artistEntries(PlaybackQueueItem item) {
@@ -613,6 +611,7 @@ class BottomPanelView extends GetView<ShellController> {
 
     return textPainter.size.width; // 返回计算出的宽度
   }
+
 }
 
 class _ArtistChipData {
@@ -625,9 +624,7 @@ class _ArtistChipData {
   final String id;
 }
 
-/// BottomPanelHeaderView。
 class BottomPanelHeaderView extends GetView<ShellController> {
-  /// 创建 BottomPanelHeaderView。
   const BottomPanelHeaderView({super.key});
 
   @override

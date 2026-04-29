@@ -23,7 +23,6 @@ import 'dio_ext.dart';
 import 'netease_bean.dart';
 import 'netease_handler.dart';
 
-/// NeteaseMusicApi。
 class NeteaseMusicApi
     with
         ApiPlay,
@@ -34,17 +33,10 @@ class NeteaseMusicApi
         ApiSearch,
         ApiUncategorized {
   static NeteaseMusicApi? _neteaseMusicApi;
-
-  /// cookieManager。
   static late CookieManager cookieManager;
-
-  /// pathProvider。
   static late PathProvider pathProvider;
-
-  /// usc。
   UserLoginStateController usc = UserLoginStateController();
 
-  /// init。
   static Future<bool> init({PathProvider? provider, bool debug = false}) async {
     // 初始化 pathProvider
     pathProvider = provider ?? PathProvider();
@@ -125,22 +117,18 @@ class NeteaseMusicApi
     usc.init();
   }
 
-  /// 创建 NeteaseMusicApi。
   factory NeteaseMusicApi() {
     return _neteaseMusicApi ??= NeteaseMusicApi._internal();
   }
 }
 
-/// UserLoginStateController。
 class UserLoginStateController {
   LoginState? _curLoginState;
 
   StreamController? _controller;
 
-  /// 创建 UserLoginStateController。
   UserLoginStateController();
 
-  /// init。
   Future<void> init() async {
     _checkCreateSavePath();
     await _readAccountInfo();
@@ -151,14 +139,12 @@ class UserLoginStateController {
 
   NeteaseAccountInfoWrap? _accountInfo;
 
-  /// accountInfo。
   NeteaseAccountInfoWrap? get accountInfo {
     return _accountInfo;
   }
 
   AnonimousLoginRet? _anonimousLoginRet;
 
-  /// anonimousLoginInfo。
   AnonimousLoginRet? get anonimousLoginInfo {
     if (accountInfo != null) {
       _anonimousLoginRet = null;
@@ -166,12 +152,10 @@ class UserLoginStateController {
     return _anonimousLoginRet;
   }
 
-  /// isLogined。
   bool get isLogined {
     return _curLoginState == LoginState.Logined;
   }
 
-  /// listenLoginState。
   StreamSubscription listenLoginState(
       void Function(LoginState event, NeteaseAccountInfoWrap? accountInfoWrap)
           onChange) {
@@ -184,19 +168,16 @@ class UserLoginStateController {
     });
   }
 
-  /// onLogined。
   void onLogined(NeteaseAccountInfoWrap infoWrap) {
     _accountInfo = infoWrap;
     _refreshLoginState(LoginState.Logined);
     _saveAccountInfo(infoWrap);
   }
 
-  /// onAnonimousLogined。
   void onAnonimousLogined(AnonimousLoginRet anonimousLoginRet) {
     _anonimousLoginRet = anonimousLoginRet;
   }
 
-  /// onLogout。
   Future<void> onLogout() async {
     await deleteAllCookie();
     _accountInfo = null;
@@ -237,18 +218,15 @@ class UserLoginStateController {
     _curLoginState = state;
   }
 
-  /// destroy。
   void destroy() {
     _controller?.close();
   }
 }
 
-/// PathProvider。
 class PathProvider {
   var _cookiePath = '';
   var _dataPath = '';
 
-  /// init。
   init() async {
     if (PlatformUtils.isWeb) return;
     _cookiePath =
@@ -257,22 +235,16 @@ class PathProvider {
         "${(await getApplicationSupportDirectory()).absolute.path}/zmusic/.data/";
   }
 
-  /// getCookieSavedPath。
   String getCookieSavedPath() {
     return _cookiePath;
   }
 
-  /// getDataSavedPath。
   String getDataSavedPath() {
     return _dataPath;
   }
 }
 
-/// LoginState。
 enum LoginState {
-  /// Logined。
   Logined,
-
-  /// Logout。
   Logout,
 }

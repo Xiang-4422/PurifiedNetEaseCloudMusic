@@ -15,10 +15,8 @@ class RecommendationController extends GetxController {
   static const Duration _startupDataTtl = Duration(minutes: 10);
   static const String _startupSyncMarker = 'startup_home';
 
-  /// to。
   static RecommendationController get to => Get.find();
 
-  /// 创建 RecommendationController。
   RecommendationController({
     required UserHomeApplicationService homeService,
     required UserSessionController sessionController,
@@ -34,20 +32,11 @@ class RecommendationController extends GetxController {
   final UserLibraryController _libraryController;
   final Future<void> Function()? _validateLoginStateInBackground;
 
-  /// refreshController。
   final RefreshController refreshController = RefreshController();
-
-  /// dateLoaded。
   final RxBool dateLoaded = false.obs;
-
-  /// recoPlayLists。
   final RxList<PlaylistSummaryData> recoPlayLists = <PlaylistSummaryData>[].obs;
-
-  /// todayRecommendSongs。
   final RxList<PlaybackQueueItem> todayRecommendSongs =
       <PlaybackQueueItem>[].obs;
-
-  /// fmSongs。
   final RxList<PlaybackQueueItem> fmSongs = <PlaybackQueueItem>[].obs;
 
   Future<void>? _cacheBootstrapFuture;
@@ -55,10 +44,8 @@ class RecommendationController extends GetxController {
   String _activeSnapshotUserId = '';
   bool _hasLocalSnapshot = false;
 
-  /// hasLocalSnapshot。
   bool get hasLocalSnapshot => _hasLocalSnapshot;
 
-  /// ensureCacheLoaded。
   Future<void> ensureCacheLoaded() async {
     await (_cacheBootstrapFuture ?? Future<void>.value());
   }
@@ -83,7 +70,6 @@ class RecommendationController extends GetxController {
     unawaited(startHomeBootstrap());
   }
 
-  /// startHomeBootstrap。
   Future<void> startHomeBootstrap() async {
     await ensureCacheLoaded();
     if (_hasLocalSnapshot) {
@@ -104,7 +90,6 @@ class RecommendationController extends GetxController {
     await startHomeBootstrap();
   }
 
-  /// shouldRefreshStartupData。
   Future<bool> shouldRefreshStartupData() async {
     await ensureCacheLoaded();
     if (!_hasLocalSnapshot) {
@@ -122,7 +107,6 @@ class RecommendationController extends GetxController {
     );
   }
 
-  /// updateData。
   Future<void> updateData() async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty) {
@@ -148,7 +132,6 @@ class RecommendationController extends GetxController {
     refreshController.resetNoData();
   }
 
-  /// updateRecoPlayLists。
   Future<void> updateRecoPlayLists({bool getMore = false}) async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
@@ -165,7 +148,6 @@ class RecommendationController extends GetxController {
     refreshController.loadComplete();
   }
 
-  /// getTodayRecommendSongs。
   Future<List<PlaybackQueueItem>> getTodayRecommendSongs() async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
@@ -177,7 +159,6 @@ class RecommendationController extends GetxController {
     );
   }
 
-  /// getFmSongs。
   Future<List<PlaybackQueueItem>> getFmSongs() async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
@@ -189,7 +170,6 @@ class RecommendationController extends GetxController {
     );
   }
 
-  /// scheduleHomeImageColorPrewarm。
   void scheduleHomeImageColorPrewarm() {
     _homeImageColorPrewarmTimer?.cancel();
     _homeImageColorPrewarmTimer = Timer(const Duration(milliseconds: 120), () {

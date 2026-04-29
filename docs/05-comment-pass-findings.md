@@ -94,3 +94,10 @@
 - **现象**：同一个数据源和 DAO 同时覆盖用户资料、用户曲目列表、用户歌单列表、歌单订阅状态、电台订阅、节目列表和同步标记。
 - **风险**：后续新增用户相关缓存时容易继续堆到一个接口里，调用方也难以只依赖自己需要的最小能力。
 - **建议**：后续按资料、曲目列表、歌单列表、电台、同步标记拆成更小 data source/DAO port，现有 facade 可保留组合职责。
+
+### 12. 网易云远程访问入口存在能力重叠
+
+- **位置**：`lib/data/netease/netease_music_source.dart`、`lib/data/netease/netease_*_remote_data_source.dart`。
+- **现象**：`NeteaseMusicSource` 提供搜索、曲目、播放地址、歌词、歌单等通用能力；多个 feature remote data source 也直接封装 `NeteaseMusicApi`。
+- **风险**：同一类远程访问可能在不同入口重复实现，后续 API 参数、错误处理、缓存策略调整时容易遗漏。
+- **建议**：后续明确 `NeteaseMusicSource` 是通用 source 还是仅服务曲库聚合；feature remote data source 只保留页面/用例专属接口，通用曲目和搜索能力统一走一个入口。

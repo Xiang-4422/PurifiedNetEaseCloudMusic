@@ -5,12 +5,15 @@ import 'package:bujuan/data/netease/api/src/netease_handler.dart';
 import 'package:bujuan/data/netease/mappers/netease_comment_mapper.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 
+/// 网易云评论远程数据源。
 class NeteaseCommentRemoteDataSource {
+  /// 创建网易云评论远程数据源。
   NeteaseCommentRemoteDataSource({RequestRepository? requestRepository})
       : _requestRepository = requestRepository ?? RequestRepository();
 
   final RequestRepository _requestRepository;
 
+  /// 分页获取资源评论。
   Future<({List<CommentData> items, bool hasMore, String? nextCursor})>
       fetchComments(
     String id,
@@ -48,6 +51,7 @@ class NeteaseCommentRemoteDataSource {
     );
   }
 
+  /// 分页获取楼层评论。
   Future<({List<CommentData> items, bool hasMore, int nextTime})>
       fetchFloorComments(
     String id,
@@ -72,6 +76,7 @@ class NeteaseCommentRemoteDataSource {
     );
   }
 
+  /// 发送、回复或删除评论。
   Future<({bool success, String? message})> sendComment(
     String id,
     String type,
@@ -93,6 +98,7 @@ class NeteaseCommentRemoteDataSource {
     );
   }
 
+  /// 切换评论点赞状态。
   Future<({bool success, String? message})> toggleCommentLike(
     String id,
     String type,

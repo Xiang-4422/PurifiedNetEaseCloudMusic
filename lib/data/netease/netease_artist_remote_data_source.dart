@@ -6,9 +6,12 @@ import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 
+/// 网易云歌手远程数据源。
 class NeteaseArtistRemoteDataSource {
+  /// 创建网易云歌手远程数据源。
   const NeteaseArtistRemoteDataSource();
 
+  /// 获取歌手资料、热门歌曲和热门专辑。
   Future<
       ({
         ArtistEntity? artist,

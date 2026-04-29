@@ -8,9 +8,12 @@ import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/user_profile_data.dart';
 
+/// 网易云用户远程数据源。
 class NeteaseUserRemoteDataSource {
+  /// 创建网易云用户远程数据源。
   const NeteaseUserRemoteDataSource();
 
+  /// 获取用户资料。
   Future<UserProfileData> fetchUserDetail(String userId) async {
     final detail = await NeteaseMusicApi().userDetail(userId);
     final profile = detail.profile;
@@ -25,11 +28,13 @@ class NeteaseUserRemoteDataSource {
     );
   }
 
+  /// 获取用户喜欢歌曲 id 列表。
   Future<List<int>> fetchLikedSongIds(String userId) async {
     final likedList = await NeteaseMusicApi().likeSongList(userId);
     return likedList.ids;
   }
 
+  /// 获取推荐歌单。
   Future<List<PlaylistEntity>> fetchRecommendedPlaylists({
     required int offset,
     required int limit,
@@ -39,11 +44,13 @@ class NeteaseUserRemoteDataSource {
     return NeteasePlaylistMapper.fromPlaylistList(wrap.result ?? const []);
   }
 
+  /// 获取用户歌单。
   Future<List<PlaylistEntity>> fetchUserPlaylists(String userId) async {
     final wrap = await NeteaseMusicApi().userPlayLists(userId);
     return NeteasePlaylistMapper.fromPlaylistList(wrap.playlists ?? const []);
   }
 
+  /// 获取每日推荐歌曲。
   Future<List<Track>> fetchTodayRecommendSongs() async {
     final wrap = await NeteaseMusicApi().recommendSongList();
     if (wrap.code != 200) {
@@ -54,6 +61,7 @@ class NeteaseUserRemoteDataSource {
     );
   }
 
+  /// 获取私人 FM 歌曲。
   Future<List<Track>> fetchFmSongs() async {
     final wrap = await NeteaseMusicApi().userRadio();
     if (wrap.code != 200) {
@@ -63,6 +71,7 @@ class NeteaseUserRemoteDataSource {
     return NeteaseTrackMapper.fromSongList(fmSongs);
   }
 
+  /// 获取心动模式歌曲。
   Future<List<Track>> fetchHeartBeatSongs({
     required String startSongId,
     required String randomLikedSongId,
@@ -85,6 +94,7 @@ class NeteaseUserRemoteDataSource {
     return NeteaseTrackMapper.fromSong2List(validSongs);
   }
 
+  /// 按 id 批量获取歌曲。
   Future<List<Track>> fetchSongsByIds({
     required List<String> ids,
   }) async {
@@ -100,6 +110,7 @@ class NeteaseUserRemoteDataSource {
     return tracks;
   }
 
+  /// 获取歌曲专辑封面地址。
   Future<String> fetchSongAlbumUrl(String songId) async {
     final songDetailWrap = await NeteaseMusicApi().songDetail([songId]);
     final songs = songDetailWrap.songs ?? [];
@@ -113,6 +124,7 @@ class NeteaseUserRemoteDataSource {
     return ImageUrlNormalizer.normalize(tracks.first.artworkUrl);
   }
 
+  /// 切换歌曲喜欢状态。
   Future<({bool success, String? message})> toggleLikeSong(
     String songId,
     bool like,
@@ -124,6 +136,7 @@ class NeteaseUserRemoteDataSource {
     );
   }
 
+  /// 退出网易云登录。
   Future<({bool success, String? message})> logout() async {
     final result = await NeteaseMusicApi().logout();
     return (

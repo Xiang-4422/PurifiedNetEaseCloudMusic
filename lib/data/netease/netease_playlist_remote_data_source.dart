@@ -6,9 +6,12 @@ import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 
+/// 网易云歌单远程数据源。
 class NeteasePlaylistRemoteDataSource {
+  /// 创建网易云歌单远程数据源。
   const NeteasePlaylistRemoteDataSource();
 
+  /// 获取歌单快照，包括歌单摘要、曲目 id 和订阅状态。
   Future<
       ({
         PlaylistEntity? playlist,
@@ -31,6 +34,7 @@ class NeteasePlaylistRemoteDataSource {
     );
   }
 
+  /// 分页获取歌单歌曲详情。
   Future<List<Track>> fetchPlaylistSongs({
     required List<String> songIds,
     required int offset,
@@ -61,6 +65,7 @@ class NeteasePlaylistRemoteDataSource {
     return tracks;
   }
 
+  /// 切换歌单订阅状态。
   Future<({bool success, String? message})> toggleSubscription(
     String playlistId, {
     required bool subscribe,
@@ -73,6 +78,7 @@ class NeteasePlaylistRemoteDataSource {
     );
   }
 
+  /// 添加或移除歌单中的歌曲。
   Future<({bool success, String? message})> manipulateTracks(
     String playlistId,
     String songId, {

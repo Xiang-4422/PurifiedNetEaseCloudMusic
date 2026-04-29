@@ -4,9 +4,12 @@ import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/track.dart';
 
+/// 网易云专辑远程数据源。
 class NeteaseAlbumRemoteDataSource {
+  /// 创建网易云专辑远程数据源。
   const NeteaseAlbumRemoteDataSource();
 
+  /// 获取专辑详情和专辑曲目。
   Future<
       ({
         AlbumEntity? album,

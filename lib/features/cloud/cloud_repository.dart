@@ -6,7 +6,9 @@ import 'package:bujuan/domain/entities/user_library_kinds.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 
+/// 云盘仓库，聚合云盘远程数据、用户缓存和本地曲库资源。
 class CloudRepository {
+  /// 创建云盘仓库。
   CloudRepository({
     required LibraryRepository libraryRepository,
     required UserScopedDataSource userScopedDataSource,
@@ -20,6 +22,7 @@ class CloudRepository {
   final LibraryRepository _libraryRepository;
   final UserScopedDataSource _userScopedDataSource;
 
+  /// 加载缓存的云盘歌曲。
   Future<List<PlaybackQueueItem>> loadCachedSongs({
     required String userId,
     required List<int> likedSongIds,
@@ -46,6 +49,7 @@ class CloudRepository {
     );
   }
 
+  /// 分页获取云盘歌曲并写入本地曲库和用户缓存。
   Future<CloudSongPage> fetchCloudSongs({
     required String userId,
     required int offset,
@@ -84,14 +88,21 @@ class CloudRepository {
   }
 }
 
+/// 云盘歌曲分页数据。
 class CloudSongPage {
+  /// 创建云盘歌曲分页数据。
   const CloudSongPage({
     required this.items,
     required this.hasMore,
     required this.nextOffset,
   });
 
+  /// 云盘歌曲播放队列项。
   final List<PlaybackQueueItem> items;
+
+  /// 是否还有下一页。
   final bool hasMore;
+
+  /// 下一页偏移量。
   final int nextOffset;
 }

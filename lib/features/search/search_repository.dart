@@ -10,7 +10,9 @@ import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
 
+/// 搜索仓库，聚合本地曲库、网易云搜索和用户歌单缓存。
 class SearchRepository {
+  /// 创建搜索仓库。
   SearchRepository({
     required LibraryRepository libraryRepository,
     NeteaseSearchRemoteDataSource? remoteDataSource,
@@ -27,16 +29,19 @@ class SearchRepository {
   final SearchCacheStore _cacheStore;
   final UserScopedDataSource _userScopedDataSource;
 
+  /// 加载缓存的热搜关键词。
   Future<List<String>?> loadCachedHotKeywords() {
     return _cacheStore.loadHotKeywords();
   }
 
+  /// 判断热搜关键词缓存是否新鲜。
   Future<bool> isHotKeywordCacheFresh({
     required Duration ttl,
   }) {
     return _cacheStore.isHotKeywordsFresh(ttl: ttl);
   }
 
+  /// 获取远程热搜关键词并写入缓存。
   Future<List<String>> fetchHotKeywords() async {
     final keywords = await _remoteDataSource.fetchHotKeywords();
     if (keywords.isNotEmpty) {
@@ -45,6 +50,7 @@ class SearchRepository {
     return keywords;
   }
 
+  /// 搜索曲目并转换为播放队列项。
   Future<List<PlaybackQueueItem>> searchTrackQueueItems(
     String keyword, {
     required List<int> likedSongIds,
@@ -73,6 +79,7 @@ class SearchRepository {
     );
   }
 
+  /// 搜索歌单，合并本地歌单、用户歌单和远程歌单。
   Future<List<PlaylistEntity>> searchPlaylists(
     String keyword, {
     required String currentUserId,
@@ -106,6 +113,7 @@ class SearchRepository {
     );
   }
 
+  /// 搜索专辑。
   Future<List<AlbumEntity>> searchAlbums(String keyword) async {
     final localAlbums = await _libraryRepository.searchLocalAlbums(keyword);
     if (_libraryRepository.isOfflineModeEnabled) {
@@ -118,6 +126,7 @@ class SearchRepository {
     return _mergeById(localAlbums, remoteAlbums, (album) => album.id);
   }
 
+  /// 搜索歌手。
   Future<List<ArtistEntity>> searchArtists(String keyword) async {
     final localArtists = await _libraryRepository.searchLocalArtists(keyword);
     if (_libraryRepository.isOfflineModeEnabled) {

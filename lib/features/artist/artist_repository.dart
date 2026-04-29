@@ -6,19 +6,28 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 
+/// 歌手详情数据。
 class ArtistDetailData {
+  /// 创建歌手详情数据。
   const ArtistDetailData({
     required this.artist,
     required this.topSongs,
     required this.hotAlbums,
   });
 
+  /// 歌手实体。
   final ArtistEntity artist;
+
+  /// 热门歌曲播放队列项。
   final List<PlaybackQueueItem> topSongs;
+
+  /// 热门专辑列表。
   final List<AlbumEntity> hotAlbums;
 }
 
+/// 歌手仓库，聚合本地曲库和网易云歌手远程数据。
 class ArtistRepository {
+  /// 创建歌手仓库。
   ArtistRepository({
     required LibraryRepository libraryRepository,
     NeteaseArtistRemoteDataSource? remoteDataSource,
@@ -29,6 +38,7 @@ class ArtistRepository {
   final LibraryRepository _libraryRepository;
   final NeteaseArtistRemoteDataSource _remoteDataSource;
 
+  /// 加载本地缓存的歌手详情。
   Future<ArtistDetailData?> loadLocalArtistDetail({
     required String artistId,
     required List<int> likedSongIds,
@@ -51,6 +61,7 @@ class ArtistRepository {
     );
   }
 
+  /// 从远程获取歌手详情并写入本地曲库。
   Future<ArtistDetailData> fetchArtistDetail({
     required String artistId,
     required List<int> likedSongIds,

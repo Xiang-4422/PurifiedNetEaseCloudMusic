@@ -19,6 +19,7 @@ import 'netease_api.dart';
 /// [option.extra] 'cookies' [Map<String,String>]
 /// [option.extra] 'encryptType' [EncryptType]
 /// [option.extra] 'eApiUrl' [String] eApi请求方式请求url 只能eApi方式使用
+/// 拦截网易云 SDK 请求并按接口要求补充 Cookie、User-Agent 和加密参数。
 void neteaseInterceptor(
     RequestOptions option, RequestInterceptorHandler handler) async {
   if (option.method == 'POST' &&
@@ -65,10 +66,31 @@ void neteaseInterceptor(
   handler.next(option);
 }
 
-enum EncryptType { LinuxForward, WeApi, EApi }
+/// 网易云接口请求体加密方式。
+enum EncryptType {
+  /// Linux forward 接口加密。
+  LinuxForward,
 
-enum UserAgent { Random, Pc, Mobile }
+  /// weapi 接口加密。
+  WeApi,
 
+  /// eapi 接口加密。
+  EApi,
+}
+
+/// 请求使用的 User-Agent 类型。
+enum UserAgent {
+  /// 从内置列表随机选择。
+  Random,
+
+  /// 使用桌面端 User-Agent。
+  Pc,
+
+  /// 使用移动端 User-Agent。
+  Mobile,
+}
+
+/// 网易云接口请求时可选的 User-Agent 池。
 const userAgentList = [
   'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1',
   'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1',
@@ -95,8 +117,13 @@ const _ivWeApi = '0102030405060708';
 const _publicKeyWeApi =
     '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDgtQn2JZ34ZC28NWYpAUd98iZ37BUrX/aKzmFbt7clFSs6sXqHauqKWqdtLkF2KexO40H1YTX8z2lSgBBOAxLsvaklV8k4cBFK9snQXE9/DDaFt6Rr7iVZMldczhC0JNgTz+SHXT6CBHuX3e9SdB1Ua44oncaTWz7OBGLbCiK45wIDAQAB\n-----END PUBLIC KEY-----';
 
+/// SDK 日志标签。
 const String TAG = 'NeteaseMusicApi';
+
+/// 网易云 Web 主站地址。
 const String HOST = 'https://music.163.com';
+
+/// 需要执行加密拦截的网易云域名列表。
 const HOSTS = [
   'music.163.com',
   'interface.music.163.com',
@@ -245,6 +272,7 @@ String _chooseUserAgent(UserAgent agent) {
   }
 }
 
+/// 创建带网易云加密拦截参数的 Dio 请求选项。
 Options joinOptions(
         {hookRequestDate = true,
         EncryptType encryptType = EncryptType.WeApi,
@@ -261,15 +289,18 @@ Options joinOptions(
       'realIP': realIP
     });
 
+/// 将相对路径拼成网易云主站 URI。
 Uri joinUri(String path) {
   return Uri.parse('$HOST$path');
 }
 
+/// 读取指定域名下的持久化 Cookie。
 Future<List<Cookie>> loadCookies({Uri? host}) async {
   host ??= Uri.parse(HOST);
   return (NeteaseMusicApi.cookieManager.cookieJar).loadForRequest(host);
 }
 
+/// 基于当前 Cookie 和登录刷新版本计算请求重试用 hash。
 Future<int> loadCookiesHash({List<Cookie>? cookies}) async {
   cookies ??= await loadCookies();
   int hash = cookies.map((e) => e.toString()).hashCode;
@@ -277,6 +308,7 @@ Future<int> loadCookiesHash({List<Cookie>? cookies}) async {
   return hash + loginRefreshVersion;
 }
 
+/// 清空 SDK 持久化 Cookie。
 Future<void> deleteAllCookie() async {
   try {
     await (NeteaseMusicApi.cookieManager.cookieJar as PersistCookieJar)

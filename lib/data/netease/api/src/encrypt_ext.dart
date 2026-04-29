@@ -3,7 +3,9 @@ import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart';
 import 'package:pointycastle/export.dart' hide Algorithm;
 
+/// 无填充 RSA 编码器，用于匹配网易云 weapi 的 RSA 加密约定。
 class NoPaddingEncoding extends PKCS1Encoding {
+  /// 创建无填充 RSA 编码器。
   NoPaddingEncoding(this._engine) : super(_engine);
 
   final AsymmetricBlockCipher _engine;
@@ -20,11 +22,13 @@ class NoPaddingEncoding extends PKCS1Encoding {
     }
   }
 
+  /// 输入块大小，等于 RSA 密钥长度。
   @override
   int get inputBlockSize {
     return _keyLength;
   }
 
+  /// 输出块大小，等于 RSA 密钥长度。
   @override
   int get outputBlockSize {
     return _keyLength;
@@ -70,8 +74,12 @@ class NoPaddingEncoding extends PKCS1Encoding {
   }
 }
 
+/// RSA 扩展算法基类，持有公钥、私钥和底层 cipher。
 abstract class AbstractRSAExt {
+  /// RSA 公钥，用于加密。
   final RSAPublicKey? publicKey;
+
+  /// RSA 私钥，用于解密。
   final RSAPrivateKey? privateKey;
 
   PublicKeyParameter<RSAPublicKey>? get _publicKeyParams =>
@@ -81,13 +89,16 @@ abstract class AbstractRSAExt {
       privateKey != null ? PrivateKeyParameter(privateKey!) : null;
   final AsymmetricBlockCipher _cipher;
 
+  /// 创建 RSA 扩展算法基类。
   AbstractRSAExt({
     required this.publicKey,
     required this.privateKey,
   }) : _cipher = NoPaddingEncoding(RSAEngine());
 }
 
+/// encrypt 包可用的 RSA 算法实现，使用无填充编码。
 class RSAExt extends AbstractRSAExt implements Algorithm {
+  /// 创建 RSA 扩展算法实现。
   RSAExt({RSAPublicKey? publicKey, RSAPrivateKey? privateKey})
       : super(publicKey: publicKey, privateKey: privateKey);
 

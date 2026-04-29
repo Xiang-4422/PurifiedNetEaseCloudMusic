@@ -23,6 +23,7 @@ import 'dio_ext.dart';
 import 'netease_bean.dart';
 import 'netease_handler.dart';
 
+/// 网易云音乐 SDK 入口，组合登录、播放、搜索、用户等接口 mixin。
 class NeteaseMusicApi
     with
         ApiPlay,
@@ -33,10 +34,17 @@ class NeteaseMusicApi
         ApiSearch,
         ApiUncategorized {
   static NeteaseMusicApi? _neteaseMusicApi;
+
+  /// 当前全局 Cookie 管理器。
   static late CookieManager cookieManager;
+
+  /// SDK 文件路径提供器。
   static late PathProvider pathProvider;
+
+  /// 登录状态控制器。
   UserLoginStateController usc = UserLoginStateController();
 
+  /// 初始化 SDK 存储路径、Cookie 和 Dio 拦截器。
   static Future<bool> init({PathProvider? provider, bool debug = false}) async {
     // 初始化 pathProvider
     pathProvider = provider ?? PathProvider();
@@ -117,18 +125,22 @@ class NeteaseMusicApi
     usc.init();
   }
 
+  /// 获取全局 SDK 单例。
   factory NeteaseMusicApi() {
     return _neteaseMusicApi ??= NeteaseMusicApi._internal();
   }
 }
 
+/// SDK 内部登录态控制器，负责缓存账号信息并广播登录态变化。
 class UserLoginStateController {
   LoginState? _curLoginState;
 
   StreamController? _controller;
 
+  /// 创建登录态控制器。
   UserLoginStateController();
 
+  /// 初始化本地账号缓存和登录态。
   Future<void> init() async {
     _checkCreateSavePath();
     await _readAccountInfo();
@@ -139,12 +151,14 @@ class UserLoginStateController {
 
   NeteaseAccountInfoWrap? _accountInfo;
 
+  /// 当前缓存的账号信息。
   NeteaseAccountInfoWrap? get accountInfo {
     return _accountInfo;
   }
 
   AnonimousLoginRet? _anonimousLoginRet;
 
+  /// 匿名登录结果；正式账号登录后会自动清空。
   AnonimousLoginRet? get anonimousLoginInfo {
     if (accountInfo != null) {
       _anonimousLoginRet = null;
@@ -152,10 +166,12 @@ class UserLoginStateController {
     return _anonimousLoginRet;
   }
 
+  /// 当前是否处于正式登录态。
   bool get isLogined {
     return _curLoginState == LoginState.Logined;
   }
 
+  /// 监听登录态变化并携带当前账号信息。
   StreamSubscription listenLoginState(
       void Function(LoginState event, NeteaseAccountInfoWrap? accountInfoWrap)
           onChange) {
@@ -168,16 +184,19 @@ class UserLoginStateController {
     });
   }
 
+  /// 标记账号已登录并持久化账号信息。
   void onLogined(NeteaseAccountInfoWrap infoWrap) {
     _accountInfo = infoWrap;
     _refreshLoginState(LoginState.Logined);
     _saveAccountInfo(infoWrap);
   }
 
+  /// 标记匿名登录信息。
   void onAnonimousLogined(AnonimousLoginRet anonimousLoginRet) {
     _anonimousLoginRet = anonimousLoginRet;
   }
 
+  /// 清理 Cookie 和账号缓存并切换到登出态。
   Future<void> onLogout() async {
     await deleteAllCookie();
     _accountInfo = null;
@@ -218,15 +237,18 @@ class UserLoginStateController {
     _curLoginState = state;
   }
 
+  /// 关闭登录态广播流。
   void destroy() {
     _controller?.close();
   }
 }
 
+/// SDK 存储路径提供器，集中提供 Cookie 和账号缓存目录。
 class PathProvider {
   var _cookiePath = '';
   var _dataPath = '';
 
+  /// 初始化平台相关存储目录。
   init() async {
     if (PlatformUtils.isWeb) return;
     _cookiePath =
@@ -235,16 +257,22 @@ class PathProvider {
         "${(await getApplicationSupportDirectory()).absolute.path}/zmusic/.data/";
   }
 
+  /// Cookie 持久化目录。
   String getCookieSavedPath() {
     return _cookiePath;
   }
 
+  /// SDK 数据持久化目录。
   String getDataSavedPath() {
     return _dataPath;
   }
 }
 
+/// SDK 登录状态。
 enum LoginState {
+  /// 已登录。
   Logined,
+
+  /// 未登录。
   Logout,
 }

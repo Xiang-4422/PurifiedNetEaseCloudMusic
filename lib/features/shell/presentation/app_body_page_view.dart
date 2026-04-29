@@ -6,7 +6,7 @@ import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/shell/presentation/coffee_page.dart';
 import 'package:bujuan/features/user/presentation/personal_page.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/custom_zoom_drawer/src/flutter_zoom_drawer.dart';
@@ -128,7 +128,7 @@ class MenuView extends GetView<ShellController> {
             icon: Obx(
               () => SimpleExtendedImage.avatar(
                 ArtworkPathResolver.resolveDisplayPath(
-                  UserController.to.userInfo.value.avatarUrl,
+                  UserSessionController.to.userInfo.value.avatarUrl,
                 ),
                 shape: BoxShape.circle,
               ),
@@ -165,8 +165,8 @@ class MenuView extends GetView<ShellController> {
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children:
-                  List.generate(UserController.to.leftMenus.length, (index) {
+              children: List.generate(HomeShellController.to.leftMenus.length,
+                  (index) {
                 return IconButton(
                   onPressed: () {
                     int onePageAnimationTime = 200;
@@ -181,7 +181,8 @@ class MenuView extends GetView<ShellController> {
                         duration: animationTime,
                         curve: Curves.linear);
                   },
-                  icon: Obx(() => Icon(UserController.to.leftMenus[index].icon,
+                  icon: Obx(() => Icon(
+                      HomeShellController.to.leftMenus[index].icon,
                       size: AppDimensions.albumMinSize * 2 / 3,
                       color:
                           HomeShellController.to.curHomePageIndex.value == index

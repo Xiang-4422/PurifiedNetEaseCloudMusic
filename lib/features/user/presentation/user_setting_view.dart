@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/features/user/user_profile_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -24,7 +24,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
   void initState() {
     super.initState();
     _controller = UserProfileController(
-      userId: UserController.to.userInfo.value.userId,
+      userId: UserSessionController.to.userInfo.value.userId,
       repository: Get.find<UserRepository>(),
     )..loadInitial();
   }
@@ -117,7 +117,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                               ),
                             ),
                             onTap: () {
-                              UserController.to.clearUser();
+                              UserSessionController.to.clearUser();
                               AutoRouter.of(context).pop();
                             },
                           ),

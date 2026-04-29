@@ -1,15 +1,11 @@
 import 'dart:async';
-import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/features/auth/auth_controller.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
@@ -21,14 +17,10 @@ class ShellController extends SuperController
   HomeShellController get _homeShellController =>
       Get.find<HomeShellController>();
   SettingsController get _settingsController => SettingsController.to;
-  UserController get _userController => UserController.to;
+  UserSessionController get _sessionController => UserSessionController.to;
   PlayerController get _playerController => PlayerController.to;
 
   late BuildContext buildContext;
-
-  RxBool dateLoaded = false.obs;
-
-  RefreshController refreshController = RefreshController();
 
   ZoomDrawerController get zoomDrawerController =>
       _homeShellController.zoomDrawerController;
@@ -45,7 +37,6 @@ class ShellController extends SuperController
   bool isAlbumScrollingManully = false;
   bool isAlbumScrollingProgrammatic = false;
   RxBool isAlbumScrolling = false.obs;
-  Timer? _homeImageColorPrewarmTimer;
 
   PanelController bottomPanelController = PanelController();
   AnimationController? _bottomPanelAnimationController;
@@ -152,7 +143,7 @@ class ShellController extends SuperController
     super.onInit();
     _homeShellController;
     _settingsController;
-    _userController;
+    _sessionController;
     _playerController;
 
     _ensureUiControllersInitialized();
@@ -179,14 +170,8 @@ class ShellController extends SuperController
       _animatePlayListToCurSong();
       _animateAlbumPageViewToCurSong();
     });
-    ever<List<PlaybackQueueItem>>(_userController.todayRecommendSongs, (_) {
-      _scheduleHomeImageColorPrewarm();
-    });
-    ever<List<PlaybackQueueItem>>(_userController.fmSongs, (_) {
-      _scheduleHomeImageColorPrewarm();
-    });
-    ever<String>(_userController.randomLikedSongAlbumUrl, (_) {
-      _scheduleHomeImageColorPrewarm();
+    ever(_sessionController.userInfo, (info) {
+      _homeShellController.updateDefaultTitle(info.nickname);
     });
   }
 
@@ -208,7 +193,7 @@ class ShellController extends SuperController
     }
     _uiControllersInitialized = true;
     _homeShellController.init(
-      initialTitle: _userController.userInfo.value.nickname,
+      initialTitle: _sessionController.userInfo.value.nickname,
     );
     _bottomPanelAnimationController = AnimationController(vsync: this);
     _bottomPanelTabController =
@@ -270,41 +255,8 @@ class ShellController extends SuperController
     _albumPageController = PageController();
   }
 
-  @override
-  Future<void> onReady() async {
-    super.onReady();
-    await _userController.ensureCacheLoaded();
-    if (_userController.hasLocalSnapshot) {
-      dateLoaded.value = true;
-      _scheduleHomeImageColorPrewarm();
-      unawaited(
-        Get.find<AuthController>().validateLoginStateInBackgroundIfNeeded(),
-      );
-      if (await _userController.shouldRefreshStartupData()) {
-        unawaited(updateData());
-      }
-      return;
-    }
-    await updateData();
-  }
-
   Future<void> initZoomDrawerListener() async {
     _homeShellController.initZoomDrawerListener();
-  }
-
-  /// 首页刷新从壳层发起，避免抽屉和主页内容重复拉取同一份启动数据。
-  Future<void> updateData() async {
-    await _userController.updateUserData();
-    dateLoaded.value = true;
-    _scheduleHomeImageColorPrewarm();
-
-    refreshController.refreshCompleted();
-    refreshController.resetNoData();
-  }
-
-  updateRecoPlayLists({bool getMore = false}) async {
-    await _userController.updateRecoPlayLists(getMore: getMore);
-    refreshController.loadComplete();
   }
 
   @override
@@ -319,7 +271,6 @@ class ShellController extends SuperController
   void onHidden() {}
   @override
   void onClose() {
-    _homeImageColorPrewarmTimer?.cancel();
     _albumDebounceTimer?.cancel();
     _bottomPanelAnimationController?.dispose();
     _bottomPanelPageController?.dispose();
@@ -398,25 +349,6 @@ class ShellController extends SuperController
       return;
     }
     _animateAlbumPageViewToCurSong();
-  }
-
-  void _scheduleHomeImageColorPrewarm() {
-    _homeImageColorPrewarmTimer?.cancel();
-    _homeImageColorPrewarmTimer = Timer(const Duration(milliseconds: 120), () {
-      unawaited(
-        OtherUtils.prewarmImageColors(
-          [
-            _userController.todayRecommendSongs.isNotEmpty
-                ? _userController.todayRecommendSongs.first.artworkUrl
-                : null,
-            _userController.fmSongs.isNotEmpty
-                ? _userController.fmSongs.first.artworkUrl
-                : null,
-            _userController.randomLikedSongAlbumUrl.value,
-          ],
-        ),
-      );
-    });
   }
 
   // 专辑页和真实播放索引必须保持单向同步，否则用户会同时触发手势滚动和程序跳页。

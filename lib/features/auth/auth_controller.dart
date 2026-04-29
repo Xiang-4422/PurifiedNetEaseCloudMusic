@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:get/get.dart';
 
@@ -42,8 +42,8 @@ class AuthController extends GetxController {
     if (!_repository.hasCachedLogin) {
       return;
     }
-    final userController = UserController.to;
-    if (!userController.userInfo.value.isLoggedIn) {
+    final sessionController = UserSessionController.to;
+    if (!sessionController.userInfo.value.isLoggedIn) {
       return;
     }
     await _validateLoginStateInBackground();
@@ -51,8 +51,8 @@ class AuthController extends GetxController {
 
   Future<void> _runBootstrap() async {
     if (_repository.hasCachedLogin) {
-      final userController = UserController.to;
-      if (userController.userInfo.value.isLoggedIn) {
+      final sessionController = UserSessionController.to;
+      if (sessionController.userInfo.value.isLoggedIn) {
         loginCompleted.value = true;
         unawaited(_validateLoginStateInBackground());
         return;
@@ -98,27 +98,27 @@ class AuthController extends GetxController {
 
     if (!isLoginStateActive) {
       await _repository.setLoginFlag(false);
-      await UserController.to.expireLoginSession();
+      await UserSessionController.to.expireLoginSession();
       WidgetUtil.showToast('登录失效,请重新登录');
       isLoading.value = false;
       return;
     }
 
-    final userController = UserController.to;
-    userController.userInfo.value = accountInfo;
+    final sessionController = UserSessionController.to;
+    sessionController.userInfo.value = accountInfo;
     loginCompleted.value = true;
   }
 
   Future<void> _validateLoginStateInBackground() async {
     final accountInfo = await _repository.fetchLoginAccountInfo();
     if (accountInfo.isLoggedIn) {
-      final userController = UserController.to;
-      userController.userInfo.value = accountInfo;
+      final sessionController = UserSessionController.to;
+      sessionController.userInfo.value = accountInfo;
       return;
     }
 
     await _repository.setLoginFlag(false);
-    await UserController.to.expireLoginSession();
+    await UserSessionController.to.expireLoginSession();
     WidgetUtil.showToast('登录失效,请重新登录');
     Future.microtask(() {
       final context = Get.context;

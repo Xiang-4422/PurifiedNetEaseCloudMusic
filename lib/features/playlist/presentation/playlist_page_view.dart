@@ -11,7 +11,8 @@ import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -270,8 +271,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   Future<void> _loadPlaylistData() async {
     final localDetail = await _repository.loadLocalPlaylistDetail(
       playlistId: widget.playlistId,
-      likedSongIds: UserController.to.likedSongIds.toList(),
-      currentUserId: UserController.to.userInfo.value.userId,
+      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
+      currentUserId: UserSessionController.to.userInfo.value.userId,
     );
     final cachedSnapshot =
         await _repository.loadCachedSnapshot(widget.playlistId);
@@ -305,8 +306,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     }
     final data = await _repository.fetchPlaylistDetail(
       playlistId: widget.playlistId,
-      likedSongIds: UserController.to.likedSongIds.toList(),
-      currentUserId: UserController.to.userInfo.value.userId,
+      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
+      currentUserId: UserSessionController.to.userInfo.value.userId,
     );
     final snapshot = await _repository.loadCachedSnapshot(widget.playlistId);
     if (snapshot != null) {
@@ -338,7 +339,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     final value = await _repository.toggleSubscription(
       widget.playlistId,
       subscribe: !isSubscribed,
-      currentUserId: UserController.to.userInfo.value.userId,
+      currentUserId: UserSessionController.to.userInfo.value.userId,
     );
     if (value.success && mounted) {
       setState(() {

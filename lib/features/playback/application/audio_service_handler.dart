@@ -5,8 +5,9 @@ import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/core/playback/media_item_cache_codec.dart';
-import 'package:bujuan/features/playback/playback_repository.dart';
+import 'package:bujuan/features/playback/application/playback_queue_store.dart';
+import 'package:bujuan/features/playback/application/playback_restore_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
 import 'package:just_audio/just_audio.dart';
 
 /// 承接 `audio_service` 层的播放状态与队列控制。
@@ -16,8 +17,12 @@ import 'package:just_audio/just_audio.dart';
 class AudioServiceHandler extends BaseAudioHandler
     with SeekHandler, QueueHandler {
   AudioServiceHandler({
-    required PlaybackRepository playbackRepository,
-  }) : _playbackRepository = playbackRepository {
+    required PlaybackQueueStore queueStore,
+    required PlaybackRestoreCoordinator restoreCoordinator,
+    required PlaybackSourceResolver sourceResolver,
+  })  : _queueStore = queueStore,
+        _restoreCoordinator = restoreCoordinator,
+        _sourceResolver = sourceResolver {
     _player = AudioPlayer();
     _player.playbackEventStream.listen((PlaybackEvent event) {
       playbackState.add(playbackState.value.copyWith(
@@ -46,7 +51,9 @@ class AudioServiceHandler extends BaseAudioHandler
   }
 
   late final AudioPlayer _player;
-  final PlaybackRepository _playbackRepository;
+  final PlaybackQueueStore _queueStore;
+  final PlaybackRestoreCoordinator _restoreCoordinator;
+  final PlaybackSourceResolver _sourceResolver;
 
   final List<MediaItem> _originalSongs = <MediaItem>[];
   void Function(PlaybackMode mode)? _handleRestoredPlaybackMode;
@@ -89,24 +96,18 @@ class AudioServiceHandler extends BaseAudioHandler
   /// 当前仍有大量页面和控制器默认依赖“关闭应用后还能直接回到上一次队列”的行为，
   /// 所以恢复逻辑必须保留在音频服务入口，而不是交给页面自己拼。
   restoreLastPlayState() async {
-    final restoreState = await _playbackRepository.getRestoreState();
-    _handleRestoredPlaybackMode?.call(restoreState.playbackMode);
-    await changeRepeatMode(newRepeatMode: restoreState.repeatMode);
-    if (restoreState.queue.isNotEmpty) {
-      final playlist = await decodeMediaItemCacheList(restoreState.queue);
-      int index = playlist
-          .indexWhere((element) => element.id == restoreState.currentSongId);
-      if (index < 0 && playlist.isNotEmpty) {
-        index = 0;
-      }
-      await changePlayList(playlist,
-          index: index,
-          playListName: restoreState.playlistName,
-          playListNameHeader: restoreState.playlistHeader,
+    final restoreSnapshot = await _restoreCoordinator.loadSnapshot();
+    _handleRestoredPlaybackMode?.call(restoreSnapshot.playbackMode);
+    await changeRepeatMode(newRepeatMode: restoreSnapshot.repeatMode);
+    if (restoreSnapshot.queue.isNotEmpty) {
+      await changePlayList(restoreSnapshot.queue,
+          index: restoreSnapshot.index,
+          playListName: restoreSnapshot.playlistName,
+          playListNameHeader: restoreSnapshot.playlistHeader,
           changePlayerSource: false,
           playNow: false,
           needStore: false);
-      _pendingRestorePosition = restoreState.position;
+      _pendingRestorePosition = restoreSnapshot.position;
     }
   }
 
@@ -129,7 +130,7 @@ class AudioServiceHandler extends BaseAudioHandler
     }
     curRepeatMode = newRepeatMode;
 
-    await _playbackRepository.updateRestoreState(repeatMode: newRepeatMode);
+    await _queueStore.saveRepeatMode(newRepeatMode);
     _handleRepeatModeChanged?.call(newRepeatMode);
     _updateMediaControls();
   }
@@ -184,13 +185,13 @@ class AudioServiceHandler extends BaseAudioHandler
       }
     }
     if (needStore) {
-      await _playbackRepository.updateRestoreState(
+      await _queueStore.saveQueueSnapshot(
         playlistName: playListName,
         playlistHeader: playListNameHeader,
-        queue: await encodeMediaItemCacheList(_originalSongs),
+        originalSongs: _originalSongs,
       );
     } else {
-      await _playbackRepository.updateRestoreState(
+      await _queueStore.savePlaylistMeta(
         playlistName: playListName,
         playlistHeader: playListNameHeader,
       );
@@ -206,38 +207,28 @@ class AudioServiceHandler extends BaseAudioHandler
     _curIndex = audioSourceIndex;
     MediaItem newIndexMediaItem = queue.value[audioSourceIndex];
     mediaItem.add(newIndexMediaItem);
-    String url = "";
-    if (newIndexMediaItem.extras?['type'] == MediaType.local.name) {
-      url = newIndexMediaItem.extras?['url'] ?? '';
-      if (url.isNotEmpty) {
-        newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
+    final source = await _sourceResolver.resolve(
+      newIndexMediaItem,
+      preferHighQuality: _isHighQualityEnabled?.call() ?? false,
+    );
+    final url = source.url;
+    if (source.markAsCached) {
+      newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
+    }
+    switch (source.kind) {
+      case PlaybackResolvedSourceKind.filePath:
         await _player.setFilePath(url);
-      }
-    } else if (newIndexMediaItem.extras?['type'] ==
-        MediaType.neteaseCache.name) {
-      url = newIndexMediaItem.extras?['url'] ?? '';
-      if (url.isNotEmpty) {
-        newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
+        break;
+      case PlaybackResolvedSourceKind.neteaseCacheStream:
         await _player.setAudioSource(
-            StreamSource(url, url.replaceAll('.uc!', '').split('.').last));
-      }
-    } else {
-      bool highQuality = _isHighQualityEnabled?.call() ?? false;
-      url = (await _playbackRepository.fetchPlaybackUrl(
-                newIndexMediaItem.id,
-                preferHighQuality: highQuality,
-              ) ??
-              '')
-          .split('?')[0];
-      if (url.isNotEmpty) {
-        final localFile = File(url);
-        if (localFile.existsSync()) {
-          newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
-          await _player.setFilePath(url);
-        } else {
-          await _player.setUrl(url);
-        }
-      }
+          StreamSource(url, source.fileType),
+        );
+        break;
+      case PlaybackResolvedSourceKind.url:
+        await _player.setUrl(url);
+        break;
+      case PlaybackResolvedSourceKind.empty:
+        break;
     }
     if (_pendingRestorePosition > Duration.zero) {
       await _player.seek(_pendingRestorePosition);

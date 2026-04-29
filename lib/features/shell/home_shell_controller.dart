@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:bujuan/routes/router.dart';
 import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -28,6 +30,22 @@ class HomeShellController extends GetxController
   RxString searchContent = ''.obs;
   final FocusNode searchFocusNode = FocusNode();
   RxDouble keyBoardHeight = 0.0.obs;
+  final List<ShellMenuItemData> leftMenus = [
+    ShellMenuItemData('个人中心', TablerIcons.user, Routes.user, '/home/user'),
+    ShellMenuItemData(
+      '推荐歌单',
+      TablerIcons.smart_home,
+      Routes.index,
+      '/home/index',
+    ),
+    ShellMenuItemData(
+      '个性设置',
+      TablerIcons.settings,
+      Routes.setting,
+      '/home/settingL',
+    ),
+    ShellMenuItemData('捐赠', TablerIcons.coffee, Routes.coffee, ''),
+  ];
 
   @override
   void onInit() {
@@ -50,8 +68,14 @@ class HomeShellController extends GetxController
   }
 
   void init({required String initialTitle}) {
-    _defaultHomePageTitle = initialTitle;
-    curHomePageTitle.value = initialTitle;
+    updateDefaultTitle(initialTitle);
+  }
+
+  void updateDefaultTitle(String title) {
+    _defaultHomePageTitle = title;
+    if (curHomePageIndex.value == 0) {
+      curHomePageTitle.value = title;
+    }
   }
 
   void initZoomDrawerListener() {
@@ -163,4 +187,13 @@ class HomeShellController extends GetxController
     searchFocusNode.dispose();
     super.onClose();
   }
+}
+
+class ShellMenuItemData {
+  final String title;
+  final IconData icon;
+  final String route;
+  final String path;
+
+  ShellMenuItemData(this.title, this.icon, this.route, this.path);
 }

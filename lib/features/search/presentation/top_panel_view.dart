@@ -10,7 +10,8 @@ import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/load_state_view.dart';
 import 'package:bujuan/widget/my_tab_bar.dart';
@@ -51,8 +52,8 @@ class _TopPanelViewState extends State<TopPanelView> {
     _searchWorker = ever<String>(controller.searchContent, (keyword) {
       TopPanelView._searchPanelController.search(
         keyword,
-        likedSongIds: UserController.to.likedSongIds.toList(),
-        currentUserId: UserController.to.userInfo.value.userId,
+        likedSongIds: UserLibraryController.to.likedSongIds.toList(),
+        currentUserId: UserSessionController.to.userInfo.value.userId,
       );
     });
   }

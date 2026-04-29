@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 /// 统一TabBar风格
 class MyTabBar extends StatelessWidget implements PreferredSizeWidget {
@@ -14,7 +13,7 @@ class MyTabBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color widgetColor = (color ?? context.theme.colorScheme.onPrimary);
+    Color widgetColor = color ?? Theme.of(context).colorScheme.onPrimary;
     return SizedBox(
       height: height,
       child: TabBar(

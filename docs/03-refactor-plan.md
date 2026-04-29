@@ -252,8 +252,9 @@
 ### 已完成
 
 - 架构分析完成
-- 已新增架构守护测试：禁止 `lib/pages` 复活，禁止 `GetIt/get_it/AppController/MediaItemBean`，禁止 `core/data/domain` 依赖 GetX 或反向 import features，禁止业务 cache store 直接读取 `CacheBox.instance`
-- `ShellController` 已继续瘦身，user/settings/player 代理 getter 与播放代理方法已移除；页面改为直接读取 `UserController`、`PlayerController`、`SettingsController`、`HomeShellController`
+- 已新增架构守护测试：禁止 `lib/pages` 复活，禁止 `GetIt/get_it/AppController/MediaItemBean`，禁止 `core/data/domain` 依赖 GetX 或反向 import features，禁止业务 cache store 直接读取 `CacheBox.instance`，并继续约束 presentation、widget、repository 和 feature repository 横向依赖
+- `ShellController` 已继续瘦身，user/settings/player 代理 getter、播放代理方法和首页数据刷新入口已移除；页面改为分别读取 `UserSessionController`、`UserLibraryController`、`RecommendationController`、`PlayerController`、`SettingsController`、`HomeShellController`
+- 旧 `UserController` 已拆分为 `UserSessionController`、`UserLibraryController`、`RecommendationController`，登录态、账号资料库和首页推荐内容不再共用一个总控入口
 - 已新增 `PlaybackQueueItem` 与 `PlaybackQueueItemAdapter`，repository、controller、页面之间不再传递 `MediaItem`
 - `AlbumRepository`、`ArtistRepository`、`PlaylistRepository`、`CloudRepository`、`SearchRepository`、`UserRepository` 已改为返回领域实体或 `PlaybackQueueItem`
 - 网易云 remote data source 已停止返回 `MediaItem`，只返回领域实体或 `Track`
@@ -266,9 +267,10 @@
 - 旧 `RequestWidget` / `RequestLoadMoreWidget` 已删除，请求执行权已回收到 feature controller 与 repository
 - 播放主链路已开始收口到 `PlayerController`，底部面板、歌单页、专辑页、歌手页、每日推荐、榜单和个人页快捷入口已不再通过页面直接驱动 `audioHandler` 或 `ShellController` 播放代理
 - `PlaybackService` 已接管底层播放器实例生命周期，`PlayerController` 不再直接初始化 `AudioServiceHandler`
-- 漫游模式续队列、喜欢歌曲播放和模式初始化已开始从 `PlayerController` 下沉到 `PlaybackService`
+- 漫游模式续队列、喜欢歌曲播放和模式初始化已从 `PlayerController / PlaybackService` 继续下沉到 `PlaybackQueueCoordinator / PlaybackModeCoordinator`
 - `AudioServiceHandler` 对 `PlayerController` 的直接反向依赖已移除，上层播放状态通过 `PlaybackService` 显式同步
-- `AudioServiceHandler` 对 `SettingsController` 和 `UserController` 的直接读取已移除，底层所需偏好和交互入口统一通过 `PlaybackService` 注入
+- `AudioServiceHandler` 对 `SettingsController` 和用户侧 controller 的直接读取已移除，底层所需偏好和交互入口统一通过 `PlaybackService` 注入
+- `AudioServiceHandler` 中的播放源解析和恢复快照装配已分别迁入 `PlaybackSourceResolver` 与 `PlaybackRestoreCoordinator`，队列持久化统一走 `PlaybackQueueStore`
 - 播放模式、重复模式、当前歌单名等会话展示态已开始收口为 `PlaybackSessionState`，为后续恢复状态收口做准备
 - 播放恢复信息已开始收口为 `PlaybackRestoreState`，并补上当前播放进度的持久化与恢复入口
 - 当前队列、当前歌曲、当前索引和当前进度已开始收口为 `PlaybackRuntimeState`，为后续减少运行态散落字段做准备
@@ -295,7 +297,7 @@
 - 删除未承载职责的 `PlayListController` 和 `AlbumController`
 - 探索页榜单歌曲改为直接通过 `PlaylistRepository` 获取
 - `ShellController` 已移除歌单查询、歌曲映射、喜欢状态等单点代理
-- 漫游 / 心动模式与喜欢歌单播放逻辑已下沉到 `PlayerController`
+- 漫游 / 心动模式与喜欢歌单播放逻辑已继续下沉到 playback application service
 - 已建立第一版领域层骨架：`Track`、`PlaylistEntity`、`AlbumEntity`、`ArtistEntity`、`PlaybackQueueItem`
 - 已新增第一版 `NeteaseMusicSource`
 - 已建立 `NeteaseMusicSource`、`LocalMusicSource` 与 `LibraryRepository` 骨架

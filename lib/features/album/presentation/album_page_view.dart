@@ -10,7 +10,7 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/album/album_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -44,7 +44,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       final localDetail = await _repository.loadLocalAlbumDetail(
         albumId: albumId,
-        likedSongIds: UserController.to.likedSongIds.toList(),
+        likedSongIds: UserLibraryController.to.likedSongIds.toList(),
       );
       if (localDetail != null) {
         album = localDetail.album;
@@ -197,7 +197,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     }
     final albumDetail = await _repository.fetchAlbumDetail(
       albumId: albumId,
-      likedSongIds: UserController.to.likedSongIds.toList(),
+      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
     );
     album = albumDetail.album;
     albumSongs

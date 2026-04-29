@@ -8,7 +8,8 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
@@ -219,8 +220,8 @@ class ExplorePageController extends GetxController {
   Future<bool> _loadCachedRankingPlayListSongs() async {
     final cachedDetail = await _playlistRepository.loadLocalPlaylistDetail(
       playlistId: curTopPlayListId.value,
-      likedSongIds: UserController.to.likedSongIds.toList(),
-      currentUserId: UserController.to.userInfo.value.userId,
+      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
+      currentUserId: UserSessionController.to.userInfo.value.userId,
     );
     final cachedSongs = cachedDetail?.songs ?? const <PlaybackQueueItem>[];
     if (cachedSongs.isEmpty) {
@@ -297,7 +298,7 @@ class ExplorePageController extends GetxController {
     }
     final songs = await _playlistRepository.fetchPlaylistSongs(
       playlistId: curTopPlayListId.value,
-      likedSongIds: UserController.to.likedSongIds.toList(),
+      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
       offset: offset,
       limit: limit,
     );

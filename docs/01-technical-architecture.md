@@ -21,7 +21,7 @@
 
 - [`lib/features/shell/shell_controller.dart`](../lib/features/shell/shell_controller.dart) 只保留底部播放面板、顶部搜索面板、抽屉返回键、歌词滚动和专辑页 UI 协调，不再作为 user/settings/player 总代理
 - [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart) 与 [`lib/features/playback/application/audio_service_handler.dart`](../lib/features/playback/application/audio_service_handler.dart) 已形成播放链路，页面和 repository 消费 `PlaybackQueueItem`，`MediaItem` 只留在 audio_service 适配边界
-- [`lib/features/user/user_controller.dart`](../lib/features/user/user_controller.dart) 同时承担用户状态、推荐内容、喜欢歌曲、FM、心动模式等职责
+- 用户侧状态已拆分为 `UserSessionController`、`UserLibraryController`、`RecommendationController`，分别承接登录态、账号资料库和首页推荐内容
 - 页面已并入对应 feature 的 `presentation` 目录，仍需继续缩小页面内用例逻辑，例如：
   - [`lib/features/auth/presentation/login_page_view.dart`](../lib/features/auth/presentation/login_page_view.dart)
   - [`lib/features/playlist/presentation/playlist_page_view.dart`](../lib/features/playlist/presentation/playlist_page_view.dart)
@@ -261,20 +261,24 @@
 - 首页壳层 UI 状态与业务入口分离
 - `ShellController` 只负责壳层 UI 协调，不代理 user/settings/player 数据
 - 首页抽屉和 tab 状态读取 `HomeShellController`
-- 用户数据读取 `UserController`
+- 登录态与用户资料读取 `UserSessionController`
+- 喜欢歌曲、用户歌单和喜欢歌单读取 `UserLibraryController`
+- 首页推荐、日推和 FM 候选数据读取 `RecommendationController`
 - 播放动作和播放状态读取 `PlayerController`
 - 设置和主题色读取 `SettingsController`
 - 页面不应直接驱动 `audioHandler`，也不应继续通过 `ShellController` 充当播放代理；播放主链路统一经由 `PlayerController` 暴露入口
 - `PlayerController` 不再直接初始化底层播放器实例，音频服务生命周期统一收口到 `PlaybackService`
-- 漫游模式续队列、喜欢歌曲播放和模式初始化等队列编排优先下沉到 `PlaybackService`，控制器只保留状态与交互协作
+- 漫游模式续队列、喜欢歌曲播放和模式初始化等编排已下沉到 `PlaybackQueueCoordinator / PlaybackModeCoordinator`，控制器只保留状态与交互协作
 - `AudioServiceHandler` 不再直接反向依赖 `PlayerController`，上层状态同步改为通过 `PlaybackService` 显式绑定回调
-- `AudioServiceHandler` 不再直接读取 `SettingsController` 或 `UserController`，底层所需偏好和交互入口统一通过 `PlaybackService` 注入
+- `AudioServiceHandler` 不再直接读取 `SettingsController` 或用户侧 controller，底层所需偏好和交互入口统一通过 `PlaybackService` 与显式回调注入
+- `AudioServiceHandler` 不再直接承担播放源解析和恢复快照装配，真实音源解析进入 `PlaybackSourceResolver`，恢复快照装配进入 `PlaybackRestoreCoordinator`
+- `PlaybackService` 保持为 controller 到 audio_service 的门面；跨队列裁剪、模式切换和用户内容组合分别由 application service 承接
 - 播放模式、重复模式、当前歌单名等展示态收口为 `PlaybackSessionState`
 - 播放恢复信息开始收口为 `PlaybackRestoreState`，当前项、歌单元信息、队列、模式和进度不再继续以散落 key 分别理解
 - 当前队列、当前歌曲、当前索引和当前进度收口为 `PlaybackRuntimeState`
 - 歌词行、当前歌词索引和翻译歌词标记开始收口为 `PlaybackLyricState`，避免歌词解析结果继续散落在控制器兼容字段中
 - 播放恢复态已回收到 `PlaybackRestoreDataSource`，歌词内容改由媒体库承接
-- 播放恢复态的读写主入口已切到 `PlaybackRepository`，控制器和底层 handler 不再直接操作存储实现
+- 播放恢复态的读写主入口已切到 `PlaybackQueueStore / PlaybackRestoreCoordinator`，控制器和底层 handler 不再直接操作存储实现
 - 播放恢复态已从 `LocalLibraryDataSource` 拆出，改由独立的 `PlaybackRestoreDataSource` 承接
 - 播放恢复态已接入 `Drift` 的 `playback_restore_snapshots`，不再以 `Hive` 作为事实源
 - 持久化层已新增独立的恢复态记录模型与 codec，数据库实现优先复用该记录格式而不是直接存业务对象
@@ -723,18 +727,22 @@ Repository 负责：
 重点文件：
 
 - [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart)
-- [`lib/core/playback/audio_service_handler.dart`](../lib/core/playback/audio_service_handler.dart)
+- [`lib/features/playback/application/audio_service_handler.dart`](../lib/features/playback/application/audio_service_handler.dart)
+- [`lib/features/playback/application/playback_source_resolver.dart`](../lib/features/playback/application/playback_source_resolver.dart)
+- [`lib/features/playback/application/playback_restore_coordinator.dart`](../lib/features/playback/application/playback_restore_coordinator.dart)
 
 目标：
 
 - 控制器只负责暴露状态
-- 播放用例和队列切换逻辑沉到 service / repository
+- 播放用例和队列切换逻辑沉到 application service
 
 ### 11.3 User Content 内容数据线
 
 重点文件：
 
-- [`lib/features/user/user_controller.dart`](../lib/features/user/user_controller.dart)
+- [`lib/features/user/user_session_controller.dart`](../lib/features/user/user_session_controller.dart)
+- [`lib/features/user/user_library_controller.dart`](../lib/features/user/user_library_controller.dart)
+- [`lib/features/user/recommendation_controller.dart`](../lib/features/user/recommendation_controller.dart)
 - [`lib/features/playlist/presentation/playlist_page_view.dart`](../lib/features/playlist/presentation/playlist_page_view.dart)
 - [`lib/features/cloud/presentation/cloud_drive_view.dart`](../lib/features/cloud/presentation/cloud_drive_view.dart)
 - [`lib/features/auth/presentation/login_page_view.dart`](../lib/features/auth/presentation/login_page_view.dart)

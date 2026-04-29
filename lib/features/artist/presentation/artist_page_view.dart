@@ -12,7 +12,7 @@ import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
@@ -50,7 +50,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       final localDetail = await _repository.loadLocalArtistDetail(
         artistId: artistId,
-        likedSongIds: UserController.to.likedSongIds.toList(),
+        likedSongIds: UserLibraryController.to.likedSongIds.toList(),
       );
       if (localDetail != null) {
         artist = localDetail.artist;
@@ -297,7 +297,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     }
     final artistDetail = await _repository.fetchArtistDetail(
       artistId: artistId,
-      likedSongIds: UserController.to.likedSongIds.toList(),
+      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
     );
     artist = artistDetail.artist;
     topSongs

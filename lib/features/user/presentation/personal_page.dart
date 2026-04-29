@@ -3,7 +3,8 @@ import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/common_widgets.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -26,15 +27,20 @@ class PersonalPageView extends GetView<ShellController> {
 
   @override
   Widget build(BuildContext context) {
+    final recommendationController = RecommendationController.to;
+    final libraryController = UserLibraryController.to;
     return Obx(() {
-      if (controller.dateLoaded.isFalse) return const LoadingView();
+      if (recommendationController.dateLoaded.isFalse) {
+        return const LoadingView();
+      }
       return SmartRefresher(
         onRefresh: () async {
-          controller.updateData();
+          recommendationController.updateData();
         },
         enablePullUp: true,
         enablePullDown: true,
-        onLoading: () => controller.updateRecoPlayLists(getMore: true),
+        onLoading: () =>
+            recommendationController.updateRecoPlayLists(getMore: true),
         footer: ClassicFooter(
             height: 60 + AppDimensions.bottomPanelHeaderHeight,
             outerBuilder: (child) {
@@ -45,7 +51,7 @@ class PersonalPageView extends GetView<ShellController> {
                   alignment: Alignment.center,
                   child: child);
             }),
-        controller: controller.refreshController,
+        controller: recommendationController.refreshController,
         child: CustomScrollView(cacheExtent: 120, slivers: [
           SliverToBoxAdapter(
             child: Container(
@@ -84,9 +90,10 @@ class PersonalPageView extends GetView<ShellController> {
                               child: QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: UserController
-                                        .to.todayRecommendSongs.isNotEmpty
-                                    ? (UserController.to.todayRecommendSongs[0]
+                                albumUrl: recommendationController
+                                        .todayRecommendSongs.isNotEmpty
+                                    ? (recommendationController
+                                            .todayRecommendSongs[0]
                                             .artworkUrl ??
                                         '')
                                     : '',
@@ -98,13 +105,13 @@ class PersonalPageView extends GetView<ShellController> {
                               builder: (_) {
                                 return ListView.builder(
                                   padding: EdgeInsets.zero,
-                                  itemCount: UserController
-                                      .to.todayRecommendSongs.length,
+                                  itemCount: recommendationController
+                                      .todayRecommendSongs.length,
                                   itemBuilder:
                                       (BuildContext context, int index) {
                                     return SongItem(
-                                      playlist:
-                                          UserController.to.todayRecommendSongs,
+                                      playlist: recommendationController
+                                          .todayRecommendSongs,
                                       index: index,
                                       playListName: '',
                                     );
@@ -123,7 +130,8 @@ class PersonalPageView extends GetView<ShellController> {
                                             .playlistName !=
                                         "每日推荐") {
                                       PlayerController.to.playPlaylist(
-                                        UserController.to.todayRecommendSongs,
+                                        recommendationController
+                                            .todayRecommendSongs,
                                         0,
                                         playListName: "每日推荐",
                                       );
@@ -153,9 +161,10 @@ class PersonalPageView extends GetView<ShellController> {
                                 height: userItemWidth * 1.3,
                                 albumUrl: PlayerController.to.isFmMode.isTrue
                                     ? (currentSong.artworkUrl ?? '')
-                                    : (UserController.to.fmSongs.isNotEmpty
-                                        ? (UserController
-                                                .to.fmSongs[0].artworkUrl ??
+                                    : (recommendationController
+                                            .fmSongs.isNotEmpty
+                                        ? (recommendationController
+                                                .fmSongs[0].artworkUrl ??
                                             '')
                                         : ''),
                                 icon: TablerIcons.infinity,
@@ -188,15 +197,15 @@ class PersonalPageView extends GetView<ShellController> {
                                 albumUrl:
                                     PlayerController.to.isHeartBeatMode.isTrue
                                         ? (currentSong.artworkUrl ?? '')
-                                        : UserController
-                                            .to.randomLikedSongAlbumUrl.value,
+                                        : libraryController
+                                            .randomLikedSongAlbumUrl.value,
                                 icon: TablerIcons.heartbeat,
                                 title: "心动模式",
                                 onTap: () {
                                   controller.jumpBottomPanelToPage(1);
                                   controller.openBottomPanel();
                                   PlayerController.to.openHeartBeatMode(
-                                    UserController.to.randomLikedSongId.value,
+                                    libraryController.randomLikedSongId.value,
                                     fromPlayAll: true,
                                   );
                                 },
@@ -225,14 +234,14 @@ class PersonalPageView extends GetView<ShellController> {
           // 我的歌单
           SliverToBoxAdapter(
               child: PlayListWidget(
-            playLists: UserController.to.userPlayLists,
+            playLists: libraryController.userPlayLists,
             albumCountInWidget: 3.2,
             albumMargin: AppDimensions.paddingSmall,
             showSongCount: false,
           )),
           // 我的喜欢
           SliverToBoxAdapter(
-              child: PlayListItem(UserController.to.userLikedSongPlayList.value)
+              child: PlayListItem(libraryController.userLikedSongPlayList.value)
                   .paddingSymmetric(horizontal: AppDimensions.paddingSmall)),
 
           // 推荐歌单 Header
@@ -256,9 +265,9 @@ class PersonalPageView extends GetView<ShellController> {
           ),
           // 推荐歌单列表
           SliverList.builder(
-            itemCount: UserController.to.recoPlayLists.length,
+            itemCount: recommendationController.recoPlayLists.length,
             itemBuilder: (BuildContext context, int index) {
-              return PlayListItem(UserController.to.recoPlayLists[index])
+              return PlayListItem(recommendationController.recoPlayLists[index])
                   .paddingSymmetric(horizontal: AppDimensions.paddingSmall);
             },
           ),

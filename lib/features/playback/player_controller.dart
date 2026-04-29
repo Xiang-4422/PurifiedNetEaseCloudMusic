@@ -12,13 +12,16 @@ import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/entities/track_resource_bundle.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/download/download_repository.dart';
+import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_queue_store.dart';
+import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
-import 'package:bujuan/features/user/user_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
@@ -36,16 +39,28 @@ class PlayerController extends GetxController {
     required PlaybackRepository repository,
     required PlaybackService playbackService,
     required DownloadRepository downloadRepository,
+    required PlaybackQueueStore queueStore,
+    required PlaybackQueueCoordinator queueCoordinator,
+    required PlaybackModeCoordinator modeCoordinator,
+    required PlaybackUserContentPort userContentPort,
     LocalImageCacheRepository? imageCacheRepository,
   })  : _repository = repository,
         _playbackService = playbackService,
         _downloadRepository = downloadRepository,
+        _queueStore = queueStore,
+        _queueCoordinator = queueCoordinator,
+        _modeCoordinator = modeCoordinator,
+        _userContentPort = userContentPort,
         _imageCacheRepository =
             imageCacheRepository ?? LocalImageCacheRepository();
 
   final PlaybackRepository _repository;
   final PlaybackService _playbackService;
   final DownloadRepository _downloadRepository;
+  final PlaybackQueueStore _queueStore;
+  final PlaybackQueueCoordinator _queueCoordinator;
+  final PlaybackModeCoordinator _modeCoordinator;
+  final PlaybackUserContentPort _userContentPort;
   final LocalImageCacheRepository _imageCacheRepository;
 
   PlaybackService get playbackService => _playbackService;
@@ -108,7 +123,7 @@ class PlayerController extends GetxController {
       },
       isHighQualityEnabled: () =>
           SettingsController.to.isHighSoundQualityOpen.value,
-      onToggleLike: UserController.to.toggleLikeStatus,
+      onToggleLike: _toggleLikeFromPlayback,
       isPlaylistMode: () => playbackMode.value == PlaybackMode.playlist,
       isRoamingMode: () => playbackMode.value == PlaybackMode.roaming,
     );
@@ -122,7 +137,7 @@ class PlayerController extends GetxController {
     _playbackService.mediaItemStream.listen((queueItem) async {
       if (queueItem == null) return;
       _syncRuntimeState(currentSong: queueItem);
-      unawaited(_repository.updateRestoreState(currentSongId: queueItem.id));
+      unawaited(_queueStore.saveCurrentSong(queueItem.id));
       unawaited(_cacheCurrentTrackForPlayback(queueItem));
       await _updateCurPlayIndex(
         currentItemUpdated: !_restoringPlaybackState,
@@ -137,7 +152,7 @@ class PlayerController extends GetxController {
           newIndex >= currentRuntimeState.queue.length - 2 &&
           !_isFetchingFm) {
         _isFetchingFm = true;
-        UserController.to.getFmSongs().then((newFmPlayList) async {
+        _userContentPort.loadFmSongs().then((newFmPlayList) async {
           if (playbackMode.value == PlaybackMode.roaming &&
               newFmPlayList.isNotEmpty) {
             final shouldAutoPlayNext = (newIndex ==
@@ -145,7 +160,7 @@ class PlayerController extends GetxController {
                 (_playbackService.handler.playbackState.value.processingState ==
                     AudioProcessingState.completed);
 
-            await _playbackService.appendRoamingSongs(
+            await _queueCoordinator.appendRoamingSongs(
               currentQueue: currentRuntimeState.queue,
               incomingSongs: newFmPlayList,
               currentSongId: currentRuntimeState.currentSong.id,
@@ -178,7 +193,7 @@ class PlayerController extends GetxController {
       if (currentSecond != _lastStoredPositionSecond) {
         _lastStoredPositionSecond = currentSecond;
         unawaited(
-          _repository.updateRestoreState(position: newCurPlayingDuration),
+          _queueStore.savePosition(newCurPlayingDuration),
         );
       }
       int newLyricIndex = lyricState.value.lines.lastIndexWhere((element) =>
@@ -213,7 +228,7 @@ class PlayerController extends GetxController {
     this.playbackMode.value = nextState.playbackMode;
     curRepeatMode.value = nextState.repeatMode;
     unawaited(
-      _repository.updateRestoreState(playbackMode: nextState.playbackMode),
+      _queueStore.savePlaybackMode(nextState.playbackMode),
     );
   }
 
@@ -399,6 +414,13 @@ class PlayerController extends GetxController {
     await _playbackService.updateQueueItem(item);
   }
 
+  Future<void> _toggleLikeFromPlayback(PlaybackQueueItem item) async {
+    final updatedItem = await _userContentPort.toggleLikeStatus(item);
+    if (updatedItem != null) {
+      await updatePlaybackQueueItem(updatedItem);
+    }
+  }
+
   /// 下载入口直接挂在播放控制器，是为了让“当前播放歌曲”的下载状态与播放 UI
   /// 保持同一条事实链路；否则下载完成后页面仍会继续展示旧的远程资源状态。
   Future<Track?> downloadCurrentTrack({
@@ -556,10 +578,7 @@ class PlayerController extends GetxController {
   }
 
   Future<void> playUserLikedSongs() async {
-    await UserController.to.ensureLikedSongsLoaded();
-    await _playbackService.playLikedSongs(
-      likedSongs: UserController.to.likedSongs.toList(),
-      likedSongIds: UserController.to.likedSongIds.toList(),
+    await _modeCoordinator.playLikedSongs(
       currentSong: runtimeState.value.currentSong,
     );
   }
@@ -612,15 +631,7 @@ class PlayerController extends GetxController {
   }
 
   Future<void> _initRoamingMode() async {
-    final fmSongs = <PlaybackQueueItem>[];
-    if (UserController.to.fmSongs.isNotEmpty) {
-      fmSongs.addAll(UserController.to.fmSongs);
-    } else {
-      fmSongs.addAll(await UserController.to.getFmSongs());
-    }
-
-    final started = await _playbackService.startRoamingMode(
-      fmSongs: fmSongs,
+    final started = await _modeCoordinator.startRoamingMode(
       currentRepeatMode: sessionState.value.repeatMode,
     );
     if (!started) {
@@ -630,11 +641,9 @@ class PlayerController extends GetxController {
   }
 
   Future<void> _initHeartBeatMode(String startSongId, bool fromPlayAll) async {
-    final songs = await UserController.to.getHeartBeatSongs(
-        startSongId, UserController.to.randomLikedSongId.value, fromPlayAll);
-
-    final started = await _playbackService.startHeartBeatMode(
-      songs: songs,
+    final started = await _modeCoordinator.startHeartBeatMode(
+      startSongId: startSongId,
+      fromPlayAll: fromPlayAll,
       currentRepeatMode: sessionState.value.repeatMode,
     );
     if (!started) {
@@ -700,7 +709,7 @@ class PlayerController extends GetxController {
               resources: const TrackResourceBundle(),
             ),
       ],
-      likedSongIds: UserController.to.likedSongIds.toList(),
+      likedSongIds: _userContentPort.likedSongIds(),
     );
     if (queueItems.isEmpty) {
       return;

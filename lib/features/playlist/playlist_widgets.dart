@@ -4,7 +4,7 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
@@ -354,7 +354,7 @@ class PlayListWidget extends StatelessWidget {
     final details = await _repository.fetchPlaylistSnapshot(playlist.id);
     final songs = await _repository.fetchPlaylistSongs(
       playlistId: playlist.id,
-      likedSongIds: UserController.to.likedSongIds.toList(),
+      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
       playlistSnapshot: details,
     );
     await PlayerController.to.playPlaylist(

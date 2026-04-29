@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 
 typedef RequestChildBuilder<T> = Widget Function(T data);
@@ -72,7 +71,7 @@ class LoadingView extends StatelessWidget {
     return Container(
       alignment: Alignment.center,
       child: Lottie.asset('assets/lottie/empty_status.json',
-          height: context.width / 3.5,
+          height: MediaQuery.sizeOf(context).width / 3.5,
           fit: BoxFit.fitHeight,
           filterQuality: FilterQuality.low),
     );
@@ -84,16 +83,17 @@ class EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
     return SizedBox(
-      width: context.width,
-      height: context.height,
+      width: size.width,
+      height: size.height,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // SvgPicture.asset(AppIcons.loading,width: context.width/2.9,),
           Lottie.asset('assets/lottie/empty.json',
-              height: context.width / 2,
+              height: size.width / 2,
               fit: BoxFit.fitHeight,
               filterQuality: FilterQuality.low),
           const Text('暂无数据...', style: TextStyle(fontSize: 28)),
@@ -108,16 +108,17 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
     return SizedBox(
-      width: context.width,
-      height: context.height,
+      width: size.width,
+      height: size.height,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // SvgPicture.asset(AppIcons.loading,width: context.width/2.9,),
           Lottie.asset('assets/lottie/no_internet_connection.json',
-              height: context.width / 2.5,
+              height: size.width / 2.5,
               fit: BoxFit.fitHeight,
               filterQuality: FilterQuality.low),
           const Text('网络错误', style: TextStyle(fontSize: 32)),

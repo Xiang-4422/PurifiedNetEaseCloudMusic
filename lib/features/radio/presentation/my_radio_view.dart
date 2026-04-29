@@ -4,7 +4,7 @@ import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_list_controller.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
@@ -31,7 +31,7 @@ class _MyRadioViewState extends State<MyRadioView> {
     super.initState();
     _controller = RadioListController(
       repository: _repository,
-      userId: UserController.to.userInfo.value.userId,
+      userId: UserSessionController.to.userInfo.value.userId,
     )..loadInitial();
   }
 

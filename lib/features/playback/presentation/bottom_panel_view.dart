@@ -9,7 +9,7 @@ import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/presentation/lyric_view.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/common_widgets.dart';
@@ -923,14 +923,23 @@ class BottomPanelView extends GetView<ShellController> {
       child: Obx(() {
         final currentSong = PlayerController.to.currentSongState.value;
         final currentSongId = int.tryParse(currentSong.sourceId);
-        final isLiked = UserController.to.likedSongIds.contains(currentSongId);
+        final isLiked =
+            UserLibraryController.to.likedSongIds.contains(currentSongId);
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // 喜欢按钮
             _buildButtonBackground(GestureDetector(
-                onTap: () => UserController.to.toggleLikeStatus(currentSong),
+                onTap: () async {
+                  final updatedSong = await UserLibraryController.to
+                      .toggleLikeStatus(currentSong);
+                  if (updatedSong != null) {
+                    await PlayerController.to.updatePlaybackQueueItem(
+                      updatedSong,
+                    );
+                  }
+                },
                 child: Icon(
                     isLiked ? TablerIcons.heart_filled : TablerIcons.heart,
                     size: 30,

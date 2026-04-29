@@ -5,7 +5,8 @@ import 'package:bujuan/domain/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
 import 'package:bujuan/features/radio/radio_playback_queue_item_mapper.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
-import 'package:bujuan/features/user/user_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -33,7 +34,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
     _controller = RadioDetailController(
       repository: _repository,
       radioId: _radioId,
-      userId: UserController.to.userInfo.value.userId,
+      userId: UserSessionController.to.userInfo.value.userId,
     )..loadInitial();
   }
 
@@ -66,7 +67,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
           }
           final queueItems = RadioPlaybackQueueItemMapper.fromPrograms(
             state.items,
-            likedSongIds: UserController.to.likedSongIds.toList(),
+            likedSongIds: UserLibraryController.to.likedSongIds.toList(),
           );
           return SmartRefresher(
             enablePullDown: true,

@@ -18,6 +18,7 @@ import 'package:just_audio/just_audio.dart';
 /// 本地恢复状态会很快分叉。
 class AudioServiceHandler extends BaseAudioHandler
     with SeekHandler, QueueHandler {
+  /// 创建 audio_service 播放处理器。
   AudioServiceHandler({
     required PlaybackQueueStore queueStore,
     required PlaybackRestoreCoordinator restoreCoordinator,
@@ -77,6 +78,7 @@ class AudioServiceHandler extends BaseAudioHandler
   bool Function()? _isRoamingMode;
   Duration _pendingRestorePosition = Duration.zero;
 
+  /// 当前通知栏和播放队列使用的循环模式。
   AudioServiceRepeatMode curRepeatMode = AudioServiceRepeatMode.all;
 
   /// 播放底层只通过显式回调同步上层状态，避免继续硬依赖控制器单例。
@@ -127,6 +129,7 @@ class AudioServiceHandler extends BaseAudioHandler
     }
   }
 
+  /// 切换或设置 audio_service 层循环模式。
   changeRepeatMode({AudioServiceRepeatMode? newRepeatMode}) async {
     if (newRepeatMode == null) {
       switch (curRepeatMode) {

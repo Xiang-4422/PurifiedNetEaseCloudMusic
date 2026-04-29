@@ -6,12 +6,15 @@ import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 底部面板从迷你封面到大封面的过渡层。
 class BottomPanelArtworkTransitionLayer extends StatelessWidget {
+  /// 创建封面过渡层。
   const BottomPanelArtworkTransitionLayer({
     required this.controller,
     super.key,
   });
 
+  /// 壳层控制器，提供封面展开动画状态。
   final ShellController controller;
 
   @override
@@ -68,9 +71,12 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
   }
 }
 
+/// 底部面板大封面分页展示层。
 class BottomPanelArtworkPageLayer extends StatelessWidget {
+  /// 创建大封面分页展示层。
   const BottomPanelArtworkPageLayer({required this.controller, super.key});
 
+  /// 壳层控制器，提供专辑页控制器和面板状态。
   final ShellController controller;
 
   @override

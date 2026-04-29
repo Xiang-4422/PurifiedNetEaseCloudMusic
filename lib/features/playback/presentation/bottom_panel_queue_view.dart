@@ -8,7 +8,9 @@ import 'package:bujuan/widget/scroll_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 底部播放面板中的当前播放队列视图。
 class BottomPanelQueueView extends GetView<ShellController> {
+  /// 创建当前播放队列视图。
   const BottomPanelQueueView({super.key});
 
   @override

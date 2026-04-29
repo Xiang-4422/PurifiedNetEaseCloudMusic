@@ -1,7 +1,8 @@
 import 'lyrics_reader_model.dart';
 
+/// 歌词布局计算辅助方法。
 class LyricHelper {
-  ///获取歌词整体高度
+  /// 计算歌词列表在当前播放行下的整体布局高度。
   static double getLyricHeight(
       List<LyricsLineModel>? lyrics, int playingIndex) {
     if (lyrics == null) {

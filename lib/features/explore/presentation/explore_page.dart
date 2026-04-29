@@ -11,6 +11,7 @@ import 'package:bujuan/features/explore/explore_page_controller.dart';
 
 /// 探索页当前仍直接消费首页控制器驱动的刷新节奏，所以先和 home body 放在同一层，避免再引入一层页面目录。
 class ExplorePageView extends GetView<ExplorePageController> {
+  /// 创建探索页视图。
   const ExplorePageView({Key? key}) : super(key: key);
 
   @override
@@ -391,9 +392,13 @@ class ExplorePageView extends GetView<ExplorePageController> {
 
 /// 自动尺寸的 SliverPersistentHeader 包装组件
 class AutoSizeSliverPersistentHeader extends StatefulWidget {
+  /// 固定显示的 header 内容。
   final Widget persistentHeader;
+
+  /// 可折叠区域内容。
   final Widget foldableWidget;
 
+  /// 创建自动测量高度的 SliverPersistentHeader。
   const AutoSizeSliverPersistentHeader({
     Key? key,
     required this.persistentHeader,

@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+/// GetX 国际化字典，保留旧耳机示例页面使用的翻译键。
 class LocaleString extends Translations {
   @override
   Map<String, Map<String, String>> get keys => {

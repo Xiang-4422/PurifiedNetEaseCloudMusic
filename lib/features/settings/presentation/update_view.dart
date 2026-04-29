@@ -9,7 +9,9 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// 应用升级提示页，展示版本信息并跳转下载地址。
 class UpdateView extends StatelessWidget {
+  /// 创建应用升级提示页。
   const UpdateView({Key? key}) : super(key: key);
 
   @override

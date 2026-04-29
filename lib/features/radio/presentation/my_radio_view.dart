@@ -13,7 +13,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// 我的播客列表页。
 class MyRadioView extends StatefulWidget {
+  /// 创建我的播客列表页。
   const MyRadioView({Key? key}) : super(key: key);
 
   @override

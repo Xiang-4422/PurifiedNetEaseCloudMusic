@@ -1,14 +1,15 @@
 import 'lyrics_parse.dart';
 import 'lyrics_reader_model.dart';
 
-///normal lyric parser
+/// 普通 LRC 歌词格式解析器。
 class ParserLrc extends LyricsParse {
+  /// 匹配 LRC 行首时间标签的正则。
   RegExp pattern = RegExp(r"\[\d{2}:\d{2}.\d{2,3}]");
 
-  ///匹配普通格式内容
-  ///eg:[00:03.47] -> 00:03.47
+  /// 提取 LRC 时间标签内容的正则，例如 `[00:03.47]`。
   RegExp valuePattern = RegExp(r"\[(\d{2}:\d{2}.\d{2,3})\]");
 
+  /// 创建 LRC 歌词解析器。
   ParserLrc(String lyric) : super(lyric);
 
   @override
@@ -49,6 +50,7 @@ class ParserLrc extends LyricsParse {
     return lineList;
   }
 
+  /// 将 LRC 时间标签转换为毫秒时间戳。
   int? timeTagToTS(String timeTag) {
     if (timeTag.trim().isEmpty) {
       return null;

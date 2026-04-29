@@ -10,7 +10,9 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
+/// 每日推荐歌曲页面。
 class TodayPageView extends StatelessWidget {
+  /// 创建每日推荐歌曲页面。
   const TodayPageView({Key? key}) : super(key: key);
 
   @override

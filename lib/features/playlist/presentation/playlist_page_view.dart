@@ -20,7 +20,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
+/// 歌单详情页面，展示歌单元信息和歌曲列表。
 class PlayListPageView extends StatefulWidget {
+  /// 创建歌单详情页面。
   const PlayListPageView({
     required this.playlistId,
     required this.playlistName,
@@ -29,9 +31,16 @@ class PlayListPageView extends StatefulWidget {
     super.key,
   });
 
+  /// 歌单 id。
   final String playlistId;
+
+  /// 歌单名称，用作初始标题和播放队列名。
   final String playlistName;
+
+  /// 歌单封面地址。
   final String? coverUrl;
+
+  /// 歌单歌曲总数。
   final int? trackCount;
 
   @override

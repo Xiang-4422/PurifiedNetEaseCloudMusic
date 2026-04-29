@@ -23,7 +23,9 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
+/// 歌手详情页面，展示热门歌曲和专辑。
 class ArtistPageView extends StatefulWidget {
+  /// 创建歌手详情页面。
   const ArtistPageView({Key? key}) : super(key: key);
 
   @override

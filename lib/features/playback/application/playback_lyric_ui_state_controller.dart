@@ -1,9 +1,11 @@
 import 'dart:async';
 
+/// 播放歌词 UI 状态控制器，负责歌词自动展开和当前行计算。
 class PlaybackLyricUiStateController {
   Timer? _fullScreenLyricTimer;
   double _fullScreenLyricTimerCounter = 0.0;
 
+  /// 更新全屏歌词自动展开计时器。
   void updateFullScreenLyricTimerCounter({
     required bool isPlaying,
     required void Function(bool isOpen) setFullScreenLyricOpen,
@@ -35,6 +37,7 @@ class PlaybackLyricUiStateController {
     }
   }
 
+  /// 根据播放进度解析当前歌词行索引。
   int resolveCurrentLyricIndex({
     required Iterable<dynamic> lines,
     required Duration position,
@@ -44,6 +47,7 @@ class PlaybackLyricUiStateController {
         );
   }
 
+  /// 释放歌词 UI 状态计时器。
   void dispose() {
     _fullScreenLyricTimer?.cancel();
     _fullScreenLyricTimer = null;

@@ -24,7 +24,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
+/// 底部播放面板主视图，组合队列、歌词、评论和播放控制区域。
 class BottomPanelView extends GetView<ShellController> {
+  /// 创建底部播放面板主视图。
   const BottomPanelView({Key? key}) : super(key: key);
 
   List<_ArtistChipData> _artistEntries(PlaybackQueueItem item) {
@@ -611,9 +613,9 @@ class BottomPanelView extends GetView<ShellController> {
 
     return textPainter.size.width; // 返回计算出的宽度
   }
-
 }
 
+/// 底部面板歌手 chip 的展示数据。
 class _ArtistChipData {
   const _ArtistChipData({
     required this.name,
@@ -624,7 +626,9 @@ class _ArtistChipData {
   final String id;
 }
 
+/// 底部播放面板收起态的迷你播放栏。
 class BottomPanelHeaderView extends GetView<ShellController> {
+  /// 创建迷你播放栏。
   const BottomPanelHeaderView({super.key});
 
   @override

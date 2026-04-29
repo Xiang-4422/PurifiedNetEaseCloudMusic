@@ -10,7 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
+/// 本地歌曲与下载缓存管理页面。
 class DownloadTaskPageView extends StatefulWidget {
+  /// 创建本地歌曲与下载缓存管理页面。
   const DownloadTaskPageView({super.key});
 
   @override

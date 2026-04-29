@@ -10,7 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// 云盘歌曲列表页面，支持分页刷新和直接发起播放。
 class CloudDriveView extends StatefulWidget {
+  /// 创建云盘歌曲列表页面。
   const CloudDriveView({Key? key}) : super(key: key);
 
   @override

@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'local_media_repository.dart';
 
+/// 本地媒体扫描仓库，负责从文件系统发现可导入的音频资源。
 class LocalMediaScanRepository {
+  /// 创建本地媒体扫描仓库。
   LocalMediaScanRepository({required LocalMediaRepository localMediaRepository})
       : _localMediaRepository = localMediaRepository;
 
@@ -29,6 +31,7 @@ class LocalMediaScanRepository {
     '.txt',
   };
 
+  /// 扫描目录并返回可导入的本地音频条目。
   Future<List<LocalTrackImport>> scanDirectories(
     List<String> directoryPaths, {
     bool recursive = true,
@@ -66,6 +69,7 @@ class LocalMediaScanRepository {
     return imports;
   }
 
+  /// 扫描指定文件路径并返回可导入的本地音频条目。
   Future<List<LocalTrackImport>> scanFiles(List<String> filePaths) async {
     final imports = <LocalTrackImport>[];
     final seenPaths = <String>{};
@@ -93,6 +97,7 @@ class LocalMediaScanRepository {
     return imports;
   }
 
+  /// 扫描目录并写入本地媒体库，返回成功导入数量。
   Future<int> importDirectories(
     List<String> directoryPaths, {
     bool recursive = true,
@@ -105,6 +110,7 @@ class LocalMediaScanRepository {
     return tracks.length;
   }
 
+  /// 扫描指定文件并写入本地媒体库，返回成功导入数量。
   Future<int> importFiles(List<String> filePaths) async {
     final tracks = await scanFiles(filePaths);
     if (tracks.isEmpty) {

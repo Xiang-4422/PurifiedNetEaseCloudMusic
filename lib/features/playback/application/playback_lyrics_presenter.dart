@@ -7,11 +7,13 @@ import 'package:bujuan/features/playback/playback_repository.dart';
 
 /// 负责把歌曲歌词解析成播放器 UI 可消费的展示状态。
 class PlaybackLyricsPresenter {
+  /// 创建歌词展示状态组装器。
   PlaybackLyricsPresenter({required PlaybackRepository repository})
       : _repository = repository;
 
   final PlaybackRepository _repository;
 
+  /// 加载并解析当前歌曲歌词。
   Future<PlaybackLyricState> loadLyrics(PlaybackQueueItem currentSong) async {
     if (currentSong.id.isEmpty) {
       return _emptyLyricsState();

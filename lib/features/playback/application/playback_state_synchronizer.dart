@@ -16,6 +16,7 @@ import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
+/// 播放会话状态同步回调，用于把服务层变化写回控制器状态。
 typedef PlaybackSessionSync = void Function({
   PlaybackMode? playbackMode,
   PlaybackRepeatMode? repeatMode,
@@ -24,6 +25,7 @@ typedef PlaybackSessionSync = void Function({
   bool? isPlayingLikedSongs,
 });
 
+/// 播放运行态同步回调，用于更新队列、当前歌曲和播放进度。
 typedef PlaybackRuntimeSync = void Function({
   List<PlaybackQueueItem>? queue,
   PlaybackQueueItem? currentSong,
@@ -31,7 +33,9 @@ typedef PlaybackRuntimeSync = void Function({
   Duration? currentPosition,
 });
 
+/// 播放状态同步器，集中订阅底层播放流并派发给 UI 状态。
 class PlaybackStateSynchronizer {
+  /// 创建播放状态同步器。
   PlaybackStateSynchronizer({
     required PlaybackService playbackService,
     required PlaybackQueueStore queueStore,
@@ -64,6 +68,7 @@ class PlaybackStateSynchronizer {
   bool _isFetchingFm = false;
   bool _restoringPlaybackState = false;
 
+  /// 启动播放流订阅、恢复上次状态并同步当前播放状态。
   Future<void> start({
     required PlaybackSessionSync syncSessionState,
     required PlaybackRuntimeSync syncRuntimeState,
@@ -154,8 +159,7 @@ class PlaybackStateSynchronizer {
           _lastStoredPositionSecond = currentSecond;
           unawaited(_queueStore.savePosition(newCurPlayingDuration));
         }
-        final newLyricIndex =
-            _lyricUiStateController.resolveCurrentLyricIndex(
+        final newLyricIndex = _lyricUiStateController.resolveCurrentLyricIndex(
           lines: lyricState().lines,
           position: newCurPlayingDuration,
         );
@@ -226,6 +230,7 @@ class PlaybackStateSynchronizer {
     }
   }
 
+  /// 停止所有播放状态订阅。
   Future<void> dispose() async {
     for (final subscription in _subscriptions) {
       await subscription.cancel();

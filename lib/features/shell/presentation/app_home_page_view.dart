@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
+/// 应用首页壳层，组合顶部搜索面板、底部播放面板和子路由。
 class AppHomePageView extends GetView<ShellController> {
+  /// 创建应用首页壳层。
   const AppHomePageView({
     Key? key,
   }) : super(key: key);

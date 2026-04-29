@@ -1,13 +1,18 @@
 import 'lyrics_parse.dart';
 import 'lyrics_reader_model.dart';
 
-///qrc lyric parser
+/// QRC 逐字歌词格式解析器。
 class ParserQrc extends LyricsParse {
+  /// 匹配 QRC 行级时间标签的正则。
   RegExp advancedPattern = RegExp(r"""\[\d+,\d+]""");
+
+  /// 匹配 QRC 字级时间片段的正则。
   RegExp qrcPattern = RegExp(r"""\((\d+,\d+)\)""");
 
+  /// 提取 QRC 行级时间值的正则。
   RegExp advancedValuePattern = RegExp(r"\[(\d*,\d*)\]");
 
+  /// 创建 QRC 歌词解析器。
   ParserQrc(String lyric) : super(lyric);
 
   @override
@@ -50,7 +55,7 @@ class ParserQrc extends LyricsParse {
     return lineList;
   }
 
-  ///get line span info list
+  /// 从单行 QRC 歌词中提取逐字时间片段。
   List<LyricSpanInfo> getSpanList(String realLyrics) {
     var invalidLength = 0;
     var startIndex = 0;

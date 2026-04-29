@@ -7,16 +7,20 @@ import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 底部播放面板展开态的顶部歌曲信息栏。
 class BottomPanelHeader extends StatelessWidget {
+  /// 创建底部播放面板顶部信息栏。
   const BottomPanelHeader({required this.controller, super.key});
 
+  /// 壳层控制器，提供面板展开和封面动画状态。
   final ShellController controller;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(top: context.mediaQueryPadding.top),
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
       height: AppDimensions.appBarHeight,
       width: context.width,
       child: Obx(
@@ -64,8 +68,8 @@ class BottomPanelHeader extends StatelessWidget {
                           onTap: () {
                             if (PlayerController
                                 .to.isFullScreenLyricOpen.isTrue) {
-                              PlayerController
-                                  .to.isFullScreenLyricOpen.value = false;
+                              PlayerController.to.isFullScreenLyricOpen.value =
+                                  false;
                             } else {
                               controller.isAlbumScaleEnded.value = false;
                               controller.isBigAlbum.value = true;

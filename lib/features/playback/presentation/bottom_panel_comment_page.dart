@@ -6,12 +6,15 @@ import 'package:bujuan/widget/keep_alive_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 底部播放面板内嵌的歌曲评论页。
 class BottomPanelCommentPage extends StatelessWidget {
+  /// 创建底部面板评论页。
   const BottomPanelCommentPage({
     super.key,
     required this.commentType,
   });
 
+  /// 评论类型，沿用网易云接口中的歌曲评论分类。
   final int commentType;
 
   CommentContentPort get _commentContentPort => Get.find<CommentContentPort>();

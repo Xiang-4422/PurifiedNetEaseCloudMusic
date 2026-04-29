@@ -20,10 +20,15 @@ import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// 个人首页，展示快速播放、推荐歌单和用户歌单入口。
 class PersonalPageView extends GetView<ShellController> {
+  /// 创建个人首页。
   const PersonalPageView({Key? key}) : super(key: key);
 
+  /// 横向区域中一屏展示的歌单卡片数量。
   final double albumCountInScreen = 3.2;
+
+  /// 横向区域中一屏展示的快速入口卡片数量。
   final double userItemCountInScreen = 2.5;
 
   @override
@@ -281,7 +286,9 @@ class PersonalPageView extends GetView<ShellController> {
   }
 }
 
+/// 个人首页顶部的快速播放入口卡片。
 class QuickStartCard extends StatelessWidget {
+  /// 创建快速播放入口卡片。
   const QuickStartCard({
     Key? key,
     required this.width,
@@ -292,11 +299,22 @@ class QuickStartCard extends StatelessWidget {
     required this.title,
   }) : super(key: key);
 
+  /// 卡片宽度。
   final double width;
+
+  /// 卡片高度。
   final double height;
+
+  /// 点击卡片时触发的动作；为空时卡片呈禁用态。
   final Function()? onTap;
+
+  /// 卡片背景封面地址。
   final String albumUrl;
+
+  /// 卡片前景图标。
   final IconData? icon;
+
+  /// 卡片标题。
   final String title;
 
   @override

@@ -21,8 +21,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
+/// 顶部搜索面板，展示搜索入口、历史建议和搜索结果。
 class TopPanelView extends StatefulWidget {
+  /// 创建顶部搜索面板。
   const TopPanelView({Key? key}) : super(key: key);
+
+  /// 搜索面板控制器，随顶部面板生命周期复用。
   static final SearchPanelController _searchPanelController =
       Get.find<FeatureControllerFactory>().searchPanel();
 

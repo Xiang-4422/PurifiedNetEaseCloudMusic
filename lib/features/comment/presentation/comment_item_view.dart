@@ -9,7 +9,9 @@ import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 单条评论展示组件，负责评论正文、点赞和楼中楼回复入口。
 class CommentItemWidget extends StatefulWidget {
+  /// 创建单条评论展示组件。
   const CommentItemWidget({
     super.key,
     required this.comment,
@@ -19,10 +21,19 @@ class CommentItemWidget extends StatefulWidget {
     this.isReply = false,
   });
 
+  /// 当前资源 id，例如歌曲 id 或歌单 id。
   final String id;
+
+  /// 当前资源类型，沿用评论接口类型约定。
   final String idType;
+
+  /// 当前评论数据。
   final CommentData comment;
+
+  /// 评论文本和图标使用的主题前景色。
   final Color stringColor;
+
+  /// 当前评论是否作为回复项展示。
   final bool isReply;
 
   @override

@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+/// 二维码登录页面，负责展示登录二维码并在登录成功后跳转首页。
 class LoginPageView extends StatefulWidget {
+  /// 创建二维码登录页面。
   const LoginPageView({Key? key}) : super(key: key);
 
   @override

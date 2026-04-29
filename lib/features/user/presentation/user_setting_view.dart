@@ -10,7 +10,9 @@ import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 
+/// 用户资料和退出登录页面。
 class UserProfilePageView extends StatefulWidget {
+  /// 创建用户资料页面。
   const UserProfilePageView({Key? key}) : super(key: key);
 
   @override

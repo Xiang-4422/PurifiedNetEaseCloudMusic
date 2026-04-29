@@ -15,7 +15,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+/// 设置页，承接主题、缓存、本地扫描和调试入口。
 class SettingPageView extends StatefulWidget {
+  /// 创建设置页。
   const SettingPageView({Key? key}) : super(key: key);
 
   @override

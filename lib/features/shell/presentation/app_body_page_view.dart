@@ -14,7 +14,9 @@ import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 应用主体页，组合侧边抽屉和首页主内容。
 class AppBodyPageView extends GetView<ShellController> {
+  /// 创建应用主体页。
   const AppBodyPageView({super.key});
 
   @override
@@ -58,7 +60,9 @@ class AppBodyPageView extends GetView<ShellController> {
   }
 }
 
+/// 侧边抽屉主屏幕，按首页 tab 组合各 feature 页面。
 class DrawerMainScreenView extends GetView<ShellController> {
+  /// 创建侧边抽屉主屏幕。
   const DrawerMainScreenView({Key? key}) : super(key: key);
 
   Widget _buildPage(int index) {
@@ -106,7 +110,9 @@ class DrawerMainScreenView extends GetView<ShellController> {
   }
 }
 
+/// 左侧竖向菜单视图，负责切换首页主屏幕页。
 class MenuView extends GetView<ShellController> {
+  /// 创建左侧菜单视图。
   const MenuView({super.key});
 
   @override

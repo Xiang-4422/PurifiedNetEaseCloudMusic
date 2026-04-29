@@ -5,7 +5,9 @@ import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 
+/// 播放模式命令服务，统一处理循环、漫游和心动模式的入口规则。
 class PlaybackModeCommandService {
+  /// 创建播放模式命令服务。
   PlaybackModeCommandService({
     required PlaybackUiCommandService commandService,
     required PlaybackToastPort toastPort,
@@ -15,6 +17,7 @@ class PlaybackModeCommandService {
   final PlaybackUiCommandService _commandService;
   final PlaybackToastPort _toastPort;
 
+  /// 退出私人 FM/漫游模式，并按需提示用户。
   Future<void> quitFmMode({
     required PlaybackMode currentMode,
     required Future<void> Function(PlaybackMode mode) syncMode,
@@ -26,6 +29,7 @@ class PlaybackModeCommandService {
     }
   }
 
+  /// 退出心动模式，并按需提示用户。
   Future<void> quitHeartBeatMode({
     required PlaybackMode currentMode,
     required Future<void> Function(PlaybackMode mode) syncMode,
@@ -37,15 +41,16 @@ class PlaybackModeCommandService {
     }
   }
 
+  /// 处理循环模式按钮点击时的模式切换规则。
   Future<void> handleRepeatModeTap({
     required bool isFmMode,
     required bool isHeartBeatMode,
     required PlaybackSessionState sessionState,
     required PlaybackQueueItem currentSong,
     required Future<void> Function({bool showToast}) quitHeartBeatMode,
-    required Future<void> Function(PlaybackRepeatMode repeatMode)
-        setRepeatMode,
-    required Future<void> Function(String startSongId, {required bool fromPlayAll})
+    required Future<void> Function(PlaybackRepeatMode repeatMode) setRepeatMode,
+    required Future<void> Function(String startSongId,
+            {required bool fromPlayAll})
         openHeartBeatMode,
   }) async {
     if (isFmMode) {
@@ -68,6 +73,7 @@ class PlaybackModeCommandService {
     await _commandService.cycleRepeatMode();
   }
 
+  /// 切换到指定播放模式，并委托命令服务完成队列切换。
   Future<void> switchMode({
     required PlaybackMode currentMode,
     required PlaybackMode newMode,

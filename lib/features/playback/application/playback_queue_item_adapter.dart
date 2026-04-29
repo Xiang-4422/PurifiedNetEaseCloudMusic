@@ -4,9 +4,12 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 
+/// 播放队列项与 audio_service [MediaItem] 的边界适配器。
 class PlaybackQueueItemAdapter {
+  /// 禁止实例化，仅提供静态转换方法。
   const PlaybackQueueItemAdapter._();
 
+  /// 将领域播放队列项转换为通知栏和底层播放器使用的 [MediaItem]。
   static MediaItem toMediaItem(PlaybackQueueItem item) {
     return MediaItem(
       id: item.id,
@@ -33,10 +36,12 @@ class PlaybackQueueItemAdapter {
     );
   }
 
+  /// 批量将领域播放队列项转换为 [MediaItem]。
   static List<MediaItem> toMediaItems(List<PlaybackQueueItem> items) {
     return items.map(toMediaItem).toList();
   }
 
+  /// 将 [MediaItem] 转回应用层播放队列项。
   static PlaybackQueueItem fromMediaItem(MediaItem item) {
     final extras = item.extras ?? const <String, dynamic>{};
     final localArtworkPath = _stringOrNull(extras['localArtworkPath']);
@@ -67,6 +72,7 @@ class PlaybackQueueItemAdapter {
     );
   }
 
+  /// 批量将 [MediaItem] 转回应用层播放队列项。
   static List<PlaybackQueueItem> fromMediaItems(List<MediaItem> items) {
     return items.map(fromMediaItem).toList();
   }

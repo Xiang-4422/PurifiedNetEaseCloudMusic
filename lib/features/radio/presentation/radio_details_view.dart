@@ -12,7 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// 播客详情页，展示节目列表并支持播放节目队列。
 class RadioDetailsView extends StatefulWidget {
+  /// 创建播客详情页。
   const RadioDetailsView({Key? key}) : super(key: key);
 
   @override

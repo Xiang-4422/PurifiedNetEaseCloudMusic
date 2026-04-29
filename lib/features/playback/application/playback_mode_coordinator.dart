@@ -5,6 +5,7 @@ import 'package:bujuan/features/playback/playback_service.dart';
 
 /// 承接播放模式切换时需要组合用户内容和播放队列的规则。
 class PlaybackModeCoordinator {
+  /// 创建播放模式协调器。
   PlaybackModeCoordinator({
     required PlaybackService playbackService,
     required PlaybackUserContentPort userContentPort,
@@ -14,6 +15,7 @@ class PlaybackModeCoordinator {
   final PlaybackService _playbackService;
   final PlaybackUserContentPort _userContentPort;
 
+  /// 构建并切换到喜欢歌曲播放队列。
   Future<void> playLikedSongs({
     required PlaybackQueueItem currentSong,
   }) async {
@@ -38,6 +40,7 @@ class PlaybackModeCoordinator {
     );
   }
 
+  /// 加载 FM 候选歌曲并进入漫游模式。
   Future<bool> startRoamingMode({
     required PlaybackRepeatMode currentRepeatMode,
   }) async {
@@ -64,6 +67,7 @@ class PlaybackModeCoordinator {
     return true;
   }
 
+  /// 加载心动模式歌曲并切换播放队列。
   Future<bool> startHeartBeatMode({
     required String startSongId,
     required bool fromPlayAll,

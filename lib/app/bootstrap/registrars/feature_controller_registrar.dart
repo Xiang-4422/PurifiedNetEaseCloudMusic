@@ -15,10 +15,13 @@ import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_action_port.dart';
+import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
+import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
+import 'package:bujuan/features/playback/application/playback_state_synchronizer.dart';
 import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
@@ -123,6 +126,30 @@ class FeatureControllerRegistrar {
       ),
       permanent: true,
     );
+    Get.put<PlaybackLyricUiStateController>(
+      PlaybackLyricUiStateController(),
+      permanent: true,
+    );
+    Get.put<PlaybackModeCommandService>(
+      PlaybackModeCommandService(
+        commandService: Get.find<PlaybackUiCommandService>(),
+        toastPort: Get.find<PlaybackToastPort>(),
+      ),
+      permanent: true,
+    );
+    Get.put<PlaybackStateSynchronizer>(
+      PlaybackStateSynchronizer(
+        playbackService: Get.find<PlaybackService>(),
+        queueStore: Get.find<PlaybackQueueStore>(),
+        queueCoordinator: Get.find<PlaybackQueueCoordinator>(),
+        userContentPort: Get.find<PlaybackUserContentPort>(),
+        downloadUseCase: Get.find<CurrentTrackDownloadUseCase>(),
+        preferencePort: Get.find<PlaybackPreferencePort>(),
+        toastPort: Get.find<PlaybackToastPort>(),
+        lyricUiStateController: Get.find<PlaybackLyricUiStateController>(),
+      ),
+      permanent: true,
+    );
   }
 
   static void _registerControllers() {
@@ -130,15 +157,15 @@ class FeatureControllerRegistrar {
       () => PlayerController(
         playbackService: Get.find<PlaybackService>(),
         queueStore: Get.find<PlaybackQueueStore>(),
-        queueCoordinator: Get.find<PlaybackQueueCoordinator>(),
         commandService: Get.find<PlaybackUiCommandService>(),
+        modeCommandService: Get.find<PlaybackModeCommandService>(),
+        stateSynchronizer: Get.find<PlaybackStateSynchronizer>(),
+        lyricUiStateController: Get.find<PlaybackLyricUiStateController>(),
         userContentPort: Get.find<PlaybackUserContentPort>(),
         lyricsPresenter: Get.find<PlaybackLyricsPresenter>(),
         artworkPresenter: Get.find<PlaybackArtworkPresenter>(),
         downloadUseCase: Get.find<CurrentTrackDownloadUseCase>(),
-        preferencePort: Get.find<PlaybackPreferencePort>(),
         themePort: Get.find<PlaybackThemePort>(),
-        toastPort: Get.find<PlaybackToastPort>(),
       ),
       fenix: true,
     );

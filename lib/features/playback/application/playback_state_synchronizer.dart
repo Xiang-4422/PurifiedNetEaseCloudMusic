@@ -1,0 +1,235 @@
+import 'dart:async';
+
+import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/domain/entities/playback_media_type.dart';
+import 'package:bujuan/domain/entities/playback_mode.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
+import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
+import 'package:bujuan/features/playback/application/playback_preference_port.dart';
+import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_queue_store.dart';
+import 'package:bujuan/features/playback/application/playback_toast_port.dart';
+import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
+import 'package:bujuan/features/playback/playback_lyric_state.dart';
+import 'package:bujuan/features/playback/playback_runtime_state.dart';
+import 'package:bujuan/features/playback/playback_service.dart';
+
+typedef PlaybackSessionSync = void Function({
+  PlaybackMode? playbackMode,
+  PlaybackRepeatMode? repeatMode,
+  String? playlistName,
+  String? playlistHeader,
+  bool? isPlayingLikedSongs,
+});
+
+typedef PlaybackRuntimeSync = void Function({
+  List<PlaybackQueueItem>? queue,
+  PlaybackQueueItem? currentSong,
+  int? currentIndex,
+  Duration? currentPosition,
+});
+
+class PlaybackStateSynchronizer {
+  PlaybackStateSynchronizer({
+    required PlaybackService playbackService,
+    required PlaybackQueueStore queueStore,
+    required PlaybackQueueCoordinator queueCoordinator,
+    required PlaybackUserContentPort userContentPort,
+    required CurrentTrackDownloadUseCase downloadUseCase,
+    required PlaybackPreferencePort preferencePort,
+    required PlaybackToastPort toastPort,
+    required PlaybackLyricUiStateController lyricUiStateController,
+  })  : _playbackService = playbackService,
+        _queueStore = queueStore,
+        _queueCoordinator = queueCoordinator,
+        _userContentPort = userContentPort,
+        _downloadUseCase = downloadUseCase,
+        _preferencePort = preferencePort,
+        _toastPort = toastPort,
+        _lyricUiStateController = lyricUiStateController;
+
+  final PlaybackService _playbackService;
+  final PlaybackQueueStore _queueStore;
+  final PlaybackQueueCoordinator _queueCoordinator;
+  final PlaybackUserContentPort _userContentPort;
+  final CurrentTrackDownloadUseCase _downloadUseCase;
+  final PlaybackPreferencePort _preferencePort;
+  final PlaybackToastPort _toastPort;
+  final PlaybackLyricUiStateController _lyricUiStateController;
+
+  final List<StreamSubscription<dynamic>> _subscriptions = [];
+  int _lastStoredPositionSecond = -1;
+  bool _isFetchingFm = false;
+  bool _restoringPlaybackState = false;
+
+  Future<void> start({
+    required PlaybackSessionSync syncSessionState,
+    required PlaybackRuntimeSync syncRuntimeState,
+    required void Function({int? currentIndex}) syncLyricState,
+    required Future<void> Function({bool currentItemUpdated})
+        updateCurrentPlayIndex,
+    required Future<void> Function(PlaybackQueueItem item) toggleLike,
+    required Future<void> Function(PlaybackQueueItem item)
+        ensureCurrentTrackArtwork,
+    required Future<void> Function(PlaybackQueueItem item) syncCurrentQueueItem,
+    required PlaybackRuntimeState Function() runtimeState,
+    required PlaybackLyricState Function() lyricState,
+    required PlaybackMode Function() playbackMode,
+    required void Function(bool isPlaying) setIsPlaying,
+    required bool Function() isPlaying,
+    required void Function(bool isOpen) setFullScreenLyricOpen,
+  }) async {
+    _playbackService.bindControllerState(
+      onRestorePlaybackMode: (mode) => syncSessionState(playbackMode: mode),
+      onRepeatModeChanged: (mode) => syncSessionState(repeatMode: mode),
+      onPlaylistMetaChanged: (playlistName, playlistHeader, isLikedSongs) {
+        syncSessionState(
+          playlistName: playlistName,
+          playlistHeader: playlistHeader,
+          isPlayingLikedSongs: isLikedSongs,
+        );
+      },
+      isHighQualityEnabled: _preferencePort.isHighQualityEnabled,
+      onToggleLike: toggleLike,
+      onToast: _toastPort.show,
+      isPlaylistMode: () => playbackMode() == PlaybackMode.playlist,
+      isRoamingMode: () => playbackMode() == PlaybackMode.roaming,
+    );
+    await _playbackService.ensureInitialized();
+
+    _subscriptions.add(
+      _playbackService.queueStream.listen((queueItems) async {
+        syncRuntimeState(queue: queueItems);
+        await updateCurrentPlayIndex(currentItemUpdated: false);
+      }),
+    );
+
+    _subscriptions.add(
+      _playbackService.mediaItemStream.listen((queueItem) async {
+        if (queueItem == null) return;
+        syncRuntimeState(currentSong: queueItem);
+        unawaited(_queueStore.saveCurrentSong(queueItem.id));
+        unawaited(
+          _cacheCurrentTrackForPlayback(
+            queueItem,
+            runtimeState,
+            syncCurrentQueueItem,
+          ),
+        );
+        await updateCurrentPlayIndex(
+          currentItemUpdated: !_restoringPlaybackState,
+        );
+        unawaited(ensureCurrentTrackArtwork(queueItem));
+        await _appendRoamingSongsIfNeeded(
+          playbackMode: playbackMode,
+          runtimeState: runtimeState,
+        );
+      }),
+    );
+
+    _subscriptions.add(
+      _playbackService.playbackStateStream.listen((playbackState) {
+        setIsPlaying(playbackState.playing);
+        _lyricUiStateController.updateFullScreenLyricTimerCounter(
+          isPlaying: isPlaying(),
+          setFullScreenLyricOpen: setFullScreenLyricOpen,
+          cancelTimer: !isPlaying(),
+        );
+        if (playbackState.processingState == AudioProcessingState.completed) {
+          _playbackService.skipToNext();
+        }
+      }),
+    );
+
+    _subscriptions.add(
+      AudioService.createPositionStream(
+        minPeriod: const Duration(milliseconds: 200),
+        steps: 1000,
+      ).listen((newCurPlayingDuration) async {
+        syncRuntimeState(currentPosition: newCurPlayingDuration);
+        final currentSecond = newCurPlayingDuration.inSeconds;
+        if (currentSecond != _lastStoredPositionSecond) {
+          _lastStoredPositionSecond = currentSecond;
+          unawaited(_queueStore.savePosition(newCurPlayingDuration));
+        }
+        final newLyricIndex =
+            _lyricUiStateController.resolveCurrentLyricIndex(
+          lines: lyricState().lines,
+          position: newCurPlayingDuration,
+        );
+        if (newLyricIndex != lyricState().currentIndex) {
+          syncLyricState(currentIndex: newLyricIndex);
+        }
+      }),
+    );
+
+    _restoringPlaybackState = true;
+    await _playbackService.restoreLastPlayState();
+    _restoringPlaybackState = false;
+    await updateCurrentPlayIndex();
+  }
+
+  Future<void> _appendRoamingSongsIfNeeded({
+    required PlaybackMode Function() playbackMode,
+    required PlaybackRuntimeState Function() runtimeState,
+  }) async {
+    final currentRuntimeState = runtimeState();
+    final newIndex = currentRuntimeState.queue.indexWhere(
+      (element) => element.id == currentRuntimeState.currentSong.id,
+    );
+    if (playbackMode() != PlaybackMode.roaming ||
+        newIndex < currentRuntimeState.queue.length - 2 ||
+        _isFetchingFm) {
+      return;
+    }
+
+    _isFetchingFm = true;
+    try {
+      final newFmPlayList = await _userContentPort.loadFmSongs();
+      if (playbackMode() == PlaybackMode.roaming && newFmPlayList.isNotEmpty) {
+        final shouldAutoPlayNext =
+            newIndex == currentRuntimeState.queue.length - 1 &&
+                _playbackService.handler.playbackState.value.processingState ==
+                    AudioProcessingState.completed;
+
+        await _queueCoordinator.appendRoamingSongs(
+          currentQueue: currentRuntimeState.queue,
+          incomingSongs: newFmPlayList,
+          currentSongId: currentRuntimeState.currentSong.id,
+          shouldAutoPlayNext: shouldAutoPlayNext,
+          fallbackIndex: newIndex,
+        );
+      }
+    } finally {
+      _isFetchingFm = false;
+    }
+  }
+
+  Future<void> _cacheCurrentTrackForPlayback(
+    PlaybackQueueItem item,
+    PlaybackRuntimeState Function() runtimeState,
+    Future<void> Function(PlaybackQueueItem item) syncCurrentQueueItem,
+  ) async {
+    if (item.id.isEmpty ||
+        item.mediaType == MediaType.local ||
+        item.mediaType == MediaType.neteaseCache) {
+      return;
+    }
+    final updatedItem = await _downloadUseCase.cacheTrackForPlayback(
+      item.id,
+      preferHighQuality: _preferencePort.isHighQualityEnabled(),
+    );
+    if (updatedItem != null && runtimeState().currentSong.id == item.id) {
+      await syncCurrentQueueItem(updatedItem);
+    }
+  }
+
+  Future<void> dispose() async {
+    for (final subscription in _subscriptions) {
+      await subscription.cancel();
+    }
+    _subscriptions.clear();
+  }
+}

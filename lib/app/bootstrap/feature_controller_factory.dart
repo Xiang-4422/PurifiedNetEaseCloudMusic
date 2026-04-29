@@ -14,6 +14,7 @@ import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
 import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
+import 'package:bujuan/features/playlist/application/playlist_detail_service.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
@@ -136,7 +137,13 @@ class FeatureControllerFactory {
   }
 
   PlaylistPageController playlistPage() {
-    return PlaylistPageController(repository: _playlistRepository);
+    return PlaylistPageController(
+      detailService: PlaylistDetailService(
+        repository: _playlistRepository,
+        likedSongIds: () => _userLibraryController.likedSongIds.toList(),
+        currentUserId: () => _userSessionController.userInfo.value.userId,
+      ),
+    );
   }
 
   RadioListController radioList({int pageSize = 30}) {

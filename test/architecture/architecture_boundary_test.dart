@@ -629,6 +629,48 @@ void main() {
         reason: '实验性 demo 页面应归类到 debug feature。',
       );
     });
+
+    test('application service and download usecase layer exists', () {
+      const expectedFiles = [
+        'lib/features/playlist/application/playlist_detail_service.dart',
+        'lib/features/search/application/search_application_service.dart',
+        'lib/features/user/application/user_home_application_service.dart',
+        'lib/features/download/application/queue_download_use_case.dart',
+        'lib/features/download/application/remove_download_use_case.dart',
+        'lib/features/download/application/recover_downloads_use_case.dart',
+      ];
+      final missing = expectedFiles
+          .where((path) => !File('${projectRoot.path}/$path').existsSync())
+          .toList();
+
+      expect(
+        missing,
+        isEmpty,
+        reason:
+            '页面流程必须有明确 application service/usecase 落点，不能继续只堆在 repository 或 controller。',
+      );
+    });
+
+    test('drift dao layer exists', () {
+      const expectedFiles = [
+        'lib/data/local/dao/track_dao.dart',
+        'lib/data/local/dao/playlist_dao.dart',
+        'lib/data/local/dao/user_dao.dart',
+        'lib/data/local/dao/download_task_dao.dart',
+        'lib/data/local/dao/resource_dao.dart',
+        'lib/data/local/dao/cache_dao.dart',
+      ];
+      final missing = expectedFiles
+          .where((path) => !File('${projectRoot.path}/$path').existsSync())
+          .toList();
+
+      expect(
+        missing,
+        isEmpty,
+        reason:
+            'Drift 手写数据访问必须有 DAO 分类入口，data source 只能保留 facade/组合职责。',
+      );
+    });
   });
 }
 

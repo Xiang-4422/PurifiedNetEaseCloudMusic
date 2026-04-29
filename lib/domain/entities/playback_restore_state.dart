@@ -1,5 +1,5 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 
 /// 播放恢复状态描述“应用下次启动时最少需要恢复什么”。
 ///
@@ -7,7 +7,7 @@ import 'package:bujuan/common/constants/enmu.dart';
 /// 分别读取。
 class PlaybackRestoreState {
   final PlaybackMode playbackMode;
-  final AudioServiceRepeatMode repeatMode;
+  final PlaybackRepeatMode repeatMode;
   final List<String> queue;
   final String currentSongId;
   final String playlistName;
@@ -16,7 +16,7 @@ class PlaybackRestoreState {
 
   const PlaybackRestoreState({
     this.playbackMode = PlaybackMode.playlist,
-    this.repeatMode = AudioServiceRepeatMode.all,
+    this.repeatMode = PlaybackRepeatMode.all,
     this.queue = const <String>[],
     this.currentSongId = '',
     this.playlistName = '',
@@ -26,7 +26,7 @@ class PlaybackRestoreState {
 
   bool get hasSnapshotData {
     return playbackMode != PlaybackMode.playlist ||
-        repeatMode != AudioServiceRepeatMode.all ||
+        repeatMode != PlaybackRepeatMode.all ||
         queue.isNotEmpty ||
         currentSongId.isNotEmpty ||
         playlistName.isNotEmpty ||
@@ -36,7 +36,7 @@ class PlaybackRestoreState {
 
   PlaybackRestoreState copyWith({
     PlaybackMode? playbackMode,
-    AudioServiceRepeatMode? repeatMode,
+    PlaybackRepeatMode? repeatMode,
     List<String>? queue,
     String? currentSongId,
     String? playlistName,
@@ -72,9 +72,9 @@ class PlaybackRestoreState {
         (element) => element.name == json['playbackMode'],
         orElse: () => PlaybackMode.playlist,
       ),
-      repeatMode: AudioServiceRepeatMode.values.firstWhere(
+      repeatMode: PlaybackRepeatMode.values.firstWhere(
         (element) => element.name == json['repeatMode'],
-        orElse: () => AudioServiceRepeatMode.all,
+        orElse: () => PlaybackRepeatMode.all,
       ),
       queue: (json['queue'] as List?)?.cast<String>() ?? const <String>[],
       currentSongId: json['currentSongId'] as String? ?? '',

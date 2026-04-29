@@ -3,8 +3,6 @@ import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_list_controller.dart';
-import 'package:bujuan/features/radio/radio_repository.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
@@ -22,17 +20,13 @@ class MyRadioView extends StatefulWidget {
 }
 
 class _MyRadioViewState extends State<MyRadioView> {
-  RadioRepository get _repository => Get.find<RadioRepository>();
   late final RadioListController _controller;
   final RefreshController _refreshController = RefreshController();
 
   @override
   void initState() {
     super.initState();
-    _controller = RadioListController(
-      repository: _repository,
-      userId: UserSessionController.to.userInfo.value.userId,
-    )..loadInitial();
+    _controller = RadioListController.currentUser()..loadInitial();
   }
 
   @override

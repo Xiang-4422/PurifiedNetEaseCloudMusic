@@ -4,12 +4,9 @@ import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/domain/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
 import 'package:bujuan/features/radio/radio_playback_queue_item_mapper.dart';
-import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class RadioDetailsView extends StatefulWidget {
@@ -20,7 +17,6 @@ class RadioDetailsView extends StatefulWidget {
 }
 
 class _RadioDetailsViewState extends State<RadioDetailsView> {
-  RadioRepository get _repository => Get.find<RadioRepository>();
   late final String _radioId;
   late final String _radioName;
   late final RadioDetailController _controller;
@@ -31,11 +27,8 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
     super.initState();
     _radioId = context.routeData.queryParams.get('radioId');
     _radioName = context.routeData.queryParams.get('radioName');
-    _controller = RadioDetailController(
-      repository: _repository,
-      radioId: _radioId,
-      userId: UserSessionController.to.userInfo.value.userId,
-    )..loadInitial();
+    _controller = RadioDetailController.currentUser(radioId: _radioId)
+      ..loadInitial();
   }
 
   @override

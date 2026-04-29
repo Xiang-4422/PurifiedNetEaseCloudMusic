@@ -82,14 +82,20 @@ void main() {
 
       final domainFlutterViolations = boundaryFiles
           .where((file) => _relativePath(file).startsWith('lib/domain/'))
-          .where((file) => _contains(file, "package:flutter/"))
+          .where(
+            (file) => _containsAny(file, const [
+              "package:flutter/",
+              "package:audio_service/",
+              "package:just_audio/",
+            ]),
+          )
           .map(_relativePath)
           .toList();
 
       expect(
         domainFlutterViolations,
         isEmpty,
-        reason: 'domain 必须保持纯 Dart，不能依赖 Flutter UI 包。',
+        reason: 'domain 必须保持纯 Dart，不能依赖 Flutter、audio_service 或 just_audio。',
       );
     });
 
@@ -121,6 +127,21 @@ void main() {
         isEmpty,
         reason:
             'presentation 只能通过 controller/application/repository 读取数据，不能直连 data/netease。',
+      );
+    });
+
+    test('presentation does not import repositories directly', () {
+      final violations = _dartFiles(libDirectory)
+          .where((file) => _relativePath(file).contains('/presentation/'))
+          .where((file) => _contains(file, '_repository.dart'))
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'presentation 只能依赖 controller/application service，不能直接持有 repository。',
       );
     });
 

@@ -2,13 +2,9 @@ import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller.dart';
-import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class CloudDriveView extends StatefulWidget {
@@ -19,18 +15,13 @@ class CloudDriveView extends StatefulWidget {
 }
 
 class _CloudDriveViewState extends State<CloudDriveView> {
-  static CloudRepository get _repository => Get.find<CloudRepository>();
   late final CloudPageController _controller;
   final RefreshController _refreshController = RefreshController();
 
   @override
   void initState() {
     super.initState();
-    _controller = CloudPageController(
-      repository: _repository,
-      userId: UserSessionController.to.userInfo.value.userId,
-      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-    )..loadInitial();
+    _controller = CloudPageController.currentUser()..loadInitial();
   }
 
   @override

@@ -1,11 +1,11 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/domain/entities/playback_restore_state.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/domain/entities/playback_restore_state.dart';
 
 class PlaybackRepository {
   PlaybackRepository({
@@ -43,7 +43,7 @@ class PlaybackRepository {
 
   Future<void> updateRestoreState({
     PlaybackMode? playbackMode,
-    AudioServiceRepeatMode? repeatMode,
+    PlaybackRepeatMode? repeatMode,
     List<String>? queue,
     String? currentSongId,
     String? playlistName,

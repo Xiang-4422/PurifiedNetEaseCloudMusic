@@ -27,6 +27,9 @@ import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_artwork_cache_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
+import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
+import 'package:bujuan/features/playback/application/playback_artwork_presenter.dart';
+import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
@@ -36,6 +39,7 @@ import 'package:bujuan/features/playback/application/playback_user_content_port.
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playlist/application/playlist_playback_action.dart';
 import 'package:bujuan/features/playlist/playlist_cache_store.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
@@ -194,6 +198,10 @@ class AppBinding extends Bindings {
       ExploreRepository(cacheStore: exploreCacheStore),
       permanent: true,
     );
+    Get.put<PlaylistPlaybackAction>(
+      PlaylistPlaybackAction(repository: Get.find<PlaylistRepository>()),
+      permanent: true,
+    );
 
     unawaited(downloadRepository.recoverInterruptedTasks());
   }
@@ -257,6 +265,22 @@ class AppBinding extends Bindings {
       ),
       permanent: true,
     );
+    Get.put<PlaybackLyricsPresenter>(
+      PlaybackLyricsPresenter(repository: Get.find<PlaybackRepository>()),
+      permanent: true,
+    );
+    Get.put<PlaybackArtworkPresenter>(
+      PlaybackArtworkPresenter(repository: Get.find<PlaybackRepository>()),
+      permanent: true,
+    );
+    Get.put<CurrentTrackDownloadUseCase>(
+      CurrentTrackDownloadUseCase(
+        downloadRepository: Get.find<DownloadRepository>(),
+        playbackRepository: Get.find<PlaybackRepository>(),
+        userContentPort: Get.find<PlaybackUserContentPort>(),
+      ),
+      permanent: true,
+    );
     Get.lazyPut(() => HomeShellController(), fenix: true);
     Get.lazyPut(() => SettingsController(), fenix: true);
     Get.lazyPut(
@@ -285,13 +309,14 @@ class AppBinding extends Bindings {
     );
     Get.lazyPut(
       () => PlayerController(
-        repository: Get.find<PlaybackRepository>(),
         playbackService: Get.find<PlaybackService>(),
-        downloadRepository: Get.find<DownloadRepository>(),
         queueStore: Get.find<PlaybackQueueStore>(),
         queueCoordinator: Get.find<PlaybackQueueCoordinator>(),
         modeCoordinator: Get.find<PlaybackModeCoordinator>(),
         userContentPort: Get.find<PlaybackUserContentPort>(),
+        lyricsPresenter: Get.find<PlaybackLyricsPresenter>(),
+        artworkPresenter: Get.find<PlaybackArtworkPresenter>(),
+        downloadUseCase: Get.find<CurrentTrackDownloadUseCase>(),
       ),
       fenix: true,
     );

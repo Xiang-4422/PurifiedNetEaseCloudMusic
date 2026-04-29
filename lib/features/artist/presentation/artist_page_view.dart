@@ -8,11 +8,10 @@ import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/features/artist/artist_repository.dart';
+import 'package:bujuan/features/artist/artist_page_controller.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
@@ -31,7 +30,7 @@ class ArtistPageView extends StatefulWidget {
 }
 
 class _ArtistPageViewState extends State<ArtistPageView> {
-  ArtistRepository get _repository => Get.find<ArtistRepository>();
+  final ArtistPageController _controller = ArtistPageController.create();
   late String artistId;
   late ArtistEntity artist;
 
@@ -48,10 +47,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
 
     artistId = context.routeData.queryParams.get("artistId");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final localDetail = await _repository.loadLocalArtistDetail(
-        artistId: artistId,
-        likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-      );
+      final localDetail = await _controller.loadLocalDetail(artistId);
       if (localDetail != null) {
         artist = localDetail.artist;
         topSongs
@@ -295,10 +291,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
         loading = true;
       });
     }
-    final artistDetail = await _repository.fetchArtistDetail(
-      artistId: artistId,
-      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-    );
+    final artistDetail = await _controller.fetchDetail(artistId);
     artist = artistDetail.artist;
     topSongs
       ..clear()

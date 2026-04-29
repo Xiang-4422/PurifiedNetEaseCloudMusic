@@ -5,12 +5,17 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 
 /// 顶部搜索面板只需要维护一次热搜加载状态，单独拆出来可以避免页面在
 /// build 阶段继续构造请求描述，也能避免同一面板反复触发首屏请求。
 class SearchPanelController {
   SearchPanelController({required SearchRepository repository})
       : _repository = repository;
+
+  factory SearchPanelController.create() {
+    return SearchPanelController(repository: Get.find<SearchRepository>());
+  }
 
   static const Duration _hotKeywordTtl = Duration(minutes: 30);
 

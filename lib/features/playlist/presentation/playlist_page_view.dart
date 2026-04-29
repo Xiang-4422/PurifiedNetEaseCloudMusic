@@ -8,11 +8,9 @@ import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/playlist/playlist_repository.dart';
+import 'package:bujuan/features/playlist/playlist_page_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -40,7 +38,7 @@ class PlayListPageView extends StatefulWidget {
 }
 
 class _PlayListPageViewState extends State<PlayListPageView> {
-  PlaylistRepository get _repository => Get.find<PlaylistRepository>();
+  final PlaylistPageController _controller = PlaylistPageController.create();
 
   String playlistName = '';
   String? coverUrl;
@@ -269,13 +267,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _loadPlaylistData() async {
-    final localDetail = await _repository.loadLocalPlaylistDetail(
-      playlistId: widget.playlistId,
-      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-      currentUserId: UserSessionController.to.userInfo.value.userId,
-    );
+    final localDetail = await _controller.loadLocalDetail(widget.playlistId);
     final cachedSnapshot =
-        await _repository.loadCachedSnapshot(widget.playlistId);
+        await _controller.loadCachedSnapshot(widget.playlistId);
     if (cachedSnapshot != null) {
       playlistName = cachedSnapshot.name;
       coverUrl = cachedSnapshot.coverUrl ?? coverUrl;
@@ -304,12 +298,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         loading = true;
       });
     }
-    final data = await _repository.fetchPlaylistDetail(
-      playlistId: widget.playlistId,
-      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-      currentUserId: UserSessionController.to.userInfo.value.userId,
-    );
-    final snapshot = await _repository.loadCachedSnapshot(widget.playlistId);
+    final data = await _controller.fetchDetail(widget.playlistId);
+    final snapshot = await _controller.loadCachedSnapshot(widget.playlistId);
     if (snapshot != null) {
       playlistName = snapshot.name;
       coverUrl = snapshot.coverUrl ?? coverUrl;
@@ -336,10 +326,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       );
 
   Future<void> _subscribePlayList() async {
-    final value = await _repository.toggleSubscription(
+    final value = await _controller.toggleSubscription(
       widget.playlistId,
       subscribe: !isSubscribed,
-      currentUserId: UserSessionController.to.userInfo.value.userId,
     );
     if (value.success && mounted) {
       setState(() {

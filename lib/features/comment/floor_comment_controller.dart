@@ -2,6 +2,7 @@ import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 
 class FloorCommentController {
   FloorCommentController({
@@ -11,6 +12,21 @@ class FloorCommentController {
     required CommentRepository repository,
     this.pageSize = 20,
   }) : _repository = repository;
+
+  factory FloorCommentController.create({
+    required String id,
+    required String type,
+    required String parentCommentId,
+    int pageSize = 20,
+  }) {
+    return FloorCommentController(
+      id: id,
+      type: type,
+      parentCommentId: parentCommentId,
+      repository: Get.find<CommentRepository>(),
+      pageSize: pageSize,
+    );
+  }
 
   final String id;
   final String type;
@@ -96,6 +112,33 @@ class FloorCommentController {
       );
       return false;
     }
+  }
+
+  Future<bool> toggleLike(
+    CommentData comment, {
+    required bool liked,
+  }) async {
+    final result = await _repository.toggleCommentLike(
+      id,
+      type,
+      comment.commentId,
+      liked,
+    );
+    return result.success;
+  }
+
+  Future<String?> sendReply({
+    required String content,
+    required String commentId,
+  }) async {
+    final commentWrap = await _repository.sendComment(
+      id,
+      type,
+      'reply',
+      content: content,
+      commentId: commentId,
+    );
+    return commentWrap.success ? null : commentWrap.message ?? '评论失败';
   }
 
   void dispose() {

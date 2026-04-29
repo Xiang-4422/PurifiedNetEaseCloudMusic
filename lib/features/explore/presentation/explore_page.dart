@@ -1,5 +1,7 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playlist/application/playlist_playback_action.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
@@ -172,6 +174,10 @@ class ExplorePageView extends GetView<ExplorePageController> {
                     albumCountInWidget: 3.2,
                     albumMargin: AppDimensions.paddingSmall,
                     showSongCount: false,
+                    isPlaying: PlayerController.to.isPlaying.value,
+                    playingPlaylistName:
+                        PlayerController.to.sessionState.value.playlistName,
+                    onPlayPlaylist: PlaylistPlaybackAction.to.play,
                   )),
             ),
             // // 排行榜

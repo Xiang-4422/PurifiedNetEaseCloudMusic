@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/other.dart';
-import 'package:bujuan/features/local_media/local_media_repository.dart';
-import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
+import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
 import 'package:bujuan/features/download/presentation/download_task_page_view.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/playback/presentation/coverflow_demo_page_view.dart';
@@ -23,10 +22,8 @@ class SettingPageView extends StatefulWidget {
 }
 
 class _SettingPageViewState extends State<SettingPageView> {
-  final LocalMediaScanRepository _localMediaScanRepository =
-      LocalMediaScanRepository(
-    localMediaRepository: Get.find<LocalMediaRepository>(),
-  );
+  final LocalMediaScanController _localMediaScanController =
+      LocalMediaScanController.create();
 
   String version = '1.0.0';
 
@@ -61,7 +58,7 @@ class _SettingPageViewState extends State<SettingPageView> {
     }
     WidgetUtil.showLoadingDialog(context);
     try {
-      final importedCount = await _localMediaScanRepository.importDirectories(
+      final importedCount = await _localMediaScanController.importDirectories(
         directoryPaths,
       );
       if (!mounted) {

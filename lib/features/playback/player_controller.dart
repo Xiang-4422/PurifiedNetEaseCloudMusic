@@ -1,23 +1,17 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
-import 'package:bujuan/common/lyric_parser/parser_lrc.dart';
-import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
-import 'package:bujuan/core/storage/local_image_cache_repository.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/domain/entities/track_lyrics.dart';
-import 'package:bujuan/domain/entities/track_resource_bundle.dart';
-import 'package:bujuan/domain/entities/track_with_resources.dart';
-import 'package:bujuan/features/download/download_repository.dart';
+import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
+import 'package:bujuan/features/playback/application/playback_artwork_presenter.dart';
+import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
-import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
@@ -36,32 +30,31 @@ class PlayerController extends GetxController {
   static PlayerController get to => Get.find();
 
   PlayerController({
-    required PlaybackRepository repository,
     required PlaybackService playbackService,
-    required DownloadRepository downloadRepository,
     required PlaybackQueueStore queueStore,
     required PlaybackQueueCoordinator queueCoordinator,
     required PlaybackModeCoordinator modeCoordinator,
     required PlaybackUserContentPort userContentPort,
-    LocalImageCacheRepository? imageCacheRepository,
-  })  : _repository = repository,
-        _playbackService = playbackService,
-        _downloadRepository = downloadRepository,
+    required PlaybackLyricsPresenter lyricsPresenter,
+    required PlaybackArtworkPresenter artworkPresenter,
+    required CurrentTrackDownloadUseCase downloadUseCase,
+  })  : _playbackService = playbackService,
         _queueStore = queueStore,
         _queueCoordinator = queueCoordinator,
         _modeCoordinator = modeCoordinator,
         _userContentPort = userContentPort,
-        _imageCacheRepository =
-            imageCacheRepository ?? LocalImageCacheRepository();
+        _lyricsPresenter = lyricsPresenter,
+        _artworkPresenter = artworkPresenter,
+        _downloadUseCase = downloadUseCase;
 
-  final PlaybackRepository _repository;
   final PlaybackService _playbackService;
-  final DownloadRepository _downloadRepository;
   final PlaybackQueueStore _queueStore;
   final PlaybackQueueCoordinator _queueCoordinator;
   final PlaybackModeCoordinator _modeCoordinator;
   final PlaybackUserContentPort _userContentPort;
-  final LocalImageCacheRepository _imageCacheRepository;
+  final PlaybackLyricsPresenter _lyricsPresenter;
+  final PlaybackArtworkPresenter _artworkPresenter;
+  final CurrentTrackDownloadUseCase _downloadUseCase;
 
   PlaybackService get playbackService => _playbackService;
 
@@ -81,9 +74,6 @@ class PlayerController extends GetxController {
   final Rx<Duration> currentPositionState = Duration.zero.obs;
   final RxList<PlaybackQueueItem> queueState = <PlaybackQueueItem>[].obs;
   final RxInt currentQueueIndex = (-1).obs;
-
-  // 取色是高频但纯展示性质的操作，做小缓存可以明显减少切歌时的同步卡顿。
-  final Map<String, Color> _albumColorCache = {};
 
   // 漫游模式的补队列是异步请求，锁住重复触发可以避免同一首歌附近连续补多次。
   bool _isFetchingFm = false;
@@ -292,29 +282,11 @@ class PlayerController extends GetxController {
 
   _updateAlbumColor() async {
     final currentSong = runtimeState.value.currentSong;
-    final imageUrl = currentSong.artworkUrl ?? currentSong.localArtworkPath;
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return;
-    }
-
     try {
-      final imagePath = await _imageCacheRepository.resolveImagePath(imageUrl);
-      if (imagePath.isEmpty) {
+      final color = await _artworkPresenter.resolveDominantColor(currentSong);
+      if (color == null) {
         return;
       }
-
-      Color color;
-      if (_albumColorCache.containsKey(imagePath)) {
-        color = _albumColorCache[imagePath]!;
-      } else {
-        color = await OtherUtils.getImageColor(imagePath);
-        // 这里只做很小的缓存就够了，再大只会把“展示态颜色”变成长期驻留内存。
-        if (_albumColorCache.length > 20) {
-          _albumColorCache.remove(_albumColorCache.keys.first);
-        }
-        _albumColorCache[imagePath] = color;
-      }
-
       SettingsController.to.albumColor.value = color;
       SettingsController.to.panelWidgetColor.value =
           color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
@@ -328,47 +300,8 @@ class PlayerController extends GetxController {
   /// 这个顺序直接决定离线可用性；歌词内容现在走媒体库存储，不再继续塞进恢复态轻存储。
   _updateLyric() async {
     _syncLyricState(lines: const [], hasTranslatedLyrics: false);
-
-    final currentSong = runtimeState.value.currentSong;
-    String songId = currentSong.id;
-    String lyric = '';
-    String lyricTran = '';
-    if (lyric.isEmpty) {
-      final lyrics = await _repository.fetchSongLyrics(currentSong.id) ??
-          const TrackLyrics();
-      lyric = lyrics.main;
-      lyricTran = lyrics.translated;
-    } else {
-      await _repository.saveSongLyrics(
-        songId,
-        TrackLyrics(main: lyric, translated: lyricTran),
-      );
-    }
-    if (lyric.isNotEmpty) {
-      var mainLyricsLineModels = ParserLrc(lyric).parseLines();
-      if (lyricTran.isNotEmpty) {
-        var extLyricsLineModels = ParserLrc(lyricTran).parseLines();
-        for (LyricsLineModel lyricsLineModel in extLyricsLineModels) {
-          int index = mainLyricsLineModels.indexWhere(
-              (element) => element.startTime == lyricsLineModel.startTime);
-          if (index != -1) {
-            mainLyricsLineModels[index].extText = lyricsLineModel.mainText;
-          }
-        }
-      }
-      _syncLyricState(
-        lines: mainLyricsLineModels,
-        hasTranslatedLyrics: lyricTran.isNotEmpty,
-      );
-    } else {
-      _syncLyricState(lines: [
-        LyricsLineModel()
-          ..mainText = "没歌词哦～"
-          ..startTime = 0
-      ]);
-    }
-
-    _syncLyricState(currentIndex: -1);
+    lyricState.value =
+        await _lyricsPresenter.loadLyrics(runtimeState.value.currentSong);
   }
 
   playOrPause() async {
@@ -469,57 +402,43 @@ class PlayerController extends GetxController {
     String trackId, {
     bool preferHighQuality = true,
   }) async {
-    final updatedTrack = await _downloadRepository.downloadTrack(
+    final result = await _downloadUseCase.downloadTrackById(
       trackId,
       preferHighQuality: preferHighQuality,
     );
-    if (updatedTrack == null) {
-      return null;
-    }
-    await _maybeSyncCurrentQueueItem(updatedTrack);
-    return updatedTrack;
+    await _syncDownloadResultIfCurrent(result);
+    return result?.track;
   }
 
   Future<Track?> removeDownloadedTrackById(String trackId) async {
-    await _downloadRepository.removeDownloadedTrack(trackId);
-    final updatedTrack = await _repository.getTrack(trackId);
-    if (updatedTrack == null) {
-      return null;
-    }
-    await _maybeSyncCurrentQueueItem(updatedTrack);
-    return updatedTrack;
+    final result = await _downloadUseCase.removeDownloadedTrackById(trackId);
+    await _syncDownloadResultIfCurrent(result);
+    return result?.track;
   }
 
   Future<Track?> cancelTrackDownloadById(String trackId) async {
-    await _downloadRepository.cancelTask(trackId);
-    final updatedTrack = await _repository.getTrack(trackId);
-    if (updatedTrack == null) {
-      return null;
-    }
-    await _maybeSyncCurrentQueueItem(updatedTrack);
-    return updatedTrack;
+    final result = await _downloadUseCase.cancelTrackDownloadById(trackId);
+    await _syncDownloadResultIfCurrent(result);
+    return result?.track;
   }
 
   Future<Track?> retryTrackDownloadById(
     String trackId, {
     bool preferHighQuality = true,
   }) async {
-    final updatedTrack = await _downloadRepository.retryTask(
+    final result = await _downloadUseCase.retryTrackDownloadById(
       trackId,
       preferHighQuality: preferHighQuality,
     );
-    if (updatedTrack == null) {
-      return null;
-    }
-    await _maybeSyncCurrentQueueItem(updatedTrack);
-    return updatedTrack;
+    await _syncDownloadResultIfCurrent(result);
+    return result?.track;
   }
 
   Future<void> queueTrackDownloads(
     Iterable<String> trackIds, {
     bool preferHighQuality = true,
   }) {
-    return _downloadRepository.queueTracks(
+    return _downloadUseCase.queueTrackDownloads(
       trackIds,
       preferHighQuality: preferHighQuality,
     );
@@ -698,85 +617,29 @@ class PlayerController extends GetxController {
     }
   }
 
-  Future<void> _syncCurrentQueueItem(Track track) async {
-    final trackWithResources =
-        await _repository.getTrackWithResources(track.id);
-    final queueItems = PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      [
-        trackWithResources ??
-            TrackWithResources(
-              track: track,
-              resources: const TrackResourceBundle(),
-            ),
-      ],
-      likedSongIds: _userContentPort.likedSongIds(),
-    );
-    if (queueItems.isEmpty) {
+  Future<void> _syncDownloadResultIfCurrent(
+    CurrentTrackDownloadResult? result,
+  ) async {
+    if (result == null ||
+        runtimeState.value.currentSong.id != result.track.id ||
+        result.queueItem == null) {
       return;
     }
-
-    final updatedItem = queueItems.first;
-    final queue = runtimeState.value.queue
-        .map((item) => item.id == updatedItem.id ? updatedItem : item)
-        .toList(growable: false);
-    _syncRuntimeState(
-      queue: queue,
-      currentSong: updatedItem,
-    );
-    await _playbackService.updateQueueItem(updatedItem);
-  }
-
-  Future<void> _maybeSyncCurrentQueueItem(Track track) async {
-    if (runtimeState.value.currentSong.id != track.id) {
-      return;
-    }
-    await _syncCurrentQueueItem(track);
+    await _syncCurrentQueueItem(result.queueItem!);
   }
 
   Future<void> _ensureCurrentTrackArtwork(PlaybackQueueItem item) async {
-    if (_hasArtworkSource(item)) {
+    final updatedItem = await _artworkPresenter.resolveMissingArtwork(item);
+    if (updatedItem == null || runtimeState.value.currentSong.id != item.id) {
       return;
     }
-
-    final trackWithResources = await _repository.getTrackWithResources(item.id);
-    if (trackWithResources == null ||
-        runtimeState.value.currentSong.id != item.id) {
-      return;
-    }
-    final localArtworkPath = trackWithResources.resources.artwork?.path ?? '';
-    final artworkSource = localArtworkPath.isNotEmpty
-        ? localArtworkPath
-        : trackWithResources.track.artworkUrl;
-    if (artworkSource?.isNotEmpty != true) {
-      return;
-    }
-    await _syncCurrentTrackArtwork(item, trackWithResources);
+    await _syncCurrentQueueItem(updatedItem);
     await _updateAlbumColor();
   }
 
-  bool _hasArtworkSource(PlaybackQueueItem item) {
-    return item.artworkUrl?.isNotEmpty == true ||
-        item.localArtworkPath?.isNotEmpty == true;
-  }
-
-  Future<void> _syncCurrentTrackArtwork(
-    PlaybackQueueItem currentItem,
-    TrackWithResources trackWithResources,
-  ) async {
-    final localArtworkPath = trackWithResources.resources.artwork?.path ?? '';
-    final imageUrl = localArtworkPath.isNotEmpty
-        ? localArtworkPath
-        : trackWithResources.track.artworkUrl ?? '';
-    if (imageUrl.isEmpty) {
-      return;
-    }
-
-    final updatedItem = currentItem.copyWith(
-      artworkUrl: imageUrl,
-      localArtworkPath: localArtworkPath.isEmpty ? null : localArtworkPath,
-    );
+  Future<void> _syncCurrentQueueItem(PlaybackQueueItem updatedItem) async {
     final queue = runtimeState.value.queue
-        .map((item) => item.id == currentItem.id ? updatedItem : item)
+        .map((item) => item.id == updatedItem.id ? updatedItem : item)
         .toList(growable: false);
     _syncRuntimeState(
       queue: queue,
@@ -791,12 +654,12 @@ class PlayerController extends GetxController {
         item.mediaType == MediaType.neteaseCache) {
       return;
     }
-    final updatedTrack = await _downloadRepository.cacheTrackForPlayback(
+    final updatedItem = await _downloadUseCase.cacheTrackForPlayback(
       item.id,
       preferHighQuality: _isHighQualityEnabled(),
     );
-    if (updatedTrack != null) {
-      await _maybeSyncCurrentQueueItem(updatedTrack);
+    if (updatedItem != null && runtimeState.value.currentSong.id == item.id) {
+      await _syncCurrentQueueItem(updatedItem);
     }
   }
 
@@ -809,35 +672,10 @@ class PlayerController extends GetxController {
       return;
     }
     final currentRuntimeState = runtimeState.value;
-    if (currentRuntimeState.queue.isEmpty) return;
-    int currentIndex = currentRuntimeState.currentIndex;
-    if (currentIndex < 0) return;
-
-    List<int> indicesToPreload = [];
-    for (int i = 1; i <= 3; i++) {
-      indicesToPreload
-          .add((currentIndex + i) % currentRuntimeState.queue.length);
-      indicesToPreload.add(
-          (currentIndex - i + currentRuntimeState.queue.length) %
-              currentRuntimeState.queue.length);
-    }
-
-    for (int index in indicesToPreload) {
-      final imagePath = currentRuntimeState.queue[index].artworkUrl ??
-          currentRuntimeState.queue[index].localArtworkPath;
-      if (imagePath != null &&
-          imagePath.isNotEmpty &&
-          !imagePath.startsWith('http://') &&
-          !imagePath.startsWith('https://')) {
-        try {
-          precacheImage(
-            FileImage(File(imagePath.split('?').first)),
-            Get.context!,
-          );
-        } catch (_) {
-          // 预取失败只影响切歌时的观感，不能让展示层优化反过来干扰播放主链路。
-        }
-      }
-    }
+    _artworkPresenter.preloadQueueArtwork(
+      queue: currentRuntimeState.queue,
+      currentIndex: currentRuntimeState.currentIndex,
+      context: Get.context,
+    );
   }
 }

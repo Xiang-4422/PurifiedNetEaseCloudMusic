@@ -3,13 +3,10 @@ import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/local_song_entry.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/download/local_song_list_controller.dart';
-import 'package:bujuan/features/download/download_repository.dart';
-import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/load_state_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
-import 'package:get/get.dart';
 
 class DownloadTaskPageView extends StatefulWidget {
   const DownloadTaskPageView({super.key});
@@ -32,25 +29,14 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    final libraryRepository = Get.find<LibraryRepository>();
-    final downloadRepository = Get.find<DownloadRepository>();
-    _allController = LocalSongListController(
-      libraryRepository: libraryRepository,
-      downloadRepository: downloadRepository,
-    )..loadInitial();
-    _cacheController = LocalSongListController(
-      libraryRepository: libraryRepository,
-      downloadRepository: downloadRepository,
+    _allController = LocalSongListController.create()..loadInitial();
+    _cacheController = LocalSongListController.create(
       origins: const {TrackResourceOrigin.playbackCache},
     )..loadInitial();
-    _downloadController = LocalSongListController(
-      libraryRepository: libraryRepository,
-      downloadRepository: downloadRepository,
+    _downloadController = LocalSongListController.create(
       origins: const {TrackResourceOrigin.managedDownload},
     )..loadInitial();
-    _importController = LocalSongListController(
-      libraryRepository: libraryRepository,
-      downloadRepository: downloadRepository,
+    _importController = LocalSongListController.create(
       origins: const {TrackResourceOrigin.localImport},
     )..loadInitial();
   }

@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/features/playback/application/media_item_cache_codec.dart';
+import 'package:bujuan/features/playback/application/playback_repeat_mode_mapper.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
 /// 统一处理播放队列恢复态的编码与持久化。
@@ -37,7 +38,9 @@ class PlaybackQueueStore {
   }
 
   Future<void> saveRepeatMode(AudioServiceRepeatMode repeatMode) {
-    return _repository.updateRestoreState(repeatMode: repeatMode);
+    return _repository.updateRestoreState(
+      repeatMode: PlaybackRepeatModeMapper.fromAudioService(repeatMode),
+    );
   }
 
   Future<void> savePlaybackMode(PlaybackMode playbackMode) {

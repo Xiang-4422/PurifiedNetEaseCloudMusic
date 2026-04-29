@@ -3,7 +3,6 @@ import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_list_controller.dart';
-import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/comment/floor_comment_controller.dart';
 import 'package:bujuan/features/comment/presentation/custom_field.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -39,19 +38,16 @@ class CommentWidget extends StatefulWidget {
 }
 
 class _CommentWidgetState extends State<CommentWidget> {
-  static CommentRepository get _repository => Get.find<CommentRepository>();
-
   late final CommentListController _controller;
   final RefreshController _refreshController = RefreshController();
 
   @override
   void initState() {
     super.initState();
-    _controller = CommentListController(
+    _controller = CommentListController.create(
       id: widget.id,
       type: widget.idType,
       sortType: widget.commentType,
-      repository: _repository,
     )..loadInitial();
   }
 
@@ -147,7 +143,6 @@ class CommentItemWidget extends StatefulWidget {
 }
 
 class _CommentItemWidgetState extends State<CommentItemWidget> {
-  static CommentRepository get _repository => Get.find<CommentRepository>();
   late final FloorCommentController _floorController;
   bool isCommentOnCommentVisible = false;
 
@@ -163,11 +158,10 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
     stringColor = widget.stringColor;
     replyCount = comment.replyCount;
     unExpandedReplyCount = comment.replyCount;
-    _floorController = FloorCommentController(
+    _floorController = FloorCommentController.create(
       id: widget.id,
       type: widget.idType,
       parentCommentId: widget.comment.commentId,
-      repository: _repository,
       pageSize: 5,
     );
   }
@@ -250,15 +244,13 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                             alignment: Alignment.center,
                             child: GestureDetector(
                               onTap: () {
-                                _repository
-                                    .toggleCommentLike(
-                                  widget.id,
-                                  widget.idType,
-                                  comment.commentId,
-                                  !comment.liked,
+                                _floorController
+                                    .toggleLike(
+                                  comment,
+                                  liked: !comment.liked,
                                 )
-                                    .then((value) {
-                                  if (value.success) {
+                                    .then((success) {
+                                  if (success) {
                                     setState(() {
                                       final liked = !comment.liked;
                                       comment = comment.copyWith(
@@ -433,7 +425,6 @@ class FoolTalk extends StatefulWidget {
 }
 
 class _FoolTalkState extends State<FoolTalk> {
-  static CommentRepository get _repository => Get.find<CommentRepository>();
   final TextEditingController _textEditingController = TextEditingController();
   final RefreshController _refreshController = RefreshController();
   late final FloorCommentController _controller;
@@ -441,11 +432,10 @@ class _FoolTalkState extends State<FoolTalk> {
   @override
   void initState() {
     super.initState();
-    _controller = FloorCommentController(
+    _controller = FloorCommentController.create(
       id: widget.id,
       type: widget.type,
       parentCommentId: widget.commentItem.commentId,
-      repository: _repository,
       pageSize: 20,
     )..loadInitial();
   }
@@ -670,19 +660,16 @@ class _FoolTalkState extends State<FoolTalk> {
       WidgetUtil.showToast('请输入评论');
       return;
     }
-    final commentWrap = await _repository.sendComment(
-      widget.id,
-      widget.type,
-      'reply',
+    final errorMessage = await _controller.sendReply(
       content: _textEditingController.text,
       commentId: widget.commentItem.commentId,
     );
-    if (commentWrap.success) {
+    if (errorMessage == null) {
       _textEditingController.text = '';
       WidgetUtil.showToast('评论成功');
       await _controller.refresh();
     } else {
-      WidgetUtil.showToast(commentWrap.message ?? '评论失败');
+      WidgetUtil.showToast(errorMessage);
     }
   }
 }

@@ -7,7 +7,6 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
-import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
@@ -22,9 +21,8 @@ import 'package:get/get.dart';
 
 class TopPanelView extends StatefulWidget {
   const TopPanelView({Key? key}) : super(key: key);
-  static SearchRepository get _repository => Get.find<SearchRepository>();
   static final SearchPanelController _searchPanelController =
-      SearchPanelController(repository: _repository);
+      SearchPanelController.create();
 
   @override
   State<TopPanelView> createState() => _TopPanelViewState();

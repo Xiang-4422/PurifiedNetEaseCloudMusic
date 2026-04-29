@@ -7,10 +7,9 @@ import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/features/album/album_repository.dart';
+import 'package:bujuan/features/album/album_page_controller.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -26,7 +25,7 @@ class AlbumPageView extends StatefulWidget {
 }
 
 class _AlbumPageViewState extends State<AlbumPageView> {
-  AlbumRepository get _repository => Get.find<AlbumRepository>();
+  final AlbumPageController _controller = AlbumPageController.create();
   late String albumId;
   late AlbumEntity album;
   List<PlaybackQueueItem> albumSongs = [];
@@ -42,10 +41,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumId = context.routeData.queryParams.get('albumId');
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final localDetail = await _repository.loadLocalAlbumDetail(
-        albumId: albumId,
-        likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-      );
+      final localDetail = await _controller.loadLocalDetail(albumId);
       if (localDetail != null) {
         album = localDetail.album;
         albumSongs
@@ -195,10 +191,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
         loading = true;
       });
     }
-    final albumDetail = await _repository.fetchAlbumDetail(
-      albumId: albumId,
-      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-    );
+    final albumDetail = await _controller.fetchDetail(albumId);
     album = albumDetail.album;
     albumSongs
       ..clear()

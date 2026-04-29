@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 
 class CloudPageController {
   CloudPageController({
@@ -14,6 +17,15 @@ class CloudPageController {
   })  : _repository = repository,
         _userId = userId,
         _likedSongIds = likedSongIds;
+
+  factory CloudPageController.currentUser({int pageSize = 30}) {
+    return CloudPageController(
+      repository: Get.find<CloudRepository>(),
+      userId: UserSessionController.to.userInfo.value.userId,
+      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
+      pageSize: pageSize,
+    );
+  }
 
   final CloudRepository _repository;
   final String _userId;

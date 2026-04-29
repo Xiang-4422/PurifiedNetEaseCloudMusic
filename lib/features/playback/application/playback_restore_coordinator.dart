@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
+import 'package:bujuan/features/playback/application/playback_repeat_mode_mapper.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
 class PlaybackRestoreSnapshot {
@@ -47,7 +48,9 @@ class PlaybackRestoreCoordinator {
     }
     return PlaybackRestoreSnapshot(
       playbackMode: restoreState.playbackMode,
-      repeatMode: restoreState.repeatMode,
+      repeatMode: PlaybackRepeatModeMapper.toAudioService(
+        restoreState.repeatMode,
+      ),
       queue: playlist,
       index: index,
       playlistName: restoreState.playlistName,

@@ -6,9 +6,12 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_resource_bundle.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 
+/// 播放队列项 mapper，负责从曲目领域实体构建播放队列模型。
 class PlaybackQueueItemMapper {
+  /// 禁止实例化播放队列 mapper。
   const PlaybackQueueItemMapper._();
 
+  /// 从曲目列表构建播放队列项列表。
   static List<PlaybackQueueItem> fromTrackList(
     List<Track> tracks, {
     required List<int> likedSongIds,
@@ -29,6 +32,7 @@ class PlaybackQueueItemMapper {
     );
   }
 
+  /// 从携带本地资源的曲目列表构建播放队列项列表。
   static List<PlaybackQueueItem> fromTrackWithResourcesList(
     List<TrackWithResources> tracks, {
     required List<int> likedSongIds,

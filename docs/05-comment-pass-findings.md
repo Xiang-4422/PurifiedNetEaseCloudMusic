@@ -52,3 +52,24 @@
 - **现象**：路由切换日志直接写在 observer 中。
 - **风险**：如果后续要接入埋点、调试开关或测试替身，当前 observer 会继续承担策略判断。
 - **建议**：后续抽出轻量 navigation logging/analytics port，由 observer 只负责转发路由事件。
+
+### 6. Drift 表定义集中在单个文件
+
+- **位置**：`lib/core/database/drift_database.dart`。
+- **现象**：所有 Drift table、数据库类、索引创建和 destructive reset 策略集中在同一个文件中。
+- **风险**：schema 扩展时文件会继续膨胀，表归属、索引策略和数据库生命周期混在一起，后续定位某个 feature 的持久化结构成本较高。
+- **建议**：后续按资源域拆表定义文件，例如 playback、library、user、download、cache，再由数据库入口统一组合。
+
+### 7. 通用请求仓库仍直接依赖网易云 SDK 内部代理
+
+- **位置**：`lib/core/network/request_repository.dart`。
+- **现象**：`RequestRepository` 直接 import `data/netease/api/src/dio_ext.dart`，核心层仍知道网易云 SDK 内部实现。
+- **风险**：`core` 到 `data/netease` 的依赖方向不理想，后续如果替换 SDK 或扩展其他数据源，核心网络入口会被迫跟着调整。
+- **建议**：后续将请求代理抽象为 core port，由 data/netease 提供实现，或把该 repository 下沉到 netease data 层。
+
+### 8. 图片主色缓存仍依赖 Hive 全局入口
+
+- **位置**：`lib/core/storage/image_color_cache_store.dart`。
+- **现象**：`ImageColorCacheStore` 直接读取 `CacheBox.instance`，而不是通过构造函数注入存储实例。
+- **风险**：虽然这是轻量视觉缓存，仍会让测试替身和未来存储替换成本变高。
+- **建议**：后续改为构造函数注入轻量 key-value store，`CacheBox` 只保留在 app binding 或 storage adapter 层。

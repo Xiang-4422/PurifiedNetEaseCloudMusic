@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:flutter/foundation.dart';
 
+/// 在 isolate 中解码播放队列缓存列表。
 Future<List<PlaybackQueueItem>> decodePlaybackQueueItemCacheList(
   List<String> cachedItems,
 ) {
@@ -17,6 +18,7 @@ List<PlaybackQueueItem> _decodePlaybackQueueItemCacheList(
       .toList();
 }
 
+/// 在 isolate 中编码播放队列缓存列表。
 Future<List<String>> encodePlaybackQueueItemCacheList(
   List<PlaybackQueueItem> items,
 ) {

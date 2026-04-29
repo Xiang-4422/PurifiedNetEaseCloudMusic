@@ -3,13 +3,16 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// 本地图片缓存仓库，负责把远程图片落盘并解析本地图片路径。
 class LocalImageCacheRepository {
+  /// 创建本地图片缓存仓库。
   LocalImageCacheRepository({Dio? dio}) : _dio = dio ?? Dio();
 
   final Dio _dio;
   final Map<String, Future<String>> _pendingDownloads =
       <String, Future<String>>{};
 
+  /// 解析可供本地读取的图片路径。
   Future<String> resolveImagePath(String imageUrl) {
     final normalizedUrl = imageUrl.trim();
     if (!_isRemoteUrl(normalizedUrl)) {

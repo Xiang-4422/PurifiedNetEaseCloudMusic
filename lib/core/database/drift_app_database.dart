@@ -21,9 +21,12 @@ import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 
+/// Drift 实现的应用数据库门面。
 class DriftAppDatabase implements AppDatabase {
+  /// 创建 Drift 应用数据库。
   DriftAppDatabase({required this.databaseName});
 
+  /// 数据库文件名。
   final String databaseName;
   late final BujuanDriftDatabase _database;
   late final LocalLibraryDataSource _localLibraryDataSource;
@@ -42,8 +45,7 @@ class DriftAppDatabase implements AppDatabase {
     );
     _playbackRestoreDataSource =
         DriftPlaybackRestoreDataSource(database: _database);
-    _localResourceIndexDataSource =
-        DriftLocalResourceIndexDataSource(
+    _localResourceIndexDataSource = DriftLocalResourceIndexDataSource(
       dao: ResourceDao(database: _database),
     );
     _downloadTaskDataSource = DriftDownloadTaskDataSource(

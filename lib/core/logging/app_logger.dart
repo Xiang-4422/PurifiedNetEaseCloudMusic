@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+/// 应用调试日志工具。
 class AppLogger {
   static const _separator = '=';
   static const _split =
@@ -12,6 +13,7 @@ class AppLogger {
 
   const AppLogger._();
 
+  /// 初始化日志标题、调试开关和单段输出长度。
   static void init({String? title, required bool isDebug, int? limitLength}) {
     _title = title ?? '';
     _isDebug = isDebug;
@@ -28,12 +30,14 @@ class AppLogger {
     _endLine = endLineStr.toString();
   }
 
+  /// 在调试模式输出日志。
   static void d(dynamic obj) {
     if (_isDebug) {
       _log(obj.toString());
     }
   }
 
+  /// 强制输出日志。
   static void v(dynamic obj) {
     _log(obj.toString());
   }
@@ -50,6 +54,7 @@ class AppLogger {
     debugPrint(_endLine);
   }
 
+  /// 将长日志分段输出，避免单次 debugPrint 被截断。
   static void segmentationLog(String msg) {
     final outStr = StringBuffer();
     for (var index = 0; index < msg.length; index++) {

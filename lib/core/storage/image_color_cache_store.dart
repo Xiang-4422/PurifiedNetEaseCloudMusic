@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'cache_box.dart';
 
+/// 图片主色缓存存储。
 class ImageColorCacheStore {
+  /// 创建图片主色缓存存储。
   const ImageColorCacheStore();
 
+  /// 读取图片主色缓存。
   Color? load({
     required String imageUrl,
     required bool getLightColor,
@@ -19,6 +22,7 @@ class ImageColorCacheStore {
     return Color(raw);
   }
 
+  /// 保存图片主色缓存。
   Future<void> save({
     required String imageUrl,
     required bool getLightColor,
@@ -35,6 +39,7 @@ class ImageColorCacheStore {
     await _pruneCaches();
   }
 
+  /// 清理指定图片的主色缓存。
   Future<void> clear(String imageUrl) async {
     await CacheBox.instance.delete(
       _colorKey(imageUrl: imageUrl, getLightColor: true),

@@ -5,7 +5,9 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:flutter/foundation.dart';
 
+/// CloudPageController。
 class CloudPageController {
+  /// 创建 CloudPageController。
   CloudPageController({
     required CloudRepository repository,
     required String userId,
@@ -18,12 +20,17 @@ class CloudPageController {
   final CloudRepository _repository;
   final String _userId;
   final List<int> _likedSongIds;
+
+  /// pageSize。
   final int pageSize;
+
+  /// state。
   final ValueNotifier<PagedState<PlaybackQueueItem>> state =
       ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
 
+  /// loadInitial。
   Future<void> loadInitial() async {
     if (_userId.isEmpty) {
       state.value = const PagedState(items: [], hasMore: false);
@@ -46,6 +53,7 @@ class CloudPageController {
     await _reload();
   }
 
+  /// refresh。
   Future<bool> refresh() async {
     state.value = state.value.copyWith(
       refreshing: true,
@@ -54,6 +62,7 @@ class CloudPageController {
     return _reload();
   }
 
+  /// loadMore。
   Future<bool> loadMore() async {
     final currentState = state.value;
     if (currentState.loadingMore || !currentState.hasMore) {
@@ -109,6 +118,7 @@ class CloudPageController {
     }
   }
 
+  /// dispose。
   void dispose() {
     state.dispose();
   }

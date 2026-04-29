@@ -5,12 +5,22 @@ import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 ///
 /// 这里只承载高频且跨页面共享的会话信息，避免把歌词、进度等瞬时状态一并塞进来。
 class PlaybackSessionState {
+  /// playbackMode。
   final PlaybackMode playbackMode;
+
+  /// repeatMode。
   final PlaybackRepeatMode repeatMode;
+
+  /// playlistName。
   final String playlistName;
+
+  /// playlistHeader。
   final String playlistHeader;
+
+  /// isPlayingLikedSongs。
   final bool isPlayingLikedSongs;
 
+  /// 创建 PlaybackSessionState。
   const PlaybackSessionState({
     this.playbackMode = PlaybackMode.playlist,
     this.repeatMode = PlaybackRepeatMode.all,
@@ -19,6 +29,7 @@ class PlaybackSessionState {
     this.isPlayingLikedSongs = false,
   });
 
+  /// copyWith。
   PlaybackSessionState copyWith({
     PlaybackMode? playbackMode,
     PlaybackRepeatMode? repeatMode,

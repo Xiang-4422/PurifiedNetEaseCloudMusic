@@ -7,7 +7,9 @@ import '../../../src/api/bean.dart';
 import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 
+/// 公开成员。
 mixin ApiUser {
+  /// userSettingDioMetaData。
   DioMetaData userSettingDioMetaData() {
     return DioMetaData(joinUri('/api/user/setting'),
         data: {}, options: joinOptions());
@@ -23,6 +25,7 @@ mixin ApiUser {
     });
   }
 
+  /// userBindingsDioMetaData。
   DioMetaData userBindingsDioMetaData(String userId) {
     return DioMetaData(joinUri('/api/v1/user/bindings/$userId'),
         data: {}, options: joinOptions());
@@ -38,6 +41,7 @@ mixin ApiUser {
     });
   }
 
+  /// userDetailDioMetaData。
   DioMetaData userDetailDioMetaData(String userId) {
     return DioMetaData(joinUri('/weapi/v1/user/detail/$userId'),
         data: {}, options: joinOptions());
@@ -53,6 +57,7 @@ mixin ApiUser {
     });
   }
 
+  /// userSubcountDioMetaData。
   DioMetaData userSubcountDioMetaData() {
     return DioMetaData(joinUri('/weapi/subcount'),
         data: {}, options: joinOptions());
@@ -68,6 +73,7 @@ mixin ApiUser {
     });
   }
 
+  /// userLevelDioMetaData。
   DioMetaData userLevelDioMetaData() {
     return DioMetaData(joinUri('/weapi/user/level'),
         data: {}, options: joinOptions());
@@ -84,6 +90,7 @@ mixin ApiUser {
     });
   }
 
+  /// userUpdateProfileDioMetaData。
   DioMetaData userUpdateProfileDioMetaData(int gender, int birthday,
       String nickname, int province, int city, String signature,
       {String avatarImgId = '0'}) {
@@ -121,6 +128,7 @@ mixin ApiUser {
     });
   }
 
+  /// userUpdateProfileAvatarDioMetaData。
   DioMetaData userUpdateProfileAvatarDioMetaData(String imgid) {
     var params = {'imgid': imgid};
     return DioMetaData(joinUri('/weapi/user/avatar/upload/v1'),
@@ -141,6 +149,7 @@ mixin ApiUser {
     });
   }
 
+  /// userPlayListDioMetaData。
   DioMetaData userPlayListDioMetaData(String userId,
       {int offset = 0, int limit = 30}) {
     var params = {'uid': userId, 'limit': limit, 'offset': offset};
@@ -159,6 +168,7 @@ mixin ApiUser {
     });
   }
 
+  /// updateUserPlayListInfoDioMetaData。
   DioMetaData updateUserPlayListInfoDioMetaData(
       String id, String name, String desc, List<String> tags) {
     var params = {
@@ -184,6 +194,7 @@ mixin ApiUser {
     });
   }
 
+  /// updateUserPlayListDescDioMetaData。
   DioMetaData updateUserPlayListDescDioMetaData(String id, String desc) {
     var params = {'id': id, 'desc': desc};
     return DioMetaData(joinUri('/eapi/playlist/desc/update'),
@@ -204,6 +215,7 @@ mixin ApiUser {
     });
   }
 
+  /// updateUserPlayListNameDioMetaData。
   DioMetaData updateUserPlayListNameDioMetaData(String id, String name) {
     var params = {'id': id, 'name': name};
     return DioMetaData(joinUri('/eapi/playlist/update/name'),
@@ -224,6 +236,7 @@ mixin ApiUser {
     });
   }
 
+  /// updateUserPlayListTagsDioMetaData。
   DioMetaData updateUserPlayListTagsDioMetaData(String id, List<String> tags) {
     var params = {'id': id, 'tags': tags.join(',')};
     return DioMetaData(joinUri('/eapi/playlist/tags/update'),
@@ -245,6 +258,7 @@ mixin ApiUser {
     });
   }
 
+  /// userFollowListDioMetaData。
   DioMetaData userFollowListDioMetaData(String userId,
       {int offset = 0, int limit = 30, bool order = true}) {
     var params = {'limit': limit, 'offset': offset};
@@ -264,6 +278,7 @@ mixin ApiUser {
     });
   }
 
+  /// userSignDioMetaData。
   DioMetaData userSignDioMetaData({String clientType = 'android'}) {
     var params = {'type': clientType == 'android' ? 0 : 1};
     return DioMetaData(joinUri('/weapi/point/dailyTask'),
@@ -282,6 +297,7 @@ mixin ApiUser {
     });
   }
 
+  /// userFollowedListDioMetaData。
   DioMetaData userFollowedListDioMetaData(String userId,
       {int limit = 30, int lastTime = -1}) {
     var params = {'userId': userId, 'time': lastTime, 'limit': limit};
@@ -304,6 +320,7 @@ mixin ApiUser {
     });
   }
 
+  /// userFollowDioMetaData。
   DioMetaData userFollowDioMetaData(String userId, bool follow) {
     return DioMetaData(
         joinUri('/weapi/user/${follow ? 'follow' : 'delfollow'}/$userId'),
@@ -321,6 +338,7 @@ mixin ApiUser {
     });
   }
 
+  /// artistSubDioMetaData。
   DioMetaData artistSubDioMetaData(String artistId, bool sub) {
     // 批量?
     var params = {'artistId': artistId, 'artistIds': '[$artistId]'};
@@ -338,6 +356,7 @@ mixin ApiUser {
     });
   }
 
+  /// artistSubListDioMetaData。
   DioMetaData artistSubListDioMetaData(
       {bool total = true, int offset = 0, int limit = 30}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -357,6 +376,7 @@ mixin ApiUser {
     });
   }
 
+  /// djRadioSubDioMetaData。
   DioMetaData djRadioSubDioMetaData(String radioId, bool sub) {
     var params = {'id': radioId};
     return DioMetaData(joinUri('/weapi/djradio/${sub ? 'sub' : 'unsub'}'),
@@ -373,6 +393,7 @@ mixin ApiUser {
     });
   }
 
+  /// djRadioSubListDioMetaData。
   DioMetaData djRadioSubListDioMetaData(
       {bool total = true, int offset = 0, int limit = 30}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -392,6 +413,7 @@ mixin ApiUser {
     });
   }
 
+  /// videoSubDioMetaData。
   DioMetaData videoSubDioMetaData(String videoId, bool sub) {
     var params = {'id': videoId};
     return DioMetaData(
@@ -410,6 +432,7 @@ mixin ApiUser {
     });
   }
 
+  /// mvSubDioMetaData。
   DioMetaData mvSubDioMetaData(String mvId, bool sub) {
     // 批量?
     var params = {'mvId': mvId, 'mvIds': '[$mvId]'};
@@ -427,6 +450,7 @@ mixin ApiUser {
     });
   }
 
+  /// mvSubListDioMetaData。
   DioMetaData mvSubListDioMetaData(
       {bool total = true, int offset = 0, int limit = 30}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -446,6 +470,7 @@ mixin ApiUser {
     });
   }
 
+  /// userPlayRecordListDioMetaData。
   DioMetaData userPlayRecordListDioMetaData(String userId, bool weekData) {
     var params = {
       'uid': userId,
@@ -466,6 +491,7 @@ mixin ApiUser {
     });
   }
 
+  /// albumSubDioMetaData。
   DioMetaData albumSubDioMetaData(String albumId, bool sub) {
     var params = {'id': albumId};
     return DioMetaData(joinUri('/api/album/${sub ? 'sub' : 'unsub'}'),
@@ -482,6 +508,7 @@ mixin ApiUser {
     });
   }
 
+  /// albumSubListDioMetaData。
   DioMetaData albumSubListDioMetaData(
       {bool total = true, int offset = 0, int limit = 30}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};
@@ -501,6 +528,7 @@ mixin ApiUser {
     });
   }
 
+  /// playlistSubDioMetaData。
   DioMetaData playlistSubDioMetaData(String pid, bool sub) {
     var params = {'id': pid};
     return DioMetaData(
@@ -519,6 +547,7 @@ mixin ApiUser {
     });
   }
 
+  /// playlistCreateDioMetaData。
   DioMetaData playlistCreateDioMetaData(String name, bool privacy) {
     var params = {'name': name, 'privacy': privacy ? '10' : '0'};
     return DioMetaData(joinUri('/weapi/playlist/create'),
@@ -537,12 +566,14 @@ mixin ApiUser {
     });
   }
 
+  /// playlistDeleteDioMetaData。
   DioMetaData playlistDeleteDioMetaData(List<String> pids) {
     var params = {'ids': jsonEncode(pids)};
     return DioMetaData(joinUri('/weapi/playlist/remove'),
         data: params, options: joinOptions(cookies: {'os': 'pc'}));
   }
 
+  /// playlistUpdateCoverDioMetaData。
   DioMetaData playlistUpdateCoverDioMetaData(String pid, String coverImgId) {
     var params = {'id': pid, 'coverImgId': coverImgId};
     return DioMetaData(joinUri('/weapi/playlist/cover/update'),
@@ -573,6 +604,7 @@ mixin ApiUser {
     });
   }
 
+  /// playlistUpdateOrderDioMetaData。
   DioMetaData playlistUpdateOrderDioMetaData(List<String> pids) {
     var params = {'ids': jsonEncode(pids)};
     return DioMetaData(joinUri('/api/playlist/order/update'),
@@ -589,6 +621,7 @@ mixin ApiUser {
     });
   }
 
+  /// playlistManipulateTracksDioMetaData。
   DioMetaData playlistManipulateTracksDioMetaData(
       String pid, String trackId, bool add) {
     // 批量?
@@ -612,6 +645,7 @@ mixin ApiUser {
     });
   }
 
+  /// orderingDigitalAlbumDioMetaData。
   DioMetaData orderingDigitalAlbumDioMetaData(String albumId,
       {int payment = 3, int quantity = 1}) {
     var params = {
@@ -643,6 +677,7 @@ mixin ApiUser {
     });
   }
 
+  /// purchasedDigitalAlbumDioMetaData。
   DioMetaData purchasedDigitalAlbumDioMetaData(
       {bool total = true, int offset = 0, int limit = 30}) {
     var params = {'total': total, 'limit': limit, 'offset': offset};

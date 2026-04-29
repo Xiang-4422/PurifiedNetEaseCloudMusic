@@ -11,8 +11,10 @@ import 'package:get/get.dart';
 
 /// 持有账号作用域下的资料库状态。
 class UserLibraryController extends GetxController {
+  /// to。
   static UserLibraryController get to => Get.find();
 
+  /// 创建 UserLibraryController。
   UserLibraryController({
     required UserRepository repository,
     required UserSessionController sessionController,
@@ -25,20 +27,34 @@ class UserLibraryController extends GetxController {
   String _activeSnapshotUserId = '';
   bool _hasLocalSnapshot = false;
 
+  /// hasLocalSnapshot。
   bool get hasLocalSnapshot => _hasLocalSnapshot;
 
+  /// userPlayLists。
   final List<PlaylistSummaryData> userPlayLists = <PlaylistSummaryData>[].obs;
+
+  /// userLikedSongPlayList。
   final Rx<PlaylistSummaryData> userLikedSongPlayList =
       const PlaylistSummaryData(id: '', title: '').obs;
+
+  /// likedSongIds。
   final RxList<int> likedSongIds = <int>[].obs;
+
+  /// likedSongs。
   final RxList<PlaybackQueueItem> likedSongs = <PlaybackQueueItem>[].obs;
+
+  /// randomLikedSongId。
   final RxString randomLikedSongId = ''.obs;
+
+  /// randomLikedSongAlbumUrl。
   final RxString randomLikedSongAlbumUrl = ''.obs;
 
+  /// ensureCacheLoaded。
   Future<void> ensureCacheLoaded() async {
     await (_cacheBootstrapFuture ?? Future<void>.value());
   }
 
+  /// loadScopedSnapshot。
   Future<void> loadScopedSnapshot(String userId) {
     return _loadScopedSnapshot(userId);
   }
@@ -56,6 +72,7 @@ class UserLibraryController extends GetxController {
     });
   }
 
+  /// refreshUserLibrary。
   Future<void> refreshUserLibrary() async {
     await Future.wait([
       refreshLikedSongIds(),
@@ -65,6 +82,7 @@ class UserLibraryController extends GetxController {
     _hasLocalSnapshot = true;
   }
 
+  /// refreshLikedSongIds。
   Future<void> refreshLikedSongIds() async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
@@ -77,6 +95,7 @@ class UserLibraryController extends GetxController {
       ..addAll(nextLikedSongIds);
   }
 
+  /// refreshUserPlaylists。
   Future<void> refreshUserPlaylists() async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
@@ -97,6 +116,7 @@ class UserLibraryController extends GetxController {
       ..addAll(mutablePlayLists);
   }
 
+  /// toggleLikeStatus。
   Future<PlaybackQueueItem?> toggleLikeStatus(
     PlaybackQueueItem currentSong,
   ) async {
@@ -130,6 +150,7 @@ class UserLibraryController extends GetxController {
     return updatedSong;
   }
 
+  /// ensureLikedSongsLoaded。
   Future<void> ensureLikedSongsLoaded({bool force = false}) async {
     if (likedSongIds.isEmpty) {
       likedSongs.clear();
@@ -157,6 +178,7 @@ class UserLibraryController extends GetxController {
       );
   }
 
+  /// getHeartBeatSongs。
   Future<List<PlaybackQueueItem>> getHeartBeatSongs(
     String startSongId,
     String randomLikedSongId,
@@ -170,6 +192,7 @@ class UserLibraryController extends GetxController {
     );
   }
 
+  /// getSongsByIds。
   Future<List<PlaybackQueueItem>> getSongsByIds(List<String> ids) {
     return _repository.fetchSongsByIds(
       ids: ids,
@@ -177,6 +200,7 @@ class UserLibraryController extends GetxController {
     );
   }
 
+  /// refreshRandomLikedSong。
   Future<void> refreshRandomLikedSong() async {
     var nextRandomLikedSongId = '';
     var nextRandomLikedSongAlbumUrl = '';

@@ -6,13 +6,25 @@ import 'package:flutter/material.dart';
 
 /// 长按时从原位置展开覆盖层，避免每个需要预览的入口各自维护一套 overlay 动画。
 class LongPressOverlayTransition extends StatefulWidget {
+  /// child。
   final Widget child;
+
+  /// Function。
   final Widget Function(BuildContext context) builder;
+
+  /// targetWidth。
   final double targetWidth;
+
+  /// targetHeight。
   final double targetHeight;
+
+  /// duration。
   final Duration duration;
+
+  /// onDismiss。
   final VoidCallback? onDismiss;
 
+  /// 创建 LongPressOverlayTransition。
   const LongPressOverlayTransition({
     Key? key,
     required this.child,
@@ -132,12 +144,22 @@ class _LongPressOverlayTransitionState extends State<LongPressOverlayTransition>
 
 /// 这里保留“图片异步取色 + 包裹 child”的组合，是为了让页面只关心结果，不重复维护取色生命周期。
 class AsyncImageColor extends StatefulWidget {
+  /// imageUrl。
   final String imageUrl;
+
+  /// getLightColor。
   final bool getLightColor;
+
+  /// child。
   final Widget? child;
+
+  /// fallbackColor。
   final Color fallbackColor;
+
+  /// deferLoadUntilPostFrame。
   final bool deferLoadUntilPostFrame;
 
+  /// 创建 AsyncImageColor。
   const AsyncImageColor({
     Key? key,
     required this.imageUrl,
@@ -231,13 +253,25 @@ class _AsyncImageColorState extends State<AsyncImageColor> {
 
 /// 下载页和播放面板都只需要消费“0 到 1 的进度结果”，绘制细节集中在这里更稳定。
 class CircularPlaybackProgress extends StatelessWidget {
+  /// progress。
   final double progress;
+
+  /// strokeWidth。
   final double strokeWidth;
+
+  /// backgroundColor。
   final Color backgroundColor;
+
+  /// progressColor。
   final Color progressColor;
+
+  /// size。
   final double size;
+
+  /// percentageTextStyle。
   final TextStyle? percentageTextStyle;
 
+  /// 创建 CircularPlaybackProgress。
   const CircularPlaybackProgress({
     Key? key,
     required this.progress,

@@ -29,8 +29,10 @@ part 'player_download_commands.dart';
 /// 底层播放细节仍由 `PlaybackService -> AudioServiceHandler` 承接，这里主要负责把
 /// 音频服务、歌词状态、全屏歌词状态和用户侧模式切换组织成可绑定的 UI 状态。
 class PlayerController extends GetxController {
+  /// to。
   static PlayerController get to => Get.find();
 
+  /// 创建 PlayerController。
   PlayerController({
     required PlaybackService playbackService,
     required PlaybackQueueStore queueStore,
@@ -67,32 +69,56 @@ class PlayerController extends GetxController {
   final CurrentTrackDownloadUseCase _downloadUseCase;
   final PlaybackThemePort _themePort;
 
+  /// playbackService。
   PlaybackService get playbackService => _playbackService;
 
+  /// isPlaying。
   RxBool isPlaying = false.obs;
 
+  /// curRepeatMode。
   Rx<PlaybackRepeatMode> curRepeatMode = PlaybackRepeatMode.all.obs;
 
+  /// playbackMode。
   Rx<PlaybackMode> playbackMode = PlaybackMode.playlist.obs;
 
+  /// sessionState。
   final Rx<PlaybackSessionState> sessionState =
       const PlaybackSessionState().obs;
+
+  /// runtimeState。
   final Rx<PlaybackRuntimeState> runtimeState =
       const PlaybackRuntimeState().obs;
+
+  /// lyricState。
   final Rx<PlaybackLyricState> lyricState = const PlaybackLyricState().obs;
+
+  /// currentSongState。
   final Rx<PlaybackQueueItem> currentSongState =
       const PlaybackQueueItem.empty().obs;
+
+  /// currentPositionState。
   final Rx<Duration> currentPositionState = Duration.zero.obs;
+
+  /// queueState。
   final RxList<PlaybackQueueItem> queueState = <PlaybackQueueItem>[].obs;
+
+  /// currentQueueIndex。
   final RxInt currentQueueIndex = (-1).obs;
 
+  /// isFmModeValue。
   bool get isFmModeValue => playbackMode.value == PlaybackMode.roaming;
+
+  /// isFmMode。
   RxBool get isFmMode => (playbackMode.value == PlaybackMode.roaming).obs;
 
+  /// isHeartBeatModeValue。
   bool get isHeartBeatModeValue => playbackMode.value == PlaybackMode.heartbeat;
+
+  /// isHeartBeatMode。
   RxBool get isHeartBeatMode =>
       (playbackMode.value == PlaybackMode.heartbeat).obs;
 
+  /// isFullScreenLyricOpen。
   RxBool isFullScreenLyricOpen = false.obs;
 
   @override
@@ -224,6 +250,7 @@ class PlayerController extends GetxController {
         await _lyricsPresenter.loadLyrics(runtimeState.value.currentSong);
   }
 
+  /// playOrPause。
   Future<void> playOrPause() async {
     await _commandService.playOrPause(isPlaying: isPlaying.value);
   }
@@ -248,10 +275,12 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// playQueueIndex。
   Future<void> playQueueIndex(int index) {
     return _commandService.playQueueIndex(index);
   }
 
+  /// updatePlaybackQueueItem。
   Future<void> updatePlaybackQueueItem(PlaybackQueueItem item) async {
     final queue = runtimeState.value.queue
         .map((queueItem) => queueItem.id == item.id ? item : queueItem)
@@ -270,30 +299,37 @@ class PlayerController extends GetxController {
     }
   }
 
+  /// seekTo。
   Future<void> seekTo(Duration position) {
     return _commandService.seekTo(position);
   }
 
+  /// skipToPreviousTrack。
   Future<void> skipToPreviousTrack() {
     return _commandService.skipToPreviousTrack();
   }
 
+  /// skipToNextTrack。
   Future<void> skipToNextTrack() {
     return _commandService.skipToNextTrack();
   }
 
+  /// setRepeatMode。
   Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) {
     return _commandService.setRepeatMode(repeatMode);
   }
 
+  /// cycleRepeatMode。
   Future<void> cycleRepeatMode() {
     return _commandService.cycleRepeatMode();
   }
 
+  /// openFmMode。
   Future<void> openFmMode() async {
     await switchMode(PlaybackMode.roaming);
   }
 
+  /// quitFmMode。
   Future<void> quitFmMode({bool showToast = true}) async {
     await _modeCommandService.quitFmMode(
       currentMode: playbackMode.value,
@@ -302,6 +338,7 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// openHeartBeatMode。
   Future<void> openHeartBeatMode(
     String startSongId, {
     required bool fromPlayAll,
@@ -316,6 +353,7 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// quitHeartBeatMode。
   Future<void> quitHeartBeatMode({bool showToast = true}) async {
     await _modeCommandService.quitHeartBeatMode(
       currentMode: playbackMode.value,
@@ -324,6 +362,7 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// playUserLikedSongs。
   Future<void> playUserLikedSongs() async {
     await _commandService.playLikedSongs(
       currentSong: runtimeState.value.currentSong,
@@ -344,6 +383,7 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// switchMode。
   Future<void> switchMode(PlaybackMode newMode, {dynamic contextData}) async {
     await _modeCommandService.switchMode(
       currentMode: playbackMode.value,
@@ -356,6 +396,7 @@ class PlayerController extends GetxController {
     );
   }
 
+  /// getRepeatIcon。
   IconData getRepeatIcon() {
     IconData icon;
     if (playbackMode.value == PlaybackMode.roaming) {
@@ -379,6 +420,7 @@ class PlayerController extends GetxController {
     return icon;
   }
 
+  /// updateFullScreenLyricTimerCounter。
   updateFullScreenLyricTimerCounter({bool cancelTimer = false}) {
     _lyricUiStateController.updateFullScreenLyricTimerCounter(
       isPlaying: isPlaying.value,

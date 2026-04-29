@@ -3,11 +3,13 @@ import 'package:bujuan/features/user/user_library_controller.dart';
 
 /// 专辑详情页的应用入口，页面只消费详情结果，不直接拼装 repository 参数。
 class AlbumPageController {
+  /// 创建 AlbumPageController。
   AlbumPageController({required AlbumRepository repository})
       : _repository = repository;
 
   final AlbumRepository _repository;
 
+  /// loadLocalDetail。
   Future<AlbumDetailData?> loadLocalDetail(String albumId) {
     return _repository.loadLocalAlbumDetail(
       albumId: albumId,
@@ -15,6 +17,7 @@ class AlbumPageController {
     );
   }
 
+  /// fetchDetail。
   Future<AlbumDetailData> fetchDetail(String albumId) {
     return _repository.fetchAlbumDetail(
       albumId: albumId,

@@ -16,7 +16,9 @@ typedef DrawerStyleBuilder = Widget Function(
   Widget mainScreen,
 );
 
+/// ZoomDrawer。
 class ZoomDrawer extends StatefulWidget {
+  /// 创建 ZoomDrawer。
   const ZoomDrawer({
     super.key,
     required this.menuScreen,
@@ -195,6 +197,7 @@ class ZoomDrawer extends StatefulWidget {
       context.findAncestorStateOfType<ZoomDrawerState>();
 }
 
+/// ZoomDrawerState。
 class ZoomDrawerState extends State<ZoomDrawer>
     with SingleTickerProviderStateMixin {
   /// Triggers drag animation
@@ -211,6 +214,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
   final ValueNotifier<DrawerState> _stateNotifier =
       ValueNotifier(DrawerState.closed);
 
+  /// stateNotifier。
   ValueNotifier<DrawerState> get stateNotifier => _stateNotifier;
 
   late final AnimationController _animationController = AnimationController(
@@ -227,6 +231,7 @@ class ZoomDrawerState extends State<ZoomDrawer>
   /// Very useful case you want to know the drawer is either open or closed
   DrawerLastAction _drawerLastAction = DrawerLastAction.closed;
 
+  /// drawerLastAction。
   DrawerLastAction get drawerLastAction => _drawerLastAction;
 
   /// Check whether drawer is open

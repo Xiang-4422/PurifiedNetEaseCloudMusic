@@ -14,7 +14,9 @@ import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:dio/dio.dart';
 
+/// DownloadRepository。
 class DownloadRepository {
+  /// 创建 DownloadRepository。
   DownloadRepository({
     required LibraryRepository libraryRepository,
     required DownloadTaskDataSource taskDataSource,
@@ -59,6 +61,7 @@ class DownloadRepository {
   final DownloadQueuePlanner _queuePlanner;
   final DownloadTaskStateStore _taskStateStore;
 
+  /// recoverInterruptedTasks。
   Future<List<DownloadTask>> recoverInterruptedTasks() async {
     return _recoveryService.recoverInterruptedTasks(
       markInterruptedFailed: (trackId) => _taskStateStore.markFailed(
@@ -69,6 +72,7 @@ class DownloadRepository {
     );
   }
 
+  /// downloadTrack。
   Future<Track?> downloadTrack(
     String trackId, {
     bool preferHighQuality = true,
@@ -89,6 +93,7 @@ class DownloadRepository {
     );
   }
 
+  /// queueTracks。
   Future<void> queueTracks(
     Iterable<String> trackIds, {
     bool preferHighQuality = true,
@@ -100,6 +105,7 @@ class DownloadRepository {
     );
   }
 
+  /// cacheTrackForPlayback。
   Future<Track?> cacheTrackForPlayback(
     String trackId, {
     bool preferHighQuality = true,
@@ -222,6 +228,7 @@ class DownloadRepository {
     }
   }
 
+  /// removeDownloadedTrack。
   Future<void> removeDownloadedTrack(String trackId) async {
     await _taskStateStore.clearTask(trackId);
     final trackWithResources = await _libraryRepository.getTrackWithResources(
@@ -234,10 +241,12 @@ class DownloadRepository {
     );
   }
 
+  /// removeLocalTrack。
   Future<void> removeLocalTrack(String trackId) {
     return removeDownloadedTrack(trackId);
   }
 
+  /// cancelTask。
   Future<void> cancelTask(String trackId) async {
     _taskQueue.markCancelled(trackId);
     final currentTask = await _taskDataSource.getTask(trackId);
@@ -246,10 +255,12 @@ class DownloadRepository {
     await _clearCancelledTask(trackId);
   }
 
+  /// getTask。
   Future<DownloadTask?> getTask(String trackId) {
     return _taskStateStore.getTask(trackId);
   }
 
+  /// retryTask。
   Future<Track?> retryTask(
     String trackId, {
     bool preferHighQuality = true,
@@ -263,18 +274,21 @@ class DownloadRepository {
     );
   }
 
+  /// getTasks。
   Future<List<DownloadTask>> getTasks({
     Set<DownloadTaskStatus>? statuses,
   }) {
     return _taskStateStore.getTasks(statuses: statuses);
   }
 
+  /// watchTasks。
   Stream<List<DownloadTask>> watchTasks({
     Set<DownloadTaskStatus>? statuses,
   }) {
     return _taskStateStore.watchTasks(statuses: statuses);
   }
 
+  /// getActiveTasks。
   Future<List<DownloadTask>> getActiveTasks() {
     return getTasks(
       statuses: const {
@@ -284,10 +298,12 @@ class DownloadRepository {
     );
   }
 
+  /// clearTask。
   Future<void> clearTask(String trackId) {
     return _taskStateStore.clearTask(trackId);
   }
 
+  /// clearPlaybackCache。
   Future<void> clearPlaybackCache() {
     return _libraryRepository.removePlaybackCache();
   }

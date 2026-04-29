@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+/// StyleDefaultWidget。
 class StyleDefaultWidget extends StatelessWidget {
+  /// 创建 StyleDefaultWidget。
   const StyleDefaultWidget({
     super.key,
     required this.animationController,
@@ -14,14 +16,31 @@ class StyleDefaultWidget extends StatelessWidget {
     required this.applyDefaultStyle,
   });
 
+  /// animationController。
   final AnimationController animationController;
+
+  /// showShadow。
   final bool showShadow;
+
+  /// angle。
   final double angle;
+
+  /// menuScreenWidget。
   final Widget menuScreenWidget;
+
+  /// mainScreenWidget。
   final Widget mainScreenWidget;
+
+  /// shadowLayer1Color。
   final Color? shadowLayer1Color;
+
+  /// shadowLayer2Color。
   final Color? shadowLayer2Color;
+
+  /// drawerShadowsBackgroundColor。
   final Color drawerShadowsBackgroundColor;
+
+  /// 应用默认样式。
   final Widget Function(
     Widget?, {
     double? angle,

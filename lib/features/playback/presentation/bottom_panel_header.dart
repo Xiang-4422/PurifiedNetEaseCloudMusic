@@ -7,16 +7,20 @@ import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// BottomPanelHeader。
 class BottomPanelHeader extends StatelessWidget {
+  /// 创建 BottomPanelHeader。
   const BottomPanelHeader({required this.controller, super.key});
 
+  /// controller。
   final ShellController controller;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(top: context.mediaQueryPadding.top),
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
       height: AppDimensions.appBarHeight,
       width: context.width,
       child: Obx(
@@ -64,8 +68,8 @@ class BottomPanelHeader extends StatelessWidget {
                           onTap: () {
                             if (PlayerController
                                 .to.isFullScreenLyricOpen.isTrue) {
-                              PlayerController
-                                  .to.isFullScreenLyricOpen.value = false;
+                              PlayerController.to.isFullScreenLyricOpen.value =
+                                  false;
                             } else {
                               controller.isAlbumScaleEnded.value = false;
                               controller.isBigAlbum.value = true;

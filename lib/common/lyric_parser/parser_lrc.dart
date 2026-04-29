@@ -3,12 +3,14 @@ import 'lyrics_reader_model.dart';
 
 ///normal lyric parser
 class ParserLrc extends LyricsParse {
+  /// pattern。
   RegExp pattern = RegExp(r"\[\d{2}:\d{2}.\d{2,3}]");
 
   ///匹配普通格式内容
   ///eg:[00:03.47] -> 00:03.47
   RegExp valuePattern = RegExp(r"\[(\d{2}:\d{2}.\d{2,3})\]");
 
+  /// 创建 ParserLrc。
   ParserLrc(String lyric) : super(lyric);
 
   @override
@@ -49,6 +51,7 @@ class ParserLrc extends LyricsParse {
     return lineList;
   }
 
+  /// timeTagToTS。
   int? timeTagToTS(String timeTag) {
     if (timeTag.trim().isEmpty) {
       return null;

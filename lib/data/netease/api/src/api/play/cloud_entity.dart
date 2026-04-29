@@ -1,14 +1,27 @@
 import 'package:bujuan/data/netease/api/src/api/bean.dart';
 
+/// CloudEntity。
 class CloudEntity extends ServerStatusBean {
   // int? code;
+  /// data。
   List<CloudData>? data;
+
+  /// size。
   String? size;
+
+  /// upgradeSign。
   num? upgradeSign;
+
+  /// count。
   num? count;
+
+  /// hasMore。
   bool? hasMore;
+
+  /// maxSize。
   String? maxSize;
 
+  /// 创建 CloudEntity。
   CloudEntity(
       {this.data,
       this.size,
@@ -17,6 +30,7 @@ class CloudEntity extends ServerStatusBean {
       this.hasMore,
       this.maxSize});
 
+  /// 创建 CloudEntity。
   CloudEntity.fromJson(Map<String, dynamic> json) {
     code = json['code'];
     if (json['data'] != null) {
@@ -48,21 +62,48 @@ class CloudEntity extends ServerStatusBean {
   }
 }
 
+/// CloudData。
 class CloudData {
+  /// songName。
   String? songName;
+
+  /// fileName。
   String? fileName;
+
+  /// addTime。
   num? addTime;
+
+  /// artist。
   String? artist;
+
+  /// album。
   String? album;
+
+  /// lyricId。
   String? lyricId;
+
+  /// bitrate。
   num? bitrate;
+
+  /// simpleSong。
   CloudDataSimplesong? simpleSong;
+
+  /// version。
   num? version;
+
+  /// cover。
   num? cover;
+
+  /// coverId。
   String? coverId;
+
+  /// fileSize。
   num? fileSize;
+
+  /// songId。
   num? songId;
 
+  /// 创建 CloudData。
   CloudData(
       {this.songName,
       this.fileName,
@@ -78,6 +119,7 @@ class CloudData {
       this.fileSize,
       this.songId});
 
+  /// 创建 CloudData。
   CloudData.fromJson(Map<String, dynamic> json) {
     songName = json['songName'];
     fileName = json['fileName'];
@@ -96,6 +138,7 @@ class CloudData {
     songId = json['songId'];
   }
 
+  /// toJson。
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['songName'] = songName;
@@ -117,40 +160,105 @@ class CloudData {
   }
 }
 
+/// CloudDataSimplesong。
 class CloudDataSimplesong {
+  /// no。
   num? no;
+
+  /// rt。
   String? rt;
+
+  /// copyright。
   num? copyright;
+
+  /// fee。
   num? fee;
+
+  /// rurl。
   dynamic rurl;
+
+  /// privilege。
   CloudDataSimplesongPrivilege? privilege;
+
+  /// mst。
   num? mst;
+
+  /// pst。
   num? pst;
+
+  /// pop。
   num? pop;
+
+  /// dt。
   int? dt;
+
+  /// rtype。
   num? rtype;
+
+  /// sId。
   num? sId;
+
+  /// id。
   num? id;
+
+  /// st。
   num? st;
+
+  /// a。
   dynamic a;
+
+  /// cd。
   String? cd;
+
+  /// publishTime。
   num? publishTime;
+
+  /// cf。
   String? cf;
+
+  /// h。
   dynamic h;
+
+  /// mv。
   num? mv;
+
+  /// al。
   CloudDataSimplesongAl? al;
+
+  /// l。
   CloudDataSimplesongL? l;
+
+  /// m。
   CloudDataSimplesongM? m;
+
+  /// cp。
   num? cp;
+
+  /// djId。
   num? djId;
+
+  /// crbt。
   String? crbt;
+
+  /// ar。
   List<CloudDataSimplesongAr>? ar;
+
+  /// rtUrl。
   dynamic rtUrl;
+
+  /// ftype。
   num? ftype;
+
+  /// t。
   num? t;
+
+  /// v。
   num? v;
+
+  /// name。
   String? name;
 
+  /// 创建 CloudDataSimplesong。
   CloudDataSimplesong(
       {this.no,
       this.rt,
@@ -185,6 +293,7 @@ class CloudDataSimplesong {
       this.v,
       this.name});
 
+  /// 创建 CloudDataSimplesong。
   CloudDataSimplesong.fromJson(Map<String, dynamic> json) {
     no = json['no'];
     rt = json['rt'];
@@ -227,6 +336,7 @@ class CloudDataSimplesong {
     name = json['name'];
   }
 
+  /// toJson。
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['no'] = no;
@@ -275,22 +385,51 @@ class CloudDataSimplesong {
   }
 }
 
+/// CloudDataSimplesongPrivilege。
 class CloudDataSimplesongPrivilege {
+  /// st。
   num? st;
+
+  /// flag。
   num? flag;
+
+  /// subp。
   num? subp;
+
+  /// fl。
   num? fl;
+
+  /// fee。
   num? fee;
+
+  /// dl。
   num? dl;
+
+  /// cp。
   num? cp;
+
+  /// cs。
   bool? cs;
+
+  /// toast。
   bool? toast;
+
+  /// maxbr。
   num? maxbr;
+
+  /// id。
   num? id;
+
+  /// pl。
   num? pl;
+
+  /// sp。
   num? sp;
+
+  /// payed。
   num? payed;
 
+  /// 创建 CloudDataSimplesongPrivilege。
   CloudDataSimplesongPrivilege(
       {this.st,
       this.flag,
@@ -307,6 +446,7 @@ class CloudDataSimplesongPrivilege {
       this.sp,
       this.payed});
 
+  /// 创建 CloudDataSimplesongPrivilege。
   CloudDataSimplesongPrivilege.fromJson(Map<String, dynamic> json) {
     st = json['st'];
     flag = json['flag'];
@@ -324,6 +464,7 @@ class CloudDataSimplesongPrivilege {
     payed = json['payed'];
   }
 
+  /// toJson。
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['st'] = st;
@@ -344,14 +485,24 @@ class CloudDataSimplesongPrivilege {
   }
 }
 
+/// CloudDataSimplesongAl。
 class CloudDataSimplesongAl {
+  /// picUrl。
   String? picUrl;
+
+  /// name。
   String? name;
+
+  /// id。
   num? id;
+
+  /// pic。
   num? pic;
 
+  /// 创建 CloudDataSimplesongAl。
   CloudDataSimplesongAl({this.picUrl, this.name, this.id, this.pic});
 
+  /// 创建 CloudDataSimplesongAl。
   CloudDataSimplesongAl.fromJson(Map<String, dynamic> json) {
     picUrl = json['picUrl'];
     name = json['name'];
@@ -359,6 +510,7 @@ class CloudDataSimplesongAl {
     pic = json['pic'];
   }
 
+  /// toJson。
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['picUrl'] = picUrl;
@@ -369,14 +521,24 @@ class CloudDataSimplesongAl {
   }
 }
 
+/// CloudDataSimplesongL。
 class CloudDataSimplesongL {
+  /// br。
   num? br;
+
+  /// fid。
   num? fid;
+
+  /// size。
   num? size;
+
+  /// vd。
   double? vd;
 
+  /// 创建 CloudDataSimplesongL。
   CloudDataSimplesongL({this.br, this.fid, this.size, this.vd});
 
+  /// 创建 CloudDataSimplesongL。
   CloudDataSimplesongL.fromJson(Map<String, dynamic> json) {
     br = json['br'];
     fid = json['fid'];
@@ -384,6 +546,7 @@ class CloudDataSimplesongL {
     vd = json['vd'];
   }
 
+  /// toJson。
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['br'] = br;
@@ -394,14 +557,24 @@ class CloudDataSimplesongL {
   }
 }
 
+/// CloudDataSimplesongM。
 class CloudDataSimplesongM {
+  /// br。
   num? br;
+
+  /// fid。
   num? fid;
+
+  /// size。
   num? size;
+
+  /// vd。
   double? vd;
 
+  /// 创建 CloudDataSimplesongM。
   CloudDataSimplesongM({this.br, this.fid, this.size, this.vd});
 
+  /// 创建 CloudDataSimplesongM。
   CloudDataSimplesongM.fromJson(Map<String, dynamic> json) {
     br = json['br'];
     fid = json['fid'];
@@ -409,6 +582,7 @@ class CloudDataSimplesongM {
     vd = json['vd'];
   }
 
+  /// toJson。
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['br'] = br;
@@ -419,17 +593,24 @@ class CloudDataSimplesongM {
   }
 }
 
+/// CloudDataSimplesongAr。
 class CloudDataSimplesongAr {
+  /// name。
   String? name;
+
+  /// id。
   num? id;
 
+  /// 创建 CloudDataSimplesongAr。
   CloudDataSimplesongAr({this.name, this.id});
 
+  /// 创建 CloudDataSimplesongAr。
   CloudDataSimplesongAr.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     id = json['id'];
   }
 
+  /// toJson。
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['name'] = name;

@@ -15,7 +15,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+/// SettingPageView。
 class SettingPageView extends StatefulWidget {
+  /// 创建 SettingPageView。
   const SettingPageView({Key? key}) : super(key: key);
 
   @override

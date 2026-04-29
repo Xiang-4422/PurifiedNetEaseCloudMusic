@@ -5,7 +5,9 @@ import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// LocalArtworkCacheRepository。
 class LocalArtworkCacheRepository {
+  /// 创建 LocalArtworkCacheRepository。
   LocalArtworkCacheRepository({
     Dio? dio,
     required LocalResourceIndexRepository resourceIndexRepository,
@@ -16,6 +18,7 @@ class LocalArtworkCacheRepository {
   final LocalResourceIndexRepository _resourceIndexRepository;
   final Set<String> _pendingTrackIds = <String>{};
 
+  /// cacheTrackArtwork。
   Future<List<Track>> cacheTrackArtwork(List<Track> tracks) async {
     if (tracks.isEmpty) {
       return const [];
@@ -32,6 +35,7 @@ class LocalArtworkCacheRepository {
     return results;
   }
 
+  /// cacheSingleTrackArtwork。
   Future<Track> cacheSingleTrackArtwork(Track track) async {
     final indexedResource =
         await _resourceIndexRepository.getArtworkResource(track.id);

@@ -2,7 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+/// Style4Widget。
 class Style4Widget extends StatelessWidget {
+  /// 创建 Style4Widget。
   const Style4Widget({
     Key? key,
     required this.animationValue,
@@ -14,12 +16,25 @@ class Style4Widget extends StatelessWidget {
     required this.isRtl,
   }) : super(key: key);
 
+  /// animationValue。
   final double animationValue;
+
+  /// slideWidth。
   final double slideWidth;
+
+  /// mainScreenScale。
   final double mainScreenScale;
+
+  /// isRtl。
   final bool isRtl;
+
+  /// slideDirection。
   final int slideDirection;
+
+  /// menuScreenWidget。
   final Widget menuScreenWidget;
+
+  /// mainScreenWidget。
   final Widget mainScreenWidget;
 
   @override

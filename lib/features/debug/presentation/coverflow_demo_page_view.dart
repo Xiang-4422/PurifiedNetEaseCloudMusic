@@ -16,6 +16,7 @@ import 'package:get/get.dart';
 /// 2. 本地封面优先链路是否能被 `CoverFlow` 正常消费；
 /// 3. 后续如果把它重新接回播放页，不需要再临时造假数据。
 class CoverFlowDemoPageView extends StatefulWidget {
+  /// 创建 CoverFlowDemoPageView。
   const CoverFlowDemoPageView({super.key});
 
   @override

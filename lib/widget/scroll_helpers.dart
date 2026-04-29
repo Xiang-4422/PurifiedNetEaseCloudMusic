@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 /// 为横向卡片列表提供稳定吸附，避免每个页面各自维护一套近似但不兼容的滚动手感。
 class SnappingScrollPhysics extends ScrollPhysics {
+  /// itemExtent。
   final double itemExtent;
 
+  /// 创建 SnappingScrollPhysics。
   const SnappingScrollPhysics({
     required this.itemExtent,
     ScrollPhysics? parent,
@@ -56,6 +58,7 @@ class SnappingScrollPhysics extends ScrollPhysics {
 
 /// 仅去掉 glow，不改滚动曲线，适合歌词、封面流等已经有自己交互反馈的列表。
 class NoGlowScrollBehavior extends ScrollBehavior {
+  /// 创建 NoGlowScrollBehavior。
   const NoGlowScrollBehavior();
 
   @override

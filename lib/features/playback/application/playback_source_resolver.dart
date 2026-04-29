@@ -4,14 +4,24 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
+/// PlaybackResolvedSourceKind。
 enum PlaybackResolvedSourceKind {
+  /// empty。
   empty,
+
+  /// filePath。
   filePath,
+
+  /// url。
   url,
+
+  /// neteaseCacheStream。
   neteaseCacheStream,
 }
 
+/// PlaybackResolvedSource。
 class PlaybackResolvedSource {
+  /// 创建 PlaybackResolvedSource。
   const PlaybackResolvedSource({
     required this.kind,
     this.url = '',
@@ -19,21 +29,31 @@ class PlaybackResolvedSource {
     this.markAsCached = false,
   });
 
+  /// kind。
   final PlaybackResolvedSourceKind kind;
+
+  /// url。
   final String url;
+
+  /// fileType。
   final String fileType;
+
+  /// markAsCached。
   final bool markAsCached;
 
+  /// isEmpty。
   bool get isEmpty => kind == PlaybackResolvedSourceKind.empty || url.isEmpty;
 }
 
 /// 将播放队列项解析成 just_audio 可消费的真实音源。
 class PlaybackSourceResolver {
+  /// 创建 PlaybackSourceResolver。
   PlaybackSourceResolver({required PlaybackRepository repository})
       : _repository = repository;
 
   final PlaybackRepository _repository;
 
+  /// resolve。
   Future<PlaybackResolvedSource> resolve(
     MediaItem mediaItem, {
     required bool preferHighQuality,

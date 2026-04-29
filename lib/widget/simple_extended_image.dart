@@ -78,6 +78,7 @@ class SimpleExtendedImage extends StatefulWidget {
   }
 }
 
+/// SimpleExtendedImageState。
 class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   static final LocalImageCacheRepository _imageCacheRepository =
       LocalImageCacheRepository();

@@ -11,7 +11,9 @@ import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 import 'package:pointycastle/digests/md5.dart';
 
+/// 公开成员。
 mixin ApiLogin {
+  /// loginProtectDioMetaData。
   DioMetaData loginProtectDioMetaData() {
     var params = {};
     return DioMetaData(joinUri('/api/usersafe/loginprotect/status/get'),
@@ -27,6 +29,7 @@ mixin ApiLogin {
     });
   }
 
+  /// loginAnonimousDioMetaData。
   DioMetaData loginAnonimousDioMetaData() {
     var base64 = const Base64Encoder();
     var deviceId = Uri.encodeComponent(base64.convert(utf8
@@ -55,6 +58,7 @@ mixin ApiLogin {
     });
   }
 
+  /// loginCellPhoneDioMetaData。
   DioMetaData loginCellPhoneDioMetaData(String phone, String password,
       {String countryCode = ''}) {
     var params = {
@@ -87,6 +91,7 @@ mixin ApiLogin {
     });
   }
 
+  /// loginEmailDioMetaData。
   DioMetaData loginEmailDioMetaData(String phone, String password) {
     var params = {
       'username': phone,
@@ -112,6 +117,7 @@ mixin ApiLogin {
     });
   }
 
+  /// loginQrCodeKeyDioMetaData。
   DioMetaData loginQrCodeKeyDioMetaData() {
     var params = {'type': 1, 'timerstamp': '${DateTime.now()}'};
     return DioMetaData(joinUri('/weapi/login/qrcode/unikey'),
@@ -132,6 +138,7 @@ mixin ApiLogin {
     return joinUri('/login?codekey=$key').toString();
   }
 
+  /// loginQrCodeCheckDioMetaData。
   DioMetaData loginQrCodeCheckDioMetaData(String key) {
     var params = {'key': key, 'type': 1, 'timerstamp': '${DateTime.now()}'};
     return DioMetaData(joinUri('/weapi/login/qrcode/client/login'),
@@ -151,6 +158,7 @@ mixin ApiLogin {
     });
   }
 
+  /// loginAccountInfoDioMetaData。
   DioMetaData loginAccountInfoDioMetaData() {
     return DioMetaData(joinUri('/weapi/w/nuser/account/get'),
         data: {}, options: joinOptions());
@@ -189,6 +197,7 @@ mixin ApiLogin {
 
   var _loginRefreshVersion = 0;
 
+  /// loginRefreshVersion。
   get loginRefreshVersion {
     return _loginRefreshVersion;
   }
@@ -211,6 +220,7 @@ mixin ApiLogin {
     });
   }
 
+  /// captchaSendDioMetaData。
   DioMetaData captchaSendDioMetaData(String phone, {String ctcode = '86'}) {
     var params = {'ctcode': ctcode, 'cellphone': phone};
     return DioMetaData(joinUri('/weapi/sms/captcha/sent'),
@@ -227,6 +237,7 @@ mixin ApiLogin {
     });
   }
 
+  /// captchaVerifyDioMetaData。
   DioMetaData captchaVerifyDioMetaData(String phone, String captcha,
       {String ctcode = '86'}) {
     var params = {'ctcode': ctcode, 'cellphone': phone, 'captcha': captcha};
@@ -246,6 +257,7 @@ mixin ApiLogin {
     });
   }
 
+  /// registerCellPhoneDioMetaData。
   DioMetaData registerCellPhoneDioMetaData(
       String phone, String password, String captcha,
       {String nickname = ''}) {
@@ -273,6 +285,7 @@ mixin ApiLogin {
     });
   }
 
+  /// checkCellPhoneExistenceDioMetaData。
   DioMetaData checkCellPhoneExistenceDioMetaData(String phone,
       {String countrycode = ''}) {
     var params = {'cellphone': phone, 'countrycode': countrycode};
@@ -295,6 +308,7 @@ mixin ApiLogin {
     });
   }
 
+  /// initNicknameDioMetaData。
   DioMetaData initNicknameDioMetaData(String nickname) {
     var params = {'nickname': nickname};
     return DioMetaData(joinUri('/eapi/activate/initProfile'),
@@ -314,6 +328,7 @@ mixin ApiLogin {
     });
   }
 
+  /// rebindCellPhoneDioMetaData。
   DioMetaData rebindCellPhoneDioMetaData(
       String phone, String captcha, String oldcaptcha,
       {String ctcode = '86'}) {
@@ -342,6 +357,7 @@ mixin ApiLogin {
     });
   }
 
+  /// logoutDioMetaData。
   DioMetaData logoutDioMetaData() {
     return DioMetaData(joinUri('/weapi/logout'),
         data: {}, options: joinOptions());

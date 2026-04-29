@@ -18,7 +18,9 @@ import 'library_preference_store.dart';
 import 'local_artwork_cache_repository.dart';
 import 'local_resource_index_repository.dart';
 
+/// LibraryRepository。
 class LibraryRepository {
+  /// 创建 LibraryRepository。
   LibraryRepository({
     required LocalLibraryDataSource localDataSource,
     required NeteaseMusicSource neteaseSource,
@@ -40,8 +42,10 @@ class LibraryRepository {
   final LocalResourceIndexRepository _resourceIndexRepository;
   final LocalArtworkCacheRepository _artworkCacheRepository;
 
+  /// isOfflineModeEnabled。
   bool get isOfflineModeEnabled => _preferenceStore.isOfflineModeEnabled;
 
+  /// saveTracks。
   Future<void> saveTracks(List<Track> tracks) async {
     await _localDataSource.saveTracks(tracks);
     if (isOfflineModeEnabled) {
@@ -50,22 +54,27 @@ class LibraryRepository {
     await _artworkCacheRepository.cacheTrackArtwork(tracks);
   }
 
+  /// saveTrack。
   Future<void> saveTrack(Track track) async {
     await saveTracks([track]);
   }
 
+  /// savePlaylists。
   Future<void> savePlaylists(List<PlaylistEntity> playlists) async {
     await _localDataSource.savePlaylists(playlists);
   }
 
+  /// saveAlbums。
   Future<void> saveAlbums(List<AlbumEntity> albums) async {
     await _localDataSource.saveAlbums(albums);
   }
 
+  /// saveArtists。
   Future<void> saveArtists(List<ArtistEntity> artists) async {
     await _localDataSource.saveArtists(artists);
   }
 
+  /// searchTracks。
   Future<List<Track>> searchTracks({
     required String sourceKey,
     required String keyword,
@@ -80,10 +89,12 @@ class LibraryRepository {
     return tracks;
   }
 
+  /// searchLocalTracks。
   Future<List<Track>> searchLocalTracks(String keyword) async {
     return _localDataSource.searchTracks(keyword);
   }
 
+  /// searchPlaylists。
   Future<List<PlaylistEntity>> searchPlaylists({
     required String sourceKey,
     required String keyword,
@@ -98,10 +109,12 @@ class LibraryRepository {
     return playlists;
   }
 
+  /// searchLocalPlaylists。
   Future<List<PlaylistEntity>> searchLocalPlaylists(String keyword) async {
     return _localDataSource.searchPlaylists(keyword);
   }
 
+  /// searchAlbums。
   Future<List<AlbumEntity>> searchAlbums({
     required String sourceKey,
     required String keyword,
@@ -116,10 +129,12 @@ class LibraryRepository {
     return albums;
   }
 
+  /// searchLocalAlbums。
   Future<List<AlbumEntity>> searchLocalAlbums(String keyword) async {
     return _localDataSource.searchAlbums(keyword);
   }
 
+  /// searchArtists。
   Future<List<ArtistEntity>> searchArtists({
     required String sourceKey,
     required String keyword,
@@ -134,10 +149,12 @@ class LibraryRepository {
     return artists;
   }
 
+  /// searchLocalArtists。
   Future<List<ArtistEntity>> searchLocalArtists(String keyword) async {
     return _localDataSource.searchArtists(keyword);
   }
 
+  /// getTrack。
   Future<Track?> getTrack(String trackId) async {
     final localTrack = await _localDataSource.getTrack(trackId);
     if (localTrack != null) {
@@ -155,6 +172,7 @@ class LibraryRepository {
     return track;
   }
 
+  /// getTrackWithResources。
   Future<TrackWithResources?> getTrackWithResources(String trackId) async {
     final track = await getTrack(trackId);
     if (track == null) {
@@ -166,6 +184,7 @@ class LibraryRepository {
     );
   }
 
+  /// getTracksByIds。
   Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
     final ids = trackIds.toSet().toList();
     if (ids.isEmpty) {
@@ -174,6 +193,7 @@ class LibraryRepository {
     return _localDataSource.getTracksByIds(ids);
   }
 
+  /// getTracksWithResources。
   Future<List<TrackWithResources>> getTracksWithResources(
     Iterable<String> trackIds,
   ) async {
@@ -200,12 +220,14 @@ class LibraryRepository {
         .toList();
   }
 
+  /// getLocalSongs。
   Future<List<LocalSongEntry>> getLocalSongs({
     Set<TrackResourceOrigin>? origins,
   }) {
     return _resourceIndexRepository.listLocalSongs(origins: origins);
   }
 
+  /// getPlaybackUrl。
   Future<String?> getPlaybackUrl(String trackId) async {
     final trackWithResources = await getTrackWithResources(trackId);
     final localAudio = trackWithResources?.resources.audio;
@@ -228,6 +250,7 @@ class LibraryRepository {
         : _neteaseSource.getPlaybackUrl(trackId);
   }
 
+  /// getPlaybackUrlWithQuality。
   Future<String?> getPlaybackUrlWithQuality(
     String trackId, {
     String? qualityLevel,
@@ -253,6 +276,7 @@ class LibraryRepository {
         : _neteaseSource.getPlaybackUrl(trackId, qualityLevel: qualityLevel);
   }
 
+  /// getArtworkSource。
   Future<String> getArtworkSource(String trackId) async {
     final trackWithResources = await getTrackWithResources(trackId);
     if (trackWithResources == null) {
@@ -265,6 +289,7 @@ class LibraryRepository {
     return trackWithResources.track.artworkUrl ?? '';
   }
 
+  /// getLyrics。
   Future<TrackLyrics?> getLyrics(String trackId) async {
     final lyricsResource =
         (await _resourceIndexRepository.getTrackResourceBundle(trackId)).lyrics;
@@ -290,10 +315,12 @@ class LibraryRepository {
     return lyrics;
   }
 
+  /// saveLyrics。
   Future<void> saveLyrics(String trackId, TrackLyrics lyrics) async {
     await _localDataSource.saveLyrics(trackId, lyrics);
   }
 
+  /// getPlaylist。
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
     final localPlaylist = await _localDataSource.getPlaylist(playlistId);
     if (localPlaylist != null) {
@@ -311,26 +338,32 @@ class LibraryRepository {
     return playlist;
   }
 
+  /// getAlbum。
   Future<AlbumEntity?> getAlbum(String albumId) async {
     return _localDataSource.getAlbum(albumId);
   }
 
+  /// getArtist。
   Future<ArtistEntity?> getArtist(String artistId) async {
     return _localDataSource.getArtist(artistId);
   }
 
+  /// getTracksByAlbumId。
   Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
     return _localDataSource.getTracksByAlbumId(albumSourceId);
   }
 
+  /// getTracksByArtistId。
   Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
     return _localDataSource.getTracksByArtistId(artistSourceId);
   }
 
+  /// getTrackResourceBundle。
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) {
     return _resourceIndexRepository.getTrackResourceBundle(trackId);
   }
 
+  /// removeLocalTrackResources。
   Future<void> removeLocalTrackResources(
     String trackId, {
     required bool deleteSourceFiles,
@@ -362,6 +395,7 @@ class LibraryRepository {
     }
   }
 
+  /// removePlaybackCache。
   Future<void> removePlaybackCache() async {
     final entries = await getLocalSongs(
       origins: const {TrackResourceOrigin.playbackCache},

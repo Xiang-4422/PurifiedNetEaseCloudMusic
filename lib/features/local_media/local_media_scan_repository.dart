@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'local_media_repository.dart';
 
+/// LocalMediaScanRepository。
 class LocalMediaScanRepository {
+  /// 创建 LocalMediaScanRepository。
   LocalMediaScanRepository({required LocalMediaRepository localMediaRepository})
       : _localMediaRepository = localMediaRepository;
 
@@ -29,6 +31,7 @@ class LocalMediaScanRepository {
     '.txt',
   };
 
+  /// scanDirectories。
   Future<List<LocalTrackImport>> scanDirectories(
     List<String> directoryPaths, {
     bool recursive = true,
@@ -66,6 +69,7 @@ class LocalMediaScanRepository {
     return imports;
   }
 
+  /// scanFiles。
   Future<List<LocalTrackImport>> scanFiles(List<String> filePaths) async {
     final imports = <LocalTrackImport>[];
     final seenPaths = <String>{};
@@ -93,6 +97,7 @@ class LocalMediaScanRepository {
     return imports;
   }
 
+  /// importDirectories。
   Future<int> importDirectories(
     List<String> directoryPaths, {
     bool recursive = true,
@@ -105,6 +110,7 @@ class LocalMediaScanRepository {
     return tracks.length;
   }
 
+  /// importFiles。
   Future<int> importFiles(List<String> filePaths) async {
     final tracks = await scanFiles(filePaths);
     if (tracks.isEmpty) {

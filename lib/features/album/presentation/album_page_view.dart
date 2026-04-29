@@ -19,7 +19,9 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
+/// AlbumPageView。
 class AlbumPageView extends StatefulWidget {
+  /// 创建 AlbumPageView。
   const AlbumPageView({Key? key}) : super(key: key);
   @override
   State<AlbumPageView> createState() => _AlbumPageViewState();

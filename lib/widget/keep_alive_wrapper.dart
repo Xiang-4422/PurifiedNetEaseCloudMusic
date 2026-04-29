@@ -2,8 +2,10 @@ import 'package:flutter/cupertino.dart';
 
 /// 用于让 PageView 或 ListView 中的子 Widget 不被销毁
 class KeepAliveWrapper extends StatefulWidget {
+  /// child。
   final Widget child;
 
+  /// 创建 KeepAliveWrapper。
   const KeepAliveWrapper({Key? key, required this.child}) : super(key: key);
 
   @override

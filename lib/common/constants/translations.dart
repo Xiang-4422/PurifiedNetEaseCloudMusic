@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+/// LocaleString。
 class LocaleString extends Translations {
   @override
   Map<String, Map<String, String>> get keys => {

@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+/// LoginPageView。
 class LoginPageView extends StatefulWidget {
+  /// 创建 LoginPageView。
   const LoginPageView({Key? key}) : super(key: key);
 
   @override

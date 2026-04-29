@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 // TODO YU4422: 后续删除
+/// EnableView。
 class EnableView extends StatelessWidget {
+  /// 创建 EnableView。
   const EnableView({Key? key}) : super(key: key);
 
   @override

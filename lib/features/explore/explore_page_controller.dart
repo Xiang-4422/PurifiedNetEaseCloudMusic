@@ -16,12 +16,14 @@ class ExplorePageController extends GetxController {
   static const Duration _categoryPlaylistsTtl = Duration(minutes: 30);
   static const Duration _rankingPlaylistTtl = Duration(minutes: 30);
 
+  /// 创建 ExplorePageController。
   ExplorePageController({
     required ExploreApplicationService applicationService,
   }) : _applicationService = applicationService;
 
   final ExploreApplicationService _applicationService;
 
+  /// topPlayListCategory。
   final Map<String, List<RankingPlaylistData>> topPlayListCategory = {
     "官方榜": [
       const RankingPlaylistData(name: '云音乐新歌榜', id: '3779629'),
@@ -70,26 +72,50 @@ class ExplorePageController extends GetxController {
     ]
   };
 
+  /// tagCategorys。
   RxList tagCategorys = <String>[].obs;
+
+  /// tags。
   RxMap tags = {}.obs;
 
+  /// curTagCategoryName。
   RxString curTagCategoryName = "".obs;
+
+  /// curTag。
   RxString curTag = "全部".obs;
 
+  /// showChooseCategory。
   RxBool showChooseCategory = false.obs;
+
+  /// showChoosePlayList。
   RxBool showChoosePlayList = false.obs;
 
+  /// topPlayListCategoryNames。
   List<String> topPlayListCategoryNames = [];
+
+  /// curTopPlayListCategoryName。
   RxString curTopPlayListCategoryName = "".obs;
+
+  /// curCategoryTopPlayLists。
   RxList<RankingPlaylistData> curCategoryTopPlayLists =
       <RankingPlaylistData>[].obs;
+
+  /// curTopPlayListName。
   RxString curTopPlayListName = "".obs;
+
+  /// curTopPlayListId。
   RxString curTopPlayListId = "".obs;
+
+  /// curTopPlayListSongs。
   RxList<PlaybackQueueItem> curTopPlayListSongs = <PlaybackQueueItem>[].obs;
+
+  /// playLists。
   RxList<PlaylistSummaryData> playLists = <PlaylistSummaryData>[].obs;
 
+  /// loading。
   RxBool loading = true.obs;
 
+  /// refreshController。
   RefreshController refreshController = RefreshController();
   Worker? _pageVisibilityWorker;
   bool _bootstrapped = false;
@@ -225,6 +251,7 @@ class ExplorePageController extends GetxController {
     return true;
   }
 
+  /// updateData。
   Future<void> updateData({bool force = false}) async {
     await _refreshPlaylistCatalogue(force: force);
     await Future.wait([
@@ -247,6 +274,7 @@ class ExplorePageController extends GetxController {
     _applyPlaylistCatalogue(catalogue);
   }
 
+  /// updatePlayLists。
   Future<void> updatePlayLists({bool force = false}) async {
     if (!force) {
       final hasCachedPlayLists = await _loadCachedPlayLists();
@@ -264,11 +292,13 @@ class ExplorePageController extends GetxController {
       ..addAll(data);
   }
 
+  /// changeCurRankingPlayList。
   changeCurRankingPlayList(String rankingPlayListid) {
     curTopPlayListId.value = rankingPlayListid;
     unawaited(updateRankingPlayListSongs());
   }
 
+  /// updateRankingPlayListSongs。
   Future<void> updateRankingPlayListSongs({
     int offset = 0,
     int limit = 10,
@@ -304,6 +334,7 @@ class ExplorePageController extends GetxController {
     refreshController.loadComplete();
   }
 
+  /// playCurRankingPlayListSongs。
   Future<void> playCurRankingPlayListSongs() async {
     await updateRankingPlayListSongs(
       offset: curTopPlayListSongs.length,
@@ -316,6 +347,7 @@ class ExplorePageController extends GetxController {
     );
   }
 
+  /// changeCurTopPlayListCategory。
   changeCurTopPlayListCategory(String name) {
     curTopPlayListCategoryName.value = name;
     showChooseCategory.value = false;
@@ -327,6 +359,7 @@ class ExplorePageController extends GetxController {
     changeCurTopPlayList(curCategoryTopPlayLists[0]);
   }
 
+  /// changeCurTopPlayList。
   changeCurTopPlayList(RankingPlaylistData topPlayList) {
     curTopPlayListName.value = topPlayList.name;
     curTopPlayListId.value = topPlayList.id;

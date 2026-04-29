@@ -2,7 +2,9 @@ import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 
+/// LoadStateView。
 class LoadStateView<T> extends StatelessWidget {
+  /// 创建 LoadStateView。
   const LoadStateView({
     super.key,
     required this.state,
@@ -12,10 +14,19 @@ class LoadStateView<T> extends StatelessWidget {
     this.errorView,
   });
 
+  /// state。
   final LoadState<T> state;
+
+  /// Function。
   final Widget Function(T data) builder;
+
+  /// loadingView。
   final Widget? loadingView;
+
+  /// emptyView。
   final Widget? emptyView;
+
+  /// errorView。
   final Widget? errorView;
 
   @override

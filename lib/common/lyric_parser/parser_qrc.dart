@@ -3,11 +3,16 @@ import 'lyrics_reader_model.dart';
 
 ///qrc lyric parser
 class ParserQrc extends LyricsParse {
+  /// advancedPattern。
   RegExp advancedPattern = RegExp(r"""\[\d+,\d+]""");
+
+  /// qrcPattern。
   RegExp qrcPattern = RegExp(r"""\((\d+,\d+)\)""");
 
+  /// advancedValuePattern。
   RegExp advancedValuePattern = RegExp(r"\[(\d*,\d*)\]");
 
+  /// 创建 ParserQrc。
   ParserQrc(String lyric) : super(lyric);
 
   @override

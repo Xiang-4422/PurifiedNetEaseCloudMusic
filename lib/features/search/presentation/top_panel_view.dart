@@ -21,7 +21,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
+/// TopPanelView。
 class TopPanelView extends StatefulWidget {
+  /// 创建 TopPanelView。
   const TopPanelView({Key? key}) : super(key: key);
   static final SearchPanelController _searchPanelController =
       Get.find<FeatureControllerFactory>().searchPanel();

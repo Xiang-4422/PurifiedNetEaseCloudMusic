@@ -2,16 +2,33 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+/// Swipeable。
 class Swipeable extends StatefulWidget {
+  /// child。
   final Widget child;
+
+  /// background。
   final Widget background;
+
+  /// onSwipeStart。
   final VoidCallback? onSwipeStart;
+
+  /// onSwipeLeft。
   final VoidCallback? onSwipeLeft;
+
+  /// onSwipeRight。
   final VoidCallback? onSwipeRight;
+
+  /// onSwipeCancel。
   final VoidCallback? onSwipeCancel;
+
+  /// onSwipeEnd。
   final VoidCallback? onSwipeEnd;
+
+  /// threshold。
   final double threshold;
 
+  /// 创建 Swipeable。
   const Swipeable({
     super.key,
     required this.child,

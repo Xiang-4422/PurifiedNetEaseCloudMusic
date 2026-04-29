@@ -8,7 +8,9 @@ import 'package:bujuan/widget/scroll_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// BottomPanelQueueView。
 class BottomPanelQueueView extends GetView<ShellController> {
+  /// 创建 BottomPanelQueueView。
   const BottomPanelQueueView({super.key});
 
   @override

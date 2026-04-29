@@ -13,7 +13,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// MyRadioView。
 class MyRadioView extends StatefulWidget {
+  /// 创建 MyRadioView。
   const MyRadioView({Key? key}) : super(key: key);
 
   @override

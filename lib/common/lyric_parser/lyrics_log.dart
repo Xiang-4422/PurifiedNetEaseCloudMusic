@@ -7,10 +7,12 @@ class LyricsLog {
 
   static const _defaultTag = "LyricReader->";
 
+  /// logD。
   static logD(Object? obj) {
     _log(_defaultTag, obj);
   }
 
+  /// logW。
   static logW(Object? obj) {
     _log("$_defaultTag♦️WARN♦️->", obj);
   }

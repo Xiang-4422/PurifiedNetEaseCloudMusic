@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
+/// BottomPanelProgressBar。
 class BottomPanelProgressBar extends StatelessWidget {
+  /// 创建 BottomPanelProgressBar。
   const BottomPanelProgressBar({super.key});
 
   @override
@@ -41,7 +43,9 @@ class BottomPanelProgressBar extends StatelessWidget {
   }
 }
 
+/// BottomPanelPlaybackControls。
 class BottomPanelPlaybackControls extends GetView<ShellController> {
+  /// 创建 BottomPanelPlaybackControls。
   const BottomPanelPlaybackControls({super.key});
 
   @override

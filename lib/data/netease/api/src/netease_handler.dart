@@ -65,10 +65,31 @@ void neteaseInterceptor(
   handler.next(option);
 }
 
-enum EncryptType { LinuxForward, WeApi, EApi }
+/// EncryptType。
+enum EncryptType {
+  /// LinuxForward。
+  LinuxForward,
 
-enum UserAgent { Random, Pc, Mobile }
+  /// WeApi。
+  WeApi,
 
+  /// EApi。
+  EApi,
+}
+
+/// UserAgent。
+enum UserAgent {
+  /// Random。
+  Random,
+
+  /// Pc。
+  Pc,
+
+  /// Mobile。
+  Mobile,
+}
+
+/// userAgentList。
 const userAgentList = [
   'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1',
   'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1',
@@ -95,8 +116,13 @@ const _ivWeApi = '0102030405060708';
 const _publicKeyWeApi =
     '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDgtQn2JZ34ZC28NWYpAUd98iZ37BUrX/aKzmFbt7clFSs6sXqHauqKWqdtLkF2KexO40H1YTX8z2lSgBBOAxLsvaklV8k4cBFK9snQXE9/DDaFt6Rr7iVZMldczhC0JNgTz+SHXT6CBHuX3e9SdB1Ua44oncaTWz7OBGLbCiK45wIDAQAB\n-----END PUBLIC KEY-----';
 
+/// TAG。
 const String TAG = 'NeteaseMusicApi';
+
+/// HOST。
 const String HOST = 'https://music.163.com';
+
+/// HOSTS。
 const HOSTS = [
   'music.163.com',
   'interface.music.163.com',
@@ -245,6 +271,7 @@ String _chooseUserAgent(UserAgent agent) {
   }
 }
 
+/// joinOptions。
 Options joinOptions(
         {hookRequestDate = true,
         EncryptType encryptType = EncryptType.WeApi,
@@ -261,15 +288,18 @@ Options joinOptions(
       'realIP': realIP
     });
 
+/// joinUri。
 Uri joinUri(String path) {
   return Uri.parse('$HOST$path');
 }
 
+/// loadCookies。
 Future<List<Cookie>> loadCookies({Uri? host}) async {
   host ??= Uri.parse(HOST);
   return (NeteaseMusicApi.cookieManager.cookieJar).loadForRequest(host);
 }
 
+/// loadCookiesHash。
 Future<int> loadCookiesHash({List<Cookie>? cookies}) async {
   cookies ??= await loadCookies();
   int hash = cookies.map((e) => e.toString()).hashCode;
@@ -277,6 +307,7 @@ Future<int> loadCookiesHash({List<Cookie>? cookies}) async {
   return hash + loginRefreshVersion;
 }
 
+/// deleteAllCookie。
 Future<void> deleteAllCookie() async {
   try {
     await (NeteaseMusicApi.cookieManager.cookieJar as PersistCookieJar)

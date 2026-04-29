@@ -3,12 +3,15 @@ import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/domain/entities/user_library_kinds.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 
+/// UserHomeApplicationService。
 class UserHomeApplicationService {
+  /// 创建 UserHomeApplicationService。
   UserHomeApplicationService({required UserRepository repository})
       : _repository = repository;
 
   final UserRepository _repository;
 
+  /// shouldRefreshStartupData。
   Future<bool> shouldRefreshStartupData({
     required String userId,
     required String markerKey,
@@ -25,6 +28,7 @@ class UserHomeApplicationService {
     ));
   }
 
+  /// markStartupDataUpdated。
   Future<void> markStartupDataUpdated({
     required String userId,
     required String markerKey,
@@ -35,6 +39,7 @@ class UserHomeApplicationService {
     );
   }
 
+  /// loadLocalSnapshot。
   Future<UserHomeSnapshot> loadLocalSnapshot({
     required String userId,
     required List<int> likedSongIds,
@@ -65,6 +70,7 @@ class UserHomeApplicationService {
     );
   }
 
+  /// refreshQuickStartData。
   Future<UserHomeSnapshot> refreshQuickStartData({
     required String userId,
     required List<int> likedSongIds,
@@ -83,6 +89,7 @@ class UserHomeApplicationService {
     );
   }
 
+  /// fetchRecommendedPlaylists。
   Future<List<PlaylistSummaryData>> fetchRecommendedPlaylists({
     required String userId,
     required int offset,
@@ -95,6 +102,7 @@ class UserHomeApplicationService {
     );
   }
 
+  /// fetchTodayRecommendSongs。
   Future<List<PlaybackQueueItem>> fetchTodayRecommendSongs({
     required String userId,
     required List<int> likedSongIds,
@@ -105,6 +113,7 @@ class UserHomeApplicationService {
     );
   }
 
+  /// fetchFmSongs。
   Future<List<PlaybackQueueItem>> fetchFmSongs({
     required String userId,
     required List<int> likedSongIds,
@@ -116,22 +125,31 @@ class UserHomeApplicationService {
   }
 }
 
+/// UserHomeSnapshot。
 class UserHomeSnapshot {
+  /// 创建 UserHomeSnapshot。
   const UserHomeSnapshot({
     required this.recommendedPlaylists,
     required this.todayRecommendSongs,
     required this.fmSongs,
   });
 
+  /// 创建 UserHomeSnapshot。
   const UserHomeSnapshot.empty()
       : recommendedPlaylists = const [],
         todayRecommendSongs = const [],
         fmSongs = const [];
 
+  /// recommendedPlaylists。
   final List<PlaylistSummaryData> recommendedPlaylists;
+
+  /// todayRecommendSongs。
   final List<PlaybackQueueItem> todayRecommendSongs;
+
+  /// fmSongs。
   final List<PlaybackQueueItem> fmSongs;
 
+  /// hasData。
   bool get hasData =>
       recommendedPlaylists.isNotEmpty ||
       todayRecommendSongs.isNotEmpty ||

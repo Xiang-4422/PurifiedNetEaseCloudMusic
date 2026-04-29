@@ -20,10 +20,15 @@ import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// PersonalPageView。
 class PersonalPageView extends GetView<ShellController> {
+  /// 创建 PersonalPageView。
   const PersonalPageView({Key? key}) : super(key: key);
 
+  /// albumCountInScreen。
   final double albumCountInScreen = 3.2;
+
+  /// userItemCountInScreen。
   final double userItemCountInScreen = 2.5;
 
   @override
@@ -281,7 +286,9 @@ class PersonalPageView extends GetView<ShellController> {
   }
 }
 
+/// QuickStartCard。
 class QuickStartCard extends StatelessWidget {
+  /// 创建 QuickStartCard。
   const QuickStartCard({
     Key? key,
     required this.width,
@@ -292,11 +299,22 @@ class QuickStartCard extends StatelessWidget {
     required this.title,
   }) : super(key: key);
 
+  /// width。
   final double width;
+
+  /// height。
   final double height;
+
+  /// 创建 Function。
   final Function()? onTap;
+
+  /// albumUrl。
   final String albumUrl;
+
+  /// icon。
   final IconData? icon;
+
+  /// title。
   final String title;
 
   @override

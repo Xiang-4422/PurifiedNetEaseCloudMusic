@@ -4,7 +4,9 @@ import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
+/// PlaybackRestoreSnapshot。
 class PlaybackRestoreSnapshot {
+  /// 创建 PlaybackRestoreSnapshot。
   const PlaybackRestoreSnapshot({
     required this.playbackMode,
     required this.repeatMode,
@@ -15,17 +17,31 @@ class PlaybackRestoreSnapshot {
     required this.position,
   });
 
+  /// playbackMode。
   final PlaybackMode playbackMode;
+
+  /// repeatMode。
   final PlaybackRepeatMode repeatMode;
+
+  /// queue。
   final List<PlaybackQueueItem> queue;
+
+  /// index。
   final int index;
+
+  /// playlistName。
   final String playlistName;
+
+  /// playlistHeader。
   final String playlistHeader;
+
+  /// position。
   final Duration position;
 }
 
 /// 组装上次播放状态，避免 handler 直接读取恢复存储细节。
 class PlaybackRestoreCoordinator {
+  /// 创建 PlaybackRestoreCoordinator。
   PlaybackRestoreCoordinator({
     required PlaybackRepository repository,
     required PlaybackQueueStore queueStore,
@@ -35,6 +51,7 @@ class PlaybackRestoreCoordinator {
   final PlaybackRepository _repository;
   final PlaybackQueueStore _queueStore;
 
+  /// loadSnapshot。
   Future<PlaybackRestoreSnapshot> loadSnapshot() async {
     final restoreState = await _repository.getRestoreState();
     final playlist = restoreState.queue.isEmpty

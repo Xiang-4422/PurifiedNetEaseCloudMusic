@@ -10,8 +10,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 /// 持有账号 session 与本地登录快照。
 class UserSessionController extends GetxController {
+  /// to。
   static UserSessionController get to => Get.find();
 
+  /// 创建 UserSessionController。
   UserSessionController({
     required UserRepository repository,
     required Box box,
@@ -22,8 +24,10 @@ class UserSessionController extends GetxController {
   final Box _box;
   Future<void>? _cacheBootstrapFuture;
 
+  /// userInfo。
   final Rx<UserSessionData> userInfo = const UserSessionData.empty().obs;
 
+  /// ensureCacheLoaded。
   Future<void> ensureCacheLoaded() async {
     await (_cacheBootstrapFuture ?? Future<void>.value());
   }
@@ -35,6 +39,7 @@ class UserSessionController extends GetxController {
     ever<UserSessionData>(userInfo, _persistSession);
   }
 
+  /// clearUser。
   Future<void> clearUser() async {
     final value = await _repository.logout();
     if (value.success) {
@@ -43,6 +48,7 @@ class UserSessionController extends GetxController {
     }
   }
 
+  /// expireLoginSession。
   Future<void> expireLoginSession() async {
     await _clearLocalSession();
     await SettingsController.to.updateLoginStatus(false);

@@ -6,12 +6,15 @@ import 'package:bujuan/widget/keep_alive_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// BottomPanelCommentPage。
 class BottomPanelCommentPage extends StatelessWidget {
+  /// 创建 BottomPanelCommentPage。
   const BottomPanelCommentPage({
     super.key,
     required this.commentType,
   });
 
+  /// commentType。
   final int commentType;
 
   CommentContentPort get _commentContentPort => Get.find<CommentContentPort>();

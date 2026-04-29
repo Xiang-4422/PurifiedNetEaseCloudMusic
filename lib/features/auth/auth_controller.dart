@@ -9,20 +9,31 @@ import 'package:get/get.dart';
 
 /// 承接二维码登录流程的瞬时状态，避免登录页继续持有轮询与鉴权副作用。
 class AuthController extends GetxController {
+  /// 创建 AuthController。
   AuthController({required AuthRepository repository})
       : _repository = repository;
 
   final AuthRepository _repository;
 
+  /// qrCodeUrl。
   final qrCodeUrl = ''.obs;
+
+  /// hintText。
   final hintText = '扫描二维码登录'.obs;
+
+  /// isLoading。
   final isLoading = false.obs;
+
+  /// qrCodeNeedRefresh。
   final qrCodeNeedRefresh = true.obs;
+
+  /// loginCompleted。
   final loginCompleted = false.obs;
 
   Timer? _qrPollingTimer;
   Future<void>? _bootstrapFuture;
 
+  /// bootstrap。
   Future<void> bootstrap() async {
     final pending = _bootstrapFuture;
     if (pending != null) {
@@ -38,6 +49,7 @@ class AuthController extends GetxController {
     }
   }
 
+  /// validateLoginStateInBackgroundIfNeeded。
   Future<void> validateLoginStateInBackgroundIfNeeded() async {
     if (!_repository.hasCachedLogin) {
       return;
@@ -65,6 +77,7 @@ class AuthController extends GetxController {
     await refreshQrCode();
   }
 
+  /// refreshQrCode。
   Future<void> refreshQrCode() async {
     if (!qrCodeNeedRefresh.value) {
       return;
@@ -82,6 +95,7 @@ class AuthController extends GetxController {
     _startPolling(qrCodeLoginKey.unikey);
   }
 
+  /// consumeLoginCompleted。
   void consumeLoginCompleted() {
     loginCompleted.value = false;
   }

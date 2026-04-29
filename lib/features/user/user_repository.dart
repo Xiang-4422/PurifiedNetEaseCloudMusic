@@ -12,7 +12,9 @@ import 'package:bujuan/domain/entities/user_library_kinds.dart';
 import 'package:bujuan/domain/entities/user_profile_data.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 
+/// UserRepository。
 class UserRepository {
+  /// 创建 UserRepository。
   UserRepository({
     required LibraryRepository libraryRepository,
     NeteaseUserRemoteDataSource? remoteDataSource,
@@ -26,16 +28,19 @@ class UserRepository {
   final NeteaseUserRemoteDataSource _remoteDataSource;
   final UserScopedDataSource _userScopedDataSource;
 
+  /// loadCachedUserDetail。
   Future<UserProfileData?> loadCachedUserDetail(String userId) {
     return _userScopedDataSource.loadProfile(userId);
   }
 
+  /// fetchUserDetail。
   Future<UserProfileData> fetchUserDetail(String userId) async {
     final profile = await _remoteDataSource.fetchUserDetail(userId);
     await _userScopedDataSource.saveProfile(profile);
     return profile;
   }
 
+  /// loadCachedLikedSongIds。
   Future<List<int>> loadCachedLikedSongIds(String userId) async {
     final trackIds = await _userScopedDataSource.loadTrackIds(
       userId,
@@ -47,6 +52,7 @@ class UserRepository {
         .toList(growable: false);
   }
 
+  /// loadCachedPlaylistList。
   Future<List<PlaylistSummaryData>> loadCachedPlaylistList(
     String userId,
     UserPlaylistListKind kind,
@@ -54,6 +60,7 @@ class UserRepository {
     return _userScopedDataSource.loadPlaylistItems(userId, kind);
   }
 
+  /// loadCachedTrackList。
   Future<List<PlaybackQueueItem>> loadCachedTrackList({
     required String userId,
     required UserTrackListKind kind,
@@ -66,6 +73,7 @@ class UserRepository {
     );
   }
 
+  /// isSyncMarkerFresh。
   Future<bool> isSyncMarkerFresh({
     required String userId,
     required String markerKey,
@@ -81,6 +89,7 @@ class UserRepository {
     return DateTime.now().difference(updatedAt) < ttl;
   }
 
+  /// markSyncMarkerUpdated。
   Future<void> markSyncMarkerUpdated({
     required String userId,
     required String markerKey,
@@ -88,6 +97,7 @@ class UserRepository {
     return _userScopedDataSource.markSyncMarkerUpdated(userId, markerKey);
   }
 
+  /// fetchLikedSongIds。
   Future<List<int>> fetchLikedSongIds(String userId) async {
     final likedSongIds = await _remoteDataSource.fetchLikedSongIds(userId);
     await _userScopedDataSource.replaceTrackList(
@@ -98,6 +108,7 @@ class UserRepository {
     return likedSongIds;
   }
 
+  /// fetchRecommendedPlaylists。
   Future<List<PlaylistSummaryData>> fetchRecommendedPlaylists({
     required String userId,
     required int offset,
@@ -125,6 +136,7 @@ class UserRepository {
     return summaries;
   }
 
+  /// fetchUserPlaylists。
   Future<List<PlaylistSummaryData>> fetchUserPlaylists(String userId) async {
     final playlists = await _remoteDataSource.fetchUserPlaylists(userId);
     final summaries = playlists.map(PlaylistSummaryData.fromEntity).toList();
@@ -144,6 +156,7 @@ class UserRepository {
     return summaries;
   }
 
+  /// fetchTodayRecommendSongs。
   Future<List<PlaybackQueueItem>> fetchTodayRecommendSongs({
     required String userId,
     required List<int> likedSongIds,
@@ -158,6 +171,7 @@ class UserRepository {
     return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
+  /// fetchFmSongs。
   Future<List<PlaybackQueueItem>> fetchFmSongs({
     required String userId,
     required List<int> likedSongIds,
@@ -176,6 +190,7 @@ class UserRepository {
     );
   }
 
+  /// fetchHeartBeatSongs。
   Future<List<PlaybackQueueItem>> fetchHeartBeatSongs({
     required String startSongId,
     required String randomLikedSongId,
@@ -191,6 +206,7 @@ class UserRepository {
     return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
+  /// fetchSongsByIds。
   Future<List<PlaybackQueueItem>> fetchSongsByIds({
     required List<String> ids,
     required List<int> likedSongIds,
@@ -202,6 +218,7 @@ class UserRepository {
     return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
+  /// loadCachedSongsByIds。
   Future<List<PlaybackQueueItem>> loadCachedSongsByIds({
     required List<String> ids,
     required List<int> likedSongIds,
@@ -228,6 +245,7 @@ class UserRepository {
     );
   }
 
+  /// loadCachedSongAlbumUrl。
   Future<String> loadCachedSongAlbumUrl(String songId) async {
     final artworkSource = await _libraryRepository.getArtworkSource(
       _toTrackId(songId),
@@ -238,6 +256,7 @@ class UserRepository {
     return ImageUrlNormalizer.normalize(artworkSource);
   }
 
+  /// fetchSongAlbumUrl。
   Future<String> fetchSongAlbumUrl(String songId) async {
     final artworkUrl = await _remoteDataSource.fetchSongAlbumUrl(songId);
     if (artworkUrl.isEmpty) {
@@ -250,6 +269,7 @@ class UserRepository {
     return loadCachedSongAlbumUrl(songId);
   }
 
+  /// toggleLikeSong。
   Future<OperationResult> toggleLikeSong(
     String userId,
     String songId,
@@ -278,6 +298,7 @@ class UserRepository {
     );
   }
 
+  /// logout。
   Future<OperationResult> logout() async {
     final result = await _remoteDataSource.logout();
     return OperationResult(

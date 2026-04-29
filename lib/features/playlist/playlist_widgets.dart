@@ -14,9 +14,13 @@ import 'package:lottie/lottie.dart';
 
 /// 这批组件都围绕歌单、歌曲列表和播放入口组织，放回 playlist feature 比继续挂在页面文件或 common 更清晰。
 class Header extends StatelessWidget {
+  /// title。
   final String title;
+
+  /// padding。
   final double padding;
 
+  /// 创建 Header。
   const Header(this.title, {Key? key, this.padding = 0}) : super(key: key);
 
   @override
@@ -35,14 +39,28 @@ class Header extends StatelessWidget {
 
 /// 统一歌曲、歌单、专辑、歌手搜索结果的行结构，避免页面为了一个 list item 再各自复制样式。
 class UniversalListTile extends StatelessWidget {
+  /// titleString。
   final String titleString;
+
+  /// subTitleString。
   final String? subTitleString;
+
+  /// picUrl。
   final String? picUrl;
+
+  /// onTap。
   final GestureTapCallback? onTap;
+
+  /// onLongPress。
   final GestureTapCallback? onLongPress;
+
+  /// stringColor。
   final Color? stringColor;
+
+  /// trailing。
   final Widget? trailing;
 
+  /// 创建 UniversalListTile。
   const UniversalListTile({
     super.key,
     required this.titleString,
@@ -112,21 +130,39 @@ class UniversalListTile extends StatelessWidget {
 
 /// `SongItem` 统一承接“点击即按当前上下文播放”的行为，避免每个页面再手写一次播放入口。
 class SongItem extends StatefulWidget {
+  /// index。
   final int index;
+
+  /// playlist。
   final List<PlaybackQueueItem> playlist;
+
+  /// playListName。
   final String playListName;
+
+  /// playListHeader。
   final String playListHeader;
+
+  /// 创建 Function。
   final Function()? beforeOnTap;
+
+  /// 播放回调。
   final Future<void> Function(
     List<PlaybackQueueItem> playlist,
     int index, {
     String playListName,
     String playListNameHeader,
   })? onPlay;
+
+  /// stringColor。
   final Color? stringColor;
+
+  /// showPic。
   final bool showPic;
+
+  /// showIndex。
   final bool showIndex;
 
+  /// 创建 SongItem。
   const SongItem({
     Key? key,
     this.beforeOnTap,
@@ -168,10 +204,15 @@ class _SongItemState extends State<SongItem> {
   }
 }
 
+/// PlayListItem。
 class PlayListItem extends StatelessWidget {
+  /// play。
   final PlaylistSummaryData play;
+
+  /// 创建 Function。
   final Function()? beforeOnTap;
 
+  /// 创建 PlayListItem。
   const PlayListItem(this.play, {Key? key, this.beforeOnTap}) : super(key: key);
 
   @override
@@ -202,16 +243,34 @@ class PlayListItem extends StatelessWidget {
 
 /// 歌单卡片既负责展示，也负责触发“播放整个歌单”，因此归在 playlist feature 比挂在 common 更合适。
 class PlayListWidget extends StatelessWidget {
+  /// albumCountInWidget。
   final double albumCountInWidget;
+
+  /// albumMargin。
   final double albumMargin;
+
+  /// playLists。
   final List<PlaylistSummaryData> playLists;
+
+  /// showSongCount。
   final bool showSongCount;
+
+  /// snappAllAlbum。
   final bool snappAllAlbum;
+
+  /// noScroll。
   final bool noScroll;
+
+  /// isPlaying。
   final bool isPlaying;
+
+  /// playingPlaylistName。
   final String? playingPlaylistName;
+
+  /// Function。
   final Future<void> Function(PlaylistSummaryData playlist)? onPlayPlaylist;
 
+  /// 创建 PlayListWidget。
   const PlayListWidget({
     Key? key,
     required this.playLists,

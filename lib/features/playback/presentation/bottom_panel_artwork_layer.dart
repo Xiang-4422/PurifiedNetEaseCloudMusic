@@ -6,12 +6,15 @@ import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// BottomPanelArtworkTransitionLayer。
 class BottomPanelArtworkTransitionLayer extends StatelessWidget {
+  /// 创建 BottomPanelArtworkTransitionLayer。
   const BottomPanelArtworkTransitionLayer({
     required this.controller,
     super.key,
   });
 
+  /// controller。
   final ShellController controller;
 
   @override
@@ -68,9 +71,12 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
   }
 }
 
+/// BottomPanelArtworkPageLayer。
 class BottomPanelArtworkPageLayer extends StatelessWidget {
+  /// 创建 BottomPanelArtworkPageLayer。
   const BottomPanelArtworkPageLayer({required this.controller, super.key});
 
+  /// controller。
   final ShellController controller;
 
   @override

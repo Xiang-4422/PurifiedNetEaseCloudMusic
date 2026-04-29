@@ -6,6 +6,7 @@ import 'package:bujuan/features/playlist/playlist_repository.dart';
 
 /// 探索页应用服务，集中组合探索接口、歌单详情和播放入口。
 class ExploreApplicationService {
+  /// 创建 ExploreApplicationService。
   ExploreApplicationService({
     required ExploreRepository exploreRepository,
     required PlaylistRepository playlistRepository,
@@ -34,22 +35,27 @@ class ExploreApplicationService {
     String playListNameHeader,
   }) _playPlaylist;
 
+  /// loadCachedPlaylistCatalogue。
   Future<ExplorePlaylistCatalogueData?> loadCachedPlaylistCatalogue() {
     return _exploreRepository.loadCachedPlaylistCatalogue();
   }
 
+  /// isPlaylistCatalogueFresh。
   Future<bool> isPlaylistCatalogueFresh({required Duration ttl}) {
     return _exploreRepository.isPlaylistCatalogueFresh(ttl: ttl);
   }
 
+  /// fetchPlaylistCatalogue。
   Future<ExplorePlaylistCatalogueData> fetchPlaylistCatalogue() {
     return _exploreRepository.fetchPlaylistCatalogue();
   }
 
+  /// loadCachedCategoryPlaylists。
   Future<List<PlaylistSummaryData>?> loadCachedCategoryPlaylists(String tag) {
     return _exploreRepository.loadCachedCategoryPlaylists(tag);
   }
 
+  /// isCategoryPlaylistsFresh。
   Future<bool> isCategoryPlaylistsFresh(
     String tag, {
     required Duration ttl,
@@ -57,10 +63,12 @@ class ExploreApplicationService {
     return _exploreRepository.isCategoryPlaylistsFresh(tag, ttl: ttl);
   }
 
+  /// fetchCategoryPlaylists。
   Future<List<PlaylistSummaryData>> fetchCategoryPlaylists(String tag) {
     return _exploreRepository.fetchCategoryPlaylists(tag);
   }
 
+  /// isRankingPlaylistFresh。
   Future<bool> isRankingPlaylistFresh(
     String playlistId, {
     required Duration ttl,
@@ -68,6 +76,7 @@ class ExploreApplicationService {
     return _playlistRepository.isCacheFresh(playlistId, ttl: ttl);
   }
 
+  /// loadCachedRankingSongs。
   Future<List<PlaybackQueueItem>> loadCachedRankingSongs(
       String playlistId) async {
     final cachedDetail = await _playlistRepository.loadLocalPlaylistDetail(
@@ -78,6 +87,7 @@ class ExploreApplicationService {
     return cachedDetail?.songs ?? const <PlaybackQueueItem>[];
   }
 
+  /// fetchRankingSongs。
   Future<List<PlaybackQueueItem>> fetchRankingSongs(
     String playlistId, {
     int offset = 0,
@@ -91,6 +101,7 @@ class ExploreApplicationService {
     );
   }
 
+  /// playRankingSongs。
   Future<void> playRankingSongs(
     List<PlaybackQueueItem> songs, {
     required String playlistName,

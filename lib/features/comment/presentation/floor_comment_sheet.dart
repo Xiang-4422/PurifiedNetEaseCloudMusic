@@ -15,7 +15,9 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// FoolTalk。
 class FoolTalk extends StatefulWidget {
+  /// 创建 FoolTalk。
   const FoolTalk({
     super.key,
     required this.commentItem,
@@ -24,9 +26,16 @@ class FoolTalk extends StatefulWidget {
     required this.backGroundColor,
   });
 
+  /// commentItem。
   final CommentData commentItem;
+
+  /// id。
   final String id;
+
+  /// type。
   final String type;
+
+  /// backGroundColor。
   final Color backGroundColor;
 
   @override
@@ -279,9 +288,14 @@ class _FoolTalkState extends State<FoolTalk> {
   }
 }
 
+/// TalkItem。
 class TalkItem {
+  /// 创建 TalkItem。
   TalkItem(this.title, this.type);
 
+  /// title。
   String title;
+
+  /// type。
   int type;
 }

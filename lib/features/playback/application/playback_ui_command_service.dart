@@ -4,7 +4,9 @@ import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
+/// PlaybackUiCommandService。
 class PlaybackUiCommandService {
+  /// 创建 PlaybackUiCommandService。
   PlaybackUiCommandService({
     required PlaybackService playbackService,
     required PlaybackModeCoordinator modeCoordinator,
@@ -14,10 +16,12 @@ class PlaybackUiCommandService {
   final PlaybackService _playbackService;
   final PlaybackModeCoordinator _modeCoordinator;
 
+  /// playOrPause。
   Future<void> playOrPause({required bool isPlaying}) {
     return isPlaying ? _playbackService.pause() : _playbackService.play();
   }
 
+  /// playPlaylist。
   Future<void> playPlaylist(
     List<PlaybackQueueItem> playList,
     int index, {
@@ -42,22 +46,29 @@ class PlaybackUiCommandService {
     );
   }
 
+  /// playQueueIndex。
   Future<void> playQueueIndex(int index) {
     return _playbackService.playIndex(audioSourceIndex: index, playNow: true);
   }
 
+  /// seekTo。
   Future<void> seekTo(Duration position) => _playbackService.seek(position);
 
+  /// skipToPreviousTrack。
   Future<void> skipToPreviousTrack() => _playbackService.skipToPrevious();
 
+  /// skipToNextTrack。
   Future<void> skipToNextTrack() => _playbackService.skipToNext();
 
+  /// setRepeatMode。
   Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) {
     return _playbackService.changeRepeatMode(newRepeatMode: repeatMode);
   }
 
+  /// cycleRepeatMode。
   Future<void> cycleRepeatMode() => _playbackService.changeRepeatMode();
 
+  /// startRoamingMode。
   Future<bool> startRoamingMode({
     required PlaybackRepeatMode currentRepeatMode,
   }) {
@@ -66,6 +77,7 @@ class PlaybackUiCommandService {
     );
   }
 
+  /// startHeartBeatMode。
   Future<bool> startHeartBeatMode({
     required String startSongId,
     required bool fromPlayAll,
@@ -78,12 +90,14 @@ class PlaybackUiCommandService {
     );
   }
 
+  /// playLikedSongs。
   Future<void> playLikedSongs({
     required PlaybackQueueItem currentSong,
   }) {
     return _modeCoordinator.playLikedSongs(currentSong: currentSong);
   }
 
+  /// switchMode。
   Future<void> switchMode({
     required PlaybackMode currentMode,
     required PlaybackMode newMode,

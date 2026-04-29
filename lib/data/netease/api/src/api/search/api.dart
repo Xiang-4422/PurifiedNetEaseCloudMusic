@@ -4,11 +4,13 @@ import '../../../src/dio_ext.dart';
 import '../../../src/netease_handler.dart';
 import 'bean.dart';
 
+/// 公开成员。
 mixin ApiSearch {
   Uri _searchUrl(bool cloudSearch) => cloudSearch
       ? joinUri('/weapi/cloudsearch/pc')
       : joinUri('/weapi/search/get');
 
+  /// searchSongDioMetaData。
   DioMetaData searchSongDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1, 'limit': limit, 'offset': offset};
@@ -27,6 +29,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchAlbumDioMetaData。
   DioMetaData searchAlbumDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 10, 'limit': limit, 'offset': offset};
@@ -45,6 +48,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchArtistsDioMetaData。
   DioMetaData searchArtistsDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 100, 'limit': limit, 'offset': offset};
@@ -63,6 +67,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchPlaylistDioMetaData。
   DioMetaData searchPlaylistDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1000, 'limit': limit, 'offset': offset};
@@ -81,6 +86,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchUserDioMetaData。
   DioMetaData searchUserDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1002, 'limit': limit, 'offset': offset};
@@ -99,6 +105,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchMvDioMetaData。
   DioMetaData searchMvDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1004, 'limit': limit, 'offset': offset};
@@ -117,6 +124,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchLyricsDioMetaData。
   DioMetaData searchLyricsDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1006, 'limit': limit, 'offset': offset};
@@ -135,6 +143,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchDjradioDioMetaData。
   DioMetaData searchDjradioDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1009, 'limit': limit, 'offset': offset};
@@ -153,6 +162,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchVideoDioMetaData。
   DioMetaData searchVideoDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1014, 'limit': limit, 'offset': offset};
@@ -171,6 +181,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchComplexDioMetaData。
   DioMetaData searchComplexDioMetaData(String keyword,
       {bool cloudSearch = false, int offset = 0, int limit = 30}) {
     var params = {'s': keyword, 'type': 1018, 'limit': limit, 'offset': offset};
@@ -189,6 +200,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchDefaultKeyDioMetaData。
   DioMetaData searchDefaultKeyDioMetaData() {
     return DioMetaData(
         Uri.parse(
@@ -208,6 +220,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchHotKeyDioMetaData。
   DioMetaData searchHotKeyDioMetaData() {
     return DioMetaData(joinUri('/weapi/search/hot'),
         data: {'type': 1111},
@@ -223,6 +236,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchHotKeyDetailedDioMetaData。
   DioMetaData searchHotKeyDetailedDioMetaData() {
     return DioMetaData(joinUri('/weapi/hotsearchlist/get'),
         data: {}, options: joinOptions());
@@ -237,6 +251,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchSuggestDioMetaData。
   DioMetaData searchSuggestDioMetaData(String keyword,
       {String type = 'mobile'}) {
     var params = {'s': keyword};
@@ -258,6 +273,7 @@ mixin ApiSearch {
     });
   }
 
+  /// searchMultiMatchDioMetaData。
   DioMetaData searchMultiMatchDioMetaData(String keyword) {
     var params = {'s': keyword, 'type': '1'};
     return DioMetaData(joinUri('/weapi/search/suggest/multimatch'),

@@ -7,29 +7,55 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
+/// HomeShellController。
 class HomeShellController extends GetxController
     with GetTickerProviderStateMixin {
+  /// to。
   static HomeShellController get to => Get.find();
 
+  /// zoomDrawerController。
   late ZoomDrawerController zoomDrawerController;
   bool _zoomDrawerListenerInitialized = false;
   Timer? _closeDrawerTimer;
   String _defaultHomePageTitle = '';
 
+  /// isDrawerClosed。
   RxBool isDrawerClosed = true.obs;
 
+  /// homePageController。
   late PageController homePageController;
+
+  /// curHomePageIndex。
   RxInt curHomePageIndex = 0.obs;
+
+  /// curHomePageTitle。
   RxString curHomePageTitle = ''.obs;
 
+  /// topPanelController。
   PanelController topPanelController = PanelController();
+
+  /// topPanelAnimationController。
   late AnimationController topPanelAnimationController;
+
+  /// searchTextEditingController。
   late TextEditingController searchTextEditingController;
+
+  /// topPanelFullyOpened。
   RxBool topPanelFullyOpened = false.obs;
+
+  /// topPanelFullyClosed。
   RxBool topPanelFullyClosed = true.obs;
+
+  /// searchContent。
   RxString searchContent = ''.obs;
+
+  /// searchFocusNode。
   final FocusNode searchFocusNode = FocusNode();
+
+  /// keyBoardHeight。
   RxDouble keyBoardHeight = 0.0.obs;
+
+  /// leftMenus。
   final List<ShellMenuItemData> leftMenus = [
     ShellMenuItemData('个人中心', TablerIcons.user, Routes.user, '/home/user'),
     ShellMenuItemData(
@@ -67,10 +93,12 @@ class HomeShellController extends GetxController
       });
   }
 
+  /// init。
   void init({required String initialTitle}) {
     updateDefaultTitle(initialTitle);
   }
 
+  /// updateDefaultTitle。
   void updateDefaultTitle(String title) {
     _defaultHomePageTitle = title;
     if (curHomePageIndex.value == 0) {
@@ -78,6 +106,7 @@ class HomeShellController extends GetxController
     }
   }
 
+  /// initZoomDrawerListener。
   void initZoomDrawerListener() {
     if (_zoomDrawerListenerInitialized) {
       return;
@@ -98,6 +127,7 @@ class HomeShellController extends GetxController
     });
   }
 
+  /// onTopPanelSlide。
   void onTopPanelSlide(double openDegree) {
     topPanelAnimationController.value = openDegree;
 
@@ -114,6 +144,7 @@ class HomeShellController extends GetxController
     }
   }
 
+  /// handleWillPop。
   bool handleWillPop({required PanelController bottomPanelController}) {
     if (topPanelController.isPanelOpen) {
       if (topPanelController.isAttached) {
@@ -145,6 +176,7 @@ class HomeShellController extends GetxController
     return false;
   }
 
+  /// updateKeyboardHeight。
   void updateKeyboardHeight(BuildContext context) {
     keyBoardHeight.value = MediaQuery.of(context).viewInsets.bottom;
   }
@@ -189,11 +221,20 @@ class HomeShellController extends GetxController
   }
 }
 
+/// ShellMenuItemData。
 class ShellMenuItemData {
+  /// title。
   final String title;
+
+  /// icon。
   final IconData icon;
+
+  /// route。
   final String route;
+
+  /// path。
   final String path;
 
+  /// 创建 ShellMenuItemData。
   ShellMenuItemData(this.title, this.icon, this.route, this.path);
 }

@@ -10,7 +10,9 @@ import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 
+/// UserProfilePageView。
 class UserProfilePageView extends StatefulWidget {
+  /// 创建 UserProfilePageView。
   const UserProfilePageView({Key? key}) : super(key: key);
 
   @override

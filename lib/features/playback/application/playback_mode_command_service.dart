@@ -5,7 +5,9 @@ import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 
+/// PlaybackModeCommandService。
 class PlaybackModeCommandService {
+  /// 创建 PlaybackModeCommandService。
   PlaybackModeCommandService({
     required PlaybackUiCommandService commandService,
     required PlaybackToastPort toastPort,
@@ -15,6 +17,7 @@ class PlaybackModeCommandService {
   final PlaybackUiCommandService _commandService;
   final PlaybackToastPort _toastPort;
 
+  /// quitFmMode。
   Future<void> quitFmMode({
     required PlaybackMode currentMode,
     required Future<void> Function(PlaybackMode mode) syncMode,
@@ -26,6 +29,7 @@ class PlaybackModeCommandService {
     }
   }
 
+  /// quitHeartBeatMode。
   Future<void> quitHeartBeatMode({
     required PlaybackMode currentMode,
     required Future<void> Function(PlaybackMode mode) syncMode,
@@ -37,15 +41,16 @@ class PlaybackModeCommandService {
     }
   }
 
+  /// handleRepeatModeTap。
   Future<void> handleRepeatModeTap({
     required bool isFmMode,
     required bool isHeartBeatMode,
     required PlaybackSessionState sessionState,
     required PlaybackQueueItem currentSong,
     required Future<void> Function({bool showToast}) quitHeartBeatMode,
-    required Future<void> Function(PlaybackRepeatMode repeatMode)
-        setRepeatMode,
-    required Future<void> Function(String startSongId, {required bool fromPlayAll})
+    required Future<void> Function(PlaybackRepeatMode repeatMode) setRepeatMode,
+    required Future<void> Function(String startSongId,
+            {required bool fromPlayAll})
         openHeartBeatMode,
   }) async {
     if (isFmMode) {
@@ -68,6 +73,7 @@ class PlaybackModeCommandService {
     await _commandService.cycleRepeatMode();
   }
 
+  /// switchMode。
   Future<void> switchMode({
     required PlaybackMode currentMode,
     required PlaybackMode newMode,

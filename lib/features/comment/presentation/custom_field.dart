@@ -4,18 +4,40 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 /// 输入框目前只在评论场景复用，先保留在 talk 下，避免为单一使用场景再拆全局 widget。
 class CustomField extends StatefulWidget {
+  /// iconData。
   final IconData? iconData;
+
+  /// hitText。
   final String? hitText;
+
+  /// hintStyle。
   final TextStyle? hintStyle;
+
+  /// textEditingController。
   final TextEditingController textEditingController;
+
+  /// pass。
   final bool? pass;
+
+  /// autoFocus。
   final bool? autoFocus;
+
+  /// padding。
   final EdgeInsets? padding;
+
+  /// margin。
   final EdgeInsets? margin;
+
+  /// textInputType。
   final TextInputType? textInputType;
+
+  /// onSubmitted。
   final ValueChanged<String>? onSubmitted;
+
+  /// textInputAction。
   final TextInputAction? textInputAction;
 
+  /// 创建 CustomField。
   const CustomField({
     Key? key,
     this.iconData,

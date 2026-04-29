@@ -22,6 +22,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
+part 'player_download_commands.dart';
+
 /// 面向页面暴露播放状态和播放模式切换入口。
 ///
 /// 底层播放细节仍由 `PlaybackService -> AudioServiceHandler` 承接，这里主要负责把
@@ -268,96 +270,6 @@ class PlayerController extends GetxController {
     }
   }
 
-  /// 下载入口直接挂在播放控制器，是为了让“当前播放歌曲”的下载状态与播放 UI
-  /// 保持同一条事实链路；否则下载完成后页面仍会继续展示旧的远程资源状态。
-  Future<Track?> downloadCurrentTrack({
-    bool preferHighQuality = true,
-  }) async {
-    final currentSong = runtimeState.value.currentSong;
-    if (currentSong.id.isEmpty) {
-      return null;
-    }
-    return downloadTrackById(
-      currentSong.id,
-      preferHighQuality: preferHighQuality,
-    );
-  }
-
-  Future<Track?> removeCurrentTrackDownload() async {
-    final currentSong = runtimeState.value.currentSong;
-    if (currentSong.id.isEmpty) {
-      return null;
-    }
-    return removeDownloadedTrackById(currentSong.id);
-  }
-
-  Future<Track?> cancelCurrentTrackDownload() async {
-    final currentSong = runtimeState.value.currentSong;
-    if (currentSong.id.isEmpty) {
-      return null;
-    }
-    return cancelTrackDownloadById(currentSong.id);
-  }
-
-  Future<Track?> retryCurrentTrackDownload({
-    bool preferHighQuality = true,
-  }) async {
-    final currentSong = runtimeState.value.currentSong;
-    if (currentSong.id.isEmpty) {
-      return null;
-    }
-    return retryTrackDownloadById(
-      currentSong.id,
-      preferHighQuality: preferHighQuality,
-    );
-  }
-
-  Future<Track?> downloadTrackById(
-    String trackId, {
-    bool preferHighQuality = true,
-  }) async {
-    final result = await _downloadUseCase.downloadTrackById(
-      trackId,
-      preferHighQuality: preferHighQuality,
-    );
-    await _syncDownloadResultIfCurrent(result);
-    return result?.track;
-  }
-
-  Future<Track?> removeDownloadedTrackById(String trackId) async {
-    final result = await _downloadUseCase.removeDownloadedTrackById(trackId);
-    await _syncDownloadResultIfCurrent(result);
-    return result?.track;
-  }
-
-  Future<Track?> cancelTrackDownloadById(String trackId) async {
-    final result = await _downloadUseCase.cancelTrackDownloadById(trackId);
-    await _syncDownloadResultIfCurrent(result);
-    return result?.track;
-  }
-
-  Future<Track?> retryTrackDownloadById(
-    String trackId, {
-    bool preferHighQuality = true,
-  }) async {
-    final result = await _downloadUseCase.retryTrackDownloadById(
-      trackId,
-      preferHighQuality: preferHighQuality,
-    );
-    await _syncDownloadResultIfCurrent(result);
-    return result?.track;
-  }
-
-  Future<void> queueTrackDownloads(
-    Iterable<String> trackIds, {
-    bool preferHighQuality = true,
-  }) {
-    return _downloadUseCase.queueTrackDownloads(
-      trackIds,
-      preferHighQuality: preferHighQuality,
-    );
-  }
-
   Future<void> seekTo(Duration position) {
     return _commandService.seekTo(position);
   }
@@ -473,17 +385,6 @@ class PlayerController extends GetxController {
       setFullScreenLyricOpen: (value) => isFullScreenLyricOpen.value = value,
       cancelTimer: cancelTimer,
     );
-  }
-
-  Future<void> _syncDownloadResultIfCurrent(
-    CurrentTrackDownloadResult? result,
-  ) async {
-    if (result == null ||
-        runtimeState.value.currentSong.id != result.track.id ||
-        result.queueItem == null) {
-      return;
-    }
-    await _syncCurrentQueueItem(result.queueItem!);
   }
 
   Future<void> _ensureCurrentTrackArtwork(PlaybackQueueItem item) async {

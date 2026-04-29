@@ -516,19 +516,36 @@ void main() {
       );
     });
 
-    test('legacy mixed constants are no longer imported by business code', () {
-      final violations = _dartFiles(libDirectory)
-          .where((file) =>
-              _relativePath(file) != 'lib/common/constants/other.dart')
-          .where((file) => _contains(file, 'common/constants/other.dart'))
+    test('legacy mixed constants stay removed', () {
+      const removedFiles = [
+        'lib/common/constants/other.dart',
+        'lib/common/constants/log.dart',
+        'lib/common/constants/platform_utils.dart',
+      ];
+      final existing = removedFiles
+          .where((path) => File('${projectRoot.path}/$path').existsSync())
+          .toList();
+
+      final importViolations = _dartFiles(libDirectory)
+          .where(
+            (file) => _containsAny(file, const [
+              'common/constants/other.dart',
+              'common/constants/log.dart',
+              'common/constants/platform_utils.dart',
+            ]),
+          )
           .map(_relativePath)
           .toList();
 
       expect(
-        violations,
+        existing,
         isEmpty,
-        reason:
-            'common/constants/other.dart 只保留历史兼容壳，新业务代码必须依赖 app/core 下的明确服务。',
+        reason: '混合职责常量入口已经拆到 app/core 下，旧文件不能复活。',
+      );
+      expect(
+        importViolations,
+        isEmpty,
+        reason: '业务代码必须依赖 app/core 下的明确服务，不能 import 旧混合常量入口。',
       );
     });
 

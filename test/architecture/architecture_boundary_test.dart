@@ -733,6 +733,9 @@ void main() {
         'lib/data/local/dao/user_dao.dart': [
           'loadProfile(',
           'saveProfile(',
+          'loadTrackIds(',
+          'replaceTrackList(',
+          'loadPlaylistSubscriptionState(',
           'loadSyncMarker(',
         ],
       };

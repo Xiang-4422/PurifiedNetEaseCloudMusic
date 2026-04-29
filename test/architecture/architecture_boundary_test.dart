@@ -99,6 +99,29 @@ void main() {
       );
     });
 
+    test('data and lyric parser stay Flutter free', () {
+      final handWrittenDataFiles =
+          _dartFiles(Directory('${projectRoot.path}/lib/data'))
+              .where((file) => !_isGeneratedDartFile(_relativePath(file)));
+      final lyricParserFiles = _dartFiles(
+        Directory('${projectRoot.path}/lib/common/lyric_parser'),
+      );
+
+      final violations = [
+        ...handWrittenDataFiles,
+        ...lyricParserFiles,
+      ]
+          .where((file) => _contains(file, 'package:flutter/'))
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'data 和歌词解析模型必须保持纯 Dart；Flutter 绘制对象只能留在 presentation adapter。',
+      );
+    });
+
     test('MediaItem is restricted to playback adapter and presentation edges',
         () {
       final violations = _dartFiles(libDirectory)
@@ -399,6 +422,12 @@ bool _isTemporaryMediaItemBoundaryException(String path) {
     'lib/features/playback/application/playback_source_resolver.dart',
   };
   return exceptions.contains(path);
+}
+
+bool _isGeneratedDartFile(String path) {
+  return path.endsWith('.g.dart') ||
+      path.endsWith('.freezed.dart') ||
+      path.contains('/generated/');
 }
 
 bool _isAllowedRepositoryFeatureImport({

@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-
 ///lyric model
 class LyricsReaderModel {
   List<LyricsLineModel> lyrics = [];
@@ -30,7 +28,7 @@ class LyricsLineModel {
   int? endTime;
   List<LyricSpanInfo>? spanList;
 
-  //绘制信息
+  // 歌词布局缓存只保留纯数值，具体绘制对象留在 presentation 层。
   LyricDrawInfo? drawInfo;
 
   bool get hasExt => extText?.isNotEmpty == true;
@@ -50,17 +48,10 @@ class LyricsLineModel {
 
 ///lyric draw model
 class LyricDrawInfo {
-  double get otherMainTextHeight => otherMainTextPainter?.height ?? 0;
-
-  double get otherExtTextHeight => otherExtTextPainter?.height ?? 0;
-
-  double get playingMainTextHeight => playingMainTextPainter?.height ?? 0;
-
-  double get playingExtTextHeight => playingExtTextPainter?.height ?? 0;
-  TextPainter? otherMainTextPainter;
-  TextPainter? otherExtTextPainter;
-  TextPainter? playingMainTextPainter;
-  TextPainter? playingExtTextPainter;
+  double otherMainTextHeight = 0;
+  double otherExtTextHeight = 0;
+  double playingMainTextHeight = 0;
+  double playingExtTextHeight = 0;
   List<LyricInlineDrawInfo> inlineDrawList = [];
 }
 
@@ -69,7 +60,8 @@ class LyricInlineDrawInfo {
   String raw = "";
   double width = 0;
   double height = 0;
-  Offset offset = Offset.zero;
+  double offsetX = 0;
+  double offsetY = 0;
 }
 
 class LyricSpanInfo {

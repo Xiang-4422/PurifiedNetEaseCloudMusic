@@ -3,7 +3,6 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 
 import '../../../netease_music_api.dart';
 import '../../../src/api/bean.dart';
@@ -216,7 +215,6 @@ mixin ApiPlay {
             songId, playlistId, fromPlayAll,
             startMusicId: startMusicId, count: count))
         .then((Response value) {
-      debugPrint("yu4422: $value");
       return PlaymodeIntelligenceListWrap.fromJson(value.data);
     });
   }

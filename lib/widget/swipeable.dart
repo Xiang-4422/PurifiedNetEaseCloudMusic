@@ -2,16 +2,33 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+/// 可左右滑动触发动作的包装组件。
 class Swipeable extends StatefulWidget {
+  /// 前景子组件。
   final Widget child;
+
+  /// 滑动时露出的背景组件。
   final Widget background;
+
+  /// 开始滑动回调。
   final VoidCallback? onSwipeStart;
+
+  /// 左滑达到阈值回调。
   final VoidCallback? onSwipeLeft;
+
+  /// 右滑达到阈值回调。
   final VoidCallback? onSwipeRight;
+
+  /// 从超过阈值回退到阈值内时的回调。
   final VoidCallback? onSwipeCancel;
+
+  /// 滑动结束回调。
   final VoidCallback? onSwipeEnd;
+
+  /// 触发滑动动作的距离阈值。
   final double threshold;
 
+  /// 创建可滑动动作组件。
   const Swipeable({
     super.key,
     required this.child,

@@ -2,11 +2,19 @@ import 'package:flutter/material.dart';
 
 /// 统一TabBar风格
 class MyTabBar extends StatelessWidget implements PreferredSizeWidget {
+  /// TabBar 高度。
   final double? height;
+
+  /// TabBar 控制器。
   final TabController? controller;
+
+  /// 选中背景颜色。
   final Color? color;
+
+  /// tab 组件列表。
   final List<Widget> tabs;
 
+  /// 创建统一风格 TabBar。
   const MyTabBar(
       {Key? key, required this.tabs, this.controller, this.color, this.height})
       : super(key: key);
@@ -39,11 +47,18 @@ class MyTabBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
+/// 在普通 tab 和替代组件之间做缩放淡入切换。
 class MyTabBarItemAnimatedSwitcher extends StatelessWidget {
+  /// 普通 tab 组件。
   final Widget tabItem;
+
+  /// 替代展示组件。
   final Widget replaceItem;
+
+  /// 当前是否展示替代组件。
   final bool isTabBarVisible;
 
+  /// 创建 tab 组件切换器。
   const MyTabBarItemAnimatedSwitcher(
       {super.key,
       required this.isTabBarVisible,

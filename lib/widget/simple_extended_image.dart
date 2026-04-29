@@ -78,6 +78,7 @@ class SimpleExtendedImage extends StatefulWidget {
   }
 }
 
+/// SimpleExtendedImage 的状态对象，负责解析本地图片缓存路径。
 class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   static final LocalImageCacheRepository _imageCacheRepository =
       LocalImageCacheRepository();

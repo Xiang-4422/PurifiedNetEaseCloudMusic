@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 // TODO YU4422: 后续删除
+/// 应用停用提示视图。
 class EnableView extends StatelessWidget {
+  /// 创建应用停用提示视图。
   const EnableView({Key? key}) : super(key: key);
 
   @override

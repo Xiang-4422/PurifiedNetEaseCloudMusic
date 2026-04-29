@@ -2,10 +2,12 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/features/comment/comment_item_controller.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_list_controller.dart';
 import 'package:bujuan/features/comment/floor_comment_controller.dart';
 import 'package:bujuan/features/comment/presentation/custom_field.dart';
+import 'package:bujuan/features/comment/reply_sheet_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -145,43 +147,51 @@ class CommentItemWidget extends StatefulWidget {
 
 class _CommentItemWidgetState extends State<CommentItemWidget> {
   late final FloorCommentController _floorController;
-  bool isCommentOnCommentVisible = false;
+  late final CommentItemController _controller;
 
-  late CommentData comment;
   late Color stringColor;
-  late int replyCount;
-  late int unExpandedReplyCount;
 
   @override
   void initState() {
     super.initState();
-    comment = widget.comment;
     stringColor = widget.stringColor;
-    replyCount = comment.replyCount;
-    unExpandedReplyCount = comment.replyCount;
     _floorController = Get.find<FeatureControllerFactory>().floorComment(
       id: widget.id,
       type: widget.idType,
       parentCommentId: widget.comment.commentId,
       pageSize: 5,
     );
+    _controller = CommentItemController(
+      comment: widget.comment,
+      isReply: widget.isReply,
+      floorController: _floorController,
+    )..addListener(_handleControllerChanged);
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_handleControllerChanged);
+    _controller.dispose();
     _floorController.dispose();
     super.dispose();
   }
 
+  void _handleControllerChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final comment = _controller.comment;
     return GestureDetector(
-      onTap: showOrHideCommentOnComment,
+      onTap: _controller.toggleReplyVisibility,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 500),
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          color: isCommentOnCommentVisible
+          color: _controller.isReplyVisible
               ? Colors.black.withAlpha(20)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(15),
@@ -244,26 +254,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                             width: 30,
                             alignment: Alignment.center,
                             child: GestureDetector(
-                              onTap: () {
-                                _floorController
-                                    .toggleLike(
-                                  comment,
-                                  liked: !comment.liked,
-                                )
-                                    .then((success) {
-                                  if (success) {
-                                    setState(() {
-                                      final liked = !comment.liked;
-                                      comment = comment.copyWith(
-                                        liked: liked,
-                                        likedCount: liked
-                                            ? comment.likedCount + 1
-                                            : comment.likedCount - 1,
-                                      );
-                                    });
-                                  }
-                                });
-                              },
+                              onTap: _controller.toggleLike,
                               child: Icon(
                                 comment.liked
                                     ? Icons.favorite
@@ -287,7 +278,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                     ),
                   ).marginSymmetric(vertical: 10),
                   Offstage(
-                    offstage: !isCommentOnCommentVisible,
+                    offstage: !_controller.isReplyVisible,
                     child: ValueListenableBuilder<PagedState<CommentData>>(
                       valueListenable: _floorController.state,
                       builder: (context, state, child) {
@@ -330,21 +321,21 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                     ),
                   ),
                   Visibility(
-                    visible: !widget.isReply && replyCount > 0,
+                    visible: !widget.isReply && _controller.replyCount > 0,
                     child: GestureDetector(
                       onTap: () {
-                        if (unExpandedReplyCount > 0) {
-                          expandComment();
+                        if (_controller.unExpandedReplyCount > 0) {
+                          _controller.expand();
                         } else {
-                          foldComment();
+                          _controller.fold();
                         }
                       },
                       child: Container(
                         alignment: FractionalOffset.centerLeft,
                         color: Colors.transparent,
                         child: Text(
-                          unExpandedReplyCount > 0
-                              ? '—— $unExpandedReplyCount条回复 >'
+                          _controller.unExpandedReplyCount > 0
+                              ? '—— ${_controller.unExpandedReplyCount}条回复 >'
                               : '收起 <',
                           style: TextStyle(
                             fontSize: 15,
@@ -361,49 +352,6 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
         ),
       ),
     );
-  }
-
-  void showOrHideCommentOnComment() {
-    if (widget.isReply) {
-      return;
-    }
-    if (isCommentOnCommentVisible) {
-      foldComment();
-    } else {
-      expandComment();
-    }
-  }
-
-  void foldComment() {
-    setState(() {
-      isCommentOnCommentVisible = false;
-      unExpandedReplyCount = replyCount;
-    });
-  }
-
-  Future<void> expandComment() async {
-    if (!isCommentOnCommentVisible &&
-        _floorController.state.value.items.isNotEmpty) {
-      setState(() {
-        isCommentOnCommentVisible = true;
-        unExpandedReplyCount =
-            replyCount - _floorController.state.value.items.length;
-      });
-      return;
-    }
-    if (_floorController.state.value.items.isEmpty) {
-      await _floorController.loadInitial();
-    } else if (_floorController.state.value.hasMore) {
-      await _floorController.loadMore();
-    }
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      isCommentOnCommentVisible = true;
-      unExpandedReplyCount =
-          replyCount - _floorController.state.value.items.length;
-    });
   }
 }
 
@@ -426,9 +374,9 @@ class FoolTalk extends StatefulWidget {
 }
 
 class _FoolTalkState extends State<FoolTalk> {
-  final TextEditingController _textEditingController = TextEditingController();
   final RefreshController _refreshController = RefreshController();
   late final FloorCommentController _controller;
+  late final ReplySheetController _replySheetController;
 
   @override
   void initState() {
@@ -439,13 +387,14 @@ class _FoolTalkState extends State<FoolTalk> {
       parentCommentId: widget.commentItem.commentId,
       pageSize: 20,
     )..loadInitial();
+    _replySheetController = ReplySheetController(floorController: _controller);
   }
 
   @override
   void dispose() {
     _refreshController.dispose();
     _controller.dispose();
-    _textEditingController.dispose();
+    _replySheetController.dispose();
     super.dispose();
   }
 
@@ -566,7 +515,8 @@ class _FoolTalkState extends State<FoolTalk> {
                 Expanded(
                   child: CustomField(
                     iconData: TablerIcons.message_2,
-                    textEditingController: _textEditingController,
+                    textEditingController:
+                        _replySheetController.textEditingController,
                     hitText: '请输入想说的话',
                   ),
                 ),
@@ -657,18 +607,11 @@ class _FoolTalkState extends State<FoolTalk> {
   }
 
   Future<void> _sendMessage() async {
-    if (_textEditingController.text.isEmpty) {
-      WidgetUtil.showToast('请输入评论');
-      return;
-    }
-    final errorMessage = await _controller.sendReply(
-      content: _textEditingController.text,
+    final errorMessage = await _replySheetController.sendReply(
       commentId: widget.commentItem.commentId,
     );
     if (errorMessage == null) {
-      _textEditingController.text = '';
       WidgetUtil.showToast('评论成功');
-      await _controller.refresh();
     } else {
       WidgetUtil.showToast(errorMessage);
     }

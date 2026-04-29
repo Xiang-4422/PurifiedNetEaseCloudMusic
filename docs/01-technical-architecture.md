@@ -17,14 +17,18 @@
 
 ## 2. 当前仓库现状
 
-当前项目功能完整，核心兼容层已经开始退出，剩余问题集中在部分控制器仍偏厚：
+当前项目功能完整，核心兼容层已经退出，当前架构边界按 `app / presentation / application / repository / data / domain` 固定：
 
 - [`lib/features/shell/shell_controller.dart`](../lib/features/shell/shell_controller.dart) 只保留底部播放面板、顶部搜索面板、抽屉返回键、歌词滚动和专辑页 UI 协调，不再作为 user/settings/player 总代理
-- [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart) 与 [`lib/features/playback/application/audio_service_handler.dart`](../lib/features/playback/application/audio_service_handler.dart) 已形成播放链路，页面和 repository 消费 `PlaybackQueueItem`，`MediaItem` 只留在 audio_service 适配边界
+- [`lib/features/playback/player_controller.dart`](../lib/features/playback/player_controller.dart) 只保留播放 UI 状态和命令入口，音频流同步、模式命令、歌词 UI 计时分别由 `PlaybackStateSynchronizer`、`PlaybackModeCommandService`、`PlaybackLyricUiStateController` 承接
+- [`lib/features/playback/application/audio_service_handler.dart`](../lib/features/playback/application/audio_service_handler.dart) 保持在 audio_service/just_audio 边界，页面和 repository 消费 `PlaybackQueueItem`，`MediaItem` 只留在 audio_service 适配边界
 - 用户侧状态已拆分为 `UserSessionController`、`UserLibraryController`、`RecommendationController`，分别承接登录态、账号资料库和首页推荐内容
 - `DownloadRepository` 已缩为下载业务门面，内部职责拆到 `DownloadTaskQueue`、`DownloadFileStore`、`DownloadResourceWriter`、`DownloadRecoveryService`
-- 应用装配仍保留单一 `AppBinding` 入口，内部按 infrastructure、repository、playback application、user application、controller、feature factory 分组注册
-- 架构守护测试已经覆盖 GetX、MediaItem、CacheBox、presentation repository 直连、feature 横向 presentation import、共享 widget 依赖、data/common Flutter 泄漏等边界
+- 应用装配仍保留单一 `AppBinding` 入口，内部拆为 infrastructure、repository、playback、user、feature controller、presentation adapter registrar
+- 页面用例已开始进入 application service/usecase，歌单详情、搜索、用户首页和下载队列/删除/恢复都有明确应用层入口
+- Drift 手写访问开始按 `TrackDao / PlaylistDao / UserDao / DownloadTaskDao / ResourceDao / CacheDao` 分类，data source 保留 facade 和组合职责
+- `common/constants/other.dart`、旧 `log.dart`、旧 `platform_utils.dart` 已删除，toast、dialog、图片取色、时间格式、平台判断和日志分别进入 app/core 明确服务
+- 架构守护测试已经覆盖 GetX、MediaItem、CacheBox、presentation repository 直连、feature 横向 presentation import、共享 widget 依赖、data/common Flutter 泄漏、应用服务/usecase、DAO 落点等边界
 - 页面已并入对应 feature 的 `presentation` 目录，仍需继续缩小页面内用例逻辑，例如：
   - [`lib/features/auth/presentation/login_page_view.dart`](../lib/features/auth/presentation/login_page_view.dart)
   - [`lib/features/playlist/presentation/playlist_page_view.dart`](../lib/features/playlist/presentation/playlist_page_view.dart)
@@ -35,8 +39,8 @@
 结论：
 
 - 当前问题不是基础设施选型本身错误
-- 当前问题是职责落点不清晰
-- 当前数据流仍带有“远程接口为中心”的历史惯性，不满足本地优先与离线目标
+- 当前架构边界已通过测试固定
+- 后续架构问题只应来自测试失败或新代码回退，不再追加新的治理方向
 
 ## 3. 目标与关键决策
 

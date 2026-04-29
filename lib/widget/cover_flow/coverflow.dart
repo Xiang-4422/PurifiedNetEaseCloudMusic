@@ -6,12 +6,21 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+/// 构建指定索引的封面流子项。
 typedef CoverFlowItemBuilder = Widget Function(BuildContext context, int index);
+
+/// 为指定索引提供稳定 key。
 typedef CoverFlowItemKeyBuilder = Key? Function(int index);
+
+/// 构建已缓存封面流子项。
 typedef CoverFlowItemWidgetBuilder = Widget Function(int index);
 
+/// 封面流交互模式。
 enum CoverFlowInteractionMode {
+  /// 按页吸附。
   pageSnap,
+
+  /// 按惯性吸附。
   inertialSnap,
 }
 
@@ -20,17 +29,37 @@ enum CoverFlowInteractionMode {
 /// 默认值保持当前封面流效果不变，但把关键比例显式暴露出来，后续如果要调整成更平或更夸张
 /// 的版本，不需要再回到组件内部改公式。
 class CoverFlowStyle {
+  /// 中心附近卡片间距系数。
   final double nearGapFactor;
+
+  /// 边缘卡片间距系数。
   final double farGapFactor;
+
+  /// 中心附近卡片旋转角。
   final double nearAngle;
+
+  /// 边缘卡片旋转角。
   final double farAngle;
+
+  /// 3D 透视系数。
   final double perspective;
+
+  /// 中心卡片缩放。
   final double centerScale;
+
+  /// 侧边卡片缩放。
   final double sideScale;
+
+  /// 中心卡片透明度。
   final double centerOpacity;
+
+  /// 侧边卡片透明度。
   final double sideOpacity;
+
+  /// 侧边卡片垂直偏移。
   final double sideVerticalOffset;
 
+  /// 创建封面流视觉参数。
   const CoverFlowStyle({
     this.nearGapFactor = .5,
     this.farGapFactor = .4,
@@ -53,29 +82,73 @@ class CoverFlowStyle {
 /// - 子项仍然能接收点击、语义和焦点；
 /// - 上层可以通过稳定 key 管理重排后的子树复用。
 class CoverFlow extends StatefulWidget {
+  /// 子项总数。
   final int itemCount;
+
+  /// 子项构建器。
   final CoverFlowItemBuilder itemBuilder;
+
+  /// 子项 key 构建器。
   final CoverFlowItemKeyBuilder? itemKeyBuilder;
+
+  /// 子项尺寸。
   final Size itemSize;
+
+  /// 当前中心索引。
   final int currentIndex;
+
+  /// 当前中心两侧保留构建的范围。
   final int visibleRange;
+
+  /// 中心索引变化回调。
   final ValueChanged<int>? onIndexChanged;
+
+  /// 点击子项回调。
   final ValueChanged<int>? onTapItem;
+
+  /// 用户开始交互回调。
   final VoidCallback? onInteractionStart;
+
+  /// 用户结束交互回调。
   final ValueChanged<int>? onInteractionEnd;
+
+  /// 封面流视觉参数。
   final CoverFlowStyle style;
+
+  /// 封面流交互模式。
   final CoverFlowInteractionMode interactionMode;
+
+  /// 外层内边距。
   final EdgeInsetsGeometry padding;
+
+  /// 裁剪行为。
   final Clip clipBehavior;
+
+  /// 程序切换动画曲线。
   final Curve animationCurve;
+
+  /// 程序切换基础动画时长。
   final Duration animationBaseDuration;
+
+  /// 每跨一个子项增加的动画时长。
   final Duration animationPerItemDuration;
+
+  /// 拖动灵敏度。
   final double dragSensitivity;
+
+  /// 按页吸附的速度阈值。
   final double pageSnapVelocityThreshold;
+
+  /// 惯性吸附的速度阈值。
   final double inertialVelocityThreshold;
+
+  /// 惯性吸附摩擦系数。
   final double inertialFriction;
+
+  /// 惯性模拟的最小位移。
   final double inertialSimulationMinDelta;
 
+  /// 创建封面流组件。
   CoverFlow({
     super.key,
     required this.itemCount,
@@ -456,20 +529,45 @@ class _CoverFlowState extends State<CoverFlow>
   }
 }
 
+/// 封面流卡片绘制层。
 class CoverFlowCardItems extends StatelessWidget {
+  /// 子项总数。
   final int itemCount;
+
+  /// 子项构建器。
   final CoverFlowItemWidgetBuilder itemBuilder;
+
+  /// 子项 key 构建器。
   final CoverFlowItemKeyBuilder? itemKeyBuilder;
+
+  /// 当前连续页面位置。
   final double pagePosition;
+
+  /// 可用最大高度。
   final double maxHeight;
+
+  /// 可用最大宽度。
   final double maxWidth;
+
+  /// 子项尺寸。
   final Size itemSize;
+
+  /// 当前中心两侧保留构建的范围。
   final int visibleRange;
+
+  /// 封面流视觉参数。
   final CoverFlowStyle style;
+
+  /// 外层内边距。
   final EdgeInsets padding;
+
+  /// 裁剪行为。
   final Clip clipBehavior;
+
+  /// 点击子项回调。
   final ValueChanged<int>? onTapItem;
 
+  /// 创建封面流卡片绘制层。
   const CoverFlowCardItems({
     super.key,
     required this.itemCount,

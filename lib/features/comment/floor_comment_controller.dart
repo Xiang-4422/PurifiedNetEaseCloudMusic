@@ -2,7 +2,6 @@ import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 
 class FloorCommentController {
   FloorCommentController({
@@ -12,21 +11,6 @@ class FloorCommentController {
     required CommentRepository repository,
     this.pageSize = 20,
   }) : _repository = repository;
-
-  factory FloorCommentController.create({
-    required String id,
-    required String type,
-    required String parentCommentId,
-    int pageSize = 20,
-  }) {
-    return FloorCommentController(
-      id: id,
-      type: type,
-      parentCommentId: parentCommentId,
-      repository: Get.find<CommentRepository>(),
-      pageSize: pageSize,
-    );
-  }
 
   final String id;
   final String type;

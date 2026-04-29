@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/radio_data.dart';
@@ -26,7 +27,8 @@ class _MyRadioViewState extends State<MyRadioView> {
   @override
   void initState() {
     super.initState();
-    _controller = RadioListController.currentUser()..loadInitial();
+    _controller = Get.find<FeatureControllerFactory>().radioList()
+      ..loadInitial();
   }
 
   @override

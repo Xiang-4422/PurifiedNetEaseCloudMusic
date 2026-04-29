@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 
 class RadioListController {
   RadioListController({
@@ -14,14 +12,6 @@ class RadioListController {
     this.pageSize = 30,
   })  : _userId = userId,
         _repository = repository;
-
-  factory RadioListController.currentUser({int pageSize = 30}) {
-    return RadioListController(
-      userId: UserSessionController.to.userInfo.value.userId,
-      repository: Get.find<RadioRepository>(),
-      pageSize: pageSize,
-    );
-  }
 
   final String _userId;
   final RadioRepository _repository;

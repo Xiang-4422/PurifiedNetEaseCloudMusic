@@ -244,7 +244,7 @@ class PersonalPageView extends GetView<ShellController> {
                 isPlaying: PlayerController.to.isPlaying.value,
                 playingPlaylistName:
                     PlayerController.to.sessionState.value.playlistName,
-                onPlayPlaylist: PlaylistPlaybackAction.to.play,
+                onPlayPlaylist: Get.find<PlaylistPlaybackAction>().play,
               ),
             ),
           ),

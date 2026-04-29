@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/other.dart';
@@ -38,7 +39,8 @@ class PlayListPageView extends StatefulWidget {
 }
 
 class _PlayListPageViewState extends State<PlayListPageView> {
-  final PlaylistPageController _controller = PlaylistPageController.create();
+  final PlaylistPageController _controller =
+      Get.find<FeatureControllerFactory>().playlistPage();
 
   String playlistName = '';
   String? coverUrl;

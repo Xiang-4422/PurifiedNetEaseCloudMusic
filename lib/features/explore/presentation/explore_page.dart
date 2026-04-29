@@ -177,7 +177,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                     isPlaying: PlayerController.to.isPlaying.value,
                     playingPlaylistName:
                         PlayerController.to.sessionState.value.playlistName,
-                    onPlayPlaylist: PlaylistPlaybackAction.to.play,
+                    onPlayPlaylist: Get.find<PlaylistPlaybackAction>().play,
                   )),
             ),
             // // 排行榜

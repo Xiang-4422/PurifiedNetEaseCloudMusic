@@ -1,5 +1,6 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
@@ -23,7 +24,7 @@ import 'package:get/get.dart';
 class TopPanelView extends StatefulWidget {
   const TopPanelView({Key? key}) : super(key: key);
   static final SearchPanelController _searchPanelController =
-      SearchPanelController.create();
+      Get.find<FeatureControllerFactory>().searchPanel();
 
   @override
   State<TopPanelView> createState() => _TopPanelViewState();

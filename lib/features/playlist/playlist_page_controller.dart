@@ -2,16 +2,11 @@ import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
-import 'package:get/get.dart';
 
 /// 歌单详情页的应用入口，集中处理用户态、喜欢态与歌单 repository 参数。
 class PlaylistPageController {
   PlaylistPageController({required PlaylistRepository repository})
       : _repository = repository;
-
-  factory PlaylistPageController.create() {
-    return PlaylistPageController(repository: Get.find<PlaylistRepository>());
-  }
 
   final PlaylistRepository _repository;
 

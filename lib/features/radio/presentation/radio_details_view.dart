@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/domain/entities/radio_data.dart';
@@ -8,6 +9,7 @@ import 'package:bujuan/features/radio/radio_playback_queue_item_mapper.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class RadioDetailsView extends StatefulWidget {
@@ -28,7 +30,8 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
     super.initState();
     _radioId = context.routeData.queryParams.get('radioId');
     _radioName = context.routeData.queryParams.get('radioName');
-    _controller = RadioDetailController.currentUser(radioId: _radioId)
+    _controller = Get.find<FeatureControllerFactory>()
+        .radioDetail(radioId: _radioId)
       ..loadInitial();
   }
 

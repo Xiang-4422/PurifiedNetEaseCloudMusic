@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/drift_app_database.dart';
 import 'package:bujuan/core/database/local_database_config.dart';
@@ -114,11 +115,47 @@ class AppBinding extends Bindings {
       playbackRestoreDataSource: playbackRestoreDataSource,
     );
 
-    Get.put<AppDatabase>(appDatabase, permanent: true);
-    Get.put<LocalLibraryDataSource>(
-      localLibraryDataSource,
-      permanent: true,
+    _registerInfrastructure(
+      appDatabase: appDatabase,
+      localLibraryDataSource: localLibraryDataSource,
+      playbackRestoreDataSource: playbackRestoreDataSource,
+      localResourceIndexDataSource: localResourceIndexDataSource,
+      downloadTaskDataSource: downloadTaskDataSource,
+      appCacheDataSource: appCacheDataSource,
+      userScopedDataSource: userScopedDataSource,
+      localMusicSource: localMusicSource,
+      localResourceIndexRepository: localResourceIndexRepository,
+      localArtworkCacheRepository: localArtworkCacheRepository,
     );
+    _registerRepositories(
+      libraryRepository: libraryRepository,
+      userScopedDataSource: userScopedDataSource,
+      playlistCacheStore: playlistCacheStore,
+      localLibraryDataSource: localLibraryDataSource,
+      searchCacheStore: searchCacheStore,
+      exploreCacheStore: exploreCacheStore,
+      localResourceIndexRepository: localResourceIndexRepository,
+      downloadRepository: downloadRepository,
+      playbackRepository: playbackRepository,
+    );
+
+    unawaited(downloadRepository.recoverInterruptedTasks());
+  }
+
+  static void _registerInfrastructure({
+    required AppDatabase appDatabase,
+    required LocalLibraryDataSource localLibraryDataSource,
+    required PlaybackRestoreDataSource playbackRestoreDataSource,
+    required LocalResourceIndexDataSource localResourceIndexDataSource,
+    required DownloadTaskDataSource downloadTaskDataSource,
+    required AppCacheDataSource appCacheDataSource,
+    required UserScopedDataSource userScopedDataSource,
+    required LocalMusicSource localMusicSource,
+    required LocalResourceIndexRepository localResourceIndexRepository,
+    required LocalArtworkCacheRepository localArtworkCacheRepository,
+  }) {
+    Get.put<AppDatabase>(appDatabase, permanent: true);
+    Get.put<LocalLibraryDataSource>(localLibraryDataSource, permanent: true);
     Get.put<PlaybackRestoreDataSource>(
       playbackRestoreDataSource,
       permanent: true,
@@ -139,6 +176,19 @@ class AppBinding extends Bindings {
       localArtworkCacheRepository,
       permanent: true,
     );
+  }
+
+  static void _registerRepositories({
+    required LibraryRepository libraryRepository,
+    required UserScopedDataSource userScopedDataSource,
+    required PlaylistCacheStore playlistCacheStore,
+    required LocalLibraryDataSource localLibraryDataSource,
+    required SearchCacheStore searchCacheStore,
+    required ExploreCacheStore exploreCacheStore,
+    required LocalResourceIndexRepository localResourceIndexRepository,
+    required DownloadRepository downloadRepository,
+    required PlaybackRepository playbackRepository,
+  }) {
     Get.put<LibraryRepository>(libraryRepository, permanent: true);
     Get.put<AuthRepository>(AuthRepository(), permanent: true);
     Get.put<UserRepository>(
@@ -202,12 +252,17 @@ class AppBinding extends Bindings {
       PlaylistPlaybackAction(repository: Get.find<PlaylistRepository>()),
       permanent: true,
     );
-
-    unawaited(downloadRepository.recoverInterruptedTasks());
   }
 
   @override
   void dependencies() {
+    _registerPlaybackApplication();
+    _registerUserApplication();
+    _registerControllers();
+    _registerFeatureFactories();
+  }
+
+  void _registerPlaybackApplication() {
     Get.put<PlaybackQueueStore>(
       PlaybackQueueStore(repository: Get.find<PlaybackRepository>()),
       permanent: true,
@@ -281,6 +336,9 @@ class AppBinding extends Bindings {
       ),
       permanent: true,
     );
+  }
+
+  void _registerUserApplication() {
     Get.lazyPut(() => HomeShellController(), fenix: true);
     Get.lazyPut(() => SettingsController(), fenix: true);
     Get.lazyPut(
@@ -307,6 +365,9 @@ class AppBinding extends Bindings {
       ),
       fenix: true,
     );
+  }
+
+  void _registerControllers() {
     Get.lazyPut(
       () => PlayerController(
         playbackService: Get.find<PlaybackService>(),
@@ -332,5 +393,26 @@ class AppBinding extends Bindings {
       fenix: true,
     );
     Get.lazyPut(() => ShellController(), fenix: true);
+  }
+
+  void _registerFeatureFactories() {
+    Get.put<FeatureControllerFactory>(
+      FeatureControllerFactory(
+        albumRepository: Get.find<AlbumRepository>(),
+        artistRepository: Get.find<ArtistRepository>(),
+        cloudRepository: Get.find<CloudRepository>(),
+        commentRepository: Get.find<CommentRepository>(),
+        downloadRepository: Get.find<DownloadRepository>(),
+        libraryRepository: Get.find<LibraryRepository>(),
+        localMediaRepository: Get.find<LocalMediaRepository>(),
+        playlistRepository: Get.find<PlaylistRepository>(),
+        radioRepository: Get.find<RadioRepository>(),
+        searchRepository: Get.find<SearchRepository>(),
+        userRepository: Get.find<UserRepository>(),
+        userSessionController: Get.find<UserSessionController>(),
+        userLibraryController: Get.find<UserLibraryController>(),
+      ),
+      permanent: true,
+    );
   }
 }

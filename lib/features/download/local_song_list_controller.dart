@@ -4,7 +4,6 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 
 class LocalSongListController {
   LocalSongListController({
@@ -13,16 +12,6 @@ class LocalSongListController {
     this.origins,
   })  : _libraryRepository = libraryRepository,
         _downloadRepository = downloadRepository;
-
-  factory LocalSongListController.create({
-    Set<TrackResourceOrigin>? origins,
-  }) {
-    return LocalSongListController(
-      libraryRepository: Get.find<LibraryRepository>(),
-      downloadRepository: Get.find<DownloadRepository>(),
-      origins: origins,
-    );
-  }
 
   final LibraryRepository _libraryRepository;
   final DownloadRepository _downloadRepository;

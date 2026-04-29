@@ -391,21 +391,7 @@ bool _isAllowedPresentationFeatureImport({
 }
 
 bool _isTemporaryGetFindFactoryException(String path) {
-  const exceptions = {
-    'lib/features/album/album_page_controller.dart',
-    'lib/features/artist/artist_page_controller.dart',
-    'lib/features/cloud/cloud_page_controller.dart',
-    'lib/features/comment/comment_list_controller.dart',
-    'lib/features/comment/floor_comment_controller.dart',
-    'lib/features/download/local_song_list_controller.dart',
-    'lib/features/local_media/local_media_scan_controller.dart',
-    'lib/features/playlist/application/playlist_playback_action.dart',
-    'lib/features/playlist/playlist_page_controller.dart',
-    'lib/features/radio/radio_detail_controller.dart',
-    'lib/features/radio/radio_list_controller.dart',
-    'lib/features/search/search_panel_controller.dart',
-  };
-  return exceptions.contains(path);
+  return false;
 }
 
 bool _isTemporaryMediaItemBoundaryException(String path) {

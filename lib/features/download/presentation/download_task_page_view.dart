@@ -1,3 +1,4 @@
+import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/local_song_entry.dart';
@@ -7,6 +8,7 @@ import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/load_state_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:get/get.dart';
 
 class DownloadTaskPageView extends StatefulWidget {
   const DownloadTaskPageView({super.key});
@@ -29,14 +31,15 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _allController = LocalSongListController.create()..loadInitial();
-    _cacheController = LocalSongListController.create(
+    final controllerFactory = Get.find<FeatureControllerFactory>();
+    _allController = controllerFactory.localSongList()..loadInitial();
+    _cacheController = controllerFactory.localSongList(
       origins: const {TrackResourceOrigin.playbackCache},
     )..loadInitial();
-    _downloadController = LocalSongListController.create(
+    _downloadController = controllerFactory.localSongList(
       origins: const {TrackResourceOrigin.managedDownload},
     )..loadInitial();
-    _importController = LocalSongListController.create(
+    _importController = controllerFactory.localSongList(
       origins: const {TrackResourceOrigin.localImport},
     )..loadInitial();
   }

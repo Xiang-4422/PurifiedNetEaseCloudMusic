@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
@@ -23,7 +24,7 @@ class SettingPageView extends StatefulWidget {
 
 class _SettingPageViewState extends State<SettingPageView> {
   final LocalMediaScanController _localMediaScanController =
-      LocalMediaScanController.create();
+      Get.find<FeatureControllerFactory>().localMediaScan();
 
   String version = '1.0.0';
 

@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/other.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
@@ -44,7 +45,7 @@ class _CommentWidgetState extends State<CommentWidget> {
   @override
   void initState() {
     super.initState();
-    _controller = CommentListController.create(
+    _controller = Get.find<FeatureControllerFactory>().commentList(
       id: widget.id,
       type: widget.idType,
       sortType: widget.commentType,
@@ -158,7 +159,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
     stringColor = widget.stringColor;
     replyCount = comment.replyCount;
     unExpandedReplyCount = comment.replyCount;
-    _floorController = FloorCommentController.create(
+    _floorController = Get.find<FeatureControllerFactory>().floorComment(
       id: widget.id,
       type: widget.idType,
       parentCommentId: widget.comment.commentId,
@@ -432,7 +433,7 @@ class _FoolTalkState extends State<FoolTalk> {
   @override
   void initState() {
     super.initState();
-    _controller = FloorCommentController.create(
+    _controller = Get.find<FeatureControllerFactory>().floorComment(
       id: widget.id,
       type: widget.type,
       parentCommentId: widget.commentItem.commentId,

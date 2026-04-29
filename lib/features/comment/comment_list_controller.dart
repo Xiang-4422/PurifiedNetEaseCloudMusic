@@ -2,7 +2,6 @@ import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 
 class CommentListController {
   CommentListController({
@@ -12,21 +11,6 @@ class CommentListController {
     required CommentRepository repository,
     this.pageSize = 10,
   }) : _repository = repository;
-
-  factory CommentListController.create({
-    required String id,
-    required String type,
-    required int sortType,
-    int pageSize = 10,
-  }) {
-    return CommentListController(
-      id: id,
-      type: type,
-      sortType: sortType,
-      repository: Get.find<CommentRepository>(),
-      pageSize: pageSize,
-    );
-  }
 
   final String id;
   final String type;

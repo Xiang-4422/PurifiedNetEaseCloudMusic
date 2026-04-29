@@ -2,10 +2,8 @@ import 'dart:async';
 
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/user_profile_data.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:flutter/foundation.dart';
-import 'package:get/get.dart';
 
 /// 个人资料页只消费最终用户详情状态，页面不再感知接口路径或请求时机。
 class UserProfileController {
@@ -13,13 +11,6 @@ class UserProfileController {
     required this.userId,
     required UserRepository repository,
   }) : _repository = repository;
-
-  factory UserProfileController.currentUser() {
-    return UserProfileController(
-      userId: UserSessionController.to.userInfo.value.userId,
-      repository: Get.find<UserRepository>(),
-    );
-  }
 
   final String userId;
   final UserRepository _repository;

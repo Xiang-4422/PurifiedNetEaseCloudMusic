@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/other.dart';
@@ -25,7 +26,8 @@ class AlbumPageView extends StatefulWidget {
 }
 
 class _AlbumPageViewState extends State<AlbumPageView> {
-  final AlbumPageController _controller = AlbumPageController.create();
+  final AlbumPageController _controller =
+      Get.find<FeatureControllerFactory>().albumPage();
   late String albumId;
   late AlbumEntity album;
   List<PlaybackQueueItem> albumSongs = [];

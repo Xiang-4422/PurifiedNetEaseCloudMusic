@@ -1,9 +1,12 @@
 import 'package:bujuan/data/netease/api/src/api/event/bean.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 
+/// 网易云评论 mapper。
 class NeteaseCommentMapper {
+  /// 禁止实例化网易云评论 mapper。
   const NeteaseCommentMapper._();
 
+  /// 将评论列表响应转换为领域评论分页数据。
   static ({
     List<CommentData> items,
     bool hasMore,
@@ -17,6 +20,7 @@ class NeteaseCommentMapper {
     );
   }
 
+  /// 将楼层评论响应转换为领域评论分页数据。
   static ({
     List<CommentData> items,
     bool hasMore,
@@ -29,6 +33,7 @@ class NeteaseCommentMapper {
     );
   }
 
+  /// 将网易云评论条目转换为领域评论数据。
   static CommentData fromItem(CommentItem item) {
     return CommentData(
       commentId: item.commentId,
@@ -44,6 +49,7 @@ class NeteaseCommentMapper {
     );
   }
 
+  /// 将网易云评论条目列表转换为领域评论数据列表。
   static List<CommentData> fromItemList(List<CommentItem> items) {
     return items.map(fromItem).toList();
   }

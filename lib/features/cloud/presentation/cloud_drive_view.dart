@@ -2,6 +2,7 @@ import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
@@ -88,6 +89,7 @@ class _CloudDriveViewState extends State<CloudDriveView> {
                       index: index,
                       playlist: state.items,
                       playListName: "云盘音乐",
+                      onPlay: PlayerController.to.playPlaylist,
                     );
                   },
                 ),

@@ -121,7 +121,8 @@ class TodayPageView extends StatelessWidget {
                       index: index,
                       playListName: "今日推荐",
                       stringColor: Colors.black,
-                      showIndex: true)
+                      showIndex: true,
+                      onPlay: PlayerController.to.playPlaylist)
                   .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
             },
           ),

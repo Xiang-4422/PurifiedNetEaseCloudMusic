@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -118,6 +117,12 @@ class SongItem extends StatefulWidget {
   final String playListName;
   final String playListHeader;
   final Function()? beforeOnTap;
+  final Future<void> Function(
+    List<PlaybackQueueItem> playlist,
+    int index, {
+    String playListName,
+    String playListNameHeader,
+  })? onPlay;
   final Color? stringColor;
   final bool showPic;
   final bool showIndex;
@@ -125,6 +130,7 @@ class SongItem extends StatefulWidget {
   const SongItem({
     Key? key,
     this.beforeOnTap,
+    this.onPlay,
     this.stringColor,
     this.showPic = true,
     this.showIndex = false,
@@ -151,7 +157,7 @@ class _SongItemState extends State<SongItem> {
         if (widget.beforeOnTap != null) {
           await widget.beforeOnTap!();
         }
-        PlayerController.to.playPlaylist(
+        await widget.onPlay?.call(
           widget.playlist,
           widget.index,
           playListName: widget.playListName,

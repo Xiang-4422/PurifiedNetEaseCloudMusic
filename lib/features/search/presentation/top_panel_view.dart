@@ -5,6 +5,7 @@ import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
@@ -315,6 +316,7 @@ class _TopPanelViewState extends State<TopPanelView> {
               index: index,
               playlist: list,
               playListName: "搜索结果：$keyword",
+              onPlay: PlayerController.to.playPlaylist,
             ),
             itemCount: list.length,
           ),

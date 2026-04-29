@@ -115,6 +115,7 @@ class PersonalPageView extends GetView<ShellController> {
                                           .todayRecommendSongs,
                                       index: index,
                                       playListName: '',
+                                      onPlay: PlayerController.to.playPlaylist,
                                     );
                                   },
                                 );

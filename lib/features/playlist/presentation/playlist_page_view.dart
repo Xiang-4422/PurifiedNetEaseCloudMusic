@@ -249,6 +249,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               ShellController.to.jumpBottomPanelToPage(0);
                               ShellController.to.openBottomPanel();
                             },
+                            onPlay: PlayerController.to.playPlaylist,
                           );
                         },
                         childCount: loadedSongCount,

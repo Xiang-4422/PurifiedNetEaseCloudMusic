@@ -175,7 +175,8 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                         playListHeader: "专辑",
                         stringColor: onAlbumColor,
                         showPic: false,
-                        showIndex: true)
+                        showIndex: true,
+                        onPlay: PlayerController.to.playPlaylist)
                     .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
               },
             ),

@@ -145,6 +145,70 @@ void main() {
       );
     });
 
+    test('presentation does not import other feature presentation directly',
+        () {
+      final violations = <String>[];
+      for (final file in _dartFiles(libDirectory)) {
+        final path = _relativePath(file);
+        if (!path.contains('/presentation/')) {
+          continue;
+        }
+        final ownerFeature = _featureName(path);
+        for (final import in _featurePresentationImports(file)) {
+          if (_isAllowedPresentationFeatureImport(
+            ownerFeature: ownerFeature,
+            importedFeature: import,
+          )) {
+            continue;
+          }
+          violations.add('$path -> features/$import/presentation');
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'presentation 不能横向直连其他 feature 页面，跨页面跳转应走 route 或明确 wrapper。',
+      );
+    });
+
+    test('application factories do not read GetX container directly', () {
+      final violations = _dartFiles(libDirectory)
+          .where((file) {
+            final path = _relativePath(file);
+            return path.startsWith('lib/features/') &&
+                (path.contains('/application/') ||
+                    path.endsWith('_page_controller.dart') ||
+                    path.endsWith('_scan_controller.dart'));
+          })
+          .where((file) => _contains(file, 'Get.find<'))
+          .map(_relativePath)
+          .where((path) => !_isTemporaryGetFindFactoryException(path))
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'application/page controller 应使用构造函数注入，Get.find 只能留在 binding/route/controller/presentation 装配边界。',
+      );
+    });
+
+    test('playlist shared widgets stay controller free', () {
+      final playlistWidgetFile = File(
+          '${projectRoot.path}/lib/features/playlist/playlist_widgets.dart');
+      final violations = <String>[
+        if (_contains(playlistWidgetFile, 'PlayerController'))
+          _relativePath(playlistWidgetFile),
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'playlist 共享展示组件不能直接依赖播放 controller，播放行为应由回调或业务 wrapper 注入。',
+      );
+    });
+
     test('shared widgets stay presentation only', () {
       final widgetDirectory = Directory('${projectRoot.path}/lib/widget');
       final violations = _dartFiles(widgetDirectory)
@@ -271,9 +335,11 @@ bool _containsAny(File file, List<String> patterns) {
 }
 
 bool _isAllowedMediaItemFile(String path) {
-  return path.startsWith('lib/features/playback/application/') ||
-      path == 'lib/features/playback/playback_service.dart' ||
-      path.startsWith('lib/features/') && path.contains('/presentation/');
+  return path == 'lib/features/playback/playback_service.dart' ||
+      path == 'lib/features/playback/application/audio_service_handler.dart' ||
+      path ==
+          'lib/features/playback/application/playback_queue_item_adapter.dart' ||
+      _isTemporaryMediaItemBoundaryException(path);
 }
 
 String _featureName(String path) {
@@ -292,6 +358,64 @@ List<String> _featureImports(File file) {
       .map((match) => match.group(1) ?? '')
       .where((feature) => feature.isNotEmpty)
       .toList();
+}
+
+List<String> _featurePresentationImports(File file) {
+  final importPattern =
+      RegExp(r"import 'package:bujuan/features/([^/]+)/presentation/[^']*';");
+  return importPattern
+      .allMatches(file.readAsStringSync())
+      .map((match) => match.group(1) ?? '')
+      .where((feature) => feature.isNotEmpty)
+      .toList();
+}
+
+bool _isAllowedPresentationFeatureImport({
+  required String ownerFeature,
+  required String importedFeature,
+}) {
+  if (ownerFeature == importedFeature) {
+    return true;
+  }
+  const temporaryRouteEntrypoints = {
+    'settings:download',
+    'settings:playback',
+    'shell:explore',
+    'shell:settings',
+    'shell:user',
+    'playback:comment',
+    'shell:playback',
+    'shell:search',
+  };
+  return temporaryRouteEntrypoints.contains('$ownerFeature:$importedFeature');
+}
+
+bool _isTemporaryGetFindFactoryException(String path) {
+  const exceptions = {
+    'lib/features/album/album_page_controller.dart',
+    'lib/features/artist/artist_page_controller.dart',
+    'lib/features/cloud/cloud_page_controller.dart',
+    'lib/features/comment/comment_list_controller.dart',
+    'lib/features/comment/floor_comment_controller.dart',
+    'lib/features/download/local_song_list_controller.dart',
+    'lib/features/local_media/local_media_scan_controller.dart',
+    'lib/features/playlist/application/playlist_playback_action.dart',
+    'lib/features/playlist/playlist_page_controller.dart',
+    'lib/features/radio/radio_detail_controller.dart',
+    'lib/features/radio/radio_list_controller.dart',
+    'lib/features/search/search_panel_controller.dart',
+  };
+  return exceptions.contains(path);
+}
+
+bool _isTemporaryMediaItemBoundaryException(String path) {
+  const exceptions = {
+    'lib/features/playback/application/media_item_cache_codec.dart',
+    'lib/features/playback/application/playback_queue_store.dart',
+    'lib/features/playback/application/playback_restore_coordinator.dart',
+    'lib/features/playback/application/playback_source_resolver.dart',
+  };
+  return exceptions.contains(path);
 }
 
 bool _isAllowedRepositoryFeatureImport({

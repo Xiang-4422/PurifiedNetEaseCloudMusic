@@ -273,7 +273,8 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                           playListName: artist.name,
                           playListHeader: "歌手",
                           stringColor: onAlbumColor,
-                          showIndex: true)
+                          showIndex: true,
+                          onPlay: PlayerController.to.playPlaylist)
                       .paddingSymmetric(
                           horizontal: AppDimensions.paddingMedium);
                 },

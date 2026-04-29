@@ -8,7 +8,9 @@ import 'package:drift/drift.dart' as drift;
 
 import 'playback_restore_data_source.dart';
 
+/// Drift 实现的播放恢复数据源。
 class DriftPlaybackRestoreDataSource implements PlaybackRestoreDataSource {
+  /// 创建 Drift 播放恢复数据源。
   DriftPlaybackRestoreDataSource({required BujuanDriftDatabase database})
       : _database = database;
 

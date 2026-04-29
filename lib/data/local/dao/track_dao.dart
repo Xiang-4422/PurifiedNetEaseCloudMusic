@@ -8,11 +8,14 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:drift/drift.dart' as drift;
 
+/// 曲目、专辑和歌手 DAO。
 class TrackDao {
+  /// 创建曲目 DAO。
   TrackDao({required db.BujuanDriftDatabase database}) : _database = database;
 
   final db.BujuanDriftDatabase _database;
 
+  /// 搜索曲目。
   Future<List<Track>> searchTracks(String keyword) async {
     if (keyword.isEmpty) {
       return const [];
@@ -29,6 +32,7 @@ class TrackDao {
     return rows.map(_mapTrackRow).toList();
   }
 
+  /// 获取曲目。
   Future<Track?> getTrack(String trackId) async {
     final row = await (_database.select(_database.tracks)
           ..where((tbl) => tbl.trackId.equals(trackId)))
@@ -39,6 +43,7 @@ class TrackDao {
     return _mapTrackRow(row);
   }
 
+  /// 按 id 批量获取曲目。
   Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
     final ids = trackIds.toSet().toList();
     if (ids.isEmpty) {
@@ -50,6 +55,7 @@ class TrackDao {
     return rows.map(_mapTrackRow).toList();
   }
 
+  /// 按专辑来源 id 获取曲目。
   Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
     final rows = await _database.select(_database.tracks).get();
     return rows
@@ -58,6 +64,7 @@ class TrackDao {
         .toList();
   }
 
+  /// 按歌手来源 id 获取曲目。
   Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
     final rows = await _database.select(_database.tracks).get();
     return rows.map(_mapTrackRow).where((track) {
@@ -68,6 +75,7 @@ class TrackDao {
     }).toList();
   }
 
+  /// 保存曲目列表。
   Future<void> saveTracks(List<Track> tracks) async {
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
@@ -95,6 +103,7 @@ class TrackDao {
     });
   }
 
+  /// 获取曲目歌词。
   Future<TrackLyrics?> getLyrics(String trackId) async {
     final row = await (_database.select(_database.trackLyricsEntries)
           ..where((tbl) => tbl.trackId.equals(trackId)))
@@ -105,6 +114,7 @@ class TrackDao {
     return TrackLyrics(main: row.main, translated: row.translated);
   }
 
+  /// 保存曲目歌词。
   Future<void> saveLyrics(String trackId, TrackLyrics lyrics) {
     return _database.into(_database.trackLyricsEntries).insertOnConflictUpdate(
           db.TrackLyricsEntriesCompanion(
@@ -115,18 +125,21 @@ class TrackDao {
         );
   }
 
+  /// 删除曲目。
   Future<void> removeTrack(String trackId) {
     return (_database.delete(_database.tracks)
           ..where((tbl) => tbl.trackId.equals(trackId)))
         .go();
   }
 
+  /// 删除曲目歌词。
   Future<void> removeLyrics(String trackId) {
     return (_database.delete(_database.trackLyricsEntries)
           ..where((tbl) => tbl.trackId.equals(trackId)))
         .go();
   }
 
+  /// 搜索专辑。
   Future<List<AlbumEntity>> searchAlbums(String keyword) async {
     if (keyword.isEmpty) {
       return const [];
@@ -142,6 +155,7 @@ class TrackDao {
     return rows.map(_mapAlbumRow).toList();
   }
 
+  /// 获取专辑。
   Future<AlbumEntity?> getAlbum(String albumId) async {
     final row = await (_database.select(_database.albums)
           ..where((tbl) => tbl.albumId.equals(albumId)))
@@ -152,6 +166,7 @@ class TrackDao {
     return _mapAlbumRow(row);
   }
 
+  /// 保存专辑列表。
   Future<void> saveAlbums(List<AlbumEntity> albums) async {
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
@@ -176,6 +191,7 @@ class TrackDao {
     });
   }
 
+  /// 搜索歌手。
   Future<List<ArtistEntity>> searchArtists(String keyword) async {
     if (keyword.isEmpty) {
       return const [];
@@ -186,6 +202,7 @@ class TrackDao {
     return rows.map(_mapArtistRow).toList();
   }
 
+  /// 获取歌手。
   Future<ArtistEntity?> getArtist(String artistId) async {
     final row = await (_database.select(_database.artists)
           ..where((tbl) => tbl.artistId.equals(artistId)))
@@ -196,6 +213,7 @@ class TrackDao {
     return _mapArtistRow(row);
   }
 
+  /// 保存歌手列表。
   Future<void> saveArtists(List<ArtistEntity> artists) async {
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(

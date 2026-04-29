@@ -8,7 +8,9 @@ import 'package:drift/drift.dart' as drift;
 import 'dao/user_dao.dart';
 import 'user_scoped_data_source.dart';
 
+/// Drift 实现的用户作用域数据源。
 class DriftUserScopedDataSource implements UserScopedDataSource {
+  /// 创建 Drift 用户作用域数据源。
   DriftUserScopedDataSource({
     required db.BujuanDriftDatabase database,
     required UserDao userDao,
@@ -35,7 +37,8 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     String userId,
     UserTrackListKind kind,
     List<String> trackIds,
-  ) => _userDao.replaceTrackList(userId, kind, trackIds);
+  ) =>
+      _userDao.replaceTrackList(userId, kind, trackIds);
 
   @override
   Future<void> appendTrackList(

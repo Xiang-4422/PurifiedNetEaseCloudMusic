@@ -3,11 +3,14 @@ import 'package:bujuan/domain/entities/user_library_kinds.dart';
 import 'package:bujuan/domain/entities/user_profile_data.dart';
 import 'package:drift/drift.dart' as drift;
 
+/// 用户作用域 DAO。
 class UserDao {
+  /// 创建用户作用域 DAO。
   UserDao({required db.BujuanDriftDatabase database}) : _database = database;
 
   final db.BujuanDriftDatabase _database;
 
+  /// 读取用户资料。
   Future<UserProfileData?> loadProfile(String userId) async {
     final row = await (_database.select(_database.userProfiles)
           ..where((tbl) => tbl.userId.equals(userId)))
@@ -26,6 +29,7 @@ class UserDao {
     );
   }
 
+  /// 保存用户资料。
   Future<void> saveProfile(UserProfileData profile) {
     return _database.into(_database.userProfiles).insertOnConflictUpdate(
           db.UserProfilesCompanion(
@@ -41,6 +45,7 @@ class UserDao {
         );
   }
 
+  /// 读取用户曲目 id 列表。
   Future<List<String>> loadTrackIds(
     String userId,
     UserTrackListKind kind,
@@ -54,6 +59,7 @@ class UserDao {
     return rows.map((row) => row.trackId).toList();
   }
 
+  /// 替换用户曲目列表。
   Future<void> replaceTrackList(
     String userId,
     UserTrackListKind kind,
@@ -91,6 +97,7 @@ class UserDao {
     });
   }
 
+  /// 追加用户曲目列表。
   Future<void> appendTrackList(
     String userId,
     UserTrackListKind kind,
@@ -121,6 +128,7 @@ class UserDao {
     });
   }
 
+  /// 插入或更新单个用户曲目引用。
   Future<void> upsertTrackRef(
     String userId,
     UserTrackListKind kind,
@@ -140,6 +148,7 @@ class UserDao {
         );
   }
 
+  /// 删除单个用户曲目引用。
   Future<void> deleteTrackRef(
     String userId,
     UserTrackListKind kind,
@@ -155,6 +164,7 @@ class UserDao {
         .go();
   }
 
+  /// 获取下一个曲目排序值。
   Future<int> nextTrackSortOrder(
     String userId,
     UserTrackListKind kind,
@@ -172,6 +182,7 @@ class UserDao {
     return row.sortOrder + 1;
   }
 
+  /// 读取歌单订阅状态。
   Future<bool?> loadPlaylistSubscriptionState(
     String userId,
     String playlistId,
@@ -185,6 +196,7 @@ class UserDao {
     return row?.isSubscribed;
   }
 
+  /// 保存歌单订阅状态。
   Future<void> savePlaylistSubscriptionState(
     String userId,
     String playlistId,
@@ -200,6 +212,7 @@ class UserDao {
         );
   }
 
+  /// 读取同步标记时间。
   Future<DateTime?> loadSyncMarker(String userId, String markerKey) async {
     final row = await (_database.select(_database.userSyncMarkers)
           ..where(
@@ -213,6 +226,7 @@ class UserDao {
     return DateTime.fromMillisecondsSinceEpoch(row.updatedAtMs);
   }
 
+  /// 标记同步时间为当前时间。
   Future<void> markSyncMarkerUpdated(String userId, String markerKey) {
     return _database.into(_database.userSyncMarkers).insertOnConflictUpdate(
           db.UserSyncMarkersCompanion(
@@ -223,6 +237,7 @@ class UserDao {
         );
   }
 
+  /// 清理同步标记。
   Future<void> clearSyncMarker(String userId, String markerKey) {
     return (_database.delete(_database.userSyncMarkers)
           ..where(

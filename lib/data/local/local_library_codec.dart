@@ -6,9 +6,12 @@ import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 
+/// 本地曲库 codec，负责领域实体和本地存储 Map 互转。
 class LocalLibraryCodec {
+  /// 禁止实例化本地曲库 codec。
   const LocalLibraryCodec._();
 
+  /// 编码曲目实体。
   static Map<String, Object?> encodeTrack(Track track) {
     return {
       'id': track.id,
@@ -26,6 +29,7 @@ class LocalLibraryCodec {
     };
   }
 
+  /// 解码曲目实体。
   static Track? decodeTrack(Object? value) {
     final map = _asMap(value);
     if (map == null) {
@@ -48,6 +52,7 @@ class LocalLibraryCodec {
     );
   }
 
+  /// 编码歌单实体。
   static Map<String, Object?> encodePlaylist(PlaylistEntity playlist) {
     return {
       'id': playlist.id,
@@ -69,6 +74,7 @@ class LocalLibraryCodec {
     };
   }
 
+  /// 解码歌单实体。
   static PlaylistEntity? decodePlaylist(Object? value) {
     final map = _asMap(value);
     if (map == null) {
@@ -99,6 +105,7 @@ class LocalLibraryCodec {
     );
   }
 
+  /// 编码专辑实体。
   static Map<String, Object?> encodeAlbum(AlbumEntity album) {
     return {
       'id': album.id,
@@ -113,6 +120,7 @@ class LocalLibraryCodec {
     };
   }
 
+  /// 解码专辑实体。
   static AlbumEntity? decodeAlbum(Object? value) {
     final map = _asMap(value);
     if (map == null) {
@@ -131,6 +139,7 @@ class LocalLibraryCodec {
     );
   }
 
+  /// 编码歌手实体。
   static Map<String, Object?> encodeArtist(ArtistEntity artist) {
     return {
       'id': artist.id,
@@ -142,6 +151,7 @@ class LocalLibraryCodec {
     };
   }
 
+  /// 解码歌手实体。
   static ArtistEntity? decodeArtist(Object? value) {
     final map = _asMap(value);
     if (map == null) {
@@ -157,6 +167,7 @@ class LocalLibraryCodec {
     );
   }
 
+  /// 编码歌词实体。
   static Map<String, Object?> encodeLyrics(TrackLyrics lyrics) {
     return {
       'main': lyrics.main,
@@ -164,6 +175,7 @@ class LocalLibraryCodec {
     };
   }
 
+  /// 解码歌词实体。
   static TrackLyrics? decodeLyrics(Object? value) {
     final map = _asMap(value);
     if (map == null) {

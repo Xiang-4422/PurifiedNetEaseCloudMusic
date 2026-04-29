@@ -3,11 +3,14 @@ import 'package:bujuan/domain/entities/local_resource_entry.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:drift/drift.dart' as drift;
 
+/// 本地资源 DAO。
 class ResourceDao {
+  /// 创建本地资源 DAO。
   ResourceDao({required BujuanDriftDatabase database}) : _database = database;
 
   final BujuanDriftDatabase _database;
 
+  /// 获取指定歌曲的指定类型资源。
   Future<LocalResourceEntry?> getResource(
     String trackId,
     LocalResourceKind kind,
@@ -23,6 +26,7 @@ class ResourceDao {
     return _mapRow(row);
   }
 
+  /// 获取指定歌曲的全部资源。
   Future<List<LocalResourceEntry>> getTrackResources(String trackId) async {
     final rows = await (_database.select(_database.localResourceEntries)
           ..where((tbl) => tbl.trackId.equals(trackId))
@@ -33,6 +37,7 @@ class ResourceDao {
     return rows.map(_mapRow).toList();
   }
 
+  /// 批量获取歌曲资源。
   Future<Map<String, List<LocalResourceEntry>>> getTrackResourcesByIds(
     Iterable<String> trackIds,
   ) async {
@@ -54,6 +59,7 @@ class ResourceDao {
     return result;
   }
 
+  /// 列出音频资源。
   Future<List<LocalResourceEntry>> listAudioResources({
     Set<TrackResourceOrigin>? origins,
   }) async {
@@ -69,6 +75,7 @@ class ResourceDao {
     return rows.map(_mapRow).toList();
   }
 
+  /// 保存资源。
   Future<void> saveResource(LocalResourceEntry entry) {
     return _database
         .into(_database.localResourceEntries)
@@ -87,6 +94,7 @@ class ResourceDao {
         );
   }
 
+  /// 更新资源最近访问时间。
   Future<void> touchResource(
     String trackId,
     LocalResourceKind kind, {
@@ -103,6 +111,7 @@ class ResourceDao {
     );
   }
 
+  /// 删除指定资源。
   Future<void> removeResource(String trackId, LocalResourceKind kind) {
     return (_database.delete(_database.localResourceEntries)
           ..where(
@@ -111,12 +120,14 @@ class ResourceDao {
         .go();
   }
 
+  /// 删除指定歌曲的全部资源。
   Future<void> removeTrackResources(String trackId) {
     return (_database.delete(_database.localResourceEntries)
           ..where((tbl) => tbl.trackId.equals(trackId)))
         .go();
   }
 
+  /// 删除指定来源的全部资源。
   Future<void> removeResourcesByOrigin(TrackResourceOrigin origin) {
     return (_database.delete(_database.localResourceEntries)
           ..where((tbl) => tbl.origin.equals(origin.name)))

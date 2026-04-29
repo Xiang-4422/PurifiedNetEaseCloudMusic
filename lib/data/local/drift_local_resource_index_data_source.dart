@@ -4,8 +4,10 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'dao/resource_dao.dart';
 import 'local_resource_index_data_source.dart';
 
+/// Drift 实现的本地资源索引数据源。
 class DriftLocalResourceIndexDataSource
     implements LocalResourceIndexDataSource {
+  /// 创建 Drift 本地资源索引数据源。
   DriftLocalResourceIndexDataSource({required ResourceDao dao}) : _dao = dao;
 
   final ResourceDao _dao;

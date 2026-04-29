@@ -3,7 +3,9 @@ import 'package:bujuan/domain/entities/download_task.dart' as domain;
 import 'dao/download_task_dao.dart';
 import 'download_task_data_source.dart';
 
+/// Drift 实现的下载任务数据源。
 class DriftDownloadTaskDataSource implements DownloadTaskDataSource {
+  /// 创建 Drift 下载任务数据源。
   DriftDownloadTaskDataSource({required DownloadTaskDao dao}) : _dao = dao;
 
   final DownloadTaskDao _dao;

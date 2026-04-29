@@ -1,7 +1,9 @@
 import 'app_cache_data_source.dart';
 import 'dao/cache_dao.dart';
 
+/// Drift 实现的应用缓存数据源。
 class DriftAppCacheDataSource implements AppCacheDataSource {
+  /// 创建 Drift 应用缓存数据源。
   DriftAppCacheDataSource({required CacheDao dao}) : _dao = dao;
 
   final CacheDao _dao;

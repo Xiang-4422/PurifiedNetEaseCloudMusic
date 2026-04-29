@@ -87,3 +87,10 @@
 - **现象**：`album`、`artist`、`artUri`、`extras` 更接近 audio service 或展示适配字段，而不是纯播放队列实体字段。
 - **风险**：播放 adapter 的需求会继续影响 domain entity 形状，削弱 `MediaItem` 边界清理后的隔离效果。
 - **建议**：后续将这些 getter 移到 playback adapter/mapper，domain 保留原始字段和最小派生规则。
+
+### 11. 用户作用域本地数据源接口偏宽
+
+- **位置**：`lib/data/local/user_scoped_data_source.dart`、`lib/data/local/dao/user_dao.dart`。
+- **现象**：同一个数据源和 DAO 同时覆盖用户资料、用户曲目列表、用户歌单列表、歌单订阅状态、电台订阅、节目列表和同步标记。
+- **风险**：后续新增用户相关缓存时容易继续堆到一个接口里，调用方也难以只依赖自己需要的最小能力。
+- **建议**：后续按资料、曲目列表、歌单列表、电台、同步标记拆成更小 data source/DAO port，现有 facade 可保留组合职责。

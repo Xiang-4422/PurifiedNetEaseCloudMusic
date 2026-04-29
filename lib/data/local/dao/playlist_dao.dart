@@ -4,11 +4,15 @@ import 'package:bujuan/domain/entities/playlist_track_ref.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:drift/drift.dart' as drift;
 
+/// 歌单 DAO。
 class PlaylistDao {
-  PlaylistDao({required db.BujuanDriftDatabase database}) : _database = database;
+  /// 创建歌单 DAO。
+  PlaylistDao({required db.BujuanDriftDatabase database})
+      : _database = database;
 
   final db.BujuanDriftDatabase _database;
 
+  /// 搜索歌单。
   Future<List<PlaylistEntity>> searchPlaylists(String keyword) async {
     if (keyword.isEmpty) {
       return const [];
@@ -29,6 +33,7 @@ class PlaylistDao {
         .toList();
   }
 
+  /// 获取歌单。
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
     final row = await (_database.select(_database.playlists)
           ..where((tbl) => tbl.playlistId.equals(playlistId)))
@@ -45,6 +50,7 @@ class PlaylistDao {
     );
   }
 
+  /// 保存歌单列表。
   Future<void> savePlaylists(List<PlaylistEntity> playlists) async {
     await _database.transaction(() async {
       await _database.batch((batch) {
@@ -89,12 +95,14 @@ class PlaylistDao {
     });
   }
 
+  /// 清空歌单曲目引用。
   Future<void> clearPlaylistTrackRefs(String playlistId) {
     return (_database.delete(_database.playlistTrackRefs)
           ..where((tbl) => tbl.playlistId.equals(playlistId)))
         .go();
   }
 
+  /// 批量加载歌单曲目引用。
   Future<Map<String, List<PlaylistTrackRef>>> loadTrackRefsByPlaylistIds(
     List<String> playlistIds,
   ) async {

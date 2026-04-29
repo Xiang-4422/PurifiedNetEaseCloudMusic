@@ -8,7 +8,9 @@ import 'dao/playlist_dao.dart';
 import 'dao/track_dao.dart';
 import 'local_library_data_source.dart';
 
+/// Drift 实现的本地曲库数据源。
 class DriftLocalLibraryDataSource implements LocalLibraryDataSource {
+  /// 创建 Drift 本地曲库数据源。
   DriftLocalLibraryDataSource({
     required TrackDao trackDao,
     required PlaylistDao playlistDao,

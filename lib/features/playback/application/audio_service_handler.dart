@@ -5,8 +5,10 @@ import 'dart:typed_data';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/features/playback/application/playback_queue_item_adapter.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_restore_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_repeat_mode_mapper.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -98,9 +100,14 @@ class AudioServiceHandler extends BaseAudioHandler
   restoreLastPlayState() async {
     final restoreSnapshot = await _restoreCoordinator.loadSnapshot();
     _handleRestoredPlaybackMode?.call(restoreSnapshot.playbackMode);
-    await changeRepeatMode(newRepeatMode: restoreSnapshot.repeatMode);
+    await changeRepeatMode(
+      newRepeatMode: PlaybackRepeatModeMapper.toAudioService(
+        restoreSnapshot.repeatMode,
+      ),
+    );
     if (restoreSnapshot.queue.isNotEmpty) {
-      await changePlayList(restoreSnapshot.queue,
+      await changePlayList(
+          PlaybackQueueItemAdapter.toMediaItems(restoreSnapshot.queue),
           index: restoreSnapshot.index,
           playListName: restoreSnapshot.playlistName,
           playListNameHeader: restoreSnapshot.playlistHeader,
@@ -130,7 +137,9 @@ class AudioServiceHandler extends BaseAudioHandler
     }
     curRepeatMode = newRepeatMode;
 
-    await _queueStore.saveRepeatMode(newRepeatMode);
+    await _queueStore.saveRepeatMode(
+      PlaybackRepeatModeMapper.fromAudioService(newRepeatMode),
+    );
     _handleRepeatModeChanged?.call(newRepeatMode);
     _updateMediaControls();
   }
@@ -188,7 +197,7 @@ class AudioServiceHandler extends BaseAudioHandler
       await _queueStore.saveQueueSnapshot(
         playlistName: playListName,
         playlistHeader: playListNameHeader,
-        originalSongs: _originalSongs,
+        originalSongs: PlaybackQueueItemAdapter.fromMediaItems(_originalSongs),
       );
     } else {
       await _queueStore.savePlaylistMeta(

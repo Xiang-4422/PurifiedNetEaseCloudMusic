@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/other.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
@@ -137,14 +137,14 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                 onPressed: () async {
-                                  await PlayerController.to.setRepeatMode(
-                                      AudioServiceRepeatMode.all);
+                                  await PlayerController.to
+                                      .setRepeatMode(PlaybackRepeatMode.all);
                                   ShellController.to.jumpBottomPanelToPage(0);
                                   ShellController.to.openBottomPanel();
                                   // 根据当前播放模式，决定从哪个位置开始播放
                                   int startIndex = PlayerController.to
                                               .sessionState.value.repeatMode ==
-                                          AudioServiceRepeatMode.none
+                                          PlaybackRepeatMode.none
                                       ? Random().nextInt(loadedSongCount)
                                       : 0;
                                   await PlayerController.to.playPlaylist(
@@ -197,14 +197,14 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                 onPressed: () async {
-                                  await PlayerController.to.setRepeatMode(
-                                      AudioServiceRepeatMode.none);
+                                  await PlayerController.to
+                                      .setRepeatMode(PlaybackRepeatMode.none);
                                   ShellController.to.jumpBottomPanelToPage(0);
                                   ShellController.to.openBottomPanel();
                                   // 根据当前播放模式，决定从哪个位置开始播放
                                   int startIndex = PlayerController.to
                                               .sessionState.value.repeatMode ==
-                                          AudioServiceRepeatMode.none
+                                          PlaybackRepeatMode.none
                                       ? Random().nextInt(loadedSongCount)
                                       : 0;
                                   await PlayerController.to.playPlaylist(

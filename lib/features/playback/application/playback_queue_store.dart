@@ -1,7 +1,7 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
-import 'package:bujuan/features/playback/application/media_item_cache_codec.dart';
-import 'package:bujuan/features/playback/application/playback_repeat_mode_mapper.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/features/playback/application/playback_queue_item_cache_codec.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
 /// 统一处理播放队列恢复态的编码与持久化。
@@ -11,19 +11,19 @@ class PlaybackQueueStore {
 
   final PlaybackRepository _repository;
 
-  Future<List<MediaItem>> decodeQueue(List<String> queueSnapshot) {
-    return decodeMediaItemCacheList(queueSnapshot);
+  Future<List<PlaybackQueueItem>> decodeQueue(List<String> queueSnapshot) {
+    return decodePlaybackQueueItemCacheList(queueSnapshot);
   }
 
   Future<void> saveQueueSnapshot({
-    required List<MediaItem> originalSongs,
+    required List<PlaybackQueueItem> originalSongs,
     required String playlistName,
     required String playlistHeader,
   }) async {
     await _repository.updateRestoreState(
       playlistName: playlistName,
       playlistHeader: playlistHeader,
-      queue: await encodeMediaItemCacheList(originalSongs),
+      queue: await encodePlaybackQueueItemCacheList(originalSongs),
     );
   }
 
@@ -37,9 +37,9 @@ class PlaybackQueueStore {
     );
   }
 
-  Future<void> saveRepeatMode(AudioServiceRepeatMode repeatMode) {
+  Future<void> saveRepeatMode(PlaybackRepeatMode repeatMode) {
     return _repository.updateRestoreState(
-      repeatMode: PlaybackRepeatModeMapper.fromAudioService(repeatMode),
+      repeatMode: repeatMode,
     );
   }
 

@@ -1,5 +1,5 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
@@ -39,7 +39,7 @@ class PlaybackModeCoordinator {
   }
 
   Future<bool> startRoamingMode({
-    required AudioServiceRepeatMode currentRepeatMode,
+    required PlaybackRepeatMode currentRepeatMode,
   }) async {
     final fmSongs = await _userContentPort.loadFmSongs();
     if (fmSongs.isEmpty) {
@@ -56,9 +56,9 @@ class PlaybackModeCoordinator {
       needStore: false,
     );
 
-    if (currentRepeatMode == AudioServiceRepeatMode.one) {
+    if (currentRepeatMode == PlaybackRepeatMode.one) {
       await _playbackService.changeRepeatMode(
-        newRepeatMode: AudioServiceRepeatMode.all,
+        newRepeatMode: PlaybackRepeatMode.all,
       );
     }
     return true;
@@ -67,7 +67,7 @@ class PlaybackModeCoordinator {
   Future<bool> startHeartBeatMode({
     required String startSongId,
     required bool fromPlayAll,
-    required AudioServiceRepeatMode currentRepeatMode,
+    required PlaybackRepeatMode currentRepeatMode,
   }) async {
     final songs = await _userContentPort.loadHeartBeatSongs(
       startSongId,
@@ -88,9 +88,9 @@ class PlaybackModeCoordinator {
       needStore: false,
     );
 
-    if (currentRepeatMode == AudioServiceRepeatMode.one) {
+    if (currentRepeatMode == PlaybackRepeatMode.one) {
       await _playbackService.changeRepeatMode(
-        newRepeatMode: AudioServiceRepeatMode.all,
+        newRepeatMode: PlaybackRepeatMode.all,
       );
     }
     return true;

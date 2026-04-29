@@ -3,6 +3,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_artwork_presenter.dart';
@@ -60,7 +61,7 @@ class PlayerController extends GetxController {
 
   RxBool isPlaying = false.obs;
 
-  Rx<AudioServiceRepeatMode> curRepeatMode = AudioServiceRepeatMode.all.obs;
+  Rx<PlaybackRepeatMode> curRepeatMode = PlaybackRepeatMode.all.obs;
 
   Rx<PlaybackMode> playbackMode = PlaybackMode.playlist.obs;
 
@@ -202,7 +203,7 @@ class PlayerController extends GetxController {
 
   void _syncSessionState({
     PlaybackMode? playbackMode,
-    AudioServiceRepeatMode? repeatMode,
+    PlaybackRepeatMode? repeatMode,
     String? playlistName,
     String? playlistHeader,
     bool? isPlayingLikedSongs,
@@ -456,7 +457,7 @@ class PlayerController extends GetxController {
     return _playbackService.skipToNext();
   }
 
-  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) {
+  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) {
     return _playbackService.changeRepeatMode(newRepeatMode: repeatMode);
   }
 
@@ -510,12 +511,12 @@ class PlayerController extends GetxController {
     }
     if (isHeartBeatMode.isTrue) {
       quitHeartBeatMode();
-      await setRepeatMode(AudioServiceRepeatMode.all);
+      await setRepeatMode(PlaybackRepeatMode.all);
       await playUserLikedSongs();
       return;
     }
     if (sessionState.value.isPlayingLikedSongs &&
-        _playbackService.handler.curRepeatMode == AudioServiceRepeatMode.none) {
+        sessionState.value.repeatMode == PlaybackRepeatMode.none) {
       await openHeartBeatMode(
         runtimeState.value.currentSong.id,
         fromPlayAll: false,
@@ -578,14 +579,14 @@ class PlayerController extends GetxController {
       icon = TablerIcons.heartbeat;
     } else {
       switch (curRepeatMode.value) {
-        case AudioServiceRepeatMode.one:
+        case PlaybackRepeatMode.one:
           icon = TablerIcons.repeat_once;
           break;
-        case AudioServiceRepeatMode.none:
+        case PlaybackRepeatMode.none:
           icon = TablerIcons.arrows_shuffle;
           break;
-        case AudioServiceRepeatMode.all:
-        case AudioServiceRepeatMode.group:
+        case PlaybackRepeatMode.all:
+        case PlaybackRepeatMode.group:
           icon = TablerIcons.repeat;
           break;
       }

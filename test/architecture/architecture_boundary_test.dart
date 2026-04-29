@@ -410,9 +410,6 @@ bool _isTemporaryGetFindFactoryException(String path) {
 
 bool _isTemporaryMediaItemBoundaryException(String path) {
   const exceptions = {
-    'lib/features/playback/application/media_item_cache_codec.dart',
-    'lib/features/playback/application/playback_queue_store.dart',
-    'lib/features/playback/application/playback_restore_coordinator.dart',
     'lib/features/playback/application/playback_source_resolver.dart',
   };
   return exceptions.contains(path);

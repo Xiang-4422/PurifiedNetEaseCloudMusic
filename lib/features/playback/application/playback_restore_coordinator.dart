@@ -1,7 +1,7 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
-import 'package:bujuan/features/playback/application/playback_repeat_mode_mapper.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
 class PlaybackRestoreSnapshot {
@@ -16,8 +16,8 @@ class PlaybackRestoreSnapshot {
   });
 
   final PlaybackMode playbackMode;
-  final AudioServiceRepeatMode repeatMode;
-  final List<MediaItem> queue;
+  final PlaybackRepeatMode repeatMode;
+  final List<PlaybackQueueItem> queue;
   final int index;
   final String playlistName;
   final String playlistHeader;
@@ -38,7 +38,7 @@ class PlaybackRestoreCoordinator {
   Future<PlaybackRestoreSnapshot> loadSnapshot() async {
     final restoreState = await _repository.getRestoreState();
     final playlist = restoreState.queue.isEmpty
-        ? <MediaItem>[]
+        ? <PlaybackQueueItem>[]
         : await _queueStore.decodeQueue(restoreState.queue);
     var index = playlist.indexWhere(
       (element) => element.id == restoreState.currentSongId,
@@ -48,9 +48,7 @@ class PlaybackRestoreCoordinator {
     }
     return PlaybackRestoreSnapshot(
       playbackMode: restoreState.playbackMode,
-      repeatMode: PlaybackRepeatModeMapper.toAudioService(
-        restoreState.repeatMode,
-      ),
+      repeatMode: restoreState.repeatMode,
       queue: playlist,
       index: index,
       playlistName: restoreState.playlistName,

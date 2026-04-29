@@ -1,8 +1,10 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/common/constants/enmu.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/audio_service_handler.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_adapter.dart';
+import 'package:bujuan/features/playback/application/playback_repeat_mode_mapper.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_restore_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
@@ -23,7 +25,7 @@ class PlaybackService extends GetxService {
   final PlaybackSourceResolver _sourceResolver;
   AudioServiceHandler? _handler;
   void Function(PlaybackMode mode)? _onRestorePlaybackMode;
-  void Function(AudioServiceRepeatMode mode)? _onRepeatModeChanged;
+  void Function(PlaybackRepeatMode mode)? _onRepeatModeChanged;
   void Function(String playlistName, String playlistHeader, bool isLikedSongs)?
       _onPlaylistMetaChanged;
   bool Function()? _isHighQualityEnabled;
@@ -74,7 +76,7 @@ class PlaybackService extends GetxService {
   /// 控制器状态仍由上层持有，但底层播放器通过这组回调显式同步，避免反向依赖控制器单例。
   void bindControllerState({
     void Function(PlaybackMode mode)? onRestorePlaybackMode,
-    void Function(AudioServiceRepeatMode mode)? onRepeatModeChanged,
+    void Function(PlaybackRepeatMode mode)? onRepeatModeChanged,
     void Function(
             String playlistName, String playlistHeader, bool isLikedSongs)?
         onPlaylistMetaChanged,
@@ -96,7 +98,11 @@ class PlaybackService extends GetxService {
   void _applyHandlerBindings() {
     _handler?.configure(
       onRestorePlaybackMode: _onRestorePlaybackMode,
-      onRepeatModeChanged: _onRepeatModeChanged,
+      onRepeatModeChanged: _onRepeatModeChanged == null
+          ? null
+          : (mode) => _onRepeatModeChanged!(
+                PlaybackRepeatModeMapper.fromAudioService(mode),
+              ),
       onPlaylistMetaChanged: _onPlaylistMetaChanged,
       isHighQualityEnabled: _isHighQualityEnabled,
       onToggleLike: _onToggleLike == null
@@ -148,8 +154,12 @@ class PlaybackService extends GetxService {
 
   Future<void> skipToNext() => handler.skipToNext();
 
-  Future<void> changeRepeatMode({AudioServiceRepeatMode? newRepeatMode}) {
-    return handler.changeRepeatMode(newRepeatMode: newRepeatMode);
+  Future<void> changeRepeatMode({PlaybackRepeatMode? newRepeatMode}) {
+    return handler.changeRepeatMode(
+      newRepeatMode: newRepeatMode == null
+          ? null
+          : PlaybackRepeatModeMapper.toAudioService(newRepeatMode),
+    );
   }
 
   Future<void> updateQueueItem(PlaybackQueueItem item) {

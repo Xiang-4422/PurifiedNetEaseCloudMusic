@@ -15,8 +15,10 @@ class RecommendationController extends GetxController {
   static const Duration _startupDataTtl = Duration(minutes: 10);
   static const String _startupSyncMarker = 'startup_home';
 
+  /// 当前推荐控制器实例。
   static RecommendationController get to => Get.find();
 
+  /// 创建推荐控制器。
   RecommendationController({
     required UserHomeApplicationService homeService,
     required UserSessionController sessionController,
@@ -32,11 +34,20 @@ class RecommendationController extends GetxController {
   final UserLibraryController _libraryController;
   final Future<void> Function()? _validateLoginStateInBackground;
 
+  /// 首页下拉刷新控制器。
   final RefreshController refreshController = RefreshController();
+
+  /// 首页推荐数据是否已经完成首轮加载。
   final RxBool dateLoaded = false.obs;
+
+  /// 推荐歌单列表。
   final RxList<PlaylistSummaryData> recoPlayLists = <PlaylistSummaryData>[].obs;
+
+  /// 每日推荐歌曲队列。
   final RxList<PlaybackQueueItem> todayRecommendSongs =
       <PlaybackQueueItem>[].obs;
+
+  /// 私人 FM 候选歌曲队列。
   final RxList<PlaybackQueueItem> fmSongs = <PlaybackQueueItem>[].obs;
 
   Future<void>? _cacheBootstrapFuture;
@@ -44,8 +55,10 @@ class RecommendationController extends GetxController {
   String _activeSnapshotUserId = '';
   bool _hasLocalSnapshot = false;
 
+  /// 当前账号是否已有本地首页快照。
   bool get hasLocalSnapshot => _hasLocalSnapshot;
 
+  /// 等待首页和用户资料缓存启动加载完成。
   Future<void> ensureCacheLoaded() async {
     await (_cacheBootstrapFuture ?? Future<void>.value());
   }
@@ -70,6 +83,7 @@ class RecommendationController extends GetxController {
     unawaited(startHomeBootstrap());
   }
 
+  /// 启动首页数据加载流程，优先展示本地快照再按 TTL 后台刷新。
   Future<void> startHomeBootstrap() async {
     await ensureCacheLoaded();
     if (_hasLocalSnapshot) {
@@ -90,6 +104,7 @@ class RecommendationController extends GetxController {
     await startHomeBootstrap();
   }
 
+  /// 判断启动数据是否需要刷新。
   Future<bool> shouldRefreshStartupData() async {
     await ensureCacheLoaded();
     if (!_hasLocalSnapshot) {
@@ -107,6 +122,7 @@ class RecommendationController extends GetxController {
     );
   }
 
+  /// 刷新首页推荐、日推和 FM 候选数据。
   Future<void> updateData() async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty) {
@@ -132,6 +148,7 @@ class RecommendationController extends GetxController {
     refreshController.resetNoData();
   }
 
+  /// 刷新推荐歌单，`getMore` 为 true 时追加下一页。
   Future<void> updateRecoPlayLists({bool getMore = false}) async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
@@ -148,6 +165,7 @@ class RecommendationController extends GetxController {
     refreshController.loadComplete();
   }
 
+  /// 拉取每日推荐歌曲队列。
   Future<List<PlaybackQueueItem>> getTodayRecommendSongs() async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
@@ -159,6 +177,7 @@ class RecommendationController extends GetxController {
     );
   }
 
+  /// 拉取私人 FM 候选歌曲队列。
   Future<List<PlaybackQueueItem>> getFmSongs() async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
@@ -170,6 +189,7 @@ class RecommendationController extends GetxController {
     );
   }
 
+  /// 延迟预热首页卡片封面主色，避免阻塞首帧数据展示。
   void scheduleHomeImageColorPrewarm() {
     _homeImageColorPrewarmTimer?.cancel();
     _homeImageColorPrewarmTimer = Timer(const Duration(milliseconds: 120), () {

@@ -11,8 +11,10 @@ import 'package:get/get.dart';
 
 /// 持有账号作用域下的资料库状态。
 class UserLibraryController extends GetxController {
+  /// 当前用户资料库控制器实例。
   static UserLibraryController get to => Get.find();
 
+  /// 创建用户资料库控制器。
   UserLibraryController({
     required UserRepository repository,
     required UserSessionController sessionController,
@@ -25,20 +27,34 @@ class UserLibraryController extends GetxController {
   String _activeSnapshotUserId = '';
   bool _hasLocalSnapshot = false;
 
+  /// 当前账号是否已有本地资料库快照。
   bool get hasLocalSnapshot => _hasLocalSnapshot;
 
+  /// 用户创建或收藏的普通歌单列表，不包含“我喜欢的音乐”入口。
   final List<PlaylistSummaryData> userPlayLists = <PlaylistSummaryData>[].obs;
+
+  /// “我喜欢的音乐”歌单入口。
   final Rx<PlaylistSummaryData> userLikedSongPlayList =
       const PlaylistSummaryData(id: '', title: '').obs;
+
+  /// 用户喜欢歌曲的网易云数字 id 列表。
   final RxList<int> likedSongIds = <int>[].obs;
+
+  /// 已加载的喜欢歌曲播放队列项。
   final RxList<PlaybackQueueItem> likedSongs = <PlaybackQueueItem>[].obs;
+
+  /// 随机选中的喜欢歌曲 id，用于心动模式入口。
   final RxString randomLikedSongId = ''.obs;
+
+  /// 随机喜欢歌曲对应的封面地址。
   final RxString randomLikedSongAlbumUrl = ''.obs;
 
+  /// 等待用户资料库缓存启动加载完成。
   Future<void> ensureCacheLoaded() async {
     await (_cacheBootstrapFuture ?? Future<void>.value());
   }
 
+  /// 重新载入指定用户作用域下的本地资料库快照。
   Future<void> loadScopedSnapshot(String userId) {
     return _loadScopedSnapshot(userId);
   }
@@ -56,6 +72,7 @@ class UserLibraryController extends GetxController {
     });
   }
 
+  /// 刷新用户喜欢歌曲和歌单数据。
   Future<void> refreshUserLibrary() async {
     await Future.wait([
       refreshLikedSongIds(),
@@ -65,6 +82,7 @@ class UserLibraryController extends GetxController {
     _hasLocalSnapshot = true;
   }
 
+  /// 刷新用户喜欢歌曲 id 列表。
   Future<void> refreshLikedSongIds() async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
@@ -77,6 +95,7 @@ class UserLibraryController extends GetxController {
       ..addAll(nextLikedSongIds);
   }
 
+  /// 刷新用户歌单列表并拆分“我喜欢的音乐”入口。
   Future<void> refreshUserPlaylists() async {
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
@@ -97,6 +116,7 @@ class UserLibraryController extends GetxController {
       ..addAll(mutablePlayLists);
   }
 
+  /// 切换当前歌曲的喜欢状态，并返回更新后的队列项。
   Future<PlaybackQueueItem?> toggleLikeStatus(
     PlaybackQueueItem currentSong,
   ) async {
@@ -130,6 +150,7 @@ class UserLibraryController extends GetxController {
     return updatedSong;
   }
 
+  /// 确保喜欢歌曲队列已加载，可通过 `force` 强制远程刷新。
   Future<void> ensureLikedSongsLoaded({bool force = false}) async {
     if (likedSongIds.isEmpty) {
       likedSongs.clear();
@@ -157,6 +178,7 @@ class UserLibraryController extends GetxController {
       );
   }
 
+  /// 拉取心动模式歌曲队列。
   Future<List<PlaybackQueueItem>> getHeartBeatSongs(
     String startSongId,
     String randomLikedSongId,
@@ -170,6 +192,7 @@ class UserLibraryController extends GetxController {
     );
   }
 
+  /// 按歌曲 id 拉取播放队列项。
   Future<List<PlaybackQueueItem>> getSongsByIds(List<String> ids) {
     return _repository.fetchSongsByIds(
       ids: ids,
@@ -177,6 +200,7 @@ class UserLibraryController extends GetxController {
     );
   }
 
+  /// 刷新随机喜欢歌曲及其封面，用于心动模式入口展示。
   Future<void> refreshRandomLikedSong() async {
     var nextRandomLikedSongId = '';
     var nextRandomLikedSongAlbumUrl = '';

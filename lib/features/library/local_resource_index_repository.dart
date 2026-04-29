@@ -7,7 +7,9 @@ import 'package:bujuan/domain/entities/local_resource_entry.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_resource_bundle.dart';
 
+/// 管理曲目本地音频、封面和歌词资源索引。
 class LocalResourceIndexRepository {
+  /// 创建本地资源索引仓库。
   LocalResourceIndexRepository({
     required LocalResourceIndexDataSource dataSource,
     required LocalLibraryDataSource localLibraryDataSource,
@@ -17,27 +19,33 @@ class LocalResourceIndexRepository {
   final LocalResourceIndexDataSource _dataSource;
   final LocalLibraryDataSource _localLibraryDataSource;
 
+  /// 读取曲目的主音频资源。
   Future<LocalResourceEntry?> getPrimaryAudioResource(String trackId) {
     return _dataSource.getResource(trackId, LocalResourceKind.audio);
   }
 
+  /// 读取曲目的封面资源。
   Future<LocalResourceEntry?> getArtworkResource(String trackId) {
     return _dataSource.getResource(trackId, LocalResourceKind.artwork);
   }
 
+  /// 读取曲目的歌词资源。
   Future<LocalResourceEntry?> getLyricsResource(String trackId) {
     return _dataSource.getResource(trackId, LocalResourceKind.lyrics);
   }
 
+  /// 读取曲目的所有本地资源。
   Future<List<LocalResourceEntry>> getTrackResources(String trackId) {
     return _dataSource.getTrackResources(trackId);
   }
 
+  /// 读取曲目的本地资源集合。
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) async {
     final resources = await _dataSource.getTrackResources(trackId);
     return _toBundle(resources);
   }
 
+  /// 批量读取多个曲目的本地资源集合。
   Future<Map<String, TrackResourceBundle>> getTrackResourceBundles(
     Iterable<String> trackIds,
   ) async {
@@ -48,6 +56,7 @@ class LocalResourceIndexRepository {
     );
   }
 
+  /// 列出已登记音频资源的本地歌曲。
   Future<List<LocalSongEntry>> listLocalSongs({
     Set<TrackResourceOrigin>? origins,
   }) async {
@@ -95,6 +104,7 @@ class LocalResourceIndexRepository {
     return entries;
   }
 
+  /// 保存曲目的音频资源索引。
   Future<void> saveAudioResource(
     String trackId, {
     required String path,
@@ -108,6 +118,7 @@ class LocalResourceIndexRepository {
     );
   }
 
+  /// 保存曲目的封面资源索引。
   Future<void> saveArtworkResource(
     String trackId, {
     required String path,
@@ -121,6 +132,7 @@ class LocalResourceIndexRepository {
     );
   }
 
+  /// 保存曲目的歌词资源索引。
   Future<void> saveLyricsResource(
     String trackId, {
     required String path,
@@ -134,6 +146,7 @@ class LocalResourceIndexRepository {
     );
   }
 
+  /// 刷新资源的最近访问时间。
   Future<void> touchResource(String trackId, LocalResourceKind kind) {
     return _dataSource.touchResource(
       trackId,
@@ -142,10 +155,12 @@ class LocalResourceIndexRepository {
     );
   }
 
+  /// 删除指定曲目的全部资源索引。
   Future<void> removeTrackResources(String trackId) {
     return _dataSource.removeTrackResources(trackId);
   }
 
+  /// 删除指定来源的全部资源索引。
   Future<void> removeResourcesByOrigin(TrackResourceOrigin origin) {
     return _dataSource.removeResourcesByOrigin(origin);
   }

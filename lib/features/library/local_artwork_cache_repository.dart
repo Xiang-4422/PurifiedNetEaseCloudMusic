@@ -5,7 +5,9 @@ import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// 下载并登记曲目封面的本地缓存仓库。
 class LocalArtworkCacheRepository {
+  /// 创建本地封面缓存仓库。
   LocalArtworkCacheRepository({
     Dio? dio,
     required LocalResourceIndexRepository resourceIndexRepository,
@@ -16,6 +18,7 @@ class LocalArtworkCacheRepository {
   final LocalResourceIndexRepository _resourceIndexRepository;
   final Set<String> _pendingTrackIds = <String>{};
 
+  /// 批量缓存曲目封面，内部限制并发避免瞬时请求过多。
   Future<List<Track>> cacheTrackArtwork(List<Track> tracks) async {
     if (tracks.isEmpty) {
       return const [];
@@ -32,6 +35,7 @@ class LocalArtworkCacheRepository {
     return results;
   }
 
+  /// 缓存单首曲目的封面；已有可用本地资源时直接返回原曲目。
   Future<Track> cacheSingleTrackArtwork(Track track) async {
     final indexedResource =
         await _resourceIndexRepository.getArtworkResource(track.id);

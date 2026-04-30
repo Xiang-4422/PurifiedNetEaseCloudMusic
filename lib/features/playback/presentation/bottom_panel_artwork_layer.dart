@@ -103,51 +103,56 @@ class BottomPanelArtworkPageLayer extends StatelessWidget {
               }
               return false;
             },
-            child: PageView.builder(
-              controller: controller.albumPageController,
-              itemCount: PlayerController.to.queueState.length,
-              allowImplicitScrolling: true,
-              onPageChanged: controller.onAlbumPageChanged,
-              itemBuilder: (BuildContext context, int index) {
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 800),
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                  child: Container(
-                    clipBehavior: Clip.hardEdge,
-                    margin: const EdgeInsets.all(AppDimensions.paddingLarge),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.paddingLarge / 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          blurRadius: 12,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: GestureDetector(
-                      onTap: () {
-                        controller.isAlbumScaleEnded.value = false;
-                        controller.isBigAlbum.value = false;
-                        if (controller.curPanelPageIndex.value == 1) {
-                          PlayerController.to
-                              .updateFullScreenLyricTimerCounter();
-                        }
+            child: Obx(
+              () {
+                final queue = PlayerController.to.queueState.toList();
+                return PageView.builder(
+                  controller: controller.albumPageController,
+                  itemCount: queue.length,
+                  allowImplicitScrolling: true,
+                  onPageChanged: controller.onAlbumPageChanged,
+                  itemBuilder: (BuildContext context, int index) {
+                    final item = queue[index];
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(opacity: animation, child: child);
                       },
-                      child: Obx(() {
-                        final item = PlayerController.to.queueState[index];
-                        return SimpleExtendedImage(
-                          ArtworkPathResolver.resolveDisplayPath(
-                            item.artworkUrl ?? item.localArtworkPath,
+                      child: Container(
+                        key: ValueKey(item.id),
+                        clipBehavior: Clip.hardEdge,
+                        margin:
+                            const EdgeInsets.all(AppDimensions.paddingLarge),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.paddingLarge / 2,
                           ),
-                        );
-                      }),
-                    ),
-                  ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.4),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: GestureDetector(
+                          onTap: () {
+                            controller.isAlbumScaleEnded.value = false;
+                            controller.isBigAlbum.value = false;
+                            if (controller.curPanelPageIndex.value == 1) {
+                              PlayerController.to
+                                  .updateFullScreenLyricTimerCounter();
+                            }
+                          },
+                          child: SimpleExtendedImage(
+                            ArtworkPathResolver.resolveDisplayPath(
+                              item.artworkUrl ?? item.localArtworkPath,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),

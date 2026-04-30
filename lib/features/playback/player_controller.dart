@@ -68,6 +68,8 @@ class PlayerController extends GetxController {
   final PlaybackArtworkPresenter _artworkPresenter;
   final CurrentTrackDownloadUseCase _downloadUseCase;
   final PlaybackThemePort _themePort;
+  Timer? _currentTrackSideEffectTimer;
+  int _currentTrackSideEffectVersion = 0;
 
   /// 播放服务门面。
   PlaybackService get playbackService => _playbackService;
@@ -218,18 +220,32 @@ class PlayerController extends GetxController {
     );
     _syncRuntimeState(currentIndex: currentIndex);
     if (currentItemUpdated) {
-      // 切歌时先让索引和主播放状态更新到 UI，再延后取色、歌词和图片预取，
-      // 否则首页大面板和歌词页切换会先被这些耗时任务阻塞。
-      Future.microtask(() async {
-        _preloadImages();
-        await _updateAlbumColor();
-        await _updateLyric();
-      });
+      _scheduleCurrentTrackSideEffects();
     }
   }
 
-  _updateAlbumColor() async {
+  void _scheduleCurrentTrackSideEffects() {
+    final version = ++_currentTrackSideEffectVersion;
     final currentSong = runtimeState.value.currentSong;
+    _currentTrackSideEffectTimer?.cancel();
+    // 封面滑动动画结束后再做取色、歌词和图片预取，避免这些 I/O/解码任务抢占切歌帧。
+    _currentTrackSideEffectTimer =
+        Timer(const Duration(milliseconds: 260), () async {
+      if (version != _currentTrackSideEffectVersion ||
+          runtimeState.value.currentSong.id != currentSong.id) {
+        return;
+      }
+      _preloadImages();
+      await _updateAlbumColor(currentSong);
+      if (version != _currentTrackSideEffectVersion ||
+          runtimeState.value.currentSong.id != currentSong.id) {
+        return;
+      }
+      await _updateLyric(currentSong);
+    });
+  }
+
+  Future<void> _updateAlbumColor(PlaybackQueueItem currentSong) async {
     try {
       final color = await _artworkPresenter.resolveDominantColor(currentSong);
       if (color == null) {
@@ -244,10 +260,13 @@ class PlayerController extends GetxController {
   /// 先读本地歌词缓存，再读下载后的本地歌词文件，最后才回退到远程歌词入口。
   ///
   /// 这个顺序直接决定离线可用性；歌词内容现在走媒体库存储，不再继续塞进恢复态轻存储。
-  _updateLyric() async {
+  Future<void> _updateLyric(PlaybackQueueItem currentSong) async {
     _syncLyricState(lines: const [], hasTranslatedLyrics: false);
-    lyricState.value =
-        await _lyricsPresenter.loadLyrics(runtimeState.value.currentSong);
+    final nextLyricState = await _lyricsPresenter.loadLyrics(currentSong);
+    if (runtimeState.value.currentSong.id != currentSong.id) {
+      return;
+    }
+    lyricState.value = nextLyricState;
   }
 
   /// 播放或暂停当前歌曲。
@@ -435,7 +454,7 @@ class PlayerController extends GetxController {
       return;
     }
     await _syncCurrentQueueItem(updatedItem);
-    await _updateAlbumColor();
+    _scheduleCurrentTrackSideEffects();
   }
 
   Future<void> _syncCurrentQueueItem(PlaybackQueueItem updatedItem) async {
@@ -463,6 +482,7 @@ class PlayerController extends GetxController {
 
   @override
   void onClose() {
+    _currentTrackSideEffectTimer?.cancel();
     _stateSynchronizer.dispose();
     _lyricUiStateController.dispose();
     super.onClose();

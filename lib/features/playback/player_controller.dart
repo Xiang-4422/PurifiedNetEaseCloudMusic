@@ -14,6 +14,7 @@ import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_state_synchronizer.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
+import 'package:bujuan/features/playback/playback_artwork_page_item.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
@@ -103,6 +104,10 @@ class PlayerController extends GetxController {
 
   /// 当前播放队列状态。
   final RxList<PlaybackQueueItem> queueState = <PlaybackQueueItem>[].obs;
+
+  /// 底部封面分页使用的轻量展示队列。
+  final RxList<PlaybackArtworkPageItem> artworkPageItems =
+      <PlaybackArtworkPageItem>[].obs;
 
   /// 当前播放队列索引。
   final RxInt currentQueueIndex = (-1).obs;
@@ -194,6 +199,7 @@ class PlayerController extends GetxController {
     }
     if (queue != null) {
       queueState.assignAll(queue);
+      _syncArtworkPageItems(queue);
     }
     if (currentIndex != null && currentQueueIndex.value != currentIndex) {
       currentQueueIndex.value = currentIndex;
@@ -230,7 +236,7 @@ class PlayerController extends GetxController {
     _currentTrackSideEffectTimer?.cancel();
     // 封面滑动动画结束后再做取色、歌词和图片预取，避免这些 I/O/解码任务抢占切歌帧。
     _currentTrackSideEffectTimer =
-        Timer(const Duration(milliseconds: 260), () async {
+        Timer(const Duration(milliseconds: 520), () async {
       if (version != _currentTrackSideEffectVersion ||
           runtimeState.value.currentSong.id != currentSong.id) {
         return;
@@ -466,6 +472,28 @@ class PlayerController extends GetxController {
       currentSong: updatedItem,
     );
     await _playbackService.updateQueueItem(updatedItem);
+  }
+
+  void _syncArtworkPageItems(List<PlaybackQueueItem> queue) {
+    final nextItems = queue
+        .map(PlaybackArtworkPageItem.fromQueueItem)
+        .toList(growable: false);
+    if (_hasSameArtworkPageItems(nextItems)) {
+      return;
+    }
+    artworkPageItems.assignAll(nextItems);
+  }
+
+  bool _hasSameArtworkPageItems(List<PlaybackArtworkPageItem> nextItems) {
+    if (artworkPageItems.length != nextItems.length) {
+      return false;
+    }
+    for (var index = 0; index < nextItems.length; index++) {
+      if (!artworkPageItems[index].hasSameArtwork(nextItems[index])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void _preloadImages() {

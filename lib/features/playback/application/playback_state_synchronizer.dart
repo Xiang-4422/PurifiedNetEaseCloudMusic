@@ -67,6 +67,8 @@ class PlaybackStateSynchronizer {
   int _lastStoredPositionSecond = -1;
   bool _isFetchingFm = false;
   bool _restoringPlaybackState = false;
+  Timer? _currentTrackSideEffectTimer;
+  int _currentTrackSideEffectVersion = 0;
 
   /// 启动播放流订阅、恢复上次状态并同步当前播放状态。
   Future<void> start({
@@ -116,17 +118,15 @@ class PlaybackStateSynchronizer {
         if (queueItem == null) return;
         syncRuntimeState(currentSong: queueItem);
         unawaited(_queueStore.saveCurrentSong(queueItem.id));
-        unawaited(
-          _cacheCurrentTrackForPlayback(
-            queueItem,
-            runtimeState,
-            syncCurrentQueueItem,
-          ),
+        _scheduleCurrentTrackSideEffects(
+          item: queueItem,
+          runtimeState: runtimeState,
+          syncCurrentQueueItem: syncCurrentQueueItem,
+          ensureCurrentTrackArtwork: ensureCurrentTrackArtwork,
         );
         await updateCurrentPlayIndex(
           currentItemUpdated: !_restoringPlaybackState,
         );
-        unawaited(ensureCurrentTrackArtwork(queueItem));
         await _appendRoamingSongsIfNeeded(
           playbackMode: playbackMode,
           runtimeState: runtimeState,
@@ -230,8 +230,44 @@ class PlaybackStateSynchronizer {
     }
   }
 
+  void _scheduleCurrentTrackSideEffects({
+    required PlaybackQueueItem item,
+    required PlaybackRuntimeState Function() runtimeState,
+    required Future<void> Function(PlaybackQueueItem item) syncCurrentQueueItem,
+    required Future<void> Function(PlaybackQueueItem item)
+        ensureCurrentTrackArtwork,
+  }) {
+    final version = ++_currentTrackSideEffectVersion;
+    _currentTrackSideEffectTimer?.cancel();
+    _currentTrackSideEffectTimer =
+        Timer(const Duration(milliseconds: 700), () async {
+      if (!_isStillCurrentTrack(version, item.id, runtimeState)) {
+        return;
+      }
+      await _cacheCurrentTrackForPlayback(
+        item,
+        runtimeState,
+        syncCurrentQueueItem,
+      );
+      if (!_isStillCurrentTrack(version, item.id, runtimeState)) {
+        return;
+      }
+      await ensureCurrentTrackArtwork(item);
+    });
+  }
+
+  bool _isStillCurrentTrack(
+    int version,
+    String itemId,
+    PlaybackRuntimeState Function() runtimeState,
+  ) {
+    return version == _currentTrackSideEffectVersion &&
+        runtimeState().currentSong.id == itemId;
+  }
+
   /// 停止所有播放状态订阅。
   Future<void> dispose() async {
+    _currentTrackSideEffectTimer?.cancel();
     for (final subscription in _subscriptions) {
       await subscription.cancel();
     }

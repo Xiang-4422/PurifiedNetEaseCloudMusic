@@ -32,7 +32,7 @@ class AppRootRouter extends StatelessWidget {
       initialBinding: AppBinding(),
       debugShowCheckedModeBanner: false,
       showPerformanceOverlay: false,
-      scrollBehavior: NoStretchBouncingScrollBehavior(),
+      scrollBehavior: const NoStretchBouncingScrollBehavior(),
       title: "Bujuan",
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

@@ -45,7 +45,11 @@ class NeteaseMusicApi
   UserLoginStateController usc = UserLoginStateController();
 
   /// 初始化 SDK 存储路径、Cookie 和 Dio 拦截器。
-  static Future<bool> init({PathProvider? provider, bool debug = false}) async {
+  static Future<bool> init({
+    PathProvider? provider,
+    bool debug = false,
+    bool logResponseBody = false,
+  }) async {
     // 初始化 pathProvider
     pathProvider = provider ?? PathProvider();
     await pathProvider.init();
@@ -53,11 +57,16 @@ class NeteaseMusicApi
     cookieManager = CookieManager(PersistCookieJar(
         storage: FileStorage(pathProvider.getCookieSavedPath())));
     // 初始化 dio
-    _initDio(Https.dio, debug, true);
+    _initDio(Https.dio, debug, true, logResponseBody);
     return true;
   }
 
-  static Dio _initDio(Dio dio, bool debug, bool refreshToken) {
+  static Dio _initDio(
+    Dio dio,
+    bool debug,
+    bool refreshToken,
+    bool logResponseBody,
+  ) {
     dio.interceptors.add(cookieManager);
     // Dio日志拦截器
     if (debug) {
@@ -65,7 +74,7 @@ class NeteaseMusicApi
         requestHeader: false,
         requestBody: true,
         responseHeader: false,
-        responseBody: true,
+        responseBody: logResponseBody,
         error: true,
         compact: true,
         maxWidth: 100,
@@ -100,8 +109,13 @@ class NeteaseMusicApi
                   return;
                 }
                 // dio.lock();
-                var refreshResult = await NeteaseMusicApi()
-                    .loginRefresh(dio: _initDio(Dio(), debug, false));
+                var refreshResult = await NeteaseMusicApi().loginRefresh(
+                    dio: _initDio(
+                  Dio(),
+                  debug,
+                  false,
+                  logResponseBody,
+                ));
                 // dio.unlock();
                 if (refreshResult.code == RET_CODE_OK) {
                   var newResponse = await dio.fetch(requestOptions);

@@ -23,7 +23,7 @@ class AudioServiceHandler extends BaseAudioHandler
     required PlaybackQueueStore queueStore,
     required PlaybackRestoreCoordinator restoreCoordinator,
     required PlaybackSourceResolver sourceResolver,
-    PlaybackEngineAdapter? engineAdapter,
+    PlaybackEnginePort? engineAdapter,
     AudioServiceQueueSynchronizer? queueSynchronizer,
     PlaybackNotificationControlsPresenter? notificationControlsPresenter,
   })  : _queueStore = queueStore,
@@ -63,7 +63,7 @@ class AudioServiceHandler extends BaseAudioHandler
   final PlaybackQueueStore _queueStore;
   final PlaybackRestoreCoordinator _restoreCoordinator;
   final PlaybackSourceResolver _sourceResolver;
-  final PlaybackEngineAdapter _engine;
+  final PlaybackEnginePort _engine;
   final AudioServiceQueueSynchronizer _queueSynchronizer;
   final PlaybackNotificationControlsPresenter _notificationControlsPresenter;
 
@@ -77,6 +77,8 @@ class AudioServiceHandler extends BaseAudioHandler
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
   Duration _pendingRestorePosition = Duration.zero;
+  int _playIndexVersion = 0;
+  Future<void> _sourceSwitchTail = Future<void>.value();
 
   /// 当前通知栏和播放队列使用的循环模式。
   AudioServiceRepeatMode curRepeatMode = AudioServiceRepeatMode.all;
@@ -223,40 +225,86 @@ class AudioServiceHandler extends BaseAudioHandler
   ///
   /// `MediaItem.extras['type']` 是通知栏和播放器之间的播放源契约，必须在
   /// 调用 `just_audio` 前完成源类型收敛。
-  playIndex({required int audioSourceIndex, required bool playNow}) async {
-    bool isNext = audioSourceIndex >= _queueSynchronizer.currentIndex;
-    _queueSynchronizer.currentIndex = audioSourceIndex;
-    MediaItem newIndexMediaItem = queue.value[audioSourceIndex];
-    mediaItem.add(newIndexMediaItem);
+  Future<void> playIndex({
+    required int audioSourceIndex,
+    required bool playNow,
+  }) async {
+    if (audioSourceIndex < 0 || audioSourceIndex >= queue.value.length) {
+      return;
+    }
+    final requestVersion = ++_playIndexVersion;
+    final previousIndex = _queueSynchronizer.currentIndex;
+    final isNext = audioSourceIndex >= previousIndex;
+    final newIndexMediaItem = queue.value[audioSourceIndex];
     final source = await _sourceResolver.resolve(
       newIndexMediaItem,
       preferHighQuality: _isHighQualityEnabled?.call() ?? false,
     );
+    if (!_isLatestPlayIndexRequest(requestVersion)) {
+      return;
+    }
     final url = source.url;
-    if (source.markAsCached) {
-      newIndexMediaItem.extras?.putIfAbsent('cache', () => true);
+    if (source.isEmpty) {
+      if (playNow) {
+        await (isNext ? skipToNext() : skipToPrevious());
+      }
+      return;
     }
-    switch (source.kind) {
-      case PlaybackResolvedSourceKind.filePath:
-        await _engine.setSource(source);
-        break;
-      case PlaybackResolvedSourceKind.neteaseCacheStream:
-      case PlaybackResolvedSourceKind.url:
-      case PlaybackResolvedSourceKind.empty:
-        await _engine.setSource(source);
-        break;
+    final switchOperation = _sourceSwitchTail.then((_) {
+      return _applyResolvedSource(
+        requestVersion: requestVersion,
+        audioSourceIndex: audioSourceIndex,
+        mediaItemToPlay: newIndexMediaItem,
+        source: source,
+        playNow: playNow,
+        url: url,
+      );
+    });
+    _sourceSwitchTail = switchOperation.catchError((_) {});
+    await switchOperation;
+  }
+
+  Future<void> _applyResolvedSource({
+    required int requestVersion,
+    required int audioSourceIndex,
+    required MediaItem mediaItemToPlay,
+    required PlaybackResolvedSource source,
+    required bool playNow,
+    required String url,
+  }) async {
+    if (!_isLatestPlayIndexRequest(requestVersion)) {
+      return;
     }
+    await _engine.setSource(source);
+    if (!_isLatestPlayIndexRequest(requestVersion)) {
+      return;
+    }
+    _queueSynchronizer.currentIndex = audioSourceIndex;
+    final nextMediaItem = source.markAsCached
+        ? _markMediaItemCached(mediaItemToPlay)
+        : mediaItemToPlay;
+    mediaItem.add(nextMediaItem);
+    playbackState.add(playbackState.value.copyWith(
+      queueIndex: _queueSynchronizer.currentIndex,
+    ));
+    _updateMediaControls();
     if (_pendingRestorePosition > Duration.zero) {
       await _engine.seek(_pendingRestorePosition);
       _pendingRestorePosition = Duration.zero;
     }
-    if (playNow) {
-      if (url.isNotEmpty) {
-        await play();
-      } else {
-        isNext ? skipToNext() : skipToPrevious();
-      }
+    if (playNow && url.isNotEmpty) {
+      await play();
     }
+  }
+
+  bool _isLatestPlayIndexRequest(int requestVersion) {
+    return requestVersion == _playIndexVersion;
+  }
+
+  MediaItem _markMediaItemCached(MediaItem item) {
+    final extras = Map<String, dynamic>.from(item.extras ?? const {});
+    extras['cache'] = true;
+    return item.copyWith(extras: extras);
   }
 
   @override
@@ -326,7 +374,7 @@ class AudioServiceHandler extends BaseAudioHandler
         newIndex = 0;
       }
     }
-    playIndex(audioSourceIndex: newIndex, playNow: true);
+    await playIndex(audioSourceIndex: newIndex, playNow: true);
   }
 
   @override
@@ -340,7 +388,7 @@ class AudioServiceHandler extends BaseAudioHandler
         newIndex = queue.value.length - 1;
       }
     }
-    playIndex(audioSourceIndex: newIndex, playNow: true);
+    await playIndex(audioSourceIndex: newIndex, playNow: true);
   }
 
   @override

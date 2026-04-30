@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bujuan/app/presentation_adapters/shell_playback_port.dart';
 import 'package:bujuan/app/presentation_adapters/shell_user_port.dart';
+import 'package:bujuan/features/shell/album_page_change_coordinator.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,6 +42,8 @@ class ShellController extends SuperController
 
   bool _uiControllersInitialized = false;
   PageController? _albumPageController;
+  final AlbumPageChangeCoordinator _albumPageChangeCoordinator =
+      AlbumPageChangeCoordinator();
 
   /// 底部面板是否展示大封面模式。
   RxBool isBigAlbum = true.obs;
@@ -227,7 +230,7 @@ class ShellController extends SuperController
       if (currentIndex < 0) {
         return;
       }
-      _animatePlayListToCurSong();
+      unawaited(_animatePlayListToCurSong());
       _animateAlbumPageViewToCurSong();
     });
     ever(_userPort.userInfo(), (info) {
@@ -235,17 +238,38 @@ class ShellController extends SuperController
     });
   }
 
-  Timer? _albumDebounceTimer;
+  /// 标记封面页开始由用户手势滚动。
+  void beginAlbumPageUserScroll() {
+    isAlbumScrollingManully = true;
+    isAlbumScrollingProgrammatic = false;
+    _albumPageChangeCoordinator.clear();
+  }
 
-  /// 响应专辑页用户切换，并同步播放队列索引。
+  /// 标记封面页用户手势结束，并提交最终切歌索引。
+  Future<void> endAlbumPageUserScroll() async {
+    isAlbumScrollingManully = false;
+    await commitAlbumPageChange();
+  }
+
+  /// 记录专辑页用户切换，真实播放提交延迟到滚动结束。
   void onAlbumPageChanged(int index) {
-    if (isAlbumScrollingProgrammatic) return;
-    _albumDebounceTimer?.cancel();
-    _albumDebounceTimer = Timer(const Duration(milliseconds: 300), () {
-      if (_playbackPort.runtimeState().currentIndex != index) {
-        _playbackPort.playQueueIndex(index);
-      }
-    });
+    _albumPageChangeCoordinator.recordPageChange(
+      index,
+      isProgrammatic: isAlbumScrollingProgrammatic,
+    );
+  }
+
+  /// 提交封面页最终停留索引到播放队列。
+  Future<void> commitAlbumPageChange() async {
+    final currentRuntimeState = _playbackPort.runtimeState();
+    final settledPage =
+        albumPageController.hasClients ? albumPageController.page : null;
+    await _albumPageChangeCoordinator.commit(
+      currentIndex: currentRuntimeState.currentIndex,
+      queueLength: currentRuntimeState.queue.length,
+      settledPage: settledPage,
+      playIndex: _playbackPort.playQueueIndex,
+    );
   }
 
   void _ensureUiControllersInitialized() {
@@ -333,7 +357,6 @@ class ShellController extends SuperController
   void onHidden() {}
   @override
   void onClose() {
-    _albumDebounceTimer?.cancel();
     _bottomPanelAnimationController?.dispose();
     _bottomPanelPageController?.dispose();
     _bottomPanelTabController?.dispose();
@@ -378,7 +401,7 @@ class ShellController extends SuperController
     if (bottomPanelFullyOpened.value != (openDegree == 1.0)) {
       bottomPanelFullyOpened.value = (openDegree == 1.0);
       if (curPanelPageIndex.value == 0) {
-        _animatePlayListToCurSong();
+        unawaited(_animatePlayListToCurSong());
       }
     }
   }
@@ -397,14 +420,16 @@ class ShellController extends SuperController
   }
 
   // 列表页打开时直接滚到当前播放项，可以减少“当前歌曲已变但列表还停在旧位置”的错觉。
-  _animatePlayListToCurSong() {
-    if (playListScrollController.hasClients) {
+  Future<void> _animatePlayListToCurSong() async {
+    if (curPanelPageIndex.value == 0 &&
+        bottomPanelFullyOpened.isTrue &&
+        playListScrollController.hasClients) {
       final currentIndex = _playbackPort.currentQueueIndex().value;
       if (currentIndex < 0) {
         return;
       }
       double offset = currentIndex * 55.0;
-      playListScrollController.animateTo(offset,
+      await playListScrollController.animateTo(offset,
           duration: const Duration(milliseconds: 500), curve: Curves.ease);
     }
   }
@@ -426,7 +451,8 @@ class ShellController extends SuperController
         return;
       }
       double currentPage = albumPageController.page ?? 0;
-      if ((currentPage - currentIndex).abs() < 0.01) {
+      if ((currentPage - currentIndex).abs() <
+          AlbumPageChangeCoordinator.settledPageTolerance) {
         return;
       }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
@@ -95,17 +97,16 @@ class BottomPanelArtworkPageLayer extends StatelessWidget {
             onNotification: (notification) {
               if (notification is ScrollStartNotification) {
                 if (notification.dragDetails != null) {
-                  controller.isAlbumScrollingManully = true;
-                  controller.isAlbumScrollingProgrammatic = false;
+                  controller.beginAlbumPageUserScroll();
                 }
               } else if (notification is ScrollEndNotification) {
-                controller.isAlbumScrollingManully = false;
+                unawaited(controller.endAlbumPageUserScroll());
               }
               return false;
             },
             child: Obx(
               () {
-                final queue = PlayerController.to.queueState.toList();
+                final queue = PlayerController.to.artworkPageItems.toList();
                 return PageView.builder(
                   controller: controller.albumPageController,
                   itemCount: queue.length,

@@ -6,6 +6,7 @@ import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
+import 'package:bujuan/features/playback/application/playback_source_prefetcher.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
 import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
@@ -112,6 +113,71 @@ void main() {
       expect(playbackService.replaceCalls.last.source.kind,
           PlaybackResolvedSourceKind.url);
     });
+
+    test('captures resolver timeout without replacing current source',
+        () async {
+      final playbackService = _FakePlaybackService();
+      final resolver = _ThrowingSourceResolver(TimeoutException('slow url'));
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+      );
+      final queue = [_item('1')];
+      await queueService.replaceQueue(queue, 0, playlistName: 'Queue');
+
+      final result = await coordinator.switchToSelection(
+        queue: queue,
+        item: queue.first,
+        activeIndex: 0,
+        selectionVersion: queueService.state.selectionVersion,
+        trigger: PlaybackSwitchTrigger.userSelect,
+        playNow: true,
+      );
+
+      expect(result.success, isFalse);
+      expect(result.message, '播放地址获取超时，请重试');
+      expect(playbackService.replaceCalls, isEmpty);
+      expect(queueService.state.confirmedIndex, -1);
+      expect(coordinator.state.phase, PlaybackSwitchPhase.failed);
+    });
+
+    test('retries normal quality when high quality source resolving fails',
+        () async {
+      final playbackService = _FakePlaybackService(preferHighQuality: true);
+      final resolver = _QualityFallbackSourceResolver();
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+      );
+      final queue = [_item('1')];
+      await queueService.replaceQueue(queue, 0, playlistName: 'Queue');
+
+      final result = await coordinator.switchToSelection(
+        queue: queue,
+        item: queue.first,
+        activeIndex: 0,
+        selectionVersion: queueService.state.selectionVersion,
+        trigger: PlaybackSwitchTrigger.userSelect,
+        playNow: true,
+      );
+
+      expect(result.success, isTrue);
+      expect(resolver.preferences, [true, false]);
+      expect(playbackService.replaceCalls.single.source.url, 'normal-url');
+    });
+
+    test('prefetch swallows resolver failures', () async {
+      final prefetcher = PlaybackSourcePrefetcher(
+        resolver: _ThrowingSourceResolver(Exception('prefetch failed')),
+      );
+
+      prefetcher.prefetch(_item('1'), preferHighQuality: true);
+      await Future<void>.delayed(Duration.zero);
+    });
   });
 }
 
@@ -161,13 +227,17 @@ class _ReplaceCall {
 }
 
 class _FakePlaybackService implements PlaybackService {
-  _FakePlaybackService({this.failFirstReplace = false});
+  _FakePlaybackService({
+    this.failFirstReplace = false,
+    this.preferHighQuality = false,
+  });
 
   final bool failFirstReplace;
+  final bool preferHighQuality;
   final List<_ReplaceCall> replaceCalls = <_ReplaceCall>[];
 
   @override
-  bool isHighQualityEnabled() => false;
+  bool isHighQualityEnabled() => preferHighQuality;
 
   @override
   Future<void> setNotificationQueue(
@@ -195,6 +265,55 @@ class _FakePlaybackService implements PlaybackService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _ThrowingSourceResolver implements PlaybackSourceResolver {
+  _ThrowingSourceResolver(this.error);
+
+  final Object error;
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    return Future<PlaybackResolvedSource>.error(error);
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
+  }
+}
+
+class _QualityFallbackSourceResolver implements PlaybackSourceResolver {
+  final List<bool> preferences = <bool>[];
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    preferences.add(preferHighQuality);
+    if (preferHighQuality) {
+      throw TimeoutException('high quality timeout');
+    }
+    return const PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: 'normal-url',
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
+  }
 }
 
 class _ControllableSourceResolver implements PlaybackSourceResolver {

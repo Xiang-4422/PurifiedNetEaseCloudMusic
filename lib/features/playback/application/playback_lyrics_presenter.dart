@@ -19,32 +19,36 @@ class PlaybackLyricsPresenter {
       return _emptyLyricsState();
     }
 
-    final lyrics = await _repository.fetchSongLyrics(currentSong.id) ??
-        const TrackLyrics();
-    final lyric = lyrics.main;
-    final lyricTran = lyrics.translated;
-    if (lyric.isEmpty) {
-      return _emptyLyricsState();
-    }
+    try {
+      final lyrics = await _repository.fetchSongLyrics(currentSong.id) ??
+          const TrackLyrics();
+      final lyric = lyrics.main;
+      final lyricTran = lyrics.translated;
+      if (lyric.isEmpty) {
+        return _emptyLyricsState();
+      }
 
-    final mainLyricsLineModels = ParserLrc(lyric).parseLines();
-    if (lyricTran.isNotEmpty) {
-      final extLyricsLineModels = ParserLrc(lyricTran).parseLines();
-      for (final lyricsLineModel in extLyricsLineModels) {
-        final index = mainLyricsLineModels.indexWhere(
-          (element) => element.startTime == lyricsLineModel.startTime,
-        );
-        if (index != -1) {
-          mainLyricsLineModels[index].extText = lyricsLineModel.mainText;
+      final mainLyricsLineModels = ParserLrc(lyric).parseLines();
+      if (lyricTran.isNotEmpty) {
+        final extLyricsLineModels = ParserLrc(lyricTran).parseLines();
+        for (final lyricsLineModel in extLyricsLineModels) {
+          final index = mainLyricsLineModels.indexWhere(
+            (element) => element.startTime == lyricsLineModel.startTime,
+          );
+          if (index != -1) {
+            mainLyricsLineModels[index].extText = lyricsLineModel.mainText;
+          }
         }
       }
-    }
 
-    return PlaybackLyricState(
-      lines: mainLyricsLineModels,
-      currentIndex: -1,
-      hasTranslatedLyrics: lyricTran.isNotEmpty,
-    );
+      return PlaybackLyricState(
+        lines: mainLyricsLineModels,
+        currentIndex: -1,
+        hasTranslatedLyrics: lyricTran.isNotEmpty,
+      );
+    } catch (_) {
+      return _emptyLyricsState();
+    }
   }
 
   PlaybackLyricState _emptyLyricsState() {

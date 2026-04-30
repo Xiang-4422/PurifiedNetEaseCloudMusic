@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
@@ -191,17 +192,7 @@ class PlaybackSwitchCoordinator {
       trigger: trigger,
       autoplayIntent: playNow,
     ));
-    final source = await _sourcePrefetcher
-        .resolve(
-          item,
-          preferHighQuality: _playbackService.isHighQualityEnabled(),
-        )
-        .timeout(
-          const Duration(seconds: 12),
-          onTimeout: () => const PlaybackResolvedSource(
-            kind: PlaybackResolvedSourceKind.empty,
-          ),
-        );
+    final sourceResult = await _resolveSource(item);
     if (_isObsolete(version)) {
       _emitCancelled(
         switchId: switchId,
@@ -216,13 +207,15 @@ class PlaybackSwitchCoordinator {
         isObsolete: true,
       );
     }
-    if (source.isEmpty) {
+    final source = sourceResult.source;
+    if (source == null || source.isEmpty) {
       return _failedResult(
         switchId: switchId,
         selectionVersion: version,
         item: item,
         activeIndex: activeIndex,
         trigger: trigger,
+        message: sourceResult.message,
       );
     }
     _emitState(_buildState(
@@ -303,7 +296,7 @@ class PlaybackSwitchCoordinator {
     required PlaybackResolvedSource source,
     required bool playNow,
   }) async {
-    final success = await _playbackService.replaceSourceForQueueItem(
+    final success = await _replaceSource(
       queue: queue,
       item: item,
       activeIndex: activeIndex,
@@ -315,14 +308,11 @@ class PlaybackSwitchCoordinator {
             source.kind != PlaybackResolvedSourceKind.neteaseCacheStream)) {
       return success;
     }
-    final remoteSource = await _sourcePrefetcher.resolveRemote(
-      item,
-      preferHighQuality: _playbackService.isHighQualityEnabled(),
-    );
+    final remoteSource = await _safeResolveRemote(item);
     if (remoteSource.isEmpty) {
       return false;
     }
-    return _playbackService.replaceSourceForQueueItem(
+    return _replaceSource(
       queue: queue,
       item: item,
       activeIndex: activeIndex,
@@ -331,20 +321,111 @@ class PlaybackSwitchCoordinator {
     );
   }
 
+  Future<_SourceResolveResult> _resolveSource(PlaybackQueueItem item) async {
+    final preferHighQuality = _playbackService.isHighQualityEnabled();
+    final primary = await _tryResolveSource(
+      item,
+      preferHighQuality: preferHighQuality,
+    );
+    if (primary.isSuccess || !preferHighQuality) {
+      return primary;
+    }
+    _logSwitch(
+      'retry-normal-quality id=${item.id} reason=${primary.message}',
+    );
+    final fallback = await _tryResolveSource(
+      item,
+      preferHighQuality: false,
+    );
+    return fallback.isSuccess ? fallback : primary;
+  }
+
+  Future<_SourceResolveResult> _tryResolveSource(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    try {
+      final source = await _sourcePrefetcher
+          .resolve(
+            item,
+            preferHighQuality: preferHighQuality,
+          )
+          .timeout(const Duration(seconds: 12));
+      if (source.isEmpty) {
+        return const _SourceResolveResult.failure('当前歌曲暂无可用播放地址');
+      }
+      _logSwitch(
+        'resolve-success id=${item.id} highQuality=$preferHighQuality kind=${source.kind}',
+      );
+      return _SourceResolveResult.success(source);
+    } on TimeoutException catch (error) {
+      _logSwitch('resolve-timeout id=${item.id} error=$error');
+      return const _SourceResolveResult.failure('播放地址获取超时，请重试');
+    } catch (error) {
+      _logSwitch('resolve-failure id=${item.id} error=$error');
+      return _SourceResolveResult.failure(_resolveErrorMessage(error));
+    }
+  }
+
+  Future<PlaybackResolvedSource> _safeResolveRemote(
+    PlaybackQueueItem item,
+  ) async {
+    try {
+      return await _sourcePrefetcher
+          .resolveRemote(
+            item,
+            preferHighQuality: _playbackService.isHighQualityEnabled(),
+          )
+          .timeout(const Duration(seconds: 12));
+    } catch (error) {
+      _logSwitch('remote-resolve-failure id=${item.id} error=$error');
+      return const PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.empty,
+      );
+    }
+  }
+
+  Future<bool> _replaceSource({
+    required List<PlaybackQueueItem> queue,
+    required PlaybackQueueItem item,
+    required int activeIndex,
+    required PlaybackResolvedSource source,
+    required bool playNow,
+  }) async {
+    try {
+      final success = await _playbackService.replaceSourceForQueueItem(
+        queue: queue,
+        item: item,
+        activeIndex: activeIndex,
+        source: source,
+        playNow: playNow,
+      );
+      _logSwitch(
+        'replace-${success ? 'success' : 'failure'} id=${item.id} index=$activeIndex kind=${source.kind}',
+      );
+      return success;
+    } catch (error) {
+      _logSwitch('replace-exception id=${item.id} error=$error');
+      return false;
+    }
+  }
+
   PlaybackSwitchResult _failedResult({
     required int switchId,
     required int selectionVersion,
     required PlaybackQueueItem item,
     required int activeIndex,
     required PlaybackSwitchTrigger trigger,
+    String? message,
   }) {
     if (_isAutoAdvance(trigger)) {
       _consecutiveAutoFailures++;
     }
-    final message = _isAutoAdvance(trigger) &&
-            _consecutiveAutoFailures >= maxAutoAdvanceFailures
-        ? '连续多首歌曲无法播放'
-        : '当前歌曲暂时无法播放';
+    final resolvedMessage = message ??
+        (_isAutoAdvance(trigger) &&
+                _consecutiveAutoFailures >= maxAutoAdvanceFailures
+            ? '连续多首歌曲无法播放'
+            : '当前歌曲暂时无法播放');
     _emitState(_buildState(
       switchId: switchId,
       selectionVersion: selectionVersion,
@@ -353,12 +434,12 @@ class PlaybackSwitchCoordinator {
       activeIndex: activeIndex,
       trigger: trigger,
       autoplayIntent: false,
-      message: message,
+      message: resolvedMessage,
     ));
     return PlaybackSwitchResult(
       selectionVersion: selectionVersion,
       success: false,
-      message: message,
+      message: resolvedMessage,
     );
   }
 
@@ -426,10 +507,36 @@ class PlaybackSwitchCoordinator {
   void _emitState(PlaybackSwitchState state) {
     _state = state;
     _stateController.add(state);
+    _logSwitch(
+      'phase=${state.phase.name} version=${state.selectionVersion} id=${state.targetItem.id} index=${state.targetIndex} trigger=${state.trigger.name} message=${state.message ?? ''}',
+    );
+  }
+
+  String _resolveErrorMessage(Object error) {
+    final errorText = error.toString().toLowerCase();
+    if (errorText.contains('timeout') || errorText.contains('timed out')) {
+      return '播放地址获取超时，请重试';
+    }
+    return '播放地址获取失败，请重试';
+  }
+
+  void _logSwitch(String message) {
+    developer.log(message, name: 'PlaybackSwitch');
   }
 
   /// 释放切源状态流。
   Future<void> dispose() async {
     await _stateController.close();
   }
+}
+
+class _SourceResolveResult {
+  const _SourceResolveResult.success(this.source) : message = null;
+
+  const _SourceResolveResult.failure(this.message) : source = null;
+
+  final PlaybackResolvedSource? source;
+  final String? message;
+
+  bool get isSuccess => source != null && !source!.isEmpty;
 }

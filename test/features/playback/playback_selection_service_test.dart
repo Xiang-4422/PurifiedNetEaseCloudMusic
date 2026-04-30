@@ -221,6 +221,72 @@ void main() {
       playbackService.completeReplaceSource(true);
       await completedNext;
     });
+
+    test('keeps selection error when resolver fails before source replace',
+        () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+      final selectionService = PlaybackSelectionService(
+        queueService: queueService,
+        navigator: const PlaybackSelectionNavigator(),
+        switchCoordinator: _switchCoordinator(
+          playbackService,
+          queueService,
+          sourceResolver: _ThrowingPlaybackSourceResolver(
+            TimeoutException('url timeout'),
+          ),
+        ),
+      );
+
+      await selectionService.selectQueue(
+        [_item('1')],
+        0,
+        playListName: 'Queue',
+        trigger: PlaybackSwitchTrigger.userSelect,
+      );
+
+      expect(selectionService.state.selectedItem.id, '1');
+      expect(selectionService.state.sourceStatus,
+          PlaybackSelectionSourceStatus.error);
+      expect(selectionService.state.sourceError, '播放地址获取超时，请重试');
+      expect(playbackService.replacedIndexes, isEmpty);
+    });
+
+    test('submits current errored selection again for retry', () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+      final sourceResolver = _FailThenResolveSourceResolver();
+      final selectionService = PlaybackSelectionService(
+        queueService: queueService,
+        navigator: const PlaybackSelectionNavigator(),
+        switchCoordinator: _switchCoordinator(
+          playbackService,
+          queueService,
+          sourceResolver: sourceResolver,
+        ),
+      );
+
+      await selectionService.selectQueue(
+        [_item('1')],
+        0,
+        playListName: 'Queue',
+        trigger: PlaybackSwitchTrigger.userSelect,
+      );
+      expect(selectionService.state.sourceStatus,
+          PlaybackSelectionSourceStatus.error);
+
+      final retry = selectionService.submitCurrent(
+        trigger: PlaybackSwitchTrigger.userSelect,
+      );
+      await Future<void>.delayed(Duration.zero);
+      playbackService.completeReplaceSource(true);
+      await retry;
+
+      expect(sourceResolver.resolveCount, 2);
+      expect(selectionService.state.sourceStatus,
+          PlaybackSelectionSourceStatus.ready);
+      expect(playbackService.replacedIndexes, [0]);
+    });
   });
 }
 
@@ -232,13 +298,12 @@ PlaybackQueueService _queueService(_FakePlaybackService playbackService) {
 }
 
 PlaybackSwitchCoordinator _switchCoordinator(
-  _FakePlaybackService playbackService,
-  PlaybackQueueService queueService,
-) {
+    _FakePlaybackService playbackService, PlaybackQueueService queueService,
+    {PlaybackSourceResolver? sourceResolver}) {
   return PlaybackSwitchCoordinator(
     playbackService: playbackService,
     queueService: queueService,
-    sourceResolver: _FakePlaybackSourceResolver(),
+    sourceResolver: sourceResolver ?? _FakePlaybackSourceResolver(),
   );
 }
 
@@ -313,6 +378,55 @@ class _FakePlaybackSourceResolver implements PlaybackSourceResolver {
     PlaybackQueueItem item, {
     required bool preferHighQuality,
   }) async {
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: 'url-${item.id}',
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
+  }
+}
+
+class _ThrowingPlaybackSourceResolver implements PlaybackSourceResolver {
+  _ThrowingPlaybackSourceResolver(this.error);
+
+  final Object error;
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    return Future<PlaybackResolvedSource>.error(error);
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
+  }
+}
+
+class _FailThenResolveSourceResolver implements PlaybackSourceResolver {
+  int resolveCount = 0;
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    resolveCount++;
+    if (resolveCount == 1) {
+      throw TimeoutException('first failed');
+    }
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
       url: 'url-${item.id}',

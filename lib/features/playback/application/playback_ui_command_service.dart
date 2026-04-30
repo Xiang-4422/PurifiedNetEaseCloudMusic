@@ -7,6 +7,7 @@ import 'package:bujuan/features/playback/application/playback_queue_service.dart
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
+import 'package:bujuan/features/playback/playback_selection_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
 /// 播放 UI 命令服务，承接控制器转发的用户播放操作。
@@ -37,7 +38,15 @@ class PlaybackUiCommandService {
       await _playbackService.pause();
       return;
     }
-    if (!_playbackService.hasAudioSource) {
+    final selection = _selectionService.state;
+    final confirmedItem = _queueService.state.confirmedItem;
+    if (selection.sourceStatus == PlaybackSelectionSourceStatus.loading) {
+      return;
+    }
+    if (!_playbackService.hasAudioSource ||
+        selection.sourceStatus == PlaybackSelectionSourceStatus.error ||
+        (selection.hasSelection &&
+            selection.selectedItem.id != confirmedItem.id)) {
       await _selectionService.submitCurrent(
         trigger: PlaybackSwitchTrigger.userSelect,
       );

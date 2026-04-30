@@ -62,7 +62,13 @@ class PlaybackSourcePrefetcher {
     if (item.id.isEmpty) {
       return;
     }
-    unawaited(resolve(item, preferHighQuality: preferHighQuality));
+    unawaited(
+      resolve(item, preferHighQuality: preferHighQuality).catchError(
+        (_) => const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.empty,
+        ),
+      ),
+    );
   }
 
   Future<PlaybackResolvedSource> _resolveAndCache(

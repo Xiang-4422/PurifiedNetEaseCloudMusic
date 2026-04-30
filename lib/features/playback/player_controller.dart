@@ -14,6 +14,7 @@ import 'package:bujuan/features/playback/application/playback_queue_service.dart
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_state_synchronizer.dart';
+import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_artwork_page_item.dart';
@@ -50,6 +51,7 @@ class PlayerController extends GetxController {
     required PlaybackArtworkPresenter artworkPresenter,
     required PlaybackSelectionUiEffectCoordinator selectionUiEffectCoordinator,
     required CurrentTrackDownloadUseCase downloadUseCase,
+    required PlaybackToastPort toastPort,
   })  : _playbackService = playbackService,
         _queueStore = queueStore,
         _queueService = queueService,
@@ -61,7 +63,8 @@ class PlayerController extends GetxController {
         _userContentPort = userContentPort,
         _artworkPresenter = artworkPresenter,
         _selectionUiEffectCoordinator = selectionUiEffectCoordinator,
-        _downloadUseCase = downloadUseCase;
+        _downloadUseCase = downloadUseCase,
+        _toastPort = toastPort;
 
   final PlaybackService _playbackService;
   final PlaybackQueueStore _queueStore;
@@ -75,7 +78,9 @@ class PlayerController extends GetxController {
   final PlaybackArtworkPresenter _artworkPresenter;
   final PlaybackSelectionUiEffectCoordinator _selectionUiEffectCoordinator;
   final CurrentTrackDownloadUseCase _downloadUseCase;
+  final PlaybackToastPort _toastPort;
   StreamSubscription<PlaybackSelectionState>? _selectionSubscription;
+  String? _lastSelectionErrorToastKey;
 
   /// 播放服务门面。
   PlaybackService get playbackService => _playbackService;
@@ -263,6 +268,7 @@ class PlayerController extends GetxController {
     queueState.assignAll(nextState.queue);
     _syncArtworkPageItems(nextState.queue);
     _scheduleSelectionUiSideEffects(nextState);
+    _showSelectionSourceError(nextState);
   }
 
   void _syncLyricState({
@@ -293,6 +299,22 @@ class PlayerController extends GetxController {
       syncLyricState: _syncLyricState,
       preloadImages: _preloadImages,
     );
+  }
+
+  void _showSelectionSourceError(PlaybackSelectionState selection) {
+    final errorMessage = selection.sourceError;
+    if (selection.sourceStatus != PlaybackSelectionSourceStatus.error ||
+        errorMessage == null ||
+        errorMessage.isEmpty) {
+      return;
+    }
+    final toastKey =
+        '${selection.selectionVersion}:${selection.selectedItem.id}:$errorMessage';
+    if (_lastSelectionErrorToastKey == toastKey) {
+      return;
+    }
+    _lastSelectionErrorToastKey = toastKey;
+    _toastPort.show(errorMessage);
   }
 
   /// 播放或暂停当前歌曲。

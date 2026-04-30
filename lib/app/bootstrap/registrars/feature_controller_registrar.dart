@@ -190,6 +190,7 @@ class FeatureControllerRegistrar {
         selectionUiEffectCoordinator:
             Get.find<PlaybackSelectionUiEffectCoordinator>(),
         downloadUseCase: Get.find<CurrentTrackDownloadUseCase>(),
+        toastPort: Get.find<PlaybackToastPort>(),
       ),
       fenix: true,
     );

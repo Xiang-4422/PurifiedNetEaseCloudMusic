@@ -732,6 +732,9 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                     ),
                     // 大专辑图片
                     Visibility(
+                      maintainState: true,
+                      maintainAnimation: true,
+                      maintainSize: true,
                       visible: controller.isBigAlbum.isTrue &&
                           controller.bottomPanelFullyOpened.isFalse,
                       child: Container(
@@ -756,6 +759,9 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                     ),
                     // 小专辑图片
                     Visibility(
+                      maintainState: true,
+                      maintainAnimation: true,
+                      maintainSize: true,
                       visible: controller.isBigAlbum.isFalse &&
                           controller.bottomPanelFullyOpened.isFalse,
                       child: Container(

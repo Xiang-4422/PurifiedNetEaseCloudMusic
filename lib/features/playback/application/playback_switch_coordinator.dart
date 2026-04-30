@@ -35,7 +35,6 @@ class PlaybackSwitchCoordinator {
       : _playbackService = playbackService;
 
   final PlaybackService _playbackService;
-  Future<void> _switchTail = Future<void>.value();
   int _latestVersion = 0;
   int _consecutiveAutoFailures = 0;
 
@@ -44,6 +43,7 @@ class PlaybackSwitchCoordinator {
 
   /// 提交当前 selection 到底层播放器。
   Future<PlaybackSwitchResult> switchToSelection({
+    required List<PlaybackQueueItem> queue,
     required PlaybackQueueItem item,
     required int activeIndex,
     required int selectionVersion,
@@ -60,47 +60,49 @@ class PlaybackSwitchCoordinator {
       );
     }
 
-    final operation = _switchTail.then((_) async {
-      if (_isObsolete(version)) {
-        return PlaybackSwitchResult(
-          selectionVersion: version,
-          success: false,
-          isObsolete: true,
-        );
-      }
-      final success = await _playbackService.setSourceForQueueItem(
-        item: item,
-        activeIndex: activeIndex,
-        playNow: playNow,
-      );
-      if (_isObsolete(version)) {
-        return PlaybackSwitchResult(
-          selectionVersion: version,
-          success: false,
-          isObsolete: true,
-        );
-      }
-      if (success) {
-        _consecutiveAutoFailures = 0;
-        return PlaybackSwitchResult(
-          selectionVersion: version,
-          success: true,
-        );
-      }
-      if (_isAutoAdvance(trigger)) {
-        _consecutiveAutoFailures++;
-      }
+    if (_isObsolete(version)) {
       return PlaybackSwitchResult(
         selectionVersion: version,
         success: false,
-        message: _isAutoAdvance(trigger) &&
-                _consecutiveAutoFailures >= maxAutoAdvanceFailures
-            ? '连续多首歌曲无法播放'
-            : '当前歌曲暂时无法播放',
+        isObsolete: true,
       );
-    });
-    _switchTail = operation.then<void>((_) {}).catchError((_) {});
-    return operation;
+    }
+    final success = await _playbackService
+        .setSourceForQueueItem(
+          queue: queue,
+          item: item,
+          activeIndex: activeIndex,
+          playNow: playNow,
+        )
+        .timeout(
+          const Duration(seconds: 12),
+          onTimeout: () => false,
+        );
+    if (_isObsolete(version)) {
+      return PlaybackSwitchResult(
+        selectionVersion: version,
+        success: false,
+        isObsolete: true,
+      );
+    }
+    if (success) {
+      _consecutiveAutoFailures = 0;
+      return PlaybackSwitchResult(
+        selectionVersion: version,
+        success: true,
+      );
+    }
+    if (_isAutoAdvance(trigger)) {
+      _consecutiveAutoFailures++;
+    }
+    return PlaybackSwitchResult(
+      selectionVersion: version,
+      success: false,
+      message: _isAutoAdvance(trigger) &&
+              _consecutiveAutoFailures >= maxAutoAdvanceFailures
+          ? '连续多首歌曲无法播放'
+          : '当前歌曲暂时无法播放',
+    );
   }
 
   bool _isObsolete(int version) {

@@ -146,10 +146,12 @@ class _FakePlaybackService implements PlaybackService {
 
   @override
   Future<bool> setSourceForQueueItem({
+    required List<PlaybackQueueItem> queue,
     required PlaybackQueueItem item,
     required int activeIndex,
     required bool playNow,
   }) async {
+    notificationQueue = queue;
     sourceSwitches.add(activeIndex);
     return true;
   }

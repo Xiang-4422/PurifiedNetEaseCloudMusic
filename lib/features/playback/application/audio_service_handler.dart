@@ -72,6 +72,7 @@ class AudioServiceHandler extends BaseAudioHandler
   Future<void> Function()? _handleSkipToNext;
   Duration _pendingRestorePosition = Duration.zero;
   int _playIndexVersion = 0;
+  int _manualPauseVersion = 0;
   Future<void> _sourceSwitchTail = Future<void>.value();
   bool _isResolvingCurrentSource = false;
 
@@ -211,6 +212,20 @@ class AudioServiceHandler extends BaseAudioHandler
     _publishPlaybackState();
   }
 
+  /// 更新底层切源使用的队列，不修改播放列表展示元信息。
+  Future<void> setSourceQueue(
+    List<MediaItem> playList, {
+    required int currentIndex,
+  }) async {
+    _queueSynchronizer.replaceOriginalQueue(playList);
+    _queueSynchronizer.currentIndex = _clampQueueIndex(
+      currentIndex,
+      playList.length,
+    );
+    await updateQueue(List<MediaItem>.unmodifiable(playList));
+    _publishPlaybackState();
+  }
+
   /// 根据 `MediaItem` 的类型约定解析真实播放源。
   ///
   /// `MediaItem.extras['type']` 是通知栏和播放器之间的播放源契约，必须在
@@ -224,7 +239,11 @@ class AudioServiceHandler extends BaseAudioHandler
     }
     final requestVersion = ++_playIndexVersion;
     final newIndexMediaItem = queue.value[audioSourceIndex];
+    final manualPauseVersion = _manualPauseVersion;
     _isResolvingCurrentSource = true;
+    if (playNow && _engine.playing) {
+      await _engine.pause();
+    }
     _publishPlaybackState(processingState: AudioProcessingState.loading);
     final source = await _sourceResolver.resolve(
       newIndexMediaItem,
@@ -248,6 +267,7 @@ class AudioServiceHandler extends BaseAudioHandler
         mediaItemToPlay: newIndexMediaItem,
         source: source,
         playNow: playNow,
+        manualPauseVersion: manualPauseVersion,
         url: url,
       );
     });
@@ -270,6 +290,7 @@ class AudioServiceHandler extends BaseAudioHandler
     required MediaItem mediaItemToPlay,
     required PlaybackResolvedSource source,
     required bool playNow,
+    required int manualPauseVersion,
     required String url,
   }) async {
     if (!_isLatestPlayIndexRequest(requestVersion)) {
@@ -296,7 +317,9 @@ class AudioServiceHandler extends BaseAudioHandler
       await _engine.seek(_pendingRestorePosition);
       _pendingRestorePosition = Duration.zero;
     }
-    if (playNow && url.isNotEmpty) {
+    final shouldPlay =
+        playNow && url.isNotEmpty && manualPauseVersion == _manualPauseVersion;
+    if (shouldPlay) {
       await play();
     }
     return true;
@@ -371,6 +394,7 @@ class AudioServiceHandler extends BaseAudioHandler
     playbackState.add(playbackState.value.copyWith(
       queueIndex: _queueSynchronizer.currentIndex,
       processingState: processingState ?? playbackState.value.processingState,
+      playing: _engine.playing,
     ));
     _updateMediaControls();
   }
@@ -400,6 +424,7 @@ class AudioServiceHandler extends BaseAudioHandler
 
   @override
   Future<void> pause() async {
+    _manualPauseVersion++;
     await _engine.pause();
     _updateMediaControls();
   }

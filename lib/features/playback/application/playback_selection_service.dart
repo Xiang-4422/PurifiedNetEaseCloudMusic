@@ -131,6 +131,7 @@ class PlaybackSelectionService {
       ),
     );
     final result = await _switchCoordinator.switchToSelection(
+      queue: _state.queue,
       item: _state.selectedItem,
       activeIndex: _state.selectedIndex,
       selectionVersion: _state.selectionVersion,

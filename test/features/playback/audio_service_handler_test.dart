@@ -129,6 +129,53 @@ void main() {
         AudioProcessingState.ready,
       );
     });
+
+    test('pauses current engine while resolving a new autoplay source',
+        () async {
+      final engine = _FakePlaybackEngine(initialPlaying: true);
+      final resolver = _FakePlaybackSourceResolver();
+      final handler = AudioServiceHandler(
+        queueStore: _FakePlaybackQueueStore(),
+        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
+        sourceResolver: resolver,
+        engineAdapter: engine,
+      );
+      await handler.updateQueue([
+        _mediaItem('1'),
+      ]);
+
+      final playFuture = handler.playIndex(audioSourceIndex: 0, playNow: true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(engine.pauseCount, 1);
+
+      await playFuture;
+      expect(engine.playCount, 1);
+    });
+
+    test('manual pause during source resolving prevents autoplay', () async {
+      final engine = _FakePlaybackEngine(initialPlaying: true);
+      final resolver = _FakePlaybackSourceResolver();
+      final handler = AudioServiceHandler(
+        queueStore: _FakePlaybackQueueStore(),
+        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
+        sourceResolver: resolver,
+        engineAdapter: engine,
+      );
+      await handler.updateQueue([
+        _mediaItem('1'),
+      ]);
+
+      final playFuture = handler.playIndex(audioSourceIndex: 0, playNow: true);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await handler.pause();
+      await playFuture;
+
+      expect(engine.sources.map((source) => source.url), ['url-1']);
+      expect(handler.mediaItem.value?.id, '1');
+      expect(engine.playCount, 0);
+      expect(engine.playing, isFalse);
+    });
   });
 }
 
@@ -140,7 +187,8 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
   _FakePlaybackEngine({
     this.failingSourceKinds = const <PlaybackResolvedSourceKind>{},
     this.processingStateOverride = ProcessingState.ready,
-  });
+    bool initialPlaying = false,
+  }) : _playing = initialPlaying;
 
   final Set<PlaybackResolvedSourceKind> failingSourceKinds;
   final ProcessingState processingStateOverride;
@@ -152,7 +200,11 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
 
   int playCount = 0;
 
+  int pauseCount = 0;
+
   bool _hasAudioSource = false;
+
+  bool _playing;
 
   @override
   Duration get bufferedPosition => Duration.zero;
@@ -164,7 +216,7 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
   Stream<PlaybackEvent> get playbackEventStream => _events.stream;
 
   @override
-  bool get playing => playCount > 0;
+  bool get playing => _playing;
 
   @override
   Duration get position => Duration.zero;
@@ -184,11 +236,15 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
   }
 
   @override
-  Future<void> pause() async {}
+  Future<void> pause() async {
+    pauseCount++;
+    _playing = false;
+  }
 
   @override
   Future<void> play() async {
     playCount++;
+    _playing = true;
   }
 
   @override

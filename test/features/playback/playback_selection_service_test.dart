@@ -113,7 +113,7 @@ void main() {
       expect(selectionService.state.selectedItem.id, '3');
       expect(selectionService.state.sourceStatus,
           PlaybackSelectionSourceStatus.ready);
-      expect(playbackService.playedIndexes, [0, 2]);
+      expect(playbackService.playedIndexes, containsAllInOrder([0, 2]));
       expect(playbackService.playedIndexes.last, 2);
     });
 
@@ -237,10 +237,12 @@ class _FakePlaybackService implements PlaybackService {
 
   @override
   Future<bool> setSourceForQueueItem({
+    required List<PlaybackQueueItem> queue,
     required PlaybackQueueItem item,
     required int activeIndex,
     required bool playNow,
   }) {
+    notificationQueue = queue;
     playedIndexes.add(activeIndex);
     final completer = Completer<bool>();
     _playIndexCompleters.add(completer);

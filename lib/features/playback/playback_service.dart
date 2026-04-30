@@ -202,20 +202,52 @@ class PlaybackService extends GetxService {
 
   /// 为 active queue 中的指定歌曲设置底层播放源。
   Future<bool> setSourceForQueueItem({
+    required List<PlaybackQueueItem> queue,
     required PlaybackQueueItem item,
     required int activeIndex,
     required bool playNow,
-  }) {
-    final queue = activeQueue;
-    final resolvedIndex = activeIndex >= 0 &&
-            activeIndex < queue.length &&
-            queue[activeIndex].id == item.id
-        ? activeIndex
-        : queue.indexWhere((queueItem) => queueItem.id == item.id);
-    if (resolvedIndex < 0) {
-      return Future.value(false);
+  }) async {
+    if (activeIndex < 0 || activeIndex >= queue.length) {
+      return false;
     }
-    return handler.playIndex(audioSourceIndex: resolvedIndex, playNow: playNow);
+    if (queue[activeIndex].id != item.id) {
+      return false;
+    }
+    await _ensureHandlerQueueForSource(queue, activeIndex);
+    return handler.playIndex(audioSourceIndex: activeIndex, playNow: playNow);
+  }
+
+  Future<void> _ensureHandlerQueueForSource(
+    List<PlaybackQueueItem> queue,
+    int fallbackIndex,
+  ) async {
+    final handlerQueue = activeQueue;
+    if (_hasSameQueueIds(handlerQueue, queue)) {
+      return;
+    }
+    final confirmedItemId = handler.mediaItem.value?.id ?? '';
+    final confirmedIndex = confirmedItemId.isEmpty
+        ? -1
+        : queue.indexWhere((queueItem) => queueItem.id == confirmedItemId);
+    await handler.setSourceQueue(
+      PlaybackQueueItemAdapter.toMediaItems(queue),
+      currentIndex: confirmedIndex >= 0 ? confirmedIndex : fallbackIndex,
+    );
+  }
+
+  bool _hasSameQueueIds(
+    List<PlaybackQueueItem> left,
+    List<PlaybackQueueItem> right,
+  ) {
+    if (left.length != right.length) {
+      return false;
+    }
+    for (var index = 0; index < left.length; index++) {
+      if (left[index].id != right[index].id) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// 跳转到指定播放进度。

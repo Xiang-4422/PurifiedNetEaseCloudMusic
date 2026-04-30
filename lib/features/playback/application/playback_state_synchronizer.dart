@@ -6,10 +6,13 @@ import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
+import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
+import 'package:bujuan/features/playback/application/playback_selection_service.dart';
+import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
 import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
@@ -45,6 +48,8 @@ class PlaybackStateSynchronizer {
     required PlaybackPreferencePort preferencePort,
     required PlaybackToastPort toastPort,
     required PlaybackLyricUiStateController lyricUiStateController,
+    required PlaybackSelectionService selectionService,
+    required CurrentTrackSideEffectCoordinator sideEffectCoordinator,
   })  : _playbackService = playbackService,
         _queueStore = queueStore,
         _queueCoordinator = queueCoordinator,
@@ -52,7 +57,9 @@ class PlaybackStateSynchronizer {
         _downloadUseCase = downloadUseCase,
         _preferencePort = preferencePort,
         _toastPort = toastPort,
-        _lyricUiStateController = lyricUiStateController;
+        _lyricUiStateController = lyricUiStateController,
+        _selectionService = selectionService,
+        _sideEffectCoordinator = sideEffectCoordinator;
 
   final PlaybackService _playbackService;
   final PlaybackQueueStore _queueStore;
@@ -62,12 +69,12 @@ class PlaybackStateSynchronizer {
   final PlaybackPreferencePort _preferencePort;
   final PlaybackToastPort _toastPort;
   final PlaybackLyricUiStateController _lyricUiStateController;
+  final PlaybackSelectionService _selectionService;
+  final CurrentTrackSideEffectCoordinator _sideEffectCoordinator;
 
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   int _lastStoredPositionSecond = -1;
   bool _isFetchingFm = false;
-  Timer? _currentTrackSideEffectTimer;
-  int _currentTrackSideEffectVersion = 0;
   String? _lastConfirmedSideEffectKey;
 
   /// 启动播放流订阅、恢复上次状态并同步当前播放状态。
@@ -75,6 +82,8 @@ class PlaybackStateSynchronizer {
     required PlaybackSessionSync syncSessionState,
     required PlaybackRuntimeSync syncRuntimeState,
     required void Function({int? currentIndex}) syncLyricState,
+    required void Function(List<PlaybackQueueItem> queue, int selectedIndex)
+        syncSelectionQueue,
     required Future<void> Function({bool currentItemUpdated})
         updateCurrentPlayIndex,
     required Future<void> Function(PlaybackQueueItem item) toggleLike,
@@ -109,6 +118,15 @@ class PlaybackStateSynchronizer {
     _subscriptions.add(
       _playbackService.queueStream.listen((queueItems) async {
         syncRuntimeState(queue: queueItems);
+        _selectionService.syncQueueSnapshot(
+          queueItems,
+          preferredIndex:
+              _playbackService.handler.playbackState.value.queueIndex,
+        );
+        syncSelectionQueue(
+          _selectionService.state.queue,
+          _selectionService.state.selectedIndex,
+        );
         await updateCurrentPlayIndex(currentItemUpdated: false);
       }),
     );
@@ -128,11 +146,6 @@ class PlaybackStateSynchronizer {
 
     _subscriptions.add(
       _playbackService.playbackStateStream.listen((playbackState) {
-        _syncCurrentSongFromQueueIndex(
-          playbackState.queueIndex,
-          runtimeState,
-          syncRuntimeState,
-        );
         _scheduleConfirmedCurrentTrackSideEffects(
           playbackState: playbackState,
           runtimeState: runtimeState,
@@ -147,7 +160,11 @@ class PlaybackStateSynchronizer {
           cancelTimer: !isPlaying(),
         );
         if (playbackState.processingState == AudioProcessingState.completed) {
-          _playbackService.skipToNext();
+          unawaited(
+            _selectionService.selectNext(
+              trigger: PlaybackSwitchTrigger.queueCompletion,
+            ),
+          );
         }
       }),
     );
@@ -213,30 +230,6 @@ class PlaybackStateSynchronizer {
     }
   }
 
-  void _syncCurrentSongFromQueueIndex(
-    int? queueIndex,
-    PlaybackRuntimeState Function() runtimeState,
-    PlaybackRuntimeSync syncRuntimeState,
-  ) {
-    if (queueIndex == null || queueIndex < 0) {
-      return;
-    }
-    final currentRuntimeState = runtimeState();
-    final queue = currentRuntimeState.queue;
-    if (queueIndex >= queue.length) {
-      return;
-    }
-    final queueItem = queue[queueIndex];
-    if (currentRuntimeState.currentIndex == queueIndex &&
-        currentRuntimeState.currentSong.id == queueItem.id) {
-      return;
-    }
-    syncRuntimeState(
-      currentIndex: queueIndex,
-      currentSong: queueItem,
-    );
-  }
-
   Future<void> _cacheCurrentTrackForPlayback(
     PlaybackQueueItem item,
     PlaybackRuntimeState Function() runtimeState,
@@ -263,23 +256,23 @@ class PlaybackStateSynchronizer {
     required Future<void> Function(PlaybackQueueItem item)
         ensureCurrentTrackArtwork,
   }) {
-    final version = ++_currentTrackSideEffectVersion;
-    _currentTrackSideEffectTimer?.cancel();
-    _currentTrackSideEffectTimer =
-        Timer(const Duration(milliseconds: 700), () async {
-      if (!_isStillCurrentTrack(version, item.id, runtimeState)) {
-        return;
-      }
-      await _cacheCurrentTrackForPlayback(
-        item,
-        runtimeState,
-        syncCurrentQueueItem,
-      );
-      if (!_isStillCurrentTrack(version, item.id, runtimeState)) {
-        return;
-      }
-      await ensureCurrentTrackArtwork(item);
-    });
+    _sideEffectCoordinator.schedule(
+      channel: 'confirmed-cache-artwork',
+      delay: const Duration(milliseconds: 700),
+      trackId: item.id,
+      isStillCurrent: (trackId) => _isStillCurrentTrack(trackId, runtimeState),
+      run: () async {
+        await _cacheCurrentTrackForPlayback(
+          item,
+          runtimeState,
+          syncCurrentQueueItem,
+        );
+        if (!_isStillCurrentTrack(item.id, runtimeState)) {
+          return;
+        }
+        await ensureCurrentTrackArtwork(item);
+      },
+    );
   }
 
   void _scheduleConfirmedCurrentTrackSideEffects({
@@ -302,7 +295,12 @@ class PlaybackStateSynchronizer {
     if (item.id.isEmpty) {
       return;
     }
-    final sideEffectKey = '$queueIndex:${item.id}';
+    final selection = _selectionService.state;
+    if (selection.selectedItem.id != item.id) {
+      return;
+    }
+    final sideEffectKey =
+        '${selection.selectionVersion}:$queueIndex:${item.id}';
     if (_lastConfirmedSideEffectKey == sideEffectKey) {
       return;
     }
@@ -322,17 +320,16 @@ class PlaybackStateSynchronizer {
   }
 
   bool _isStillCurrentTrack(
-    int version,
     String itemId,
     PlaybackRuntimeState Function() runtimeState,
   ) {
-    return version == _currentTrackSideEffectVersion &&
-        runtimeState().currentSong.id == itemId;
+    return runtimeState().currentSong.id == itemId &&
+        _selectionService.state.selectedItem.id == itemId;
   }
 
   /// 停止所有播放状态订阅。
   Future<void> dispose() async {
-    _currentTrackSideEffectTimer?.cancel();
+    _sideEffectCoordinator.cancel('confirmed-cache-artwork');
     for (final subscription in _subscriptions) {
       await subscription.cancel();
     }

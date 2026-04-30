@@ -198,6 +198,34 @@ void main() {
       );
     });
 
+    test('playback selection layer stays independent from audio service', () {
+      final selectionFiles = _dartFiles(
+        Directory('${projectRoot.path}/lib/features/playback'),
+      ).where((file) {
+        final path = _relativePath(file);
+        return path.contains('playback_selection') ||
+            path.endsWith('playback_switch_coordinator.dart') ||
+            path.endsWith('playback_switch_trigger.dart');
+      });
+
+      final violations = selectionFiles
+          .where(
+            (file) => _containsAny(file, const [
+              'package:audio_service/',
+              'MediaItem',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'UI selection 表示用户意图，不能依赖 audio_service MediaItem；底层 confirmed 状态才允许进入 audio_service 边界。',
+      );
+    });
+
     test('presentation does not import remote data sources directly', () {
       final violations = _dartFiles(libDirectory)
           .where((file) => _relativePath(file).contains('/presentation/'))

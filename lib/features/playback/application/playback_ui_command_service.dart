@@ -2,6 +2,8 @@ import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_selection_service.dart';
+import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
 /// 播放 UI 命令服务，承接控制器转发的用户播放操作。
@@ -10,11 +12,14 @@ class PlaybackUiCommandService {
   PlaybackUiCommandService({
     required PlaybackService playbackService,
     required PlaybackModeCoordinator modeCoordinator,
+    required PlaybackSelectionService selectionService,
   })  : _playbackService = playbackService,
-        _modeCoordinator = modeCoordinator;
+        _modeCoordinator = modeCoordinator,
+        _selectionService = selectionService;
 
   final PlaybackService _playbackService;
   final PlaybackModeCoordinator _modeCoordinator;
+  final PlaybackSelectionService _selectionService;
 
   /// 根据当前播放状态执行播放或暂停。
   Future<void> playOrPause({required bool isPlaying}) {
@@ -38,27 +43,39 @@ class PlaybackUiCommandService {
     if (isHeartBeatMode) {
       await quitHeartBeatMode(showToast: false);
     }
-    await _playbackService.playPlaylist(
+    await _selectionService.selectQueue(
       playList,
       index,
       playListName: playListName,
       playListNameHeader: playListNameHeader,
+      trigger: PlaybackSwitchTrigger.userSelect,
     );
   }
 
   /// 播放队列中的指定索引。
   Future<void> playQueueIndex(int index) {
-    return _playbackService.playIndex(audioSourceIndex: index, playNow: true);
+    return _selectionService.selectIndex(
+      index,
+      trigger: PlaybackSwitchTrigger.userSelect,
+    );
   }
 
   /// 跳转到指定播放进度。
   Future<void> seekTo(Duration position) => _playbackService.seek(position);
 
   /// 跳到上一首。
-  Future<void> skipToPreviousTrack() => _playbackService.skipToPrevious();
+  Future<void> skipToPreviousTrack() {
+    return _selectionService.selectPrevious(
+      trigger: PlaybackSwitchTrigger.userPrevious,
+    );
+  }
 
   /// 跳到下一首。
-  Future<void> skipToNextTrack() => _playbackService.skipToNext();
+  Future<void> skipToNextTrack() {
+    return _selectionService.selectNext(
+      trigger: PlaybackSwitchTrigger.userNext,
+    );
+  }
 
   /// 设置重复播放模式。
   Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) {

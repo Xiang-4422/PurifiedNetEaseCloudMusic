@@ -1,5 +1,7 @@
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/features/playback/application/playback_selection_service.dart';
+import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
@@ -9,11 +11,14 @@ class PlaybackModeCoordinator {
   PlaybackModeCoordinator({
     required PlaybackService playbackService,
     required PlaybackUserContentPort userContentPort,
+    required PlaybackSelectionService selectionService,
   })  : _playbackService = playbackService,
-        _userContentPort = userContentPort;
+        _userContentPort = userContentPort,
+        _selectionService = selectionService;
 
   final PlaybackService _playbackService;
   final PlaybackUserContentPort _userContentPort;
+  final PlaybackSelectionService _selectionService;
 
   /// 构建并切换到喜欢歌曲播放队列。
   Future<void> playLikedSongs({
@@ -31,12 +36,12 @@ class PlaybackModeCoordinator {
       playList.insert(0, currentSong);
     }
 
-    await _playbackService.changePlayList(
+    await _selectionService.selectQueue(
       playList,
-      index: playIndex,
+      playIndex,
       playListName: '喜欢的音乐',
+      trigger: PlaybackSwitchTrigger.userSelect,
       playNow: false,
-      changePlayerSource: false,
     );
   }
 
@@ -49,13 +54,13 @@ class PlaybackModeCoordinator {
       return false;
     }
 
-    await _playbackService.changePlayList(
+    await _selectionService.selectQueue(
       fmSongs,
-      index: 0,
+      0,
       playListName: '漫游模式',
       playListNameHeader: '漫游',
+      trigger: PlaybackSwitchTrigger.modeAutoAdvance,
       playNow: true,
-      changePlayerSource: true,
       needStore: false,
     );
 
@@ -82,13 +87,13 @@ class PlaybackModeCoordinator {
       return false;
     }
 
-    await _playbackService.changePlayList(
+    await _selectionService.selectQueue(
       songs,
-      index: 0,
+      0,
       playListName: '心动模式',
       playListNameHeader: '心动',
+      trigger: PlaybackSwitchTrigger.modeAutoAdvance,
       playNow: true,
-      changePlayerSource: true,
       needStore: false,
     );
 

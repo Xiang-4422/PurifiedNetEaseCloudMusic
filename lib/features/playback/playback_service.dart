@@ -155,7 +155,7 @@ class PlaybackService extends GetxService {
   }
 
   /// 播放队列中的指定索引。
-  Future<void> playIndex({
+  Future<bool> playIndex({
     required int audioSourceIndex,
     required bool playNow,
   }) {

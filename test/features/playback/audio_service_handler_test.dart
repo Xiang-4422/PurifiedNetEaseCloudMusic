@@ -14,8 +14,7 @@ import 'package:just_audio/just_audio.dart';
 
 void main() {
   group('AudioServiceHandler', () {
-    test('publishes target media item before playback source resolves',
-        () async {
+    test('publishes media item only after playback source resolves', () async {
       final engine = _FakePlaybackEngine();
       final resolver = _FakePlaybackSourceResolver();
       final handler = AudioServiceHandler(
@@ -30,8 +29,7 @@ void main() {
 
       final playFuture = handler.playIndex(audioSourceIndex: 0, playNow: true);
 
-      expect(handler.mediaItem.value?.id, '1');
-      expect(handler.playbackState.value.queueIndex, 0);
+      expect(handler.mediaItem.value, isNull);
       expect(
         handler.playbackState.value.processingState,
         AudioProcessingState.loading,
@@ -47,6 +45,8 @@ void main() {
       await playFuture;
 
       expect(engine.sources.map((source) => source.url), ['url-1']);
+      expect(handler.mediaItem.value?.id, '1');
+      expect(handler.playbackState.value.queueIndex, 0);
       expect(
         handler.playbackState.value.processingState,
         AudioProcessingState.ready,

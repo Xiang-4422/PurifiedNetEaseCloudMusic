@@ -7,16 +7,19 @@ import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
+import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
+import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_state_synchronizer.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_artwork_page_item.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
+import 'package:bujuan/features/playback/playback_selection_state.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +43,8 @@ class PlayerController extends GetxController {
     required PlaybackUiCommandService commandService,
     required PlaybackModeCommandService modeCommandService,
     required PlaybackStateSynchronizer stateSynchronizer,
+    required PlaybackSelectionService selectionService,
+    required CurrentTrackSideEffectCoordinator sideEffectCoordinator,
     required PlaybackLyricUiStateController lyricUiStateController,
     required PlaybackUserContentPort userContentPort,
     required PlaybackLyricsPresenter lyricsPresenter,
@@ -51,6 +56,8 @@ class PlayerController extends GetxController {
         _commandService = commandService,
         _modeCommandService = modeCommandService,
         _stateSynchronizer = stateSynchronizer,
+        _selectionService = selectionService,
+        _sideEffectCoordinator = sideEffectCoordinator,
         _lyricUiStateController = lyricUiStateController,
         _userContentPort = userContentPort,
         _lyricsPresenter = lyricsPresenter,
@@ -63,14 +70,16 @@ class PlayerController extends GetxController {
   final PlaybackUiCommandService _commandService;
   final PlaybackModeCommandService _modeCommandService;
   final PlaybackStateSynchronizer _stateSynchronizer;
+  final PlaybackSelectionService _selectionService;
+  final CurrentTrackSideEffectCoordinator _sideEffectCoordinator;
   final PlaybackLyricUiStateController _lyricUiStateController;
   final PlaybackUserContentPort _userContentPort;
   final PlaybackLyricsPresenter _lyricsPresenter;
   final PlaybackArtworkPresenter _artworkPresenter;
   final CurrentTrackDownloadUseCase _downloadUseCase;
   final PlaybackThemePort _themePort;
-  Timer? _currentTrackSideEffectTimer;
-  int _currentTrackSideEffectVersion = 0;
+  StreamSubscription<PlaybackSelectionState>? _selectionSubscription;
+  String? _lastSelectionUiSideEffectKey;
 
   /// 播放服务门面。
   PlaybackService get playbackService => _playbackService;
@@ -91,6 +100,10 @@ class PlayerController extends GetxController {
   /// 当前播放运行态。
   final Rx<PlaybackRuntimeState> runtimeState =
       const PlaybackRuntimeState().obs;
+
+  /// 当前 UI 播放选择态。
+  final Rx<PlaybackSelectionState> selectionState =
+      const PlaybackSelectionState().obs;
 
   /// 当前歌词状态。
   final Rx<PlaybackLyricState> lyricState = const PlaybackLyricState().obs;
@@ -142,6 +155,7 @@ class PlayerController extends GetxController {
       syncSessionState: _syncSessionState,
       syncRuntimeState: _syncRuntimeState,
       syncLyricState: _syncLyricState,
+      syncSelectionQueue: _syncSelectionQueue,
       updateCurrentPlayIndex: _updateCurPlayIndex,
       toggleLike: _toggleLikeFromPlayback,
       ensureCurrentTrackArtwork: _ensureCurrentTrackArtwork,
@@ -153,6 +167,14 @@ class PlayerController extends GetxController {
       isPlaying: () => isPlaying.value,
       setFullScreenLyricOpen: (value) => isFullScreenLyricOpen.value = value,
     );
+    _selectionService.configure(
+      repeatMode: () => curRepeatMode.value,
+      playbackMode: () => playbackMode.value,
+    );
+    _selectionSubscription ??= _selectionService.stream.listen(
+      _syncSelectionState,
+    );
+    _syncSelectionState(_selectionService.state);
   }
 
   void _syncSessionState({
@@ -190,7 +212,7 @@ class PlayerController extends GetxController {
       currentPosition: currentPosition,
     );
     runtimeState.value = nextState;
-    if (currentSong != null) {
+    if (currentSong != null && !selectionState.value.hasSelection) {
       currentSongState.value = currentSong;
     }
     if (currentPosition != null &&
@@ -201,9 +223,29 @@ class PlayerController extends GetxController {
       queueState.assignAll(queue);
       _syncArtworkPageItems(queue);
     }
-    if (currentIndex != null && currentQueueIndex.value != currentIndex) {
+    if (currentIndex != null &&
+        !selectionState.value.hasSelection &&
+        currentQueueIndex.value != currentIndex) {
       currentQueueIndex.value = currentIndex;
     }
+  }
+
+  void _syncSelectionQueue(List<PlaybackQueueItem> queue, int selectedIndex) {
+    _syncSelectionState(_selectionService.state);
+  }
+
+  void _syncSelectionState(PlaybackSelectionState nextState) {
+    selectionState.value = nextState;
+    if (nextState.selectedItem.id.isNotEmpty) {
+      currentSongState.value = nextState.selectedItem;
+    }
+    if (nextState.selectedIndex >= 0 &&
+        currentQueueIndex.value != nextState.selectedIndex) {
+      currentQueueIndex.value = nextState.selectedIndex;
+    }
+    queueState.assignAll(nextState.queue);
+    _syncArtworkPageItems(nextState.queue);
+    _scheduleSelectionUiSideEffects(nextState);
   }
 
   void _syncLyricState({
@@ -225,30 +267,39 @@ class PlayerController extends GetxController {
       (element) => element.id == currentRuntimeState.currentSong.id,
     );
     _syncRuntimeState(currentIndex: currentIndex);
-    if (currentItemUpdated) {
-      _scheduleCurrentTrackSideEffects();
-    }
   }
 
-  void _scheduleCurrentTrackSideEffects() {
-    final version = ++_currentTrackSideEffectVersion;
-    final currentSong = runtimeState.value.currentSong;
-    _currentTrackSideEffectTimer?.cancel();
-    // 封面滑动动画结束后再做取色、歌词和图片预取，避免这些 I/O/解码任务抢占切歌帧。
-    _currentTrackSideEffectTimer =
-        Timer(const Duration(milliseconds: 520), () async {
-      if (version != _currentTrackSideEffectVersion ||
-          runtimeState.value.currentSong.id != currentSong.id) {
-        return;
-      }
-      _preloadImages();
-      await _updateAlbumColor(currentSong);
-      if (version != _currentTrackSideEffectVersion ||
-          runtimeState.value.currentSong.id != currentSong.id) {
-        return;
-      }
-      await _updateLyric(currentSong);
-    });
+  void _scheduleSelectionUiSideEffects(PlaybackSelectionState selection) {
+    if (!selection.hasSelection) {
+      return;
+    }
+    final key = '${selection.selectionVersion}:${selection.selectedItem.id}';
+    if (_lastSelectionUiSideEffectKey == key) {
+      return;
+    }
+    _lastSelectionUiSideEffectKey = key;
+    final selectedSong = selection.selectedItem;
+    _syncLyricState(
+      lines: const [],
+      currentIndex: -1,
+      hasTranslatedLyrics: false,
+    );
+    // 歌词、取色和封面预取属于 UI 展示态，跟随 selection 而不是等底层播放确认。
+    _sideEffectCoordinator.schedule(
+      channel: 'playback-ui-lyric-artwork',
+      delay: const Duration(milliseconds: 180),
+      trackId: selectedSong.id,
+      isStillCurrent: (trackId) =>
+          selectionState.value.selectedItem.id == trackId,
+      run: () async {
+        _preloadImages();
+        await _updateAlbumColor(selectedSong);
+        if (selectionState.value.selectedItem.id != selectedSong.id) {
+          return;
+        }
+        await _updateLyric(selectedSong);
+      },
+    );
   }
 
   Future<void> _updateAlbumColor(PlaybackQueueItem currentSong) async {
@@ -269,7 +320,7 @@ class PlayerController extends GetxController {
   Future<void> _updateLyric(PlaybackQueueItem currentSong) async {
     _syncLyricState(lines: const [], hasTranslatedLyrics: false);
     final nextLyricState = await _lyricsPresenter.loadLyrics(currentSong);
-    if (runtimeState.value.currentSong.id != currentSong.id) {
+    if (selectionState.value.selectedItem.id != currentSong.id) {
       return;
     }
     lyricState.value = nextLyricState;
@@ -460,7 +511,6 @@ class PlayerController extends GetxController {
       return;
     }
     await _syncCurrentQueueItem(updatedItem);
-    _scheduleCurrentTrackSideEffects();
   }
 
   Future<void> _syncCurrentQueueItem(PlaybackQueueItem updatedItem) async {
@@ -500,17 +550,17 @@ class PlayerController extends GetxController {
     if (isPlaying.isFalse) {
       return;
     }
-    final currentRuntimeState = runtimeState.value;
     _artworkPresenter.preloadQueueArtwork(
-      queue: currentRuntimeState.queue,
-      currentIndex: currentRuntimeState.currentIndex,
+      queue: selectionState.value.queue,
+      currentIndex: selectionState.value.selectedIndex,
       context: Get.context,
     );
   }
 
   @override
   void onClose() {
-    _currentTrackSideEffectTimer?.cancel();
+    _sideEffectCoordinator.cancel('playback-ui-lyric-artwork');
+    _selectionSubscription?.cancel();
     _stateSynchronizer.dispose();
     _lyricUiStateController.dispose();
     super.onClose();

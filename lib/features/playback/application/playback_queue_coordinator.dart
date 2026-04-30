@@ -1,13 +1,19 @@
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/features/playback/application/playback_selection_service.dart';
+import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
 /// 承接播放队列的裁剪、追加和去重规则。
 class PlaybackQueueCoordinator {
   /// 创建播放队列协调器。
-  PlaybackQueueCoordinator({required PlaybackService playbackService})
-      : _playbackService = playbackService;
+  PlaybackQueueCoordinator({
+    required PlaybackService playbackService,
+    required PlaybackSelectionService selectionService,
+  })  : _playbackService = playbackService,
+        _selectionService = selectionService;
 
   final PlaybackService _playbackService;
+  final PlaybackSelectionService _selectionService;
 
   /// 追加漫游歌曲并按需自动播放下一首。
   Future<void> appendRoamingSongs({
@@ -50,9 +56,9 @@ class PlaybackQueueCoordinator {
     if (shouldAutoPlayNext) {
       final autoPlayIndex = nextIndex + 1;
       if (autoPlayIndex < combined.length) {
-        await _playbackService.playIndex(
-          audioSourceIndex: autoPlayIndex,
-          playNow: true,
+        await _selectionService.selectIndex(
+          autoPlayIndex,
+          trigger: PlaybackSwitchTrigger.modeAutoAdvance,
         );
       }
     }

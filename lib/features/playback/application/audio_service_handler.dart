@@ -191,14 +191,7 @@ class AudioServiceHandler extends BaseAudioHandler
       await playIndex(audioSourceIndex: index, playNow: playNow);
     } else {
       _queueSynchronizer.currentIndex = index;
-      if (_queueSynchronizer.currentIndex >= 0 &&
-          _queueSynchronizer.currentIndex < playListCopy.length) {
-        mediaItem.add(playListCopy[_queueSynchronizer.currentIndex]);
-        playbackState.add(playbackState.value.copyWith(
-          queueIndex: _queueSynchronizer.currentIndex,
-        ));
-        _updateMediaControls();
-      }
+      _publishPlaybackState();
     }
     if (needStore) {
       await _queueStore.saveQueueSnapshot(
@@ -220,39 +213,36 @@ class AudioServiceHandler extends BaseAudioHandler
   ///
   /// `MediaItem.extras['type']` 是通知栏和播放器之间的播放源契约，必须在
   /// 调用 `just_audio` 前完成源类型收敛。
-  Future<void> playIndex({
+  Future<bool> playIndex({
     required int audioSourceIndex,
     required bool playNow,
   }) async {
     if (audioSourceIndex < 0 || audioSourceIndex >= queue.value.length) {
-      return;
+      return false;
     }
     final requestVersion = ++_playIndexVersion;
     final previousIndex = _queueSynchronizer.currentIndex;
     final isNext = audioSourceIndex >= previousIndex;
     final newIndexMediaItem = queue.value[audioSourceIndex];
     _isResolvingCurrentSource = true;
-    _publishCurrentMediaItem(
-      audioSourceIndex,
-      newIndexMediaItem,
-      processingState: AudioProcessingState.loading,
-    );
+    _publishPlaybackState(processingState: AudioProcessingState.loading);
     final source = await _sourceResolver.resolve(
       newIndexMediaItem,
       preferHighQuality: _isHighQualityEnabled?.call() ?? false,
     );
     if (!_isLatestPlayIndexRequest(requestVersion)) {
-      return;
+      return false;
     }
     final url = source.url;
     if (source.isEmpty) {
       if (playNow) {
         await (isNext ? skipToNext() : skipToPrevious());
+        return false;
       } else if (_isLatestPlayIndexRequest(requestVersion)) {
         _isResolvingCurrentSource = false;
         _publishPlaybackState(processingState: AudioProcessingState.idle);
       }
-      return;
+      return false;
     }
     final switchOperation = _sourceSwitchTail.then((_) {
       return _applyResolvedSource(
@@ -264,19 +254,20 @@ class AudioServiceHandler extends BaseAudioHandler
         url: url,
       );
     });
-    _sourceSwitchTail = switchOperation.catchError((_) {});
+    _sourceSwitchTail = switchOperation.then<void>((_) {}).catchError((_) {});
     try {
-      await switchOperation;
+      return await switchOperation;
     } catch (_) {
       if (_isLatestPlayIndexRequest(requestVersion)) {
         _isResolvingCurrentSource = false;
         _publishPlaybackState(processingState: AudioProcessingState.idle);
         _handleToast?.call('当前歌曲暂时无法播放');
       }
+      return false;
     }
   }
 
-  Future<void> _applyResolvedSource({
+  Future<bool> _applyResolvedSource({
     required int requestVersion,
     required int audioSourceIndex,
     required MediaItem mediaItemToPlay,
@@ -285,7 +276,7 @@ class AudioServiceHandler extends BaseAudioHandler
     required String url,
   }) async {
     if (!_isLatestPlayIndexRequest(requestVersion)) {
-      return;
+      return false;
     }
     final appliedSource = await _setSourceWithFallback(
       mediaItemToPlay,
@@ -293,7 +284,7 @@ class AudioServiceHandler extends BaseAudioHandler
       preferHighQuality: _isHighQualityEnabled?.call() ?? false,
     );
     if (!_isLatestPlayIndexRequest(requestVersion)) {
-      return;
+      return false;
     }
     final resolvedMediaItem = appliedSource.markAsCached
         ? _markMediaItemCached(mediaItemToPlay)
@@ -311,6 +302,7 @@ class AudioServiceHandler extends BaseAudioHandler
     if (playNow && url.isNotEmpty) {
       await play();
     }
+    return true;
   }
 
   Future<PlaybackResolvedSource> _setSourceWithFallback(

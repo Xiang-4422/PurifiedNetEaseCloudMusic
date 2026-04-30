@@ -48,6 +48,10 @@ class PlaybackService extends GetxService {
   Stream<List<PlaybackQueueItem>> get queueStream =>
       handler.queue.map(PlaybackQueueItemAdapter.fromMediaItems);
 
+  /// 当前 audio_service active queue 快照。
+  List<PlaybackQueueItem> get activeQueue =>
+      PlaybackQueueItemAdapter.fromMediaItems(handler.queue.value);
+
   /// 当前媒体项流。
   Stream<PlaybackQueueItem?> get mediaItemStream => handler.mediaItem.map(
         (mediaItem) => mediaItem == null

@@ -77,6 +77,7 @@ class PlaybackSelectionService {
       changePlayerSource: false,
       needStore: needStore,
     );
+    _syncActiveQueueSelection(selectedItemId: _state.selectedItem.id);
     if (playNow && selectedIndex >= 0) {
       await _submitCurrentSelection(trigger: trigger, playNow: true);
     }
@@ -151,11 +152,33 @@ class PlaybackSelectionService {
       index: selectedIndex,
       queueLength: queue.length,
     );
+    final bumpVersion = _state.queue.isEmpty && queue.isNotEmpty;
     _emitSelection(
       queue: queue,
       selectedIndex: selectedIndex,
       sourceStatus: _state.sourceStatus,
-      bumpVersion: _state.queue.isEmpty && queue.isNotEmpty,
+      bumpVersion: bumpVersion,
+    );
+  }
+
+  void _syncActiveQueueSelection({required String selectedItemId}) {
+    final activeQueue = _playbackService.activeQueue;
+    if (activeQueue.isEmpty) {
+      return;
+    }
+    final activeIndex = _navigator.indexOfItemId(
+      activeQueueIds:
+          activeQueue.map((item) => item.id).toList(growable: false),
+      itemId: selectedItemId,
+    );
+    if (activeIndex < 0) {
+      return;
+    }
+    _emitSelection(
+      queue: activeQueue,
+      selectedIndex: activeIndex,
+      sourceStatus: _state.sourceStatus,
+      bumpVersion: false,
     );
   }
 

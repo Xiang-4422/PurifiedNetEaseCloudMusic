@@ -58,6 +58,17 @@ class PlaybackSelectionNavigator {
     return _clampSelectedIndex(index, queueLength);
   }
 
+  /// 根据 id 查找 active queue 中的索引。
+  int indexOfItemId({
+    required List<String> activeQueueIds,
+    required String itemId,
+  }) {
+    if (itemId.isEmpty) {
+      return -1;
+    }
+    return activeQueueIds.indexOf(itemId);
+  }
+
   int _clampSelectedIndex(int index, int queueLength) {
     if (index < 0) {
       return 0;

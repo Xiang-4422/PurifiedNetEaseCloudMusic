@@ -113,6 +113,41 @@ void main() {
       expect(playbackService.playedIndexes, [0, 2]);
       expect(playbackService.playedIndexes.last, 2);
     });
+
+    test('syncs selection index to active queue after playlist reorder',
+        () async {
+      final playbackService = _FakePlaybackService();
+      playbackService.activeQueueOverride = [
+        _item('3'),
+        _item('1'),
+        _item('2')
+      ];
+      final selectionService = PlaybackSelectionService(
+        playbackService: playbackService,
+        navigator: const PlaybackSelectionNavigator(),
+        switchCoordinator: PlaybackSwitchCoordinator(
+          playbackService: playbackService,
+        ),
+      );
+
+      final selectFuture = selectionService.selectQueue(
+        [_item('1'), _item('2'), _item('3')],
+        1,
+        playListName: 'Queue',
+        trigger: PlaybackSwitchTrigger.userSelect,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+          selectionService.state.queue.map((item) => item.id), ['3', '1', '2']);
+      expect(selectionService.state.selectedItem.id, '2');
+      expect(selectionService.state.selectedIndex, 2);
+
+      playbackService.completePlayIndex(true);
+      await selectFuture;
+
+      expect(playbackService.playedIndexes, [2]);
+    });
   });
 }
 
@@ -138,8 +173,12 @@ PlaybackQueueItem _item(String id) {
 class _FakePlaybackService implements PlaybackService {
   final List<int> playedIndexes = <int>[];
   final List<Completer<bool>> _playIndexCompleters = <Completer<bool>>[];
+  List<PlaybackQueueItem>? activeQueueOverride;
 
   Completer<bool> get playIndexCompleter => _playIndexCompleters.last;
+
+  @override
+  List<PlaybackQueueItem> get activeQueue => activeQueueOverride ?? const [];
 
   @override
   Future<void> changePlayList(

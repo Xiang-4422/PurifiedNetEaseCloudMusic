@@ -149,17 +149,14 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                 onPressed: () async {
+                                  if (songs.isEmpty) {
+                                    return;
+                                  }
                                   await _playbackAction
                                       .setRepeatMode(PlaybackRepeatMode.all);
                                   ShellController.to.jumpBottomPanelToPage(0);
                                   ShellController.to.openBottomPanel();
-                                  // 根据当前播放模式，决定从哪个位置开始播放
-                                  int startIndex = _playbackAction
-                                              .sessionState()
-                                              .repeatMode ==
-                                          PlaybackRepeatMode.none
-                                      ? Random().nextInt(loadedSongCount)
-                                      : 0;
+                                  const startIndex = 0;
                                   await _playbackAction.playPlaylist(
                                     songs,
                                     startIndex,
@@ -210,6 +207,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                 onPressed: () async {
+                                  if (songs.isEmpty) {
+                                    return;
+                                  }
                                   await _playbackAction
                                       .setRepeatMode(PlaybackRepeatMode.none);
                                   ShellController.to.jumpBottomPanelToPage(0);
@@ -290,7 +290,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       coverUrl = cachedSnapshot.coverUrl ?? coverUrl;
       trackCount = cachedSnapshot.trackCount ?? trackCount;
     }
-    if (localDetail != null) {
+    if (localDetail != null && localDetail.songs.isNotEmpty) {
       songs = localDetail.songs;
       loadedSongCount = songs.length;
       isSubscribed = localDetail.isSubscribed;
@@ -326,7 +326,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     isMyPlayList = data.isMyPlayList;
     await _updateArtworkColors(_resolvedCoverUrl);
     if (mounted) {
-      setState(() {});
+      setState(() {
+        loading = false;
+      });
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:bujuan/domain/entities/playback_mode.dart';
+import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
@@ -13,6 +14,7 @@ class PlaybackActionPort {
     required this.skipToNext,
     required this.seekTo,
     required this.setRepeatMode,
+    required this.setOrderMode,
     required this.openFmMode,
     required this.openHeartBeatMode,
     required this.currentSong,
@@ -44,6 +46,9 @@ class PlaybackActionPort {
 
   /// 设置重复播放模式。
   final Future<void> Function(PlaybackRepeatMode repeatMode) setRepeatMode;
+
+  /// 设置队列出队顺序模式。
+  final Future<void> Function(PlaybackOrderMode orderMode) setOrderMode;
 
   /// 打开私人 FM 模式。
   final Future<void> Function() openFmMode;

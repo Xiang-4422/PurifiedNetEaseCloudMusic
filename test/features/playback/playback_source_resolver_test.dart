@@ -1,11 +1,12 @@
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/playback_restore_state.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_lyrics.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
+import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -48,17 +49,25 @@ void main() {
   });
 }
 
-MediaItem _mediaItem({
+PlaybackQueueItem _mediaItem({
   required MediaType type,
   required String url,
 }) {
-  return MediaItem(
+  return PlaybackQueueItem(
     id: 'netease:1',
+    sourceId: 'netease:1',
     title: 'Track',
-    extras: {
-      'type': type.name,
-      'url': url,
-    },
+    albumTitle: null,
+    artistNames: const [],
+    artistIds: const [],
+    duration: null,
+    artworkUrl: null,
+    localArtworkPath: null,
+    mediaType: type,
+    playbackUrl: url,
+    lyricKey: null,
+    isLiked: false,
+    isCached: false,
   );
 }
 

@@ -89,7 +89,9 @@ class PlaybackSelectionService {
     required PlaybackSwitchTrigger trigger,
     bool playNow = true,
   }) async {
-    final queueState = await _queueService.selectNext();
+    final queueState = _usesConfirmedIndex(trigger)
+        ? await _queueService.selectNextFromConfirmed()
+        : await _queueService.selectNext();
     if (queueState == null) {
       return;
     }
@@ -117,6 +119,17 @@ class PlaybackSelectionService {
   /// 从队列事实源同步 selection，但不提交到底层播放。
   void syncFromQueueState() {
     _syncFromQueueState(_queueService.state);
+  }
+
+  /// 提交当前 selection 到底层播放。
+  Future<void> submitCurrent({
+    required PlaybackSwitchTrigger trigger,
+    bool playNow = true,
+  }) {
+    if (!_state.hasSelection) {
+      return Future<void>.value();
+    }
+    return _submitCurrentSelection(trigger: trigger, playNow: playNow);
   }
 
   Future<void> _submitCurrentSelection({
@@ -197,6 +210,11 @@ class PlaybackSelectionService {
   void _emitState(PlaybackSelectionState state) {
     _state = state;
     _stateController.add(state);
+  }
+
+  bool _usesConfirmedIndex(PlaybackSwitchTrigger trigger) {
+    return trigger == PlaybackSwitchTrigger.queueCompletion ||
+        trigger == PlaybackSwitchTrigger.modeAutoAdvance;
   }
 
   /// 释放 selection 状态流。

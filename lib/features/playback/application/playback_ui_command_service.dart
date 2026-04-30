@@ -1,9 +1,11 @@
 import 'package:bujuan/domain/entities/playback_mode.dart';
+import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
+import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
@@ -15,19 +17,33 @@ class PlaybackUiCommandService {
     required PlaybackModeCoordinator modeCoordinator,
     required PlaybackQueueService queueService,
     required PlaybackSelectionService selectionService,
+    required PlaybackSwitchCoordinator switchCoordinator,
   })  : _playbackService = playbackService,
         _modeCoordinator = modeCoordinator,
         _queueService = queueService,
-        _selectionService = selectionService;
+        _selectionService = selectionService,
+        _switchCoordinator = switchCoordinator;
 
   final PlaybackService _playbackService;
   final PlaybackModeCoordinator _modeCoordinator;
   final PlaybackQueueService _queueService;
   final PlaybackSelectionService _selectionService;
+  final PlaybackSwitchCoordinator _switchCoordinator;
 
   /// 根据当前播放状态执行播放或暂停。
-  Future<void> playOrPause({required bool isPlaying}) {
-    return isPlaying ? _playbackService.pause() : _playbackService.play();
+  Future<void> playOrPause({required bool isPlaying}) async {
+    if (isPlaying) {
+      _switchCoordinator.cancelAutoplayIntent();
+      await _playbackService.pause();
+      return;
+    }
+    if (!_playbackService.hasAudioSource) {
+      await _selectionService.submitCurrent(
+        trigger: PlaybackSwitchTrigger.userSelect,
+      );
+      return;
+    }
+    await _playbackService.play();
   }
 
   /// 播放指定队列，并在必要时退出 FM 或心动模式。
@@ -85,6 +101,11 @@ class PlaybackUiCommandService {
   Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) async {
     await _queueService.setRepeatMode(repeatMode);
     await _playbackService.changeRepeatMode(newRepeatMode: repeatMode);
+  }
+
+  /// 设置队列出队顺序模式。
+  Future<void> setOrderMode(PlaybackOrderMode orderMode) {
+    return _queueService.setOrderMode(orderMode);
   }
 
   /// 循环切换重复播放模式。

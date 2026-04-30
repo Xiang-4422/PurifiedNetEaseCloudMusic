@@ -1,4 +1,5 @@
 import 'package:bujuan/features/download/download_repository.dart';
+import 'package:bujuan/features/playback/application/confirmed_playback_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
@@ -10,6 +11,7 @@ import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_restore_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_selection_navigator.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
+import 'package:bujuan/features/playback/application/playback_source_prefetcher.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
 import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
@@ -45,9 +47,7 @@ class PlaybackRegistrar {
     );
     Get.put(
       PlaybackService(
-        queueStore: Get.find<PlaybackQueueStore>(),
         restoreCoordinator: Get.find<PlaybackRestoreCoordinator>(),
-        sourceResolver: Get.find<PlaybackSourceResolver>(),
       ),
       permanent: true,
     );
@@ -76,16 +76,25 @@ class PlaybackRegistrar {
       const PlaybackSelectionNavigator(),
       permanent: true,
     );
-    Get.put<PlaybackSwitchCoordinator>(
-      PlaybackSwitchCoordinator(
-        playbackService: Get.find<PlaybackService>(),
-      ),
-      permanent: true,
-    );
     Get.put<PlaybackQueueService>(
       PlaybackQueueService(
         queueStore: Get.find<PlaybackQueueStore>(),
         playbackService: Get.find<PlaybackService>(),
+      ),
+      permanent: true,
+    );
+    Get.put<PlaybackSourcePrefetcher>(
+      PlaybackSourcePrefetcher(
+        resolver: Get.find<PlaybackSourceResolver>(),
+      ),
+      permanent: true,
+    );
+    Get.put<PlaybackSwitchCoordinator>(
+      PlaybackSwitchCoordinator(
+        playbackService: Get.find<PlaybackService>(),
+        queueService: Get.find<PlaybackQueueService>(),
+        sourceResolver: Get.find<PlaybackSourceResolver>(),
+        sourcePrefetcher: Get.find<PlaybackSourcePrefetcher>(),
       ),
       permanent: true,
     );
@@ -118,6 +127,7 @@ class PlaybackRegistrar {
         modeCoordinator: Get.find<PlaybackModeCoordinator>(),
         queueService: Get.find<PlaybackQueueService>(),
         selectionService: Get.find<PlaybackSelectionService>(),
+        switchCoordinator: Get.find<PlaybackSwitchCoordinator>(),
       ),
       permanent: true,
     );
@@ -130,6 +140,10 @@ class PlaybackRegistrar {
     );
     Get.put<CurrentTrackSideEffectCoordinator>(
       CurrentTrackSideEffectCoordinator(),
+      permanent: true,
+    );
+    Get.put<ConfirmedPlaybackEffectCoordinator>(
+      ConfirmedPlaybackEffectCoordinator(),
       permanent: true,
     );
     Get.put<PlaybackLyricsPresenter>(

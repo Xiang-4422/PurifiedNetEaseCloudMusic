@@ -5,8 +5,8 @@ import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/features/playback/application/confirmed_playback_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
-import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
@@ -51,7 +51,7 @@ class PlaybackStateSynchronizer {
     required PlaybackToastPort toastPort,
     required PlaybackLyricUiStateController lyricUiStateController,
     required PlaybackSelectionService selectionService,
-    required CurrentTrackSideEffectCoordinator sideEffectCoordinator,
+    required ConfirmedPlaybackEffectCoordinator sideEffectCoordinator,
   })  : _playbackService = playbackService,
         _queueStore = queueStore,
         _queueService = queueService,
@@ -74,7 +74,7 @@ class PlaybackStateSynchronizer {
   final PlaybackToastPort _toastPort;
   final PlaybackLyricUiStateController _lyricUiStateController;
   final PlaybackSelectionService _selectionService;
-  final CurrentTrackSideEffectCoordinator _sideEffectCoordinator;
+  final ConfirmedPlaybackEffectCoordinator _sideEffectCoordinator;
 
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   int _lastStoredPositionSecond = -1;
@@ -149,12 +149,15 @@ class PlaybackStateSynchronizer {
     _subscriptions.add(
       _playbackService.mediaItemStream.listen((queueItem) async {
         if (queueItem == null) return;
-        final queueIndex =
-            _playbackService.handler.playbackState.value.queueIndex;
-        await _queueService.markConfirmed(item: queueItem, index: queueIndex);
+        final queueState = _queueService.state;
+        final confirmedIndex = queueState.confirmedIndex >= 0
+            ? queueState.confirmedIndex
+            : queueState.activeQueue.indexWhere(
+                (item) => item.id == queueItem.id,
+              );
         syncRuntimeState(
           currentSong: queueItem,
-          currentIndex: _queueService.state.confirmedIndex,
+          currentIndex: confirmedIndex,
         );
         unawaited(_queueStore.saveCurrentSong(queueItem.id));
         await updateCurrentPlayIndex(currentItemUpdated: false);
@@ -203,6 +206,13 @@ class PlaybackStateSynchronizer {
         if (currentSecond != _lastStoredPositionSecond) {
           _lastStoredPositionSecond = currentSecond;
           unawaited(_queueStore.savePosition(newCurPlayingDuration));
+        }
+        if (_selectionService.state.selectedItem.id !=
+            runtimeState().currentSong.id) {
+          if (lyricState().currentIndex != -1) {
+            syncLyricState(currentIndex: -1);
+          }
+          return;
         }
         final newLyricIndex = _lyricUiStateController.resolveCurrentLyricIndex(
           lines: lyricState().lines,

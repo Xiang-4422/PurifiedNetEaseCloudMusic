@@ -3,6 +3,7 @@ import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart
 import 'package:bujuan/app/presentation_adapters/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
+import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/track.dart';
@@ -85,6 +86,9 @@ class PlayerController extends GetxController {
   /// 当前重复播放模式。
   Rx<PlaybackRepeatMode> curRepeatMode = PlaybackRepeatMode.all.obs;
 
+  /// 当前队列出队顺序模式。
+  Rx<PlaybackOrderMode> curOrderMode = PlaybackOrderMode.sequential.obs;
+
   /// 当前播放模式。
   Rx<PlaybackMode> playbackMode = PlaybackMode.playlist.obs;
 
@@ -119,6 +123,22 @@ class PlayerController extends GetxController {
 
   /// 当前播放队列索引。
   final RxInt currentQueueIndex = (-1).obs;
+
+  /// UI 当前选中的歌曲，负责底部面板标题、封面和队列高亮。
+  PlaybackQueueItem get selectedSong => selectionState.value.selectedItem;
+
+  /// 底层播放器已经确认的歌曲，负责通知栏和真实播放事实。
+  PlaybackQueueItem get confirmedSong => runtimeState.value.currentSong;
+
+  /// UI 当前选中歌曲在 active queue 中的索引。
+  int get selectedQueueIndex => selectionState.value.selectedIndex;
+
+  /// 底层播放器确认歌曲在 active queue 中的索引。
+  int get confirmedQueueIndex => runtimeState.value.currentIndex;
+
+  /// 当前 UI selection 是否已经被底层播放器确认。
+  bool get isSelectionConfirmed =>
+      selectedSong.id.isNotEmpty && selectedSong.id == confirmedSong.id;
 
   /// 当前是否是 FM 模式。
   bool get isFmModeValue => playbackMode.value == PlaybackMode.roaming;
@@ -232,6 +252,7 @@ class PlayerController extends GetxController {
 
   void _syncSelectionState(PlaybackSelectionState nextState) {
     selectionState.value = nextState;
+    curOrderMode.value = _queueService.state.orderMode;
     if (nextState.selectedItem.id.isNotEmpty) {
       currentSongState.value = nextState.selectedItem;
     }
@@ -344,6 +365,12 @@ class PlayerController extends GetxController {
     return _commandService.setRepeatMode(repeatMode);
   }
 
+  /// 设置队列出队顺序模式。
+  Future<void> setOrderMode(PlaybackOrderMode orderMode) {
+    curOrderMode.value = orderMode;
+    return _commandService.setOrderMode(orderMode);
+  }
+
   /// 循环切换重复播放模式。
   Future<void> cycleRepeatMode() {
     return _commandService.cycleRepeatMode();
@@ -432,13 +459,15 @@ class PlayerController extends GetxController {
       icon = TablerIcons.radio;
     } else if (playbackMode.value == PlaybackMode.heartbeat) {
       icon = TablerIcons.heartbeat;
+    } else if (curOrderMode.value == PlaybackOrderMode.shuffle) {
+      icon = TablerIcons.arrows_shuffle;
     } else {
       switch (curRepeatMode.value) {
         case PlaybackRepeatMode.one:
           icon = TablerIcons.repeat_once;
           break;
         case PlaybackRepeatMode.none:
-          icon = TablerIcons.arrows_shuffle;
+          icon = TablerIcons.repeat_off;
           break;
         case PlaybackRepeatMode.all:
         case PlaybackRepeatMode.group:

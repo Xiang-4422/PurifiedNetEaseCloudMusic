@@ -1,49 +1,9 @@
 import 'dart:io';
 
-import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/domain/entities/playback_media_type.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
-
-/// 播放源类型，区分本地文件、远程 URL 和网易云缓存流。
-enum PlaybackResolvedSourceKind {
-  /// 没有可播放音源。
-  empty,
-
-  /// 本地文件路径音源。
-  filePath,
-
-  /// 普通远程 URL 音源。
-  url,
-
-  /// 网易云加密缓存文件流。
-  neteaseCacheStream,
-}
-
-/// 解析后的真实播放源。
-class PlaybackResolvedSource {
-  /// 创建解析后的播放源。
-  const PlaybackResolvedSource({
-    required this.kind,
-    this.url = '',
-    this.fileType = '',
-    this.markAsCached = false,
-  });
-
-  /// 播放源类型。
-  final PlaybackResolvedSourceKind kind;
-
-  /// 播放源地址或本地路径。
-  final String url;
-
-  /// 缓存流解密后的文件类型。
-  final String fileType;
-
-  /// 该音源是否应被标记为已缓存。
-  final bool markAsCached;
-
-  /// 当前播放源是否为空。
-  bool get isEmpty => kind == PlaybackResolvedSourceKind.empty || url.isEmpty;
-}
 
 /// 将播放队列项解析成 just_audio 可消费的真实音源。
 class PlaybackSourceResolver {
@@ -53,13 +13,13 @@ class PlaybackSourceResolver {
 
   final PlaybackRepository _repository;
 
-  /// 将 audio_service 媒体项解析为底层播放器可消费的音源。
+  /// 将播放队列项解析为底层播放器可消费的音源。
   Future<PlaybackResolvedSource> resolve(
-    MediaItem mediaItem, {
+    PlaybackQueueItem item, {
     required bool preferHighQuality,
   }) async {
-    if (mediaItem.extras?['type'] == MediaType.local.name) {
-      final url = mediaItem.extras?['url'] as String? ?? '';
+    if (item.mediaType == MediaType.local) {
+      final url = item.playbackUrl ?? '';
       return PlaybackResolvedSource(
         kind: url.isEmpty
             ? PlaybackResolvedSourceKind.empty
@@ -69,8 +29,8 @@ class PlaybackSourceResolver {
       );
     }
 
-    if (mediaItem.extras?['type'] == MediaType.neteaseCache.name) {
-      final url = mediaItem.extras?['url'] as String? ?? '';
+    if (item.mediaType == MediaType.neteaseCache) {
+      final url = item.playbackUrl ?? '';
       return PlaybackResolvedSource(
         kind: url.isEmpty
             ? PlaybackResolvedSourceKind.empty
@@ -83,16 +43,16 @@ class PlaybackSourceResolver {
       );
     }
 
-    return resolveRemote(mediaItem, preferHighQuality: preferHighQuality);
+    return resolveRemote(item, preferHighQuality: preferHighQuality);
   }
 
   /// 忽略本地缓存标记，直接解析远程播放地址。
   Future<PlaybackResolvedSource> resolveRemote(
-    MediaItem mediaItem, {
+    PlaybackQueueItem item, {
     required bool preferHighQuality,
   }) async {
     final url = (await _repository.fetchPlaybackUrl(
-              mediaItem.id,
+              item.id,
               preferHighQuality: preferHighQuality,
             ) ??
             '')

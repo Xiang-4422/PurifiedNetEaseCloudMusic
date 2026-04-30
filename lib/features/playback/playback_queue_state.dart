@@ -1,4 +1,5 @@
 import 'package:bujuan/domain/entities/playback_mode.dart';
+import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 
@@ -16,6 +17,7 @@ class PlaybackQueueState {
     this.playlistName = '',
     this.playlistHeader = '',
     this.repeatMode = PlaybackRepeatMode.all,
+    this.orderMode = PlaybackOrderMode.sequential,
     this.playbackMode = PlaybackMode.playlist,
     this.pendingRestorePosition = Duration.zero,
     this.selectionVersion = 0,
@@ -42,6 +44,9 @@ class PlaybackQueueState {
 
   /// 当前重复播放模式。
   final PlaybackRepeatMode repeatMode;
+
+  /// 当前队列出队顺序模式。
+  final PlaybackOrderMode orderMode;
 
   /// 当前播放模式。
   final PlaybackMode playbackMode;
@@ -75,6 +80,7 @@ class PlaybackQueueState {
     String? playlistName,
     String? playlistHeader,
     PlaybackRepeatMode? repeatMode,
+    PlaybackOrderMode? orderMode,
     PlaybackMode? playbackMode,
     Duration? pendingRestorePosition,
     int? selectionVersion,
@@ -88,6 +94,7 @@ class PlaybackQueueState {
       playlistName: playlistName ?? this.playlistName,
       playlistHeader: playlistHeader ?? this.playlistHeader,
       repeatMode: repeatMode ?? this.repeatMode,
+      orderMode: orderMode ?? this.orderMode,
       playbackMode: playbackMode ?? this.playbackMode,
       pendingRestorePosition:
           pendingRestorePosition ?? this.pendingRestorePosition,

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bujuan/domain/entities/playback_mode.dart';
+import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
@@ -48,6 +49,7 @@ class PlaybackQueueService {
     final activeQueue = _buildActiveQueue(
       originalQueue: queue,
       repeatMode: _state.repeatMode,
+      orderMode: _state.orderMode,
       playbackMode: _state.playbackMode,
     );
     final selectedIndex = _indexOfItem(activeQueue, selectedItem.id);
@@ -104,6 +106,18 @@ class PlaybackQueueService {
     return selectIndex(resolvedIndex);
   }
 
+  /// 从 confirmed index 推进下一首，用于底层完成后的自动续播。
+  Future<PlaybackQueueState?> selectNextFromConfirmed() async {
+    final baseIndex = _state.confirmedIndex >= 0
+        ? _state.confirmedIndex
+        : _state.selectedIndex;
+    final resolvedIndex = nextIndex(fromIndex: baseIndex);
+    if (resolvedIndex == null) {
+      return null;
+    }
+    return selectIndex(resolvedIndex);
+  }
+
   /// 按当前 repeat mode 选择上一首。
   Future<PlaybackQueueState?> selectPrevious() async {
     final resolvedIndex = previousIndex();
@@ -114,15 +128,17 @@ class PlaybackQueueService {
   }
 
   /// 计算下一首索引。
-  int? nextIndex() {
+  int? nextIndex({int? fromIndex}) {
     final queueLength = _state.activeQueue.length;
     if (queueLength <= 0) {
       return null;
     }
+    final currentIndex =
+        _clampIndex(fromIndex ?? _state.selectedIndex, queueLength);
     if (_state.repeatMode == PlaybackRepeatMode.one) {
-      return _clampIndex(_state.selectedIndex, queueLength);
+      return currentIndex;
     }
-    final next = _clampIndex(_state.selectedIndex, queueLength) + 1;
+    final next = currentIndex + 1;
     if (next < queueLength) {
       return next;
     }
@@ -152,6 +168,7 @@ class PlaybackQueueService {
     final activeQueue = _buildActiveQueue(
       originalQueue: _state.originalQueue,
       repeatMode: repeatMode,
+      orderMode: _state.orderMode,
       playbackMode: _state.playbackMode,
     );
     _emit(_state.copyWith(
@@ -165,6 +182,29 @@ class PlaybackQueueService {
       queueVersion: _state.queueVersion + 1,
     ));
     await _queueStore.saveRepeatMode(repeatMode);
+    await _syncNotificationQueue();
+    return _state;
+  }
+
+  /// 更新队列出队顺序模式，并重建 active queue。
+  Future<PlaybackQueueState> setOrderMode(PlaybackOrderMode orderMode) async {
+    final selectedId = _state.selectedItem.id;
+    final activeQueue = _buildActiveQueue(
+      originalQueue: _state.originalQueue,
+      repeatMode: _state.repeatMode,
+      orderMode: orderMode,
+      playbackMode: _state.playbackMode,
+    );
+    _emit(_state.copyWith(
+      activeQueue: List<PlaybackQueueItem>.unmodifiable(activeQueue),
+      selectedIndex: _indexOfItem(activeQueue, selectedId),
+      confirmedIndex: _confirmedIndexAfterQueueChange(
+        activeQueue,
+        _state.confirmedItem.id,
+      ),
+      orderMode: orderMode,
+      queueVersion: _state.queueVersion + 1,
+    ));
     await _syncNotificationQueue();
     return _state;
   }
@@ -222,6 +262,7 @@ class PlaybackQueueService {
     final activeQueue = _buildActiveQueue(
       originalQueue: combined,
       repeatMode: _state.repeatMode,
+      orderMode: _state.orderMode,
       playbackMode: _state.playbackMode,
     );
     _emit(_state.copyWith(
@@ -271,6 +312,7 @@ class PlaybackQueueService {
   ) async {
     _emit(_state.copyWith(
       repeatMode: snapshot.repeatMode,
+      orderMode: _state.orderMode,
       playbackMode: snapshot.playbackMode,
       pendingRestorePosition: snapshot.position,
     ));
@@ -282,6 +324,7 @@ class PlaybackQueueService {
     final activeQueue = _buildActiveQueue(
       originalQueue: snapshot.queue,
       repeatMode: snapshot.repeatMode,
+      orderMode: _state.orderMode,
       playbackMode: snapshot.playbackMode,
     );
     _emit(_state.copyWith(
@@ -308,12 +351,9 @@ class PlaybackQueueService {
   }
 
   Future<void> _syncNotificationQueue() {
-    final notificationIndex = _state.confirmedIndex >= 0
-        ? _state.confirmedIndex
-        : _state.selectedIndex;
     return _playbackService.setNotificationQueue(
       _state.activeQueue,
-      currentIndex: notificationIndex,
+      currentIndex: _state.confirmedIndex,
       playlistName: _state.playlistName,
       playlistHeader: _state.playlistHeader,
     );
@@ -322,13 +362,14 @@ class PlaybackQueueService {
   List<PlaybackQueueItem> _buildActiveQueue({
     required List<PlaybackQueueItem> originalQueue,
     required PlaybackRepeatMode repeatMode,
+    required PlaybackOrderMode orderMode,
     required PlaybackMode playbackMode,
   }) {
     final queue = <PlaybackQueueItem>[...originalQueue];
     if (queue.isEmpty) {
       return queue;
     }
-    if (repeatMode == PlaybackRepeatMode.none &&
+    if (orderMode == PlaybackOrderMode.shuffle &&
         playbackMode == PlaybackMode.playlist) {
       queue.shuffle();
     }

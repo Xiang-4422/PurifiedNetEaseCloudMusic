@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_action_port.dart';
@@ -24,6 +25,7 @@ class PlaylistPlaybackUseCase {
     if (playlist.isEmpty) {
       return;
     }
+    await _playbackAction.setOrderMode(PlaybackOrderMode.sequential);
     await _playbackAction.setRepeatMode(PlaybackRepeatMode.all);
     await _playbackAction.playPlaylist(
       playlist,
@@ -42,7 +44,8 @@ class PlaylistPlaybackUseCase {
     if (playlist.isEmpty) {
       return;
     }
-    await _playbackAction.setRepeatMode(PlaybackRepeatMode.none);
+    await _playbackAction.setOrderMode(PlaybackOrderMode.shuffle);
+    await _playbackAction.setRepeatMode(PlaybackRepeatMode.all);
     await _playbackAction.playPlaylist(
       playlist,
       _random.nextInt(playlist.length),

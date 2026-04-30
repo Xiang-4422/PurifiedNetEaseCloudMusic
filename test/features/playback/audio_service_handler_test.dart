@@ -1,50 +1,33 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/domain/entities/playback_mode.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/audio_service_handler.dart';
 import 'package:bujuan/features/playback/application/playback_engine_adapter.dart';
-import 'package:bujuan/features/playback/application/playback_queue_store.dart';
-import 'package:bujuan/features/playback/application/playback_restore_coordinator.dart';
-import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
+import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:just_audio/just_audio.dart';
 
 void main() {
   group('AudioServiceHandler', () {
-    test('publishes media item only after playback source resolves', () async {
+    test('replaceSource publishes confirmed media item after source set',
+        () async {
       final engine = _FakePlaybackEngine();
-      final resolver = _FakePlaybackSourceResolver();
-      final handler = AudioServiceHandler(
-        queueStore: _FakePlaybackQueueStore(),
-        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
-        sourceResolver: resolver,
-        engineAdapter: engine,
-      );
-      await handler.updateQueue([
-        _mediaItem('1'),
-      ]);
+      final handler = AudioServiceHandler(engineAdapter: engine);
+      await handler.updateQueue([_mediaItem('1')]);
 
-      final playFuture = handler.playIndex(audioSourceIndex: 0, playNow: true);
-
-      expect(handler.mediaItem.value, isNull);
-      expect(
-        handler.playbackState.value.processingState,
-        AudioProcessingState.loading,
-      );
-      expect(engine.sources, isEmpty);
-
-      engine.emitPlaybackEvent();
-      expect(
-        handler.playbackState.value.processingState,
-        AudioProcessingState.loading,
+      final success = await handler.replaceSource(
+        audioSourceIndex: 0,
+        mediaItemToPlay: _mediaItem('1'),
+        source: const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.url,
+          url: 'url-1',
+        ),
+        playNow: true,
       );
 
-      await playFuture;
-
+      expect(success, isTrue);
       expect(engine.sources.map((source) => source.url), ['url-1']);
+      expect(engine.playCount, 1);
       expect(handler.mediaItem.value?.id, '1');
       expect(handler.playbackState.value.queueIndex, 0);
       expect(
@@ -53,126 +36,55 @@ void main() {
       );
     });
 
-    test('only applies the latest rapid playIndex request', () async {
-      final engine = _FakePlaybackEngine();
-      final resolver = _FakePlaybackSourceResolver();
-      final handler = AudioServiceHandler(
-        queueStore: _FakePlaybackQueueStore(),
-        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
-        sourceResolver: resolver,
-        engineAdapter: engine,
-      );
-      final queue = [
-        _mediaItem('1'),
-        _mediaItem('2'),
-      ];
-      await handler.updateQueue(queue);
-
-      final first = handler.playIndex(audioSourceIndex: 0, playNow: true);
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      final second = handler.playIndex(audioSourceIndex: 1, playNow: true);
-      await Future.wait([first, second]);
-
-      expect(engine.sources.map((source) => source.url), ['url-2']);
-      expect(engine.playCount, 1);
-      expect(handler.mediaItem.value?.id, '2');
-      expect(handler.playbackState.value.queueIndex, 1);
-    });
-
-    test('falls back to remote source when local cache source fails', () async {
+    test('replaceSource returns false when engine rejects source', () async {
       final engine = _FakePlaybackEngine(
         failingSourceKinds: {PlaybackResolvedSourceKind.filePath},
       );
-      final resolver = _FallbackPlaybackSourceResolver();
-      final handler = AudioServiceHandler(
-        queueStore: _FakePlaybackQueueStore(),
-        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
-        sourceResolver: resolver,
-        engineAdapter: engine,
-      );
-      await handler.updateQueue([
-        _mediaItem('1'),
-      ]);
+      final handler = AudioServiceHandler(engineAdapter: engine);
+      await handler.updateQueue([_mediaItem('1')]);
 
-      await handler.playIndex(audioSourceIndex: 0, playNow: true);
-
-      expect(
-        engine.sources.map((source) => source.url),
-        ['local-cache.mp3', 'remote-url-1'],
+      final success = await handler.replaceSource(
+        audioSourceIndex: 0,
+        mediaItemToPlay: _mediaItem('1'),
+        source: const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.filePath,
+          url: 'local-cache.mp3',
+        ),
+        playNow: true,
       );
-      expect(engine.playCount, 1);
-      expect(handler.mediaItem.value?.id, '1');
+
+      expect(success, isFalse);
+      expect(handler.mediaItem.value, isNull);
+      expect(engine.playCount, 0);
     });
 
-    test(
-        'publishes ready after source resolves even when previous engine state completed',
-        () async {
-      final engine = _FakePlaybackEngine(
-        processingStateOverride: ProcessingState.completed,
-      );
-      final resolver = _FakePlaybackSourceResolver();
-      final handler = AudioServiceHandler(
-        queueStore: _FakePlaybackQueueStore(),
-        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
-        sourceResolver: resolver,
-        engineAdapter: engine,
-      );
-      await handler.updateQueue([
-        _mediaItem('1'),
-      ]);
-
-      await handler.playIndex(audioSourceIndex: 0, playNow: true);
-
-      expect(handler.mediaItem.value?.id, '1');
-      expect(
-        handler.playbackState.value.processingState,
-        AudioProcessingState.ready,
-      );
-    });
-
-    test('pauses current engine while resolving a new autoplay source',
+    test('replaceSource pauses current engine at source replacement boundary',
         () async {
       final engine = _FakePlaybackEngine(initialPlaying: true);
-      final resolver = _FakePlaybackSourceResolver();
-      final handler = AudioServiceHandler(
-        queueStore: _FakePlaybackQueueStore(),
-        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
-        sourceResolver: resolver,
-        engineAdapter: engine,
-      );
-      await handler.updateQueue([
-        _mediaItem('1'),
-      ]);
+      final handler = AudioServiceHandler(engineAdapter: engine);
+      await handler.updateQueue([_mediaItem('1')]);
 
-      final playFuture = handler.playIndex(audioSourceIndex: 0, playNow: true);
-      await Future<void>.delayed(Duration.zero);
+      await handler.replaceSource(
+        audioSourceIndex: 0,
+        mediaItemToPlay: _mediaItem('1'),
+        source: const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.url,
+          url: 'url-1',
+        ),
+        playNow: true,
+      );
 
       expect(engine.pauseCount, 1);
-
-      await playFuture;
       expect(engine.playCount, 1);
+      expect(engine.playing, isTrue);
     });
 
-    test('manual pause during source resolving prevents autoplay', () async {
-      final engine = _FakePlaybackEngine(initialPlaying: true);
-      final resolver = _FakePlaybackSourceResolver();
-      final handler = AudioServiceHandler(
-        queueStore: _FakePlaybackQueueStore(),
-        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
-        sourceResolver: resolver,
-        engineAdapter: engine,
-      );
-      await handler.updateQueue([
-        _mediaItem('1'),
-      ]);
+    test('play without a prepared source is ignored', () async {
+      final engine = _FakePlaybackEngine();
+      final handler = AudioServiceHandler(engineAdapter: engine);
 
-      final playFuture = handler.playIndex(audioSourceIndex: 0, playNow: true);
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      await handler.pause();
-      await playFuture;
+      await handler.play();
 
-      expect(engine.sources.map((source) => source.url), ['url-1']);
-      expect(handler.mediaItem.value?.id, '1');
       expect(engine.playCount, 0);
       expect(engine.playing, isFalse);
     });
@@ -186,12 +98,10 @@ MediaItem _mediaItem(String id) {
 class _FakePlaybackEngine implements PlaybackEnginePort {
   _FakePlaybackEngine({
     this.failingSourceKinds = const <PlaybackResolvedSourceKind>{},
-    this.processingStateOverride = ProcessingState.ready,
     bool initialPlaying = false,
   }) : _playing = initialPlaying;
 
   final Set<PlaybackResolvedSourceKind> failingSourceKinds;
-  final ProcessingState processingStateOverride;
 
   final StreamController<PlaybackEvent> _events =
       StreamController<PlaybackEvent>.broadcast();
@@ -222,7 +132,7 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
   Duration get position => Duration.zero;
 
   @override
-  ProcessingState get processingState => processingStateOverride;
+  ProcessingState get processingState => ProcessingState.ready;
 
   @override
   bool get shuffleModeEnabled => false;
@@ -243,6 +153,9 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
 
   @override
   Future<void> play() async {
+    if (!_hasAudioSource) {
+      return;
+    }
     playCount++;
     _playing = true;
   }
@@ -261,102 +174,5 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
 
   void emitPlaybackEvent() {
     _events.add(PlaybackEvent());
-  }
-}
-
-class _FakePlaybackSourceResolver implements PlaybackSourceResolver {
-  @override
-  Future<PlaybackResolvedSource> resolve(
-    MediaItem mediaItem, {
-    required bool preferHighQuality,
-  }) async {
-    if (mediaItem.id == '1') {
-      await Future<void>.delayed(const Duration(milliseconds: 80));
-    }
-    return PlaybackResolvedSource(
-      kind: PlaybackResolvedSourceKind.url,
-      url: 'url-${mediaItem.id}',
-    );
-  }
-
-  @override
-  Future<PlaybackResolvedSource> resolveRemote(
-    MediaItem mediaItem, {
-    required bool preferHighQuality,
-  }) {
-    return resolve(mediaItem, preferHighQuality: preferHighQuality);
-  }
-}
-
-class _FallbackPlaybackSourceResolver implements PlaybackSourceResolver {
-  @override
-  Future<PlaybackResolvedSource> resolve(
-    MediaItem mediaItem, {
-    required bool preferHighQuality,
-  }) async {
-    return const PlaybackResolvedSource(
-      kind: PlaybackResolvedSourceKind.filePath,
-      url: 'local-cache.mp3',
-      markAsCached: true,
-    );
-  }
-
-  @override
-  Future<PlaybackResolvedSource> resolveRemote(
-    MediaItem mediaItem, {
-    required bool preferHighQuality,
-  }) async {
-    return PlaybackResolvedSource(
-      kind: PlaybackResolvedSourceKind.url,
-      url: 'remote-url-${mediaItem.id}',
-    );
-  }
-}
-
-class _FakePlaybackQueueStore implements PlaybackQueueStore {
-  @override
-  Future<List<PlaybackQueueItem>> decodeQueue(
-      List<String> queueSnapshot) async {
-    return const <PlaybackQueueItem>[];
-  }
-
-  @override
-  Future<void> saveCurrentSong(String currentSongId) async {}
-
-  @override
-  Future<void> savePlaybackMode(PlaybackMode playbackMode) async {}
-
-  @override
-  Future<void> savePlaylistMeta({
-    required String playlistName,
-    required String playlistHeader,
-  }) async {}
-
-  @override
-  Future<void> savePosition(Duration position) async {}
-
-  @override
-  Future<void> saveQueueSnapshot({
-    required List<PlaybackQueueItem> originalSongs,
-    required String playlistName,
-    required String playlistHeader,
-  }) async {}
-
-  @override
-  Future<void> saveRepeatMode(PlaybackRepeatMode repeatMode) async {}
-}
-
-class _FakePlaybackRestoreCoordinator implements PlaybackRestoreCoordinator {
-  @override
-  Future<PlaybackRestoreSnapshot> loadSnapshot() async {
-    return const PlaybackRestoreSnapshot(
-      playbackMode: PlaybackMode.playlist,
-      repeatMode: PlaybackRepeatMode.all,
-      queue: <PlaybackQueueItem>[],
-      index: -1,
-      playlistName: '',
-      playlistHeader: '',
-      position: Duration.zero,
-    );
   }
 }

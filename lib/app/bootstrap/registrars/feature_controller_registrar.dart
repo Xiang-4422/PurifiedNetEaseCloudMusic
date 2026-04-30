@@ -13,8 +13,8 @@ import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
+import 'package:bujuan/features/playback/application/confirmed_playback_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
-import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
@@ -97,6 +97,8 @@ class FeatureControllerRegistrar {
         seekTo: (position) => Get.find<PlayerController>().seekTo(position),
         setRepeatMode: (repeatMode) =>
             Get.find<PlayerController>().setRepeatMode(repeatMode),
+        setOrderMode: (orderMode) =>
+            Get.find<PlayerController>().setOrderMode(orderMode),
         openFmMode: () => Get.find<PlayerController>().openFmMode(),
         openHeartBeatMode: (startSongId, {required fromPlayAll}) =>
             Get.find<PlayerController>().openHeartBeatMode(
@@ -162,7 +164,7 @@ class FeatureControllerRegistrar {
         toastPort: Get.find<PlaybackToastPort>(),
         lyricUiStateController: Get.find<PlaybackLyricUiStateController>(),
         selectionService: Get.find<PlaybackSelectionService>(),
-        sideEffectCoordinator: Get.find<CurrentTrackSideEffectCoordinator>(),
+        sideEffectCoordinator: Get.find<ConfirmedPlaybackEffectCoordinator>(),
       ),
       permanent: true,
     );

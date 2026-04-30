@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
+import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:just_audio/just_audio.dart';
 
 /// 播放引擎端口，供 audio_service handler 串行委托底层播放器操作。

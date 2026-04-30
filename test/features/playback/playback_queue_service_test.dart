@@ -1,10 +1,12 @@
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
+import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_restore_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -26,6 +28,7 @@ void main() {
       expect(queueService.state.selectedIndex, 1);
       expect(
           playbackService.notificationQueue.map((item) => item.id), ['1', '2']);
+      expect(playbackService.notificationIndex, -1);
       expect(playbackService.sourceSwitches, isEmpty);
     });
 
@@ -33,7 +36,7 @@ void main() {
         () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
-      await queueService.setRepeatMode(PlaybackRepeatMode.none);
+      await queueService.setOrderMode(PlaybackOrderMode.shuffle);
 
       await queueService.replaceQueue(
         [_item('1'), _item('2'), _item('3')],
@@ -126,6 +129,7 @@ PlaybackQueueItem _item(String id, {String? title}) {
 
 class _FakePlaybackService implements PlaybackService {
   List<PlaybackQueueItem> notificationQueue = const <PlaybackQueueItem>[];
+  int notificationIndex = -1;
   final List<int> sourceSwitches = <int>[];
   Duration pendingRestorePosition = Duration.zero;
 
@@ -137,6 +141,7 @@ class _FakePlaybackService implements PlaybackService {
     required String playlistHeader,
   }) async {
     notificationQueue = queue;
+    notificationIndex = currentIndex;
   }
 
   @override
@@ -145,10 +150,14 @@ class _FakePlaybackService implements PlaybackService {
   }
 
   @override
-  Future<bool> setSourceForQueueItem({
+  bool isHighQualityEnabled() => false;
+
+  @override
+  Future<bool> replaceSourceForQueueItem({
     required List<PlaybackQueueItem> queue,
     required PlaybackQueueItem item,
     required int activeIndex,
+    required PlaybackResolvedSource source,
     required bool playNow,
   }) async {
     notificationQueue = queue;

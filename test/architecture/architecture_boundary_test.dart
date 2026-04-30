@@ -268,6 +268,29 @@ void main() {
       );
     });
 
+    test('audio service handler stays playback adapter only', () {
+      final handlerFile = File(
+        '${projectRoot.path}/lib/features/playback/application/audio_service_handler.dart',
+      );
+      final violations = <String>[
+        if (_containsAny(handlerFile, const [
+          'PlaybackSourceResolver',
+          'playback_source_resolver.dart',
+          'PlaybackRepository',
+          'fetchPlaybackUrl',
+          'resolveRemote(',
+        ]))
+          _relativePath(handlerFile),
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'AudioServiceHandler 只能做 audio_service/just_audio adapter，播放源解析和 fallback 必须留在 switch/source resolver 层。',
+      );
+    });
+
     test('audio service transport controls route back to selection command',
         () {
       final handlerFile = File(
@@ -1027,10 +1050,7 @@ bool _isTemporaryGetFindFactoryException(String path) {
 }
 
 bool _isTemporaryMediaItemBoundaryException(String path) {
-  const exceptions = {
-    'lib/features/playback/application/playback_source_resolver.dart',
-  };
-  return exceptions.contains(path);
+  return false;
 }
 
 bool _isGeneratedDartFile(String path) {

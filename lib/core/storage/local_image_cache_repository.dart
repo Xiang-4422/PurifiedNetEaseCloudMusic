@@ -3,13 +3,28 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// 图片下载函数，用于生产环境 Dio 下载和测试替身。
+typedef ImageCacheDownloader = Future<void> Function(
+  String imageUrl,
+  String savePath,
+  Options options,
+);
+
 /// 本地图片缓存仓库，负责把远程图片落盘并解析本地图片路径。
 class LocalImageCacheRepository {
   /// 创建本地图片缓存仓库。
-  LocalImageCacheRepository({Dio? dio}) : _dio = dio ?? Dio();
+  LocalImageCacheRepository({
+    Dio? dio,
+    Future<Directory> Function()? cacheDirectoryProvider,
+    ImageCacheDownloader? downloader,
+  })  : _dio = dio ?? Dio(),
+        _cacheDirectoryProvider = cacheDirectoryProvider,
+        _downloader = downloader;
 
   final Dio _dio;
-  final Map<String, Future<String>> _pendingDownloads =
+  final Future<Directory> Function()? _cacheDirectoryProvider;
+  final ImageCacheDownloader? _downloader;
+  static final Map<String, Future<String>> _pendingDownloads =
       <String, Future<String>>{};
 
   /// 解析可供本地读取的图片路径。
@@ -40,31 +55,41 @@ class LocalImageCacheRepository {
     }
 
     final temporaryPath = '$outputPath.download';
+    final uniqueTemporaryPath =
+        '$temporaryPath.${DateTime.now().microsecondsSinceEpoch}';
     final temporaryFile = File(temporaryPath);
+    final uniqueTemporaryFile = File(uniqueTemporaryPath);
     if (temporaryFile.existsSync()) {
       await temporaryFile.delete();
     }
 
-    await _dio.download(
-      imageUrl,
-      temporaryPath,
-      options: Options(
-        responseType: ResponseType.bytes,
-        followRedirects: true,
-        headers: _imageHttpHeaders,
-      ),
+    final options = Options(
+      responseType: ResponseType.bytes,
+      followRedirects: true,
+      headers: _imageHttpHeaders,
     );
+    if (_downloader == null) {
+      await _dio.download(imageUrl, uniqueTemporaryPath, options: options);
+    } else {
+      await _downloader!(imageUrl, uniqueTemporaryPath, options);
+    }
 
     final outputFile = File(outputPath);
     if (outputFile.existsSync()) {
       await outputFile.delete();
     }
-    await temporaryFile.rename(outputPath);
+    if (uniqueTemporaryFile.existsSync()) {
+      await uniqueTemporaryFile.rename(outputPath);
+    } else if (!outputFile.existsSync()) {
+      throw PathNotFoundException(uniqueTemporaryPath, const OSError());
+    }
     return outputPath;
   }
 
   Future<Directory> _ensureCacheDirectory() async {
-    final supportDirectory = await getApplicationSupportDirectory();
+    final supportDirectory = _cacheDirectoryProvider == null
+        ? await getApplicationSupportDirectory()
+        : await _cacheDirectoryProvider!();
     final cacheDirectory =
         Directory('${supportDirectory.path}/zmusic/image-cache');
     if (!cacheDirectory.existsSync()) {

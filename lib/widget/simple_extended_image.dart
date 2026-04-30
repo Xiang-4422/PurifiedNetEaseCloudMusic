@@ -150,7 +150,9 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
       return;
     }
 
-    final resolvedPath = await _imageCacheRepository.resolveImagePath(rawPath);
+    final resolvedPath = await _imageCacheRepository
+        .resolveImagePath(rawPath)
+        .catchError((_) => '');
     if (!mounted || resolveVersion != _resolveVersion) {
       return;
     }

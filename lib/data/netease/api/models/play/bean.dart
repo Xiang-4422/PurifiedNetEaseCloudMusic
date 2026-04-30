@@ -488,13 +488,13 @@ class SongLyricWrap extends ServerStatusBean {
   bool? qfy;
 
   /// 原文歌词。
-  late Lyrics2 lrc;
+  Lyrics2? lrc;
 
   /// K 歌歌词。
-  late Lyrics2 klyric;
+  Lyrics2? klyric;
 
   /// 翻译歌词。
-  late Lyrics2 tlyric;
+  Lyrics2? tlyric;
 
   /// 创建歌曲歌词响应。
   SongLyricWrap();

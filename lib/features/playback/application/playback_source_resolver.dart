@@ -74,13 +74,23 @@ class PlaybackSourceResolver {
       return PlaybackResolvedSource(
         kind: url.isEmpty
             ? PlaybackResolvedSourceKind.empty
-            : PlaybackResolvedSourceKind.neteaseCacheStream,
+            : _isEncryptedNeteaseCache(url)
+                ? PlaybackResolvedSourceKind.neteaseCacheStream
+                : PlaybackResolvedSourceKind.filePath,
         url: url,
         fileType: url.replaceAll('.uc!', '').split('.').last,
         markAsCached: url.isNotEmpty,
       );
     }
 
+    return resolveRemote(mediaItem, preferHighQuality: preferHighQuality);
+  }
+
+  /// 忽略本地缓存标记，直接解析远程播放地址。
+  Future<PlaybackResolvedSource> resolveRemote(
+    MediaItem mediaItem, {
+    required bool preferHighQuality,
+  }) async {
     final url = (await _repository.fetchPlaybackUrl(
               mediaItem.id,
               preferHighQuality: preferHighQuality,
@@ -105,5 +115,9 @@ class PlaybackSourceResolver {
       kind: PlaybackResolvedSourceKind.url,
       url: url,
     );
+  }
+
+  bool _isEncryptedNeteaseCache(String url) {
+    return url.endsWith('.uc!');
   }
 }

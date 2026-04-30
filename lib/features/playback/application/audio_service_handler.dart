@@ -236,6 +236,7 @@ class AudioServiceHandler extends BaseAudioHandler
     final previousIndex = _queueSynchronizer.currentIndex;
     final isNext = audioSourceIndex >= previousIndex;
     final newIndexMediaItem = queue.value[audioSourceIndex];
+    _publishCurrentMediaItem(audioSourceIndex, newIndexMediaItem);
     final source = await _sourceResolver.resolve(
       newIndexMediaItem,
       preferHighQuality: _isHighQualityEnabled?.call() ?? false,
@@ -261,7 +262,13 @@ class AudioServiceHandler extends BaseAudioHandler
       );
     });
     _sourceSwitchTail = switchOperation.catchError((_) {});
-    await switchOperation;
+    try {
+      await switchOperation;
+    } catch (_) {
+      if (_isLatestPlayIndexRequest(requestVersion)) {
+        _handleToast?.call('当前歌曲暂时无法播放');
+      }
+    }
   }
 
   Future<void> _applyResolvedSource({
@@ -275,19 +282,20 @@ class AudioServiceHandler extends BaseAudioHandler
     if (!_isLatestPlayIndexRequest(requestVersion)) {
       return;
     }
-    await _engine.setSource(source);
+    final appliedSource = await _setSourceWithFallback(
+      mediaItemToPlay,
+      source,
+      preferHighQuality: _isHighQualityEnabled?.call() ?? false,
+    );
     if (!_isLatestPlayIndexRequest(requestVersion)) {
       return;
     }
-    _queueSynchronizer.currentIndex = audioSourceIndex;
-    final nextMediaItem = source.markAsCached
-        ? _markMediaItemCached(mediaItemToPlay)
-        : mediaItemToPlay;
-    mediaItem.add(nextMediaItem);
-    playbackState.add(playbackState.value.copyWith(
-      queueIndex: _queueSynchronizer.currentIndex,
-    ));
-    _updateMediaControls();
+    if (appliedSource.markAsCached) {
+      _publishCurrentMediaItem(
+        audioSourceIndex,
+        _markMediaItemCached(mediaItemToPlay),
+      );
+    }
     if (_pendingRestorePosition > Duration.zero) {
       await _engine.seek(_pendingRestorePosition);
       _pendingRestorePosition = Duration.zero;
@@ -297,8 +305,42 @@ class AudioServiceHandler extends BaseAudioHandler
     }
   }
 
+  Future<PlaybackResolvedSource> _setSourceWithFallback(
+    MediaItem mediaItem,
+    PlaybackResolvedSource source, {
+    required bool preferHighQuality,
+  }) async {
+    try {
+      await _engine.setSource(source);
+      return source;
+    } catch (_) {
+      if (source.kind != PlaybackResolvedSourceKind.filePath &&
+          source.kind != PlaybackResolvedSourceKind.neteaseCacheStream) {
+        rethrow;
+      }
+      final remoteSource = await _sourceResolver.resolveRemote(
+        mediaItem,
+        preferHighQuality: preferHighQuality,
+      );
+      if (remoteSource.isEmpty) {
+        rethrow;
+      }
+      await _engine.setSource(remoteSource);
+      return remoteSource;
+    }
+  }
+
   bool _isLatestPlayIndexRequest(int requestVersion) {
     return requestVersion == _playIndexVersion;
+  }
+
+  void _publishCurrentMediaItem(int index, MediaItem item) {
+    _queueSynchronizer.currentIndex = index;
+    mediaItem.add(item);
+    playbackState.add(playbackState.value.copyWith(
+      queueIndex: _queueSynchronizer.currentIndex,
+    ));
+    _updateMediaControls();
   }
 
   MediaItem _markMediaItemCached(MediaItem item) {

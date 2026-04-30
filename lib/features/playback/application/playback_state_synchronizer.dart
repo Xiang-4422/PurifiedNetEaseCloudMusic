@@ -136,6 +136,11 @@ class PlaybackStateSynchronizer {
 
     _subscriptions.add(
       _playbackService.playbackStateStream.listen((playbackState) {
+        _syncCurrentSongFromQueueIndex(
+          playbackState.queueIndex,
+          runtimeState,
+          syncRuntimeState,
+        );
         setIsPlaying(playbackState.playing);
         _lyricUiStateController.updateFullScreenLyricTimerCounter(
           isPlaying: isPlaying(),
@@ -209,6 +214,30 @@ class PlaybackStateSynchronizer {
     } finally {
       _isFetchingFm = false;
     }
+  }
+
+  void _syncCurrentSongFromQueueIndex(
+    int? queueIndex,
+    PlaybackRuntimeState Function() runtimeState,
+    PlaybackRuntimeSync syncRuntimeState,
+  ) {
+    if (queueIndex == null || queueIndex < 0) {
+      return;
+    }
+    final currentRuntimeState = runtimeState();
+    final queue = currentRuntimeState.queue;
+    if (queueIndex >= queue.length) {
+      return;
+    }
+    final queueItem = queue[queueIndex];
+    if (currentRuntimeState.currentIndex == queueIndex &&
+        currentRuntimeState.currentSong.id == queueItem.id) {
+      return;
+    }
+    syncRuntimeState(
+      currentIndex: queueIndex,
+      currentSong: queueItem,
+    );
   }
 
   Future<void> _cacheCurrentTrackForPlayback(

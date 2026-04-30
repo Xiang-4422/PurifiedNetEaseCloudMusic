@@ -14,6 +14,31 @@ import 'package:just_audio/just_audio.dart';
 
 void main() {
   group('AudioServiceHandler', () {
+    test('publishes target media item before playback source resolves',
+        () async {
+      final engine = _FakePlaybackEngine();
+      final resolver = _FakePlaybackSourceResolver();
+      final handler = AudioServiceHandler(
+        queueStore: _FakePlaybackQueueStore(),
+        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
+        sourceResolver: resolver,
+        engineAdapter: engine,
+      );
+      await handler.updateQueue([
+        _mediaItem('1'),
+      ]);
+
+      final playFuture = handler.playIndex(audioSourceIndex: 0, playNow: true);
+
+      expect(handler.mediaItem.value?.id, '1');
+      expect(handler.playbackState.value.queueIndex, 0);
+      expect(engine.sources, isEmpty);
+
+      await playFuture;
+
+      expect(engine.sources.map((source) => source.url), ['url-1']);
+    });
+
     test('only applies the latest rapid playIndex request', () async {
       final engine = _FakePlaybackEngine();
       final resolver = _FakePlaybackSourceResolver();
@@ -39,6 +64,31 @@ void main() {
       expect(handler.mediaItem.value?.id, '2');
       expect(handler.playbackState.value.queueIndex, 1);
     });
+
+    test('falls back to remote source when local cache source fails', () async {
+      final engine = _FakePlaybackEngine(
+        failingSourceKinds: {PlaybackResolvedSourceKind.filePath},
+      );
+      final resolver = _FallbackPlaybackSourceResolver();
+      final handler = AudioServiceHandler(
+        queueStore: _FakePlaybackQueueStore(),
+        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
+        sourceResolver: resolver,
+        engineAdapter: engine,
+      );
+      await handler.updateQueue([
+        _mediaItem('1'),
+      ]);
+
+      await handler.playIndex(audioSourceIndex: 0, playNow: true);
+
+      expect(
+        engine.sources.map((source) => source.url),
+        ['local-cache.mp3', 'remote-url-1'],
+      );
+      expect(engine.playCount, 1);
+      expect(handler.mediaItem.value?.id, '1');
+    });
   });
 }
 
@@ -47,6 +97,12 @@ MediaItem _mediaItem(String id) {
 }
 
 class _FakePlaybackEngine implements PlaybackEnginePort {
+  _FakePlaybackEngine({
+    this.failingSourceKinds = const <PlaybackResolvedSourceKind>{},
+  });
+
+  final Set<PlaybackResolvedSourceKind> failingSourceKinds;
+
   final StreamController<PlaybackEvent> _events =
       StreamController<PlaybackEvent>.broadcast();
 
@@ -99,6 +155,9 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
   @override
   Future<void> setSource(PlaybackResolvedSource source) async {
     sources.add(source);
+    if (failingSourceKinds.contains(source.kind)) {
+      throw StateError('source failed');
+    }
     _hasAudioSource = true;
   }
 }
@@ -115,6 +174,39 @@ class _FakePlaybackSourceResolver implements PlaybackSourceResolver {
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
       url: 'url-${mediaItem.id}',
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    MediaItem mediaItem, {
+    required bool preferHighQuality,
+  }) {
+    return resolve(mediaItem, preferHighQuality: preferHighQuality);
+  }
+}
+
+class _FallbackPlaybackSourceResolver implements PlaybackSourceResolver {
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    MediaItem mediaItem, {
+    required bool preferHighQuality,
+  }) async {
+    return const PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.filePath,
+      url: 'local-cache.mp3',
+      markAsCached: true,
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    MediaItem mediaItem, {
+    required bool preferHighQuality,
+  }) async {
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: 'remote-url-${mediaItem.id}',
     );
   }
 }

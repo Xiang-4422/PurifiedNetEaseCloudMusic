@@ -98,8 +98,11 @@ class PlaybackQueueItemMapper {
     if (track.sourceType == SourceType.local) {
       return MediaType.local;
     }
-    if (resources.audio?.path.isNotEmpty == true) {
-      return MediaType.neteaseCache;
+    final audioPath = resources.audio?.path;
+    if (audioPath?.isNotEmpty == true) {
+      return audioPath!.endsWith('.uc!')
+          ? MediaType.neteaseCache
+          : MediaType.local;
     }
     return MediaType.playlist;
   }

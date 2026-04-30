@@ -71,8 +71,8 @@ class NeteaseMusicSource {
   Future<TrackLyrics?> getLyrics(String trackId) async {
     final wrap = await _api.songLyric(_normalizeTrackId(trackId));
     return TrackLyrics(
-      main: wrap.lrc.lyric ?? '',
-      translated: wrap.tlyric.lyric ?? '',
+      main: wrap.lrc?.lyric ?? '',
+      translated: wrap.tlyric?.lyric ?? '',
     );
   }
 

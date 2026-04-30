@@ -324,9 +324,15 @@ SongLyricWrap _$SongLyricWrapFromJson(Map<String, dynamic> json) =>
       ..sgc = json['sgc'] as bool?
       ..sfy = json['sfy'] as bool?
       ..qfy = json['qfy'] as bool?
-      ..lrc = Lyrics2.fromJson(json['lrc'] as Map<String, dynamic>)
-      ..klyric = Lyrics2.fromJson(json['klyric'] as Map<String, dynamic>)
-      ..tlyric = Lyrics2.fromJson(json['tlyric'] as Map<String, dynamic>);
+      ..lrc = json['lrc'] == null
+          ? null
+          : Lyrics2.fromJson(json['lrc'] as Map<String, dynamic>)
+      ..klyric = json['klyric'] == null
+          ? null
+          : Lyrics2.fromJson(json['klyric'] as Map<String, dynamic>)
+      ..tlyric = json['tlyric'] == null
+          ? null
+          : Lyrics2.fromJson(json['tlyric'] as Map<String, dynamic>);
 
 Map<String, dynamic> _$SongLyricWrapToJson(SongLyricWrap instance) =>
     <String, dynamic>{

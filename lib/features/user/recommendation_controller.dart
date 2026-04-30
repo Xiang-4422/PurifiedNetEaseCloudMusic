@@ -90,7 +90,8 @@ class RecommendationController extends GetxController {
       dateLoaded.value = true;
       scheduleHomeImageColorPrewarm();
       unawaited(_validateLoginStateInBackground?.call());
-      if (await shouldRefreshStartupData()) {
+      if (!_libraryController.hasPlaylistSnapshot ||
+          await shouldRefreshStartupData()) {
         unawaited(updateData());
       }
       return;

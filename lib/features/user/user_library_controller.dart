@@ -30,6 +30,10 @@ class UserLibraryController extends GetxController {
   /// 当前账号是否已有本地资料库快照。
   bool get hasLocalSnapshot => _hasLocalSnapshot;
 
+  /// 当前账号是否已有本地歌单快照。
+  bool get hasPlaylistSnapshot =>
+      userPlayLists.isNotEmpty || userLikedSongPlayList.value.id.isNotEmpty;
+
   /// 用户创建或收藏的普通歌单列表，不包含“我喜欢的音乐”入口。
   final List<PlaylistSummaryData> userPlayLists = <PlaylistSummaryData>[].obs;
 

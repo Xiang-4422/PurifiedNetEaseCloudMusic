@@ -1177,6 +1177,7 @@ class MultiPlayListWrap extends ServerStatusBean {
 /// 另一种多歌单列表响应。
 class MultiPlayListWrap2 extends ServerStatusBean {
   /// 歌单列表。
+  @JsonKey(name: 'playlist')
   List<PlayList>? playlists;
 
   /// 创建多歌单列表响应。

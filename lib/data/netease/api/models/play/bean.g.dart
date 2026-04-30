@@ -847,7 +847,7 @@ MultiPlayListWrap2 _$MultiPlayListWrap2FromJson(Map<String, dynamic> json) =>
       ..code = dynamicToInt(json['code'])
       ..message = json['message'] as String?
       ..msg = json['msg'] as String?
-      ..playlists = (json['playlists'] as List<dynamic>?)
+      ..playlists = (json['playlist'] as List<dynamic>?)
           ?.map((e) => PlayList.fromJson(e as Map<String, dynamic>))
           .toList();
 
@@ -856,7 +856,7 @@ Map<String, dynamic> _$MultiPlayListWrap2ToJson(MultiPlayListWrap2 instance) =>
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
-      'playlists': instance.playlists,
+      'playlist': instance.playlists,
     };
 
 RecommendPlayListWrap _$RecommendPlayListWrapFromJson(

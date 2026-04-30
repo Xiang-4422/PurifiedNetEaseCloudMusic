@@ -1,6 +1,6 @@
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
-import 'package:bujuan/app/presentation_adapters/playback_theme_port.dart';
+import 'package:bujuan/app/presentation_adapters/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/features/album/album_repository.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
@@ -17,10 +17,10 @@ import 'package:bujuan/features/playback/application/current_track_download_use_
 import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
-import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_state_synchronizer.dart';
@@ -29,6 +29,7 @@ import 'package:bujuan/features/playback/application/playback_ui_command_service
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playlist/application/playlist_playback_use_case.dart';
 import 'package:bujuan/features/playlist/application/playlist_playback_action.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
@@ -132,6 +133,12 @@ class FeatureControllerRegistrar {
       ),
       permanent: true,
     );
+    Get.put<PlaylistPlaybackUseCase>(
+      PlaylistPlaybackUseCase(
+        playbackAction: Get.find<PlaybackActionPort>(),
+      ),
+      permanent: true,
+    );
     Get.put<PlaybackLyricUiStateController>(
       PlaybackLyricUiStateController(),
       permanent: true,
@@ -147,6 +154,7 @@ class FeatureControllerRegistrar {
       PlaybackStateSynchronizer(
         playbackService: Get.find<PlaybackService>(),
         queueStore: Get.find<PlaybackQueueStore>(),
+        queueService: Get.find<PlaybackQueueService>(),
         queueCoordinator: Get.find<PlaybackQueueCoordinator>(),
         userContentPort: Get.find<PlaybackUserContentPort>(),
         downloadUseCase: Get.find<CurrentTrackDownloadUseCase>(),
@@ -169,17 +177,17 @@ class FeatureControllerRegistrar {
       () => PlayerController(
         playbackService: Get.find<PlaybackService>(),
         queueStore: Get.find<PlaybackQueueStore>(),
+        queueService: Get.find<PlaybackQueueService>(),
         commandService: Get.find<PlaybackUiCommandService>(),
         modeCommandService: Get.find<PlaybackModeCommandService>(),
         stateSynchronizer: Get.find<PlaybackStateSynchronizer>(),
         selectionService: Get.find<PlaybackSelectionService>(),
-        sideEffectCoordinator: Get.find<CurrentTrackSideEffectCoordinator>(),
         lyricUiStateController: Get.find<PlaybackLyricUiStateController>(),
         userContentPort: Get.find<PlaybackUserContentPort>(),
-        lyricsPresenter: Get.find<PlaybackLyricsPresenter>(),
         artworkPresenter: Get.find<PlaybackArtworkPresenter>(),
+        selectionUiEffectCoordinator:
+            Get.find<PlaybackSelectionUiEffectCoordinator>(),
         downloadUseCase: Get.find<CurrentTrackDownloadUseCase>(),
-        themePort: Get.find<PlaybackThemePort>(),
       ),
       fenix: true,
     );

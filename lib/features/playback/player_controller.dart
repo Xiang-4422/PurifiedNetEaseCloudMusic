@@ -1,16 +1,15 @@
 import 'dart:async';
 import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
-import 'package:bujuan/app/presentation_adapters/playback_theme_port.dart';
+import 'package:bujuan/app/presentation_adapters/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
-import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
-import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
+import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_state_synchronizer.dart';
@@ -40,46 +39,42 @@ class PlayerController extends GetxController {
   PlayerController({
     required PlaybackService playbackService,
     required PlaybackQueueStore queueStore,
+    required PlaybackQueueService queueService,
     required PlaybackUiCommandService commandService,
     required PlaybackModeCommandService modeCommandService,
     required PlaybackStateSynchronizer stateSynchronizer,
     required PlaybackSelectionService selectionService,
-    required CurrentTrackSideEffectCoordinator sideEffectCoordinator,
     required PlaybackLyricUiStateController lyricUiStateController,
     required PlaybackUserContentPort userContentPort,
-    required PlaybackLyricsPresenter lyricsPresenter,
     required PlaybackArtworkPresenter artworkPresenter,
+    required PlaybackSelectionUiEffectCoordinator selectionUiEffectCoordinator,
     required CurrentTrackDownloadUseCase downloadUseCase,
-    required PlaybackThemePort themePort,
   })  : _playbackService = playbackService,
         _queueStore = queueStore,
+        _queueService = queueService,
         _commandService = commandService,
         _modeCommandService = modeCommandService,
         _stateSynchronizer = stateSynchronizer,
         _selectionService = selectionService,
-        _sideEffectCoordinator = sideEffectCoordinator,
         _lyricUiStateController = lyricUiStateController,
         _userContentPort = userContentPort,
-        _lyricsPresenter = lyricsPresenter,
         _artworkPresenter = artworkPresenter,
-        _downloadUseCase = downloadUseCase,
-        _themePort = themePort;
+        _selectionUiEffectCoordinator = selectionUiEffectCoordinator,
+        _downloadUseCase = downloadUseCase;
 
   final PlaybackService _playbackService;
   final PlaybackQueueStore _queueStore;
+  final PlaybackQueueService _queueService;
   final PlaybackUiCommandService _commandService;
   final PlaybackModeCommandService _modeCommandService;
   final PlaybackStateSynchronizer _stateSynchronizer;
   final PlaybackSelectionService _selectionService;
-  final CurrentTrackSideEffectCoordinator _sideEffectCoordinator;
   final PlaybackLyricUiStateController _lyricUiStateController;
   final PlaybackUserContentPort _userContentPort;
-  final PlaybackLyricsPresenter _lyricsPresenter;
   final PlaybackArtworkPresenter _artworkPresenter;
+  final PlaybackSelectionUiEffectCoordinator _selectionUiEffectCoordinator;
   final CurrentTrackDownloadUseCase _downloadUseCase;
-  final PlaybackThemePort _themePort;
   StreamSubscription<PlaybackSelectionState>? _selectionSubscription;
-  String? _lastSelectionUiSideEffectKey;
 
   /// 播放服务门面。
   PlaybackService get playbackService => _playbackService;
@@ -197,6 +192,7 @@ class PlayerController extends GetxController {
     unawaited(
       _queueStore.savePlaybackMode(nextState.playbackMode),
     );
+    unawaited(_queueService.setPlaybackMode(nextState.playbackMode));
   }
 
   void _syncRuntimeState({
@@ -270,60 +266,12 @@ class PlayerController extends GetxController {
   }
 
   void _scheduleSelectionUiSideEffects(PlaybackSelectionState selection) {
-    if (!selection.hasSelection) {
-      return;
-    }
-    final key = '${selection.selectionVersion}:${selection.selectedItem.id}';
-    if (_lastSelectionUiSideEffectKey == key) {
-      return;
-    }
-    _lastSelectionUiSideEffectKey = key;
-    final selectedSong = selection.selectedItem;
-    _syncLyricState(
-      lines: const [],
-      currentIndex: -1,
-      hasTranslatedLyrics: false,
+    _selectionUiEffectCoordinator.schedule(
+      selection: selection,
+      latestSelection: () => selectionState.value,
+      syncLyricState: _syncLyricState,
+      preloadImages: _preloadImages,
     );
-    // 歌词、取色和封面预取属于 UI 展示态，跟随 selection 而不是等底层播放确认。
-    _sideEffectCoordinator.schedule(
-      channel: 'playback-ui-lyric-artwork',
-      delay: const Duration(milliseconds: 180),
-      trackId: selectedSong.id,
-      isStillCurrent: (trackId) =>
-          selectionState.value.selectedItem.id == trackId,
-      run: () async {
-        _preloadImages();
-        await _updateAlbumColor(selectedSong);
-        if (selectionState.value.selectedItem.id != selectedSong.id) {
-          return;
-        }
-        await _updateLyric(selectedSong);
-      },
-    );
-  }
-
-  Future<void> _updateAlbumColor(PlaybackQueueItem currentSong) async {
-    try {
-      final color = await _artworkPresenter.resolveDominantColor(currentSong);
-      if (color == null) {
-        return;
-      }
-      _themePort.applyDominantColor(color);
-    } catch (_) {
-      // 取色失败只影响播放器氛围色，不能阻断后续歌词等展示态更新。
-    }
-  }
-
-  /// 先读本地歌词缓存，再读下载后的本地歌词文件，最后才回退到远程歌词入口。
-  ///
-  /// 这个顺序直接决定离线可用性；歌词内容现在走媒体库存储，不再继续塞进恢复态轻存储。
-  Future<void> _updateLyric(PlaybackQueueItem currentSong) async {
-    _syncLyricState(lines: const [], hasTranslatedLyrics: false);
-    final nextLyricState = await _lyricsPresenter.loadLyrics(currentSong);
-    if (selectionState.value.selectedItem.id != currentSong.id) {
-      return;
-    }
-    lyricState.value = nextLyricState;
   }
 
   /// 播放或暂停当前歌曲。
@@ -361,6 +309,7 @@ class PlayerController extends GetxController {
     final queue = runtimeState.value.queue
         .map((queueItem) => queueItem.id == item.id ? item : queueItem)
         .toList(growable: false);
+    await _queueService.updateQueueItem(item);
     _syncRuntimeState(
       queue: queue,
       currentSong: runtimeState.value.currentSong.id == item.id ? item : null,
@@ -441,7 +390,9 @@ class PlayerController extends GetxController {
   /// 播放当前用户喜欢歌曲列表。
   Future<void> playUserLikedSongs() async {
     await _commandService.playLikedSongs(
-      currentSong: runtimeState.value.currentSong,
+      currentSong: selectionState.value.hasSelection
+          ? selectionState.value.selectedItem
+          : runtimeState.value.currentSong,
     );
   }
 
@@ -452,7 +403,9 @@ class PlayerController extends GetxController {
       isFmMode: isFmModeValue,
       isHeartBeatMode: isHeartBeatModeValue,
       sessionState: sessionState.value,
-      currentSong: runtimeState.value.currentSong,
+      currentSong: selectionState.value.hasSelection
+          ? selectionState.value.selectedItem
+          : runtimeState.value.currentSong,
       quitHeartBeatMode: quitHeartBeatMode,
       setRepeatMode: setRepeatMode,
       openHeartBeatMode: openHeartBeatMode,
@@ -517,6 +470,7 @@ class PlayerController extends GetxController {
     final queue = runtimeState.value.queue
         .map((item) => item.id == updatedItem.id ? updatedItem : item)
         .toList(growable: false);
+    await _queueService.updateQueueItem(updatedItem);
     _syncRuntimeState(
       queue: queue,
       currentSong: updatedItem,
@@ -559,7 +513,7 @@ class PlayerController extends GetxController {
 
   @override
   void onClose() {
-    _sideEffectCoordinator.cancel('playback-ui-lyric-artwork');
+    _selectionUiEffectCoordinator.cancel();
     _selectionSubscription?.cancel();
     _stateSynchronizer.dispose();
     _lyricUiStateController.dispose();

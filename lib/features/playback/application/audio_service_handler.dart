@@ -68,8 +68,8 @@ class AudioServiceHandler extends BaseAudioHandler
   bool Function()? _isHighQualityEnabled;
   Future<void> Function(MediaItem mediaItem)? _handleToggleLike;
   void Function(String message)? _handleToast;
-  bool Function()? _isPlaylistMode;
-  bool Function()? _isRoamingMode;
+  Future<void> Function()? _handleSkipToPrevious;
+  Future<void> Function()? _handleSkipToNext;
   Duration _pendingRestorePosition = Duration.zero;
   int _playIndexVersion = 0;
   Future<void> _sourceSwitchTail = Future<void>.value();
@@ -90,6 +90,8 @@ class AudioServiceHandler extends BaseAudioHandler
     void Function(String message)? onToast,
     bool Function()? isPlaylistMode,
     bool Function()? isRoamingMode,
+    Future<void> Function()? onSkipToPrevious,
+    Future<void> Function()? onSkipToNext,
   }) {
     _handleRestoredPlaybackMode = onRestorePlaybackMode;
     _handleRepeatModeChanged = onRepeatModeChanged;
@@ -97,8 +99,13 @@ class AudioServiceHandler extends BaseAudioHandler
     _isHighQualityEnabled = isHighQualityEnabled;
     _handleToggleLike = onToggleLike;
     _handleToast = onToast;
-    _isPlaylistMode = isPlaylistMode;
-    _isRoamingMode = isRoamingMode;
+    _handleSkipToPrevious = onSkipToPrevious;
+    _handleSkipToNext = onSkipToNext;
+  }
+
+  /// 设置等待下一次音源确认后恢复的播放进度。
+  Future<void> setPendingRestorePosition(Duration position) async {
+    _pendingRestorePosition = position;
   }
 
   /// 恢复上一次的播放模式和队列。
@@ -114,14 +121,12 @@ class AudioServiceHandler extends BaseAudioHandler
       ),
     );
     if (restoreSnapshot.queue.isNotEmpty) {
-      await changePlayList(
-          PlaybackQueueItemAdapter.toMediaItems(restoreSnapshot.queue),
-          index: restoreSnapshot.index,
-          playListName: restoreSnapshot.playlistName,
-          playListNameHeader: restoreSnapshot.playlistHeader,
-          changePlayerSource: false,
-          playNow: false,
-          needStore: false);
+      await setNotificationQueue(
+        PlaybackQueueItemAdapter.toMediaItems(restoreSnapshot.queue),
+        currentIndex: restoreSnapshot.index,
+        playListName: restoreSnapshot.playlistName,
+        playListNameHeader: restoreSnapshot.playlistHeader,
+      );
       _pendingRestorePosition = restoreSnapshot.position;
     }
   }
@@ -132,11 +137,9 @@ class AudioServiceHandler extends BaseAudioHandler
       switch (curRepeatMode) {
         case AudioServiceRepeatMode.one:
           newRepeatMode = AudioServiceRepeatMode.none;
-          await reorderPlayList(shufflePlayList: true);
           break;
         case AudioServiceRepeatMode.none:
           newRepeatMode = AudioServiceRepeatMode.all;
-          await reorderPlayList(shufflePlayList: false);
           break;
         case AudioServiceRepeatMode.all:
         case AudioServiceRepeatMode.group:
@@ -153,16 +156,6 @@ class AudioServiceHandler extends BaseAudioHandler
     _updateMediaControls();
   }
 
-  /// 随机模式切换依赖原始顺序备份，否则来回切模式会不断
-  /// 在已打乱结果上再次打乱，用户无法回到真正的原歌单顺序。
-  reorderPlayList({bool shufflePlayList = false}) async {
-    final playListCopy = _queueSynchronizer.reorder(
-      currentQueue: queue.value,
-      shuffle: shufflePlayList,
-    );
-    await updateQueue(playListCopy);
-  }
-
   /// 统一更新音频服务队列、播放列表元信息和持久化缓存。
   ///
   /// 当前项目仍有多种入口会切换播放列表，先把这些副作用收口在这里，
@@ -174,32 +167,20 @@ class AudioServiceHandler extends BaseAudioHandler
       String playListNameHeader = "",
       required bool changePlayerSource,
       required bool playNow}) async {
-    final playListCopy = _queueSynchronizer.buildPlayableQueue(
-      queue: playList,
-      index: index,
-      shouldShuffle: curRepeatMode == AudioServiceRepeatMode.none &&
-          (_isPlaylistMode?.call() ?? true),
-    );
-    index = _queueSynchronizer.currentIndex;
-    await updateQueue(playListCopy);
-    _handlePlaylistMetaChanged?.call(
-      playListName,
-      playListNameHeader,
-      playListName == "喜欢的音乐",
+    await setNotificationQueue(
+      playList,
+      currentIndex: index,
+      playListName: playListName,
+      playListNameHeader: playListNameHeader,
     );
     if (changePlayerSource) {
       await playIndex(audioSourceIndex: index, playNow: playNow);
-    } else {
-      _queueSynchronizer.currentIndex = index;
-      _publishPlaybackState();
     }
     if (needStore) {
       await _queueStore.saveQueueSnapshot(
         playlistName: playListName,
         playlistHeader: playListNameHeader,
-        originalSongs: PlaybackQueueItemAdapter.fromMediaItems(
-          _queueSynchronizer.originalSongs,
-        ),
+        originalSongs: PlaybackQueueItemAdapter.fromMediaItems(playList),
       );
     } else {
       await _queueStore.savePlaylistMeta(
@@ -207,6 +188,27 @@ class AudioServiceHandler extends BaseAudioHandler
         playlistHeader: playListNameHeader,
       );
     }
+  }
+
+  /// 更新通知栏队列，不触发播放源解析或队列重排。
+  Future<void> setNotificationQueue(
+    List<MediaItem> playList, {
+    required int currentIndex,
+    required String playListName,
+    required String playListNameHeader,
+  }) async {
+    _queueSynchronizer.replaceOriginalQueue(playList);
+    _queueSynchronizer.currentIndex = _clampQueueIndex(
+      currentIndex,
+      playList.length,
+    );
+    await updateQueue(List<MediaItem>.unmodifiable(playList));
+    _handlePlaylistMetaChanged?.call(
+      playListName,
+      playListNameHeader,
+      playListName == "喜欢的音乐",
+    );
+    _publishPlaybackState();
   }
 
   /// 根据 `MediaItem` 的类型约定解析真实播放源。
@@ -221,8 +223,6 @@ class AudioServiceHandler extends BaseAudioHandler
       return false;
     }
     final requestVersion = ++_playIndexVersion;
-    final previousIndex = _queueSynchronizer.currentIndex;
-    final isNext = audioSourceIndex >= previousIndex;
     final newIndexMediaItem = queue.value[audioSourceIndex];
     _isResolvingCurrentSource = true;
     _publishPlaybackState(processingState: AudioProcessingState.loading);
@@ -235,10 +235,7 @@ class AudioServiceHandler extends BaseAudioHandler
     }
     final url = source.url;
     if (source.isEmpty) {
-      if (playNow) {
-        await (isNext ? skipToNext() : skipToPrevious());
-        return false;
-      } else if (_isLatestPlayIndexRequest(requestVersion)) {
+      if (_isLatestPlayIndexRequest(requestVersion)) {
         _isResolvingCurrentSource = false;
         _publishPlaybackState(processingState: AudioProcessingState.idle);
       }
@@ -334,6 +331,19 @@ class AudioServiceHandler extends BaseAudioHandler
     return requestVersion == _playIndexVersion;
   }
 
+  int _clampQueueIndex(int index, int queueLength) {
+    if (queueLength <= 0) {
+      return -1;
+    }
+    if (index < 0) {
+      return 0;
+    }
+    if (index >= queueLength) {
+      return queueLength - 1;
+    }
+    return index;
+  }
+
   AudioProcessingState _currentAudioProcessingState() {
     if (_isResolvingCurrentSource) {
       return AudioProcessingState.loading;
@@ -423,41 +433,17 @@ class AudioServiceHandler extends BaseAudioHandler
 
   @override
   Future<void> skipToNext() async {
-    int newIndex;
-    if (curRepeatMode == AudioServiceRepeatMode.one) {
-      newIndex = _queueSynchronizer.currentIndex;
-    } else {
-      newIndex = _queueSynchronizer.currentIndex + 1;
-      if (newIndex == queue.value.length) {
-        // 漫游模式的补队列是异步触发的，直接回环会把“加载中”和“切回第一首”
-        // 混成同一个动作，结果会让队列状态和 UI 都更难解释。
-        if (_isRoamingMode?.call() ?? false) {
-          _handleToast?.call('正在加载漫游歌曲...');
-          return;
-        }
-        newIndex = 0;
-      }
-    }
-    await playIndex(audioSourceIndex: newIndex, playNow: true);
+    await _handleSkipToNext?.call();
   }
 
   @override
   Future<void> skipToPrevious() async {
-    int newIndex;
-    if (curRepeatMode == AudioServiceRepeatMode.one) {
-      newIndex = _queueSynchronizer.currentIndex;
-    } else {
-      newIndex = _queueSynchronizer.currentIndex - 1;
-      if (newIndex < 0) {
-        newIndex = queue.value.length - 1;
-      }
-    }
-    await playIndex(audioSourceIndex: newIndex, playNow: true);
+    await _handleSkipToPrevious?.call();
   }
 
   @override
   Future<void> stop() async {
-    await changeRepeatMode();
+    await _engine.pause();
   }
 
   @override

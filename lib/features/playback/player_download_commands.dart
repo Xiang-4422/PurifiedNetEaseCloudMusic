@@ -6,7 +6,7 @@ extension PlayerDownloadCommands on PlayerController {
   Future<Track?> downloadCurrentTrack({
     bool preferHighQuality = true,
   }) async {
-    final currentSong = runtimeState.value.currentSong;
+    final currentSong = currentSongState.value;
     if (currentSong.id.isEmpty) {
       return null;
     }
@@ -18,7 +18,7 @@ extension PlayerDownloadCommands on PlayerController {
 
   /// 删除当前歌曲的下载资源。
   Future<Track?> removeCurrentTrackDownload() async {
-    final currentSong = runtimeState.value.currentSong;
+    final currentSong = currentSongState.value;
     if (currentSong.id.isEmpty) {
       return null;
     }
@@ -27,7 +27,7 @@ extension PlayerDownloadCommands on PlayerController {
 
   /// 取消当前歌曲的下载任务。
   Future<Track?> cancelCurrentTrackDownload() async {
-    final currentSong = runtimeState.value.currentSong;
+    final currentSong = currentSongState.value;
     if (currentSong.id.isEmpty) {
       return null;
     }
@@ -38,7 +38,7 @@ extension PlayerDownloadCommands on PlayerController {
   Future<Track?> retryCurrentTrackDownload({
     bool preferHighQuality = true,
   }) async {
-    final currentSong = runtimeState.value.currentSong;
+    final currentSong = currentSongState.value;
     if (currentSong.id.isEmpty) {
       return null;
     }
@@ -103,7 +103,7 @@ extension PlayerDownloadCommands on PlayerController {
     CurrentTrackDownloadResult? result,
   ) async {
     if (result == null ||
-        runtimeState.value.currentSong.id != result.track.id ||
+        currentSongState.value.id != result.track.id ||
         result.queueItem == null) {
       return;
     }

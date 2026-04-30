@@ -5,6 +5,7 @@ import 'package:bujuan/features/playback/application/playback_lyrics_presenter.d
 import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_restore_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_selection_navigator.dart';
@@ -81,9 +82,16 @@ class PlaybackRegistrar {
       ),
       permanent: true,
     );
+    Get.put<PlaybackQueueService>(
+      PlaybackQueueService(
+        queueStore: Get.find<PlaybackQueueStore>(),
+        playbackService: Get.find<PlaybackService>(),
+      ),
+      permanent: true,
+    );
     Get.put<PlaybackSelectionService>(
       PlaybackSelectionService(
-        playbackService: Get.find<PlaybackService>(),
+        queueService: Get.find<PlaybackQueueService>(),
         navigator: Get.find<PlaybackSelectionNavigator>(),
         switchCoordinator: Get.find<PlaybackSwitchCoordinator>(),
       ),
@@ -91,7 +99,7 @@ class PlaybackRegistrar {
     );
     Get.put<PlaybackQueueCoordinator>(
       PlaybackQueueCoordinator(
-        playbackService: Get.find<PlaybackService>(),
+        queueService: Get.find<PlaybackQueueService>(),
         selectionService: Get.find<PlaybackSelectionService>(),
       ),
       permanent: true,
@@ -108,6 +116,7 @@ class PlaybackRegistrar {
       PlaybackUiCommandService(
         playbackService: Get.find<PlaybackService>(),
         modeCoordinator: Get.find<PlaybackModeCoordinator>(),
+        queueService: Get.find<PlaybackQueueService>(),
         selectionService: Get.find<PlaybackSelectionService>(),
       ),
       permanent: true,

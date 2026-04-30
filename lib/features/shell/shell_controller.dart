@@ -261,12 +261,12 @@ class ShellController extends SuperController
 
   /// 提交封面页最终停留索引到播放队列。
   Future<void> commitAlbumPageChange() async {
-    final currentRuntimeState = _playbackPort.runtimeState();
+    final selectionState = _playbackPort.selectionState();
     final settledPage =
         albumPageController.hasClients ? albumPageController.page : null;
     await _albumPageChangeCoordinator.commit(
-      currentIndex: currentRuntimeState.currentIndex,
-      queueLength: currentRuntimeState.queue.length,
+      currentIndex: selectionState.selectedIndex,
+      queueLength: selectionState.queue.length,
       settledPage: settledPage,
       playIndex: _playbackPort.playQueueIndex,
     );

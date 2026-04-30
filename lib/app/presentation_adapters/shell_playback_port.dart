@@ -1,5 +1,6 @@
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
+import 'package:bujuan/features/playback/playback_selection_state.dart';
 import 'package:get/get.dart';
 
 /// Shell 访问播放展示状态的端口，避免壳层直接依赖播放控制器。
@@ -8,6 +9,7 @@ class ShellPlaybackPort {
   const ShellPlaybackPort({
     required this.lyricState,
     required this.currentQueueIndex,
+    required this.selectionState,
     required this.runtimeState,
     required this.isFullScreenLyricOpen,
     required this.updateFullScreenLyricTimerCounter,
@@ -19,6 +21,9 @@ class ShellPlaybackPort {
 
   /// 当前播放队列索引。
   final RxInt Function() currentQueueIndex;
+
+  /// 当前 App UI 播放选择态。
+  final PlaybackSelectionState Function() selectionState;
 
   /// 当前播放运行态快照。
   final PlaybackRuntimeState Function() runtimeState;

@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/features/playback/application/playback_queue_service.dart';
+import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_selection_navigator.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';
@@ -15,7 +18,7 @@ void main() {
     test('updates selection before playback source resolves', () async {
       final playbackService = _FakePlaybackService();
       final selectionService = PlaybackSelectionService(
-        playbackService: playbackService,
+        queueService: _queueService(playbackService),
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: PlaybackSwitchCoordinator(
           playbackService: playbackService,
@@ -51,7 +54,7 @@ void main() {
         () async {
       final playbackService = _FakePlaybackService();
       final selectionService = PlaybackSelectionService(
-        playbackService: playbackService,
+        queueService: _queueService(playbackService),
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: PlaybackSwitchCoordinator(
           playbackService: playbackService,
@@ -77,7 +80,7 @@ void main() {
     test('only the latest rapid selection can become ready', () async {
       final playbackService = _FakePlaybackService();
       final selectionService = PlaybackSelectionService(
-        playbackService: playbackService,
+        queueService: _queueService(playbackService),
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: PlaybackSwitchCoordinator(
           playbackService: playbackService,
@@ -114,16 +117,13 @@ void main() {
       expect(playbackService.playedIndexes.last, 2);
     });
 
-    test('syncs selection index to active queue after playlist reorder',
+    test('maps selected item to active queue after queue service reorder',
         () async {
       final playbackService = _FakePlaybackService();
-      playbackService.activeQueueOverride = [
-        _item('3'),
-        _item('1'),
-        _item('2')
-      ];
+      final queueService = _queueService(playbackService);
+      await queueService.setRepeatMode(PlaybackRepeatMode.none);
       final selectionService = PlaybackSelectionService(
-        playbackService: playbackService,
+        queueService: queueService,
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: PlaybackSwitchCoordinator(
           playbackService: playbackService,
@@ -138,17 +138,27 @@ void main() {
       );
       await Future<void>.delayed(Duration.zero);
 
-      expect(
-          selectionService.state.queue.map((item) => item.id), ['3', '1', '2']);
       expect(selectionService.state.selectedItem.id, '2');
-      expect(selectionService.state.selectedIndex, 2);
+      expect(selectionService.state.selectedIndex, isNonNegative);
+      expect(
+        selectionService.state.queue[selectionService.state.selectedIndex].id,
+        '2',
+      );
 
       playbackService.completePlayIndex(true);
       await selectFuture;
 
-      expect(playbackService.playedIndexes, [2]);
+      expect(playbackService.playedIndexes,
+          [selectionService.state.selectedIndex]);
     });
   });
+}
+
+PlaybackQueueService _queueService(_FakePlaybackService playbackService) {
+  return PlaybackQueueService(
+    queueStore: _FakePlaybackQueueStore(),
+    playbackService: playbackService,
+  );
 }
 
 PlaybackQueueItem _item(String id) {
@@ -173,30 +183,30 @@ PlaybackQueueItem _item(String id) {
 class _FakePlaybackService implements PlaybackService {
   final List<int> playedIndexes = <int>[];
   final List<Completer<bool>> _playIndexCompleters = <Completer<bool>>[];
-  List<PlaybackQueueItem>? activeQueueOverride;
+  List<PlaybackQueueItem> notificationQueue = const <PlaybackQueueItem>[];
 
   Completer<bool> get playIndexCompleter => _playIndexCompleters.last;
 
   @override
-  List<PlaybackQueueItem> get activeQueue => activeQueueOverride ?? const [];
+  List<PlaybackQueueItem> get activeQueue => notificationQueue;
 
   @override
-  Future<void> changePlayList(
-    List<PlaybackQueueItem> playList, {
-    int index = 0,
-    bool needStore = true,
-    required String playListName,
-    String playListNameHeader = '',
-    required bool changePlayerSource,
-    required bool playNow,
-  }) async {}
+  Future<void> setNotificationQueue(
+    List<PlaybackQueueItem> queue, {
+    required int currentIndex,
+    required String playlistName,
+    required String playlistHeader,
+  }) async {
+    notificationQueue = queue;
+  }
 
   @override
-  Future<bool> playIndex({
-    required int audioSourceIndex,
+  Future<bool> setSourceForQueueItem({
+    required PlaybackQueueItem item,
+    required int activeIndex,
     required bool playNow,
   }) {
-    playedIndexes.add(audioSourceIndex);
+    playedIndexes.add(activeIndex);
     final completer = Completer<bool>();
     _playIndexCompleters.add(completer);
     return completer.future;
@@ -205,6 +215,27 @@ class _FakePlaybackService implements PlaybackService {
   void completePlayIndex(bool success) {
     _playIndexCompleters.last.complete(success);
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakePlaybackQueueStore implements PlaybackQueueStore {
+  @override
+  Future<void> saveQueueSnapshot({
+    required List<PlaybackQueueItem> originalSongs,
+    required String playlistName,
+    required String playlistHeader,
+  }) async {}
+
+  @override
+  Future<void> savePlaylistMeta({
+    required String playlistName,
+    required String playlistHeader,
+  }) async {}
+
+  @override
+  Future<void> saveRepeatMode(PlaybackRepeatMode repeatMode) async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -1,12 +1,15 @@
 import 'package:bujuan/app/ui/toast_service.dart';
 import 'package:bujuan/app/presentation_adapters/comment_content_port.dart';
 import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
+import 'package:bujuan/app/presentation_adapters/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/app/presentation_adapters/playback_theme_port.dart';
 import 'package:bujuan/app/presentation_adapters/settings_navigation_port.dart';
 import 'package:bujuan/app/presentation_adapters/shell_playback_port.dart';
 import 'package:bujuan/app/presentation_adapters/shell_user_port.dart';
 import 'package:bujuan/features/comment/presentation/comment_widget.dart';
 import 'package:bujuan/features/download/presentation/download_task_page_view.dart';
+import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
 import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
@@ -42,6 +45,7 @@ class PresentationAdapterRegistrar {
       ShellPlaybackPort(
         lyricState: () => Get.find<PlayerController>().lyricState,
         currentQueueIndex: () => Get.find<PlayerController>().currentQueueIndex,
+        selectionState: () => Get.find<PlayerController>().selectionState.value,
         runtimeState: () => Get.find<PlayerController>().runtimeState.value,
         isFullScreenLyricOpen: () =>
             Get.find<PlayerController>().isFullScreenLyricOpen.value,
@@ -64,6 +68,15 @@ class PresentationAdapterRegistrar {
     );
     Get.put<PlaybackArtworkPresenter>(
       PlaybackArtworkPresenter(repository: Get.find<PlaybackRepository>()),
+      permanent: true,
+    );
+    Get.put<PlaybackSelectionUiEffectCoordinator>(
+      PlaybackSelectionUiEffectCoordinator(
+        sideEffectCoordinator: Get.find<CurrentTrackSideEffectCoordinator>(),
+        lyricsPresenter: Get.find<PlaybackLyricsPresenter>(),
+        artworkPresenter: Get.find<PlaybackArtworkPresenter>(),
+        themePort: Get.find<PlaybackThemePort>(),
+      ),
       permanent: true,
     );
     Get.put<SettingsNavigationPort>(

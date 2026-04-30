@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_selection_navigator.dart';
 import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
+import 'package:bujuan/features/playback/playback_queue_state.dart';
 import 'package:bujuan/features/playback/playback_selection_state.dart';
-import 'package:bujuan/features/playback/playback_service.dart';
 
 /// 播放 UI selection 的唯一写入口。
 ///
@@ -16,21 +17,20 @@ import 'package:bujuan/features/playback/playback_service.dart';
 class PlaybackSelectionService {
   /// 创建播放选择服务。
   PlaybackSelectionService({
-    required PlaybackService playbackService,
+    required PlaybackQueueService queueService,
     required PlaybackSelectionNavigator navigator,
     required PlaybackSwitchCoordinator switchCoordinator,
-  })  : _playbackService = playbackService,
-        _navigator = navigator,
-        _switchCoordinator = switchCoordinator;
+  })  : _queueService = queueService,
+        _switchCoordinator = switchCoordinator {
+    _queueSubscription = _queueService.stream.listen(_syncFromQueueState);
+  }
 
-  final PlaybackService _playbackService;
-  final PlaybackSelectionNavigator _navigator;
+  final PlaybackQueueService _queueService;
   final PlaybackSwitchCoordinator _switchCoordinator;
   final StreamController<PlaybackSelectionState> _stateController =
       StreamController<PlaybackSelectionState>.broadcast();
+  late final StreamSubscription<PlaybackQueueState> _queueSubscription;
 
-  PlaybackRepeatMode Function() _repeatMode = () => PlaybackRepeatMode.all;
-  PlaybackMode Function() _playbackMode = () => PlaybackMode.playlist;
   PlaybackSelectionState _state = const PlaybackSelectionState();
 
   /// 当前 selection 快照。
@@ -43,10 +43,7 @@ class PlaybackSelectionService {
   void configure({
     required PlaybackRepeatMode Function() repeatMode,
     required PlaybackMode Function() playbackMode,
-  }) {
-    _repeatMode = repeatMode;
-    _playbackMode = playbackMode;
-  }
+  }) {}
 
   /// 选择并切换播放队列。
   Future<void> selectQueue(
@@ -58,27 +55,15 @@ class PlaybackSelectionService {
     bool playNow = true,
     bool needStore = true,
   }) async {
-    final selectedIndex = _navigator.clampIndex(
-      index: index,
-      queueLength: queue.length,
-    );
-    _emitSelection(
-      queue: queue,
-      selectedIndex: selectedIndex,
-      sourceStatus: PlaybackSelectionSourceStatus.idle,
-      bumpVersion: true,
-    );
-    await _playbackService.changePlayList(
+    final queueState = await _queueService.replaceQueue(
       queue,
-      index: selectedIndex < 0 ? 0 : selectedIndex,
-      playListName: playListName,
-      playListNameHeader: playListNameHeader,
-      playNow: false,
-      changePlayerSource: false,
+      index,
+      playlistName: playListName,
       needStore: needStore,
+      playlistHeader: playListNameHeader,
     );
-    _syncActiveQueueSelection(selectedItemId: _state.selectedItem.id);
-    if (playNow && selectedIndex >= 0) {
+    _syncFromQueueState(queueState);
+    if (playNow && queueState.selectedIndex >= 0) {
       await _submitCurrentSelection(trigger: trigger, playNow: true);
     }
   }
@@ -89,19 +74,11 @@ class PlaybackSelectionService {
     required PlaybackSwitchTrigger trigger,
     bool playNow = true,
   }) async {
-    final selectedIndex = _navigator.clampIndex(
-      index: index,
-      queueLength: _state.queue.length,
-    );
-    if (selectedIndex < 0) {
+    final queueState = await _queueService.selectIndex(index);
+    _syncFromQueueState(queueState);
+    if (queueState.selectedIndex < 0) {
       return;
     }
-    _emitSelection(
-      queue: _state.queue,
-      selectedIndex: selectedIndex,
-      sourceStatus: PlaybackSelectionSourceStatus.idle,
-      bumpVersion: true,
-    );
     if (playNow) {
       await _submitCurrentSelection(trigger: trigger, playNow: true);
     }
@@ -112,16 +89,14 @@ class PlaybackSelectionService {
     required PlaybackSwitchTrigger trigger,
     bool playNow = true,
   }) async {
-    final index = _navigator.nextIndex(
-      queueLength: _state.queue.length,
-      selectedIndex: _state.selectedIndex,
-      repeatMode: _repeatMode(),
-      isRoamingMode: _playbackMode() == PlaybackMode.roaming,
-    );
-    if (index == null) {
+    final queueState = await _queueService.selectNext();
+    if (queueState == null) {
       return;
     }
-    await selectIndex(index, trigger: trigger, playNow: playNow);
+    _syncFromQueueState(queueState);
+    if (playNow) {
+      await _submitCurrentSelection(trigger: trigger, playNow: true);
+    }
   }
 
   /// 选择上一首。
@@ -129,57 +104,19 @@ class PlaybackSelectionService {
     required PlaybackSwitchTrigger trigger,
     bool playNow = true,
   }) async {
-    final index = _navigator.previousIndex(
-      queueLength: _state.queue.length,
-      selectedIndex: _state.selectedIndex,
-      repeatMode: _repeatMode(),
-    );
-    if (index == null) {
+    final queueState = await _queueService.selectPrevious();
+    if (queueState == null) {
       return;
     }
-    await selectIndex(index, trigger: trigger, playNow: playNow);
+    _syncFromQueueState(queueState);
+    if (playNow) {
+      await _submitCurrentSelection(trigger: trigger, playNow: true);
+    }
   }
 
-  /// 从恢复或队列变化同步 selection 队列，但不提交到底层播放。
-  void syncQueueSnapshot(
-    List<PlaybackQueueItem> queue, {
-    int? preferredIndex,
-  }) {
-    final currentSelectedId = _state.selectedItem.id;
-    var selectedIndex = preferredIndex ??
-        queue.indexWhere((item) => item.id == currentSelectedId);
-    selectedIndex = _navigator.clampIndex(
-      index: selectedIndex,
-      queueLength: queue.length,
-    );
-    final bumpVersion = _state.queue.isEmpty && queue.isNotEmpty;
-    _emitSelection(
-      queue: queue,
-      selectedIndex: selectedIndex,
-      sourceStatus: _state.sourceStatus,
-      bumpVersion: bumpVersion,
-    );
-  }
-
-  void _syncActiveQueueSelection({required String selectedItemId}) {
-    final activeQueue = _playbackService.activeQueue;
-    if (activeQueue.isEmpty) {
-      return;
-    }
-    final activeIndex = _navigator.indexOfItemId(
-      activeQueueIds:
-          activeQueue.map((item) => item.id).toList(growable: false),
-      itemId: selectedItemId,
-    );
-    if (activeIndex < 0) {
-      return;
-    }
-    _emitSelection(
-      queue: activeQueue,
-      selectedIndex: activeIndex,
-      sourceStatus: _state.sourceStatus,
-      bumpVersion: false,
-    );
+  /// 从队列事实源同步 selection，但不提交到底层播放。
+  void syncFromQueueState() {
+    _syncFromQueueState(_queueService.state);
   }
 
   Future<void> _submitCurrentSelection({
@@ -194,7 +131,9 @@ class PlaybackSelectionService {
       ),
     );
     final result = await _switchCoordinator.switchToSelection(
-      selection: _state,
+      item: _state.selectedItem,
+      activeIndex: _state.selectedIndex,
+      selectionVersion: _state.selectionVersion,
       trigger: trigger,
       playNow: playNow,
     );
@@ -223,7 +162,7 @@ class PlaybackSelectionService {
     required List<PlaybackQueueItem> queue,
     required int selectedIndex,
     required PlaybackSelectionSourceStatus sourceStatus,
-    required bool bumpVersion,
+    required int selectionVersion,
   }) {
     final selectedItem = selectedIndex >= 0 && selectedIndex < queue.length
         ? queue[selectedIndex]
@@ -233,11 +172,24 @@ class PlaybackSelectionService {
         queue: List<PlaybackQueueItem>.unmodifiable(queue),
         selectedItem: selectedItem,
         selectedIndex: selectedIndex,
-        selectionVersion:
-            bumpVersion ? _state.selectionVersion + 1 : _state.selectionVersion,
+        selectionVersion: selectionVersion,
         sourceStatus: sourceStatus,
         sourceError: null,
       ),
+    );
+  }
+
+  void _syncFromQueueState(PlaybackQueueState queueState) {
+    final selectedIdChanged =
+        _state.selectedItem.id != queueState.selectedItem.id;
+    final sourceStatus = selectedIdChanged
+        ? PlaybackSelectionSourceStatus.idle
+        : _state.sourceStatus;
+    _emitSelection(
+      queue: queueState.activeQueue,
+      selectedIndex: queueState.selectedIndex,
+      sourceStatus: sourceStatus,
+      selectionVersion: queueState.selectionVersion,
     );
   }
 
@@ -248,6 +200,7 @@ class PlaybackSelectionService {
 
   /// 释放 selection 状态流。
   Future<void> dispose() async {
+    await _queueSubscription.cancel();
     await _stateController.close();
   }
 }

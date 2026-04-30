@@ -34,6 +34,8 @@ class PlaybackService extends GetxService {
   void Function(String message)? _onToast;
   bool Function()? _isPlaylistMode;
   bool Function()? _isRoamingMode;
+  Future<void> Function()? _onSkipToPrevious;
+  Future<void> Function()? _onSkipToNext;
 
   /// 已初始化的 audio_service handler。
   AudioServiceHandler get handler {
@@ -96,6 +98,8 @@ class PlaybackService extends GetxService {
     void Function(String message)? onToast,
     bool Function()? isPlaylistMode,
     bool Function()? isRoamingMode,
+    Future<void> Function()? onSkipToPrevious,
+    Future<void> Function()? onSkipToNext,
   }) {
     _onRestorePlaybackMode = onRestorePlaybackMode;
     _onRepeatModeChanged = onRepeatModeChanged;
@@ -105,6 +109,8 @@ class PlaybackService extends GetxService {
     _onToast = onToast;
     _isPlaylistMode = isPlaylistMode;
     _isRoamingMode = isRoamingMode;
+    _onSkipToPrevious = onSkipToPrevious;
+    _onSkipToNext = onSkipToNext;
     _applyHandlerBindings();
   }
 
@@ -125,11 +131,23 @@ class PlaybackService extends GetxService {
       onToast: _onToast,
       isPlaylistMode: _isPlaylistMode,
       isRoamingMode: _isRoamingMode,
+      onSkipToPrevious: _onSkipToPrevious,
+      onSkipToNext: _onSkipToNext,
     );
   }
 
   /// 恢复上次播放状态。
   Future<void> restoreLastPlayState() => handler.restoreLastPlayState();
+
+  /// 读取上次播放恢复快照。
+  Future<PlaybackRestoreSnapshot> loadRestoreSnapshot() {
+    return _restoreCoordinator.loadSnapshot();
+  }
+
+  /// 设置等待音源确认后恢复的播放进度。
+  Future<void> setPendingRestorePosition(Duration position) {
+    return handler.setPendingRestorePosition(position);
+  }
 
   /// 开始播放。
   Future<void> play() => handler.play();
@@ -158,6 +176,21 @@ class PlaybackService extends GetxService {
     );
   }
 
+  /// 更新 audio_service 通知栏队列，不触发播放源切换。
+  Future<void> setNotificationQueue(
+    List<PlaybackQueueItem> queue, {
+    required int currentIndex,
+    required String playlistName,
+    required String playlistHeader,
+  }) {
+    return handler.setNotificationQueue(
+      PlaybackQueueItemAdapter.toMediaItems(queue),
+      currentIndex: currentIndex,
+      playListName: playlistName,
+      playListNameHeader: playlistHeader,
+    );
+  }
+
   /// 播放队列中的指定索引。
   Future<bool> playIndex({
     required int audioSourceIndex,
@@ -165,6 +198,21 @@ class PlaybackService extends GetxService {
   }) {
     return handler.playIndex(
         audioSourceIndex: audioSourceIndex, playNow: playNow);
+  }
+
+  /// 为 active queue 中的指定歌曲设置底层播放源。
+  Future<bool> setSourceForQueueItem({
+    required PlaybackQueueItem item,
+    required int activeIndex,
+    required bool playNow,
+  }) {
+    final queue = activeQueue;
+    if (activeIndex < 0 ||
+        activeIndex >= queue.length ||
+        queue[activeIndex].id != item.id) {
+      return Future.value(false);
+    }
+    return handler.playIndex(audioSourceIndex: activeIndex, playNow: playNow);
   }
 
   /// 跳转到指定播放进度。

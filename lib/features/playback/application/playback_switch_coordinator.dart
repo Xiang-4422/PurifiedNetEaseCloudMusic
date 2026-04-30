@@ -1,5 +1,5 @@
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
-import 'package:bujuan/features/playback/playback_selection_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
 /// 底层切歌结果。
@@ -44,13 +44,15 @@ class PlaybackSwitchCoordinator {
 
   /// 提交当前 selection 到底层播放器。
   Future<PlaybackSwitchResult> switchToSelection({
-    required PlaybackSelectionState selection,
+    required PlaybackQueueItem item,
+    required int activeIndex,
+    required int selectionVersion,
     required PlaybackSwitchTrigger trigger,
     required bool playNow,
   }) async {
-    final version = selection.selectionVersion;
+    final version = selectionVersion;
     _latestVersion = version;
-    if (!selection.hasSelection) {
+    if (item.id.isEmpty || activeIndex < 0) {
       return PlaybackSwitchResult(
         selectionVersion: version,
         success: false,
@@ -66,8 +68,9 @@ class PlaybackSwitchCoordinator {
           isObsolete: true,
         );
       }
-      final success = await _playbackService.playIndex(
-        audioSourceIndex: selection.selectedIndex,
+      final success = await _playbackService.setSourceForQueueItem(
+        item: item,
+        activeIndex: activeIndex,
         playNow: playNow,
       );
       if (_isObsolete(version)) {

@@ -1,18 +1,18 @@
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
-import 'package:bujuan/features/playback/playback_service.dart';
 
 /// 承接播放队列的裁剪、追加和去重规则。
 class PlaybackQueueCoordinator {
   /// 创建播放队列协调器。
   PlaybackQueueCoordinator({
-    required PlaybackService playbackService,
+    required PlaybackQueueService queueService,
     required PlaybackSelectionService selectionService,
-  })  : _playbackService = playbackService,
+  })  : _queueService = queueService,
         _selectionService = selectionService;
 
-  final PlaybackService _playbackService;
+  final PlaybackQueueService _queueService;
   final PlaybackSelectionService _selectionService;
 
   /// 追加漫游歌曲并按需自动播放下一首。
@@ -27,35 +27,18 @@ class PlaybackQueueCoordinator {
       return;
     }
 
-    final existingIds = currentQueue.map((item) => item.id).toSet();
-    final filteredSongs =
-        incomingSongs.where((item) => !existingIds.contains(item.id)).toList();
-    if (filteredSongs.isEmpty) {
-      return;
-    }
-
-    final combined = [...currentQueue, ...filteredSongs];
-    if (combined.length > 200) {
-      combined.removeRange(0, combined.length - 150);
-    }
-
-    final updatedIndex =
-        combined.indexWhere((element) => element.id == currentSongId);
-    final nextIndex = updatedIndex != -1 ? updatedIndex : fallbackIndex;
-
-    await _playbackService.changePlayList(
-      combined,
-      index: nextIndex,
-      playListName: '漫游模式',
-      playListNameHeader: '漫游',
-      playNow: false,
-      changePlayerSource: false,
-      needStore: false,
+    final queueState = await _queueService.appendQueueItems(
+      incomingSongs,
+      currentSongId: currentSongId,
     );
+    final updatedIndex = queueState.activeQueue.indexWhere(
+      (element) => element.id == currentSongId,
+    );
+    final nextIndex = updatedIndex != -1 ? updatedIndex : fallbackIndex;
 
     if (shouldAutoPlayNext) {
       final autoPlayIndex = nextIndex + 1;
-      if (autoPlayIndex < combined.length) {
+      if (autoPlayIndex < queueState.activeQueue.length) {
         await _selectionService.selectIndex(
           autoPlayIndex,
           trigger: PlaybackSwitchTrigger.modeAutoAdvance,

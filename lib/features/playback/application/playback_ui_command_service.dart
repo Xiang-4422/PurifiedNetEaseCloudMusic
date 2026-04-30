@@ -2,6 +2,7 @@ import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
@@ -12,13 +13,16 @@ class PlaybackUiCommandService {
   PlaybackUiCommandService({
     required PlaybackService playbackService,
     required PlaybackModeCoordinator modeCoordinator,
+    required PlaybackQueueService queueService,
     required PlaybackSelectionService selectionService,
   })  : _playbackService = playbackService,
         _modeCoordinator = modeCoordinator,
+        _queueService = queueService,
         _selectionService = selectionService;
 
   final PlaybackService _playbackService;
   final PlaybackModeCoordinator _modeCoordinator;
+  final PlaybackQueueService _queueService;
   final PlaybackSelectionService _selectionService;
 
   /// 根据当前播放状态执行播放或暂停。
@@ -78,12 +82,18 @@ class PlaybackUiCommandService {
   }
 
   /// 设置重复播放模式。
-  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) {
-    return _playbackService.changeRepeatMode(newRepeatMode: repeatMode);
+  Future<void> setRepeatMode(PlaybackRepeatMode repeatMode) async {
+    await _queueService.setRepeatMode(repeatMode);
+    await _playbackService.changeRepeatMode(newRepeatMode: repeatMode);
   }
 
   /// 循环切换重复播放模式。
-  Future<void> cycleRepeatMode() => _playbackService.changeRepeatMode();
+  Future<void> cycleRepeatMode() async {
+    final queueState = await _queueService.cycleRepeatMode();
+    await _playbackService.changeRepeatMode(
+      newRepeatMode: queueState.repeatMode,
+    );
+  }
 
   /// 启动漫游模式。
   Future<bool> startRoamingMode({

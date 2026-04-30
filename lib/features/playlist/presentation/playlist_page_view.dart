@@ -1,14 +1,12 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/features/playback/application/playback_action_port.dart';
+import 'package:bujuan/features/playlist/application/playlist_playback_use_case.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
@@ -50,7 +48,8 @@ class PlayListPageView extends StatefulWidget {
 class _PlayListPageViewState extends State<PlayListPageView> {
   final PlaylistPageController _controller =
       Get.find<FeatureControllerFactory>().playlistPage();
-  final PlaybackActionPort _playbackAction = Get.find<PlaybackActionPort>();
+  final PlaylistPlaybackUseCase _playbackUseCase =
+      Get.find<PlaylistPlaybackUseCase>();
 
   String playlistName = '';
   String? coverUrl;
@@ -149,17 +148,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                 onPressed: () async {
-                                  if (songs.isEmpty) {
-                                    return;
-                                  }
-                                  await _playbackAction
-                                      .setRepeatMode(PlaybackRepeatMode.all);
                                   ShellController.to.jumpBottomPanelToPage(0);
                                   ShellController.to.openBottomPanel();
-                                  const startIndex = 0;
-                                  await _playbackAction.playPlaylist(
+                                  await _playbackUseCase.playSequential(
                                     songs,
-                                    startIndex,
                                     playListName: playlistName,
                                     playListNameHeader: "歌单",
                                   );
@@ -207,23 +199,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               color: widgetColor.withValues(alpha: 0.05),
                               child: IconButton(
                                 onPressed: () async {
-                                  if (songs.isEmpty) {
-                                    return;
-                                  }
-                                  await _playbackAction
-                                      .setRepeatMode(PlaybackRepeatMode.none);
                                   ShellController.to.jumpBottomPanelToPage(0);
                                   ShellController.to.openBottomPanel();
-                                  // 根据当前播放模式，决定从哪个位置开始播放
-                                  int startIndex = _playbackAction
-                                              .sessionState()
-                                              .repeatMode ==
-                                          PlaybackRepeatMode.none
-                                      ? Random().nextInt(loadedSongCount)
-                                      : 0;
-                                  await _playbackAction.playPlaylist(
+                                  await _playbackUseCase.playShuffle(
                                     songs,
-                                    startIndex,
                                     playListName: widget.playlistName,
                                     playListNameHeader: "歌单",
                                   );
@@ -263,7 +242,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               ShellController.to.jumpBottomPanelToPage(0);
                               ShellController.to.openBottomPanel();
                             },
-                            onPlay: _playbackAction.playPlaylist,
+                            onPlay: _playbackUseCase.playAt,
                           );
                         },
                         childCount: loadedSongCount,

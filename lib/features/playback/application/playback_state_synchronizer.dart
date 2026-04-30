@@ -10,6 +10,7 @@ import 'package:bujuan/features/playback/application/current_track_side_effect_c
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
@@ -42,6 +43,7 @@ class PlaybackStateSynchronizer {
   PlaybackStateSynchronizer({
     required PlaybackService playbackService,
     required PlaybackQueueStore queueStore,
+    required PlaybackQueueService queueService,
     required PlaybackQueueCoordinator queueCoordinator,
     required PlaybackUserContentPort userContentPort,
     required CurrentTrackDownloadUseCase downloadUseCase,
@@ -52,6 +54,7 @@ class PlaybackStateSynchronizer {
     required CurrentTrackSideEffectCoordinator sideEffectCoordinator,
   })  : _playbackService = playbackService,
         _queueStore = queueStore,
+        _queueService = queueService,
         _queueCoordinator = queueCoordinator,
         _userContentPort = userContentPort,
         _downloadUseCase = downloadUseCase,
@@ -63,6 +66,7 @@ class PlaybackStateSynchronizer {
 
   final PlaybackService _playbackService;
   final PlaybackQueueStore _queueStore;
+  final PlaybackQueueService _queueService;
   final PlaybackQueueCoordinator _queueCoordinator;
   final PlaybackUserContentPort _userContentPort;
   final CurrentTrackDownloadUseCase _downloadUseCase;
@@ -113,21 +117,31 @@ class PlaybackStateSynchronizer {
       onToast: _toastPort.show,
       isPlaylistMode: () => playbackMode() == PlaybackMode.playlist,
       isRoamingMode: () => playbackMode() == PlaybackMode.roaming,
+      onSkipToPrevious: () => _selectionService.selectPrevious(
+        trigger: PlaybackSwitchTrigger.userPrevious,
+      ),
+      onSkipToNext: () => _selectionService.selectNext(
+        trigger: PlaybackSwitchTrigger.userNext,
+      ),
     );
     await _playbackService.ensureInitialized();
+    final restoreSnapshot = await _playbackService.loadRestoreSnapshot();
+    syncSessionState(
+      playbackMode: restoreSnapshot.playbackMode,
+      repeatMode: restoreSnapshot.repeatMode,
+      playlistName: restoreSnapshot.playlistName,
+      playlistHeader: restoreSnapshot.playlistHeader,
+      isPlayingLikedSongs: restoreSnapshot.playlistName == '喜欢的音乐',
+    );
+    await _queueService.restoreSnapshot(restoreSnapshot);
+    syncSelectionQueue(
+      _selectionService.state.queue,
+      _selectionService.state.selectedIndex,
+    );
 
     _subscriptions.add(
       _playbackService.queueStream.listen((queueItems) async {
         syncRuntimeState(queue: queueItems);
-        _selectionService.syncQueueSnapshot(
-          queueItems,
-          preferredIndex:
-              _playbackService.handler.playbackState.value.queueIndex,
-        );
-        syncSelectionQueue(
-          _selectionService.state.queue,
-          _selectionService.state.selectedIndex,
-        );
         await updateCurrentPlayIndex(currentItemUpdated: false);
       }),
     );
@@ -135,7 +149,13 @@ class PlaybackStateSynchronizer {
     _subscriptions.add(
       _playbackService.mediaItemStream.listen((queueItem) async {
         if (queueItem == null) return;
-        syncRuntimeState(currentSong: queueItem);
+        final queueIndex =
+            _playbackService.handler.playbackState.value.queueIndex;
+        await _queueService.markConfirmed(item: queueItem, index: queueIndex);
+        syncRuntimeState(
+          currentSong: queueItem,
+          currentIndex: _queueService.state.confirmedIndex,
+        );
         unawaited(_queueStore.saveCurrentSong(queueItem.id));
         await updateCurrentPlayIndex(currentItemUpdated: false);
         await _appendRoamingSongsIfNeeded(
@@ -194,7 +214,6 @@ class PlaybackStateSynchronizer {
       }),
     );
 
-    await _playbackService.restoreLastPlayState();
     await updateCurrentPlayIndex(currentItemUpdated: false);
   }
 

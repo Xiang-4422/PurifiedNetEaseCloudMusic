@@ -226,6 +226,66 @@ void main() {
       );
     });
 
+    test('playback queue ownership does not flow back from audio adapter', () {
+      final selectionFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_selection_service.dart',
+      );
+      final synchronizerFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_state_synchronizer.dart',
+      );
+      final handlerFile = File(
+        '${projectRoot.path}/lib/features/playback/application/audio_service_handler.dart',
+      );
+      final violations = <String>[
+        if (_containsAny(selectionFile, const [
+          'PlaybackService',
+          '_playbackService',
+          'handler.queue',
+          'mediaItemStream',
+          'queueStream',
+        ]))
+          _relativePath(selectionFile),
+        if (_containsAny(synchronizerFile, const [
+          'syncQueueSnapshot',
+          'syncFromQueueState(',
+        ]))
+          _relativePath(synchronizerFile),
+        if (_containsAny(handlerFile, const [
+          '.shuffle(',
+          'reorderPlayList',
+          'buildPlayableQueue',
+          'nextIndex(',
+          'previousIndex(',
+        ]))
+          _relativePath(handlerFile),
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            '队列顺序和 selection 只能由 PlaybackQueueService/SelectionService 决定，audio adapter 与 synchronizer 不能反向改写。',
+      );
+    });
+
+    test('audio service transport controls route back to selection command',
+        () {
+      final handlerFile = File(
+        '${projectRoot.path}/lib/features/playback/application/audio_service_handler.dart',
+      );
+      final content = handlerFile.readAsStringSync();
+
+      expect(
+        content,
+        allOf(
+          contains('_handleSkipToNext?.call()'),
+          contains('_handleSkipToPrevious?.call()'),
+          isNot(contains('await playIndex(audioSourceIndex: newIndex')),
+        ),
+        reason: '通知栏 next/previous 必须回到 selection 命令入口，不能在 handler 内部自行计算并切源。',
+      );
+    });
+
     test('presentation does not import remote data sources directly', () {
       final violations = _dartFiles(libDirectory)
           .where((file) => _relativePath(file).contains('/presentation/'))

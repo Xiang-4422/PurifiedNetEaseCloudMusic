@@ -37,10 +37,14 @@ class PlaylistPlaybackAction {
       await _toggleCurrentPlayback();
       return;
     }
-    final details = await _repository.fetchPlaylistSnapshot(playlist.id);
+    final likedSongIds = UserLibraryController.to.likedSongIds.toList();
+    final details = await _repository.fetchPlaylistSnapshot(
+      playlist.id,
+      likedSongIds: likedSongIds,
+    );
     final songs = await _repository.fetchPlaylistSongs(
       playlistId: playlist.id,
-      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
+      likedSongIds: likedSongIds,
       playlistSnapshot: details,
     );
     await _playPlaylist(

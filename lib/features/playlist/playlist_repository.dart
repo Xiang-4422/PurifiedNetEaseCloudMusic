@@ -39,6 +39,7 @@ class PlaylistSnapshotData {
     required this.creatorUserId,
     this.coverUrl,
     this.trackCount,
+    this.isLikedSongs = false,
   });
 
   /// 歌单缓存 id。
@@ -59,6 +60,9 @@ class PlaylistSnapshotData {
   /// 歌单声明的曲目总数。
   final int? trackCount;
 
+  /// 是否为网易云“我喜欢的音乐”特殊歌单。
+  final bool isLikedSongs;
+
   /// 从缓存 JSON 恢复歌单快照。
   factory PlaylistSnapshotData.fromJson(Map<String, dynamic> json) {
     return PlaylistSnapshotData(
@@ -70,6 +74,7 @@ class PlaylistSnapshotData {
       creatorUserId: json['creatorUserId'] as String?,
       coverUrl: json['coverUrl'] as String?,
       trackCount: json['trackCount'] as int?,
+      isLikedSongs: json['isLikedSongs'] as bool? ?? false,
     );
   }
 
@@ -82,6 +87,7 @@ class PlaylistSnapshotData {
       'creatorUserId': creatorUserId,
       'coverUrl': coverUrl,
       'trackCount': trackCount,
+      'isLikedSongs': isLikedSongs,
     };
   }
 }
@@ -112,6 +118,7 @@ class PlaylistRepository {
   Future<PlaylistSnapshotData> fetchPlaylistSnapshot(
     String playlistId, {
     String? currentUserId,
+    List<int> likedSongIds = const [],
   }) async {
     final sourcePlaylistId = _toSourcePlaylistId(playlistId);
     final cachePlaylistId = _toCachePlaylistId(playlistId);
@@ -129,6 +136,14 @@ class PlaylistRepository {
         ),
       );
     }
+    if (snapshot.isLikedSongs && likedSongIds.isNotEmpty) {
+      final likedTrackIds = likedSongIds.map((id) => 'netease:$id').toList();
+      if (likedTrackIds.length > trackIds.length) {
+        trackIds
+          ..clear()
+          ..addAll(likedTrackIds);
+      }
+    }
     if (snapshot.playlist != null) {
       await _libraryRepository.savePlaylists([snapshot.playlist!]);
     }
@@ -139,6 +154,7 @@ class PlaylistRepository {
       creatorUserId: snapshot.creatorUserId,
       coverUrl: snapshot.playlist?.coverUrl,
       trackCount: snapshot.playlist?.trackCount,
+      isLikedSongs: snapshot.isLikedSongs,
     );
     await _cacheStore.saveSnapshot(cachePlaylistId, playlistSnapshot);
     if (currentUserId?.isNotEmpty == true) {
@@ -159,7 +175,10 @@ class PlaylistRepository {
     int limit = -1,
     PlaylistSnapshotData? playlistSnapshot,
   }) async {
-    playlistSnapshot ??= await fetchPlaylistSnapshot(playlistId);
+    playlistSnapshot ??= await fetchPlaylistSnapshot(
+      playlistId,
+      likedSongIds: likedSongIds,
+    );
     final songIds = playlistSnapshot.trackIds
         .map(_toSourceTrackId)
         .where((id) => id.isNotEmpty)
@@ -213,10 +232,14 @@ class PlaylistRepository {
         await _libraryRepository.getPlaylist(entityPlaylistId);
     final cachedSnapshot = await _cacheStore.loadSnapshot(cachePlaylistId);
 
-    final trackIds =
-        localPlaylist?.trackRefs.map((item) => item.trackId).toList() ??
-            cachedSnapshot?.trackIds ??
-            const <String>[];
+    final localTrackIds =
+        localPlaylist?.trackRefs.map((item) => item.trackId).toList();
+    final cachedTrackIds = cachedSnapshot?.trackIds;
+    final trackIds = (cachedTrackIds != null &&
+            (localTrackIds == null ||
+                cachedTrackIds.length > localTrackIds.length))
+        ? cachedTrackIds
+        : (localTrackIds ?? const <String>[]);
     final localSongs =
         await _loadLocalSongs(trackIds, likedSongIds: likedSongIds);
     final cachedSongs = localSongs.isEmpty
@@ -252,6 +275,7 @@ class PlaylistRepository {
     final details = await fetchPlaylistSnapshot(
       playlistId,
       currentUserId: currentUserId,
+      likedSongIds: likedSongIds,
     );
     final remoteSongs = await fetchPlaylistSongs(
       playlistId: playlistId,

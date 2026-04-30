@@ -22,6 +22,7 @@ class NeteasePlaylistRemoteDataSource {
         bool isSubscribed,
         String name,
         String? creatorUserId,
+        bool isLikedSongs,
       })> fetchPlaylistSnapshot(String playlistId) async {
     final wrap = await _api.playListDetail(playlistId);
     final playlist = wrap.playlist;
@@ -34,6 +35,7 @@ class NeteasePlaylistRemoteDataSource {
       isSubscribed: playlist?.subscribed ?? false,
       name: playlist?.name ?? '无名歌单',
       creatorUserId: playlist?.creator?.userId,
+      isLikedSongs: playlist?.specialType == 5,
     );
   }
 

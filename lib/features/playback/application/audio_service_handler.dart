@@ -40,13 +40,7 @@ class AudioServiceHandler extends BaseAudioHandler
           MediaAction.seek,
         },
         androidCompactActionIndices: const [1, 2, 3],
-        processingState: const {
-          ProcessingState.idle: AudioProcessingState.idle,
-          ProcessingState.loading: AudioProcessingState.loading,
-          ProcessingState.buffering: AudioProcessingState.buffering,
-          ProcessingState.ready: AudioProcessingState.ready,
-          ProcessingState.completed: AudioProcessingState.completed,
-        }[_engine.processingState]!,
+        processingState: _currentAudioProcessingState(),
         shuffleMode: (_engine.shuffleModeEnabled)
             ? AudioServiceShuffleMode.all
             : AudioServiceShuffleMode.none,
@@ -79,6 +73,7 @@ class AudioServiceHandler extends BaseAudioHandler
   Duration _pendingRestorePosition = Duration.zero;
   int _playIndexVersion = 0;
   Future<void> _sourceSwitchTail = Future<void>.value();
+  bool _isResolvingCurrentSource = false;
 
   /// 当前通知栏和播放队列使用的循环模式。
   AudioServiceRepeatMode curRepeatMode = AudioServiceRepeatMode.all;
@@ -236,7 +231,12 @@ class AudioServiceHandler extends BaseAudioHandler
     final previousIndex = _queueSynchronizer.currentIndex;
     final isNext = audioSourceIndex >= previousIndex;
     final newIndexMediaItem = queue.value[audioSourceIndex];
-    _publishCurrentMediaItem(audioSourceIndex, newIndexMediaItem);
+    _isResolvingCurrentSource = true;
+    _publishCurrentMediaItem(
+      audioSourceIndex,
+      newIndexMediaItem,
+      processingState: AudioProcessingState.loading,
+    );
     final source = await _sourceResolver.resolve(
       newIndexMediaItem,
       preferHighQuality: _isHighQualityEnabled?.call() ?? false,
@@ -248,6 +248,9 @@ class AudioServiceHandler extends BaseAudioHandler
     if (source.isEmpty) {
       if (playNow) {
         await (isNext ? skipToNext() : skipToPrevious());
+      } else if (_isLatestPlayIndexRequest(requestVersion)) {
+        _isResolvingCurrentSource = false;
+        _publishPlaybackState(processingState: AudioProcessingState.idle);
       }
       return;
     }
@@ -266,6 +269,8 @@ class AudioServiceHandler extends BaseAudioHandler
       await switchOperation;
     } catch (_) {
       if (_isLatestPlayIndexRequest(requestVersion)) {
+        _isResolvingCurrentSource = false;
+        _publishPlaybackState(processingState: AudioProcessingState.idle);
         _handleToast?.call('当前歌曲暂时无法播放');
       }
     }
@@ -290,12 +295,15 @@ class AudioServiceHandler extends BaseAudioHandler
     if (!_isLatestPlayIndexRequest(requestVersion)) {
       return;
     }
-    if (appliedSource.markAsCached) {
-      _publishCurrentMediaItem(
-        audioSourceIndex,
-        _markMediaItemCached(mediaItemToPlay),
-      );
-    }
+    final resolvedMediaItem = appliedSource.markAsCached
+        ? _markMediaItemCached(mediaItemToPlay)
+        : mediaItemToPlay;
+    _isResolvingCurrentSource = false;
+    _publishCurrentMediaItem(
+      audioSourceIndex,
+      resolvedMediaItem,
+      processingState: _currentAudioProcessingState(),
+    );
     if (_pendingRestorePosition > Duration.zero) {
       await _engine.seek(_pendingRestorePosition);
       _pendingRestorePosition = Duration.zero;
@@ -334,11 +342,33 @@ class AudioServiceHandler extends BaseAudioHandler
     return requestVersion == _playIndexVersion;
   }
 
-  void _publishCurrentMediaItem(int index, MediaItem item) {
+  AudioProcessingState _currentAudioProcessingState() {
+    if (_isResolvingCurrentSource) {
+      return AudioProcessingState.loading;
+    }
+    return const {
+      ProcessingState.idle: AudioProcessingState.idle,
+      ProcessingState.loading: AudioProcessingState.loading,
+      ProcessingState.buffering: AudioProcessingState.buffering,
+      ProcessingState.ready: AudioProcessingState.ready,
+      ProcessingState.completed: AudioProcessingState.completed,
+    }[_engine.processingState]!;
+  }
+
+  void _publishCurrentMediaItem(
+    int index,
+    MediaItem item, {
+    AudioProcessingState? processingState,
+  }) {
     _queueSynchronizer.currentIndex = index;
     mediaItem.add(item);
+    _publishPlaybackState(processingState: processingState);
+  }
+
+  void _publishPlaybackState({AudioProcessingState? processingState}) {
     playbackState.add(playbackState.value.copyWith(
       queueIndex: _queueSynchronizer.currentIndex,
+      processingState: processingState ?? playbackState.value.processingState,
     ));
     _updateMediaControls();
   }

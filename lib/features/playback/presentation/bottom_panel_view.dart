@@ -798,9 +798,16 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                   Obx(() {
                                     final currentDuration = PlayerController
                                         .to.currentPositionState.value;
+                                    final totalMilliseconds =
+                                        currentSong.duration!.inMilliseconds;
+                                    final progress = totalMilliseconds <= 0
+                                        ? 0.0
+                                        : (currentDuration.inMilliseconds /
+                                                totalMilliseconds)
+                                            .clamp(0.0, 1.0)
+                                            .toDouble();
                                     return CircularPlaybackProgress(
-                                      progress: currentDuration.inMilliseconds /
-                                          currentSong.duration!.inMilliseconds,
+                                      progress: progress,
                                       size: AppDimensions.albumMinSize,
                                       strokeWidth: 2,
                                       progressColor: SettingsController

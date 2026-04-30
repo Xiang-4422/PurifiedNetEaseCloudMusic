@@ -66,9 +66,9 @@ class PlaybackStateSynchronizer {
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   int _lastStoredPositionSecond = -1;
   bool _isFetchingFm = false;
-  bool _restoringPlaybackState = false;
   Timer? _currentTrackSideEffectTimer;
   int _currentTrackSideEffectVersion = 0;
+  String? _lastConfirmedSideEffectKey;
 
   /// 启动播放流订阅、恢复上次状态并同步当前播放状态。
   Future<void> start({
@@ -118,15 +118,7 @@ class PlaybackStateSynchronizer {
         if (queueItem == null) return;
         syncRuntimeState(currentSong: queueItem);
         unawaited(_queueStore.saveCurrentSong(queueItem.id));
-        _scheduleCurrentTrackSideEffects(
-          item: queueItem,
-          runtimeState: runtimeState,
-          syncCurrentQueueItem: syncCurrentQueueItem,
-          ensureCurrentTrackArtwork: ensureCurrentTrackArtwork,
-        );
-        await updateCurrentPlayIndex(
-          currentItemUpdated: !_restoringPlaybackState,
-        );
+        await updateCurrentPlayIndex(currentItemUpdated: false);
         await _appendRoamingSongsIfNeeded(
           playbackMode: playbackMode,
           runtimeState: runtimeState,
@@ -140,6 +132,13 @@ class PlaybackStateSynchronizer {
           playbackState.queueIndex,
           runtimeState,
           syncRuntimeState,
+        );
+        _scheduleConfirmedCurrentTrackSideEffects(
+          playbackState: playbackState,
+          runtimeState: runtimeState,
+          syncCurrentQueueItem: syncCurrentQueueItem,
+          ensureCurrentTrackArtwork: ensureCurrentTrackArtwork,
+          updateCurrentPlayIndex: updateCurrentPlayIndex,
         );
         setIsPlaying(playbackState.playing);
         _lyricUiStateController.updateFullScreenLyricTimerCounter(
@@ -174,10 +173,8 @@ class PlaybackStateSynchronizer {
       }),
     );
 
-    _restoringPlaybackState = true;
     await _playbackService.restoreLastPlayState();
-    _restoringPlaybackState = false;
-    await updateCurrentPlayIndex();
+    await updateCurrentPlayIndex(currentItemUpdated: false);
   }
 
   Future<void> _appendRoamingSongsIfNeeded({
@@ -283,6 +280,45 @@ class PlaybackStateSynchronizer {
       }
       await ensureCurrentTrackArtwork(item);
     });
+  }
+
+  void _scheduleConfirmedCurrentTrackSideEffects({
+    required PlaybackState playbackState,
+    required PlaybackRuntimeState Function() runtimeState,
+    required Future<void> Function(PlaybackQueueItem item) syncCurrentQueueItem,
+    required Future<void> Function(PlaybackQueueItem item)
+        ensureCurrentTrackArtwork,
+    required Future<void> Function({bool currentItemUpdated})
+        updateCurrentPlayIndex,
+  }) {
+    if (!_hasConfirmedPlaybackSource(playbackState.processingState)) {
+      return;
+    }
+    final queueIndex = playbackState.queueIndex;
+    if (queueIndex == null || queueIndex < 0) {
+      return;
+    }
+    final item = runtimeState().currentSong;
+    if (item.id.isEmpty) {
+      return;
+    }
+    final sideEffectKey = '$queueIndex:${item.id}';
+    if (_lastConfirmedSideEffectKey == sideEffectKey) {
+      return;
+    }
+    _lastConfirmedSideEffectKey = sideEffectKey;
+    unawaited(updateCurrentPlayIndex(currentItemUpdated: true));
+    _scheduleCurrentTrackSideEffects(
+      item: item,
+      runtimeState: runtimeState,
+      syncCurrentQueueItem: syncCurrentQueueItem,
+      ensureCurrentTrackArtwork: ensureCurrentTrackArtwork,
+    );
+  }
+
+  bool _hasConfirmedPlaybackSource(AudioProcessingState processingState) {
+    return processingState == AudioProcessingState.ready ||
+        processingState == AudioProcessingState.buffering;
   }
 
   bool _isStillCurrentTrack(

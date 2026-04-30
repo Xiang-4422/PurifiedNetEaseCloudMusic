@@ -19,10 +19,16 @@ class BottomPanelProgressBar extends StatelessWidget {
     return Obx(() {
       final currentSong = PlayerController.to.currentSongState.value;
       final currentPosition = PlayerController.to.currentPositionState.value;
+      final total = currentSong.duration ?? const Duration(seconds: 10);
+      final safePosition = currentPosition < Duration.zero
+          ? Duration.zero
+          : currentPosition > total
+              ? total
+              : currentPosition;
       return ProgressBar(
-        progress: currentPosition,
-        buffered: currentPosition,
-        total: currentSong.duration ?? const Duration(seconds: 10),
+        progress: safePosition,
+        buffered: safePosition,
+        total: total,
         barHeight: AppDimensions.paddingLarge,
         barCapShape: BarCapShape.round,
         progressBarColor:

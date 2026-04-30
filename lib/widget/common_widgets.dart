@@ -253,7 +253,7 @@ class _AsyncImageColorState extends State<AsyncImageColor> {
 
 /// 下载页和播放面板都只需要消费“0 到 1 的进度结果”，绘制细节集中在这里更稳定。
 class CircularPlaybackProgress extends StatelessWidget {
-  /// 进度值，范围为 0 到 1。
+  /// 进度值，绘制时会钳制到 0 到 1。
   final double progress;
 
   /// 圆环线宽。
@@ -280,9 +280,7 @@ class CircularPlaybackProgress extends StatelessWidget {
     this.progressColor = Colors.blue,
     this.size = 100.0,
     this.percentageTextStyle,
-  })  : assert(progress >= 0.0 && progress <= 1.0,
-            'Progress must be between 0.0 and 1.0'),
-        super(key: key);
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -291,13 +289,20 @@ class CircularPlaybackProgress extends StatelessWidget {
       height: size,
       child: CustomPaint(
         painter: _CircularProgressPainter(
-          progress: progress,
+          progress: _normalizedProgress,
           strokeWidth: strokeWidth,
           backgroundColor: backgroundColor,
           progressColor: progressColor,
         ),
       ),
     );
+  }
+
+  double get _normalizedProgress {
+    if (!progress.isFinite) {
+      return 0;
+    }
+    return progress.clamp(0.0, 1.0).toDouble();
   }
 }
 

@@ -41,6 +41,11 @@ class LibraryRepository {
   final LibraryPreferenceStore _preferenceStore;
   final LocalResourceIndexRepository _resourceIndexRepository;
   final LocalArtworkCacheRepository _artworkCacheRepository;
+  final Map<String, Future<String?>> _playbackUrlLoads = {};
+  final Map<String, _CachedPlaybackUrl> _playbackUrlCache = {};
+  final Map<String, Future<TrackLyrics?>> _lyricsLoads = {};
+
+  static const Duration _playbackUrlCacheTtl = Duration(minutes: 2);
 
   /// 当前资料库是否只允许读取本地缓存和本地资源。
   bool get isOfflineModeEnabled => _preferenceStore.isOfflineModeEnabled;
@@ -229,6 +234,14 @@ class LibraryRepository {
 
   /// 解析曲目播放地址，优先返回仍存在的本地音频资源。
   Future<String?> getPlaybackUrl(String trackId) async {
+    return _coalescePlaybackUrl(
+      trackId,
+      qualityLevel: null,
+      load: () => _resolvePlaybackUrl(trackId),
+    );
+  }
+
+  Future<String?> _resolvePlaybackUrl(String trackId) async {
     final trackWithResources = await getTrackWithResources(trackId);
     final localAudio = trackWithResources?.resources.audio;
     if (localAudio != null && await _touchIfLocalFileExists(localAudio)) {
@@ -252,6 +265,20 @@ class LibraryRepository {
 
   /// 按音质偏好解析播放地址，优先返回仍存在的本地音频资源。
   Future<String?> getPlaybackUrlWithQuality(
+    String trackId, {
+    String? qualityLevel,
+  }) async {
+    return _coalescePlaybackUrl(
+      trackId,
+      qualityLevel: qualityLevel,
+      load: () => _resolvePlaybackUrlWithQuality(
+        trackId,
+        qualityLevel: qualityLevel,
+      ),
+    );
+  }
+
+  Future<String?> _resolvePlaybackUrlWithQuality(
     String trackId, {
     String? qualityLevel,
   }) async {
@@ -291,6 +318,20 @@ class LibraryRepository {
 
   /// 读取歌词，优先使用本地歌词资源和缓存。
   Future<TrackLyrics?> getLyrics(String trackId) async {
+    final loadingLyrics = _lyricsLoads[trackId];
+    if (loadingLyrics != null) {
+      return loadingLyrics;
+    }
+    final loadFuture = _loadLyrics(trackId);
+    _lyricsLoads[trackId] = loadFuture;
+    try {
+      return await loadFuture;
+    } finally {
+      _lyricsLoads.remove(trackId);
+    }
+  }
+
+  Future<TrackLyrics?> _loadLyrics(String trackId) async {
     final lyricsResource =
         (await _resourceIndexRepository.getTrackResourceBundle(trackId)).lyrics;
     if (lyricsResource != null &&
@@ -313,6 +354,49 @@ class LibraryRepository {
       await _localDataSource.saveLyrics(trackId, lyrics);
     }
     return lyrics;
+  }
+
+  Future<String?> _coalescePlaybackUrl(
+    String trackId, {
+    required String? qualityLevel,
+    required Future<String?> Function() load,
+  }) async {
+    final cacheKey = '$trackId|${qualityLevel ?? ''}';
+    final cachedUrl = _playbackUrlCache[cacheKey];
+    final now = DateTime.now();
+    if (cachedUrl != null &&
+        now.difference(cachedUrl.createdAt) < _playbackUrlCacheTtl) {
+      return cachedUrl.url;
+    }
+    final loadingUrl = _playbackUrlLoads[cacheKey];
+    if (loadingUrl != null) {
+      return loadingUrl;
+    }
+    final loadFuture = _loadPlaybackUrl(cacheKey, load);
+    _playbackUrlLoads[cacheKey] = loadFuture;
+    return loadFuture;
+  }
+
+  Future<String?> _loadPlaybackUrl(
+    String cacheKey,
+    Future<String?> Function() load,
+  ) async {
+    try {
+      final url = await load();
+      if (url != null && _isRemoteUrl(url)) {
+        _playbackUrlCache[cacheKey] = _CachedPlaybackUrl(
+          url: url,
+          createdAt: DateTime.now(),
+        );
+      }
+      return url;
+    } finally {
+      _playbackUrlLoads.remove(cacheKey);
+    }
+  }
+
+  bool _isRemoteUrl(String url) {
+    return url.startsWith('http://') || url.startsWith('https://');
   }
 
   /// 保存曲目歌词缓存。
@@ -438,4 +522,14 @@ class LibraryRepository {
   bool _isLocalPlaylistId(String playlistId) {
     return playlistId.startsWith('${_localMusicSource.sourceKey}:');
   }
+}
+
+class _CachedPlaybackUrl {
+  const _CachedPlaybackUrl({
+    required this.url,
+    required this.createdAt,
+  });
+
+  final String url;
+  final DateTime createdAt;
 }

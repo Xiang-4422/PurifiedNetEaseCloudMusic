@@ -18,6 +18,10 @@ class PlaybackRepository {
 
   final LibraryRepository _libraryRepository;
   final PlaybackRestoreDataSource _playbackRestoreDataSource;
+  PlaybackRestoreState? _restoreStateCache;
+  Future<PlaybackRestoreState>? _restoreStateLoad;
+  PlaybackRestoreState? _pendingRestoreState;
+  Future<void>? _restoreWriteFuture;
 
   /// 读取曲目歌词。
   Future<TrackLyrics?> fetchSongLyrics(String trackId) {
@@ -41,6 +45,28 @@ class PlaybackRepository {
 
   /// 读取播放恢复状态；无有效快照时返回空状态。
   Future<PlaybackRestoreState> getRestoreState() async {
+    final cachedState = _restoreStateCache;
+    if (cachedState != null) {
+      return cachedState;
+    }
+    final loadingState = _restoreStateLoad;
+    if (loadingState != null) {
+      return loadingState;
+    }
+    final loadFuture = _loadRestoreState();
+    _restoreStateLoad = loadFuture;
+    try {
+      final state = await loadFuture;
+      _restoreStateCache = state;
+      return state;
+    } finally {
+      if (identical(_restoreStateLoad, loadFuture)) {
+        _restoreStateLoad = null;
+      }
+    }
+  }
+
+  Future<PlaybackRestoreState> _loadRestoreState() async {
     final localState = await _playbackRestoreDataSource.getRestoreState();
     if (localState != null && localState.hasSnapshotData) {
       return localState;
@@ -67,7 +93,32 @@ class PlaybackRepository {
       playlistHeader: playlistHeader,
       position: position,
     );
-    await _playbackRestoreDataSource.saveRestoreState(nextState);
+    _pendingRestoreState = nextState;
+    _restoreStateCache = nextState;
+    await _flushPendingRestoreState();
+  }
+
+  Future<void> _flushPendingRestoreState() {
+    final currentWrite = _restoreWriteFuture;
+    if (currentWrite != null) {
+      return currentWrite;
+    }
+    late final Future<void> trackedWrite;
+    trackedWrite = _writePendingRestoreStates().whenComplete(() {
+      if (identical(_restoreWriteFuture, trackedWrite)) {
+        _restoreWriteFuture = null;
+      }
+    });
+    _restoreWriteFuture = trackedWrite;
+    return trackedWrite;
+  }
+
+  Future<void> _writePendingRestoreStates() async {
+    while (_pendingRestoreState != null) {
+      final state = _pendingRestoreState!;
+      _pendingRestoreState = null;
+      await _playbackRestoreDataSource.saveRestoreState(state);
+    }
   }
 
   /// 按音质偏好解析播放地址。

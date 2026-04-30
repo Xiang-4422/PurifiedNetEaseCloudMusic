@@ -32,11 +32,25 @@ void main() {
 
       expect(handler.mediaItem.value?.id, '1');
       expect(handler.playbackState.value.queueIndex, 0);
+      expect(
+        handler.playbackState.value.processingState,
+        AudioProcessingState.loading,
+      );
       expect(engine.sources, isEmpty);
+
+      engine.emitPlaybackEvent();
+      expect(
+        handler.playbackState.value.processingState,
+        AudioProcessingState.loading,
+      );
 
       await playFuture;
 
       expect(engine.sources.map((source) => source.url), ['url-1']);
+      expect(
+        handler.playbackState.value.processingState,
+        AudioProcessingState.ready,
+      );
     });
 
     test('only applies the latest rapid playIndex request', () async {
@@ -159,6 +173,10 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
       throw StateError('source failed');
     }
     _hasAudioSource = true;
+  }
+
+  void emitPlaybackEvent() {
+    _events.add(PlaybackEvent());
   }
 }
 

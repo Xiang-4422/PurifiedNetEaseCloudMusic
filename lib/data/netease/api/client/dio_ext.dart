@@ -13,7 +13,11 @@ class Https {
 
   /// SDK 共享 Dio 实例。
   static Dio get dio => _dio ??= Dio(BaseOptions(
-      connectTimeout: const Duration(seconds: 8), headers: optHeader));
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+        sendTimeout: const Duration(seconds: 20),
+        headers: optHeader,
+      ));
 
   /// SDK 共享 Dio 代理。
   static DioProxy get dioProxy => _dioProxy ??= DioProxy();

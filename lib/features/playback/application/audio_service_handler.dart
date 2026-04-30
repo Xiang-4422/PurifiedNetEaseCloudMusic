@@ -293,7 +293,7 @@ class AudioServiceHandler extends BaseAudioHandler
     _publishCurrentMediaItem(
       audioSourceIndex,
       resolvedMediaItem,
-      processingState: _currentAudioProcessingState(),
+      processingState: AudioProcessingState.ready,
     );
     if (_pendingRestorePosition > Duration.zero) {
       await _engine.seek(_pendingRestorePosition);

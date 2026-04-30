@@ -103,6 +103,32 @@ void main() {
       expect(engine.playCount, 1);
       expect(handler.mediaItem.value?.id, '1');
     });
+
+    test(
+        'publishes ready after source resolves even when previous engine state completed',
+        () async {
+      final engine = _FakePlaybackEngine(
+        processingStateOverride: ProcessingState.completed,
+      );
+      final resolver = _FakePlaybackSourceResolver();
+      final handler = AudioServiceHandler(
+        queueStore: _FakePlaybackQueueStore(),
+        restoreCoordinator: _FakePlaybackRestoreCoordinator(),
+        sourceResolver: resolver,
+        engineAdapter: engine,
+      );
+      await handler.updateQueue([
+        _mediaItem('1'),
+      ]);
+
+      await handler.playIndex(audioSourceIndex: 0, playNow: true);
+
+      expect(handler.mediaItem.value?.id, '1');
+      expect(
+        handler.playbackState.value.processingState,
+        AudioProcessingState.ready,
+      );
+    });
   });
 }
 
@@ -113,9 +139,11 @@ MediaItem _mediaItem(String id) {
 class _FakePlaybackEngine implements PlaybackEnginePort {
   _FakePlaybackEngine({
     this.failingSourceKinds = const <PlaybackResolvedSourceKind>{},
+    this.processingStateOverride = ProcessingState.ready,
   });
 
   final Set<PlaybackResolvedSourceKind> failingSourceKinds;
+  final ProcessingState processingStateOverride;
 
   final StreamController<PlaybackEvent> _events =
       StreamController<PlaybackEvent>.broadcast();
@@ -142,7 +170,7 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
   Duration get position => Duration.zero;
 
   @override
-  ProcessingState get processingState => ProcessingState.ready;
+  ProcessingState get processingState => processingStateOverride;
 
   @override
   bool get shuffleModeEnabled => false;

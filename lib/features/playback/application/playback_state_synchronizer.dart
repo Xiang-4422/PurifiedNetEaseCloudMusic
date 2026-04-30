@@ -76,6 +76,7 @@ class PlaybackStateSynchronizer {
   int _lastStoredPositionSecond = -1;
   bool _isFetchingFm = false;
   String? _lastConfirmedSideEffectKey;
+  bool _completionAdvanceInFlight = false;
 
   /// 启动播放流订阅、恢复上次状态并同步当前播放状态。
   Future<void> start({
@@ -159,7 +160,10 @@ class PlaybackStateSynchronizer {
           setFullScreenLyricOpen: setFullScreenLyricOpen,
           cancelTimer: !isPlaying(),
         );
-        if (playbackState.processingState == AudioProcessingState.completed) {
+        if (playbackState.processingState != AudioProcessingState.completed) {
+          _completionAdvanceInFlight = false;
+        } else if (!_completionAdvanceInFlight) {
+          _completionAdvanceInFlight = true;
           unawaited(
             _selectionService.selectNext(
               trigger: PlaybackSwitchTrigger.queueCompletion,

@@ -107,6 +107,17 @@ class BottomPanelArtworkPageLayer extends StatelessWidget {
             child: Obx(
               () {
                 final queue = PlayerController.to.artworkPageItems.toList();
+                final currentIndex =
+                    PlayerController.to.currentQueueIndex.value;
+                if (queue.isNotEmpty && currentIndex >= 0) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (controller.bottomPanelFullyOpened.isTrue &&
+                        controller.isBigAlbum.isTrue &&
+                        controller.isAlbumScaleEnded.isTrue) {
+                      controller.syncAlbumPage(jump: true);
+                    }
+                  });
+                }
                 return PageView.builder(
                   controller: controller.albumPageController,
                   itemCount: queue.length,

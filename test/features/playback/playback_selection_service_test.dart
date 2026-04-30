@@ -151,6 +151,41 @@ void main() {
       expect(playbackService.playedIndexes,
           [selectionService.state.selectedIndex]);
     });
+
+    test('submits playback source when selecting next track', () async {
+      final playbackService = _FakePlaybackService();
+      final selectionService = PlaybackSelectionService(
+        queueService: _queueService(playbackService),
+        navigator: const PlaybackSelectionNavigator(),
+        switchCoordinator: PlaybackSwitchCoordinator(
+          playbackService: playbackService,
+        ),
+      );
+
+      final first = selectionService.selectQueue(
+        [_item('1'), _item('2'), _item('3')],
+        0,
+        playListName: 'Queue',
+        trigger: PlaybackSwitchTrigger.userSelect,
+      );
+      await Future<void>.delayed(Duration.zero);
+      playbackService.completePlayIndex(true);
+      await first;
+
+      final next = selectionService.selectNext(
+        trigger: PlaybackSwitchTrigger.userNext,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(selectionService.state.selectedItem.id, '2');
+      expect(playbackService.playedIndexes, [0, 1]);
+
+      playbackService.completePlayIndex(true);
+      await next;
+
+      expect(selectionService.state.sourceStatus,
+          PlaybackSelectionSourceStatus.ready);
+    });
   });
 }
 

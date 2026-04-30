@@ -207,12 +207,15 @@ class PlaybackService extends GetxService {
     required bool playNow,
   }) {
     final queue = activeQueue;
-    if (activeIndex < 0 ||
-        activeIndex >= queue.length ||
-        queue[activeIndex].id != item.id) {
+    final resolvedIndex = activeIndex >= 0 &&
+            activeIndex < queue.length &&
+            queue[activeIndex].id == item.id
+        ? activeIndex
+        : queue.indexWhere((queueItem) => queueItem.id == item.id);
+    if (resolvedIndex < 0) {
       return Future.value(false);
     }
-    return handler.playIndex(audioSourceIndex: activeIndex, playNow: playNow);
+    return handler.playIndex(audioSourceIndex: resolvedIndex, playNow: playNow);
   }
 
   /// 跳转到指定播放进度。

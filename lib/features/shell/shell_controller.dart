@@ -435,15 +435,15 @@ class ShellController extends SuperController
   }
 
   /// 将专辑页同步到当前播放索引。
-  void syncAlbumPage() {
+  void syncAlbumPage({bool jump = false}) {
     if (isAlbumScrollingProgrammatic) {
       return;
     }
-    _animateAlbumPageViewToCurSong();
+    _animateAlbumPageViewToCurSong(jump: jump);
   }
 
   // 专辑页和真实播放索引必须保持单向同步，否则用户会同时触发手势滚动和程序跳页。
-  _animateAlbumPageViewToCurSong() {
+  _animateAlbumPageViewToCurSong({bool jump = false}) {
     if (albumPageController.hasClients) {
       if (isAlbumScrollingManully) return;
       final currentIndex = _playbackPort.currentQueueIndex().value;
@@ -457,10 +457,11 @@ class ShellController extends SuperController
       }
 
       isAlbumScrollingProgrammatic = true;
-      albumPageController
-          .animateToPage(currentIndex,
-              duration: const Duration(milliseconds: 500), curve: Curves.ease)
-          .whenComplete(() {
+      final syncFuture = jump
+          ? Future<void>(() => albumPageController.jumpToPage(currentIndex))
+          : albumPageController.animateToPage(currentIndex,
+              duration: const Duration(milliseconds: 500), curve: Curves.ease);
+      syncFuture.whenComplete(() {
         isAlbumScrollingProgrammatic = false;
       });
     }

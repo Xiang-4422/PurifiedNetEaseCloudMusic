@@ -373,16 +373,15 @@ class BottomPanelView extends GetView<ShellController> {
                                                   ),
                                                   GestureDetector(
                                                     onTap: () async {
-                                                      final runtimeState =
+                                                      final currentSong =
                                                           PlayerController
                                                               .to
-                                                              .runtimeState
+                                                              .currentSongState
                                                               .value;
                                                       if (PlayerController
                                                           .to
-                                                          .runtimeState
+                                                          .currentSongState
                                                           .value
-                                                          .currentSong
                                                           .album
                                                           .isNullOrEmpty) {
                                                         return;
@@ -396,8 +395,7 @@ class BottomPanelView extends GetView<ShellController> {
                                                               .AlbumRouteView()
                                                           .copyWith(
                                                               queryParams: {
-                                                            'albumId': runtimeState
-                                                                    .currentSong
+                                                            'albumId': currentSong
                                                                     .metadata[
                                                                 'albumId']
                                                           }));
@@ -432,9 +430,8 @@ class BottomPanelView extends GetView<ShellController> {
                                                           child: Obx(() => Text(
                                                                 PlayerController
                                                                     .to
-                                                                    .runtimeState
+                                                                    .currentSongState
                                                                     .value
-                                                                    .currentSong
                                                                     .album
                                                                     .orDefault(
                                                                         "未知专辑"),
@@ -500,83 +497,85 @@ class BottomPanelView extends GetView<ShellController> {
                                                         remainWidth - textWidth,
                                                   ),
                                                   child: SingleChildScrollView(
-                                                    scrollDirection: Axis
-                                                        .horizontal, // 允许水平滚动
-                                                    child: Row(
+                                                    scrollDirection:
+                                                        Axis.horizontal,
+                                                    child: Obx(() {
+                                                      final currentSong =
+                                                          PlayerController
+                                                              .to
+                                                              .currentSongState
+                                                              .value;
+                                                      final artists =
+                                                          _artistEntries(
+                                                              currentSong);
+                                                      return Row(
                                                         mainAxisSize:
                                                             MainAxisSize.min,
-                                                        children: PlayerController
-                                                                .to
-                                                                .runtimeState
-                                                                .value
-                                                                .currentSong
-                                                                .artist
-                                                                .isNullOrEmpty
-                                                            ? [
-                                                                Text(
-                                                                  "未知歌手",
-                                                                  style: TextStyle(
-                                                                      color: SettingsController
-                                                                          .to
-                                                                          .panelWidgetColor
-                                                                          .value),
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  textAlign:
-                                                                      TextAlign
-                                                                          .center,
-                                                                ),
-                                                              ]
-                                                            : [
-                                                                for (final artist
-                                                                    in _artistEntries(PlayerController
-                                                                        .to
-                                                                        .runtimeState
-                                                                        .value
-                                                                        .currentSong))
-                                                                  Container(
-                                                                    alignment:
-                                                                        Alignment
-                                                                            .center,
-                                                                    padding: EdgeInsets.symmetric(
-                                                                        horizontal:
-                                                                            albumPadding /
-                                                                                2),
-                                                                    decoration:
-                                                                        BoxDecoration(
-                                                                      color: SettingsController
-                                                                          .to
-                                                                          .panelWidgetColor
-                                                                          .value
-                                                                          .withValues(
-                                                                              alpha: 0.1),
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              albumPadding),
+                                                        children:
+                                                            artists.isEmpty
+                                                                ? [
+                                                                    Text(
+                                                                      "未知歌手",
+                                                                      style: TextStyle(
+                                                                          color: SettingsController
+                                                                              .to
+                                                                              .panelWidgetColor
+                                                                              .value),
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .center,
                                                                     ),
-                                                                    child: Obx(
-                                                                        () =>
+                                                                  ]
+                                                                : [
+                                                                    for (final artist
+                                                                        in artists)
+                                                                      Container(
+                                                                        alignment:
+                                                                            Alignment.center,
+                                                                        padding:
+                                                                            EdgeInsets.symmetric(horizontal: albumPadding / 2),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color: SettingsController
+                                                                              .to
+                                                                              .panelWidgetColor
+                                                                              .value
+                                                                              .withValues(alpha: 0.1),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(albumPadding),
+                                                                        ),
+                                                                        child:
                                                                             GestureDetector(
-                                                                              onTap: () async {
-                                                                                if (artist.id.isEmpty) {
-                                                                                  return;
-                                                                                }
-                                                                                final router = context.router;
-                                                                                await controller.closeBottomPanel();
-                                                                                router.push(const gr.ArtistRouteView().copyWith(queryParams: {
-                                                                                  'artistId': artist.id
-                                                                                }));
-                                                                              },
-                                                                              child: Text(
-                                                                                artist.name,
-                                                                                style: TextStyle(color: SettingsController.to.panelWidgetColor.value),
-                                                                                overflow: TextOverflow.ellipsis,
-                                                                                textAlign: TextAlign.center,
-                                                                              ),
-                                                                            )),
-                                                                  ),
-                                                              ]),
+                                                                          onTap:
+                                                                              () async {
+                                                                            if (artist.id.isEmpty) {
+                                                                              return;
+                                                                            }
+                                                                            final router =
+                                                                                context.router;
+                                                                            await controller.closeBottomPanel();
+                                                                            router.push(const gr.ArtistRouteView().copyWith(queryParams: {
+                                                                              'artistId': artist.id
+                                                                            }));
+                                                                          },
+                                                                          child:
+                                                                              Text(
+                                                                            artist.name,
+                                                                            style:
+                                                                                TextStyle(color: SettingsController.to.panelWidgetColor.value),
+                                                                            overflow:
+                                                                                TextOverflow.ellipsis,
+                                                                            textAlign:
+                                                                                TextAlign.center,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                  ],
+                                                      );
+                                                    }),
                                                   ),
                                                 ),
                                               ],

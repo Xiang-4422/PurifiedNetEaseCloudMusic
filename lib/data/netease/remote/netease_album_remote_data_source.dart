@@ -7,7 +7,10 @@ import 'package:bujuan/domain/entities/track.dart';
 /// 网易云专辑远程数据源。
 class NeteaseAlbumRemoteDataSource {
   /// 创建网易云专辑远程数据源。
-  const NeteaseAlbumRemoteDataSource();
+  NeteaseAlbumRemoteDataSource({NeteaseMusicApi? api})
+      : _api = api ?? NeteaseMusicApi();
+
+  final NeteaseMusicApi _api;
 
   /// 获取专辑详情和专辑曲目。
   Future<
@@ -17,7 +20,7 @@ class NeteaseAlbumRemoteDataSource {
       })> fetchAlbumDetail({
     required String albumId,
   }) async {
-    final albumDetail = await NeteaseMusicApi().albumDetail(albumId);
+    final albumDetail = await _api.albumDetail(albumId);
     final album = albumDetail.album == null
         ? null
         : NeteaseAlbumMapper.fromAlbum(albumDetail.album!);

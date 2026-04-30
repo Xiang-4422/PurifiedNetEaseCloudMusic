@@ -207,14 +207,16 @@ mixin ApiEvent {
       {int pageNo = 1,
       int pageSize = 20,
       bool showInner = true,
-      int? sortType}) {
+      int? sortType,
+      String? cursor}) {
     String typeKey = type2key(type) + id;
     var params = {
       'threadId': typeKey,
       'pageNo': pageNo,
       'pageSize': pageSize,
       'showInner': showInner,
-      'sortType': sortType
+      'sortType': sortType,
+      'cursor': cursor,
     };
     return DioMetaData(joinUri('/api/v2/resource/comments'),
         data: params,
@@ -232,13 +234,15 @@ mixin ApiEvent {
       {int pageNo = 1,
       int pageSize = 20,
       bool showInner = true,
-      int? sortType}) {
+      int? sortType,
+      String? cursor}) {
     return Https.dioProxy
         .postUri(commentListDioMetaData2(id, type,
             pageNo: pageNo,
             pageSize: pageSize,
             showInner: showInner,
-            sortType: sortType))
+            sortType: sortType,
+            cursor: cursor))
         .then((Response value) {
       return CommentList2Wrap.fromJson(value.data);
     });

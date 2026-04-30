@@ -9,7 +9,10 @@ import 'package:bujuan/domain/entities/track.dart';
 /// 网易云歌手远程数据源。
 class NeteaseArtistRemoteDataSource {
   /// 创建网易云歌手远程数据源。
-  const NeteaseArtistRemoteDataSource();
+  NeteaseArtistRemoteDataSource({NeteaseMusicApi? api})
+      : _api = api ?? NeteaseMusicApi();
+
+  final NeteaseMusicApi _api;
 
   /// 获取歌手资料、热门歌曲和热门专辑。
   Future<
@@ -20,9 +23,9 @@ class NeteaseArtistRemoteDataSource {
       })> fetchArtistDetail({
     required String artistId,
   }) async {
-    final artistDetail = await NeteaseMusicApi().artistDetail(artistId);
-    final artistSongs = await NeteaseMusicApi().artistTopSongList(artistId);
-    final artistAlbums = await NeteaseMusicApi().artistAlbumList(artistId);
+    final artistDetail = await _api.artistDetail(artistId);
+    final artistSongs = await _api.artistTopSongList(artistId);
+    final artistAlbums = await _api.artistAlbumList(artistId);
     final artist = artistDetail.data?.artist == null
         ? null
         : NeteaseArtistMapper.fromArtist(artistDetail.data!.artist!);

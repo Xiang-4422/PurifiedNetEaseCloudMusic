@@ -10,7 +10,7 @@ class ExploreRepository {
     NeteaseExploreRemoteDataSource? remoteDataSource,
     required ExploreCacheStore cacheStore,
   })  : _remoteDataSource =
-            remoteDataSource ?? const NeteaseExploreRemoteDataSource(),
+            remoteDataSource ?? NeteaseExploreRemoteDataSource(),
         _cacheStore = cacheStore;
 
   final NeteaseExploreRemoteDataSource _remoteDataSource;

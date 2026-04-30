@@ -11,8 +11,7 @@ class AuthRepository {
     AuthStateStore? stateStore,
     NeteaseAuthRemoteDataSource? remoteDataSource,
   })  : _stateStore = stateStore ?? const AuthStateStore(),
-        _remoteDataSource =
-            remoteDataSource ?? const NeteaseAuthRemoteDataSource();
+        _remoteDataSource = remoteDataSource ?? NeteaseAuthRemoteDataSource();
 
   final AuthStateStore _stateStore;
   final NeteaseAuthRemoteDataSource _remoteDataSource;

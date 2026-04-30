@@ -1,8 +1,9 @@
 // ignore_for_file: non_constant_identifier_names, constant_identifier_names
 
 import 'package:json_annotation/json_annotation.dart';
-import '../../netease_music_api.dart';
 import '../common/bean.dart';
+import '../event/bean.dart';
+import '../user/bean.dart';
 
 part 'bean.g.dart';
 

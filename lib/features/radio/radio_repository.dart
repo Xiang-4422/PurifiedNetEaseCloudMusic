@@ -8,8 +8,7 @@ class RadioRepository {
   RadioRepository({
     required UserScopedDataSource userScopedDataSource,
     NeteaseRadioRemoteDataSource? remoteDataSource,
-  })  : _remoteDataSource =
-            remoteDataSource ?? const NeteaseRadioRemoteDataSource(),
+  })  : _remoteDataSource = remoteDataSource ?? NeteaseRadioRemoteDataSource(),
         _userScopedDataSource = userScopedDataSource;
 
   final NeteaseRadioRemoteDataSource _remoteDataSource;

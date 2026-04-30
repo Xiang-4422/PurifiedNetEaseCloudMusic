@@ -20,8 +20,7 @@ class UserRepository {
     NeteaseUserRemoteDataSource? remoteDataSource,
     required UserScopedDataSource userScopedDataSource,
   })  : _libraryRepository = libraryRepository,
-        _remoteDataSource =
-            remoteDataSource ?? const NeteaseUserRemoteDataSource(),
+        _remoteDataSource = remoteDataSource ?? NeteaseUserRemoteDataSource(),
         _userScopedDataSource = userScopedDataSource;
 
   final LibraryRepository _libraryRepository;

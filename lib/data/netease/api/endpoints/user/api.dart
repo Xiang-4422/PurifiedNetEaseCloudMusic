@@ -2,7 +2,11 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 
-import '../../netease_music_api.dart';
+import '../../client/netease_api.dart';
+import '../../models/dj/bean.dart';
+import '../../models/login/bean.dart';
+import '../../models/play/bean.dart';
+import '../../models/user/bean.dart';
 import '../../models/common/bean.dart';
 import '../../client/dio_ext.dart';
 import '../../client/netease_handler.dart';

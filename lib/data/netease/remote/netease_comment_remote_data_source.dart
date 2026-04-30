@@ -1,17 +1,14 @@
-import 'package:bujuan/core/network/request_repository.dart';
-import 'package:bujuan/data/netease/api/client/dio_ext.dart';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
-import 'package:bujuan/data/netease/api/client/netease_handler.dart';
 import 'package:bujuan/data/netease/mappers/netease_comment_mapper.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 
 /// 网易云评论远程数据源。
 class NeteaseCommentRemoteDataSource {
   /// 创建网易云评论远程数据源。
-  NeteaseCommentRemoteDataSource({RequestRepository? requestRepository})
-      : _requestRepository = requestRepository ?? RequestRepository();
+  NeteaseCommentRemoteDataSource({NeteaseMusicApi? api})
+      : _api = api ?? NeteaseMusicApi();
 
-  final RequestRepository _requestRepository;
+  final NeteaseMusicApi _api;
 
   /// 分页获取资源评论。
   Future<({List<CommentData> items, bool hasMore, String? nextCursor})>
@@ -25,25 +22,16 @@ class NeteaseCommentRemoteDataSource {
     required String cursor,
   }) async {
     final normalizedId = _normalizeResourceId(id);
-    final response = await _requestRepository.post(
-      DioMetaData(
-        joinUri('/api/v2/resource/comments'),
-        data: {
-          'threadId': _typeKey(type) + normalizedId,
-          'pageNo': pageNo,
-          'pageSize': pageSize,
-          'showInner': showInner,
-          'sortType': sortType,
-          'cursor': cursor,
-        },
-        options: joinOptions(
-          encryptType: EncryptType.EApi,
-          eApiUrl: '/api/v2/resource/comments',
-          cookies: const {'os': 'pc'},
-        ),
-      ),
+    final wrap = await _api.commentList2(
+      normalizedId,
+      type,
+      pageNo: pageNo,
+      pageSize: pageSize,
+      showInner: showInner,
+      sortType: sortType,
+      cursor: cursor,
     );
-    final page = NeteaseCommentMapper.fromCommentListResponse(response.data);
+    final page = NeteaseCommentMapper.fromCommentListWrap(wrap);
     return (
       items: page.items,
       hasMore: page.hasMore,
@@ -61,7 +49,7 @@ class NeteaseCommentRemoteDataSource {
     required int limit,
   }) async {
     final normalizedId = _normalizeResourceId(id);
-    final wrap = await NeteaseMusicApi().floorComments(
+    final wrap = await _api.floorComments(
       normalizedId,
       type,
       parentCommentId,
@@ -85,7 +73,7 @@ class NeteaseCommentRemoteDataSource {
     String? commentId,
   }) async {
     final normalizedId = _normalizeResourceId(id);
-    final result = await NeteaseMusicApi().comment(
+    final result = await _api.comment(
       normalizedId,
       type,
       operation,
@@ -106,7 +94,7 @@ class NeteaseCommentRemoteDataSource {
     bool like,
   ) async {
     final normalizedId = _normalizeResourceId(id);
-    final result = await NeteaseMusicApi().likeComment(
+    final result = await _api.likeComment(
       normalizedId,
       commentId,
       type,

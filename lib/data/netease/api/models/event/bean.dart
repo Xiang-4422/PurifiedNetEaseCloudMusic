@@ -4,8 +4,10 @@ import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
 
-import '../../netease_music_api.dart';
 import '../common/bean.dart';
+import '../login/bean.dart';
+import '../play/bean.dart';
+import '../user/bean.dart';
 
 part 'bean.g.dart';
 

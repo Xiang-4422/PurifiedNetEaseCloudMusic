@@ -5,7 +5,10 @@ import 'package:bujuan/domain/entities/playlist_entity.dart';
 /// 探索页远程入口集中在 data/netease，便于后续继续下沉平台细节。
 class NeteaseExploreRemoteDataSource {
   /// 创建网易云探索远程数据源。
-  const NeteaseExploreRemoteDataSource();
+  NeteaseExploreRemoteDataSource({NeteaseMusicApi? api})
+      : _api = api ?? NeteaseMusicApi();
+
+  final NeteaseMusicApi _api;
 
   /// 获取歌单分类目录。
   Future<
@@ -13,7 +16,7 @@ class NeteaseExploreRemoteDataSource {
         List<String> categoryNames,
         Map<String, List<String>> tagsByCategory,
       })> fetchPlaylistCatalogue() async {
-    final response = await NeteaseMusicApi().playlistCatalogue();
+    final response = await _api.playlistCatalogue();
     final categories = <String>[];
     final tagsByCategory = <String, List<String>>{};
 
@@ -43,8 +46,7 @@ class NeteaseExploreRemoteDataSource {
 
   /// 获取指定分类下的歌单列表。
   Future<List<PlaylistEntity>> fetchCategoryPlaylists(String category) async {
-    final response =
-        await NeteaseMusicApi().categorySongList(category: category);
+    final response = await _api.categorySongList(category: category);
     return NeteasePlaylistMapper.fromPlaylistList(
         response.playlists ?? const []);
   }

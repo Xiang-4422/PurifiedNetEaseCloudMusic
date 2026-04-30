@@ -19,8 +19,7 @@ class SearchRepository {
     required SearchCacheStore cacheStore,
     required UserScopedDataSource userScopedDataSource,
   })  : _libraryRepository = libraryRepository,
-        _remoteDataSource =
-            remoteDataSource ?? const NeteaseSearchRemoteDataSource(),
+        _remoteDataSource = remoteDataSource ?? NeteaseSearchRemoteDataSource(),
         _cacheStore = cacheStore,
         _userScopedDataSource = userScopedDataSource;
 

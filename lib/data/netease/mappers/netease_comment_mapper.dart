@@ -13,6 +13,15 @@ class NeteaseCommentMapper {
     String? nextCursor,
   }) fromCommentListResponse(Map<String, dynamic> json) {
     final wrap = CommentList2Wrap.fromJson(json);
+    return fromCommentListWrap(wrap);
+  }
+
+  /// 将评论列表 DTO 转换为领域评论分页数据。
+  static ({
+    List<CommentData> items,
+    bool hasMore,
+    String? nextCursor,
+  }) fromCommentListWrap(CommentList2Wrap wrap) {
     return (
       items: fromItemList(wrap.data.comments ?? const []),
       hasMore: wrap.data.hasMore ?? false,

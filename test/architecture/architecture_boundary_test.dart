@@ -122,6 +122,66 @@ void main() {
       );
     });
 
+    test('core does not depend on netease data implementation', () {
+      final violations = _dartFiles(Directory('${projectRoot.path}/lib/core'))
+          .where((file) => _contains(file, 'package:bujuan/data/netease/'))
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'core 是跨数据源基础层，不能反向依赖网易云实现；请求细节应留在 data/netease/api/client。',
+      );
+    });
+
+    test('netease remote data sources depend on api facade only', () {
+      final remoteFiles =
+          _dartFiles(Directory('${projectRoot.path}/lib/data/netease/remote'));
+      final violations = remoteFiles
+          .where(
+            (file) => _containsAny(file, const [
+              'package:bujuan/data/netease/api/client/',
+              'DioMetaData',
+              'DioProxy',
+              'Https.',
+              'NeteaseMusicApi().',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'remote data source 只能通过构造注入的 NeteaseMusicApi 门面访问接口，不能触碰底层 Dio client 或临时创建 SDK 单例。',
+      );
+    });
+
+    test('netease endpoint and model files do not import public api barrel',
+        () {
+      final sdkFiles = [
+        ..._dartFiles(
+          Directory('${projectRoot.path}/lib/data/netease/api/endpoints'),
+        ),
+        ..._dartFiles(
+          Directory('${projectRoot.path}/lib/data/netease/api/models'),
+        ),
+      ];
+      final violations = sdkFiles
+          .where((file) => _contains(file, 'netease_music_api.dart'))
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason:
+            'api/endpoints 和 api/models 不能反向 import 对外 barrel；内部应依赖 client 或具体 DTO 文件，避免 SDK 内部循环依赖。',
+      );
+    });
+
     test('MediaItem is restricted to playback adapter and presentation edges',
         () {
       final violations = _dartFiles(libDirectory)
@@ -702,8 +762,7 @@ void main() {
       expect(
         missing,
         isEmpty,
-        reason:
-            'Drift 手写数据访问必须有 DAO 分类入口，data source 只能保留 facade/组合职责。',
+        reason: 'Drift 手写数据访问必须有 DAO 分类入口，data source 只能保留 facade/组合职责。',
       );
     });
 
@@ -760,8 +819,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'DAO 不能只是 database 占位壳，必须承接实际 Drift 读写方法且不向上暴露 raw database。',
+        reason: 'DAO 不能只是 database 占位壳，必须承接实际 Drift 读写方法且不向上暴露 raw database。',
       );
     });
 

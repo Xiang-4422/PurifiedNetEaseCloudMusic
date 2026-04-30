@@ -32,8 +32,7 @@ class ArtistRepository {
     required LibraryRepository libraryRepository,
     NeteaseArtistRemoteDataSource? remoteDataSource,
   })  : _libraryRepository = libraryRepository,
-        _remoteDataSource =
-            remoteDataSource ?? const NeteaseArtistRemoteDataSource();
+        _remoteDataSource = remoteDataSource ?? NeteaseArtistRemoteDataSource();
 
   final LibraryRepository _libraryRepository;
   final NeteaseArtistRemoteDataSource _remoteDataSource;

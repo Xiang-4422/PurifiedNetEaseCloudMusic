@@ -9,7 +9,10 @@ import 'package:bujuan/domain/entities/track.dart';
 /// 网易云歌单远程数据源。
 class NeteasePlaylistRemoteDataSource {
   /// 创建网易云歌单远程数据源。
-  const NeteasePlaylistRemoteDataSource();
+  NeteasePlaylistRemoteDataSource({NeteaseMusicApi? api})
+      : _api = api ?? NeteaseMusicApi();
+
+  final NeteaseMusicApi _api;
 
   /// 获取歌单快照，包括歌单摘要、曲目 id 和订阅状态。
   Future<
@@ -20,7 +23,7 @@ class NeteasePlaylistRemoteDataSource {
         String name,
         String? creatorUserId,
       })> fetchPlaylistSnapshot(String playlistId) async {
-    final wrap = await NeteaseMusicApi().playListDetail(playlistId);
+    final wrap = await _api.playListDetail(playlistId);
     final playlist = wrap.playlist;
     final playlistEntity =
         playlist == null ? null : NeteasePlaylistMapper.fromPlaylist(playlist);
@@ -51,7 +54,7 @@ class NeteasePlaylistRemoteDataSource {
 
     final tracks = <Track>[];
     while (tracks.length < resolvedIds.length) {
-      final wrap = await NeteaseMusicApi().songDetail(
+      final wrap = await _api.songDetail(
         resolvedIds.sublist(
           tracks.length,
           min(tracks.length + 1000, resolvedIds.length),
@@ -70,8 +73,8 @@ class NeteasePlaylistRemoteDataSource {
     String playlistId, {
     required bool subscribe,
   }) async {
-    final result = await NeteaseMusicApi()
-        .subscribePlayList(playlistId, subscribe: subscribe);
+    final result =
+        await _api.subscribePlayList(playlistId, subscribe: subscribe);
     return (
       success: result.code == 200,
       message: result.message,
@@ -84,8 +87,7 @@ class NeteasePlaylistRemoteDataSource {
     String songId, {
     required bool add,
   }) async {
-    final result = await NeteaseMusicApi()
-        .playlistManipulateTracks(playlistId, songId, add);
+    final result = await _api.playlistManipulateTracks(playlistId, songId, add);
     return (
       success: result.code == 200,
       message: result.message,

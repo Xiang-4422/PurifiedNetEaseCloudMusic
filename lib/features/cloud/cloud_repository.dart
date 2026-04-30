@@ -13,8 +13,7 @@ class CloudRepository {
     required LibraryRepository libraryRepository,
     required UserScopedDataSource userScopedDataSource,
     NeteaseCloudRemoteDataSource? remoteDataSource,
-  })  : _remoteDataSource =
-            remoteDataSource ?? const NeteaseCloudRemoteDataSource(),
+  })  : _remoteDataSource = remoteDataSource ?? NeteaseCloudRemoteDataSource(),
         _libraryRepository = libraryRepository,
         _userScopedDataSource = userScopedDataSource;
 

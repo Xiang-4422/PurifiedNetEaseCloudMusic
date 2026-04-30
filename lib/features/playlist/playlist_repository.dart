@@ -99,7 +99,7 @@ class PlaylistRepository {
         _libraryRepository = libraryRepository,
         _localLibraryDataSource = localLibraryDataSource,
         _remoteDataSource =
-            remoteDataSource ?? const NeteasePlaylistRemoteDataSource(),
+            remoteDataSource ?? NeteasePlaylistRemoteDataSource(),
         _userScopedDataSource = userScopedDataSource;
 
   final PlaylistCacheStore _cacheStore;

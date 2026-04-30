@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="never">
+  <title>网易云音乐 NodeJS API Enhanced - 离线文档</title>
+  <link rel="icon" href="./assets/favicon.ico">
+  <link rel="stylesheet" href="./assets/style.css">
+</head>
+<body>
+  <aside class="sidebar" aria-label="文档导航">
+    <div class="brand">
+      <img src="./assets/logo.svg" alt="" width="28" height="28">
+      <div>
+        <strong>网易云音乐 API</strong>
+        <span>Enhanced 离线文档</span>
+      </div>
+    </div>
+
+    <label class="search">
+      <span>搜索</span>
+      <input id="searchInput" type="search" autocomplete="off" placeholder="接口、参数、说明">
+    </label>
+    <div id="searchStatus" class="search-status" aria-live="polite"></div>
+    <nav id="searchResults" class="search-results" hidden></nav>
+    <nav id="toc" class="toc"></nav>
+  </aside>
+
+  <main class="content">
+    <header class="topbar">
+      <button id="menuButton" class="icon-button" type="button" aria-label="打开目录">☰</button>
+      <div>
+        <span class="eyebrow">Offline copy</span>
+        <h1>网易云音乐 NodeJS API Enhanced</h1>
+      </div>
+      <span class="source-note">本地副本</span>
+    </header>
+
+    <article id="document" class="markdown-section" aria-label="文档正文">
+      <p class="loading">正在载入离线文档...</p>
+    </article>
+  </main>
+
+  <button id="backToTop" class="back-to-top" type="button" aria-label="回到顶部">↑</button>
+
+  <script src="./assets/marked.umd.js"></script>
+  <script src="./assets/docs-content.js"></script>
+  <script src="./assets/app.js"></script>
+</body>
+</html>

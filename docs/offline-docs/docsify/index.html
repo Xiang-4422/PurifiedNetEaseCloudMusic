@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="keywords" content="网易云音乐,网易云音乐 api,网易云音乐 nodejs,网易云音乐 node.js">
+  <meta name="description" content="网易云音乐 NodeJS API Enhanced">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="never">
+  <title>网易云音乐 NodeJS API Enhanced - Docsify 离线版</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="./assets/vue.css">
+  <link rel="stylesheet" href="./assets/offline.css">
+</head>
+<body>
+  <div id="app">加载中...</div>
+  <button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到顶部">↑</button>
+
+  <script>
+    window.$docsify = {
+      name: '网易云音乐 API Enhanced',
+      coverpage: true,
+      homepage: 'home.md',
+      themeColor: '#22C55E',
+      auto2top: true,
+      maxLevel: 4,
+      subMaxLevel: 2,
+      copyCode: {
+        buttonText: '复制',
+        errorText: '失败',
+        successText: '已复制'
+      },
+      search: {
+        placeholder: '搜索接口...',
+        noData: '没有找到结果',
+        depth: 3
+      }
+    };
+  </script>
+  <script src="./assets/docsify.min.js"></script>
+  <script src="./assets/search.min.js"></script>
+  <script src="./assets/docsify-copy-code.min.js"></script>
+  <script src="./assets/docsify-pagination.min.js"></script>
+  <script src="./assets/prism-bash.min.js"></script>
+  <script src="./assets/prism-json.min.js"></script>
+  <script src="./assets/prism-xml-doc.min.js"></script>
+  <script>
+    window.addEventListener('scroll', function () {
+      var btn = document.querySelector('.back-to-top');
+      if (btn) btn.style.display = window.scrollY > 400 ? 'flex' : 'none';
+    }, true);
+  </script>
+</body>
+</html>

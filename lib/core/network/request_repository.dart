@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 
-import '../../data/netease/api/src/dio_ext.dart';
+import '../../data/netease/api/client/dio_ext.dart';
 
 /// 通用请求仓库，隔离底层网易云 API 代理实现。
 class RequestRepository {

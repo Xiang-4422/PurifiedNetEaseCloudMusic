@@ -1,4 +1,4 @@
 library netease_music_api;
 
-export 'src/netease_api.dart';
-export 'src/netease_bean.dart';
+export 'client/netease_api.dart';
+export 'client/netease_bean.dart';

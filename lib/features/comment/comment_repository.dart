@@ -1,5 +1,5 @@
 import 'package:bujuan/core/network/operation_result.dart';
-import 'package:bujuan/data/netease/netease_comment_remote_data_source.dart';
+import 'package:bujuan/data/netease/remote/netease_comment_remote_data_source.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 
 /// 评论仓库，封装评论列表、楼层评论、发送评论和点赞操作。

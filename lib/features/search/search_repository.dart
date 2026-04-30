@@ -1,5 +1,5 @@
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
-import 'package:bujuan/data/netease/netease_search_remote_data_source.dart';
+import 'package:bujuan/data/netease/remote/netease_search_remote_data_source.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';

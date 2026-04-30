@@ -3,7 +3,7 @@ import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/data/netease/netease_playlist_remote_data_source.dart';
+import 'package:bujuan/data/netease/remote/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/domain/entities/playlist_track_ref.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';

@@ -1,4 +1,4 @@
-import 'package:bujuan/data/netease/api/src/api/play/bean.dart';
+import 'package:bujuan/data/netease/api/models/play/bean.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 

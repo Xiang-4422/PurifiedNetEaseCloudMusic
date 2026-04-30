@@ -1,4 +1,4 @@
-import 'package:bujuan/data/netease/netease_auth_remote_data_source.dart';
+import 'package:bujuan/data/netease/remote/netease_auth_remote_data_source.dart';
 import 'package:bujuan/features/auth/qr_login_data.dart';
 import 'package:bujuan/domain/entities/user_session_data.dart';
 

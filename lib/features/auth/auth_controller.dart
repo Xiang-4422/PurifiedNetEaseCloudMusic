@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/ui/toast_service.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
-import 'package:bujuan/features/auth/qr_login_data.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:get/get.dart';
@@ -84,18 +83,7 @@ class AuthController extends GetxController {
       return;
     }
 
-    isLoading.value = true;
-    final QrCodeCreationResult qrCodeLoginKey;
-    try {
-      qrCodeLoginKey = await _repository.createQrCodeKey();
-    } catch (_) {
-      isLoading.value = false;
-      qrCodeNeedRefresh.value = true;
-      hintText.value = '二维码获取失败';
-      ToastService.show('网络连接超时，请稍后重试');
-      return;
-    }
-    isLoading.value = false;
+    final qrCodeLoginKey = await _repository.createQrCodeKey();
     if (!qrCodeLoginKey.success) {
       ToastService.show(qrCodeLoginKey.message ?? '未知错误');
       return;
@@ -158,17 +146,7 @@ class AuthController extends GetxController {
   void _startPolling(String unikey) {
     _qrPollingTimer?.cancel();
     _qrPollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
-      final QrCodeStatusResult serverStatus;
-      try {
-        serverStatus = await _repository.checkQrCodeStatus(unikey);
-      } catch (_) {
-        hintText.value = '二维码状态检查失败';
-        qrCodeNeedRefresh.value = true;
-        timer.cancel();
-        _qrPollingTimer = null;
-        ToastService.show('网络连接超时，请刷新二维码');
-        return;
-      }
+      final serverStatus = await _repository.checkQrCodeStatus(unikey);
       switch (serverStatus.code) {
         case 800:
           hintText.value = '二维码过期';

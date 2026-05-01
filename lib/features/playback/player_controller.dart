@@ -18,6 +18,8 @@ import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_artwork_page_item.dart';
+import 'package:bujuan/features/playback/playback_confirmed_state.dart';
+import 'package:bujuan/features/playback/playback_display_state.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_selection_state.dart';
@@ -109,6 +111,14 @@ class PlayerController extends GetxController {
   final Rx<PlaybackSelectionState> selectionState =
       const PlaybackSelectionState().obs;
 
+  /// 当前 UI 展示播放状态。
+  final Rx<PlaybackDisplayState> displayState =
+      const PlaybackDisplayState().obs;
+
+  /// 底层已确认播放状态。
+  final Rx<PlaybackConfirmedState> confirmedState =
+      const PlaybackConfirmedState().obs;
+
   /// 当前歌词状态。
   final Rx<PlaybackLyricState> lyricState = const PlaybackLyricState().obs;
 
@@ -183,7 +193,7 @@ class PlayerController extends GetxController {
       runtimeState: () => runtimeState.value,
       lyricState: () => lyricState.value,
       playbackMode: () => playbackMode.value,
-      setIsPlaying: (value) => isPlaying.value = value,
+      setIsPlaying: _setIsPlaying,
       isPlaying: () => isPlaying.value,
       setFullScreenLyricOpen: (value) => isFullScreenLyricOpen.value = value,
     );
@@ -233,6 +243,10 @@ class PlayerController extends GetxController {
       currentPosition: currentPosition,
     );
     runtimeState.value = nextState;
+    confirmedState.value = PlaybackConfirmedState.fromRuntime(
+      nextState,
+      isPlaying: isPlaying.value,
+    );
     if (currentSong != null && !selectionState.value.hasSelection) {
       currentSongState.value = currentSong;
     }
@@ -241,7 +255,7 @@ class PlayerController extends GetxController {
       currentPositionState.value = currentPosition;
     }
     if (queue != null) {
-      queueState.assignAll(queue);
+      _syncQueueStateItems(queue);
       _syncArtworkPageItems(queue);
     }
     if (currentIndex != null &&
@@ -257,6 +271,7 @@ class PlayerController extends GetxController {
 
   void _syncSelectionState(PlaybackSelectionState nextState) {
     selectionState.value = nextState;
+    displayState.value = PlaybackDisplayState.fromSelection(nextState);
     curOrderMode.value = _queueService.state.orderMode;
     if (nextState.selectedItem.id.isNotEmpty) {
       currentSongState.value = nextState.selectedItem;
@@ -265,10 +280,18 @@ class PlayerController extends GetxController {
         currentQueueIndex.value != nextState.selectedIndex) {
       currentQueueIndex.value = nextState.selectedIndex;
     }
-    queueState.assignAll(nextState.queue);
+    _syncQueueStateItems(nextState.queue);
     _syncArtworkPageItems(nextState.queue);
     _scheduleSelectionUiSideEffects(nextState);
     _showSelectionSourceError(nextState);
+  }
+
+  void _setIsPlaying(bool value) {
+    isPlaying.value = value;
+    confirmedState.value = PlaybackConfirmedState.fromRuntime(
+      runtimeState.value,
+      isPlaying: value,
+    );
   }
 
   void _syncLyricState({
@@ -533,22 +556,40 @@ class PlayerController extends GetxController {
     final nextItems = queue
         .map(PlaybackArtworkPageItem.fromQueueItem)
         .toList(growable: false);
-    if (_hasSameArtworkPageItems(nextItems)) {
-      return;
-    }
-    artworkPageItems.assignAll(nextItems);
-  }
-
-  bool _hasSameArtworkPageItems(List<PlaybackArtworkPageItem> nextItems) {
     if (artworkPageItems.length != nextItems.length) {
-      return false;
+      artworkPageItems.assignAll(nextItems);
+      return;
     }
     for (var index = 0; index < nextItems.length; index++) {
       if (!artworkPageItems[index].hasSameArtwork(nextItems[index])) {
-        return false;
+        artworkPageItems[index] = nextItems[index];
       }
     }
-    return true;
+  }
+
+  void _syncQueueStateItems(List<PlaybackQueueItem> queue) {
+    if (queueState.length != queue.length) {
+      queueState.assignAll(queue);
+      return;
+    }
+    for (var index = 0; index < queue.length; index++) {
+      if (!_hasSameQueueItem(queueState[index], queue[index])) {
+        queueState[index] = queue[index];
+      }
+    }
+  }
+
+  bool _hasSameQueueItem(
+    PlaybackQueueItem current,
+    PlaybackQueueItem next,
+  ) {
+    return current.id == next.id &&
+        current.title == next.title &&
+        current.artist == next.artist &&
+        current.artworkUrl == next.artworkUrl &&
+        current.localArtworkPath == next.localArtworkPath &&
+        current.isLiked == next.isLiked &&
+        current.isCached == next.isCached;
   }
 
   void _preloadImages() {

@@ -27,6 +27,7 @@ class PlaybackQueueService {
       StreamController<PlaybackQueueState>.broadcast(sync: true);
 
   PlaybackQueueState _state = const PlaybackQueueState();
+  String _lastNotificationSignature = '';
 
   /// 当前队列事实快照。
   PlaybackQueueState get state => _state;
@@ -351,12 +352,39 @@ class PlaybackQueueService {
   }
 
   Future<void> _syncNotificationQueue() {
+    final signature = _notificationSignature();
+    if (signature == _lastNotificationSignature) {
+      return Future<void>.value();
+    }
+    _lastNotificationSignature = signature;
     return _playbackService.setNotificationQueue(
       _state.activeQueue,
       currentIndex: _state.confirmedIndex,
       playlistName: _state.playlistName,
       playlistHeader: _state.playlistHeader,
     );
+  }
+
+  String _notificationSignature() {
+    final queueSignature = _state.activeQueue.map(_notificationItemSignature);
+    return [
+      _state.confirmedIndex,
+      _state.playlistName,
+      _state.playlistHeader,
+      ...queueSignature,
+    ].join('|');
+  }
+
+  String _notificationItemSignature(PlaybackQueueItem item) {
+    return [
+      item.id,
+      item.title,
+      item.artist ?? '',
+      item.artworkUrl ?? '',
+      item.localArtworkPath ?? '',
+      item.isLiked,
+      item.isCached,
+    ].join('::');
   }
 
   List<PlaybackQueueItem> _buildActiveQueue({

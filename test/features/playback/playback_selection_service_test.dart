@@ -77,6 +77,41 @@ void main() {
       expect(selectionService.state.sourceError, isNotEmpty);
     });
 
+    test('rolls active user switch failure back to confirmed item', () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+      final selectionService = PlaybackSelectionService(
+        queueService: queueService,
+        navigator: const PlaybackSelectionNavigator(),
+        switchCoordinator: _switchCoordinator(playbackService, queueService),
+      );
+
+      final first = selectionService.selectQueue(
+        [_item('1'), _item('2')],
+        0,
+        playListName: 'Queue',
+        trigger: PlaybackSwitchTrigger.userSelect,
+      );
+      await Future<void>.delayed(Duration.zero);
+      playbackService.completeReplaceSource(true);
+      await first;
+
+      final failedSwitch = selectionService.selectIndex(
+        1,
+        trigger: PlaybackSwitchTrigger.userSelect,
+      );
+      await Future<void>.delayed(Duration.zero);
+      playbackService.completeReplaceSource(false);
+      await failedSwitch;
+
+      expect(queueService.state.confirmedIndex, 0);
+      expect(queueService.state.selectedIndex, 0);
+      expect(selectionService.state.selectedItem.id, '1');
+      expect(selectionService.state.sourceStatus,
+          PlaybackSelectionSourceStatus.error);
+      expect(selectionService.state.sourceError, isNotEmpty);
+    });
+
     test('only the latest rapid selection can become ready', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);

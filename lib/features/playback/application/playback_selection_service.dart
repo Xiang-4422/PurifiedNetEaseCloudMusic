@@ -162,6 +162,10 @@ class PlaybackSelectionService {
         sourceError: result.success ? null : result.message,
       ),
     );
+    if (!result.success && _shouldRollbackToConfirmed(trigger)) {
+      await _rollbackToConfirmedSelection(result.message);
+      return;
+    }
     if (!result.success &&
         (trigger == PlaybackSwitchTrigger.queueCompletion ||
             trigger == PlaybackSwitchTrigger.modeAutoAdvance)) {
@@ -215,6 +219,29 @@ class PlaybackSelectionService {
   bool _usesConfirmedIndex(PlaybackSwitchTrigger trigger) {
     return trigger == PlaybackSwitchTrigger.queueCompletion ||
         trigger == PlaybackSwitchTrigger.modeAutoAdvance;
+  }
+
+  bool _shouldRollbackToConfirmed(PlaybackSwitchTrigger trigger) {
+    return trigger == PlaybackSwitchTrigger.userSelect ||
+        trigger == PlaybackSwitchTrigger.userNext ||
+        trigger == PlaybackSwitchTrigger.userPrevious;
+  }
+
+  Future<void> _rollbackToConfirmedSelection(String? errorMessage) async {
+    final confirmedIndex = _queueService.state.confirmedIndex;
+    if (confirmedIndex < 0 ||
+        confirmedIndex >= _queueService.state.activeQueue.length ||
+        confirmedIndex == _state.selectedIndex) {
+      return;
+    }
+    final queueState = await _queueService.selectIndex(confirmedIndex);
+    _syncFromQueueState(queueState);
+    _emitState(
+      _state.copyWith(
+        sourceStatus: PlaybackSelectionSourceStatus.error,
+        sourceError: errorMessage,
+      ),
+    );
   }
 
   /// 释放 selection 状态流。

@@ -98,6 +98,23 @@ void main() {
         'Updated',
       );
     });
+
+    test('skips notification sync when notification signature is unchanged',
+        () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+
+      await queueService.replaceQueue(
+        [_item('1'), _item('2')],
+        0,
+        playlistName: 'Queue',
+      );
+      final callsAfterReplace = playbackService.notificationSyncCount;
+
+      await queueService.selectIndex(0);
+
+      expect(playbackService.notificationSyncCount, callsAfterReplace);
+    });
   });
 }
 
@@ -130,6 +147,7 @@ PlaybackQueueItem _item(String id, {String? title}) {
 class _FakePlaybackService implements PlaybackService {
   List<PlaybackQueueItem> notificationQueue = const <PlaybackQueueItem>[];
   int notificationIndex = -1;
+  int notificationSyncCount = 0;
   final List<int> sourceSwitches = <int>[];
   Duration pendingRestorePosition = Duration.zero;
 
@@ -140,6 +158,7 @@ class _FakePlaybackService implements PlaybackService {
     required String playlistName,
     required String playlistHeader,
   }) async {
+    notificationSyncCount++;
     notificationQueue = queue;
     notificationIndex = currentIndex;
   }

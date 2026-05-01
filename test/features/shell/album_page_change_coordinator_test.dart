@@ -3,18 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AlbumPageChangeCoordinator', () {
-    test('records page changes without playing until commit', () async {
+    test('commits user page changes immediately', () async {
       final coordinator = AlbumPageChangeCoordinator();
       final playedIndexes = <int>[];
 
-      coordinator.recordPageChange(2, isProgrammatic: false);
-
-      expect(playedIndexes, isEmpty);
-
-      final committed = await coordinator.commit(
+      final committed = await coordinator.commitPageChange(
+        index: 2,
+        isProgrammatic: false,
         currentIndex: 0,
         queueLength: 4,
-        settledPage: 2,
         playIndex: (index) async => playedIndexes.add(index),
       );
 
@@ -26,12 +23,11 @@ void main() {
       final coordinator = AlbumPageChangeCoordinator();
       final playedIndexes = <int>[];
 
-      coordinator.recordPageChange(1, isProgrammatic: true);
-
-      final committed = await coordinator.commit(
+      final committed = await coordinator.commitPageChange(
+        index: 1,
+        isProgrammatic: true,
         currentIndex: 0,
         queueLength: 3,
-        settledPage: 1,
         playIndex: (index) async => playedIndexes.add(index),
       );
 
@@ -39,28 +35,28 @@ void main() {
       expect(playedIndexes, isEmpty);
     });
 
-    test('waits until page is settled before committing', () async {
+    test('ignores invalid or current indexes', () async {
       final coordinator = AlbumPageChangeCoordinator();
       final playedIndexes = <int>[];
 
-      coordinator.recordPageChange(2, isProgrammatic: false);
-
-      final firstCommit = await coordinator.commit(
+      final invalidCommit = await coordinator.commitPageChange(
+        index: 4,
+        isProgrammatic: false,
         currentIndex: 0,
         queueLength: 4,
-        settledPage: 1.5,
         playIndex: (index) async => playedIndexes.add(index),
       );
-      final secondCommit = await coordinator.commit(
+      final currentCommit = await coordinator.commitPageChange(
+        index: 0,
+        isProgrammatic: false,
         currentIndex: 0,
         queueLength: 4,
-        settledPage: 2.0,
         playIndex: (index) async => playedIndexes.add(index),
       );
 
-      expect(firstCommit, isFalse);
-      expect(secondCommit, isTrue);
-      expect(playedIndexes, [2]);
+      expect(invalidCommit, isFalse);
+      expect(currentCommit, isFalse);
+      expect(playedIndexes, isEmpty);
     });
   });
 }

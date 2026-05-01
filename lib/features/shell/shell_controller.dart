@@ -246,32 +246,26 @@ class ShellController extends SuperController
   void beginAlbumPageUserScroll() {
     isAlbumScrollingManully = true;
     isAlbumScrollingProgrammatic = false;
-    _albumPageChangeCoordinator.clear();
   }
 
-  /// 标记封面页用户手势结束，并提交最终切歌索引。
+  /// 标记封面页用户手势结束。
   Future<void> endAlbumPageUserScroll() async {
     isAlbumScrollingManully = false;
-    await commitAlbumPageChange();
   }
 
-  /// 记录专辑页用户切换，真实播放提交延迟到滚动结束。
+  /// 专辑页跨过 50% 阈值时立即提交切歌。
   void onAlbumPageChanged(int index) {
-    _albumPageChangeCoordinator.recordPageChange(
-      index,
-      isProgrammatic: isAlbumScrollingProgrammatic,
-    );
+    unawaited(_commitAlbumPageChange(index));
   }
 
-  /// 提交封面页最终停留索引到播放队列。
-  Future<void> commitAlbumPageChange() async {
+  /// 提交封面页切换索引到播放队列。
+  Future<void> _commitAlbumPageChange(int index) async {
     final selectionState = _playbackPort.selectionState();
-    final settledPage =
-        albumPageController.hasClients ? albumPageController.page : null;
-    await _albumPageChangeCoordinator.commit(
+    await _albumPageChangeCoordinator.commitPageChange(
+      index: index,
+      isProgrammatic: isAlbumScrollingProgrammatic,
       currentIndex: selectionState.selectedIndex,
       queueLength: selectionState.queue.length,
-      settledPage: settledPage,
       playIndex: _playbackPort.playQueueIndex,
     );
   }

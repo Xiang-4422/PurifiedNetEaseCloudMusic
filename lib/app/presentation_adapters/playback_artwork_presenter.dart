@@ -4,6 +4,7 @@ import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/core/storage/local_image_cache_repository.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
+import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:flutter/material.dart';
 
@@ -22,21 +23,39 @@ class PlaybackArtworkPresenter {
 
   final Map<String, Color> _albumColorCache = {};
   final Map<String, String> _resolvedArtworkPathCache = {};
+  final Map<String, Future<void>> _pendingDominantColorPrewarms = {};
 
   /// 解析队列项封面的主色，用于同步播放面板主题色。
   Future<Color?> resolveDominantColor(PlaybackQueueItem item) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     final imagePath = await _resolveArtworkPathForColor(item);
     if (imagePath == null || imagePath.isEmpty) {
+      PlaybackPerformanceLogger.elapsed(
+        'artwork.resolveDominantColor.noPath',
+        stopwatch,
+        details: 'id=${item.id}',
+      );
       return null;
     }
 
     final cachedColor = peekCachedDominantColor(item);
     if (cachedColor != null) {
+      PlaybackPerformanceLogger.elapsed(
+        'artwork.resolveDominantColor.cacheHit',
+        stopwatch,
+        details: 'id=${item.id}',
+        warnAfterMs: 1,
+      );
       return cachedColor;
     }
 
     final color = await ImageColorService.dominantColor(imagePath);
     _rememberAlbumColor(imagePath, color);
+    PlaybackPerformanceLogger.elapsed(
+      'artwork.resolveDominantColor.computed',
+      stopwatch,
+      details: 'id=${item.id}',
+    );
     return color;
   }
 
@@ -73,6 +92,7 @@ class PlaybackArtworkPresenter {
     required int currentIndex,
     int radius = 3,
   }) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     if (queue.isEmpty || currentIndex < 0) {
       return;
     }
@@ -82,8 +102,19 @@ class PlaybackArtworkPresenter {
       indices.add((currentIndex - offset + queue.length) % queue.length);
     }
 
-    await Future.wait(
-      indices.map((index) => _prewarmDominantColor(queue[index])),
+    for (final index in indices) {
+      await _prewarmDominantColor(
+        queue[index],
+        allowRemoteResolve: index == currentIndex,
+      );
+      await Future<void>.delayed(Duration.zero);
+    }
+    PlaybackPerformanceLogger.elapsed(
+      'artwork.prewarmQueueDominantColors',
+      stopwatch,
+      details:
+          'index=$currentIndex queue=${queue.length} candidates=${indices.length}',
+      warnAfterMs: 8,
     );
   }
 
@@ -153,8 +184,46 @@ class PlaybackArtworkPresenter {
         item.localArtworkPath?.isNotEmpty == true;
   }
 
-  Future<void> _prewarmDominantColor(PlaybackQueueItem item) async {
+  Future<void> _prewarmDominantColor(
+    PlaybackQueueItem item, {
+    bool allowRemoteResolve = false,
+  }) async {
+    final imageSource = _artworkSource(item);
+    if (imageSource == null || imageSource.isEmpty) {
+      return;
+    }
+    final pending = _pendingDominantColorPrewarms[imageSource];
+    if (pending != null) {
+      return pending;
+    }
+    late final Future<void> prewarm;
+    prewarm = _runDominantColorPrewarm(
+      item,
+      allowRemoteResolve: allowRemoteResolve,
+    ).whenComplete(() {
+      if (identical(_pendingDominantColorPrewarms[imageSource], prewarm)) {
+        _pendingDominantColorPrewarms.remove(imageSource);
+      }
+    });
+    _pendingDominantColorPrewarms[imageSource] = prewarm;
+    return prewarm;
+  }
+
+  Future<void> _runDominantColorPrewarm(
+    PlaybackQueueItem item, {
+    required bool allowRemoteResolve,
+  }) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     try {
+      final imageSource = _artworkSource(item);
+      if (imageSource == null || imageSource.isEmpty) {
+        return;
+      }
+      if (_isRemoteArtworkSource(imageSource) &&
+          !_resolvedArtworkPathCache.containsKey(imageSource) &&
+          !allowRemoteResolve) {
+        return;
+      }
       final imagePath = await _resolveArtworkPathForColor(item);
       if (imagePath == null || imagePath.isEmpty) {
         return;
@@ -169,6 +238,12 @@ class PlaybackArtworkPresenter {
       }
       final color = await ImageColorService.dominantColor(imagePath);
       _rememberAlbumColor(imagePath, color);
+      PlaybackPerformanceLogger.elapsed(
+        'artwork.prewarmDominantColor.computed',
+        stopwatch,
+        details: 'id=${item.id}',
+        warnAfterMs: 8,
+      );
     } catch (_) {
       // 预热失败只影响下一次切歌取色命中率，不能干扰播放链路。
     }

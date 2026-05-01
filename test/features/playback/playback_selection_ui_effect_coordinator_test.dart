@@ -55,15 +55,20 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 240));
 
       expect(appliedColors, [Colors.red]);
-      expect(artworkPresenter.prewarmCallCount, 1);
+      expect(artworkPresenter.prewarmCallCount, 0);
       expect(lyricsPresenter.loadCallCount, 1);
       expect(syncedLyrics.last.single.mainText, 'line');
+
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+      expect(artworkPresenter.prewarmCallCount, 1);
 
       prewarmCompleter.complete();
     });
 
-    test('prewarms color cache without applying uncached color', () async {
-      final artworkPresenter = _FakeArtworkPresenter();
+    test('applies uncached color after background prewarm resolves', () async {
+      final artworkPresenter = _FakeArtworkPresenter(
+        resolvedColor: Colors.blue,
+      );
       final lyricsPresenter = _FakeLyricsPresenter();
       final appliedColors = <Color>[];
       final selection = PlaybackSelectionState(
@@ -93,8 +98,13 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 240));
 
       expect(appliedColors, isEmpty);
-      expect(artworkPresenter.prewarmCallCount, 1);
+      expect(artworkPresenter.prewarmCallCount, 0);
       expect(lyricsPresenter.loadCallCount, 1);
+
+      await Future<void>.delayed(const Duration(milliseconds: 900));
+      expect(artworkPresenter.prewarmCallCount, 1);
+      expect(artworkPresenter.resolveCallCount, 1);
+      expect(appliedColors, [Colors.blue]);
     });
   });
 }
@@ -102,12 +112,15 @@ void main() {
 class _FakeArtworkPresenter implements PlaybackArtworkPresenter {
   _FakeArtworkPresenter({
     this.cachedColor,
+    this.resolvedColor,
     Future<void>? prewarmFuture,
   }) : prewarmFuture = prewarmFuture ?? Future<void>.value();
 
   final Color? cachedColor;
+  final Color? resolvedColor;
   final Future<void> prewarmFuture;
   int prewarmCallCount = 0;
+  int resolveCallCount = 0;
 
   @override
   Color? peekCachedDominantColor(PlaybackQueueItem item) => cachedColor;
@@ -124,7 +137,8 @@ class _FakeArtworkPresenter implements PlaybackArtworkPresenter {
 
   @override
   Future<Color?> resolveDominantColor(PlaybackQueueItem item) async {
-    return cachedColor;
+    resolveCallCount++;
+    return resolvedColor ?? cachedColor;
   }
 
   @override

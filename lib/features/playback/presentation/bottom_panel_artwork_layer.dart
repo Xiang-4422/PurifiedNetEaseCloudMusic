@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -111,8 +112,9 @@ class BottomPanelArtworkPageLayer extends StatelessWidget {
             },
             child: Obx(
               () {
+                final stopwatch = PlaybackPerformanceLogger.start();
                 final queue = PlayerController.to.artworkPageItems.toList();
-                return PageView.builder(
+                final pageView = PageView.builder(
                   controller: controller.albumPageController,
                   itemCount: queue.length,
                   allowImplicitScrolling: true,
@@ -160,6 +162,13 @@ class BottomPanelArtworkPageLayer extends StatelessWidget {
                     );
                   },
                 );
+                PlaybackPerformanceLogger.elapsed(
+                  'artworkPageLayer.buildPageView',
+                  stopwatch,
+                  details: 'queue=${queue.length}',
+                  warnAfterMs: 2,
+                );
+                return pageView;
               },
             ),
           ),

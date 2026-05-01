@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bujuan/app/presentation_adapters/shell_playback_port.dart';
 import 'package:bujuan/app/presentation_adapters/shell_user_port.dart';
+import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/presentation/lyric_scroll_position.dart';
 import 'package:bujuan/features/shell/album_page_change_coordinator.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
@@ -61,8 +62,11 @@ class ShellController extends SuperController
   /// 专辑页是否处于滚动状态。
   RxBool isAlbumScrolling = false.obs;
   int? _pendingAlbumSyncIndex;
+  int? _ignoredProgrammaticAlbumPageIndex;
   bool _playlistScrollInFlight = false;
   bool _playlistScrollPending = false;
+  static const int _albumAnimatedSyncMaxDistance = 3;
+  static const double _playlistAnimatedScrollMaxDistance = 55.0 * 12;
 
   /// 底部播放面板控制器。
   PanelController bottomPanelController = PanelController();
@@ -249,6 +253,7 @@ class ShellController extends SuperController
   void beginAlbumPageUserScroll() {
     isAlbumScrollingManully = true;
     isAlbumScrollingProgrammatic = false;
+    _ignoredProgrammaticAlbumPageIndex = null;
   }
 
   /// 标记封面页用户手势结束。
@@ -263,13 +268,27 @@ class ShellController extends SuperController
 
   /// 提交封面页切换索引到播放队列。
   Future<void> _commitAlbumPageChange(int index) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     final selectionState = _playbackPort.selectionState();
-    await _albumPageChangeCoordinator.commitPageChange(
+    final ignoredProgrammaticTarget =
+        index == _ignoredProgrammaticAlbumPageIndex;
+    if (ignoredProgrammaticTarget) {
+      _ignoredProgrammaticAlbumPageIndex = null;
+    }
+    final isProgrammatic =
+        isAlbumScrollingProgrammatic || ignoredProgrammaticTarget;
+    final committed = await _albumPageChangeCoordinator.commitPageChange(
       index: index,
-      isProgrammatic: isAlbumScrollingProgrammatic,
+      isProgrammatic: isProgrammatic,
       currentIndex: selectionState.selectedIndex,
       queueLength: selectionState.queue.length,
       playIndex: _playbackPort.playQueueIndex,
+    );
+    PlaybackPerformanceLogger.elapsed(
+      'shell.albumPageChange.commit',
+      stopwatch,
+      details:
+          'index=$index current=${selectionState.selectedIndex} programmatic=$isProgrammatic ignoredTarget=$ignoredProgrammaticTarget committed=$committed queue=${selectionState.queue.length}',
     );
   }
 
@@ -429,11 +448,13 @@ class ShellController extends SuperController
 
   // 列表页打开时直接滚到当前播放项，可以减少“当前歌曲已变但列表还停在旧位置”的错觉。
   Future<void> _animatePlayListToCurSong() async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     if (curPanelPageIndex.value == 0 &&
         bottomPanelFullyOpened.isTrue &&
         playListScrollController.hasClients) {
       if (_playlistScrollInFlight) {
         _playlistScrollPending = true;
+        PlaybackPerformanceLogger.log('shell.playlistScroll.pending');
         return;
       }
       final currentIndex = _playbackPort.currentQueueIndex().value;
@@ -441,13 +462,39 @@ class ShellController extends SuperController
         return;
       }
       double offset = currentIndex * 55.0;
-      if ((playListScrollController.offset - offset).abs() < 55.0) {
+      final distance = (playListScrollController.offset - offset).abs();
+      if (distance < 55.0) {
+        PlaybackPerformanceLogger.elapsed(
+          'shell.playlistScroll.skipNear',
+          stopwatch,
+          details:
+              'index=$currentIndex currentOffset=${playListScrollController.offset.toStringAsFixed(1)} target=${offset.toStringAsFixed(1)}',
+        );
         return;
       }
       _playlistScrollInFlight = true;
       try {
-        await playListScrollController.animateTo(offset,
-            duration: const Duration(milliseconds: 500), curve: Curves.ease);
+        if (distance > _playlistAnimatedScrollMaxDistance) {
+          final targetOffset = offset.clamp(
+            playListScrollController.position.minScrollExtent,
+            playListScrollController.position.maxScrollExtent,
+          );
+          playListScrollController.jumpTo(targetOffset);
+          PlaybackPerformanceLogger.elapsed(
+            'shell.playlistScroll.jump',
+            stopwatch,
+            details:
+                'index=$currentIndex target=${targetOffset.toStringAsFixed(1)} distance=${distance.toStringAsFixed(1)}',
+          );
+        } else {
+          await playListScrollController.animateTo(offset,
+              duration: const Duration(milliseconds: 500), curve: Curves.ease);
+          PlaybackPerformanceLogger.elapsed(
+            'shell.playlistScroll.animate',
+            stopwatch,
+            details: 'index=$currentIndex target=${offset.toStringAsFixed(1)}',
+          );
+        }
       } finally {
         _playlistScrollInFlight = false;
         if (_playlistScrollPending) {
@@ -461,6 +508,7 @@ class ShellController extends SuperController
   /// 将专辑页同步到当前播放索引。
   void syncAlbumPage({bool jump = false}) {
     if (isAlbumScrollingProgrammatic) {
+      PlaybackPerformanceLogger.log('shell.albumSync.skipProgrammatic');
       return;
     }
     _animateAlbumPageViewToCurSong(jump: jump);
@@ -476,28 +524,48 @@ class ShellController extends SuperController
       }
       if (isAlbumScrollingProgrammatic) {
         _pendingAlbumSyncIndex = currentIndex;
+        PlaybackPerformanceLogger.log(
+          'shell.albumSync.pending index=$currentIndex jump=$jump',
+        );
         return;
       }
       double currentPage = albumPageController.page ?? 0;
       if ((currentPage - currentIndex).abs() <
           AlbumPageChangeCoordinator.settledPageTolerance) {
+        PlaybackPerformanceLogger.log(
+          'shell.albumSync.skipNear currentPage=${currentPage.toStringAsFixed(2)} target=$currentIndex jump=$jump',
+        );
         return;
       }
 
       isAlbumScrollingProgrammatic = true;
-      final syncFuture = jump
+      _ignoredProgrammaticAlbumPageIndex = currentIndex;
+      final stopwatch = PlaybackPerformanceLogger.start();
+      final pageDistance = (currentPage - currentIndex).abs();
+      final shouldJump = jump || pageDistance > _albumAnimatedSyncMaxDistance;
+      PlaybackPerformanceLogger.log(
+        'shell.albumSync.start currentPage=${currentPage.toStringAsFixed(2)} target=$currentIndex jump=$shouldJump distance=${pageDistance.toStringAsFixed(2)}',
+      );
+      final syncFuture = shouldJump
           ? Future<void>(() => albumPageController.jumpToPage(currentIndex))
           : albumPageController.animateToPage(currentIndex,
               duration: const Duration(milliseconds: 500), curve: Curves.ease);
       syncFuture.whenComplete(() {
-        isAlbumScrollingProgrammatic = false;
-        final pendingIndex = _pendingAlbumSyncIndex;
-        _pendingAlbumSyncIndex = null;
-        if (pendingIndex != null &&
-            pendingIndex != currentIndex &&
-            !isAlbumScrollingManully) {
-          _animateAlbumPageViewToCurSong(jump: jump);
-        }
+        PlaybackPerformanceLogger.elapsed(
+          'shell.albumSync.complete',
+          stopwatch,
+          details: 'target=$currentIndex jump=$shouldJump',
+        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          isAlbumScrollingProgrammatic = false;
+          final pendingIndex = _pendingAlbumSyncIndex;
+          _pendingAlbumSyncIndex = null;
+          if (pendingIndex != null &&
+              pendingIndex != currentIndex &&
+              !isAlbumScrollingManully) {
+            _animateAlbumPageViewToCurSong(jump: jump);
+          }
+        });
       });
     }
   }

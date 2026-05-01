@@ -10,6 +10,7 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
+import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
@@ -236,6 +237,7 @@ class PlayerController extends GetxController {
     int? currentIndex,
     Duration? currentPosition,
   }) {
+    final stopwatch = PlaybackPerformanceLogger.start();
     final nextState = runtimeState.value.copyWith(
       queue: queue,
       currentSong: currentSong,
@@ -263,6 +265,13 @@ class PlayerController extends GetxController {
         currentQueueIndex.value != currentIndex) {
       currentQueueIndex.value = currentIndex;
     }
+    PlaybackPerformanceLogger.elapsed(
+      'controller.syncRuntimeState',
+      stopwatch,
+      details:
+          'queue=${queue?.length ?? '-'} song=${currentSong?.id ?? '-'} index=${currentIndex ?? '-'} position=${currentPosition != null}',
+      warnAfterMs: 4,
+    );
   }
 
   void _syncSelectionQueue(List<PlaybackQueueItem> queue, int selectedIndex) {
@@ -270,6 +279,7 @@ class PlayerController extends GetxController {
   }
 
   void _syncSelectionState(PlaybackSelectionState nextState) {
+    final stopwatch = PlaybackPerformanceLogger.start();
     selectionState.value = nextState;
     displayState.value = PlaybackDisplayState.fromSelection(nextState);
     curOrderMode.value = _queueService.state.orderMode;
@@ -284,6 +294,13 @@ class PlayerController extends GetxController {
     _syncArtworkPageItems(nextState.queue);
     _scheduleSelectionUiSideEffects(nextState);
     _showSelectionSourceError(nextState);
+    PlaybackPerformanceLogger.elapsed(
+      'controller.syncSelectionState',
+      stopwatch,
+      details:
+          'version=${nextState.selectionVersion} id=${nextState.selectedItem.id} index=${nextState.selectedIndex} queue=${nextState.queue.length} source=${nextState.sourceStatus.name}',
+      warnAfterMs: 4,
+    );
   }
 
   void _setIsPlaying(bool value) {
@@ -553,30 +570,60 @@ class PlayerController extends GetxController {
   }
 
   void _syncArtworkPageItems(List<PlaybackQueueItem> queue) {
+    final stopwatch = PlaybackPerformanceLogger.start();
     final nextItems = queue
         .map(PlaybackArtworkPageItem.fromQueueItem)
         .toList(growable: false);
     if (artworkPageItems.length != nextItems.length) {
       artworkPageItems.assignAll(nextItems);
+      PlaybackPerformanceLogger.elapsed(
+        'controller.syncArtworkPageItems.assignAll',
+        stopwatch,
+        details: 'count=${nextItems.length}',
+        warnAfterMs: 2,
+      );
       return;
     }
+    var changedCount = 0;
     for (var index = 0; index < nextItems.length; index++) {
       if (!artworkPageItems[index].hasSameArtwork(nextItems[index])) {
         artworkPageItems[index] = nextItems[index];
+        changedCount++;
       }
     }
+    PlaybackPerformanceLogger.elapsed(
+      'controller.syncArtworkPageItems.incremental',
+      stopwatch,
+      details: 'count=${nextItems.length} changed=$changedCount',
+      warnAfterMs: 2,
+    );
   }
 
   void _syncQueueStateItems(List<PlaybackQueueItem> queue) {
+    final stopwatch = PlaybackPerformanceLogger.start();
     if (queueState.length != queue.length) {
       queueState.assignAll(queue);
+      PlaybackPerformanceLogger.elapsed(
+        'controller.syncQueueStateItems.assignAll',
+        stopwatch,
+        details: 'count=${queue.length}',
+        warnAfterMs: 2,
+      );
       return;
     }
+    var changedCount = 0;
     for (var index = 0; index < queue.length; index++) {
       if (!_hasSameQueueItem(queueState[index], queue[index])) {
         queueState[index] = queue[index];
+        changedCount++;
       }
     }
+    PlaybackPerformanceLogger.elapsed(
+      'controller.syncQueueStateItems.incremental',
+      stopwatch,
+      details: 'count=${queue.length} changed=$changedCount',
+      warnAfterMs: 2,
+    );
   }
 
   bool _hasSameQueueItem(
@@ -596,15 +643,19 @@ class PlayerController extends GetxController {
     if (isPlaying.isFalse) {
       return;
     }
+    final stopwatch = PlaybackPerformanceLogger.start();
     _artworkPresenter.preloadQueueArtwork(
       queue: selectionState.value.queue,
       currentIndex: selectionState.value.selectedIndex,
       context: Get.context,
     );
-    unawaited(_artworkPresenter.prewarmQueueDominantColors(
-      queue: selectionState.value.queue,
-      currentIndex: selectionState.value.selectedIndex,
-    ));
+    PlaybackPerformanceLogger.elapsed(
+      'controller.preloadArtwork',
+      stopwatch,
+      details:
+          'index=${selectionState.value.selectedIndex} queue=${selectionState.value.queue.length}',
+      warnAfterMs: 2,
+    );
   }
 
   @override

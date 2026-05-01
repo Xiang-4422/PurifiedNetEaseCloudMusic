@@ -5,6 +5,7 @@ import 'package:bujuan/app/presentation_adapters/playback_theme_port.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
+import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/playback_selection_state.dart';
 
 /// 跟随 UI selection 的歌词、取色和封面预取协调器。
@@ -27,6 +28,7 @@ class PlaybackSelectionUiEffectCoordinator {
   final PlaybackArtworkPresenter _artworkPresenter;
   final PlaybackThemePort _themePort;
   String? _lastSelectionUiSideEffectKey;
+  Timer? _colorPrewarmTimer;
 
   /// 按当前 selection 调度 UI 展示副作用。
   void schedule({
@@ -48,6 +50,9 @@ class PlaybackSelectionUiEffectCoordinator {
       return;
     }
     _lastSelectionUiSideEffectKey = key;
+    PlaybackPerformanceLogger.log(
+      'selectionUi.schedule version=${selection.selectionVersion} id=${selectedSong.id} index=${selection.selectedIndex} queue=${selection.queue.length}',
+    );
     syncLyricState(
       lines: const [],
       currentIndex: -1,
@@ -59,13 +64,31 @@ class PlaybackSelectionUiEffectCoordinator {
       trackId: selectedSong.id,
       isStillCurrent: (trackId) => latestSelection().selectedItem.id == trackId,
       run: () async {
+        final stopwatch = PlaybackPerformanceLogger.start();
         preloadImages();
-        await _updateAlbumColor(selection);
+        await _updateAlbumColor(selection, latestSelection);
         if (latestSelection().selectedItem.id != selectedSong.id) {
+          PlaybackPerformanceLogger.elapsed(
+            'selectionUi.cancelAfterColor',
+            stopwatch,
+            details: 'id=${selectedSong.id}',
+          );
           return;
         }
+        final lyricStopwatch = PlaybackPerformanceLogger.start();
         final nextLyricState = await _lyricsPresenter.loadLyrics(selectedSong);
+        PlaybackPerformanceLogger.elapsed(
+          'selectionUi.loadLyrics',
+          lyricStopwatch,
+          details: 'id=${selectedSong.id} lines=${nextLyricState.lines.length}',
+          warnAfterMs: 4,
+        );
         if (latestSelection().selectedItem.id != selectedSong.id) {
+          PlaybackPerformanceLogger.elapsed(
+            'selectionUi.cancelAfterLyrics',
+            stopwatch,
+            details: 'id=${selectedSong.id}',
+          );
           return;
         }
         syncLyricState(
@@ -73,28 +96,77 @@ class PlaybackSelectionUiEffectCoordinator {
           currentIndex: nextLyricState.currentIndex,
           hasTranslatedLyrics: nextLyricState.hasTranslatedLyrics,
         );
+        PlaybackPerformanceLogger.elapsed(
+          'selectionUi.run',
+          stopwatch,
+          details: 'id=${selectedSong.id}',
+          warnAfterMs: 4,
+        );
       },
     );
   }
 
-  Future<void> _updateAlbumColor(PlaybackSelectionState selection) async {
+  Future<void> _updateAlbumColor(
+    PlaybackSelectionState selection,
+    PlaybackSelectionState Function() latestSelection,
+  ) async {
     try {
+      final stopwatch = PlaybackPerformanceLogger.start();
       final color =
           _artworkPresenter.peekCachedDominantColor(selection.selectedItem);
       if (color != null) {
         _themePort.applyDominantColor(color);
+        PlaybackPerformanceLogger.log(
+          'selectionUi.applyAlbumColor.cacheHit id=${selection.selectedItem.id}',
+        );
       }
-      unawaited(_artworkPresenter.prewarmQueueDominantColors(
-        queue: selection.queue,
-        currentIndex: selection.selectedIndex,
-      ));
+      _scheduleColorPrewarm(selection, latestSelection);
+      PlaybackPerformanceLogger.elapsed(
+        'selectionUi.updateAlbumColor',
+        stopwatch,
+        details:
+            'id=${selection.selectedItem.id} cacheHit=${color != null} queue=${selection.queue.length}',
+        warnAfterMs: 1,
+      );
     } catch (_) {
       // 取色失败只影响播放器氛围色，不能中断歌词加载。
     }
   }
 
+  void _scheduleColorPrewarm(
+    PlaybackSelectionState selection,
+    PlaybackSelectionState Function() latestSelection,
+  ) {
+    _colorPrewarmTimer?.cancel();
+    final queue = selection.queue;
+    final currentIndex = selection.selectedIndex;
+    final selectedItem = selection.selectedItem;
+    _colorPrewarmTimer = Timer(const Duration(milliseconds: 900), () {
+      unawaited(() async {
+        await _artworkPresenter.prewarmQueueDominantColors(
+          queue: queue,
+          currentIndex: currentIndex,
+        );
+        if (latestSelection().selectedItem.id != selectedItem.id) {
+          return;
+        }
+        final resolvedColor =
+            await _artworkPresenter.resolveDominantColor(selectedItem);
+        if (resolvedColor != null &&
+            latestSelection().selectedItem.id == selectedItem.id) {
+          _themePort.applyDominantColor(resolvedColor);
+          PlaybackPerformanceLogger.log(
+            'selectionUi.applyAlbumColor.resolved id=${selectedItem.id}',
+          );
+        }
+      }());
+    });
+  }
+
   /// 取消挂起的 selection UI 副作用。
   void cancel() {
+    _colorPrewarmTimer?.cancel();
+    _colorPrewarmTimer = null;
     _sideEffectCoordinator.cancel('playback-ui-lyric-artwork');
   }
 }

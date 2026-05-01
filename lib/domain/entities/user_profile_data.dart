@@ -35,7 +35,7 @@ class UserProfileData {
   /// 从 JSON 创建用户资料数据。
   factory UserProfileData.fromJson(Map<String, dynamic> json) {
     return UserProfileData(
-      userId: json['userId'] as String? ?? '',
+      userId: json['userId']?.toString() ?? '',
       nickname: json['nickname'] as String? ?? '',
       signature: json['signature'] as String? ?? '',
       follows: json['follows'] as int? ?? 0,

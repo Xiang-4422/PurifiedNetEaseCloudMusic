@@ -23,6 +23,10 @@ class UserProfileController {
 
   /// 首次加载用户资料，优先展示缓存并后台刷新。
   Future<void> loadInitial() async {
+    if (userId.isEmpty || userId == '-1') {
+      state.value = const LoadState.empty();
+      return;
+    }
     final cachedDetail = await _repository.loadCachedUserDetail(userId);
     if (cachedDetail != null && cachedDetail.userId.isNotEmpty) {
       state.value = LoadState.data(cachedDetail);
@@ -35,6 +39,10 @@ class UserProfileController {
 
   /// 刷新用户资料。
   Future<void> refresh() async {
+    if (userId.isEmpty || userId == '-1') {
+      state.value = const LoadState.empty();
+      return;
+    }
     try {
       final detail = await _repository.fetchUserDetail(userId);
       state.value = detail.userId.isEmpty

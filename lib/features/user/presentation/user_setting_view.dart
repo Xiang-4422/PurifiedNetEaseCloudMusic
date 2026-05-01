@@ -37,6 +37,11 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
 
   @override
   Widget build(BuildContext context) {
+    final topPadding =
+        AppDimensions.appBarHeight + context.mediaQueryPadding.top;
+    final bottomPadding = AppDimensions.bottomPanelHeaderHeight +
+        context.mediaQueryPadding.bottom;
+
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _controller.refresh,
@@ -44,96 +49,161 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
           valueListenable: _controller.state,
           builder: (context, state, child) => LoadStateView(
             state: state,
-            builder: (userData) => Container(
-              padding: EdgeInsets.only(
-                top: AppDimensions.appBarHeight + context.mediaQueryPadding.top,
-                bottom: AppDimensions.bottomPanelHeaderHeight,
-              ),
-              child: Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  Container(
-                    width: context.width,
-                    margin: const EdgeInsets.only(top: 200),
-                    padding: const EdgeInsets.only(
-                      left: 15,
-                      right: 15,
-                      bottom: 25,
-                      top: 80,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.onSecondary,
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: Column(
+            builder: (userData) => LayoutBuilder(
+              builder: (context, constraints) {
+                final cardTopMargin =
+                    constraints.maxWidth < 360 ? 150.0 : 200.0;
+                final avatarSize = constraints.maxWidth < 360 ? 180.0 : 240.0;
+                final minContentHeight =
+                    (constraints.maxHeight - topPadding - bottomPadding)
+                        .clamp(0.0, double.infinity);
+
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(
+                    top: topPadding,
+                    bottom: bottomPadding,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: minContentHeight),
+                    child: Stack(
+                      alignment: Alignment.topCenter,
                       children: [
-                        Text(
-                          userData.nickname,
-                          style: const TextStyle(fontSize: 56),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Text(
-                            userData.signature,
-                            style: const TextStyle(
-                                fontSize: 32, color: Colors.grey),
+                        Container(
+                          width: context.width,
+                          margin: EdgeInsets.only(
+                            top: cardTopMargin,
+                            left: AppDimensions.paddingSmall,
+                            right: AppDimensions.paddingSmall,
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 20,
-                            horizontal: 20,
+                          padding: EdgeInsets.only(
+                            left: AppDimensions.paddingMedium,
+                            right: AppDimensions.paddingMedium,
+                            bottom: AppDimensions.paddingLarge,
+                            top: avatarSize / 2 + AppDimensions.paddingMedium,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.onSecondary,
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('${userData.follows} 关注'),
-                              Text('${userData.followeds} 粉丝'),
-                              Text('${userData.playlistCount} 歌单'),
+                              Text(
+                                userData.nickname,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize:
+                                      constraints.maxWidth < 360 ? 32 : 40,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                child: Text(
+                                  userData.signature.isEmpty
+                                      ? '这个人很懒，什么都没写'
+                                      : userData.signature,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize:
+                                        constraints.maxWidth < 360 ? 16 : 20,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 20,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _ProfileCountText(
+                                      count: userData.follows,
+                                      label: '关注',
+                                    ),
+                                    _ProfileCountText(
+                                      count: userData.followeds,
+                                      label: '粉丝',
+                                    ),
+                                    _ProfileCountText(
+                                      count: userData.playlistCount,
+                                      label: '歌单',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 40),
+                              GestureDetector(
+                                child: Container(
+                                  height: 56,
+                                  alignment: Alignment.center,
+                                  width: context.width,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: AppDimensions.paddingMedium,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).primaryColor,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Text(
+                                    '注销登录',
+                                    style: TextStyle(
+                                        fontSize: 18, color: Colors.white),
+                                  ),
+                                ),
+                                onTap: () {
+                                  UserSessionController.to.clearUser();
+                                  AutoRouter.of(context).pop();
+                                },
+                              )
                             ],
                           ),
                         ),
-                        Expanded(
-                          child: Container(),
-                        ),
-                        Obx(
-                          () => GestureDetector(
-                            child: Container(
-                              height: 88,
-                              alignment: Alignment.center,
-                              width: context.width,
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 40,
-                                horizontal: 35,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                '注销登录',
-                                style: TextStyle(
-                                    fontSize: 28, color: Colors.white),
-                              ),
-                            ),
-                            onTap: () {
-                              UserSessionController.to.clearUser();
-                              AutoRouter.of(context).pop();
-                            },
+                        SimpleExtendedImage.avatar(
+                          ArtworkPathResolver.resolveDisplayPath(
+                            userData.avatarUrl,
                           ),
-                        )
+                          width: avatarSize,
+                          height: avatarSize,
+                        ),
                       ],
                     ),
                   ),
-                  SimpleExtendedImage.avatar(
-                    ArtworkPathResolver.resolveDisplayPath(userData.avatarUrl),
-                    width: 260,
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ProfileCountText extends StatelessWidget {
+  const _ProfileCountText({
+    required this.count,
+    required this.label,
+  });
+
+  final int count;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Text(
+        '$count $label',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
       ),
     );
   }

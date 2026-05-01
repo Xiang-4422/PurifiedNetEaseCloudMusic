@@ -10,6 +10,15 @@ import 'package:bujuan/features/library/library_repository.dart';
 
 import 'playlist_cache_store.dart';
 
+/// 歌单详情数据来源。
+enum PlaylistDetailSource {
+  /// 本地曲库或缓存。
+  local,
+
+  /// 远端接口。
+  remote,
+}
+
 /// 歌单详情数据，包含歌曲队列和当前用户与歌单的关系。
 class PlaylistDetailData {
   /// 创建歌单详情数据。
@@ -17,6 +26,8 @@ class PlaylistDetailData {
     required this.songs,
     required this.isSubscribed,
     required this.isMyPlayList,
+    required this.source,
+    this.expectedTrackCount,
   });
 
   /// 歌单内可播放歌曲队列。
@@ -27,6 +38,28 @@ class PlaylistDetailData {
 
   /// 歌单是否属于当前用户。
   final bool isMyPlayList;
+
+  /// 歌单声明或推断出的曲目总数。
+  final int? expectedTrackCount;
+
+  /// 歌单详情来源。
+  final PlaylistDetailSource source;
+
+  /// 当前歌曲列表是否已覆盖预期曲目数量。
+  bool get isComplete =>
+      expectedTrackCount == null || songs.length >= expectedTrackCount!;
+
+  /// 从歌单快照和兜底数量推断预期曲目数。
+  static int? resolveExpectedTrackCount(
+    PlaylistSnapshotData? snapshot,
+    int? fallbackTrackCount,
+  ) {
+    if (snapshot != null && snapshot.trackIds.isNotEmpty) {
+      return snapshot.trackIds.length;
+    }
+    final trackCount = snapshot?.trackCount ?? fallbackTrackCount;
+    return trackCount != null && trackCount > 0 ? trackCount : null;
+  }
 }
 
 /// 歌单快照，保存歌单基础信息和曲目顺序。
@@ -254,6 +287,10 @@ class PlaylistRepository {
       return null;
     }
 
+    final expectedTrackCount = PlaylistDetailData.resolveExpectedTrackCount(
+      cachedSnapshot,
+      localPlaylist?.trackCount,
+    );
     return PlaylistDetailData(
       songs: songs,
       isSubscribed: await _loadSubscriptionState(
@@ -261,6 +298,8 @@ class PlaylistRepository {
         entityPlaylistId,
       ),
       isMyPlayList: (cachedSnapshot?.creatorUserId ?? '') == currentUserId,
+      expectedTrackCount: expectedTrackCount,
+      source: PlaylistDetailSource.local,
     );
   }
 
@@ -291,6 +330,11 @@ class PlaylistRepository {
           entityPlaylistId,
         ),
         isMyPlayList: details.creatorUserId == currentUserId,
+        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(
+          details,
+          details.trackCount,
+        ),
+        source: PlaylistDetailSource.remote,
       );
     }
 
@@ -303,6 +347,11 @@ class PlaylistRepository {
         entityPlaylistId,
       ),
       isMyPlayList: details.creatorUserId == currentUserId,
+      expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(
+        details,
+        details.trackCount,
+      ),
+      source: PlaylistDetailSource.remote,
     );
   }
 

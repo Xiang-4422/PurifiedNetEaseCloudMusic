@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bujuan/app/presentation_adapters/shell_playback_port.dart';
 import 'package:bujuan/app/presentation_adapters/shell_user_port.dart';
+import 'package:bujuan/features/playback/presentation/lyric_scroll_position.dart';
 import 'package:bujuan/features/shell/album_page_change_coordinator.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:flutter/material.dart';
@@ -219,7 +220,10 @@ class ShellController extends SuperController
           lyricScrollController.isAttached) {
         try {
           lyricScrollController.scrollTo(
-              index: index, duration: const Duration(milliseconds: 300));
+            index: index + LyricScrollPosition.lyricItemIndexOffset,
+            alignment: LyricScrollPosition.activeLineAlignment,
+            duration: const Duration(milliseconds: 300),
+          );
         } catch (e) {
           // 歌词滚动失败只会影响跟随体验，不能反过来打断播放状态更新。
         }

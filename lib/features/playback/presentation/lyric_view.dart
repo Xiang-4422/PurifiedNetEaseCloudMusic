@@ -1,4 +1,5 @@
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/presentation/lyric_scroll_position.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:flutter/material.dart';
@@ -40,56 +41,67 @@ class LyricView extends GetView<ShellController> {
         child: Obx(
           () {
             final lyricState = PlayerController.to.lyricState.value;
-            return ScrollablePositionedList.builder(
-              itemScrollController: controller.lyricScrollController,
-              itemCount: lyricState.lines.length + 2,
-              itemBuilder: (BuildContext context, int index) {
-                Widget child;
-                // 首尾占位，让当前歌词行能够在固定位置显示
-                if (index == 0 || index == lyricState.lines.length + 1) {
-                  child = Container(
-                      height: context.height * (index == 0 ? 0.4 : 0.6));
-                } else {
-                  index -= 1;
-                  String mainText =
-                      (lyricState.lines[index].mainText ?? '').trim();
-                  if (mainText.isEmpty) {
-                    mainText = '···';
-                  }
-                  String extText =
-                      (lyricState.lines[index].extText ?? '').trim();
-                  if (extText.isNotEmpty) extText = '\n$extText';
-                  child = Obx(() {
-                    bool isActive =
-                        PlayerController.to.lyricState.value.currentIndex ==
-                            index;
-                    return AnimatedDefaultTextStyle(
-                      style: context.theme.textTheme.titleLarge!.copyWith(
-                        fontFamily: 'monospace', // 指定使用系统等宽字体
-                        color: SettingsController.to.panelWidgetColor.value
-                            .withValues(alpha: isActive ? 1 : 0.2),
-                        fontWeight:
-                            isActive ? FontWeight.bold : FontWeight.normal,
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final viewportHeight = constraints.maxHeight.isFinite
+                    ? constraints.maxHeight
+                    : MediaQuery.sizeOf(context).height;
+                return ScrollablePositionedList.builder(
+                  itemScrollController: controller.lyricScrollController,
+                  itemCount: lyricState.lines.length + 2,
+                  itemBuilder: (BuildContext context, int index) {
+                    Widget child;
+                    // 首尾占位按歌词区域真实高度计算，保证滚动锚点稳定。
+                    if (index == 0 || index == lyricState.lines.length + 1) {
+                      child = SizedBox(
+                        height: viewportHeight *
+                            (index == 0
+                                ? LyricScrollPosition.activeLineAlignment
+                                : 1 - LyricScrollPosition.activeLineAlignment),
+                      );
+                    } else {
+                      index -= LyricScrollPosition.lyricItemIndexOffset;
+                      String mainText =
+                          (lyricState.lines[index].mainText ?? '').trim();
+                      if (mainText.isEmpty) {
+                        mainText = '···';
+                      }
+                      String extText =
+                          (lyricState.lines[index].extText ?? '').trim();
+                      if (extText.isNotEmpty) extText = '\n$extText';
+                      child = Obx(() {
+                        bool isActive =
+                            PlayerController.to.lyricState.value.currentIndex ==
+                                index;
+                        return AnimatedDefaultTextStyle(
+                          style: context.theme.textTheme.titleLarge!.copyWith(
+                            fontFamily: 'monospace', // 指定使用系统等宽字体
+                            color: SettingsController.to.panelWidgetColor.value
+                                .withValues(alpha: isActive ? 1 : 0.2),
+                            fontWeight:
+                                isActive ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          curve: Curves.decelerate,
+                          textAlign: TextAlign.start,
+                          duration: const Duration(milliseconds: 500),
+                          child: Text(mainText + extText),
+                        );
+                      });
+                    }
+                    // 构建歌词行
+                    return TextButton(
+                      style: TextButton.styleFrom(
+                        alignment: Alignment.centerLeft,
+                        padding: lyricPadding,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      curve: Curves.decelerate,
-                      textAlign: TextAlign.start,
-                      duration: const Duration(milliseconds: 500),
-                      child: Text(mainText + extText),
+                      onPressed: null,
+                      // 歌词逐行跳播和外层手势存在冲突，否则会同时触发面板滑动和歌词定位。
+                      child: child,
                     );
-                  });
-                }
-                // 构建歌词行
-                return TextButton(
-                  style: TextButton.styleFrom(
-                    alignment: Alignment.centerLeft,
-                    padding: lyricPadding,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  onPressed: null,
-                  // 歌词逐行跳播和外层手势存在冲突，否则会同时触发面板滑动和歌词定位。
-                  child: child,
+                  },
                 );
               },
             );

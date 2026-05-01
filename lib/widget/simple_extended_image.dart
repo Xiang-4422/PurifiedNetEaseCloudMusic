@@ -102,40 +102,53 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_resolvedPath.isEmpty) {
-      return _clip(_buildPlaceholder(context));
-    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = widget.width ??
+            (constraints.hasBoundedWidth ? constraints.maxWidth : null);
+        final height = widget.height ??
+            (constraints.hasBoundedHeight ? constraints.maxHeight : null);
+        final fit = widget.fit ?? BoxFit.cover;
 
-    final image = ExtendedImage.file(
-      cacheWidth: widget.cacheWidth,
-      cacheHeight: widget.cacheWidth,
-      borderRadius: widget.borderRadius,
-      File(_resolvedPath),
-      width: widget.width,
-      height: widget.height,
-      fit: widget.fit,
-      loadStateChanged: (state) {
-        Widget image;
-        switch (state.extendedImageLoadState) {
-          case LoadState.loading:
-            image = _buildPlaceholder(context);
-            break;
-          case LoadState.completed:
-            image = ExtendedRawImage(
-              image: state.extendedImageInfo?.image,
-              width: widget.width,
-              height: widget.height,
-              fit: BoxFit.cover,
-            );
-            break;
-          case LoadState.failed:
-            image = _buildPlaceholder(context);
-            break;
+        if (_resolvedPath.isEmpty) {
+          return _clip(
+              _buildPlaceholder(context, width: width, height: height));
         }
-        return image;
+
+        final image = ExtendedImage.file(
+          cacheWidth: widget.cacheWidth,
+          cacheHeight: widget.cacheWidth,
+          borderRadius: widget.borderRadius,
+          File(_resolvedPath),
+          width: width,
+          height: height,
+          fit: fit,
+          loadStateChanged: (state) {
+            Widget image;
+            switch (state.extendedImageLoadState) {
+              case LoadState.loading:
+                image =
+                    _buildPlaceholder(context, width: width, height: height);
+                break;
+              case LoadState.completed:
+                image = ExtendedRawImage(
+                  image: state.extendedImageInfo?.image,
+                  width: width,
+                  height: height,
+                  fit: fit,
+                );
+                break;
+              case LoadState.failed:
+                image =
+                    _buildPlaceholder(context, width: width, height: height);
+                break;
+            }
+            return image;
+          },
+        );
+        return _clip(image);
       },
     );
-    return _clip(image);
   }
 
   Future<void> _resolveImagePath() async {
@@ -170,11 +183,15 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
           );
   }
 
-  Widget _buildPlaceholder(BuildContext context) {
+  Widget _buildPlaceholder(
+    BuildContext context, {
+    required double? width,
+    required double? height,
+  }) {
     if (widget.replacement != null) {
       return SizedBox(
-        width: widget.width,
-        height: widget.height,
+        width: width,
+        height: height,
         child: widget.replacement,
       );
     }
@@ -182,8 +199,8 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
     if (widget.placeholder != placeholderImage) {
       return Image.asset(
         widget.placeholder,
-        width: widget.width,
-        height: widget.height,
+        width: width,
+        height: height,
         fit: BoxFit.cover,
       );
     }
@@ -192,12 +209,12 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
     return ColoredBox(
       color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
       child: SizedBox(
-        width: widget.width,
-        height: widget.height,
+        width: width,
+        height: height,
         child: Center(
           child: Icon(
             Icons.music_note_rounded,
-            size: _placeholderIconSize,
+            size: _placeholderIconSize(width: width, height: height),
             color: colorScheme.onSurfaceVariant.withValues(alpha: 0.45),
           ),
         ),
@@ -205,10 +222,13 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
     );
   }
 
-  double get _placeholderIconSize {
+  double _placeholderIconSize({
+    required double? width,
+    required double? height,
+  }) {
     final shortestSide = [
-      if (widget.width != null) widget.width!,
-      if (widget.height != null) widget.height!,
+      if (width != null) width,
+      if (height != null) height,
     ].fold<double?>(null, (value, element) {
       if (value == null || element < value) {
         return element;

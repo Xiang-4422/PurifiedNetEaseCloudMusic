@@ -60,6 +60,9 @@ class ShellController extends SuperController
 
   /// 专辑页是否处于滚动状态。
   RxBool isAlbumScrolling = false.obs;
+  int? _pendingAlbumSyncIndex;
+  bool _playlistScrollInFlight = false;
+  bool _playlistScrollPending = false;
 
   /// 底部播放面板控制器。
   PanelController bottomPanelController = PanelController();
@@ -401,6 +404,13 @@ class ShellController extends SuperController
       if (curPanelPageIndex.value == 0) {
         unawaited(_animatePlayListToCurSong());
       }
+      if (bottomPanelFullyOpened.isTrue &&
+          isBigAlbum.isTrue &&
+          isAlbumScaleEnded.isTrue) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          syncAlbumPage(jump: true);
+        });
+      }
     }
   }
 
@@ -422,13 +432,29 @@ class ShellController extends SuperController
     if (curPanelPageIndex.value == 0 &&
         bottomPanelFullyOpened.isTrue &&
         playListScrollController.hasClients) {
+      if (_playlistScrollInFlight) {
+        _playlistScrollPending = true;
+        return;
+      }
       final currentIndex = _playbackPort.currentQueueIndex().value;
       if (currentIndex < 0) {
         return;
       }
       double offset = currentIndex * 55.0;
-      await playListScrollController.animateTo(offset,
-          duration: const Duration(milliseconds: 500), curve: Curves.ease);
+      if ((playListScrollController.offset - offset).abs() < 55.0) {
+        return;
+      }
+      _playlistScrollInFlight = true;
+      try {
+        await playListScrollController.animateTo(offset,
+            duration: const Duration(milliseconds: 500), curve: Curves.ease);
+      } finally {
+        _playlistScrollInFlight = false;
+        if (_playlistScrollPending) {
+          _playlistScrollPending = false;
+          unawaited(_animatePlayListToCurSong());
+        }
+      }
     }
   }
 
@@ -448,6 +474,10 @@ class ShellController extends SuperController
       if (currentIndex < 0) {
         return;
       }
+      if (isAlbumScrollingProgrammatic) {
+        _pendingAlbumSyncIndex = currentIndex;
+        return;
+      }
       double currentPage = albumPageController.page ?? 0;
       if ((currentPage - currentIndex).abs() <
           AlbumPageChangeCoordinator.settledPageTolerance) {
@@ -461,6 +491,13 @@ class ShellController extends SuperController
               duration: const Duration(milliseconds: 500), curve: Curves.ease);
       syncFuture.whenComplete(() {
         isAlbumScrollingProgrammatic = false;
+        final pendingIndex = _pendingAlbumSyncIndex;
+        _pendingAlbumSyncIndex = null;
+        if (pendingIndex != null &&
+            pendingIndex != currentIndex &&
+            !isAlbumScrollingManully) {
+          _animateAlbumPageViewToCurSong(jump: jump);
+        }
       });
     }
   }

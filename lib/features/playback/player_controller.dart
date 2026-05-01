@@ -601,6 +601,10 @@ class PlayerController extends GetxController {
       currentIndex: selectionState.value.selectedIndex,
       context: Get.context,
     );
+    unawaited(_artworkPresenter.prewarmQueueDominantColors(
+      queue: selectionState.value.queue,
+      currentIndex: selectionState.value.selectedIndex,
+    ));
   }
 
   @override

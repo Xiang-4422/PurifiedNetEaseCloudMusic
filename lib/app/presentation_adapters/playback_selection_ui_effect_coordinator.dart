@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
 import 'package:bujuan/app/presentation_adapters/playback_theme_port.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
@@ -78,10 +80,14 @@ class PlaybackSelectionUiEffectCoordinator {
   Future<void> _updateAlbumColor(PlaybackSelectionState selection) async {
     try {
       final color =
-          await _artworkPresenter.resolveDominantColor(selection.selectedItem);
+          _artworkPresenter.peekCachedDominantColor(selection.selectedItem);
       if (color != null) {
         _themePort.applyDominantColor(color);
       }
+      unawaited(_artworkPresenter.prewarmQueueDominantColors(
+        queue: selection.queue,
+        currentIndex: selection.selectedIndex,
+      ));
     } catch (_) {
       // 取色失败只影响播放器氛围色，不能中断歌词加载。
     }

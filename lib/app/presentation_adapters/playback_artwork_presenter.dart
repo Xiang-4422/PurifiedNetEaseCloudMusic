@@ -21,16 +21,37 @@ class PlaybackArtworkPresenter {
   final LocalImageCacheRepository _imageCacheRepository;
 
   final Map<String, Color> _albumColorCache = {};
+  final Map<String, String> _resolvedArtworkPathCache = {};
 
   /// 解析队列项封面的主色，用于同步播放面板主题色。
   Future<Color?> resolveDominantColor(PlaybackQueueItem item) async {
-    final imageUrl = item.artworkUrl ?? item.localArtworkPath;
-    if (imageUrl == null || imageUrl.isEmpty) {
+    final imagePath = await _resolveArtworkPathForColor(item);
+    if (imagePath == null || imagePath.isEmpty) {
       return null;
     }
 
-    final imagePath = await _imageCacheRepository.resolveImagePath(imageUrl);
-    if (imagePath.isEmpty) {
+    final cachedColor = peekCachedDominantColor(item);
+    if (cachedColor != null) {
+      return cachedColor;
+    }
+
+    final color = await ImageColorService.dominantColor(imagePath);
+    _rememberAlbumColor(imagePath, color);
+    return color;
+  }
+
+  /// 只读取当前歌曲封面主色缓存，不触发图片下载或调色板计算。
+  Color? peekCachedDominantColor(PlaybackQueueItem item) {
+    final imageSource = _artworkSource(item);
+    if (imageSource == null || imageSource.isEmpty) {
+      return null;
+    }
+
+    final imagePath = _resolvedArtworkPathCache[imageSource] ??
+        (_isRemoteArtworkSource(imageSource)
+            ? null
+            : _normalizeLocalArtworkPath(imageSource));
+    if (imagePath == null || imagePath.isEmpty) {
       return null;
     }
 
@@ -39,12 +60,31 @@ class PlaybackArtworkPresenter {
       return cachedColor;
     }
 
-    final color = await ImageColorService.dominantColor(imagePath);
-    if (_albumColorCache.length > 20) {
-      _albumColorCache.remove(_albumColorCache.keys.first);
+    final diskCachedColor = ImageColorService.peekCachedColor(imagePath);
+    if (diskCachedColor != null) {
+      _rememberAlbumColor(imagePath, diskCachedColor);
     }
-    _albumColorCache[imagePath] = color;
-    return color;
+    return diskCachedColor;
+  }
+
+  /// 预热当前歌曲邻近封面的主色缓存。
+  Future<void> prewarmQueueDominantColors({
+    required List<PlaybackQueueItem> queue,
+    required int currentIndex,
+    int radius = 3,
+  }) async {
+    if (queue.isEmpty || currentIndex < 0) {
+      return;
+    }
+    final indices = <int>{currentIndex};
+    for (var offset = 1; offset <= radius; offset++) {
+      indices.add((currentIndex + offset) % queue.length);
+      indices.add((currentIndex - offset + queue.length) % queue.length);
+    }
+
+    await Future.wait(
+      indices.map((index) => _prewarmDominantColor(queue[index])),
+    );
   }
 
   /// 在当前队列项缺少封面时，从本地资源索引补全封面地址。
@@ -111,6 +151,75 @@ class PlaybackArtworkPresenter {
   bool _hasArtworkSource(PlaybackQueueItem item) {
     return item.artworkUrl?.isNotEmpty == true ||
         item.localArtworkPath?.isNotEmpty == true;
+  }
+
+  Future<void> _prewarmDominantColor(PlaybackQueueItem item) async {
+    try {
+      final imagePath = await _resolveArtworkPathForColor(item);
+      if (imagePath == null || imagePath.isEmpty) {
+        return;
+      }
+      if (_albumColorCache.containsKey(imagePath)) {
+        return;
+      }
+      final cachedColor = ImageColorService.peekCachedColor(imagePath);
+      if (cachedColor != null) {
+        _rememberAlbumColor(imagePath, cachedColor);
+        return;
+      }
+      final color = await ImageColorService.dominantColor(imagePath);
+      _rememberAlbumColor(imagePath, color);
+    } catch (_) {
+      // 预热失败只影响下一次切歌取色命中率，不能干扰播放链路。
+    }
+  }
+
+  Future<String?> _resolveArtworkPathForColor(PlaybackQueueItem item) async {
+    final imageSource = _artworkSource(item);
+    if (imageSource == null || imageSource.isEmpty) {
+      return null;
+    }
+
+    final cachedPath = _resolvedArtworkPathCache[imageSource];
+    if (cachedPath != null) {
+      return cachedPath;
+    }
+
+    final imagePath = await _imageCacheRepository.resolveImagePath(imageSource);
+    if (imagePath.isNotEmpty) {
+      _rememberResolvedArtworkPath(imageSource, imagePath);
+    }
+    return imagePath;
+  }
+
+  String? _artworkSource(PlaybackQueueItem item) {
+    return item.artworkUrl ?? item.localArtworkPath;
+  }
+
+  bool _isRemoteArtworkSource(String value) {
+    return value.startsWith('http://') || value.startsWith('https://');
+  }
+
+  String _normalizeLocalArtworkPath(String value) {
+    final uri = Uri.tryParse(value);
+    if (uri != null && uri.scheme == 'file') {
+      return uri.toFilePath();
+    }
+    return value.split('?').first;
+  }
+
+  void _rememberResolvedArtworkPath(String imageSource, String imagePath) {
+    if (_resolvedArtworkPathCache.length > 120) {
+      _resolvedArtworkPathCache.remove(_resolvedArtworkPathCache.keys.first);
+    }
+    _resolvedArtworkPathCache[imageSource] = imagePath;
+  }
+
+  void _rememberAlbumColor(String imagePath, Color color) {
+    if (_albumColorCache.length > 40) {
+      _albumColorCache.remove(_albumColorCache.keys.first);
+    }
+    _albumColorCache[imagePath] = color;
   }
 
   String _resolveArtworkSource(TrackWithResources trackWithResources) {

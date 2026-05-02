@@ -8,18 +8,34 @@ import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:flutter/material.dart';
 
+/// 主色解析函数，用于生产取色和单元测试替身。
+typedef PlaybackDominantColorResolver = Future<Color> Function(
+  String imagePath,
+);
+
+/// 主色缓存读取函数，用于生产缓存和单元测试替身。
+typedef PlaybackCachedColorReader = Color? Function(String imagePath);
+
 /// 播放封面相关的展示策略：补全封面、取色和本地图片预取。
 class PlaybackArtworkPresenter {
   /// 创建播放封面展示策略实例。
   PlaybackArtworkPresenter({
     required PlaybackRepository repository,
     LocalImageCacheRepository? imageCacheRepository,
+    PlaybackDominantColorResolver? dominantColorResolver,
+    PlaybackCachedColorReader? cachedColorReader,
   })  : _repository = repository,
         _imageCacheRepository =
-            imageCacheRepository ?? LocalImageCacheRepository();
+            imageCacheRepository ?? LocalImageCacheRepository(),
+        _dominantColorResolver =
+            dominantColorResolver ?? ImageColorService.dominantColor,
+        _cachedColorReader =
+            cachedColorReader ?? ImageColorService.peekCachedColor;
 
   final PlaybackRepository _repository;
   final LocalImageCacheRepository _imageCacheRepository;
+  final PlaybackDominantColorResolver _dominantColorResolver;
+  final PlaybackCachedColorReader _cachedColorReader;
 
   final Map<String, Color> _albumColorCache = {};
   final Map<String, String> _resolvedArtworkPathCache = {};
@@ -49,7 +65,7 @@ class PlaybackArtworkPresenter {
       return cachedColor;
     }
 
-    final color = await ImageColorService.dominantColor(imagePath);
+    final color = await _dominantColorResolver(imagePath);
     _rememberAlbumColor(imagePath, color);
     PlaybackPerformanceLogger.elapsed(
       'artwork.resolveDominantColor.computed',
@@ -79,7 +95,7 @@ class PlaybackArtworkPresenter {
       return cachedColor;
     }
 
-    final diskCachedColor = ImageColorService.peekCachedColor(imagePath);
+    final diskCachedColor = _cachedColorReader(imagePath);
     if (diskCachedColor != null) {
       _rememberAlbumColor(imagePath, diskCachedColor);
     }
@@ -91,21 +107,28 @@ class PlaybackArtworkPresenter {
     required List<PlaybackQueueItem> queue,
     required int currentIndex,
     int radius = 3,
+    int remoteResolveRadius = 1,
+    bool includeCurrent = true,
+    bool computeMissingColors = false,
   }) async {
     final stopwatch = PlaybackPerformanceLogger.start();
     if (queue.isEmpty || currentIndex < 0) {
       return;
     }
-    final indices = <int>{currentIndex};
+    final indices = <int, int>{};
+    if (includeCurrent) {
+      indices[currentIndex] = 0;
+    }
     for (var offset = 1; offset <= radius; offset++) {
-      indices.add((currentIndex + offset) % queue.length);
-      indices.add((currentIndex - offset + queue.length) % queue.length);
+      indices[(currentIndex + offset) % queue.length] = offset;
+      indices[(currentIndex - offset + queue.length) % queue.length] = offset;
     }
 
-    for (final index in indices) {
+    for (final entry in indices.entries) {
       await _prewarmDominantColor(
-        queue[index],
-        allowRemoteResolve: index == currentIndex,
+        queue[entry.key],
+        allowRemoteResolve: entry.value <= remoteResolveRadius,
+        computeMissingColor: computeMissingColors,
       );
       await Future<void>.delayed(Duration.zero);
     }
@@ -187,6 +210,7 @@ class PlaybackArtworkPresenter {
   Future<void> _prewarmDominantColor(
     PlaybackQueueItem item, {
     bool allowRemoteResolve = false,
+    bool computeMissingColor = false,
   }) async {
     final imageSource = _artworkSource(item);
     if (imageSource == null || imageSource.isEmpty) {
@@ -200,6 +224,7 @@ class PlaybackArtworkPresenter {
     prewarm = _runDominantColorPrewarm(
       item,
       allowRemoteResolve: allowRemoteResolve,
+      computeMissingColor: computeMissingColor,
     ).whenComplete(() {
       if (identical(_pendingDominantColorPrewarms[imageSource], prewarm)) {
         _pendingDominantColorPrewarms.remove(imageSource);
@@ -212,6 +237,7 @@ class PlaybackArtworkPresenter {
   Future<void> _runDominantColorPrewarm(
     PlaybackQueueItem item, {
     required bool allowRemoteResolve,
+    required bool computeMissingColor,
   }) async {
     final stopwatch = PlaybackPerformanceLogger.start();
     try {
@@ -231,12 +257,15 @@ class PlaybackArtworkPresenter {
       if (_albumColorCache.containsKey(imagePath)) {
         return;
       }
-      final cachedColor = ImageColorService.peekCachedColor(imagePath);
+      final cachedColor = _cachedColorReader(imagePath);
       if (cachedColor != null) {
         _rememberAlbumColor(imagePath, cachedColor);
         return;
       }
-      final color = await ImageColorService.dominantColor(imagePath);
+      if (!computeMissingColor) {
+        return;
+      }
+      final color = await _dominantColorResolver(imagePath);
       _rememberAlbumColor(imagePath, color);
       PlaybackPerformanceLogger.elapsed(
         'artwork.prewarmDominantColor.computed',

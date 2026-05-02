@@ -120,7 +120,11 @@ class PlaybackSelectionUiEffectCoordinator {
           'selectionUi.applyAlbumColor.cacheHit id=${selection.selectedItem.id}',
         );
       }
-      _scheduleColorPrewarm(selection, latestSelection);
+      _scheduleColorPrewarm(
+        selection,
+        latestSelection,
+        resolveCurrentColor: color == null,
+      );
       PlaybackPerformanceLogger.elapsed(
         'selectionUi.updateAlbumColor',
         stopwatch,
@@ -135,30 +139,32 @@ class PlaybackSelectionUiEffectCoordinator {
 
   void _scheduleColorPrewarm(
     PlaybackSelectionState selection,
-    PlaybackSelectionState Function() latestSelection,
-  ) {
+    PlaybackSelectionState Function() latestSelection, {
+    required bool resolveCurrentColor,
+  }) {
     _colorPrewarmTimer?.cancel();
     final queue = selection.queue;
     final currentIndex = selection.selectedIndex;
     final selectedItem = selection.selectedItem;
-    _colorPrewarmTimer = Timer(const Duration(milliseconds: 900), () {
+    _colorPrewarmTimer = Timer(const Duration(milliseconds: 350), () {
       unawaited(() async {
+        if (resolveCurrentColor) {
+          final resolvedColor =
+              await _artworkPresenter.resolveDominantColor(selectedItem);
+          if (resolvedColor != null &&
+              latestSelection().selectedItem.id == selectedItem.id) {
+            _themePort.applyDominantColor(resolvedColor);
+            PlaybackPerformanceLogger.log(
+              'selectionUi.applyAlbumColor.resolved id=${selectedItem.id}',
+            );
+          }
+        }
         await _artworkPresenter.prewarmQueueDominantColors(
           queue: queue,
           currentIndex: currentIndex,
+          includeCurrent: false,
+          remoteResolveRadius: 1,
         );
-        if (latestSelection().selectedItem.id != selectedItem.id) {
-          return;
-        }
-        final resolvedColor =
-            await _artworkPresenter.resolveDominantColor(selectedItem);
-        if (resolvedColor != null &&
-            latestSelection().selectedItem.id == selectedItem.id) {
-          _themePort.applyDominantColor(resolvedColor);
-          PlaybackPerformanceLogger.log(
-            'selectionUi.applyAlbumColor.resolved id=${selectedItem.id}',
-          );
-        }
       }());
     });
   }

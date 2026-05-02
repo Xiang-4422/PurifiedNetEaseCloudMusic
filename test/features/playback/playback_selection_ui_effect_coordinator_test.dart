@@ -59,8 +59,9 @@ void main() {
       expect(lyricsPresenter.loadCallCount, 1);
       expect(syncedLyrics.last.single.mainText, 'line');
 
-      await Future<void>.delayed(const Duration(milliseconds: 900));
+      await Future<void>.delayed(const Duration(milliseconds: 400));
       expect(artworkPresenter.prewarmCallCount, 1);
+      expect(artworkPresenter.resolveCallCount, 0);
 
       prewarmCompleter.complete();
     });
@@ -101,7 +102,7 @@ void main() {
       expect(artworkPresenter.prewarmCallCount, 0);
       expect(lyricsPresenter.loadCallCount, 1);
 
-      await Future<void>.delayed(const Duration(milliseconds: 900));
+      await Future<void>.delayed(const Duration(milliseconds: 400));
       expect(artworkPresenter.prewarmCallCount, 1);
       expect(artworkPresenter.resolveCallCount, 1);
       expect(appliedColors, [Colors.blue]);
@@ -130,6 +131,9 @@ class _FakeArtworkPresenter implements PlaybackArtworkPresenter {
     required List<PlaybackQueueItem> queue,
     required int currentIndex,
     int radius = 3,
+    int remoteResolveRadius = 1,
+    bool includeCurrent = true,
+    bool computeMissingColors = false,
   }) {
     prewarmCallCount++;
     return prewarmFuture;

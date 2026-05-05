@@ -62,13 +62,13 @@ class _ArtistPageViewState extends State<ArtistPageView> {
         hotAlbums
           ..clear()
           ..addAll(localDetail.hotAlbums);
-        await _updateArtistColor(_resolvedArtworkUrl);
         if (!mounted) {
           return;
         }
         setState(() {
           loading = false;
         });
+        unawaited(_updateArtistColor(_resolvedArtworkUrl));
         unawaited(_refreshArtistDetail(showLoadingState: false));
         return;
       }
@@ -92,7 +92,6 @@ class _ArtistPageViewState extends State<ArtistPageView> {
         color: albumColor,
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(), // 关键：允许弹性滚动
-          controller: ScrollController(),
           slivers: [
             SliverAppBar(
               toolbarHeight: AppDimensions.appBarHeight -
@@ -307,18 +306,24 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     hotAlbums
       ..clear()
       ..addAll(artistDetail.hotAlbums);
-    await _updateArtistColor(_resolvedArtworkUrl);
     if (!mounted) {
       return;
     }
     setState(() {
       loading = false;
     });
+    unawaited(_updateArtistColor(_resolvedArtworkUrl));
   }
 
   Future<void> _updateArtistColor(String? artworkPath) async {
-    albumColor = await ImageColorService.dominantColor(artworkPath);
-    onAlbumColor = albumColor.invertedColor;
+    final color = await ImageColorService.dominantColor(artworkPath);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      albumColor = color;
+      onAlbumColor = color.invertedColor;
+    });
   }
 
   String? get _resolvedArtworkUrl =>

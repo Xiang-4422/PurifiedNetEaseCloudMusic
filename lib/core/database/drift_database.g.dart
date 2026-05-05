@@ -188,14 +188,31 @@ class $PlaybackRestoreSnapshotsTable extends PlaybackRestoreSnapshots
 
 class PlaybackRestoreSnapshot extends DataClass
     implements Insertable<PlaybackRestoreSnapshot> {
+  /// 固定主键。
   final int id;
+
+  /// 快照更新时间戳，单位毫秒。
   final int updatedAtMs;
+
+  /// 播放模式名称。
   final String playbackMode;
+
+  /// 重复模式名称。
   final String repeatMode;
+
+  /// 播放队列 JSON。
   final String queueJson;
+
+  /// 当前歌曲 id。
   final String currentSongId;
+
+  /// 当前播放列表名称。
   final String playlistName;
+
+  /// 当前播放列表头部文案。
   final String playlistHeader;
+
+  /// 当前播放进度，单位毫秒。
   final int positionMs;
   const PlaybackRestoreSnapshot(
       {required this.id,
@@ -597,12 +614,25 @@ class $LocalResourceEntriesTable extends LocalResourceEntries
 
 class LocalResourceEntrie extends DataClass
     implements Insertable<LocalResourceEntrie> {
+  /// 歌曲 id。
   final String trackId;
+
+  /// 资源类型。
   final String kind;
+
+  /// 本地文件路径。
   final String path;
+
+  /// 资源来源。
   final String origin;
+
+  /// 文件大小，单位字节。
   final int sizeBytes;
+
+  /// 创建时间戳，单位毫秒。
   final int createdAtMs;
+
+  /// 最近访问时间戳，单位毫秒。
   final int lastAccessedAtMs;
   const LocalResourceEntrie(
       {required this.trackId,
@@ -956,11 +986,22 @@ class $DownloadTasksTable extends DownloadTasks
 }
 
 class DownloadTask extends DataClass implements Insertable<DownloadTask> {
+  /// 歌曲 id。
   final String trackId;
+
+  /// 下载状态名称。
   final String status;
+
+  /// 最近更新时间戳，单位毫秒。
   final int updatedAtMs;
+
+  /// 下载进度。
   final double? progress;
+
+  /// 临时文件路径。
   final String? temporaryPath;
+
+  /// 失败原因。
   final String? failureReason;
   const DownloadTask(
       {required this.trackId,
@@ -1265,8 +1306,13 @@ class $AppCacheEntriesTable extends AppCacheEntries
 }
 
 class AppCacheEntrie extends DataClass implements Insertable<AppCacheEntrie> {
+  /// 缓存键。
   final String cacheKey;
+
+  /// 缓存负载 JSON。
   final String payloadJson;
+
+  /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
   const AppCacheEntrie(
       {required this.cacheKey,
@@ -1458,6 +1504,12 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
   late final GeneratedColumn<String> albumTitle = GeneratedColumn<String>(
       'album_title', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _albumSourceIdMeta =
+      const VerificationMeta('albumSourceId');
+  @override
+  late final GeneratedColumn<String> albumSourceId = GeneratedColumn<String>(
+      'album_source_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _durationMsMeta =
       const VerificationMeta('durationMs');
   @override
@@ -1503,6 +1555,7 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
         artistSearchText,
         artistNamesJson,
         albumTitle,
+        albumSourceId,
         durationMs,
         artworkUrl,
         remoteUrl,
@@ -1567,6 +1620,12 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
           albumTitle.isAcceptableOrUnknown(
               data['album_title']!, _albumTitleMeta));
     }
+    if (data.containsKey('album_source_id')) {
+      context.handle(
+          _albumSourceIdMeta,
+          albumSourceId.isAcceptableOrUnknown(
+              data['album_source_id']!, _albumSourceIdMeta));
+    }
     if (data.containsKey('duration_ms')) {
       context.handle(
           _durationMsMeta,
@@ -1626,6 +1685,8 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
           DriftSqlType.string, data['${effectivePrefix}artist_names_json'])!,
       albumTitle: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}album_title']),
+      albumSourceId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}album_source_id']),
       durationMs: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}duration_ms']),
       artworkUrl: attachedDatabase.typeMapping
@@ -1648,18 +1709,46 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
 }
 
 class Track extends DataClass implements Insertable<Track> {
+  /// 曲目 id。
   final String trackId;
+
+  /// 来源类型。
   final String sourceType;
+
+  /// 来源侧 id。
   final String sourceId;
+
+  /// 曲目标题。
   final String title;
+
+  /// 歌手搜索文本。
   final String artistSearchText;
+
+  /// 歌手名称 JSON。
   final String artistNamesJson;
+
+  /// 专辑标题。
   final String? albumTitle;
+
+  /// 专辑来源侧 id，用于专辑详情本地查询。
+  final String? albumSourceId;
+
+  /// 时长，单位毫秒。
   final int? durationMs;
+
+  /// 封面地址。
   final String? artworkUrl;
+
+  /// 远程播放地址。
   final String? remoteUrl;
+
+  /// 歌词键。
   final String? lyricKey;
+
+  /// 可用状态。
   final String availability;
+
+  /// 扩展元数据 JSON。
   final String metadataJson;
   const Track(
       {required this.trackId,
@@ -1669,6 +1758,7 @@ class Track extends DataClass implements Insertable<Track> {
       required this.artistSearchText,
       required this.artistNamesJson,
       this.albumTitle,
+      this.albumSourceId,
       this.durationMs,
       this.artworkUrl,
       this.remoteUrl,
@@ -1686,6 +1776,9 @@ class Track extends DataClass implements Insertable<Track> {
     map['artist_names_json'] = Variable<String>(artistNamesJson);
     if (!nullToAbsent || albumTitle != null) {
       map['album_title'] = Variable<String>(albumTitle);
+    }
+    if (!nullToAbsent || albumSourceId != null) {
+      map['album_source_id'] = Variable<String>(albumSourceId);
     }
     if (!nullToAbsent || durationMs != null) {
       map['duration_ms'] = Variable<int>(durationMs);
@@ -1715,6 +1808,9 @@ class Track extends DataClass implements Insertable<Track> {
       albumTitle: albumTitle == null && nullToAbsent
           ? const Value.absent()
           : Value(albumTitle),
+      albumSourceId: albumSourceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(albumSourceId),
       durationMs: durationMs == null && nullToAbsent
           ? const Value.absent()
           : Value(durationMs),
@@ -1743,6 +1839,7 @@ class Track extends DataClass implements Insertable<Track> {
       artistSearchText: serializer.fromJson<String>(json['artistSearchText']),
       artistNamesJson: serializer.fromJson<String>(json['artistNamesJson']),
       albumTitle: serializer.fromJson<String?>(json['albumTitle']),
+      albumSourceId: serializer.fromJson<String?>(json['albumSourceId']),
       durationMs: serializer.fromJson<int?>(json['durationMs']),
       artworkUrl: serializer.fromJson<String?>(json['artworkUrl']),
       remoteUrl: serializer.fromJson<String?>(json['remoteUrl']),
@@ -1762,6 +1859,7 @@ class Track extends DataClass implements Insertable<Track> {
       'artistSearchText': serializer.toJson<String>(artistSearchText),
       'artistNamesJson': serializer.toJson<String>(artistNamesJson),
       'albumTitle': serializer.toJson<String?>(albumTitle),
+      'albumSourceId': serializer.toJson<String?>(albumSourceId),
       'durationMs': serializer.toJson<int?>(durationMs),
       'artworkUrl': serializer.toJson<String?>(artworkUrl),
       'remoteUrl': serializer.toJson<String?>(remoteUrl),
@@ -1779,6 +1877,7 @@ class Track extends DataClass implements Insertable<Track> {
           String? artistSearchText,
           String? artistNamesJson,
           Value<String?> albumTitle = const Value.absent(),
+          Value<String?> albumSourceId = const Value.absent(),
           Value<int?> durationMs = const Value.absent(),
           Value<String?> artworkUrl = const Value.absent(),
           Value<String?> remoteUrl = const Value.absent(),
@@ -1793,6 +1892,8 @@ class Track extends DataClass implements Insertable<Track> {
         artistSearchText: artistSearchText ?? this.artistSearchText,
         artistNamesJson: artistNamesJson ?? this.artistNamesJson,
         albumTitle: albumTitle.present ? albumTitle.value : this.albumTitle,
+        albumSourceId:
+            albumSourceId.present ? albumSourceId.value : this.albumSourceId,
         durationMs: durationMs.present ? durationMs.value : this.durationMs,
         artworkUrl: artworkUrl.present ? artworkUrl.value : this.artworkUrl,
         remoteUrl: remoteUrl.present ? remoteUrl.value : this.remoteUrl,
@@ -1810,6 +1911,7 @@ class Track extends DataClass implements Insertable<Track> {
           ..write('artistSearchText: $artistSearchText, ')
           ..write('artistNamesJson: $artistNamesJson, ')
           ..write('albumTitle: $albumTitle, ')
+          ..write('albumSourceId: $albumSourceId, ')
           ..write('durationMs: $durationMs, ')
           ..write('artworkUrl: $artworkUrl, ')
           ..write('remoteUrl: $remoteUrl, ')
@@ -1829,6 +1931,7 @@ class Track extends DataClass implements Insertable<Track> {
       artistSearchText,
       artistNamesJson,
       albumTitle,
+      albumSourceId,
       durationMs,
       artworkUrl,
       remoteUrl,
@@ -1846,6 +1949,7 @@ class Track extends DataClass implements Insertable<Track> {
           other.artistSearchText == this.artistSearchText &&
           other.artistNamesJson == this.artistNamesJson &&
           other.albumTitle == this.albumTitle &&
+          other.albumSourceId == this.albumSourceId &&
           other.durationMs == this.durationMs &&
           other.artworkUrl == this.artworkUrl &&
           other.remoteUrl == this.remoteUrl &&
@@ -1862,6 +1966,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
   final Value<String> artistSearchText;
   final Value<String> artistNamesJson;
   final Value<String?> albumTitle;
+  final Value<String?> albumSourceId;
   final Value<int?> durationMs;
   final Value<String?> artworkUrl;
   final Value<String?> remoteUrl;
@@ -1877,6 +1982,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
     this.artistSearchText = const Value.absent(),
     this.artistNamesJson = const Value.absent(),
     this.albumTitle = const Value.absent(),
+    this.albumSourceId = const Value.absent(),
     this.durationMs = const Value.absent(),
     this.artworkUrl = const Value.absent(),
     this.remoteUrl = const Value.absent(),
@@ -1893,6 +1999,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
     required String artistSearchText,
     required String artistNamesJson,
     this.albumTitle = const Value.absent(),
+    this.albumSourceId = const Value.absent(),
     this.durationMs = const Value.absent(),
     this.artworkUrl = const Value.absent(),
     this.remoteUrl = const Value.absent(),
@@ -1916,6 +2023,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
     Expression<String>? artistSearchText,
     Expression<String>? artistNamesJson,
     Expression<String>? albumTitle,
+    Expression<String>? albumSourceId,
     Expression<int>? durationMs,
     Expression<String>? artworkUrl,
     Expression<String>? remoteUrl,
@@ -1932,6 +2040,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
       if (artistSearchText != null) 'artist_search_text': artistSearchText,
       if (artistNamesJson != null) 'artist_names_json': artistNamesJson,
       if (albumTitle != null) 'album_title': albumTitle,
+      if (albumSourceId != null) 'album_source_id': albumSourceId,
       if (durationMs != null) 'duration_ms': durationMs,
       if (artworkUrl != null) 'artwork_url': artworkUrl,
       if (remoteUrl != null) 'remote_url': remoteUrl,
@@ -1950,6 +2059,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
       Value<String>? artistSearchText,
       Value<String>? artistNamesJson,
       Value<String?>? albumTitle,
+      Value<String?>? albumSourceId,
       Value<int?>? durationMs,
       Value<String?>? artworkUrl,
       Value<String?>? remoteUrl,
@@ -1965,6 +2075,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
       artistSearchText: artistSearchText ?? this.artistSearchText,
       artistNamesJson: artistNamesJson ?? this.artistNamesJson,
       albumTitle: albumTitle ?? this.albumTitle,
+      albumSourceId: albumSourceId ?? this.albumSourceId,
       durationMs: durationMs ?? this.durationMs,
       artworkUrl: artworkUrl ?? this.artworkUrl,
       remoteUrl: remoteUrl ?? this.remoteUrl,
@@ -1998,6 +2109,9 @@ class TracksCompanion extends UpdateCompanion<Track> {
     }
     if (albumTitle.present) {
       map['album_title'] = Variable<String>(albumTitle.value);
+    }
+    if (albumSourceId.present) {
+      map['album_source_id'] = Variable<String>(albumSourceId.value);
     }
     if (durationMs.present) {
       map['duration_ms'] = Variable<int>(durationMs.value);
@@ -2033,12 +2147,245 @@ class TracksCompanion extends UpdateCompanion<Track> {
           ..write('artistSearchText: $artistSearchText, ')
           ..write('artistNamesJson: $artistNamesJson, ')
           ..write('albumTitle: $albumTitle, ')
+          ..write('albumSourceId: $albumSourceId, ')
           ..write('durationMs: $durationMs, ')
           ..write('artworkUrl: $artworkUrl, ')
           ..write('remoteUrl: $remoteUrl, ')
           ..write('lyricKey: $lyricKey, ')
           ..write('availability: $availability, ')
           ..write('metadataJson: $metadataJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TrackArtistRefsTable extends TrackArtistRefs
+    with TableInfo<$TrackArtistRefsTable, TrackArtistRef> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TrackArtistRefsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _trackIdMeta =
+      const VerificationMeta('trackId');
+  @override
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
+      'track_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artistSourceIdMeta =
+      const VerificationMeta('artistSourceId');
+  @override
+  late final GeneratedColumn<String> artistSourceId = GeneratedColumn<String>(
+      'artist_source_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta =
+      const VerificationMeta('sortOrder');
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+      'sort_order', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [trackId, artistSourceId, sortOrder];
+  @override
+  String get aliasedName => _alias ?? 'track_artist_refs';
+  @override
+  String get actualTableName => 'track_artist_refs';
+  @override
+  VerificationContext validateIntegrity(Insertable<TrackArtistRef> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('track_id')) {
+      context.handle(_trackIdMeta,
+          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+    } else if (isInserting) {
+      context.missing(_trackIdMeta);
+    }
+    if (data.containsKey('artist_source_id')) {
+      context.handle(
+          _artistSourceIdMeta,
+          artistSourceId.isAcceptableOrUnknown(
+              data['artist_source_id']!, _artistSourceIdMeta));
+    } else if (isInserting) {
+      context.missing(_artistSourceIdMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(_sortOrderMeta,
+          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    } else if (isInserting) {
+      context.missing(_sortOrderMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {trackId, artistSourceId};
+  @override
+  TrackArtistRef map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TrackArtistRef(
+      trackId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      artistSourceId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}artist_source_id'])!,
+      sortOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+    );
+  }
+
+  @override
+  $TrackArtistRefsTable createAlias(String alias) {
+    return $TrackArtistRefsTable(attachedDatabase, alias);
+  }
+}
+
+class TrackArtistRef extends DataClass implements Insertable<TrackArtistRef> {
+  /// 曲目 id。
+  final String trackId;
+
+  /// 歌手来源侧 id。
+  final String artistSourceId;
+
+  /// 歌手在曲目中的顺序。
+  final int sortOrder;
+  const TrackArtistRef(
+      {required this.trackId,
+      required this.artistSourceId,
+      required this.sortOrder});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['track_id'] = Variable<String>(trackId);
+    map['artist_source_id'] = Variable<String>(artistSourceId);
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  TrackArtistRefsCompanion toCompanion(bool nullToAbsent) {
+    return TrackArtistRefsCompanion(
+      trackId: Value(trackId),
+      artistSourceId: Value(artistSourceId),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory TrackArtistRef.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TrackArtistRef(
+      trackId: serializer.fromJson<String>(json['trackId']),
+      artistSourceId: serializer.fromJson<String>(json['artistSourceId']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'trackId': serializer.toJson<String>(trackId),
+      'artistSourceId': serializer.toJson<String>(artistSourceId),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  TrackArtistRef copyWith(
+          {String? trackId, String? artistSourceId, int? sortOrder}) =>
+      TrackArtistRef(
+        trackId: trackId ?? this.trackId,
+        artistSourceId: artistSourceId ?? this.artistSourceId,
+        sortOrder: sortOrder ?? this.sortOrder,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('TrackArtistRef(')
+          ..write('trackId: $trackId, ')
+          ..write('artistSourceId: $artistSourceId, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(trackId, artistSourceId, sortOrder);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TrackArtistRef &&
+          other.trackId == this.trackId &&
+          other.artistSourceId == this.artistSourceId &&
+          other.sortOrder == this.sortOrder);
+}
+
+class TrackArtistRefsCompanion extends UpdateCompanion<TrackArtistRef> {
+  final Value<String> trackId;
+  final Value<String> artistSourceId;
+  final Value<int> sortOrder;
+  final Value<int> rowid;
+  const TrackArtistRefsCompanion({
+    this.trackId = const Value.absent(),
+    this.artistSourceId = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TrackArtistRefsCompanion.insert({
+    required String trackId,
+    required String artistSourceId,
+    required int sortOrder,
+    this.rowid = const Value.absent(),
+  })  : trackId = Value(trackId),
+        artistSourceId = Value(artistSourceId),
+        sortOrder = Value(sortOrder);
+  static Insertable<TrackArtistRef> custom({
+    Expression<String>? trackId,
+    Expression<String>? artistSourceId,
+    Expression<int>? sortOrder,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (trackId != null) 'track_id': trackId,
+      if (artistSourceId != null) 'artist_source_id': artistSourceId,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TrackArtistRefsCompanion copyWith(
+      {Value<String>? trackId,
+      Value<String>? artistSourceId,
+      Value<int>? sortOrder,
+      Value<int>? rowid}) {
+    return TrackArtistRefsCompanion(
+      trackId: trackId ?? this.trackId,
+      artistSourceId: artistSourceId ?? this.artistSourceId,
+      sortOrder: sortOrder ?? this.sortOrder,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (trackId.present) {
+      map['track_id'] = Variable<String>(trackId.value);
+    }
+    if (artistSourceId.present) {
+      map['artist_source_id'] = Variable<String>(artistSourceId.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TrackArtistRefsCompanion(')
+          ..write('trackId: $trackId, ')
+          ..write('artistSourceId: $artistSourceId, ')
+          ..write('sortOrder: $sortOrder, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2125,8 +2472,13 @@ class $TrackLyricsEntriesTable extends TrackLyricsEntries
 
 class TrackLyricsEntrie extends DataClass
     implements Insertable<TrackLyricsEntrie> {
+  /// 曲目 id。
   final String trackId;
+
+  /// 主歌词文本。
   final String main;
+
+  /// 翻译歌词文本。
   final String translated;
   const TrackLyricsEntrie(
       {required this.trackId, required this.main, required this.translated});
@@ -2413,12 +2765,25 @@ class $PlaylistsTable extends Playlists
 }
 
 class Playlist extends DataClass implements Insertable<Playlist> {
+  /// 歌单 id。
   final String playlistId;
+
+  /// 来源类型。
   final String sourceType;
+
+  /// 来源侧 id。
   final String sourceId;
+
+  /// 歌单标题。
   final String title;
+
+  /// 歌单描述。
   final String? description;
+
+  /// 歌单封面地址。
   final String? coverUrl;
+
+  /// 歌曲数量。
   final int? trackCount;
   const Playlist(
       {required this.playlistId,
@@ -2752,9 +3117,16 @@ class $PlaylistTrackRefsTable extends PlaylistTrackRefs
 
 class PlaylistTrackRef extends DataClass
     implements Insertable<PlaylistTrackRef> {
+  /// 歌单 id。
   final String playlistId;
+
+  /// 曲目 id。
   final String trackId;
+
+  /// 歌单内顺序。
   final int order;
+
+  /// 添加时间戳，单位毫秒。
   final int? addedAt;
   const PlaylistTrackRef(
       {required this.playlistId,
@@ -3117,15 +3489,34 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
 }
 
 class Album extends DataClass implements Insertable<Album> {
+  /// 专辑 id。
   final String albumId;
+
+  /// 来源类型。
   final String sourceType;
+
+  /// 来源侧 id。
   final String sourceId;
+
+  /// 专辑标题。
   final String title;
+
+  /// 歌手搜索文本。
   final String artistSearchText;
+
+  /// 歌手名称 JSON。
   final String artistNamesJson;
+
+  /// 专辑封面地址。
   final String? artworkUrl;
+
+  /// 专辑描述。
   final String? description;
+
+  /// 曲目数量。
   final int? trackCount;
+
+  /// 发布时间戳。
   final int? publishTime;
   const Album(
       {required this.albumId,
@@ -3563,11 +3954,22 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
 }
 
 class Artist extends DataClass implements Insertable<Artist> {
+  /// 歌手 id。
   final String artistId;
+
+  /// 来源类型。
   final String sourceType;
+
+  /// 来源侧 id。
   final String sourceId;
+
+  /// 歌手名称。
   final String name;
+
+  /// 歌手封面地址。
   final String? artworkUrl;
+
+  /// 歌手描述。
   final String? description;
   const Artist(
       {required this.artistId,
@@ -3945,13 +4347,28 @@ class $UserProfilesTable extends UserProfiles
 }
 
 class UserProfile extends DataClass implements Insertable<UserProfile> {
+  /// 用户 id。
   final String userId;
+
+  /// 用户昵称。
   final String nickname;
+
+  /// 用户签名。
   final String signature;
+
+  /// 关注数。
   final int follows;
+
+  /// 粉丝数。
   final int followeds;
+
+  /// 歌单数量。
   final int playlistCount;
+
+  /// 头像地址。
   final String avatarUrl;
+
+  /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
   const UserProfile(
       {required this.userId,
@@ -4314,10 +4731,19 @@ class $UserTrackListRefsTable extends UserTrackListRefs
 
 class UserTrackListRef extends DataClass
     implements Insertable<UserTrackListRef> {
+  /// 用户 id。
   final String userId;
+
+  /// 列表类型。
   final String listKind;
+
+  /// 曲目 id。
   final String trackId;
+
+  /// 排序值。
   final int sortOrder;
+
+  /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
   const UserTrackListRef(
       {required this.userId,
@@ -4620,10 +5046,19 @@ class $UserPlaylistListRefsTable extends UserPlaylistListRefs
 
 class UserPlaylistListRef extends DataClass
     implements Insertable<UserPlaylistListRef> {
+  /// 用户 id。
   final String userId;
+
+  /// 列表类型。
   final String listKind;
+
+  /// 歌单 id。
   final String playlistId;
+
+  /// 排序值。
   final int sortOrder;
+
+  /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
   const UserPlaylistListRef(
       {required this.userId,
@@ -4960,12 +5395,25 @@ class $UserPlaylistSnapshotsTable extends UserPlaylistSnapshots
 
 class UserPlaylistSnapshot extends DataClass
     implements Insertable<UserPlaylistSnapshot> {
+  /// 歌单 id。
   final String playlistId;
+
+  /// 来源侧 id。
   final String sourceId;
+
+  /// 歌单标题。
   final String title;
+
+  /// 歌单封面地址。
   final String? coverUrl;
+
+  /// 曲目数量。
   final int? trackCount;
+
+  /// 歌单描述。
   final String? description;
+
+  /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
   const UserPlaylistSnapshot(
       {required this.playlistId,
@@ -5313,9 +5761,16 @@ class $UserPlaylistStatesTable extends UserPlaylistStates
 
 class UserPlaylistState extends DataClass
     implements Insertable<UserPlaylistState> {
+  /// 用户 id。
   final String userId;
+
+  /// 歌单 id。
   final String playlistId;
+
+  /// 是否已订阅。
   final bool isSubscribed;
+
+  /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
   const UserPlaylistState(
       {required this.userId,
@@ -5631,12 +6086,25 @@ class $UserRadioSubscriptionsTable extends UserRadioSubscriptions
 
 class UserRadioSubscription extends DataClass
     implements Insertable<UserRadioSubscription> {
+  /// 用户 id。
   final String userId;
+
+  /// 电台 id。
   final String radioId;
+
+  /// 排序值。
   final int sortOrder;
+
+  /// 电台名称。
   final String name;
+
+  /// 电台封面地址。
   final String coverUrl;
+
+  /// 最近节目名称。
   final String lastProgramName;
+
+  /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
   const UserRadioSubscription(
       {required this.userId,
@@ -6101,17 +6569,40 @@ class $UserRadioProgramsTable extends UserRadioPrograms
 
 class UserRadioProgram extends DataClass
     implements Insertable<UserRadioProgram> {
+  /// 用户 id。
   final String userId;
+
+  /// 电台 id。
   final String radioId;
+
+  /// 是否升序排列。
   final bool asc;
+
+  /// 节目 id。
   final String programId;
+
+  /// 排序值。
   final int sortOrder;
+
+  /// 主曲目 id。
   final String mainTrackId;
+
+  /// 节目标题。
   final String title;
+
+  /// 节目封面地址。
   final String coverUrl;
+
+  /// 歌手名称。
   final String artistName;
+
+  /// 专辑标题。
   final String albumTitle;
+
+  /// 时长，单位毫秒。
   final int durationMs;
+
+  /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
   const UserRadioProgram(
       {required this.userId,
@@ -6539,8 +7030,13 @@ class $UserSyncMarkersTable extends UserSyncMarkers
 }
 
 class UserSyncMarker extends DataClass implements Insertable<UserSyncMarker> {
+  /// 用户 id。
   final String userId;
+
+  /// 标记键。
   final String markerKey;
+
+  /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
   const UserSyncMarker(
       {required this.userId,
@@ -6696,6 +7192,8 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
   late final $AppCacheEntriesTable appCacheEntries =
       $AppCacheEntriesTable(this);
   late final $TracksTable tracks = $TracksTable(this);
+  late final $TrackArtistRefsTable trackArtistRefs =
+      $TrackArtistRefsTable(this);
   late final $TrackLyricsEntriesTable trackLyricsEntries =
       $TrackLyricsEntriesTable(this);
   late final $PlaylistsTable playlists = $PlaylistsTable(this);
@@ -6728,6 +7226,7 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
         downloadTasks,
         appCacheEntries,
         tracks,
+        trackArtistRefs,
         trackLyricsEntries,
         playlists,
         playlistTrackRefs,

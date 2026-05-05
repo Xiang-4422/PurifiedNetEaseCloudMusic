@@ -54,13 +54,17 @@ class _TopPanelViewState extends State<TopPanelView> {
       }
       TopPanelView._searchPanelController.loadInitial();
     });
-    _searchWorker = ever<String>(controller.searchContent, (keyword) {
-      TopPanelView._searchPanelController.search(
-        keyword,
-        likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-        currentUserId: UserSessionController.to.userInfo.value.userId,
-      );
-    });
+    _searchWorker = debounce<String>(
+      controller.searchContent,
+      (keyword) {
+        TopPanelView._searchPanelController.search(
+          keyword,
+          likedSongIds: UserLibraryController.to.likedSongIds.toList(),
+          currentUserId: UserSessionController.to.userInfo.value.userId,
+        );
+      },
+      time: const Duration(milliseconds: 350),
+    );
   }
 
   @override

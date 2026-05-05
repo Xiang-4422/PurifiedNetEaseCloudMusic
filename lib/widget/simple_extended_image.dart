@@ -45,6 +45,9 @@ class SimpleExtendedImage extends StatefulWidget {
   /// 图片解码缓存尺寸，用于控制大图内存占用。
   final int? cacheWidth;
 
+  /// 图片解码缓存高度，用于控制大图内存占用。
+  final int? cacheHeight;
+
   /// 用于封面、歌单、专辑等普通本地图片。
   const SimpleExtendedImage(this.url,
       {Key? key,
@@ -55,7 +58,8 @@ class SimpleExtendedImage extends StatefulWidget {
       this.fit,
       this.shape = BoxShape.rectangle,
       this.borderRadius,
-      this.cacheWidth})
+      this.cacheWidth,
+      this.cacheHeight})
       : super(key: key);
 
   /// 用于头像展示。
@@ -70,7 +74,8 @@ class SimpleExtendedImage extends StatefulWidget {
       this.fit,
       this.shape = BoxShape.circle,
       this.borderRadius,
-      this.cacheWidth = 300})
+      this.cacheWidth = 300,
+      this.cacheHeight})
       : super(key: key);
 
   @override
@@ -90,6 +95,8 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   @override
   void initState() {
     super.initState();
+    _resolvedPath =
+        _imageCacheRepository.peekResolvedImagePath(widget.url.trim()) ?? '';
     _resolveImagePath();
   }
 
@@ -97,6 +104,8 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   void didUpdateWidget(covariant SimpleExtendedImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
+      _resolvedPath =
+          _imageCacheRepository.peekResolvedImagePath(widget.url.trim()) ?? '';
       _resolveImagePath();
     }
   }
@@ -110,6 +119,17 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
         final height = widget.height ??
             (constraints.hasBoundedHeight ? constraints.maxHeight : null);
         final fit = widget.fit ?? BoxFit.cover;
+        final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
+        final cacheWidth = _resolveCacheDimension(
+          logicalSize: width,
+          override: widget.cacheWidth,
+          devicePixelRatio: devicePixelRatio,
+        );
+        final cacheHeight = _resolveCacheDimension(
+          logicalSize: height,
+          override: widget.cacheHeight,
+          devicePixelRatio: devicePixelRatio,
+        );
 
         if (_resolvedPath.isEmpty) {
           return _clip(
@@ -117,10 +137,10 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
         }
 
         final image = ExtendedImage.file(
-          cacheWidth: widget.cacheWidth,
-          cacheHeight: widget.cacheWidth,
-          borderRadius: widget.borderRadius,
           File(_resolvedPath),
+          cacheWidth: cacheWidth,
+          cacheHeight: cacheHeight,
+          borderRadius: widget.borderRadius,
           width: width,
           height: height,
           fit: fit,
@@ -171,9 +191,11 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
     if (!mounted || resolveVersion != _resolveVersion) {
       return;
     }
-    setState(() {
-      _resolvedPath = resolvedPath;
-    });
+    if (_resolvedPath != resolvedPath) {
+      setState(() {
+        _resolvedPath = resolvedPath;
+      });
+    }
     PlaybackPerformanceLogger.elapsed(
       'image.resolvePath',
       stopwatch,
@@ -248,5 +270,19 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
       return 24;
     }
     return (shortestSide * 0.36).clamp(18, 48).toDouble();
+  }
+
+  int? _resolveCacheDimension({
+    required double? logicalSize,
+    required int? override,
+    required double devicePixelRatio,
+  }) {
+    if (override != null) {
+      return override.clamp(1, 1080).toInt();
+    }
+    if (logicalSize == null || !logicalSize.isFinite || logicalSize <= 0) {
+      return null;
+    }
+    return (logicalSize * devicePixelRatio).round().clamp(1, 1080).toInt();
   }
 }

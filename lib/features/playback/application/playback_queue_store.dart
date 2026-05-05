@@ -60,6 +60,6 @@ class PlaybackQueueStore {
 
   /// 保存当前播放进度。
   Future<void> savePosition(Duration position) {
-    return _repository.updateRestoreState(position: position);
+    return _repository.updateRestorePosition(position);
   }
 }

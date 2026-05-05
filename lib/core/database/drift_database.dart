@@ -129,6 +129,9 @@ class Tracks extends Table {
   /// 专辑标题。
   TextColumn get albumTitle => text().nullable()();
 
+  /// 专辑来源侧 id，用于专辑详情本地查询。
+  TextColumn get albumSourceId => text().nullable()();
+
   /// 时长，单位毫秒。
   IntColumn get durationMs => integer().nullable()();
 
@@ -149,6 +152,21 @@ class Tracks extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => {trackId};
+}
+
+/// 曲目歌手关系表，用于按歌手来源 id 查询本地曲目。
+class TrackArtistRefs extends Table {
+  /// 曲目 id。
+  TextColumn get trackId => text()();
+
+  /// 歌手来源侧 id。
+  TextColumn get artistSourceId => text()();
+
+  /// 歌手在曲目中的顺序。
+  IntColumn get sortOrder => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {trackId, artistSourceId};
 }
 
 /// 曲目歌词表。
@@ -479,6 +497,7 @@ class UserSyncMarkers extends Table {
     DownloadTasks,
     AppCacheEntries,
     Tracks,
+    TrackArtistRefs,
     TrackLyricsEntries,
     Playlists,
     PlaylistTrackRefs,
@@ -527,6 +546,7 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
       'DROP TABLE IF EXISTS download_tasks',
       'DROP TABLE IF EXISTS app_cache_entries',
       'DROP TABLE IF EXISTS tracks',
+      'DROP TABLE IF EXISTS track_artist_refs',
       'DROP TABLE IF EXISTS track_lyrics_entries',
       'DROP TABLE IF EXISTS playlists',
       'DROP TABLE IF EXISTS playlist_track_refs',
@@ -554,6 +574,12 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_tracks_album_title ON tracks (album_title)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_tracks_album_source_id ON tracks (album_source_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_track_artist_refs_artist_order ON track_artist_refs (artist_source_id, sort_order)',
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_playlists_title ON playlists (title)',

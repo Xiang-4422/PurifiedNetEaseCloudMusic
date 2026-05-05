@@ -418,6 +418,7 @@
 ### 11.1 Drift schema 变更治理
 
 - 每次提升 Drift `schemaVersion`，必须同步记录表结构变更、数据归属变化和是否允许清表重建
+- 当前 Drift schema 为 v6：`tracks` 新增 `album_source_id`，新增 `track_artist_refs`，用于专辑/歌手详情本地查询走索引或 join，仍采用 destructive reset
 - 当前项目不承诺应用升级数据迁移，`onUpgrade` 可以继续 destructive reset
 - `app_cache_entries` 属于可丢弃业务缓存，迁移失败时可以按 cache key 或整表清理；媒体库、用户作用域关系、下载任务和资源索引不能用缓存清理策略处理
 - schema 变更必须能从文档追溯到表所有者：媒体库归 `LibraryRepository`，用户作用域归 `UserRepository`，播放恢复归 playback application，下载任务归 `DownloadRepository`
@@ -450,6 +451,7 @@ Fields：
 - `artist_search_text`：歌手搜索文本
 - `artist_names_json`：歌手列表 JSON
 - `album_title`：专辑名
+- `album_source_id`：专辑来源侧 ID，用于专辑详情本地索引查询
 - `duration_ms`：时长
 - `artwork_url`：远端封面 URL
 - `remote_url`：远端播放地址
@@ -463,11 +465,12 @@ Key Design：
 - `IDX: title`
 - `IDX: artist_search_text`
 - `IDX: album_title`
+- `IDX: album_source_id`
 
 Field-Key Relation：
 
 - `track_id` 组成主键，是整张表每一行的唯一身份
-- `title`、`artist_search_text`、`album_title` 参与普通索引，用于搜索和筛选
+- `title`、`artist_search_text`、`album_title`、`album_source_id` 参与普通索引，用于搜索和专辑详情筛选
 - 其余字段都是普通数据字段，不参与 key
 - 不承接本地资源路径、下载状态、资源来源，也不承接 `liked`、`in_cloud`、`is_recommended` 这类用户私有语义
 
@@ -475,11 +478,14 @@ Field-Key Relation：
 
 - 被 `playlist_track_refs` 关联
 - 被 `user_track_list_refs` 关联
+- 被 `track_artist_refs` 关联
 
 典型读路径：
 
 - 单曲搜索
 - 歌单详情歌曲装配
+- 专辑详情通过 `album_source_id` 索引查询
+- 歌手详情通过 `track_artist_refs` join 查询
 - 喜欢 / 日推 / FM / 云盘列表二段式装配
 
 典型写路径与失效：
@@ -487,6 +493,43 @@ Field-Key Relation：
 - 远端歌曲详情、搜索补全、云盘/FM/日推回写都可以更新本表
 - 本地资源新增、命中和删除不直接写本表
 - 本表不因为账号切换而清空
+
+### 13.1.1 `track_artist_refs`
+
+用途：
+
+- 曲目到歌手来源侧 ID 的关系表
+- 为歌手详情本地查询提供数据库侧过滤，避免读取全部 `tracks` 后解析 `metadata_json`
+
+Fields：
+
+- `track_id`：对应歌曲实体 ID
+- `artist_source_id`：歌手来源侧 ID
+- `sort_order`：歌手在曲目中的顺序
+
+Key Design：
+
+- `PK: (track_id, artist_source_id)`
+- `IDX: (artist_source_id, sort_order)`
+
+Field-Key Relation：
+
+- `track_id` 和 `artist_source_id` 组成唯一关系
+- `artist_source_id` 与 `sort_order` 组成查询索引，用于按歌手取本地曲目并保持基本顺序
+- 关系数据来自曲目 metadata 的 `artistIds`，由 `TrackDao.saveTracks` 与 `tracks` 同步写入
+
+关联关系：
+
+- 关联 `tracks.track_id`
+
+典型读路径：
+
+- 歌手详情歌曲装配
+
+典型写路径与失效：
+
+- 保存曲目时先清理当前曲目的旧关系，再写入最新 artist refs
+- 随 schema v6 destructive reset 重建，不做历史 metadata 迁移
 
 ### 13.2 `track_lyrics_entries`
 

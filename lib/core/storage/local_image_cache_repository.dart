@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -24,14 +26,42 @@ class LocalImageCacheRepository {
   final Dio _dio;
   final Future<Directory> Function()? _cacheDirectoryProvider;
   final ImageCacheDownloader? _downloader;
+  static const int _maxResolvedPathCacheSize = 512;
+  static const int _maxRemoteDownloadConcurrency = 4;
   static final Map<String, Future<String>> _pendingDownloads =
       <String, Future<String>>{};
+  static final LinkedHashMap<String, String> _resolvedPaths =
+      LinkedHashMap<String, String>();
+  static final Queue<Completer<void>> _remoteDownloadWaiters =
+      Queue<Completer<void>>();
+  static int _activeRemoteDownloads = 0;
+
+  /// 同步读取已知图片路径。
+  ///
+  /// 本地路径会直接解析；远程 URL 只在内存路径缓存已命中且文件仍存在时返回。
+  String? peekResolvedImagePath(String imageUrl) {
+    final normalizedUrl = imageUrl.trim();
+    if (normalizedUrl.isEmpty) {
+      return '';
+    }
+    if (!_isRemoteUrl(normalizedUrl)) {
+      return _resolveLocalPath(normalizedUrl);
+    }
+    return _cachedResolvedPath(normalizedUrl);
+  }
 
   /// 解析可供本地读取的图片路径。
   Future<String> resolveImagePath(String imageUrl) {
     final normalizedUrl = imageUrl.trim();
     if (!_isRemoteUrl(normalizedUrl)) {
-      return Future.value(_resolveLocalPath(normalizedUrl));
+      final resolvedPath = _resolveLocalPath(normalizedUrl);
+      _rememberResolvedPath(normalizedUrl, resolvedPath);
+      return Future.value(resolvedPath);
+    }
+
+    final cachedPath = _cachedResolvedPath(normalizedUrl);
+    if (cachedPath != null) {
+      return Future.value(cachedPath);
     }
 
     final pending = _pendingDownloads[normalizedUrl];
@@ -51,6 +81,7 @@ class LocalImageCacheRepository {
     final outputPath =
         '${cacheDirectory.path}/${_stableHash(imageUrl)}${_resolveExtension(imageUrl)}';
     if (File(outputPath).existsSync()) {
+      _rememberResolvedPath(imageUrl, outputPath);
       return outputPath;
     }
 
@@ -68,11 +99,13 @@ class LocalImageCacheRepository {
       followRedirects: true,
       headers: _imageHttpHeaders,
     );
-    if (_downloader == null) {
-      await _dio.download(imageUrl, uniqueTemporaryPath, options: options);
-    } else {
-      await _downloader!(imageUrl, uniqueTemporaryPath, options);
-    }
+    await _withRemoteDownloadPermit(() async {
+      if (_downloader == null) {
+        await _dio.download(imageUrl, uniqueTemporaryPath, options: options);
+      } else {
+        await _downloader!(imageUrl, uniqueTemporaryPath, options);
+      }
+    });
 
     final outputFile = File(outputPath);
     if (outputFile.existsSync()) {
@@ -83,7 +116,62 @@ class LocalImageCacheRepository {
     } else if (!outputFile.existsSync()) {
       throw PathNotFoundException(uniqueTemporaryPath, const OSError());
     }
+    _rememberResolvedPath(imageUrl, outputPath);
     return outputPath;
+  }
+
+  String? _cachedResolvedPath(String imageUrl) {
+    final cachedPath = _resolvedPaths[imageUrl];
+    if (cachedPath == null) {
+      return null;
+    }
+    if (cachedPath.isEmpty || File(cachedPath).existsSync()) {
+      _rememberResolvedPath(imageUrl, cachedPath);
+      return cachedPath;
+    }
+    _resolvedPaths.remove(imageUrl);
+    return null;
+  }
+
+  void _rememberResolvedPath(String imageUrl, String resolvedPath) {
+    if (imageUrl.isEmpty) {
+      return;
+    }
+    _resolvedPaths.remove(imageUrl);
+    _resolvedPaths[imageUrl] = resolvedPath;
+    while (_resolvedPaths.length > _maxResolvedPathCacheSize) {
+      _resolvedPaths.remove(_resolvedPaths.keys.first);
+    }
+  }
+
+  Future<T> _withRemoteDownloadPermit<T>(Future<T> Function() action) async {
+    await _acquireRemoteDownloadPermit();
+    try {
+      return await action();
+    } finally {
+      _releaseRemoteDownloadPermit();
+    }
+  }
+
+  Future<void> _acquireRemoteDownloadPermit() async {
+    if (_activeRemoteDownloads < _maxRemoteDownloadConcurrency) {
+      _activeRemoteDownloads++;
+      return;
+    }
+    final waiter = Completer<void>();
+    _remoteDownloadWaiters.add(waiter);
+    await waiter.future;
+  }
+
+  void _releaseRemoteDownloadPermit() {
+    final nextWaiter = _remoteDownloadWaiters.isEmpty
+        ? null
+        : _remoteDownloadWaiters.removeFirst();
+    if (nextWaiter != null) {
+      nextWaiter.complete();
+      return;
+    }
+    _activeRemoteDownloads--;
   }
 
   Future<Directory> _ensureCacheDirectory() async {

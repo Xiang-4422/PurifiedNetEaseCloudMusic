@@ -384,7 +384,6 @@ class ExplorePageView extends GetView<ExplorePageController> {
                 onPlay: playbackAction.playPlaylist,
               ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
               addAutomaticKeepAlives: false,
-              addRepaintBoundaries: false,
               childCount: controller.curTopPlayListSongs.length,
             )),
           ],

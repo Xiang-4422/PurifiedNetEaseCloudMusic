@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
+
 /// 播放歌词 UI 状态控制器，负责歌词自动展开和当前行计算。
 class PlaybackLyricUiStateController {
   Timer? _fullScreenLyricTimer;
@@ -39,12 +41,27 @@ class PlaybackLyricUiStateController {
 
   /// 根据播放进度解析当前歌词行索引。
   int resolveCurrentLyricIndex({
-    required Iterable<dynamic> lines,
+    required List<LyricsLineModel> lines,
     required Duration position,
   }) {
-    return lines.toList().lastIndexWhere(
-          (element) => element.startTime! <= position.inMilliseconds,
-        );
+    if (lines.isEmpty) {
+      return -1;
+    }
+    final targetMs = position.inMilliseconds;
+    var low = 0;
+    var high = lines.length - 1;
+    var result = -1;
+    while (low <= high) {
+      final middle = low + ((high - low) >> 1);
+      final startTime = lines[middle].startTime ?? 0;
+      if (startTime <= targetMs) {
+        result = middle;
+        low = middle + 1;
+      } else {
+        high = middle - 1;
+      }
+    }
+    return result;
   }
 
   /// 释放歌词 UI 状态计时器。

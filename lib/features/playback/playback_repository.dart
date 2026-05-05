@@ -22,6 +22,8 @@ class PlaybackRepository {
   Future<PlaybackRestoreState>? _restoreStateLoad;
   PlaybackRestoreState? _pendingRestoreState;
   Future<void>? _restoreWriteFuture;
+  Duration? _pendingRestorePosition;
+  Future<void>? _positionWriteFuture;
 
   /// 读取曲目歌词。
   Future<TrackLyrics?> fetchSongLyrics(String trackId) {
@@ -118,6 +120,41 @@ class PlaybackRepository {
       final state = _pendingRestoreState!;
       _pendingRestoreState = null;
       await _playbackRestoreDataSource.saveRestoreState(state);
+    }
+  }
+
+  /// 高频播放进度保存只更新进度字段，不重写完整恢复快照。
+  Future<void> updateRestorePosition(Duration position) async {
+    final nextState = (await getRestoreState()).copyWith(position: position);
+    _restoreStateCache = nextState;
+    _pendingRestorePosition = position;
+    await _flushPendingRestorePosition();
+  }
+
+  Future<void> _flushPendingRestorePosition() {
+    final currentWrite = _positionWriteFuture;
+    if (currentWrite != null) {
+      return currentWrite;
+    }
+    late final Future<void> trackedWrite;
+    trackedWrite = _writePendingRestorePositions().whenComplete(() {
+      if (identical(_positionWriteFuture, trackedWrite)) {
+        _positionWriteFuture = null;
+      }
+    });
+    _positionWriteFuture = trackedWrite;
+    return trackedWrite;
+  }
+
+  Future<void> _writePendingRestorePositions() async {
+    final fullStateWrite = _restoreWriteFuture;
+    if (fullStateWrite != null) {
+      await fullStateWrite;
+    }
+    while (_pendingRestorePosition != null) {
+      final position = _pendingRestorePosition!;
+      _pendingRestorePosition = null;
+      await _playbackRestoreDataSource.saveRestorePosition(position);
     }
   }
 

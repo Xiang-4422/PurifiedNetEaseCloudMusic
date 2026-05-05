@@ -6,7 +6,7 @@ class AppDatabaseSchema {
   const AppDatabaseSchema._();
 
   /// 当前数据库 schema 版本。
-  static const int schemaVersion = 5;
+  static const int schemaVersion = 6;
 
   /// 播放恢复快照集合说明。
   static const DatabaseCollectionSchema playbackRestoreSnapshots =

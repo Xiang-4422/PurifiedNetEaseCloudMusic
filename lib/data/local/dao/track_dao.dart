@@ -57,49 +57,83 @@ class TrackDao {
 
   /// 按专辑来源 id 获取曲目。
   Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
-    final rows = await _database.select(_database.tracks).get();
-    return rows
-        .map(_mapTrackRow)
-        .where((track) => '${track.metadata['albumId'] ?? ''}' == albumSourceId)
-        .toList();
+    final rows = await (_database.select(_database.tracks)
+          ..where((tbl) => tbl.albumSourceId.equals(albumSourceId)))
+        .get();
+    return rows.map(_mapTrackRow).toList();
   }
 
   /// 按歌手来源 id 获取曲目。
   Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
-    final rows = await _database.select(_database.tracks).get();
-    return rows.map(_mapTrackRow).where((track) {
-      final artistIds = (track.metadata['artistIds'] as List? ?? const [])
-          .map((item) => '$item')
-          .toList();
-      return artistIds.contains(artistSourceId);
-    }).toList();
+    final query = _database.select(_database.tracks).join([
+      drift.innerJoin(
+        _database.trackArtistRefs,
+        _database.trackArtistRefs.trackId.equalsExp(_database.tracks.trackId),
+      ),
+    ])
+      ..where(_database.trackArtistRefs.artistSourceId.equals(artistSourceId))
+      ..orderBy([
+        drift.OrderingTerm.asc(_database.trackArtistRefs.sortOrder),
+      ]);
+    final rows =
+        await query.map((row) => row.readTable(_database.tracks)).get();
+    return rows.map(_mapTrackRow).toList();
   }
 
   /// 保存曲目列表。
   Future<void> saveTracks(List<Track> tracks) async {
-    await _database.batch((batch) {
-      batch.insertAllOnConflictUpdate(
-        _database.tracks,
-        tracks
-            .map(
-              (track) => db.TracksCompanion(
-                trackId: drift.Value(track.id),
-                sourceType: drift.Value(track.sourceType.name),
-                sourceId: drift.Value(track.sourceId),
-                title: drift.Value(track.title),
-                artistSearchText: drift.Value(track.artistNames.join(' ')),
-                artistNamesJson: drift.Value(jsonEncode(track.artistNames)),
-                albumTitle: drift.Value(track.albumTitle),
-                durationMs: drift.Value(track.durationMs),
-                artworkUrl: drift.Value(track.artworkUrl),
-                remoteUrl: drift.Value(track.remoteUrl),
-                lyricKey: drift.Value(track.lyricKey),
-                availability: drift.Value(track.availability.name),
-                metadataJson: drift.Value(jsonEncode(track.metadata)),
+    if (tracks.isEmpty) {
+      return;
+    }
+    final trackIds = tracks.map((track) => track.id).toList();
+    await _database.transaction(() async {
+      await _database.batch((batch) {
+        batch.insertAllOnConflictUpdate(
+          _database.tracks,
+          tracks
+              .map(
+                (track) => db.TracksCompanion(
+                  trackId: drift.Value(track.id),
+                  sourceType: drift.Value(track.sourceType.name),
+                  sourceId: drift.Value(track.sourceId),
+                  title: drift.Value(track.title),
+                  artistSearchText: drift.Value(track.artistNames.join(' ')),
+                  artistNamesJson: drift.Value(jsonEncode(track.artistNames)),
+                  albumTitle: drift.Value(track.albumTitle),
+                  albumSourceId: drift.Value(_albumSourceId(track)),
+                  durationMs: drift.Value(track.durationMs),
+                  artworkUrl: drift.Value(track.artworkUrl),
+                  remoteUrl: drift.Value(track.remoteUrl),
+                  lyricKey: drift.Value(track.lyricKey),
+                  availability: drift.Value(track.availability.name),
+                  metadataJson: drift.Value(jsonEncode(track.metadata)),
+                ),
+              )
+              .toList(),
+        );
+      });
+      for (final trackIdChunk in _chunks(trackIds, 500)) {
+        await (_database.delete(_database.trackArtistRefs)
+              ..where((tbl) => tbl.trackId.isIn(trackIdChunk)))
+            .go();
+      }
+      final artistRefs = tracks.expand((track) {
+        return _artistSourceIds(track).asMap().entries.map(
+              (entry) => db.TrackArtistRefsCompanion.insert(
+                trackId: track.id,
+                artistSourceId: entry.value,
+                sortOrder: entry.key,
               ),
-            )
-            .toList(),
-      );
+            );
+      }).toList();
+      if (artistRefs.isNotEmpty) {
+        await _database.batch((batch) {
+          batch.insertAllOnConflictUpdate(
+            _database.trackArtistRefs,
+            artistRefs,
+          );
+        });
+      }
     });
   }
 
@@ -232,6 +266,29 @@ class TrackDao {
             .toList(),
       );
     });
+  }
+
+  String? _albumSourceId(Track track) {
+    final raw = track.metadata['albumId'];
+    if (raw == null) {
+      return null;
+    }
+    final value = '$raw';
+    return value.isEmpty ? null : value;
+  }
+
+  List<String> _artistSourceIds(Track track) {
+    return (track.metadata['artistIds'] as List? ?? const [])
+        .map((item) => '$item')
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Iterable<List<T>> _chunks<T>(List<T> items, int size) sync* {
+    for (var start = 0; start < items.length; start += size) {
+      final end = start + size > items.length ? items.length : start + size;
+      yield items.sublist(start, end);
+    }
   }
 
   Track _mapTrackRow(db.Track row) {

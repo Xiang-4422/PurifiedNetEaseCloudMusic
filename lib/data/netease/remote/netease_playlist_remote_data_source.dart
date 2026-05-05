@@ -62,9 +62,12 @@ class NeteasePlaylistRemoteDataSource {
           min(tracks.length + 1000, resolvedIds.length),
         ),
       );
-      tracks.addAll(
-        NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []),
-      );
+      final fetchedTracks =
+          NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []);
+      if (fetchedTracks.isEmpty) {
+        break;
+      }
+      tracks.addAll(fetchedTracks);
     }
 
     return tracks;

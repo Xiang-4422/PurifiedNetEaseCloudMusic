@@ -32,8 +32,16 @@ class PlaylistPageController {
   }
 
   /// 拉取远程歌单详情。
-  Future<PlaylistDetailData> fetchDetail(String playlistId) {
-    return _detailService.fetchDetail(playlistId);
+  Future<PlaylistDetailData> fetchDetail(
+    String playlistId, {
+    int offset = 0,
+    int limit = -1,
+  }) {
+    return _detailService.fetchDetail(
+      playlistId,
+      offset: offset,
+      limit: limit,
+    );
   }
 
   /// 判断本地详情适合以哪种状态展示。

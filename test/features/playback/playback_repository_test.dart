@@ -31,6 +31,25 @@ void main() {
       expect(dataSource.savedStates.length, lessThan(50));
       expect(dataSource.savedStates.last.position, const Duration(seconds: 49));
     });
+
+    test('position-only update does not rewrite queue snapshot', () async {
+      final dataSource = _FakePlaybackRestoreDataSource();
+      final repository = PlaybackRepository(
+        libraryRepository: _FakeLibraryRepository(),
+        playbackRestoreDataSource: dataSource,
+      );
+
+      await repository.updateRestoreState(
+        queue: const ['netease:1', 'netease:2'],
+        currentSongId: 'netease:1',
+      );
+      await repository.updateRestorePosition(const Duration(seconds: 42));
+
+      expect(dataSource.savedStates, hasLength(1));
+      expect(dataSource.savedStates.single.queue, ['netease:1', 'netease:2']);
+      expect(dataSource.savedPositions, [const Duration(seconds: 42)]);
+      expect(dataSource.loadCount, 1);
+    });
   });
 }
 
@@ -41,6 +60,7 @@ class _FakePlaybackRestoreDataSource implements PlaybackRestoreDataSource {
 
   final Duration saveDelay;
   final List<PlaybackRestoreState> savedStates = <PlaybackRestoreState>[];
+  final List<Duration> savedPositions = <Duration>[];
   int loadCount = 0;
 
   @override
@@ -55,6 +75,14 @@ class _FakePlaybackRestoreDataSource implements PlaybackRestoreDataSource {
       await Future<void>.delayed(saveDelay);
     }
     savedStates.add(state);
+  }
+
+  @override
+  Future<void> saveRestorePosition(Duration position) async {
+    if (saveDelay > Duration.zero) {
+      await Future<void>.delayed(saveDelay);
+    }
+    savedPositions.add(position);
   }
 }
 

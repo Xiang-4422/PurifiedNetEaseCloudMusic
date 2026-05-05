@@ -77,10 +77,14 @@ class PlaybackStateSynchronizer {
   final ConfirmedPlaybackEffectCoordinator _sideEffectCoordinator;
 
   final List<StreamSubscription<dynamic>> _subscriptions = [];
-  int _lastStoredPositionSecond = -1;
+  Duration _latestPosition = Duration.zero;
+  Duration _lastStoredPosition = Duration.zero;
+  String _lastPositionTrackId = '';
   bool _isFetchingFm = false;
   String? _lastConfirmedSideEffectKey;
   bool _completionAdvanceInFlight = false;
+
+  static const Duration _positionSaveInterval = Duration(seconds: 5);
 
   /// 启动播放流订阅、恢复上次状态并同步当前播放状态。
   Future<void> start({
@@ -149,6 +153,11 @@ class PlaybackStateSynchronizer {
     _subscriptions.add(
       _playbackService.mediaItemStream.listen((queueItem) async {
         if (queueItem == null) return;
+        if (_lastPositionTrackId.isNotEmpty &&
+            _lastPositionTrackId != queueItem.id) {
+          unawaited(_savePlaybackPosition(force: true));
+        }
+        _lastPositionTrackId = queueItem.id;
         final queueState = _queueService.state;
         final confirmedIndex = queueState.confirmedIndex >= 0
             ? queueState.confirmedIndex
@@ -183,6 +192,10 @@ class PlaybackStateSynchronizer {
           setFullScreenLyricOpen: setFullScreenLyricOpen,
           cancelTimer: !isPlaying(),
         );
+        if (!playbackState.playing ||
+            playbackState.processingState == AudioProcessingState.completed) {
+          unawaited(_savePlaybackPosition(force: true));
+        }
         if (playbackState.processingState != AudioProcessingState.completed) {
           _completionAdvanceInFlight = false;
         } else if (!_completionAdvanceInFlight) {
@@ -201,12 +214,9 @@ class PlaybackStateSynchronizer {
         minPeriod: const Duration(milliseconds: 200),
         steps: 1000,
       ).listen((newCurPlayingDuration) async {
+        _latestPosition = newCurPlayingDuration;
         syncRuntimeState(currentPosition: newCurPlayingDuration);
-        final currentSecond = newCurPlayingDuration.inSeconds;
-        if (currentSecond != _lastStoredPositionSecond) {
-          _lastStoredPositionSecond = currentSecond;
-          unawaited(_queueStore.savePosition(newCurPlayingDuration));
-        }
+        unawaited(_savePlaybackPosition());
         if (_selectionService.state.selectedItem.id !=
             runtimeState().currentSong.id) {
           if (lyricState().currentIndex != -1) {
@@ -225,6 +235,23 @@ class PlaybackStateSynchronizer {
     );
 
     await updateCurrentPlayIndex(currentItemUpdated: false);
+  }
+
+  Future<void> _savePlaybackPosition({bool force = false}) async {
+    final position = _latestPosition;
+    if (position < Duration.zero) {
+      return;
+    }
+    if (!force &&
+        (position - _lastStoredPosition).inMilliseconds.abs() <
+            _positionSaveInterval.inMilliseconds) {
+      return;
+    }
+    if (force && position == _lastStoredPosition) {
+      return;
+    }
+    _lastStoredPosition = position;
+    await _queueStore.savePosition(position);
   }
 
   Future<void> _appendRoamingSongsIfNeeded({
@@ -363,6 +390,7 @@ class PlaybackStateSynchronizer {
   /// 停止所有播放状态订阅。
   Future<void> dispose() async {
     _sideEffectCoordinator.cancel('confirmed-cache-artwork');
+    await _savePlaybackPosition(force: true);
     for (final subscription in _subscriptions) {
       await subscription.cancel();
     }

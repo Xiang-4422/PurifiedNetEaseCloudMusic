@@ -53,13 +53,13 @@ class _AlbumPageViewState extends State<AlbumPageView> {
         albumSongs
           ..clear()
           ..addAll(localDetail.albumSongs);
-        await _updateAlbumColor(_resolvedArtworkUrl);
         if (!mounted) {
           return;
         }
         setState(() {
           loading = false;
         });
+        unawaited(_updateAlbumColor(_resolvedArtworkUrl));
         unawaited(_refreshAlbumDetail(showLoadingState: false));
         return;
       }
@@ -204,18 +204,24 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumSongs
       ..clear()
       ..addAll(albumDetail.albumSongs);
-    await _updateAlbumColor(_resolvedArtworkUrl);
     if (!mounted) {
       return;
     }
     setState(() {
       loading = false;
     });
+    unawaited(_updateAlbumColor(_resolvedArtworkUrl));
   }
 
   Future<void> _updateAlbumColor(String? artworkPath) async {
-    albumColor = await ImageColorService.dominantColor(artworkPath);
-    onAlbumColor = albumColor.invertedColor;
+    final color = await ImageColorService.dominantColor(artworkPath);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      albumColor = color;
+      onAlbumColor = color.invertedColor;
+    });
   }
 
   String? get _resolvedArtworkUrl =>

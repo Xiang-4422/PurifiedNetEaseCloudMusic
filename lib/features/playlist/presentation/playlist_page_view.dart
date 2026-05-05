@@ -57,10 +57,13 @@ class PlayListPageView extends StatefulWidget {
 }
 
 class _PlayListPageViewState extends State<PlayListPageView> {
+  static const int _playlistPageSize = 100;
+
   final PlaylistPageController _controller =
       Get.find<FeatureControllerFactory>().playlistPage();
   final PlaylistPlaybackUseCase _playbackUseCase =
       Get.find<PlaylistPlaybackUseCase>();
+  final ScrollController _scrollController = ScrollController();
 
   String playlistName = '';
   String? coverUrl;
@@ -70,11 +73,13 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   bool isSubscribed = false;
   bool isMyPlayList = false;
+  bool loadingMoreSongs = false;
+  bool completingFullPlaylist = false;
 
   _PlaylistPageLoadState loadState = _PlaylistPageLoadState.loadingInitial;
 
-  Color albumColor = Colors.transparent;
-  Color widgetColor = Colors.transparent;
+  Color albumColor = Get.theme.colorScheme.primary;
+  Color widgetColor = Get.theme.colorScheme.onPrimary;
 
   @override
   void initState() {
@@ -82,9 +87,18 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     playlistName = widget.playlistName;
     coverUrl = widget.coverUrl;
     trackCount = widget.trackCount;
+    _scrollController.addListener(_handleScrollNearBottom);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadPlaylistData();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScrollNearBottom)
+      ..dispose();
+    super.dispose();
   }
 
   @override
@@ -104,6 +118,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                   onRefresh: () =>
                       _refreshPlaylistData(showLoadingState: false),
                   child: CustomScrollView(
+                    controller: _scrollController,
                     slivers: [
                       SliverAppBar(
                         toolbarHeight: AppDimensions.appBarHeight,
@@ -166,15 +181,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                   child: IconButton(
                                     onPressed: _canPlayFullPlaylist
                                         ? () async {
-                                            ShellController.to
-                                                .jumpBottomPanelToPage(0);
-                                            ShellController.to
-                                                .openBottomPanel();
-                                            await _playbackUseCase
-                                                .playSequential(
-                                              songs,
-                                              playListName: playlistName,
-                                              playListNameHeader: "歌单",
+                                            await _playFullPlaylist(
+                                              shuffle: false,
                                             );
                                           }
                                         : null,
@@ -224,14 +232,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                   child: IconButton(
                                     onPressed: _canPlayFullPlaylist
                                         ? () async {
-                                            ShellController.to
-                                                .jumpBottomPanelToPage(0);
-                                            ShellController.to
-                                                .openBottomPanel();
-                                            await _playbackUseCase.playShuffle(
-                                              songs,
-                                              playListName: widget.playlistName,
-                                              playListNameHeader: "歌单",
+                                            await _playFullPlaylist(
+                                              shuffle: true,
                                             );
                                           }
                                         : null,
@@ -290,7 +292,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                         _PlaylistPageLoadState
                                             .loadFailedWithPartial
                                     ? '剩余歌曲加载失败，下拉可重试'
-                                    : '正在加载剩余歌曲...',
+                                    : completingFullPlaylist
+                                        ? '正在补全播放队列...'
+                                        : '正在加载剩余歌曲...',
                                 style: context.textTheme.titleSmall?.copyWith(
                                   color: widgetColor.withValues(alpha: 0.7),
                                 ),
@@ -339,7 +343,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       });
     }
     try {
-      final data = await _controller.fetchDetail(widget.playlistId);
+      final data = await _controller.fetchDetail(
+        widget.playlistId,
+        offset: 0,
+        limit: _playlistPageSize,
+      );
       final snapshot = await _controller.loadCachedSnapshot(widget.playlistId);
       if (snapshot != null) {
         playlistName = snapshot.name;
@@ -348,7 +356,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       }
       await _applyPlaylistDetail(
         data,
-        nextState: _PlaylistPageLoadState.showingFull,
+        nextState: data.isComplete
+            ? _PlaylistPageLoadState.showingFull
+            : _PlaylistPageLoadState.showingPartial,
       );
     } catch (_) {
       if (!mounted) {
@@ -376,17 +386,23 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     trackCount = data.expectedTrackCount ?? trackCount;
     isSubscribed = data.isSubscribed;
     isMyPlayList = data.isMyPlayList;
-    await _updateArtworkColors(_resolvedCoverUrl);
     if (mounted) {
       setState(() {
         loadState = nextState;
       });
     }
+    unawaited(_updateArtworkColors(_resolvedCoverUrl));
   }
 
   Future<void> _updateArtworkColors(String? artworkPath) async {
-    albumColor = await ImageColorService.dominantColor(artworkPath);
-    widgetColor = albumColor.invertedColor;
+    final color = await ImageColorService.dominantColor(artworkPath);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      albumColor = color;
+      widgetColor = color.invertedColor;
+    });
   }
 
   String? get _resolvedCoverUrl => ArtworkPathResolver.resolvePreferredArtwork(
@@ -395,14 +411,130 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       );
 
   bool get _canPlayFullPlaylist =>
-      loadState == _PlaylistPageLoadState.showingFull && songs.isNotEmpty;
+      songs.isNotEmpty &&
+      loadState != _PlaylistPageLoadState.loadingInitial &&
+      loadState != _PlaylistPageLoadState.loadFailedEmpty &&
+      !loadingMoreSongs &&
+      !completingFullPlaylist;
 
   Color get _playlistActionColor =>
       _canPlayFullPlaylist ? widgetColor : widgetColor.withValues(alpha: 0.35);
 
   bool get _isCompletingPlaylist =>
-      loadState == _PlaylistPageLoadState.showingPartial ||
-      loadState == _PlaylistPageLoadState.loadFailedWithPartial;
+      loadState == _PlaylistPageLoadState.loadFailedWithPartial ||
+      loadingMoreSongs ||
+      completingFullPlaylist;
+
+  void _handleScrollNearBottom() {
+    if (!_scrollController.hasClients ||
+        _scrollController.position.extentAfter > 800) {
+      return;
+    }
+    unawaited(_loadMorePlaylistSongs());
+  }
+
+  Future<void> _loadMorePlaylistSongs() async {
+    if (!mounted ||
+        loadingMoreSongs ||
+        completingFullPlaylist ||
+        loadState != _PlaylistPageLoadState.showingPartial) {
+      return;
+    }
+    loadingMoreSongs = true;
+    if (mounted) {
+      setState(() {});
+    }
+    try {
+      final data = await _controller.fetchDetail(
+        widget.playlistId,
+        offset: loadedSongCount,
+        limit: _playlistPageSize,
+      );
+      await _applyPlaylistDetail(
+        data,
+        nextState: data.isComplete
+            ? _PlaylistPageLoadState.showingFull
+            : _PlaylistPageLoadState.showingPartial,
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      ToastService.show('剩余歌曲加载失败');
+      setState(() {
+        loadState = _PlaylistPageLoadState.loadFailedWithPartial;
+      });
+    } finally {
+      loadingMoreSongs = false;
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  Future<bool> _ensureFullPlaylistLoaded() async {
+    if (loadState == _PlaylistPageLoadState.showingFull) {
+      return songs.isNotEmpty;
+    }
+    if (completingFullPlaylist) {
+      return false;
+    }
+    completingFullPlaylist = true;
+    if (mounted) {
+      setState(() {});
+    }
+    try {
+      final data = await _controller.fetchDetail(
+        widget.playlistId,
+        offset: loadedSongCount,
+        limit: -1,
+      );
+      await _applyPlaylistDetail(
+        data,
+        nextState: data.isComplete
+            ? _PlaylistPageLoadState.showingFull
+            : _PlaylistPageLoadState.showingPartial,
+      );
+      return data.songs.isNotEmpty && data.isComplete;
+    } catch (_) {
+      if (mounted) {
+        ToastService.show('补全播放队列失败');
+        setState(() {
+          loadState = songs.isEmpty
+              ? _PlaylistPageLoadState.loadFailedEmpty
+              : _PlaylistPageLoadState.loadFailedWithPartial;
+        });
+      }
+      return false;
+    } finally {
+      completingFullPlaylist = false;
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  Future<void> _playFullPlaylist({required bool shuffle}) async {
+    final canPlay = await _ensureFullPlaylistLoaded();
+    if (!canPlay) {
+      return;
+    }
+    ShellController.to.jumpBottomPanelToPage(0);
+    ShellController.to.openBottomPanel();
+    if (shuffle) {
+      await _playbackUseCase.playShuffle(
+        songs,
+        playListName: playlistName,
+        playListNameHeader: "歌单",
+      );
+      return;
+    }
+    await _playbackUseCase.playSequential(
+      songs,
+      playListName: playlistName,
+      playListNameHeader: "歌单",
+    );
+  }
 
   Future<void> _subscribePlayList() async {
     final value = await _controller.toggleSubscription(

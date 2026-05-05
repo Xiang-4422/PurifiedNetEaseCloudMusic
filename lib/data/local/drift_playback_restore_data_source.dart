@@ -61,4 +61,20 @@ class DriftPlaybackRestoreDataSource implements PlaybackRestoreDataSource {
           ),
         );
   }
+
+  @override
+  Future<void> saveRestorePosition(Duration position) async {
+    final updatedCount = await (_database.update(
+      _database.playbackRestoreSnapshots,
+    )..where((tbl) => tbl.id.equals(0)))
+        .write(
+      PlaybackRestoreSnapshotsCompanion(
+        updatedAtMs: drift.Value(DateTime.now().millisecondsSinceEpoch),
+        positionMs: drift.Value(position.inMilliseconds),
+      ),
+    );
+    if (updatedCount == 0) {
+      await saveRestoreState(PlaybackRestoreState(position: position));
+    }
+  }
 }

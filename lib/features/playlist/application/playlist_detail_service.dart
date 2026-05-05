@@ -34,11 +34,17 @@ class PlaylistDetailService {
   }
 
   /// 拉取远程歌单详情。
-  Future<PlaylistDetailData> fetchDetail(String playlistId) {
+  Future<PlaylistDetailData> fetchDetail(
+    String playlistId, {
+    int offset = 0,
+    int limit = -1,
+  }) {
     return _repository.fetchPlaylistDetail(
       playlistId: playlistId,
       likedSongIds: _likedSongIds(),
       currentUserId: _currentUserId(),
+      offset: offset,
+      limit: limit,
     );
   }
 

@@ -113,4 +113,7 @@ class _FakePlaybackRepository implements PlaybackRepository {
     String? playlistHeader,
     Duration? position,
   }) async {}
+
+  @override
+  Future<void> updateRestorePosition(Duration position) async {}
 }

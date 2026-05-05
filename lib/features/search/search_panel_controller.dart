@@ -37,6 +37,7 @@ class SearchPanelController {
 
   bool _loadedOnce = false;
   String _currentKeyword = '';
+  int _searchGeneration = 0;
 
   /// 首次加载热搜关键词，可通过 `force` 强制刷新。
   Future<void> loadInitial({bool force = false}) async {
@@ -58,6 +59,7 @@ class SearchPanelController {
     final normalizedKeyword = keyword.trim();
     if (normalizedKeyword.isEmpty) {
       _currentKeyword = '';
+      _searchGeneration++;
       _applySearchState(
         const SearchResultState(
           songs: LoadState.empty(),
@@ -72,17 +74,21 @@ class SearchPanelController {
       return;
     }
     _currentKeyword = normalizedKeyword;
+    final generation = ++_searchGeneration;
     songState.value = const LoadState.loading();
     playlistState.value = const LoadState.loading();
     albumState.value = const LoadState.loading();
     artistState.value = const LoadState.loading();
-    _applySearchState(
-      await _service.searchAll(
-        normalizedKeyword,
-        likedSongIds: likedSongIds,
-        currentUserId: currentUserId,
-      ),
+    final nextState = await _service.searchAll(
+      normalizedKeyword,
+      likedSongIds: likedSongIds,
+      currentUserId: currentUserId,
     );
+    if (generation != _searchGeneration ||
+        normalizedKeyword != _currentKeyword) {
+      return;
+    }
+    _applySearchState(nextState);
   }
 
   void _applySearchState(SearchResultState state) {

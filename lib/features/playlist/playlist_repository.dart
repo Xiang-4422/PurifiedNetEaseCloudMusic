@@ -308,21 +308,44 @@ class PlaylistRepository {
     required String playlistId,
     required List<int> likedSongIds,
     required String? currentUserId,
+    int offset = 0,
+    int limit = -1,
   }) async {
     final cachePlaylistId = _toCachePlaylistId(playlistId);
     final entityPlaylistId = _toEntityPlaylistId(playlistId);
-    final details = await fetchPlaylistSnapshot(
-      playlistId,
-      currentUserId: currentUserId,
-      likedSongIds: likedSongIds,
-    );
+    final details = offset > 0
+        ? await _cacheStore.loadSnapshot(cachePlaylistId) ??
+            await fetchPlaylistSnapshot(
+              playlistId,
+              currentUserId: currentUserId,
+              likedSongIds: likedSongIds,
+            )
+        : await fetchPlaylistSnapshot(
+            playlistId,
+            currentUserId: currentUserId,
+            likedSongIds: likedSongIds,
+          );
     final remoteSongs = await fetchPlaylistSongs(
       playlistId: playlistId,
       likedSongIds: likedSongIds,
       playlistSnapshot: details,
+      offset: offset,
+      limit: limit,
     );
 
-    if (remoteSongs.isEmpty) {
+    final cachedSongs = offset > 0
+        ? await _loadExistingSongsForPageMerge(
+            playlistId: playlistId,
+            cachePlaylistId: cachePlaylistId,
+            likedSongIds: likedSongIds,
+            currentUserId: currentUserId,
+          )
+        : const <PlaybackQueueItem>[];
+    final mergedSongs = offset > 0
+        ? _mergePagedSongs(cachedSongs, remoteSongs, offset: offset)
+        : remoteSongs;
+
+    if (mergedSongs.isEmpty) {
       return PlaylistDetailData(
         songs: const [],
         isSubscribed: await _loadSubscriptionState(
@@ -338,10 +361,10 @@ class PlaylistRepository {
       );
     }
 
-    await _cacheStore.saveSongs(cachePlaylistId, remoteSongs);
+    await _cacheStore.saveSongs(cachePlaylistId, mergedSongs);
 
     return PlaylistDetailData(
-      songs: remoteSongs,
+      songs: mergedSongs,
       isSubscribed: await _loadSubscriptionState(
         currentUserId,
         entityPlaylistId,
@@ -353,6 +376,43 @@ class PlaylistRepository {
       ),
       source: PlaylistDetailSource.remote,
     );
+  }
+
+  List<PlaybackQueueItem> _mergePagedSongs(
+    List<PlaybackQueueItem> cachedSongs,
+    List<PlaybackQueueItem> pageSongs, {
+    required int offset,
+  }) {
+    if (pageSongs.isEmpty) {
+      return cachedSongs;
+    }
+    if (offset <= 0) {
+      return pageSongs;
+    }
+    final merged = cachedSongs.toList(growable: true);
+    if (merged.length > offset) {
+      merged.removeRange(offset, merged.length);
+    }
+    merged.addAll(pageSongs);
+    return merged;
+  }
+
+  Future<List<PlaybackQueueItem>> _loadExistingSongsForPageMerge({
+    required String playlistId,
+    required String cachePlaylistId,
+    required List<int> likedSongIds,
+    required String? currentUserId,
+  }) async {
+    final cachedSongs = await _cacheStore.loadSongs(cachePlaylistId);
+    if (cachedSongs != null && cachedSongs.isNotEmpty) {
+      return cachedSongs;
+    }
+    final localDetail = await loadLocalPlaylistDetail(
+      playlistId: playlistId,
+      likedSongIds: likedSongIds,
+      currentUserId: currentUserId,
+    );
+    return localDetail?.songs ?? const <PlaybackQueueItem>[];
   }
 
   Future<List<PlaybackQueueItem>> _loadLocalSongs(

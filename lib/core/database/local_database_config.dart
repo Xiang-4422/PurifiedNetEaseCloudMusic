@@ -7,5 +7,5 @@ class LocalDatabaseConfig {
   static const String databaseName = 'bujuan_library';
 
   /// 当前数据库 schema 版本。
-  static const int schemaVersion = 5;
+  static const int schemaVersion = 6;
 }

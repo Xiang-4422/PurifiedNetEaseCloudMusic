@@ -28,50 +28,55 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
         child: Container(
           alignment: Alignment.topRight,
           child: Obx(
-            () => AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: controller.isBigAlbum.isTrue
-                  ? EdgeInsets.only(
-                      right: AppDimensions.paddingLarge,
-                      top: AppDimensions.appBarHeight +
-                          context.mediaQueryPadding.top +
-                          AppDimensions.paddingLarge,
-                    )
-                  : EdgeInsets.only(
-                      right: AppDimensions.paddingLarge,
-                      top: context.mediaQueryPadding.top +
-                          AppDimensions.paddingSmall,
-                    ),
-              decoration: BoxDecoration(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(
-                  controller.isBigAlbum.isTrue
-                      ? AppDimensions.paddingLarge / 2
-                      : AppDimensions.albumMinSize,
+            () {
+              final isBigAlbum = controller.isBigAlbum.isTrue;
+              final size = isBigAlbum
+                  ? context.width - AppDimensions.paddingLarge * 2
+                  : AppDimensions.albumMinSize;
+              final borderRadius = isBigAlbum
+                  ? AppDimensions.paddingLarge / 2
+                  : AppDimensions.albumMinSize;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: isBigAlbum
+                    ? EdgeInsets.only(
+                        right: AppDimensions.paddingLarge,
+                        top: AppDimensions.appBarHeight +
+                            context.mediaQueryPadding.top +
+                            AppDimensions.paddingLarge,
+                      )
+                    : EdgeInsets.only(
+                        right: AppDimensions.paddingLarge,
+                        top: context.mediaQueryPadding.top +
+                            AppDimensions.paddingSmall,
+                      ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(borderRadius),
                 ),
-              ),
-              clipBehavior: Clip.hardEdge,
-              width: controller.isBigAlbum.isTrue
-                  ? context.width - AppDimensions.paddingLarge * 2
-                  : AppDimensions.albumMinSize,
-              height: controller.isBigAlbum.isTrue
-                  ? context.width - AppDimensions.paddingLarge * 2
-                  : AppDimensions.albumMinSize,
-              child: Obx(() {
-                final currentSong = PlayerController.to.currentSongState.value;
-                return SimpleExtendedImage(
-                  ArtworkPathResolver.resolveDisplayPath(
+                clipBehavior: Clip.hardEdge,
+                width: size,
+                height: size,
+                child: Obx(() {
+                  final currentSong =
+                      PlayerController.to.currentSongState.value;
+                  final artworkPath = ArtworkPathResolver.resolveDisplayPath(
                     currentSong.artworkUrl ?? currentSong.localArtworkPath,
-                  ),
-                );
-              }),
-              onEnd: () {
-                controller.isAlbumScaleEnded.value = true;
-                if (controller.isBigAlbum.isTrue) {
-                  controller.syncAlbumPage(jump: true);
-                }
-              },
-            ),
+                  );
+                  return SimpleExtendedImage(
+                    artworkPath,
+                    key: ValueKey(artworkPath),
+                    width: size,
+                    height: size,
+                  );
+                }),
+                onEnd: () {
+                  controller.isAlbumScaleEnded.value = true;
+                  if (controller.isBigAlbum.isTrue) {
+                    controller.syncAlbumPage(jump: true);
+                  }
+                },
+              );
+            },
           ),
         ),
       ),
@@ -80,7 +85,7 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
 }
 
 /// 底部面板大封面分页展示层。
-class BottomPanelArtworkPageLayer extends StatelessWidget {
+class BottomPanelArtworkPageLayer extends StatefulWidget {
   /// 创建大封面分页展示层。
   const BottomPanelArtworkPageLayer({
     required this.controller,
@@ -91,92 +96,118 @@ class BottomPanelArtworkPageLayer extends StatelessWidget {
   final ShellController controller;
 
   @override
+  State<BottomPanelArtworkPageLayer> createState() =>
+      _BottomPanelArtworkPageLayerState();
+}
+
+class _BottomPanelArtworkPageLayerState
+    extends State<BottomPanelArtworkPageLayer> {
+  bool _wasVisible = false;
+
+  @override
   Widget build(BuildContext context) {
     return Obx(
-      () => Offstage(
-        offstage: controller.bottomPanelFullyOpened.isFalse ||
-            controller.isBigAlbum.isFalse ||
-            controller.isAlbumScaleEnded.isFalse,
-        child: Container(
-          margin: EdgeInsets.only(
-            top: context.mediaQueryPadding.top + AppDimensions.appBarHeight,
-          ),
-          height: context.width,
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (notification) {
-              if (notification is ScrollStartNotification) {
-                if (notification.dragDetails != null) {
-                  controller.beginAlbumPageUserScroll();
+      () {
+        final isVisible = widget.controller.bottomPanelFullyOpened.isTrue &&
+            widget.controller.isBigAlbum.isTrue &&
+            widget.controller.isAlbumScaleEnded.isTrue;
+        if (isVisible && !_wasVisible) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) {
+              return;
+            }
+            widget.controller.syncAlbumPage(jump: true);
+          });
+        }
+        _wasVisible = isVisible;
+        return Offstage(
+          offstage: !isVisible,
+          child: Container(
+            margin: EdgeInsets.only(
+              top: context.mediaQueryPadding.top + AppDimensions.appBarHeight,
+            ),
+            height: context.width,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification is ScrollStartNotification) {
+                  if (notification.dragDetails != null) {
+                    widget.controller.beginAlbumPageUserScroll();
+                  }
+                } else if (notification is ScrollEndNotification) {
+                  unawaited(widget.controller.endAlbumPageUserScroll());
                 }
-              } else if (notification is ScrollEndNotification) {
-                unawaited(controller.endAlbumPageUserScroll());
-              }
-              return false;
-            },
-            child: Obx(
-              () {
-                final stopwatch = PlaybackPerformanceLogger.start();
-                final queue = PlayerController.to.artworkPageItems.toList();
-                final pageView = PageView.builder(
-                  controller: controller.albumPageController,
-                  itemCount: queue.length,
-                  allowImplicitScrolling: true,
-                  onPageChanged: controller.onAlbumPageChanged,
-                  itemBuilder: (BuildContext context, int index) {
-                    final item = queue[index];
-                    return AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 220),
-                      transitionBuilder: (child, animation) {
-                        return FadeTransition(opacity: animation, child: child);
-                      },
-                      child: Container(
-                        key: ValueKey(item.id),
-                        clipBehavior: Clip.hardEdge,
-                        margin:
-                            const EdgeInsets.all(AppDimensions.paddingLarge),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                            AppDimensions.paddingLarge / 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.4),
-                              blurRadius: 12,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
-                        child: GestureDetector(
-                          onTap: () {
-                            controller.isAlbumScaleEnded.value = false;
-                            controller.isBigAlbum.value = false;
-                            if (controller.curPanelPageIndex.value == 1) {
-                              PlayerController.to
-                                  .updateFullScreenLyricTimerCounter();
-                            }
-                          },
-                          child: SimpleExtendedImage(
-                            ArtworkPathResolver.resolveDisplayPath(
-                              item.artworkUrl ?? item.localArtworkPath,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-                PlaybackPerformanceLogger.elapsed(
-                  'artworkPageLayer.buildPageView',
-                  stopwatch,
-                  details: 'queue=${queue.length}',
-                  warnAfterMs: 2,
-                );
-                return pageView;
+                return false;
               },
+              child: Obx(
+                () {
+                  final stopwatch = PlaybackPerformanceLogger.start();
+                  final queue = PlayerController.to.artworkPageItems.toList();
+                  final pageView = PageView.builder(
+                    controller: widget.controller.albumPageController,
+                    itemCount: queue.length,
+                    allowImplicitScrolling: true,
+                    onPageChanged: widget.controller.onAlbumPageChanged,
+                    itemBuilder: (BuildContext context, int index) {
+                      final item = queue[index];
+                      final artworkPath =
+                          ArtworkPathResolver.resolveDisplayPath(
+                        item.artworkUrl ?? item.localArtworkPath,
+                      );
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        transitionBuilder: (child, animation) {
+                          return FadeTransition(
+                              opacity: animation, child: child);
+                        },
+                        child: Container(
+                          key: ValueKey(item.id),
+                          clipBehavior: Clip.hardEdge,
+                          margin:
+                              const EdgeInsets.all(AppDimensions.paddingLarge),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.paddingLarge / 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.4),
+                                blurRadius: 12,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: GestureDetector(
+                            onTap: () {
+                              widget.controller.isAlbumScaleEnded.value = false;
+                              widget.controller.isBigAlbum.value = false;
+                              if (widget.controller.curPanelPageIndex.value ==
+                                  1) {
+                                PlayerController.to
+                                    .updateFullScreenLyricTimerCounter();
+                              }
+                            },
+                            child: SimpleExtendedImage(
+                              artworkPath,
+                              key: ValueKey(artworkPath),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                  PlaybackPerformanceLogger.elapsed(
+                    'artworkPageLayer.buildPageView',
+                    stopwatch,
+                    details: 'queue=${queue.length}',
+                    warnAfterMs: 2,
+                  );
+                  return pageView;
+                },
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

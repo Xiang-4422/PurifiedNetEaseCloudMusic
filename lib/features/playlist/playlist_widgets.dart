@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
@@ -12,6 +14,68 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 
+class _PlaylistWidgetMetrics {
+  _PlaylistWidgetMetrics(this.context);
+
+  final BuildContext context;
+
+  double get _textScale {
+    return MediaQuery.textScalerOf(context).scale(1);
+  }
+
+  double get tileMinHeight => 52;
+
+  double get tileVerticalPadding => (6 * _textScale).clamp(6.0, 10.0);
+
+  double get thumbnailSize => (44 * _textScale).clamp(40.0, 52.0);
+
+  double get tileGap => AppDimensions.paddingSmall;
+
+  double get trailingMaxWidth {
+    final width = MediaQuery.sizeOf(context).width;
+    return math.max(72, width * 0.28).clamp(72.0, 132.0).toDouble();
+  }
+
+  double get indexWidth => (28 * _textScale).clamp(26.0, 36.0);
+
+  double cardGap(double albumWidth) => (albumWidth * 0.04).clamp(6.0, 10.0);
+
+  double cardTitleFontSize(double albumWidth) {
+    return (albumWidth * 0.12).clamp(13.0, 16.0);
+  }
+
+  double cardSubtitleFontSize(double albumWidth) {
+    return (albumWidth * 0.1).clamp(11.0, 13.0);
+  }
+
+  double cardTextBlockHeight({
+    required double albumWidth,
+    required bool showSongCount,
+  }) {
+    final titleLines = showSongCount ? 1 : 2;
+    final titleHeight = cardTitleFontSize(albumWidth) * 1.15 * titleLines;
+    final subtitleHeight =
+        showSongCount ? cardSubtitleFontSize(albumWidth) * 1.2 : 0;
+    return titleHeight + subtitleHeight;
+  }
+
+  double cardViewportHeight({
+    required double albumWidth,
+    required bool showSongCount,
+  }) {
+    return albumWidth +
+        cardGap(albumWidth) +
+        cardTextBlockHeight(
+          albumWidth: albumWidth,
+          showSongCount: showSongCount,
+        );
+  }
+
+  double playButtonSize(double albumWidth) {
+    return (albumWidth * 0.28).clamp(32.0, 46.0);
+  }
+}
+
 /// 这批组件都围绕歌单、歌曲列表和播放入口组织，放回 playlist feature 比继续挂在页面文件或 common 更清晰。
 class Header extends StatelessWidget {
   /// 标题文本。
@@ -20,18 +84,32 @@ class Header extends StatelessWidget {
   /// 标题容器内边距。
   final double padding;
 
+  /// 标题容器高度。
+  final double height;
+
   /// 创建列表分区标题。
-  const Header(this.title, {Key? key, this.padding = 0}) : super(key: key);
+  const Header(
+    this.title, {
+    Key? key,
+    this.padding = 0,
+    this.height = AppDimensions.headerHeight,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: AppDimensions.headerHeight,
-      alignment: Alignment.centerLeft,
-      padding: EdgeInsets.all(padding),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleLarge,
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: height),
+      child: Padding(
+        padding: EdgeInsets.all(padding),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
       ),
     );
   }
@@ -57,6 +135,9 @@ class UniversalListTile extends StatelessWidget {
   /// 标题和副标题颜色。
   final Color? stringColor;
 
+  /// 左侧自定义前导组件。
+  final Widget? leading;
+
   /// 右侧附加组件。
   final Widget? trailing;
 
@@ -67,6 +148,7 @@ class UniversalListTile extends StatelessWidget {
     this.subTitleString,
     this.picUrl,
     this.stringColor,
+    this.leading,
     this.onTap,
     this.onLongPress,
     this.trailing,
@@ -74,55 +156,107 @@ class UniversalListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final metrics = _PlaylistWidgetMetrics(context);
     final localPicPath = ArtworkPathResolver.resolveDisplayPath(picUrl);
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
-      child: SizedBox(
-        height: 56,
-        child: Row(
-          children: [
-            if (localPicPath.isNotEmpty)
-              SimpleExtendedImage(
-                localPicPath,
-                width: 44,
-                height: 44,
-                cacheWidth: 120,
-                borderRadius: BorderRadius.circular(8),
-              ),
-            if (localPicPath.isNotEmpty)
-              const SizedBox(width: AppDimensions.paddingSmall),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    titleString,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: stringColor ??
-                              context.theme.colorScheme.onPrimary,
-                        ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: metrics.tileMinHeight),
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: metrics.tileVerticalPadding),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (leading != null) ...[
+                ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: metrics.indexWidth),
+                  child: leading!,
+                ),
+                SizedBox(width: metrics.tileGap),
+              ],
+              if (localPicPath.isNotEmpty) ...[
+                SizedBox.square(
+                  dimension: metrics.thumbnailSize,
+                  child: SimpleExtendedImage(
+                    localPicPath,
+                    width: metrics.thumbnailSize,
+                    height: metrics.thumbnailSize,
+                    cacheWidth: 120,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  if (subTitleString != null)
+                ),
+                SizedBox(width: metrics.tileGap),
+              ],
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      subTitleString!,
+                      titleString,
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: (stringColor ??
-                                    context.theme.colorScheme.onPrimary)
-                                .withValues(alpha: 0.5),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: stringColor ??
+                                context.theme.colorScheme.onPrimary,
+                            height: 1.15,
                           ),
                     ),
-                ],
+                    if (subTitleString != null)
+                      Text(
+                        subTitleString!,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: context.textTheme.titleSmall?.copyWith(
+                          color: (stringColor ??
+                                  context.theme.colorScheme.onPrimary)
+                              .withValues(alpha: 0.5),
+                          height: 1.15,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            if (trailing != null) trailing!,
-          ],
+              if (trailing != null)
+                Padding(
+                  padding: EdgeInsets.only(left: metrics.tileGap),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: metrics.trailingMaxWidth,
+                    ),
+                    child: trailing!,
+                  ),
+                ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _SongIndexLeading extends StatelessWidget {
+  const _SongIndexLeading({
+    required this.index,
+    required this.color,
+  });
+
+  final int index;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '${index + 1}',
+      textAlign: TextAlign.center,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: context.textTheme.titleMedium?.copyWith(
+        color: (color ?? context.theme.colorScheme.onPrimary)
+            .withValues(alpha: 0.55),
+        fontFeatures: const [FontFeature.tabularFigures()],
       ),
     );
   }
@@ -185,6 +319,12 @@ class _SongItemState extends State<SongItem> {
   Widget build(BuildContext context) {
     final item = widget.playlist[widget.index];
     return UniversalListTile(
+      leading: widget.showIndex
+          ? _SongIndexLeading(
+              index: widget.index,
+              color: widget.stringColor,
+            )
+          : null,
       picUrl: widget.showPic ? item.artworkUrl : null,
       titleString: item.title,
       subTitleString: item.artist,
@@ -270,6 +410,9 @@ class PlayListWidget extends StatelessWidget {
   /// 点击播放歌单按钮时触发的回调。
   final Future<void> Function(PlaylistSummaryData playlist)? onPlayPlaylist;
 
+  /// 根据卡片宽度计算横向区域高度。
+  final double Function(double albumWidth)? heightForWidth;
+
   /// 创建横向歌单卡片列表。
   const PlayListWidget({
     Key? key,
@@ -282,21 +425,38 @@ class PlayListWidget extends StatelessWidget {
     this.isPlaying = false,
     this.playingPlaylistName,
     this.onPlayPlaylist,
+    this.heightForWidth,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final metrics = _PlaylistWidgetMetrics(context);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
+        if (playLists.isEmpty) {
+          return const SizedBox.shrink();
+        }
         final maxWidth = constraints.maxWidth;
-        final albumWidth = noScroll
-            ? (maxWidth - albumMargin * (playLists.length + 1)) /
-                playLists.length
-            : (maxWidth - albumMargin * albumCountInWidget.ceil()) /
-                albumCountInWidget;
+        final double effectiveCount = noScroll
+            ? math.max(1, playLists.length).toDouble()
+            : math.max(1.0, albumCountInWidget);
+        final marginCount = noScroll
+            ? math.max(1, playLists.length + 1)
+            : albumCountInWidget.ceil();
+        final availableWidth =
+            math.max(0.0, maxWidth - albumMargin * marginCount);
+        final albumWidth = availableWidth / effectiveCount;
 
+        final naturalHeight = metrics.cardViewportHeight(
+          albumWidth: albumWidth,
+          showSongCount: showSongCount,
+        );
+        final customHeight = heightForWidth?.call(albumWidth);
+        final widgetHeight = customHeight == null
+            ? naturalHeight
+            : math.max(customHeight, naturalHeight);
         return SizedBox(
-          height: albumWidth * 1.3,
+          height: widgetHeight,
           child: CustomScrollView(
             scrollDirection: Axis.horizontal,
             physics: SnappingScrollPhysics(
@@ -310,6 +470,8 @@ class PlayListWidget extends StatelessWidget {
                   addAutomaticKeepAlives: true,
                   itemCount: playLists.length,
                   itemBuilder: (context, index) {
+                    final playlist = playLists[index];
+                    final playButtonSize = metrics.playButtonSize(albumWidth);
                     return KeepAliveWrapper(
                       child: Container(
                         width: albumWidth,
@@ -318,82 +480,89 @@ class PlayListWidget extends StatelessWidget {
                           onTap: () {
                             context.router.push(
                               gr.PlayListRouteView(
-                                playlistId: playLists[index].id,
-                                playlistName: playLists[index].title,
-                                coverUrl: playLists[index].coverUrl,
-                                trackCount: playLists[index].trackCount,
+                                playlistId: playlist.id,
+                                playlistName: playlist.title,
+                                coverUrl: playlist.coverUrl,
+                                trackCount: playlist.trackCount,
                               ),
                             );
                           },
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Stack(
-                                alignment: Alignment.bottomRight,
-                                children: [
-                                  SimpleExtendedImage.avatar(
-                                    width: albumWidth,
-                                    shape: BoxShape.rectangle,
-                                    borderRadius:
-                                        BorderRadius.circular(albumMargin),
-                                    ArtworkPathResolver.resolveDisplayPath(
-                                      playLists[index].coverUrl,
-                                    ),
-                                  ),
-                                  Visibility(
-                                    visible: isPlaying &&
-                                        playingPlaylistName ==
-                                            playLists[index].title,
-                                    replacement: IconButton(
-                                      onPressed: onPlayPlaylist == null
-                                          ? null
-                                          : () => onPlayPlaylist!(
-                                                playLists[index],
-                                              ),
-                                      icon: const Icon(
-                                        TablerIcons.player_play_filled,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    child: Lottie.asset(
-                                      'assets/lottie/music_playing.json',
-                                      width: 50,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: albumWidth * 0.04),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                              SizedBox.square(
+                                dimension: albumWidth,
+                                child: Stack(
+                                  alignment: Alignment.bottomRight,
                                   children: [
-                                    Text(
-                                      playLists[index].title,
-                                      maxLines: showSongCount ? 1 : 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: albumWidth * 0.13 - 1,
-                                        height: 1,
+                                    Positioned.fill(
+                                      child: SimpleExtendedImage.avatar(
+                                        width: albumWidth,
+                                        height: albumWidth,
+                                        shape: BoxShape.rectangle,
+                                        borderRadius:
+                                            BorderRadius.circular(albumMargin),
+                                        ArtworkPathResolver.resolveDisplayPath(
+                                          playlist.coverUrl,
+                                        ),
                                       ),
                                     ),
-                                    showSongCount
-                                        ? Text(
-                                            playLists[index].trackCount ==
-                                                        null ||
-                                                    playLists[index]
-                                                            .trackCount ==
-                                                        0
-                                                ? ""
-                                                : "${playLists[index].trackCount}首",
-                                            maxLines: 1,
-                                            style: context.textTheme.bodySmall,
-                                          )
-                                        : Container(),
+                                    SizedBox.square(
+                                      dimension: playButtonSize,
+                                      child: Visibility(
+                                        visible: isPlaying &&
+                                            playingPlaylistName ==
+                                                playlist.title,
+                                        replacement: IconButton(
+                                          padding: EdgeInsets.zero,
+                                          iconSize: playButtonSize * 0.58,
+                                          onPressed: onPlayPlaylist == null
+                                              ? null
+                                              : () => onPlayPlaylist!(
+                                                    playlist,
+                                                  ),
+                                          icon: const Icon(
+                                            TablerIcons.player_play_filled,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        child: Lottie.asset(
+                                          'assets/lottie/music_playing.json',
+                                          width: playButtonSize,
+                                          height: playButtonSize,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
+                              SizedBox(height: metrics.cardGap(albumWidth)),
+                              Text(
+                                playlist.title,
+                                maxLines: showSongCount ? 1 : 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize:
+                                      metrics.cardTitleFontSize(albumWidth),
+                                  height: 1.15,
+                                ),
+                              ),
+                              if (showSongCount)
+                                Text(
+                                  playlist.trackCount == null ||
+                                          playlist.trackCount == 0
+                                      ? ''
+                                      : '${playlist.trackCount}首',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.textTheme.bodySmall?.copyWith(
+                                    fontSize: metrics.cardSubtitleFontSize(
+                                      albumWidth,
+                                    ),
+                                    height: 1.2,
+                                  ),
+                                ),
                             ],
                           ),
                         ),

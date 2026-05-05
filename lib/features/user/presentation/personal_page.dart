@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playlist/application/playlist_playback_action.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/features/user/presentation/personal_home_layout_metrics.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
@@ -39,6 +42,18 @@ class PersonalPageView extends GetView<ShellController> {
     return Obx(() {
       if (recommendationController.dateLoaded.isFalse) {
         return const LoadingView();
+      }
+      final layoutMetrics = PersonalHomeLayoutMetrics(
+        MediaQuery.sizeOf(context),
+      );
+      if (layoutMetrics.isSquareLike) {
+        return _SquarePersonalPageView(
+          metrics: layoutMetrics,
+          recommendationController: recommendationController,
+          libraryController: libraryController,
+          playbackAction: playbackAction,
+          shellController: controller,
+        );
       }
       return SmartRefresher(
         onRefresh: () async {
@@ -286,6 +301,369 @@ class PersonalPageView extends GetView<ShellController> {
   }
 }
 
+class _SquarePersonalPageView extends StatefulWidget {
+  const _SquarePersonalPageView({
+    required this.metrics,
+    required this.recommendationController,
+    required this.libraryController,
+    required this.playbackAction,
+    required this.shellController,
+  });
+
+  final PersonalHomeLayoutMetrics metrics;
+  final RecommendationController recommendationController;
+  final UserLibraryController libraryController;
+  final PlaybackActionPort playbackAction;
+  final ShellController shellController;
+
+  @override
+  State<_SquarePersonalPageView> createState() =>
+      _SquarePersonalPageViewState();
+}
+
+class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
+  final PageController _pageController = PageController();
+  final ScrollController _recommendedScrollController = ScrollController();
+  int _pageIndex = 0;
+  bool _recommendedListAwayFromBoundary = false;
+  bool _recommendedPageTurnInFlight = false;
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _recommendedScrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: PageView(
+            controller: _pageController,
+            scrollDirection: Axis.vertical,
+            physics: _pageIndex == 2 && _recommendedListAwayFromBoundary
+                ? const NeverScrollableScrollPhysics()
+                : const PageScrollPhysics(),
+            onPageChanged: (index) => setState(() => _pageIndex = index),
+            children: [
+              _buildQuickStartPage(context),
+              _buildLibraryPage(context),
+              _buildRecommendedPage(context),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
+      ],
+    );
+  }
+
+  Widget _buildQuickStartPage(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final contentHeight = constraints.maxHeight -
+              widget.metrics.squareHeaderHeight -
+              AppDimensions.paddingSmall * 2;
+          final cardSize = widget.metrics.squareQuickCardSize(
+            maxWidth: constraints.maxWidth,
+            maxHeight: contentHeight,
+          );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Header(
+                '马上开始',
+                padding: AppDimensions.paddingSmall,
+                height: widget.metrics.squareHeaderHeight,
+              ),
+              Expanded(
+                child: Center(
+                  child: SizedBox(
+                    height: cardSize.height,
+                    child: _buildQuickStartCards(
+                      context,
+                      cardSize: cardSize,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLibraryPage(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Header(
+                '我的歌单',
+                padding: AppDimensions.paddingSmall,
+                height: widget.metrics.squareHeaderHeight,
+              ),
+              Obx(
+                () => PlayListWidget(
+                  playLists: widget.libraryController.userPlayLists,
+                  albumCountInWidget: widget.metrics.squarePlaylistCardCount,
+                  albumMargin: AppDimensions.paddingSmall,
+                  showSongCount: false,
+                  isPlaying: widget.playbackAction.isPlaying(),
+                  playingPlaylistName:
+                      widget.playbackAction.sessionState().playlistName,
+                  onPlayPlaylist: Get.find<PlaylistPlaybackAction>().play,
+                ),
+              ),
+              const SizedBox(height: AppDimensions.paddingSmall),
+              PlayListItem(widget.libraryController.userLikedSongPlayList.value)
+                  .paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildRecommendedPage(BuildContext context) {
+    return SmartRefresher(
+      onRefresh: () async {
+        await widget.recommendationController.updateData();
+      },
+      enablePullUp: true,
+      enablePullDown: true,
+      onLoading: () =>
+          widget.recommendationController.updateRecoPlayLists(getMore: true),
+      footer: ClassicFooter(
+        height: 60,
+        outerBuilder: (child) {
+          return SizedBox(
+            height: 60,
+            child: Center(child: child),
+          );
+        },
+      ),
+      controller: widget.recommendationController.refreshController,
+      child: NotificationListener<ScrollNotification>(
+        onNotification: _handleRecommendedScrollNotification,
+        child: CustomScrollView(
+          controller: _recommendedScrollController,
+          cacheExtent: 120,
+          slivers: [
+            SliverToBoxAdapter(
+              child: SizedBox(height: context.mediaQueryPadding.top),
+            ),
+            SliverToBoxAdapter(
+              child: Header(
+                '推荐歌单',
+                padding: AppDimensions.paddingSmall,
+                height: widget.metrics.squareHeaderHeight,
+              ),
+            ),
+            SliverList.builder(
+              itemCount: widget.recommendationController.recoPlayLists.length,
+              itemBuilder: (BuildContext context, int index) {
+                return PlayListItem(
+                  widget.recommendationController.recoPlayLists[index],
+                ).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _handleRecommendedScrollNotification(ScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+    final metrics = notification.metrics;
+    if (notification is OverscrollNotification &&
+        notification.overscroll < 0 &&
+        metrics.pixels <= metrics.minScrollExtent + 12) {
+      _goToPreviousSquarePageFromRecommended();
+      return false;
+    }
+    final canScroll = metrics.maxScrollExtent > metrics.minScrollExtent;
+    final awayFromBoundary = canScroll &&
+        metrics.pixels > metrics.minScrollExtent + 12 &&
+        metrics.pixels < metrics.maxScrollExtent - 12;
+    if (awayFromBoundary != _recommendedListAwayFromBoundary) {
+      setState(() => _recommendedListAwayFromBoundary = awayFromBoundary);
+    }
+    return false;
+  }
+
+  void _goToPreviousSquarePageFromRecommended() {
+    if (_pageIndex != 2 ||
+        _recommendedPageTurnInFlight ||
+        !_pageController.hasClients) {
+      return;
+    }
+    _recommendedPageTurnInFlight = true;
+    _recommendedListAwayFromBoundary = false;
+    _pageController
+        .previousPage(
+          duration: AppDurations.animationDurationShort,
+          curve: Curves.easeOut,
+        )
+        .whenComplete(() => _recommendedPageTurnInFlight = false);
+  }
+
+  Widget _buildQuickStartCards(
+    BuildContext context, {
+    required Size cardSize,
+  }) {
+    final recommendationController = widget.recommendationController;
+    final libraryController = widget.libraryController;
+    final playbackAction = widget.playbackAction;
+    return Obx(
+      () => ListView(
+        scrollDirection: Axis.horizontal,
+        physics: SnappingScrollPhysics(
+          itemExtent: cardSize.width + AppDimensions.paddingSmall,
+        ),
+        children: [
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              LongPressOverlayTransition(
+                child: QuickStartCard(
+                  width: cardSize.width,
+                  height: cardSize.height,
+                  albumUrl:
+                      recommendationController.todayRecommendSongs.isNotEmpty
+                          ? (recommendationController
+                                  .todayRecommendSongs[0].artworkUrl ??
+                              '')
+                          : '',
+                  icon: TablerIcons.calendar,
+                  title: '每日推荐',
+                  onTap: () => context.router.push(const gr.TodayRouteView()),
+                ),
+                builder: (_) {
+                  return ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount:
+                        recommendationController.todayRecommendSongs.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return SongItem(
+                        playlist: recommendationController.todayRecommendSongs,
+                        index: index,
+                        playListName: '',
+                        onPlay: playbackAction.playPlaylist,
+                      );
+                    },
+                  );
+                },
+              ),
+              Visibility(
+                visible: playbackAction.isPlaying() &&
+                    playbackAction.sessionState().playlistName == '每日推荐',
+                replacement: IconButton(
+                  onPressed: () {
+                    if (playbackAction.sessionState().playlistName != '每日推荐') {
+                      playbackAction.playPlaylist(
+                        recommendationController.todayRecommendSongs,
+                        0,
+                        playListName: '每日推荐',
+                      );
+                    } else {
+                      playbackAction.playOrPause();
+                    }
+                  },
+                  icon: const Icon(
+                    TablerIcons.player_play_filled,
+                    color: Colors.white,
+                  ),
+                ),
+                child: Lottie.asset(
+                  'assets/lottie/music_playing.json',
+                  width: 50,
+                ),
+              ),
+            ],
+          ).marginSymmetric(horizontal: AppDimensions.paddingSmall),
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              Obx(() {
+                final currentSong = playbackAction.currentSong();
+                return QuickStartCard(
+                  width: cardSize.width,
+                  height: cardSize.height,
+                  albumUrl: playbackAction.isFmMode()
+                      ? (currentSong.artworkUrl ?? '')
+                      : (recommendationController.fmSongs.isNotEmpty
+                          ? (recommendationController.fmSongs[0].artworkUrl ??
+                              '')
+                          : ''),
+                  icon: TablerIcons.infinity,
+                  title: '漫游模式',
+                  onTap: () {
+                    widget.shellController.jumpBottomPanelToPage(1);
+                    widget.shellController.openBottomPanel();
+                    playbackAction.openFmMode();
+                  },
+                );
+              }),
+              Offstage(
+                offstage:
+                    !playbackAction.isFmMode() || !playbackAction.isPlaying(),
+                child: Lottie.asset(
+                  'assets/lottie/music_playing.json',
+                  width: 50,
+                ),
+              ),
+            ],
+          ).marginOnly(right: AppDimensions.paddingSmall),
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              Obx(() {
+                final currentSong = playbackAction.currentSong();
+                return QuickStartCard(
+                  width: cardSize.width,
+                  height: cardSize.height,
+                  albumUrl: playbackAction.isHeartBeatMode()
+                      ? (currentSong.artworkUrl ?? '')
+                      : libraryController.randomLikedSongAlbumUrl.value,
+                  icon: TablerIcons.heartbeat,
+                  title: '心动模式',
+                  onTap: () {
+                    widget.shellController.jumpBottomPanelToPage(1);
+                    widget.shellController.openBottomPanel();
+                    playbackAction.openHeartBeatMode(
+                      libraryController.randomLikedSongId.value,
+                      fromPlayAll: true,
+                    );
+                  },
+                );
+              }),
+              Offstage(
+                offstage: !playbackAction.isHeartBeatMode() ||
+                    !playbackAction.isPlaying(),
+                child: Lottie.asset(
+                  'assets/lottie/music_playing.json',
+                  width: 50,
+                ),
+              ),
+            ],
+          ).marginOnly(right: AppDimensions.paddingSmall),
+        ],
+      ),
+    );
+  }
+}
+
 /// 个人首页顶部的快速播放入口卡片。
 class QuickStartCard extends StatelessWidget {
   /// 创建快速播放入口卡片。
@@ -328,51 +706,69 @@ class QuickStartCard extends StatelessWidget {
         opacity: isEnabled ? 1.0 : 0.5,
         child: Container(
           width: width,
+          height: height,
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppDimensions.paddingSmall),
           ),
           child: AsyncImageColor(
             imageUrl: localAlbumPath,
-            child: Column(
-              children: [
-                Expanded(
-                    child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.black, Colors.transparent],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      icon == null
-                          ? const SizedBox.shrink()
-                          : Icon(
-                              icon,
-                              color: Colors.white,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final imageSize = math.min(
+                  width,
+                  constraints.maxHeight * 0.78,
+                );
+                return Column(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.black, Colors.transparent],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            icon == null
+                                ? const SizedBox.shrink()
+                                : Icon(
+                                    icon,
+                                    color: Colors.white,
+                                  ),
+                            Flexible(
+                              child: Text(
+                                title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                )),
-                SimpleExtendedImage(
-                  height: width,
-                  width: width,
-                  localAlbumPath,
-                ),
-              ],
+                    ),
+                    SizedBox(
+                      width: imageSize,
+                      height: imageSize,
+                      child: SimpleExtendedImage(
+                        localAlbumPath,
+                        height: imageSize,
+                        width: imageSize,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),

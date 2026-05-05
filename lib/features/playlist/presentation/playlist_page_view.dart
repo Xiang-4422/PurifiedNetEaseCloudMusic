@@ -257,8 +257,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                       SliverPadding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: AppDimensions.paddingSmall),
-                        sliver: SliverFixedExtentList(
-                          itemExtent: 56,
+                        sliver: SliverList(
                           delegate: SliverChildBuilderDelegate(
                             (BuildContext context, int index) {
                               return SongItem(

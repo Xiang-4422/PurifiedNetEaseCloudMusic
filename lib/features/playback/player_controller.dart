@@ -290,8 +290,22 @@ class PlayerController extends GetxController {
         currentQueueIndex.value != nextState.selectedIndex) {
       currentQueueIndex.value = nextState.selectedIndex;
     }
+    final queueItemsStopwatch = PlaybackPerformanceLogger.start();
     _syncQueueStateItems(nextState.queue);
+    PlaybackPerformanceLogger.elapsed(
+      'controller.syncSelectionState.queueItems',
+      queueItemsStopwatch,
+      details: 'queue=${nextState.queue.length}',
+      warnAfterMs: 1,
+    );
+    final artworkItemsStopwatch = PlaybackPerformanceLogger.start();
     _syncArtworkPageItems(nextState.queue);
+    PlaybackPerformanceLogger.elapsed(
+      'controller.syncSelectionState.artworkItems',
+      artworkItemsStopwatch,
+      details: 'queue=${nextState.queue.length}',
+      warnAfterMs: 1,
+    );
     _scheduleSelectionUiSideEffects(nextState);
     _showSelectionSourceError(nextState);
     PlaybackPerformanceLogger.elapsed(
@@ -325,11 +339,19 @@ class PlayerController extends GetxController {
   }
 
   Future<void> _updateCurPlayIndex({bool currentItemUpdated = true}) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     final currentRuntimeState = runtimeState.value;
     final currentIndex = currentRuntimeState.queue.indexWhere(
       (element) => element.id == currentRuntimeState.currentSong.id,
     );
     _syncRuntimeState(currentIndex: currentIndex);
+    PlaybackPerformanceLogger.elapsed(
+      'controller.updateCurPlayIndex',
+      stopwatch,
+      details:
+          'id=${currentRuntimeState.currentSong.id} index=$currentIndex queue=${currentRuntimeState.queue.length} currentItemUpdated=$currentItemUpdated',
+      warnAfterMs: 1,
+    );
   }
 
   void _scheduleSelectionUiSideEffects(PlaybackSelectionState selection) {

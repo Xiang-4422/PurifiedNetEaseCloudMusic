@@ -19,6 +19,7 @@ class PlaybackPerformanceLogger {
       return;
     }
     developer.log(message, name: _name);
+    debugPrint('[$_name] $message');
   }
 
   /// 输出一段耗时测量。
@@ -38,5 +39,6 @@ class PlaybackPerformanceLogger {
     }
     final suffix = details.isEmpty ? '' : ' $details';
     developer.log('$event ${elapsedMs}ms$suffix', name: _name);
+    debugPrint('[$_name] $event ${elapsedMs}ms$suffix');
   }
 }

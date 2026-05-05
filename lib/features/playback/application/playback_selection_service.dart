@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
@@ -55,6 +56,7 @@ class PlaybackSelectionService {
     bool playNow = true,
     bool needStore = true,
   }) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     final queueState = await _queueService.replaceQueue(
       queue,
       index,
@@ -66,6 +68,12 @@ class PlaybackSelectionService {
     if (playNow && queueState.selectedIndex >= 0) {
       await _submitCurrentSelection(trigger: trigger, playNow: true);
     }
+    PlaybackPerformanceLogger.elapsed(
+      'selection.selectQueue',
+      stopwatch,
+      details:
+          'trigger=${trigger.name} index=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
+    );
   }
 
   /// 选择队列中的指定索引。
@@ -74,14 +82,26 @@ class PlaybackSelectionService {
     required PlaybackSwitchTrigger trigger,
     bool playNow = true,
   }) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     final queueState = await _queueService.selectIndex(index);
     _syncFromQueueState(queueState);
     if (queueState.selectedIndex < 0) {
+      PlaybackPerformanceLogger.elapsed(
+        'selection.selectIndex.empty',
+        stopwatch,
+        details: 'requested=$index queue=${queueState.activeQueue.length}',
+      );
       return;
     }
     if (playNow) {
       await _submitCurrentSelection(trigger: trigger, playNow: true);
     }
+    PlaybackPerformanceLogger.elapsed(
+      'selection.selectIndex',
+      stopwatch,
+      details:
+          'trigger=${trigger.name} requested=$index selected=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
+    );
   }
 
   /// 选择下一首。
@@ -89,16 +109,28 @@ class PlaybackSelectionService {
     required PlaybackSwitchTrigger trigger,
     bool playNow = true,
   }) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     final queueState = _usesConfirmedIndex(trigger)
         ? await _queueService.selectNextFromConfirmed()
         : await _queueService.selectNext();
     if (queueState == null) {
+      PlaybackPerformanceLogger.elapsed(
+        'selection.selectNext.empty',
+        stopwatch,
+        details: 'trigger=${trigger.name}',
+      );
       return;
     }
     _syncFromQueueState(queueState);
     if (playNow) {
       await _submitCurrentSelection(trigger: trigger, playNow: true);
     }
+    PlaybackPerformanceLogger.elapsed(
+      'selection.selectNext',
+      stopwatch,
+      details:
+          'trigger=${trigger.name} selected=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
+    );
   }
 
   /// 选择上一首。
@@ -106,14 +138,26 @@ class PlaybackSelectionService {
     required PlaybackSwitchTrigger trigger,
     bool playNow = true,
   }) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     final queueState = await _queueService.selectPrevious();
     if (queueState == null) {
+      PlaybackPerformanceLogger.elapsed(
+        'selection.selectPrevious.empty',
+        stopwatch,
+        details: 'trigger=${trigger.name}',
+      );
       return;
     }
     _syncFromQueueState(queueState);
     if (playNow) {
       await _submitCurrentSelection(trigger: trigger, playNow: true);
     }
+    PlaybackPerformanceLogger.elapsed(
+      'selection.selectPrevious',
+      stopwatch,
+      details:
+          'trigger=${trigger.name} selected=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
+    );
   }
 
   /// 从队列事实源同步 selection，但不提交到底层播放。
@@ -136,42 +180,72 @@ class PlaybackSelectionService {
     required PlaybackSwitchTrigger trigger,
     required bool playNow,
   }) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
+    var outcome = 'success';
     final version = _state.selectionVersion;
-    _emitState(
-      _state.copyWith(
-        sourceStatus: PlaybackSelectionSourceStatus.loading,
-        sourceError: null,
-      ),
-    );
-    final result = await _switchCoordinator.switchToSelection(
-      queue: _state.queue,
-      item: _state.selectedItem,
-      activeIndex: _state.selectedIndex,
-      selectionVersion: _state.selectionVersion,
-      trigger: trigger,
-      playNow: playNow,
-    );
-    if (result.isObsolete || _state.selectionVersion != version) {
-      return;
-    }
-    _emitState(
-      _state.copyWith(
-        sourceStatus: result.success
-            ? PlaybackSelectionSourceStatus.ready
-            : PlaybackSelectionSourceStatus.error,
-        sourceError: result.success ? null : result.message,
-      ),
-    );
-    if (!result.success && _shouldRollbackToConfirmed(trigger)) {
-      await _rollbackToConfirmedSelection(result.message);
-      return;
-    }
-    if (!result.success &&
-        (trigger == PlaybackSwitchTrigger.queueCompletion ||
-            trigger == PlaybackSwitchTrigger.modeAutoAdvance)) {
-      await selectNext(
-        trigger: PlaybackSwitchTrigger.modeAutoAdvance,
+    final selectedItem = _state.selectedItem;
+    final selectedIndex = _state.selectedIndex;
+    final queueLength = _state.queue.length;
+    try {
+      _emitState(
+        _state.copyWith(
+          sourceStatus: PlaybackSelectionSourceStatus.loading,
+          sourceError: null,
+        ),
+      );
+      final switchStopwatch = PlaybackPerformanceLogger.start();
+      final result = await _switchCoordinator.switchToSelection(
+        queue: _state.queue,
+        item: _state.selectedItem,
+        activeIndex: _state.selectedIndex,
+        selectionVersion: _state.selectionVersion,
+        trigger: trigger,
         playNow: playNow,
+      );
+      PlaybackPerformanceLogger.elapsed(
+        'selection.submit.switchToSelection',
+        switchStopwatch,
+        details:
+            'version=$version id=${selectedItem.id} index=$selectedIndex success=${result.success} obsolete=${result.isObsolete}',
+      );
+      if (result.isObsolete || _state.selectionVersion != version) {
+        outcome = 'obsolete';
+        return;
+      }
+      _emitState(
+        _state.copyWith(
+          sourceStatus: result.success
+              ? PlaybackSelectionSourceStatus.ready
+              : PlaybackSelectionSourceStatus.error,
+          sourceError: result.success ? null : result.message,
+        ),
+      );
+      if (!result.success && _shouldRollbackToConfirmed(trigger)) {
+        outcome = 'rollback';
+        await _rollbackToConfirmedSelection(result.message);
+        return;
+      }
+      if (!result.success &&
+          (trigger == PlaybackSwitchTrigger.queueCompletion ||
+              trigger == PlaybackSwitchTrigger.modeAutoAdvance)) {
+        outcome = 'autoAdvance';
+        await selectNext(
+          trigger: PlaybackSwitchTrigger.modeAutoAdvance,
+          playNow: playNow,
+        );
+      }
+      if (!result.success) {
+        outcome = 'failed';
+      }
+    } catch (error) {
+      outcome = 'exception:$error';
+      rethrow;
+    } finally {
+      PlaybackPerformanceLogger.elapsed(
+        'selection.submitCurrent',
+        stopwatch,
+        details:
+            'version=$version id=${selectedItem.id} index=$selectedIndex queue=$queueLength trigger=${trigger.name} playNow=$playNow outcome=$outcome',
       );
     }
   }

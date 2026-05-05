@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/features/playback/application/audio_service_queue_synchronizer.dart';
 import 'package:bujuan/features/playback/application/playback_engine_adapter.dart';
@@ -139,22 +140,39 @@ class AudioServiceHandler extends BaseAudioHandler
     required PlaybackResolvedSource source,
     required bool playNow,
   }) async {
-    if (audioSourceIndex < 0 || audioSourceIndex >= queue.value.length) {
-      return false;
-    }
-    _isReplacingSource = true;
-    _publishPlaybackState(processingState: AudioProcessingState.loading);
-    final url = source.url;
-    if (source.isEmpty) {
-      _isReplacingSource = false;
-      _publishPlaybackState(processingState: AudioProcessingState.idle);
-      return false;
-    }
+    final totalStopwatch = PlaybackPerformanceLogger.start();
+    var outcome = 'success';
     try {
-      if (playNow && _engine.playing) {
-        await _engine.pause();
+      if (audioSourceIndex < 0 || audioSourceIndex >= queue.value.length) {
+        outcome = 'invalidIndex';
+        return false;
       }
+      _isReplacingSource = true;
+      _publishPlaybackState(processingState: AudioProcessingState.loading);
+      final url = source.url;
+      if (source.isEmpty) {
+        outcome = 'emptySource';
+        _isReplacingSource = false;
+        _publishPlaybackState(processingState: AudioProcessingState.idle);
+        return false;
+      }
+      if (playNow && _engine.playing) {
+        final pauseStopwatch = PlaybackPerformanceLogger.start();
+        await _engine.pause();
+        PlaybackPerformanceLogger.elapsed(
+          'audio.replaceSource.pause',
+          pauseStopwatch,
+          details: 'id=${mediaItemToPlay.id} index=$audioSourceIndex',
+        );
+      }
+      final setSourceStopwatch = PlaybackPerformanceLogger.start();
       await _engine.setSource(source);
+      PlaybackPerformanceLogger.elapsed(
+        'audio.replaceSource.setSource',
+        setSourceStopwatch,
+        details:
+            'id=${mediaItemToPlay.id} index=$audioSourceIndex kind=${source.kind.name}',
+      );
       final resolvedMediaItem = source.markAsCached
           ? _markMediaItemCached(mediaItemToPlay)
           : mediaItemToPlay;
@@ -165,17 +183,38 @@ class AudioServiceHandler extends BaseAudioHandler
         processingState: AudioProcessingState.ready,
       );
       if (_pendingRestorePosition > Duration.zero) {
+        final seekStopwatch = PlaybackPerformanceLogger.start();
         await _engine.seek(_pendingRestorePosition);
+        PlaybackPerformanceLogger.elapsed(
+          'audio.replaceSource.restoreSeek',
+          seekStopwatch,
+          details:
+              'id=${mediaItemToPlay.id} position=${_pendingRestorePosition.inMilliseconds}',
+        );
         _pendingRestorePosition = Duration.zero;
       }
       if (playNow && url.isNotEmpty) {
+        final playStopwatch = PlaybackPerformanceLogger.start();
         await play();
+        PlaybackPerformanceLogger.elapsed(
+          'audio.replaceSource.play',
+          playStopwatch,
+          details: 'id=${mediaItemToPlay.id} index=$audioSourceIndex',
+        );
       }
       return true;
-    } catch (_) {
+    } catch (error) {
+      outcome = 'exception:$error';
       _isReplacingSource = false;
       _publishPlaybackState(processingState: AudioProcessingState.idle);
       return false;
+    } finally {
+      PlaybackPerformanceLogger.elapsed(
+        'audio.replaceSource.total',
+        totalStopwatch,
+        details:
+            'id=${mediaItemToPlay.id} index=$audioSourceIndex queue=${queue.value.length} kind=${source.kind.name} playNow=$playNow outcome=$outcome',
+      );
     }
   }
 
@@ -256,8 +295,15 @@ class AudioServiceHandler extends BaseAudioHandler
   @override
   Future<void> play() async {
     if (!_engine.hasAudioSource) return;
-    await _engine.play();
+    _startPlayback();
     _updateMediaControls();
+  }
+
+  /// `just_audio.play()` completes when playback stops/completes, not when it starts.
+  void _startPlayback() {
+    unawaited(_engine.play().catchError((Object error, StackTrace stackTrace) {
+      PlaybackPerformanceLogger.log('audio.play.error error=$error');
+    }));
   }
 
   @override

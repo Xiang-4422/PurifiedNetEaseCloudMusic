@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
@@ -33,6 +34,9 @@ class PlaybackSourcePrefetcher {
     final cached = _cache[key];
     final now = DateTime.now();
     if (cached != null && now.difference(cached.createdAt) < ttl) {
+      PlaybackPerformanceLogger.log(
+        'sourcePrefetch.cacheHit id=${item.id} highQuality=$preferHighQuality kind=${cached.source.kind.name}',
+      );
       return Future.value(cached.source);
     }
     return _resolveAndCache(
@@ -77,13 +81,20 @@ class PlaybackSourcePrefetcher {
   ) {
     final loading = _inFlight[key];
     if (loading != null) {
+      PlaybackPerformanceLogger.log('sourcePrefetch.inFlight key=$key');
       return loading;
     }
+    final stopwatch = PlaybackPerformanceLogger.start();
     final loadFuture = load().then((source) {
       if (!source.isEmpty) {
         _cache[key] = _CachedPlaybackSource(source, DateTime.now());
         _trimCache();
       }
+      PlaybackPerformanceLogger.elapsed(
+        'sourcePrefetch.load',
+        stopwatch,
+        details: 'key=$key success=${!source.isEmpty} kind=${source.kind.name}',
+      );
       return source;
     }).whenComplete(() {
       _inFlight.remove(key);

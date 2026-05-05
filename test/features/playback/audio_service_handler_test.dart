@@ -79,6 +79,29 @@ void main() {
       expect(engine.playing, isTrue);
     });
 
+    test('replaceSource does not wait for engine play completion', () async {
+      final engine = _FakePlaybackEngine(holdPlayFuture: true);
+      final handler = AudioServiceHandler(engineAdapter: engine);
+      await handler.updateQueue([_mediaItem('1')]);
+
+      final success = await handler
+          .replaceSource(
+            audioSourceIndex: 0,
+            mediaItemToPlay: _mediaItem('1'),
+            source: const PlaybackResolvedSource(
+              kind: PlaybackResolvedSourceKind.url,
+              url: 'url-1',
+            ),
+            playNow: true,
+          )
+          .timeout(const Duration(milliseconds: 100));
+
+      expect(success, isTrue);
+      expect(engine.playCount, 1);
+      expect(engine.playCompleter?.isCompleted, isFalse);
+      engine.playCompleter?.complete();
+    });
+
     test('play without a prepared source is ignored', () async {
       final engine = _FakePlaybackEngine();
       final handler = AudioServiceHandler(engineAdapter: engine);
@@ -98,10 +121,13 @@ MediaItem _mediaItem(String id) {
 class _FakePlaybackEngine implements PlaybackEnginePort {
   _FakePlaybackEngine({
     this.failingSourceKinds = const <PlaybackResolvedSourceKind>{},
+    this.holdPlayFuture = false,
     bool initialPlaying = false,
   }) : _playing = initialPlaying;
 
   final Set<PlaybackResolvedSourceKind> failingSourceKinds;
+
+  final bool holdPlayFuture;
 
   final StreamController<PlaybackEvent> _events =
       StreamController<PlaybackEvent>.broadcast();
@@ -111,6 +137,8 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
   int playCount = 0;
 
   int pauseCount = 0;
+
+  Completer<void>? playCompleter;
 
   bool _hasAudioSource = false;
 
@@ -158,6 +186,10 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
     }
     playCount++;
     _playing = true;
+    if (holdPlayFuture) {
+      playCompleter = Completer<void>();
+      await playCompleter!.future;
+    }
   }
 
   @override

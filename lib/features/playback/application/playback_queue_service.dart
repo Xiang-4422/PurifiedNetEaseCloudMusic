@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
 import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
@@ -86,8 +87,14 @@ class PlaybackQueueService {
 
   /// 选择 active queue 中的指定索引。
   Future<PlaybackQueueState> selectIndex(int index) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     final selectedIndex = _clampIndex(index, _state.activeQueue.length);
     if (selectedIndex < 0) {
+      PlaybackPerformanceLogger.elapsed(
+        'queue.selectIndex.empty',
+        stopwatch,
+        details: 'requested=$index queue=${_state.activeQueue.length}',
+      );
       return _state;
     }
     _emit(_state.copyWith(
@@ -95,6 +102,12 @@ class PlaybackQueueService {
       selectionVersion: _state.selectionVersion + 1,
     ));
     await _syncNotificationQueue();
+    PlaybackPerformanceLogger.elapsed(
+      'queue.selectIndex',
+      stopwatch,
+      details:
+          'requested=$index selected=$selectedIndex queue=${_state.activeQueue.length} version=${_state.selectionVersion}',
+    );
     return _state;
   }
 
@@ -352,17 +365,35 @@ class PlaybackQueueService {
   }
 
   Future<void> _syncNotificationQueue() {
+    final signatureStopwatch = PlaybackPerformanceLogger.start();
     final signature = _notificationSignature();
+    PlaybackPerformanceLogger.elapsed(
+      'queue.notificationSignature',
+      signatureStopwatch,
+      details:
+          'queue=${_state.activeQueue.length} confirmed=${_state.confirmedIndex}',
+      warnAfterMs: 1,
+    );
     if (signature == _lastNotificationSignature) {
       return Future<void>.value();
     }
     _lastNotificationSignature = signature;
-    return _playbackService.setNotificationQueue(
+    final syncStopwatch = PlaybackPerformanceLogger.start();
+    return _playbackService
+        .setNotificationQueue(
       _state.activeQueue,
       currentIndex: _state.confirmedIndex,
       playlistName: _state.playlistName,
       playlistHeader: _state.playlistHeader,
-    );
+    )
+        .whenComplete(() {
+      PlaybackPerformanceLogger.elapsed(
+        'queue.syncNotificationQueue',
+        syncStopwatch,
+        details:
+            'queue=${_state.activeQueue.length} confirmed=${_state.confirmedIndex}',
+      );
+    });
   }
 
   String _notificationSignature() {

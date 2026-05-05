@@ -24,6 +24,7 @@ void main() {
         queueService: queueService,
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: _switchCoordinator(playbackService, queueService),
+        userSkipCoalesceDelay: Duration.zero,
       );
       final states = <PlaybackSelectionState>[];
       final subscription = selectionService.stream.listen(states.add);
@@ -59,6 +60,7 @@ void main() {
         queueService: queueService,
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: _switchCoordinator(playbackService, queueService),
+        userSkipCoalesceDelay: Duration.zero,
       );
 
       final selectFuture = selectionService.selectQueue(
@@ -84,6 +86,7 @@ void main() {
         queueService: queueService,
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: _switchCoordinator(playbackService, queueService),
+        userSkipCoalesceDelay: Duration.zero,
       );
 
       final first = selectionService.selectQueue(
@@ -119,6 +122,7 @@ void main() {
         queueService: queueService,
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: _switchCoordinator(playbackService, queueService),
+        userSkipCoalesceDelay: Duration.zero,
       );
       final queue = [_item('1'), _item('2'), _item('3')];
 
@@ -151,6 +155,47 @@ void main() {
       expect(playbackService.replacedIndexes.last, 2);
     });
 
+    test('coalesces rapid user skip before replacing source', () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+      final selectionService = PlaybackSelectionService(
+        queueService: queueService,
+        navigator: const PlaybackSelectionNavigator(),
+        switchCoordinator: _switchCoordinator(playbackService, queueService),
+        userSkipCoalesceDelay: const Duration(milliseconds: 30),
+      );
+
+      final first = selectionService.selectQueue(
+        [_item('1'), _item('2'), _item('3')],
+        0,
+        playListName: 'Queue',
+        trigger: PlaybackSwitchTrigger.userSelect,
+      );
+      await Future<void>.delayed(Duration.zero);
+      playbackService.completeReplaceSource(true);
+      await first;
+
+      final olderSkip = selectionService.selectNext(
+        trigger: PlaybackSwitchTrigger.userNext,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      expect(selectionService.state.selectedItem.id, '2');
+      expect(playbackService.replacedIndexes, [0]);
+
+      final latestSkip = selectionService.selectNext(
+        trigger: PlaybackSwitchTrigger.userNext,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(selectionService.state.selectedItem.id, '3');
+      expect(playbackService.replacedIndexes, [0, 2]);
+
+      playbackService.completeReplaceSource(true);
+      await Future.wait([olderSkip, latestSkip]);
+
+      expect(selectionService.state.sourceStatus,
+          PlaybackSelectionSourceStatus.ready);
+    });
+
     test('maps selected item to active queue after queue service reorder',
         () async {
       final playbackService = _FakePlaybackService();
@@ -160,6 +205,7 @@ void main() {
         queueService: queueService,
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: _switchCoordinator(playbackService, queueService),
+        userSkipCoalesceDelay: Duration.zero,
       );
 
       final selectFuture = selectionService.selectQueue(
@@ -191,6 +237,7 @@ void main() {
         queueService: queueService,
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: _switchCoordinator(playbackService, queueService),
+        userSkipCoalesceDelay: Duration.zero,
       );
 
       final first = selectionService.selectQueue(
@@ -227,6 +274,7 @@ void main() {
         queueService: queueService,
         navigator: const PlaybackSelectionNavigator(),
         switchCoordinator: _switchCoordinator(playbackService, queueService),
+        userSkipCoalesceDelay: Duration.zero,
       );
 
       final first = selectionService.selectQueue(
@@ -271,6 +319,7 @@ void main() {
             TimeoutException('url timeout'),
           ),
         ),
+        userSkipCoalesceDelay: Duration.zero,
       );
 
       await selectionService.selectQueue(
@@ -299,6 +348,7 @@ void main() {
           queueService,
           sourceResolver: sourceResolver,
         ),
+        userSkipCoalesceDelay: Duration.zero,
       );
 
       await selectionService.selectQueue(

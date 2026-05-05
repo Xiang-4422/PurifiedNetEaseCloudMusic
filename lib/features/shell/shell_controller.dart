@@ -62,6 +62,8 @@ class ShellController extends SuperController
   /// 专辑页是否处于滚动状态。
   RxBool isAlbumScrolling = false.obs;
   int? _pendingAlbumSyncIndex;
+  bool _pendingAlbumSyncShouldJump = false;
+  int _pendingAlbumSyncCount = 0;
   int? _ignoredProgrammaticAlbumPageIndex;
   bool _playlistScrollInFlight = false;
   bool _playlistScrollPending = false;
@@ -524,8 +526,17 @@ class ShellController extends SuperController
       }
       if (isAlbumScrollingProgrammatic) {
         _pendingAlbumSyncIndex = currentIndex;
+        _pendingAlbumSyncCount++;
+        final pendingDistance =
+            ((albumPageController.page ?? currentIndex.toDouble()) -
+                    currentIndex)
+                .abs();
+        _pendingAlbumSyncShouldJump = _pendingAlbumSyncShouldJump ||
+            jump ||
+            _pendingAlbumSyncCount > 1 ||
+            pendingDistance > 1.5;
         PlaybackPerformanceLogger.log(
-          'shell.albumSync.pending index=$currentIndex jump=$jump',
+          'shell.albumSync.pending index=$currentIndex jump=$_pendingAlbumSyncShouldJump count=$_pendingAlbumSyncCount distance=${pendingDistance.toStringAsFixed(2)}',
         );
         return;
       }
@@ -559,11 +570,14 @@ class ShellController extends SuperController
         WidgetsBinding.instance.addPostFrameCallback((_) {
           isAlbumScrollingProgrammatic = false;
           final pendingIndex = _pendingAlbumSyncIndex;
+          final pendingShouldJump = _pendingAlbumSyncShouldJump;
           _pendingAlbumSyncIndex = null;
+          _pendingAlbumSyncShouldJump = false;
+          _pendingAlbumSyncCount = 0;
           if (pendingIndex != null &&
               pendingIndex != currentIndex &&
               !isAlbumScrollingManully) {
-            _animateAlbumPageViewToCurSong(jump: jump);
+            _animateAlbumPageViewToCurSong(jump: pendingShouldJump);
           }
         });
       });

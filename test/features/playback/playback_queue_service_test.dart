@@ -73,6 +73,7 @@ void main() {
           const Duration(seconds: 42));
       expect(
           playbackService.pendingRestorePosition, const Duration(seconds: 42));
+      expect(playbackService.pendingRestoreMediaItemId, '2');
       expect(playbackService.sourceSwitches, isEmpty);
     });
 
@@ -150,6 +151,7 @@ class _FakePlaybackService implements PlaybackService {
   int notificationSyncCount = 0;
   final List<int> sourceSwitches = <int>[];
   Duration pendingRestorePosition = Duration.zero;
+  String? pendingRestoreMediaItemId;
 
   @override
   Future<void> setNotificationQueue(
@@ -164,8 +166,12 @@ class _FakePlaybackService implements PlaybackService {
   }
 
   @override
-  Future<void> setPendingRestorePosition(Duration position) async {
+  Future<void> setPendingRestorePosition(
+    Duration position, {
+    String? mediaItemId,
+  }) async {
     pendingRestorePosition = position;
+    pendingRestoreMediaItemId = mediaItemId;
   }
 
   @override

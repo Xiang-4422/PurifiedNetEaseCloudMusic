@@ -77,6 +77,64 @@ void main() {
       expect(playbackService.replaceCalls.single.playNow, isFalse);
     });
 
+    test('serializes source replacement and drops stale waiters', () async {
+      final playbackService = _FakePlaybackService(holdReplace: true);
+      final resolver = _ImmediateSourceResolver();
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+      );
+      final queue = [_item('1'), _item('2'), _item('3')];
+      await queueService.replaceQueue(queue, 0, playlistName: 'Queue');
+
+      final first = coordinator.switchToSelection(
+        queue: queue,
+        item: queue[0],
+        activeIndex: 0,
+        selectionVersion: 1,
+        trigger: PlaybackSwitchTrigger.userSelect,
+        playNow: true,
+      );
+      await _waitUntil(() => playbackService.replaceCalls.length == 1);
+
+      final stale = coordinator.switchToSelection(
+        queue: queue,
+        item: queue[1],
+        activeIndex: 1,
+        selectionVersion: 2,
+        trigger: PlaybackSwitchTrigger.userNext,
+        playNow: true,
+      );
+      final latest = coordinator.switchToSelection(
+        queue: queue,
+        item: queue[2],
+        activeIndex: 2,
+        selectionVersion: 3,
+        trigger: PlaybackSwitchTrigger.userNext,
+        playNow: true,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(playbackService.replaceCalls.map((call) => call.activeIndex), [0]);
+
+      playbackService.completeNextReplace();
+      await _waitUntil(() => playbackService.replaceCalls.length == 2);
+      expect(
+          playbackService.replaceCalls.map((call) => call.activeIndex), [0, 2]);
+
+      playbackService.completeNextReplace();
+      final results = await Future.wait([first, stale, latest]);
+
+      expect(results[0].success, isFalse);
+      expect(results[0].isObsolete, isTrue);
+      expect(results[1].success, isFalse);
+      expect(results[1].isObsolete, isTrue);
+      expect(results[2].success, isTrue);
+      expect(queueService.state.confirmedIndex, 2);
+    });
+
     test('falls back to remote source when local cached source fails',
         () async {
       final playbackService = _FakePlaybackService(failFirstReplace: true);
@@ -230,11 +288,14 @@ class _FakePlaybackService implements PlaybackService {
   _FakePlaybackService({
     this.failFirstReplace = false,
     this.preferHighQuality = false,
+    this.holdReplace = false,
   });
 
   final bool failFirstReplace;
   final bool preferHighQuality;
+  final bool holdReplace;
   final List<_ReplaceCall> replaceCalls = <_ReplaceCall>[];
+  final List<Completer<bool>> _replaceCompleters = <Completer<bool>>[];
 
   @override
   bool isHighQualityEnabled() => preferHighQuality;
@@ -260,7 +321,16 @@ class _FakePlaybackService implements PlaybackService {
       source: source,
       playNow: playNow,
     ));
+    if (holdReplace) {
+      final completer = Completer<bool>();
+      _replaceCompleters.add(completer);
+      return completer.future;
+    }
     return !(failFirstReplace && replaceCalls.length == 1);
+  }
+
+  void completeNextReplace([bool success = true]) {
+    _replaceCompleters.removeAt(0).complete(success);
   }
 
   @override
@@ -305,6 +375,24 @@ class _QualityFallbackSourceResolver implements PlaybackSourceResolver {
       kind: PlaybackResolvedSourceKind.url,
       url: 'normal-url',
     );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
+  }
+}
+
+class _ImmediateSourceResolver implements PlaybackSourceResolver {
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    return _urlSource(item.id);
   }
 
   @override
@@ -366,4 +454,17 @@ class _FakePlaybackQueueStore implements PlaybackQueueStore {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+Future<void> _waitUntil(
+  bool Function() condition, {
+  Duration timeout = const Duration(seconds: 1),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('Timed out waiting for condition');
+    }
+    await Future<void>.delayed(Duration.zero);
+  }
 }

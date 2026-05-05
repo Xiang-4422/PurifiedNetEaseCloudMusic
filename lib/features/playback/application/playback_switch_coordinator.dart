@@ -121,6 +121,7 @@ class PlaybackSwitchCoordinator {
   int _consecutiveAutoFailures = 0;
   int _switchId = 0;
   int _autoplayCancelVersion = 0;
+  Completer<void>? _replaceInFlight;
   PlaybackSwitchState _state = const PlaybackSwitchState();
 
   /// 自动推进时允许连续跳过的最大失败次数。
@@ -265,32 +266,61 @@ class PlaybackSwitchCoordinator {
     ));
     final shouldAutoPlay =
         playNow && autoplayCancelVersion == _autoplayCancelVersion;
-    _emitState(_buildState(
+    await _waitForReplaceTurn(
       switchId: switchId,
       selectionVersion: version,
-      phase: PlaybackSwitchPhase.replacing,
       item: item,
       activeIndex: activeIndex,
-      trigger: trigger,
-      autoplayIntent: shouldAutoPlay,
-    ));
-    final replaceStopwatch = PlaybackPerformanceLogger.start();
-    final success = await _replaceSourceWithFallback(
-      queue: queue,
-      item: item,
-      activeIndex: activeIndex,
-      source: source,
-      playNow: shouldAutoPlay,
-    ).timeout(
-      const Duration(seconds: 12),
-      onTimeout: () => false,
     );
-    PlaybackPerformanceLogger.elapsed(
-      'switch.replaceSourceWithFallback',
-      replaceStopwatch,
-      details:
-          'switchId=$switchId version=$version id=${item.id} index=$activeIndex source=${source.kind.name} success=$success playNow=$shouldAutoPlay',
-    );
+    if (_isObsolete(version)) {
+      _emitCancelled(
+        switchId: switchId,
+        selectionVersion: version,
+        item: item,
+        activeIndex: activeIndex,
+        trigger: trigger,
+      );
+      return complete(
+        PlaybackSwitchResult(
+          selectionVersion: version,
+          success: false,
+          isObsolete: true,
+        ),
+        outcome: 'obsoleteBeforeReplace',
+      );
+    }
+    final replaceTurn = _beginReplaceTurn();
+    var success = false;
+    try {
+      _emitState(_buildState(
+        switchId: switchId,
+        selectionVersion: version,
+        phase: PlaybackSwitchPhase.replacing,
+        item: item,
+        activeIndex: activeIndex,
+        trigger: trigger,
+        autoplayIntent: shouldAutoPlay,
+      ));
+      final replaceStopwatch = PlaybackPerformanceLogger.start();
+      success = await _replaceSourceWithFallback(
+        queue: queue,
+        item: item,
+        activeIndex: activeIndex,
+        source: source,
+        playNow: shouldAutoPlay,
+      ).timeout(
+        const Duration(seconds: 12),
+        onTimeout: () => false,
+      );
+      PlaybackPerformanceLogger.elapsed(
+        'switch.replaceSourceWithFallback',
+        replaceStopwatch,
+        details:
+            'switchId=$switchId version=$version id=${item.id} index=$activeIndex source=${source.kind.name} success=$success playNow=$shouldAutoPlay',
+      );
+    } finally {
+      _completeReplaceTurn(replaceTurn);
+    }
     if (_isObsolete(version)) {
       _emitCancelled(
         switchId: switchId,
@@ -346,6 +376,42 @@ class PlaybackSwitchCoordinator {
       ),
       outcome: 'replaceFailed',
     );
+  }
+
+  Future<void> _waitForReplaceTurn({
+    required int switchId,
+    required int selectionVersion,
+    required PlaybackQueueItem item,
+    required int activeIndex,
+  }) async {
+    final inFlight = _replaceInFlight;
+    if (inFlight == null) {
+      return;
+    }
+    final stopwatch = PlaybackPerformanceLogger.start();
+    await inFlight.future;
+    PlaybackPerformanceLogger.elapsed(
+      'switch.waitReplaceTurn',
+      stopwatch,
+      details:
+          'switchId=$switchId version=$selectionVersion id=${item.id} index=$activeIndex',
+      warnAfterMs: 1,
+    );
+  }
+
+  Completer<void> _beginReplaceTurn() {
+    final turn = Completer<void>();
+    _replaceInFlight = turn;
+    return turn;
+  }
+
+  void _completeReplaceTurn(Completer<void> turn) {
+    if (identical(_replaceInFlight, turn)) {
+      _replaceInFlight = null;
+    }
+    if (!turn.isCompleted) {
+      turn.complete();
+    }
   }
 
   Future<bool> _replaceSourceWithFallback({

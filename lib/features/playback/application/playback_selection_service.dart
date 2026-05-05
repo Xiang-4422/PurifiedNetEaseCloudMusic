@@ -21,13 +21,16 @@ class PlaybackSelectionService {
     required PlaybackQueueService queueService,
     required PlaybackSelectionNavigator navigator,
     required PlaybackSwitchCoordinator switchCoordinator,
+    Duration userSkipCoalesceDelay = const Duration(milliseconds: 220),
   })  : _queueService = queueService,
-        _switchCoordinator = switchCoordinator {
+        _switchCoordinator = switchCoordinator,
+        _userSkipCoalesceDelay = userSkipCoalesceDelay {
     _queueSubscription = _queueService.stream.listen(_syncFromQueueState);
   }
 
   final PlaybackQueueService _queueService;
   final PlaybackSwitchCoordinator _switchCoordinator;
+  final Duration _userSkipCoalesceDelay;
   final StreamController<PlaybackSelectionState> _stateController =
       StreamController<PlaybackSelectionState>.broadcast();
   late final StreamSubscription<PlaybackQueueState> _queueSubscription;
@@ -193,6 +196,23 @@ class PlaybackSelectionService {
           sourceError: null,
         ),
       );
+      if (_shouldCoalesceUserSkip(trigger, playNow)) {
+        final coalesceStopwatch = PlaybackPerformanceLogger.start();
+        if (_userSkipCoalesceDelay > Duration.zero) {
+          await Future<void>.delayed(_userSkipCoalesceDelay);
+        }
+        PlaybackPerformanceLogger.elapsed(
+          'selection.submit.coalesceUserSkip',
+          coalesceStopwatch,
+          details:
+              'version=$version id=${selectedItem.id} index=$selectedIndex delay=${_userSkipCoalesceDelay.inMilliseconds}',
+          warnAfterMs: 1,
+        );
+        if (_state.selectionVersion != version) {
+          outcome = 'obsoleteBeforeSwitch';
+          return;
+        }
+      }
       final switchStopwatch = PlaybackPerformanceLogger.start();
       final result = await _switchCoordinator.switchToSelection(
         queue: _state.queue,
@@ -299,6 +319,15 @@ class PlaybackSelectionService {
     return trigger == PlaybackSwitchTrigger.userSelect ||
         trigger == PlaybackSwitchTrigger.userNext ||
         trigger == PlaybackSwitchTrigger.userPrevious;
+  }
+
+  bool _shouldCoalesceUserSkip(
+    PlaybackSwitchTrigger trigger,
+    bool playNow,
+  ) {
+    return playNow &&
+        (trigger == PlaybackSwitchTrigger.userNext ||
+            trigger == PlaybackSwitchTrigger.userPrevious);
   }
 
   Future<void> _rollbackToConfirmedSelection(String? errorMessage) async {

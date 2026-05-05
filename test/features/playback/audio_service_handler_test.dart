@@ -102,6 +102,30 @@ void main() {
       engine.playCompleter?.complete();
     });
 
+    test('replaceSource skips restore seek for a different restored item',
+        () async {
+      final engine = _FakePlaybackEngine();
+      final handler = AudioServiceHandler(engineAdapter: engine);
+      await handler.updateQueue([_mediaItem('restored'), _mediaItem('next')]);
+      await handler.setPendingRestorePosition(
+        const Duration(seconds: 200),
+        mediaItemId: 'restored',
+      );
+
+      final success = await handler.replaceSource(
+        audioSourceIndex: 1,
+        mediaItemToPlay: _mediaItem('next'),
+        source: const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.url,
+          url: 'url-next',
+        ),
+        playNow: true,
+      );
+
+      expect(success, isTrue);
+      expect(engine.seekPositions, isEmpty);
+    });
+
     test('play without a prepared source is ignored', () async {
       final engine = _FakePlaybackEngine();
       final handler = AudioServiceHandler(engineAdapter: engine);
@@ -139,6 +163,8 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
   int pauseCount = 0;
 
   Completer<void>? playCompleter;
+
+  final List<Duration> seekPositions = <Duration>[];
 
   bool _hasAudioSource = false;
 
@@ -193,7 +219,9 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
   }
 
   @override
-  Future<void> seek(Duration position) async {}
+  Future<void> seek(Duration position) async {
+    seekPositions.add(position);
+  }
 
   @override
   Future<void> setSource(PlaybackResolvedSource source) async {

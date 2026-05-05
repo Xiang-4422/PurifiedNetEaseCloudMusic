@@ -56,6 +56,7 @@ class AudioServiceHandler extends BaseAudioHandler
   Future<void> Function()? _handleSkipToPrevious;
   Future<void> Function()? _handleSkipToNext;
   Duration _pendingRestorePosition = Duration.zero;
+  String? _pendingRestoreMediaItemId;
   bool _isReplacingSource = false;
 
   /// 当前通知栏和播放队列使用的循环模式。
@@ -87,8 +88,12 @@ class AudioServiceHandler extends BaseAudioHandler
   }
 
   /// 设置等待下一次音源确认后恢复的播放进度。
-  Future<void> setPendingRestorePosition(Duration position) async {
+  Future<void> setPendingRestorePosition(
+    Duration position, {
+    String? mediaItemId,
+  }) async {
     _pendingRestorePosition = position;
+    _pendingRestoreMediaItemId = mediaItemId;
   }
 
   /// 设置 audio_service 层循环模式。
@@ -183,15 +188,25 @@ class AudioServiceHandler extends BaseAudioHandler
         processingState: AudioProcessingState.ready,
       );
       if (_pendingRestorePosition > Duration.zero) {
-        final seekStopwatch = PlaybackPerformanceLogger.start();
-        await _engine.seek(_pendingRestorePosition);
-        PlaybackPerformanceLogger.elapsed(
-          'audio.replaceSource.restoreSeek',
-          seekStopwatch,
-          details:
-              'id=${mediaItemToPlay.id} position=${_pendingRestorePosition.inMilliseconds}',
-        );
+        final restorePosition = _pendingRestorePosition;
+        final restoreMediaItemId = _pendingRestoreMediaItemId;
         _pendingRestorePosition = Duration.zero;
+        _pendingRestoreMediaItemId = null;
+        if (restoreMediaItemId == null ||
+            restoreMediaItemId == mediaItemToPlay.id) {
+          final seekStopwatch = PlaybackPerformanceLogger.start();
+          await _engine.seek(restorePosition);
+          PlaybackPerformanceLogger.elapsed(
+            'audio.replaceSource.restoreSeek',
+            seekStopwatch,
+            details:
+                'id=${mediaItemToPlay.id} position=${restorePosition.inMilliseconds}',
+          );
+        } else {
+          PlaybackPerformanceLogger.log(
+            'audio.replaceSource.restoreSeek.skip id=${mediaItemToPlay.id} pendingId=$restoreMediaItemId position=${restorePosition.inMilliseconds}',
+          );
+        }
       }
       if (playNow && url.isNotEmpty) {
         final playStopwatch = PlaybackPerformanceLogger.start();

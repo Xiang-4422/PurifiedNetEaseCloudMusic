@@ -140,8 +140,14 @@ class PlaybackService extends GetxService {
   }
 
   /// 设置等待音源确认后恢复的播放进度。
-  Future<void> setPendingRestorePosition(Duration position) {
-    return handler.setPendingRestorePosition(position);
+  Future<void> setPendingRestorePosition(
+    Duration position, {
+    String? mediaItemId,
+  }) {
+    return handler.setPendingRestorePosition(
+      position,
+      mediaItemId: mediaItemId,
+    );
   }
 
   /// 开始播放。

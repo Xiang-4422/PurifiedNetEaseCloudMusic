@@ -351,7 +351,10 @@ class PlaybackQueueService {
       selectionVersion: _state.selectionVersion + 1,
       queueVersion: _state.queueVersion + 1,
     ));
-    await _playbackService.setPendingRestorePosition(snapshot.position);
+    await _playbackService.setPendingRestorePosition(
+      snapshot.position,
+      mediaItemId: selectedItem.id,
+    );
     await _syncNotificationQueue();
     return _state;
   }

@@ -1,4 +1,5 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playlist/application/playlist_playback_action.dart';
@@ -17,6 +18,9 @@ class ExplorePageView extends GetView<ExplorePageController> {
   @override
   Widget build(BuildContext context) {
     final playbackAction = Get.find<PlaybackActionPort>();
+    final layoutMetrics = AdaptiveLayoutMetrics.of(context);
+    final tagStripHeight =
+        (34 * layoutMetrics.textScale).clamp(34.0, 44.0).toDouble();
     return Obx(() {
       if (controller.loading.isTrue) return const LoadingView();
       return SmartRefresher(
@@ -82,7 +86,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                   spacing: AppDimensions.paddingSmall,
                   children: [
                     Container(
-                      height: AppDimensions.headerHeight * 2 / 3,
+                      height: tagStripHeight,
                       decoration: BoxDecoration(
                         color: Colors.black12,
                         borderRadius: BorderRadius.circular(9999),
@@ -119,7 +123,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                           }),
                     ),
                     Container(
-                      height: AppDimensions.headerHeight * 2 / 3,
+                      height: tagStripHeight,
                       decoration: BoxDecoration(
                         color: Colors.black12,
                         borderRadius: BorderRadius.circular(9999),

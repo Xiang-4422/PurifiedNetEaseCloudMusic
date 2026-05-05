@@ -323,15 +323,10 @@ class _SquarePersonalPageView extends StatefulWidget {
 
 class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
   final PageController _pageController = PageController();
-  final ScrollController _recommendedScrollController = ScrollController();
-  int _pageIndex = 0;
-  bool _recommendedListAwayFromBoundary = false;
-  bool _recommendedPageTurnInFlight = false;
 
   @override
   void dispose() {
     _pageController.dispose();
-    _recommendedScrollController.dispose();
     super.dispose();
   }
 
@@ -343,14 +338,10 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
           child: PageView(
             controller: _pageController,
             scrollDirection: Axis.vertical,
-            physics: _pageIndex == 2 && _recommendedListAwayFromBoundary
-                ? const NeverScrollableScrollPhysics()
-                : const PageScrollPhysics(),
-            onPageChanged: (index) => setState(() => _pageIndex = index),
+            physics: const PageScrollPhysics(),
             children: [
               _buildQuickStartPage(context),
               _buildLibraryPage(context),
-              _buildRecommendedPage(context),
             ],
           ),
         ),
@@ -430,92 +421,6 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
         },
       ),
     );
-  }
-
-  Widget _buildRecommendedPage(BuildContext context) {
-    return SmartRefresher(
-      onRefresh: () async {
-        await widget.recommendationController.updateData();
-      },
-      enablePullUp: true,
-      enablePullDown: true,
-      onLoading: () =>
-          widget.recommendationController.updateRecoPlayLists(getMore: true),
-      footer: ClassicFooter(
-        height: 60,
-        outerBuilder: (child) {
-          return SizedBox(
-            height: 60,
-            child: Center(child: child),
-          );
-        },
-      ),
-      controller: widget.recommendationController.refreshController,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: _handleRecommendedScrollNotification,
-        child: CustomScrollView(
-          controller: _recommendedScrollController,
-          cacheExtent: 120,
-          slivers: [
-            SliverToBoxAdapter(
-              child: SizedBox(height: context.mediaQueryPadding.top),
-            ),
-            SliverToBoxAdapter(
-              child: Header(
-                '推荐歌单',
-                padding: AppDimensions.paddingSmall,
-                height: widget.metrics.squareHeaderHeight,
-              ),
-            ),
-            SliverList.builder(
-              itemCount: widget.recommendationController.recoPlayLists.length,
-              itemBuilder: (BuildContext context, int index) {
-                return PlayListItem(
-                  widget.recommendationController.recoPlayLists[index],
-                ).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  bool _handleRecommendedScrollNotification(ScrollNotification notification) {
-    if (notification.metrics.axis != Axis.vertical) {
-      return false;
-    }
-    final metrics = notification.metrics;
-    if (notification is OverscrollNotification &&
-        notification.overscroll < 0 &&
-        metrics.pixels <= metrics.minScrollExtent + 12) {
-      _goToPreviousSquarePageFromRecommended();
-      return false;
-    }
-    final canScroll = metrics.maxScrollExtent > metrics.minScrollExtent;
-    final awayFromBoundary = canScroll &&
-        metrics.pixels > metrics.minScrollExtent + 12 &&
-        metrics.pixels < metrics.maxScrollExtent - 12;
-    if (awayFromBoundary != _recommendedListAwayFromBoundary) {
-      setState(() => _recommendedListAwayFromBoundary = awayFromBoundary);
-    }
-    return false;
-  }
-
-  void _goToPreviousSquarePageFromRecommended() {
-    if (_pageIndex != 2 ||
-        _recommendedPageTurnInFlight ||
-        !_pageController.hasClients) {
-      return;
-    }
-    _recommendedPageTurnInFlight = true;
-    _recommendedListAwayFromBoundary = false;
-    _pageController
-        .previousPage(
-          duration: AppDurations.animationDurationShort,
-          curve: Curves.easeOut,
-        )
-        .whenComplete(() => _recommendedPageTurnInFlight = false);
   }
 
   Widget _buildQuickStartCards(
@@ -661,6 +566,70 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
         ],
       ),
     );
+  }
+}
+
+/// 方屏首页侧边菜单中的独立推荐歌单页。
+class RecommendedPlaylistsPageView extends StatelessWidget {
+  /// 创建独立推荐歌单页。
+  const RecommendedPlaylistsPageView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final recommendationController = RecommendationController.to;
+    return Obx(() {
+      if (recommendationController.dateLoaded.isFalse) {
+        return const LoadingView();
+      }
+      return SmartRefresher(
+        onRefresh: () async {
+          await recommendationController.updateData();
+        },
+        enablePullUp: true,
+        enablePullDown: true,
+        onLoading: () =>
+            recommendationController.updateRecoPlayLists(getMore: true),
+        footer: ClassicFooter(
+          height: 60 + AppDimensions.bottomPanelHeaderHeight,
+          outerBuilder: (child) {
+            return Container(
+              height: 60,
+              margin: const EdgeInsets.only(
+                bottom: AppDimensions.bottomPanelHeaderHeight,
+              ),
+              alignment: Alignment.center,
+              child: child,
+            );
+          },
+        ),
+        controller: recommendationController.refreshController,
+        child: CustomScrollView(
+          cacheExtent: 120,
+          slivers: [
+            SliverToBoxAdapter(
+              child: SizedBox(height: context.mediaQueryPadding.top),
+            ),
+            const SliverToBoxAdapter(
+              child: Header(
+                '推荐歌单',
+                padding: AppDimensions.paddingSmall,
+              ),
+            ),
+            SliverList.builder(
+              itemCount: recommendationController.recoPlayLists.length,
+              itemBuilder: (BuildContext context, int index) {
+                return PlayListItem(
+                        recommendationController.recoPlayLists[index])
+                    .paddingSymmetric(horizontal: AppDimensions.paddingSmall);
+              },
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
 

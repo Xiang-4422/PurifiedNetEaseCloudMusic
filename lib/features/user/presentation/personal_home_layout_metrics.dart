@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +16,7 @@ class PersonalHomeLayoutMetrics {
   double get aspectRatio => size.width / size.height;
 
   /// 是否接近 1:1 方屏。
-  bool get isSquareLike => aspectRatio >= 0.85 && aspectRatio <= 1.15;
+  bool get isSquareLike => AdaptiveLayoutMetrics(size: size).isSquareLike;
 
   /// 方屏页标题高度。
   double get squareHeaderHeight => 44;

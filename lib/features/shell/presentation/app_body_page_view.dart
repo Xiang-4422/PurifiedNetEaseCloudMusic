@@ -6,6 +6,7 @@ import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/shell/presentation/coffee_page.dart';
 import 'package:bujuan/features/user/presentation/personal_page.dart';
+import 'package:bujuan/features/user/presentation/personal_home_layout_metrics.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/routes/router.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -21,6 +22,12 @@ class AppBodyPageView extends GetView<ShellController> {
 
   @override
   Widget build(BuildContext context) {
+    final isSquareLike = PersonalHomeLayoutMetrics(
+      MediaQuery.sizeOf(context),
+    ).isSquareLike;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      HomeShellController.to.updateHomeLayoutMode(isSquareLike: isSquareLike);
+    });
     return Stack(
       children: [
         Container(
@@ -66,30 +73,29 @@ class DrawerMainScreenView extends GetView<ShellController> {
   const DrawerMainScreenView({Key? key}) : super(key: key);
 
   Widget _buildPage(int index) {
-    switch (index) {
-      case 0:
-        return Obx(() => AbsorbPointer(
-              absorbing: !HomeShellController.to.isDrawerClosed.value,
-              child: const PersonalPageView(),
-            ));
-      case 1:
-        return Obx(() => AbsorbPointer(
-              absorbing: !HomeShellController.to.isDrawerClosed.value,
-              child: const ExplorePageView(),
-            ));
-      case 2:
-        return Obx(() => AbsorbPointer(
-              absorbing: !HomeShellController.to.isDrawerClosed.value,
-              child: const SettingPageView(),
-            ));
-      case 3:
-        return Obx(() => AbsorbPointer(
-              absorbing: !HomeShellController.to.isDrawerClosed.value,
-              child: const CoffeePageView(),
-            ));
-      default:
+    switch (HomeShellController.to.pageKindAt(index)) {
+      case HomeShellPageKind.personal:
+        return _absorbed(const PersonalPageView());
+      case HomeShellPageKind.recommendedPlaylists:
+        return _absorbed(const RecommendedPlaylistsPageView());
+      case HomeShellPageKind.explore:
+        return _absorbed(const ExplorePageView());
+      case HomeShellPageKind.settings:
+        return _absorbed(const SettingPageView());
+      case HomeShellPageKind.coffee:
+        return _absorbed(const CoffeePageView());
+      case null:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _absorbed(Widget child) {
+    return Obx(
+      () => AbsorbPointer(
+        absorbing: !HomeShellController.to.isDrawerClosed.value,
+        child: child,
+      ),
+    );
   }
 
   @override
@@ -97,15 +103,17 @@ class DrawerMainScreenView extends GetView<ShellController> {
     return SizedBox(
       width: context.width,
       height: context.height,
-      child: Obx(() => PageView.builder(
-            physics: HomeShellController.to.isDrawerClosed.value
-                ? const NeverScrollableScrollPhysics()
-                : const PageScrollPhysics(),
-            scrollDirection: Axis.vertical,
-            controller: HomeShellController.to.homePageController,
-            itemCount: 4,
-            itemBuilder: (context, index) => _buildPage(index),
-          )),
+      child: Obx(
+        () => PageView.builder(
+          physics: HomeShellController.to.isDrawerClosed.value
+              ? const NeverScrollableScrollPhysics()
+              : const PageScrollPhysics(),
+          scrollDirection: Axis.vertical,
+          controller: HomeShellController.to.homePageController,
+          itemCount: HomeShellController.to.homePageCount,
+          itemBuilder: (context, index) => _buildPage(index),
+        ),
+      ),
     );
   }
 }
@@ -167,35 +175,52 @@ class MenuView extends GetView<ShellController> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(HomeShellController.to.leftMenus.length,
-                  (index) {
-                return IconButton(
-                  onPressed: () {
-                    int onePageAnimationTime = 200;
-                    Duration animationTime = Duration(
-                        milliseconds: onePageAnimationTime *
-                            (HomeShellController.to.homePageController.page! -
-                                    index)
-                                .abs()
-                                .toInt());
-                    HomeShellController.to.homePageController.animateToPage(
-                        index,
-                        duration: animationTime,
-                        curve: Curves.linear);
-                  },
-                  icon: Obx(() => Icon(
-                      HomeShellController.to.leftMenus[index].icon,
-                      size: AppDimensions.albumMinSize * 2 / 3,
-                      color:
-                          HomeShellController.to.curHomePageIndex.value == index
-                              ? Theme.of(context).primaryColor
-                              : Theme.of(context).iconTheme.color)),
-                );
-              }),
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Obx(
+                () {
+                  final menus = HomeShellController.to.leftMenus;
+                  return SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(menus.length, (index) {
+                        return IconButton(
+                          onPressed: () {
+                            final pageController =
+                                HomeShellController.to.homePageController;
+                            if (!pageController.hasClients) {
+                              return;
+                            }
+                            const onePageAnimationTime = 200;
+                            final currentPage = pageController.page ??
+                                HomeShellController.to.curHomePageIndex.value
+                                    .toDouble();
+                            final animationTime = Duration(
+                              milliseconds: onePageAnimationTime *
+                                  (currentPage - index).abs().toInt(),
+                            );
+                            pageController.animateToPage(
+                              index,
+                              duration: animationTime,
+                              curve: Curves.linear,
+                            );
+                          },
+                          icon: Icon(
+                            menus[index].icon,
+                            size: AppDimensions.albumMinSize * 2 / 3,
+                            color:
+                                HomeShellController.to.curHomePageIndex.value ==
+                                        index
+                                    ? Theme.of(context).primaryColor
+                                    : Theme.of(context).iconTheme.color,
+                          ),
+                        );
+                      }),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
           const SizedBox(height: AppDimensions.bottomPanelHeaderHeight),

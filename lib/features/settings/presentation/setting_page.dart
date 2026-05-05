@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
+import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/app/ui/dialog_service.dart';
 import 'package:bujuan/app/ui/toast_service.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
@@ -153,52 +154,28 @@ class _SettingPageViewState extends State<SettingPageView> {
         right: AppDimensions.paddingSmall,
       ),
       children: [
-        _buildUiSetting(),
-        _buildAppSetting(),
+        _buildUiSetting(context),
+        _buildAppSetting(context),
       ],
     );
   }
 
-  Widget _buildUiSetting() {
+  Widget _buildUiSetting(BuildContext context) {
     return Column(
       children: [
         const Header('UI设置'),
-        ListTile(
-          contentPadding: const EdgeInsets.all(0),
-          title: const Text(
-            '渐变播放背景(需开启智能取色)',
-            style: TextStyle(fontSize: 30),
-          ),
-          trailing: Obx(() => Icon(
-                SettingsController.to.isGradientBackground.value
-                    ? TablerIcons.toggle_right
-                    : TablerIcons.toggle_left,
-                size: 56,
-                color: Theme.of(context).cardColor.withValues(
-                    alpha: SettingsController.to.isGradientBackground.value
-                        ? 0.7
-                        : .4),
-              )),
+        _buildToggleTile(
+          context,
+          title: '渐变播放背景(需开启智能取色)',
+          isEnabled: () => SettingsController.to.isGradientBackground.value,
           onTap: () {
             SettingsController.to.toggleGradientBackground();
           },
         ),
-        ListTile(
-          contentPadding: const EdgeInsets.all(0),
-          title: const Text(
-            '圆形专辑',
-            style: TextStyle(fontSize: 30),
-          ),
-          trailing: Obx(() => Icon(
-                SettingsController.to.isRoundAlbumOpen.value
-                    ? TablerIcons.toggle_right
-                    : TablerIcons.toggle_left,
-                size: 56,
-                color: Theme.of(context).cardColor.withValues(
-                    alpha: SettingsController.to.isRoundAlbumOpen.value
-                        ? 0.7
-                        : .4),
-              )),
+        _buildToggleTile(
+          context,
+          title: '圆形专辑',
+          isEnabled: () => SettingsController.to.isRoundAlbumOpen.value,
           onTap: () {
             SettingsController.to.toggleRoundAlbumOpen();
           },
@@ -207,134 +184,127 @@ class _SettingPageViewState extends State<SettingPageView> {
     );
   }
 
-  Widget _buildAppSetting() {
+  Widget _buildAppSetting(BuildContext context) {
     return Column(
       children: [
         const Header('App设置'),
-        ListTile(
-          contentPadding: const EdgeInsets.all(0),
-          title: const Text(
-            '开启高音质(与会员有关)',
-            style: TextStyle(fontSize: 30),
-          ),
-          trailing: Obx(() => Icon(
-                SettingsController.to.isHighSoundQualityOpen.value
-                    ? TablerIcons.toggle_right
-                    : TablerIcons.toggle_left,
-                size: 56,
-                color: Theme.of(context).cardColor.withValues(
-                    alpha: SettingsController.to.isHighSoundQualityOpen.value
-                        ? 0.7
-                        : .4),
-              )),
+        _buildToggleTile(
+          context,
+          title: '开启高音质(与会员有关)',
+          isEnabled: () => SettingsController.to.isHighSoundQualityOpen.value,
           onTap: () {
             SettingsController.to.toggleHighSoundQualityOpen();
           },
         ),
-        ListTile(
-          contentPadding: const EdgeInsets.all(0),
-          title: const Text(
-            '本地歌曲',
-            style: TextStyle(fontSize: 30),
-          ),
-          subtitle: Text(
-            '查看下载任务、失败重试和本地清理',
-            style: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).cardColor.withValues(alpha: .5),
-            ),
-          ),
-          trailing: Icon(
-            TablerIcons.chevron_right,
-            size: 32,
-            color: Theme.of(context).cardColor.withValues(alpha: .5),
-          ),
+        _buildNavigationTile(
+          context,
+          title: '本地歌曲',
+          subtitle: '查看下载任务、失败重试和本地清理',
           onTap: () => _navigationPort.openLocalSongs(context),
         ),
-        ListTile(
-          contentPadding: const EdgeInsets.all(0),
-          title: const Text(
-            '扫描本地音乐',
-            style: TextStyle(fontSize: 30),
-          ),
-          subtitle: Text(
-            '导入常见音乐目录中的音频、封面和歌词',
-            style: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).cardColor.withValues(alpha: .5),
-            ),
-          ),
-          trailing: Icon(
-            TablerIcons.chevron_right,
-            size: 32,
-            color: Theme.of(context).cardColor.withValues(alpha: .5),
-          ),
+        _buildNavigationTile(
+          context,
+          title: '扫描本地音乐',
+          subtitle: '导入常见音乐目录中的音频、封面和歌词',
           onTap: _scanLocalMedia,
         ),
-        ListTile(
-          contentPadding: const EdgeInsets.all(0),
-          title: const Text(
-            'CoverFlow Demo',
-            style: TextStyle(fontSize: 30),
-          ),
-          subtitle: Text(
-            '使用当前播放列表的封面验证 CoverFlow 交互',
-            style: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).cardColor.withValues(alpha: .5),
-            ),
-          ),
-          trailing: Icon(
-            TablerIcons.chevron_right,
-            size: 32,
-            color: Theme.of(context).cardColor.withValues(alpha: .5),
-          ),
+        _buildNavigationTile(
+          context,
+          title: 'CoverFlow Demo',
+          subtitle: '使用当前播放列表的封面验证 CoverFlow 交互',
           onTap: () => _navigationPort.openCoverFlowDemo(context),
         ),
-        ListTile(
-          contentPadding: const EdgeInsets.all(0),
-          title: const Text(
-            '离线模式',
-            style: TextStyle(fontSize: 30),
-          ),
-          subtitle: Text(
-            '仅使用本地已存在的数据与资源',
-            style: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).cardColor.withValues(alpha: .5),
-            ),
-          ),
-          trailing: Obx(() => Icon(
-                SettingsController.to.isOfflineModeEnabled.value
-                    ? TablerIcons.toggle_right
-                    : TablerIcons.toggle_left,
-                size: 56,
-                color: Theme.of(context).cardColor.withValues(
-                    alpha: SettingsController.to.isOfflineModeEnabled.value
-                        ? 0.7
-                        : .4),
-              )),
+        _buildToggleTile(
+          context,
+          title: '离线模式',
+          subtitle: '仅使用本地已存在的数据与资源',
+          isEnabled: () => SettingsController.to.isOfflineModeEnabled.value,
           onTap: () {
             SettingsController.to.toggleOfflineMode();
           },
         ),
-        // ListTile(
-        //   title: Text(
-        //     '清理缓存',
-        //     style: TextStyle(fontSize: 30),
-        //   ),
-        //   trailing: Icon(
-        //     TablerIcons.chevron_right,
-        //     size: 42),
-        //     color: Theme.of(context).cardColor.withOpacity(.6),
-        //   ),
-        //   onTap: () async {
-        //     DialogService.showLoading(context);
-        //     await Downloader.clearCachedFiles();
-        //     if (mounted) Navigator.of(context).pop();
-        //   },
-        // ),
       ],
+    );
+  }
+
+  Widget _buildToggleTile(
+    BuildContext context, {
+    required String title,
+    String? subtitle,
+    required bool Function() isEnabled,
+    required VoidCallback onTap,
+  }) {
+    final metrics = AdaptiveLayoutMetrics.of(context);
+    final iconSize = (AppDimensions.iconSizeLarge * metrics.textScale)
+        .clamp(34.0, 46.0)
+        .toDouble();
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(
+          title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: context.textTheme.titleLarge,
+        ),
+        subtitle: subtitle == null
+            ? null
+            : Text(
+                subtitle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).cardColor.withValues(alpha: .5),
+                ),
+              ),
+        trailing: Obx(() {
+          final enabled = isEnabled();
+          return Icon(
+            enabled ? TablerIcons.toggle_right : TablerIcons.toggle_left,
+            size: iconSize,
+            color: Theme.of(context).cardColor.withValues(
+                  alpha: enabled ? 0.7 : .4,
+                ),
+          );
+        }),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildNavigationTile(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    final metrics = AdaptiveLayoutMetrics.of(context);
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(
+          title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: context.textTheme.titleLarge,
+        ),
+        subtitle: Text(
+          subtitle,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: context.textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).cardColor.withValues(alpha: .5),
+          ),
+        ),
+        trailing: Icon(
+          TablerIcons.chevron_right,
+          size: AppDimensions.iconSizeLarge,
+          color: Theme.of(context).cardColor.withValues(alpha: .5),
+        ),
+        onTap: onTap,
+      ),
     );
   }
 }

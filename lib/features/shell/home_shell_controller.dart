@@ -18,9 +18,13 @@ class HomeShellController extends GetxController
   bool _zoomDrawerListenerInitialized = false;
   Timer? _closeDrawerTimer;
   String _defaultHomePageTitle = '';
+  bool _homePageControllerInitialized = false;
 
   /// 抽屉是否完全关闭。
   RxBool isDrawerClosed = true.obs;
+
+  /// 首页是否使用方屏菜单结构。
+  final RxBool squareHomeLayout = false.obs;
 
   /// 首页主分页控制器。
   late PageController homePageController;
@@ -55,23 +59,81 @@ class HomeShellController extends GetxController
   /// 当前键盘高度。
   RxDouble keyBoardHeight = 0.0.obs;
 
-  /// 左侧抽屉菜单项。
-  final List<ShellMenuItemData> leftMenus = [
-    ShellMenuItemData('个人中心', TablerIcons.user, Routes.user, '/home/user'),
+  static final List<ShellMenuItemData> _normalLeftMenus = [
     ShellMenuItemData(
-      '推荐歌单',
+      HomeShellPageKind.personal,
+      '个人中心',
+      TablerIcons.user,
+      Routes.user,
+      '/home/user',
+    ),
+    ShellMenuItemData(
+      HomeShellPageKind.explore,
+      '发现',
       TablerIcons.smart_home,
       Routes.index,
       '/home/index',
     ),
     ShellMenuItemData(
+      HomeShellPageKind.settings,
       '个性设置',
       TablerIcons.settings,
       Routes.setting,
       '/home/settingL',
     ),
-    ShellMenuItemData('捐赠', TablerIcons.coffee, Routes.coffee, ''),
+    ShellMenuItemData(
+      HomeShellPageKind.coffee,
+      '捐赠',
+      TablerIcons.coffee,
+      Routes.coffee,
+      '',
+    ),
   ];
+
+  static final List<ShellMenuItemData> _squareLeftMenus = [
+    ShellMenuItemData(
+      HomeShellPageKind.personal,
+      '个人中心',
+      TablerIcons.user,
+      Routes.user,
+      '/home/user',
+    ),
+    ShellMenuItemData(
+      HomeShellPageKind.recommendedPlaylists,
+      '推荐歌单',
+      TablerIcons.playlist,
+      Routes.index,
+      '/home/recommended-playlists',
+    ),
+    ShellMenuItemData(
+      HomeShellPageKind.explore,
+      '发现',
+      TablerIcons.smart_home,
+      Routes.index,
+      '/home/index',
+    ),
+    ShellMenuItemData(
+      HomeShellPageKind.settings,
+      '个性设置',
+      TablerIcons.settings,
+      Routes.setting,
+      '/home/settingL',
+    ),
+    ShellMenuItemData(
+      HomeShellPageKind.coffee,
+      '捐赠',
+      TablerIcons.coffee,
+      Routes.coffee,
+      '',
+    ),
+  ];
+
+  /// 左侧抽屉菜单项。
+  List<ShellMenuItemData> get leftMenus =>
+      squareHomeLayout.value ? _squareLeftMenus : _normalLeftMenus;
+
+  /// 当前首页分页数量。
+  int get homePageCount => leftMenus.length;
 
   @override
   void onInit() {
@@ -85,12 +147,15 @@ class HomeShellController extends GetxController
       });
     homePageController = PageController()
       ..addListener(() {
-        final updatedPageIndex = (homePageController.page! + 0.5).toInt();
+        final pageIndexCandidate = (homePageController.page! + 0.5).toInt();
+        final updatedPageIndex =
+            pageIndexCandidate.clamp(0, homePageCount - 1).toInt();
         if (updatedPageIndex == curHomePageIndex.value) return;
         curHomePageIndex.value = updatedPageIndex;
         curHomePageTitle.value = _resolveHomePageTitle(updatedPageIndex);
         _updateCloseDrawerTimer(3000);
       });
+    _homePageControllerInitialized = true;
   }
 
   /// 初始化首页默认标题。
@@ -105,6 +170,40 @@ class HomeShellController extends GetxController
       curHomePageTitle.value = title;
     }
   }
+
+  /// 根据屏幕比例同步首页菜单结构。
+  void updateHomeLayoutMode({required bool isSquareLike}) {
+    if (squareHomeLayout.value == isSquareLike) {
+      return;
+    }
+    squareHomeLayout.value = isSquareLike;
+    if (curHomePageIndex.value >= homePageCount) {
+      curHomePageIndex.value = 0;
+      curHomePageTitle.value = _resolveHomePageTitle(0);
+      if (_homePageControllerInitialized && homePageController.hasClients) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (homePageController.hasClients) {
+            homePageController.jumpToPage(0);
+          }
+        });
+      }
+      return;
+    }
+    curHomePageTitle.value = _resolveHomePageTitle(curHomePageIndex.value);
+  }
+
+  /// 返回指定首页索引对应的页面类型。
+  HomeShellPageKind? pageKindAt(int index) {
+    final menus = leftMenus;
+    if (index < 0 || index >= menus.length) {
+      return null;
+    }
+    return menus[index].kind;
+  }
+
+  /// 判断指定索引是否为探索页。
+  bool isExplorePageIndex(int index) =>
+      pageKindAt(index) == HomeShellPageKind.explore;
 
   /// 初始化抽屉开合监听。
   void initZoomDrawerListener() {
@@ -182,16 +281,17 @@ class HomeShellController extends GetxController
   }
 
   String _resolveHomePageTitle(int pageIndex) {
-    switch (pageIndex) {
-      case 0:
+    final pageKind = pageKindAt(pageIndex);
+    switch (pageKind) {
+      case HomeShellPageKind.personal:
         return _defaultHomePageTitle;
-      case 1:
-        return '每日发现';
-      case 2:
-        return '设置';
-      case 3:
+      case HomeShellPageKind.coffee:
         return '赞助开发者';
-      default:
+      case HomeShellPageKind.recommendedPlaylists:
+      case HomeShellPageKind.explore:
+      case HomeShellPageKind.settings:
+        return leftMenus[pageIndex].title;
+      case null:
         return _defaultHomePageTitle;
     }
   }
@@ -221,8 +321,29 @@ class HomeShellController extends GetxController
   }
 }
 
+/// 首页壳层页面类型。
+enum HomeShellPageKind {
+  /// 个人中心。
+  personal,
+
+  /// 方屏下独立展示的推荐歌单。
+  recommendedPlaylists,
+
+  /// 发现页。
+  explore,
+
+  /// 设置页。
+  settings,
+
+  /// 捐赠页。
+  coffee,
+}
+
 /// 首页抽屉菜单项数据。
 class ShellMenuItemData {
+  /// 菜单对应的首页页面类型。
+  final HomeShellPageKind kind;
+
   /// 菜单标题。
   final String title;
 
@@ -236,5 +357,5 @@ class ShellMenuItemData {
   final String path;
 
   /// 创建首页抽屉菜单项数据。
-  ShellMenuItemData(this.title, this.icon, this.route, this.path);
+  ShellMenuItemData(this.kind, this.title, this.icon, this.route, this.path);
 }

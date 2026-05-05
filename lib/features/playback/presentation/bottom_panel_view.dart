@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
@@ -48,221 +49,252 @@ class BottomPanelView extends GetView<ShellController> {
 
   @override
   Widget build(BuildContext context) {
-    double albumPadding = AppDimensions.paddingLarge;
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        // 背景层
-        AnimatedBuilder(
-          animation: controller.bottomPanelAnimationController,
-          builder: (BuildContext context, Widget? child) {
-            double panelOpenDegree =
-                controller.bottomPanelAnimationController.value;
-            return Obx(() => BlurryContainer(
-                  blur: 20,
-                  padding: EdgeInsets.zero,
-                  borderRadius: BorderRadius.all(Radius.circular(
-                      AppDimensions.phoneCornerRadius * (1 - panelOpenDegree))),
-                  color: SettingsController.to.albumColor.value
-                      .withValues(alpha: 0.5 + 0.5 * panelOpenDegree),
-                  child: Container(),
-                ));
-          },
-        ),
-        // 内容
-        Column(
+    const albumPadding = AppDimensions.paddingLarge;
+    final metrics = AdaptiveLayoutMetrics.of(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableHeight = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : metrics.safeContentHeight;
+        final artworkExtent = metrics.playbackArtworkExtent(
+          availableHeight: availableHeight -
+              context.mediaQueryPadding.top -
+              AppDimensions.appBarHeight -
+              AppDimensions.paddingLarge * 2,
+        );
+        final artworkReservedHeight =
+            artworkExtent + AppDimensions.paddingLarge;
+        return Stack(
+          alignment: Alignment.topCenter,
           children: [
-            BottomPanelHeader(controller: controller),
-            // 专辑占位
-            Obx(() => Offstage(
-                  offstage: controller.isBigAlbum.isFalse,
-                  child: Visibility(
-                    maintainSize: true,
-                    maintainAnimation: true,
-                    maintainState: true,
-                    visible: controller.bottomPanelFullyOpened.isTrue &&
-                        controller.isAlbumScaleEnded.isTrue,
-                    child: Container(
-                      height: context.width - albumPadding,
-                    ),
-                  ),
-                )),
-            // 播放列表、正在播放、歌曲评论
-            Expanded(
-              child: Stack(
-                children: [
-                  PageView(
-                    controller: controller.bottomPanelPageController,
+            // 背景层
+            AnimatedBuilder(
+              animation: controller.bottomPanelAnimationController,
+              builder: (BuildContext context, Widget? child) {
+                double panelOpenDegree =
+                    controller.bottomPanelAnimationController.value;
+                return Obx(() => BlurryContainer(
+                      blur: 20,
+                      padding: EdgeInsets.zero,
+                      borderRadius: BorderRadius.all(Radius.circular(
+                          AppDimensions.phoneCornerRadius *
+                              (1 - panelOpenDegree))),
+                      color: SettingsController.to.albumColor.value
+                          .withValues(alpha: 0.5 + 0.5 * panelOpenDegree),
+                      child: Container(),
+                    ));
+              },
+            ),
+            // 内容
+            Column(
+              children: [
+                BottomPanelHeader(controller: controller),
+                // 专辑占位
+                Obx(() => Offstage(
+                      offstage: controller.isBigAlbum.isFalse,
+                      child: Visibility(
+                        maintainSize: true,
+                        maintainAnimation: true,
+                        maintainState: true,
+                        visible: controller.bottomPanelFullyOpened.isTrue &&
+                            controller.isAlbumScaleEnded.isTrue,
+                        child: SizedBox(height: artworkReservedHeight),
+                      ),
+                    )),
+                // 播放列表、正在播放、歌曲评论
+                Expanded(
+                  child: Stack(
                     children: [
-                      _buildCurPlayingListPage(context),
-                      _buildCurPlayingPage(context),
-                      const BottomPanelCommentPage(commentType: 2),
-                      const BottomPanelCommentPage(commentType: 3),
+                      PageView(
+                        controller: controller.bottomPanelPageController,
+                        children: [
+                          _buildCurPlayingListPage(context),
+                          _buildCurPlayingPage(
+                            context,
+                            artworkReservedHeight: artworkReservedHeight,
+                          ),
+                          const BottomPanelCommentPage(commentType: 2),
+                          const BottomPanelCommentPage(commentType: 3),
+                        ],
+                      ),
+                      Obx(() => Offstage(
+                            offstage: controller.bottomPanelFullyOpened.isFalse,
+                            child: Column(
+                              children: [
+                                Container(
+                                  height: albumPadding,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter, // 渐变开始于顶部
+                                      end: Alignment.bottomCenter, // 渐变结束于底部
+                                      colors: [
+                                        SettingsController.to.albumColor.value,
+                                        SettingsController.to.albumColor.value
+                                            .withValues(alpha: 0),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Expanded(child: Container()),
+                                Container(
+                                  height: albumPadding,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter, // 渐变开始于顶部
+                                      end: Alignment.bottomCenter, // 渐变结束于底部
+                                      colors: [
+                                        SettingsController.to.albumColor.value
+                                            .withValues(alpha: 0),
+                                        SettingsController.to.albumColor.value,
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          )),
                     ],
                   ),
-                  Obx(() => Offstage(
-                        offstage: controller.bottomPanelFullyOpened.isFalse,
-                        child: Column(
-                          children: [
-                            Container(
-                              height: albumPadding,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter, // 渐变开始于顶部
-                                  end: Alignment.bottomCenter, // 渐变结束于底部
-                                  colors: [
-                                    SettingsController.to.albumColor.value,
-                                    SettingsController.to.albumColor.value
-                                        .withValues(alpha: 0),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Expanded(child: Container()),
-                            Container(
-                              height: albumPadding,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter, // 渐变开始于顶部
-                                  end: Alignment.bottomCenter, // 渐变结束于底部
-                                  colors: [
-                                    SettingsController.to.albumColor.value
-                                        .withValues(alpha: 0),
-                                    SettingsController.to.albumColor.value,
-                                  ],
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      )),
-                ],
-              ),
+                ),
+                // TabBar占位
+                Container(
+                  height: AppDimensions.paddingLarge,
+                )
+              ],
             ),
-            // TabBar占位
-            Container(
-              height: AppDimensions.paddingLarge,
-            )
-          ],
-        ),
-        BottomPanelArtworkTransitionLayer(controller: controller),
-        BottomPanelArtworkPageLayer(controller: controller),
+            BottomPanelArtworkTransitionLayer(
+              controller: controller,
+              artworkExtent: artworkExtent,
+            ),
+            BottomPanelArtworkPageLayer(
+              controller: controller,
+              artworkExtent: artworkExtent,
+            ),
 
-        // 页面指示TabBar
-        Container(
-          alignment: Alignment.bottomCenter,
-          child: Obx(
-            () => Container(
-              color: SettingsController.to.albumColor.value,
-              child: Obx(() {
-                final sessionState = PlayerController.to.sessionState.value;
-                return Container(
-                  height: albumPadding,
-                  margin: EdgeInsets.symmetric(horizontal: albumPadding),
-                  clipBehavior: Clip.hardEdge,
-                  decoration: BoxDecoration(
-                    color: controller.isBigAlbum.isTrue
-                        ? SettingsController.to.panelWidgetColor.value
-                            .withValues(alpha: 0.05)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(albumPadding),
-                  ),
-                  child: MyTabBarItemAnimatedSwitcher(
-                    isTabBarVisible: controller.curPanelPageIndex.value == 0,
-                    replaceItem: Row(
-                      children: [
-                        Offstage(
-                          offstage: sessionState.playlistHeader.isEmpty,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: albumPadding / 2),
-                            decoration: BoxDecoration(
-                              color: SettingsController
-                                  .to.panelWidgetColor.value
-                                  .withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(albumPadding),
-                            ),
-                            child: Text(
-                              sessionState.playlistHeader,
-                              style: context.textTheme.titleMedium?.copyWith(
+            // 页面指示TabBar
+            Container(
+              alignment: Alignment.bottomCenter,
+              child: Obx(
+                () => Container(
+                  color: SettingsController.to.albumColor.value,
+                  child: Obx(() {
+                    final sessionState = PlayerController.to.sessionState.value;
+                    return Container(
+                      height: albumPadding,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: albumPadding,
+                      ),
+                      clipBehavior: Clip.hardEdge,
+                      decoration: BoxDecoration(
+                        color: controller.isBigAlbum.isTrue
+                            ? SettingsController.to.panelWidgetColor.value
+                                .withValues(alpha: 0.05)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(albumPadding),
+                      ),
+                      child: MyTabBarItemAnimatedSwitcher(
+                        isTabBarVisible:
+                            controller.curPanelPageIndex.value == 0,
+                        replaceItem: Row(
+                          children: [
+                            Offstage(
+                              offstage: sessionState.playlistHeader.isEmpty,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: albumPadding / 2,
+                                ),
+                                decoration: BoxDecoration(
                                   color: SettingsController
                                       .to.panelWidgetColor.value
-                                      .withValues(alpha: 0.5)),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Container(
-                            alignment: AlignmentDirectional.center,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Text(
-                                sessionState.playlistName,
-                                style: context.textTheme.titleMedium?.copyWith(
-                                    color: SettingsController
-                                        .to.panelWidgetColor.value
-                                        .withValues(alpha: 0.5)),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    tabItem: MyTabBar(
-                      height: albumPadding,
-                      color: SettingsController.to.panelWidgetColor.value,
-                      controller: controller.bottomPanelTabController,
-                      tabs: [
-                        Text("播放列表",
-                            style: context.textTheme.titleMedium?.copyWith(
-                                color: SettingsController
-                                    .to.panelWidgetColor.value
-                                    .withValues(alpha: 0.5))),
-                        Text("正在播放",
-                            style: context.textTheme.titleMedium?.copyWith(
-                                color: SettingsController
-                                    .to.panelWidgetColor.value
-                                    .withValues(alpha: 0.5))),
-                        Obx(() => MyTabBarItemAnimatedSwitcher(
-                              isTabBarVisible:
-                                  controller.curPanelPageIndex.value > 1,
-                              tabItem: Text("歌曲评论",
+                                      .withValues(alpha: 0.05),
+                                  borderRadius:
+                                      BorderRadius.circular(albumPadding),
+                                ),
+                                child: Text(
+                                  sessionState.playlistHeader,
                                   style: context.textTheme.titleMedium
                                       ?.copyWith(
                                           color: SettingsController
                                               .to.panelWidgetColor.value
-                                              .withValues(alpha: 0.5))),
-                              replaceItem: MyTabBar(
-                                height: albumPadding,
-                                controller:
-                                    controller.bottomPanelCommentTabController,
-                                color: SettingsController
-                                    .to.panelWidgetColor.value,
-                                tabs: [
-                                  Text("热",
-                                      style: context.textTheme.titleMedium
-                                          ?.copyWith(
-                                              color: SettingsController
-                                                  .to.panelWidgetColor.value
-                                                  .withValues(alpha: 0.5))),
-                                  Text("新",
-                                      style: context.textTheme.titleMedium
-                                          ?.copyWith(
-                                              color: SettingsController
-                                                  .to.panelWidgetColor.value
-                                                  .withValues(alpha: 0.5))),
-                                ],
+                                              .withValues(alpha: 0.5)),
+                                ),
                               ),
-                            )),
-                      ],
-                    ),
-                  ),
-                );
-              }),
+                            ),
+                            Expanded(
+                              child: Container(
+                                alignment: AlignmentDirectional.center,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Text(
+                                    sessionState.playlistName,
+                                    style: context.textTheme.titleMedium
+                                        ?.copyWith(
+                                            color: SettingsController
+                                                .to.panelWidgetColor.value
+                                                .withValues(alpha: 0.5)),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        tabItem: MyTabBar(
+                          height: albumPadding,
+                          color: SettingsController.to.panelWidgetColor.value,
+                          controller: controller.bottomPanelTabController,
+                          tabs: [
+                            Text("播放列表",
+                                style: context.textTheme.titleMedium?.copyWith(
+                                    color: SettingsController
+                                        .to.panelWidgetColor.value
+                                        .withValues(alpha: 0.5))),
+                            Text("正在播放",
+                                style: context.textTheme.titleMedium?.copyWith(
+                                    color: SettingsController
+                                        .to.panelWidgetColor.value
+                                        .withValues(alpha: 0.5))),
+                            Obx(() => MyTabBarItemAnimatedSwitcher(
+                                  isTabBarVisible:
+                                      controller.curPanelPageIndex.value > 1,
+                                  tabItem: Text("歌曲评论",
+                                      style: context.textTheme.titleMedium
+                                          ?.copyWith(
+                                              color: SettingsController
+                                                  .to.panelWidgetColor.value
+                                                  .withValues(alpha: 0.5))),
+                                  replaceItem: MyTabBar(
+                                    height: albumPadding,
+                                    controller: controller
+                                        .bottomPanelCommentTabController,
+                                    color: SettingsController
+                                        .to.panelWidgetColor.value,
+                                    tabs: [
+                                      Text("热",
+                                          style: context.textTheme.titleMedium
+                                              ?.copyWith(
+                                                  color: SettingsController
+                                                      .to.panelWidgetColor.value
+                                                      .withValues(alpha: 0.5))),
+                                      Text("新",
+                                          style: context.textTheme.titleMedium
+                                              ?.copyWith(
+                                                  color: SettingsController
+                                                      .to.panelWidgetColor.value
+                                                      .withValues(alpha: 0.5))),
+                                    ],
+                                  ),
+                                )),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -272,10 +304,14 @@ class BottomPanelView extends GetView<ShellController> {
   }
 
   /// 默认页（歌词）
-  Widget _buildCurPlayingPage(BuildContext context) {
-    double albumPadding = AppDimensions.paddingLarge;
-    double remainWidth = context.width - albumPadding * 2;
-    double textWidth = _measureTextWidth("歌手：",
+  Widget _buildCurPlayingPage(
+    BuildContext context, {
+    required double artworkReservedHeight,
+  }) {
+    const albumPadding = AppDimensions.paddingLarge;
+    final remainWidth =
+        (context.width - albumPadding * 2).clamp(0.0, double.infinity);
+    final textWidth = _measureTextWidth("歌手：",
             TextStyle(color: SettingsController.to.panelWidgetColor.value)) +
         albumPadding +
         4;
@@ -309,7 +345,9 @@ class BottomPanelView extends GetView<ShellController> {
                     }
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: albumPadding),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: albumPadding,
+                    ),
                     child: const LyricView(EdgeInsets.symmetric(vertical: 10)),
                   ),
                 ))),
@@ -324,7 +362,7 @@ class BottomPanelView extends GetView<ShellController> {
                       Obx(() => Container(
                           height: controller.isBigAlbum.isTrue
                               ? 0
-                              : context.width - albumPadding)),
+                              : artworkReservedHeight)),
                       // 专辑、歌手、进度条
                       Obx(() => Visibility(
                             maintainSize: true,
@@ -332,8 +370,9 @@ class BottomPanelView extends GetView<ShellController> {
                             maintainState: true,
                             visible: controller.isBigAlbum.isTrue,
                             child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: albumPadding),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: albumPadding,
+                              ),
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -357,9 +396,11 @@ class BottomPanelView extends GetView<ShellController> {
                                                   // 这里测量的宽度不准确，强制将text适配到测量的宽度
                                                   IntrinsicWidth(
                                                     child: Container(
-                                                      padding: EdgeInsets.only(
-                                                          left:
-                                                              albumPadding / 2),
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left:
+                                                                  albumPadding /
+                                                                      2),
                                                       child: Text(
                                                         "专辑：",
                                                         style: TextStyle(
@@ -422,11 +463,11 @@ class BottomPanelView extends GetView<ShellController> {
                                                                   textWidth,
                                                         ),
                                                         child: Container(
-                                                          padding: EdgeInsets
+                                                          padding: const EdgeInsets
                                                               .symmetric(
-                                                                  horizontal:
-                                                                      albumPadding /
-                                                                          2),
+                                                              horizontal:
+                                                                  albumPadding /
+                                                                      2),
                                                           child: Obx(() => Text(
                                                                 PlayerController
                                                                     .to
@@ -478,8 +519,10 @@ class BottomPanelView extends GetView<ShellController> {
                                               children: [
                                                 IntrinsicWidth(
                                                   child: Container(
-                                                    padding: EdgeInsets.only(
-                                                        left: albumPadding / 2),
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: albumPadding /
+                                                                2),
                                                     child: Text(
                                                       "歌手：",
                                                       style: TextStyle(
@@ -535,8 +578,10 @@ class BottomPanelView extends GetView<ShellController> {
                                                                       Container(
                                                                         alignment:
                                                                             Alignment.center,
-                                                                        padding:
-                                                                            EdgeInsets.symmetric(horizontal: albumPadding / 2),
+                                                                        padding: const EdgeInsets
+                                                                            .symmetric(
+                                                                            horizontal:
+                                                                                albumPadding / 2),
                                                                         decoration:
                                                                             BoxDecoration(
                                                                           color: SettingsController
@@ -644,10 +689,10 @@ class BottomPanelHeaderView extends GetView<ShellController> {
           child: AnimatedBuilder(
             animation: controller.bottomPanelAnimationController,
             builder: (context, child) {
+              final metrics = AdaptiveLayoutMetrics.of(context);
               // 完全展开专辑图片状态
               /// 完全展开，专辑图片Size
-              double albumMaxSize =
-                  context.width - AppDimensions.paddingLarge * 2;
+              double albumMaxSize = metrics.playbackArtworkExtent();
 
               /// 完全展开，专辑图片Margin
               double albumMaxPadding = AppDimensions.paddingLarge;

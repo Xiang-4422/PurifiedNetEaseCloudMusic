@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/app/theme/image_color_service.dart';
+import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
@@ -81,6 +82,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
       return Container(color: albumColor, child: const LoadingView());
     }
 
+    final layoutMetrics = AdaptiveLayoutMetrics.of(context);
     // 计算专辑宽度：
     double albumWidth = (context.width - AppDimensions.paddingMedium * 3) / 2.5;
 
@@ -99,7 +101,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
               collapsedHeight: AppDimensions.appBarHeight -
                   context.mediaQueryPadding.top +
                   AppDimensions.paddingLarge,
-              expandedHeight: context.width - context.mediaQueryPadding.top,
+              expandedHeight: layoutMetrics.heroExtent,
               pinned: true,
               stretch: true,
               automaticallyImplyLeading: false,
@@ -169,7 +171,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                 expandedTitleScale: 1.5,
                 background: SimpleExtendedImage(
                   width: context.width,
-                  height: context.width,
+                  height: layoutMetrics.heroExtent,
                   _resolvedArtworkUrl ?? '',
                 ),
               ),

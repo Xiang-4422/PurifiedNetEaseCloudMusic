@@ -1,4 +1,5 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/playback/application/playback_action_port.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
@@ -21,6 +22,7 @@ class TodayPageView extends StatelessWidget {
     final songs = RecommendationController.to.todayRecommendSongs;
     final albumUrl = songs.isEmpty ? '' : songs.first.artworkUrl ?? '';
     final localAlbumPath = ArtworkPathResolver.resolveDisplayPath(albumUrl);
+    final layoutMetrics = AdaptiveLayoutMetrics.of(context);
 
     return Container(
       color: Colors.white,
@@ -32,7 +34,7 @@ class TodayPageView extends StatelessWidget {
           collapsedHeight: AppDimensions.appBarHeight -
               context.mediaQueryPadding.top +
               AppDimensions.paddingLarge,
-          expandedHeight: context.width - context.mediaQueryPadding.top,
+          expandedHeight: layoutMetrics.heroExtent,
           pinned: true,
           stretch: true,
           automaticallyImplyLeading: false,
@@ -104,7 +106,7 @@ class TodayPageView extends StatelessWidget {
             expandedTitleScale: 1.5,
             background: SimpleExtendedImage(
               width: context.width,
-              height: context.width,
+              height: layoutMetrics.heroExtent,
               localAlbumPath,
             ),
           ),

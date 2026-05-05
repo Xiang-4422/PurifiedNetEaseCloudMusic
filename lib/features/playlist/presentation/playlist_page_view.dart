@@ -4,6 +4,7 @@ import 'package:bujuan/app/ui/toast_service.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/app/theme/image_color_service.dart';
+import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
@@ -88,6 +89,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   @override
   Widget build(BuildContext context) {
+    final layoutMetrics = AdaptiveLayoutMetrics.of(context);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 1000),
       color: albumColor,
@@ -105,8 +107,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                     slivers: [
                       SliverAppBar(
                         toolbarHeight: AppDimensions.appBarHeight,
-                        expandedHeight:
-                            context.width - context.mediaQueryPadding.top,
+                        expandedHeight: layoutMetrics.heroExtent,
                         pinned: true,
                         stretch: true,
                         automaticallyImplyLeading: true,
@@ -147,7 +148,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                               right: AppDimensions.paddingSmall),
                           background: SimpleExtendedImage(
                             width: context.width,
-                            height: context.width,
+                            height: layoutMetrics.heroExtent,
                             _resolvedCoverUrl ?? '',
                           ),
                         ),

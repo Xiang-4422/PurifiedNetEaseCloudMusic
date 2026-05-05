@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
@@ -14,14 +15,21 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
   /// 创建封面过渡层。
   const BottomPanelArtworkTransitionLayer({
     required this.controller,
+    this.artworkExtent,
     super.key,
   });
 
   /// 壳层控制器，提供封面展开动画状态。
   final ShellController controller;
 
+  /// 展开态封面尺寸。
+  final double? artworkExtent;
+
   @override
   Widget build(BuildContext context) {
+    final metrics = AdaptiveLayoutMetrics.of(context);
+    final expandedArtworkExtent =
+        artworkExtent ?? metrics.playbackArtworkExtent();
     return Obx(
       () => Offstage(
         offstage: controller.isAlbumScaleEnded.isTrue,
@@ -32,7 +40,7 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
               duration: const Duration(milliseconds: 300),
               margin: controller.isBigAlbum.isTrue
                   ? EdgeInsets.only(
-                      right: AppDimensions.paddingLarge,
+                      right: (context.width - expandedArtworkExtent) / 2,
                       top: AppDimensions.appBarHeight +
                           context.mediaQueryPadding.top +
                           AppDimensions.paddingLarge,
@@ -52,10 +60,10 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
               ),
               clipBehavior: Clip.hardEdge,
               width: controller.isBigAlbum.isTrue
-                  ? context.width - AppDimensions.paddingLarge * 2
+                  ? expandedArtworkExtent
                   : AppDimensions.albumMinSize,
               height: controller.isBigAlbum.isTrue
-                  ? context.width - AppDimensions.paddingLarge * 2
+                  ? expandedArtworkExtent
                   : AppDimensions.albumMinSize,
               child: Obx(() {
                 final currentSong = PlayerController.to.currentSongState.value;
@@ -82,13 +90,23 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
 /// 底部面板大封面分页展示层。
 class BottomPanelArtworkPageLayer extends StatelessWidget {
   /// 创建大封面分页展示层。
-  const BottomPanelArtworkPageLayer({required this.controller, super.key});
+  const BottomPanelArtworkPageLayer({
+    required this.controller,
+    this.artworkExtent,
+    super.key,
+  });
 
   /// 壳层控制器，提供专辑页控制器和面板状态。
   final ShellController controller;
 
+  /// 展开态封面尺寸。
+  final double? artworkExtent;
+
   @override
   Widget build(BuildContext context) {
+    final metrics = AdaptiveLayoutMetrics.of(context);
+    final expandedArtworkExtent =
+        artworkExtent ?? metrics.playbackArtworkExtent();
     return Obx(
       () => Offstage(
         offstage: controller.bottomPanelFullyOpened.isFalse ||
@@ -98,7 +116,7 @@ class BottomPanelArtworkPageLayer extends StatelessWidget {
           margin: EdgeInsets.only(
             top: context.mediaQueryPadding.top + AppDimensions.appBarHeight,
           ),
-          height: context.width,
+          height: expandedArtworkExtent + AppDimensions.paddingLarge * 2,
           child: NotificationListener<ScrollNotification>(
             onNotification: (notification) {
               if (notification is ScrollStartNotification) {
@@ -126,35 +144,38 @@ class BottomPanelArtworkPageLayer extends StatelessWidget {
                       transitionBuilder: (child, animation) {
                         return FadeTransition(opacity: animation, child: child);
                       },
-                      child: Container(
+                      child: Center(
                         key: ValueKey(item.id),
-                        clipBehavior: Clip.hardEdge,
-                        margin:
-                            const EdgeInsets.all(AppDimensions.paddingLarge),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(
-                            AppDimensions.paddingLarge / 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.4),
-                              blurRadius: 12,
-                              spreadRadius: 2,
+                        child: SizedBox.square(
+                          dimension: expandedArtworkExtent,
+                          child: Container(
+                            clipBehavior: Clip.hardEdge,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(
+                                AppDimensions.paddingLarge / 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.4),
+                                  blurRadius: 12,
+                                  spreadRadius: 2,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: GestureDetector(
-                          onTap: () {
-                            controller.isAlbumScaleEnded.value = false;
-                            controller.isBigAlbum.value = false;
-                            if (controller.curPanelPageIndex.value == 1) {
-                              PlayerController.to
-                                  .updateFullScreenLyricTimerCounter();
-                            }
-                          },
-                          child: SimpleExtendedImage(
-                            ArtworkPathResolver.resolveDisplayPath(
-                              item.artworkUrl ?? item.localArtworkPath,
+                            child: GestureDetector(
+                              onTap: () {
+                                controller.isAlbumScaleEnded.value = false;
+                                controller.isBigAlbum.value = false;
+                                if (controller.curPanelPageIndex.value == 1) {
+                                  PlayerController.to
+                                      .updateFullScreenLyricTimerCounter();
+                                }
+                              },
+                              child: SimpleExtendedImage(
+                                ArtworkPathResolver.resolveDisplayPath(
+                                  item.artworkUrl ?? item.localArtworkPath,
+                                ),
+                              ),
                             ),
                           ),
                         ),

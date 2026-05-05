@@ -1,3 +1,4 @@
+import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
@@ -25,7 +26,6 @@ class BottomPanelQueueView extends GetView<ShellController> {
             () => ListView.builder(
               controller: controller.playListScrollController,
               physics: const ClampingScrollPhysics(),
-              itemExtent: 55,
               padding: const EdgeInsets.symmetric(vertical: albumPadding),
               itemCount: PlayerController.to.queueState.length,
               itemBuilder: (context, index) {
@@ -56,34 +56,40 @@ class _BottomPanelQueueItem extends StatelessWidget {
     return GestureDetector(
       onTap: () => PlayerController.to.playQueueIndex(index),
       child: Obx(() {
+        final metrics = AdaptiveLayoutMetrics.of(context);
         final isCurrent = PlayerController.to.currentQueueIndex.value == index;
-        return Container(
-          color: Colors.transparent,
-          alignment: AlignmentDirectional.centerStart,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                item.title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: isCurrent
-                          ? Colors.red
-                          : SettingsController.to.panelWidgetColor.value,
-                    ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-              Text(
-                item.artist ?? '未知歌手',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: SettingsController.to.panelWidgetColor.value
-                          .withValues(alpha: 0.5),
-                    ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ],
+        return ConstrainedBox(
+          constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
+          child: Container(
+            color: Colors.transparent,
+            alignment: AlignmentDirectional.centerStart,
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  item.title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: isCurrent
+                            ? Colors.red
+                            : SettingsController.to.panelWidgetColor.value,
+                      ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                Text(
+                  item.artist ?? '未知歌手',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: SettingsController.to.panelWidgetColor.value
+                            .withValues(alpha: 0.5),
+                      ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ],
+            ),
           ),
         );
       }),

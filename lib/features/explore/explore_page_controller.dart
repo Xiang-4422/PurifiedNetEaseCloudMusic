@@ -124,13 +124,15 @@ class ExplorePageController extends GetxController {
   void onReady() {
     super.onReady();
     _initStaticState();
-    if (HomeShellController.to.curHomePageIndex.value == 1) {
+    if (HomeShellController.to.isExplorePageIndex(
+      HomeShellController.to.curHomePageIndex.value,
+    )) {
       unawaited(_ensureBootstrapped());
       return;
     }
     _pageVisibilityWorker =
         ever<int>(HomeShellController.to.curHomePageIndex, (pageIndex) {
-      if (pageIndex != 1) {
+      if (!HomeShellController.to.isExplorePageIndex(pageIndex)) {
         return;
       }
       _pageVisibilityWorker?.dispose();

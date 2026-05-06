@@ -6,6 +6,7 @@ class SettingsNavigationPort {
   const SettingsNavigationPort({
     required this.openLocalSongs,
     required this.openCoverFlowDemo,
+    required this.openCacheAnalysis,
   });
 
   /// 打开本地歌曲或下载任务页面。
@@ -13,4 +14,7 @@ class SettingsNavigationPort {
 
   /// 打开 CoverFlow 调试演示页面。
   final void Function(BuildContext context) openCoverFlowDemo;
+
+  /// 打开缓存分析页面。
+  final void Function(BuildContext context) openCacheAnalysis;
 }

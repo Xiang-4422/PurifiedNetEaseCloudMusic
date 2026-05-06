@@ -35,6 +35,7 @@ import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/features/search/application/search_application_service.dart';
 import 'package:bujuan/features/search/search_repository.dart';
+import 'package:bujuan/features/settings/application/cache_analysis_service.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
@@ -163,6 +164,13 @@ class FeatureControllerRegistrar {
     );
     Get.put<SearchApplicationService>(
       SearchApplicationService(repository: Get.find<SearchRepository>()),
+      permanent: true,
+    );
+    Get.put<CacheAnalysisService>(
+      CacheAnalysisService(
+        libraryRepository: Get.find<LibraryRepository>(),
+        resourceIndexRepository: Get.find(),
+      ),
       permanent: true,
     );
   }

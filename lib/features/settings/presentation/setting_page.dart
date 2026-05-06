@@ -207,6 +207,12 @@ class _SettingPageViewState extends State<SettingPageView> {
         ),
         _buildNavigationTile(
           context,
+          title: '缓存分析',
+          subtitle: '分析图片、封面、播放缓存和临时文件',
+          onTap: () => _navigationPort.openCacheAnalysis(context),
+        ),
+        _buildNavigationTile(
+          context,
           title: 'CoverFlow Demo',
           subtitle: '使用当前播放列表的封面验证 CoverFlow 交互',
           onTap: () => _navigationPort.openCoverFlowDemo(context),

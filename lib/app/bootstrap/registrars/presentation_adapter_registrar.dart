@@ -14,6 +14,7 @@ import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/debug/presentation/coverflow_demo_page_view.dart';
+import 'package:bujuan/features/settings/presentation/cache_analysis_page.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:flutter/material.dart';
@@ -88,6 +89,13 @@ class PresentationAdapterRegistrar {
             MaterialPageRoute(
               builder: (_) => const CoverFlowDemoPageView(),
               fullscreenDialog: true,
+            ),
+          );
+        },
+        openCacheAnalysis: (context) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const CacheAnalysisPageView(),
             ),
           );
         },

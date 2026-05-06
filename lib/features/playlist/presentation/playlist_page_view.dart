@@ -172,6 +172,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     BuildContext context,
     AdaptiveLayoutMetrics layoutMetrics,
   ) {
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     return SliverAppBar(
       toolbarHeight: AppDimensions.appBarHeight,
       expandedHeight: layoutMetrics.heroExtent,
@@ -212,6 +213,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         background: SimpleExtendedImage(
           width: context.width,
           height: layoutMetrics.heroExtent,
+          cacheWidth: _resolveImageCacheDimension(context.width, devicePixelRatio),
+          cacheHeight: _resolveImageCacheDimension(layoutMetrics.heroExtent, devicePixelRatio),
           _resolvedCoverUrl ?? '',
         ),
       ),
@@ -658,6 +661,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   bool get _isShowingPlaylistSkeleton => songs.isEmpty && _fetchKind == _PlaylistFetchKind.loadingFirstPage && _hasPlaylistMetadata;
 
   bool get _isShowingStatusFooter => loadState == _PlaylistPageLoadState.loadFailedWithPartial || (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) || _fetchKind == _PlaylistFetchKind.loadingRemaining;
+
+  int _resolveImageCacheDimension(double logicalSize, double devicePixelRatio) {
+    return (logicalSize * devicePixelRatio).round().clamp(1, 1080).toInt();
+  }
 
   String get _completionMessage {
     if (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) {

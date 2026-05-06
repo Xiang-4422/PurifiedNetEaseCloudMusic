@@ -136,42 +136,55 @@ void main() {
       expect(data.localDetail?.songs, hasLength(30));
       expect(data.localState, PlaylistLocalDetailState.complete);
     });
+
+    test('page loading methods use first page, remaining, and full refresh requests', () async {
+      final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 250);
+      final controller = _playlistPageController(
+        repository: _playlistRepository(remoteDataSource: remoteDataSource),
+      );
+
+      await controller.fetchFirstPage('1');
+      await controller.fetchRemaining('1', offset: 30);
+      await controller.refreshFull('1');
+
+      expect(remoteDataSource.songRequests, const [
+        (offset: 0, limit: 30),
+        (offset: 30, limit: -1),
+        (offset: 0, limit: -1),
+      ]);
+    });
   });
 
-  group('PlaylistRepository pagination', () {
-    test('loads first page, appends next page, and completes remaining songs', () async {
-      final repository = _playlistRepository(totalTracks: 250);
+  group('PlaylistRepository remote loading', () {
+    test('loads first page and then completes remaining songs without pagination', () async {
+      final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 250);
+      final repository = _playlistRepository(remoteDataSource: remoteDataSource);
 
       final firstPage = await repository.fetchPlaylistDetail(
         playlistId: '1',
         likedSongIds: const [],
         currentUserId: null,
         offset: 0,
-        limit: 100,
+        limit: 30,
       );
-      expect(firstPage.songs, hasLength(100));
+      expect(firstPage.songs, hasLength(30));
       expect(firstPage.isComplete, isFalse);
-
-      final secondPage = await repository.fetchPlaylistDetail(
-        playlistId: '1',
-        likedSongIds: const [],
-        currentUserId: null,
-        offset: 100,
-        limit: 100,
-      );
-      expect(secondPage.songs, hasLength(200));
-      expect(secondPage.songs[99].sourceId, '99');
-      expect(secondPage.songs[100].sourceId, '100');
 
       final completed = await repository.fetchPlaylistDetail(
         playlistId: '1',
         likedSongIds: const [],
         currentUserId: null,
-        offset: 200,
+        offset: 30,
         limit: -1,
       );
       expect(completed.songs, hasLength(250));
       expect(completed.isComplete, isTrue);
+      expect(completed.songs[29].sourceId, '29');
+      expect(completed.songs[30].sourceId, '30');
+      expect(remoteDataSource.songRequests, const [
+        (offset: 0, limit: 30),
+        (offset: 30, limit: -1),
+      ]);
 
       final localDetail = await repository.loadLocalPlaylistDetail(
         playlistId: '1',
@@ -181,7 +194,7 @@ void main() {
       expect(localDetail?.songs, hasLength(250));
     });
 
-    test('keeps loaded songs in cache when a later page fails', () async {
+    test('keeps first page songs in cache when remaining load fails', () async {
       final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 150);
       final repository = _playlistRepository(remoteDataSource: remoteDataSource);
 
@@ -190,17 +203,17 @@ void main() {
         likedSongIds: const [],
         currentUserId: null,
         offset: 0,
-        limit: 100,
+        limit: 30,
       );
-      remoteDataSource.failOffsets.add(100);
+      remoteDataSource.failOffsets.add(30);
 
       await expectLater(
         repository.fetchPlaylistDetail(
           playlistId: '1',
           likedSongIds: const [],
           currentUserId: null,
-          offset: 100,
-          limit: 100,
+          offset: 30,
+          limit: -1,
         ),
         throwsStateError,
       );
@@ -210,7 +223,7 @@ void main() {
         likedSongIds: const [],
         currentUserId: null,
       );
-      expect(localDetail?.songs, hasLength(100));
+      expect(localDetail?.songs, hasLength(30));
     });
 
     test('refreshes first page without truncating complete cached songs', () async {
@@ -382,6 +395,7 @@ class _FakePlaylistRemoteDataSource implements NeteasePlaylistRemoteDataSource {
   bool usesPlaylistTrackRefs = false;
   bool prefixPlaylistTrackRefs = true;
   final Set<int> failOffsets = <int>{};
+  final List<({int offset, int limit})> songRequests = <({int offset, int limit})>[];
 
   @override
   Future<
@@ -424,6 +438,7 @@ class _FakePlaylistRemoteDataSource implements NeteasePlaylistRemoteDataSource {
     required int offset,
     required int limit,
   }) async {
+    songRequests.add((offset: offset, limit: limit));
     if (failOffsets.contains(offset)) {
       throw StateError('failed offset $offset');
     }

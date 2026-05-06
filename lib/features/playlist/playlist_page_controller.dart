@@ -68,6 +68,27 @@ class PlaylistPageController {
     );
   }
 
+  /// 拉取歌单首屏歌曲。
+  Future<PlaylistDetailData> fetchFirstPage(String playlistId) {
+    return _detailService.fetchFirstPage(playlistId);
+  }
+
+  /// 从指定偏移开始拉取歌单剩余歌曲。
+  Future<PlaylistDetailData> fetchRemaining(
+    String playlistId, {
+    required int offset,
+  }) {
+    return _detailService.fetchRemaining(
+      playlistId,
+      offset: offset,
+    );
+  }
+
+  /// 拉取完整歌单。
+  Future<PlaylistDetailData> refreshFull(String playlistId) {
+    return _detailService.refreshFull(playlistId);
+  }
+
   /// 判断本地详情适合以哪种状态展示。
   PlaylistLocalDetailState resolveLocalDetailState(
     PlaylistDetailData? detail,

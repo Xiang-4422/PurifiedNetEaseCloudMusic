@@ -18,6 +18,8 @@ class PlaylistDetailService {
   final List<int> Function() _likedSongIds;
   final String Function() _currentUserId;
 
+  static const int _firstPageSize = 30;
+
   /// 读取本地歌单详情。
   Future<PlaylistDetailData?> loadLocalDetail(String playlistId) {
     return _repository.loadLocalPlaylistDetail(
@@ -48,6 +50,36 @@ class PlaylistDetailService {
       currentUserId: _currentUserId(),
       offset: offset,
       limit: limit,
+    );
+  }
+
+  /// 拉取歌单首屏歌曲。
+  Future<PlaylistDetailData> fetchFirstPage(String playlistId) {
+    return fetchDetail(
+      playlistId,
+      offset: 0,
+      limit: _firstPageSize,
+    );
+  }
+
+  /// 从指定偏移开始拉取歌单剩余歌曲。
+  Future<PlaylistDetailData> fetchRemaining(
+    String playlistId, {
+    required int offset,
+  }) {
+    return fetchDetail(
+      playlistId,
+      offset: offset,
+      limit: -1,
+    );
+  }
+
+  /// 拉取完整歌单。
+  Future<PlaylistDetailData> refreshFull(String playlistId) {
+    return fetchDetail(
+      playlistId,
+      offset: 0,
+      limit: -1,
     );
   }
 

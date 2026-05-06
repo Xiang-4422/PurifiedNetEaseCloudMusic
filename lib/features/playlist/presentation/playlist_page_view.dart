@@ -178,7 +178,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       pinned: true,
       stretch: true,
       automaticallyImplyLeading: true,
-      foregroundColor: Colors.transparent,
+      foregroundColor: widgetColor,
       surfaceTintColor: Colors.transparent,
       backgroundColor: albumColor,
       flexibleSpace: FlexibleSpaceBar(

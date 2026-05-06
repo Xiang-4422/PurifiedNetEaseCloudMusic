@@ -7,6 +7,7 @@ import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
+import 'package:bujuan/core/diagnostics/playlist_performance_logger.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/playlist/application/playlist_artwork_color_service.dart';
@@ -92,6 +93,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     playlistName = widget.playlistName;
     coverUrl = widget.coverUrl;
     trackCount = widget.trackCount;
+    PlaylistPerformanceLogger.log(
+      'page.init playlistId=${widget.playlistId} routeName=${widget.playlistName.isNotEmpty} routeCover=${widget.coverUrl?.isNotEmpty == true} routeTrackCount=${widget.trackCount}',
+    );
     loadState = _hasPlaylistMetadata ? _PlaylistPageLoadState.showingMetadataOnly : _PlaylistPageLoadState.loadingInitial;
     unawaited(_updateArtworkColors(_resolvedCoverUrl));
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -375,7 +379,15 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _loadPlaylistData() async {
+    final stopwatch = PlaylistPerformanceLogger.start();
+    PlaylistPerformanceLogger.log('page.loadInitial.start playlistId=${widget.playlistId}');
+    final localStopwatch = PlaylistPerformanceLogger.start();
     final initialDetail = await _controller.loadInitialDetail(widget.playlistId);
+    PlaylistPerformanceLogger.elapsed(
+      'page.loadInitial.localRead',
+      localStopwatch,
+      details: 'state=${initialDetail.localState.name} songs=${initialDetail.localDetail?.songs.length ?? 0} expected=${initialDetail.localDetail?.expectedTrackCount} hasPlaylist=${initialDetail.localPlaylist != null}',
+    );
     if (!mounted) {
       return;
     }
@@ -388,17 +400,33 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         nextState: initialDetail.localState == PlaylistLocalDetailState.complete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
       );
       if (initialDetail.localState == PlaylistLocalDetailState.partial) {
+        PlaylistPerformanceLogger.log(
+          'page.loadInitial.partialAutoComplete offset=${initialDetail.localDetail!.songs.length} expected=${initialDetail.localDetail!.expectedTrackCount}',
+        );
         unawaited(_loadRemainingPlaylistSongs(offset: initialDetail.localDetail!.songs.length));
       }
+      PlaylistPerformanceLogger.elapsed(
+        'page.loadInitial.total',
+        stopwatch,
+        details: 'source=local state=${initialDetail.localState.name} songs=${songs.length}',
+      );
       return;
     }
     await _loadFirstPageAndRemaining(showLoadingState: true);
+    PlaylistPerformanceLogger.elapsed(
+      'page.loadInitial.total',
+      stopwatch,
+      details: 'source=remote songs=${songs.length} state=${loadState.name}',
+    );
   }
 
   Future<void> _loadFirstPageAndRemaining({required bool showLoadingState}) async {
     if (_fetchKind != _PlaylistFetchKind.none) {
+      PlaylistPerformanceLogger.log('page.firstPage.skip fetchKind=${_fetchKind.name}');
       return;
     }
+    final stopwatch = PlaylistPerformanceLogger.start();
+    PlaylistPerformanceLogger.log('page.firstPage.start playlistId=${widget.playlistId} showLoading=$showLoadingState');
     if (mounted) {
       setState(() {
         _fetchKind = _PlaylistFetchKind.loadingFirstPage;
@@ -410,7 +438,13 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       });
     }
     try {
+      final firstPageStopwatch = PlaylistPerformanceLogger.start();
       final data = await _controller.fetchFirstPage(widget.playlistId);
+      PlaylistPerformanceLogger.elapsed(
+        'page.firstPage.fetch',
+        firstPageStopwatch,
+        details: 'songs=${data.songs.length} expected=${data.expectedTrackCount} complete=${data.isComplete}',
+      );
       if (!mounted) {
         return;
       }
@@ -438,18 +472,32 @@ class _PlayListPageViewState extends State<PlayListPageView> {
           _fetchKind = _PlaylistFetchKind.none;
         });
       }
+      PlaylistPerformanceLogger.elapsed(
+        'page.firstPage.total',
+        stopwatch,
+        details: 'songs=${songs.length} state=${loadState.name}',
+      );
     }
   }
 
   Future<void> _refreshFullPlaylist() async {
     if (_fetchKind != _PlaylistFetchKind.none) {
+      PlaylistPerformanceLogger.log('page.refreshFull.skip fetchKind=${_fetchKind.name}');
       return;
     }
+    final stopwatch = PlaylistPerformanceLogger.start();
+    PlaylistPerformanceLogger.log('page.refreshFull.start playlistId=${widget.playlistId}');
     setState(() {
       _fetchKind = _PlaylistFetchKind.refreshingFull;
     });
     try {
+      final fetchStopwatch = PlaylistPerformanceLogger.start();
       final data = await _controller.refreshFull(widget.playlistId);
+      PlaylistPerformanceLogger.elapsed(
+        'page.refreshFull.fetch',
+        fetchStopwatch,
+        details: 'songs=${data.songs.length} expected=${data.expectedTrackCount} complete=${data.isComplete}',
+      );
       if (!mounted) {
         return;
       }
@@ -474,6 +522,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
           _fetchKind = _PlaylistFetchKind.none;
         });
       }
+      PlaylistPerformanceLogger.elapsed(
+        'page.refreshFull.total',
+        stopwatch,
+        details: 'songs=${songs.length} state=${loadState.name}',
+      );
     }
   }
 
@@ -498,6 +551,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (!mounted) {
       return;
     }
+    final stopwatch = PlaylistPerformanceLogger.start();
     setState(() {
       songs = data.songs;
       playlistName = data.playlistName ?? playlistName;
@@ -507,11 +561,17 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       isMyPlayList = data.isMyPlayList;
       loadState = nextState;
     });
+    PlaylistPerformanceLogger.elapsed(
+      'page.applyDetail.setState',
+      stopwatch,
+      details: 'songs=${data.songs.length} expected=${data.expectedTrackCount} source=${data.source.name} nextState=${nextState.name}',
+    );
     unawaited(_updateArtworkColors(_resolvedCoverUrl));
   }
 
   Future<void> _updateArtworkColors(String? artworkPath) async {
     final requestId = ++_artworkColorRequestId;
+    final stopwatch = PlaylistPerformanceLogger.start();
     final colorPath = await _artworkColorService.resolveColorPath(artworkPath);
     if (!mounted || requestId != _artworkColorRequestId) {
       return;
@@ -524,6 +584,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       albumColor = color;
       widgetColor = color.invertedColor;
     });
+    PlaylistPerformanceLogger.elapsed(
+      'page.artworkColor.update',
+      stopwatch,
+      details: 'hasArtwork=${artworkPath?.isNotEmpty == true} hasColorPath=${colorPath?.isNotEmpty == true}',
+    );
   }
 
   String? get _resolvedCoverUrl => ArtworkPathResolver.resolveExplicitArtwork(
@@ -555,13 +620,21 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (!mounted || offset <= 0) {
       return;
     }
+    final stopwatch = PlaylistPerformanceLogger.start();
+    PlaylistPerformanceLogger.log('page.remaining.start playlistId=${widget.playlistId} offset=$offset currentSongs=${songs.length}');
     setState(() {
       _fetchKind = _PlaylistFetchKind.loadingRemaining;
     });
     try {
+      final fetchStopwatch = PlaylistPerformanceLogger.start();
       final data = await _controller.fetchRemaining(
         widget.playlistId,
         offset: offset,
+      );
+      PlaylistPerformanceLogger.elapsed(
+        'page.remaining.fetch',
+        fetchStopwatch,
+        details: 'offset=$offset songs=${data.songs.length} expected=${data.expectedTrackCount} complete=${data.isComplete}',
       );
       await _applyPlaylistDetail(
         data,
@@ -580,6 +653,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
           _fetchKind = _PlaylistFetchKind.none;
         });
       }
+      PlaylistPerformanceLogger.elapsed(
+        'page.remaining.total',
+        stopwatch,
+        details: 'offset=$offset songs=${songs.length} state=${loadState.name}',
+      );
     }
   }
 

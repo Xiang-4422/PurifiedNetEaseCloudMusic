@@ -258,7 +258,7 @@ class _SongIndexLeading extends StatelessWidget {
 }
 
 /// `SongItem` 统一承接“点击即按当前上下文播放”的行为，避免每个页面再手写一次播放入口。
-class SongItem extends StatefulWidget {
+class SongItem extends StatelessWidget {
   /// 歌曲在播放队列中的索引。
   final int index;
 
@@ -293,7 +293,7 @@ class SongItem extends StatefulWidget {
 
   /// 创建歌曲列表项。
   const SongItem({
-    Key? key,
+    super.key,
     this.beforeOnTap,
     this.onPlay,
     this.stringColor,
@@ -303,36 +303,31 @@ class SongItem extends StatefulWidget {
     required this.playlist,
     required this.index,
     required this.playListName,
-  }) : super(key: key);
+  });
 
-  @override
-  State<SongItem> createState() => _SongItemState();
-}
-
-class _SongItemState extends State<SongItem> {
   @override
   Widget build(BuildContext context) {
-    final item = widget.playlist[widget.index];
+    final item = playlist[index];
     return UniversalListTile(
-      leading: widget.showIndex
+      leading: showIndex
           ? _SongIndexLeading(
-              index: widget.index,
-              color: widget.stringColor,
+              index: index,
+              color: stringColor,
             )
           : null,
-      picUrl: widget.showPic ? item.artworkUrl : null,
+      picUrl: showPic ? item.artworkUrl : null,
       titleString: item.title,
       subTitleString: item.artist,
-      stringColor: widget.stringColor,
+      stringColor: stringColor,
       onTap: () async {
-        if (widget.beforeOnTap != null) {
-          await widget.beforeOnTap!();
+        if (beforeOnTap != null) {
+          await beforeOnTap!();
         }
-        await widget.onPlay?.call(
-          widget.playlist,
-          widget.index,
-          playListName: widget.playListName,
-          playListNameHeader: widget.playListHeader,
+        await onPlay?.call(
+          playlist,
+          index,
+          playListName: playListName,
+          playListNameHeader: playListHeader,
         );
       },
     );

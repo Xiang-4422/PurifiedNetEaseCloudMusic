@@ -486,6 +486,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   Future<void> _refreshFullPlaylist() async {
     if (_fetchKind != _PlaylistFetchKind.none) {
       PlaylistPerformanceLogger.log('page.refreshFull.skip fetchKind=${_fetchKind.name}');
+      ToastService.show('歌单正在加载中');
       return;
     }
     final stopwatch = PlaylistPerformanceLogger.start();

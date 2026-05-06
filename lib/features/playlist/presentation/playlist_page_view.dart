@@ -80,12 +80,13 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   bool isMyPlayList = false;
   _PlaylistFetchKind _fetchKind = _PlaylistFetchKind.none;
   int _artworkColorRequestId = 0;
+  bool _animateArtworkColor = true;
 
   _PlaylistPageLoadState loadState = _PlaylistPageLoadState.loadingInitial;
   final PlaylistArtworkColorService _artworkColorService = PlaylistArtworkColorService();
 
-  Color albumColor = Get.theme.scaffoldBackgroundColor;
-  Color widgetColor = Get.theme.scaffoldBackgroundColor.invertedColor;
+  Color albumColor = Colors.black;
+  Color widgetColor = Colors.white;
 
   @override
   void initState() {
@@ -93,6 +94,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     playlistName = widget.playlistName;
     coverUrl = widget.coverUrl;
     trackCount = widget.trackCount;
+    _applyCachedArtworkColor(_resolvedCoverUrl, notify: false);
     PlaylistPerformanceLogger.log(
       'page.init playlistId=${widget.playlistId} routeName=${widget.playlistName.isNotEmpty} routeCover=${widget.coverUrl?.isNotEmpty == true} routeTrackCount=${widget.trackCount}',
     );
@@ -107,7 +109,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   Widget build(BuildContext context) {
     final layoutMetrics = AdaptiveLayoutMetrics.of(context);
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 1000),
+      duration: _animateArtworkColor ? const Duration(milliseconds: 300) : Duration.zero,
       color: albumColor,
       child: loadState == _PlaylistPageLoadState.loadingInitial && !_hasPlaylistMetadata
           ? const LoadingView()
@@ -572,13 +574,21 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   Future<void> _updateArtworkColors(String? artworkPath) async {
     final requestId = ++_artworkColorRequestId;
     final stopwatch = PlaylistPerformanceLogger.start();
+    if (_applyCachedArtworkColor(artworkPath)) {
+      PlaylistPerformanceLogger.elapsed(
+        'page.artworkColor.cacheHit',
+        stopwatch,
+        details: 'hasArtwork=${artworkPath?.isNotEmpty == true}',
+      );
+      return;
+    }
     final colorPath = await _artworkColorService.resolveColorPath(artworkPath);
     if (!mounted || requestId != _artworkColorRequestId) {
       return;
     }
     final cachedColor = ImageColorService.peekCachedColor(colorPath);
     if (cachedColor != null) {
-      _applyArtworkColor(cachedColor);
+      _applyArtworkColor(cachedColor, animate: false);
       PlaylistPerformanceLogger.elapsed(
         'page.artworkColor.cacheHit',
         stopwatch,
@@ -590,7 +600,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (!mounted || requestId != _artworkColorRequestId) {
       return;
     }
-    _applyArtworkColor(color);
+    _applyArtworkColor(color, animate: true);
     PlaylistPerformanceLogger.elapsed(
       'page.artworkColor.update',
       stopwatch,
@@ -598,11 +608,36 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     );
   }
 
-  void _applyArtworkColor(Color color) {
-    setState(() {
+  bool _applyCachedArtworkColor(String? artworkPath, {bool notify = true}) {
+    final colorPath = _artworkColorService.peekColorPath(artworkPath);
+    final cachedColor = ImageColorService.peekCachedColor(colorPath);
+    if (cachedColor == null) {
+      return false;
+    }
+    _applyArtworkColor(
+      cachedColor,
+      animate: false,
+      notify: notify,
+    );
+    return true;
+  }
+
+  void _applyArtworkColor(
+    Color color, {
+    required bool animate,
+    bool notify = true,
+  }) {
+    void updateColor() {
       albumColor = color;
       widgetColor = color.invertedColor;
-    });
+      _animateArtworkColor = animate;
+    }
+
+    if (!notify) {
+      updateColor();
+      return;
+    }
+    setState(updateColor);
   }
 
   String? get _resolvedCoverUrl => ArtworkPathResolver.resolveExplicitArtwork(

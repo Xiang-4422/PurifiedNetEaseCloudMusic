@@ -9,6 +9,16 @@ class PlaylistArtworkColorService {
 
   final LocalImageCacheRepository _imageCacheRepository;
 
+  /// 同步读取已知的取色图片路径。
+  ///
+  /// 远程地址只有在本地图片路径已经被解析并缓存在内存中时才会返回。
+  String? peekColorPath(String? artworkPath) {
+    if (artworkPath == null || artworkPath.isEmpty) {
+      return artworkPath;
+    }
+    return _imageCacheRepository.peekResolvedImagePath(artworkPath);
+  }
+
   /// 将远程封面地址解析成本地缓存路径，非远程地址原样返回。
   Future<String?> resolveColorPath(String? artworkPath) async {
     if (artworkPath == null || artworkPath.isEmpty || !_isRemoteArtwork(artworkPath)) {

@@ -10,6 +10,7 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_resource_bundle.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/features/playlist/application/playlist_detail_service.dart';
 import 'package:bujuan/features/playlist/playlist_cache_store.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
@@ -107,6 +108,52 @@ void main() {
         ),
         PlaylistLocalDetailState.empty,
       );
+    });
+
+    test('loads initial detail as empty when no local songs are available', () async {
+      final controller = _playlistPageController();
+
+      final data = await controller.loadInitialDetail('1');
+
+      expect(data.localDetail, isNull);
+      expect(data.cachedSnapshot, isNull);
+      expect(data.localState, PlaylistLocalDetailState.empty);
+    });
+
+    test('loads initial detail as partial when cache contains first page only', () async {
+      final repository = _playlistRepository(totalTracks: 100);
+      await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+        offset: 0,
+        limit: 30,
+      );
+      final controller = _playlistPageController(repository: repository);
+
+      final data = await controller.loadInitialDetail('1');
+
+      expect(data.cachedSnapshot?.trackCount, 100);
+      expect(data.localDetail?.songs, hasLength(30));
+      expect(data.localState, PlaylistLocalDetailState.partial);
+    });
+
+    test('loads initial detail as complete when cached songs cover snapshot', () async {
+      final repository = _playlistRepository(totalTracks: 30);
+      await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+        offset: 0,
+        limit: 30,
+      );
+      final controller = _playlistPageController(repository: repository);
+
+      final data = await controller.loadInitialDetail('1');
+
+      expect(data.cachedSnapshot?.trackCount, 30);
+      expect(data.localDetail?.songs, hasLength(30));
+      expect(data.localState, PlaylistLocalDetailState.complete);
     });
   });
 
@@ -224,6 +271,18 @@ PlaylistRepository _playlistRepository({
     localLibraryDataSource: _FakeLocalLibraryDataSource(),
     remoteDataSource: remoteDataSource ?? _FakePlaylistRemoteDataSource(totalTracks: totalTracks),
     userScopedDataSource: _FakeUserScopedDataSource(),
+  );
+}
+
+PlaylistPageController _playlistPageController({
+  PlaylistRepository? repository,
+}) {
+  return PlaylistPageController(
+    detailService: PlaylistDetailService(
+      repository: repository ?? _playlistRepository(),
+      likedSongIds: () => const [],
+      currentUserId: () => '',
+    ),
   );
 }
 

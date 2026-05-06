@@ -13,6 +13,25 @@ enum PlaylistLocalDetailState {
   complete,
 }
 
+/// 歌单详情页初始化所需的本地数据。
+class PlaylistInitialDetailData {
+  /// 创建歌单详情页初始化数据。
+  const PlaylistInitialDetailData({
+    required this.localDetail,
+    required this.cachedSnapshot,
+    required this.localState,
+  });
+
+  /// 本地可展示的歌单详情。
+  final PlaylistDetailData? localDetail;
+
+  /// 缓存的歌单元信息快照。
+  final PlaylistSnapshotData? cachedSnapshot;
+
+  /// 本地详情可用于首屏展示的完整性状态。
+  final PlaylistLocalDetailState localState;
+}
+
 /// 歌单详情页的应用入口，集中处理用户态、喜欢态与歌单 repository 参数。
 class PlaylistPageController {
   /// 创建歌单页面控制器。
@@ -28,6 +47,17 @@ class PlaylistPageController {
   /// 读取缓存的歌单快照。
   Future<PlaylistSnapshotData?> loadCachedSnapshot(String playlistId) {
     return _detailService.loadCachedSnapshot(playlistId);
+  }
+
+  /// 读取歌单详情页初始化所需的本地数据。
+  Future<PlaylistInitialDetailData> loadInitialDetail(String playlistId) async {
+    final localDetail = await loadLocalDetail(playlistId);
+    final cachedSnapshot = await loadCachedSnapshot(playlistId);
+    return PlaylistInitialDetailData(
+      localDetail: localDetail,
+      cachedSnapshot: cachedSnapshot,
+      localState: resolveLocalDetailState(localDetail),
+    );
   }
 
   /// 拉取远程歌单详情。

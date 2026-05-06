@@ -23,6 +23,7 @@ import 'package:get/get.dart';
 
 enum _PlaylistPageLoadState {
   loadingInitial,
+  showingMetadataOnly,
   showingPartial,
   showingFull,
   loadFailedWithPartial,
@@ -57,7 +58,8 @@ class PlayListPageView extends StatefulWidget {
 }
 
 class _PlayListPageViewState extends State<PlayListPageView> {
-  static const int _playlistPageSize = 30;
+  static const int _initialPlaylistPageSize = 30;
+  static const int _nextPlaylistPageSize = 100;
 
   final PlaylistPageController _controller = Get.find<FeatureControllerFactory>().playlistPage();
   final PlaylistPlaybackUseCase _playbackUseCase = Get.find<PlaylistPlaybackUseCase>();
@@ -71,8 +73,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   bool isSubscribed = false;
   bool isMyPlayList = false;
+  bool refreshingInitialPage = false;
   bool loadingMoreSongs = false;
   bool completingFullPlaylist = false;
+  int _artworkColorRequestId = 0;
 
   _PlaylistPageLoadState loadState = _PlaylistPageLoadState.loadingInitial;
 
@@ -85,6 +89,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     playlistName = widget.playlistName;
     coverUrl = widget.coverUrl;
     trackCount = widget.trackCount;
+    loadState = _hasPlaylistMetadata ? _PlaylistPageLoadState.showingMetadataOnly : _PlaylistPageLoadState.loadingInitial;
     _scrollController.addListener(_handleScrollNearBottom);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadPlaylistData();
@@ -105,9 +110,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 1000),
       color: albumColor,
-      child: loadState == _PlaylistPageLoadState.loadingInitial
+      child: loadState == _PlaylistPageLoadState.loadingInitial && !_hasPlaylistMetadata
           ? const LoadingView()
-          : loadState == _PlaylistPageLoadState.loadFailedEmpty
+          : loadState == _PlaylistPageLoadState.loadFailedEmpty && !_hasPlaylistMetadata
               ? GestureDetector(
                   onTap: () => _refreshPlaylistData(showLoadingState: true),
                   child: const ErrorView(),
@@ -126,29 +131,32 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         controller: _scrollController,
         slivers: [
           _buildPlaylistAppBar(context, layoutMetrics),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  return SongItem(
-                    index: index,
-                    playlist: songs,
-                    playListName: playlistName,
-                    playListHeader: "歌单",
-                    stringColor: widgetColor,
-                    beforeOnTap: () {
-                      ShellController.to.jumpBottomPanelToPage(0);
-                      ShellController.to.openBottomPanel();
-                    },
-                    onPlay: _playbackUseCase.playAt,
-                  );
-                },
-                childCount: loadedSongCount,
+          if (_isShowingPlaylistSkeleton)
+            _buildPlaylistSkeletonSliver(context)
+          else
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    return SongItem(
+                      index: index,
+                      playlist: songs,
+                      playListName: playlistName,
+                      playListHeader: "歌单",
+                      stringColor: widgetColor,
+                      beforeOnTap: () {
+                        ShellController.to.jumpBottomPanelToPage(0);
+                        ShellController.to.openBottomPanel();
+                      },
+                      onPlay: _playbackUseCase.playAt,
+                    );
+                  },
+                  childCount: loadedSongCount,
+                ),
               ),
             ),
-          ),
-          if (_isCompletingPlaylist) _buildCompletionFooter(context),
+          if (_isShowingStatusFooter) _buildCompletionFooter(context),
           const SliverToBoxAdapter(
             child: SizedBox(
               height: AppDimensions.bottomPanelHeaderHeight,
@@ -305,22 +313,70 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     );
   }
 
+  SliverPadding _buildPlaylistSkeletonSliver(BuildContext context) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+      sliver: SliverList.separated(
+        itemCount: 8,
+        separatorBuilder: (_, __) => const SizedBox(height: AppDimensions.paddingSmall),
+        itemBuilder: (context, index) {
+          final color = widgetColor.withValues(alpha: 0.12);
+          return Row(
+            children: [
+              Container(
+                width: 28,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: AppDimensions.paddingSmall),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 16,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    FractionallySizedBox(
+                      widthFactor: 0.55,
+                      child: Container(
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.75),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _loadPlaylistData() async {
-    final localDetail = await _controller.loadLocalDetail(widget.playlistId);
-    final cachedSnapshot = await _controller.loadCachedSnapshot(widget.playlistId);
+    final initialDetail = await _controller.loadInitialDetail(widget.playlistId);
     if (!mounted) {
       return;
     }
-    if (cachedSnapshot != null) {
-      playlistName = cachedSnapshot.name;
-      coverUrl = cachedSnapshot.coverUrl ?? coverUrl;
-      trackCount = cachedSnapshot.trackCount ?? trackCount;
+    if (initialDetail.cachedSnapshot != null) {
+      _applyCachedSnapshot(initialDetail.cachedSnapshot!);
     }
-    final localState = _controller.resolveLocalDetailState(localDetail);
-    if (localState != PlaylistLocalDetailState.empty && localDetail != null) {
+    if (initialDetail.localState != PlaylistLocalDetailState.empty && initialDetail.localDetail != null) {
       await _applyPlaylistDetail(
-        localDetail,
-        nextState: localState == PlaylistLocalDetailState.complete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
+        initialDetail.localDetail!,
+        nextState: initialDetail.localState == PlaylistLocalDetailState.complete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
       );
       unawaited(_refreshPlaylistData(showLoadingState: false));
       return;
@@ -329,25 +385,31 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _refreshPlaylistData({required bool showLoadingState}) async {
-    if (showLoadingState && mounted) {
+    if (refreshingInitialPage) {
+      return;
+    }
+    refreshingInitialPage = true;
+    if (mounted) {
       setState(() {
-        loadState = _PlaylistPageLoadState.loadingInitial;
+        if (showLoadingState && songs.isEmpty && !_hasPlaylistMetadata) {
+          loadState = _PlaylistPageLoadState.loadingInitial;
+        } else if (songs.isEmpty && _hasPlaylistMetadata) {
+          loadState = _PlaylistPageLoadState.showingMetadataOnly;
+        }
       });
     }
     try {
       final data = await _controller.fetchDetail(
         widget.playlistId,
         offset: 0,
-        limit: _playlistPageSize,
+        limit: _initialPlaylistPageSize,
       );
       final snapshot = await _controller.loadCachedSnapshot(widget.playlistId);
       if (!mounted) {
         return;
       }
       if (snapshot != null) {
-        playlistName = snapshot.name;
-        coverUrl = snapshot.coverUrl ?? coverUrl;
-        trackCount = snapshot.trackCount ?? trackCount;
+        _applyCachedSnapshot(snapshot);
       }
       await _applyPlaylistDetail(
         data,
@@ -367,7 +429,26 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       setState(() {
         loadState = _PlaylistPageLoadState.loadFailedEmpty;
       });
+    } finally {
+      refreshingInitialPage = false;
+      if (mounted) {
+        setState(() {});
+      }
     }
+  }
+
+  void _applyCachedSnapshot(PlaylistSnapshotData snapshot) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      playlistName = snapshot.name;
+      coverUrl = snapshot.coverUrl ?? coverUrl;
+      trackCount = snapshot.trackCount ?? trackCount;
+      if (songs.isEmpty && loadState == _PlaylistPageLoadState.loadingInitial && _hasPlaylistMetadata) {
+        loadState = _PlaylistPageLoadState.showingMetadataOnly;
+      }
+    });
   }
 
   Future<void> _applyPlaylistDetail(
@@ -389,8 +470,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _updateArtworkColors(String? artworkPath) async {
+    final requestId = ++_artworkColorRequestId;
     final color = await ImageColorService.dominantColor(artworkPath);
-    if (!mounted) {
+    if (!mounted || requestId != _artworkColorRequestId) {
       return;
     }
     setState(() {
@@ -408,9 +490,16 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   Color get _playlistActionColor => _canPlayFullPlaylist ? widgetColor : widgetColor.withValues(alpha: 0.35);
 
-  bool get _isCompletingPlaylist => loadState == _PlaylistPageLoadState.loadFailedWithPartial || loadingMoreSongs || completingFullPlaylist;
+  bool get _hasPlaylistMetadata => playlistName.trim().isNotEmpty || coverUrl?.isNotEmpty == true || trackCount != null;
+
+  bool get _isShowingPlaylistSkeleton => songs.isEmpty && refreshingInitialPage && _hasPlaylistMetadata;
+
+  bool get _isShowingStatusFooter => loadState == _PlaylistPageLoadState.loadFailedWithPartial || (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) || loadingMoreSongs || completingFullPlaylist;
 
   String get _completionMessage {
+    if (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) {
+      return '歌曲加载失败，下拉可重试';
+    }
     if (loadState == _PlaylistPageLoadState.loadFailedWithPartial) {
       return '剩余歌曲加载失败，下拉可重试';
     }
@@ -425,7 +514,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _loadMorePlaylistSongs() async {
-    if (!mounted || loadingMoreSongs || completingFullPlaylist || loadState != _PlaylistPageLoadState.showingPartial) {
+    if (!mounted || refreshingInitialPage || loadingMoreSongs || completingFullPlaylist || loadState != _PlaylistPageLoadState.showingPartial) {
       return;
     }
     loadingMoreSongs = true;
@@ -436,7 +525,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       final data = await _controller.fetchDetail(
         widget.playlistId,
         offset: loadedSongCount,
-        limit: _playlistPageSize,
+        limit: _nextPlaylistPageSize,
       );
       await _applyPlaylistDetail(
         data,

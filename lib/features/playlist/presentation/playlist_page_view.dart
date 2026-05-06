@@ -236,7 +236,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                 shuffle: false,
               ),
             ),
-            _buildSubscribeButton(),
+            if (!isMyPlayList) _buildSubscribeButton(),
             Flexible(
               child: _buildPlaylistActionButton(
                 context,
@@ -283,18 +283,15 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Widget _buildSubscribeButton() {
-    return Offstage(
-      offstage: isMyPlayList,
-      child: _PlaylistActionButtonSurface(
-        color: widgetColor.withValues(alpha: 0.05),
-        child: IconButton(
-          color: Colors.red,
-          padding: EdgeInsets.zero,
-          onPressed: () => _subscribePlayList(),
-          icon: Icon(
-            isSubscribed ? TablerIcons.heart_filled : TablerIcons.heart,
-            color: isSubscribed ? Colors.red : widgetColor,
-          ),
+    return _PlaylistActionButtonSurface(
+      color: widgetColor.withValues(alpha: 0.05),
+      child: IconButton(
+        color: Colors.red,
+        padding: EdgeInsets.zero,
+        onPressed: () => _subscribePlayList(),
+        icon: Icon(
+          isSubscribed ? TablerIcons.heart_filled : TablerIcons.heart,
+          color: isSubscribed ? Colors.red : widgetColor,
         ),
       ),
     );

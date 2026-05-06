@@ -265,6 +265,9 @@ class SongItem extends StatelessWidget {
   /// 当前歌曲所属播放队列。
   final List<PlaybackQueueItem> playlist;
 
+  /// 当前行歌曲；传入后列表项无需再从播放队列取值。
+  final PlaybackQueueItem? item;
+
   /// 播放队列名称。
   final String playListName;
 
@@ -273,6 +276,9 @@ class SongItem extends StatelessWidget {
 
   /// 点击播放前的可选前置动作。
   final Function()? beforeOnTap;
+
+  /// 自定义点击行为。
+  final Future<void> Function()? onTap;
 
   /// 播放回调。
   final Future<void> Function(
@@ -294,20 +300,22 @@ class SongItem extends StatelessWidget {
   /// 创建歌曲列表项。
   const SongItem({
     super.key,
+    this.item,
+    this.onTap,
     this.beforeOnTap,
     this.onPlay,
     this.stringColor,
     this.showPic = true,
     this.showIndex = false,
     this.playListHeader = "",
-    required this.playlist,
+    this.playlist = const <PlaybackQueueItem>[],
     required this.index,
     required this.playListName,
   });
 
   @override
   Widget build(BuildContext context) {
-    final item = playlist[index];
+    final currentItem = item ?? playlist[index];
     return UniversalListTile(
       leading: showIndex
           ? _SongIndexLeading(
@@ -315,13 +323,17 @@ class SongItem extends StatelessWidget {
               color: stringColor,
             )
           : null,
-      picUrl: showPic ? item.artworkUrl : null,
-      titleString: item.title,
-      subTitleString: item.artist,
+      picUrl: showPic ? currentItem.artworkUrl : null,
+      titleString: currentItem.title,
+      subTitleString: currentItem.artist,
       stringColor: stringColor,
       onTap: () async {
         if (beforeOnTap != null) {
           await beforeOnTap!();
+        }
+        if (onTap != null) {
+          await onTap!();
+          return;
         }
         await onPlay?.call(
           playlist,

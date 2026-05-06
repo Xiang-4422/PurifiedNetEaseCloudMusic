@@ -140,9 +140,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (BuildContext context, int index) {
+                    final song = songs[index];
                     return SongItem(
+                      item: song,
                       index: index,
-                      playlist: songs,
                       playListName: playlistName,
                       playListHeader: "歌单",
                       stringColor: widgetColor,
@@ -150,7 +151,12 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                         ShellController.to.jumpBottomPanelToPage(0);
                         ShellController.to.openBottomPanel();
                       },
-                      onPlay: _playbackUseCase.playAt,
+                      onTap: () => _playbackUseCase.playAt(
+                        songs,
+                        index,
+                        playListName: playlistName,
+                        playListNameHeader: "歌单",
+                      ),
                     );
                   },
                   childCount: songs.length,

@@ -1,7 +1,7 @@
-import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_list_controller.dart';
+import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/comment/presentation/comment_item_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
@@ -54,10 +54,11 @@ class _CommentWidgetState extends State<CommentWidget> {
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<FeatureControllerFactory>().commentList(
+    _controller = CommentListController(
       id: widget.id,
       type: widget.idType,
       sortType: widget.commentType,
+      repository: Get.find<CommentRepository>(),
     )..loadInitial();
   }
 

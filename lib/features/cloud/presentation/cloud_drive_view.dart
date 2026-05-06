@@ -1,10 +1,12 @@
-import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller.dart';
-import 'package:bujuan/features/playback/application/playback_action_port.dart';
+import 'package:bujuan/features/cloud/cloud_repository.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -21,13 +23,17 @@ class CloudDriveView extends StatefulWidget {
 
 class _CloudDriveViewState extends State<CloudDriveView> {
   late final CloudPageController _controller;
-  final PlaybackActionPort _playbackAction = Get.find<PlaybackActionPort>();
+  final PlayerController _playerController = Get.find<PlayerController>();
   final RefreshController _refreshController = RefreshController();
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<FeatureControllerFactory>().cloudPage()..loadInitial();
+    _controller = CloudPageController(
+      repository: Get.find<CloudRepository>(),
+      userId: Get.find<UserSessionController>().userInfo.value.userId,
+      likedSongIds: Get.find<UserLibraryController>().likedSongIds.toList(),
+    )..loadInitial();
   }
 
   @override
@@ -93,7 +99,7 @@ class _CloudDriveViewState extends State<CloudDriveView> {
                       index: index,
                       playlist: state.items,
                       playListName: "云盘音乐",
-                      onPlay: _playbackAction.playPlaylist,
+                      onPlay: _playerController.playPlaylist,
                     );
                   },
                 ),

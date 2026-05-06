@@ -11,7 +11,6 @@ import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_resource_bundle.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/features/playlist/application/playlist_detail_service.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -410,11 +409,9 @@ PlaylistPageController _playlistPageController({
   PlaylistRepository? repository,
 }) {
   return PlaylistPageController(
-    detailService: PlaylistDetailService(
-      repository: repository ?? _playlistRepository(),
-      likedSongIds: () => const [],
-      currentUserId: () => '',
-    ),
+    repository: repository ?? _playlistRepository(),
+    likedSongIds: () => const [],
+    currentUserId: () => '',
   );
 }
 

@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/features/playback/application/playback_action_port.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/presentation/bottom_panel_view.dart';
 import 'package:bujuan/features/search/presentation/top_panel_view.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
@@ -19,7 +19,7 @@ class AppHomePageView extends GetView<ShellController> {
   @override
   Widget build(BuildContext context) {
     controller.buildContext = context;
-    final playbackAction = Get.find<PlaybackActionPort>();
+    final playerController = Get.find<PlayerController>();
     return Material(
       child: PopScope(
         canPop: false,
@@ -56,7 +56,7 @@ class AppHomePageView extends GetView<ShellController> {
             return const TopPanelView();
           }),
           body: Obx(() {
-            final hasCurrentSong = playbackAction.currentSong().id.isNotEmpty;
+            final hasCurrentSong = playerController.currentSongState.value.id.isNotEmpty;
             if (!hasCurrentSong) {
               return const AutoRouter();
             }

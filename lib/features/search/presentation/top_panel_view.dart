@@ -1,12 +1,11 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
-import 'package:bujuan/features/playback/application/playback_action_port.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
@@ -27,7 +26,7 @@ class TopPanelView extends StatefulWidget {
   const TopPanelView({Key? key}) : super(key: key);
 
   /// 搜索面板控制器，随顶部面板生命周期复用。
-  static final SearchPanelController _searchPanelController = Get.find<FeatureControllerFactory>().searchPanel();
+  static final SearchPanelController _searchPanelController = Get.find<SearchPanelController>();
 
   @override
   State<TopPanelView> createState() => _TopPanelViewState();
@@ -36,7 +35,7 @@ class TopPanelView extends StatefulWidget {
 class _TopPanelViewState extends State<TopPanelView> {
   late final Worker _searchWorker;
   late final Worker _panelOpenWorker;
-  final PlaybackActionPort _playbackAction = Get.find<PlaybackActionPort>();
+  final PlayerController _playerController = Get.find<PlayerController>();
 
   ShellController get controller => ShellController.to;
 
@@ -299,7 +298,7 @@ class _TopPanelViewState extends State<TopPanelView> {
               index: index,
               playlist: list,
               playListName: "搜索结果：$keyword",
-              onPlay: _playbackAction.playPlaylist,
+              onPlay: _playerController.playPlaylist,
             ),
             itemCount: list.length,
           ),

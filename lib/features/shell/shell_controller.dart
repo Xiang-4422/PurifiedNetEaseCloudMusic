@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'package:bujuan/app/presentation_adapters/shell_playback_port.dart';
-import 'package:bujuan/app/presentation_adapters/shell_user_port.dart';
 import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/presentation/lyric_scroll_position.dart';
 import 'package:bujuan/features/shell/album_page_change_coordinator.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -17,8 +17,8 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   /// 当前壳层控制器实例。
   static ShellController get to => Get.find();
   HomeShellController get _homeShellController => Get.find<HomeShellController>();
-  ShellPlaybackPort get _playbackPort => Get.find<ShellPlaybackPort>();
-  ShellUserPort get _userPort => Get.find<ShellUserPort>();
+  PlayerController get _playerController => Get.find<PlayerController>();
+  UserSessionController get _userSessionController => Get.find<UserSessionController>();
 
   /// 壳层当前构建上下文，用于响应系统窗口和主题变化。
   late BuildContext buildContext;
@@ -208,13 +208,13 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   Future<void> onInit() async {
     super.onInit();
     _homeShellController;
-    _playbackPort;
-    _userPort;
+    _playerController;
+    _userSessionController;
 
     _ensureUiControllersInitialized();
     WidgetsBinding.instance.addObserver(this);
 
-    ever(_playbackPort.lyricState(), (lyricState) {
+    ever(_playerController.lyricState, (lyricState) {
       final index = lyricState.currentIndex;
       if (index >= 0 && !isLyricScrollingByUser && lyricScrollController.isAttached) {
         try {
@@ -229,14 +229,14 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
       }
     });
 
-    ever<int>(_playbackPort.currentQueueIndex(), (currentIndex) {
+    ever<int>(_playerController.currentQueueIndex, (currentIndex) {
       if (currentIndex < 0) {
         return;
       }
       unawaited(_animatePlayListToCurSong());
       _animateAlbumPageViewToCurSong();
     });
-    ever(_userPort.userInfo(), (info) {
+    ever(_userSessionController.userInfo, (info) {
       _homeShellController.updateDefaultTitle(info.nickname);
     });
   }
@@ -261,7 +261,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   /// 提交封面页切换索引到播放队列。
   Future<void> _commitAlbumPageChange(int index) async {
     final stopwatch = PlaybackPerformanceLogger.start();
-    final selectionState = _playbackPort.selectionState();
+    final selectionState = _playerController.selectionState.value;
     final ignoredProgrammaticTarget = index == _ignoredProgrammaticAlbumPageIndex;
     if (ignoredProgrammaticTarget) {
       _ignoredProgrammaticAlbumPageIndex = null;
@@ -272,7 +272,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
       isProgrammatic: isProgrammatic,
       currentIndex: selectionState.selectedIndex,
       queueLength: selectionState.queue.length,
-      playIndex: _playbackPort.playQueueIndex,
+      playIndex: _playerController.playQueueIndex,
     );
     PlaybackPerformanceLogger.elapsed(
       'shell.albumPageChange.commit',
@@ -287,7 +287,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
     }
     _uiControllersInitialized = true;
     _homeShellController.init(
-      initialTitle: _userPort.currentNickname(),
+      initialTitle: _userSessionController.userInfo.value.nickname,
     );
     _bottomPanelAnimationController = AnimationController(vsync: this);
     _bottomPanelTabController = TabController(length: 3, initialIndex: 1, vsync: this)
@@ -323,8 +323,8 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
           curPanelPageIndex.value = newPanelPageIndex;
           // 切换到正在播放列表页，滚动到当前播放
           if (newPanelPageIndex == 0) await _animatePlayListToCurSong();
-          if (!_playbackPort.isFullScreenLyricOpen()) {
-            _playbackPort.updateFullScreenLyricTimerCounter(cancelTimer: newPanelPageIndex != 1 && !_playbackPort.isFullScreenLyricOpen());
+          if (!_playerController.isFullScreenLyricOpen.value) {
+            _playerController.updateFullScreenLyricTimerCounter(cancelTimer: newPanelPageIndex != 1 && !_playerController.isFullScreenLyricOpen.value);
           }
         }
         // 避免循环监听
@@ -434,7 +434,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
         PlaybackPerformanceLogger.log('shell.playlistScroll.pending');
         return;
       }
-      final currentIndex = _playbackPort.currentQueueIndex().value;
+      final currentIndex = _playerController.currentQueueIndex.value;
       if (currentIndex < 0) {
         return;
       }
@@ -492,7 +492,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   _animateAlbumPageViewToCurSong({bool jump = false}) {
     if (albumPageController.hasClients) {
       if (isAlbumScrollingManully) return;
-      final currentIndex = _playbackPort.currentQueueIndex().value;
+      final currentIndex = _playerController.currentQueueIndex.value;
       if (currentIndex < 0) {
         return;
       }

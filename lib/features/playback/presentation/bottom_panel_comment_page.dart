@@ -1,5 +1,5 @@
-import 'package:bujuan/app/presentation_adapters/comment_content_port.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/features/comment/presentation/comment_widget.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
@@ -17,8 +17,6 @@ class BottomPanelCommentPage extends StatelessWidget {
   /// 评论类型，沿用网易云接口中的歌曲评论分类。
   final int commentType;
 
-  CommentContentPort get _commentContentPort => Get.find<CommentContentPort>();
-
   @override
   Widget build(BuildContext context) {
     const albumPadding = AppDimensions.paddingLarge;
@@ -28,9 +26,11 @@ class BottomPanelCommentPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: albumPadding),
         child: Obx(() {
           final currentSong = PlayerController.to.currentSongState.value;
-          return _commentContentPort.buildSongComments(
+          return CommentWidget(
+            key: ValueKey(currentSong.id),
             context: context,
-            songId: currentSong.id,
+            id: currentSong.id,
+            idType: 'song',
             commentType: commentType,
             listPaddingTop: albumPadding,
             listPaddingBottom: albumPadding,

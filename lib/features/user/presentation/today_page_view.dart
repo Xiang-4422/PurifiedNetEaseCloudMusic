@@ -1,7 +1,7 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/features/playback/application/playback_action_port.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -18,7 +18,7 @@ class TodayPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final playbackAction = Get.find<PlaybackActionPort>();
+    final playerController = Get.find<PlayerController>();
     final songs = RecommendationController.to.todayRecommendSongs;
     final albumUrl = songs.isEmpty ? '' : songs.first.artworkUrl ?? '';
     final localAlbumPath = ArtworkPathResolver.resolveDisplayPath(albumUrl);
@@ -86,7 +86,7 @@ class TodayPageView extends StatelessWidget {
                           TablerIcons.player_play_filled,
                           color: Colors.white,
                         ),
-                        onPressed: () => playbackAction.playPlaylist(
+                        onPressed: () => playerController.playPlaylist(
                               songs,
                               0,
                               playListName: "每日推荐",
@@ -114,7 +114,7 @@ class TodayPageView extends StatelessWidget {
                   height: AppDimensions.bottomPanelHeaderHeight,
                 );
               }
-              return SongItem(playlist: songs, index: index, playListName: "今日推荐", stringColor: Colors.black, showIndex: true, onPlay: playbackAction.playPlaylist).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+              return SongItem(playlist: songs, index: index, playListName: "今日推荐", stringColor: Colors.black, showIndex: true, onPlay: playerController.playPlaylist).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
             },
           ),
         ),

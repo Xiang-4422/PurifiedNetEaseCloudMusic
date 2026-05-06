@@ -1,6 +1,6 @@
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
-import 'package:bujuan/features/playlist/application/playlist_detail_service.dart';
+import 'package:bujuan/features/playlist/playlist_repository.dart';
 
 /// 本地歌单详情可用于首屏展示的完整性状态。
 enum PlaylistLocalDetailState {
@@ -36,18 +36,36 @@ class PlaylistInitialDetailData {
 /// 歌单详情页的应用入口，集中处理用户态、喜欢态与歌单 repository 参数。
 class PlaylistPageController {
   /// 创建歌单页面控制器。
-  PlaylistPageController({required PlaylistDetailService detailService}) : _detailService = detailService;
+  PlaylistPageController({
+    required PlaylistRepository repository,
+    required List<int> Function() likedSongIds,
+    required String Function() currentUserId,
+  })  : _repository = repository,
+        _likedSongIds = likedSongIds,
+        _currentUserId = currentUserId;
 
-  final PlaylistDetailService _detailService;
+  final PlaylistRepository _repository;
+  final List<int> Function() _likedSongIds;
+  final String Function() _currentUserId;
+
+  static const int _firstPageSize = 30;
 
   /// 读取本地歌单详情。
   Future<PlaylistDetailData?> loadLocalDetail(String playlistId) {
-    return _detailService.loadLocalDetail(playlistId);
+    return _repository.loadLocalPlaylistDetail(
+      playlistId: playlistId,
+      likedSongIds: _likedSongIds(),
+      currentUserId: _currentUserId(),
+    );
   }
 
   /// 读取歌单详情页初始化所需的本地数据。
   Future<PlaylistInitialDetailData> loadInitialDetail(String playlistId) async {
-    final initialData = await _detailService.loadLocalInitialDetail(playlistId);
+    final initialData = await _repository.loadLocalInitialDetail(
+      playlistId: playlistId,
+      likedSongIds: _likedSongIds(),
+      currentUserId: _currentUserId(),
+    );
     return PlaylistInitialDetailData(
       localDetail: initialData.localDetail,
       localPlaylist: initialData.localPlaylist,
@@ -61,8 +79,10 @@ class PlaylistPageController {
     int offset = 0,
     int limit = -1,
   }) {
-    return _detailService.fetchDetail(
-      playlistId,
+    return _repository.fetchPlaylistDetail(
+      playlistId: playlistId,
+      likedSongIds: _likedSongIds(),
+      currentUserId: _currentUserId(),
       offset: offset,
       limit: limit,
     );
@@ -70,7 +90,11 @@ class PlaylistPageController {
 
   /// 拉取歌单首屏歌曲。
   Future<PlaylistDetailData> fetchFirstPage(String playlistId) {
-    return _detailService.fetchFirstPage(playlistId);
+    return fetchDetail(
+      playlistId,
+      offset: 0,
+      limit: _firstPageSize,
+    );
   }
 
   /// 从指定偏移开始拉取歌单剩余歌曲。
@@ -78,15 +102,20 @@ class PlaylistPageController {
     String playlistId, {
     required int offset,
   }) {
-    return _detailService.fetchRemaining(
+    return fetchDetail(
       playlistId,
       offset: offset,
+      limit: -1,
     );
   }
 
   /// 拉取完整歌单。
   Future<PlaylistDetailData> refreshFull(String playlistId) {
-    return _detailService.refreshFull(playlistId);
+    return fetchDetail(
+      playlistId,
+      offset: 0,
+      limit: -1,
+    );
   }
 
   /// 判断本地详情适合以哪种状态展示。
@@ -111,9 +140,10 @@ class PlaylistPageController {
     String playlistId, {
     required bool subscribe,
   }) {
-    return _detailService.toggleSubscription(
+    return _repository.toggleSubscription(
       playlistId,
       subscribe: subscribe,
+      currentUserId: _currentUserId(),
     );
   }
 }

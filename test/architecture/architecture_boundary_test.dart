@@ -277,23 +277,25 @@ void main() {
       );
     });
 
-    test('presentation does not import remote data sources directly', () {
-      final violations = _dartFiles(libDirectory).where((file) => _relativePath(file).contains('/presentation/')).where((file) => _contains(file, "package:bujuan/data/netease")).map(_relativePath).toList();
+    test('presentation does not import data sources directly', () {
+      final violations = _dartFiles(libDirectory)
+          .where((file) => _relativePath(file).contains('/presentation/'))
+          .where(
+            (file) => _containsAny(file, const [
+              'package:bujuan/data/netease/remote/',
+              'package:bujuan/data/local/',
+              '/dao/',
+              '_data_source.dart',
+              'drift_',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
 
       expect(
         violations,
         isEmpty,
-        reason: 'presentation 只能通过 controller/application/repository 读取数据，不能直连 data/netease。',
-      );
-    });
-
-    test('presentation does not import repositories directly', () {
-      final violations = _dartFiles(libDirectory).where((file) => _relativePath(file).contains('/presentation/')).where((file) => _contains(file, '_repository.dart')).map(_relativePath).toList();
-
-      expect(
-        violations,
-        isEmpty,
-        reason: 'presentation 只能依赖 controller/application service，不能直接持有 repository。',
+        reason: 'presentation 可以依赖 feature repository，但不能直连 remote/data source/DAO/Drift 细节。',
       );
     });
 
@@ -395,23 +397,6 @@ void main() {
         violations,
         isEmpty,
         reason: 'controller 不能直连 data source，应通过 application service 或 repository。',
-      );
-    });
-
-    test('non playback presentation does not import PlayerController', () {
-      final violations = _dartFiles(libDirectory)
-          .where((file) {
-            final path = _relativePath(file);
-            return path.startsWith('lib/features/') && path.contains('/presentation/') && !path.startsWith('lib/features/playback/presentation/') && !path.startsWith('lib/features/debug/presentation/');
-          })
-          .where((file) => _contains(file, 'features/playback/player_controller.dart'))
-          .map(_relativePath)
-          .toList();
-
-      expect(
-        violations,
-        isEmpty,
-        reason: '非 playback presentation 应通过 PlaybackActionPort 使用播放能力，不能直接依赖 PlayerController。',
       );
     });
 
@@ -687,15 +672,15 @@ void main() {
       );
     });
 
-    test('shell controller uses composition ports for cross-feature state', () {
+    test('shell controller only reads approved global controllers', () {
       final shellController = File(
         '${projectRoot.path}/lib/features/shell/shell_controller.dart',
       );
       final violations = <String>[
         if (_containsAny(shellController, const [
-          'features/playback/player_controller.dart',
           'features/settings/settings_controller.dart',
-          'features/user/user_session_controller.dart',
+          '/data/local/',
+          '/data/netease/',
         ]))
           _relativePath(shellController),
       ];
@@ -703,7 +688,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: 'ShellController 只协调壳层 UI；播放、设置、用户状态应通过 app presentation adapter port 接入。',
+        reason: 'ShellController 可以读取全局播放/用户控制器，但不能越过 controller 触碰设置控制器或底层数据源。',
       );
     });
 
@@ -724,44 +709,31 @@ void main() {
       );
     });
 
-    test('application service and download usecase layer exists', () {
-      const expectedFiles = [
+    test('thin forwarding application and port layers stay removed', () {
+      const removedFiles = [
         'lib/features/playlist/application/playlist_detail_service.dart',
+        'lib/features/playlist/application/playlist_playback_action.dart',
+        'lib/features/playlist/application/playlist_playback_use_case.dart',
         'lib/features/search/application/search_application_service.dart',
+        'lib/features/explore/explore_application_service.dart',
         'lib/features/user/application/user_home_application_service.dart',
         'lib/features/download/application/queue_download_use_case.dart',
         'lib/features/download/application/remove_download_use_case.dart',
         'lib/features/download/application/recover_downloads_use_case.dart',
+        'lib/features/playback/application/playback_action_port.dart',
+        'lib/app/bootstrap/feature_controller_factory.dart',
+        'lib/app/presentation_adapters/comment_content_port.dart',
+        'lib/app/presentation_adapters/playback_theme_port.dart',
+        'lib/app/presentation_adapters/settings_navigation_port.dart',
+        'lib/app/presentation_adapters/shell_playback_port.dart',
+        'lib/app/presentation_adapters/shell_user_port.dart',
       ];
-      final missing = expectedFiles.where((path) => !File('${projectRoot.path}/$path').existsSync()).toList();
+      final existing = removedFiles.where((path) => File('${projectRoot.path}/$path').existsSync()).toList();
 
       expect(
-        missing,
+        existing,
         isEmpty,
-        reason: '页面流程必须有明确 application service/usecase 落点，不能继续只堆在 repository 或 controller。',
-      );
-    });
-
-    test('application services are actual controller dependencies', () {
-      const expectedUsage = {
-        'lib/features/search/search_panel_controller.dart': 'SearchApplicationService',
-        'lib/features/playlist/playlist_page_controller.dart': 'PlaylistDetailService',
-        'lib/features/user/recommendation_controller.dart': 'UserHomeApplicationService',
-        'lib/app/bootstrap/feature_controller_factory.dart': 'SearchApplicationService',
-        'lib/app/bootstrap/registrars/user_registrar.dart': 'UserHomeApplicationService',
-      };
-      final violations = expectedUsage.entries
-          .where((entry) {
-            final file = File('${projectRoot.path}/${entry.key}');
-            return !file.existsSync() || !_contains(file, entry.value);
-          })
-          .map((entry) => '${entry.key} missing ${entry.value}')
-          .toList();
-
-      expect(
-        violations,
-        isEmpty,
-        reason: 'application service/usecase 不能只是空入口，页面 controller 和 registrar 必须实际依赖它。',
+        reason: '不要恢复只有转发价值的 service/usecase/port/factory；普通页面应直接走 controller/repository/PlayerController。',
       );
     });
 
@@ -931,6 +903,9 @@ bool _isAllowedPresentationFeatureImport({
     'shell:user',
     'shell:playback',
     'shell:search',
+    'playback:comment',
+    'settings:debug',
+    'settings:download',
   };
   return temporaryRouteEntrypoints.contains('$ownerFeature:$importedFeature');
 }

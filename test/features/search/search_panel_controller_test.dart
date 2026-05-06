@@ -1,17 +1,20 @@
 import 'dart:async';
 
 import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/domain/entities/album_entity.dart';
+import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/features/search/application/search_application_service.dart';
+import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
+import 'package:bujuan/features/search/search_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('SearchPanelController', () {
     test('only applies the latest keyword result', () async {
-      final service = _FakeSearchApplicationService();
-      final controller = SearchPanelController(service: service);
+      final repository = _FakeSearchRepository();
+      final controller = SearchPanelController(repository: repository);
       addTearDown(controller.dispose);
 
       final firstSearch = controller.search(
@@ -25,18 +28,18 @@ void main() {
         currentUserId: '',
       );
 
-      service.complete('latest', _resultFor('latest'));
+      repository.complete('latest', _resultFor('latest'));
       await latestSearch;
       expect(controller.songState.value.data?.single.title, 'latest');
 
-      service.complete('old', _resultFor('old'));
+      repository.complete('old', _resultFor('old'));
       await firstSearch;
       expect(controller.songState.value.data?.single.title, 'latest');
     });
 
     test('empty keyword clears state and prevents older result overwrite', () async {
-      final service = _FakeSearchApplicationService();
-      final controller = SearchPanelController(service: service);
+      final repository = _FakeSearchRepository();
+      final controller = SearchPanelController(repository: repository);
       addTearDown(controller.dispose);
 
       final firstSearch = controller.search(
@@ -50,14 +53,14 @@ void main() {
         currentUserId: '',
       );
 
-      service.complete('pending', _resultFor('pending'));
+      repository.complete('pending', _resultFor('pending'));
       await firstSearch;
       expect(controller.songState.value.status, LoadStatus.empty);
     });
   });
 }
 
-class _FakeSearchApplicationService implements SearchApplicationService {
+class _FakeSearchRepository implements SearchRepository {
   final Map<String, Completer<SearchResultState>> _pending = <String, Completer<SearchResultState>>{};
 
   void complete(String keyword, SearchResultState state) {
@@ -65,20 +68,45 @@ class _FakeSearchApplicationService implements SearchApplicationService {
   }
 
   @override
-  Future<LoadState<List<String>>> loadInitialHotKeywords({
-    bool force = false,
+  Future<List<String>?> loadCachedHotKeywords() async => const [];
+
+  @override
+  Future<bool> isHotKeywordCacheFresh({required Duration ttl}) async => true;
+
+  @override
+  Future<List<String>> fetchHotKeywords() async => const [];
+
+  @override
+  Future<List<PlaybackQueueItem>> searchTrackQueueItems(
+    String keyword, {
+    required List<int> likedSongIds,
   }) async {
-    return const LoadState.empty();
+    return (await _stateFor(keyword)).songs.data ?? const <PlaybackQueueItem>[];
   }
 
   @override
-  Future<SearchResultState> searchAll(
+  Future<List<PlaylistEntity>> searchPlaylists(
     String keyword, {
-    required List<int> likedSongIds,
     required String currentUserId,
-  }) {
-    final completer = Completer<SearchResultState>();
-    _pending[keyword] = completer;
+  }) async {
+    return (await _stateFor(keyword)).playlists.data ?? const <PlaylistEntity>[];
+  }
+
+  @override
+  Future<List<AlbumEntity>> searchAlbums(String keyword) async {
+    return (await _stateFor(keyword)).albums.data ?? const <AlbumEntity>[];
+  }
+
+  @override
+  Future<List<ArtistEntity>> searchArtists(String keyword) async {
+    return (await _stateFor(keyword)).artists.data ?? const <ArtistEntity>[];
+  }
+
+  Future<SearchResultState> _stateFor(String keyword) {
+    final completer = _pending.putIfAbsent(
+      keyword,
+      () => Completer<SearchResultState>(),
+    );
     return completer.future;
   }
 

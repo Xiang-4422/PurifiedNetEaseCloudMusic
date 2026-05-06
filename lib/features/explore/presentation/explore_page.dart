@@ -1,14 +1,41 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/features/playback/application/playback_action_port.dart';
-import 'package:bujuan/features/playlist/application/playlist_playback_action.dart';
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
+
+Future<void> _playPlaylistSummary(PlaylistSummaryData playlist) async {
+  final playerController = Get.find<PlayerController>();
+  if (playerController.sessionState.value.playlistName == playlist.title) {
+    await playerController.playOrPause();
+    return;
+  }
+  final likedSongIds = UserLibraryController.to.likedSongIds.toList();
+  final repository = Get.find<PlaylistRepository>();
+  final index = await repository.fetchPlaylistIndex(
+    playlist.id,
+    likedSongIds: likedSongIds,
+  );
+  final songs = await repository.fetchPlaylistSongs(
+    playlistId: playlist.id,
+    likedSongIds: likedSongIds,
+    playlistIndex: index,
+  );
+  await playerController.playPlaylist(
+    songs,
+    0,
+    playListName: index.name,
+    playListNameHeader: '歌单',
+  );
+}
 
 /// 探索页当前仍直接消费首页控制器驱动的刷新节奏，所以先和 home body 放在同一层，避免再引入一层页面目录。
 class ExplorePageView extends GetView<ExplorePageController> {
@@ -17,7 +44,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
 
   @override
   Widget build(BuildContext context) {
-    final playbackAction = Get.find<PlaybackActionPort>();
+    final playbackAction = Get.find<PlayerController>();
     final layoutMetrics = AdaptiveLayoutMetrics.of(context);
     final tagStripHeight = (34 * layoutMetrics.textScale).clamp(34.0, 44.0).toDouble();
     return Obx(() {
@@ -143,9 +170,9 @@ class ExplorePageView extends GetView<ExplorePageController> {
                     albumCountInWidget: 3.2,
                     albumMargin: AppDimensions.paddingSmall,
                     showSongCount: false,
-                    isPlaying: playbackAction.isPlaying(),
-                    playingPlaylistName: playbackAction.sessionState().playlistName,
-                    onPlayPlaylist: Get.find<PlaylistPlaybackAction>().play,
+                    isPlaying: playbackAction.isPlaying.value,
+                    playingPlaylistName: playbackAction.sessionState.value.playlistName,
+                    onPlayPlaylist: _playPlaylistSummary,
                   )),
             ),
             // // 排行榜

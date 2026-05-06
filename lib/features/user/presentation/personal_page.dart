@@ -2,8 +2,9 @@ import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/features/playback/application/playback_action_port.dart';
-import 'package:bujuan/features/playlist/application/playlist_playback_action.dart';
+import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/presentation/personal_home_layout_metrics.dart';
@@ -23,6 +24,31 @@ import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+Future<void> _playPlaylistSummary(PlaylistSummaryData playlist) async {
+  final playerController = Get.find<PlayerController>();
+  if (playerController.sessionState.value.playlistName == playlist.title) {
+    await playerController.playOrPause();
+    return;
+  }
+  final likedSongIds = UserLibraryController.to.likedSongIds.toList();
+  final repository = Get.find<PlaylistRepository>();
+  final index = await repository.fetchPlaylistIndex(
+    playlist.id,
+    likedSongIds: likedSongIds,
+  );
+  final songs = await repository.fetchPlaylistSongs(
+    playlistId: playlist.id,
+    likedSongIds: likedSongIds,
+    playlistIndex: index,
+  );
+  await playerController.playPlaylist(
+    songs,
+    0,
+    playListName: index.name,
+    playListNameHeader: '歌单',
+  );
+}
+
 /// 个人首页，展示快速播放、推荐歌单和用户歌单入口。
 class PersonalPageView extends GetView<ShellController> {
   /// 创建个人首页。
@@ -38,7 +64,7 @@ class PersonalPageView extends GetView<ShellController> {
   Widget build(BuildContext context) {
     final recommendationController = RecommendationController.to;
     final libraryController = UserLibraryController.to;
-    final playbackAction = Get.find<PlaybackActionPort>();
+    final playbackAction = Get.find<PlayerController>();
     return Obx(() {
       if (recommendationController.dateLoaded.isFalse) {
         return const LoadingView();
@@ -120,10 +146,10 @@ class PersonalPageView extends GetView<ShellController> {
                               },
                             ),
                             Visibility(
-                              visible: playbackAction.isPlaying() && (playbackAction.sessionState().playlistName == "每日推荐"),
+                              visible: playbackAction.isPlaying.value && (playbackAction.sessionState.value.playlistName == "每日推荐"),
                               replacement: IconButton(
                                   onPressed: () {
-                                    if (playbackAction.sessionState().playlistName != "每日推荐") {
+                                    if (playbackAction.sessionState.value.playlistName != "每日推荐") {
                                       playbackAction.playPlaylist(
                                         recommendationController.todayRecommendSongs,
                                         0,
@@ -145,11 +171,11 @@ class PersonalPageView extends GetView<ShellController> {
                           alignment: Alignment.bottomRight,
                           children: [
                             Obx(() {
-                              final currentSong = playbackAction.currentSong();
+                              final currentSong = playbackAction.currentSongState.value;
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: playbackAction.isFmMode() ? (currentSong.artworkUrl ?? '') : (recommendationController.fmSongs.isNotEmpty ? (recommendationController.fmSongs[0].artworkUrl ?? '') : ''),
+                                albumUrl: playbackAction.isFmModeValue ? (currentSong.artworkUrl ?? '') : (recommendationController.fmSongs.isNotEmpty ? (recommendationController.fmSongs[0].artworkUrl ?? '') : ''),
                                 icon: TablerIcons.infinity,
                                 title: "漫游模式",
                                 onTap: () {
@@ -159,18 +185,18 @@ class PersonalPageView extends GetView<ShellController> {
                                 },
                               );
                             }),
-                            Offstage(offstage: !playbackAction.isFmMode() || !playbackAction.isPlaying(), child: Lottie.asset('assets/lottie/music_playing.json', width: 50)),
+                            Offstage(offstage: !playbackAction.isFmModeValue || !playbackAction.isPlaying.value, child: Lottie.asset('assets/lottie/music_playing.json', width: 50)),
                           ],
                         ).marginOnly(right: AppDimensions.paddingSmall),
                         Stack(
                           alignment: Alignment.bottomRight,
                           children: [
                             Obx(() {
-                              final currentSong = playbackAction.currentSong();
+                              final currentSong = playbackAction.currentSongState.value;
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: playbackAction.isHeartBeatMode() ? (currentSong.artworkUrl ?? '') : libraryController.randomLikedSongAlbumUrl.value,
+                                albumUrl: playbackAction.isHeartBeatModeValue ? (currentSong.artworkUrl ?? '') : libraryController.randomLikedSongAlbumUrl.value,
                                 icon: TablerIcons.heartbeat,
                                 title: "心动模式",
                                 onTap: () {
@@ -183,7 +209,7 @@ class PersonalPageView extends GetView<ShellController> {
                                 },
                               );
                             }),
-                            Offstage(offstage: !playbackAction.isHeartBeatMode() || !playbackAction.isPlaying(), child: Lottie.asset('assets/lottie/music_playing.json', width: 50)),
+                            Offstage(offstage: !playbackAction.isHeartBeatModeValue || !playbackAction.isPlaying.value, child: Lottie.asset('assets/lottie/music_playing.json', width: 50)),
                           ],
                         ).marginOnly(right: AppDimensions.paddingSmall),
                       ],
@@ -204,9 +230,9 @@ class PersonalPageView extends GetView<ShellController> {
                 albumCountInWidget: 3.2,
                 albumMargin: AppDimensions.paddingSmall,
                 showSongCount: false,
-                isPlaying: playbackAction.isPlaying(),
-                playingPlaylistName: playbackAction.sessionState().playlistName,
-                onPlayPlaylist: Get.find<PlaylistPlaybackAction>().play,
+                isPlaying: playbackAction.isPlaying.value,
+                playingPlaylistName: playbackAction.sessionState.value.playlistName,
+                onPlayPlaylist: _playPlaylistSummary,
               ),
             ),
           ),
@@ -254,7 +280,7 @@ class _SquarePersonalPageView extends StatefulWidget {
   final PersonalHomeLayoutMetrics metrics;
   final RecommendationController recommendationController;
   final UserLibraryController libraryController;
-  final PlaybackActionPort playbackAction;
+  final PlayerController playbackAction;
   final ShellController shellController;
 
   @override
@@ -345,9 +371,9 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                   albumCountInWidget: widget.metrics.squarePlaylistCardCount,
                   albumMargin: AppDimensions.paddingSmall,
                   showSongCount: false,
-                  isPlaying: widget.playbackAction.isPlaying(),
-                  playingPlaylistName: widget.playbackAction.sessionState().playlistName,
-                  onPlayPlaylist: Get.find<PlaylistPlaybackAction>().play,
+                  isPlaying: widget.playbackAction.isPlaying.value,
+                  playingPlaylistName: widget.playbackAction.sessionState.value.playlistName,
+                  onPlayPlaylist: _playPlaylistSummary,
                 ),
               ),
               const SizedBox(height: AppDimensions.paddingSmall),
@@ -401,10 +427,10 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 },
               ),
               Visibility(
-                visible: playbackAction.isPlaying() && playbackAction.sessionState().playlistName == '每日推荐',
+                visible: playbackAction.isPlaying.value && playbackAction.sessionState.value.playlistName == '每日推荐',
                 replacement: IconButton(
                   onPressed: () {
-                    if (playbackAction.sessionState().playlistName != '每日推荐') {
+                    if (playbackAction.sessionState.value.playlistName != '每日推荐') {
                       playbackAction.playPlaylist(
                         recommendationController.todayRecommendSongs,
                         0,
@@ -430,11 +456,11 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
             alignment: Alignment.bottomRight,
             children: [
               Obx(() {
-                final currentSong = playbackAction.currentSong();
+                final currentSong = playbackAction.currentSongState.value;
                 return QuickStartCard(
                   width: cardSize.width,
                   height: cardSize.height,
-                  albumUrl: playbackAction.isFmMode() ? (currentSong.artworkUrl ?? '') : (recommendationController.fmSongs.isNotEmpty ? (recommendationController.fmSongs[0].artworkUrl ?? '') : ''),
+                  albumUrl: playbackAction.isFmModeValue ? (currentSong.artworkUrl ?? '') : (recommendationController.fmSongs.isNotEmpty ? (recommendationController.fmSongs[0].artworkUrl ?? '') : ''),
                   icon: TablerIcons.infinity,
                   title: '漫游模式',
                   onTap: () {
@@ -445,7 +471,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 );
               }),
               Offstage(
-                offstage: !playbackAction.isFmMode() || !playbackAction.isPlaying(),
+                offstage: !playbackAction.isFmModeValue || !playbackAction.isPlaying.value,
                 child: Lottie.asset(
                   'assets/lottie/music_playing.json',
                   width: 50,
@@ -457,11 +483,11 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
             alignment: Alignment.bottomRight,
             children: [
               Obx(() {
-                final currentSong = playbackAction.currentSong();
+                final currentSong = playbackAction.currentSongState.value;
                 return QuickStartCard(
                   width: cardSize.width,
                   height: cardSize.height,
-                  albumUrl: playbackAction.isHeartBeatMode() ? (currentSong.artworkUrl ?? '') : libraryController.randomLikedSongAlbumUrl.value,
+                  albumUrl: playbackAction.isHeartBeatModeValue ? (currentSong.artworkUrl ?? '') : libraryController.randomLikedSongAlbumUrl.value,
                   icon: TablerIcons.heartbeat,
                   title: '心动模式',
                   onTap: () {
@@ -475,7 +501,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 );
               }),
               Offstage(
-                offstage: !playbackAction.isHeartBeatMode() || !playbackAction.isPlaying(),
+                offstage: !playbackAction.isHeartBeatModeValue || !playbackAction.isPlaying.value,
                 child: Lottie.asset(
                   'assets/lottie/music_playing.json',
                   width: 50,

@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
-import 'package:bujuan/app/presentation_adapters/playback_theme_port.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
 import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/playback_selection_state.dart';
+import 'package:flutter/material.dart';
 
 /// 跟随 UI selection 的歌词、取色和封面预取协调器。
 ///
@@ -17,16 +17,16 @@ class PlaybackSelectionUiEffectCoordinator {
     required CurrentTrackSideEffectCoordinator sideEffectCoordinator,
     required PlaybackLyricsPresenter lyricsPresenter,
     required PlaybackArtworkPresenter artworkPresenter,
-    required PlaybackThemePort themePort,
+    required void Function(Color color) applyDominantColor,
   })  : _sideEffectCoordinator = sideEffectCoordinator,
         _lyricsPresenter = lyricsPresenter,
         _artworkPresenter = artworkPresenter,
-        _themePort = themePort;
+        _applyDominantColor = applyDominantColor;
 
   final CurrentTrackSideEffectCoordinator _sideEffectCoordinator;
   final PlaybackLyricsPresenter _lyricsPresenter;
   final PlaybackArtworkPresenter _artworkPresenter;
-  final PlaybackThemePort _themePort;
+  final void Function(Color color) _applyDominantColor;
   String? _lastSelectionUiSideEffectKey;
   Timer? _colorPrewarmTimer;
 
@@ -114,7 +114,7 @@ class PlaybackSelectionUiEffectCoordinator {
       final stopwatch = PlaybackPerformanceLogger.start();
       final color = _artworkPresenter.peekCachedDominantColor(selection.selectedItem);
       if (color != null) {
-        _themePort.applyDominantColor(color);
+        _applyDominantColor(color);
         PlaybackPerformanceLogger.log(
           'selectionUi.applyAlbumColor.cacheHit id=${selection.selectedItem.id}',
         );
@@ -149,7 +149,7 @@ class PlaybackSelectionUiEffectCoordinator {
         if (resolveCurrentColor) {
           final resolvedColor = await _artworkPresenter.resolveDominantColor(selectedItem);
           if (resolvedColor != null && latestSelection().selectedItem.id == selectedItem.id) {
-            _themePort.applyDominantColor(resolvedColor);
+            _applyDominantColor(resolvedColor);
             PlaybackPerformanceLogger.log(
               'selectionUi.applyAlbumColor.resolved id=${selectedItem.id}',
             );

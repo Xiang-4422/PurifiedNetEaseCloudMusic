@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/features/user/user_profile_controller.dart';
+import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/load_state_view.dart';
@@ -25,7 +25,10 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<FeatureControllerFactory>().userProfile()..loadInitial();
+    _controller = UserProfileController(
+      userId: Get.find<UserSessionController>().userInfo.value.userId,
+      repository: Get.find<UserRepository>(),
+    )..loadInitial();
   }
 
   @override

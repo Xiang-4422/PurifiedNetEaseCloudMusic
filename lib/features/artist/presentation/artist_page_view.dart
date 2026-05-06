@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
@@ -11,7 +10,8 @@ import 'package:bujuan/domain/entities/album_entity.dart';
 import 'package:bujuan/domain/entities/artist_entity.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/artist/artist_page_controller.dart';
-import 'package:bujuan/features/playback/application/playback_action_port.dart';
+import 'package:bujuan/features/artist/artist_repository.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/artwork_path_resolver.dart';
@@ -34,8 +34,10 @@ class ArtistPageView extends StatefulWidget {
 }
 
 class _ArtistPageViewState extends State<ArtistPageView> {
-  final ArtistPageController _controller = Get.find<FeatureControllerFactory>().artistPage();
-  final PlaybackActionPort _playbackAction = Get.find<PlaybackActionPort>();
+  final ArtistPageController _controller = ArtistPageController(
+    repository: Get.find<ArtistRepository>(),
+  );
+  final PlayerController _playerController = Get.find<PlayerController>();
   late String artistId;
   late ArtistEntity artist;
 
@@ -151,7 +153,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                               TablerIcons.player_play_filled,
                               color: Colors.white,
                             ),
-                            onPressed: () => _playbackAction.playPlaylist(
+                            onPressed: () => _playerController.playPlaylist(
                                   topSongs,
                                   0,
                                   playListName: artist.name,
@@ -259,7 +261,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                       height: AppDimensions.bottomPanelHeaderHeight,
                     );
                   }
-                  return SongItem(playlist: topSongs, index: index, playListName: artist.name, playListHeader: "歌手", stringColor: onAlbumColor, showIndex: true, onPlay: _playbackAction.playPlaylist)
+                  return SongItem(playlist: topSongs, index: index, playListName: artist.name, playListHeader: "歌手", stringColor: onAlbumColor, showIndex: true, onPlay: _playerController.playPlaylist)
                       .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
                 },
               ),

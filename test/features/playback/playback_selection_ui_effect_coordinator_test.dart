@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
 import 'package:bujuan/app/presentation_adapters/playback_selection_ui_effect_coordinator.dart';
-import 'package:bujuan/app/presentation_adapters/playback_theme_port.dart';
 import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
@@ -34,7 +33,7 @@ void main() {
         sideEffectCoordinator: CurrentTrackSideEffectCoordinator(),
         lyricsPresenter: lyricsPresenter,
         artworkPresenter: artworkPresenter,
-        themePort: PlaybackThemePort(applyDominantColor: appliedColors.add),
+        applyDominantColor: appliedColors.add,
       );
 
       coordinator.schedule(
@@ -82,7 +81,7 @@ void main() {
         sideEffectCoordinator: CurrentTrackSideEffectCoordinator(),
         lyricsPresenter: lyricsPresenter,
         artworkPresenter: artworkPresenter,
-        themePort: PlaybackThemePort(applyDominantColor: appliedColors.add),
+        applyDominantColor: appliedColors.add,
       );
 
       coordinator.schedule(

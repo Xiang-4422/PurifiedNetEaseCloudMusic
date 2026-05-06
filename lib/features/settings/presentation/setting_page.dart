@@ -1,13 +1,16 @@
 import 'dart:io';
 
-import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/app/ui/dialog_service.dart';
 import 'package:bujuan/app/ui/toast_service.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/features/debug/presentation/coverflow_demo_page_view.dart';
+import 'package:bujuan/features/download/presentation/download_task_page_view.dart';
+import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
+import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
-import 'package:bujuan/app/presentation_adapters/settings_navigation_port.dart';
+import 'package:bujuan/features/settings/presentation/cache_analysis_page.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -26,8 +29,11 @@ class SettingPageView extends StatefulWidget {
 }
 
 class _SettingPageViewState extends State<SettingPageView> {
-  final LocalMediaScanController _localMediaScanController = Get.find<FeatureControllerFactory>().localMediaScan();
-  final SettingsNavigationPort _navigationPort = Get.find<SettingsNavigationPort>();
+  late final LocalMediaScanController _localMediaScanController = LocalMediaScanController(
+    scanRepository: LocalMediaScanRepository(
+      localMediaRepository: Get.find<LocalMediaRepository>(),
+    ),
+  );
 
   String version = '1.0.0';
 
@@ -197,7 +203,11 @@ class _SettingPageViewState extends State<SettingPageView> {
           context,
           title: '本地歌曲',
           subtitle: '查看下载任务、失败重试和本地清理',
-          onTap: () => _navigationPort.openLocalSongs(context),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const DownloadTaskPageView(),
+            ),
+          ),
         ),
         _buildNavigationTile(
           context,
@@ -209,13 +219,22 @@ class _SettingPageViewState extends State<SettingPageView> {
           context,
           title: '缓存分析',
           subtitle: '分析图片、封面、播放缓存和临时文件',
-          onTap: () => _navigationPort.openCacheAnalysis(context),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const CacheAnalysisPageView(),
+            ),
+          ),
         ),
         _buildNavigationTile(
           context,
           title: 'CoverFlow Demo',
           subtitle: '使用当前播放列表的封面验证 CoverFlow 交互',
-          onTap: () => _navigationPort.openCoverFlowDemo(context),
+          onTap: () => Navigator.of(context, rootNavigator: true).push(
+            MaterialPageRoute(
+              builder: (_) => const CoverFlowDemoPageView(),
+              fullscreenDialog: true,
+            ),
+          ),
         ),
         _buildToggleTile(
           context,

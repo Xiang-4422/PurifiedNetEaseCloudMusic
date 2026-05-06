@@ -1,20 +1,24 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:bujuan/app/ui/toast_service.dart';
-import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
 import 'package:bujuan/core/diagnostics/playlist_performance_logger.dart';
+import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/application/playlist_artwork_color_service.dart';
-import 'package:bujuan/features/playlist/application/playlist_detail_service.dart';
-import 'package:bujuan/features/playlist/application/playlist_playback_use_case.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
+import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
@@ -67,8 +71,13 @@ class PlayListPageView extends StatefulWidget {
 }
 
 class _PlayListPageViewState extends State<PlayListPageView> {
-  final PlaylistPageController _controller = Get.find<FeatureControllerFactory>().playlistPage();
-  final PlaylistPlaybackUseCase _playbackUseCase = Get.find<PlaylistPlaybackUseCase>();
+  final PlaylistPageController _controller = PlaylistPageController(
+    repository: Get.find<PlaylistRepository>(),
+    likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+    currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
+  );
+  final PlayerController _playerController = Get.find<PlayerController>();
+  final Random _random = Random();
 
   String playlistName = '';
   String? coverUrl;
@@ -150,7 +159,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                         ShellController.to.jumpBottomPanelToPage(0);
                         ShellController.to.openBottomPanel();
                       },
-                      onTap: () => _playbackUseCase.playAt(
+                      onTap: () => _playerController.playPlaylist(
                         songs,
                         index,
                         playListName: playlistName,
@@ -727,15 +736,21 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     ShellController.to.jumpBottomPanelToPage(0);
     ShellController.to.openBottomPanel();
     if (shuffle) {
-      await _playbackUseCase.playShuffle(
+      await _playerController.setOrderMode(PlaybackOrderMode.shuffle);
+      await _playerController.setRepeatMode(PlaybackRepeatMode.all);
+      await _playerController.playPlaylist(
         songs,
+        _random.nextInt(songs.length),
         playListName: playlistName,
         playListNameHeader: "歌单",
       );
       return;
     }
-    await _playbackUseCase.playSequential(
+    await _playerController.setOrderMode(PlaybackOrderMode.sequential);
+    await _playerController.setRepeatMode(PlaybackRepeatMode.all);
+    await _playerController.playPlaylist(
       songs,
+      0,
       playListName: playlistName,
       playListNameHeader: "歌单",
     );

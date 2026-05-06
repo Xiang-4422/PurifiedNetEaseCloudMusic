@@ -1,10 +1,11 @@
 import 'dart:async';
 
-import 'package:bujuan/features/explore/explore_application_service.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
+import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/explore/ranking_playlist_data.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -18,10 +19,19 @@ class ExplorePageController extends GetxController {
 
   /// 创建探索页控制器。
   ExplorePageController({
-    required ExploreApplicationService applicationService,
-  }) : _applicationService = applicationService;
+    required ExploreRepository exploreRepository,
+    required PlaylistRepository playlistRepository,
+    required List<int> Function() likedSongIds,
+    required String Function() currentUserId,
+  })  : _exploreRepository = exploreRepository,
+        _playlistRepository = playlistRepository,
+        _likedSongIds = likedSongIds,
+        _currentUserId = currentUserId;
 
-  final ExploreApplicationService _applicationService;
+  final ExploreRepository _exploreRepository;
+  final PlaylistRepository _playlistRepository;
+  final List<int> Function() _likedSongIds;
+  final String Function() _currentUserId;
 
   /// 榜单分类和榜单基础数据。
   final Map<String, List<RankingPlaylistData>> topPlayListCategory = {
@@ -188,14 +198,14 @@ class ExplorePageController extends GetxController {
   }
 
   Future<bool> _shouldRefreshInitialData() async {
-    return !(await _applicationService.isPlaylistCatalogueFresh(
+    return !(await _exploreRepository.isPlaylistCatalogueFresh(
           ttl: _playlistCatalogueTtl,
         )) ||
-        !(await _applicationService.isCategoryPlaylistsFresh(
+        !(await _exploreRepository.isCategoryPlaylistsFresh(
           curTag.value,
           ttl: _categoryPlaylistsTtl,
         )) ||
-        !(await _applicationService.isRankingPlaylistFresh(
+        !(await _playlistRepository.isCacheFresh(
           curTopPlayListId.value,
           ttl: _rankingPlaylistTtl,
         )) ||
@@ -205,7 +215,7 @@ class ExplorePageController extends GetxController {
   }
 
   Future<bool> _loadCachedPlaylistCatalogue() async {
-    final cachedCatalogue = await _applicationService.loadCachedPlaylistCatalogue();
+    final cachedCatalogue = await _exploreRepository.loadCachedPlaylistCatalogue();
     if (cachedCatalogue == null) {
       return false;
     }
@@ -222,7 +232,7 @@ class ExplorePageController extends GetxController {
   }
 
   Future<bool> _loadCachedPlayLists() async {
-    final cachedPlayLists = await _applicationService.loadCachedCategoryPlaylists(curTag.value);
+    final cachedPlayLists = await _exploreRepository.loadCachedCategoryPlaylists(curTag.value);
     if (cachedPlayLists == null || cachedPlayLists.isEmpty) {
       return false;
     }
@@ -233,9 +243,12 @@ class ExplorePageController extends GetxController {
   }
 
   Future<bool> _loadCachedRankingPlayListSongs() async {
-    final cachedSongs = await _applicationService.loadCachedRankingSongs(
-      curTopPlayListId.value,
+    final cachedDetail = await _playlistRepository.loadLocalPlaylistDetail(
+      playlistId: curTopPlayListId.value,
+      likedSongIds: _likedSongIds(),
+      currentUserId: _currentUserId(),
     );
+    final cachedSongs = cachedDetail?.songs ?? const <PlaybackQueueItem>[];
     if (cachedSongs.isEmpty) {
       return false;
     }
@@ -260,12 +273,12 @@ class ExplorePageController extends GetxController {
   Future<void> _refreshPlaylistCatalogue({bool force = false}) async {
     if (!force &&
         tagCategorys.isNotEmpty &&
-        await _applicationService.isPlaylistCatalogueFresh(
+        await _exploreRepository.isPlaylistCatalogueFresh(
           ttl: _playlistCatalogueTtl,
         )) {
       return;
     }
-    final catalogue = await _applicationService.fetchPlaylistCatalogue();
+    final catalogue = await _exploreRepository.fetchPlaylistCatalogue();
     _applyPlaylistCatalogue(catalogue);
   }
 
@@ -274,14 +287,14 @@ class ExplorePageController extends GetxController {
     if (!force) {
       final hasCachedPlayLists = await _loadCachedPlayLists();
       if (hasCachedPlayLists &&
-          await _applicationService.isCategoryPlaylistsFresh(
+          await _exploreRepository.isCategoryPlaylistsFresh(
             curTag.value,
             ttl: _categoryPlaylistsTtl,
           )) {
         return;
       }
     }
-    final data = await _applicationService.fetchCategoryPlaylists(curTag.value);
+    final data = await _exploreRepository.fetchCategoryPlaylists(curTag.value);
     playLists
       ..clear()
       ..addAll(data);
@@ -302,7 +315,7 @@ class ExplorePageController extends GetxController {
     if (offset == 0 && !force) {
       final hasCachedSongs = await _loadCachedRankingPlayListSongs();
       if (hasCachedSongs &&
-          await _applicationService.isRankingPlaylistFresh(
+          await _playlistRepository.isCacheFresh(
             curTopPlayListId.value,
             ttl: _rankingPlaylistTtl,
           )) {
@@ -312,8 +325,9 @@ class ExplorePageController extends GetxController {
     if (offset == 0) {
       curTopPlayListSongs.clear();
     }
-    final songs = await _applicationService.fetchRankingSongs(
-      curTopPlayListId.value,
+    final songs = await _playlistRepository.fetchPlaylistSongs(
+      playlistId: curTopPlayListId.value,
+      likedSongIds: _likedSongIds(),
       offset: offset,
       limit: limit,
     );
@@ -327,19 +341,6 @@ class ExplorePageController extends GetxController {
       return;
     }
     refreshController.loadComplete();
-  }
-
-  /// 播放当前排行榜全部歌曲。
-  Future<void> playCurRankingPlayListSongs() async {
-    await updateRankingPlayListSongs(
-      offset: curTopPlayListSongs.length,
-      limit: -1,
-      force: true,
-    );
-    await _applicationService.playRankingSongs(
-      curTopPlayListSongs,
-      playlistName: curTopPlayListName.value,
-    );
   }
 
   /// 切换榜单分类。

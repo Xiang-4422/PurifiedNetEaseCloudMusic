@@ -536,6 +536,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (!mounted) {
       return;
     }
+    final previousCoverUrl = coverUrl;
     setState(() {
       playlistName = playlist.title;
       coverUrl = playlist.coverUrl ?? coverUrl;
@@ -544,6 +545,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         loadState = _PlaylistPageLoadState.showingMetadataOnly;
       }
     });
+    if (coverUrl != previousCoverUrl) {
+      unawaited(_updateArtworkColors(_resolvedCoverUrl));
+    }
   }
 
   Future<void> _applyPlaylistDetail(

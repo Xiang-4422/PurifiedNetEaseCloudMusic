@@ -14,9 +14,7 @@ class PlaybackNotificationControlsPresenter {
       MediaControl(
         label: 'rewind',
         action: MediaAction.rewind,
-        androidIcon: isLiked
-            ? 'drawable/audio_service_like'
-            : 'drawable/audio_service_unlike',
+        androidIcon: isLiked ? 'drawable/audio_service_like' : 'drawable/audio_service_unlike',
       ),
       MediaControl.skipToPrevious,
       isPlaying ? MediaControl.pause : MediaControl.play,

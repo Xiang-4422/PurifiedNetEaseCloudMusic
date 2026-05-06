@@ -25,12 +25,9 @@ class PlaybackArtworkPresenter {
     PlaybackDominantColorResolver? dominantColorResolver,
     PlaybackCachedColorReader? cachedColorReader,
   })  : _repository = repository,
-        _imageCacheRepository =
-            imageCacheRepository ?? LocalImageCacheRepository(),
-        _dominantColorResolver =
-            dominantColorResolver ?? ImageColorService.dominantColor,
-        _cachedColorReader =
-            cachedColorReader ?? ImageColorService.peekCachedColor;
+        _imageCacheRepository = imageCacheRepository ?? LocalImageCacheRepository(),
+        _dominantColorResolver = dominantColorResolver ?? ImageColorService.dominantColor,
+        _cachedColorReader = cachedColorReader ?? ImageColorService.peekCachedColor;
 
   final PlaybackRepository _repository;
   final LocalImageCacheRepository _imageCacheRepository;
@@ -82,10 +79,7 @@ class PlaybackArtworkPresenter {
       return null;
     }
 
-    final imagePath = _resolvedArtworkPathCache[imageSource] ??
-        (_isRemoteArtworkSource(imageSource)
-            ? null
-            : _normalizeLocalArtworkPath(imageSource));
+    final imagePath = _resolvedArtworkPathCache[imageSource] ?? (_isRemoteArtworkSource(imageSource) ? null : _normalizeLocalArtworkPath(imageSource));
     if (imagePath == null || imagePath.isEmpty) {
       return null;
     }
@@ -135,8 +129,7 @@ class PlaybackArtworkPresenter {
     PlaybackPerformanceLogger.elapsed(
       'artwork.prewarmQueueDominantColors',
       stopwatch,
-      details:
-          'index=$currentIndex queue=${queue.length} candidates=${indices.length}',
+      details: 'index=$currentIndex queue=${queue.length} candidates=${indices.length}',
       warnAfterMs: 8,
     );
   }
@@ -149,8 +142,7 @@ class PlaybackArtworkPresenter {
       return null;
     }
 
-    final trackWithResources =
-        await _repository.getTrackWithResources(currentItem.id);
+    final trackWithResources = await _repository.getTrackWithResources(currentItem.id);
     if (trackWithResources == null) {
       return null;
     }
@@ -184,12 +176,8 @@ class PlaybackArtworkPresenter {
     }
 
     for (final index in indicesToPreload) {
-      final imagePath =
-          queue[index].artworkUrl ?? queue[index].localArtworkPath;
-      if (imagePath != null &&
-          imagePath.isNotEmpty &&
-          !imagePath.startsWith('http://') &&
-          !imagePath.startsWith('https://')) {
+      final imagePath = queue[index].artworkUrl ?? queue[index].localArtworkPath;
+      if (imagePath != null && imagePath.isNotEmpty && !imagePath.startsWith('http://') && !imagePath.startsWith('https://')) {
         try {
           precacheImage(
             FileImage(File(imagePath.split('?').first)),
@@ -203,8 +191,7 @@ class PlaybackArtworkPresenter {
   }
 
   bool _hasArtworkSource(PlaybackQueueItem item) {
-    return item.artworkUrl?.isNotEmpty == true ||
-        item.localArtworkPath?.isNotEmpty == true;
+    return item.artworkUrl?.isNotEmpty == true || item.localArtworkPath?.isNotEmpty == true;
   }
 
   Future<void> _prewarmDominantColor(
@@ -245,9 +232,7 @@ class PlaybackArtworkPresenter {
       if (imageSource == null || imageSource.isEmpty) {
         return;
       }
-      if (_isRemoteArtworkSource(imageSource) &&
-          !_resolvedArtworkPathCache.containsKey(imageSource) &&
-          !allowRemoteResolve) {
+      if (_isRemoteArtworkSource(imageSource) && !_resolvedArtworkPathCache.containsKey(imageSource) && !allowRemoteResolve) {
         return;
       }
       final imagePath = await _resolveArtworkPathForColor(item);

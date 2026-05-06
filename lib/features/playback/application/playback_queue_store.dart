@@ -7,8 +7,7 @@ import 'package:bujuan/features/playback/playback_repository.dart';
 /// 统一处理播放队列恢复态的编码与持久化。
 class PlaybackQueueStore {
   /// 创建播放队列存储。
-  PlaybackQueueStore({required PlaybackRepository repository})
-      : _repository = repository;
+  PlaybackQueueStore({required PlaybackRepository repository}) : _repository = repository;
 
   final PlaybackRepository _repository;
 

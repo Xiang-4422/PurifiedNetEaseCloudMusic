@@ -32,8 +32,6 @@ class PlaybackArtworkPageItem {
 
   /// 当前展示字段是否与另一个封面项一致。
   bool hasSameArtwork(PlaybackArtworkPageItem other) {
-    return id == other.id &&
-        artworkUrl == other.artworkUrl &&
-        localArtworkPath == other.localArtworkPath;
+    return id == other.id && artworkUrl == other.artworkUrl && localArtworkPath == other.localArtworkPath;
   }
 }

@@ -33,8 +33,7 @@ class InfrastructureRegistrar {
 
   /// 初始化基础设施并注册底层 data source 与基础 repository。
   static Future<void> init() async {
-    final appDatabase =
-        DriftAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
+    final appDatabase = DriftAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
     await appDatabase.init();
 
     await Hive.initFlutter('BuJuan');
@@ -42,8 +41,7 @@ class InfrastructureRegistrar {
     CacheBox.init(cacheBox);
 
     final localLibraryDataSource = appDatabase.localLibraryDataSource;
-    final localResourceIndexDataSource =
-        appDatabase.localResourceIndexDataSource;
+    final localResourceIndexDataSource = appDatabase.localResourceIndexDataSource;
     final userScopedDataSource = appDatabase.userScopedDataSource;
     final downloadTaskDataSource = appDatabase.downloadTaskDataSource;
     final playbackRestoreDataSource = appDatabase.playbackRestoreDataSource;
@@ -57,8 +55,7 @@ class InfrastructureRegistrar {
     final exploreCacheStore = ExploreCacheStore(
       cacheDataSource: appCacheDataSource,
     );
-    final localMusicSource =
-        LocalMusicSource(localDataSource: localLibraryDataSource);
+    final localMusicSource = LocalMusicSource(localDataSource: localLibraryDataSource);
     final localResourceIndexRepository = LocalResourceIndexRepository(
       dataSource: localResourceIndexDataSource,
       localLibraryDataSource: localLibraryDataSource,

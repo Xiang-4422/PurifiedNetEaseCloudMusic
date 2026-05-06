@@ -5,8 +5,7 @@ import 'local_media_repository.dart';
 /// 本地媒体扫描仓库，负责从文件系统发现可导入的音频资源。
 class LocalMediaScanRepository {
   /// 创建本地媒体扫描仓库。
-  LocalMediaScanRepository({required LocalMediaRepository localMediaRepository})
-      : _localMediaRepository = localMediaRepository;
+  LocalMediaScanRepository({required LocalMediaRepository localMediaRepository}) : _localMediaRepository = localMediaRepository;
 
   final LocalMediaRepository _localMediaRepository;
 
@@ -146,8 +145,7 @@ class LocalMediaScanRepository {
       final fileName = entity.uri.pathSegments.last.toLowerCase();
       final extension = _extensionOf(fileName);
       final nameWithoutExtension = _fileNameWithoutExtension(fileName);
-      if (_supportedArtworkExtensions.contains(extension) &&
-          fallbackNames.contains(nameWithoutExtension)) {
+      if (_supportedArtworkExtensions.contains(extension) && fallbackNames.contains(nameWithoutExtension)) {
         return entity.path;
       }
     }

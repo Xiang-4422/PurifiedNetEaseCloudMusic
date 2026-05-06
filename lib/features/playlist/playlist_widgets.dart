@@ -54,8 +54,7 @@ class _PlaylistWidgetMetrics {
   }) {
     final titleLines = showSongCount ? 1 : 2;
     final titleHeight = cardTitleFontSize(albumWidth) * 1.15 * titleLines;
-    final subtitleHeight =
-        showSongCount ? cardSubtitleFontSize(albumWidth) * 1.2 : 0;
+    final subtitleHeight = showSongCount ? cardSubtitleFontSize(albumWidth) * 1.2 : 0;
     return titleHeight + subtitleHeight;
   }
 
@@ -199,8 +198,7 @@ class UniversalListTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: stringColor ??
-                                context.theme.colorScheme.onPrimary,
+                            color: stringColor ?? context.theme.colorScheme.onPrimary,
                             height: 1.15,
                           ),
                     ),
@@ -210,9 +208,7 @@ class UniversalListTile extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: context.textTheme.titleSmall?.copyWith(
-                          color: (stringColor ??
-                                  context.theme.colorScheme.onPrimary)
-                              .withValues(alpha: 0.5),
+                          color: (stringColor ?? context.theme.colorScheme.onPrimary).withValues(alpha: 0.5),
                           height: 1.15,
                         ),
                       ),
@@ -254,8 +250,7 @@ class _SongIndexLeading extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: context.textTheme.titleMedium?.copyWith(
-        color: (color ?? context.theme.colorScheme.onPrimary)
-            .withValues(alpha: 0.55),
+        color: (color ?? context.theme.colorScheme.onPrimary).withValues(alpha: 0.55),
         fontFeatures: const [FontFeature.tabularFigures()],
       ),
     );
@@ -361,9 +356,7 @@ class PlayListItem extends StatelessWidget {
     return UniversalListTile(
       picUrl: play.coverUrl,
       titleString: play.title,
-      subTitleString: play.trackCount == null || play.trackCount == 0
-          ? null
-          : "${play.trackCount}首",
+      subTitleString: play.trackCount == null || play.trackCount == 0 ? null : "${play.trackCount}首",
       onTap: () async {
         if (beforeOnTap != null) {
           await beforeOnTap!();
@@ -437,14 +430,9 @@ class PlayListWidget extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final maxWidth = constraints.maxWidth;
-        final double effectiveCount = noScroll
-            ? math.max(1, playLists.length).toDouble()
-            : math.max(1.0, albumCountInWidget);
-        final marginCount = noScroll
-            ? math.max(1, playLists.length + 1)
-            : albumCountInWidget.ceil();
-        final availableWidth =
-            math.max(0.0, maxWidth - albumMargin * marginCount);
+        final double effectiveCount = noScroll ? math.max(1, playLists.length).toDouble() : math.max(1.0, albumCountInWidget);
+        final marginCount = noScroll ? math.max(1, playLists.length + 1) : albumCountInWidget.ceil();
+        final availableWidth = math.max(0.0, maxWidth - albumMargin * marginCount);
         final albumWidth = availableWidth / effectiveCount;
 
         final naturalHeight = metrics.cardViewportHeight(
@@ -452,16 +440,13 @@ class PlayListWidget extends StatelessWidget {
           showSongCount: showSongCount,
         );
         final customHeight = heightForWidth?.call(albumWidth);
-        final widgetHeight = customHeight == null
-            ? naturalHeight
-            : math.max(customHeight, naturalHeight);
+        final widgetHeight = customHeight == null ? naturalHeight : math.max(customHeight, naturalHeight);
         return SizedBox(
           height: widgetHeight,
           child: CustomScrollView(
             scrollDirection: Axis.horizontal,
             physics: SnappingScrollPhysics(
-              itemExtent: (albumWidth + albumMargin) *
-                  (snappAllAlbum ? albumCountInWidget.floor() : 1),
+              itemExtent: (albumWidth + albumMargin) * (snappAllAlbum ? albumCountInWidget.floor() : 1),
             ),
             slivers: [
               SliverPadding(
@@ -501,8 +486,7 @@ class PlayListWidget extends StatelessWidget {
                                         width: albumWidth,
                                         height: albumWidth,
                                         shape: BoxShape.rectangle,
-                                        borderRadius:
-                                            BorderRadius.circular(albumMargin),
+                                        borderRadius: BorderRadius.circular(albumMargin),
                                         ArtworkPathResolver.resolveDisplayPath(
                                           playlist.coverUrl,
                                         ),
@@ -511,9 +495,7 @@ class PlayListWidget extends StatelessWidget {
                                     SizedBox.square(
                                       dimension: playButtonSize,
                                       child: Visibility(
-                                        visible: isPlaying &&
-                                            playingPlaylistName ==
-                                                playlist.title,
+                                        visible: isPlaying && playingPlaylistName == playlist.title,
                                         replacement: IconButton(
                                           padding: EdgeInsets.zero,
                                           iconSize: playButtonSize * 0.58,
@@ -543,17 +525,13 @@ class PlayListWidget extends StatelessWidget {
                                 maxLines: showSongCount ? 1 : 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize:
-                                      metrics.cardTitleFontSize(albumWidth),
+                                  fontSize: metrics.cardTitleFontSize(albumWidth),
                                   height: 1.15,
                                 ),
                               ),
                               if (showSongCount)
                                 Text(
-                                  playlist.trackCount == null ||
-                                          playlist.trackCount == 0
-                                      ? ''
-                                      : '${playlist.trackCount}首',
+                                  playlist.trackCount == null || playlist.trackCount == 0 ? '' : '${playlist.trackCount}首',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: context.textTheme.bodySmall?.copyWith(

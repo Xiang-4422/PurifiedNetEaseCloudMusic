@@ -14,8 +14,7 @@ class RadioCacheStore {
 
   /// 加载已订阅电台缓存。
   Future<List<RadioSummaryData>?> loadSubscribedRadios() async {
-    final payloadJson =
-        await _cacheDataSource.loadPayloadJson(_subscribedRadioKey);
+    final payloadJson = await _cacheDataSource.loadPayloadJson(_subscribedRadioKey);
     if (payloadJson == null) {
       return null;
     }
@@ -44,8 +43,7 @@ class RadioCacheStore {
 
   /// 加载电台节目缓存。
   Future<List<RadioProgramData>?> loadPrograms(String radioId) async {
-    final payloadJson =
-        await _cacheDataSource.loadPayloadJson(_programKey(radioId));
+    final payloadJson = await _cacheDataSource.loadPayloadJson(_programKey(radioId));
     if (payloadJson == null) {
       return null;
     }

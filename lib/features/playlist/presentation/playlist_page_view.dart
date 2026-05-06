@@ -59,10 +59,8 @@ class PlayListPageView extends StatefulWidget {
 class _PlayListPageViewState extends State<PlayListPageView> {
   static const int _playlistPageSize = 100;
 
-  final PlaylistPageController _controller =
-      Get.find<FeatureControllerFactory>().playlistPage();
-  final PlaylistPlaybackUseCase _playbackUseCase =
-      Get.find<PlaylistPlaybackUseCase>();
+  final PlaylistPageController _controller = Get.find<FeatureControllerFactory>().playlistPage();
+  final PlaylistPlaybackUseCase _playbackUseCase = Get.find<PlaylistPlaybackUseCase>();
   final ScrollController _scrollController = ScrollController();
 
   String playlistName = '';
@@ -115,8 +113,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                   child: const ErrorView(),
                 )
               : RefreshIndicator(
-                  onRefresh: () =>
-                      _refreshPlaylistData(showLoadingState: false),
+                  onRefresh: () => _refreshPlaylistData(showLoadingState: false),
                   child: CustomScrollView(
                     controller: _scrollController,
                     slivers: [
@@ -156,11 +153,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                             ],
                           ),
                           expandedTitleScale: 1.5,
-                          titlePadding: EdgeInsets.only(
-                              bottom: 60 + AppDimensions.paddingSmall,
-                              top: context.mediaQueryPadding.top,
-                              left: AppDimensions.paddingSmall,
-                              right: AppDimensions.paddingSmall),
+                          titlePadding: EdgeInsets.only(bottom: 60 + AppDimensions.paddingSmall, top: context.mediaQueryPadding.top, left: AppDimensions.paddingSmall, right: AppDimensions.paddingSmall),
                           background: SimpleExtendedImage(
                             width: context.width,
                             height: layoutMetrics.heroExtent,
@@ -187,18 +180,13 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                           }
                                         : null,
                                     icon: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                                       children: [
                                         Icon(
                                           TablerIcons.repeat,
                                           color: _playlistActionColor,
                                         ),
-                                        Text('顺序播放',
-                                            style: context.textTheme.titleMedium
-                                                ?.copyWith(
-                                                    color:
-                                                        _playlistActionColor)),
+                                        Text('顺序播放', style: context.textTheme.titleMedium?.copyWith(color: _playlistActionColor)),
                                       ],
                                     ),
                                   ),
@@ -214,12 +202,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                         padding: EdgeInsets.zero,
                                         onPressed: () => _subscribePlayList(),
                                         icon: Icon(
-                                          isSubscribed
-                                              ? TablerIcons.heart_filled
-                                              : TablerIcons.heart,
-                                          color: isSubscribed
-                                              ? Colors.red
-                                              : widgetColor,
+                                          isSubscribed ? TablerIcons.heart_filled : TablerIcons.heart,
+                                          color: isSubscribed ? Colors.red : widgetColor,
                                         )),
                                   ),
                                 ),
@@ -238,18 +222,13 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                                           }
                                         : null,
                                     icon: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                                       children: [
                                         Icon(
                                           TablerIcons.arrows_shuffle,
                                           color: _playlistActionColor,
                                         ),
-                                        Text('随机播放',
-                                            style: context.textTheme.titleMedium
-                                                ?.copyWith(
-                                                    color:
-                                                        _playlistActionColor)),
+                                        Text('随机播放', style: context.textTheme.titleMedium?.copyWith(color: _playlistActionColor)),
                                       ],
                                     ),
                                   ),
@@ -258,8 +237,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                             ).paddingAll(AppDimensions.paddingSmall)),
                       ),
                       SliverPadding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimensions.paddingSmall),
+                        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
                         sliver: SliverList(
                           delegate: SliverChildBuilderDelegate(
                             (BuildContext context, int index) {
@@ -288,9 +266,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                             ),
                             child: Center(
                               child: Text(
-                                loadState ==
-                                        _PlaylistPageLoadState
-                                            .loadFailedWithPartial
+                                loadState == _PlaylistPageLoadState.loadFailedWithPartial
                                     ? '剩余歌曲加载失败，下拉可重试'
                                     : completingFullPlaylist
                                         ? '正在补全播放队列...'
@@ -315,8 +291,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   Future<void> _loadPlaylistData() async {
     final localDetail = await _controller.loadLocalDetail(widget.playlistId);
-    final cachedSnapshot =
-        await _controller.loadCachedSnapshot(widget.playlistId);
+    final cachedSnapshot = await _controller.loadCachedSnapshot(widget.playlistId);
     if (cachedSnapshot != null) {
       playlistName = cachedSnapshot.name;
       coverUrl = cachedSnapshot.coverUrl ?? coverUrl;
@@ -326,9 +301,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (localState != PlaylistLocalDetailState.empty && localDetail != null) {
       await _applyPlaylistDetail(
         localDetail,
-        nextState: localState == PlaylistLocalDetailState.complete
-            ? _PlaylistPageLoadState.showingFull
-            : _PlaylistPageLoadState.showingPartial,
+        nextState: localState == PlaylistLocalDetailState.complete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
       );
       unawaited(_refreshPlaylistData(showLoadingState: false));
       return;
@@ -356,9 +329,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       }
       await _applyPlaylistDetail(
         data,
-        nextState: data.isComplete
-            ? _PlaylistPageLoadState.showingFull
-            : _PlaylistPageLoadState.showingPartial,
+        nextState: data.isComplete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
       );
     } catch (_) {
       if (!mounted) {
@@ -410,34 +381,21 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         fallbackItems: songs,
       );
 
-  bool get _canPlayFullPlaylist =>
-      songs.isNotEmpty &&
-      loadState != _PlaylistPageLoadState.loadingInitial &&
-      loadState != _PlaylistPageLoadState.loadFailedEmpty &&
-      !loadingMoreSongs &&
-      !completingFullPlaylist;
+  bool get _canPlayFullPlaylist => songs.isNotEmpty && loadState != _PlaylistPageLoadState.loadingInitial && loadState != _PlaylistPageLoadState.loadFailedEmpty && !loadingMoreSongs && !completingFullPlaylist;
 
-  Color get _playlistActionColor =>
-      _canPlayFullPlaylist ? widgetColor : widgetColor.withValues(alpha: 0.35);
+  Color get _playlistActionColor => _canPlayFullPlaylist ? widgetColor : widgetColor.withValues(alpha: 0.35);
 
-  bool get _isCompletingPlaylist =>
-      loadState == _PlaylistPageLoadState.loadFailedWithPartial ||
-      loadingMoreSongs ||
-      completingFullPlaylist;
+  bool get _isCompletingPlaylist => loadState == _PlaylistPageLoadState.loadFailedWithPartial || loadingMoreSongs || completingFullPlaylist;
 
   void _handleScrollNearBottom() {
-    if (!_scrollController.hasClients ||
-        _scrollController.position.extentAfter > 800) {
+    if (!_scrollController.hasClients || _scrollController.position.extentAfter > 800) {
       return;
     }
     unawaited(_loadMorePlaylistSongs());
   }
 
   Future<void> _loadMorePlaylistSongs() async {
-    if (!mounted ||
-        loadingMoreSongs ||
-        completingFullPlaylist ||
-        loadState != _PlaylistPageLoadState.showingPartial) {
+    if (!mounted || loadingMoreSongs || completingFullPlaylist || loadState != _PlaylistPageLoadState.showingPartial) {
       return;
     }
     loadingMoreSongs = true;
@@ -452,9 +410,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       );
       await _applyPlaylistDetail(
         data,
-        nextState: data.isComplete
-            ? _PlaylistPageLoadState.showingFull
-            : _PlaylistPageLoadState.showingPartial,
+        nextState: data.isComplete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
       );
     } catch (_) {
       if (!mounted) {
@@ -491,18 +447,14 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       );
       await _applyPlaylistDetail(
         data,
-        nextState: data.isComplete
-            ? _PlaylistPageLoadState.showingFull
-            : _PlaylistPageLoadState.showingPartial,
+        nextState: data.isComplete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
       );
       return data.songs.isNotEmpty && data.isComplete;
     } catch (_) {
       if (mounted) {
         ToastService.show('补全播放队列失败');
         setState(() {
-          loadState = songs.isEmpty
-              ? _PlaylistPageLoadState.loadFailedEmpty
-              : _PlaylistPageLoadState.loadFailedWithPartial;
+          loadState = songs.isEmpty ? _PlaylistPageLoadState.loadFailedEmpty : _PlaylistPageLoadState.loadFailedWithPartial;
         });
       }
       return false;

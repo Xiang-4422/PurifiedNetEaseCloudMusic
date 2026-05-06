@@ -49,33 +49,14 @@ class SimpleExtendedImage extends StatefulWidget {
   final int? cacheHeight;
 
   /// 用于封面、歌单、专辑等普通本地图片。
-  const SimpleExtendedImage(this.url,
-      {Key? key,
-      this.width,
-      this.height,
-      this.placeholder = placeholderImage,
-      this.replacement,
-      this.fit,
-      this.shape = BoxShape.rectangle,
-      this.borderRadius,
-      this.cacheWidth,
-      this.cacheHeight})
+  const SimpleExtendedImage(this.url, {Key? key, this.width, this.height, this.placeholder = placeholderImage, this.replacement, this.fit, this.shape = BoxShape.rectangle, this.borderRadius, this.cacheWidth, this.cacheHeight})
       : super(key: key);
 
   /// 用于头像展示。
   ///
   /// 头像默认使用圆形裁剪，并保留独立头像占位图。
   const SimpleExtendedImage.avatar(this.url,
-      {Key? key,
-      this.width,
-      this.height,
-      this.placeholder = avatarPlaceholderImage,
-      this.replacement,
-      this.fit,
-      this.shape = BoxShape.circle,
-      this.borderRadius,
-      this.cacheWidth = 300,
-      this.cacheHeight})
+      {Key? key, this.width, this.height, this.placeholder = avatarPlaceholderImage, this.replacement, this.fit, this.shape = BoxShape.circle, this.borderRadius, this.cacheWidth = 300, this.cacheHeight})
       : super(key: key);
 
   @override
@@ -86,8 +67,7 @@ class SimpleExtendedImage extends StatefulWidget {
 
 /// SimpleExtendedImage 的状态对象，负责解析本地图片缓存路径。
 class SimpleExtendedImageState extends State<SimpleExtendedImage> {
-  static final LocalImageCacheRepository _imageCacheRepository =
-      LocalImageCacheRepository();
+  static final LocalImageCacheRepository _imageCacheRepository = LocalImageCacheRepository();
 
   String _resolvedPath = '';
   int _resolveVersion = 0;
@@ -95,8 +75,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   @override
   void initState() {
     super.initState();
-    _resolvedPath =
-        _imageCacheRepository.peekResolvedImagePath(widget.url.trim()) ?? '';
+    _resolvedPath = _imageCacheRepository.peekResolvedImagePath(widget.url.trim()) ?? '';
     _resolveImagePath();
   }
 
@@ -104,8 +83,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   void didUpdateWidget(covariant SimpleExtendedImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
-      _resolvedPath =
-          _imageCacheRepository.peekResolvedImagePath(widget.url.trim()) ?? '';
+      _resolvedPath = _imageCacheRepository.peekResolvedImagePath(widget.url.trim()) ?? '';
       _resolveImagePath();
     }
   }
@@ -114,10 +92,8 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = widget.width ??
-            (constraints.hasBoundedWidth ? constraints.maxWidth : null);
-        final height = widget.height ??
-            (constraints.hasBoundedHeight ? constraints.maxHeight : null);
+        final width = widget.width ?? (constraints.hasBoundedWidth ? constraints.maxWidth : null);
+        final height = widget.height ?? (constraints.hasBoundedHeight ? constraints.maxHeight : null);
         final fit = widget.fit ?? BoxFit.cover;
         final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
         final cacheWidth = _resolveCacheDimension(
@@ -132,8 +108,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
         );
 
         if (_resolvedPath.isEmpty) {
-          return _clip(
-              _buildPlaceholder(context, width: width, height: height));
+          return _clip(_buildPlaceholder(context, width: width, height: height));
         }
 
         final image = ExtendedImage.file(
@@ -148,8 +123,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
             Widget image;
             switch (state.extendedImageLoadState) {
               case LoadState.loading:
-                image =
-                    _buildPlaceholder(context, width: width, height: height);
+                image = _buildPlaceholder(context, width: width, height: height);
                 break;
               case LoadState.completed:
                 image = ExtendedRawImage(
@@ -160,8 +134,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
                 );
                 break;
               case LoadState.failed:
-                image =
-                    _buildPlaceholder(context, width: width, height: height);
+                image = _buildPlaceholder(context, width: width, height: height);
                 break;
             }
             return image;
@@ -185,9 +158,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
       return;
     }
 
-    final resolvedPath = await _imageCacheRepository
-        .resolveImagePath(rawPath)
-        .catchError((_) => '');
+    final resolvedPath = await _imageCacheRepository.resolveImagePath(rawPath).catchError((_) => '');
     if (!mounted || resolveVersion != _resolveVersion) {
       return;
     }
@@ -199,8 +170,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
     PlaybackPerformanceLogger.elapsed(
       'image.resolvePath',
       stopwatch,
-      details:
-          'remote=${rawPath.startsWith('http://') || rawPath.startsWith('https://')} resolved=${resolvedPath.isNotEmpty}',
+      details: 'remote=${rawPath.startsWith('http://') || rawPath.startsWith('https://')} resolved=${resolvedPath.isNotEmpty}',
       warnAfterMs: 8,
     );
   }

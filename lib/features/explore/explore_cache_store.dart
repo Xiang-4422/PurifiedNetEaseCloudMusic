@@ -16,8 +16,7 @@ class ExploreCacheStore {
 
   /// 读取缓存的歌单分类目录。
   Future<ExplorePlaylistCatalogueData?> loadPlaylistCatalogue() async {
-    final payloadJson =
-        await _cacheDataSource.loadPayloadJson(explorePlaylistCatalogueSp);
+    final payloadJson = await _cacheDataSource.loadPayloadJson(explorePlaylistCatalogueSp);
     if (payloadJson == null) {
       return null;
     }
@@ -28,14 +27,11 @@ class ExploreCacheStore {
     final map = Map<String, dynamic>.from(
       cached.map((key, value) => MapEntry('$key', value)),
     );
-    final categoryNames = (map['categoryNames'] as List? ?? const [])
-        .map((item) => '$item')
-        .toList();
+    final categoryNames = (map['categoryNames'] as List? ?? const []).map((item) => '$item').toList();
     final rawTags = map['tagsByCategory'] as Map? ?? const {};
     final tagsByCategory = <String, List<String>>{};
     for (final entry in rawTags.entries) {
-      tagsByCategory['${entry.key}'] =
-          (entry.value as List? ?? const []).map((item) => '$item').toList();
+      tagsByCategory['${entry.key}'] = (entry.value as List? ?? const []).map((item) => '$item').toList();
     }
     if (categoryNames.isEmpty && tagsByCategory.isEmpty) {
       return null;
@@ -75,8 +71,7 @@ class ExploreCacheStore {
   Future<List<PlaylistSummaryData>?> loadCategoryPlaylists(
     String category,
   ) async {
-    final payloadJson =
-        await _cacheDataSource.loadPayloadJson(_categoryPlaylistKey(category));
+    final payloadJson = await _cacheDataSource.loadPayloadJson(_categoryPlaylistKey(category));
     if (payloadJson == null) {
       return null;
     }
@@ -119,6 +114,5 @@ class ExploreCacheStore {
     );
   }
 
-  String _categoryPlaylistKey(String category) =>
-      'EXPLORE_CATEGORY_PLAYLISTS_${Uri.encodeComponent(category)}';
+  String _categoryPlaylistKey(String category) => 'EXPLORE_CATEGORY_PLAYLISTS_${Uri.encodeComponent(category)}';
 }

@@ -28,8 +28,7 @@ import '../features/user/presentation/today_page_view.dart' as _i6;
 import '../features/user/presentation/user_setting_view.dart' as _i2;
 
 class RootRouter extends _i13.RootStackRouter {
-  RootRouter([_i14.GlobalKey<_i14.NavigatorState>? navigatorKey])
-      : super(navigatorKey);
+  RootRouter([_i14.GlobalKey<_i14.NavigatorState>? navigatorKey]) : super(navigatorKey);
 
   @override
   final Map<String, _i13.PageFactory> pagesMap = {

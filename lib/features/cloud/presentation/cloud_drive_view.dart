@@ -27,8 +27,7 @@ class _CloudDriveViewState extends State<CloudDriveView> {
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<FeatureControllerFactory>().cloudPage()
-      ..loadInitial();
+    _controller = Get.find<FeatureControllerFactory>().cloudPage()..loadInitial();
   }
 
   @override
@@ -43,8 +42,7 @@ class _CloudDriveViewState extends State<CloudDriveView> {
     return Column(
       children: [
         Container(
-          height:
-              MediaQuery.of(context).padding.top + AppDimensions.appBarHeight,
+          height: MediaQuery.of(context).padding.top + AppDimensions.appBarHeight,
         ),
         Expanded(
           child: ValueListenableBuilder<PagedState<PlaybackQueueItem>>(

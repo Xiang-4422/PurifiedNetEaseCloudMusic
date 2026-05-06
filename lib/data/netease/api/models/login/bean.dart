@@ -37,8 +37,7 @@ class NeteaseAccount {
   NeteaseAccount();
 
   /// 从 JSON 构建账号基础信息。
-  factory NeteaseAccount.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseAccountFromJson(json);
+  factory NeteaseAccount.fromJson(Map<String, dynamic> json) => _$NeteaseAccountFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$NeteaseAccountToJson(this);
@@ -60,8 +59,7 @@ class NeteaseAccountProfile extends NeteaseUserInfo {
   NeteaseAccountProfile();
 
   /// 从 JSON 构建当前登录账号用户资料。
-  factory NeteaseAccountProfile.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseAccountProfileFromJson(json);
+  factory NeteaseAccountProfile.fromJson(Map<String, dynamic> json) => _$NeteaseAccountProfileFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -84,8 +82,7 @@ class NeteaseAccountInfoWrap extends ServerStatusBean {
   NeteaseAccountInfoWrap();
 
   /// 从 JSON 构建登录账号信息响应。
-  factory NeteaseAccountInfoWrap.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseAccountInfoWrapFromJson(json);
+  factory NeteaseAccountInfoWrap.fromJson(Map<String, dynamic> json) => _$NeteaseAccountInfoWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -128,8 +125,7 @@ class NeteaseAccountBinding {
   NeteaseAccountBinding();
 
   /// 从 JSON 构建账号绑定信息。
-  factory NeteaseAccountBinding.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseAccountBindingFromJson(json);
+  factory NeteaseAccountBinding.fromJson(Map<String, dynamic> json) => _$NeteaseAccountBindingFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$NeteaseAccountBindingToJson(this);
@@ -145,8 +141,7 @@ class NeteaseAccountBindingWrap extends ServerStatusBean {
   NeteaseAccountBindingWrap();
 
   /// 从 JSON 构建账号绑定信息列表响应。
-  factory NeteaseAccountBindingWrap.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseAccountBindingWrapFromJson(json);
+  factory NeteaseAccountBindingWrap.fromJson(Map<String, dynamic> json) => _$NeteaseAccountBindingWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -172,8 +167,7 @@ class CellPhoneCheckExistenceRet extends ServerStatusBean {
   CellPhoneCheckExistenceRet();
 
   /// 从 JSON 构建手机号存在性检查响应。
-  factory CellPhoneCheckExistenceRet.fromJson(Map<String, dynamic> json) =>
-      _$CellPhoneCheckExistenceRetFromJson(json);
+  factory CellPhoneCheckExistenceRet.fromJson(Map<String, dynamic> json) => _$CellPhoneCheckExistenceRetFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -191,8 +185,7 @@ class AnonimousLoginRet extends ServerStatusBean {
   AnonimousLoginRet();
 
   /// 从 JSON 构建匿名登录响应。
-  factory AnonimousLoginRet.fromJson(Map<String, dynamic> json) =>
-      _$AnonimousLoginRetFromJson(json);
+  factory AnonimousLoginRet.fromJson(Map<String, dynamic> json) => _$AnonimousLoginRetFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -209,8 +202,7 @@ class QrCodeLoginKey extends ServerStatusBean {
   QrCodeLoginKey();
 
   /// 从 JSON 构建二维码登录 key 响应。
-  factory QrCodeLoginKey.fromJson(Map<String, dynamic> json) =>
-      _$QrCodeLoginKeyFromJson(json);
+  factory QrCodeLoginKey.fromJson(Map<String, dynamic> json) => _$QrCodeLoginKeyFromJson(json);
 
   /// 转换为 JSON。
   @override

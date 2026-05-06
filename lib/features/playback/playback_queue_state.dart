@@ -64,12 +64,10 @@ class PlaybackQueueState {
   bool get hasQueue => activeQueue.isNotEmpty;
 
   /// UI 当前选中的歌曲。
-  PlaybackQueueItem get selectedItem =>
-      _itemAt(activeQueue, selectedIndex) ?? const PlaybackQueueItem.empty();
+  PlaybackQueueItem get selectedItem => _itemAt(activeQueue, selectedIndex) ?? const PlaybackQueueItem.empty();
 
   /// 底层播放器已经确认的歌曲。
-  PlaybackQueueItem get confirmedItem =>
-      _itemAt(activeQueue, confirmedIndex) ?? const PlaybackQueueItem.empty();
+  PlaybackQueueItem get confirmedItem => _itemAt(activeQueue, confirmedIndex) ?? const PlaybackQueueItem.empty();
 
   /// 复制队列状态并替换指定字段。
   PlaybackQueueState copyWith({
@@ -96,8 +94,7 @@ class PlaybackQueueState {
       repeatMode: repeatMode ?? this.repeatMode,
       orderMode: orderMode ?? this.orderMode,
       playbackMode: playbackMode ?? this.playbackMode,
-      pendingRestorePosition:
-          pendingRestorePosition ?? this.pendingRestorePosition,
+      pendingRestorePosition: pendingRestorePosition ?? this.pendingRestorePosition,
       selectionVersion: selectionVersion ?? this.selectionVersion,
       queueVersion: queueVersion ?? this.queueVersion,
     );

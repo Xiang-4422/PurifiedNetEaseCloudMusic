@@ -20,11 +20,8 @@ import 'netease_api.dart';
 /// [option.extra] 'encryptType' [EncryptType]
 /// [option.extra] 'eApiUrl' [String] eApi请求方式请求url 只能eApi方式使用
 /// 拦截网易云 SDK 请求并按接口要求补充 Cookie、User-Agent 和加密参数。
-void neteaseInterceptor(
-    RequestOptions option, RequestInterceptorHandler handler) async {
-  if (option.method == 'POST' &&
-      HOSTS.contains(option.uri.host) &&
-      option.extra['hookRequestData']) {
+void neteaseInterceptor(RequestOptions option, RequestInterceptorHandler handler) async {
+  if (option.method == 'POST' && HOSTS.contains(option.uri.host) && option.extra['hookRequestData']) {
     // debugPrint('$TAG   interceptor before: ${option.uri}   ${option.data}');
 
     option.contentType = Headers.formUrlEncodedContentType;
@@ -34,19 +31,16 @@ void neteaseInterceptor(
     if (realIP != null) {
       option.headers['X-Real-IP'] = realIP;
     }
-    option.headers[HttpHeaders.userAgentHeader] =
-        _chooseUserAgent(option.extra['userAgent']);
+    option.headers[HttpHeaders.userAgentHeader] = _chooseUserAgent(option.extra['userAgent']);
 
     var cookies = await loadCookies(host: option.uri);
 
     var cookiesSb = StringBuffer(CookieManager.getCookies(cookies));
     option.extra['cookies'].forEach((key, value) {
-      cookiesSb
-          .write(' ;${Uri.encodeComponent(key)}=${Uri.encodeComponent(value)}');
+      cookiesSb.write(' ;${Uri.encodeComponent(key)}=${Uri.encodeComponent(value)}');
     });
     option.headers[HttpHeaders.cookieHeader] = cookiesSb.toString();
-    option.extra['cookiesHash'] = await loadCookiesHash(cookies: cookies) +
-        NeteaseMusicApi().loginRefreshVersion;
+    option.extra['cookiesHash'] = await loadCookiesHash(cookies: cookies) + NeteaseMusicApi().loginRefreshVersion;
 
     if (!(option.extra['hookRequestDataSuccess'] ?? false)) {
       switch (option.extra['encryptType']) {
@@ -108,8 +102,7 @@ const userAgentList = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/13.10586'
 ];
 
-const _BASE62 =
-    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const _BASE62 = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const String _presetKeyLinuxForward = 'rFgB&h#%2?^eDg:Q';
 
 const _presetKeyWeApi = '0CoJUm6Qyw8W8jud';
@@ -124,11 +117,7 @@ const String TAG = 'NeteaseMusicApi';
 const String HOST = 'https://music.163.com';
 
 /// 需要执行加密拦截的网易云域名列表。
-const HOSTS = [
-  'music.163.com',
-  'interface.music.163.com',
-  'interface3.music.163.com'
-];
+const HOSTS = ['music.163.com', 'interface.music.163.com', 'interface3.music.163.com'];
 
 /// linux forward 加密过程
 /// body:
@@ -137,17 +126,9 @@ const HOSTS = [
 void _handleLinuxForward(RequestOptions option) {
   var oldUriStr = option.uri.toString();
 
-  option.path = Uri(
-          scheme: option.uri.scheme,
-          host: option.uri.host,
-          path: 'api/linux/forward')
-      .toString();
+  option.path = Uri(scheme: option.uri.scheme, host: option.uri.host, path: 'api/linux/forward').toString();
 
-  var newData = {
-    'method': option.method,
-    'url': oldUriStr.replaceAll(RegExp(r'\w*api'), 'api'),
-    'params': option.data
-  };
+  var newData = {'method': option.method, 'url': oldUriStr.replaceAll(RegExp(r'\w*api'), 'api'), 'params': option.data};
 
   final key = Key.fromUtf8(_presetKeyLinuxForward);
   final encrypter = Encrypter(AES(key, mode: AESMode.ecb));
@@ -167,10 +148,7 @@ void _handleWeApi(RequestOptions option) {
   //weApi方式请求body里面需要带上csrfToken字段，这个是登录请求set-cookie返回的
   String csrfToken = '';
   try {
-    csrfToken = RegExp(r'_csrf=([^(;|$)]+)')
-            .firstMatch(option.headers[HttpHeaders.cookieHeader] ?? '')
-            ?.group(1) ??
-        '';
+    csrfToken = RegExp(r'_csrf=([^(;|$)]+)').firstMatch(option.headers[HttpHeaders.cookieHeader] ?? '')?.group(1) ?? '';
   } catch (e) {}
   if (csrfToken.isNotEmpty) {
     // map可能是<String,Int>类型的，默认转换成<String,dynamic>
@@ -198,14 +176,11 @@ void _handleWeApi(RequestOptions option) {
 
   //4. RSA加密密钥A
   final parser = RSAKeyParser();
-  final encrypter3 = Encrypter(
-      RSAExt(publicKey: parser.parse(_publicKeyWeApi) as RSAPublicKey?));
-  final encrypted3 =
-      encrypter3.encryptBytes(List.from(randomKeyBytes.reversed));
+  final encrypter3 = Encrypter(RSAExt(publicKey: parser.parse(_publicKeyWeApi) as RSAPublicKey?));
+  final encrypted3 = encrypter3.encryptBytes(List.from(randomKeyBytes.reversed));
 
   //5. 组合结果
-  option.data =
-      'params=${Uri.encodeQueryComponent(encryptedBody.base64)}&encSecKey=${Uri.encodeQueryComponent(encrypted3.base16)}';
+  option.data = 'params=${Uri.encodeQueryComponent(encryptedBody.base64)}&encSecKey=${Uri.encodeQueryComponent(encrypted3.base16)}';
 }
 
 void _handleEApi(RequestOptions option, List<Cookie> cookies) {
@@ -213,8 +188,7 @@ void _handleEApi(RequestOptions option, List<Cookie> cookies) {
   option.path = oldUriStr.replaceAll(RegExp(r'\w*api'), 'eapi');
 
   var header = {};
-  Map<String, String> cookiesMap =
-      cookies.fold(<String, String>{}, (map, element) {
+  Map<String, String> cookiesMap = cookies.fold(<String, String>{}, (map, element) {
     map[element.name] = element.value;
     return map;
   });
@@ -223,8 +197,7 @@ void _handleEApi(RequestOptions option, List<Cookie> cookies) {
   header['appver'] = cookiesMap['appver'] ?? '8.0.00';
   header['versioncode'] = cookiesMap['versioncode'] ?? '140';
   header['mobilename'] = cookiesMap['mobilename'];
-  header['buildver'] =
-      cookiesMap['mobilename'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  header['buildver'] = cookiesMap['mobilename'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
   header['resolution'] = cookiesMap['resolution'] ?? '1920x1080';
   header['os'] = cookiesMap['os'] ?? 'android';
   header['channel'] = cookiesMap['channel'];
@@ -235,8 +208,7 @@ void _handleEApi(RequestOptions option, List<Cookie> cookies) {
   if (cookiesMap['MUSIC_A'] != null) {
     header['MUSIC_A'] = cookiesMap['MUSIC_A'];
   }
-  header['requestId'] =
-      '${DateTime.now().millisecondsSinceEpoch}${Random().nextInt(1000).toString().padLeft(4, '0')}';
+  header['requestId'] = '${DateTime.now().millisecondsSinceEpoch}${Random().nextInt(1000).toString().padLeft(4, '0')}';
 
   // map可能是<String,Int>类型的，默认转换成<String,dynamic>
   option.data = Map.from(option.data);
@@ -245,17 +217,12 @@ void _handleEApi(RequestOptions option, List<Cookie> cookies) {
   var url = option.extra['eApiUrl'];
   var body = jsonEncode(option.data);
   var message = 'nobody${url}use${body}md5forencrypt';
-  var digest =
-      Encrypted(MD5Digest().process(Uint8List.fromList(utf8.encode(message))))
-          .base16;
+  var digest = Encrypted(MD5Digest().process(Uint8List.fromList(utf8.encode(message)))).base16;
   var data = '$url-36cd479b6b5-$body-36cd479b6b5-$digest';
 
   const KeyEApi = 'e82ckenh8dichen8';
 
-  final encrypted = Encrypter(AES(Key.fromUtf8(KeyEApi), mode: AESMode.ecb))
-      .encrypt(data, iv: IV.fromLength(0))
-      .base16
-      .toUpperCase();
+  final encrypted = Encrypter(AES(Key.fromUtf8(KeyEApi), mode: AESMode.ecb)).encrypt(data, iv: IV.fromLength(0)).base16.toUpperCase();
 
   option.data = 'params=${Uri.encodeComponent(encrypted)}';
 }
@@ -273,21 +240,8 @@ String _chooseUserAgent(UserAgent agent) {
 }
 
 /// 创建带网易云加密拦截参数的 Dio 请求选项。
-Options joinOptions(
-        {hookRequestDate = true,
-        EncryptType encryptType = EncryptType.WeApi,
-        UserAgent userAgent = UserAgent.Random,
-        Map<String, String> cookies = const {},
-        String eApiUrl = '',
-        String? realIP}) =>
-    Options(contentType: ContentType.json.value, extra: {
-      'hookRequestData': hookRequestDate,
-      'encryptType': encryptType,
-      'userAgent': userAgent,
-      'cookies': cookies,
-      'eApiUrl': eApiUrl,
-      'realIP': realIP
-    });
+Options joinOptions({hookRequestDate = true, EncryptType encryptType = EncryptType.WeApi, UserAgent userAgent = UserAgent.Random, Map<String, String> cookies = const {}, String eApiUrl = '', String? realIP}) =>
+    Options(contentType: ContentType.json.value, extra: {'hookRequestData': hookRequestDate, 'encryptType': encryptType, 'userAgent': userAgent, 'cookies': cookies, 'eApiUrl': eApiUrl, 'realIP': realIP});
 
 /// 将相对路径拼成网易云主站 URI。
 Uri joinUri(String path) {
@@ -311,8 +265,7 @@ Future<int> loadCookiesHash({List<Cookie>? cookies}) async {
 /// 清空 SDK 持久化 Cookie。
 Future<void> deleteAllCookie() async {
   try {
-    await (NeteaseMusicApi.cookieManager.cookieJar as PersistCookieJar)
-        .deleteAll();
+    await (NeteaseMusicApi.cookieManager.cookieJar as PersistCookieJar).deleteAll();
   } catch (e) {
     // 忽略删除失败
   }

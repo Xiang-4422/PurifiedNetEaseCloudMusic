@@ -69,13 +69,9 @@ class _CustomFieldState extends State<CustomField> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: widget.padding ??
-          const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+      padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
       margin: widget.margin ?? const EdgeInsets.symmetric(vertical: 25),
-      decoration: BoxDecoration(
-          color:
-              Theme.of(context).colorScheme.onSecondary.withValues(alpha: .6),
-          borderRadius: BorderRadius.circular(50)),
+      decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSecondary.withValues(alpha: .6), borderRadius: BorderRadius.circular(50)),
       child: Row(
         children: [
           widget.iconData != null
@@ -96,8 +92,7 @@ class _CustomFieldState extends State<CustomField> {
             decoration: InputDecoration(
                 hintText: widget.hitText ?? '',
                 hintStyle: const TextStyle(fontSize: 28, color: Colors.grey),
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
                 border: const UnderlineInputBorder(borderSide: BorderSide.none),
                 isDense: true),
           )),

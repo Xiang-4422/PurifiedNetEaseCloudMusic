@@ -77,8 +77,7 @@ class ExploreApplicationService {
   }
 
   /// 读取缓存的排行榜歌曲队列。
-  Future<List<PlaybackQueueItem>> loadCachedRankingSongs(
-      String playlistId) async {
+  Future<List<PlaybackQueueItem>> loadCachedRankingSongs(String playlistId) async {
     final cachedDetail = await _playlistRepository.loadLocalPlaylistDetail(
       playlistId: playlistId,
       likedSongIds: _likedSongIds(),

@@ -90,7 +90,6 @@ class CommentItemController extends ChangeNotifier {
   }
 
   void _syncUnExpandedReplyCount() {
-    _unExpandedReplyCount =
-        _replyCount - _floorController.state.value.items.length;
+    _unExpandedReplyCount = _replyCount - _floorController.state.value.items.length;
   }
 }

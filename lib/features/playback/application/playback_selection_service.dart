@@ -31,8 +31,7 @@ class PlaybackSelectionService {
   final PlaybackQueueService _queueService;
   final PlaybackSwitchCoordinator _switchCoordinator;
   final Duration _userSkipCoalesceDelay;
-  final StreamController<PlaybackSelectionState> _stateController =
-      StreamController<PlaybackSelectionState>.broadcast();
+  final StreamController<PlaybackSelectionState> _stateController = StreamController<PlaybackSelectionState>.broadcast();
   late final StreamSubscription<PlaybackQueueState> _queueSubscription;
 
   PlaybackSelectionState _state = const PlaybackSelectionState();
@@ -74,8 +73,7 @@ class PlaybackSelectionService {
     PlaybackPerformanceLogger.elapsed(
       'selection.selectQueue',
       stopwatch,
-      details:
-          'trigger=${trigger.name} index=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
+      details: 'trigger=${trigger.name} index=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
     );
   }
 
@@ -102,8 +100,7 @@ class PlaybackSelectionService {
     PlaybackPerformanceLogger.elapsed(
       'selection.selectIndex',
       stopwatch,
-      details:
-          'trigger=${trigger.name} requested=$index selected=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
+      details: 'trigger=${trigger.name} requested=$index selected=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
     );
   }
 
@@ -113,9 +110,7 @@ class PlaybackSelectionService {
     bool playNow = true,
   }) async {
     final stopwatch = PlaybackPerformanceLogger.start();
-    final queueState = _usesConfirmedIndex(trigger)
-        ? await _queueService.selectNextFromConfirmed()
-        : await _queueService.selectNext();
+    final queueState = _usesConfirmedIndex(trigger) ? await _queueService.selectNextFromConfirmed() : await _queueService.selectNext();
     if (queueState == null) {
       PlaybackPerformanceLogger.elapsed(
         'selection.selectNext.empty',
@@ -131,8 +126,7 @@ class PlaybackSelectionService {
     PlaybackPerformanceLogger.elapsed(
       'selection.selectNext',
       stopwatch,
-      details:
-          'trigger=${trigger.name} selected=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
+      details: 'trigger=${trigger.name} selected=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
     );
   }
 
@@ -158,8 +152,7 @@ class PlaybackSelectionService {
     PlaybackPerformanceLogger.elapsed(
       'selection.selectPrevious',
       stopwatch,
-      details:
-          'trigger=${trigger.name} selected=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
+      details: 'trigger=${trigger.name} selected=${queueState.selectedIndex} queue=${queueState.activeQueue.length} playNow=$playNow',
     );
   }
 
@@ -204,8 +197,7 @@ class PlaybackSelectionService {
         PlaybackPerformanceLogger.elapsed(
           'selection.submit.coalesceUserSkip',
           coalesceStopwatch,
-          details:
-              'version=$version id=${selectedItem.id} index=$selectedIndex delay=${_userSkipCoalesceDelay.inMilliseconds}',
+          details: 'version=$version id=${selectedItem.id} index=$selectedIndex delay=${_userSkipCoalesceDelay.inMilliseconds}',
           warnAfterMs: 1,
         );
         if (_state.selectionVersion != version) {
@@ -225,8 +217,7 @@ class PlaybackSelectionService {
       PlaybackPerformanceLogger.elapsed(
         'selection.submit.switchToSelection',
         switchStopwatch,
-        details:
-            'version=$version id=${selectedItem.id} index=$selectedIndex success=${result.success} obsolete=${result.isObsolete}',
+        details: 'version=$version id=${selectedItem.id} index=$selectedIndex success=${result.success} obsolete=${result.isObsolete}',
       );
       if (result.isObsolete || _state.selectionVersion != version) {
         outcome = 'obsolete';
@@ -234,9 +225,7 @@ class PlaybackSelectionService {
       }
       _emitState(
         _state.copyWith(
-          sourceStatus: result.success
-              ? PlaybackSelectionSourceStatus.ready
-              : PlaybackSelectionSourceStatus.error,
+          sourceStatus: result.success ? PlaybackSelectionSourceStatus.ready : PlaybackSelectionSourceStatus.error,
           sourceError: result.success ? null : result.message,
         ),
       );
@@ -245,9 +234,7 @@ class PlaybackSelectionService {
         await _rollbackToConfirmedSelection(result.message);
         return;
       }
-      if (!result.success &&
-          (trigger == PlaybackSwitchTrigger.queueCompletion ||
-              trigger == PlaybackSwitchTrigger.modeAutoAdvance)) {
+      if (!result.success && (trigger == PlaybackSwitchTrigger.queueCompletion || trigger == PlaybackSwitchTrigger.modeAutoAdvance)) {
         outcome = 'autoAdvance';
         await selectNext(
           trigger: PlaybackSwitchTrigger.modeAutoAdvance,
@@ -264,8 +251,7 @@ class PlaybackSelectionService {
       PlaybackPerformanceLogger.elapsed(
         'selection.submitCurrent',
         stopwatch,
-        details:
-            'version=$version id=${selectedItem.id} index=$selectedIndex queue=$queueLength trigger=${trigger.name} playNow=$playNow outcome=$outcome',
+        details: 'version=$version id=${selectedItem.id} index=$selectedIndex queue=$queueLength trigger=${trigger.name} playNow=$playNow outcome=$outcome',
       );
     }
   }
@@ -276,9 +262,7 @@ class PlaybackSelectionService {
     required PlaybackSelectionSourceStatus sourceStatus,
     required int selectionVersion,
   }) {
-    final selectedItem = selectedIndex >= 0 && selectedIndex < queue.length
-        ? queue[selectedIndex]
-        : const PlaybackQueueItem.empty();
+    final selectedItem = selectedIndex >= 0 && selectedIndex < queue.length ? queue[selectedIndex] : const PlaybackQueueItem.empty();
     _emitState(
       _state.copyWith(
         queue: List<PlaybackQueueItem>.unmodifiable(queue),
@@ -292,11 +276,8 @@ class PlaybackSelectionService {
   }
 
   void _syncFromQueueState(PlaybackQueueState queueState) {
-    final selectedIdChanged =
-        _state.selectedItem.id != queueState.selectedItem.id;
-    final sourceStatus = selectedIdChanged
-        ? PlaybackSelectionSourceStatus.idle
-        : _state.sourceStatus;
+    final selectedIdChanged = _state.selectedItem.id != queueState.selectedItem.id;
+    final sourceStatus = selectedIdChanged ? PlaybackSelectionSourceStatus.idle : _state.sourceStatus;
     _emitSelection(
       queue: queueState.activeQueue,
       selectedIndex: queueState.selectedIndex,
@@ -311,30 +292,23 @@ class PlaybackSelectionService {
   }
 
   bool _usesConfirmedIndex(PlaybackSwitchTrigger trigger) {
-    return trigger == PlaybackSwitchTrigger.queueCompletion ||
-        trigger == PlaybackSwitchTrigger.modeAutoAdvance;
+    return trigger == PlaybackSwitchTrigger.queueCompletion || trigger == PlaybackSwitchTrigger.modeAutoAdvance;
   }
 
   bool _shouldRollbackToConfirmed(PlaybackSwitchTrigger trigger) {
-    return trigger == PlaybackSwitchTrigger.userSelect ||
-        trigger == PlaybackSwitchTrigger.userNext ||
-        trigger == PlaybackSwitchTrigger.userPrevious;
+    return trigger == PlaybackSwitchTrigger.userSelect || trigger == PlaybackSwitchTrigger.userNext || trigger == PlaybackSwitchTrigger.userPrevious;
   }
 
   bool _shouldCoalesceUserSkip(
     PlaybackSwitchTrigger trigger,
     bool playNow,
   ) {
-    return playNow &&
-        (trigger == PlaybackSwitchTrigger.userNext ||
-            trigger == PlaybackSwitchTrigger.userPrevious);
+    return playNow && (trigger == PlaybackSwitchTrigger.userNext || trigger == PlaybackSwitchTrigger.userPrevious);
   }
 
   Future<void> _rollbackToConfirmedSelection(String? errorMessage) async {
     final confirmedIndex = _queueService.state.confirmedIndex;
-    if (confirmedIndex < 0 ||
-        confirmedIndex >= _queueService.state.activeQueue.length ||
-        confirmedIndex == _state.selectedIndex) {
+    if (confirmedIndex < 0 || confirmedIndex >= _queueService.state.activeQueue.length || confirmedIndex == _state.selectedIndex) {
       return;
     }
     final queueState = await _queueService.selectIndex(confirmedIndex);

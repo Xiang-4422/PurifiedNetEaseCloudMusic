@@ -186,8 +186,7 @@ class CoverFlow extends StatefulWidget {
   State<CoverFlow> createState() => _CoverFlowState();
 }
 
-class _CoverFlowState extends State<CoverFlow>
-    with SingleTickerProviderStateMixin {
+class _CoverFlowState extends State<CoverFlow> with SingleTickerProviderStateMixin {
   late final AnimationController _positionController;
   final Map<Object, _CachedCoverFlowChild> _itemChildCache = {};
   bool _isDragging = false;
@@ -213,8 +212,7 @@ class _CoverFlowState extends State<CoverFlow>
   void didUpdateWidget(covariant CoverFlow oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.itemBuilder != widget.itemBuilder ||
-        oldWidget.itemKeyBuilder != widget.itemKeyBuilder) {
+    if (oldWidget.itemBuilder != widget.itemBuilder || oldWidget.itemKeyBuilder != widget.itemKeyBuilder) {
       _itemChildCache.clear();
     }
 
@@ -324,11 +322,7 @@ class _CoverFlowState extends State<CoverFlow>
     if (widget.itemCount <= 0) {
       return;
     }
-    final nextPosition = (_pagePosition -
-            details.primaryDelta! /
-                widget.itemSize.width *
-                widget.dragSensitivity)
-        .clamp(0.0, max(0, widget.itemCount - 1).toDouble());
+    final nextPosition = (_pagePosition - details.primaryDelta! / widget.itemSize.width * widget.dragSensitivity).clamp(0.0, max(0, widget.itemCount - 1).toDouble());
     _pagePosition = nextPosition;
   }
 
@@ -358,8 +352,7 @@ class _CoverFlowState extends State<CoverFlow>
   }
 
   Future<void> _animateInertialSnap(double velocity) async {
-    final indexVelocity =
-        -(velocity / widget.itemSize.width) * widget.dragSensitivity;
+    final indexVelocity = -(velocity / widget.itemSize.width) * widget.dragSensitivity;
     const minPosition = 0.0;
     final maxPosition = max(0, widget.itemCount - 1).toDouble();
 
@@ -382,8 +375,7 @@ class _CoverFlowState extends State<CoverFlow>
 
     widget.onInteractionEnd?.call(targetIndex);
 
-    if ((projectedPosition - _pagePosition).abs() >=
-        widget.inertialSimulationMinDelta) {
+    if ((projectedPosition - _pagePosition).abs() >= widget.inertialSimulationMinDelta) {
       await _positionController.animateTo(
         projectedPosition,
         duration: _buildInertialGlideDuration(projectedPosition, indexVelocity),
@@ -416,8 +408,7 @@ class _CoverFlowState extends State<CoverFlow>
   ) {
     final distance = (projectedPosition - _pagePosition).abs();
     final velocityFactor = min(280, indexVelocity.abs() * 28);
-    final milliseconds =
-        (180 + distance * 150 + velocityFactor).round().clamp(220, 720);
+    final milliseconds = (180 + distance * 150 + velocityFactor).round().clamp(220, 720);
     return Duration(milliseconds: milliseconds);
   }
 
@@ -497,8 +488,7 @@ class _CoverFlowState extends State<CoverFlow>
           onHorizontalDragEnd: _handleHorizontalDragEnd,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final currentCenterIndex =
-                  _pagePosition.round().clamp(0, widget.itemCount - 1);
+              final currentCenterIndex = _pagePosition.round().clamp(0, widget.itemCount - 1);
               _trimItemCache(currentCenterIndex);
 
               return CoverFlowCardItems(
@@ -680,15 +670,11 @@ class CoverFlowCardItems extends StatelessWidget {
     final centerTop = (_viewportHeight - itemSize.height) / 2;
     final nearGap = itemSize.width * style.nearGapFactor;
     final farGap = itemSize.width * style.farGapFactor;
-    final left =
-        centerLeft + _resolveHorizontalOffset(distance, side, nearGap, farGap);
+    final left = centerLeft + _resolveHorizontalOffset(distance, side, nearGap, farGap);
     final angle = _resolveAngle(distance, side);
     final scale = _lerpDistance(style.centerScale, style.sideScale, distance);
-    final opacity =
-        _lerpDistance(style.centerOpacity, style.sideOpacity, distance)
-            .clamp(0.0, 1.0);
-    final top =
-        centerTop + _lerpDistance(0, style.sideVerticalOffset, distance);
+    final opacity = _lerpDistance(style.centerOpacity, style.sideOpacity, distance).clamp(0.0, 1.0);
+    final top = centerTop + _lerpDistance(0, style.sideVerticalOffset, distance);
 
     final pivot = side < 0 ? itemSize.width / 2 : -itemSize.width / 2;
     final transform = Matrix4.identity()
@@ -725,9 +711,7 @@ class CoverFlowCardItems extends StatelessWidget {
     if (side == 0 || distance <= 0) {
       return 0;
     }
-    final baseAngle = distance <= 1
-        ? lerpDouble(0, style.nearAngle, distance)!
-        : lerpDouble(style.nearAngle, style.farAngle, min(1, distance - 1))!;
+    final baseAngle = distance <= 1 ? lerpDouble(0, style.nearAngle, distance)! : lerpDouble(style.nearAngle, style.farAngle, min(1, distance - 1))!;
     return side < 0 ? -baseAngle : baseAngle;
   }
 

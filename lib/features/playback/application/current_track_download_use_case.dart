@@ -114,8 +114,7 @@ class CurrentTrackDownloadUseCase {
   }
 
   Future<PlaybackQueueItem?> _buildQueueItem(Track track) async {
-    final trackWithResources =
-        await _playbackRepository.getTrackWithResources(track.id);
+    final trackWithResources = await _playbackRepository.getTrackWithResources(track.id);
     final queueItems = PlaybackQueueItemMapper.fromTrackWithResourcesList(
       [
         trackWithResources ??

@@ -159,15 +159,12 @@ class PagedState<T> {
       loadingMore: loadingMore ?? this.loadingMore,
       hasMore: hasMore ?? this.hasMore,
       error: identical(error, _sentinel) ? this.error : error,
-      stackTrace: identical(stackTrace, _sentinel)
-          ? this.stackTrace
-          : stackTrace as StackTrace?,
+      stackTrace: identical(stackTrace, _sentinel) ? this.stackTrace : stackTrace as StackTrace?,
     );
   }
 
   /// 当前分页是否为空。
-  bool get isEmpty =>
-      !initialLoading && !refreshing && items.isEmpty && error == null;
+  bool get isEmpty => !initialLoading && !refreshing && items.isEmpty && error == null;
 
   /// 是否是首次加载失败。
   bool get hasInitialError => error != null && items.isEmpty;

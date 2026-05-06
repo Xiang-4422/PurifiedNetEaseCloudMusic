@@ -11,8 +11,7 @@ import 'package:bujuan/domain/entities/user_profile_data.dart';
 /// 网易云用户远程数据源。
 class NeteaseUserRemoteDataSource {
   /// 创建网易云用户远程数据源。
-  NeteaseUserRemoteDataSource({NeteaseMusicApi? api})
-      : _api = api ?? NeteaseMusicApi();
+  NeteaseUserRemoteDataSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
 
   final NeteaseMusicApi _api;
 
@@ -89,10 +88,7 @@ class NeteaseUserRemoteDataSource {
       return const [];
     }
 
-    final validSongs = (wrap.data ?? [])
-        .where((song) => song.songInfo != null && song.songInfo!.id.isNotEmpty)
-        .map((song) => song.songInfo!)
-        .toList();
+    final validSongs = (wrap.data ?? []).where((song) => song.songInfo != null && song.songInfo!.id.isNotEmpty).map((song) => song.songInfo!).toList();
     return NeteaseTrackMapper.fromSong2List(validSongs);
   }
 

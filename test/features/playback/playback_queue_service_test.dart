@@ -12,8 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PlaybackQueueService', () {
-    test('replaces queue and syncs notification queue without switching source',
-        () async {
+    test('replaces queue and syncs notification queue without switching source', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
 
@@ -26,14 +25,12 @@ void main() {
 
       expect(queueService.state.selectedItem.id, '2');
       expect(queueService.state.selectedIndex, 1);
-      expect(
-          playbackService.notificationQueue.map((item) => item.id), ['1', '2']);
+      expect(playbackService.notificationQueue.map((item) => item.id), ['1', '2']);
       expect(playbackService.notificationIndex, -1);
       expect(playbackService.sourceSwitches, isEmpty);
     });
 
-    test('keeps selected item mapped after shuffle mode rebuilds active queue',
-        () async {
+    test('keeps selected item mapped after shuffle mode rebuilds active queue', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
       await queueService.setOrderMode(PlaybackOrderMode.shuffle);
@@ -51,8 +48,7 @@ void main() {
       );
     });
 
-    test('restore snapshot restores selection and pending position only',
-        () async {
+    test('restore snapshot restores selection and pending position only', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
 
@@ -69,10 +65,8 @@ void main() {
       );
 
       expect(queueService.state.selectedItem.id, '2');
-      expect(queueService.state.pendingRestorePosition,
-          const Duration(seconds: 42));
-      expect(
-          playbackService.pendingRestorePosition, const Duration(seconds: 42));
+      expect(queueService.state.pendingRestorePosition, const Duration(seconds: 42));
+      expect(playbackService.pendingRestorePosition, const Duration(seconds: 42));
       expect(playbackService.pendingRestoreMediaItemId, '2');
       expect(playbackService.sourceSwitches, isEmpty);
     });
@@ -93,15 +87,12 @@ void main() {
         'Updated',
       );
       expect(
-        queueService.state.activeQueue
-            .firstWhere((item) => item.id == '2')
-            .title,
+        queueService.state.activeQueue.firstWhere((item) => item.id == '2').title,
         'Updated',
       );
     });
 
-    test('skips notification sync when notification signature is unchanged',
-        () async {
+    test('skips notification sync when notification signature is unchanged', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
 

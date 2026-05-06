@@ -44,11 +44,8 @@ class PlaybackQueueItemMapper {
       final localArtworkPath = _emptyToNull(resources.artwork?.path);
       final localLyricsPath = _emptyToNull(resources.lyrics?.path);
       final localAudioPath = _emptyToNull(resources.audio?.path);
-      final artworkUrl = localArtworkPath ??
-          _emptyToNull(ImageUrlNormalizer.normalize(track.artworkUrl));
-      final artistIds = (track.metadata['artistIds'] as List? ?? const [])
-          .map((item) => '$item')
-          .toList();
+      final artworkUrl = localArtworkPath ?? _emptyToNull(ImageUrlNormalizer.normalize(track.artworkUrl));
+      final artistIds = (track.metadata['artistIds'] as List? ?? const []).map((item) => '$item').toList();
       final metadata = <String, dynamic>{
         ...track.metadata,
         'albumId': track.metadata['albumId']?.toString() ?? '',
@@ -63,9 +60,7 @@ class PlaybackQueueItemMapper {
         albumTitle: track.albumTitle,
         artistNames: track.artistNames,
         artistIds: artistIds,
-        duration: track.durationMs == null
-            ? null
-            : Duration(milliseconds: track.durationMs!),
+        duration: track.durationMs == null ? null : Duration(milliseconds: track.durationMs!),
         artworkUrl: artworkUrl,
         localArtworkPath: localArtworkPath,
         mediaType: mediaType ?? _mediaTypeForTrack(track, resources),
@@ -100,9 +95,7 @@ class PlaybackQueueItemMapper {
     }
     final audioPath = resources.audio?.path;
     if (audioPath?.isNotEmpty == true) {
-      return audioPath!.endsWith('.uc!')
-          ? MediaType.neteaseCache
-          : MediaType.local;
+      return audioPath!.endsWith('.uc!') ? MediaType.neteaseCache : MediaType.local;
     }
     return MediaType.playlist;
   }

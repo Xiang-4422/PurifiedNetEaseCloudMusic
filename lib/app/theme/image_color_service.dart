@@ -22,8 +22,7 @@ class ImageColorService {
       imageProvider = const ExtendedAssetImageProvider(placeholderImage);
     } else {
       final normalizedUrl = ImageUrlNormalizer.normalize(url);
-      imageProvider =
-          ExtendedFileImageProvider(File(normalizedUrl.split('?').first));
+      imageProvider = ExtendedFileImageProvider(File(normalizedUrl.split('?').first));
     }
     return PaletteGenerator.fromImageProvider(
       imageProvider,
@@ -63,14 +62,8 @@ class ImageColorService {
 
     final future = palette(normalizedUrl).then((paletteGenerator) async {
       final color = getLightColor
-          ? paletteGenerator.lightMutedColor?.color ??
-              paletteGenerator.lightVibrantColor?.color ??
-              paletteGenerator.dominantColor?.color ??
-              Colors.white
-          : paletteGenerator.darkMutedColor?.color ??
-              paletteGenerator.darkVibrantColor?.color ??
-              paletteGenerator.dominantColor?.color ??
-              Colors.black;
+          ? paletteGenerator.lightMutedColor?.color ?? paletteGenerator.lightVibrantColor?.color ?? paletteGenerator.dominantColor?.color ?? Colors.white
+          : paletteGenerator.darkMutedColor?.color ?? paletteGenerator.darkVibrantColor?.color ?? paletteGenerator.dominantColor?.color ?? Colors.black;
       _remember(cacheKey, color);
       if (normalizedUrl.isNotEmpty) {
         await _cacheStore.save(
@@ -116,11 +109,7 @@ class ImageColorService {
     Iterable<String?> urls, {
     bool getLightColor = false,
   }) async {
-    final normalizedUrls = urls
-        .map(ImageUrlNormalizer.normalize)
-        .where((url) => url.isNotEmpty && !_isRemoteImageUrl(url))
-        .toSet()
-        .toList();
+    final normalizedUrls = urls.map(ImageUrlNormalizer.normalize).where((url) => url.isNotEmpty && !_isRemoteImageUrl(url)).toSet().toList();
     if (normalizedUrls.isEmpty) {
       return;
     }

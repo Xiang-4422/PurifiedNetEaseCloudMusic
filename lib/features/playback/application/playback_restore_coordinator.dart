@@ -54,9 +54,7 @@ class PlaybackRestoreCoordinator {
   /// 加载可直接用于恢复播放器的快照。
   Future<PlaybackRestoreSnapshot> loadSnapshot() async {
     final restoreState = await _repository.getRestoreState();
-    final playlist = restoreState.queue.isEmpty
-        ? <PlaybackQueueItem>[]
-        : await _queueStore.decodeQueue(restoreState.queue);
+    final playlist = restoreState.queue.isEmpty ? <PlaybackQueueItem>[] : await _queueStore.decodeQueue(restoreState.queue);
     var index = playlist.indexWhere(
       (element) => element.id == restoreState.currentSongId,
     );

@@ -40,13 +40,7 @@ class PlaybackRestoreState {
 
   /// 是否包含需要恢复的快照数据。
   bool get hasSnapshotData {
-    return playbackMode != PlaybackMode.playlist ||
-        repeatMode != PlaybackRepeatMode.all ||
-        queue.isNotEmpty ||
-        currentSongId.isNotEmpty ||
-        playlistName.isNotEmpty ||
-        playlistHeader.isNotEmpty ||
-        position > Duration.zero;
+    return playbackMode != PlaybackMode.playlist || repeatMode != PlaybackRepeatMode.all || queue.isNotEmpty || currentSongId.isNotEmpty || playlistName.isNotEmpty || playlistHeader.isNotEmpty || position > Duration.zero;
   }
 
   /// 复制播放恢复状态并替换指定字段。

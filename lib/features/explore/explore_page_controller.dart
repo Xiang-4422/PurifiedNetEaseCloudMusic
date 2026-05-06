@@ -97,8 +97,7 @@ class ExplorePageController extends GetxController {
   RxString curTopPlayListCategoryName = "".obs;
 
   /// 当前榜单分类下的榜单列表。
-  RxList<RankingPlaylistData> curCategoryTopPlayLists =
-      <RankingPlaylistData>[].obs;
+  RxList<RankingPlaylistData> curCategoryTopPlayLists = <RankingPlaylistData>[].obs;
 
   /// 当前榜单名称。
   RxString curTopPlayListName = "".obs;
@@ -130,8 +129,7 @@ class ExplorePageController extends GetxController {
       unawaited(_ensureBootstrapped());
       return;
     }
-    _pageVisibilityWorker =
-        ever<int>(HomeShellController.to.curHomePageIndex, (pageIndex) {
+    _pageVisibilityWorker = ever<int>(HomeShellController.to.curHomePageIndex, (pageIndex) {
       if (!HomeShellController.to.isExplorePageIndex(pageIndex)) {
         return;
       }
@@ -164,8 +162,7 @@ class ExplorePageController extends GetxController {
     }
     topPlayListCategoryNames.addAll(topPlayListCategory.keys);
     curTopPlayListCategoryName.value = topPlayListCategoryNames[0];
-    curCategoryTopPlayLists
-        .addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
+    curCategoryTopPlayLists.addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
     curTopPlayListName.value = curCategoryTopPlayLists[0].name;
     curTopPlayListId.value = curCategoryTopPlayLists[0].id;
   }
@@ -208,28 +205,24 @@ class ExplorePageController extends GetxController {
   }
 
   Future<bool> _loadCachedPlaylistCatalogue() async {
-    final cachedCatalogue =
-        await _applicationService.loadCachedPlaylistCatalogue();
+    final cachedCatalogue = await _applicationService.loadCachedPlaylistCatalogue();
     if (cachedCatalogue == null) {
       return false;
     }
     _applyPlaylistCatalogue(cachedCatalogue);
-    return cachedCatalogue.categoryNames.isNotEmpty ||
-        cachedCatalogue.tagsByCategory.isNotEmpty;
+    return cachedCatalogue.categoryNames.isNotEmpty || cachedCatalogue.tagsByCategory.isNotEmpty;
   }
 
   void _applyPlaylistCatalogue(ExplorePlaylistCatalogueData catalogue) {
     tagCategorys.assignAll(catalogue.categoryNames);
     tags.assignAll(catalogue.tagsByCategory);
-    if (tagCategorys.isNotEmpty &&
-        !tagCategorys.contains(curTagCategoryName.value)) {
+    if (tagCategorys.isNotEmpty && !tagCategorys.contains(curTagCategoryName.value)) {
       curTagCategoryName.value = tagCategorys.first;
     }
   }
 
   Future<bool> _loadCachedPlayLists() async {
-    final cachedPlayLists =
-        await _applicationService.loadCachedCategoryPlaylists(curTag.value);
+    final cachedPlayLists = await _applicationService.loadCachedCategoryPlaylists(curTag.value);
     if (cachedPlayLists == null || cachedPlayLists.isEmpty) {
       return false;
     }
@@ -356,8 +349,7 @@ class ExplorePageController extends GetxController {
     showChoosePlayList.value = false;
 
     curCategoryTopPlayLists.clear();
-    curCategoryTopPlayLists
-        .addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
+    curCategoryTopPlayLists.addAll(topPlayListCategory[curTopPlayListCategoryName.value]!);
     changeCurTopPlayList(curCategoryTopPlayLists[0]);
   }
 

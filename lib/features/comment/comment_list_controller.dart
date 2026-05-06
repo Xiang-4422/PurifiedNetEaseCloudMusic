@@ -28,8 +28,7 @@ class CommentListController {
   final CommentRepository _repository;
 
   /// 评论分页加载状态。
-  final ValueNotifier<PagedState<CommentData>> state =
-      ValueNotifier(PagedState.initialLoading());
+  final ValueNotifier<PagedState<CommentData>> state = ValueNotifier(PagedState.initialLoading());
 
   int _pageNo = 1;
   String? _cursor;

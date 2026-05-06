@@ -3,149 +3,88 @@
 part of 'drift_database.dart';
 
 // ignore_for_file: type=lint
-class $PlaybackRestoreSnapshotsTable extends PlaybackRestoreSnapshots
-    with TableInfo<$PlaybackRestoreSnapshotsTable, PlaybackRestoreSnapshot> {
+class $PlaybackRestoreSnapshotsTable extends PlaybackRestoreSnapshots with TableInfo<$PlaybackRestoreSnapshotsTable, PlaybackRestoreSnapshot> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $PlaybackRestoreSnapshotsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<int> id = GeneratedColumn<int>('id', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _playbackModeMeta =
-      const VerificationMeta('playbackMode');
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _playbackModeMeta = const VerificationMeta('playbackMode');
   @override
-  late final GeneratedColumn<String> playbackMode = GeneratedColumn<String>(
-      'playback_mode', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _repeatModeMeta =
-      const VerificationMeta('repeatMode');
+  late final GeneratedColumn<String> playbackMode = GeneratedColumn<String>('playback_mode', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _repeatModeMeta = const VerificationMeta('repeatMode');
   @override
-  late final GeneratedColumn<String> repeatMode = GeneratedColumn<String>(
-      'repeat_mode', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _queueJsonMeta =
-      const VerificationMeta('queueJson');
+  late final GeneratedColumn<String> repeatMode = GeneratedColumn<String>('repeat_mode', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _queueJsonMeta = const VerificationMeta('queueJson');
   @override
-  late final GeneratedColumn<String> queueJson = GeneratedColumn<String>(
-      'queue_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _currentSongIdMeta =
-      const VerificationMeta('currentSongId');
+  late final GeneratedColumn<String> queueJson = GeneratedColumn<String>('queue_json', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _currentSongIdMeta = const VerificationMeta('currentSongId');
   @override
-  late final GeneratedColumn<String> currentSongId = GeneratedColumn<String>(
-      'current_song_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _playlistNameMeta =
-      const VerificationMeta('playlistName');
+  late final GeneratedColumn<String> currentSongId = GeneratedColumn<String>('current_song_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _playlistNameMeta = const VerificationMeta('playlistName');
   @override
-  late final GeneratedColumn<String> playlistName = GeneratedColumn<String>(
-      'playlist_name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _playlistHeaderMeta =
-      const VerificationMeta('playlistHeader');
+  late final GeneratedColumn<String> playlistName = GeneratedColumn<String>('playlist_name', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _playlistHeaderMeta = const VerificationMeta('playlistHeader');
   @override
-  late final GeneratedColumn<String> playlistHeader = GeneratedColumn<String>(
-      'playlist_header', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _positionMsMeta =
-      const VerificationMeta('positionMs');
+  late final GeneratedColumn<String> playlistHeader = GeneratedColumn<String>('playlist_header', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _positionMsMeta = const VerificationMeta('positionMs');
   @override
-  late final GeneratedColumn<int> positionMs = GeneratedColumn<int>(
-      'position_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> positionMs = GeneratedColumn<int>('position_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [
-        id,
-        updatedAtMs,
-        playbackMode,
-        repeatMode,
-        queueJson,
-        currentSongId,
-        playlistName,
-        playlistHeader,
-        positionMs
-      ];
+  List<GeneratedColumn> get $columns => [id, updatedAtMs, playbackMode, repeatMode, queueJson, currentSongId, playlistName, playlistHeader, positionMs];
   @override
   String get aliasedName => _alias ?? 'playback_restore_snapshots';
   @override
   String get actualTableName => 'playback_restore_snapshots';
   @override
-  VerificationContext validateIntegrity(
-      Insertable<PlaybackRestoreSnapshot> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<PlaybackRestoreSnapshot> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
     if (data.containsKey('playback_mode')) {
-      context.handle(
-          _playbackModeMeta,
-          playbackMode.isAcceptableOrUnknown(
-              data['playback_mode']!, _playbackModeMeta));
+      context.handle(_playbackModeMeta, playbackMode.isAcceptableOrUnknown(data['playback_mode']!, _playbackModeMeta));
     } else if (isInserting) {
       context.missing(_playbackModeMeta);
     }
     if (data.containsKey('repeat_mode')) {
-      context.handle(
-          _repeatModeMeta,
-          repeatMode.isAcceptableOrUnknown(
-              data['repeat_mode']!, _repeatModeMeta));
+      context.handle(_repeatModeMeta, repeatMode.isAcceptableOrUnknown(data['repeat_mode']!, _repeatModeMeta));
     } else if (isInserting) {
       context.missing(_repeatModeMeta);
     }
     if (data.containsKey('queue_json')) {
-      context.handle(_queueJsonMeta,
-          queueJson.isAcceptableOrUnknown(data['queue_json']!, _queueJsonMeta));
+      context.handle(_queueJsonMeta, queueJson.isAcceptableOrUnknown(data['queue_json']!, _queueJsonMeta));
     } else if (isInserting) {
       context.missing(_queueJsonMeta);
     }
     if (data.containsKey('current_song_id')) {
-      context.handle(
-          _currentSongIdMeta,
-          currentSongId.isAcceptableOrUnknown(
-              data['current_song_id']!, _currentSongIdMeta));
+      context.handle(_currentSongIdMeta, currentSongId.isAcceptableOrUnknown(data['current_song_id']!, _currentSongIdMeta));
     } else if (isInserting) {
       context.missing(_currentSongIdMeta);
     }
     if (data.containsKey('playlist_name')) {
-      context.handle(
-          _playlistNameMeta,
-          playlistName.isAcceptableOrUnknown(
-              data['playlist_name']!, _playlistNameMeta));
+      context.handle(_playlistNameMeta, playlistName.isAcceptableOrUnknown(data['playlist_name']!, _playlistNameMeta));
     } else if (isInserting) {
       context.missing(_playlistNameMeta);
     }
     if (data.containsKey('playlist_header')) {
-      context.handle(
-          _playlistHeaderMeta,
-          playlistHeader.isAcceptableOrUnknown(
-              data['playlist_header']!, _playlistHeaderMeta));
+      context.handle(_playlistHeaderMeta, playlistHeader.isAcceptableOrUnknown(data['playlist_header']!, _playlistHeaderMeta));
     } else if (isInserting) {
       context.missing(_playlistHeaderMeta);
     }
     if (data.containsKey('position_ms')) {
-      context.handle(
-          _positionMsMeta,
-          positionMs.isAcceptableOrUnknown(
-              data['position_ms']!, _positionMsMeta));
+      context.handle(_positionMsMeta, positionMs.isAcceptableOrUnknown(data['position_ms']!, _positionMsMeta));
     } else if (isInserting) {
       context.missing(_positionMsMeta);
     }
@@ -155,28 +94,18 @@ class $PlaybackRestoreSnapshotsTable extends PlaybackRestoreSnapshots
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  PlaybackRestoreSnapshot map(Map<String, dynamic> data,
-      {String? tablePrefix}) {
+  PlaybackRestoreSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PlaybackRestoreSnapshot(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
-      playbackMode: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}playback_mode'])!,
-      repeatMode: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}repeat_mode'])!,
-      queueJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}queue_json'])!,
-      currentSongId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}current_song_id'])!,
-      playlistName: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}playlist_name'])!,
-      playlistHeader: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}playlist_header'])!,
-      positionMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}position_ms'])!,
+      id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      playbackMode: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}playback_mode'])!,
+      repeatMode: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}repeat_mode'])!,
+      queueJson: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}queue_json'])!,
+      currentSongId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}current_song_id'])!,
+      playlistName: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}playlist_name'])!,
+      playlistHeader: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}playlist_header'])!,
+      positionMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}position_ms'])!,
     );
   }
 
@@ -186,8 +115,7 @@ class $PlaybackRestoreSnapshotsTable extends PlaybackRestoreSnapshots
   }
 }
 
-class PlaybackRestoreSnapshot extends DataClass
-    implements Insertable<PlaybackRestoreSnapshot> {
+class PlaybackRestoreSnapshot extends DataClass implements Insertable<PlaybackRestoreSnapshot> {
   /// 固定主键。
   final int id;
 
@@ -253,8 +181,7 @@ class PlaybackRestoreSnapshot extends DataClass
     );
   }
 
-  factory PlaybackRestoreSnapshot.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory PlaybackRestoreSnapshot.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PlaybackRestoreSnapshot(
       id: serializer.fromJson<int>(json['id']),
@@ -284,17 +211,7 @@ class PlaybackRestoreSnapshot extends DataClass
     };
   }
 
-  PlaybackRestoreSnapshot copyWith(
-          {int? id,
-          int? updatedAtMs,
-          String? playbackMode,
-          String? repeatMode,
-          String? queueJson,
-          String? currentSongId,
-          String? playlistName,
-          String? playlistHeader,
-          int? positionMs}) =>
-      PlaybackRestoreSnapshot(
+  PlaybackRestoreSnapshot copyWith({int? id, int? updatedAtMs, String? playbackMode, String? repeatMode, String? queueJson, String? currentSongId, String? playlistName, String? playlistHeader, int? positionMs}) => PlaybackRestoreSnapshot(
         id: id ?? this.id,
         updatedAtMs: updatedAtMs ?? this.updatedAtMs,
         playbackMode: playbackMode ?? this.playbackMode,
@@ -322,8 +239,7 @@ class PlaybackRestoreSnapshot extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, updatedAtMs, playbackMode, repeatMode,
-      queueJson, currentSongId, playlistName, playlistHeader, positionMs);
+  int get hashCode => Object.hash(id, updatedAtMs, playbackMode, repeatMode, queueJson, currentSongId, playlistName, playlistHeader, positionMs);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -339,8 +255,7 @@ class PlaybackRestoreSnapshot extends DataClass
           other.positionMs == this.positionMs);
 }
 
-class PlaybackRestoreSnapshotsCompanion
-    extends UpdateCompanion<PlaybackRestoreSnapshot> {
+class PlaybackRestoreSnapshotsCompanion extends UpdateCompanion<PlaybackRestoreSnapshot> {
   final Value<int> id;
   final Value<int> updatedAtMs;
   final Value<String> playbackMode;
@@ -476,107 +391,74 @@ class PlaybackRestoreSnapshotsCompanion
   }
 }
 
-class $LocalResourceEntriesTable extends LocalResourceEntries
-    with TableInfo<$LocalResourceEntriesTable, LocalResourceEntrie> {
+class $LocalResourceEntriesTable extends LocalResourceEntries with TableInfo<$LocalResourceEntriesTable, LocalResourceEntrie> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $LocalResourceEntriesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _trackIdMeta =
-      const VerificationMeta('trackId');
+  static const VerificationMeta _trackIdMeta = const VerificationMeta('trackId');
   @override
-  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
-      'track_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>('track_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _kindMeta = const VerificationMeta('kind');
   @override
-  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
-      'kind', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>('kind', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _pathMeta = const VerificationMeta('path');
   @override
-  late final GeneratedColumn<String> path = GeneratedColumn<String>(
-      'path', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> path = GeneratedColumn<String>('path', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _originMeta = const VerificationMeta('origin');
   @override
-  late final GeneratedColumn<String> origin = GeneratedColumn<String>(
-      'origin', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sizeBytesMeta =
-      const VerificationMeta('sizeBytes');
+  late final GeneratedColumn<String> origin = GeneratedColumn<String>('origin', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sizeBytesMeta = const VerificationMeta('sizeBytes');
   @override
-  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
-      'size_bytes', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _createdAtMsMeta =
-      const VerificationMeta('createdAtMs');
+  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>('size_bytes', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMsMeta = const VerificationMeta('createdAtMs');
   @override
-  late final GeneratedColumn<int> createdAtMs = GeneratedColumn<int>(
-      'created_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _lastAccessedAtMsMeta =
-      const VerificationMeta('lastAccessedAtMs');
+  late final GeneratedColumn<int> createdAtMs = GeneratedColumn<int>('created_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _lastAccessedAtMsMeta = const VerificationMeta('lastAccessedAtMs');
   @override
-  late final GeneratedColumn<int> lastAccessedAtMs = GeneratedColumn<int>(
-      'last_accessed_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> lastAccessedAtMs = GeneratedColumn<int>('last_accessed_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns =>
-      [trackId, kind, path, origin, sizeBytes, createdAtMs, lastAccessedAtMs];
+  List<GeneratedColumn> get $columns => [trackId, kind, path, origin, sizeBytes, createdAtMs, lastAccessedAtMs];
   @override
   String get aliasedName => _alias ?? 'local_resource_entries';
   @override
   String get actualTableName => 'local_resource_entries';
   @override
-  VerificationContext validateIntegrity(
-      Insertable<LocalResourceEntrie> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<LocalResourceEntrie> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('track_id')) {
-      context.handle(_trackIdMeta,
-          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+      context.handle(_trackIdMeta, trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
     } else if (isInserting) {
       context.missing(_trackIdMeta);
     }
     if (data.containsKey('kind')) {
-      context.handle(
-          _kindMeta, kind.isAcceptableOrUnknown(data['kind']!, _kindMeta));
+      context.handle(_kindMeta, kind.isAcceptableOrUnknown(data['kind']!, _kindMeta));
     } else if (isInserting) {
       context.missing(_kindMeta);
     }
     if (data.containsKey('path')) {
-      context.handle(
-          _pathMeta, path.isAcceptableOrUnknown(data['path']!, _pathMeta));
+      context.handle(_pathMeta, path.isAcceptableOrUnknown(data['path']!, _pathMeta));
     } else if (isInserting) {
       context.missing(_pathMeta);
     }
     if (data.containsKey('origin')) {
-      context.handle(_originMeta,
-          origin.isAcceptableOrUnknown(data['origin']!, _originMeta));
+      context.handle(_originMeta, origin.isAcceptableOrUnknown(data['origin']!, _originMeta));
     } else if (isInserting) {
       context.missing(_originMeta);
     }
     if (data.containsKey('size_bytes')) {
-      context.handle(_sizeBytesMeta,
-          sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta));
+      context.handle(_sizeBytesMeta, sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta));
     } else if (isInserting) {
       context.missing(_sizeBytesMeta);
     }
     if (data.containsKey('created_at_ms')) {
-      context.handle(
-          _createdAtMsMeta,
-          createdAtMs.isAcceptableOrUnknown(
-              data['created_at_ms']!, _createdAtMsMeta));
+      context.handle(_createdAtMsMeta, createdAtMs.isAcceptableOrUnknown(data['created_at_ms']!, _createdAtMsMeta));
     } else if (isInserting) {
       context.missing(_createdAtMsMeta);
     }
     if (data.containsKey('last_accessed_at_ms')) {
-      context.handle(
-          _lastAccessedAtMsMeta,
-          lastAccessedAtMs.isAcceptableOrUnknown(
-              data['last_accessed_at_ms']!, _lastAccessedAtMsMeta));
+      context.handle(_lastAccessedAtMsMeta, lastAccessedAtMs.isAcceptableOrUnknown(data['last_accessed_at_ms']!, _lastAccessedAtMsMeta));
     } else if (isInserting) {
       context.missing(_lastAccessedAtMsMeta);
     }
@@ -589,20 +471,13 @@ class $LocalResourceEntriesTable extends LocalResourceEntries
   LocalResourceEntrie map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return LocalResourceEntrie(
-      trackId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
-      kind: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}kind'])!,
-      path: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}path'])!,
-      origin: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}origin'])!,
-      sizeBytes: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}size_bytes'])!,
-      createdAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}created_at_ms'])!,
-      lastAccessedAtMs: attachedDatabase.typeMapping.read(
-          DriftSqlType.int, data['${effectivePrefix}last_accessed_at_ms'])!,
+      trackId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      kind: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}kind'])!,
+      path: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}path'])!,
+      origin: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}origin'])!,
+      sizeBytes: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}size_bytes'])!,
+      createdAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}created_at_ms'])!,
+      lastAccessedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}last_accessed_at_ms'])!,
     );
   }
 
@@ -612,8 +487,7 @@ class $LocalResourceEntriesTable extends LocalResourceEntries
   }
 }
 
-class LocalResourceEntrie extends DataClass
-    implements Insertable<LocalResourceEntrie> {
+class LocalResourceEntrie extends DataClass implements Insertable<LocalResourceEntrie> {
   /// 歌曲 id。
   final String trackId;
 
@@ -634,14 +508,7 @@ class LocalResourceEntrie extends DataClass
 
   /// 最近访问时间戳，单位毫秒。
   final int lastAccessedAtMs;
-  const LocalResourceEntrie(
-      {required this.trackId,
-      required this.kind,
-      required this.path,
-      required this.origin,
-      required this.sizeBytes,
-      required this.createdAtMs,
-      required this.lastAccessedAtMs});
+  const LocalResourceEntrie({required this.trackId, required this.kind, required this.path, required this.origin, required this.sizeBytes, required this.createdAtMs, required this.lastAccessedAtMs});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -667,8 +534,7 @@ class LocalResourceEntrie extends DataClass
     );
   }
 
-  factory LocalResourceEntrie.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory LocalResourceEntrie.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LocalResourceEntrie(
       trackId: serializer.fromJson<String>(json['trackId']),
@@ -694,15 +560,7 @@ class LocalResourceEntrie extends DataClass
     };
   }
 
-  LocalResourceEntrie copyWith(
-          {String? trackId,
-          String? kind,
-          String? path,
-          String? origin,
-          int? sizeBytes,
-          int? createdAtMs,
-          int? lastAccessedAtMs}) =>
-      LocalResourceEntrie(
+  LocalResourceEntrie copyWith({String? trackId, String? kind, String? path, String? origin, int? sizeBytes, int? createdAtMs, int? lastAccessedAtMs}) => LocalResourceEntrie(
         trackId: trackId ?? this.trackId,
         kind: kind ?? this.kind,
         path: path ?? this.path,
@@ -726,8 +584,7 @@ class LocalResourceEntrie extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(
-      trackId, kind, path, origin, sizeBytes, createdAtMs, lastAccessedAtMs);
+  int get hashCode => Object.hash(trackId, kind, path, origin, sizeBytes, createdAtMs, lastAccessedAtMs);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -741,8 +598,7 @@ class LocalResourceEntrie extends DataClass
           other.lastAccessedAtMs == this.lastAccessedAtMs);
 }
 
-class LocalResourceEntriesCompanion
-    extends UpdateCompanion<LocalResourceEntrie> {
+class LocalResourceEntriesCompanion extends UpdateCompanion<LocalResourceEntrie> {
   final Value<String> trackId;
   final Value<String> kind;
   final Value<String> path;
@@ -799,15 +655,7 @@ class LocalResourceEntriesCompanion
     });
   }
 
-  LocalResourceEntriesCompanion copyWith(
-      {Value<String>? trackId,
-      Value<String>? kind,
-      Value<String>? path,
-      Value<String>? origin,
-      Value<int>? sizeBytes,
-      Value<int>? createdAtMs,
-      Value<int>? lastAccessedAtMs,
-      Value<int>? rowid}) {
+  LocalResourceEntriesCompanion copyWith({Value<String>? trackId, Value<String>? kind, Value<String>? path, Value<String>? origin, Value<int>? sizeBytes, Value<int>? createdAtMs, Value<int>? lastAccessedAtMs, Value<int>? rowid}) {
     return LocalResourceEntriesCompanion(
       trackId: trackId ?? this.trackId,
       kind: kind ?? this.kind,
@@ -866,94 +714,62 @@ class LocalResourceEntriesCompanion
   }
 }
 
-class $DownloadTasksTable extends DownloadTasks
-    with TableInfo<$DownloadTasksTable, DownloadTask> {
+class $DownloadTasksTable extends DownloadTasks with TableInfo<$DownloadTasksTable, DownloadTask> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $DownloadTasksTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _trackIdMeta =
-      const VerificationMeta('trackId');
+  static const VerificationMeta _trackIdMeta = const VerificationMeta('trackId');
   @override
-  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
-      'track_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>('track_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-      'status', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<String> status = GeneratedColumn<String>('status', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _progressMeta =
-      const VerificationMeta('progress');
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _progressMeta = const VerificationMeta('progress');
   @override
-  late final GeneratedColumn<double> progress = GeneratedColumn<double>(
-      'progress', aliasedName, true,
-      type: DriftSqlType.double, requiredDuringInsert: false);
-  static const VerificationMeta _temporaryPathMeta =
-      const VerificationMeta('temporaryPath');
+  late final GeneratedColumn<double> progress = GeneratedColumn<double>('progress', aliasedName, true, type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _temporaryPathMeta = const VerificationMeta('temporaryPath');
   @override
-  late final GeneratedColumn<String> temporaryPath = GeneratedColumn<String>(
-      'temporary_path', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _failureReasonMeta =
-      const VerificationMeta('failureReason');
+  late final GeneratedColumn<String> temporaryPath = GeneratedColumn<String>('temporary_path', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _failureReasonMeta = const VerificationMeta('failureReason');
   @override
-  late final GeneratedColumn<String> failureReason = GeneratedColumn<String>(
-      'failure_reason', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+  late final GeneratedColumn<String> failureReason = GeneratedColumn<String>('failure_reason', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns =>
-      [trackId, status, updatedAtMs, progress, temporaryPath, failureReason];
+  List<GeneratedColumn> get $columns => [trackId, status, updatedAtMs, progress, temporaryPath, failureReason];
   @override
   String get aliasedName => _alias ?? 'download_tasks';
   @override
   String get actualTableName => 'download_tasks';
   @override
-  VerificationContext validateIntegrity(Insertable<DownloadTask> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<DownloadTask> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('track_id')) {
-      context.handle(_trackIdMeta,
-          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+      context.handle(_trackIdMeta, trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
     } else if (isInserting) {
       context.missing(_trackIdMeta);
     }
     if (data.containsKey('status')) {
-      context.handle(_statusMeta,
-          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+      context.handle(_statusMeta, status.isAcceptableOrUnknown(data['status']!, _statusMeta));
     } else if (isInserting) {
       context.missing(_statusMeta);
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
     if (data.containsKey('progress')) {
-      context.handle(_progressMeta,
-          progress.isAcceptableOrUnknown(data['progress']!, _progressMeta));
+      context.handle(_progressMeta, progress.isAcceptableOrUnknown(data['progress']!, _progressMeta));
     }
     if (data.containsKey('temporary_path')) {
-      context.handle(
-          _temporaryPathMeta,
-          temporaryPath.isAcceptableOrUnknown(
-              data['temporary_path']!, _temporaryPathMeta));
+      context.handle(_temporaryPathMeta, temporaryPath.isAcceptableOrUnknown(data['temporary_path']!, _temporaryPathMeta));
     }
     if (data.containsKey('failure_reason')) {
-      context.handle(
-          _failureReasonMeta,
-          failureReason.isAcceptableOrUnknown(
-              data['failure_reason']!, _failureReasonMeta));
+      context.handle(_failureReasonMeta, failureReason.isAcceptableOrUnknown(data['failure_reason']!, _failureReasonMeta));
     }
     return context;
   }
@@ -964,18 +780,12 @@ class $DownloadTasksTable extends DownloadTasks
   DownloadTask map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return DownloadTask(
-      trackId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
-      status: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
-      progress: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}progress']),
-      temporaryPath: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}temporary_path']),
-      failureReason: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}failure_reason']),
+      trackId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      status: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      progress: attachedDatabase.typeMapping.read(DriftSqlType.double, data['${effectivePrefix}progress']),
+      temporaryPath: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}temporary_path']),
+      failureReason: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}failure_reason']),
     );
   }
 
@@ -1003,13 +813,7 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
 
   /// 失败原因。
   final String? failureReason;
-  const DownloadTask(
-      {required this.trackId,
-      required this.status,
-      required this.updatedAtMs,
-      this.progress,
-      this.temporaryPath,
-      this.failureReason});
+  const DownloadTask({required this.trackId, required this.status, required this.updatedAtMs, this.progress, this.temporaryPath, this.failureReason});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1033,20 +837,13 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
       trackId: Value(trackId),
       status: Value(status),
       updatedAtMs: Value(updatedAtMs),
-      progress: progress == null && nullToAbsent
-          ? const Value.absent()
-          : Value(progress),
-      temporaryPath: temporaryPath == null && nullToAbsent
-          ? const Value.absent()
-          : Value(temporaryPath),
-      failureReason: failureReason == null && nullToAbsent
-          ? const Value.absent()
-          : Value(failureReason),
+      progress: progress == null && nullToAbsent ? const Value.absent() : Value(progress),
+      temporaryPath: temporaryPath == null && nullToAbsent ? const Value.absent() : Value(temporaryPath),
+      failureReason: failureReason == null && nullToAbsent ? const Value.absent() : Value(failureReason),
     );
   }
 
-  factory DownloadTask.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory DownloadTask.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DownloadTask(
       trackId: serializer.fromJson<String>(json['trackId']),
@@ -1070,22 +867,14 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
     };
   }
 
-  DownloadTask copyWith(
-          {String? trackId,
-          String? status,
-          int? updatedAtMs,
-          Value<double?> progress = const Value.absent(),
-          Value<String?> temporaryPath = const Value.absent(),
-          Value<String?> failureReason = const Value.absent()}) =>
+  DownloadTask copyWith({String? trackId, String? status, int? updatedAtMs, Value<double?> progress = const Value.absent(), Value<String?> temporaryPath = const Value.absent(), Value<String?> failureReason = const Value.absent()}) =>
       DownloadTask(
         trackId: trackId ?? this.trackId,
         status: status ?? this.status,
         updatedAtMs: updatedAtMs ?? this.updatedAtMs,
         progress: progress.present ? progress.value : this.progress,
-        temporaryPath:
-            temporaryPath.present ? temporaryPath.value : this.temporaryPath,
-        failureReason:
-            failureReason.present ? failureReason.value : this.failureReason,
+        temporaryPath: temporaryPath.present ? temporaryPath.value : this.temporaryPath,
+        failureReason: failureReason.present ? failureReason.value : this.failureReason,
       );
   @override
   String toString() {
@@ -1101,8 +890,7 @@ class DownloadTask extends DataClass implements Insertable<DownloadTask> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      trackId, status, updatedAtMs, progress, temporaryPath, failureReason);
+  int get hashCode => Object.hash(trackId, status, updatedAtMs, progress, temporaryPath, failureReason);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1163,14 +951,7 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
     });
   }
 
-  DownloadTasksCompanion copyWith(
-      {Value<String>? trackId,
-      Value<String>? status,
-      Value<int>? updatedAtMs,
-      Value<double?>? progress,
-      Value<String?>? temporaryPath,
-      Value<String?>? failureReason,
-      Value<int>? rowid}) {
+  DownloadTasksCompanion copyWith({Value<String>? trackId, Value<String>? status, Value<int>? updatedAtMs, Value<double?>? progress, Value<String?>? temporaryPath, Value<String?>? failureReason, Value<int>? rowid}) {
     return DownloadTasksCompanion(
       trackId: trackId ?? this.trackId,
       status: status ?? this.status,
@@ -1224,30 +1005,20 @@ class DownloadTasksCompanion extends UpdateCompanion<DownloadTask> {
   }
 }
 
-class $AppCacheEntriesTable extends AppCacheEntries
-    with TableInfo<$AppCacheEntriesTable, AppCacheEntrie> {
+class $AppCacheEntriesTable extends AppCacheEntries with TableInfo<$AppCacheEntriesTable, AppCacheEntrie> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $AppCacheEntriesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _cacheKeyMeta =
-      const VerificationMeta('cacheKey');
+  static const VerificationMeta _cacheKeyMeta = const VerificationMeta('cacheKey');
   @override
-  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>(
-      'cache_key', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _payloadJsonMeta =
-      const VerificationMeta('payloadJson');
+  late final GeneratedColumn<String> cacheKey = GeneratedColumn<String>('cache_key', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _payloadJsonMeta = const VerificationMeta('payloadJson');
   @override
-  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
-      'payload_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>('payload_json', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [cacheKey, payloadJson, updatedAtMs];
   @override
@@ -1255,29 +1026,21 @@ class $AppCacheEntriesTable extends AppCacheEntries
   @override
   String get actualTableName => 'app_cache_entries';
   @override
-  VerificationContext validateIntegrity(Insertable<AppCacheEntrie> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<AppCacheEntrie> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('cache_key')) {
-      context.handle(_cacheKeyMeta,
-          cacheKey.isAcceptableOrUnknown(data['cache_key']!, _cacheKeyMeta));
+      context.handle(_cacheKeyMeta, cacheKey.isAcceptableOrUnknown(data['cache_key']!, _cacheKeyMeta));
     } else if (isInserting) {
       context.missing(_cacheKeyMeta);
     }
     if (data.containsKey('payload_json')) {
-      context.handle(
-          _payloadJsonMeta,
-          payloadJson.isAcceptableOrUnknown(
-              data['payload_json']!, _payloadJsonMeta));
+      context.handle(_payloadJsonMeta, payloadJson.isAcceptableOrUnknown(data['payload_json']!, _payloadJsonMeta));
     } else if (isInserting) {
       context.missing(_payloadJsonMeta);
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
@@ -1290,12 +1053,9 @@ class $AppCacheEntriesTable extends AppCacheEntries
   AppCacheEntrie map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return AppCacheEntrie(
-      cacheKey: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}cache_key'])!,
-      payloadJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}payload_json'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      cacheKey: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}cache_key'])!,
+      payloadJson: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}payload_json'])!,
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
     );
   }
 
@@ -1314,10 +1074,7 @@ class AppCacheEntrie extends DataClass implements Insertable<AppCacheEntrie> {
 
   /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
-  const AppCacheEntrie(
-      {required this.cacheKey,
-      required this.payloadJson,
-      required this.updatedAtMs});
+  const AppCacheEntrie({required this.cacheKey, required this.payloadJson, required this.updatedAtMs});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1335,8 +1092,7 @@ class AppCacheEntrie extends DataClass implements Insertable<AppCacheEntrie> {
     );
   }
 
-  factory AppCacheEntrie.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory AppCacheEntrie.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AppCacheEntrie(
       cacheKey: serializer.fromJson<String>(json['cacheKey']),
@@ -1354,9 +1110,7 @@ class AppCacheEntrie extends DataClass implements Insertable<AppCacheEntrie> {
     };
   }
 
-  AppCacheEntrie copyWith(
-          {String? cacheKey, String? payloadJson, int? updatedAtMs}) =>
-      AppCacheEntrie(
+  AppCacheEntrie copyWith({String? cacheKey, String? payloadJson, int? updatedAtMs}) => AppCacheEntrie(
         cacheKey: cacheKey ?? this.cacheKey,
         payloadJson: payloadJson ?? this.payloadJson,
         updatedAtMs: updatedAtMs ?? this.updatedAtMs,
@@ -1374,12 +1128,7 @@ class AppCacheEntrie extends DataClass implements Insertable<AppCacheEntrie> {
   @override
   int get hashCode => Object.hash(cacheKey, payloadJson, updatedAtMs);
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is AppCacheEntrie &&
-          other.cacheKey == this.cacheKey &&
-          other.payloadJson == this.payloadJson &&
-          other.updatedAtMs == this.updatedAtMs);
+  bool operator ==(Object other) => identical(this, other) || (other is AppCacheEntrie && other.cacheKey == this.cacheKey && other.payloadJson == this.payloadJson && other.updatedAtMs == this.updatedAtMs);
 }
 
 class AppCacheEntriesCompanion extends UpdateCompanion<AppCacheEntrie> {
@@ -1415,11 +1164,7 @@ class AppCacheEntriesCompanion extends UpdateCompanion<AppCacheEntrie> {
     });
   }
 
-  AppCacheEntriesCompanion copyWith(
-      {Value<String>? cacheKey,
-      Value<String>? payloadJson,
-      Value<int>? updatedAtMs,
-      Value<int>? rowid}) {
+  AppCacheEntriesCompanion copyWith({Value<String>? cacheKey, Value<String>? payloadJson, Value<int>? updatedAtMs, Value<int>? rowid}) {
     return AppCacheEntriesCompanion(
       cacheKey: cacheKey ?? this.cacheKey,
       payloadJson: payloadJson ?? this.payloadJson,
@@ -1463,202 +1208,113 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $TracksTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _trackIdMeta =
-      const VerificationMeta('trackId');
+  static const VerificationMeta _trackIdMeta = const VerificationMeta('trackId');
   @override
-  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
-      'track_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sourceTypeMeta =
-      const VerificationMeta('sourceType');
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>('track_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta('sourceType');
   @override
-  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
-      'source_type', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sourceIdMeta =
-      const VerificationMeta('sourceId');
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>('source_type', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
   @override
-  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
-      'source_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>('source_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-      'title', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _artistSearchTextMeta =
-      const VerificationMeta('artistSearchText');
+  late final GeneratedColumn<String> title = GeneratedColumn<String>('title', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artistSearchTextMeta = const VerificationMeta('artistSearchText');
   @override
-  late final GeneratedColumn<String> artistSearchText = GeneratedColumn<String>(
-      'artist_search_text', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _artistNamesJsonMeta =
-      const VerificationMeta('artistNamesJson');
+  late final GeneratedColumn<String> artistSearchText = GeneratedColumn<String>('artist_search_text', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artistNamesJsonMeta = const VerificationMeta('artistNamesJson');
   @override
-  late final GeneratedColumn<String> artistNamesJson = GeneratedColumn<String>(
-      'artist_names_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _albumTitleMeta =
-      const VerificationMeta('albumTitle');
+  late final GeneratedColumn<String> artistNamesJson = GeneratedColumn<String>('artist_names_json', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _albumTitleMeta = const VerificationMeta('albumTitle');
   @override
-  late final GeneratedColumn<String> albumTitle = GeneratedColumn<String>(
-      'album_title', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _albumSourceIdMeta =
-      const VerificationMeta('albumSourceId');
+  late final GeneratedColumn<String> albumTitle = GeneratedColumn<String>('album_title', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _albumSourceIdMeta = const VerificationMeta('albumSourceId');
   @override
-  late final GeneratedColumn<String> albumSourceId = GeneratedColumn<String>(
-      'album_source_id', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _durationMsMeta =
-      const VerificationMeta('durationMs');
+  late final GeneratedColumn<String> albumSourceId = GeneratedColumn<String>('album_source_id', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _durationMsMeta = const VerificationMeta('durationMs');
   @override
-  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
-      'duration_ms', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _artworkUrlMeta =
-      const VerificationMeta('artworkUrl');
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>('duration_ms', aliasedName, true, type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _artworkUrlMeta = const VerificationMeta('artworkUrl');
   @override
-  late final GeneratedColumn<String> artworkUrl = GeneratedColumn<String>(
-      'artwork_url', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _remoteUrlMeta =
-      const VerificationMeta('remoteUrl');
+  late final GeneratedColumn<String> artworkUrl = GeneratedColumn<String>('artwork_url', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _remoteUrlMeta = const VerificationMeta('remoteUrl');
   @override
-  late final GeneratedColumn<String> remoteUrl = GeneratedColumn<String>(
-      'remote_url', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _lyricKeyMeta =
-      const VerificationMeta('lyricKey');
+  late final GeneratedColumn<String> remoteUrl = GeneratedColumn<String>('remote_url', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lyricKeyMeta = const VerificationMeta('lyricKey');
   @override
-  late final GeneratedColumn<String> lyricKey = GeneratedColumn<String>(
-      'lyric_key', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _availabilityMeta =
-      const VerificationMeta('availability');
+  late final GeneratedColumn<String> lyricKey = GeneratedColumn<String>('lyric_key', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _availabilityMeta = const VerificationMeta('availability');
   @override
-  late final GeneratedColumn<String> availability = GeneratedColumn<String>(
-      'availability', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _metadataJsonMeta =
-      const VerificationMeta('metadataJson');
+  late final GeneratedColumn<String> availability = GeneratedColumn<String>('availability', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _metadataJsonMeta = const VerificationMeta('metadataJson');
   @override
-  late final GeneratedColumn<String> metadataJson = GeneratedColumn<String>(
-      'metadata_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> metadataJson = GeneratedColumn<String>('metadata_json', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [
-        trackId,
-        sourceType,
-        sourceId,
-        title,
-        artistSearchText,
-        artistNamesJson,
-        albumTitle,
-        albumSourceId,
-        durationMs,
-        artworkUrl,
-        remoteUrl,
-        lyricKey,
-        availability,
-        metadataJson
-      ];
+  List<GeneratedColumn> get $columns => [trackId, sourceType, sourceId, title, artistSearchText, artistNamesJson, albumTitle, albumSourceId, durationMs, artworkUrl, remoteUrl, lyricKey, availability, metadataJson];
   @override
   String get aliasedName => _alias ?? 'tracks';
   @override
   String get actualTableName => 'tracks';
   @override
-  VerificationContext validateIntegrity(Insertable<Track> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<Track> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('track_id')) {
-      context.handle(_trackIdMeta,
-          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+      context.handle(_trackIdMeta, trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
     } else if (isInserting) {
       context.missing(_trackIdMeta);
     }
     if (data.containsKey('source_type')) {
-      context.handle(
-          _sourceTypeMeta,
-          sourceType.isAcceptableOrUnknown(
-              data['source_type']!, _sourceTypeMeta));
+      context.handle(_sourceTypeMeta, sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta));
     } else if (isInserting) {
       context.missing(_sourceTypeMeta);
     }
     if (data.containsKey('source_id')) {
-      context.handle(_sourceIdMeta,
-          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+      context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
     } else if (isInserting) {
       context.missing(_sourceIdMeta);
     }
     if (data.containsKey('title')) {
-      context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+      context.handle(_titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
     if (data.containsKey('artist_search_text')) {
-      context.handle(
-          _artistSearchTextMeta,
-          artistSearchText.isAcceptableOrUnknown(
-              data['artist_search_text']!, _artistSearchTextMeta));
+      context.handle(_artistSearchTextMeta, artistSearchText.isAcceptableOrUnknown(data['artist_search_text']!, _artistSearchTextMeta));
     } else if (isInserting) {
       context.missing(_artistSearchTextMeta);
     }
     if (data.containsKey('artist_names_json')) {
-      context.handle(
-          _artistNamesJsonMeta,
-          artistNamesJson.isAcceptableOrUnknown(
-              data['artist_names_json']!, _artistNamesJsonMeta));
+      context.handle(_artistNamesJsonMeta, artistNamesJson.isAcceptableOrUnknown(data['artist_names_json']!, _artistNamesJsonMeta));
     } else if (isInserting) {
       context.missing(_artistNamesJsonMeta);
     }
     if (data.containsKey('album_title')) {
-      context.handle(
-          _albumTitleMeta,
-          albumTitle.isAcceptableOrUnknown(
-              data['album_title']!, _albumTitleMeta));
+      context.handle(_albumTitleMeta, albumTitle.isAcceptableOrUnknown(data['album_title']!, _albumTitleMeta));
     }
     if (data.containsKey('album_source_id')) {
-      context.handle(
-          _albumSourceIdMeta,
-          albumSourceId.isAcceptableOrUnknown(
-              data['album_source_id']!, _albumSourceIdMeta));
+      context.handle(_albumSourceIdMeta, albumSourceId.isAcceptableOrUnknown(data['album_source_id']!, _albumSourceIdMeta));
     }
     if (data.containsKey('duration_ms')) {
-      context.handle(
-          _durationMsMeta,
-          durationMs.isAcceptableOrUnknown(
-              data['duration_ms']!, _durationMsMeta));
+      context.handle(_durationMsMeta, durationMs.isAcceptableOrUnknown(data['duration_ms']!, _durationMsMeta));
     }
     if (data.containsKey('artwork_url')) {
-      context.handle(
-          _artworkUrlMeta,
-          artworkUrl.isAcceptableOrUnknown(
-              data['artwork_url']!, _artworkUrlMeta));
+      context.handle(_artworkUrlMeta, artworkUrl.isAcceptableOrUnknown(data['artwork_url']!, _artworkUrlMeta));
     }
     if (data.containsKey('remote_url')) {
-      context.handle(_remoteUrlMeta,
-          remoteUrl.isAcceptableOrUnknown(data['remote_url']!, _remoteUrlMeta));
+      context.handle(_remoteUrlMeta, remoteUrl.isAcceptableOrUnknown(data['remote_url']!, _remoteUrlMeta));
     }
     if (data.containsKey('lyric_key')) {
-      context.handle(_lyricKeyMeta,
-          lyricKey.isAcceptableOrUnknown(data['lyric_key']!, _lyricKeyMeta));
+      context.handle(_lyricKeyMeta, lyricKey.isAcceptableOrUnknown(data['lyric_key']!, _lyricKeyMeta));
     }
     if (data.containsKey('availability')) {
-      context.handle(
-          _availabilityMeta,
-          availability.isAcceptableOrUnknown(
-              data['availability']!, _availabilityMeta));
+      context.handle(_availabilityMeta, availability.isAcceptableOrUnknown(data['availability']!, _availabilityMeta));
     } else if (isInserting) {
       context.missing(_availabilityMeta);
     }
     if (data.containsKey('metadata_json')) {
-      context.handle(
-          _metadataJsonMeta,
-          metadataJson.isAcceptableOrUnknown(
-              data['metadata_json']!, _metadataJsonMeta));
+      context.handle(_metadataJsonMeta, metadataJson.isAcceptableOrUnknown(data['metadata_json']!, _metadataJsonMeta));
     } else if (isInserting) {
       context.missing(_metadataJsonMeta);
     }
@@ -1671,34 +1327,20 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
   Track map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Track(
-      trackId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
-      sourceType: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
-      sourceId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
-      title: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      artistSearchText: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}artist_search_text'])!,
-      artistNamesJson: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}artist_names_json'])!,
-      albumTitle: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}album_title']),
-      albumSourceId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}album_source_id']),
-      durationMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}duration_ms']),
-      artworkUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}artwork_url']),
-      remoteUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}remote_url']),
-      lyricKey: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}lyric_key']),
-      availability: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}availability'])!,
-      metadataJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}metadata_json'])!,
+      trackId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      sourceType: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
+      title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      artistSearchText: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}artist_search_text'])!,
+      artistNamesJson: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}artist_names_json'])!,
+      albumTitle: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}album_title']),
+      albumSourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}album_source_id']),
+      durationMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}duration_ms']),
+      artworkUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}artwork_url']),
+      remoteUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}remote_url']),
+      lyricKey: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}lyric_key']),
+      availability: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}availability'])!,
+      metadataJson: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}metadata_json'])!,
     );
   }
 
@@ -1805,31 +1447,18 @@ class Track extends DataClass implements Insertable<Track> {
       title: Value(title),
       artistSearchText: Value(artistSearchText),
       artistNamesJson: Value(artistNamesJson),
-      albumTitle: albumTitle == null && nullToAbsent
-          ? const Value.absent()
-          : Value(albumTitle),
-      albumSourceId: albumSourceId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(albumSourceId),
-      durationMs: durationMs == null && nullToAbsent
-          ? const Value.absent()
-          : Value(durationMs),
-      artworkUrl: artworkUrl == null && nullToAbsent
-          ? const Value.absent()
-          : Value(artworkUrl),
-      remoteUrl: remoteUrl == null && nullToAbsent
-          ? const Value.absent()
-          : Value(remoteUrl),
-      lyricKey: lyricKey == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lyricKey),
+      albumTitle: albumTitle == null && nullToAbsent ? const Value.absent() : Value(albumTitle),
+      albumSourceId: albumSourceId == null && nullToAbsent ? const Value.absent() : Value(albumSourceId),
+      durationMs: durationMs == null && nullToAbsent ? const Value.absent() : Value(durationMs),
+      artworkUrl: artworkUrl == null && nullToAbsent ? const Value.absent() : Value(artworkUrl),
+      remoteUrl: remoteUrl == null && nullToAbsent ? const Value.absent() : Value(remoteUrl),
+      lyricKey: lyricKey == null && nullToAbsent ? const Value.absent() : Value(lyricKey),
       availability: Value(availability),
       metadataJson: Value(metadataJson),
     );
   }
 
-  factory Track.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory Track.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Track(
       trackId: serializer.fromJson<String>(json['trackId']),
@@ -1892,8 +1521,7 @@ class Track extends DataClass implements Insertable<Track> {
         artistSearchText: artistSearchText ?? this.artistSearchText,
         artistNamesJson: artistNamesJson ?? this.artistNamesJson,
         albumTitle: albumTitle.present ? albumTitle.value : this.albumTitle,
-        albumSourceId:
-            albumSourceId.present ? albumSourceId.value : this.albumSourceId,
+        albumSourceId: albumSourceId.present ? albumSourceId.value : this.albumSourceId,
         durationMs: durationMs.present ? durationMs.value : this.durationMs,
         artworkUrl: artworkUrl.present ? artworkUrl.value : this.artworkUrl,
         remoteUrl: remoteUrl.present ? remoteUrl.value : this.remoteUrl,
@@ -1923,21 +1551,7 @@ class Track extends DataClass implements Insertable<Track> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      trackId,
-      sourceType,
-      sourceId,
-      title,
-      artistSearchText,
-      artistNamesJson,
-      albumTitle,
-      albumSourceId,
-      durationMs,
-      artworkUrl,
-      remoteUrl,
-      lyricKey,
-      availability,
-      metadataJson);
+  int get hashCode => Object.hash(trackId, sourceType, sourceId, title, artistSearchText, artistNamesJson, albumTitle, albumSourceId, durationMs, artworkUrl, remoteUrl, lyricKey, availability, metadataJson);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2160,30 +1774,20 @@ class TracksCompanion extends UpdateCompanion<Track> {
   }
 }
 
-class $TrackArtistRefsTable extends TrackArtistRefs
-    with TableInfo<$TrackArtistRefsTable, TrackArtistRef> {
+class $TrackArtistRefsTable extends TrackArtistRefs with TableInfo<$TrackArtistRefsTable, TrackArtistRef> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $TrackArtistRefsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _trackIdMeta =
-      const VerificationMeta('trackId');
+  static const VerificationMeta _trackIdMeta = const VerificationMeta('trackId');
   @override
-  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
-      'track_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _artistSourceIdMeta =
-      const VerificationMeta('artistSourceId');
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>('track_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artistSourceIdMeta = const VerificationMeta('artistSourceId');
   @override
-  late final GeneratedColumn<String> artistSourceId = GeneratedColumn<String>(
-      'artist_source_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sortOrderMeta =
-      const VerificationMeta('sortOrder');
+  late final GeneratedColumn<String> artistSourceId = GeneratedColumn<String>('artist_source_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta('sortOrder');
   @override
-  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
-      'sort_order', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>('sort_order', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [trackId, artistSourceId, sortOrder];
   @override
@@ -2191,27 +1795,21 @@ class $TrackArtistRefsTable extends TrackArtistRefs
   @override
   String get actualTableName => 'track_artist_refs';
   @override
-  VerificationContext validateIntegrity(Insertable<TrackArtistRef> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<TrackArtistRef> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('track_id')) {
-      context.handle(_trackIdMeta,
-          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+      context.handle(_trackIdMeta, trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
     } else if (isInserting) {
       context.missing(_trackIdMeta);
     }
     if (data.containsKey('artist_source_id')) {
-      context.handle(
-          _artistSourceIdMeta,
-          artistSourceId.isAcceptableOrUnknown(
-              data['artist_source_id']!, _artistSourceIdMeta));
+      context.handle(_artistSourceIdMeta, artistSourceId.isAcceptableOrUnknown(data['artist_source_id']!, _artistSourceIdMeta));
     } else if (isInserting) {
       context.missing(_artistSourceIdMeta);
     }
     if (data.containsKey('sort_order')) {
-      context.handle(_sortOrderMeta,
-          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+      context.handle(_sortOrderMeta, sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
     } else if (isInserting) {
       context.missing(_sortOrderMeta);
     }
@@ -2224,12 +1822,9 @@ class $TrackArtistRefsTable extends TrackArtistRefs
   TrackArtistRef map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TrackArtistRef(
-      trackId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
-      artistSourceId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}artist_source_id'])!,
-      sortOrder: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      trackId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      artistSourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}artist_source_id'])!,
+      sortOrder: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
     );
   }
 
@@ -2248,10 +1843,7 @@ class TrackArtistRef extends DataClass implements Insertable<TrackArtistRef> {
 
   /// 歌手在曲目中的顺序。
   final int sortOrder;
-  const TrackArtistRef(
-      {required this.trackId,
-      required this.artistSourceId,
-      required this.sortOrder});
+  const TrackArtistRef({required this.trackId, required this.artistSourceId, required this.sortOrder});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2269,8 +1861,7 @@ class TrackArtistRef extends DataClass implements Insertable<TrackArtistRef> {
     );
   }
 
-  factory TrackArtistRef.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory TrackArtistRef.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TrackArtistRef(
       trackId: serializer.fromJson<String>(json['trackId']),
@@ -2288,9 +1879,7 @@ class TrackArtistRef extends DataClass implements Insertable<TrackArtistRef> {
     };
   }
 
-  TrackArtistRef copyWith(
-          {String? trackId, String? artistSourceId, int? sortOrder}) =>
-      TrackArtistRef(
+  TrackArtistRef copyWith({String? trackId, String? artistSourceId, int? sortOrder}) => TrackArtistRef(
         trackId: trackId ?? this.trackId,
         artistSourceId: artistSourceId ?? this.artistSourceId,
         sortOrder: sortOrder ?? this.sortOrder,
@@ -2308,12 +1897,7 @@ class TrackArtistRef extends DataClass implements Insertable<TrackArtistRef> {
   @override
   int get hashCode => Object.hash(trackId, artistSourceId, sortOrder);
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TrackArtistRef &&
-          other.trackId == this.trackId &&
-          other.artistSourceId == this.artistSourceId &&
-          other.sortOrder == this.sortOrder);
+  bool operator ==(Object other) => identical(this, other) || (other is TrackArtistRef && other.trackId == this.trackId && other.artistSourceId == this.artistSourceId && other.sortOrder == this.sortOrder);
 }
 
 class TrackArtistRefsCompanion extends UpdateCompanion<TrackArtistRef> {
@@ -2349,11 +1933,7 @@ class TrackArtistRefsCompanion extends UpdateCompanion<TrackArtistRef> {
     });
   }
 
-  TrackArtistRefsCompanion copyWith(
-      {Value<String>? trackId,
-      Value<String>? artistSourceId,
-      Value<int>? sortOrder,
-      Value<int>? rowid}) {
+  TrackArtistRefsCompanion copyWith({Value<String>? trackId, Value<String>? artistSourceId, Value<int>? sortOrder, Value<int>? rowid}) {
     return TrackArtistRefsCompanion(
       trackId: trackId ?? this.trackId,
       artistSourceId: artistSourceId ?? this.artistSourceId,
@@ -2392,29 +1972,20 @@ class TrackArtistRefsCompanion extends UpdateCompanion<TrackArtistRef> {
   }
 }
 
-class $TrackLyricsEntriesTable extends TrackLyricsEntries
-    with TableInfo<$TrackLyricsEntriesTable, TrackLyricsEntrie> {
+class $TrackLyricsEntriesTable extends TrackLyricsEntries with TableInfo<$TrackLyricsEntriesTable, TrackLyricsEntrie> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $TrackLyricsEntriesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _trackIdMeta =
-      const VerificationMeta('trackId');
+  static const VerificationMeta _trackIdMeta = const VerificationMeta('trackId');
   @override
-  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
-      'track_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>('track_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _mainMeta = const VerificationMeta('main');
   @override
-  late final GeneratedColumn<String> main = GeneratedColumn<String>(
-      'main', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _translatedMeta =
-      const VerificationMeta('translated');
+  late final GeneratedColumn<String> main = GeneratedColumn<String>('main', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _translatedMeta = const VerificationMeta('translated');
   @override
-  late final GeneratedColumn<String> translated = GeneratedColumn<String>(
-      'translated', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> translated = GeneratedColumn<String>('translated', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [trackId, main, translated];
   @override
@@ -2422,27 +1993,21 @@ class $TrackLyricsEntriesTable extends TrackLyricsEntries
   @override
   String get actualTableName => 'track_lyrics_entries';
   @override
-  VerificationContext validateIntegrity(Insertable<TrackLyricsEntrie> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<TrackLyricsEntrie> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('track_id')) {
-      context.handle(_trackIdMeta,
-          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+      context.handle(_trackIdMeta, trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
     } else if (isInserting) {
       context.missing(_trackIdMeta);
     }
     if (data.containsKey('main')) {
-      context.handle(
-          _mainMeta, main.isAcceptableOrUnknown(data['main']!, _mainMeta));
+      context.handle(_mainMeta, main.isAcceptableOrUnknown(data['main']!, _mainMeta));
     } else if (isInserting) {
       context.missing(_mainMeta);
     }
     if (data.containsKey('translated')) {
-      context.handle(
-          _translatedMeta,
-          translated.isAcceptableOrUnknown(
-              data['translated']!, _translatedMeta));
+      context.handle(_translatedMeta, translated.isAcceptableOrUnknown(data['translated']!, _translatedMeta));
     } else if (isInserting) {
       context.missing(_translatedMeta);
     }
@@ -2455,12 +2020,9 @@ class $TrackLyricsEntriesTable extends TrackLyricsEntries
   TrackLyricsEntrie map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TrackLyricsEntrie(
-      trackId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
-      main: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}main'])!,
-      translated: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}translated'])!,
+      trackId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      main: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}main'])!,
+      translated: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}translated'])!,
     );
   }
 
@@ -2470,8 +2032,7 @@ class $TrackLyricsEntriesTable extends TrackLyricsEntries
   }
 }
 
-class TrackLyricsEntrie extends DataClass
-    implements Insertable<TrackLyricsEntrie> {
+class TrackLyricsEntrie extends DataClass implements Insertable<TrackLyricsEntrie> {
   /// 曲目 id。
   final String trackId;
 
@@ -2480,8 +2041,7 @@ class TrackLyricsEntrie extends DataClass
 
   /// 翻译歌词文本。
   final String translated;
-  const TrackLyricsEntrie(
-      {required this.trackId, required this.main, required this.translated});
+  const TrackLyricsEntrie({required this.trackId, required this.main, required this.translated});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2499,8 +2059,7 @@ class TrackLyricsEntrie extends DataClass
     );
   }
 
-  factory TrackLyricsEntrie.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory TrackLyricsEntrie.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TrackLyricsEntrie(
       trackId: serializer.fromJson<String>(json['trackId']),
@@ -2518,9 +2077,7 @@ class TrackLyricsEntrie extends DataClass
     };
   }
 
-  TrackLyricsEntrie copyWith(
-          {String? trackId, String? main, String? translated}) =>
-      TrackLyricsEntrie(
+  TrackLyricsEntrie copyWith({String? trackId, String? main, String? translated}) => TrackLyricsEntrie(
         trackId: trackId ?? this.trackId,
         main: main ?? this.main,
         translated: translated ?? this.translated,
@@ -2538,12 +2095,7 @@ class TrackLyricsEntrie extends DataClass
   @override
   int get hashCode => Object.hash(trackId, main, translated);
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is TrackLyricsEntrie &&
-          other.trackId == this.trackId &&
-          other.main == this.main &&
-          other.translated == this.translated);
+  bool operator ==(Object other) => identical(this, other) || (other is TrackLyricsEntrie && other.trackId == this.trackId && other.main == this.main && other.translated == this.translated);
 }
 
 class TrackLyricsEntriesCompanion extends UpdateCompanion<TrackLyricsEntrie> {
@@ -2579,11 +2131,7 @@ class TrackLyricsEntriesCompanion extends UpdateCompanion<TrackLyricsEntrie> {
     });
   }
 
-  TrackLyricsEntriesCompanion copyWith(
-      {Value<String>? trackId,
-      Value<String>? main,
-      Value<String>? translated,
-      Value<int>? rowid}) {
+  TrackLyricsEntriesCompanion copyWith({Value<String>? trackId, Value<String>? main, Value<String>? translated, Value<int>? rowid}) {
     return TrackLyricsEntriesCompanion(
       trackId: trackId ?? this.trackId,
       main: main ?? this.main,
@@ -2622,115 +2170,70 @@ class TrackLyricsEntriesCompanion extends UpdateCompanion<TrackLyricsEntrie> {
   }
 }
 
-class $PlaylistsTable extends Playlists
-    with TableInfo<$PlaylistsTable, Playlist> {
+class $PlaylistsTable extends Playlists with TableInfo<$PlaylistsTable, Playlist> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $PlaylistsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _playlistIdMeta =
-      const VerificationMeta('playlistId');
+  static const VerificationMeta _playlistIdMeta = const VerificationMeta('playlistId');
   @override
-  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>(
-      'playlist_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sourceTypeMeta =
-      const VerificationMeta('sourceType');
+  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>('playlist_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta('sourceType');
   @override
-  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
-      'source_type', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sourceIdMeta =
-      const VerificationMeta('sourceId');
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>('source_type', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
   @override
-  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
-      'source_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>('source_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-      'title', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _descriptionMeta =
-      const VerificationMeta('description');
+  late final GeneratedColumn<String> title = GeneratedColumn<String>('title', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta = const VerificationMeta('description');
   @override
-  late final GeneratedColumn<String> description = GeneratedColumn<String>(
-      'description', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _coverUrlMeta =
-      const VerificationMeta('coverUrl');
+  late final GeneratedColumn<String> description = GeneratedColumn<String>('description', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _coverUrlMeta = const VerificationMeta('coverUrl');
   @override
-  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>(
-      'cover_url', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _trackCountMeta =
-      const VerificationMeta('trackCount');
+  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>('cover_url', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _trackCountMeta = const VerificationMeta('trackCount');
   @override
-  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>(
-      'track_count', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
+  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>('track_count', aliasedName, true, type: DriftSqlType.int, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns => [
-        playlistId,
-        sourceType,
-        sourceId,
-        title,
-        description,
-        coverUrl,
-        trackCount
-      ];
+  List<GeneratedColumn> get $columns => [playlistId, sourceType, sourceId, title, description, coverUrl, trackCount];
   @override
   String get aliasedName => _alias ?? 'playlists';
   @override
   String get actualTableName => 'playlists';
   @override
-  VerificationContext validateIntegrity(Insertable<Playlist> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<Playlist> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('playlist_id')) {
-      context.handle(
-          _playlistIdMeta,
-          playlistId.isAcceptableOrUnknown(
-              data['playlist_id']!, _playlistIdMeta));
+      context.handle(_playlistIdMeta, playlistId.isAcceptableOrUnknown(data['playlist_id']!, _playlistIdMeta));
     } else if (isInserting) {
       context.missing(_playlistIdMeta);
     }
     if (data.containsKey('source_type')) {
-      context.handle(
-          _sourceTypeMeta,
-          sourceType.isAcceptableOrUnknown(
-              data['source_type']!, _sourceTypeMeta));
+      context.handle(_sourceTypeMeta, sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta));
     } else if (isInserting) {
       context.missing(_sourceTypeMeta);
     }
     if (data.containsKey('source_id')) {
-      context.handle(_sourceIdMeta,
-          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+      context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
     } else if (isInserting) {
       context.missing(_sourceIdMeta);
     }
     if (data.containsKey('title')) {
-      context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+      context.handle(_titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
     if (data.containsKey('description')) {
-      context.handle(
-          _descriptionMeta,
-          description.isAcceptableOrUnknown(
-              data['description']!, _descriptionMeta));
+      context.handle(_descriptionMeta, description.isAcceptableOrUnknown(data['description']!, _descriptionMeta));
     }
     if (data.containsKey('cover_url')) {
-      context.handle(_coverUrlMeta,
-          coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
+      context.handle(_coverUrlMeta, coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
     }
     if (data.containsKey('track_count')) {
-      context.handle(
-          _trackCountMeta,
-          trackCount.isAcceptableOrUnknown(
-              data['track_count']!, _trackCountMeta));
+      context.handle(_trackCountMeta, trackCount.isAcceptableOrUnknown(data['track_count']!, _trackCountMeta));
     }
     return context;
   }
@@ -2741,20 +2244,13 @@ class $PlaylistsTable extends Playlists
   Playlist map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Playlist(
-      playlistId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
-      sourceType: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
-      sourceId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
-      title: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      description: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}description']),
-      coverUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}cover_url']),
-      trackCount: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}track_count']),
+      playlistId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
+      sourceType: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
+      title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      description: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}description']),
+      coverUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}cover_url']),
+      trackCount: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}track_count']),
     );
   }
 
@@ -2785,14 +2281,7 @@ class Playlist extends DataClass implements Insertable<Playlist> {
 
   /// 歌曲数量。
   final int? trackCount;
-  const Playlist(
-      {required this.playlistId,
-      required this.sourceType,
-      required this.sourceId,
-      required this.title,
-      this.description,
-      this.coverUrl,
-      this.trackCount});
+  const Playlist({required this.playlistId, required this.sourceType, required this.sourceId, required this.title, this.description, this.coverUrl, this.trackCount});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2818,20 +2307,13 @@ class Playlist extends DataClass implements Insertable<Playlist> {
       sourceType: Value(sourceType),
       sourceId: Value(sourceId),
       title: Value(title),
-      description: description == null && nullToAbsent
-          ? const Value.absent()
-          : Value(description),
-      coverUrl: coverUrl == null && nullToAbsent
-          ? const Value.absent()
-          : Value(coverUrl),
-      trackCount: trackCount == null && nullToAbsent
-          ? const Value.absent()
-          : Value(trackCount),
+      description: description == null && nullToAbsent ? const Value.absent() : Value(description),
+      coverUrl: coverUrl == null && nullToAbsent ? const Value.absent() : Value(coverUrl),
+      trackCount: trackCount == null && nullToAbsent ? const Value.absent() : Value(trackCount),
     );
   }
 
-  factory Playlist.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory Playlist.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Playlist(
       playlistId: serializer.fromJson<String>(json['playlistId']),
@@ -2858,13 +2340,7 @@ class Playlist extends DataClass implements Insertable<Playlist> {
   }
 
   Playlist copyWith(
-          {String? playlistId,
-          String? sourceType,
-          String? sourceId,
-          String? title,
-          Value<String?> description = const Value.absent(),
-          Value<String?> coverUrl = const Value.absent(),
-          Value<int?> trackCount = const Value.absent()}) =>
+          {String? playlistId, String? sourceType, String? sourceId, String? title, Value<String?> description = const Value.absent(), Value<String?> coverUrl = const Value.absent(), Value<int?> trackCount = const Value.absent()}) =>
       Playlist(
         playlistId: playlistId ?? this.playlistId,
         sourceType: sourceType ?? this.sourceType,
@@ -2889,8 +2365,7 @@ class Playlist extends DataClass implements Insertable<Playlist> {
   }
 
   @override
-  int get hashCode => Object.hash(playlistId, sourceType, sourceId, title,
-      description, coverUrl, trackCount);
+  int get hashCode => Object.hash(playlistId, sourceType, sourceId, title, description, coverUrl, trackCount);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2958,15 +2433,7 @@ class PlaylistsCompanion extends UpdateCompanion<Playlist> {
     });
   }
 
-  PlaylistsCompanion copyWith(
-      {Value<String>? playlistId,
-      Value<String>? sourceType,
-      Value<String>? sourceId,
-      Value<String>? title,
-      Value<String?>? description,
-      Value<String?>? coverUrl,
-      Value<int?>? trackCount,
-      Value<int>? rowid}) {
+  PlaylistsCompanion copyWith({Value<String>? playlistId, Value<String>? sourceType, Value<String>? sourceId, Value<String>? title, Value<String?>? description, Value<String?>? coverUrl, Value<int?>? trackCount, Value<int>? rowid}) {
     return PlaylistsCompanion(
       playlistId: playlistId ?? this.playlistId,
       sourceType: sourceType ?? this.sourceType,
@@ -3025,35 +2492,23 @@ class PlaylistsCompanion extends UpdateCompanion<Playlist> {
   }
 }
 
-class $PlaylistTrackRefsTable extends PlaylistTrackRefs
-    with TableInfo<$PlaylistTrackRefsTable, PlaylistTrackRef> {
+class $PlaylistTrackRefsTable extends PlaylistTrackRefs with TableInfo<$PlaylistTrackRefsTable, PlaylistTrackRef> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $PlaylistTrackRefsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _playlistIdMeta =
-      const VerificationMeta('playlistId');
+  static const VerificationMeta _playlistIdMeta = const VerificationMeta('playlistId');
   @override
-  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>(
-      'playlist_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _trackIdMeta =
-      const VerificationMeta('trackId');
+  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>('playlist_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _trackIdMeta = const VerificationMeta('trackId');
   @override
-  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
-      'track_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>('track_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _orderMeta = const VerificationMeta('order');
   @override
-  late final GeneratedColumn<int> order = GeneratedColumn<int>(
-      'order', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _addedAtMeta =
-      const VerificationMeta('addedAt');
+  late final GeneratedColumn<int> order = GeneratedColumn<int>('order', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _addedAtMeta = const VerificationMeta('addedAt');
   @override
-  late final GeneratedColumn<int> addedAt = GeneratedColumn<int>(
-      'added_at', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
+  late final GeneratedColumn<int> addedAt = GeneratedColumn<int>('added_at', aliasedName, true, type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [playlistId, trackId, order, addedAt];
   @override
@@ -3061,33 +2516,26 @@ class $PlaylistTrackRefsTable extends PlaylistTrackRefs
   @override
   String get actualTableName => 'playlist_track_refs';
   @override
-  VerificationContext validateIntegrity(Insertable<PlaylistTrackRef> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<PlaylistTrackRef> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('playlist_id')) {
-      context.handle(
-          _playlistIdMeta,
-          playlistId.isAcceptableOrUnknown(
-              data['playlist_id']!, _playlistIdMeta));
+      context.handle(_playlistIdMeta, playlistId.isAcceptableOrUnknown(data['playlist_id']!, _playlistIdMeta));
     } else if (isInserting) {
       context.missing(_playlistIdMeta);
     }
     if (data.containsKey('track_id')) {
-      context.handle(_trackIdMeta,
-          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+      context.handle(_trackIdMeta, trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
     } else if (isInserting) {
       context.missing(_trackIdMeta);
     }
     if (data.containsKey('order')) {
-      context.handle(
-          _orderMeta, order.isAcceptableOrUnknown(data['order']!, _orderMeta));
+      context.handle(_orderMeta, order.isAcceptableOrUnknown(data['order']!, _orderMeta));
     } else if (isInserting) {
       context.missing(_orderMeta);
     }
     if (data.containsKey('added_at')) {
-      context.handle(_addedAtMeta,
-          addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta));
+      context.handle(_addedAtMeta, addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta));
     }
     return context;
   }
@@ -3098,14 +2546,10 @@ class $PlaylistTrackRefsTable extends PlaylistTrackRefs
   PlaylistTrackRef map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PlaylistTrackRef(
-      playlistId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
-      trackId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
-      order: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}order'])!,
-      addedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}added_at']),
+      playlistId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
+      trackId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      order: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}order'])!,
+      addedAt: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}added_at']),
     );
   }
 
@@ -3115,8 +2559,7 @@ class $PlaylistTrackRefsTable extends PlaylistTrackRefs
   }
 }
 
-class PlaylistTrackRef extends DataClass
-    implements Insertable<PlaylistTrackRef> {
+class PlaylistTrackRef extends DataClass implements Insertable<PlaylistTrackRef> {
   /// 歌单 id。
   final String playlistId;
 
@@ -3128,11 +2571,7 @@ class PlaylistTrackRef extends DataClass
 
   /// 添加时间戳，单位毫秒。
   final int? addedAt;
-  const PlaylistTrackRef(
-      {required this.playlistId,
-      required this.trackId,
-      required this.order,
-      this.addedAt});
+  const PlaylistTrackRef({required this.playlistId, required this.trackId, required this.order, this.addedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3150,14 +2589,11 @@ class PlaylistTrackRef extends DataClass
       playlistId: Value(playlistId),
       trackId: Value(trackId),
       order: Value(order),
-      addedAt: addedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(addedAt),
+      addedAt: addedAt == null && nullToAbsent ? const Value.absent() : Value(addedAt),
     );
   }
 
-  factory PlaylistTrackRef.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory PlaylistTrackRef.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PlaylistTrackRef(
       playlistId: serializer.fromJson<String>(json['playlistId']),
@@ -3177,12 +2613,7 @@ class PlaylistTrackRef extends DataClass
     };
   }
 
-  PlaylistTrackRef copyWith(
-          {String? playlistId,
-          String? trackId,
-          int? order,
-          Value<int?> addedAt = const Value.absent()}) =>
-      PlaylistTrackRef(
+  PlaylistTrackRef copyWith({String? playlistId, String? trackId, int? order, Value<int?> addedAt = const Value.absent()}) => PlaylistTrackRef(
         playlistId: playlistId ?? this.playlistId,
         trackId: trackId ?? this.trackId,
         order: order ?? this.order,
@@ -3202,13 +2633,7 @@ class PlaylistTrackRef extends DataClass
   @override
   int get hashCode => Object.hash(playlistId, trackId, order, addedAt);
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is PlaylistTrackRef &&
-          other.playlistId == this.playlistId &&
-          other.trackId == this.trackId &&
-          other.order == this.order &&
-          other.addedAt == this.addedAt);
+  bool operator ==(Object other) => identical(this, other) || (other is PlaylistTrackRef && other.playlistId == this.playlistId && other.trackId == this.trackId && other.order == this.order && other.addedAt == this.addedAt);
 }
 
 class PlaylistTrackRefsCompanion extends UpdateCompanion<PlaylistTrackRef> {
@@ -3249,12 +2674,7 @@ class PlaylistTrackRefsCompanion extends UpdateCompanion<PlaylistTrackRef> {
     });
   }
 
-  PlaylistTrackRefsCompanion copyWith(
-      {Value<String>? playlistId,
-      Value<String>? trackId,
-      Value<int>? order,
-      Value<int?>? addedAt,
-      Value<int>? rowid}) {
+  PlaylistTrackRefsCompanion copyWith({Value<String>? playlistId, Value<String>? trackId, Value<int>? order, Value<int?>? addedAt, Value<int>? rowid}) {
     return PlaylistTrackRefsCompanion(
       playlistId: playlistId ?? this.playlistId,
       trackId: trackId ?? this.trackId,
@@ -3303,152 +2723,87 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $AlbumsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _albumIdMeta =
-      const VerificationMeta('albumId');
+  static const VerificationMeta _albumIdMeta = const VerificationMeta('albumId');
   @override
-  late final GeneratedColumn<String> albumId = GeneratedColumn<String>(
-      'album_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sourceTypeMeta =
-      const VerificationMeta('sourceType');
+  late final GeneratedColumn<String> albumId = GeneratedColumn<String>('album_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta('sourceType');
   @override
-  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
-      'source_type', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sourceIdMeta =
-      const VerificationMeta('sourceId');
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>('source_type', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
   @override
-  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
-      'source_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>('source_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-      'title', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _artistSearchTextMeta =
-      const VerificationMeta('artistSearchText');
+  late final GeneratedColumn<String> title = GeneratedColumn<String>('title', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artistSearchTextMeta = const VerificationMeta('artistSearchText');
   @override
-  late final GeneratedColumn<String> artistSearchText = GeneratedColumn<String>(
-      'artist_search_text', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _artistNamesJsonMeta =
-      const VerificationMeta('artistNamesJson');
+  late final GeneratedColumn<String> artistSearchText = GeneratedColumn<String>('artist_search_text', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artistNamesJsonMeta = const VerificationMeta('artistNamesJson');
   @override
-  late final GeneratedColumn<String> artistNamesJson = GeneratedColumn<String>(
-      'artist_names_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _artworkUrlMeta =
-      const VerificationMeta('artworkUrl');
+  late final GeneratedColumn<String> artistNamesJson = GeneratedColumn<String>('artist_names_json', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artworkUrlMeta = const VerificationMeta('artworkUrl');
   @override
-  late final GeneratedColumn<String> artworkUrl = GeneratedColumn<String>(
-      'artwork_url', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _descriptionMeta =
-      const VerificationMeta('description');
+  late final GeneratedColumn<String> artworkUrl = GeneratedColumn<String>('artwork_url', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta = const VerificationMeta('description');
   @override
-  late final GeneratedColumn<String> description = GeneratedColumn<String>(
-      'description', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _trackCountMeta =
-      const VerificationMeta('trackCount');
+  late final GeneratedColumn<String> description = GeneratedColumn<String>('description', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _trackCountMeta = const VerificationMeta('trackCount');
   @override
-  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>(
-      'track_count', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _publishTimeMeta =
-      const VerificationMeta('publishTime');
+  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>('track_count', aliasedName, true, type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _publishTimeMeta = const VerificationMeta('publishTime');
   @override
-  late final GeneratedColumn<int> publishTime = GeneratedColumn<int>(
-      'publish_time', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
+  late final GeneratedColumn<int> publishTime = GeneratedColumn<int>('publish_time', aliasedName, true, type: DriftSqlType.int, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns => [
-        albumId,
-        sourceType,
-        sourceId,
-        title,
-        artistSearchText,
-        artistNamesJson,
-        artworkUrl,
-        description,
-        trackCount,
-        publishTime
-      ];
+  List<GeneratedColumn> get $columns => [albumId, sourceType, sourceId, title, artistSearchText, artistNamesJson, artworkUrl, description, trackCount, publishTime];
   @override
   String get aliasedName => _alias ?? 'albums';
   @override
   String get actualTableName => 'albums';
   @override
-  VerificationContext validateIntegrity(Insertable<Album> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<Album> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('album_id')) {
-      context.handle(_albumIdMeta,
-          albumId.isAcceptableOrUnknown(data['album_id']!, _albumIdMeta));
+      context.handle(_albumIdMeta, albumId.isAcceptableOrUnknown(data['album_id']!, _albumIdMeta));
     } else if (isInserting) {
       context.missing(_albumIdMeta);
     }
     if (data.containsKey('source_type')) {
-      context.handle(
-          _sourceTypeMeta,
-          sourceType.isAcceptableOrUnknown(
-              data['source_type']!, _sourceTypeMeta));
+      context.handle(_sourceTypeMeta, sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta));
     } else if (isInserting) {
       context.missing(_sourceTypeMeta);
     }
     if (data.containsKey('source_id')) {
-      context.handle(_sourceIdMeta,
-          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+      context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
     } else if (isInserting) {
       context.missing(_sourceIdMeta);
     }
     if (data.containsKey('title')) {
-      context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+      context.handle(_titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
     if (data.containsKey('artist_search_text')) {
-      context.handle(
-          _artistSearchTextMeta,
-          artistSearchText.isAcceptableOrUnknown(
-              data['artist_search_text']!, _artistSearchTextMeta));
+      context.handle(_artistSearchTextMeta, artistSearchText.isAcceptableOrUnknown(data['artist_search_text']!, _artistSearchTextMeta));
     } else if (isInserting) {
       context.missing(_artistSearchTextMeta);
     }
     if (data.containsKey('artist_names_json')) {
-      context.handle(
-          _artistNamesJsonMeta,
-          artistNamesJson.isAcceptableOrUnknown(
-              data['artist_names_json']!, _artistNamesJsonMeta));
+      context.handle(_artistNamesJsonMeta, artistNamesJson.isAcceptableOrUnknown(data['artist_names_json']!, _artistNamesJsonMeta));
     } else if (isInserting) {
       context.missing(_artistNamesJsonMeta);
     }
     if (data.containsKey('artwork_url')) {
-      context.handle(
-          _artworkUrlMeta,
-          artworkUrl.isAcceptableOrUnknown(
-              data['artwork_url']!, _artworkUrlMeta));
+      context.handle(_artworkUrlMeta, artworkUrl.isAcceptableOrUnknown(data['artwork_url']!, _artworkUrlMeta));
     }
     if (data.containsKey('description')) {
-      context.handle(
-          _descriptionMeta,
-          description.isAcceptableOrUnknown(
-              data['description']!, _descriptionMeta));
+      context.handle(_descriptionMeta, description.isAcceptableOrUnknown(data['description']!, _descriptionMeta));
     }
     if (data.containsKey('track_count')) {
-      context.handle(
-          _trackCountMeta,
-          trackCount.isAcceptableOrUnknown(
-              data['track_count']!, _trackCountMeta));
+      context.handle(_trackCountMeta, trackCount.isAcceptableOrUnknown(data['track_count']!, _trackCountMeta));
     }
     if (data.containsKey('publish_time')) {
-      context.handle(
-          _publishTimeMeta,
-          publishTime.isAcceptableOrUnknown(
-              data['publish_time']!, _publishTimeMeta));
+      context.handle(_publishTimeMeta, publishTime.isAcceptableOrUnknown(data['publish_time']!, _publishTimeMeta));
     }
     return context;
   }
@@ -3459,26 +2814,16 @@ class $AlbumsTable extends Albums with TableInfo<$AlbumsTable, Album> {
   Album map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Album(
-      albumId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}album_id'])!,
-      sourceType: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
-      sourceId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
-      title: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      artistSearchText: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}artist_search_text'])!,
-      artistNamesJson: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}artist_names_json'])!,
-      artworkUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}artwork_url']),
-      description: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}description']),
-      trackCount: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}track_count']),
-      publishTime: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}publish_time']),
+      albumId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}album_id'])!,
+      sourceType: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
+      title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      artistSearchText: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}artist_search_text'])!,
+      artistNamesJson: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}artist_names_json'])!,
+      artworkUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}artwork_url']),
+      description: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}description']),
+      trackCount: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}track_count']),
+      publishTime: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}publish_time']),
     );
   }
 
@@ -3519,16 +2864,7 @@ class Album extends DataClass implements Insertable<Album> {
   /// 发布时间戳。
   final int? publishTime;
   const Album(
-      {required this.albumId,
-      required this.sourceType,
-      required this.sourceId,
-      required this.title,
-      required this.artistSearchText,
-      required this.artistNamesJson,
-      this.artworkUrl,
-      this.description,
-      this.trackCount,
-      this.publishTime});
+      {required this.albumId, required this.sourceType, required this.sourceId, required this.title, required this.artistSearchText, required this.artistNamesJson, this.artworkUrl, this.description, this.trackCount, this.publishTime});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3561,23 +2897,14 @@ class Album extends DataClass implements Insertable<Album> {
       title: Value(title),
       artistSearchText: Value(artistSearchText),
       artistNamesJson: Value(artistNamesJson),
-      artworkUrl: artworkUrl == null && nullToAbsent
-          ? const Value.absent()
-          : Value(artworkUrl),
-      description: description == null && nullToAbsent
-          ? const Value.absent()
-          : Value(description),
-      trackCount: trackCount == null && nullToAbsent
-          ? const Value.absent()
-          : Value(trackCount),
-      publishTime: publishTime == null && nullToAbsent
-          ? const Value.absent()
-          : Value(publishTime),
+      artworkUrl: artworkUrl == null && nullToAbsent ? const Value.absent() : Value(artworkUrl),
+      description: description == null && nullToAbsent ? const Value.absent() : Value(description),
+      trackCount: trackCount == null && nullToAbsent ? const Value.absent() : Value(trackCount),
+      publishTime: publishTime == null && nullToAbsent ? const Value.absent() : Value(publishTime),
     );
   }
 
-  factory Album.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory Album.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Album(
       albumId: serializer.fromJson<String>(json['albumId']),
@@ -3650,17 +2977,7 @@ class Album extends DataClass implements Insertable<Album> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      albumId,
-      sourceType,
-      sourceId,
-      title,
-      artistSearchText,
-      artistNamesJson,
-      artworkUrl,
-      description,
-      trackCount,
-      publishTime);
+  int get hashCode => Object.hash(albumId, sourceType, sourceId, title, artistSearchText, artistNamesJson, artworkUrl, description, trackCount, publishTime);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3838,90 +3155,59 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $ArtistsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _artistIdMeta =
-      const VerificationMeta('artistId');
+  static const VerificationMeta _artistIdMeta = const VerificationMeta('artistId');
   @override
-  late final GeneratedColumn<String> artistId = GeneratedColumn<String>(
-      'artist_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sourceTypeMeta =
-      const VerificationMeta('sourceType');
+  late final GeneratedColumn<String> artistId = GeneratedColumn<String>('artist_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta('sourceType');
   @override
-  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
-      'source_type', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sourceIdMeta =
-      const VerificationMeta('sourceId');
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>('source_type', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
   @override
-  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
-      'source_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>('source_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _artworkUrlMeta =
-      const VerificationMeta('artworkUrl');
+  late final GeneratedColumn<String> name = GeneratedColumn<String>('name', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artworkUrlMeta = const VerificationMeta('artworkUrl');
   @override
-  late final GeneratedColumn<String> artworkUrl = GeneratedColumn<String>(
-      'artwork_url', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _descriptionMeta =
-      const VerificationMeta('description');
+  late final GeneratedColumn<String> artworkUrl = GeneratedColumn<String>('artwork_url', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta = const VerificationMeta('description');
   @override
-  late final GeneratedColumn<String> description = GeneratedColumn<String>(
-      'description', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+  late final GeneratedColumn<String> description = GeneratedColumn<String>('description', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns =>
-      [artistId, sourceType, sourceId, name, artworkUrl, description];
+  List<GeneratedColumn> get $columns => [artistId, sourceType, sourceId, name, artworkUrl, description];
   @override
   String get aliasedName => _alias ?? 'artists';
   @override
   String get actualTableName => 'artists';
   @override
-  VerificationContext validateIntegrity(Insertable<Artist> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<Artist> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('artist_id')) {
-      context.handle(_artistIdMeta,
-          artistId.isAcceptableOrUnknown(data['artist_id']!, _artistIdMeta));
+      context.handle(_artistIdMeta, artistId.isAcceptableOrUnknown(data['artist_id']!, _artistIdMeta));
     } else if (isInserting) {
       context.missing(_artistIdMeta);
     }
     if (data.containsKey('source_type')) {
-      context.handle(
-          _sourceTypeMeta,
-          sourceType.isAcceptableOrUnknown(
-              data['source_type']!, _sourceTypeMeta));
+      context.handle(_sourceTypeMeta, sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta));
     } else if (isInserting) {
       context.missing(_sourceTypeMeta);
     }
     if (data.containsKey('source_id')) {
-      context.handle(_sourceIdMeta,
-          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+      context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
     } else if (isInserting) {
       context.missing(_sourceIdMeta);
     }
     if (data.containsKey('name')) {
-      context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+      context.handle(_nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('artwork_url')) {
-      context.handle(
-          _artworkUrlMeta,
-          artworkUrl.isAcceptableOrUnknown(
-              data['artwork_url']!, _artworkUrlMeta));
+      context.handle(_artworkUrlMeta, artworkUrl.isAcceptableOrUnknown(data['artwork_url']!, _artworkUrlMeta));
     }
     if (data.containsKey('description')) {
-      context.handle(
-          _descriptionMeta,
-          description.isAcceptableOrUnknown(
-              data['description']!, _descriptionMeta));
+      context.handle(_descriptionMeta, description.isAcceptableOrUnknown(data['description']!, _descriptionMeta));
     }
     return context;
   }
@@ -3932,18 +3218,12 @@ class $ArtistsTable extends Artists with TableInfo<$ArtistsTable, Artist> {
   Artist map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Artist(
-      artistId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}artist_id'])!,
-      sourceType: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
-      sourceId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      artworkUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}artwork_url']),
-      description: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      artistId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}artist_id'])!,
+      sourceType: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
+      name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      artworkUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}artwork_url']),
+      description: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}description']),
     );
   }
 
@@ -3971,13 +3251,7 @@ class Artist extends DataClass implements Insertable<Artist> {
 
   /// 歌手描述。
   final String? description;
-  const Artist(
-      {required this.artistId,
-      required this.sourceType,
-      required this.sourceId,
-      required this.name,
-      this.artworkUrl,
-      this.description});
+  const Artist({required this.artistId, required this.sourceType, required this.sourceId, required this.name, this.artworkUrl, this.description});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4000,17 +3274,12 @@ class Artist extends DataClass implements Insertable<Artist> {
       sourceType: Value(sourceType),
       sourceId: Value(sourceId),
       name: Value(name),
-      artworkUrl: artworkUrl == null && nullToAbsent
-          ? const Value.absent()
-          : Value(artworkUrl),
-      description: description == null && nullToAbsent
-          ? const Value.absent()
-          : Value(description),
+      artworkUrl: artworkUrl == null && nullToAbsent ? const Value.absent() : Value(artworkUrl),
+      description: description == null && nullToAbsent ? const Value.absent() : Value(description),
     );
   }
 
-  factory Artist.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory Artist.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Artist(
       artistId: serializer.fromJson<String>(json['artistId']),
@@ -4034,14 +3303,7 @@ class Artist extends DataClass implements Insertable<Artist> {
     };
   }
 
-  Artist copyWith(
-          {String? artistId,
-          String? sourceType,
-          String? sourceId,
-          String? name,
-          Value<String?> artworkUrl = const Value.absent(),
-          Value<String?> description = const Value.absent()}) =>
-      Artist(
+  Artist copyWith({String? artistId, String? sourceType, String? sourceId, String? name, Value<String?> artworkUrl = const Value.absent(), Value<String?> description = const Value.absent()}) => Artist(
         artistId: artistId ?? this.artistId,
         sourceType: sourceType ?? this.sourceType,
         sourceId: sourceId ?? this.sourceId,
@@ -4063,18 +3325,11 @@ class Artist extends DataClass implements Insertable<Artist> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      artistId, sourceType, sourceId, name, artworkUrl, description);
+  int get hashCode => Object.hash(artistId, sourceType, sourceId, name, artworkUrl, description);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Artist &&
-          other.artistId == this.artistId &&
-          other.sourceType == this.sourceType &&
-          other.sourceId == this.sourceId &&
-          other.name == this.name &&
-          other.artworkUrl == this.artworkUrl &&
-          other.description == this.description);
+      (other is Artist && other.artistId == this.artistId && other.sourceType == this.sourceType && other.sourceId == this.sourceId && other.name == this.name && other.artworkUrl == this.artworkUrl && other.description == this.description);
 }
 
 class ArtistsCompanion extends UpdateCompanion<Artist> {
@@ -4126,14 +3381,7 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
     });
   }
 
-  ArtistsCompanion copyWith(
-      {Value<String>? artistId,
-      Value<String>? sourceType,
-      Value<String>? sourceId,
-      Value<String>? name,
-      Value<String?>? artworkUrl,
-      Value<String?>? description,
-      Value<int>? rowid}) {
+  ArtistsCompanion copyWith({Value<String>? artistId, Value<String>? sourceType, Value<String>? sourceId, Value<String>? name, Value<String?>? artworkUrl, Value<String?>? description, Value<int>? rowid}) {
     return ArtistsCompanion(
       artistId: artistId ?? this.artistId,
       sourceType: sourceType ?? this.sourceType,
@@ -4187,128 +3435,82 @@ class ArtistsCompanion extends UpdateCompanion<Artist> {
   }
 }
 
-class $UserProfilesTable extends UserProfiles
-    with TableInfo<$UserProfilesTable, UserProfile> {
+class $UserProfilesTable extends UserProfiles with TableInfo<$UserProfilesTable, UserProfile> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $UserProfilesTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-      'user_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _nicknameMeta =
-      const VerificationMeta('nickname');
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>('user_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nicknameMeta = const VerificationMeta('nickname');
   @override
-  late final GeneratedColumn<String> nickname = GeneratedColumn<String>(
-      'nickname', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _signatureMeta =
-      const VerificationMeta('signature');
+  late final GeneratedColumn<String> nickname = GeneratedColumn<String>('nickname', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _signatureMeta = const VerificationMeta('signature');
   @override
-  late final GeneratedColumn<String> signature = GeneratedColumn<String>(
-      'signature', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _followsMeta =
-      const VerificationMeta('follows');
+  late final GeneratedColumn<String> signature = GeneratedColumn<String>('signature', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _followsMeta = const VerificationMeta('follows');
   @override
-  late final GeneratedColumn<int> follows = GeneratedColumn<int>(
-      'follows', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _followedsMeta =
-      const VerificationMeta('followeds');
+  late final GeneratedColumn<int> follows = GeneratedColumn<int>('follows', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _followedsMeta = const VerificationMeta('followeds');
   @override
-  late final GeneratedColumn<int> followeds = GeneratedColumn<int>(
-      'followeds', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _playlistCountMeta =
-      const VerificationMeta('playlistCount');
+  late final GeneratedColumn<int> followeds = GeneratedColumn<int>('followeds', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _playlistCountMeta = const VerificationMeta('playlistCount');
   @override
-  late final GeneratedColumn<int> playlistCount = GeneratedColumn<int>(
-      'playlist_count', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _avatarUrlMeta =
-      const VerificationMeta('avatarUrl');
+  late final GeneratedColumn<int> playlistCount = GeneratedColumn<int>('playlist_count', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _avatarUrlMeta = const VerificationMeta('avatarUrl');
   @override
-  late final GeneratedColumn<String> avatarUrl = GeneratedColumn<String>(
-      'avatar_url', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<String> avatarUrl = GeneratedColumn<String>('avatar_url', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [
-        userId,
-        nickname,
-        signature,
-        follows,
-        followeds,
-        playlistCount,
-        avatarUrl,
-        updatedAtMs
-      ];
+  List<GeneratedColumn> get $columns => [userId, nickname, signature, follows, followeds, playlistCount, avatarUrl, updatedAtMs];
   @override
   String get aliasedName => _alias ?? 'user_profiles';
   @override
   String get actualTableName => 'user_profiles';
   @override
-  VerificationContext validateIntegrity(Insertable<UserProfile> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<UserProfile> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
     if (data.containsKey('nickname')) {
-      context.handle(_nicknameMeta,
-          nickname.isAcceptableOrUnknown(data['nickname']!, _nicknameMeta));
+      context.handle(_nicknameMeta, nickname.isAcceptableOrUnknown(data['nickname']!, _nicknameMeta));
     } else if (isInserting) {
       context.missing(_nicknameMeta);
     }
     if (data.containsKey('signature')) {
-      context.handle(_signatureMeta,
-          signature.isAcceptableOrUnknown(data['signature']!, _signatureMeta));
+      context.handle(_signatureMeta, signature.isAcceptableOrUnknown(data['signature']!, _signatureMeta));
     } else if (isInserting) {
       context.missing(_signatureMeta);
     }
     if (data.containsKey('follows')) {
-      context.handle(_followsMeta,
-          follows.isAcceptableOrUnknown(data['follows']!, _followsMeta));
+      context.handle(_followsMeta, follows.isAcceptableOrUnknown(data['follows']!, _followsMeta));
     } else if (isInserting) {
       context.missing(_followsMeta);
     }
     if (data.containsKey('followeds')) {
-      context.handle(_followedsMeta,
-          followeds.isAcceptableOrUnknown(data['followeds']!, _followedsMeta));
+      context.handle(_followedsMeta, followeds.isAcceptableOrUnknown(data['followeds']!, _followedsMeta));
     } else if (isInserting) {
       context.missing(_followedsMeta);
     }
     if (data.containsKey('playlist_count')) {
-      context.handle(
-          _playlistCountMeta,
-          playlistCount.isAcceptableOrUnknown(
-              data['playlist_count']!, _playlistCountMeta));
+      context.handle(_playlistCountMeta, playlistCount.isAcceptableOrUnknown(data['playlist_count']!, _playlistCountMeta));
     } else if (isInserting) {
       context.missing(_playlistCountMeta);
     }
     if (data.containsKey('avatar_url')) {
-      context.handle(_avatarUrlMeta,
-          avatarUrl.isAcceptableOrUnknown(data['avatar_url']!, _avatarUrlMeta));
+      context.handle(_avatarUrlMeta, avatarUrl.isAcceptableOrUnknown(data['avatar_url']!, _avatarUrlMeta));
     } else if (isInserting) {
       context.missing(_avatarUrlMeta);
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
@@ -4321,22 +3523,14 @@ class $UserProfilesTable extends UserProfiles
   UserProfile map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserProfile(
-      userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
-      nickname: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}nickname'])!,
-      signature: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}signature'])!,
-      follows: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}follows'])!,
-      followeds: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}followeds'])!,
-      playlistCount: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}playlist_count'])!,
-      avatarUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}avatar_url'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      nickname: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}nickname'])!,
+      signature: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}signature'])!,
+      follows: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}follows'])!,
+      followeds: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}followeds'])!,
+      playlistCount: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}playlist_count'])!,
+      avatarUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}avatar_url'])!,
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
     );
   }
 
@@ -4370,15 +3564,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
 
   /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
-  const UserProfile(
-      {required this.userId,
-      required this.nickname,
-      required this.signature,
-      required this.follows,
-      required this.followeds,
-      required this.playlistCount,
-      required this.avatarUrl,
-      required this.updatedAtMs});
+  const UserProfile({required this.userId, required this.nickname, required this.signature, required this.follows, required this.followeds, required this.playlistCount, required this.avatarUrl, required this.updatedAtMs});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4406,8 +3592,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     );
   }
 
-  factory UserProfile.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory UserProfile.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserProfile(
       userId: serializer.fromJson<String>(json['userId']),
@@ -4435,16 +3620,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     };
   }
 
-  UserProfile copyWith(
-          {String? userId,
-          String? nickname,
-          String? signature,
-          int? follows,
-          int? followeds,
-          int? playlistCount,
-          String? avatarUrl,
-          int? updatedAtMs}) =>
-      UserProfile(
+  UserProfile copyWith({String? userId, String? nickname, String? signature, int? follows, int? followeds, int? playlistCount, String? avatarUrl, int? updatedAtMs}) => UserProfile(
         userId: userId ?? this.userId,
         nickname: nickname ?? this.nickname,
         signature: signature ?? this.signature,
@@ -4470,8 +3646,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
   }
 
   @override
-  int get hashCode => Object.hash(userId, nickname, signature, follows,
-      followeds, playlistCount, avatarUrl, updatedAtMs);
+  int get hashCode => Object.hash(userId, nickname, signature, follows, followeds, playlistCount, avatarUrl, updatedAtMs);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4550,15 +3725,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
   }
 
   UserProfilesCompanion copyWith(
-      {Value<String>? userId,
-      Value<String>? nickname,
-      Value<String>? signature,
-      Value<int>? follows,
-      Value<int>? followeds,
-      Value<int>? playlistCount,
-      Value<String>? avatarUrl,
-      Value<int>? updatedAtMs,
-      Value<int>? rowid}) {
+      {Value<String>? userId, Value<String>? nickname, Value<String>? signature, Value<int>? follows, Value<int>? followeds, Value<int>? playlistCount, Value<String>? avatarUrl, Value<int>? updatedAtMs, Value<int>? rowid}) {
     return UserProfilesCompanion(
       userId: userId ?? this.userId,
       nickname: nickname ?? this.nickname,
@@ -4622,82 +3789,58 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
   }
 }
 
-class $UserTrackListRefsTable extends UserTrackListRefs
-    with TableInfo<$UserTrackListRefsTable, UserTrackListRef> {
+class $UserTrackListRefsTable extends UserTrackListRefs with TableInfo<$UserTrackListRefsTable, UserTrackListRef> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $UserTrackListRefsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-      'user_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _listKindMeta =
-      const VerificationMeta('listKind');
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>('user_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _listKindMeta = const VerificationMeta('listKind');
   @override
-  late final GeneratedColumn<String> listKind = GeneratedColumn<String>(
-      'list_kind', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _trackIdMeta =
-      const VerificationMeta('trackId');
+  late final GeneratedColumn<String> listKind = GeneratedColumn<String>('list_kind', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _trackIdMeta = const VerificationMeta('trackId');
   @override
-  late final GeneratedColumn<String> trackId = GeneratedColumn<String>(
-      'track_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sortOrderMeta =
-      const VerificationMeta('sortOrder');
+  late final GeneratedColumn<String> trackId = GeneratedColumn<String>('track_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta('sortOrder');
   @override
-  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
-      'sort_order', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>('sort_order', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns =>
-      [userId, listKind, trackId, sortOrder, updatedAtMs];
+  List<GeneratedColumn> get $columns => [userId, listKind, trackId, sortOrder, updatedAtMs];
   @override
   String get aliasedName => _alias ?? 'user_track_list_refs';
   @override
   String get actualTableName => 'user_track_list_refs';
   @override
-  VerificationContext validateIntegrity(Insertable<UserTrackListRef> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<UserTrackListRef> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
     if (data.containsKey('list_kind')) {
-      context.handle(_listKindMeta,
-          listKind.isAcceptableOrUnknown(data['list_kind']!, _listKindMeta));
+      context.handle(_listKindMeta, listKind.isAcceptableOrUnknown(data['list_kind']!, _listKindMeta));
     } else if (isInserting) {
       context.missing(_listKindMeta);
     }
     if (data.containsKey('track_id')) {
-      context.handle(_trackIdMeta,
-          trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
+      context.handle(_trackIdMeta, trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta));
     } else if (isInserting) {
       context.missing(_trackIdMeta);
     }
     if (data.containsKey('sort_order')) {
-      context.handle(_sortOrderMeta,
-          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+      context.handle(_sortOrderMeta, sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
     } else if (isInserting) {
       context.missing(_sortOrderMeta);
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
@@ -4710,16 +3853,11 @@ class $UserTrackListRefsTable extends UserTrackListRefs
   UserTrackListRef map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserTrackListRef(
-      userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
-      listKind: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}list_kind'])!,
-      trackId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
-      sortOrder: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      listKind: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}list_kind'])!,
+      trackId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}track_id'])!,
+      sortOrder: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
     );
   }
 
@@ -4729,8 +3867,7 @@ class $UserTrackListRefsTable extends UserTrackListRefs
   }
 }
 
-class UserTrackListRef extends DataClass
-    implements Insertable<UserTrackListRef> {
+class UserTrackListRef extends DataClass implements Insertable<UserTrackListRef> {
   /// 用户 id。
   final String userId;
 
@@ -4745,12 +3882,7 @@ class UserTrackListRef extends DataClass
 
   /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
-  const UserTrackListRef(
-      {required this.userId,
-      required this.listKind,
-      required this.trackId,
-      required this.sortOrder,
-      required this.updatedAtMs});
+  const UserTrackListRef({required this.userId, required this.listKind, required this.trackId, required this.sortOrder, required this.updatedAtMs});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4772,8 +3904,7 @@ class UserTrackListRef extends DataClass
     );
   }
 
-  factory UserTrackListRef.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory UserTrackListRef.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserTrackListRef(
       userId: serializer.fromJson<String>(json['userId']),
@@ -4795,13 +3926,7 @@ class UserTrackListRef extends DataClass
     };
   }
 
-  UserTrackListRef copyWith(
-          {String? userId,
-          String? listKind,
-          String? trackId,
-          int? sortOrder,
-          int? updatedAtMs}) =>
-      UserTrackListRef(
+  UserTrackListRef copyWith({String? userId, String? listKind, String? trackId, int? sortOrder, int? updatedAtMs}) => UserTrackListRef(
         userId: userId ?? this.userId,
         listKind: listKind ?? this.listKind,
         trackId: trackId ?? this.trackId,
@@ -4821,17 +3946,10 @@ class UserTrackListRef extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(userId, listKind, trackId, sortOrder, updatedAtMs);
+  int get hashCode => Object.hash(userId, listKind, trackId, sortOrder, updatedAtMs);
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is UserTrackListRef &&
-          other.userId == this.userId &&
-          other.listKind == this.listKind &&
-          other.trackId == this.trackId &&
-          other.sortOrder == this.sortOrder &&
-          other.updatedAtMs == this.updatedAtMs);
+      identical(this, other) || (other is UserTrackListRef && other.userId == this.userId && other.listKind == this.listKind && other.trackId == this.trackId && other.sortOrder == this.sortOrder && other.updatedAtMs == this.updatedAtMs);
 }
 
 class UserTrackListRefsCompanion extends UpdateCompanion<UserTrackListRef> {
@@ -4879,13 +3997,7 @@ class UserTrackListRefsCompanion extends UpdateCompanion<UserTrackListRef> {
     });
   }
 
-  UserTrackListRefsCompanion copyWith(
-      {Value<String>? userId,
-      Value<String>? listKind,
-      Value<String>? trackId,
-      Value<int>? sortOrder,
-      Value<int>? updatedAtMs,
-      Value<int>? rowid}) {
+  UserTrackListRefsCompanion copyWith({Value<String>? userId, Value<String>? listKind, Value<String>? trackId, Value<int>? sortOrder, Value<int>? updatedAtMs, Value<int>? rowid}) {
     return UserTrackListRefsCompanion(
       userId: userId ?? this.userId,
       listKind: listKind ?? this.listKind,
@@ -4934,85 +4046,58 @@ class UserTrackListRefsCompanion extends UpdateCompanion<UserTrackListRef> {
   }
 }
 
-class $UserPlaylistListRefsTable extends UserPlaylistListRefs
-    with TableInfo<$UserPlaylistListRefsTable, UserPlaylistListRef> {
+class $UserPlaylistListRefsTable extends UserPlaylistListRefs with TableInfo<$UserPlaylistListRefsTable, UserPlaylistListRef> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $UserPlaylistListRefsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-      'user_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _listKindMeta =
-      const VerificationMeta('listKind');
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>('user_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _listKindMeta = const VerificationMeta('listKind');
   @override
-  late final GeneratedColumn<String> listKind = GeneratedColumn<String>(
-      'list_kind', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _playlistIdMeta =
-      const VerificationMeta('playlistId');
+  late final GeneratedColumn<String> listKind = GeneratedColumn<String>('list_kind', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _playlistIdMeta = const VerificationMeta('playlistId');
   @override
-  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>(
-      'playlist_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sortOrderMeta =
-      const VerificationMeta('sortOrder');
+  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>('playlist_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta('sortOrder');
   @override
-  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
-      'sort_order', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>('sort_order', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns =>
-      [userId, listKind, playlistId, sortOrder, updatedAtMs];
+  List<GeneratedColumn> get $columns => [userId, listKind, playlistId, sortOrder, updatedAtMs];
   @override
   String get aliasedName => _alias ?? 'user_playlist_list_refs';
   @override
   String get actualTableName => 'user_playlist_list_refs';
   @override
-  VerificationContext validateIntegrity(
-      Insertable<UserPlaylistListRef> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<UserPlaylistListRef> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
     if (data.containsKey('list_kind')) {
-      context.handle(_listKindMeta,
-          listKind.isAcceptableOrUnknown(data['list_kind']!, _listKindMeta));
+      context.handle(_listKindMeta, listKind.isAcceptableOrUnknown(data['list_kind']!, _listKindMeta));
     } else if (isInserting) {
       context.missing(_listKindMeta);
     }
     if (data.containsKey('playlist_id')) {
-      context.handle(
-          _playlistIdMeta,
-          playlistId.isAcceptableOrUnknown(
-              data['playlist_id']!, _playlistIdMeta));
+      context.handle(_playlistIdMeta, playlistId.isAcceptableOrUnknown(data['playlist_id']!, _playlistIdMeta));
     } else if (isInserting) {
       context.missing(_playlistIdMeta);
     }
     if (data.containsKey('sort_order')) {
-      context.handle(_sortOrderMeta,
-          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+      context.handle(_sortOrderMeta, sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
     } else if (isInserting) {
       context.missing(_sortOrderMeta);
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
@@ -5025,16 +4110,11 @@ class $UserPlaylistListRefsTable extends UserPlaylistListRefs
   UserPlaylistListRef map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserPlaylistListRef(
-      userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
-      listKind: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}list_kind'])!,
-      playlistId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
-      sortOrder: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      listKind: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}list_kind'])!,
+      playlistId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
+      sortOrder: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
     );
   }
 
@@ -5044,8 +4124,7 @@ class $UserPlaylistListRefsTable extends UserPlaylistListRefs
   }
 }
 
-class UserPlaylistListRef extends DataClass
-    implements Insertable<UserPlaylistListRef> {
+class UserPlaylistListRef extends DataClass implements Insertable<UserPlaylistListRef> {
   /// 用户 id。
   final String userId;
 
@@ -5060,12 +4139,7 @@ class UserPlaylistListRef extends DataClass
 
   /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
-  const UserPlaylistListRef(
-      {required this.userId,
-      required this.listKind,
-      required this.playlistId,
-      required this.sortOrder,
-      required this.updatedAtMs});
+  const UserPlaylistListRef({required this.userId, required this.listKind, required this.playlistId, required this.sortOrder, required this.updatedAtMs});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -5087,8 +4161,7 @@ class UserPlaylistListRef extends DataClass
     );
   }
 
-  factory UserPlaylistListRef.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory UserPlaylistListRef.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserPlaylistListRef(
       userId: serializer.fromJson<String>(json['userId']),
@@ -5110,13 +4183,7 @@ class UserPlaylistListRef extends DataClass
     };
   }
 
-  UserPlaylistListRef copyWith(
-          {String? userId,
-          String? listKind,
-          String? playlistId,
-          int? sortOrder,
-          int? updatedAtMs}) =>
-      UserPlaylistListRef(
+  UserPlaylistListRef copyWith({String? userId, String? listKind, String? playlistId, int? sortOrder, int? updatedAtMs}) => UserPlaylistListRef(
         userId: userId ?? this.userId,
         listKind: listKind ?? this.listKind,
         playlistId: playlistId ?? this.playlistId,
@@ -5136,21 +4203,14 @@ class UserPlaylistListRef extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(userId, listKind, playlistId, sortOrder, updatedAtMs);
+  int get hashCode => Object.hash(userId, listKind, playlistId, sortOrder, updatedAtMs);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is UserPlaylistListRef &&
-          other.userId == this.userId &&
-          other.listKind == this.listKind &&
-          other.playlistId == this.playlistId &&
-          other.sortOrder == this.sortOrder &&
-          other.updatedAtMs == this.updatedAtMs);
+      (other is UserPlaylistListRef && other.userId == this.userId && other.listKind == this.listKind && other.playlistId == this.playlistId && other.sortOrder == this.sortOrder && other.updatedAtMs == this.updatedAtMs);
 }
 
-class UserPlaylistListRefsCompanion
-    extends UpdateCompanion<UserPlaylistListRef> {
+class UserPlaylistListRefsCompanion extends UpdateCompanion<UserPlaylistListRef> {
   final Value<String> userId;
   final Value<String> listKind;
   final Value<String> playlistId;
@@ -5195,13 +4255,7 @@ class UserPlaylistListRefsCompanion
     });
   }
 
-  UserPlaylistListRefsCompanion copyWith(
-      {Value<String>? userId,
-      Value<String>? listKind,
-      Value<String>? playlistId,
-      Value<int>? sortOrder,
-      Value<int>? updatedAtMs,
-      Value<int>? rowid}) {
+  UserPlaylistListRefsCompanion copyWith({Value<String>? userId, Value<String>? listKind, Value<String>? playlistId, Value<int>? sortOrder, Value<int>? updatedAtMs, Value<int>? rowid}) {
     return UserPlaylistListRefsCompanion(
       userId: userId ?? this.userId,
       listKind: listKind ?? this.listKind,
@@ -5250,114 +4304,68 @@ class UserPlaylistListRefsCompanion
   }
 }
 
-class $UserPlaylistSnapshotsTable extends UserPlaylistSnapshots
-    with TableInfo<$UserPlaylistSnapshotsTable, UserPlaylistSnapshot> {
+class $UserPlaylistSnapshotsTable extends UserPlaylistSnapshots with TableInfo<$UserPlaylistSnapshotsTable, UserPlaylistSnapshot> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $UserPlaylistSnapshotsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _playlistIdMeta =
-      const VerificationMeta('playlistId');
+  static const VerificationMeta _playlistIdMeta = const VerificationMeta('playlistId');
   @override
-  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>(
-      'playlist_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sourceIdMeta =
-      const VerificationMeta('sourceId');
+  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>('playlist_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
   @override
-  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
-      'source_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>('source_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-      'title', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _coverUrlMeta =
-      const VerificationMeta('coverUrl');
+  late final GeneratedColumn<String> title = GeneratedColumn<String>('title', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _coverUrlMeta = const VerificationMeta('coverUrl');
   @override
-  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>(
-      'cover_url', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _trackCountMeta =
-      const VerificationMeta('trackCount');
+  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>('cover_url', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _trackCountMeta = const VerificationMeta('trackCount');
   @override
-  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>(
-      'track_count', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _descriptionMeta =
-      const VerificationMeta('description');
+  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>('track_count', aliasedName, true, type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta = const VerificationMeta('description');
   @override
-  late final GeneratedColumn<String> description = GeneratedColumn<String>(
-      'description', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<String> description = GeneratedColumn<String>('description', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [
-        playlistId,
-        sourceId,
-        title,
-        coverUrl,
-        trackCount,
-        description,
-        updatedAtMs
-      ];
+  List<GeneratedColumn> get $columns => [playlistId, sourceId, title, coverUrl, trackCount, description, updatedAtMs];
   @override
   String get aliasedName => _alias ?? 'user_playlist_snapshots';
   @override
   String get actualTableName => 'user_playlist_snapshots';
   @override
-  VerificationContext validateIntegrity(
-      Insertable<UserPlaylistSnapshot> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<UserPlaylistSnapshot> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('playlist_id')) {
-      context.handle(
-          _playlistIdMeta,
-          playlistId.isAcceptableOrUnknown(
-              data['playlist_id']!, _playlistIdMeta));
+      context.handle(_playlistIdMeta, playlistId.isAcceptableOrUnknown(data['playlist_id']!, _playlistIdMeta));
     } else if (isInserting) {
       context.missing(_playlistIdMeta);
     }
     if (data.containsKey('source_id')) {
-      context.handle(_sourceIdMeta,
-          sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+      context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
     } else if (isInserting) {
       context.missing(_sourceIdMeta);
     }
     if (data.containsKey('title')) {
-      context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+      context.handle(_titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
     if (data.containsKey('cover_url')) {
-      context.handle(_coverUrlMeta,
-          coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
+      context.handle(_coverUrlMeta, coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
     }
     if (data.containsKey('track_count')) {
-      context.handle(
-          _trackCountMeta,
-          trackCount.isAcceptableOrUnknown(
-              data['track_count']!, _trackCountMeta));
+      context.handle(_trackCountMeta, trackCount.isAcceptableOrUnknown(data['track_count']!, _trackCountMeta));
     }
     if (data.containsKey('description')) {
-      context.handle(
-          _descriptionMeta,
-          description.isAcceptableOrUnknown(
-              data['description']!, _descriptionMeta));
+      context.handle(_descriptionMeta, description.isAcceptableOrUnknown(data['description']!, _descriptionMeta));
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
@@ -5370,20 +4378,13 @@ class $UserPlaylistSnapshotsTable extends UserPlaylistSnapshots
   UserPlaylistSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserPlaylistSnapshot(
-      playlistId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
-      sourceId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
-      title: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      coverUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}cover_url']),
-      trackCount: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}track_count']),
-      description: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}description']),
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      playlistId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
+      sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
+      title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      coverUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}cover_url']),
+      trackCount: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}track_count']),
+      description: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}description']),
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
     );
   }
 
@@ -5393,8 +4394,7 @@ class $UserPlaylistSnapshotsTable extends UserPlaylistSnapshots
   }
 }
 
-class UserPlaylistSnapshot extends DataClass
-    implements Insertable<UserPlaylistSnapshot> {
+class UserPlaylistSnapshot extends DataClass implements Insertable<UserPlaylistSnapshot> {
   /// 歌单 id。
   final String playlistId;
 
@@ -5415,14 +4415,7 @@ class UserPlaylistSnapshot extends DataClass
 
   /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
-  const UserPlaylistSnapshot(
-      {required this.playlistId,
-      required this.sourceId,
-      required this.title,
-      this.coverUrl,
-      this.trackCount,
-      this.description,
-      required this.updatedAtMs});
+  const UserPlaylistSnapshot({required this.playlistId, required this.sourceId, required this.title, this.coverUrl, this.trackCount, this.description, required this.updatedAtMs});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -5447,21 +4440,14 @@ class UserPlaylistSnapshot extends DataClass
       playlistId: Value(playlistId),
       sourceId: Value(sourceId),
       title: Value(title),
-      coverUrl: coverUrl == null && nullToAbsent
-          ? const Value.absent()
-          : Value(coverUrl),
-      trackCount: trackCount == null && nullToAbsent
-          ? const Value.absent()
-          : Value(trackCount),
-      description: description == null && nullToAbsent
-          ? const Value.absent()
-          : Value(description),
+      coverUrl: coverUrl == null && nullToAbsent ? const Value.absent() : Value(coverUrl),
+      trackCount: trackCount == null && nullToAbsent ? const Value.absent() : Value(trackCount),
+      description: description == null && nullToAbsent ? const Value.absent() : Value(description),
       updatedAtMs: Value(updatedAtMs),
     );
   }
 
-  factory UserPlaylistSnapshot.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory UserPlaylistSnapshot.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserPlaylistSnapshot(
       playlistId: serializer.fromJson<String>(json['playlistId']),
@@ -5488,13 +4474,7 @@ class UserPlaylistSnapshot extends DataClass
   }
 
   UserPlaylistSnapshot copyWith(
-          {String? playlistId,
-          String? sourceId,
-          String? title,
-          Value<String?> coverUrl = const Value.absent(),
-          Value<int?> trackCount = const Value.absent(),
-          Value<String?> description = const Value.absent(),
-          int? updatedAtMs}) =>
+          {String? playlistId, String? sourceId, String? title, Value<String?> coverUrl = const Value.absent(), Value<int?> trackCount = const Value.absent(), Value<String?> description = const Value.absent(), int? updatedAtMs}) =>
       UserPlaylistSnapshot(
         playlistId: playlistId ?? this.playlistId,
         sourceId: sourceId ?? this.sourceId,
@@ -5519,8 +4499,7 @@ class UserPlaylistSnapshot extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(playlistId, sourceId, title, coverUrl,
-      trackCount, description, updatedAtMs);
+  int get hashCode => Object.hash(playlistId, sourceId, title, coverUrl, trackCount, description, updatedAtMs);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5534,8 +4513,7 @@ class UserPlaylistSnapshot extends DataClass
           other.updatedAtMs == this.updatedAtMs);
 }
 
-class UserPlaylistSnapshotsCompanion
-    extends UpdateCompanion<UserPlaylistSnapshot> {
+class UserPlaylistSnapshotsCompanion extends UpdateCompanion<UserPlaylistSnapshot> {
   final Value<String> playlistId;
   final Value<String> sourceId;
   final Value<String> title;
@@ -5590,14 +4568,7 @@ class UserPlaylistSnapshotsCompanion
   }
 
   UserPlaylistSnapshotsCompanion copyWith(
-      {Value<String>? playlistId,
-      Value<String>? sourceId,
-      Value<String>? title,
-      Value<String?>? coverUrl,
-      Value<int?>? trackCount,
-      Value<String?>? description,
-      Value<int>? updatedAtMs,
-      Value<int>? rowid}) {
+      {Value<String>? playlistId, Value<String>? sourceId, Value<String>? title, Value<String?>? coverUrl, Value<int?>? trackCount, Value<String?>? description, Value<int>? updatedAtMs, Value<int>? rowid}) {
     return UserPlaylistSnapshotsCompanion(
       playlistId: playlistId ?? this.playlistId,
       sourceId: sourceId ?? this.sourceId,
@@ -5656,80 +4627,57 @@ class UserPlaylistSnapshotsCompanion
   }
 }
 
-class $UserPlaylistStatesTable extends UserPlaylistStates
-    with TableInfo<$UserPlaylistStatesTable, UserPlaylistState> {
+class $UserPlaylistStatesTable extends UserPlaylistStates with TableInfo<$UserPlaylistStatesTable, UserPlaylistState> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $UserPlaylistStatesTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-      'user_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _playlistIdMeta =
-      const VerificationMeta('playlistId');
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>('user_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _playlistIdMeta = const VerificationMeta('playlistId');
   @override
-  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>(
-      'playlist_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _isSubscribedMeta =
-      const VerificationMeta('isSubscribed');
+  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>('playlist_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _isSubscribedMeta = const VerificationMeta('isSubscribed');
   @override
-  late final GeneratedColumn<bool> isSubscribed =
-      GeneratedColumn<bool>('is_subscribed', aliasedName, false,
-          type: DriftSqlType.bool,
-          requiredDuringInsert: true,
-          defaultConstraints: GeneratedColumn.constraintsDependsOnDialect({
-            SqlDialect.sqlite: 'CHECK ("is_subscribed" IN (0, 1))',
-            SqlDialect.mysql: '',
-            SqlDialect.postgres: '',
-          }));
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<bool> isSubscribed = GeneratedColumn<bool>('is_subscribed', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintsDependsOnDialect({
+        SqlDialect.sqlite: 'CHECK ("is_subscribed" IN (0, 1))',
+        SqlDialect.mysql: '',
+        SqlDialect.postgres: '',
+      }));
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns =>
-      [userId, playlistId, isSubscribed, updatedAtMs];
+  List<GeneratedColumn> get $columns => [userId, playlistId, isSubscribed, updatedAtMs];
   @override
   String get aliasedName => _alias ?? 'user_playlist_states';
   @override
   String get actualTableName => 'user_playlist_states';
   @override
-  VerificationContext validateIntegrity(Insertable<UserPlaylistState> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<UserPlaylistState> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
     if (data.containsKey('playlist_id')) {
-      context.handle(
-          _playlistIdMeta,
-          playlistId.isAcceptableOrUnknown(
-              data['playlist_id']!, _playlistIdMeta));
+      context.handle(_playlistIdMeta, playlistId.isAcceptableOrUnknown(data['playlist_id']!, _playlistIdMeta));
     } else if (isInserting) {
       context.missing(_playlistIdMeta);
     }
     if (data.containsKey('is_subscribed')) {
-      context.handle(
-          _isSubscribedMeta,
-          isSubscribed.isAcceptableOrUnknown(
-              data['is_subscribed']!, _isSubscribedMeta));
+      context.handle(_isSubscribedMeta, isSubscribed.isAcceptableOrUnknown(data['is_subscribed']!, _isSubscribedMeta));
     } else if (isInserting) {
       context.missing(_isSubscribedMeta);
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
@@ -5742,14 +4690,10 @@ class $UserPlaylistStatesTable extends UserPlaylistStates
   UserPlaylistState map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserPlaylistState(
-      userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
-      playlistId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
-      isSubscribed: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}is_subscribed'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      playlistId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
+      isSubscribed: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}is_subscribed'])!,
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
     );
   }
 
@@ -5759,8 +4703,7 @@ class $UserPlaylistStatesTable extends UserPlaylistStates
   }
 }
 
-class UserPlaylistState extends DataClass
-    implements Insertable<UserPlaylistState> {
+class UserPlaylistState extends DataClass implements Insertable<UserPlaylistState> {
   /// 用户 id。
   final String userId;
 
@@ -5772,11 +4715,7 @@ class UserPlaylistState extends DataClass
 
   /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
-  const UserPlaylistState(
-      {required this.userId,
-      required this.playlistId,
-      required this.isSubscribed,
-      required this.updatedAtMs});
+  const UserPlaylistState({required this.userId, required this.playlistId, required this.isSubscribed, required this.updatedAtMs});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -5796,8 +4735,7 @@ class UserPlaylistState extends DataClass
     );
   }
 
-  factory UserPlaylistState.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory UserPlaylistState.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserPlaylistState(
       userId: serializer.fromJson<String>(json['userId']),
@@ -5817,12 +4755,7 @@ class UserPlaylistState extends DataClass
     };
   }
 
-  UserPlaylistState copyWith(
-          {String? userId,
-          String? playlistId,
-          bool? isSubscribed,
-          int? updatedAtMs}) =>
-      UserPlaylistState(
+  UserPlaylistState copyWith({String? userId, String? playlistId, bool? isSubscribed, int? updatedAtMs}) => UserPlaylistState(
         userId: userId ?? this.userId,
         playlistId: playlistId ?? this.playlistId,
         isSubscribed: isSubscribed ?? this.isSubscribed,
@@ -5840,16 +4773,10 @@ class UserPlaylistState extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(userId, playlistId, isSubscribed, updatedAtMs);
+  int get hashCode => Object.hash(userId, playlistId, isSubscribed, updatedAtMs);
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is UserPlaylistState &&
-          other.userId == this.userId &&
-          other.playlistId == this.playlistId &&
-          other.isSubscribed == this.isSubscribed &&
-          other.updatedAtMs == this.updatedAtMs);
+      identical(this, other) || (other is UserPlaylistState && other.userId == this.userId && other.playlistId == this.playlistId && other.isSubscribed == this.isSubscribed && other.updatedAtMs == this.updatedAtMs);
 }
 
 class UserPlaylistStatesCompanion extends UpdateCompanion<UserPlaylistState> {
@@ -5891,12 +4818,7 @@ class UserPlaylistStatesCompanion extends UpdateCompanion<UserPlaylistState> {
     });
   }
 
-  UserPlaylistStatesCompanion copyWith(
-      {Value<String>? userId,
-      Value<String>? playlistId,
-      Value<bool>? isSubscribed,
-      Value<int>? updatedAtMs,
-      Value<int>? rowid}) {
+  UserPlaylistStatesCompanion copyWith({Value<String>? userId, Value<String>? playlistId, Value<bool>? isSubscribed, Value<int>? updatedAtMs, Value<int>? rowid}) {
     return UserPlaylistStatesCompanion(
       userId: userId ?? this.userId,
       playlistId: playlistId ?? this.playlistId,
@@ -5940,115 +4862,74 @@ class UserPlaylistStatesCompanion extends UpdateCompanion<UserPlaylistState> {
   }
 }
 
-class $UserRadioSubscriptionsTable extends UserRadioSubscriptions
-    with TableInfo<$UserRadioSubscriptionsTable, UserRadioSubscription> {
+class $UserRadioSubscriptionsTable extends UserRadioSubscriptions with TableInfo<$UserRadioSubscriptionsTable, UserRadioSubscription> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $UserRadioSubscriptionsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-      'user_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _radioIdMeta =
-      const VerificationMeta('radioId');
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>('user_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _radioIdMeta = const VerificationMeta('radioId');
   @override
-  late final GeneratedColumn<String> radioId = GeneratedColumn<String>(
-      'radio_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sortOrderMeta =
-      const VerificationMeta('sortOrder');
+  late final GeneratedColumn<String> radioId = GeneratedColumn<String>('radio_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta('sortOrder');
   @override
-  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
-      'sort_order', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>('sort_order', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _coverUrlMeta =
-      const VerificationMeta('coverUrl');
+  late final GeneratedColumn<String> name = GeneratedColumn<String>('name', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _coverUrlMeta = const VerificationMeta('coverUrl');
   @override
-  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>(
-      'cover_url', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _lastProgramNameMeta =
-      const VerificationMeta('lastProgramName');
+  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>('cover_url', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _lastProgramNameMeta = const VerificationMeta('lastProgramName');
   @override
-  late final GeneratedColumn<String> lastProgramName = GeneratedColumn<String>(
-      'last_program_name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<String> lastProgramName = GeneratedColumn<String>('last_program_name', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [
-        userId,
-        radioId,
-        sortOrder,
-        name,
-        coverUrl,
-        lastProgramName,
-        updatedAtMs
-      ];
+  List<GeneratedColumn> get $columns => [userId, radioId, sortOrder, name, coverUrl, lastProgramName, updatedAtMs];
   @override
   String get aliasedName => _alias ?? 'user_radio_subscriptions';
   @override
   String get actualTableName => 'user_radio_subscriptions';
   @override
-  VerificationContext validateIntegrity(
-      Insertable<UserRadioSubscription> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<UserRadioSubscription> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
     if (data.containsKey('radio_id')) {
-      context.handle(_radioIdMeta,
-          radioId.isAcceptableOrUnknown(data['radio_id']!, _radioIdMeta));
+      context.handle(_radioIdMeta, radioId.isAcceptableOrUnknown(data['radio_id']!, _radioIdMeta));
     } else if (isInserting) {
       context.missing(_radioIdMeta);
     }
     if (data.containsKey('sort_order')) {
-      context.handle(_sortOrderMeta,
-          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+      context.handle(_sortOrderMeta, sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
     } else if (isInserting) {
       context.missing(_sortOrderMeta);
     }
     if (data.containsKey('name')) {
-      context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+      context.handle(_nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('cover_url')) {
-      context.handle(_coverUrlMeta,
-          coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
+      context.handle(_coverUrlMeta, coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
     } else if (isInserting) {
       context.missing(_coverUrlMeta);
     }
     if (data.containsKey('last_program_name')) {
-      context.handle(
-          _lastProgramNameMeta,
-          lastProgramName.isAcceptableOrUnknown(
-              data['last_program_name']!, _lastProgramNameMeta));
+      context.handle(_lastProgramNameMeta, lastProgramName.isAcceptableOrUnknown(data['last_program_name']!, _lastProgramNameMeta));
     } else if (isInserting) {
       context.missing(_lastProgramNameMeta);
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
@@ -6061,20 +4942,13 @@ class $UserRadioSubscriptionsTable extends UserRadioSubscriptions
   UserRadioSubscription map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserRadioSubscription(
-      userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
-      radioId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}radio_id'])!,
-      sortOrder: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      coverUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}cover_url'])!,
-      lastProgramName: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}last_program_name'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      radioId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}radio_id'])!,
+      sortOrder: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      coverUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}cover_url'])!,
+      lastProgramName: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}last_program_name'])!,
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
     );
   }
 
@@ -6084,8 +4958,7 @@ class $UserRadioSubscriptionsTable extends UserRadioSubscriptions
   }
 }
 
-class UserRadioSubscription extends DataClass
-    implements Insertable<UserRadioSubscription> {
+class UserRadioSubscription extends DataClass implements Insertable<UserRadioSubscription> {
   /// 用户 id。
   final String userId;
 
@@ -6106,14 +4979,7 @@ class UserRadioSubscription extends DataClass
 
   /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
-  const UserRadioSubscription(
-      {required this.userId,
-      required this.radioId,
-      required this.sortOrder,
-      required this.name,
-      required this.coverUrl,
-      required this.lastProgramName,
-      required this.updatedAtMs});
+  const UserRadioSubscription({required this.userId, required this.radioId, required this.sortOrder, required this.name, required this.coverUrl, required this.lastProgramName, required this.updatedAtMs});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -6139,8 +5005,7 @@ class UserRadioSubscription extends DataClass
     );
   }
 
-  factory UserRadioSubscription.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory UserRadioSubscription.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserRadioSubscription(
       userId: serializer.fromJson<String>(json['userId']),
@@ -6166,15 +5031,7 @@ class UserRadioSubscription extends DataClass
     };
   }
 
-  UserRadioSubscription copyWith(
-          {String? userId,
-          String? radioId,
-          int? sortOrder,
-          String? name,
-          String? coverUrl,
-          String? lastProgramName,
-          int? updatedAtMs}) =>
-      UserRadioSubscription(
+  UserRadioSubscription copyWith({String? userId, String? radioId, int? sortOrder, String? name, String? coverUrl, String? lastProgramName, int? updatedAtMs}) => UserRadioSubscription(
         userId: userId ?? this.userId,
         radioId: radioId ?? this.radioId,
         sortOrder: sortOrder ?? this.sortOrder,
@@ -6198,8 +5055,7 @@ class UserRadioSubscription extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(
-      userId, radioId, sortOrder, name, coverUrl, lastProgramName, updatedAtMs);
+  int get hashCode => Object.hash(userId, radioId, sortOrder, name, coverUrl, lastProgramName, updatedAtMs);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -6213,8 +5069,7 @@ class UserRadioSubscription extends DataClass
           other.updatedAtMs == this.updatedAtMs);
 }
 
-class UserRadioSubscriptionsCompanion
-    extends UpdateCompanion<UserRadioSubscription> {
+class UserRadioSubscriptionsCompanion extends UpdateCompanion<UserRadioSubscription> {
   final Value<String> userId;
   final Value<String> radioId;
   final Value<int> sortOrder;
@@ -6271,15 +5126,7 @@ class UserRadioSubscriptionsCompanion
     });
   }
 
-  UserRadioSubscriptionsCompanion copyWith(
-      {Value<String>? userId,
-      Value<String>? radioId,
-      Value<int>? sortOrder,
-      Value<String>? name,
-      Value<String>? coverUrl,
-      Value<String>? lastProgramName,
-      Value<int>? updatedAtMs,
-      Value<int>? rowid}) {
+  UserRadioSubscriptionsCompanion copyWith({Value<String>? userId, Value<String>? radioId, Value<int>? sortOrder, Value<String>? name, Value<String>? coverUrl, Value<String>? lastProgramName, Value<int>? updatedAtMs, Value<int>? rowid}) {
     return UserRadioSubscriptionsCompanion(
       userId: userId ?? this.userId,
       radioId: radioId ?? this.radioId,
@@ -6338,190 +5185,121 @@ class UserRadioSubscriptionsCompanion
   }
 }
 
-class $UserRadioProgramsTable extends UserRadioPrograms
-    with TableInfo<$UserRadioProgramsTable, UserRadioProgram> {
+class $UserRadioProgramsTable extends UserRadioPrograms with TableInfo<$UserRadioProgramsTable, UserRadioProgram> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $UserRadioProgramsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-      'user_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _radioIdMeta =
-      const VerificationMeta('radioId');
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>('user_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _radioIdMeta = const VerificationMeta('radioId');
   @override
-  late final GeneratedColumn<String> radioId = GeneratedColumn<String>(
-      'radio_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> radioId = GeneratedColumn<String>('radio_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _ascMeta = const VerificationMeta('asc');
   @override
-  late final GeneratedColumn<bool> asc =
-      GeneratedColumn<bool>('asc', aliasedName, false,
-          type: DriftSqlType.bool,
-          requiredDuringInsert: true,
-          defaultConstraints: GeneratedColumn.constraintsDependsOnDialect({
-            SqlDialect.sqlite: 'CHECK ("asc" IN (0, 1))',
-            SqlDialect.mysql: '',
-            SqlDialect.postgres: '',
-          }));
-  static const VerificationMeta _programIdMeta =
-      const VerificationMeta('programId');
+  late final GeneratedColumn<bool> asc = GeneratedColumn<bool>('asc', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintsDependsOnDialect({
+        SqlDialect.sqlite: 'CHECK ("asc" IN (0, 1))',
+        SqlDialect.mysql: '',
+        SqlDialect.postgres: '',
+      }));
+  static const VerificationMeta _programIdMeta = const VerificationMeta('programId');
   @override
-  late final GeneratedColumn<String> programId = GeneratedColumn<String>(
-      'program_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sortOrderMeta =
-      const VerificationMeta('sortOrder');
+  late final GeneratedColumn<String> programId = GeneratedColumn<String>('program_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta('sortOrder');
   @override
-  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
-      'sort_order', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _mainTrackIdMeta =
-      const VerificationMeta('mainTrackId');
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>('sort_order', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _mainTrackIdMeta = const VerificationMeta('mainTrackId');
   @override
-  late final GeneratedColumn<String> mainTrackId = GeneratedColumn<String>(
-      'main_track_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<String> mainTrackId = GeneratedColumn<String>('main_track_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-      'title', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _coverUrlMeta =
-      const VerificationMeta('coverUrl');
+  late final GeneratedColumn<String> title = GeneratedColumn<String>('title', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _coverUrlMeta = const VerificationMeta('coverUrl');
   @override
-  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>(
-      'cover_url', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _artistNameMeta =
-      const VerificationMeta('artistName');
+  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>('cover_url', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _artistNameMeta = const VerificationMeta('artistName');
   @override
-  late final GeneratedColumn<String> artistName = GeneratedColumn<String>(
-      'artist_name', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _albumTitleMeta =
-      const VerificationMeta('albumTitle');
+  late final GeneratedColumn<String> artistName = GeneratedColumn<String>('artist_name', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _albumTitleMeta = const VerificationMeta('albumTitle');
   @override
-  late final GeneratedColumn<String> albumTitle = GeneratedColumn<String>(
-      'album_title', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _durationMsMeta =
-      const VerificationMeta('durationMs');
+  late final GeneratedColumn<String> albumTitle = GeneratedColumn<String>('album_title', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _durationMsMeta = const VerificationMeta('durationMs');
   @override
-  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
-      'duration_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>('duration_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [
-        userId,
-        radioId,
-        asc,
-        programId,
-        sortOrder,
-        mainTrackId,
-        title,
-        coverUrl,
-        artistName,
-        albumTitle,
-        durationMs,
-        updatedAtMs
-      ];
+  List<GeneratedColumn> get $columns => [userId, radioId, asc, programId, sortOrder, mainTrackId, title, coverUrl, artistName, albumTitle, durationMs, updatedAtMs];
   @override
   String get aliasedName => _alias ?? 'user_radio_programs';
   @override
   String get actualTableName => 'user_radio_programs';
   @override
-  VerificationContext validateIntegrity(Insertable<UserRadioProgram> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<UserRadioProgram> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
     if (data.containsKey('radio_id')) {
-      context.handle(_radioIdMeta,
-          radioId.isAcceptableOrUnknown(data['radio_id']!, _radioIdMeta));
+      context.handle(_radioIdMeta, radioId.isAcceptableOrUnknown(data['radio_id']!, _radioIdMeta));
     } else if (isInserting) {
       context.missing(_radioIdMeta);
     }
     if (data.containsKey('asc')) {
-      context.handle(
-          _ascMeta, asc.isAcceptableOrUnknown(data['asc']!, _ascMeta));
+      context.handle(_ascMeta, asc.isAcceptableOrUnknown(data['asc']!, _ascMeta));
     } else if (isInserting) {
       context.missing(_ascMeta);
     }
     if (data.containsKey('program_id')) {
-      context.handle(_programIdMeta,
-          programId.isAcceptableOrUnknown(data['program_id']!, _programIdMeta));
+      context.handle(_programIdMeta, programId.isAcceptableOrUnknown(data['program_id']!, _programIdMeta));
     } else if (isInserting) {
       context.missing(_programIdMeta);
     }
     if (data.containsKey('sort_order')) {
-      context.handle(_sortOrderMeta,
-          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+      context.handle(_sortOrderMeta, sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
     } else if (isInserting) {
       context.missing(_sortOrderMeta);
     }
     if (data.containsKey('main_track_id')) {
-      context.handle(
-          _mainTrackIdMeta,
-          mainTrackId.isAcceptableOrUnknown(
-              data['main_track_id']!, _mainTrackIdMeta));
+      context.handle(_mainTrackIdMeta, mainTrackId.isAcceptableOrUnknown(data['main_track_id']!, _mainTrackIdMeta));
     } else if (isInserting) {
       context.missing(_mainTrackIdMeta);
     }
     if (data.containsKey('title')) {
-      context.handle(
-          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+      context.handle(_titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
       context.missing(_titleMeta);
     }
     if (data.containsKey('cover_url')) {
-      context.handle(_coverUrlMeta,
-          coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
+      context.handle(_coverUrlMeta, coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
     } else if (isInserting) {
       context.missing(_coverUrlMeta);
     }
     if (data.containsKey('artist_name')) {
-      context.handle(
-          _artistNameMeta,
-          artistName.isAcceptableOrUnknown(
-              data['artist_name']!, _artistNameMeta));
+      context.handle(_artistNameMeta, artistName.isAcceptableOrUnknown(data['artist_name']!, _artistNameMeta));
     } else if (isInserting) {
       context.missing(_artistNameMeta);
     }
     if (data.containsKey('album_title')) {
-      context.handle(
-          _albumTitleMeta,
-          albumTitle.isAcceptableOrUnknown(
-              data['album_title']!, _albumTitleMeta));
+      context.handle(_albumTitleMeta, albumTitle.isAcceptableOrUnknown(data['album_title']!, _albumTitleMeta));
     } else if (isInserting) {
       context.missing(_albumTitleMeta);
     }
     if (data.containsKey('duration_ms')) {
-      context.handle(
-          _durationMsMeta,
-          durationMs.isAcceptableOrUnknown(
-              data['duration_ms']!, _durationMsMeta));
+      context.handle(_durationMsMeta, durationMs.isAcceptableOrUnknown(data['duration_ms']!, _durationMsMeta));
     } else if (isInserting) {
       context.missing(_durationMsMeta);
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
@@ -6534,30 +5312,18 @@ class $UserRadioProgramsTable extends UserRadioPrograms
   UserRadioProgram map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserRadioProgram(
-      userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
-      radioId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}radio_id'])!,
-      asc: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}asc'])!,
-      programId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}program_id'])!,
-      sortOrder: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
-      mainTrackId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}main_track_id'])!,
-      title: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      coverUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}cover_url'])!,
-      artistName: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}artist_name'])!,
-      albumTitle: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}album_title'])!,
-      durationMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}duration_ms'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      radioId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}radio_id'])!,
+      asc: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}asc'])!,
+      programId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}program_id'])!,
+      sortOrder: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
+      mainTrackId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}main_track_id'])!,
+      title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      coverUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}cover_url'])!,
+      artistName: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}artist_name'])!,
+      albumTitle: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}album_title'])!,
+      durationMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}duration_ms'])!,
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
     );
   }
 
@@ -6567,8 +5333,7 @@ class $UserRadioProgramsTable extends UserRadioPrograms
   }
 }
 
-class UserRadioProgram extends DataClass
-    implements Insertable<UserRadioProgram> {
+class UserRadioProgram extends DataClass implements Insertable<UserRadioProgram> {
   /// 用户 id。
   final String userId;
 
@@ -6652,8 +5417,7 @@ class UserRadioProgram extends DataClass
     );
   }
 
-  factory UserRadioProgram.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory UserRadioProgram.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserRadioProgram(
       userId: serializer.fromJson<String>(json['userId']),
@@ -6689,19 +5453,7 @@ class UserRadioProgram extends DataClass
     };
   }
 
-  UserRadioProgram copyWith(
-          {String? userId,
-          String? radioId,
-          bool? asc,
-          String? programId,
-          int? sortOrder,
-          String? mainTrackId,
-          String? title,
-          String? coverUrl,
-          String? artistName,
-          String? albumTitle,
-          int? durationMs,
-          int? updatedAtMs}) =>
+  UserRadioProgram copyWith({String? userId, String? radioId, bool? asc, String? programId, int? sortOrder, String? mainTrackId, String? title, String? coverUrl, String? artistName, String? albumTitle, int? durationMs, int? updatedAtMs}) =>
       UserRadioProgram(
         userId: userId ?? this.userId,
         radioId: radioId ?? this.radioId,
@@ -6736,19 +5488,7 @@ class UserRadioProgram extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(
-      userId,
-      radioId,
-      asc,
-      programId,
-      sortOrder,
-      mainTrackId,
-      title,
-      coverUrl,
-      artistName,
-      albumTitle,
-      durationMs,
-      updatedAtMs);
+  int get hashCode => Object.hash(userId, radioId, asc, programId, sortOrder, mainTrackId, title, coverUrl, artistName, albumTitle, durationMs, updatedAtMs);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -6951,29 +5691,20 @@ class UserRadioProgramsCompanion extends UpdateCompanion<UserRadioProgram> {
   }
 }
 
-class $UserSyncMarkersTable extends UserSyncMarkers
-    with TableInfo<$UserSyncMarkersTable, UserSyncMarker> {
+class $UserSyncMarkersTable extends UserSyncMarkers with TableInfo<$UserSyncMarkersTable, UserSyncMarker> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $UserSyncMarkersTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-      'user_id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _markerKeyMeta =
-      const VerificationMeta('markerKey');
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>('user_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _markerKeyMeta = const VerificationMeta('markerKey');
   @override
-  late final GeneratedColumn<String> markerKey = GeneratedColumn<String>(
-      'marker_key', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _updatedAtMsMeta =
-      const VerificationMeta('updatedAtMs');
+  late final GeneratedColumn<String> markerKey = GeneratedColumn<String>('marker_key', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
   @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>(
-      'updated_at_ms', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns => [userId, markerKey, updatedAtMs];
   @override
@@ -6981,27 +5712,21 @@ class $UserSyncMarkersTable extends UserSyncMarkers
   @override
   String get actualTableName => 'user_sync_markers';
   @override
-  VerificationContext validateIntegrity(Insertable<UserSyncMarker> instance,
-      {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<UserSyncMarker> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('user_id')) {
-      context.handle(_userIdMeta,
-          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
     if (data.containsKey('marker_key')) {
-      context.handle(_markerKeyMeta,
-          markerKey.isAcceptableOrUnknown(data['marker_key']!, _markerKeyMeta));
+      context.handle(_markerKeyMeta, markerKey.isAcceptableOrUnknown(data['marker_key']!, _markerKeyMeta));
     } else if (isInserting) {
       context.missing(_markerKeyMeta);
     }
     if (data.containsKey('updated_at_ms')) {
-      context.handle(
-          _updatedAtMsMeta,
-          updatedAtMs.isAcceptableOrUnknown(
-              data['updated_at_ms']!, _updatedAtMsMeta));
+      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
     } else if (isInserting) {
       context.missing(_updatedAtMsMeta);
     }
@@ -7014,12 +5739,9 @@ class $UserSyncMarkersTable extends UserSyncMarkers
   UserSyncMarker map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserSyncMarker(
-      userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
-      markerKey: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}marker_key'])!,
-      updatedAtMs: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      markerKey: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}marker_key'])!,
+      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
     );
   }
 
@@ -7038,10 +5760,7 @@ class UserSyncMarker extends DataClass implements Insertable<UserSyncMarker> {
 
   /// 更新时间戳，单位毫秒。
   final int updatedAtMs;
-  const UserSyncMarker(
-      {required this.userId,
-      required this.markerKey,
-      required this.updatedAtMs});
+  const UserSyncMarker({required this.userId, required this.markerKey, required this.updatedAtMs});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -7059,8 +5778,7 @@ class UserSyncMarker extends DataClass implements Insertable<UserSyncMarker> {
     );
   }
 
-  factory UserSyncMarker.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
+  factory UserSyncMarker.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserSyncMarker(
       userId: serializer.fromJson<String>(json['userId']),
@@ -7078,9 +5796,7 @@ class UserSyncMarker extends DataClass implements Insertable<UserSyncMarker> {
     };
   }
 
-  UserSyncMarker copyWith(
-          {String? userId, String? markerKey, int? updatedAtMs}) =>
-      UserSyncMarker(
+  UserSyncMarker copyWith({String? userId, String? markerKey, int? updatedAtMs}) => UserSyncMarker(
         userId: userId ?? this.userId,
         markerKey: markerKey ?? this.markerKey,
         updatedAtMs: updatedAtMs ?? this.updatedAtMs,
@@ -7098,12 +5814,7 @@ class UserSyncMarker extends DataClass implements Insertable<UserSyncMarker> {
   @override
   int get hashCode => Object.hash(userId, markerKey, updatedAtMs);
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is UserSyncMarker &&
-          other.userId == this.userId &&
-          other.markerKey == this.markerKey &&
-          other.updatedAtMs == this.updatedAtMs);
+  bool operator ==(Object other) => identical(this, other) || (other is UserSyncMarker && other.userId == this.userId && other.markerKey == this.markerKey && other.updatedAtMs == this.updatedAtMs);
 }
 
 class UserSyncMarkersCompanion extends UpdateCompanion<UserSyncMarker> {
@@ -7139,11 +5850,7 @@ class UserSyncMarkersCompanion extends UpdateCompanion<UserSyncMarker> {
     });
   }
 
-  UserSyncMarkersCompanion copyWith(
-      {Value<String>? userId,
-      Value<String>? markerKey,
-      Value<int>? updatedAtMs,
-      Value<int>? rowid}) {
+  UserSyncMarkersCompanion copyWith({Value<String>? userId, Value<String>? markerKey, Value<int>? updatedAtMs, Value<int>? rowid}) {
     return UserSyncMarkersCompanion(
       userId: userId ?? this.userId,
       markerKey: markerKey ?? this.markerKey,
@@ -7184,41 +5891,27 @@ class UserSyncMarkersCompanion extends UpdateCompanion<UserSyncMarker> {
 
 abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
   _$BujuanDriftDatabase(QueryExecutor e) : super(e);
-  late final $PlaybackRestoreSnapshotsTable playbackRestoreSnapshots =
-      $PlaybackRestoreSnapshotsTable(this);
-  late final $LocalResourceEntriesTable localResourceEntries =
-      $LocalResourceEntriesTable(this);
+  late final $PlaybackRestoreSnapshotsTable playbackRestoreSnapshots = $PlaybackRestoreSnapshotsTable(this);
+  late final $LocalResourceEntriesTable localResourceEntries = $LocalResourceEntriesTable(this);
   late final $DownloadTasksTable downloadTasks = $DownloadTasksTable(this);
-  late final $AppCacheEntriesTable appCacheEntries =
-      $AppCacheEntriesTable(this);
+  late final $AppCacheEntriesTable appCacheEntries = $AppCacheEntriesTable(this);
   late final $TracksTable tracks = $TracksTable(this);
-  late final $TrackArtistRefsTable trackArtistRefs =
-      $TrackArtistRefsTable(this);
-  late final $TrackLyricsEntriesTable trackLyricsEntries =
-      $TrackLyricsEntriesTable(this);
+  late final $TrackArtistRefsTable trackArtistRefs = $TrackArtistRefsTable(this);
+  late final $TrackLyricsEntriesTable trackLyricsEntries = $TrackLyricsEntriesTable(this);
   late final $PlaylistsTable playlists = $PlaylistsTable(this);
-  late final $PlaylistTrackRefsTable playlistTrackRefs =
-      $PlaylistTrackRefsTable(this);
+  late final $PlaylistTrackRefsTable playlistTrackRefs = $PlaylistTrackRefsTable(this);
   late final $AlbumsTable albums = $AlbumsTable(this);
   late final $ArtistsTable artists = $ArtistsTable(this);
   late final $UserProfilesTable userProfiles = $UserProfilesTable(this);
-  late final $UserTrackListRefsTable userTrackListRefs =
-      $UserTrackListRefsTable(this);
-  late final $UserPlaylistListRefsTable userPlaylistListRefs =
-      $UserPlaylistListRefsTable(this);
-  late final $UserPlaylistSnapshotsTable userPlaylistSnapshots =
-      $UserPlaylistSnapshotsTable(this);
-  late final $UserPlaylistStatesTable userPlaylistStates =
-      $UserPlaylistStatesTable(this);
-  late final $UserRadioSubscriptionsTable userRadioSubscriptions =
-      $UserRadioSubscriptionsTable(this);
-  late final $UserRadioProgramsTable userRadioPrograms =
-      $UserRadioProgramsTable(this);
-  late final $UserSyncMarkersTable userSyncMarkers =
-      $UserSyncMarkersTable(this);
+  late final $UserTrackListRefsTable userTrackListRefs = $UserTrackListRefsTable(this);
+  late final $UserPlaylistListRefsTable userPlaylistListRefs = $UserPlaylistListRefsTable(this);
+  late final $UserPlaylistSnapshotsTable userPlaylistSnapshots = $UserPlaylistSnapshotsTable(this);
+  late final $UserPlaylistStatesTable userPlaylistStates = $UserPlaylistStatesTable(this);
+  late final $UserRadioSubscriptionsTable userRadioSubscriptions = $UserRadioSubscriptionsTable(this);
+  late final $UserRadioProgramsTable userRadioPrograms = $UserRadioProgramsTable(this);
+  late final $UserSyncMarkersTable userSyncMarkers = $UserSyncMarkersTable(this);
   @override
-  Iterable<TableInfo<Table, Object?>> get allTables =>
-      allSchemaEntities.whereType<TableInfo<Table, Object?>>();
+  Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
         playbackRestoreSnapshots,

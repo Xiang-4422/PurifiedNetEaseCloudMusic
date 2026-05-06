@@ -49,8 +49,7 @@ class LocalResourceIndexRepository {
   Future<Map<String, TrackResourceBundle>> getTrackResourceBundles(
     Iterable<String> trackIds,
   ) async {
-    final resourcesByTrackId =
-        await _dataSource.getTrackResourcesByIds(trackIds);
+    final resourcesByTrackId = await _dataSource.getTrackResourcesByIds(trackIds);
     return resourcesByTrackId.map(
       (trackId, resources) => MapEntry(trackId, _toBundle(resources)),
     );
@@ -60,8 +59,7 @@ class LocalResourceIndexRepository {
   Future<List<LocalSongEntry>> listLocalSongs({
     Set<TrackResourceOrigin>? origins,
   }) async {
-    final audioResources =
-        await _dataSource.listAudioResources(origins: origins);
+    final audioResources = await _dataSource.listAudioResources(origins: origins);
     if (audioResources.isEmpty) {
       return const [];
     }
@@ -80,8 +78,7 @@ class LocalResourceIndexRepository {
       if (track == null) {
         continue;
       }
-      final bundle = resourcesByTrackId[audioResource.trackId] ??
-          const TrackResourceBundle();
+      final bundle = resourcesByTrackId[audioResource.trackId] ?? const TrackResourceBundle();
       final totalSizeBytes = [
         bundle.audio?.sizeBytes ?? 0,
         bundle.artwork?.sizeBytes ?? 0,

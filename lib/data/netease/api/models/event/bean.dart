@@ -47,8 +47,7 @@ class CommentThread {
   CommentThread();
 
   /// 从 JSON 构建评论线程统计信息。
-  factory CommentThread.fromJson(Map<String, dynamic> json) =>
-      _$CommentThreadFromJson(json);
+  factory CommentThread.fromJson(Map<String, dynamic> json) => _$CommentThreadFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$CommentThreadToJson(this);
@@ -86,8 +85,7 @@ class EventItemInfo {
   EventItemInfo();
 
   /// 从 JSON 构建动态交互统计信息。
-  factory EventItemInfo.fromJson(Map<String, dynamic> json) =>
-      _$EventItemInfoFromJson(json);
+  factory EventItemInfo.fromJson(Map<String, dynamic> json) => _$EventItemInfoFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$EventItemInfoToJson(this);
@@ -144,8 +142,7 @@ class EventItem {
   EventItem();
 
   /// 从 JSON 构建用户动态条目。
-  factory EventItem.fromJson(Map<String, dynamic> json) =>
-      _$EventItemFromJson(json);
+  factory EventItem.fromJson(Map<String, dynamic> json) => _$EventItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$EventItemToJson(this);
@@ -165,8 +162,7 @@ class EventListWrap extends ServerStatusBean {
   EventListWrap();
 
   /// 从 JSON 构建动态列表响应。
-  factory EventListWrap.fromJson(Map<String, dynamic> json) =>
-      _$EventListWrapFromJson(json);
+  factory EventListWrap.fromJson(Map<String, dynamic> json) => _$EventListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -187,8 +183,7 @@ class EventListWrap2 extends ServerStatusBean {
   EventListWrap2();
 
   /// 从 JSON 构建动态列表响应。
-  factory EventListWrap2.fromJson(Map<String, dynamic> json) =>
-      _$EventListWrap2FromJson(json);
+  factory EventListWrap2.fromJson(Map<String, dynamic> json) => _$EventListWrap2FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -206,8 +201,7 @@ class EventSingleWrap extends ServerStatusBean {
   EventSingleWrap();
 
   /// 从 JSON 构建单条动态详情响应。
-  factory EventSingleWrap.fromJson(Map<String, dynamic> json) =>
-      _$EventSingleWrapFromJson(json);
+  factory EventSingleWrap.fromJson(Map<String, dynamic> json) => _$EventSingleWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -260,8 +254,7 @@ class CommentItemBase {
   CommentItemBase();
 
   /// 从 JSON 构建评论基础条目。
-  factory CommentItemBase.fromJson(Map<String, dynamic> json) =>
-      _$CommentItemBaseFromJson(json);
+  factory CommentItemBase.fromJson(Map<String, dynamic> json) => _$CommentItemBaseFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$CommentItemBaseToJson(this);
@@ -279,8 +272,7 @@ class CommentItem extends CommentItemBase {
   CommentItem();
 
   /// 从 JSON 构建普通评论条目。
-  factory CommentItem.fromJson(Map<String, dynamic> json) =>
-      _$CommentItemFromJson(json);
+  factory CommentItem.fromJson(Map<String, dynamic> json) => _$CommentItemFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -299,8 +291,7 @@ class BeRepliedCommentItem extends CommentItemBase {
   BeRepliedCommentItem();
 
   /// 从 JSON 构建被回复评论条目。
-  factory BeRepliedCommentItem.fromJson(Map<String, dynamic> json) =>
-      _$BeRepliedCommentItemFromJson(json);
+  factory BeRepliedCommentItem.fromJson(Map<String, dynamic> json) => _$BeRepliedCommentItemFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -337,8 +328,7 @@ class CommentListWrap extends ServerStatusListBean {
   CommentListWrap();
 
   /// 从 JSON 构建旧版评论列表响应。
-  factory CommentListWrap.fromJson(Map<String, dynamic> json) =>
-      _$CommentListWrapFromJson(json);
+  factory CommentListWrap.fromJson(Map<String, dynamic> json) => _$CommentListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -368,8 +358,7 @@ class CommentHistoryData {
   CommentHistoryData();
 
   /// 从 JSON 构建历史评论数据。
-  factory CommentHistoryData.fromJson(Map<String, dynamic> json) =>
-      _$CommentHistoryDataFromJson(json);
+  factory CommentHistoryData.fromJson(Map<String, dynamic> json) => _$CommentHistoryDataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$CommentHistoryDataToJson(this);
@@ -386,8 +375,7 @@ class CommentHistoryWrap extends ServerStatusBean {
   CommentHistoryWrap();
 
   /// 从 JSON 构建历史评论响应。
-  factory CommentHistoryWrap.fromJson(Map<String, dynamic> json) =>
-      _$CommentHistoryWrapFromJson(json);
+  factory CommentHistoryWrap.fromJson(Map<String, dynamic> json) => _$CommentHistoryWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -411,8 +399,7 @@ class CommentList2DataSortType {
   CommentList2DataSortType();
 
   /// 从 JSON 构建新版评论排序类型。
-  factory CommentList2DataSortType.fromJson(Map<String, dynamic> json) =>
-      _$CommentList2DataSortTypeFromJson(json);
+  factory CommentList2DataSortType.fromJson(Map<String, dynamic> json) => _$CommentList2DataSortTypeFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$CommentList2DataSortTypeToJson(this);
@@ -447,8 +434,7 @@ class CommentList2Data {
   CommentList2Data();
 
   /// 从 JSON 构建新版评论列表数据。
-  factory CommentList2Data.fromJson(Map<String, dynamic> json) =>
-      _$CommentList2DataFromJson(json);
+  factory CommentList2Data.fromJson(Map<String, dynamic> json) => _$CommentList2DataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$CommentList2DataToJson(this);
@@ -465,8 +451,7 @@ class CommentList2Wrap extends ServerStatusBean {
   CommentList2Wrap();
 
   /// 从 JSON 构建新版评论列表响应。
-  factory CommentList2Wrap.fromJson(Map<String, dynamic> json) =>
-      _$CommentList2WrapFromJson(json);
+  factory CommentList2Wrap.fromJson(Map<String, dynamic> json) => _$CommentList2WrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -487,8 +472,7 @@ class HugComment {
   HugComment();
 
   /// 从 JSON 构建抱抱评论用户条目。
-  factory HugComment.fromJson(Map<String, dynamic> json) =>
-      _$HugCommentFromJson(json);
+  factory HugComment.fromJson(Map<String, dynamic> json) => _$HugCommentFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HugCommentToJson(this);
@@ -520,8 +504,7 @@ class HugCommentListData {
   HugCommentListData();
 
   /// 从 JSON 构建抱抱评论列表数据。
-  factory HugCommentListData.fromJson(Map<String, dynamic> json) =>
-      _$HugCommentListDataFromJson(json);
+  factory HugCommentListData.fromJson(Map<String, dynamic> json) => _$HugCommentListDataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HugCommentListDataToJson(this);
@@ -538,8 +521,7 @@ class HugCommentListWrap extends ServerStatusBean {
   HugCommentListWrap();
 
   /// 从 JSON 构建抱抱评论列表响应。
-  factory HugCommentListWrap.fromJson(Map<String, dynamic> json) =>
-      _$HugCommentListWrapFromJson(json);
+  factory HugCommentListWrap.fromJson(Map<String, dynamic> json) => _$HugCommentListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -569,8 +551,7 @@ class FloorCommentDetail {
   FloorCommentDetail();
 
   /// 从 JSON 构建楼层评论详情数据。
-  factory FloorCommentDetail.fromJson(Map<String, dynamic> json) =>
-      _$FloorCommentDetailFromJson(json);
+  factory FloorCommentDetail.fromJson(Map<String, dynamic> json) => _$FloorCommentDetailFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$FloorCommentDetailToJson(this);
@@ -587,8 +568,7 @@ class FloorCommentDetailWrap extends ServerStatusBean {
   FloorCommentDetailWrap();
 
   /// 从 JSON 构建楼层评论详情响应。
-  factory FloorCommentDetailWrap.fromJson(Map<String, dynamic> json) =>
-      _$FloorCommentDetailWrapFromJson(json);
+  factory FloorCommentDetailWrap.fromJson(Map<String, dynamic> json) => _$FloorCommentDetailWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -612,8 +592,7 @@ class EventForwardRet {
   EventForwardRet();
 
   /// 从 JSON 构建动态转发结果。
-  factory EventForwardRet.fromJson(Map<String, dynamic> json) =>
-      _$EventForwardRetFromJson(json);
+  factory EventForwardRet.fromJson(Map<String, dynamic> json) => _$EventForwardRetFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$EventForwardRetToJson(this);
@@ -630,8 +609,7 @@ class EventForwardRetWrap extends ServerStatusBean {
   EventForwardRetWrap();
 
   /// 从 JSON 构建动态转发响应。
-  factory EventForwardRetWrap.fromJson(Map<String, dynamic> json) =>
-      _$EventForwardRetWrapFromJson(json);
+  factory EventForwardRetWrap.fromJson(Map<String, dynamic> json) => _$EventForwardRetWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -656,8 +634,7 @@ class TopicContent {
   TopicContent();
 
   /// 从 JSON 构建话题正文内容片段。
-  factory TopicContent.fromJson(Map<String, dynamic> json) =>
-      _$TopicContentFromJson(json);
+  factory TopicContent.fromJson(Map<String, dynamic> json) => _$TopicContentFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$TopicContentToJson(this);
@@ -877,8 +854,7 @@ class TopicItem2 {
   TopicItem2();
 
   /// 从 JSON 构建话题广场内容条目。
-  factory TopicItem2.fromJson(Map<String, dynamic> json) =>
-      _$TopicItem2FromJson(json);
+  factory TopicItem2.fromJson(Map<String, dynamic> json) => _$TopicItem2FromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$TopicItem2ToJson(this);
@@ -950,8 +926,7 @@ class TopicItem {
   TopicItem();
 
   /// 从 JSON 构建热门话题条目。
-  factory TopicItem.fromJson(Map<String, dynamic> json) =>
-      _$TopicItemFromJson(json);
+  factory TopicItem.fromJson(Map<String, dynamic> json) => _$TopicItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$TopicItemToJson(this);
@@ -968,8 +943,7 @@ class TopicHotListWrap extends ServerStatusBean {
   TopicHotListWrap();
 
   /// 从 JSON 构建热门话题列表响应。
-  factory TopicHotListWrap.fromJson(Map<String, dynamic> json) =>
-      _$TopicHotListWrapFromJson(json);
+  factory TopicHotListWrap.fromJson(Map<String, dynamic> json) => _$TopicHotListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -990,8 +964,7 @@ class TopicDetailWrap extends ServerStatusBean {
   TopicDetailWrap();
 
   /// 从 JSON 构建话题详情响应。
-  factory TopicDetailWrap.fromJson(Map<String, dynamic> json) =>
-      _$TopicDetailWrapFromJson(json);
+  factory TopicDetailWrap.fromJson(Map<String, dynamic> json) => _$TopicDetailWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1022,8 +995,7 @@ class SimpleResourceInfo {
   SimpleResourceInfo();
 
   /// 从 JSON 构建歌曲资源摘要。
-  factory SimpleResourceInfo.fromJson(Map<String, dynamic> json) =>
-      _$SimpleResourceInfoFromJson(json);
+  factory SimpleResourceInfo.fromJson(Map<String, dynamic> json) => _$SimpleResourceInfoFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SimpleResourceInfoToJson(this);
@@ -1065,8 +1037,7 @@ class HotwallCommentItem {
   HotwallCommentItem();
 
   /// 从 JSON 构建热评墙评论条目。
-  factory HotwallCommentItem.fromJson(Map<String, dynamic> json) =>
-      _$HotwallCommentItemFromJson(json);
+  factory HotwallCommentItem.fromJson(Map<String, dynamic> json) => _$HotwallCommentItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HotwallCommentItemToJson(this);
@@ -1083,8 +1054,7 @@ class HotwallCommentListWrap extends ServerStatusBean {
   HotwallCommentListWrap();
 
   /// 从 JSON 构建热评墙评论列表响应。
-  factory HotwallCommentListWrap.fromJson(Map<String, dynamic> json) =>
-      _$HotwallCommentListWrapFromJson(json);
+  factory HotwallCommentListWrap.fromJson(Map<String, dynamic> json) => _$HotwallCommentListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1116,8 +1086,7 @@ class CommentSimple {
   CommentSimple();
 
   /// 从 JSON 构建评论摘要信息。
-  factory CommentSimple.fromJson(Map<String, dynamic> json) =>
-      _$CommentSimpleFromJson(json);
+  factory CommentSimple.fromJson(Map<String, dynamic> json) => _$CommentSimpleFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$CommentSimpleToJson(this);
@@ -1153,8 +1122,7 @@ class Comment {
   Comment();
 
   /// 从 JSON 构建评论结果。
-  factory Comment.fromJson(Map<String, dynamic> json) =>
-      _$CommentFromJson(json);
+  factory Comment.fromJson(Map<String, dynamic> json) => _$CommentFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$CommentToJson(this);
@@ -1171,8 +1139,7 @@ class CommentWrap extends ServerStatusBean {
   CommentWrap();
 
   /// 从 JSON 构建评论响应。
-  factory CommentWrap.fromJson(Map<String, dynamic> json) =>
-      _$CommentWrapFromJson(json);
+  factory CommentWrap.fromJson(Map<String, dynamic> json) => _$CommentWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1206,8 +1173,7 @@ class MsgPromotion {
   MsgPromotion();
 
   /// 从 JSON 构建推广消息。
-  factory MsgPromotion.fromJson(Map<String, dynamic> json) =>
-      _$MsgPromotionFromJson(json);
+  factory MsgPromotion.fromJson(Map<String, dynamic> json) => _$MsgPromotionFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$MsgPromotionToJson(this);
@@ -1260,8 +1226,7 @@ class MsgGeneral {
   MsgGeneral();
 
   /// 从 JSON 构建通用资源消息。
-  factory MsgGeneral.fromJson(Map<String, dynamic> json) =>
-      _$MsgGeneralFromJson(json);
+  factory MsgGeneral.fromJson(Map<String, dynamic> json) => _$MsgGeneralFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$MsgGeneralToJson(this);
@@ -1302,8 +1267,7 @@ class MsgContent {
   MsgContent();
 
   /// 从 JSON 构建私信内容体。
-  factory MsgContent.fromJson(Map<String, dynamic> json) =>
-      _$MsgContentFromJson(json);
+  factory MsgContent.fromJson(Map<String, dynamic> json) => _$MsgContentFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$MsgContentToJson(this);
@@ -1395,8 +1359,7 @@ class UsersMsgListWrap extends ServerStatusBean {
   UsersMsgListWrap();
 
   /// 从 JSON 构建私信会话列表响应。
-  factory UsersMsgListWrap.fromJson(Map<String, dynamic> json) =>
-      _$UsersMsgListWrapFromJson(json);
+  factory UsersMsgListWrap.fromJson(Map<String, dynamic> json) => _$UsersMsgListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1414,8 +1377,7 @@ class RecentContactUsersData {
   RecentContactUsersData();
 
   /// 从 JSON 构建最近联系人数据。
-  factory RecentContactUsersData.fromJson(Map<String, dynamic> json) =>
-      _$RecentContactUsersDataFromJson(json);
+  factory RecentContactUsersData.fromJson(Map<String, dynamic> json) => _$RecentContactUsersDataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$RecentContactUsersDataToJson(this);
@@ -1432,8 +1394,7 @@ class RecentContactUsersWrap extends ServerStatusBean {
   RecentContactUsersWrap();
 
   /// 从 JSON 构建最近联系人响应。
-  factory RecentContactUsersWrap.fromJson(Map<String, dynamic> json) =>
-      _$RecentContactUsersWrapFromJson(json);
+  factory RecentContactUsersWrap.fromJson(Map<String, dynamic> json) => _$RecentContactUsersWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1460,8 +1421,7 @@ class UserMsgListWrap extends ServerStatusBean {
   UserMsgListWrap();
 
   /// 从 JSON 构建私信消息列表响应。
-  factory UserMsgListWrap.fromJson(Map<String, dynamic> json) =>
-      _$UserMsgListWrapFromJson(json);
+  factory UserMsgListWrap.fromJson(Map<String, dynamic> json) => _$UserMsgListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1483,8 +1443,7 @@ class UserMsgListWrap2 extends ServerStatusBean {
   UserMsgListWrap2();
 
   /// 从 JSON 构建新私信消息列表响应。
-  factory UserMsgListWrap2.fromJson(Map<String, dynamic> json) =>
-      _$UserMsgListWrap2FromJson(json);
+  factory UserMsgListWrap2.fromJson(Map<String, dynamic> json) => _$UserMsgListWrap2FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1601,8 +1560,7 @@ class MyLogBaseData {
   MyLogBaseData();
 
   /// 从 JSON 构建 Mlog 基础内容数据。
-  factory MyLogBaseData.fromJson(Map<String, dynamic> json) =>
-      _$MyLogBaseDataFromJson(json);
+  factory MyLogBaseData.fromJson(Map<String, dynamic> json) => _$MyLogBaseDataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$MyLogBaseDataToJson(this);
@@ -1622,8 +1580,7 @@ class MyLogResourceExt {
   MyLogResourceExt();
 
   /// 从 JSON 构建 Mlog 资源扩展统计。
-  factory MyLogResourceExt.fromJson(Map<String, dynamic> json) =>
-      _$MyLogResourceExtFromJson(json);
+  factory MyLogResourceExt.fromJson(Map<String, dynamic> json) => _$MyLogResourceExtFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$MyLogResourceExtToJson(this);
@@ -1652,8 +1609,7 @@ class MyLogResource {
   MyLogResource();
 
   /// 从 JSON 构建 Mlog 资源数据。
-  factory MyLogResource.fromJson(Map<String, dynamic> json) =>
-      _$MyLogResourceFromJson(json);
+  factory MyLogResource.fromJson(Map<String, dynamic> json) => _$MyLogResourceFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$MyLogResourceToJson(this);
@@ -1715,8 +1671,7 @@ class MyLogMyLikeData {
   MyLogMyLikeData();
 
   /// 从 JSON 构建我喜欢的 Mlog 列表数据。
-  factory MyLogMyLikeData.fromJson(Map<String, dynamic> json) =>
-      _$MyLogMyLikeDataFromJson(json);
+  factory MyLogMyLikeData.fromJson(Map<String, dynamic> json) => _$MyLogMyLikeDataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$MyLogMyLikeDataToJson(this);
@@ -1733,8 +1688,7 @@ class MyLogMyLikeWrap extends ServerStatusBean {
   MyLogMyLikeWrap();
 
   /// 从 JSON 构建我喜欢的 Mlog 列表响应。
-  factory MyLogMyLikeWrap.fromJson(Map<String, dynamic> json) =>
-      _$MyLogMyLikeWrapFromJson(json);
+  factory MyLogMyLikeWrap.fromJson(Map<String, dynamic> json) => _$MyLogMyLikeWrapFromJson(json);
 
   /// 转换为 JSON。
   @override

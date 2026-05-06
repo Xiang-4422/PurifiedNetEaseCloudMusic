@@ -37,9 +37,7 @@ void main() {
     test('core data domain stay pure Dart and do not import features', () {
       final boundaryFiles = _dartFiles(libDirectory).where((file) {
         final path = _relativePath(file);
-        return path.startsWith('lib/core/') ||
-            path.startsWith('lib/data/') ||
-            path.startsWith('lib/domain/');
+        return path.startsWith('lib/core/') || path.startsWith('lib/data/') || path.startsWith('lib/domain/');
       }).toList();
 
       final getxViolations = boundaryFiles
@@ -69,10 +67,7 @@ void main() {
         reason: 'core/data/domain 不能依赖 GetX，未来迁移 Riverpod 时业务层不能被展示层容器绑死。',
       );
 
-      final featureImportViolations = boundaryFiles
-          .where((file) => _contains(file, "package:bujuan/features/"))
-          .map(_relativePath)
-          .toList();
+      final featureImportViolations = boundaryFiles.where((file) => _contains(file, "package:bujuan/features/")).map(_relativePath).toList();
 
       expect(
         featureImportViolations,
@@ -100,9 +95,7 @@ void main() {
     });
 
     test('data and lyric parser stay Flutter free', () {
-      final handWrittenDataFiles =
-          _dartFiles(Directory('${projectRoot.path}/lib/data'))
-              .where((file) => !_isGeneratedDartFile(_relativePath(file)));
+      final handWrittenDataFiles = _dartFiles(Directory('${projectRoot.path}/lib/data')).where((file) => !_isGeneratedDartFile(_relativePath(file)));
       final lyricParserFiles = _dartFiles(
         Directory('${projectRoot.path}/lib/common/lyric_parser'),
       );
@@ -110,10 +103,7 @@ void main() {
       final violations = [
         ...handWrittenDataFiles,
         ...lyricParserFiles,
-      ]
-          .where((file) => _contains(file, 'package:flutter/'))
-          .map(_relativePath)
-          .toList();
+      ].where((file) => _contains(file, 'package:flutter/')).map(_relativePath).toList();
 
       expect(
         violations,
@@ -123,10 +113,7 @@ void main() {
     });
 
     test('core does not depend on netease data implementation', () {
-      final violations = _dartFiles(Directory('${projectRoot.path}/lib/core'))
-          .where((file) => _contains(file, 'package:bujuan/data/netease/'))
-          .map(_relativePath)
-          .toList();
+      final violations = _dartFiles(Directory('${projectRoot.path}/lib/core')).where((file) => _contains(file, 'package:bujuan/data/netease/')).map(_relativePath).toList();
 
       expect(
         violations,
@@ -136,8 +123,7 @@ void main() {
     });
 
     test('netease remote data sources depend on api facade only', () {
-      final remoteFiles =
-          _dartFiles(Directory('${projectRoot.path}/lib/data/netease/remote'));
+      final remoteFiles = _dartFiles(Directory('${projectRoot.path}/lib/data/netease/remote'));
       final violations = remoteFiles
           .where(
             (file) => _containsAny(file, const [
@@ -154,13 +140,11 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'remote data source 只能通过构造注入的 NeteaseMusicApi 门面访问接口，不能触碰底层 Dio client 或临时创建 SDK 单例。',
+        reason: 'remote data source 只能通过构造注入的 NeteaseMusicApi 门面访问接口，不能触碰底层 Dio client 或临时创建 SDK 单例。',
       );
     });
 
-    test('netease endpoint and model files do not import public api barrel',
-        () {
+    test('netease endpoint and model files do not import public api barrel', () {
       final sdkFiles = [
         ..._dartFiles(
           Directory('${projectRoot.path}/lib/data/netease/api/endpoints'),
@@ -169,32 +153,22 @@ void main() {
           Directory('${projectRoot.path}/lib/data/netease/api/models'),
         ),
       ];
-      final violations = sdkFiles
-          .where((file) => _contains(file, 'netease_music_api.dart'))
-          .map(_relativePath)
-          .toList();
+      final violations = sdkFiles.where((file) => _contains(file, 'netease_music_api.dart')).map(_relativePath).toList();
 
       expect(
         violations,
         isEmpty,
-        reason:
-            'api/endpoints 和 api/models 不能反向 import 对外 barrel；内部应依赖 client 或具体 DTO 文件，避免 SDK 内部循环依赖。',
+        reason: 'api/endpoints 和 api/models 不能反向 import 对外 barrel；内部应依赖 client 或具体 DTO 文件，避免 SDK 内部循环依赖。',
       );
     });
 
-    test('MediaItem is restricted to playback adapter and presentation edges',
-        () {
-      final violations = _dartFiles(libDirectory)
-          .where((file) => _contains(file, 'MediaItem'))
-          .where((file) => !_isAllowedMediaItemFile(_relativePath(file)))
-          .map(_relativePath)
-          .toList();
+    test('MediaItem is restricted to playback adapter and presentation edges', () {
+      final violations = _dartFiles(libDirectory).where((file) => _contains(file, 'MediaItem')).where((file) => !_isAllowedMediaItemFile(_relativePath(file))).map(_relativePath).toList();
 
       expect(
         violations,
         isEmpty,
-        reason:
-            'MediaItem 只能留在 audio_service 播放适配层或展示边界，repository 和 remote data source 不能返回它。',
+        reason: 'MediaItem 只能留在 audio_service 播放适配层或展示边界，repository 和 remote data source 不能返回它。',
       );
     });
 
@@ -203,9 +177,7 @@ void main() {
         Directory('${projectRoot.path}/lib/features/playback'),
       ).where((file) {
         final path = _relativePath(file);
-        return path.contains('playback_selection') ||
-            path.endsWith('playback_switch_coordinator.dart') ||
-            path.endsWith('playback_switch_trigger.dart');
+        return path.contains('playback_selection') || path.endsWith('playback_switch_coordinator.dart') || path.endsWith('playback_switch_trigger.dart');
       });
 
       final violations = selectionFiles
@@ -221,8 +193,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'UI selection 表示用户意图，不能依赖 audio_service MediaItem；底层 confirmed 状态才允许进入 audio_service 边界。',
+        reason: 'UI selection 表示用户意图，不能依赖 audio_service MediaItem；底层 confirmed 状态才允许进入 audio_service 边界。',
       );
     });
 
@@ -263,8 +234,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            '队列顺序和 selection 只能由 PlaybackQueueService/SelectionService 决定，audio adapter 与 synchronizer 不能反向改写。',
+        reason: '队列顺序和 selection 只能由 PlaybackQueueService/SelectionService 决定，audio adapter 与 synchronizer 不能反向改写。',
       );
     });
 
@@ -286,13 +256,11 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'AudioServiceHandler 只能做 audio_service/just_audio adapter，播放源解析和 fallback 必须留在 switch/source resolver 层。',
+        reason: 'AudioServiceHandler 只能做 audio_service/just_audio adapter，播放源解析和 fallback 必须留在 switch/source resolver 层。',
       );
     });
 
-    test('audio service transport controls route back to selection command',
-        () {
+    test('audio service transport controls route back to selection command', () {
       final handlerFile = File(
         '${projectRoot.path}/lib/features/playback/application/audio_service_handler.dart',
       );
@@ -310,37 +278,26 @@ void main() {
     });
 
     test('presentation does not import remote data sources directly', () {
-      final violations = _dartFiles(libDirectory)
-          .where((file) => _relativePath(file).contains('/presentation/'))
-          .where((file) => _contains(file, "package:bujuan/data/netease"))
-          .map(_relativePath)
-          .toList();
+      final violations = _dartFiles(libDirectory).where((file) => _relativePath(file).contains('/presentation/')).where((file) => _contains(file, "package:bujuan/data/netease")).map(_relativePath).toList();
 
       expect(
         violations,
         isEmpty,
-        reason:
-            'presentation 只能通过 controller/application/repository 读取数据，不能直连 data/netease。',
+        reason: 'presentation 只能通过 controller/application/repository 读取数据，不能直连 data/netease。',
       );
     });
 
     test('presentation does not import repositories directly', () {
-      final violations = _dartFiles(libDirectory)
-          .where((file) => _relativePath(file).contains('/presentation/'))
-          .where((file) => _contains(file, '_repository.dart'))
-          .map(_relativePath)
-          .toList();
+      final violations = _dartFiles(libDirectory).where((file) => _relativePath(file).contains('/presentation/')).where((file) => _contains(file, '_repository.dart')).map(_relativePath).toList();
 
       expect(
         violations,
         isEmpty,
-        reason:
-            'presentation 只能依赖 controller/application service，不能直接持有 repository。',
+        reason: 'presentation 只能依赖 controller/application service，不能直接持有 repository。',
       );
     });
 
-    test('presentation does not import other feature presentation directly',
-        () {
+    test('presentation does not import other feature presentation directly', () {
       final violations = <String>[];
       for (final file in _dartFiles(libDirectory)) {
         final path = _relativePath(file);
@@ -370,10 +327,7 @@ void main() {
       final violations = _dartFiles(libDirectory)
           .where((file) {
             final path = _relativePath(file);
-            return path.startsWith('lib/features/') &&
-                (path.contains('/application/') ||
-                    path.endsWith('_page_controller.dart') ||
-                    path.endsWith('_scan_controller.dart'));
+            return path.startsWith('lib/features/') && (path.contains('/application/') || path.endsWith('_page_controller.dart') || path.endsWith('_scan_controller.dart'));
           })
           .where((file) => _contains(file, 'Get.find<'))
           .map(_relativePath)
@@ -383,8 +337,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'application/page controller 应使用构造函数注入，Get.find 只能留在 binding/route/controller/presentation 装配边界。',
+        reason: 'application/page controller 应使用构造函数注入，Get.find 只能留在 binding/route/controller/presentation 装配边界。',
       );
     });
 
@@ -392,8 +345,7 @@ void main() {
       final violations = _dartFiles(libDirectory)
           .where((file) {
             final path = _relativePath(file);
-            return path.startsWith('lib/features/') &&
-                path.contains('/application/');
+            return path.startsWith('lib/features/') && path.contains('/application/');
           })
           .where((file) => _contains(file, '/presentation/'))
           .map(_relativePath)
@@ -402,8 +354,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'application 层不能反向 import presentation，展示组合必须留在 route/binding/presentation 边界。',
+        reason: 'application 层不能反向 import presentation，展示组合必须留在 route/binding/presentation 边界。',
       );
     });
 
@@ -421,8 +372,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'repository 不能依赖 controller；页面流程应放在 controller/application service。',
+        reason: 'repository 不能依赖 controller；页面流程应放在 controller/application service。',
       );
     });
 
@@ -430,10 +380,7 @@ void main() {
       final violations = _dartFiles(libDirectory)
           .where((file) {
             final path = _relativePath(file);
-            return path.startsWith('lib/features/') &&
-                (path.endsWith('_controller.dart') ||
-                    path.endsWith('_page_controller.dart') ||
-                    path.endsWith('_scan_controller.dart'));
+            return path.startsWith('lib/features/') && (path.endsWith('_controller.dart') || path.endsWith('_page_controller.dart') || path.endsWith('_scan_controller.dart'));
           })
           .where(
             (file) => _containsAny(file, const [
@@ -447,8 +394,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'controller 不能直连 data source，应通过 application service 或 repository。',
+        reason: 'controller 不能直连 data source，应通过 application service 或 repository。',
       );
     });
 
@@ -456,30 +402,23 @@ void main() {
       final violations = _dartFiles(libDirectory)
           .where((file) {
             final path = _relativePath(file);
-            return path.startsWith('lib/features/') &&
-                path.contains('/presentation/') &&
-                !path.startsWith('lib/features/playback/presentation/') &&
-                !path.startsWith('lib/features/debug/presentation/');
+            return path.startsWith('lib/features/') && path.contains('/presentation/') && !path.startsWith('lib/features/playback/presentation/') && !path.startsWith('lib/features/debug/presentation/');
           })
-          .where((file) =>
-              _contains(file, 'features/playback/player_controller.dart'))
+          .where((file) => _contains(file, 'features/playback/player_controller.dart'))
           .map(_relativePath)
           .toList();
 
       expect(
         violations,
         isEmpty,
-        reason:
-            '非 playback presentation 应通过 PlaybackActionPort 使用播放能力，不能直接依赖 PlayerController。',
+        reason: '非 playback presentation 应通过 PlaybackActionPort 使用播放能力，不能直接依赖 PlayerController。',
       );
     });
 
     test('playlist shared widgets stay controller free', () {
-      final playlistWidgetFile = File(
-          '${projectRoot.path}/lib/features/playlist/playlist_widgets.dart');
+      final playlistWidgetFile = File('${projectRoot.path}/lib/features/playlist/playlist_widgets.dart');
       final violations = <String>[
-        if (_contains(playlistWidgetFile, 'PlayerController'))
-          _relativePath(playlistWidgetFile),
+        if (_contains(playlistWidgetFile, 'PlayerController')) _relativePath(playlistWidgetFile),
       ];
 
       expect(
@@ -506,8 +445,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'lib/widget 只能保留通用展示组件，不能直接读取 feature controller/repository 或 data。',
+        reason: 'lib/widget 只能保留通用展示组件，不能直接读取 feature controller/repository 或 data。',
       );
     });
 
@@ -541,8 +479,7 @@ void main() {
       );
     });
 
-    test('feature repository imports use the approved cross-feature boundary',
-        () {
+    test('feature repository imports use the approved cross-feature boundary', () {
       final violations = <String>[];
       for (final file in _repositoryFiles(libDirectory)) {
         final path = _relativePath(file);
@@ -562,8 +499,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'feature repository 之间不能横向随意依赖；共享能力应上移到 domain/application 或显式白名单。',
+        reason: 'feature repository 之间不能横向随意依赖；共享能力应上移到 domain/application 或显式白名单。',
       );
     });
 
@@ -578,16 +514,12 @@ void main() {
             path.endsWith('/user_profile_cache_store.dart');
       });
 
-      final violations = cacheStores
-          .where((file) => _contains(file, 'CacheBox.instance'))
-          .map(_relativePath)
-          .toList();
+      final violations = cacheStores.where((file) => _contains(file, 'CacheBox.instance')).map(_relativePath).toList();
 
       expect(
         violations,
         isEmpty,
-        reason:
-            '业务列表缓存应使用 Drift-backed AppCacheDataSource，Hive 只保留登录态、设置和轻量视觉缓存。',
+        reason: '业务列表缓存应使用 Drift-backed AppCacheDataSource，Hive 只保留登录态、设置和轻量视觉缓存。',
       );
     });
 
@@ -595,9 +527,7 @@ void main() {
       final violations = _dartFiles(libDirectory)
           .where((file) {
             final path = _relativePath(file);
-            return path.startsWith('lib/core/') ||
-                path.startsWith('lib/data/') ||
-                path.startsWith('lib/domain/');
+            return path.startsWith('lib/core/') || path.startsWith('lib/data/') || path.startsWith('lib/domain/');
           })
           .where(
             (file) => _containsAny(file, const [
@@ -623,8 +553,7 @@ void main() {
     test('feature application layer stays pure Dart', () {
       final applicationFiles = _dartFiles(libDirectory).where((file) {
         final path = _relativePath(file);
-        return path.startsWith('lib/features/') &&
-            path.contains('/application/');
+        return path.startsWith('lib/features/') && path.contains('/application/');
       });
 
       final violations = applicationFiles
@@ -645,14 +574,12 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'feature application 层必须保持纯 Dart；需要 Widget/BuildContext/Color 的组合放到 app presentation adapter。',
+        reason: 'feature application 层必须保持纯 Dart；需要 Widget/BuildContext/Color 的组合放到 app presentation adapter。',
       );
     });
 
     test('app routing does not read local storage details directly', () {
-      final routingFiles =
-          _dartFiles(Directory('${projectRoot.path}/lib/app/routing'));
+      final routingFiles = _dartFiles(Directory('${projectRoot.path}/lib/app/routing'));
       final violations = routingFiles
           .where(
             (file) => _containsAny(file, const [
@@ -673,13 +600,11 @@ void main() {
     });
 
     test('presentation adapter imports stay isolated in bootstrap', () {
-      final bootstrapFiles =
-          _dartFiles(Directory('${projectRoot.path}/lib/app/bootstrap'));
+      final bootstrapFiles = _dartFiles(Directory('${projectRoot.path}/lib/app/bootstrap'));
       final violations = bootstrapFiles
           .where((file) {
             final path = _relativePath(file);
-            return path !=
-                'lib/app/bootstrap/registrars/presentation_adapter_registrar.dart';
+            return path != 'lib/app/bootstrap/registrars/presentation_adapter_registrar.dart';
           })
           .where((file) => _contains(file, '/presentation/'))
           .map(_relativePath)
@@ -688,8 +613,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'AppBinding 和普通 registrar 不能直接构造 presentation，只有 presentation adapter registrar 可以承接 Widget/route adapter。',
+        reason: 'AppBinding 和普通 registrar 不能直接构造 presentation，只有 presentation adapter registrar 可以承接 Widget/route adapter。',
       );
     });
 
@@ -699,9 +623,7 @@ void main() {
         'lib/common/constants/log.dart',
         'lib/common/constants/platform_utils.dart',
       ];
-      final existing = removedFiles
-          .where((path) => File('${projectRoot.path}/$path').existsSync())
-          .toList();
+      final existing = removedFiles.where((path) => File('${projectRoot.path}/$path').existsSync()).toList();
 
       final importViolations = _dartFiles(libDirectory)
           .where(
@@ -733,15 +655,12 @@ void main() {
         'lib/features/playback/application/playback_theme_port.dart',
         'lib/features/playback/application/playback_artwork_presenter.dart',
       ];
-      final existing = removedFiles
-          .where((path) => File('${projectRoot.path}/$path').existsSync())
-          .toList();
+      final existing = removedFiles.where((path) => File('${projectRoot.path}/$path').existsSync()).toList();
 
       expect(
         existing,
         isEmpty,
-        reason:
-            '依赖 Widget/BuildContext/Color 的 port/presenter 不能回到纯 application 层。',
+        reason: '依赖 Widget/BuildContext/Color 的 port/presenter 不能回到纯 application 层。',
       );
     });
 
@@ -785,8 +704,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'ShellController 只协调壳层 UI；播放、设置、用户状态应通过 app presentation adapter port 接入。',
+        reason: 'ShellController 只协调壳层 UI；播放、设置、用户状态应通过 app presentation adapter port 接入。',
       );
     });
 
@@ -816,30 +734,22 @@ void main() {
         'lib/features/download/application/remove_download_use_case.dart',
         'lib/features/download/application/recover_downloads_use_case.dart',
       ];
-      final missing = expectedFiles
-          .where((path) => !File('${projectRoot.path}/$path').existsSync())
-          .toList();
+      final missing = expectedFiles.where((path) => !File('${projectRoot.path}/$path').existsSync()).toList();
 
       expect(
         missing,
         isEmpty,
-        reason:
-            '页面流程必须有明确 application service/usecase 落点，不能继续只堆在 repository 或 controller。',
+        reason: '页面流程必须有明确 application service/usecase 落点，不能继续只堆在 repository 或 controller。',
       );
     });
 
     test('application services are actual controller dependencies', () {
       const expectedUsage = {
-        'lib/features/search/search_panel_controller.dart':
-            'SearchApplicationService',
-        'lib/features/playlist/playlist_page_controller.dart':
-            'PlaylistDetailService',
-        'lib/features/user/recommendation_controller.dart':
-            'UserHomeApplicationService',
-        'lib/app/bootstrap/feature_controller_factory.dart':
-            'SearchApplicationService',
-        'lib/app/bootstrap/registrars/user_registrar.dart':
-            'UserHomeApplicationService',
+        'lib/features/search/search_panel_controller.dart': 'SearchApplicationService',
+        'lib/features/playlist/playlist_page_controller.dart': 'PlaylistDetailService',
+        'lib/features/user/recommendation_controller.dart': 'UserHomeApplicationService',
+        'lib/app/bootstrap/feature_controller_factory.dart': 'SearchApplicationService',
+        'lib/app/bootstrap/registrars/user_registrar.dart': 'UserHomeApplicationService',
       };
       final violations = expectedUsage.entries
           .where((entry) {
@@ -852,8 +762,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason:
-            'application service/usecase 不能只是空入口，页面 controller 和 registrar 必须实际依赖它。',
+        reason: 'application service/usecase 不能只是空入口，页面 controller 和 registrar 必须实际依赖它。',
       );
     });
 
@@ -866,9 +775,7 @@ void main() {
         'lib/data/local/dao/resource_dao.dart',
         'lib/data/local/dao/cache_dao.dart',
       ];
-      final missing = expectedFiles
-          .where((path) => !File('${projectRoot.path}/$path').existsSync())
-          .toList();
+      final missing = expectedFiles.where((path) => !File('${projectRoot.path}/$path').existsSync()).toList();
 
       expect(
         missing,
@@ -967,17 +874,13 @@ Iterable<File> _dartFiles(Directory directory) {
   if (!directory.existsSync()) {
     return const [];
   }
-  return directory
-      .listSync(recursive: true)
-      .whereType<File>()
-      .where((file) => file.path.endsWith('.dart'));
+  return directory.listSync(recursive: true).whereType<File>().where((file) => file.path.endsWith('.dart'));
 }
 
 Iterable<File> _repositoryFiles(Directory directory) {
   return _dartFiles(directory).where((file) {
     final path = _relativePath(file);
-    return path.startsWith('lib/features/') &&
-        path.endsWith('_repository.dart');
+    return path.startsWith('lib/features/') && path.endsWith('_repository.dart');
   });
 }
 
@@ -993,10 +896,8 @@ bool _containsAny(File file, List<String> patterns) {
 bool _isAllowedMediaItemFile(String path) {
   return path == 'lib/features/playback/playback_service.dart' ||
       path == 'lib/features/playback/application/audio_service_handler.dart' ||
-      path ==
-          'lib/features/playback/application/audio_service_queue_synchronizer.dart' ||
-      path ==
-          'lib/features/playback/application/playback_queue_item_adapter.dart' ||
+      path == 'lib/features/playback/application/audio_service_queue_synchronizer.dart' ||
+      path == 'lib/features/playback/application/playback_queue_item_adapter.dart' ||
       _isTemporaryMediaItemBoundaryException(path);
 }
 
@@ -1009,23 +910,13 @@ String _featureName(String path) {
 }
 
 List<String> _featureImports(File file) {
-  final importPattern =
-      RegExp(r"import 'package:bujuan/features/([^/]+)/[^']*';");
-  return importPattern
-      .allMatches(file.readAsStringSync())
-      .map((match) => match.group(1) ?? '')
-      .where((feature) => feature.isNotEmpty)
-      .toList();
+  final importPattern = RegExp(r"import 'package:bujuan/features/([^/]+)/[^']*';");
+  return importPattern.allMatches(file.readAsStringSync()).map((match) => match.group(1) ?? '').where((feature) => feature.isNotEmpty).toList();
 }
 
 List<String> _featurePresentationImports(File file) {
-  final importPattern =
-      RegExp(r"import 'package:bujuan/features/([^/]+)/presentation/[^']*';");
-  return importPattern
-      .allMatches(file.readAsStringSync())
-      .map((match) => match.group(1) ?? '')
-      .where((feature) => feature.isNotEmpty)
-      .toList();
+  final importPattern = RegExp(r"import 'package:bujuan/features/([^/]+)/presentation/[^']*';");
+  return importPattern.allMatches(file.readAsStringSync()).map((match) => match.group(1) ?? '').where((feature) => feature.isNotEmpty).toList();
 }
 
 bool _isAllowedPresentationFeatureImport({
@@ -1054,9 +945,7 @@ bool _isTemporaryMediaItemBoundaryException(String path) {
 }
 
 bool _isGeneratedDartFile(String path) {
-  return path.endsWith('.g.dart') ||
-      path.endsWith('.freezed.dart') ||
-      path.contains('/generated/');
+  return path.endsWith('.g.dart') || path.endsWith('.freezed.dart') || path.contains('/generated/');
 }
 
 bool _isAllowedRepositoryFeatureImport({
@@ -1071,7 +960,5 @@ bool _isAllowedRepositoryFeatureImport({
 
 String _relativePath(File file) {
   final root = Directory.current.path;
-  return file.path
-      .replaceFirst('$root/', '')
-      .replaceAll(Platform.pathSeparator, '/');
+  return file.path.replaceFirst('$root/', '').replaceAll(Platform.pathSeparator, '/');
 }

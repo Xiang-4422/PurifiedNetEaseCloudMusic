@@ -50,8 +50,7 @@ class PlaybackSourcePrefetcher {
     PlaybackQueueItem item, {
     required bool preferHighQuality,
   }) {
-    final key =
-        '${_cacheKey(item, preferHighQuality: preferHighQuality)}|remote';
+    final key = '${_cacheKey(item, preferHighQuality: preferHighQuality)}|remote';
     return _resolveAndCache(
       key,
       () => _resolver.resolveRemote(item, preferHighQuality: preferHighQuality),

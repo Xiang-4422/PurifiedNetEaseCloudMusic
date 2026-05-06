@@ -35,8 +35,7 @@ class NoPaddingEncoding extends PKCS1Encoding {
   }
 
   @override
-  int processBlock(
-      Uint8List inp, int inpOff, int len, Uint8List out, int outOff) {
+  int processBlock(Uint8List inp, int inpOff, int len, Uint8List out, int outOff) {
     if (_forEncryption) {
       return _encodeBlock(inp, inpOff, len, out, outOff);
     } else {
@@ -44,8 +43,7 @@ class NoPaddingEncoding extends PKCS1Encoding {
     }
   }
 
-  int _encodeBlock(
-      Uint8List inp, int inpOff, int inpLen, Uint8List out, int outOff) {
+  int _encodeBlock(Uint8List inp, int inpOff, int inpLen, Uint8List out, int outOff) {
     if (inpLen > inputBlockSize) {
       throw ArgumentError("Input data too large");
     }
@@ -60,8 +58,7 @@ class NoPaddingEncoding extends PKCS1Encoding {
     return _engine.processBlock(block, 0, block.length, out, outOff);
   }
 
-  int _decodeBlock(
-      Uint8List inp, int inpOff, int inpLen, Uint8List out, int outOff) {
+  int _decodeBlock(Uint8List inp, int inpOff, int inpLen, Uint8List out, int outOff) {
     var block = Uint8List(outputBlockSize);
     var len = _engine.processBlock(inp, inpOff, inpLen, block, 0);
     block = block.sublist(0, len);
@@ -82,11 +79,9 @@ abstract class AbstractRSAExt {
   /// RSA 私钥，用于解密。
   final RSAPrivateKey? privateKey;
 
-  PublicKeyParameter<RSAPublicKey>? get _publicKeyParams =>
-      publicKey != null ? PublicKeyParameter(publicKey!) : null;
+  PublicKeyParameter<RSAPublicKey>? get _publicKeyParams => publicKey != null ? PublicKeyParameter(publicKey!) : null;
 
-  PrivateKeyParameter<RSAPrivateKey>? get _privateKeyParams =>
-      privateKey != null ? PrivateKeyParameter(privateKey!) : null;
+  PrivateKeyParameter<RSAPrivateKey>? get _privateKeyParams => privateKey != null ? PrivateKeyParameter(privateKey!) : null;
   final AsymmetricBlockCipher _cipher;
 
   /// 创建 RSA 扩展算法基类。
@@ -99,8 +94,7 @@ abstract class AbstractRSAExt {
 /// encrypt 包可用的 RSA 算法实现，使用无填充编码。
 class RSAExt extends AbstractRSAExt implements Algorithm {
   /// 创建 RSA 扩展算法实现。
-  RSAExt({RSAPublicKey? publicKey, RSAPrivateKey? privateKey})
-      : super(publicKey: publicKey, privateKey: privateKey);
+  RSAExt({RSAPublicKey? publicKey, RSAPrivateKey? privateKey}) : super(publicKey: publicKey, privateKey: privateKey);
 
   @override
   Encrypted encrypt(Uint8List bytes, {IV? iv, Uint8List? associatedData}) {

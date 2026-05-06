@@ -21,16 +21,13 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
   final UserDao _userDao;
 
   @override
-  Future<UserProfileData?> loadProfile(String userId) =>
-      _userDao.loadProfile(userId);
+  Future<UserProfileData?> loadProfile(String userId) => _userDao.loadProfile(userId);
 
   @override
-  Future<void> saveProfile(UserProfileData profile) =>
-      _userDao.saveProfile(profile);
+  Future<void> saveProfile(UserProfileData profile) => _userDao.saveProfile(profile);
 
   @override
-  Future<List<String>> loadTrackIds(String userId, UserTrackListKind kind) =>
-      _userDao.loadTrackIds(userId, kind);
+  Future<List<String>> loadTrackIds(String userId, UserTrackListKind kind) => _userDao.loadTrackIds(userId, kind);
 
   @override
   Future<void> replaceTrackList(
@@ -80,8 +77,7 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
   }
 
   @override
-  Future<int> nextTrackSortOrder(String userId, UserTrackListKind kind) =>
-      _userDao.nextTrackSortOrder(userId, kind);
+  Future<int> nextTrackSortOrder(String userId, UserTrackListKind kind) => _userDao.nextTrackSortOrder(userId, kind);
 
   @override
   Future<List<PlaylistSummaryData>> loadPlaylistItems(
@@ -125,8 +121,7 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     await _database.transaction(() async {
       await (_database.delete(_database.userPlaylistListRefs)
             ..where(
-              (tbl) =>
-                  tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
+              (tbl) => tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
             ))
           .go();
       if (items.isEmpty) {
@@ -262,9 +257,7 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     List<RadioSummaryData> items,
   ) async {
     await _database.transaction(() async {
-      await (_database.delete(_database.userRadioSubscriptions)
-            ..where((tbl) => tbl.userId.equals(userId)))
-          .go();
+      await (_database.delete(_database.userRadioSubscriptions)..where((tbl) => tbl.userId.equals(userId))).go();
       if (items.isEmpty) {
         return;
       }
@@ -332,10 +325,7 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
   }) async {
     final rows = await (_database.select(_database.userRadioPrograms)
           ..where(
-            (tbl) =>
-                tbl.userId.equals(userId) &
-                tbl.radioId.equals(radioId) &
-                tbl.asc.equals(asc),
+            (tbl) => tbl.userId.equals(userId) & tbl.radioId.equals(radioId) & tbl.asc.equals(asc),
           )
           ..orderBy([(tbl) => drift.OrderingTerm.asc(tbl.sortOrder)]))
         .get();
@@ -364,10 +354,7 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     await _database.transaction(() async {
       await (_database.delete(_database.userRadioPrograms)
             ..where(
-              (tbl) =>
-                  tbl.userId.equals(userId) &
-                  tbl.radioId.equals(radioId) &
-                  tbl.asc.equals(asc),
+              (tbl) => tbl.userId.equals(userId) & tbl.radioId.equals(radioId) & tbl.asc.equals(asc),
             ))
           .go();
       if (items.isEmpty) {
@@ -464,24 +451,16 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
       return const [];
     }
     final normalizedKeyword = keyword?.trim() ?? '';
-    final snapshotRows =
-        await (_database.select(_database.userPlaylistSnapshots)
-              ..where((tbl) =>
-                  tbl.playlistId.isIn(refs.map((item) => item.playlistId)))
-              ..where(
-                (tbl) => normalizedKeyword.isEmpty
-                    ? const drift.Constant(true)
-                    : tbl.title.like('%$normalizedKeyword%'),
-              ))
-            .get();
+    final snapshotRows = await (_database.select(_database.userPlaylistSnapshots)
+          ..where((tbl) => tbl.playlistId.isIn(refs.map((item) => item.playlistId)))
+          ..where(
+            (tbl) => normalizedKeyword.isEmpty ? const drift.Constant(true) : tbl.title.like('%$normalizedKeyword%'),
+          ))
+        .get();
     final snapshotsById = {
       for (final row in snapshotRows) row.playlistId: row,
     };
-    return refs
-        .map((ref) => snapshotsById[ref.playlistId])
-        .whereType<db.UserPlaylistSnapshot>()
-        .map(_mapPlaylistSnapshotRow)
-        .toList();
+    return refs.map((ref) => snapshotsById[ref.playlistId]).whereType<db.UserPlaylistSnapshot>().map(_mapPlaylistSnapshotRow).toList();
   }
 
   PlaylistSummaryData _mapPlaylistSnapshotRow(db.UserPlaylistSnapshot row) {

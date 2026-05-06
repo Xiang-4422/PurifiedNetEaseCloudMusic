@@ -8,8 +8,7 @@ import 'package:bujuan/domain/entities/track_lyrics.dart';
 /// 本地音乐来源门面。
 class LocalMusicSource {
   /// 创建本地音乐来源门面。
-  LocalMusicSource({required LocalLibraryDataSource localDataSource})
-      : _localDataSource = localDataSource;
+  LocalMusicSource({required LocalLibraryDataSource localDataSource}) : _localDataSource = localDataSource;
 
   final LocalLibraryDataSource _localDataSource;
 

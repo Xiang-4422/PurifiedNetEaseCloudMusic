@@ -13,12 +13,10 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
 
 /// 统一承接首页壳层、抽屉、顶部搜索面板和底部播放面板的 UI 协调。
-class ShellController extends SuperController
-    with GetTickerProviderStateMixin, WidgetsBindingObserver {
+class ShellController extends SuperController with GetTickerProviderStateMixin, WidgetsBindingObserver {
   /// 当前壳层控制器实例。
   static ShellController get to => Get.find();
-  HomeShellController get _homeShellController =>
-      Get.find<HomeShellController>();
+  HomeShellController get _homeShellController => Get.find<HomeShellController>();
   ShellPlaybackPort get _playbackPort => Get.find<ShellPlaybackPort>();
   ShellUserPort get _userPort => Get.find<ShellUserPort>();
 
@@ -26,15 +24,13 @@ class ShellController extends SuperController
   late BuildContext buildContext;
 
   /// 首页抽屉控制器。
-  ZoomDrawerController get zoomDrawerController =>
-      _homeShellController.zoomDrawerController;
+  ZoomDrawerController get zoomDrawerController => _homeShellController.zoomDrawerController;
 
   /// 抽屉是否完全关闭。
   RxBool get isDrawerClosed => _homeShellController.isDrawerClosed;
 
   /// 首页主分页控制器。
-  PageController get homePageController =>
-      _homeShellController.homePageController;
+  PageController get homePageController => _homeShellController.homePageController;
 
   /// 当前首页分页索引。
   RxInt get curHomePageIndex => _homeShellController.curHomePageIndex;
@@ -44,8 +40,7 @@ class ShellController extends SuperController
 
   bool _uiControllersInitialized = false;
   PageController? _albumPageController;
-  final AlbumPageChangeCoordinator _albumPageChangeCoordinator =
-      AlbumPageChangeCoordinator();
+  final AlbumPageChangeCoordinator _albumPageChangeCoordinator = AlbumPageChangeCoordinator();
 
   /// 底部面板是否展示大封面模式。
   RxBool isBigAlbum = true.obs;
@@ -177,16 +172,13 @@ class ShellController extends SuperController
   }
 
   /// 顶部搜索面板控制器。
-  PanelController get topPanelController =>
-      _homeShellController.topPanelController;
+  PanelController get topPanelController => _homeShellController.topPanelController;
 
   /// 顶部搜索面板动画控制器。
-  AnimationController get topPanelAnimationController =>
-      _homeShellController.topPanelAnimationController;
+  AnimationController get topPanelAnimationController => _homeShellController.topPanelAnimationController;
 
   /// 搜索输入框控制器。
-  TextEditingController get searchTextEditingController =>
-      _homeShellController.searchTextEditingController;
+  TextEditingController get searchTextEditingController => _homeShellController.searchTextEditingController;
 
   /// 顶部搜索面板是否完全打开。
   RxBool get topPanelFullyOpened => _homeShellController.topPanelFullyOpened;
@@ -224,9 +216,7 @@ class ShellController extends SuperController
 
     ever(_playbackPort.lyricState(), (lyricState) {
       final index = lyricState.currentIndex;
-      if (index >= 0 &&
-          !isLyricScrollingByUser &&
-          lyricScrollController.isAttached) {
+      if (index >= 0 && !isLyricScrollingByUser && lyricScrollController.isAttached) {
         try {
           lyricScrollController.scrollTo(
             index: index + LyricScrollPosition.lyricItemIndexOffset,
@@ -272,13 +262,11 @@ class ShellController extends SuperController
   Future<void> _commitAlbumPageChange(int index) async {
     final stopwatch = PlaybackPerformanceLogger.start();
     final selectionState = _playbackPort.selectionState();
-    final ignoredProgrammaticTarget =
-        index == _ignoredProgrammaticAlbumPageIndex;
+    final ignoredProgrammaticTarget = index == _ignoredProgrammaticAlbumPageIndex;
     if (ignoredProgrammaticTarget) {
       _ignoredProgrammaticAlbumPageIndex = null;
     }
-    final isProgrammatic =
-        isAlbumScrollingProgrammatic || ignoredProgrammaticTarget;
+    final isProgrammatic = isAlbumScrollingProgrammatic || ignoredProgrammaticTarget;
     final committed = await _albumPageChangeCoordinator.commitPageChange(
       index: index,
       isProgrammatic: isProgrammatic,
@@ -289,8 +277,7 @@ class ShellController extends SuperController
     PlaybackPerformanceLogger.elapsed(
       'shell.albumPageChange.commit',
       stopwatch,
-      details:
-          'index=$index current=${selectionState.selectedIndex} programmatic=$isProgrammatic ignoredTarget=$ignoredProgrammaticTarget committed=$committed queue=${selectionState.queue.length}',
+      details: 'index=$index current=${selectionState.selectedIndex} programmatic=$isProgrammatic ignoredTarget=$ignoredProgrammaticTarget committed=$committed queue=${selectionState.queue.length}',
     );
   }
 
@@ -303,22 +290,21 @@ class ShellController extends SuperController
       initialTitle: _userPort.currentNickname(),
     );
     _bottomPanelAnimationController = AnimationController(vsync: this);
-    _bottomPanelTabController =
-        TabController(length: 3, initialIndex: 1, vsync: this)
-          ..addListener(() {
-            if (bottomPanelTabController.indexIsChanging) {
-              unawaited(
-                animateBottomPanelToPage(
-                  bottomPanelTabController.index,
-                  duration: const Duration(milliseconds: 500),
-                ),
-              );
-              if (bottomPanelTabController.index <= 1) {
-                bottomPanelCommentTabController.index = 0;
-                bottomPanelCommentTabController.offset = 0;
-              }
-            }
-          });
+    _bottomPanelTabController = TabController(length: 3, initialIndex: 1, vsync: this)
+      ..addListener(() {
+        if (bottomPanelTabController.indexIsChanging) {
+          unawaited(
+            animateBottomPanelToPage(
+              bottomPanelTabController.index,
+              duration: const Duration(milliseconds: 500),
+            ),
+          );
+          if (bottomPanelTabController.index <= 1) {
+            bottomPanelCommentTabController.index = 0;
+            bottomPanelCommentTabController.offset = 0;
+          }
+        }
+      });
     _bottomPanelCommentTabController = TabController(length: 2, vsync: this)
       ..addListener(() {
         if (bottomPanelCommentTabController.indexIsChanging) {
@@ -338,25 +324,20 @@ class ShellController extends SuperController
           // 切换到正在播放列表页，滚动到当前播放
           if (newPanelPageIndex == 0) await _animatePlayListToCurSong();
           if (!_playbackPort.isFullScreenLyricOpen()) {
-            _playbackPort.updateFullScreenLyricTimerCounter(
-                cancelTimer: newPanelPageIndex != 1 &&
-                    !_playbackPort.isFullScreenLyricOpen());
+            _playbackPort.updateFullScreenLyricTimerCounter(cancelTimer: newPanelPageIndex != 1 && !_playbackPort.isFullScreenLyricOpen());
           }
         }
         // 避免循环监听
-        if (bottomPanelTabController.indexIsChanging ||
-            bottomPanelCommentTabController.indexIsChanging) {
+        if (bottomPanelTabController.indexIsChanging || bottomPanelCommentTabController.indexIsChanging) {
           return;
         }
         // 控制tab显示
         if (bottomPanelPageController.page! <= 2) {
           bottomPanelTabController.index = newPanelPageIndex;
-          bottomPanelTabController.offset =
-              bottomPanelPageController.page! - newPanelPageIndex;
+          bottomPanelTabController.offset = bottomPanelPageController.page! - newPanelPageIndex;
         } else {
           bottomPanelCommentTabController.index = newPanelPageIndex - 2;
-          bottomPanelCommentTabController.offset =
-              bottomPanelPageController.page! - newPanelPageIndex;
+          bottomPanelCommentTabController.offset = bottomPanelPageController.page! - newPanelPageIndex;
         }
       });
     _albumPageController = PageController();
@@ -400,8 +381,7 @@ class ShellController extends SuperController
     if (bottomPanelFullyOpened.isTrue) return;
     bool isDarkMode = buildContext.isDarkMode;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarIconBrightness:
-          isDarkMode ? Brightness.dark : Brightness.light,
+      systemNavigationBarIconBrightness: isDarkMode ? Brightness.dark : Brightness.light,
       statusBarBrightness: isDarkMode ? Brightness.light : Brightness.dark,
       statusBarIconBrightness: isDarkMode ? Brightness.dark : Brightness.light,
       statusBarColor: Colors.transparent,
@@ -425,9 +405,7 @@ class ShellController extends SuperController
       if (curPanelPageIndex.value == 0) {
         unawaited(_animatePlayListToCurSong());
       }
-      if (bottomPanelFullyOpened.isTrue &&
-          isBigAlbum.isTrue &&
-          isAlbumScaleEnded.isTrue) {
+      if (bottomPanelFullyOpened.isTrue && isBigAlbum.isTrue && isAlbumScaleEnded.isTrue) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           syncAlbumPage(jump: true);
         });
@@ -442,8 +420,7 @@ class ShellController extends SuperController
 
   /// 处理壳层返回键。
   void onWillPop() {
-    if (!_homeShellController.handleWillPop(
-        bottomPanelController: bottomPanelController)) {
+    if (!_homeShellController.handleWillPop(bottomPanelController: bottomPanelController)) {
       SystemNavigator.pop();
     }
   }
@@ -451,9 +428,7 @@ class ShellController extends SuperController
   // 列表页打开时直接滚到当前播放项，可以减少“当前歌曲已变但列表还停在旧位置”的错觉。
   Future<void> _animatePlayListToCurSong() async {
     final stopwatch = PlaybackPerformanceLogger.start();
-    if (curPanelPageIndex.value == 0 &&
-        bottomPanelFullyOpened.isTrue &&
-        playListScrollController.hasClients) {
+    if (curPanelPageIndex.value == 0 && bottomPanelFullyOpened.isTrue && playListScrollController.hasClients) {
       if (_playlistScrollInFlight) {
         _playlistScrollPending = true;
         PlaybackPerformanceLogger.log('shell.playlistScroll.pending');
@@ -469,8 +444,7 @@ class ShellController extends SuperController
         PlaybackPerformanceLogger.elapsed(
           'shell.playlistScroll.skipNear',
           stopwatch,
-          details:
-              'index=$currentIndex currentOffset=${playListScrollController.offset.toStringAsFixed(1)} target=${offset.toStringAsFixed(1)}',
+          details: 'index=$currentIndex currentOffset=${playListScrollController.offset.toStringAsFixed(1)} target=${offset.toStringAsFixed(1)}',
         );
         return;
       }
@@ -485,12 +459,10 @@ class ShellController extends SuperController
           PlaybackPerformanceLogger.elapsed(
             'shell.playlistScroll.jump',
             stopwatch,
-            details:
-                'index=$currentIndex target=${targetOffset.toStringAsFixed(1)} distance=${distance.toStringAsFixed(1)}',
+            details: 'index=$currentIndex target=${targetOffset.toStringAsFixed(1)} distance=${distance.toStringAsFixed(1)}',
           );
         } else {
-          await playListScrollController.animateTo(offset,
-              duration: const Duration(milliseconds: 500), curve: Curves.ease);
+          await playListScrollController.animateTo(offset, duration: const Duration(milliseconds: 500), curve: Curves.ease);
           PlaybackPerformanceLogger.elapsed(
             'shell.playlistScroll.animate',
             stopwatch,
@@ -527,22 +499,15 @@ class ShellController extends SuperController
       if (isAlbumScrollingProgrammatic) {
         _pendingAlbumSyncIndex = currentIndex;
         _pendingAlbumSyncCount++;
-        final pendingDistance =
-            ((albumPageController.page ?? currentIndex.toDouble()) -
-                    currentIndex)
-                .abs();
-        _pendingAlbumSyncShouldJump = _pendingAlbumSyncShouldJump ||
-            jump ||
-            _pendingAlbumSyncCount > 1 ||
-            pendingDistance > 1.5;
+        final pendingDistance = ((albumPageController.page ?? currentIndex.toDouble()) - currentIndex).abs();
+        _pendingAlbumSyncShouldJump = _pendingAlbumSyncShouldJump || jump || _pendingAlbumSyncCount > 1 || pendingDistance > 1.5;
         PlaybackPerformanceLogger.log(
           'shell.albumSync.pending index=$currentIndex jump=$_pendingAlbumSyncShouldJump count=$_pendingAlbumSyncCount distance=${pendingDistance.toStringAsFixed(2)}',
         );
         return;
       }
       double currentPage = albumPageController.page ?? 0;
-      if ((currentPage - currentIndex).abs() <
-          AlbumPageChangeCoordinator.settledPageTolerance) {
+      if ((currentPage - currentIndex).abs() < AlbumPageChangeCoordinator.settledPageTolerance) {
         PlaybackPerformanceLogger.log(
           'shell.albumSync.skipNear currentPage=${currentPage.toStringAsFixed(2)} target=$currentIndex jump=$jump',
         );
@@ -557,10 +522,7 @@ class ShellController extends SuperController
       PlaybackPerformanceLogger.log(
         'shell.albumSync.start currentPage=${currentPage.toStringAsFixed(2)} target=$currentIndex jump=$shouldJump distance=${pageDistance.toStringAsFixed(2)}',
       );
-      final syncFuture = shouldJump
-          ? Future<void>(() => albumPageController.jumpToPage(currentIndex))
-          : albumPageController.animateToPage(currentIndex,
-              duration: const Duration(milliseconds: 500), curve: Curves.ease);
+      final syncFuture = shouldJump ? Future<void>(() => albumPageController.jumpToPage(currentIndex)) : albumPageController.animateToPage(currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.ease);
       syncFuture.whenComplete(() {
         PlaybackPerformanceLogger.elapsed(
           'shell.albumSync.complete',
@@ -574,9 +536,7 @@ class ShellController extends SuperController
           _pendingAlbumSyncIndex = null;
           _pendingAlbumSyncShouldJump = false;
           _pendingAlbumSyncCount = 0;
-          if (pendingIndex != null &&
-              pendingIndex != currentIndex &&
-              !isAlbumScrollingManully) {
+          if (pendingIndex != null && pendingIndex != currentIndex && !isAlbumScrollingManully) {
             _animateAlbumPageViewToCurSong(jump: pendingShouldJump);
           }
         });

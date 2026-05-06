@@ -91,13 +91,10 @@ class PlaybackStateSynchronizer {
     required PlaybackSessionSync syncSessionState,
     required PlaybackRuntimeSync syncRuntimeState,
     required void Function({int? currentIndex}) syncLyricState,
-    required void Function(List<PlaybackQueueItem> queue, int selectedIndex)
-        syncSelectionQueue,
-    required Future<void> Function({bool currentItemUpdated})
-        updateCurrentPlayIndex,
+    required void Function(List<PlaybackQueueItem> queue, int selectedIndex) syncSelectionQueue,
+    required Future<void> Function({bool currentItemUpdated}) updateCurrentPlayIndex,
     required Future<void> Function(PlaybackQueueItem item) toggleLike,
-    required Future<void> Function(PlaybackQueueItem item)
-        ensureCurrentTrackArtwork,
+    required Future<void> Function(PlaybackQueueItem item) ensureCurrentTrackArtwork,
     required Future<void> Function(PlaybackQueueItem item) syncCurrentQueueItem,
     required PlaybackRuntimeState Function() runtimeState,
     required PlaybackLyricState Function() lyricState,
@@ -153,8 +150,7 @@ class PlaybackStateSynchronizer {
     _subscriptions.add(
       _playbackService.mediaItemStream.listen((queueItem) async {
         if (queueItem == null) return;
-        if (_lastPositionTrackId.isNotEmpty &&
-            _lastPositionTrackId != queueItem.id) {
+        if (_lastPositionTrackId.isNotEmpty && _lastPositionTrackId != queueItem.id) {
           unawaited(_savePlaybackPosition(force: true));
         }
         _lastPositionTrackId = queueItem.id;
@@ -192,8 +188,7 @@ class PlaybackStateSynchronizer {
           setFullScreenLyricOpen: setFullScreenLyricOpen,
           cancelTimer: !isPlaying(),
         );
-        if (!playbackState.playing ||
-            playbackState.processingState == AudioProcessingState.completed) {
+        if (!playbackState.playing || playbackState.processingState == AudioProcessingState.completed) {
           unawaited(_savePlaybackPosition(force: true));
         }
         if (playbackState.processingState != AudioProcessingState.completed) {
@@ -217,8 +212,7 @@ class PlaybackStateSynchronizer {
         _latestPosition = newCurPlayingDuration;
         syncRuntimeState(currentPosition: newCurPlayingDuration);
         unawaited(_savePlaybackPosition());
-        if (_selectionService.state.selectedItem.id !=
-            runtimeState().currentSong.id) {
+        if (_selectionService.state.selectedItem.id != runtimeState().currentSong.id) {
           if (lyricState().currentIndex != -1) {
             syncLyricState(currentIndex: -1);
           }
@@ -242,9 +236,7 @@ class PlaybackStateSynchronizer {
     if (position < Duration.zero) {
       return;
     }
-    if (!force &&
-        (position - _lastStoredPosition).inMilliseconds.abs() <
-            _positionSaveInterval.inMilliseconds) {
+    if (!force && (position - _lastStoredPosition).inMilliseconds.abs() < _positionSaveInterval.inMilliseconds) {
       return;
     }
     if (force && position == _lastStoredPosition) {
@@ -262,9 +254,7 @@ class PlaybackStateSynchronizer {
     final newIndex = currentRuntimeState.queue.indexWhere(
       (element) => element.id == currentRuntimeState.currentSong.id,
     );
-    if (playbackMode() != PlaybackMode.roaming ||
-        newIndex < currentRuntimeState.queue.length - 2 ||
-        _isFetchingFm) {
+    if (playbackMode() != PlaybackMode.roaming || newIndex < currentRuntimeState.queue.length - 2 || _isFetchingFm) {
       return;
     }
 
@@ -272,10 +262,7 @@ class PlaybackStateSynchronizer {
     try {
       final newFmPlayList = await _userContentPort.loadFmSongs();
       if (playbackMode() == PlaybackMode.roaming && newFmPlayList.isNotEmpty) {
-        final shouldAutoPlayNext =
-            newIndex == currentRuntimeState.queue.length - 1 &&
-                _playbackService.handler.playbackState.value.processingState ==
-                    AudioProcessingState.completed;
+        final shouldAutoPlayNext = newIndex == currentRuntimeState.queue.length - 1 && _playbackService.handler.playbackState.value.processingState == AudioProcessingState.completed;
 
         await _queueCoordinator.appendRoamingSongs(
           currentQueue: currentRuntimeState.queue,
@@ -295,9 +282,7 @@ class PlaybackStateSynchronizer {
     PlaybackRuntimeState Function() runtimeState,
     Future<void> Function(PlaybackQueueItem item) syncCurrentQueueItem,
   ) async {
-    if (item.id.isEmpty ||
-        item.mediaType == MediaType.local ||
-        item.mediaType == MediaType.neteaseCache) {
+    if (item.id.isEmpty || item.mediaType == MediaType.local || item.mediaType == MediaType.neteaseCache) {
       return;
     }
     final updatedItem = await _downloadUseCase.cacheTrackForPlayback(
@@ -313,8 +298,7 @@ class PlaybackStateSynchronizer {
     required PlaybackQueueItem item,
     required PlaybackRuntimeState Function() runtimeState,
     required Future<void> Function(PlaybackQueueItem item) syncCurrentQueueItem,
-    required Future<void> Function(PlaybackQueueItem item)
-        ensureCurrentTrackArtwork,
+    required Future<void> Function(PlaybackQueueItem item) ensureCurrentTrackArtwork,
   }) {
     _sideEffectCoordinator.schedule(
       channel: 'confirmed-cache-artwork',
@@ -339,10 +323,8 @@ class PlaybackStateSynchronizer {
     required PlaybackState playbackState,
     required PlaybackRuntimeState Function() runtimeState,
     required Future<void> Function(PlaybackQueueItem item) syncCurrentQueueItem,
-    required Future<void> Function(PlaybackQueueItem item)
-        ensureCurrentTrackArtwork,
-    required Future<void> Function({bool currentItemUpdated})
-        updateCurrentPlayIndex,
+    required Future<void> Function(PlaybackQueueItem item) ensureCurrentTrackArtwork,
+    required Future<void> Function({bool currentItemUpdated}) updateCurrentPlayIndex,
   }) {
     if (!_hasConfirmedPlaybackSource(playbackState.processingState)) {
       return;
@@ -359,8 +341,7 @@ class PlaybackStateSynchronizer {
     if (selection.selectedItem.id != item.id) {
       return;
     }
-    final sideEffectKey =
-        '${selection.selectionVersion}:$queueIndex:${item.id}';
+    final sideEffectKey = '${selection.selectionVersion}:$queueIndex:${item.id}';
     if (_lastConfirmedSideEffectKey == sideEffectKey) {
       return;
     }
@@ -375,16 +356,14 @@ class PlaybackStateSynchronizer {
   }
 
   bool _hasConfirmedPlaybackSource(AudioProcessingState processingState) {
-    return processingState == AudioProcessingState.ready ||
-        processingState == AudioProcessingState.buffering;
+    return processingState == AudioProcessingState.ready || processingState == AudioProcessingState.buffering;
   }
 
   bool _isStillCurrentTrack(
     String itemId,
     PlaybackRuntimeState Function() runtimeState,
   ) {
-    return runtimeState().currentSong.id == itemId &&
-        _selectionService.state.selectedItem.id == itemId;
+    return runtimeState().currentSong.id == itemId && _selectionService.state.selectedItem.id == itemId;
   }
 
   /// 停止所有播放状态订阅。

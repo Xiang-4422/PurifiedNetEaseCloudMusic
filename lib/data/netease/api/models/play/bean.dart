@@ -106,8 +106,7 @@ class Lyrics2 {
   Lyrics2();
 
   /// 从 JSON 构建歌词内容。
-  factory Lyrics2.fromJson(Map<String, dynamic> json) =>
-      _$Lyrics2FromJson(json);
+  factory Lyrics2.fromJson(Map<String, dynamic> json) => _$Lyrics2FromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$Lyrics2ToJson(this);
@@ -167,8 +166,7 @@ class Privilege {
   Privilege();
 
   /// 从 JSON 构建歌曲播放权限信息。
-  factory Privilege.fromJson(Map<String, dynamic> json) =>
-      _$PrivilegeFromJson(json);
+  factory Privilege.fromJson(Map<String, dynamic> json) => _$PrivilegeFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PrivilegeToJson(this);
@@ -395,8 +393,7 @@ class SongDetailWrap extends ServerStatusBean {
   SongDetailWrap();
 
   /// 从 JSON 构建歌曲详情响应。
-  factory SongDetailWrap.fromJson(Map<String, dynamic> json) =>
-      _$SongDetailWrapFromJson(json);
+  factory SongDetailWrap.fromJson(Map<String, dynamic> json) => _$SongDetailWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -448,8 +445,7 @@ class SongUrl {
   SongUrl();
 
   /// 从 JSON 构建歌曲播放地址信息。
-  factory SongUrl.fromJson(Map<String, dynamic> json) =>
-      _$SongUrlFromJson(json);
+  factory SongUrl.fromJson(Map<String, dynamic> json) => _$SongUrlFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SongUrlToJson(this);
@@ -466,8 +462,7 @@ class SongUrlListWrap extends ServerStatusBean {
   SongUrlListWrap();
 
   /// 从 JSON 构建歌曲播放地址列表响应。
-  factory SongUrlListWrap.fromJson(Map<String, dynamic> json) =>
-      _$SongUrlListWrapFromJson(json);
+  factory SongUrlListWrap.fromJson(Map<String, dynamic> json) => _$SongUrlListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -500,8 +495,7 @@ class SongLyricWrap extends ServerStatusBean {
   SongLyricWrap();
 
   /// 从 JSON 构建歌曲歌词响应。
-  factory SongLyricWrap.fromJson(Map<String, dynamic> json) =>
-      _$SongLyricWrapFromJson(json);
+  factory SongLyricWrap.fromJson(Map<String, dynamic> json) => _$SongLyricWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -519,8 +513,7 @@ class SongListWrap extends ServerStatusBean {
   SongListWrap();
 
   /// 从 JSON 构建旧版歌曲列表响应。
-  factory SongListWrap.fromJson(Map<String, dynamic> json) =>
-      _$SongListWrapFromJson(json);
+  factory SongListWrap.fromJson(Map<String, dynamic> json) => _$SongListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -538,8 +531,7 @@ class SongListWrap2 extends ServerStatusBean {
   SongListWrap2();
 
   /// 从 JSON 构建 data 包装的歌曲列表响应。
-  factory SongListWrap2.fromJson(Map<String, dynamic> json) =>
-      _$SongListWrap2FromJson(json);
+  factory SongListWrap2.fromJson(Map<String, dynamic> json) => _$SongListWrap2FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -579,8 +571,7 @@ class PersonalizedSongItem {
   PersonalizedSongItem();
 
   /// 从 JSON 构建私人推荐歌曲条目。
-  factory PersonalizedSongItem.fromJson(Map<String, dynamic> json) =>
-      _$PersonalizedSongItemFromJson(json);
+  factory PersonalizedSongItem.fromJson(Map<String, dynamic> json) => _$PersonalizedSongItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PersonalizedSongItemToJson(this);
@@ -600,8 +591,7 @@ class PersonalizedSongListWrap extends ServerStatusBean {
   PersonalizedSongListWrap();
 
   /// 从 JSON 构建私人推荐歌曲列表响应。
-  factory PersonalizedSongListWrap.fromJson(Map<String, dynamic> json) =>
-      _$PersonalizedSongListWrapFromJson(json);
+  factory PersonalizedSongListWrap.fromJson(Map<String, dynamic> json) => _$PersonalizedSongListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -622,8 +612,7 @@ class LikeSongListWrap extends ServerStatusBean {
   LikeSongListWrap();
 
   /// 从 JSON 构建喜欢歌曲列表响应。
-  factory LikeSongListWrap.fromJson(Map<String, dynamic> json) =>
-      _$LikeSongListWrapFromJson(json);
+  factory LikeSongListWrap.fromJson(Map<String, dynamic> json) => _$LikeSongListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -678,8 +667,7 @@ class CloudSongItem {
   CloudSongItem();
 
   /// 从 JSON 构建云盘歌曲条目。
-  factory CloudSongItem.fromJson(Map<String, dynamic> json) =>
-      _$CloudSongItemFromJson(json);
+  factory CloudSongItem.fromJson(Map<String, dynamic> json) => _$CloudSongItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$CloudSongItemToJson(this);
@@ -705,8 +693,7 @@ class CloudSongListWrap extends ServerStatusListBean {
   CloudSongListWrap();
 
   /// 从 JSON 构建云盘歌曲列表响应。
-  factory CloudSongListWrap.fromJson(Map<String, dynamic> json) =>
-      _$CloudSongListWrapFromJson(json);
+  factory CloudSongListWrap.fromJson(Map<String, dynamic> json) => _$CloudSongListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -728,8 +715,7 @@ class RecommendSongReason {
   RecommendSongReason();
 
   /// 从 JSON 构建每日推荐歌曲理由。
-  factory RecommendSongReason.fromJson(Map<String, dynamic> json) =>
-      _$RecommendSongReasonFromJson(json);
+  factory RecommendSongReason.fromJson(Map<String, dynamic> json) => _$RecommendSongReasonFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$RecommendSongReasonToJson(this);
@@ -752,8 +738,7 @@ class RecommendSongListWrap {
   RecommendSongListWrap();
 
   /// 从 JSON 构建每日推荐歌曲数据。
-  factory RecommendSongListWrap.fromJson(Map<String, dynamic> json) =>
-      _$RecommendSongListWrapFromJson(json);
+  factory RecommendSongListWrap.fromJson(Map<String, dynamic> json) => _$RecommendSongListWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$RecommendSongListWrapToJson(this);
@@ -770,8 +755,7 @@ class RecommendSongListWrapX extends ServerStatusBean {
   RecommendSongListWrapX();
 
   /// 从 JSON 构建每日推荐歌曲响应。
-  factory RecommendSongListWrapX.fromJson(Map<String, dynamic> json) =>
-      _$RecommendSongListWrapXFromJson(json);
+  factory RecommendSongListWrapX.fromJson(Map<String, dynamic> json) => _$RecommendSongListWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -801,8 +785,7 @@ class RecommendSongListHistoryWrap {
   RecommendSongListHistoryWrap();
 
   /// 从 JSON 构建每日推荐历史数据。
-  factory RecommendSongListHistoryWrap.fromJson(Map<String, dynamic> json) =>
-      _$RecommendSongListHistoryWrapFromJson(json);
+  factory RecommendSongListHistoryWrap.fromJson(Map<String, dynamic> json) => _$RecommendSongListHistoryWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$RecommendSongListHistoryWrapToJson(this);
@@ -819,8 +802,7 @@ class RecommendSongListHistoryWrapX extends ServerStatusBean {
   RecommendSongListHistoryWrapX();
 
   /// 从 JSON 构建每日推荐历史响应。
-  factory RecommendSongListHistoryWrapX.fromJson(Map<String, dynamic> json) =>
-      _$RecommendSongListHistoryWrapXFromJson(json);
+  factory RecommendSongListHistoryWrapX.fromJson(Map<String, dynamic> json) => _$RecommendSongListHistoryWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -838,8 +820,7 @@ class ArtistSongListWrap extends ServerStatusBean {
   ArtistSongListWrap();
 
   /// 从 JSON 构建歌手歌曲列表响应。
-  factory ArtistSongListWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistSongListWrapFromJson(json);
+  factory ArtistSongListWrap.fromJson(Map<String, dynamic> json) => _$ArtistSongListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -863,8 +844,7 @@ class ArtistNewSongListData {
   ArtistNewSongListData();
 
   /// 从 JSON 构建歌手新歌列表数据。
-  factory ArtistNewSongListData.fromJson(Map<String, dynamic> json) =>
-      _$ArtistNewSongListDataFromJson(json);
+  factory ArtistNewSongListData.fromJson(Map<String, dynamic> json) => _$ArtistNewSongListDataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$ArtistNewSongListDataToJson(this);
@@ -881,8 +861,7 @@ class ArtistNewSongListWrap extends ServerStatusBean {
   ArtistNewSongListWrap();
 
   /// 从 JSON 构建歌手新歌列表响应。
-  factory ArtistNewSongListWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistNewSongListWrapFromJson(json);
+  factory ArtistNewSongListWrap.fromJson(Map<String, dynamic> json) => _$ArtistNewSongListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -903,8 +882,7 @@ class ArtistDetailAndSongListWrap extends ServerStatusBean {
   ArtistDetailAndSongListWrap();
 
   /// 从 JSON 构建歌手详情与热门歌曲响应。
-  factory ArtistDetailAndSongListWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistDetailAndSongListWrapFromJson(json);
+  factory ArtistDetailAndSongListWrap.fromJson(Map<String, dynamic> json) => _$ArtistDetailAndSongListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1003,8 +981,7 @@ class PlayList {
   }
 
   /// 从 JSON 构建歌单详情数据。
-  factory PlayList.fromJson(Map<String, dynamic> json) =>
-      _$PlayListFromJson(json);
+  factory PlayList.fromJson(Map<String, dynamic> json) => _$PlayListFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PlayListToJson(this);
@@ -1115,8 +1092,7 @@ class PlayTrack {
   PlayTrack();
 
   /// 从 JSON 构建歌单歌曲条目。
-  factory PlayTrack.fromJson(Map<String, dynamic> json) =>
-      _$PlayTrackFromJson(json);
+  factory PlayTrack.fromJson(Map<String, dynamic> json) => _$PlayTrackFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PlayTrackToJson(this);
@@ -1146,8 +1122,7 @@ class PlayTrackId {
   PlayTrackId();
 
   /// 从 JSON 构建歌单歌曲 id 条目。
-  factory PlayTrackId.fromJson(Map<String, dynamic> json) =>
-      _$PlayTrackIdFromJson(json);
+  factory PlayTrackId.fromJson(Map<String, dynamic> json) => _$PlayTrackIdFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PlayTrackIdToJson(this);
@@ -1164,8 +1139,7 @@ class MultiPlayListWrap extends ServerStatusBean {
   MultiPlayListWrap();
 
   /// 从 JSON 构建多歌单列表响应。
-  factory MultiPlayListWrap.fromJson(Map<String, dynamic> json) =>
-      _$MultiPlayListWrapFromJson(json);
+  factory MultiPlayListWrap.fromJson(Map<String, dynamic> json) => _$MultiPlayListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1184,8 +1158,7 @@ class MultiPlayListWrap2 extends ServerStatusBean {
   MultiPlayListWrap2();
 
   /// 从 JSON 构建多歌单列表响应。
-  factory MultiPlayListWrap2.fromJson(Map<String, dynamic> json) =>
-      _$MultiPlayListWrap2FromJson(json);
+  factory MultiPlayListWrap2.fromJson(Map<String, dynamic> json) => _$MultiPlayListWrap2FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1209,8 +1182,7 @@ class RecommendPlayListWrap extends ServerStatusBean {
   RecommendPlayListWrap();
 
   /// 从 JSON 构建推荐歌单列表响应。
-  factory RecommendPlayListWrap.fromJson(Map<String, dynamic> json) =>
-      _$RecommendPlayListWrapFromJson(json);
+  factory RecommendPlayListWrap.fromJson(Map<String, dynamic> json) => _$RecommendPlayListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1234,8 +1206,7 @@ class PersonalizedPlayListWrap extends ServerStatusBean {
   PersonalizedPlayListWrap();
 
   /// 从 JSON 构建个性化推荐歌单列表响应。
-  factory PersonalizedPlayListWrap.fromJson(Map<String, dynamic> json) =>
-      _$PersonalizedPlayListWrapFromJson(json);
+  factory PersonalizedPlayListWrap.fromJson(Map<String, dynamic> json) => _$PersonalizedPlayListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1274,8 +1245,7 @@ class PlaylistCatalogueItem {
   PlaylistCatalogueItem();
 
   /// 从 JSON 构建歌单分类条目。
-  factory PlaylistCatalogueItem.fromJson(Map<String, dynamic> json) =>
-      _$PlaylistCatalogueItemFromJson(json);
+  factory PlaylistCatalogueItem.fromJson(Map<String, dynamic> json) => _$PlaylistCatalogueItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PlaylistCatalogueItemToJson(this);
@@ -1298,8 +1268,7 @@ class PlaylistCatalogueWrap extends ServerStatusBean {
   PlaylistCatalogueWrap();
 
   /// 从 JSON 构建歌单分类响应。
-  factory PlaylistCatalogueWrap.fromJson(Map<String, dynamic> json) =>
-      _$PlaylistCatalogueWrapFromJson(json);
+  factory PlaylistCatalogueWrap.fromJson(Map<String, dynamic> json) => _$PlaylistCatalogueWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1345,8 +1314,7 @@ class PlaylistHotTag {
   PlaylistHotTag();
 
   /// 从 JSON 构建热门歌单标签详情。
-  factory PlaylistHotTag.fromJson(Map<String, dynamic> json) =>
-      _$PlaylistHotTagFromJson(json);
+  factory PlaylistHotTag.fromJson(Map<String, dynamic> json) => _$PlaylistHotTagFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PlaylistHotTagToJson(this);
@@ -1388,8 +1356,7 @@ class PlaylistHotTagsItem {
   PlaylistHotTagsItem();
 
   /// 从 JSON 构建热门歌单标签条目。
-  factory PlaylistHotTagsItem.fromJson(Map<String, dynamic> json) =>
-      _$PlaylistHotTagsItemFromJson(json);
+  factory PlaylistHotTagsItem.fromJson(Map<String, dynamic> json) => _$PlaylistHotTagsItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PlaylistHotTagsItemToJson(this);
@@ -1406,8 +1373,7 @@ class PlaylistHotTagsWrap extends ServerStatusBean {
   PlaylistHotTagsWrap();
 
   /// 从 JSON 构建热门歌单标签列表响应。
-  factory PlaylistHotTagsWrap.fromJson(Map<String, dynamic> json) =>
-      _$PlaylistHotTagsWrapFromJson(json);
+  factory PlaylistHotTagsWrap.fromJson(Map<String, dynamic> json) => _$PlaylistHotTagsWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1466,8 +1432,7 @@ class SinglePlayListWrap extends ServerStatusBean {
   SinglePlayListWrap();
 
   /// 从 JSON 构建单个歌单详情响应。
-  factory SinglePlayListWrap.fromJson(Map<String, dynamic> json) =>
-      _$SinglePlayListWrapFromJson(json);
+  factory SinglePlayListWrap.fromJson(Map<String, dynamic> json) => _$SinglePlayListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1503,8 +1468,7 @@ class PlayListDetailDynamicWrap extends ServerStatusBean {
   PlayListDetailDynamicWrap();
 
   /// 从 JSON 构建歌单动态统计响应。
-  factory PlayListDetailDynamicWrap.fromJson(Map<String, dynamic> json) =>
-      _$PlayListDetailDynamicWrapFromJson(json);
+  factory PlayListDetailDynamicWrap.fromJson(Map<String, dynamic> json) => _$PlayListDetailDynamicWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1532,8 +1496,7 @@ class PlaymodeIntelligenceItem {
   PlaymodeIntelligenceItem();
 
   /// 从 JSON 构建心动模式推荐歌曲条目。
-  factory PlaymodeIntelligenceItem.fromJson(Map<String, dynamic> json) =>
-      _$PlaymodeIntelligenceItemFromJson(json);
+  factory PlaymodeIntelligenceItem.fromJson(Map<String, dynamic> json) => _$PlaymodeIntelligenceItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PlaymodeIntelligenceItemToJson(this);
@@ -1550,8 +1513,7 @@ class PlaymodeIntelligenceListWrap extends ServerStatusBean {
   PlaymodeIntelligenceListWrap();
 
   /// 从 JSON 构建心动模式推荐歌曲列表响应。
-  factory PlaymodeIntelligenceListWrap.fromJson(Map<String, dynamic> json) =>
-      _$PlaymodeIntelligenceListWrapFromJson(json);
+  factory PlaymodeIntelligenceListWrap.fromJson(Map<String, dynamic> json) => _$PlaymodeIntelligenceListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1630,8 +1592,7 @@ class ArtistsListWrap extends ServerStatusBean {
   ArtistsListWrap();
 
   /// 从 JSON 构建歌手列表响应。
-  factory ArtistsListWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistsListWrapFromJson(json);
+  factory ArtistsListWrap.fromJson(Map<String, dynamic> json) => _$ArtistsListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1655,8 +1616,7 @@ class ArtistsTopListWrap {
   ArtistsTopListWrap();
 
   /// 从 JSON 构建歌手榜列表数据。
-  factory ArtistsTopListWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistsTopListWrapFromJson(json);
+  factory ArtistsTopListWrap.fromJson(Map<String, dynamic> json) => _$ArtistsTopListWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$ArtistsTopListWrapToJson(this);
@@ -1673,8 +1633,7 @@ class ArtistsTopListWrapX extends ServerStatusBean {
   ArtistsTopListWrapX();
 
   /// 从 JSON 构建歌手榜列表响应。
-  factory ArtistsTopListWrapX.fromJson(Map<String, dynamic> json) =>
-      _$ArtistsTopListWrapXFromJson(json);
+  factory ArtistsTopListWrapX.fromJson(Map<String, dynamic> json) => _$ArtistsTopListWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1695,8 +1654,7 @@ class ArtistIntroduction {
   ArtistIntroduction();
 
   /// 从 JSON 构建歌手介绍片段。
-  factory ArtistIntroduction.fromJson(Map<String, dynamic> json) =>
-      _$ArtistIntroductionFromJson(json);
+  factory ArtistIntroduction.fromJson(Map<String, dynamic> json) => _$ArtistIntroductionFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$ArtistIntroductionToJson(this);
@@ -1722,8 +1680,7 @@ class ArtistDescWrap extends ServerStatusBean {
   ArtistDescWrap();
 
   /// 从 JSON 构建歌手描述响应。
-  factory ArtistDescWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistDescWrapFromJson(json);
+  factory ArtistDescWrap.fromJson(Map<String, dynamic> json) => _$ArtistDescWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1750,8 +1707,7 @@ class ArtistDetailData {
   ArtistDetailData();
 
   /// 从 JSON 构建歌手详情数据。
-  factory ArtistDetailData.fromJson(Map<String, dynamic> json) =>
-      _$ArtistDetailDataFromJson(json);
+  factory ArtistDetailData.fromJson(Map<String, dynamic> json) => _$ArtistDetailDataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$ArtistDetailDataToJson(this);
@@ -1768,8 +1724,7 @@ class ArtistDetailWrap extends ServerStatusBean {
   ArtistDetailWrap();
 
   /// 从 JSON 构建歌手详情响应。
-  factory ArtistDetailWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistDetailWrapFromJson(json);
+  factory ArtistDetailWrap.fromJson(Map<String, dynamic> json) => _$ArtistDetailWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1862,8 +1817,7 @@ class AlbumDetailWrap extends ServerStatusBean {
   AlbumDetailWrap();
 
   /// 从 JSON 构建专辑详情响应。
-  factory AlbumDetailWrap.fromJson(Map<String, dynamic> json) =>
-      _$AlbumDetailWrapFromJson(json);
+  factory AlbumDetailWrap.fromJson(Map<String, dynamic> json) => _$AlbumDetailWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1899,8 +1853,7 @@ class AlbumDetailDynamicWrap extends ServerStatusBean {
   AlbumDetailDynamicWrap();
 
   /// 从 JSON 构建专辑动态统计响应。
-  factory AlbumDetailDynamicWrap.fromJson(Map<String, dynamic> json) =>
-      _$AlbumDetailDynamicWrapFromJson(json);
+  factory AlbumDetailDynamicWrap.fromJson(Map<String, dynamic> json) => _$AlbumDetailDynamicWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1918,8 +1871,7 @@ class AlbumListWrap extends ServerStatusListBean {
   AlbumListWrap();
 
   /// 从 JSON 构建专辑列表响应。
-  factory AlbumListWrap.fromJson(Map<String, dynamic> json) =>
-      _$AlbumListWrapFromJson(json);
+  factory AlbumListWrap.fromJson(Map<String, dynamic> json) => _$AlbumListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1943,8 +1895,7 @@ class ArtistAlbumListWrap extends ServerStatusListBean {
   ArtistAlbumListWrap();
 
   /// 从 JSON 构建歌手专辑列表响应。
-  factory ArtistAlbumListWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistAlbumListWrapFromJson(json);
+  factory ArtistAlbumListWrap.fromJson(Map<String, dynamic> json) => _$ArtistAlbumListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1966,8 +1917,7 @@ class MvCreator {
   MvCreator();
 
   /// 从 JSON 构建 MV 创建者信息。
-  factory MvCreator.fromJson(Map<String, dynamic> json) =>
-      _$MvCreatorFromJson(json);
+  factory MvCreator.fromJson(Map<String, dynamic> json) => _$MvCreatorFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$MvCreatorToJson(this);
@@ -2140,8 +2090,7 @@ class MvListWrap extends ServerStatusListBean {
   MvListWrap();
 
   /// 从 JSON 构建 MV 列表响应。
-  factory MvListWrap.fromJson(Map<String, dynamic> json) =>
-      _$MvListWrapFromJson(json);
+  factory MvListWrap.fromJson(Map<String, dynamic> json) => _$MvListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2162,8 +2111,7 @@ class MvListWrap2 extends ServerStatusListBean {
   MvListWrap2();
 
   /// 从 JSON 构建 data 包装的 MV 列表响应。
-  factory MvListWrap2.fromJson(Map<String, dynamic> json) =>
-      _$MvListWrap2FromJson(json);
+  factory MvListWrap2.fromJson(Map<String, dynamic> json) => _$MvListWrap2FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2184,8 +2132,7 @@ class PersonalizedMvListWrap extends ServerStatusBean {
   PersonalizedMvListWrap();
 
   /// 从 JSON 构建个性化 MV 列表响应。
-  factory PersonalizedMvListWrap.fromJson(Map<String, dynamic> json) =>
-      _$PersonalizedMvListWrapFromJson(json);
+  factory PersonalizedMvListWrap.fromJson(Map<String, dynamic> json) => _$PersonalizedMvListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2203,8 +2150,7 @@ class ArtistMvListWrap extends MvListWrap {
   ArtistMvListWrap();
 
   /// 从 JSON 构建歌手 MV 列表响应。
-  factory ArtistMvListWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistMvListWrapFromJson(json);
+  factory ArtistMvListWrap.fromJson(Map<String, dynamic> json) => _$ArtistMvListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2225,8 +2171,7 @@ class ArtistNewMvListData {
   ArtistNewMvListData();
 
   /// 从 JSON 构建歌手新 MV 列表数据。
-  factory ArtistNewMvListData.fromJson(Map<String, dynamic> json) =>
-      _$ArtistNewMvListDataFromJson(json);
+  factory ArtistNewMvListData.fromJson(Map<String, dynamic> json) => _$ArtistNewMvListDataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$ArtistNewMvListDataToJson(this);
@@ -2243,8 +2188,7 @@ class ArtistNewMvListWrap extends ServerStatusBean {
   ArtistNewMvListWrap();
 
   /// 从 JSON 构建歌手新 MV 列表响应。
-  factory ArtistNewMvListWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistNewMvListWrapFromJson(json);
+  factory ArtistNewMvListWrap.fromJson(Map<String, dynamic> json) => _$ArtistNewMvListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2277,8 +2221,7 @@ class MvDetailWrap extends ServerStatusBean {
   MvDetailWrap();
 
   /// 从 JSON 构建 MV 详情响应。
-  factory MvDetailWrap.fromJson(Map<String, dynamic> json) =>
-      _$MvDetailWrapFromJson(json);
+  factory MvDetailWrap.fromJson(Map<String, dynamic> json) => _$MvDetailWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2305,8 +2248,7 @@ class MvDetailInfoWrap extends ServerStatusBean {
   MvDetailInfoWrap();
 
   /// 从 JSON 构建 MV 动态统计响应。
-  factory MvDetailInfoWrap.fromJson(Map<String, dynamic> json) =>
-      _$MvDetailInfoWrapFromJson(json);
+  factory MvDetailInfoWrap.fromJson(Map<String, dynamic> json) => _$MvDetailInfoWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2369,8 +2311,7 @@ class MvUrlWrap extends ServerStatusBean {
   MvUrlWrap();
 
   /// 从 JSON 构建 MV 播放地址响应。
-  factory MvUrlWrap.fromJson(Map<String, dynamic> json) =>
-      _$MvUrlWrapFromJson(json);
+  factory MvUrlWrap.fromJson(Map<String, dynamic> json) => _$MvUrlWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2391,8 +2332,7 @@ class VideoResolution {
   VideoResolution();
 
   /// 从 JSON 构建视频清晰度信息。
-  factory VideoResolution.fromJson(Map<String, dynamic> json) =>
-      _$VideoResolutionFromJson(json);
+  factory VideoResolution.fromJson(Map<String, dynamic> json) => _$VideoResolutionFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$VideoResolutionToJson(this);
@@ -2424,8 +2364,7 @@ class VideoUrlInfo {
   VideoUrlInfo();
 
   /// 从 JSON 构建视频播放地址详情。
-  factory VideoUrlInfo.fromJson(Map<String, dynamic> json) =>
-      _$VideoUrlInfoFromJson(json);
+  factory VideoUrlInfo.fromJson(Map<String, dynamic> json) => _$VideoUrlInfoFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$VideoUrlInfoToJson(this);
@@ -2508,8 +2447,7 @@ class VideoBase {
   VideoBase();
 
   /// 从 JSON 构建视频基础信息。
-  factory VideoBase.fromJson(Map<String, dynamic> json) =>
-      _$VideoBaseFromJson(json);
+  factory VideoBase.fromJson(Map<String, dynamic> json) => _$VideoBaseFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$VideoBaseToJson(this);
@@ -2575,8 +2513,7 @@ class VideoMetaItem {
   VideoMetaItem();
 
   /// 从 JSON 构建视频分类标签。
-  factory VideoMetaItem.fromJson(Map<String, dynamic> json) =>
-      _$VideoMetaItemFromJson(json);
+  factory VideoMetaItem.fromJson(Map<String, dynamic> json) => _$VideoMetaItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$VideoMetaItemToJson(this);
@@ -2593,8 +2530,7 @@ class VideoMetaListWrap extends ServerStatusBean {
   VideoMetaListWrap();
 
   /// 从 JSON 构建视频分类标签列表响应。
-  factory VideoMetaListWrap.fromJson(Map<String, dynamic> json) =>
-      _$VideoMetaListWrapFromJson(json);
+  factory VideoMetaListWrap.fromJson(Map<String, dynamic> json) => _$VideoMetaListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2624,8 +2560,7 @@ class VideoWrap {
   VideoWrap();
 
   /// 从 JSON 构建推荐视频包装条目。
-  factory VideoWrap.fromJson(Map<String, dynamic> json) =>
-      _$VideoWrapFromJson(json);
+  factory VideoWrap.fromJson(Map<String, dynamic> json) => _$VideoWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$VideoWrapToJson(this);
@@ -2645,8 +2580,7 @@ class VideoListWrapX extends ServerStatusListBean {
   VideoListWrapX();
 
   /// 从 JSON 构建推荐视频列表响应。
-  factory VideoListWrapX.fromJson(Map<String, dynamic> json) =>
-      _$VideoListWrapXFromJson(json);
+  factory VideoListWrapX.fromJson(Map<String, dynamic> json) => _$VideoListWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2664,8 +2598,7 @@ class VideoListWrap extends ServerStatusBean {
   VideoListWrap();
 
   /// 从 JSON 构建视频列表响应。
-  factory VideoListWrap.fromJson(Map<String, dynamic> json) =>
-      _$VideoListWrapFromJson(json);
+  factory VideoListWrap.fromJson(Map<String, dynamic> json) => _$VideoListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2683,8 +2616,7 @@ class VideoDetailWrap extends ServerStatusBean {
   VideoDetailWrap();
 
   /// 从 JSON 构建视频详情响应。
-  factory VideoDetailWrap.fromJson(Map<String, dynamic> json) =>
-      _$VideoDetailWrapFromJson(json);
+  factory VideoDetailWrap.fromJson(Map<String, dynamic> json) => _$VideoDetailWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2711,8 +2643,7 @@ class VideoDetailInfoWrap extends ServerStatusBean {
   VideoDetailInfoWrap();
 
   /// 从 JSON 构建视频动态统计响应。
-  factory VideoDetailInfoWrap.fromJson(Map<String, dynamic> json) =>
-      _$VideoDetailInfoWrapFromJson(json);
+  factory VideoDetailInfoWrap.fromJson(Map<String, dynamic> json) => _$VideoDetailInfoWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -2746,8 +2677,7 @@ class VideoUrl {
   VideoUrl();
 
   /// 从 JSON 构建视频播放地址信息。
-  factory VideoUrl.fromJson(Map<String, dynamic> json) =>
-      _$VideoUrlFromJson(json);
+  factory VideoUrl.fromJson(Map<String, dynamic> json) => _$VideoUrlFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$VideoUrlToJson(this);
@@ -2764,8 +2694,7 @@ class VideoUrlWrap extends ServerStatusBean {
   VideoUrlWrap();
 
   /// 从 JSON 构建视频播放地址响应。
-  factory VideoUrlWrap.fromJson(Map<String, dynamic> json) =>
-      _$VideoUrlWrapFromJson(json);
+  factory VideoUrlWrap.fromJson(Map<String, dynamic> json) => _$VideoUrlWrapFromJson(json);
 
   /// 转换为 JSON。
   @override

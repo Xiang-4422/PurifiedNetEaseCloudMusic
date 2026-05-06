@@ -13,10 +13,8 @@ import 'package:flutter_displaymode/flutter_displaymode.dart';
 Future<void> bootstrapApplication() async {
   WidgetsFlutterBinding.ensureInitialized();
   debugPaintSizeEnabled = false;
-  debugProfileBuildsEnabled =
-      kDebugMode && const bool.fromEnvironment('profile_flutter_builds');
-  debugProfilePaintsEnabled =
-      kDebugMode && const bool.fromEnvironment('profile_flutter_paints');
+  debugProfileBuildsEnabled = kDebugMode && const bool.fromEnvironment('profile_flutter_builds');
+  debugProfilePaintsEnabled = kDebugMode && const bool.fromEnvironment('profile_flutter_paints');
   await _initUi();
   await _initInfrastructure();
 }
@@ -35,8 +33,7 @@ Future<void> _initUi() async {
 
 Future<void> _initInfrastructure() async {
   await NeteaseRemoteBootstrap.initialize(
-    debug:
-        kDebugMode && const bool.fromEnvironment('enable_verbose_network_logs'),
+    debug: kDebugMode && const bool.fromEnvironment('enable_verbose_network_logs'),
   );
   await AppBinding.initInfrastructure();
 }

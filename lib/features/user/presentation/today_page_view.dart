@@ -28,12 +28,8 @@ class TodayPageView extends StatelessWidget {
       color: Colors.white,
       child: CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
         SliverAppBar(
-          toolbarHeight: AppDimensions.appBarHeight -
-              context.mediaQueryPadding.top +
-              AppDimensions.paddingLarge,
-          collapsedHeight: AppDimensions.appBarHeight -
-              context.mediaQueryPadding.top +
-              AppDimensions.paddingLarge,
+          toolbarHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
+          collapsedHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
           expandedHeight: layoutMetrics.heroExtent,
           pinned: true,
           stretch: true,
@@ -47,10 +43,7 @@ class TodayPageView extends StatelessWidget {
               // StretchMode.blurBackground, // 背景图模糊
               // StretchMode.fadeTitle,      // 标题渐隐
             ],
-            titlePadding: const EdgeInsets.only(
-                bottom: AppDimensions.paddingMedium,
-                left: AppDimensions.paddingMedium,
-                right: AppDimensions.paddingMedium),
+            titlePadding: const EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
             title: BlurryContainer(
               padding: EdgeInsets.zero,
               borderRadius: BorderRadius.circular(9999),
@@ -121,14 +114,7 @@ class TodayPageView extends StatelessWidget {
                   height: AppDimensions.bottomPanelHeaderHeight,
                 );
               }
-              return SongItem(
-                      playlist: songs,
-                      index: index,
-                      playListName: "今日推荐",
-                      stringColor: Colors.black,
-                      showIndex: true,
-                      onPlay: playbackAction.playPlaylist)
-                  .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+              return SongItem(playlist: songs, index: index, playListName: "今日推荐", stringColor: Colors.black, showIndex: true, onPlay: playbackAction.playPlaylist).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
             },
           ),
         ),

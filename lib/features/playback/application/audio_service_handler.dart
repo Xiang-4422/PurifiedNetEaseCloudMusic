@@ -13,18 +13,15 @@ import 'package:just_audio/just_audio.dart';
 ///
 /// 页面和控制器不应直接复制这里的行为，否则播放状态、通知栏状态和
 /// 本地恢复状态会很快分叉。
-class AudioServiceHandler extends BaseAudioHandler
-    with SeekHandler, QueueHandler {
+class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandler {
   /// 创建 audio_service 播放处理器。
   AudioServiceHandler({
     PlaybackEnginePort? engineAdapter,
     AudioServiceQueueSynchronizer? queueSynchronizer,
     PlaybackNotificationControlsPresenter? notificationControlsPresenter,
   })  : _engine = engineAdapter ?? PlaybackEngineAdapter(),
-        _queueSynchronizer =
-            queueSynchronizer ?? AudioServiceQueueSynchronizer(),
-        _notificationControlsPresenter = notificationControlsPresenter ??
-            const PlaybackNotificationControlsPresenter() {
+        _queueSynchronizer = queueSynchronizer ?? AudioServiceQueueSynchronizer(),
+        _notificationControlsPresenter = notificationControlsPresenter ?? const PlaybackNotificationControlsPresenter() {
     _engine.playbackEventStream.listen((PlaybackEvent event) {
       playbackState.add(playbackState.value.copyWith(
         systemActions: const {
@@ -32,9 +29,7 @@ class AudioServiceHandler extends BaseAudioHandler
         },
         androidCompactActionIndices: const [1, 2, 3],
         processingState: _currentAudioProcessingState(),
-        shuffleMode: (_engine.shuffleModeEnabled)
-            ? AudioServiceShuffleMode.all
-            : AudioServiceShuffleMode.none,
+        shuffleMode: (_engine.shuffleModeEnabled) ? AudioServiceShuffleMode.all : AudioServiceShuffleMode.none,
         playing: _engine.playing,
         updatePosition: _engine.position,
         bufferedPosition: _engine.bufferedPosition,
@@ -50,8 +45,7 @@ class AudioServiceHandler extends BaseAudioHandler
   final PlaybackNotificationControlsPresenter _notificationControlsPresenter;
 
   void Function(AudioServiceRepeatMode mode)? _handleRepeatModeChanged;
-  void Function(String playlistName, String playlistHeader, bool isLikedSongs)?
-      _handlePlaylistMetaChanged;
+  void Function(String playlistName, String playlistHeader, bool isLikedSongs)? _handlePlaylistMetaChanged;
   Future<void> Function(MediaItem mediaItem)? _handleToggleLike;
   Future<void> Function()? _handleSkipToPrevious;
   Future<void> Function()? _handleSkipToNext;
@@ -69,9 +63,7 @@ class AudioServiceHandler extends BaseAudioHandler
   void configure({
     void Function(PlaybackMode mode)? onRestorePlaybackMode,
     void Function(AudioServiceRepeatMode mode)? onRepeatModeChanged,
-    void Function(
-            String playlistName, String playlistHeader, bool isLikedSongs)?
-        onPlaylistMetaChanged,
+    void Function(String playlistName, String playlistHeader, bool isLikedSongs)? onPlaylistMetaChanged,
     bool Function()? isHighQualityEnabled,
     Future<void> Function(MediaItem mediaItem)? onToggleLike,
     void Function(String message)? onToast,
@@ -175,12 +167,9 @@ class AudioServiceHandler extends BaseAudioHandler
       PlaybackPerformanceLogger.elapsed(
         'audio.replaceSource.setSource',
         setSourceStopwatch,
-        details:
-            'id=${mediaItemToPlay.id} index=$audioSourceIndex kind=${source.kind.name}',
+        details: 'id=${mediaItemToPlay.id} index=$audioSourceIndex kind=${source.kind.name}',
       );
-      final resolvedMediaItem = source.markAsCached
-          ? _markMediaItemCached(mediaItemToPlay)
-          : mediaItemToPlay;
+      final resolvedMediaItem = source.markAsCached ? _markMediaItemCached(mediaItemToPlay) : mediaItemToPlay;
       _isReplacingSource = false;
       _publishCurrentMediaItem(
         audioSourceIndex,
@@ -192,15 +181,13 @@ class AudioServiceHandler extends BaseAudioHandler
         final restoreMediaItemId = _pendingRestoreMediaItemId;
         _pendingRestorePosition = Duration.zero;
         _pendingRestoreMediaItemId = null;
-        if (restoreMediaItemId == null ||
-            restoreMediaItemId == mediaItemToPlay.id) {
+        if (restoreMediaItemId == null || restoreMediaItemId == mediaItemToPlay.id) {
           final seekStopwatch = PlaybackPerformanceLogger.start();
           await _engine.seek(restorePosition);
           PlaybackPerformanceLogger.elapsed(
             'audio.replaceSource.restoreSeek',
             seekStopwatch,
-            details:
-                'id=${mediaItemToPlay.id} position=${restorePosition.inMilliseconds}',
+            details: 'id=${mediaItemToPlay.id} position=${restorePosition.inMilliseconds}',
           );
         } else {
           PlaybackPerformanceLogger.log(
@@ -227,8 +214,7 @@ class AudioServiceHandler extends BaseAudioHandler
       PlaybackPerformanceLogger.elapsed(
         'audio.replaceSource.total',
         totalStopwatch,
-        details:
-            'id=${mediaItemToPlay.id} index=$audioSourceIndex queue=${queue.value.length} kind=${source.kind.name} playNow=$playNow outcome=$outcome',
+        details: 'id=${mediaItemToPlay.id} index=$audioSourceIndex queue=${queue.value.length} kind=${source.kind.name} playNow=$playNow outcome=$outcome',
       );
     }
   }

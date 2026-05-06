@@ -11,9 +11,7 @@ class CacheDao {
 
   /// 加载缓存记录。
   Future<AppCacheRecord?> load(String cacheKey) async {
-    final row = await (_database.select(_database.appCacheEntries)
-          ..where((tbl) => tbl.cacheKey.equals(cacheKey)))
-        .getSingleOrNull();
+    final row = await (_database.select(_database.appCacheEntries)..where((tbl) => tbl.cacheKey.equals(cacheKey))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -40,15 +38,11 @@ class CacheDao {
 
   /// 删除缓存记录。
   Future<void> delete(String cacheKey) {
-    return (_database.delete(_database.appCacheEntries)
-          ..where((tbl) => tbl.cacheKey.equals(cacheKey)))
-        .go();
+    return (_database.delete(_database.appCacheEntries)..where((tbl) => tbl.cacheKey.equals(cacheKey))).go();
   }
 
   /// 删除指定前缀下的缓存记录。
   Future<void> deleteByPrefix(String cacheKeyPrefix) {
-    return (_database.delete(_database.appCacheEntries)
-          ..where((tbl) => tbl.cacheKey.like('$cacheKeyPrefix%')))
-        .go();
+    return (_database.delete(_database.appCacheEntries)..where((tbl) => tbl.cacheKey.like('$cacheKeyPrefix%'))).go();
   }
 }

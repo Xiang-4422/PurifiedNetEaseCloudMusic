@@ -19,8 +19,7 @@ class DownloadTaskPageView extends StatefulWidget {
   State<DownloadTaskPageView> createState() => _DownloadTaskPageViewState();
 }
 
-class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
-    with SingleTickerProviderStateMixin {
+class _DownloadTaskPageViewState extends State<DownloadTaskPageView> with SingleTickerProviderStateMixin {
   static const _clearPlaybackCacheAction = 'clear_playback_cache';
 
   late final TabController _tabController;
@@ -83,14 +82,12 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView>
                 final items = state.data ?? const <LocalSongEntry>[];
                 final cacheCount = items
                     .where(
-                      (item) =>
-                          item.origin == TrackResourceOrigin.playbackCache,
+                      (item) => item.origin == TrackResourceOrigin.playbackCache,
                     )
                     .length;
                 final downloadCount = items
                     .where(
-                      (item) =>
-                          item.origin == TrackResourceOrigin.managedDownload,
+                      (item) => item.origin == TrackResourceOrigin.managedDownload,
                     )
                     .length;
                 final importCount = items

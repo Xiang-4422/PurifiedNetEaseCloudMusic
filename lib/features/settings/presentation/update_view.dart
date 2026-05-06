@@ -47,8 +47,7 @@ class UpdateView extends StatelessWidget {
               const Padding(padding: EdgeInsets.symmetric(vertical: 30)),
               Text(
                 '检测到APP有新版本~',
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor, fontSize: 28),
+                style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 28),
               ),
               const Padding(padding: EdgeInsets.symmetric(vertical: 10)),
               Text(
@@ -57,9 +56,7 @@ class UpdateView extends StatelessWidget {
               ),
               const Padding(padding: EdgeInsets.symmetric(vertical: 20)),
               Text(
-                context.routeData.queryParams
-                    .getString('versionInfo')
-                    .replaceAll(';', '\n'),
+                context.routeData.queryParams.getString('versionInfo').replaceAll(';', '\n'),
                 maxLines: 10,
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
                 textAlign: TextAlign.center,
@@ -71,19 +68,15 @@ class UpdateView extends StatelessWidget {
                     height: 88,
                     alignment: Alignment.center,
                     width: context.width,
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 40, horizontal: 25),
-                    decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        borderRadius: BorderRadius.circular(20)),
+                    margin: const EdgeInsets.symmetric(vertical: 40, horizontal: 25),
+                    decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(20)),
                     child: const Text(
                       '立即更新(并复制密码)',
                       style: TextStyle(fontSize: 32, color: Colors.white),
                     ),
                   ),
                   onTap: () async {
-                    Clipboard.setData(const ClipboardData(text: '2697'))
-                        .then((value) async {
+                    Clipboard.setData(const ClipboardData(text: '2697')).then((value) async {
                       ToastService.show('复制成功');
                       await launchUrl(
                         Uri.parse(downloadUrl),

@@ -43,8 +43,7 @@ class DriftAppDatabase implements AppDatabase {
       trackDao: TrackDao(database: _database),
       playlistDao: PlaylistDao(database: _database),
     );
-    _playbackRestoreDataSource =
-        DriftPlaybackRestoreDataSource(database: _database);
+    _playbackRestoreDataSource = DriftPlaybackRestoreDataSource(database: _database);
     _localResourceIndexDataSource = DriftLocalResourceIndexDataSource(
       dao: ResourceDao(database: _database),
     );
@@ -64,19 +63,16 @@ class DriftAppDatabase implements AppDatabase {
   int get schemaVersion => AppDatabaseSchema.schemaVersion;
 
   @override
-  List<DatabaseCollectionSchema> get collections =>
-      AppDatabaseSchema.collections;
+  List<DatabaseCollectionSchema> get collections => AppDatabaseSchema.collections;
 
   @override
   LocalLibraryDataSource get localLibraryDataSource => _localLibraryDataSource;
 
   @override
-  PlaybackRestoreDataSource get playbackRestoreDataSource =>
-      _playbackRestoreDataSource;
+  PlaybackRestoreDataSource get playbackRestoreDataSource => _playbackRestoreDataSource;
 
   @override
-  LocalResourceIndexDataSource get localResourceIndexDataSource =>
-      _localResourceIndexDataSource;
+  LocalResourceIndexDataSource get localResourceIndexDataSource => _localResourceIndexDataSource;
 
   @override
   DownloadTaskDataSource get downloadTaskDataSource => _downloadTaskDataSource;

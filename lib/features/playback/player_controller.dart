@@ -101,31 +101,25 @@ class PlayerController extends GetxController {
   Rx<PlaybackMode> playbackMode = PlaybackMode.playlist.obs;
 
   /// 当前播放会话状态。
-  final Rx<PlaybackSessionState> sessionState =
-      const PlaybackSessionState().obs;
+  final Rx<PlaybackSessionState> sessionState = const PlaybackSessionState().obs;
 
   /// 当前播放运行态。
-  final Rx<PlaybackRuntimeState> runtimeState =
-      const PlaybackRuntimeState().obs;
+  final Rx<PlaybackRuntimeState> runtimeState = const PlaybackRuntimeState().obs;
 
   /// 当前 UI 播放选择态。
-  final Rx<PlaybackSelectionState> selectionState =
-      const PlaybackSelectionState().obs;
+  final Rx<PlaybackSelectionState> selectionState = const PlaybackSelectionState().obs;
 
   /// 当前 UI 展示播放状态。
-  final Rx<PlaybackDisplayState> displayState =
-      const PlaybackDisplayState().obs;
+  final Rx<PlaybackDisplayState> displayState = const PlaybackDisplayState().obs;
 
   /// 底层已确认播放状态。
-  final Rx<PlaybackConfirmedState> confirmedState =
-      const PlaybackConfirmedState().obs;
+  final Rx<PlaybackConfirmedState> confirmedState = const PlaybackConfirmedState().obs;
 
   /// 当前歌词状态。
   final Rx<PlaybackLyricState> lyricState = const PlaybackLyricState().obs;
 
   /// 当前播放歌曲状态。
-  final Rx<PlaybackQueueItem> currentSongState =
-      const PlaybackQueueItem.empty().obs;
+  final Rx<PlaybackQueueItem> currentSongState = const PlaybackQueueItem.empty().obs;
 
   /// 当前播放进度状态。
   final Rx<Duration> currentPositionState = Duration.zero.obs;
@@ -134,8 +128,7 @@ class PlayerController extends GetxController {
   final RxList<PlaybackQueueItem> queueState = <PlaybackQueueItem>[].obs;
 
   /// 底部封面分页使用的轻量展示队列。
-  final RxList<PlaybackArtworkPageItem> artworkPageItems =
-      <PlaybackArtworkPageItem>[].obs;
+  final RxList<PlaybackArtworkPageItem> artworkPageItems = <PlaybackArtworkPageItem>[].obs;
 
   /// 当前播放队列索引。
   final RxInt currentQueueIndex = (-1).obs;
@@ -153,8 +146,7 @@ class PlayerController extends GetxController {
   int get confirmedQueueIndex => runtimeState.value.currentIndex;
 
   /// 当前 UI selection 是否已经被底层播放器确认。
-  bool get isSelectionConfirmed =>
-      selectedSong.id.isNotEmpty && selectedSong.id == confirmedSong.id;
+  bool get isSelectionConfirmed => selectedSong.id.isNotEmpty && selectedSong.id == confirmedSong.id;
 
   /// 当前是否是 FM 模式。
   bool get isFmModeValue => playbackMode.value == PlaybackMode.roaming;
@@ -166,8 +158,7 @@ class PlayerController extends GetxController {
   bool get isHeartBeatModeValue => playbackMode.value == PlaybackMode.heartbeat;
 
   /// 当前是否是心动模式的响应式兼容 getter。
-  RxBool get isHeartBeatMode =>
-      (playbackMode.value == PlaybackMode.heartbeat).obs;
+  RxBool get isHeartBeatMode => (playbackMode.value == PlaybackMode.heartbeat).obs;
 
   /// 全屏歌词是否打开。
   RxBool isFullScreenLyricOpen = false.obs;
@@ -252,24 +243,20 @@ class PlayerController extends GetxController {
     if (currentSong != null && !selectionState.value.hasSelection) {
       currentSongState.value = currentSong;
     }
-    if (currentPosition != null &&
-        currentPositionState.value != currentPosition) {
+    if (currentPosition != null && currentPositionState.value != currentPosition) {
       currentPositionState.value = currentPosition;
     }
     if (queue != null) {
       _syncQueueStateItems(queue);
       _syncArtworkPageItems(queue);
     }
-    if (currentIndex != null &&
-        !selectionState.value.hasSelection &&
-        currentQueueIndex.value != currentIndex) {
+    if (currentIndex != null && !selectionState.value.hasSelection && currentQueueIndex.value != currentIndex) {
       currentQueueIndex.value = currentIndex;
     }
     PlaybackPerformanceLogger.elapsed(
       'controller.syncRuntimeState',
       stopwatch,
-      details:
-          'queue=${queue?.length ?? '-'} song=${currentSong?.id ?? '-'} index=${currentIndex ?? '-'} position=${currentPosition != null}',
+      details: 'queue=${queue?.length ?? '-'} song=${currentSong?.id ?? '-'} index=${currentIndex ?? '-'} position=${currentPosition != null}',
       warnAfterMs: 4,
     );
   }
@@ -286,8 +273,7 @@ class PlayerController extends GetxController {
     if (nextState.selectedItem.id.isNotEmpty) {
       currentSongState.value = nextState.selectedItem;
     }
-    if (nextState.selectedIndex >= 0 &&
-        currentQueueIndex.value != nextState.selectedIndex) {
+    if (nextState.selectedIndex >= 0 && currentQueueIndex.value != nextState.selectedIndex) {
       currentQueueIndex.value = nextState.selectedIndex;
     }
     final queueItemsStopwatch = PlaybackPerformanceLogger.start();
@@ -311,8 +297,7 @@ class PlayerController extends GetxController {
     PlaybackPerformanceLogger.elapsed(
       'controller.syncSelectionState',
       stopwatch,
-      details:
-          'version=${nextState.selectionVersion} id=${nextState.selectedItem.id} index=${nextState.selectedIndex} queue=${nextState.queue.length} source=${nextState.sourceStatus.name}',
+      details: 'version=${nextState.selectionVersion} id=${nextState.selectedItem.id} index=${nextState.selectedIndex} queue=${nextState.queue.length} source=${nextState.sourceStatus.name}',
       warnAfterMs: 4,
     );
   }
@@ -348,8 +333,7 @@ class PlayerController extends GetxController {
     PlaybackPerformanceLogger.elapsed(
       'controller.updateCurPlayIndex',
       stopwatch,
-      details:
-          'id=${currentRuntimeState.currentSong.id} index=$currentIndex queue=${currentRuntimeState.queue.length} currentItemUpdated=$currentItemUpdated',
+      details: 'id=${currentRuntimeState.currentSong.id} index=$currentIndex queue=${currentRuntimeState.queue.length} currentItemUpdated=$currentItemUpdated',
       warnAfterMs: 1,
     );
   }
@@ -365,13 +349,10 @@ class PlayerController extends GetxController {
 
   void _showSelectionSourceError(PlaybackSelectionState selection) {
     final errorMessage = selection.sourceError;
-    if (selection.sourceStatus != PlaybackSelectionSourceStatus.error ||
-        errorMessage == null ||
-        errorMessage.isEmpty) {
+    if (selection.sourceStatus != PlaybackSelectionSourceStatus.error || errorMessage == null || errorMessage.isEmpty) {
       return;
     }
-    final toastKey =
-        '${selection.selectionVersion}:${selection.selectedItem.id}:$errorMessage';
+    final toastKey = '${selection.selectionVersion}:${selection.selectedItem.id}:$errorMessage';
     if (_lastSelectionErrorToastKey == toastKey) {
       return;
     }
@@ -411,9 +392,7 @@ class PlayerController extends GetxController {
 
   /// 更新播放队列中的指定队列项。
   Future<void> updatePlaybackQueueItem(PlaybackQueueItem item) async {
-    final queue = runtimeState.value.queue
-        .map((queueItem) => queueItem.id == item.id ? item : queueItem)
-        .toList(growable: false);
+    final queue = runtimeState.value.queue.map((queueItem) => queueItem.id == item.id ? item : queueItem).toList(growable: false);
     await _queueService.updateQueueItem(item);
     _syncRuntimeState(
       queue: queue,
@@ -501,9 +480,7 @@ class PlayerController extends GetxController {
   /// 播放当前用户喜欢歌曲列表。
   Future<void> playUserLikedSongs() async {
     await _commandService.playLikedSongs(
-      currentSong: selectionState.value.hasSelection
-          ? selectionState.value.selectedItem
-          : runtimeState.value.currentSong,
+      currentSong: selectionState.value.hasSelection ? selectionState.value.selectedItem : runtimeState.value.currentSong,
     );
   }
 
@@ -514,9 +491,7 @@ class PlayerController extends GetxController {
       isFmMode: isFmModeValue,
       isHeartBeatMode: isHeartBeatModeValue,
       sessionState: sessionState.value,
-      currentSong: selectionState.value.hasSelection
-          ? selectionState.value.selectedItem
-          : runtimeState.value.currentSong,
+      currentSong: selectionState.value.hasSelection ? selectionState.value.selectedItem : runtimeState.value.currentSong,
       quitHeartBeatMode: quitHeartBeatMode,
       setRepeatMode: setRepeatMode,
       openHeartBeatMode: openHeartBeatMode,
@@ -580,9 +555,7 @@ class PlayerController extends GetxController {
   }
 
   Future<void> _syncCurrentQueueItem(PlaybackQueueItem updatedItem) async {
-    final queue = runtimeState.value.queue
-        .map((item) => item.id == updatedItem.id ? updatedItem : item)
-        .toList(growable: false);
+    final queue = runtimeState.value.queue.map((item) => item.id == updatedItem.id ? updatedItem : item).toList(growable: false);
     await _queueService.updateQueueItem(updatedItem);
     _syncRuntimeState(
       queue: queue,
@@ -593,9 +566,7 @@ class PlayerController extends GetxController {
 
   void _syncArtworkPageItems(List<PlaybackQueueItem> queue) {
     final stopwatch = PlaybackPerformanceLogger.start();
-    final nextItems = queue
-        .map(PlaybackArtworkPageItem.fromQueueItem)
-        .toList(growable: false);
+    final nextItems = queue.map(PlaybackArtworkPageItem.fromQueueItem).toList(growable: false);
     if (artworkPageItems.length != nextItems.length) {
       artworkPageItems.assignAll(nextItems);
       PlaybackPerformanceLogger.elapsed(
@@ -674,8 +645,7 @@ class PlayerController extends GetxController {
     PlaybackPerformanceLogger.elapsed(
       'controller.preloadArtwork',
       stopwatch,
-      details:
-          'index=${selectionState.value.selectedIndex} queue=${selectionState.value.queue.length}',
+      details: 'index=${selectionState.value.selectedIndex} queue=${selectionState.value.queue.length}',
       warnAfterMs: 2,
     );
   }

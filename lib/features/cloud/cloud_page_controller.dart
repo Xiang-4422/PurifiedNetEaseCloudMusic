@@ -25,8 +25,7 @@ class CloudPageController {
   final int pageSize;
 
   /// 云盘歌曲分页加载状态。
-  final ValueNotifier<PagedState<PlaybackQueueItem>> state =
-      ValueNotifier(PagedState.initialLoading());
+  final ValueNotifier<PagedState<PlaybackQueueItem>> state = ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
 

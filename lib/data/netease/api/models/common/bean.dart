@@ -31,8 +31,7 @@ class ServerStatusBean {
   ServerStatusBean();
 
   /// 从 JSON 构建通用接口状态响应。
-  factory ServerStatusBean.fromJson(Map<String, dynamic> json) =>
-      _$ServerStatusBeanFromJson(json);
+  factory ServerStatusBean.fromJson(Map<String, dynamic> json) => _$ServerStatusBeanFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$ServerStatusBeanToJson(this);
@@ -62,8 +61,7 @@ class ServerStatusListBean extends ServerStatusBean {
   ServerStatusListBean();
 
   /// 从 JSON 构建带分页字段的通用接口状态响应。
-  factory ServerStatusListBean.fromJson(Map<String, dynamic> json) =>
-      _$ServerStatusListBeanFromJson(json);
+  factory ServerStatusListBean.fromJson(Map<String, dynamic> json) => _$ServerStatusListBeanFromJson(json);
 
   /// 转换为 JSON。
   @override

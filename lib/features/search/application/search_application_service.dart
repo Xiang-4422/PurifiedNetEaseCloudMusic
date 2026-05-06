@@ -31,8 +31,7 @@ class SearchResultState {
 /// 搜索应用服务，负责热搜和多类型搜索编排。
 class SearchApplicationService {
   /// 创建搜索应用服务。
-  SearchApplicationService({required SearchRepository repository})
-      : _repository = repository;
+  SearchApplicationService({required SearchRepository repository}) : _repository = repository;
 
   /// 热搜关键词缓存 TTL。
   static const Duration hotKeywordTtl = Duration(minutes: 30);
@@ -44,10 +43,7 @@ class SearchApplicationService {
     bool force = false,
   }) async {
     final cachedKeywords = await _repository.loadCachedHotKeywords();
-    final shouldRefresh = force ||
-        !(await _repository.isHotKeywordCacheFresh(ttl: hotKeywordTtl)) ||
-        cachedKeywords == null ||
-        cachedKeywords.isEmpty;
+    final shouldRefresh = force || !(await _repository.isHotKeywordCacheFresh(ttl: hotKeywordTtl)) || cachedKeywords == null || cachedKeywords.isEmpty;
     if (cachedKeywords != null && cachedKeywords.isNotEmpty && !shouldRefresh) {
       return LoadState.data(cachedKeywords);
     }
@@ -118,9 +114,7 @@ class SearchApplicationService {
         keyword,
         currentUserId: currentUserId,
       );
-      return playlists.isEmpty
-          ? const LoadState.empty()
-          : LoadState.data(playlists);
+      return playlists.isEmpty ? const LoadState.empty() : LoadState.data(playlists);
     } catch (error, stackTrace) {
       return LoadState.error(error, stackTrace: stackTrace);
     }
@@ -138,9 +132,7 @@ class SearchApplicationService {
   Future<LoadState<List<ArtistEntity>>> _loadArtists(String keyword) async {
     try {
       final artists = await _repository.searchArtists(keyword);
-      return artists.isEmpty
-          ? const LoadState.empty()
-          : LoadState.data(artists);
+      return artists.isEmpty ? const LoadState.empty() : LoadState.data(artists);
     } catch (error, stackTrace) {
       return LoadState.error(error, stackTrace: stackTrace);
     }

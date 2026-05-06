@@ -26,10 +26,8 @@ class SettingPageView extends StatefulWidget {
 }
 
 class _SettingPageViewState extends State<SettingPageView> {
-  final LocalMediaScanController _localMediaScanController =
-      Get.find<FeatureControllerFactory>().localMediaScan();
-  final SettingsNavigationPort _navigationPort =
-      Get.find<SettingsNavigationPort>();
+  final LocalMediaScanController _localMediaScanController = Get.find<FeatureControllerFactory>().localMediaScan();
+  final SettingsNavigationPort _navigationPort = Get.find<SettingsNavigationPort>();
 
   String version = '1.0.0';
 
@@ -133,8 +131,7 @@ class _SettingPageViewState extends State<SettingPageView> {
       addPath('/sdcard/Music');
       addPath('/sdcard/Download');
     } else {
-      final homeDirectoryPath =
-          Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+      final homeDirectoryPath = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
       addPath(homeDirectoryPath == null ? null : '$homeDirectoryPath/Music');
       addPath(
         homeDirectoryPath == null ? null : '$homeDirectoryPath/Downloads',
@@ -235,9 +232,7 @@ class _SettingPageViewState extends State<SettingPageView> {
     required VoidCallback onTap,
   }) {
     final metrics = AdaptiveLayoutMetrics.of(context);
-    final iconSize = (AppDimensions.iconSizeLarge * metrics.textScale)
-        .clamp(34.0, 46.0)
-        .toDouble();
+    final iconSize = (AppDimensions.iconSizeLarge * metrics.textScale).clamp(34.0, 46.0).toDouble();
     return ConstrainedBox(
       constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
       child: ListTile(

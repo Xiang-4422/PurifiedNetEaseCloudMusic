@@ -15,9 +15,7 @@ class MyTabBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget> tabs;
 
   /// 创建统一风格 TabBar。
-  const MyTabBar(
-      {Key? key, required this.tabs, this.controller, this.color, this.height})
-      : super(key: key);
+  const MyTabBar({Key? key, required this.tabs, this.controller, this.color, this.height}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -59,11 +57,7 @@ class MyTabBarItemAnimatedSwitcher extends StatelessWidget {
   final bool isTabBarVisible;
 
   /// 创建 tab 组件切换器。
-  const MyTabBarItemAnimatedSwitcher(
-      {super.key,
-      required this.isTabBarVisible,
-      required this.tabItem,
-      required this.replaceItem});
+  const MyTabBarItemAnimatedSwitcher({super.key, required this.isTabBarVisible, required this.tabItem, required this.replaceItem});
 
   @override
   Widget build(BuildContext context) {
@@ -71,15 +65,9 @@ class MyTabBarItemAnimatedSwitcher extends StatelessWidget {
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (Widget child, Animation<double> animation) {
         //执行缩放动画
-        return ScaleTransition(
-            scale: animation,
-            child: FadeTransition(opacity: animation, child: child));
+        return ScaleTransition(scale: animation, child: FadeTransition(opacity: animation, child: child));
       },
-      child: Visibility(
-          key: ValueKey(isTabBarVisible),
-          visible: isTabBarVisible,
-          replacement: tabItem,
-          child: replaceItem),
+      child: Visibility(key: ValueKey(isTabBarVisible), visible: isTabBarVisible, replacement: tabItem, child: replaceItem),
     );
   }
 }

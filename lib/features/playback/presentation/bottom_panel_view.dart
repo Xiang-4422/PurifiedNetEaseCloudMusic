@@ -30,12 +30,7 @@ class BottomPanelView extends GetView<ShellController> {
   const BottomPanelView({Key? key}) : super(key: key);
 
   List<_ArtistChipData> _artistEntries(PlaybackQueueItem item) {
-    final artistNames = item.artistNames.isNotEmpty
-        ? item.artistNames
-        : (item.artist ?? '')
-            .split(' / ')
-            .where((artist) => artist.isNotEmpty)
-            .toList();
+    final artistNames = item.artistNames.isNotEmpty ? item.artistNames : (item.artist ?? '').split(' / ').where((artist) => artist.isNotEmpty).toList();
     final artistIds = item.artistIds;
     return List.generate(
       artistNames.length,
@@ -56,15 +51,12 @@ class BottomPanelView extends GetView<ShellController> {
         AnimatedBuilder(
           animation: controller.bottomPanelAnimationController,
           builder: (BuildContext context, Widget? child) {
-            double panelOpenDegree =
-                controller.bottomPanelAnimationController.value;
+            double panelOpenDegree = controller.bottomPanelAnimationController.value;
             return Obx(() => BlurryContainer(
                   blur: 20,
                   padding: EdgeInsets.zero,
-                  borderRadius: BorderRadius.all(Radius.circular(
-                      AppDimensions.phoneCornerRadius * (1 - panelOpenDegree))),
-                  color: SettingsController.to.albumColor.value
-                      .withValues(alpha: 0.5 + 0.5 * panelOpenDegree),
+                  borderRadius: BorderRadius.all(Radius.circular(AppDimensions.phoneCornerRadius * (1 - panelOpenDegree))),
+                  color: SettingsController.to.albumColor.value.withValues(alpha: 0.5 + 0.5 * panelOpenDegree),
                   child: Container(),
                 ));
           },
@@ -80,8 +72,7 @@ class BottomPanelView extends GetView<ShellController> {
                     maintainSize: true,
                     maintainAnimation: true,
                     maintainState: true,
-                    visible: controller.bottomPanelFullyOpened.isTrue &&
-                        controller.isAlbumScaleEnded.isTrue,
+                    visible: controller.bottomPanelFullyOpened.isTrue && controller.isAlbumScaleEnded.isTrue,
                     child: SizedBox(height: context.width - albumPadding),
                   ),
                 )),
@@ -112,8 +103,7 @@ class BottomPanelView extends GetView<ShellController> {
                                   end: Alignment.bottomCenter, // 渐变结束于底部
                                   colors: [
                                     SettingsController.to.albumColor.value,
-                                    SettingsController.to.albumColor.value
-                                        .withValues(alpha: 0),
+                                    SettingsController.to.albumColor.value.withValues(alpha: 0),
                                   ],
                                 ),
                               ),
@@ -126,8 +116,7 @@ class BottomPanelView extends GetView<ShellController> {
                                   begin: Alignment.topCenter, // 渐变开始于顶部
                                   end: Alignment.bottomCenter, // 渐变结束于底部
                                   colors: [
-                                    SettingsController.to.albumColor.value
-                                        .withValues(alpha: 0),
+                                    SettingsController.to.albumColor.value.withValues(alpha: 0),
                                     SettingsController.to.albumColor.value,
                                   ],
                                 ),
@@ -163,10 +152,7 @@ class BottomPanelView extends GetView<ShellController> {
                   ),
                   clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
-                    color: controller.isBigAlbum.isTrue
-                        ? SettingsController.to.panelWidgetColor.value
-                            .withValues(alpha: 0.05)
-                        : Colors.transparent,
+                    color: controller.isBigAlbum.isTrue ? SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.05) : Colors.transparent,
                     borderRadius: BorderRadius.circular(albumPadding),
                   ),
                   child: MyTabBarItemAnimatedSwitcher(
@@ -180,17 +166,12 @@ class BottomPanelView extends GetView<ShellController> {
                               horizontal: albumPadding / 2,
                             ),
                             decoration: BoxDecoration(
-                              color: SettingsController
-                                  .to.panelWidgetColor.value
-                                  .withValues(alpha: 0.05),
+                              color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(albumPadding),
                             ),
                             child: Text(
                               sessionState.playlistHeader,
-                              style: context.textTheme.titleMedium?.copyWith(
-                                  color: SettingsController
-                                      .to.panelWidgetColor.value
-                                      .withValues(alpha: 0.5)),
+                              style: context.textTheme.titleMedium?.copyWith(color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5)),
                             ),
                           ),
                         ),
@@ -201,10 +182,7 @@ class BottomPanelView extends GetView<ShellController> {
                               scrollDirection: Axis.horizontal,
                               child: Text(
                                 sessionState.playlistName,
-                                style: context.textTheme.titleMedium?.copyWith(
-                                    color: SettingsController
-                                        .to.panelWidgetColor.value
-                                        .withValues(alpha: 0.5)),
+                                style: context.textTheme.titleMedium?.copyWith(color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5)),
                               ),
                             ),
                           ),
@@ -216,44 +194,18 @@ class BottomPanelView extends GetView<ShellController> {
                       color: SettingsController.to.panelWidgetColor.value,
                       controller: controller.bottomPanelTabController,
                       tabs: [
-                        Text("播放列表",
-                            style: context.textTheme.titleMedium?.copyWith(
-                                color: SettingsController
-                                    .to.panelWidgetColor.value
-                                    .withValues(alpha: 0.5))),
-                        Text("正在播放",
-                            style: context.textTheme.titleMedium?.copyWith(
-                                color: SettingsController
-                                    .to.panelWidgetColor.value
-                                    .withValues(alpha: 0.5))),
+                        Text("播放列表", style: context.textTheme.titleMedium?.copyWith(color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5))),
+                        Text("正在播放", style: context.textTheme.titleMedium?.copyWith(color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5))),
                         Obx(() => MyTabBarItemAnimatedSwitcher(
-                              isTabBarVisible:
-                                  controller.curPanelPageIndex.value > 1,
-                              tabItem: Text("歌曲评论",
-                                  style: context.textTheme.titleMedium
-                                      ?.copyWith(
-                                          color: SettingsController
-                                              .to.panelWidgetColor.value
-                                              .withValues(alpha: 0.5))),
+                              isTabBarVisible: controller.curPanelPageIndex.value > 1,
+                              tabItem: Text("歌曲评论", style: context.textTheme.titleMedium?.copyWith(color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5))),
                               replaceItem: MyTabBar(
                                 height: albumPadding,
-                                controller:
-                                    controller.bottomPanelCommentTabController,
-                                color: SettingsController
-                                    .to.panelWidgetColor.value,
+                                controller: controller.bottomPanelCommentTabController,
+                                color: SettingsController.to.panelWidgetColor.value,
                                 tabs: [
-                                  Text("热",
-                                      style: context.textTheme.titleMedium
-                                          ?.copyWith(
-                                              color: SettingsController
-                                                  .to.panelWidgetColor.value
-                                                  .withValues(alpha: 0.5))),
-                                  Text("新",
-                                      style: context.textTheme.titleMedium
-                                          ?.copyWith(
-                                              color: SettingsController
-                                                  .to.panelWidgetColor.value
-                                                  .withValues(alpha: 0.5))),
+                                  Text("热", style: context.textTheme.titleMedium?.copyWith(color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5))),
+                                  Text("新", style: context.textTheme.titleMedium?.copyWith(color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5))),
                                 ],
                               ),
                             )),
@@ -277,12 +229,8 @@ class BottomPanelView extends GetView<ShellController> {
   /// 默认页（歌词）
   Widget _buildCurPlayingPage(BuildContext context) {
     const albumPadding = AppDimensions.paddingLarge;
-    final remainWidth =
-        (context.width - albumPadding * 2).clamp(0.0, double.infinity);
-    final textWidth = _measureTextWidth("歌手：",
-            TextStyle(color: SettingsController.to.panelWidgetColor.value)) +
-        albumPadding +
-        4;
+    final remainWidth = (context.width - albumPadding * 2).clamp(0.0, double.infinity);
+    final textWidth = _measureTextWidth("歌手：", TextStyle(color: SettingsController.to.panelWidgetColor.value)) + albumPadding + 4;
     return KeepAliveWrapper(
       child: Listener(
         behavior: HitTestBehavior.translucent,
@@ -308,8 +256,7 @@ class BottomPanelView extends GetView<ShellController> {
                     } else {
                       controller.isAlbumScaleEnded.value = false;
                       controller.isBigAlbum.value = true;
-                      PlayerController.to
-                          .updateFullScreenLyricTimerCounter(cancelTimer: true);
+                      PlayerController.to.updateFullScreenLyricTimerCounter(cancelTimer: true);
                     }
                   },
                   child: Container(
@@ -321,16 +268,12 @@ class BottomPanelView extends GetView<ShellController> {
                 ))),
             // 控制、进度条、页面指示占位
             Obx(() => Offstage(
-                  offstage: PlayerController.to.isFullScreenLyricOpen.isTrue &&
-                      controller.isBigAlbum.isFalse,
+                  offstage: PlayerController.to.isFullScreenLyricOpen.isTrue && controller.isBigAlbum.isFalse,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       // 占位: 专辑封面
-                      Obx(() => Container(
-                          height: controller.isBigAlbum.isTrue
-                              ? 0
-                              : context.width - albumPadding)),
+                      Obx(() => Container(height: controller.isBigAlbum.isTrue ? 0 : context.width - albumPadding)),
                       // 专辑、歌手、进度条
                       Obx(() => Visibility(
                             maintainSize: true,
@@ -341,267 +284,157 @@ class BottomPanelView extends GetView<ShellController> {
                               padding: const EdgeInsets.symmetric(
                                 horizontal: albumPadding,
                               ),
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // 专辑
-                                    SizedBox(
-                                        height: albumPadding,
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                color: SettingsController
-                                                    .to.panelWidgetColor.value
-                                                    .withValues(alpha: 0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        albumPadding),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  // 这里测量的宽度不准确，强制将text适配到测量的宽度
-                                                  IntrinsicWidth(
-                                                    child: Container(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left:
-                                                                  albumPadding /
-                                                                      2),
-                                                      child: Text(
-                                                        "专辑：",
-                                                        style: TextStyle(
-                                                          color: SettingsController
-                                                              .to
-                                                              .panelWidgetColor
-                                                              .value,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  GestureDetector(
-                                                    onTap: () async {
-                                                      final currentSong =
-                                                          PlayerController
-                                                              .to
-                                                              .currentSongState
-                                                              .value;
-                                                      if (PlayerController
-                                                          .to
-                                                          .currentSongState
-                                                          .value
-                                                          .album
-                                                          .isNullOrEmpty) {
-                                                        return;
-                                                      }
-                                                      final router =
-                                                          context.router;
-                                                      await controller
-                                                          .bottomPanelController
-                                                          .close();
-                                                      router.push(const gr
-                                                              .AlbumRouteView()
-                                                          .copyWith(
-                                                              queryParams: {
-                                                            'albumId': currentSong
-                                                                    .metadata[
-                                                                'albumId']
-                                                          }));
-                                                    },
-                                                    child: Container(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      decoration: BoxDecoration(
-                                                        color: SettingsController
-                                                            .to
-                                                            .panelWidgetColor
-                                                            .value
-                                                            .withValues(
-                                                                alpha: 0.1),
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                                albumPadding),
-                                                      ),
-                                                      child: ConstrainedBox(
-                                                        constraints:
-                                                            BoxConstraints(
-                                                          maxWidth:
-                                                              remainWidth -
-                                                                  textWidth,
-                                                        ),
-                                                        child: Container(
-                                                          padding: const EdgeInsets
-                                                              .symmetric(
-                                                              horizontal:
-                                                                  albumPadding /
-                                                                      2),
-                                                          child: Obx(() => Text(
-                                                                PlayerController
-                                                                    .to
-                                                                    .currentSongState
-                                                                    .value
-                                                                    .album
-                                                                    .orDefault(
-                                                                        "未知专辑"),
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .center,
-                                                                style: TextStyle(
-                                                                    color: SettingsController
-                                                                        .to
-                                                                        .panelWidgetColor
-                                                                        .value),
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                              )),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  // Expanded(child: Container())
-                                                ],
-                                              ),
-                                            ),
-                                            Expanded(child: Container())
-                                          ],
-                                        )).marginOnly(top: albumPadding),
-                                    // 歌手
-                                    SizedBox(
-                                      height: albumPadding,
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            clipBehavior: Clip.hardEdge,
-                                            decoration: BoxDecoration(
-                                              color: SettingsController
-                                                  .to.panelWidgetColor.value
-                                                  .withValues(alpha: 0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                      albumPadding),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                IntrinsicWidth(
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            left: albumPadding /
-                                                                2),
-                                                    child: Text(
-                                                      "歌手：",
-                                                      style: TextStyle(
-                                                        color: SettingsController
-                                                            .to
-                                                            .panelWidgetColor
-                                                            .value,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                ConstrainedBox(
-                                                  constraints: BoxConstraints(
-                                                    maxWidth:
-                                                        remainWidth - textWidth,
-                                                  ),
-                                                  child: SingleChildScrollView(
-                                                    scrollDirection:
-                                                        Axis.horizontal,
-                                                    child: Obx(() {
-                                                      final currentSong =
-                                                          PlayerController
-                                                              .to
-                                                              .currentSongState
-                                                              .value;
-                                                      final artists =
-                                                          _artistEntries(
-                                                              currentSong);
-                                                      return Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children:
-                                                            artists.isEmpty
-                                                                ? [
-                                                                    Text(
-                                                                      "未知歌手",
-                                                                      style: TextStyle(
-                                                                          color: SettingsController
-                                                                              .to
-                                                                              .panelWidgetColor
-                                                                              .value),
-                                                                      overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
-                                                                      textAlign:
-                                                                          TextAlign
-                                                                              .center,
-                                                                    ),
-                                                                  ]
-                                                                : [
-                                                                    for (final artist
-                                                                        in artists)
-                                                                      Container(
-                                                                        alignment:
-                                                                            Alignment.center,
-                                                                        padding: const EdgeInsets
-                                                                            .symmetric(
-                                                                            horizontal:
-                                                                                albumPadding / 2),
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          color: SettingsController
-                                                                              .to
-                                                                              .panelWidgetColor
-                                                                              .value
-                                                                              .withValues(alpha: 0.1),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(albumPadding),
-                                                                        ),
-                                                                        child:
-                                                                            GestureDetector(
-                                                                          onTap:
-                                                                              () async {
-                                                                            if (artist.id.isEmpty) {
-                                                                              return;
-                                                                            }
-                                                                            final router =
-                                                                                context.router;
-                                                                            await controller.closeBottomPanel();
-                                                                            router.push(const gr.ArtistRouteView().copyWith(queryParams: {
-                                                                              'artistId': artist.id
-                                                                            }));
-                                                                          },
-                                                                          child:
-                                                                              Text(
-                                                                            artist.name,
-                                                                            style:
-                                                                                TextStyle(color: SettingsController.to.panelWidgetColor.value),
-                                                                            overflow:
-                                                                                TextOverflow.ellipsis,
-                                                                            textAlign:
-                                                                                TextAlign.center,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                  ],
-                                                      );
-                                                    }),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                // 专辑
+                                SizedBox(
+                                    height: albumPadding,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(albumPadding),
                                           ),
-                                          Expanded(child: Container())
-                                        ],
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              // 这里测量的宽度不准确，强制将text适配到测量的宽度
+                                              IntrinsicWidth(
+                                                child: Container(
+                                                  padding: const EdgeInsets.only(left: albumPadding / 2),
+                                                  child: Text(
+                                                    "专辑：",
+                                                    style: TextStyle(
+                                                      color: SettingsController.to.panelWidgetColor.value,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              GestureDetector(
+                                                onTap: () async {
+                                                  final currentSong = PlayerController.to.currentSongState.value;
+                                                  if (PlayerController.to.currentSongState.value.album.isNullOrEmpty) {
+                                                    return;
+                                                  }
+                                                  final router = context.router;
+                                                  await controller.bottomPanelController.close();
+                                                  router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': currentSong.metadata['albumId']}));
+                                                },
+                                                child: Container(
+                                                  alignment: Alignment.center,
+                                                  decoration: BoxDecoration(
+                                                    color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.1),
+                                                    borderRadius: BorderRadius.circular(albumPadding),
+                                                  ),
+                                                  child: ConstrainedBox(
+                                                    constraints: BoxConstraints(
+                                                      maxWidth: remainWidth - textWidth,
+                                                    ),
+                                                    child: Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: albumPadding / 2),
+                                                      child: Obx(() => Text(
+                                                            PlayerController.to.currentSongState.value.album.orDefault("未知专辑"),
+                                                            textAlign: TextAlign.center,
+                                                            style: TextStyle(color: SettingsController.to.panelWidgetColor.value),
+                                                            overflow: TextOverflow.ellipsis,
+                                                          )),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              // Expanded(child: Container())
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(child: Container())
+                                      ],
+                                    )).marginOnly(top: albumPadding),
+                                // 歌手
+                                SizedBox(
+                                  height: albumPadding,
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        clipBehavior: Clip.hardEdge,
+                                        decoration: BoxDecoration(
+                                          color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(albumPadding),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IntrinsicWidth(
+                                              child: Container(
+                                                padding: const EdgeInsets.only(left: albumPadding / 2),
+                                                child: Text(
+                                                  "歌手：",
+                                                  style: TextStyle(
+                                                    color: SettingsController.to.panelWidgetColor.value,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                maxWidth: remainWidth - textWidth,
+                                              ),
+                                              child: SingleChildScrollView(
+                                                scrollDirection: Axis.horizontal,
+                                                child: Obx(() {
+                                                  final currentSong = PlayerController.to.currentSongState.value;
+                                                  final artists = _artistEntries(currentSong);
+                                                  return Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: artists.isEmpty
+                                                        ? [
+                                                            Text(
+                                                              "未知歌手",
+                                                              style: TextStyle(color: SettingsController.to.panelWidgetColor.value),
+                                                              overflow: TextOverflow.ellipsis,
+                                                              textAlign: TextAlign.center,
+                                                            ),
+                                                          ]
+                                                        : [
+                                                            for (final artist in artists)
+                                                              Container(
+                                                                alignment: Alignment.center,
+                                                                padding: const EdgeInsets.symmetric(horizontal: albumPadding / 2),
+                                                                decoration: BoxDecoration(
+                                                                  color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.1),
+                                                                  borderRadius: BorderRadius.circular(albumPadding),
+                                                                ),
+                                                                child: GestureDetector(
+                                                                  onTap: () async {
+                                                                    if (artist.id.isEmpty) {
+                                                                      return;
+                                                                    }
+                                                                    final router = context.router;
+                                                                    await controller.closeBottomPanel();
+                                                                    router.push(const gr.ArtistRouteView().copyWith(queryParams: {'artistId': artist.id}));
+                                                                  },
+                                                                  child: Text(
+                                                                    artist.name,
+                                                                    style: TextStyle(color: SettingsController.to.panelWidgetColor.value),
+                                                                    overflow: TextOverflow.ellipsis,
+                                                                    textAlign: TextAlign.center,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                          ],
+                                                  );
+                                                }),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ).marginOnly(top: albumPadding),
-                                    // 播放进度条
-                                    const BottomPanelProgressBar()
-                                        .marginOnly(top: albumPadding),
-                                  ]),
+                                      Expanded(child: Container())
+                                    ],
+                                  ),
+                                ).marginOnly(top: albumPadding),
+                                // 播放进度条
+                                const BottomPanelProgressBar().marginOnly(top: albumPadding),
+                              ]),
                             ),
                           )),
                       // 播放控制
@@ -615,8 +448,7 @@ class BottomPanelView extends GetView<ShellController> {
     );
   }
 
-  double _measureTextWidth(String text, TextStyle style,
-      {double maxWidth = double.infinity, int? maxLines}) {
+  double _measureTextWidth(String text, TextStyle style, {double maxWidth = double.infinity, int? maxLines}) {
     final TextPainter textPainter = TextPainter(
       text: TextSpan(text: text, style: style),
       textDirection: TextDirection.ltr, // 必须设置文本方向
@@ -659,8 +491,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
             builder: (context, child) {
               // 完全展开专辑图片状态
               /// 完全展开，专辑图片Size
-              double albumMaxSize =
-                  context.width - AppDimensions.paddingLarge * 2;
+              double albumMaxSize = context.width - AppDimensions.paddingLarge * 2;
 
               /// 完全展开，专辑图片Margin
               double albumMaxPadding = AppDimensions.paddingLarge;
@@ -669,20 +500,12 @@ class BottomPanelHeaderView extends GetView<ShellController> {
               double albumMinBorderRadius = AppDimensions.paddingLarge / 2;
 
               /// panel展开程度
-              double panelOpenDegree =
-                  controller.bottomPanelAnimationController.value;
+              double panelOpenDegree = controller.bottomPanelAnimationController.value;
               // 实时Album宽度、margin
-              double realTimeAlbumWidth = AppDimensions.albumMinSize +
-                  (albumMaxSize - AppDimensions.albumMinSize) * panelOpenDegree;
-              double realTimeAlbumPadding = AppDimensions.paddingSmall +
-                  (albumMaxPadding - AppDimensions.paddingSmall) *
-                      panelOpenDegree;
-              double realTimeAlbumTopMargin =
-                  (context.mediaQueryPadding.top + AppDimensions.appBarHeight) *
-                      panelOpenDegree;
-              double realTimeAlbumBorderRadius = AppDimensions.albumMinSize +
-                  (albumMinBorderRadius - AppDimensions.albumMinSize) *
-                      panelOpenDegree;
+              double realTimeAlbumWidth = AppDimensions.albumMinSize + (albumMaxSize - AppDimensions.albumMinSize) * panelOpenDegree;
+              double realTimeAlbumPadding = AppDimensions.paddingSmall + (albumMaxPadding - AppDimensions.paddingSmall) * panelOpenDegree;
+              double realTimeAlbumTopMargin = (context.mediaQueryPadding.top + AppDimensions.appBarHeight) * panelOpenDegree;
+              double realTimeAlbumBorderRadius = AppDimensions.albumMinSize + (albumMinBorderRadius - AppDimensions.albumMinSize) * panelOpenDegree;
 
               return SizedBox(
                 width: context.width,
@@ -692,26 +515,16 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                     Container(
                       width: double.infinity,
                       margin: EdgeInsets.only(
-                        left: (AppDimensions.albumMinSize +
-                                    AppDimensions.paddingSmall * 2 -
-                                    albumMaxPadding) *
-                                (1 - panelOpenDegree) +
-                            albumMaxPadding,
-                        right: (AppDimensions.albumMinSize +
-                                    AppDimensions.paddingSmall * 2 -
-                                    albumMaxPadding) *
-                                (1 - panelOpenDegree) +
-                            albumMaxPadding,
+                        left: (AppDimensions.albumMinSize + AppDimensions.paddingSmall * 2 - albumMaxPadding) * (1 - panelOpenDegree) + albumMaxPadding,
+                        right: (AppDimensions.albumMinSize + AppDimensions.paddingSmall * 2 - albumMaxPadding) * (1 - panelOpenDegree) + albumMaxPadding,
                         top: context.mediaQueryPadding.top * panelOpenDegree,
                       ),
                       child: SizedBox(
                         height: AppDimensions.bottomPanelHeaderHeight,
                         child: Swipeable(
                           background: const SizedBox.shrink(),
-                          onSwipeLeft: () =>
-                              PlayerController.to.skipToPreviousTrack(),
-                          onSwipeRight: () =>
-                              PlayerController.to.skipToNextTrack(),
+                          onSwipeLeft: () => PlayerController.to.skipToPreviousTrack(),
+                          onSwipeRight: () => PlayerController.to.skipToNextTrack(),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -721,8 +534,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: context.textTheme.titleLarge?.copyWith(
-                                  color: SettingsController
-                                      .to.panelWidgetColor.value,
+                                  color: SettingsController.to.panelWidgetColor.value,
                                 ),
                               ),
                               Text(
@@ -730,12 +542,8 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: context.textTheme.titleLarge?.copyWith(
-                                  fontSize:
-                                      context.textTheme.titleLarge!.fontSize! /
-                                          2,
-                                  color: SettingsController
-                                      .to.panelWidgetColor.value
-                                      .withValues(alpha: 0.5),
+                                  fontSize: context.textTheme.titleLarge!.fontSize! / 2,
+                                  color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
                                 ),
                               ),
                             ],
@@ -748,23 +556,20 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                       maintainState: true,
                       maintainAnimation: true,
                       maintainSize: true,
-                      visible: controller.isBigAlbum.isTrue &&
-                          controller.bottomPanelFullyOpened.isFalse,
+                      visible: controller.isBigAlbum.isTrue && controller.bottomPanelFullyOpened.isFalse,
                       child: Container(
                         margin: EdgeInsets.only(top: realTimeAlbumTopMargin),
                         padding: EdgeInsets.all(realTimeAlbumPadding),
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                                realTimeAlbumBorderRadius),
+                            borderRadius: BorderRadius.circular(realTimeAlbumBorderRadius),
                           ),
                           clipBehavior: Clip.hardEdge,
                           child: SimpleExtendedImage(
                             width: realTimeAlbumWidth,
                             height: realTimeAlbumWidth,
                             ArtworkPathResolver.resolveDisplayPath(
-                              currentSong.artworkUrl ??
-                                  currentSong.localArtworkPath,
+                              currentSong.artworkUrl ?? currentSong.localArtworkPath,
                             ),
                           ),
                         ),
@@ -775,27 +580,18 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                       maintainState: true,
                       maintainAnimation: true,
                       maintainSize: true,
-                      visible: controller.isBigAlbum.isFalse &&
-                          controller.bottomPanelFullyOpened.isFalse,
+                      visible: controller.isBigAlbum.isFalse && controller.bottomPanelFullyOpened.isFalse,
                       child: Container(
                         height: AppDimensions.bottomPanelHeaderHeight,
                         alignment: Alignment.centerLeft,
                         margin: EdgeInsets.only(
-                            top:
-                                context.mediaQueryPadding.top * panelOpenDegree,
-                            left: AppDimensions.paddingSmall +
-                                panelOpenDegree *
-                                    (context.width -
-                                        AppDimensions.paddingLarge -
-                                        AppDimensions.albumMinSize -
-                                        AppDimensions.paddingSmall)),
+                            top: context.mediaQueryPadding.top * panelOpenDegree, left: AppDimensions.paddingSmall + panelOpenDegree * (context.width - AppDimensions.paddingLarge - AppDimensions.albumMinSize - AppDimensions.paddingSmall)),
                         child: SimpleExtendedImage(
                           width: AppDimensions.albumMinSize,
                           height: AppDimensions.albumMinSize,
                           shape: BoxShape.circle,
                           ArtworkPathResolver.resolveDisplayPath(
-                            currentSong.artworkUrl ??
-                                currentSong.localArtworkPath,
+                            currentSong.artworkUrl ?? currentSong.localArtworkPath,
                           ),
                         ),
                       ),
@@ -805,51 +601,31 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                           offstage: controller.bottomPanelFullyClosed.isFalse,
                           child: Container(
                             alignment: Alignment.centerRight,
-                            margin: const EdgeInsets.all(
-                                AppDimensions.paddingSmall),
+                            margin: const EdgeInsets.all(AppDimensions.paddingSmall),
                             child: Stack(
                               children: [
                                 // 播放进度
-                                if ((currentSong.duration?.inMilliseconds ??
-                                        0) >
-                                    0)
+                                if ((currentSong.duration?.inMilliseconds ?? 0) > 0)
                                   Obx(() {
-                                    final currentDuration = PlayerController
-                                        .to.currentPositionState.value;
-                                    final totalMilliseconds =
-                                        currentSong.duration!.inMilliseconds;
-                                    final progress = totalMilliseconds <= 0
-                                        ? 0.0
-                                        : (currentDuration.inMilliseconds /
-                                                totalMilliseconds)
-                                            .clamp(0.0, 1.0)
-                                            .toDouble();
+                                    final currentDuration = PlayerController.to.currentPositionState.value;
+                                    final totalMilliseconds = currentSong.duration!.inMilliseconds;
+                                    final progress = totalMilliseconds <= 0 ? 0.0 : (currentDuration.inMilliseconds / totalMilliseconds).clamp(0.0, 1.0).toDouble();
                                     return CircularPlaybackProgress(
                                       progress: progress,
                                       size: AppDimensions.albumMinSize,
                                       strokeWidth: 2,
-                                      progressColor: SettingsController
-                                          .to.panelWidgetColor.value,
-                                      backgroundColor: SettingsController
-                                          .to.panelWidgetColor.value
-                                          .withAlpha(50),
+                                      progressColor: SettingsController.to.panelWidgetColor.value,
+                                      backgroundColor: SettingsController.to.panelWidgetColor.value.withAlpha(50),
                                     );
                                   }),
                                 // 播放按钮
                                 IconButton(
-                                    onPressed: () =>
-                                        PlayerController.to.playOrPause(),
-                                    padding: const EdgeInsets.all(
-                                        AppDimensions.albumMinSize * 1 / 3 / 2),
+                                    onPressed: () => PlayerController.to.playOrPause(),
+                                    padding: const EdgeInsets.all(AppDimensions.albumMinSize * 1 / 3 / 2),
                                     icon: Obx(() => Icon(
-                                          PlayerController.to.isPlaying.value
-                                              ? TablerIcons.player_pause_filled
-                                              : TablerIcons.player_play_filled,
-                                          color: SettingsController
-                                              .to.panelWidgetColor.value,
-                                          size: AppDimensions.albumMinSize *
-                                              2 /
-                                              3,
+                                          PlayerController.to.isPlaying.value ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
+                                          color: SettingsController.to.panelWidgetColor.value,
+                                          size: AppDimensions.albumMinSize * 2 / 3,
                                         ))),
                               ],
                             ),

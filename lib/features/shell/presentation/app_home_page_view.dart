@@ -49,9 +49,7 @@ class AppHomePageView extends GetView<ShellController> {
           boxShadow: null,
           // collapsed: const TopPanelHeaderAppBar(),
           panel: Obx(() {
-            final shouldBuildTopPanel =
-                controller.topPanelFullyClosed.isFalse ||
-                    controller.searchContent.value.isNotEmpty;
+            final shouldBuildTopPanel = controller.topPanelFullyClosed.isFalse || controller.searchContent.value.isNotEmpty;
             if (!shouldBuildTopPanel) {
               return const SizedBox.shrink();
             }
@@ -64,12 +62,10 @@ class AppHomePageView extends GetView<ShellController> {
             }
             return SlidingUpPanel(
               controller: controller.bottomPanelController,
-              onPanelSlide: (openDegree) =>
-                  controller.onBottomPanelSlide(openDegree),
+              onPanelSlide: (openDegree) => controller.onBottomPanelSlide(openDegree),
               color: Colors.transparent,
               boxShadow: null,
-              minHeight: AppDimensions.bottomPanelHeaderHeight +
-                  context.mediaQueryPadding.bottom,
+              minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
               maxHeight: context.height,
               header: const BottomPanelHeaderView(),
               panel: const BottomPanelView(),

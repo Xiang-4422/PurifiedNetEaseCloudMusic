@@ -44,8 +44,7 @@ class RecommendationController extends GetxController {
   final RxList<PlaylistSummaryData> recoPlayLists = <PlaylistSummaryData>[].obs;
 
   /// 每日推荐歌曲队列。
-  final RxList<PlaybackQueueItem> todayRecommendSongs =
-      <PlaybackQueueItem>[].obs;
+  final RxList<PlaybackQueueItem> todayRecommendSongs = <PlaybackQueueItem>[].obs;
 
   /// 私人 FM 候选歌曲队列。
   final RxList<PlaybackQueueItem> fmSongs = <PlaybackQueueItem>[].obs;
@@ -90,8 +89,7 @@ class RecommendationController extends GetxController {
       dateLoaded.value = true;
       scheduleHomeImageColorPrewarm();
       unawaited(_validateLoginStateInBackground?.call());
-      if (!_libraryController.hasPlaylistSnapshot ||
-          await shouldRefreshStartupData()) {
+      if (!_libraryController.hasPlaylistSnapshot || await shouldRefreshStartupData()) {
         unawaited(updateData());
       }
       return;
@@ -197,9 +195,7 @@ class RecommendationController extends GetxController {
       unawaited(
         ImageColorService.prewarm(
           [
-            todayRecommendSongs.isNotEmpty
-                ? todayRecommendSongs.first.artworkUrl
-                : null,
+            todayRecommendSongs.isNotEmpty ? todayRecommendSongs.first.artworkUrl : null,
             fmSongs.isNotEmpty ? fmSongs.first.artworkUrl : null,
             _libraryController.randomLikedSongAlbumUrl.value,
           ],

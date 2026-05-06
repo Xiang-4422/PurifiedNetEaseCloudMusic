@@ -53,22 +53,17 @@ class PlaybackRegistrar {
     );
     Get.put<PlaybackUserContentPort>(
       PlaybackUserContentPort(
-        toggleLikeStatus: (item) =>
-            Get.find<UserLibraryController>().toggleLikeStatus(item),
-        likedSongIds: () =>
-            Get.find<UserLibraryController>().likedSongIds.toList(),
-        ensureLikedSongsLoaded: () =>
-            Get.find<UserLibraryController>().ensureLikedSongsLoaded(),
+        toggleLikeStatus: (item) => Get.find<UserLibraryController>().toggleLikeStatus(item),
+        likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+        ensureLikedSongsLoaded: () => Get.find<UserLibraryController>().ensureLikedSongsLoaded(),
         likedSongs: () => Get.find<UserLibraryController>().likedSongs.toList(),
         loadFmSongs: () => Get.find<RecommendationController>().getFmSongs(),
-        loadHeartBeatSongs: (startSongId, randomLikedSongId, fromPlayAll) =>
-            Get.find<UserLibraryController>().getHeartBeatSongs(
+        loadHeartBeatSongs: (startSongId, randomLikedSongId, fromPlayAll) => Get.find<UserLibraryController>().getHeartBeatSongs(
           startSongId,
           randomLikedSongId,
           fromPlayAll,
         ),
-        randomLikedSongId: () =>
-            Get.find<UserLibraryController>().randomLikedSongId.value,
+        randomLikedSongId: () => Get.find<UserLibraryController>().randomLikedSongId.value,
       ),
       permanent: true,
     );
@@ -133,8 +128,7 @@ class PlaybackRegistrar {
     );
     Get.put<PlaybackPreferencePort>(
       PlaybackPreferencePort(
-        isHighQualityEnabled: () =>
-            Get.find<SettingsController>().isHighSoundQualityOpen.value,
+        isHighQualityEnabled: () => Get.find<SettingsController>().isHighSoundQualityOpen.value,
       ),
       permanent: true,
     );

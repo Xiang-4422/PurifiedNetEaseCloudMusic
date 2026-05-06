@@ -10,8 +10,7 @@ import 'package:bujuan/features/playback/application/playback_action_port.dart';
 /// 页面只提交用户意图；顺序、随机和点击指定歌曲的 repeat/起始索引规则统一放在这里。
 class PlaylistPlaybackUseCase {
   /// 创建歌单播放用例。
-  PlaylistPlaybackUseCase({required PlaybackActionPort playbackAction})
-      : _playbackAction = playbackAction;
+  PlaylistPlaybackUseCase({required PlaybackActionPort playbackAction}) : _playbackAction = playbackAction;
 
   final PlaybackActionPort _playbackAction;
   final Random _random = Random();

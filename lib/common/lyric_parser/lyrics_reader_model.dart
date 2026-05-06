@@ -8,8 +8,7 @@ class LyricsReaderModel {
     var lastEndTime = 0;
     for (var i = 0; i < lyrics.length; i++) {
       var element = lyrics[i];
-      if (progress >= (element.startTime ?? 0) &&
-          progress < (element.endTime ?? 0)) {
+      if (progress >= (element.startTime ?? 0) && progress < (element.endTime ?? 0)) {
         return i;
       }
       lastEndTime = element.endTime ?? 0;

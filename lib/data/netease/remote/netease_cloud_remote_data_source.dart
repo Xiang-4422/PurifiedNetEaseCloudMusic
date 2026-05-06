@@ -5,8 +5,7 @@ import 'package:bujuan/domain/entities/track.dart';
 /// 云盘远程访问先集中在 data/netease，避免 feature 继续直接触碰平台 API。
 class NeteaseCloudRemoteDataSource {
   /// 创建网易云云盘远程数据源。
-  NeteaseCloudRemoteDataSource({NeteaseMusicApi? api})
-      : _api = api ?? NeteaseMusicApi();
+  NeteaseCloudRemoteDataSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
 
   final NeteaseMusicApi _api;
 

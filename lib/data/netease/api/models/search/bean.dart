@@ -19,8 +19,7 @@ class SearchSongWrap {
   SearchSongWrap();
 
   /// 从 JSON 构建单曲搜索结果数据。
-  factory SearchSongWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchSongWrapFromJson(json);
+  factory SearchSongWrap.fromJson(Map<String, dynamic> json) => _$SearchSongWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchSongWrapToJson(this);
@@ -36,8 +35,7 @@ class SearchSongWrapX extends ServerStatusBean {
   SearchSongWrapX();
 
   /// 从 JSON 构建单曲搜索响应。
-  factory SearchSongWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchSongWrapXFromJson(json);
+  factory SearchSongWrapX.fromJson(Map<String, dynamic> json) => _$SearchSongWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -54,8 +52,7 @@ class SearchAlbumsWrapX extends ServerStatusBean {
   SearchAlbumsWrapX();
 
   /// 从 JSON 构建专辑搜索响应。
-  factory SearchAlbumsWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchAlbumsWrapXFromJson(json);
+  factory SearchAlbumsWrapX.fromJson(Map<String, dynamic> json) => _$SearchAlbumsWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -72,8 +69,7 @@ class SearchArtistsWrap {
   SearchArtistsWrap();
 
   /// 从 JSON 构建歌手搜索结果数据。
-  factory SearchArtistsWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchArtistsWrapFromJson(json);
+  factory SearchArtistsWrap.fromJson(Map<String, dynamic> json) => _$SearchArtistsWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchArtistsWrapToJson(this);
@@ -89,8 +85,7 @@ class SearchArtistsWrapX extends ServerStatusBean {
   SearchArtistsWrapX();
 
   /// 从 JSON 构建歌手搜索响应。
-  factory SearchArtistsWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchArtistsWrapXFromJson(json);
+  factory SearchArtistsWrapX.fromJson(Map<String, dynamic> json) => _$SearchArtistsWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -107,8 +102,7 @@ class SearchPlaylistWrap {
   SearchPlaylistWrap();
 
   /// 从 JSON 构建歌单搜索结果数据。
-  factory SearchPlaylistWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchPlaylistWrapFromJson(json);
+  factory SearchPlaylistWrap.fromJson(Map<String, dynamic> json) => _$SearchPlaylistWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchPlaylistWrapToJson(this);
@@ -124,8 +118,7 @@ class SearchPlaylistWrapX extends ServerStatusBean {
   SearchPlaylistWrapX();
 
   /// 从 JSON 构建歌单搜索响应。
-  factory SearchPlaylistWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchPlaylistWrapXFromJson(json);
+  factory SearchPlaylistWrapX.fromJson(Map<String, dynamic> json) => _$SearchPlaylistWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -142,8 +135,7 @@ class SearchUserWrapX extends ServerStatusBean {
   SearchUserWrapX();
 
   /// 从 JSON 构建用户搜索响应。
-  factory SearchUserWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchUserWrapXFromJson(json);
+  factory SearchUserWrapX.fromJson(Map<String, dynamic> json) => _$SearchUserWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -160,8 +152,7 @@ class SearchMvWrapX extends ServerStatusBean {
   SearchMvWrapX();
 
   /// 从 JSON 构建 MV 搜索响应。
-  factory SearchMvWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchMvWrapXFromJson(json);
+  factory SearchMvWrapX.fromJson(Map<String, dynamic> json) => _$SearchMvWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -178,8 +169,7 @@ class SearchLyricsWrap {
   SearchLyricsWrap();
 
   /// 从 JSON 构建歌词搜索结果数据。
-  factory SearchLyricsWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchLyricsWrapFromJson(json);
+  factory SearchLyricsWrap.fromJson(Map<String, dynamic> json) => _$SearchLyricsWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchLyricsWrapToJson(this);
@@ -195,8 +185,7 @@ class SearchLyricsWrapX extends ServerStatusBean {
   SearchLyricsWrapX();
 
   /// 从 JSON 构建歌词搜索响应。
-  factory SearchLyricsWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchLyricsWrapXFromJson(json);
+  factory SearchLyricsWrapX.fromJson(Map<String, dynamic> json) => _$SearchLyricsWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -213,8 +202,7 @@ class SearchDjradiorap {
   SearchDjradiorap();
 
   /// 从 JSON 构建播客搜索结果数据。
-  factory SearchDjradiorap.fromJson(Map<String, dynamic> json) =>
-      _$SearchDjradiorapFromJson(json);
+  factory SearchDjradiorap.fromJson(Map<String, dynamic> json) => _$SearchDjradiorapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchDjradiorapToJson(this);
@@ -230,8 +218,7 @@ class SearchDjradioWrapX extends ServerStatusBean {
   SearchDjradioWrapX();
 
   /// 从 JSON 构建播客搜索响应。
-  factory SearchDjradioWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchDjradioWrapXFromJson(json);
+  factory SearchDjradioWrapX.fromJson(Map<String, dynamic> json) => _$SearchDjradioWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -248,8 +235,7 @@ class SearchVideoWrap {
   SearchVideoWrap();
 
   /// 从 JSON 构建视频搜索结果数据。
-  factory SearchVideoWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchVideoWrapFromJson(json);
+  factory SearchVideoWrap.fromJson(Map<String, dynamic> json) => _$SearchVideoWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchVideoWrapToJson(this);
@@ -265,8 +251,7 @@ class SearchVideoWrapX extends ServerStatusBean {
   SearchVideoWrapX();
 
   /// 从 JSON 构建视频搜索响应。
-  factory SearchVideoWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchVideoWrapXFromJson(json);
+  factory SearchVideoWrapX.fromJson(Map<String, dynamic> json) => _$SearchVideoWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -295,8 +280,7 @@ class SearchComplexSong {
   SearchComplexSong();
 
   /// 从 JSON 构建综合搜索单曲模块。
-  factory SearchComplexSong.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexSongFromJson(json);
+  factory SearchComplexSong.fromJson(Map<String, dynamic> json) => _$SearchComplexSongFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexSongToJson(this);
@@ -321,8 +305,7 @@ class SearchComplexMlog {
   SearchComplexMlog();
 
   /// 从 JSON 构建综合搜索 Mlog 模块。
-  factory SearchComplexMlog.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexMlogFromJson(json);
+  factory SearchComplexMlog.fromJson(Map<String, dynamic> json) => _$SearchComplexMlogFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexMlogToJson(this);
@@ -350,8 +333,7 @@ class SearchComplexPlaylist {
   SearchComplexPlaylist();
 
   /// 从 JSON 构建综合搜索歌单模块。
-  factory SearchComplexPlaylist.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexPlaylistFromJson(json);
+  factory SearchComplexPlaylist.fromJson(Map<String, dynamic> json) => _$SearchComplexPlaylistFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexPlaylistToJson(this);
@@ -379,8 +361,7 @@ class SearchComplexArtist {
   SearchComplexArtist();
 
   /// 从 JSON 构建综合搜索歌手模块。
-  factory SearchComplexArtist.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexArtistFromJson(json);
+  factory SearchComplexArtist.fromJson(Map<String, dynamic> json) => _$SearchComplexArtistFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexArtistToJson(this);
@@ -408,8 +389,7 @@ class SearchComplexAlbum {
   SearchComplexAlbum();
 
   /// 从 JSON 构建综合搜索专辑模块。
-  factory SearchComplexAlbum.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexAlbumFromJson(json);
+  factory SearchComplexAlbum.fromJson(Map<String, dynamic> json) => _$SearchComplexAlbumFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexAlbumToJson(this);
@@ -437,8 +417,7 @@ class SearchComplexVideo {
   SearchComplexVideo();
 
   /// 从 JSON 构建综合搜索视频模块。
-  factory SearchComplexVideo.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexVideoFromJson(json);
+  factory SearchComplexVideo.fromJson(Map<String, dynamic> json) => _$SearchComplexVideoFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexVideoToJson(this);
@@ -457,8 +436,7 @@ class SearchComplexSimQueryItem {
   SearchComplexSimQueryItem();
 
   /// 从 JSON 构建相似搜索词条目。
-  factory SearchComplexSimQueryItem.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexSimQueryItemFromJson(json);
+  factory SearchComplexSimQueryItem.fromJson(Map<String, dynamic> json) => _$SearchComplexSimQueryItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexSimQueryItemToJson(this);
@@ -477,8 +455,7 @@ class SearchComplexSimQuery {
   SearchComplexSimQuery();
 
   /// 从 JSON 构建相似搜索词模块。
-  factory SearchComplexSimQuery.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexSimQueryFromJson(json);
+  factory SearchComplexSimQuery.fromJson(Map<String, dynamic> json) => _$SearchComplexSimQueryFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexSimQueryToJson(this);
@@ -503,8 +480,7 @@ class SearchComplexTalk {
   SearchComplexTalk();
 
   /// 从 JSON 构建综合搜索讨论模块。
-  factory SearchComplexTalk.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexTalkFromJson(json);
+  factory SearchComplexTalk.fromJson(Map<String, dynamic> json) => _$SearchComplexTalkFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexTalkToJson(this);
@@ -529,8 +505,7 @@ class SearchComplexUser {
   SearchComplexUser();
 
   /// 从 JSON 构建综合搜索用户模块。
-  factory SearchComplexUser.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexUserFromJson(json);
+  factory SearchComplexUser.fromJson(Map<String, dynamic> json) => _$SearchComplexUserFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexUserToJson(this);
@@ -573,8 +548,7 @@ class SearchComplexWrap {
   SearchComplexWrap();
 
   /// 从 JSON 构建综合搜索结果数据。
-  factory SearchComplexWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexWrapFromJson(json);
+  factory SearchComplexWrap.fromJson(Map<String, dynamic> json) => _$SearchComplexWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchComplexWrapToJson(this);
@@ -590,8 +564,7 @@ class SearchComplexWrapX extends ServerStatusBean {
   SearchComplexWrapX();
 
   /// 从 JSON 构建综合搜索响应。
-  factory SearchComplexWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchComplexWrapXFromJson(json);
+  factory SearchComplexWrapX.fromJson(Map<String, dynamic> json) => _$SearchComplexWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -623,8 +596,7 @@ class SearchKey {
   SearchKey();
 
   /// 从 JSON 构建默认搜索关键词。
-  factory SearchKey.fromJson(Map<String, dynamic> json) =>
-      _$SearchKeyFromJson(json);
+  factory SearchKey.fromJson(Map<String, dynamic> json) => _$SearchKeyFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchKeyToJson(this);
@@ -640,8 +612,7 @@ class SearchKeyWrap extends ServerStatusBean {
   SearchKeyWrap();
 
   /// 从 JSON 构建默认搜索关键词响应。
-  factory SearchKeyWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchKeyWrapFromJson(json);
+  factory SearchKeyWrap.fromJson(Map<String, dynamic> json) => _$SearchKeyWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -664,8 +635,7 @@ class SearchHotKey {
   SearchHotKey();
 
   /// 从 JSON 构建简略热搜词条目。
-  factory SearchHotKey.fromJson(Map<String, dynamic> json) =>
-      _$SearchHotKeyFromJson(json);
+  factory SearchHotKey.fromJson(Map<String, dynamic> json) => _$SearchHotKeyFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchHotKeyToJson(this);
@@ -681,8 +651,7 @@ class SearchHotKeyWrap {
   SearchHotKeyWrap();
 
   /// 从 JSON 构建简略热搜词列表数据。
-  factory SearchHotKeyWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchHotKeyWrapFromJson(json);
+  factory SearchHotKeyWrap.fromJson(Map<String, dynamic> json) => _$SearchHotKeyWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchHotKeyWrapToJson(this);
@@ -698,8 +667,7 @@ class SearchKeyWrapX extends ServerStatusBean {
   SearchKeyWrapX();
 
   /// 从 JSON 构建简略热搜词响应。
-  factory SearchKeyWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchKeyWrapXFromJson(json);
+  factory SearchKeyWrapX.fromJson(Map<String, dynamic> json) => _$SearchKeyWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -737,8 +705,7 @@ class SearchKeyDetailedItem {
   SearchKeyDetailedItem();
 
   /// 从 JSON 构建详细热搜词条目。
-  factory SearchKeyDetailedItem.fromJson(Map<String, dynamic> json) =>
-      _$SearchKeyDetailedItemFromJson(json);
+  factory SearchKeyDetailedItem.fromJson(Map<String, dynamic> json) => _$SearchKeyDetailedItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchKeyDetailedItemToJson(this);
@@ -754,8 +721,7 @@ class SearchKeyDetailedWrap extends ServerStatusBean {
   SearchKeyDetailedWrap();
 
   /// 从 JSON 构建详细热搜词响应。
-  factory SearchKeyDetailedWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchKeyDetailedWrapFromJson(json);
+  factory SearchKeyDetailedWrap.fromJson(Map<String, dynamic> json) => _$SearchKeyDetailedWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -781,8 +747,7 @@ class SearchSuggestItem {
   SearchSuggestItem();
 
   /// 从 JSON 构建搜索建议条目。
-  factory SearchSuggestItem.fromJson(Map<String, dynamic> json) =>
-      _$SearchSuggestItemFromJson(json);
+  factory SearchSuggestItem.fromJson(Map<String, dynamic> json) => _$SearchSuggestItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchSuggestItemToJson(this);
@@ -798,8 +763,7 @@ class SearchSuggestWrap {
   SearchSuggestWrap();
 
   /// 从 JSON 构建搜索建议列表数据。
-  factory SearchSuggestWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchSuggestWrapFromJson(json);
+  factory SearchSuggestWrap.fromJson(Map<String, dynamic> json) => _$SearchSuggestWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchSuggestWrapToJson(this);
@@ -815,8 +779,7 @@ class SearchSuggestWrapX extends ServerStatusBean {
   SearchSuggestWrapX();
 
   /// 从 JSON 构建搜索建议响应。
-  factory SearchSuggestWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchSuggestWrapXFromJson(json);
+  factory SearchSuggestWrapX.fromJson(Map<String, dynamic> json) => _$SearchSuggestWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -845,8 +808,7 @@ class SearchMultiMatchWrap {
   SearchMultiMatchWrap();
 
   /// 从 JSON 构建多重匹配搜索结果数据。
-  factory SearchMultiMatchWrap.fromJson(Map<String, dynamic> json) =>
-      _$SearchMultiMatchWrapFromJson(json);
+  factory SearchMultiMatchWrap.fromJson(Map<String, dynamic> json) => _$SearchMultiMatchWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$SearchMultiMatchWrapToJson(this);
@@ -862,8 +824,7 @@ class SearchMultiMatchWrapX extends ServerStatusBean {
   SearchMultiMatchWrapX();
 
   /// 从 JSON 构建多重匹配搜索响应。
-  factory SearchMultiMatchWrapX.fromJson(Map<String, dynamic> json) =>
-      _$SearchMultiMatchWrapXFromJson(json);
+  factory SearchMultiMatchWrapX.fromJson(Map<String, dynamic> json) => _$SearchMultiMatchWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override

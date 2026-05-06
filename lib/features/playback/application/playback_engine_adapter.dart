@@ -49,8 +49,7 @@ abstract class PlaybackEnginePort {
 /// 封装 `just_audio` 细节，避免 audio_service handler 继续直接处理文件源和缓存流。
 class PlaybackEngineAdapter implements PlaybackEnginePort {
   /// 创建播放引擎适配器。
-  PlaybackEngineAdapter({AudioPlayer? player})
-      : _player = player ?? AudioPlayer();
+  PlaybackEngineAdapter({AudioPlayer? player}) : _player = player ?? AudioPlayer();
 
   final AudioPlayer _player;
 
@@ -126,8 +125,7 @@ class NeteaseCacheStreamSource extends StreamAudioSource {
     final file = File(uri);
     final sourceLength = await file.length();
     final offset = _clampRangeValue(start ?? 0, 0, sourceLength);
-    final resolvedEnd =
-        _clampRangeValue(end ?? sourceLength, offset, sourceLength);
+    final resolvedEnd = _clampRangeValue(end ?? sourceLength, offset, sourceLength);
 
     // ignore: experimental_member_use
     return StreamAudioResponse(

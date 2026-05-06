@@ -7,8 +7,7 @@ class LibraryPreferenceStore {
   const LibraryPreferenceStore();
 
   /// 是否启用离线模式。
-  bool get isOfflineModeEnabled =>
-      CacheBox.instance.get(offlineModeSp, defaultValue: false) ?? false;
+  bool get isOfflineModeEnabled => CacheBox.instance.get(offlineModeSp, defaultValue: false) ?? false;
 
   /// 保存离线模式开关。
   Future<void> saveOfflineMode(bool value) {

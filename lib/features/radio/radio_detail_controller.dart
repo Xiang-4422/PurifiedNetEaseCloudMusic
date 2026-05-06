@@ -29,8 +29,7 @@ class RadioDetailController {
   final bool asc;
 
   /// 电台节目分页状态。
-  final ValueNotifier<PagedState<RadioProgramData>> state =
-      ValueNotifier(PagedState.initialLoading());
+  final ValueNotifier<PagedState<RadioProgramData>> state = ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
 

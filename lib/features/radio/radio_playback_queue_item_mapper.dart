@@ -19,8 +19,7 @@ class RadioPlaybackQueueItemMapper {
             sourceId: program.mainTrackId,
             title: program.title,
             albumTitle: program.albumTitle,
-            artistNames:
-                program.artistName.isEmpty ? const [] : [program.artistName],
+            artistNames: program.artistName.isEmpty ? const [] : [program.artistName],
             artistIds: const [],
             duration: Duration(milliseconds: program.durationMs),
             artworkUrl: null,

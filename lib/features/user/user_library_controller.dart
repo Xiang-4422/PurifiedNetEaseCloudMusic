@@ -31,15 +31,13 @@ class UserLibraryController extends GetxController {
   bool get hasLocalSnapshot => _hasLocalSnapshot;
 
   /// 当前账号是否已有本地歌单快照。
-  bool get hasPlaylistSnapshot =>
-      userPlayLists.isNotEmpty || userLikedSongPlayList.value.id.isNotEmpty;
+  bool get hasPlaylistSnapshot => userPlayLists.isNotEmpty || userLikedSongPlayList.value.id.isNotEmpty;
 
   /// 用户创建或收藏的普通歌单列表，不包含“我喜欢的音乐”入口。
   final List<PlaylistSummaryData> userPlayLists = <PlaylistSummaryData>[].obs;
 
   /// “我喜欢的音乐”歌单入口。
-  final Rx<PlaylistSummaryData> userLikedSongPlayList =
-      const PlaylistSummaryData(id: '', title: '').obs;
+  final Rx<PlaylistSummaryData> userLikedSongPlayList = const PlaylistSummaryData(id: '', title: '').obs;
 
   /// 用户喜欢歌曲的网易云数字 id 列表。
   final RxList<int> likedSongIds = <int>[].obs;
@@ -111,8 +109,7 @@ class UserLibraryController extends GetxController {
     }
 
     final mutablePlayLists = [...playLists];
-    final nextLikedPlaylist =
-        mutablePlayLists.removeAt(0).copyWith(title: '我喜欢的音乐');
+    final nextLikedPlaylist = mutablePlayLists.removeAt(0).copyWith(title: '我喜欢的音乐');
     userLikedSongPlayList.value = nextLikedPlaylist;
     userLikedSongPlayList.refresh();
     userPlayLists
@@ -132,8 +129,7 @@ class UserLibraryController extends GetxController {
     }
 
     final isLiked = likedSongIds.contains(numericSongId);
-    final serverStatus =
-        await _repository.toggleLikeSong(userId, songId, !isLiked);
+    final serverStatus = await _repository.toggleLikeSong(userId, songId, !isLiked);
     if (!serverStatus.success) {
       return null;
     }
@@ -211,11 +207,9 @@ class UserLibraryController extends GetxController {
     if (likedSongIds.isNotEmpty) {
       final randomIndex = Random().nextInt(likedSongIds.length);
       nextRandomLikedSongId = likedSongIds[randomIndex].toString();
-      nextRandomLikedSongAlbumUrl =
-          await _repository.loadCachedSongAlbumUrl(nextRandomLikedSongId);
+      nextRandomLikedSongAlbumUrl = await _repository.loadCachedSongAlbumUrl(nextRandomLikedSongId);
       if (nextRandomLikedSongAlbumUrl.isEmpty) {
-        nextRandomLikedSongAlbumUrl =
-            await _repository.fetchSongAlbumUrl(nextRandomLikedSongId);
+        nextRandomLikedSongAlbumUrl = await _repository.fetchSongAlbumUrl(nextRandomLikedSongId);
       }
     }
     randomLikedSongId.value = nextRandomLikedSongId;
@@ -255,9 +249,7 @@ class UserLibraryController extends GetxController {
       userId,
       UserPlaylistListKind.likedCollection,
     );
-    userLikedSongPlayList.value = cachedLikedPlaylist.isEmpty
-        ? const PlaylistSummaryData(id: '', title: '')
-        : cachedLikedPlaylist.first;
+    userLikedSongPlayList.value = cachedLikedPlaylist.isEmpty ? const PlaylistSummaryData(id: '', title: '') : cachedLikedPlaylist.first;
     hasCachedData = hasCachedData || userLikedSongPlayList.value.id.isNotEmpty;
 
     await refreshRandomLikedSong();

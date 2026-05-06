@@ -4,8 +4,7 @@ import 'package:flutter/widgets.dart';
 /// 评论回复弹层状态，集中管理输入框和发送后的刷新动作。
 class ReplySheetController {
   /// 创建回复弹层控制器。
-  ReplySheetController({required FloorCommentController floorController})
-      : _floorController = floorController;
+  ReplySheetController({required FloorCommentController floorController}) : _floorController = floorController;
 
   final FloorCommentController _floorController;
 

@@ -146,8 +146,7 @@ class DownloadRepository {
     }
     final audioResource = trackWithResources.resources.audio;
     if (audioResource != null && File(audioResource.path).existsSync()) {
-      if (audioResource.origin != TrackResourceOrigin.managedDownload &&
-          track.sourceType != SourceType.local) {
+      if (audioResource.origin != TrackResourceOrigin.managedDownload && track.sourceType != SourceType.local) {
         await _resourceWriter.promoteResourcesToManagedDownload(
           track.id,
           trackWithResources.resources,
@@ -177,8 +176,7 @@ class DownloadRepository {
       final directories = await _fileStore.ensureDownloadDirectories();
       final cancelToken = _taskQueue.createCancelToken(trackId);
 
-      final audioPath =
-          _fileStore.buildAudioPath(track, playbackUrl, directories.audio);
+      final audioPath = _fileStore.buildAudioPath(track, playbackUrl, directories.audio);
       final temporaryPath = '$audioPath.download';
       await _taskStateStore.markQueued(trackId, temporaryPath: temporaryPath);
       await _fileStore.downloadBinaryFile(
@@ -250,8 +248,7 @@ class DownloadRepository {
   Future<void> cancelTask(String trackId) async {
     _taskQueue.markCancelled(trackId);
     final currentTask = await _taskDataSource.getTask(trackId);
-    await _fileStore
-        .deleteTemporaryDownloadIfExists(currentTask?.temporaryPath);
+    await _fileStore.deleteTemporaryDownloadIfExists(currentTask?.temporaryPath);
     await _clearCancelledTask(trackId);
   }
 
@@ -266,8 +263,7 @@ class DownloadRepository {
     bool preferHighQuality = true,
   }) async {
     final currentTask = await _taskDataSource.getTask(trackId);
-    await _fileStore
-        .deleteTemporaryDownloadIfExists(currentTask?.temporaryPath);
+    await _fileStore.deleteTemporaryDownloadIfExists(currentTask?.temporaryPath);
     return downloadTrack(
       trackId,
       preferHighQuality: preferHighQuality,
@@ -332,8 +328,7 @@ class DownloadRepository {
         return track;
       }
       final directories = await _fileStore.ensureCacheDirectories();
-      final audioPath =
-          _fileStore.buildAudioPath(track, playbackUrl, directories.audio);
+      final audioPath = _fileStore.buildAudioPath(track, playbackUrl, directories.audio);
       await _fileStore.downloadBinaryFile(
         playbackUrl,
         audioPath,

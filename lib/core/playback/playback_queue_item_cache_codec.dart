@@ -13,9 +13,7 @@ Future<List<PlaybackQueueItem>> decodePlaybackQueueItemCacheList(
 List<PlaybackQueueItem> _decodePlaybackQueueItemCacheList(
   List<String> cachedItems,
 ) {
-  return cachedItems
-      .map((item) => PlaybackQueueItem.fromJson(jsonDecode(item)))
-      .toList();
+  return cachedItems.map((item) => PlaybackQueueItem.fromJson(jsonDecode(item))).toList();
 }
 
 /// 在 isolate 中编码播放队列缓存列表。

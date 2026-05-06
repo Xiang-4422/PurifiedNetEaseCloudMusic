@@ -47,8 +47,7 @@ void main() {
       expect(queueService.state.confirmedItem.id, '2');
     });
 
-    test('pause during resolving clears autoplay intent before source replace',
-        () async {
+    test('pause during resolving clears autoplay intent before source replace', () async {
       final playbackService = _FakePlaybackService();
       final resolver = _ControllableSourceResolver();
       final queueService = _queueService(playbackService);
@@ -121,8 +120,7 @@ void main() {
 
       playbackService.completeNextReplace();
       await _waitUntil(() => playbackService.replaceCalls.length == 2);
-      expect(
-          playbackService.replaceCalls.map((call) => call.activeIndex), [0, 2]);
+      expect(playbackService.replaceCalls.map((call) => call.activeIndex), [0, 2]);
 
       playbackService.completeNextReplace();
       final results = await Future.wait([first, stale, latest]);
@@ -135,8 +133,7 @@ void main() {
       expect(queueService.state.confirmedIndex, 2);
     });
 
-    test('falls back to remote source when local cached source fails',
-        () async {
+    test('falls back to remote source when local cached source fails', () async {
       final playbackService = _FakePlaybackService(failFirstReplace: true);
       final resolver = _ControllableSourceResolver();
       final queueService = _queueService(playbackService);
@@ -168,12 +165,10 @@ void main() {
 
       expect(result.success, isTrue);
       expect(playbackService.replaceCalls, hasLength(2));
-      expect(playbackService.replaceCalls.last.source.kind,
-          PlaybackResolvedSourceKind.url);
+      expect(playbackService.replaceCalls.last.source.kind, PlaybackResolvedSourceKind.url);
     });
 
-    test('captures resolver timeout without replacing current source',
-        () async {
+    test('captures resolver timeout without replacing current source', () async {
       final playbackService = _FakePlaybackService();
       final resolver = _ThrowingSourceResolver(TimeoutException('slow url'));
       final queueService = _queueService(playbackService);
@@ -201,8 +196,7 @@ void main() {
       expect(coordinator.state.phase, PlaybackSwitchPhase.failed);
     });
 
-    test('retries normal quality when high quality source resolving fails',
-        () async {
+    test('retries normal quality when high quality source resolving fails', () async {
       final playbackService = _FakePlaybackService(preferHighQuality: true);
       final resolver = _QualityFallbackSourceResolver();
       final queueService = _queueService(playbackService);

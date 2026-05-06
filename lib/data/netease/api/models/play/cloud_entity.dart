@@ -22,13 +22,7 @@ class CloudEntity extends ServerStatusBean {
   String? maxSize;
 
   /// 创建云盘歌曲列表响应。
-  CloudEntity(
-      {this.data,
-      this.size,
-      this.upgradeSign,
-      this.count,
-      this.hasMore,
-      this.maxSize});
+  CloudEntity({this.data, this.size, this.upgradeSign, this.count, this.hasMore, this.maxSize});
 
   /// 从 JSON 构建云盘歌曲列表响应。
   CloudEntity.fromJson(Map<String, dynamic> json) {
@@ -105,20 +99,7 @@ class CloudData {
   num? songId;
 
   /// 创建云盘歌曲条目。
-  CloudData(
-      {this.songName,
-      this.fileName,
-      this.addTime,
-      this.artist,
-      this.album,
-      this.lyricId,
-      this.bitrate,
-      this.simpleSong,
-      this.version,
-      this.cover,
-      this.coverId,
-      this.fileSize,
-      this.songId});
+  CloudData({this.songName, this.fileName, this.addTime, this.artist, this.album, this.lyricId, this.bitrate, this.simpleSong, this.version, this.cover, this.coverId, this.fileSize, this.songId});
 
   /// 从 JSON 构建云盘歌曲条目。
   CloudData.fromJson(Map<String, dynamic> json) {
@@ -129,9 +110,7 @@ class CloudData {
     album = json['album'];
     lyricId = json['lyricId'];
     bitrate = json['bitrate'];
-    simpleSong = json['simpleSong'] != null
-        ? CloudDataSimplesong.fromJson(json['simpleSong'])
-        : null;
+    simpleSong = json['simpleSong'] != null ? CloudDataSimplesong.fromJson(json['simpleSong']) : null;
     version = json['version'];
     cover = json['cover'];
     coverId = json['coverId'];
@@ -301,9 +280,7 @@ class CloudDataSimplesong {
     copyright = json['copyright'];
     fee = json['fee'];
     rurl = json['rurl'];
-    privilege = json['privilege'] != null
-        ? CloudDataSimplesongPrivilege.fromJson(json['privilege'])
-        : null;
+    privilege = json['privilege'] != null ? CloudDataSimplesongPrivilege.fromJson(json['privilege']) : null;
     mst = json['mst'];
     pst = json['pst'];
     pop = json['pop'];
@@ -431,21 +408,7 @@ class CloudDataSimplesongPrivilege {
   num? payed;
 
   /// 创建播放权限信息。
-  CloudDataSimplesongPrivilege(
-      {this.st,
-      this.flag,
-      this.subp,
-      this.fl,
-      this.fee,
-      this.dl,
-      this.cp,
-      this.cs,
-      this.toast,
-      this.maxbr,
-      this.id,
-      this.pl,
-      this.sp,
-      this.payed});
+  CloudDataSimplesongPrivilege({this.st, this.flag, this.subp, this.fl, this.fee, this.dl, this.cp, this.cs, this.toast, this.maxbr, this.id, this.pl, this.sp, this.payed});
 
   /// 从 JSON 构建播放权限信息。
   CloudDataSimplesongPrivilege.fromJson(Map<String, dynamic> json) {

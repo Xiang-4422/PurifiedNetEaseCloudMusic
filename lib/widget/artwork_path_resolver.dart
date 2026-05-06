@@ -59,7 +59,6 @@ class ArtworkPathResolver {
     if (artworkPath == null || artworkPath.isEmpty) {
       return false;
     }
-    return !artworkPath.startsWith('http://') &&
-        !artworkPath.startsWith('https://');
+    return !artworkPath.startsWith('http://') && !artworkPath.startsWith('https://');
   }
 }

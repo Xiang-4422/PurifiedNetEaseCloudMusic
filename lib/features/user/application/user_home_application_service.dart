@@ -6,8 +6,7 @@ import 'package:bujuan/features/user/user_repository.dart';
 /// 编排首页推荐、日推和 FM 候选数据的应用服务。
 class UserHomeApplicationService {
   /// 创建用户首页应用服务。
-  UserHomeApplicationService({required UserRepository repository})
-      : _repository = repository;
+  UserHomeApplicationService({required UserRepository repository}) : _repository = repository;
 
   final UserRepository _repository;
 
@@ -150,8 +149,5 @@ class UserHomeSnapshot {
   final List<PlaybackQueueItem> fmSongs;
 
   /// 快照中是否包含任何可展示数据。
-  bool get hasData =>
-      recommendedPlaylists.isNotEmpty ||
-      todayRecommendSongs.isNotEmpty ||
-      fmSongs.isNotEmpty;
+  bool get hasData => recommendedPlaylists.isNotEmpty || todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
 }

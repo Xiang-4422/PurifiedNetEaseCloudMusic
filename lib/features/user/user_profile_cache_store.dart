@@ -14,8 +14,7 @@ class UserProfileCacheStore {
 
   /// 读取指定用户的资料快照。
   Future<UserProfileData?> loadProfile(String userId) async {
-    final payloadJson =
-        await _cacheDataSource.loadPayloadJson(_profileCacheKey(userId));
+    final payloadJson = await _cacheDataSource.loadPayloadJson(_profileCacheKey(userId));
     if (payloadJson == null) {
       return null;
     }

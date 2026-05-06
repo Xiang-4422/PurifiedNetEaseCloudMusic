@@ -30,25 +30,18 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
           child: Obx(
             () {
               final isBigAlbum = controller.isBigAlbum.isTrue;
-              final size = isBigAlbum
-                  ? context.width - AppDimensions.paddingLarge * 2
-                  : AppDimensions.albumMinSize;
-              final borderRadius = isBigAlbum
-                  ? AppDimensions.paddingLarge / 2
-                  : AppDimensions.albumMinSize;
+              final size = isBigAlbum ? context.width - AppDimensions.paddingLarge * 2 : AppDimensions.albumMinSize;
+              final borderRadius = isBigAlbum ? AppDimensions.paddingLarge / 2 : AppDimensions.albumMinSize;
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 margin: isBigAlbum
                     ? EdgeInsets.only(
                         right: AppDimensions.paddingLarge,
-                        top: AppDimensions.appBarHeight +
-                            context.mediaQueryPadding.top +
-                            AppDimensions.paddingLarge,
+                        top: AppDimensions.appBarHeight + context.mediaQueryPadding.top + AppDimensions.paddingLarge,
                       )
                     : EdgeInsets.only(
                         right: AppDimensions.paddingLarge,
-                        top: context.mediaQueryPadding.top +
-                            AppDimensions.paddingSmall,
+                        top: context.mediaQueryPadding.top + AppDimensions.paddingSmall,
                       ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(borderRadius),
@@ -57,8 +50,7 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
                 width: size,
                 height: size,
                 child: Obx(() {
-                  final currentSong =
-                      PlayerController.to.currentSongState.value;
+                  final currentSong = PlayerController.to.currentSongState.value;
                   final artworkPath = ArtworkPathResolver.resolveDisplayPath(
                     currentSong.artworkUrl ?? currentSong.localArtworkPath,
                   );
@@ -96,21 +88,17 @@ class BottomPanelArtworkPageLayer extends StatefulWidget {
   final ShellController controller;
 
   @override
-  State<BottomPanelArtworkPageLayer> createState() =>
-      _BottomPanelArtworkPageLayerState();
+  State<BottomPanelArtworkPageLayer> createState() => _BottomPanelArtworkPageLayerState();
 }
 
-class _BottomPanelArtworkPageLayerState
-    extends State<BottomPanelArtworkPageLayer> {
+class _BottomPanelArtworkPageLayerState extends State<BottomPanelArtworkPageLayer> {
   bool _wasVisible = false;
 
   @override
   Widget build(BuildContext context) {
     return Obx(
       () {
-        final isVisible = widget.controller.bottomPanelFullyOpened.isTrue &&
-            widget.controller.isBigAlbum.isTrue &&
-            widget.controller.isAlbumScaleEnded.isTrue;
+        final isVisible = widget.controller.bottomPanelFullyOpened.isTrue && widget.controller.isBigAlbum.isTrue && widget.controller.isAlbumScaleEnded.isTrue;
         if (isVisible && !_wasVisible) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) {
@@ -149,21 +137,18 @@ class _BottomPanelArtworkPageLayerState
                     onPageChanged: widget.controller.onAlbumPageChanged,
                     itemBuilder: (BuildContext context, int index) {
                       final item = queue[index];
-                      final artworkPath =
-                          ArtworkPathResolver.resolveDisplayPath(
+                      final artworkPath = ArtworkPathResolver.resolveDisplayPath(
                         item.artworkUrl ?? item.localArtworkPath,
                       );
                       return AnimatedSwitcher(
                         duration: const Duration(milliseconds: 220),
                         transitionBuilder: (child, animation) {
-                          return FadeTransition(
-                              opacity: animation, child: child);
+                          return FadeTransition(opacity: animation, child: child);
                         },
                         child: Container(
                           key: ValueKey(item.id),
                           clipBehavior: Clip.hardEdge,
-                          margin:
-                              const EdgeInsets.all(AppDimensions.paddingLarge),
+                          margin: const EdgeInsets.all(AppDimensions.paddingLarge),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(
                               AppDimensions.paddingLarge / 2,
@@ -180,10 +165,8 @@ class _BottomPanelArtworkPageLayerState
                             onTap: () {
                               widget.controller.isAlbumScaleEnded.value = false;
                               widget.controller.isBigAlbum.value = false;
-                              if (widget.controller.curPanelPageIndex.value ==
-                                  1) {
-                                PlayerController.to
-                                    .updateFullScreenLyricTimerCounter();
+                              if (widget.controller.curPanelPageIndex.value == 1) {
+                                PlayerController.to.updateFullScreenLyricTimerCounter();
                               }
                             },
                             child: SimpleExtendedImage(

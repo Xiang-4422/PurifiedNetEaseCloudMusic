@@ -106,8 +106,7 @@ class _FoolTalkState extends State<FoolTalk> {
                             ),
                             children: [
                               TextSpan(
-                                text:
-                                    ' (${DateTimeFormatter.commentTime(widget.commentItem.time)}) ',
+                                text: ' (${DateTimeFormatter.commentTime(widget.commentItem.time)}) ',
                                 style: const TextStyle(
                                   fontSize: 22,
                                   color: Colors.grey,
@@ -170,8 +169,7 @@ class _FoolTalkState extends State<FoolTalk> {
                       }
                     },
                     child: ListView.builder(
-                      itemBuilder: (context, index) =>
-                          _buildItem(state.items[index]),
+                      itemBuilder: (context, index) => _buildItem(state.items[index]),
                       itemCount: state.items.length,
                     ),
                   );
@@ -184,8 +182,7 @@ class _FoolTalkState extends State<FoolTalk> {
                 Expanded(
                   child: CustomField(
                     iconData: TablerIcons.message_2,
-                    textEditingController:
-                        _replySheetController.textEditingController,
+                    textEditingController: _replySheetController.textEditingController,
                     hitText: '请输入想说的话',
                   ),
                 ),
@@ -225,8 +222,7 @@ class _FoolTalkState extends State<FoolTalk> {
                     ),
                     children: [
                       TextSpan(
-                        text:
-                            ' (${DateTimeFormatter.commentTime(comment.time)}) ',
+                        text: ' (${DateTimeFormatter.commentTime(comment.time)}) ',
                         style: const TextStyle(
                           fontSize: 22,
                           color: Colors.grey,
@@ -250,8 +246,7 @@ class _FoolTalkState extends State<FoolTalk> {
             child: GestureDetector(
               child: Container(
                 margin: const EdgeInsets.only(left: 60),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                 child: Text(
                   '—— ${comment.replyCount}条回复 >',
                   style: const TextStyle(fontSize: 24, color: Colors.blue),

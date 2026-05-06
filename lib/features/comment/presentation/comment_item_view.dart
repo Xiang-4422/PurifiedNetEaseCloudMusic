@@ -86,9 +86,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
         duration: const Duration(milliseconds: 500),
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          color: _controller.isReplyVisible
-              ? Colors.black.withAlpha(20)
-              : Colors.transparent,
+          color: _controller.isReplyVisible ? Colors.black.withAlpha(20) : Colors.transparent,
           borderRadius: BorderRadius.circular(15),
         ),
         child: Row(
@@ -119,8 +117,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                             ),
                             children: [
                               TextSpan(
-                                text:
-                                    '\n${DateTimeFormatter.commentTime(comment.time)}',
+                                text: '\n${DateTimeFormatter.commentTime(comment.time)}',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: stringColor.withValues(alpha: 0.4),
@@ -133,15 +130,11 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                       Row(
                         children: [
                           Text(
-                            comment.likedCount == 0
-                                ? ''
-                                : '${comment.likedCount}',
+                            comment.likedCount == 0 ? '' : '${comment.likedCount}',
                             style: TextStyle(
                               fontSize: 10,
                               fontFamily: 'monospace',
-                              color: comment.liked
-                                  ? Colors.red
-                                  : stringColor.withValues(alpha: 0.4),
+                              color: comment.liked ? Colors.red : stringColor.withValues(alpha: 0.4),
                             ),
                           ).marginOnly(right: 5),
                           Container(
@@ -151,13 +144,9 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                             child: GestureDetector(
                               onTap: _controller.toggleLike,
                               child: Icon(
-                                comment.liked
-                                    ? Icons.favorite
-                                    : Icons.favorite_outline,
+                                comment.liked ? Icons.favorite : Icons.favorite_outline,
                                 size: 20,
-                                color: comment.liked
-                                    ? Colors.red
-                                    : stringColor.withValues(alpha: 0.4),
+                                color: comment.liked ? Colors.red : stringColor.withValues(alpha: 0.4),
                               ),
                             ),
                           ),
@@ -229,9 +218,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                         alignment: FractionalOffset.centerLeft,
                         color: Colors.transparent,
                         child: Text(
-                          _controller.unExpandedReplyCount > 0
-                              ? '—— ${_controller.unExpandedReplyCount}条回复 >'
-                              : '收起 <',
+                          _controller.unExpandedReplyCount > 0 ? '—— ${_controller.unExpandedReplyCount}条回复 >' : '收起 <',
                           style: TextStyle(
                             fontSize: 15,
                             color: stringColor.withValues(alpha: 0.2),

@@ -14,8 +14,7 @@ class PlaybackUserContentPort {
   });
 
   /// 切换歌曲喜欢状态。
-  final Future<PlaybackQueueItem?> Function(PlaybackQueueItem item)
-      toggleLikeStatus;
+  final Future<PlaybackQueueItem?> Function(PlaybackQueueItem item) toggleLikeStatus;
 
   /// 当前用户喜欢歌曲 id 列表。
   final List<int> Function() likedSongIds;

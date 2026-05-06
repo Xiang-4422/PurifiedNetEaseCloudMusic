@@ -16,8 +16,7 @@ enum PlaylistLocalDetailState {
 /// 歌单详情页的应用入口，集中处理用户态、喜欢态与歌单 repository 参数。
 class PlaylistPageController {
   /// 创建歌单页面控制器。
-  PlaylistPageController({required PlaylistDetailService detailService})
-      : _detailService = detailService;
+  PlaylistPageController({required PlaylistDetailService detailService}) : _detailService = detailService;
 
   final PlaylistDetailService _detailService;
 
@@ -58,9 +57,7 @@ class PlaylistPageController {
     if (detail == null || detail.songs.isEmpty) {
       return PlaylistLocalDetailState.empty;
     }
-    return detail.isComplete
-        ? PlaylistLocalDetailState.complete
-        : PlaylistLocalDetailState.partial;
+    return detail.isComplete ? PlaylistLocalDetailState.complete : PlaylistLocalDetailState.partial;
   }
 
   /// 切换歌单收藏状态。

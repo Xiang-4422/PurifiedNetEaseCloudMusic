@@ -18,8 +18,7 @@ class UserProfileController {
   final UserRepository _repository;
 
   /// 用户资料加载状态。
-  final ValueNotifier<LoadState<UserProfileData>> state =
-      ValueNotifier(const LoadState.loading());
+  final ValueNotifier<LoadState<UserProfileData>> state = ValueNotifier(const LoadState.loading());
 
   /// 首次加载用户资料，优先展示缓存并后台刷新。
   Future<void> loadInitial() async {
@@ -45,9 +44,7 @@ class UserProfileController {
     }
     try {
       final detail = await _repository.fetchUserDetail(userId);
-      state.value = detail.userId.isEmpty
-          ? const LoadState.empty()
-          : LoadState.data(detail);
+      state.value = detail.userId.isEmpty ? const LoadState.empty() : LoadState.data(detail);
     } catch (error, stackTrace) {
       if (state.value.data != null) {
         return;

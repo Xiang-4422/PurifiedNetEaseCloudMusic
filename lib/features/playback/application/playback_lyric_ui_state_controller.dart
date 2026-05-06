@@ -25,8 +25,7 @@ class PlaybackLyricUiStateController {
     }
     if (_fullScreenLyricTimer == null || !_fullScreenLyricTimer!.isActive) {
       _fullScreenLyricTimerCounter = closeTime;
-      _fullScreenLyricTimer =
-          Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      _fullScreenLyricTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
         _fullScreenLyricTimerCounter -= 50;
         if (_fullScreenLyricTimerCounter <= 0) {
           _fullScreenLyricTimerCounter = 0;

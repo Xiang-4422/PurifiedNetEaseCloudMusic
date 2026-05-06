@@ -29,8 +29,7 @@ class _MyRadioViewState extends State<MyRadioView> {
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<FeatureControllerFactory>().radioList()
-      ..loadInitial();
+    _controller = Get.find<FeatureControllerFactory>().radioList()..loadInitial();
   }
 
   @override
@@ -89,8 +88,7 @@ class _MyRadioViewState extends State<MyRadioView> {
                 },
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemBuilder: (context, index) =>
-                      _buildItem(state.items[index]),
+                  itemBuilder: (context, index) => _buildItem(state.items[index]),
                   itemCount: state.items.length,
                 ),
               );

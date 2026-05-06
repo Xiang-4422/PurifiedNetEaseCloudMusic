@@ -4,8 +4,7 @@ import 'package:bujuan/features/download/download_repository.dart';
 /// 恢复下载任务用例。
 class RecoverDownloadsUseCase {
   /// 创建恢复下载任务用例。
-  RecoverDownloadsUseCase({required DownloadRepository repository})
-      : _repository = repository;
+  RecoverDownloadsUseCase({required DownloadRepository repository}) : _repository = repository;
 
   final DownloadRepository _repository;
 

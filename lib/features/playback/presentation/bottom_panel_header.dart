@@ -19,8 +19,7 @@ class BottomPanelHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(top: context.mediaQueryPadding.top),
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
       height: AppDimensions.appBarHeight,
       width: context.width,
       child: Obx(
@@ -50,8 +49,7 @@ class BottomPanelHeader extends StatelessWidget {
                         maxLines: 1,
                         style: context.textTheme.titleLarge?.copyWith(
                           fontSize: context.textTheme.titleLarge!.fontSize! / 2,
-                          color: SettingsController.to.panelWidgetColor.value
-                              .withValues(alpha: 0.5),
+                          color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -64,15 +62,12 @@ class BottomPanelHeader extends StatelessWidget {
                       visible: controller.isAlbumScaleEnded.isTrue,
                       child: GestureDetector(
                         onTap: () {
-                          if (PlayerController
-                              .to.isFullScreenLyricOpen.isTrue) {
-                            PlayerController.to.isFullScreenLyricOpen.value =
-                                false;
+                          if (PlayerController.to.isFullScreenLyricOpen.isTrue) {
+                            PlayerController.to.isFullScreenLyricOpen.value = false;
                           } else {
                             controller.isAlbumScaleEnded.value = false;
                             controller.isBigAlbum.value = true;
-                            PlayerController.to
-                                .updateFullScreenLyricTimerCounter(
+                            PlayerController.to.updateFullScreenLyricTimerCounter(
                               cancelTimer: true,
                             );
                           }

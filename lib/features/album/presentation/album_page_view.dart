@@ -29,8 +29,7 @@ class AlbumPageView extends StatefulWidget {
 }
 
 class _AlbumPageViewState extends State<AlbumPageView> {
-  final AlbumPageController _controller =
-      Get.find<FeatureControllerFactory>().albumPage();
+  final AlbumPageController _controller = Get.find<FeatureControllerFactory>().albumPage();
   final PlaybackActionPort _playbackAction = Get.find<PlaybackActionPort>();
   late String albumId;
   late AlbumEntity album;
@@ -78,15 +77,10 @@ class _AlbumPageViewState extends State<AlbumPageView> {
       onRefresh: () => _refreshAlbumDetail(showLoadingState: false),
       child: Container(
         color: albumColor,
-        child:
-            CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
+        child: CustomScrollView(physics: const BouncingScrollPhysics(), slivers: [
           SliverAppBar(
-            toolbarHeight: AppDimensions.appBarHeight -
-                context.mediaQueryPadding.top +
-                AppDimensions.paddingLarge,
-            collapsedHeight: AppDimensions.appBarHeight -
-                context.mediaQueryPadding.top +
-                AppDimensions.paddingLarge,
+            toolbarHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
+            collapsedHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
             expandedHeight: layoutMetrics.heroExtent,
             pinned: true,
             stretch: true,
@@ -100,10 +94,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                 // StretchMode.blurBackground, // 背景图模糊
                 // StretchMode.fadeTitle,      // 标题渐隐
               ],
-              titlePadding: const EdgeInsets.only(
-                  bottom: AppDimensions.paddingMedium,
-                  left: AppDimensions.paddingMedium,
-                  right: AppDimensions.paddingMedium),
+              titlePadding: const EdgeInsets.only(bottom: AppDimensions.paddingMedium, left: AppDimensions.paddingMedium, right: AppDimensions.paddingMedium),
               title: BlurryContainer(
                 padding: EdgeInsets.zero,
                 borderRadius: BorderRadius.circular(9999),
@@ -175,15 +166,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                     height: AppDimensions.bottomPanelHeaderHeight,
                   );
                 }
-                return SongItem(
-                        playlist: albumSongs,
-                        index: index,
-                        playListName: album.title,
-                        playListHeader: "专辑",
-                        stringColor: onAlbumColor,
-                        showPic: false,
-                        showIndex: true,
-                        onPlay: _playbackAction.playPlaylist)
+                return SongItem(playlist: albumSongs, index: index, playListName: album.title, playListHeader: "专辑", stringColor: onAlbumColor, showPic: false, showIndex: true, onPlay: _playbackAction.playPlaylist)
                     .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
               },
             ),
@@ -224,8 +207,7 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     });
   }
 
-  String? get _resolvedArtworkUrl =>
-      ArtworkPathResolver.resolvePreferredArtwork(
+  String? get _resolvedArtworkUrl => ArtworkPathResolver.resolvePreferredArtwork(
         album.artworkUrl,
         fallbackItems: albumSongs,
       );

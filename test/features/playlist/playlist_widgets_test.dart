@@ -8,8 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('playlist widgets', () {
-    testWidgets('Header grows from padding instead of forcing fixed height',
-        (tester) async {
+    testWidgets('Header grows from padding instead of forcing fixed height', (tester) async {
       const headerKey = Key('header');
       await tester.pumpWidget(
         _wrap(
@@ -25,9 +24,7 @@ void main() {
       expect(tester.getSize(find.byKey(headerKey)).height, greaterThan(50));
     });
 
-    testWidgets(
-        'UniversalListTile expands with text scale and constrains trailing',
-        (tester) async {
+    testWidgets('UniversalListTile expands with text scale and constrains trailing', (tester) async {
       const tileKey = Key('tile');
       await tester.pumpWidget(
         _wrap(
@@ -46,8 +43,7 @@ void main() {
       expect(tester.getSize(find.byKey(tileKey)).height, greaterThan(52));
     });
 
-    testWidgets('SongItem shows index and still triggers playback callback',
-        (tester) async {
+    testWidgets('SongItem shows index and still triggers playback callback', (tester) async {
       var playCallCount = 0;
       await tester.pumpWidget(
         _wrap(
@@ -75,9 +71,7 @@ void main() {
       expect(playCallCount, 1);
     });
 
-    testWidgets(
-        'PlayListWidget keeps artwork square and honors height override',
-        (tester) async {
+    testWidgets('PlayListWidget keeps artwork square and honors height override', (tester) async {
       await tester.pumpWidget(
         _wrap(
           SizedBox(

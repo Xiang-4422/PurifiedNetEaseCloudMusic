@@ -9,8 +9,7 @@ import 'package:bujuan/domain/entities/track.dart';
 /// 网易云歌单远程数据源。
 class NeteasePlaylistRemoteDataSource {
   /// 创建网易云歌单远程数据源。
-  NeteasePlaylistRemoteDataSource({NeteaseMusicApi? api})
-      : _api = api ?? NeteaseMusicApi();
+  NeteasePlaylistRemoteDataSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
 
   final NeteaseMusicApi _api;
 
@@ -26,12 +25,10 @@ class NeteasePlaylistRemoteDataSource {
       })> fetchPlaylistSnapshot(String playlistId) async {
     final wrap = await _api.playListDetail(playlistId);
     final playlist = wrap.playlist;
-    final playlistEntity =
-        playlist == null ? null : NeteasePlaylistMapper.fromPlaylist(playlist);
+    final playlistEntity = playlist == null ? null : NeteasePlaylistMapper.fromPlaylist(playlist);
     return (
       playlist: playlistEntity,
-      trackIds:
-          playlist?.trackIds?.map((track) => track.id).toList() ?? const [],
+      trackIds: playlist?.trackIds?.map((track) => track.id).toList() ?? const [],
       isSubscribed: playlist?.subscribed ?? false,
       name: playlist?.name ?? '无名歌单',
       creatorUserId: playlist?.creator?.userId,
@@ -50,8 +47,7 @@ class NeteasePlaylistRemoteDataSource {
     }
 
     final targetIds = songIds.sublist(offset);
-    final fetchCount =
-        limit == -1 || targetIds.length < limit ? targetIds.length : limit;
+    final fetchCount = limit == -1 || targetIds.length < limit ? targetIds.length : limit;
     final resolvedIds = targetIds.take(fetchCount).toList();
 
     final tracks = <Track>[];
@@ -62,8 +58,7 @@ class NeteasePlaylistRemoteDataSource {
           min(tracks.length + 1000, resolvedIds.length),
         ),
       );
-      final fetchedTracks =
-          NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []);
+      final fetchedTracks = NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []);
       if (fetchedTracks.isEmpty) {
         break;
       }
@@ -78,8 +73,7 @@ class NeteasePlaylistRemoteDataSource {
     String playlistId, {
     required bool subscribe,
   }) async {
-    final result =
-        await _api.subscribePlayList(playlistId, subscribe: subscribe);
+    final result = await _api.subscribePlayList(playlistId, subscribe: subscribe);
     return (
       success: result.code == 200,
       message: result.message,

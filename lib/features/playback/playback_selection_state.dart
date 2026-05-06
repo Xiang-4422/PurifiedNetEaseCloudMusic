@@ -66,9 +66,7 @@ class PlaybackSelectionState {
       selectedIndex: selectedIndex ?? this.selectedIndex,
       selectionVersion: selectionVersion ?? this.selectionVersion,
       sourceStatus: sourceStatus ?? this.sourceStatus,
-      sourceError: identical(sourceError, _unchanged)
-          ? this.sourceError
-          : sourceError as String?,
+      sourceError: identical(sourceError, _unchanged) ? this.sourceError : sourceError as String?,
     );
   }
 }

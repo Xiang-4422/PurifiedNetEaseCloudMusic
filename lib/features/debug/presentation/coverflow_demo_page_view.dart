@@ -205,10 +205,8 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
       pageSnapVelocityThreshold: _pageSnapVelocityThreshold,
       inertialVelocityThreshold: _inertialVelocityThreshold,
       inertialFriction: _inertialFriction,
-      animationBaseDuration:
-          Duration(milliseconds: _animationBaseMilliseconds.round()),
-      animationPerItemDuration:
-          Duration(milliseconds: _animationPerItemMilliseconds.round()),
+      animationBaseDuration: Duration(milliseconds: _animationBaseMilliseconds.round()),
+      animationPerItemDuration: Duration(milliseconds: _animationPerItemMilliseconds.round()),
       onInteractionStart: () {
         _updatePreviewIndex(displayIndex);
       },
@@ -306,9 +304,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
       backgroundColor: Colors.black,
       body: Obx(() {
         final runtimeState = playerController.runtimeState.value;
-        final queue = runtimeState.queue
-            .where((item) => _resolveArtwork(item)?.isNotEmpty == true)
-            .toList(growable: false);
+        final queue = runtimeState.queue.where((item) => _resolveArtwork(item)?.isNotEmpty == true).toList(growable: false);
         final currentDisplayIndex = queue.indexWhere(
           (item) => item.id == runtimeState.currentSong.id,
         );
@@ -342,8 +338,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
             ],
           );
         }
-        final safePlayerIndex =
-            currentDisplayIndex >= 0 ? currentDisplayIndex : 0;
+        final safePlayerIndex = currentDisplayIndex >= 0 ? currentDisplayIndex : 0;
         final displayIndex = _resolveDisplayIndex(
           queueLength: queue.length,
           playerIndex: safePlayerIndex,
@@ -508,9 +503,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
                         width: _controlsPageIndex == index ? 18 : 6,
                         height: 6,
                         decoration: BoxDecoration(
-                          color: _controlsPageIndex == index
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: .26),
+                          color: _controlsPageIndex == index ? Colors.white : Colors.white.withValues(alpha: .26),
                           borderRadius: BorderRadius.circular(999),
                         ),
                       ),
@@ -607,9 +600,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
                           value: _farAngle,
                           min: _nearAngle,
                           max: 89,
-                          divisions: ((_maxFarAngleSpan(_nearAngle)) / 2)
-                              .floor()
-                              .clamp(1, 44),
+                          divisions: ((_maxFarAngleSpan(_nearAngle)) / 2).floor().clamp(1, 44),
                           onChanged: (value) {
                             setState(() {
                               _farAngle = value;
@@ -655,8 +646,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
                           value: _sideScale,
                           min: .5,
                           max: _centerScale,
-                          divisions:
-                              ((_centerScale - .5) * 20).round().clamp(1, 20),
+                          divisions: ((_centerScale - .5) * 20).round().clamp(1, 20),
                           onChanged: (value) {
                             setState(() {
                               _sideScale = value;
@@ -685,8 +675,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
                           value: _sideOpacity,
                           min: .1,
                           max: _centerOpacity,
-                          divisions:
-                              ((_centerOpacity - .1) * 20).round().clamp(1, 18),
+                          divisions: ((_centerOpacity - .1) * 20).round().clamp(1, 18),
                           onChanged: (value) {
                             setState(() {
                               _sideOpacity = value;
@@ -712,8 +701,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
                         ),
                         _buildSliderControl(
                           label: '翻页触发速度',
-                          valueLabel:
-                              _pageSnapVelocityThreshold.toStringAsFixed(0),
+                          valueLabel: _pageSnapVelocityThreshold.toStringAsFixed(0),
                           value: _pageSnapVelocityThreshold,
                           min: 120,
                           max: 720,
@@ -726,8 +714,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
                         ),
                         _buildSliderControl(
                           label: '惯性触发速度',
-                          valueLabel:
-                              _inertialVelocityThreshold.toStringAsFixed(0),
+                          valueLabel: _inertialVelocityThreshold.toStringAsFixed(0),
                           value: _inertialVelocityThreshold,
                           min: 80,
                           max: 640,
@@ -753,8 +740,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
                         ),
                         _buildSliderControl(
                           label: '基础动画时长',
-                          valueLabel:
-                              _animationBaseMilliseconds.toStringAsFixed(0),
+                          valueLabel: _animationBaseMilliseconds.toStringAsFixed(0),
                           value: _animationBaseMilliseconds,
                           min: 120,
                           max: 320,
@@ -767,8 +753,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
                         ),
                         _buildSliderControl(
                           label: '每项附加时长',
-                          valueLabel:
-                              _animationPerItemMilliseconds.toStringAsFixed(0),
+                          valueLabel: _animationPerItemMilliseconds.toStringAsFixed(0),
                           value: _animationPerItemMilliseconds,
                           min: 60,
                           max: 220,
@@ -807,9 +792,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
       showSelectedIcon: false,
       style: ButtonStyle(
         visualDensity: compact ? VisualDensity.compact : null,
-        tapTargetSize: compact
-            ? MaterialTapTargetSize.shrinkWrap
-            : MaterialTapTargetSize.padded,
+        tapTargetSize: compact ? MaterialTapTargetSize.shrinkWrap : MaterialTapTargetSize.padded,
         padding: WidgetStateProperty.all(
           EdgeInsets.symmetric(
             horizontal: compact ? 10 : 14,

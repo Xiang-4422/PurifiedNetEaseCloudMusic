@@ -112,8 +112,7 @@ class DownloadFileStore {
     }
 
     final extension = _resolveExtension(artworkUrl, fallback: '.jpg');
-    final artworkPath =
-        '${artworkDirectory.path}/${_safeTrackFileName(track)}$extension';
+    final artworkPath = '${artworkDirectory.path}/${_safeTrackFileName(track)}$extension';
     try {
       await downloadBinaryFile(
         artworkUrl,
@@ -136,8 +135,7 @@ class DownloadFileStore {
       return null;
     }
 
-    final lyricsPath =
-        '${lyricsDirectory.path}/${_safeFileSegment(trackId)}.lrc';
+    final lyricsPath = '${lyricsDirectory.path}/${_safeFileSegment(trackId)}.lrc';
     final lyricFile = File(lyricsPath);
     await lyricFile.writeAsString(_mergeLyricsContent(lyrics));
     return lyricFile.path;
@@ -181,8 +179,7 @@ class DownloadFileStore {
 
   Future<Directory> _ensureRootDirectory(String childName) async {
     final supportDirectory = await getApplicationSupportDirectory();
-    final rootDirectory =
-        Directory('${supportDirectory.path}/zmusic/$childName');
+    final rootDirectory = Directory('${supportDirectory.path}/zmusic/$childName');
     if (!rootDirectory.existsSync()) {
       await rootDirectory.create(recursive: true);
     }
@@ -229,8 +226,6 @@ class DownloadFileStore {
   }
 
   String _safeFileSegment(String value) {
-    return value
-        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
-        .replaceAll(RegExp(r'\s+'), '_');
+    return value.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_').replaceAll(RegExp(r'\s+'), '_');
   }
 }

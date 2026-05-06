@@ -68,8 +68,7 @@ String searchHotKeywordsLastRefreshSp = 'SEARCH_HOT_KEYWORDS_LAST_REFRESH';
 String explorePlaylistCatalogueSp = 'EXPLORE_PLAYLIST_CATALOGUE';
 
 /// 探索页歌单分类刷新时间戳的本地存储键。
-String explorePlaylistCatalogueLastRefreshSp =
-    'EXPLORE_PLAYLIST_CATALOGUE_LAST_REFRESH';
+String explorePlaylistCatalogueLastRefreshSp = 'EXPLORE_PLAYLIST_CATALOGUE_LAST_REFRESH';
 
 /// 下载任务快照的本地存储键。
 String downloadTasksSp = 'DOWNLOAD_TASKS';

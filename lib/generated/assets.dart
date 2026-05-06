@@ -48,16 +48,13 @@ class Assets {
   static const String lottieLoadingDialog = 'assets/lottie/loading_dialog.json';
 
   /// 无网络状态动画资源路径。
-  static const String lottieNoInternetConnection =
-      'assets/lottie/no_internet_connection.json';
+  static const String lottieNoInternetConnection = 'assets/lottie/no_internet_connection.json';
 
   /// 通知权限提示动画资源路径。
-  static const String lottieNotificationRequest =
-      'assets/lottie/notification_request.json';
+  static const String lottieNotificationRequest = 'assets/lottie/notification_request.json';
 
   /// 个人页角色动画资源路径。
-  static const String lottiePersonalCharacter =
-      'assets/lottie/personal_character.json';
+  static const String lottiePersonalCharacter = 'assets/lottie/personal_character.json';
 
   /// VR 动画资源路径。
   static const String lottieVrAnimation = 'assets/lottie/vr_animation.json';

@@ -24,8 +24,7 @@ class PlaybackQueueService {
 
   final PlaybackQueueStore _queueStore;
   final PlaybackService _playbackService;
-  final StreamController<PlaybackQueueState> _stateController =
-      StreamController<PlaybackQueueState>.broadcast(sync: true);
+  final StreamController<PlaybackQueueState> _stateController = StreamController<PlaybackQueueState>.broadcast(sync: true);
 
   PlaybackQueueState _state = const PlaybackQueueState();
   String _lastNotificationSignature = '';
@@ -45,9 +44,7 @@ class PlaybackQueueService {
     bool needStore = true,
   }) async {
     final selectedOriginalIndex = _clampIndex(index, queue.length);
-    final selectedItem = selectedOriginalIndex >= 0
-        ? queue[selectedOriginalIndex]
-        : const PlaybackQueueItem.empty();
+    final selectedItem = selectedOriginalIndex >= 0 ? queue[selectedOriginalIndex] : const PlaybackQueueItem.empty();
     final activeQueue = _buildActiveQueue(
       originalQueue: queue,
       repeatMode: _state.repeatMode,
@@ -105,8 +102,7 @@ class PlaybackQueueService {
     PlaybackPerformanceLogger.elapsed(
       'queue.selectIndex',
       stopwatch,
-      details:
-          'requested=$index selected=$selectedIndex queue=${_state.activeQueue.length} version=${_state.selectionVersion}',
+      details: 'requested=$index selected=$selectedIndex queue=${_state.activeQueue.length} version=${_state.selectionVersion}',
     );
     return _state;
   }
@@ -122,9 +118,7 @@ class PlaybackQueueService {
 
   /// 从 confirmed index 推进下一首，用于底层完成后的自动续播。
   Future<PlaybackQueueState?> selectNextFromConfirmed() async {
-    final baseIndex = _state.confirmedIndex >= 0
-        ? _state.confirmedIndex
-        : _state.selectedIndex;
+    final baseIndex = _state.confirmedIndex >= 0 ? _state.confirmedIndex : _state.selectedIndex;
     final resolvedIndex = nextIndex(fromIndex: baseIndex);
     if (resolvedIndex == null) {
       return null;
@@ -147,8 +141,7 @@ class PlaybackQueueService {
     if (queueLength <= 0) {
       return null;
     }
-    final currentIndex =
-        _clampIndex(fromIndex ?? _state.selectedIndex, queueLength);
+    final currentIndex = _clampIndex(fromIndex ?? _state.selectedIndex, queueLength);
     if (_state.repeatMode == PlaybackRepeatMode.one) {
       return currentIndex;
     }
@@ -176,8 +169,7 @@ class PlaybackQueueService {
   }
 
   /// 更新重复播放模式，并按需重建 active queue。
-  Future<PlaybackQueueState> setRepeatMode(
-      PlaybackRepeatMode repeatMode) async {
+  Future<PlaybackQueueState> setRepeatMode(PlaybackRepeatMode repeatMode) async {
     final selectedId = _state.selectedItem.id;
     final activeQueue = _buildActiveQueue(
       originalQueue: _state.originalQueue,
@@ -259,9 +251,7 @@ class PlaybackQueueService {
       return _state;
     }
     final existingIds = _state.originalQueue.map((item) => item.id).toSet();
-    final filteredSongs = incomingSongs
-        .where((item) => !existingIds.contains(item.id))
-        .toList(growable: false);
+    final filteredSongs = incomingSongs.where((item) => !existingIds.contains(item.id)).toList(growable: false);
     if (filteredSongs.isEmpty) {
       return _state;
     }
@@ -270,9 +260,7 @@ class PlaybackQueueService {
     if (combined.length > maxQueueLength) {
       combined.removeRange(0, combined.length - retainQueueLength);
     }
-    final selectedId = _state.selectedItem.id.isNotEmpty
-        ? _state.selectedItem.id
-        : currentSongId;
+    final selectedId = _state.selectedItem.id.isNotEmpty ? _state.selectedItem.id : currentSongId;
     final activeQueue = _buildActiveQueue(
       originalQueue: combined,
       repeatMode: _state.repeatMode,
@@ -373,8 +361,7 @@ class PlaybackQueueService {
     PlaybackPerformanceLogger.elapsed(
       'queue.notificationSignature',
       signatureStopwatch,
-      details:
-          'queue=${_state.activeQueue.length} confirmed=${_state.confirmedIndex}',
+      details: 'queue=${_state.activeQueue.length} confirmed=${_state.confirmedIndex}',
       warnAfterMs: 1,
     );
     if (signature == _lastNotificationSignature) {
@@ -393,8 +380,7 @@ class PlaybackQueueService {
       PlaybackPerformanceLogger.elapsed(
         'queue.syncNotificationQueue',
         syncStopwatch,
-        details:
-            'queue=${_state.activeQueue.length} confirmed=${_state.confirmedIndex}',
+        details: 'queue=${_state.activeQueue.length} confirmed=${_state.confirmedIndex}',
       );
     });
   }
@@ -431,8 +417,7 @@ class PlaybackQueueService {
     if (queue.isEmpty) {
       return queue;
     }
-    if (orderMode == PlaybackOrderMode.shuffle &&
-        playbackMode == PlaybackMode.playlist) {
+    if (orderMode == PlaybackOrderMode.shuffle && playbackMode == PlaybackMode.playlist) {
       queue.shuffle();
     }
     return queue;
@@ -452,9 +437,7 @@ class PlaybackQueueService {
     List<PlaybackQueueItem> queue,
     PlaybackQueueItem item,
   ) {
-    return queue
-        .map((queueItem) => queueItem.id == item.id ? item : queueItem)
-        .toList(growable: false);
+    return queue.map((queueItem) => queueItem.id == item.id ? item : queueItem).toList(growable: false);
   }
 
   int _indexOfItem(List<PlaybackQueueItem> queue, String itemId) {

@@ -21,15 +21,13 @@ class SnappingScrollPhysics extends ScrollPhysics {
     );
   }
 
-  double _getTargetPixels(
-      ScrollMetrics position, Tolerance tolerance, double velocity) {
+  double _getTargetPixels(ScrollMetrics position, Tolerance tolerance, double velocity) {
     final page = (position.pixels / itemExtent).round();
     return math.min(page * itemExtent, position.maxScrollExtent);
   }
 
   @override
-  Simulation? createBallisticSimulation(
-      ScrollMetrics position, double velocity) {
+  Simulation? createBallisticSimulation(ScrollMetrics position, double velocity) {
     final tolerance = toleranceFor(position);
     if (position.outOfRange) {
       return super.createBallisticSimulation(position, velocity);
@@ -62,8 +60,7 @@ class NoGlowScrollBehavior extends ScrollBehavior {
   const NoGlowScrollBehavior();
 
   @override
-  Widget buildOverscrollIndicator(
-      BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
 }
@@ -74,8 +71,7 @@ class NoStretchBouncingScrollBehavior extends ScrollBehavior {
   const NoStretchBouncingScrollBehavior();
 
   @override
-  Widget buildOverscrollIndicator(
-      BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
 

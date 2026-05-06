@@ -11,21 +11,17 @@ import 'playback_restore_data_source.dart';
 /// Drift 实现的播放恢复数据源。
 class DriftPlaybackRestoreDataSource implements PlaybackRestoreDataSource {
   /// 创建 Drift 播放恢复数据源。
-  DriftPlaybackRestoreDataSource({required BujuanDriftDatabase database})
-      : _database = database;
+  DriftPlaybackRestoreDataSource({required BujuanDriftDatabase database}) : _database = database;
 
   final BujuanDriftDatabase _database;
 
   @override
   Future<PlaybackRestoreState?> getRestoreState() async {
-    final row = await (_database.select(_database.playbackRestoreSnapshots)
-          ..where((tbl) => tbl.id.equals(0)))
-        .getSingleOrNull();
+    final row = await (_database.select(_database.playbackRestoreSnapshots)..where((tbl) => tbl.id.equals(0))).getSingleOrNull();
     if (row == null) {
       return null;
     }
-    final queue = (jsonDecode(row.queueJson) as List?)?.cast<String>() ??
-        const <String>[];
+    final queue = (jsonDecode(row.queueJson) as List?)?.cast<String>() ?? const <String>[];
     return PlaybackRestoreState(
       playbackMode: PlaybackMode.values.firstWhere(
         (item) => item.name == row.playbackMode,
@@ -45,9 +41,7 @@ class DriftPlaybackRestoreDataSource implements PlaybackRestoreDataSource {
 
   @override
   Future<void> saveRestoreState(PlaybackRestoreState state) {
-    return _database
-        .into(_database.playbackRestoreSnapshots)
-        .insertOnConflictUpdate(
+    return _database.into(_database.playbackRestoreSnapshots).insertOnConflictUpdate(
           PlaybackRestoreSnapshotsCompanion(
             id: const drift.Value(0),
             updatedAtMs: drift.Value(DateTime.now().millisecondsSinceEpoch),

@@ -8,8 +8,7 @@ import 'package:bujuan/features/playback/playback_repository.dart';
 /// 负责把歌曲歌词解析成播放器 UI 可消费的展示状态。
 class PlaybackLyricsPresenter {
   /// 创建歌词展示状态组装器。
-  PlaybackLyricsPresenter({required PlaybackRepository repository})
-      : _repository = repository;
+  PlaybackLyricsPresenter({required PlaybackRepository repository}) : _repository = repository;
 
   final PlaybackRepository _repository;
 
@@ -20,8 +19,7 @@ class PlaybackLyricsPresenter {
     }
 
     try {
-      final lyrics = await _repository.fetchSongLyrics(currentSong.id) ??
-          const TrackLyrics();
+      final lyrics = await _repository.fetchSongLyrics(currentSong.id) ?? const TrackLyrics();
       final lyric = lyrics.main;
       final lyricTran = lyrics.translated;
       if (lyric.isEmpty) {

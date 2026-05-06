@@ -51,12 +51,8 @@ class PlaybackQueueItemAdapter {
       sourceId: _stringOrNull(extras['sourceId']) ?? item.id,
       title: item.title,
       albumTitle: item.album ?? _stringOrNull(extras['albumTitle']),
-      artistNames: (extras['artistNames'] as List? ?? const [])
-          .map((artist) => '$artist')
-          .toList(),
-      artistIds: (extras['artistIds'] as List? ?? const [])
-          .map((artistId) => '$artistId')
-          .toList(),
+      artistNames: (extras['artistNames'] as List? ?? const []).map((artist) => '$artist').toList(),
+      artistIds: (extras['artistIds'] as List? ?? const []).map((artistId) => '$artistId').toList(),
       duration: item.duration,
       artworkUrl: image,
       localArtworkPath: localArtworkPath,

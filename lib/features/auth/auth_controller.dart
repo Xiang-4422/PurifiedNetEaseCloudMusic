@@ -10,8 +10,7 @@ import 'package:get/get.dart';
 /// 承接二维码登录流程的瞬时状态，避免登录页继续持有轮询与鉴权副作用。
 class AuthController extends GetxController {
   /// 创建二维码登录控制器。
-  AuthController({required AuthRepository repository})
-      : _repository = repository;
+  AuthController({required AuthRepository repository}) : _repository = repository;
 
   final AuthRepository _repository;
 

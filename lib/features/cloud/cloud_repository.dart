@@ -38,10 +38,7 @@ class CloudRepository {
       return const [];
     }
     final tracksById = {for (final track in tracks) track.track.id: track};
-    final orderedTracks = trackIds
-        .map((trackId) => tracksById[trackId])
-        .whereType<TrackWithResources>()
-        .toList();
+    final orderedTracks = trackIds.map((trackId) => tracksById[trackId]).whereType<TrackWithResources>().toList();
     return PlaybackQueueItemMapper.fromTrackWithResourcesList(
       orderedTracks,
       likedSongIds: likedSongIds,

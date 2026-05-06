@@ -43,10 +43,7 @@ class PlaybackUiCommandService {
     if (selection.sourceStatus == PlaybackSelectionSourceStatus.loading) {
       return;
     }
-    if (!_playbackService.hasAudioSource ||
-        selection.sourceStatus == PlaybackSelectionSourceStatus.error ||
-        (selection.hasSelection &&
-            selection.selectedItem.id != confirmedItem.id)) {
+    if (!_playbackService.hasAudioSource || selection.sourceStatus == PlaybackSelectionSourceStatus.error || (selection.hasSelection && selection.selectedItem.id != confirmedItem.id)) {
       await _selectionService.submitCurrent(
         trigger: PlaybackSwitchTrigger.userSelect,
       );
@@ -162,8 +159,7 @@ class PlaybackUiCommandService {
     required Future<void> Function(PlaybackMode mode) syncMode,
     required Future<void> Function() playOrPauseWhenPaused,
     required Future<bool> Function() startRoaming,
-    required Future<bool> Function(String startSongId, bool fromPlayAll)
-        startHeartBeat,
+    required Future<bool> Function(String startSongId, bool fromPlayAll) startHeartBeat,
     dynamic contextData,
   }) async {
     if (currentMode == newMode && newMode != PlaybackMode.playlist) {

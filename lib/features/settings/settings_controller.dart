@@ -12,8 +12,7 @@ class SettingsController extends GetxController {
 
   /// 轻量设置持久化 box。
   final Box box = CacheBox.instance;
-  final LibraryPreferenceStore _libraryPreferenceStore =
-      const LibraryPreferenceStore();
+  final LibraryPreferenceStore _libraryPreferenceStore = const LibraryPreferenceStore();
 
   /// 是否启用渐变背景。
   RxBool isGradientBackground = false.obs;
@@ -40,8 +39,7 @@ class SettingsController extends GetxController {
   }
 
   void _initAppSetting() {
-    isGradientBackground.value =
-        box.get(gradientBackgroundSp, defaultValue: true);
+    isGradientBackground.value = box.get(gradientBackgroundSp, defaultValue: true);
     isHighSoundQualityOpen.value = box.get(highSong, defaultValue: false);
     isRoundAlbumOpen.value = box.get(roundAlbumSp, defaultValue: false);
     isOfflineModeEnabled.value = _libraryPreferenceStore.isOfflineModeEnabled;

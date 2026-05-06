@@ -22,8 +22,7 @@ class RadioListController {
   final int pageSize;
 
   /// 订阅电台分页状态。
-  final ValueNotifier<PagedState<RadioSummaryData>> state =
-      ValueNotifier(PagedState.initialLoading());
+  final ValueNotifier<PagedState<RadioSummaryData>> state = ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
 

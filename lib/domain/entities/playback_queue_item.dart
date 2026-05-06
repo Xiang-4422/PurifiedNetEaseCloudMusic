@@ -99,8 +99,7 @@ class PlaybackQueueItem {
 
   /// 播放适配层使用的封面 URI。
   Uri? get artUri {
-    final source =
-        localArtworkPath?.isNotEmpty == true ? localArtworkPath : artworkUrl;
+    final source = localArtworkPath?.isNotEmpty == true ? localArtworkPath : artworkUrl;
     if (source == null || source.isEmpty) {
       return null;
     }
@@ -148,25 +147,15 @@ class PlaybackQueueItem {
       id: id ?? this.id,
       sourceId: sourceId ?? this.sourceId,
       title: title ?? this.title,
-      albumTitle: identical(albumTitle, _unset)
-          ? this.albumTitle
-          : albumTitle as String?,
+      albumTitle: identical(albumTitle, _unset) ? this.albumTitle : albumTitle as String?,
       artistNames: artistNames ?? this.artistNames,
       artistIds: artistIds ?? this.artistIds,
-      duration:
-          identical(duration, _unset) ? this.duration : duration as Duration?,
-      artworkUrl: identical(artworkUrl, _unset)
-          ? this.artworkUrl
-          : artworkUrl as String?,
-      localArtworkPath: identical(localArtworkPath, _unset)
-          ? this.localArtworkPath
-          : localArtworkPath as String?,
+      duration: identical(duration, _unset) ? this.duration : duration as Duration?,
+      artworkUrl: identical(artworkUrl, _unset) ? this.artworkUrl : artworkUrl as String?,
+      localArtworkPath: identical(localArtworkPath, _unset) ? this.localArtworkPath : localArtworkPath as String?,
       mediaType: mediaType ?? this.mediaType,
-      playbackUrl: identical(playbackUrl, _unset)
-          ? this.playbackUrl
-          : playbackUrl as String?,
-      lyricKey:
-          identical(lyricKey, _unset) ? this.lyricKey : lyricKey as String?,
+      playbackUrl: identical(playbackUrl, _unset) ? this.playbackUrl : playbackUrl as String?,
+      lyricKey: identical(lyricKey, _unset) ? this.lyricKey : lyricKey as String?,
       isLiked: isLiked ?? this.isLiked,
       isCached: isCached ?? this.isCached,
       metadata: metadata ?? this.metadata,
@@ -180,13 +169,9 @@ class PlaybackQueueItem {
       sourceId: json['sourceId'] as String? ?? '',
       title: json['title'] as String? ?? '',
       albumTitle: json['albumTitle'] as String?,
-      artistNames:
-          (json['artistNames'] as List? ?? const []).map((e) => '$e').toList(),
-      artistIds:
-          (json['artistIds'] as List? ?? const []).map((e) => '$e').toList(),
-      duration: json['duration'] is int
-          ? Duration(milliseconds: json['duration'] as int)
-          : null,
+      artistNames: (json['artistNames'] as List? ?? const []).map((e) => '$e').toList(),
+      artistIds: (json['artistIds'] as List? ?? const []).map((e) => '$e').toList(),
+      duration: json['duration'] is int ? Duration(milliseconds: json['duration'] as int) : null,
       artworkUrl: json['artworkUrl'] as String?,
       localArtworkPath: json['localArtworkPath'] as String?,
       mediaType: MediaType.values.firstWhere(

@@ -54,9 +54,7 @@ class ArtistRepository {
         topTracks,
         likedSongIds: likedSongIds,
       ),
-      hotAlbums: hotAlbums
-          .where((album) => album.artistNames.contains(artist.name))
-          .toList(),
+      hotAlbums: hotAlbums.where((album) => album.artistNames.contains(artist.name)).toList(),
     );
   }
 

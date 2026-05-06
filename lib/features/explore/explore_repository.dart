@@ -9,8 +9,7 @@ class ExploreRepository {
   ExploreRepository({
     NeteaseExploreRemoteDataSource? remoteDataSource,
     required ExploreCacheStore cacheStore,
-  })  : _remoteDataSource =
-            remoteDataSource ?? NeteaseExploreRemoteDataSource(),
+  })  : _remoteDataSource = remoteDataSource ?? NeteaseExploreRemoteDataSource(),
         _cacheStore = cacheStore;
 
   final NeteaseExploreRemoteDataSource _remoteDataSource;
@@ -55,8 +54,7 @@ class ExploreRepository {
   }
 
   /// 获取指定分类的远程歌单并写入缓存。
-  Future<List<PlaylistSummaryData>> fetchCategoryPlaylists(
-      String category) async {
+  Future<List<PlaylistSummaryData>> fetchCategoryPlaylists(String category) async {
     final response = await _remoteDataSource.fetchCategoryPlaylists(category);
     final playlists = response.map(PlaylistSummaryData.fromEntity).toList();
     if (playlists.isNotEmpty) {

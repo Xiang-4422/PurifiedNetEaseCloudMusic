@@ -28,8 +28,7 @@ class FloorCommentController {
   final CommentRepository _repository;
 
   /// 楼层回复分页加载状态。
-  final ValueNotifier<PagedState<CommentData>> state =
-      ValueNotifier(PagedState.initialLoading());
+  final ValueNotifier<PagedState<CommentData>> state = ValueNotifier(PagedState.initialLoading());
 
   int _time = -1;
   bool _loadedOnce = false;

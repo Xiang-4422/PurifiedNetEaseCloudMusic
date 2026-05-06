@@ -17,8 +17,7 @@ class PlaylistCacheStore {
 
   /// 读取缓存的歌单歌曲队列。
   Future<List<PlaybackQueueItem>?> loadSongs(String playlistId) async {
-    final payloadJson =
-        await _cacheDataSource.loadPayloadJson(_songsCacheKey(playlistId));
+    final payloadJson = await _cacheDataSource.loadPayloadJson(_songsCacheKey(playlistId));
     if (payloadJson == null) {
       return null;
     }
@@ -46,8 +45,7 @@ class PlaylistCacheStore {
 
   /// 读取缓存的歌单快照。
   Future<PlaylistSnapshotData?> loadSnapshot(String playlistId) async {
-    final payloadJson =
-        await _cacheDataSource.loadPayloadJson(_snapshotCacheKey(playlistId));
+    final payloadJson = await _cacheDataSource.loadPayloadJson(_snapshotCacheKey(playlistId));
     if (payloadJson == null) {
       return null;
     }
@@ -84,8 +82,7 @@ class PlaylistCacheStore {
 
   String _songsCacheKey(String playlistId) => 'PLAYLIST_SONGS_$playlistId';
 
-  String _snapshotCacheKey(String playlistId) =>
-      'PLAYLIST_SNAPSHOT_$playlistId';
+  String _snapshotCacheKey(String playlistId) => 'PLAYLIST_SNAPSHOT_$playlistId';
 
   /// 更新歌单缓存刷新时间。
   Future<void> touchRefresh(String playlistId) {
@@ -161,6 +158,5 @@ class PlaylistCacheStore {
   static const String _playlistAccessKey = 'PLAYLIST_CACHE_LAST_ACCESS';
   static const int _maxPlaylistCacheCount = 30;
 
-  String _refreshCacheKey(String playlistId) =>
-      'PLAYLIST_CACHE_LAST_REFRESH_$playlistId';
+  String _refreshCacheKey(String playlistId) => 'PLAYLIST_CACHE_LAST_REFRESH_$playlistId';
 }

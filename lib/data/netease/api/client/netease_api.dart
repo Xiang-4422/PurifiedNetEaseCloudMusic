@@ -24,15 +24,7 @@ import 'netease_bean.dart';
 import 'netease_handler.dart';
 
 /// 网易云音乐 SDK 入口，组合登录、播放、搜索、用户等接口 mixin。
-class NeteaseMusicApi
-    with
-        ApiPlay,
-        ApiDj,
-        ApiLogin,
-        ApiUser,
-        ApiEvent,
-        ApiSearch,
-        ApiUncategorized {
+class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearch, ApiUncategorized {
   static NeteaseMusicApi? _neteaseMusicApi;
 
   /// 当前全局 Cookie 管理器。
@@ -54,8 +46,7 @@ class NeteaseMusicApi
     pathProvider = provider ?? PathProvider();
     await pathProvider.init();
     // 初始化 cookieManager
-    cookieManager = CookieManager(PersistCookieJar(
-        storage: FileStorage(pathProvider.getCookieSavedPath())));
+    cookieManager = CookieManager(PersistCookieJar(storage: FileStorage(pathProvider.getCookieSavedPath())));
     // 初始化 dio
     _initDio(Https.dio, debug, true, logResponseBody);
     return true;
@@ -82,8 +73,7 @@ class NeteaseMusicApi
     }
     dio.interceptors.add(InterceptorsWrapper(
         onRequest: neteaseInterceptor,
-        onResponse:
-            (Response response, ResponseInterceptorHandler handler) async {
+        onResponse: (Response response, ResponseInterceptorHandler handler) async {
           var requestOptions = response.requestOptions;
 
           if (response.data is String) {
@@ -91,9 +81,7 @@ class NeteaseMusicApi
               response.data = jsonDecode(response.data);
             } catch (e) {}
           }
-          if (refreshToken &&
-              NeteaseMusicApi().usc.isLogined &&
-              response.data is Map) {
+          if (refreshToken && NeteaseMusicApi().usc.isLogined && response.data is Map) {
             var result = ServerStatusBean.fromJson(response.data);
             // 1. token已经更新，请求重试
             // 2. token未更新
@@ -102,8 +90,7 @@ class NeteaseMusicApi
             //    2. 刷新失败，登录态切换
             if (result.code == RET_CODE_NEED_LOGIN) {
               try {
-                if (requestOptions.extra['cookiesHash'] !=
-                    await loadCookiesHash()) {
+                if (requestOptions.extra['cookiesHash'] != await loadCookiesHash()) {
                   var newResponse = await dio.fetch(requestOptions);
                   handler.next(newResponse);
                   return;
@@ -158,9 +145,7 @@ class UserLoginStateController {
   Future<void> init() async {
     _checkCreateSavePath();
     await _readAccountInfo();
-    _refreshLoginState((await loadCookies()).isNotEmpty && _accountInfo != null
-        ? LoginState.Logined
-        : LoginState.Logout);
+    _refreshLoginState((await loadCookies()).isNotEmpty && _accountInfo != null ? LoginState.Logined : LoginState.Logout);
   }
 
   NeteaseAccountInfoWrap? _accountInfo;
@@ -186,9 +171,7 @@ class UserLoginStateController {
   }
 
   /// 监听登录态变化并携带当前账号信息。
-  StreamSubscription listenLoginState(
-      void Function(LoginState event, NeteaseAccountInfoWrap? accountInfoWrap)
-          onChange) {
+  StreamSubscription listenLoginState(void Function(LoginState event, NeteaseAccountInfoWrap? accountInfoWrap) onChange) {
     var controller = _controller;
     if (controller == null) {
       _controller = controller = StreamController.broadcast(sync: true);
@@ -233,8 +216,7 @@ class UserLoginStateController {
     }
   }
 
-  File _saveFile() => File(
-      "${NeteaseMusicApi.pathProvider.getDataSavedPath()}_accountInfo.json");
+  File _saveFile() => File("${NeteaseMusicApi.pathProvider.getDataSavedPath()}_accountInfo.json");
 
   _checkCreateSavePath() {
     var file = _saveFile();
@@ -265,10 +247,8 @@ class PathProvider {
   /// 初始化平台相关存储目录。
   init() async {
     if (PlatformUtils.isWeb) return;
-    _cookiePath =
-        "${(await getApplicationSupportDirectory()).absolute.path}/zmusic/.cookies/";
-    _dataPath =
-        "${(await getApplicationSupportDirectory()).absolute.path}/zmusic/.data/";
+    _cookiePath = "${(await getApplicationSupportDirectory()).absolute.path}/zmusic/.cookies/";
+    _dataPath = "${(await getApplicationSupportDirectory()).absolute.path}/zmusic/.data/";
   }
 
   /// Cookie 持久化目录。

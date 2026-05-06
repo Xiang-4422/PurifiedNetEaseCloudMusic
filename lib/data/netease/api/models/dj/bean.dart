@@ -126,8 +126,7 @@ class DjRadio {
   DjRadio();
 
   /// 从 JSON 构建播客电台信息。
-  factory DjRadio.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioFromJson(json);
+  factory DjRadio.fromJson(Map<String, dynamic> json) => _$DjRadioFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$DjRadioToJson(this);
@@ -240,8 +239,7 @@ class DjProgram {
   DjProgram();
 
   /// 从 JSON 构建播客节目详情。
-  factory DjProgram.fromJson(Map<String, dynamic> json) =>
-      _$DjProgramFromJson(json);
+  factory DjProgram.fromJson(Map<String, dynamic> json) => _$DjProgramFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$DjProgramToJson(this);
@@ -288,8 +286,7 @@ class DjRadioCategory {
   DjRadioCategory();
 
   /// 从 JSON 构建播客分类信息。
-  factory DjRadioCategory.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioCategoryFromJson(json);
+  factory DjRadioCategory.fromJson(Map<String, dynamic> json) => _$DjRadioCategoryFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$DjRadioCategoryToJson(this);
@@ -312,8 +309,7 @@ class DjRadioCategory2 {
   DjRadioCategory2();
 
   /// 从 JSON 构建推荐播客分类。
-  factory DjRadioCategory2.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioCategory2FromJson(json);
+  factory DjRadioCategory2.fromJson(Map<String, dynamic> json) => _$DjRadioCategory2FromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$DjRadioCategory2ToJson(this);
@@ -329,8 +325,7 @@ class DjRadioCategoryWrap extends ServerStatusBean {
   DjRadioCategoryWrap();
 
   /// 从 JSON 构建播客分类列表响应。
-  factory DjRadioCategoryWrap.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioCategoryWrapFromJson(json);
+  factory DjRadioCategoryWrap.fromJson(Map<String, dynamic> json) => _$DjRadioCategoryWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -347,8 +342,7 @@ class DjRadioCategoryWrap2 extends ServerStatusBean {
   DjRadioCategoryWrap2();
 
   /// 从 JSON 构建推荐播客分类列表响应。
-  factory DjRadioCategoryWrap2.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioCategoryWrap2FromJson(json);
+  factory DjRadioCategoryWrap2.fromJson(Map<String, dynamic> json) => _$DjRadioCategoryWrap2FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -365,8 +359,7 @@ class DjRadioCategoryWrap3 extends ServerStatusBean {
   DjRadioCategoryWrap3();
 
   /// 从 JSON 构建排除热门后的播客分类列表响应。
-  factory DjRadioCategoryWrap3.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioCategoryWrap3FromJson(json);
+  factory DjRadioCategoryWrap3.fromJson(Map<String, dynamic> json) => _$DjRadioCategoryWrap3FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -389,8 +382,7 @@ class DjRadioListWrap extends ServerStatusListBean {
   DjRadioListWrap();
 
   /// 从 JSON 构建播客列表分页响应。
-  factory DjRadioListWrap.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioListWrapFromJson(json);
+  factory DjRadioListWrap.fromJson(Map<String, dynamic> json) => _$DjRadioListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -407,8 +399,7 @@ class DjRadioListWrap2 extends ServerStatusBean {
   DjRadioListWrap2();
 
   /// 从 JSON 构建播客列表响应。
-  factory DjRadioListWrap2.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioListWrap2FromJson(json);
+  factory DjRadioListWrap2.fromJson(Map<String, dynamic> json) => _$DjRadioListWrap2FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -431,8 +422,7 @@ class DjTopListListWrap {
   DjTopListListWrap();
 
   /// 从 JSON 构建主播排行榜数据。
-  factory DjTopListListWrap.fromJson(Map<String, dynamic> json) =>
-      _$DjTopListListWrapFromJson(json);
+  factory DjTopListListWrap.fromJson(Map<String, dynamic> json) => _$DjTopListListWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$DjTopListListWrapToJson(this);
@@ -448,8 +438,7 @@ class DjTopListListWrapX extends ServerStatusBean {
   DjTopListListWrapX();
 
   /// 从 JSON 构建主播排行榜响应。
-  factory DjTopListListWrapX.fromJson(Map<String, dynamic> json) =>
-      _$DjTopListListWrapXFromJson(json);
+  factory DjTopListListWrapX.fromJson(Map<String, dynamic> json) => _$DjTopListListWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -507,8 +496,7 @@ class DjRadioTopListItem {
   DjRadioTopListItem();
 
   /// 从 JSON 构建播客排行榜条目。
-  factory DjRadioTopListItem.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioTopListItemFromJson(json);
+  factory DjRadioTopListItem.fromJson(Map<String, dynamic> json) => _$DjRadioTopListItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$DjRadioTopListItemToJson(this);
@@ -530,8 +518,7 @@ class DjRadioTopListListWrap {
   DjRadioTopListListWrap();
 
   /// 从 JSON 构建播客排行榜数据。
-  factory DjRadioTopListListWrap.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioTopListListWrapFromJson(json);
+  factory DjRadioTopListListWrap.fromJson(Map<String, dynamic> json) => _$DjRadioTopListListWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$DjRadioTopListListWrapToJson(this);
@@ -547,8 +534,7 @@ class DjRadioTopListListWrapX extends ServerStatusBean {
   DjRadioTopListListWrapX();
 
   /// 从 JSON 构建播客排行榜响应。
-  factory DjRadioTopListListWrapX.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioTopListListWrapXFromJson(json);
+  factory DjRadioTopListListWrapX.fromJson(Map<String, dynamic> json) => _$DjRadioTopListListWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -565,8 +551,7 @@ class DjRadioDetail extends ServerStatusBean {
   DjRadioDetail();
 
   /// 从 JSON 构建播客详情响应。
-  factory DjRadioDetail.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioDetailFromJson(json);
+  factory DjRadioDetail.fromJson(Map<String, dynamic> json) => _$DjRadioDetailFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -586,8 +571,7 @@ class DjRadioTopListListWrapX2 extends ServerStatusBean {
   DjRadioTopListListWrapX2();
 
   /// 从 JSON 构建播客榜单列表响应。
-  factory DjRadioTopListListWrapX2.fromJson(Map<String, dynamic> json) =>
-      _$DjRadioTopListListWrapX2FromJson(json);
+  factory DjRadioTopListListWrapX2.fromJson(Map<String, dynamic> json) => _$DjRadioTopListListWrapX2FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -607,8 +591,7 @@ class DjProgramListWrap extends ServerStatusListBean {
   DjProgramListWrap();
 
   /// 从 JSON 构建播客节目列表响应。
-  factory DjProgramListWrap.fromJson(Map<String, dynamic> json) =>
-      _$DjProgramListWrapFromJson(json);
+  factory DjProgramListWrap.fromJson(Map<String, dynamic> json) => _$DjProgramListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -637,8 +620,7 @@ class DjProgramTopListItem {
   DjProgramTopListItem();
 
   /// 从 JSON 构建节目排行榜条目。
-  factory DjProgramTopListItem.fromJson(Map<String, dynamic> json) =>
-      _$DjProgramTopListItemFromJson(json);
+  factory DjProgramTopListItem.fromJson(Map<String, dynamic> json) => _$DjProgramTopListItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$DjProgramTopListItemToJson(this);
@@ -657,8 +639,7 @@ class DjProgramTopListListWrap2 extends ServerStatusBean {
   DjProgramTopListListWrap2();
 
   /// 从 JSON 构建节目排行榜列表响应。
-  factory DjProgramTopListListWrap2.fromJson(Map<String, dynamic> json) =>
-      _$DjProgramTopListListWrap2FromJson(json);
+  factory DjProgramTopListListWrap2.fromJson(Map<String, dynamic> json) => _$DjProgramTopListListWrap2FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -694,8 +675,7 @@ class PersonalizedDjProgramItem {
   PersonalizedDjProgramItem();
 
   /// 从 JSON 构建个性化推荐节目条目。
-  factory PersonalizedDjProgramItem.fromJson(Map<String, dynamic> json) =>
-      _$PersonalizedDjProgramItemFromJson(json);
+  factory PersonalizedDjProgramItem.fromJson(Map<String, dynamic> json) => _$PersonalizedDjProgramItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PersonalizedDjProgramItemToJson(this);
@@ -717,8 +697,7 @@ class DjProgramTopListListWrap {
   DjProgramTopListListWrap();
 
   /// 从 JSON 构建节目排行榜数据。
-  factory DjProgramTopListListWrap.fromJson(Map<String, dynamic> json) =>
-      _$DjProgramTopListListWrapFromJson(json);
+  factory DjProgramTopListListWrap.fromJson(Map<String, dynamic> json) => _$DjProgramTopListListWrapFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$DjProgramTopListListWrapToJson(this);
@@ -734,8 +713,7 @@ class DjProgramTopListListWrapX extends ServerStatusBean {
   DjProgramTopListListWrapX();
 
   /// 从 JSON 构建节目排行榜响应。
-  factory DjProgramTopListListWrapX.fromJson(Map<String, dynamic> json) =>
-      _$DjProgramTopListListWrapXFromJson(json);
+  factory DjProgramTopListListWrapX.fromJson(Map<String, dynamic> json) => _$DjProgramTopListListWrapXFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -755,8 +733,7 @@ class PersonalizedDjProgramListWrap extends ServerStatusBean {
   PersonalizedDjProgramListWrap();
 
   /// 从 JSON 构建个性化推荐节目列表响应。
-  factory PersonalizedDjProgramListWrap.fromJson(Map<String, dynamic> json) =>
-      _$PersonalizedDjProgramListWrapFromJson(json);
+  factory PersonalizedDjProgramListWrap.fromJson(Map<String, dynamic> json) => _$PersonalizedDjProgramListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -773,8 +750,7 @@ class DjProgramDetail extends ServerStatusBean {
   DjProgramDetail();
 
   /// 从 JSON 构建播客节目详情响应。
-  factory DjProgramDetail.fromJson(Map<String, dynamic> json) =>
-      _$DjProgramDetailFromJson(json);
+  factory DjProgramDetail.fromJson(Map<String, dynamic> json) => _$DjProgramDetailFromJson(json);
 
   /// 转换为 JSON。
   @override

@@ -26,8 +26,7 @@ void main() {
       const square = AdaptiveLayoutMetrics(size: Size(600, 600));
 
       expect(phone.heroExtent, lessThanOrEqualTo(390));
-      expect(
-          phone.heroExtent, lessThanOrEqualTo(phone.safeContentHeight * .55));
+      expect(phone.heroExtent, lessThanOrEqualTo(phone.safeContentHeight * .55));
       expect(square.heroExtent, lessThan(600));
       expect(square.heroExtent, greaterThanOrEqualTo(160));
     });
@@ -52,8 +51,7 @@ void main() {
       );
 
       expect(normal.listTileMinHeight, 52);
-      expect(
-          largeText.listTileMinHeight, greaterThan(normal.listTileMinHeight));
+      expect(largeText.listTileMinHeight, greaterThan(normal.listTileMinHeight));
     });
   });
 }

@@ -8,8 +8,7 @@ import 'package:get/get.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 /// 首页壳层控制器，管理抽屉、首页分页和顶部搜索面板。
-class HomeShellController extends GetxController
-    with GetTickerProviderStateMixin {
+class HomeShellController extends GetxController with GetTickerProviderStateMixin {
   /// 当前首页壳层控制器实例。
   static HomeShellController get to => Get.find();
 
@@ -129,8 +128,7 @@ class HomeShellController extends GetxController
   ];
 
   /// 左侧抽屉菜单项。
-  List<ShellMenuItemData> get leftMenus =>
-      squareHomeLayout.value ? _squareLeftMenus : _normalLeftMenus;
+  List<ShellMenuItemData> get leftMenus => squareHomeLayout.value ? _squareLeftMenus : _normalLeftMenus;
 
   /// 当前首页分页数量。
   int get homePageCount => leftMenus.length;
@@ -148,8 +146,7 @@ class HomeShellController extends GetxController
     homePageController = PageController()
       ..addListener(() {
         final pageIndexCandidate = (homePageController.page! + 0.5).toInt();
-        final updatedPageIndex =
-            pageIndexCandidate.clamp(0, homePageCount - 1).toInt();
+        final updatedPageIndex = pageIndexCandidate.clamp(0, homePageCount - 1).toInt();
         if (updatedPageIndex == curHomePageIndex.value) return;
         curHomePageIndex.value = updatedPageIndex;
         curHomePageTitle.value = _resolveHomePageTitle(updatedPageIndex);
@@ -202,8 +199,7 @@ class HomeShellController extends GetxController
   }
 
   /// 判断指定索引是否为探索页。
-  bool isExplorePageIndex(int index) =>
-      pageKindAt(index) == HomeShellPageKind.explore;
+  bool isExplorePageIndex(int index) => pageKindAt(index) == HomeShellPageKind.explore;
 
   /// 初始化抽屉开合监听。
   void initZoomDrawerListener() {
@@ -266,8 +262,7 @@ class HomeShellController extends GetxController
     if (homePageController.page != 0) {
       homePageController.animateToPage(
         0,
-        duration:
-            Duration(milliseconds: 100 * (homePageController.page)!.toInt()),
+        duration: Duration(milliseconds: 100 * (homePageController.page)!.toInt()),
         curve: Curves.linear,
       );
       return true;

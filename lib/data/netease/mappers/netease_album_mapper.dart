@@ -17,9 +17,7 @@ class NeteaseAlbumMapper {
       artworkUrl: album.picUrl,
       artistNames: {
         if (album.artist?.name?.isNotEmpty ?? false) album.artist!.name!,
-        ...(album.artists ?? [])
-            .map((artist) => artist.name ?? '')
-            .where((name) => name.isNotEmpty),
+        ...(album.artists ?? []).map((artist) => artist.name ?? '').where((name) => name.isNotEmpty),
       }.toList(),
       description: album.description ?? album.briefDesc,
       trackCount: album.size,

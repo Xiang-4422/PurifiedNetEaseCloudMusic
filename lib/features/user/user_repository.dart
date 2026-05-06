@@ -45,10 +45,7 @@ class UserRepository {
       userId,
       UserTrackListKind.liked,
     );
-    return trackIds
-        .map(_toSongSourceId)
-        .whereType<int>()
-        .toList(growable: false);
+    return trackIds.map(_toSongSourceId).whereType<int>().toList(growable: false);
   }
 
   /// 从本地用户作用域缓存读取指定类型的歌单列表。
@@ -140,8 +137,7 @@ class UserRepository {
     final playlists = await _remoteDataSource.fetchUserPlaylists(userId);
     final summaries = playlists.map(PlaylistSummaryData.fromEntity).toList();
     final likedCollection = summaries.take(1).toList();
-    final ownPlaylists =
-        summaries.length > 1 ? summaries.sublist(1) : <PlaylistSummaryData>[];
+    final ownPlaylists = summaries.length > 1 ? summaries.sublist(1) : <PlaylistSummaryData>[];
     await _userScopedDataSource.replacePlaylistItems(
       userId,
       UserPlaylistListKind.likedCollection,
@@ -223,18 +219,14 @@ class UserRepository {
     required List<int> likedSongIds,
   }) async {
     final normalizedIds = ids.map(_toTrackId).toList();
-    final tracks =
-        await _libraryRepository.getTracksWithResources(normalizedIds);
+    final tracks = await _libraryRepository.getTracksWithResources(normalizedIds);
     if (tracks.isEmpty) {
       return const [];
     }
     final tracksById = {
       for (final track in tracks) track.track.id: track,
     };
-    final orderedTracks = normalizedIds
-        .map((trackId) => tracksById[trackId])
-        .whereType<TrackWithResources>()
-        .toList();
+    final orderedTracks = normalizedIds.map((trackId) => tracksById[trackId]).whereType<TrackWithResources>().toList();
     if (orderedTracks.isEmpty) {
       return const [];
     }
@@ -332,9 +324,7 @@ class UserRepository {
   }
 
   int? _toSongSourceId(String trackId) {
-    final sourceId = trackId.startsWith('netease:')
-        ? trackId.substring('netease:'.length)
-        : trackId;
+    final sourceId = trackId.startsWith('netease:') ? trackId.substring('netease:'.length) : trackId;
     return int.tryParse(sourceId);
   }
 }

@@ -14,8 +14,7 @@ class SearchCacheStore {
 
   /// 加载热搜关键词缓存。
   Future<List<String>?> loadHotKeywords() async {
-    final payloadJson =
-        await _cacheDataSource.loadPayloadJson(searchHotKeywordsSp);
+    final payloadJson = await _cacheDataSource.loadPayloadJson(searchHotKeywordsSp);
     if (payloadJson == null) {
       return null;
     }

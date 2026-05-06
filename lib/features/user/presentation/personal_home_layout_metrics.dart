@@ -35,10 +35,7 @@ class PersonalHomeLayoutMetrics {
     required double maxWidth,
     required double maxHeight,
   }) {
-    final width =
-        ((maxWidth - AppDimensions.paddingSmall * squareQuickCardCount.ceil()) /
-                squareQuickCardCount)
-            .clamp(180.0, maxWidth);
+    final width = ((maxWidth - AppDimensions.paddingSmall * squareQuickCardCount.ceil()) / squareQuickCardCount).clamp(180.0, maxWidth);
     final height = math.min(maxHeight, width * 1.12).clamp(150.0, maxHeight);
     return Size(width, height);
   }
@@ -48,9 +45,7 @@ class PersonalHomeLayoutMetrics {
     required double maxWidth,
     required double maxHeight,
   }) {
-    final width = (maxWidth -
-            AppDimensions.paddingSmall * squarePlaylistCardCount.ceil()) /
-        squarePlaylistCardCount;
+    final width = (maxWidth - AppDimensions.paddingSmall * squarePlaylistCardCount.ceil()) / squarePlaylistCardCount;
     return math.min(maxHeight, width * 1.18).clamp(130.0, maxHeight);
   }
 }

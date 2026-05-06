@@ -28,9 +28,7 @@ class CoffeePageView extends GetView<ShellController> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(6)),
+                  decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(6)),
                   width: 12,
                   height: 12,
                 ),
@@ -41,9 +39,7 @@ class CoffeePageView extends GetView<ShellController> {
                 ),
                 const Padding(padding: EdgeInsets.symmetric(horizontal: 20)),
                 Container(
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(6)),
+                  decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.circular(6)),
                   width: 12,
                   height: 12,
                 ),
@@ -51,10 +47,7 @@ class CoffeePageView extends GetView<ShellController> {
             ),
             Text(
               '︶',
-              style: TextStyle(
-                  fontSize: 36,
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 36, color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
             ).paddingOnly(top: 50),
           ],
         ),

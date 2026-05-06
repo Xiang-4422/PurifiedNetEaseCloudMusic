@@ -105,9 +105,7 @@ class DrawerMainScreenView extends GetView<ShellController> {
       height: context.height,
       child: Obx(
         () => PageView.builder(
-          physics: HomeShellController.to.isDrawerClosed.value
-              ? const NeverScrollableScrollPhysics()
-              : const PageScrollPhysics(),
+          physics: HomeShellController.to.isDrawerClosed.value ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
           scrollDirection: Axis.vertical,
           controller: HomeShellController.to.homePageController,
           itemCount: HomeShellController.to.homePageCount,
@@ -162,9 +160,7 @@ class MenuView extends GetView<ShellController> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: HomeShellController.to.curHomePageTitle.value
-                        .split("")
-                        .map((c) {
+                    children: HomeShellController.to.curHomePageTitle.value.split("").map((c) {
                       return Text(
                         c,
                         style: context.textTheme.titleLarge,
@@ -187,18 +183,14 @@ class MenuView extends GetView<ShellController> {
                       children: List.generate(menus.length, (index) {
                         return IconButton(
                           onPressed: () {
-                            final pageController =
-                                HomeShellController.to.homePageController;
+                            final pageController = HomeShellController.to.homePageController;
                             if (!pageController.hasClients) {
                               return;
                             }
                             const onePageAnimationTime = 200;
-                            final currentPage = pageController.page ??
-                                HomeShellController.to.curHomePageIndex.value
-                                    .toDouble();
+                            final currentPage = pageController.page ?? HomeShellController.to.curHomePageIndex.value.toDouble();
                             final animationTime = Duration(
-                              milliseconds: onePageAnimationTime *
-                                  (currentPage - index).abs().toInt(),
+                              milliseconds: onePageAnimationTime * (currentPage - index).abs().toInt(),
                             );
                             pageController.animateToPage(
                               index,
@@ -209,11 +201,7 @@ class MenuView extends GetView<ShellController> {
                           icon: Icon(
                             menus[index].icon,
                             size: AppDimensions.albumMinSize * 2 / 3,
-                            color:
-                                HomeShellController.to.curHomePageIndex.value ==
-                                        index
-                                    ? Theme.of(context).primaryColor
-                                    : Theme.of(context).iconTheme.color,
+                            color: HomeShellController.to.curHomePageIndex.value == index ? Theme.of(context).primaryColor : Theme.of(context).iconTheme.color,
                           ),
                         );
                       }),

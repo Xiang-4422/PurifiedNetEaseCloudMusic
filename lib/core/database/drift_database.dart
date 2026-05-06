@@ -517,8 +517,7 @@ class UserSyncMarkers extends Table {
 /// Drift 数据库定义，包含当前版本需要的全部表和索引。
 class BujuanDriftDatabase extends _$BujuanDriftDatabase {
   /// 创建 Bujuan Drift 数据库。
-  BujuanDriftDatabase({required this.databaseName})
-      : super(_openConnection(databaseName));
+  BujuanDriftDatabase({required this.databaseName}) : super(_openConnection(databaseName));
 
   /// 数据库文件名。
   final String databaseName;

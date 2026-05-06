@@ -17,8 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PlaylistDetailData', () {
-    test('treats local detail as incomplete when snapshot has more track ids',
-        () {
+    test('treats local detail as incomplete when snapshot has more track ids', () {
       final snapshot = PlaylistSnapshotData(
         id: '1',
         name: 'playlist',
@@ -27,16 +26,14 @@ void main() {
       );
       final detail = _detail(
         songCount: 30,
-        expectedTrackCount:
-            PlaylistDetailData.resolveExpectedTrackCount(snapshot, null),
+        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(snapshot, null),
       );
 
       expect(detail.expectedTrackCount, 100);
       expect(detail.isComplete, isFalse);
     });
 
-    test('treats local detail as complete when it reaches snapshot track ids',
-        () {
+    test('treats local detail as complete when it reaches snapshot track ids', () {
       final snapshot = PlaylistSnapshotData(
         id: '1',
         name: 'playlist',
@@ -45,15 +42,13 @@ void main() {
       );
       final detail = _detail(
         songCount: 100,
-        expectedTrackCount:
-            PlaylistDetailData.resolveExpectedTrackCount(snapshot, null),
+        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(snapshot, null),
       );
 
       expect(detail.isComplete, isTrue);
     });
 
-    test('uses fallback track count when snapshot track ids are unavailable',
-        () {
+    test('uses fallback track count when snapshot track ids are unavailable', () {
       const snapshot = PlaylistSnapshotData(
         id: '1',
         name: 'playlist',
@@ -63,8 +58,7 @@ void main() {
       );
       final detail = _detail(
         songCount: 30,
-        expectedTrackCount:
-            PlaylistDetailData.resolveExpectedTrackCount(snapshot, null),
+        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(snapshot, null),
       );
 
       expect(detail.expectedTrackCount, 100);
@@ -102,8 +96,7 @@ void main() {
       );
     });
 
-    test('resolves empty local detail for initial loading or empty failure',
-        () {
+    test('resolves empty local detail for initial loading or empty failure', () {
       expect(
         PlaylistPageController.resolveLocalDetailDisplayState(null),
         PlaylistLocalDetailState.empty,
@@ -118,8 +111,7 @@ void main() {
   });
 
   group('PlaylistRepository pagination', () {
-    test('loads first page, appends next page, and completes remaining songs',
-        () async {
+    test('loads first page, appends next page, and completes remaining songs', () async {
       final repository = _playlistRepository(totalTracks: 250);
 
       final firstPage = await repository.fetchPlaylistDetail(
@@ -159,8 +151,7 @@ void main() {
 
     test('keeps loaded songs in cache when a later page fails', () async {
       final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 150);
-      final repository =
-          _playlistRepository(remoteDataSource: remoteDataSource);
+      final repository = _playlistRepository(remoteDataSource: remoteDataSource);
 
       await repository.fetchPlaylistDetail(
         playlistId: '1',
@@ -231,8 +222,7 @@ PlaylistRepository _playlistRepository({
     ),
     libraryRepository: _FakeLibraryRepository(),
     localLibraryDataSource: _FakeLocalLibraryDataSource(),
-    remoteDataSource: remoteDataSource ??
-        _FakePlaylistRemoteDataSource(totalTracks: totalTracks),
+    remoteDataSource: remoteDataSource ?? _FakePlaylistRemoteDataSource(totalTracks: totalTracks),
     userScopedDataSource: _FakeUserScopedDataSource(),
   );
 }

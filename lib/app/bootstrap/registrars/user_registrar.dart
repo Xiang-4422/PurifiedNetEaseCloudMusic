@@ -43,8 +43,7 @@ class UserRegistrar {
         homeService: Get.find<UserHomeApplicationService>(),
         sessionController: Get.find<UserSessionController>(),
         libraryController: Get.find<UserLibraryController>(),
-        validateLoginStateInBackground: () =>
-            Get.find<AuthController>().validateLoginStateInBackgroundIfNeeded(),
+        validateLoginStateInBackground: () => Get.find<AuthController>().validateLoginStateInBackgroundIfNeeded(),
       ),
       fenix: true,
     );

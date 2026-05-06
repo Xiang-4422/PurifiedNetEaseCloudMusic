@@ -23,10 +23,7 @@ class TrackDao {
     final likeKeyword = '%$keyword%';
     final rows = await (_database.select(_database.tracks)
           ..where(
-            (tbl) =>
-                tbl.title.like(likeKeyword) |
-                tbl.artistSearchText.like(likeKeyword) |
-                (tbl.albumTitle.isNotNull() & tbl.albumTitle.like(likeKeyword)),
+            (tbl) => tbl.title.like(likeKeyword) | tbl.artistSearchText.like(likeKeyword) | (tbl.albumTitle.isNotNull() & tbl.albumTitle.like(likeKeyword)),
           ))
         .get();
     return rows.map(_mapTrackRow).toList();
@@ -34,9 +31,7 @@ class TrackDao {
 
   /// 获取曲目。
   Future<Track?> getTrack(String trackId) async {
-    final row = await (_database.select(_database.tracks)
-          ..where((tbl) => tbl.trackId.equals(trackId)))
-        .getSingleOrNull();
+    final row = await (_database.select(_database.tracks)..where((tbl) => tbl.trackId.equals(trackId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -49,17 +44,13 @@ class TrackDao {
     if (ids.isEmpty) {
       return const [];
     }
-    final rows = await (_database.select(_database.tracks)
-          ..where((tbl) => tbl.trackId.isIn(ids)))
-        .get();
+    final rows = await (_database.select(_database.tracks)..where((tbl) => tbl.trackId.isIn(ids))).get();
     return rows.map(_mapTrackRow).toList();
   }
 
   /// 按专辑来源 id 获取曲目。
   Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
-    final rows = await (_database.select(_database.tracks)
-          ..where((tbl) => tbl.albumSourceId.equals(albumSourceId)))
-        .get();
+    final rows = await (_database.select(_database.tracks)..where((tbl) => tbl.albumSourceId.equals(albumSourceId))).get();
     return rows.map(_mapTrackRow).toList();
   }
 
@@ -75,8 +66,7 @@ class TrackDao {
       ..orderBy([
         drift.OrderingTerm.asc(_database.trackArtistRefs.sortOrder),
       ]);
-    final rows =
-        await query.map((row) => row.readTable(_database.tracks)).get();
+    final rows = await query.map((row) => row.readTable(_database.tracks)).get();
     return rows.map(_mapTrackRow).toList();
   }
 
@@ -113,9 +103,7 @@ class TrackDao {
         );
       });
       for (final trackIdChunk in _chunks(trackIds, 500)) {
-        await (_database.delete(_database.trackArtistRefs)
-              ..where((tbl) => tbl.trackId.isIn(trackIdChunk)))
-            .go();
+        await (_database.delete(_database.trackArtistRefs)..where((tbl) => tbl.trackId.isIn(trackIdChunk))).go();
       }
       final artistRefs = tracks.expand((track) {
         return _artistSourceIds(track).asMap().entries.map(
@@ -139,9 +127,7 @@ class TrackDao {
 
   /// 获取曲目歌词。
   Future<TrackLyrics?> getLyrics(String trackId) async {
-    final row = await (_database.select(_database.trackLyricsEntries)
-          ..where((tbl) => tbl.trackId.equals(trackId)))
-        .getSingleOrNull();
+    final row = await (_database.select(_database.trackLyricsEntries)..where((tbl) => tbl.trackId.equals(trackId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -161,16 +147,12 @@ class TrackDao {
 
   /// 删除曲目。
   Future<void> removeTrack(String trackId) {
-    return (_database.delete(_database.tracks)
-          ..where((tbl) => tbl.trackId.equals(trackId)))
-        .go();
+    return (_database.delete(_database.tracks)..where((tbl) => tbl.trackId.equals(trackId))).go();
   }
 
   /// 删除曲目歌词。
   Future<void> removeLyrics(String trackId) {
-    return (_database.delete(_database.trackLyricsEntries)
-          ..where((tbl) => tbl.trackId.equals(trackId)))
-        .go();
+    return (_database.delete(_database.trackLyricsEntries)..where((tbl) => tbl.trackId.equals(trackId))).go();
   }
 
   /// 搜索专辑。
@@ -181,9 +163,7 @@ class TrackDao {
     final likeKeyword = '%$keyword%';
     final rows = await (_database.select(_database.albums)
           ..where(
-            (tbl) =>
-                tbl.title.like(likeKeyword) |
-                tbl.artistSearchText.like(likeKeyword),
+            (tbl) => tbl.title.like(likeKeyword) | tbl.artistSearchText.like(likeKeyword),
           ))
         .get();
     return rows.map(_mapAlbumRow).toList();
@@ -191,9 +171,7 @@ class TrackDao {
 
   /// 获取专辑。
   Future<AlbumEntity?> getAlbum(String albumId) async {
-    final row = await (_database.select(_database.albums)
-          ..where((tbl) => tbl.albumId.equals(albumId)))
-        .getSingleOrNull();
+    final row = await (_database.select(_database.albums)..where((tbl) => tbl.albumId.equals(albumId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -230,17 +208,13 @@ class TrackDao {
     if (keyword.isEmpty) {
       return const [];
     }
-    final rows = await (_database.select(_database.artists)
-          ..where((tbl) => tbl.name.like('%$keyword%')))
-        .get();
+    final rows = await (_database.select(_database.artists)..where((tbl) => tbl.name.like('%$keyword%'))).get();
     return rows.map(_mapArtistRow).toList();
   }
 
   /// 获取歌手。
   Future<ArtistEntity?> getArtist(String artistId) async {
-    final row = await (_database.select(_database.artists)
-          ..where((tbl) => tbl.artistId.equals(artistId)))
-        .getSingleOrNull();
+    final row = await (_database.select(_database.artists)..where((tbl) => tbl.artistId.equals(artistId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -278,10 +252,7 @@ class TrackDao {
   }
 
   List<String> _artistSourceIds(Track track) {
-    return (track.metadata['artistIds'] as List? ?? const [])
-        .map((item) => '$item')
-        .where((item) => item.isNotEmpty)
-        .toList(growable: false);
+    return (track.metadata['artistIds'] as List? ?? const []).map((item) => '$item').where((item) => item.isNotEmpty).toList(growable: false);
   }
 
   Iterable<List<T>> _chunks<T>(List<T> items, int size) sync* {
@@ -292,9 +263,7 @@ class TrackDao {
   }
 
   Track _mapTrackRow(db.Track row) {
-    final artistNames =
-        (jsonDecode(row.artistNamesJson) as List?)?.cast<String>() ??
-            const <String>[];
+    final artistNames = (jsonDecode(row.artistNamesJson) as List?)?.cast<String>() ?? const <String>[];
     final metadataDecoded = jsonDecode(row.metadataJson);
     final metadata = metadataDecoded is Map
         ? Map<String, Object?>.from(
@@ -324,9 +293,7 @@ class TrackDao {
   }
 
   AlbumEntity _mapAlbumRow(db.Album row) {
-    final artistNames =
-        (jsonDecode(row.artistNamesJson) as List?)?.cast<String>() ??
-            const <String>[];
+    final artistNames = (jsonDecode(row.artistNamesJson) as List?)?.cast<String>() ?? const <String>[];
     return AlbumEntity(
       id: row.albumId,
       sourceType: SourceType.values.firstWhere(

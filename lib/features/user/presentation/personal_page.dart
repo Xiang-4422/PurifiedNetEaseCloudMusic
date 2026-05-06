@@ -61,17 +61,11 @@ class PersonalPageView extends GetView<ShellController> {
         },
         enablePullUp: true,
         enablePullDown: true,
-        onLoading: () =>
-            recommendationController.updateRecoPlayLists(getMore: true),
+        onLoading: () => recommendationController.updateRecoPlayLists(getMore: true),
         footer: ClassicFooter(
             height: 60 + AppDimensions.bottomPanelHeaderHeight,
             outerBuilder: (child) {
-              return Container(
-                  height: 60,
-                  margin: const EdgeInsets.only(
-                      bottom: AppDimensions.bottomPanelHeaderHeight),
-                  alignment: Alignment.center,
-                  child: child);
+              return Container(height: 60, margin: const EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight), alignment: Alignment.center, child: child);
             }),
         controller: recommendationController.refreshController,
         child: CustomScrollView(cacheExtent: 120, slivers: [
@@ -83,27 +77,20 @@ class PersonalPageView extends GetView<ShellController> {
 
           // 我的歌单 Header
           SliverToBoxAdapter(
-            child: const Header('马上开始', padding: AppDimensions.paddingSmall)
-                .marginOnly(top: AppDimensions.paddingSmall),
+            child: const Header('马上开始', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
           ),
 
           // 快速播放卡片
           SliverToBoxAdapter(
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
-                double userItemWidth = (constraints.maxWidth -
-                        AppDimensions.paddingSmall *
-                            userItemCountInScreen.ceil()) /
-                    userItemCountInScreen;
+                double userItemWidth = (constraints.maxWidth - AppDimensions.paddingSmall * userItemCountInScreen.ceil()) / userItemCountInScreen;
                 return Obx(() => Container(
-                    margin: const EdgeInsets.only(
-                        bottom: AppDimensions.paddingSmall),
+                    margin: const EdgeInsets.only(bottom: AppDimensions.paddingSmall),
                     height: userItemWidth * 1.3,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
-                      physics: SnappingScrollPhysics(
-                          itemExtent:
-                              userItemWidth + AppDimensions.paddingSmall),
+                      physics: SnappingScrollPhysics(itemExtent: userItemWidth + AppDimensions.paddingSmall),
                       children: [
                         Stack(
                           alignment: Alignment.bottomRight,
@@ -112,28 +99,18 @@ class PersonalPageView extends GetView<ShellController> {
                               child: QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: recommendationController
-                                        .todayRecommendSongs.isNotEmpty
-                                    ? (recommendationController
-                                            .todayRecommendSongs[0]
-                                            .artworkUrl ??
-                                        '')
-                                    : '',
+                                albumUrl: recommendationController.todayRecommendSongs.isNotEmpty ? (recommendationController.todayRecommendSongs[0].artworkUrl ?? '') : '',
                                 icon: TablerIcons.calendar,
                                 title: "每日推荐",
-                                onTap: () => context.router
-                                    .push(const gr.TodayRouteView()),
+                                onTap: () => context.router.push(const gr.TodayRouteView()),
                               ),
                               builder: (_) {
                                 return ListView.builder(
                                   padding: EdgeInsets.zero,
-                                  itemCount: recommendationController
-                                      .todayRecommendSongs.length,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
+                                  itemCount: recommendationController.todayRecommendSongs.length,
+                                  itemBuilder: (BuildContext context, int index) {
                                     return SongItem(
-                                      playlist: recommendationController
-                                          .todayRecommendSongs,
+                                      playlist: recommendationController.todayRecommendSongs,
                                       index: index,
                                       playListName: '',
                                       onPlay: playbackAction.playPlaylist,
@@ -143,18 +120,12 @@ class PersonalPageView extends GetView<ShellController> {
                               },
                             ),
                             Visibility(
-                              visible: playbackAction.isPlaying() &&
-                                  (playbackAction.sessionState().playlistName ==
-                                      "每日推荐"),
+                              visible: playbackAction.isPlaying() && (playbackAction.sessionState().playlistName == "每日推荐"),
                               replacement: IconButton(
                                   onPressed: () {
-                                    if (playbackAction
-                                            .sessionState()
-                                            .playlistName !=
-                                        "每日推荐") {
+                                    if (playbackAction.sessionState().playlistName != "每日推荐") {
                                       playbackAction.playPlaylist(
-                                        recommendationController
-                                            .todayRecommendSongs,
+                                        recommendationController.todayRecommendSongs,
                                         0,
                                         playListName: "每日推荐",
                                       );
@@ -166,13 +137,10 @@ class PersonalPageView extends GetView<ShellController> {
                                     TablerIcons.player_play_filled,
                                     color: Colors.white,
                                   )),
-                              child: Lottie.asset(
-                                  'assets/lottie/music_playing.json',
-                                  width: 50),
+                              child: Lottie.asset('assets/lottie/music_playing.json', width: 50),
                             )
                           ],
-                        ).marginSymmetric(
-                            horizontal: AppDimensions.paddingSmall),
+                        ).marginSymmetric(horizontal: AppDimensions.paddingSmall),
                         Stack(
                           alignment: Alignment.bottomRight,
                           children: [
@@ -181,14 +149,7 @@ class PersonalPageView extends GetView<ShellController> {
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: playbackAction.isFmMode()
-                                    ? (currentSong.artworkUrl ?? '')
-                                    : (recommendationController
-                                            .fmSongs.isNotEmpty
-                                        ? (recommendationController
-                                                .fmSongs[0].artworkUrl ??
-                                            '')
-                                        : ''),
+                                albumUrl: playbackAction.isFmMode() ? (currentSong.artworkUrl ?? '') : (recommendationController.fmSongs.isNotEmpty ? (recommendationController.fmSongs[0].artworkUrl ?? '') : ''),
                                 icon: TablerIcons.infinity,
                                 title: "漫游模式",
                                 onTap: () {
@@ -198,12 +159,7 @@ class PersonalPageView extends GetView<ShellController> {
                                 },
                               );
                             }),
-                            Offstage(
-                                offstage: !playbackAction.isFmMode() ||
-                                    !playbackAction.isPlaying(),
-                                child: Lottie.asset(
-                                    'assets/lottie/music_playing.json',
-                                    width: 50)),
+                            Offstage(offstage: !playbackAction.isFmMode() || !playbackAction.isPlaying(), child: Lottie.asset('assets/lottie/music_playing.json', width: 50)),
                           ],
                         ).marginOnly(right: AppDimensions.paddingSmall),
                         Stack(
@@ -214,10 +170,7 @@ class PersonalPageView extends GetView<ShellController> {
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: playbackAction.isHeartBeatMode()
-                                    ? (currentSong.artworkUrl ?? '')
-                                    : libraryController
-                                        .randomLikedSongAlbumUrl.value,
+                                albumUrl: playbackAction.isHeartBeatMode() ? (currentSong.artworkUrl ?? '') : libraryController.randomLikedSongAlbumUrl.value,
                                 icon: TablerIcons.heartbeat,
                                 title: "心动模式",
                                 onTap: () {
@@ -230,12 +183,7 @@ class PersonalPageView extends GetView<ShellController> {
                                 },
                               );
                             }),
-                            Offstage(
-                                offstage: !playbackAction.isHeartBeatMode() ||
-                                    !playbackAction.isPlaying(),
-                                child: Lottie.asset(
-                                    'assets/lottie/music_playing.json',
-                                    width: 50)),
+                            Offstage(offstage: !playbackAction.isHeartBeatMode() || !playbackAction.isPlaying(), child: Lottie.asset('assets/lottie/music_playing.json', width: 50)),
                           ],
                         ).marginOnly(right: AppDimensions.paddingSmall),
                       ],
@@ -246,8 +194,7 @@ class PersonalPageView extends GetView<ShellController> {
 
           // 我的歌单 Header
           SliverToBoxAdapter(
-            child: const Header('我的歌单', padding: AppDimensions.paddingSmall)
-                .marginOnly(top: AppDimensions.paddingSmall),
+            child: const Header('我的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
           ),
           // 我的歌单
           SliverToBoxAdapter(
@@ -264,9 +211,7 @@ class PersonalPageView extends GetView<ShellController> {
             ),
           ),
           // 我的喜欢
-          SliverToBoxAdapter(
-              child: PlayListItem(libraryController.userLikedSongPlayList.value)
-                  .paddingSymmetric(horizontal: AppDimensions.paddingSmall)),
+          SliverToBoxAdapter(child: PlayListItem(libraryController.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall)),
 
           // 推荐歌单 Header
           SliverLayoutBuilder(
@@ -278,11 +223,8 @@ class PersonalPageView extends GetView<ShellController> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   color: Colors.white,
-                  padding: isPinned
-                      ? EdgeInsets.only(top: context.mediaQueryPadding.top)
-                      : EdgeInsets.zero,
-                  child:
-                      const Header('推荐歌单', padding: AppDimensions.paddingSmall),
+                  padding: isPinned ? EdgeInsets.only(top: context.mediaQueryPadding.top) : EdgeInsets.zero,
+                  child: const Header('推荐歌单', padding: AppDimensions.paddingSmall),
                 ),
               );
             },
@@ -291,8 +233,7 @@ class PersonalPageView extends GetView<ShellController> {
           SliverList.builder(
             itemCount: recommendationController.recoPlayLists.length,
             itemBuilder: (BuildContext context, int index) {
-              return PlayListItem(recommendationController.recoPlayLists[index])
-                  .paddingSymmetric(horizontal: AppDimensions.paddingSmall);
+              return PlayListItem(recommendationController.recoPlayLists[index]).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
             },
           ),
         ]),
@@ -317,8 +258,7 @@ class _SquarePersonalPageView extends StatefulWidget {
   final ShellController shellController;
 
   @override
-  State<_SquarePersonalPageView> createState() =>
-      _SquarePersonalPageViewState();
+  State<_SquarePersonalPageView> createState() => _SquarePersonalPageViewState();
 }
 
 class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
@@ -355,9 +295,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
       bottom: false,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final contentHeight = constraints.maxHeight -
-              widget.metrics.squareHeaderHeight -
-              AppDimensions.paddingSmall * 2;
+          final contentHeight = constraints.maxHeight - widget.metrics.squareHeaderHeight - AppDimensions.paddingSmall * 2;
           final cardSize = widget.metrics.squareQuickCardSize(
             maxWidth: constraints.maxWidth,
             maxHeight: contentHeight,
@@ -408,14 +346,12 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                   albumMargin: AppDimensions.paddingSmall,
                   showSongCount: false,
                   isPlaying: widget.playbackAction.isPlaying(),
-                  playingPlaylistName:
-                      widget.playbackAction.sessionState().playlistName,
+                  playingPlaylistName: widget.playbackAction.sessionState().playlistName,
                   onPlayPlaylist: Get.find<PlaylistPlaybackAction>().play,
                 ),
               ),
               const SizedBox(height: AppDimensions.paddingSmall),
-              PlayListItem(widget.libraryController.userLikedSongPlayList.value)
-                  .paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+              PlayListItem(widget.libraryController.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
             ],
           );
         },
@@ -444,12 +380,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 child: QuickStartCard(
                   width: cardSize.width,
                   height: cardSize.height,
-                  albumUrl:
-                      recommendationController.todayRecommendSongs.isNotEmpty
-                          ? (recommendationController
-                                  .todayRecommendSongs[0].artworkUrl ??
-                              '')
-                          : '',
+                  albumUrl: recommendationController.todayRecommendSongs.isNotEmpty ? (recommendationController.todayRecommendSongs[0].artworkUrl ?? '') : '',
                   icon: TablerIcons.calendar,
                   title: '每日推荐',
                   onTap: () => context.router.push(const gr.TodayRouteView()),
@@ -457,8 +388,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 builder: (_) {
                   return ListView.builder(
                     padding: EdgeInsets.zero,
-                    itemCount:
-                        recommendationController.todayRecommendSongs.length,
+                    itemCount: recommendationController.todayRecommendSongs.length,
                     itemBuilder: (BuildContext context, int index) {
                       return SongItem(
                         playlist: recommendationController.todayRecommendSongs,
@@ -471,8 +401,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 },
               ),
               Visibility(
-                visible: playbackAction.isPlaying() &&
-                    playbackAction.sessionState().playlistName == '每日推荐',
+                visible: playbackAction.isPlaying() && playbackAction.sessionState().playlistName == '每日推荐',
                 replacement: IconButton(
                   onPressed: () {
                     if (playbackAction.sessionState().playlistName != '每日推荐') {
@@ -505,12 +434,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 return QuickStartCard(
                   width: cardSize.width,
                   height: cardSize.height,
-                  albumUrl: playbackAction.isFmMode()
-                      ? (currentSong.artworkUrl ?? '')
-                      : (recommendationController.fmSongs.isNotEmpty
-                          ? (recommendationController.fmSongs[0].artworkUrl ??
-                              '')
-                          : ''),
+                  albumUrl: playbackAction.isFmMode() ? (currentSong.artworkUrl ?? '') : (recommendationController.fmSongs.isNotEmpty ? (recommendationController.fmSongs[0].artworkUrl ?? '') : ''),
                   icon: TablerIcons.infinity,
                   title: '漫游模式',
                   onTap: () {
@@ -521,8 +445,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 );
               }),
               Offstage(
-                offstage:
-                    !playbackAction.isFmMode() || !playbackAction.isPlaying(),
+                offstage: !playbackAction.isFmMode() || !playbackAction.isPlaying(),
                 child: Lottie.asset(
                   'assets/lottie/music_playing.json',
                   width: 50,
@@ -538,9 +461,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 return QuickStartCard(
                   width: cardSize.width,
                   height: cardSize.height,
-                  albumUrl: playbackAction.isHeartBeatMode()
-                      ? (currentSong.artworkUrl ?? '')
-                      : libraryController.randomLikedSongAlbumUrl.value,
+                  albumUrl: playbackAction.isHeartBeatMode() ? (currentSong.artworkUrl ?? '') : libraryController.randomLikedSongAlbumUrl.value,
                   icon: TablerIcons.heartbeat,
                   title: '心动模式',
                   onTap: () {
@@ -554,8 +475,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 );
               }),
               Offstage(
-                offstage: !playbackAction.isHeartBeatMode() ||
-                    !playbackAction.isPlaying(),
+                offstage: !playbackAction.isHeartBeatMode() || !playbackAction.isPlaying(),
                 child: Lottie.asset(
                   'assets/lottie/music_playing.json',
                   width: 50,
@@ -587,8 +507,7 @@ class RecommendedPlaylistsPageView extends StatelessWidget {
         },
         enablePullUp: true,
         enablePullDown: true,
-        onLoading: () =>
-            recommendationController.updateRecoPlayLists(getMore: true),
+        onLoading: () => recommendationController.updateRecoPlayLists(getMore: true),
         footer: ClassicFooter(
           height: 60 + AppDimensions.bottomPanelHeaderHeight,
           outerBuilder: (child) {
@@ -618,9 +537,7 @@ class RecommendedPlaylistsPageView extends StatelessWidget {
             SliverList.builder(
               itemCount: recommendationController.recoPlayLists.length,
               itemBuilder: (BuildContext context, int index) {
-                return PlayListItem(
-                        recommendationController.recoPlayLists[index])
-                    .paddingSymmetric(horizontal: AppDimensions.paddingSmall);
+                return PlayListItem(recommendationController.recoPlayLists[index]).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
               },
             ),
             const SliverToBoxAdapter(

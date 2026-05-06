@@ -59,8 +59,7 @@ class FeatureControllerRegistrar {
         exploreRepository: Get.find<ExploreRepository>(),
         playlistRepository: Get.find<PlaylistRepository>(),
         likedSongIds: () => Get.find<UserLibraryController>().likedSongIds,
-        currentUserId: () =>
-            Get.find<UserSessionController>().userInfo.value.userId,
+        currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
         playPlaylist: (
           playlist,
           index, {
@@ -91,25 +90,20 @@ class FeatureControllerRegistrar {
           playListNameHeader: playListNameHeader,
         ),
         playOrPause: () => Get.find<PlayerController>().playOrPause(),
-        skipToPrevious: () =>
-            Get.find<PlayerController>().skipToPreviousTrack(),
+        skipToPrevious: () => Get.find<PlayerController>().skipToPreviousTrack(),
         skipToNext: () => Get.find<PlayerController>().skipToNextTrack(),
         seekTo: (position) => Get.find<PlayerController>().seekTo(position),
-        setRepeatMode: (repeatMode) =>
-            Get.find<PlayerController>().setRepeatMode(repeatMode),
-        setOrderMode: (orderMode) =>
-            Get.find<PlayerController>().setOrderMode(orderMode),
+        setRepeatMode: (repeatMode) => Get.find<PlayerController>().setRepeatMode(repeatMode),
+        setOrderMode: (orderMode) => Get.find<PlayerController>().setOrderMode(orderMode),
         openFmMode: () => Get.find<PlayerController>().openFmMode(),
-        openHeartBeatMode: (startSongId, {required fromPlayAll}) =>
-            Get.find<PlayerController>().openHeartBeatMode(
+        openHeartBeatMode: (startSongId, {required fromPlayAll}) => Get.find<PlayerController>().openHeartBeatMode(
           startSongId,
           fromPlayAll: fromPlayAll,
         ),
         currentSong: () => Get.find<PlayerController>().currentSongState.value,
         isPlaying: () => Get.find<PlayerController>().isPlaying.value,
         isFmMode: () => Get.find<PlayerController>().isFmModeValue,
-        isHeartBeatMode: () =>
-            Get.find<PlayerController>().isHeartBeatModeValue,
+        isHeartBeatMode: () => Get.find<PlayerController>().isHeartBeatModeValue,
         sessionState: () => Get.find<PlayerController>().sessionState.value,
       ),
       permanent: true,
@@ -117,8 +111,7 @@ class FeatureControllerRegistrar {
     Get.put<PlaylistPlaybackAction>(
       PlaylistPlaybackAction(
         repository: Get.find<PlaylistRepository>(),
-        currentPlaylistName: () =>
-            Get.find<PlayerController>().sessionState.value.playlistName,
+        currentPlaylistName: () => Get.find<PlayerController>().sessionState.value.playlistName,
         toggleCurrentPlayback: () => Get.find<PlayerController>().playOrPause(),
         playPlaylist: (
           playlist,
@@ -187,8 +180,7 @@ class FeatureControllerRegistrar {
         lyricUiStateController: Get.find<PlaybackLyricUiStateController>(),
         userContentPort: Get.find<PlaybackUserContentPort>(),
         artworkPresenter: Get.find<PlaybackArtworkPresenter>(),
-        selectionUiEffectCoordinator:
-            Get.find<PlaybackSelectionUiEffectCoordinator>(),
+        selectionUiEffectCoordinator: Get.find<PlaybackSelectionUiEffectCoordinator>(),
         downloadUseCase: Get.find<CurrentTrackDownloadUseCase>(),
         toastPort: Get.find<PlaybackToastPort>(),
       ),

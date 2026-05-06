@@ -24,8 +24,7 @@ class LyricView extends GetView<ShellController> {
       onNotification: (notification) {
         // 判断滚动是否是用户手势触发
         if (notification is ScrollStartNotification) {
-          if (notification.dragDetails != null &&
-              !controller.isLyricScrollingByItself) {
+          if (notification.dragDetails != null && !controller.isLyricScrollingByItself) {
             controller.isLyricScrollingByUser = true;
           }
           // 滚动结束时重置用户滚动状态 (这里只是一个辅助，主要靠计时器)
@@ -43,9 +42,7 @@ class LyricView extends GetView<ShellController> {
             final lyricState = PlayerController.to.lyricState.value;
             return LayoutBuilder(
               builder: (context, constraints) {
-                final viewportHeight = constraints.maxHeight.isFinite
-                    ? constraints.maxHeight
-                    : MediaQuery.sizeOf(context).height;
+                final viewportHeight = constraints.maxHeight.isFinite ? constraints.maxHeight : MediaQuery.sizeOf(context).height;
                 return ScrollablePositionedList.builder(
                   itemScrollController: controller.lyricScrollController,
                   itemCount: lyricState.lines.length + 2,
@@ -54,32 +51,23 @@ class LyricView extends GetView<ShellController> {
                     // 首尾占位按歌词区域真实高度计算，保证滚动锚点稳定。
                     if (index == 0 || index == lyricState.lines.length + 1) {
                       child = SizedBox(
-                        height: viewportHeight *
-                            (index == 0
-                                ? LyricScrollPosition.activeLineAlignment
-                                : 1 - LyricScrollPosition.activeLineAlignment),
+                        height: viewportHeight * (index == 0 ? LyricScrollPosition.activeLineAlignment : 1 - LyricScrollPosition.activeLineAlignment),
                       );
                     } else {
                       index -= LyricScrollPosition.lyricItemIndexOffset;
-                      String mainText =
-                          (lyricState.lines[index].mainText ?? '').trim();
+                      String mainText = (lyricState.lines[index].mainText ?? '').trim();
                       if (mainText.isEmpty) {
                         mainText = '···';
                       }
-                      String extText =
-                          (lyricState.lines[index].extText ?? '').trim();
+                      String extText = (lyricState.lines[index].extText ?? '').trim();
                       if (extText.isNotEmpty) extText = '\n$extText';
                       child = Obx(() {
-                        bool isActive =
-                            PlayerController.to.lyricState.value.currentIndex ==
-                                index;
+                        bool isActive = PlayerController.to.lyricState.value.currentIndex == index;
                         return AnimatedDefaultTextStyle(
                           style: context.theme.textTheme.titleLarge!.copyWith(
                             fontFamily: 'monospace', // 指定使用系统等宽字体
-                            color: SettingsController.to.panelWidgetColor.value
-                                .withValues(alpha: isActive ? 1 : 0.2),
-                            fontWeight:
-                                isActive ? FontWeight.bold : FontWeight.normal,
+                            color: SettingsController.to.panelWidgetColor.value.withValues(alpha: isActive ? 1 : 0.2),
+                            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                           ),
                           curve: Curves.decelerate,
                           textAlign: TextAlign.start,

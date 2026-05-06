@@ -46,8 +46,7 @@ class PlaylistDetailData {
   final PlaylistDetailSource source;
 
   /// 当前歌曲列表是否已覆盖预期曲目数量。
-  bool get isComplete =>
-      expectedTrackCount == null || songs.length >= expectedTrackCount!;
+  bool get isComplete => expectedTrackCount == null || songs.length >= expectedTrackCount!;
 
   /// 从歌单快照和兜底数量推断预期曲目数。
   static int? resolveExpectedTrackCount(
@@ -101,9 +100,7 @@ class PlaylistSnapshotData {
     return PlaylistSnapshotData(
       id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      trackIds: (json['trackIds'] as List? ?? const [])
-          .map((item) => '$item')
-          .toList(),
+      trackIds: (json['trackIds'] as List? ?? const []).map((item) => '$item').toList(),
       creatorUserId: json['creatorUserId'] as String?,
       coverUrl: json['coverUrl'] as String?,
       trackCount: json['trackCount'] as int?,
@@ -137,8 +134,7 @@ class PlaylistRepository {
   })  : _cacheStore = cacheStore,
         _libraryRepository = libraryRepository,
         _localLibraryDataSource = localLibraryDataSource,
-        _remoteDataSource =
-            remoteDataSource ?? NeteasePlaylistRemoteDataSource(),
+        _remoteDataSource = remoteDataSource ?? NeteasePlaylistRemoteDataSource(),
         _userScopedDataSource = userScopedDataSource;
 
   final PlaylistCacheStore _cacheStore;
@@ -158,10 +154,7 @@ class PlaylistRepository {
     final snapshot = await _remoteDataSource.fetchPlaylistSnapshot(
       sourcePlaylistId,
     );
-    final trackIds =
-        (snapshot.playlist?.trackRefs ?? const <PlaylistTrackRef>[])
-            .map((item) => item.trackId)
-            .toList();
+    final trackIds = (snapshot.playlist?.trackRefs ?? const <PlaylistTrackRef>[]).map((item) => item.trackId).toList();
     if (trackIds.isEmpty && snapshot.trackIds.isNotEmpty) {
       trackIds.addAll(
         snapshot.trackIds.map(
@@ -212,10 +205,7 @@ class PlaylistRepository {
       playlistId,
       likedSongIds: likedSongIds,
     );
-    final songIds = playlistSnapshot.trackIds
-        .map(_toSourceTrackId)
-        .where((id) => id.isNotEmpty)
-        .toList();
+    final songIds = playlistSnapshot.trackIds.map(_toSourceTrackId).where((id) => id.isNotEmpty).toList();
     if (offset >= songIds.length) {
       return const [];
     }
@@ -261,26 +251,15 @@ class PlaylistRepository {
   }) async {
     final entityPlaylistId = _toEntityPlaylistId(playlistId);
     final cachePlaylistId = _toCachePlaylistId(playlistId);
-    final localPlaylist =
-        await _libraryRepository.getPlaylist(entityPlaylistId);
+    final localPlaylist = await _libraryRepository.getPlaylist(entityPlaylistId);
     final cachedSnapshot = await _cacheStore.loadSnapshot(cachePlaylistId);
 
-    final localTrackIds =
-        localPlaylist?.trackRefs.map((item) => item.trackId).toList();
+    final localTrackIds = localPlaylist?.trackRefs.map((item) => item.trackId).toList();
     final cachedTrackIds = cachedSnapshot?.trackIds;
-    final trackIds = (cachedTrackIds != null &&
-            (localTrackIds == null ||
-                cachedTrackIds.length > localTrackIds.length))
-        ? cachedTrackIds
-        : (localTrackIds ?? const <String>[]);
-    final localSongs =
-        await _loadLocalSongs(trackIds, likedSongIds: likedSongIds);
-    final cachedSongs = localSongs.isEmpty
-        ? await _cacheStore.loadSongs(cachePlaylistId)
-        : null;
-    final songs = localSongs.isNotEmpty
-        ? localSongs
-        : (cachedSongs ?? const <PlaybackQueueItem>[]);
+    final trackIds = (cachedTrackIds != null && (localTrackIds == null || cachedTrackIds.length > localTrackIds.length)) ? cachedTrackIds : (localTrackIds ?? const <String>[]);
+    final localSongs = await _loadLocalSongs(trackIds, likedSongIds: likedSongIds);
+    final cachedSongs = localSongs.isEmpty ? await _cacheStore.loadSongs(cachePlaylistId) : null;
+    final songs = localSongs.isNotEmpty ? localSongs : (cachedSongs ?? const <PlaybackQueueItem>[]);
 
     final snapshotAvailable = localPlaylist != null || cachedSnapshot != null;
     if (!snapshotAvailable && songs.isEmpty) {
@@ -341,9 +320,7 @@ class PlaylistRepository {
             currentUserId: currentUserId,
           )
         : const <PlaybackQueueItem>[];
-    final mergedSongs = offset > 0
-        ? _mergePagedSongs(cachedSongs, remoteSongs, offset: offset)
-        : remoteSongs;
+    final mergedSongs = offset > 0 ? _mergePagedSongs(cachedSongs, remoteSongs, offset: offset) : remoteSongs;
 
     if (mergedSongs.isEmpty) {
       return PlaylistDetailData(
@@ -429,10 +406,7 @@ class PlaylistRepository {
     final tracksById = <String, TrackWithResources>{
       for (final track in tracks) track.track.id: track,
     };
-    final orderedTracks = trackIds
-        .map((trackId) => tracksById[trackId])
-        .whereType<TrackWithResources>()
-        .toList();
+    final orderedTracks = trackIds.map((trackId) => tracksById[trackId]).whereType<TrackWithResources>().toList();
     if (orderedTracks.isEmpty) {
       return const [];
     }

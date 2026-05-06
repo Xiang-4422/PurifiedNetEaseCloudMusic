@@ -25,8 +25,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<FeatureControllerFactory>().userProfile()
-      ..loadInitial();
+    _controller = Get.find<FeatureControllerFactory>().userProfile()..loadInitial();
   }
 
   @override
@@ -37,10 +36,8 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
 
   @override
   Widget build(BuildContext context) {
-    final topPadding =
-        AppDimensions.appBarHeight + context.mediaQueryPadding.top;
-    final bottomPadding = AppDimensions.bottomPanelHeaderHeight +
-        context.mediaQueryPadding.bottom;
+    final topPadding = AppDimensions.appBarHeight + context.mediaQueryPadding.top;
+    final bottomPadding = AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom;
 
     return Scaffold(
       body: RefreshIndicator(
@@ -51,12 +48,9 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
             state: state,
             builder: (userData) => LayoutBuilder(
               builder: (context, constraints) {
-                final cardTopMargin =
-                    constraints.maxWidth < 360 ? 150.0 : 200.0;
+                final cardTopMargin = constraints.maxWidth < 360 ? 150.0 : 200.0;
                 final avatarSize = constraints.maxWidth < 360 ? 180.0 : 240.0;
-                final minContentHeight =
-                    (constraints.maxHeight - topPadding - bottomPadding)
-                        .clamp(0.0, double.infinity);
+                final minContentHeight = (constraints.maxHeight - topPadding - bottomPadding).clamp(0.0, double.infinity);
 
                 return SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -95,24 +89,19 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize:
-                                      constraints.maxWidth < 360 ? 32 : 40,
+                                  fontSize: constraints.maxWidth < 360 ? 32 : 40,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
                                 child: Text(
-                                  userData.signature.isEmpty
-                                      ? '这个人很懒，什么都没写'
-                                      : userData.signature,
+                                  userData.signature.isEmpty ? '这个人很懒，什么都没写' : userData.signature,
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontSize:
-                                        constraints.maxWidth < 360 ? 16 : 20,
+                                    fontSize: constraints.maxWidth < 360 ? 16 : 20,
                                     color: Colors.grey,
                                   ),
                                 ),
@@ -122,8 +111,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                                   vertical: 20,
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
                                     _ProfileCountText(
                                       count: userData.follows,
@@ -155,8 +143,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                                   ),
                                   child: const Text(
                                     '注销登录',
-                                    style: TextStyle(
-                                        fontSize: 18, color: Colors.white),
+                                    style: TextStyle(fontSize: 18, color: Colors.white),
                                   ),
                                 ),
                                 onTap: () {

@@ -64,8 +64,7 @@ class BannerItem {
   BannerItem();
 
   /// 从 JSON 构建首页轮播项。
-  factory BannerItem.fromJson(Map<String, dynamic> json) =>
-      _$BannerItemFromJson(json);
+  factory BannerItem.fromJson(Map<String, dynamic> json) => _$BannerItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$BannerItemToJson(this);
@@ -82,8 +81,7 @@ class BannerListWrap extends ServerStatusBean {
   BannerListWrap();
 
   /// 从 JSON 构建首页轮播图列表响应。
-  factory BannerListWrap.fromJson(Map<String, dynamic> json) =>
-      _$BannerListWrapFromJson(json);
+  factory BannerListWrap.fromJson(Map<String, dynamic> json) => _$BannerListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -101,8 +99,7 @@ class BannerListWrap2 extends ServerStatusBean {
   BannerListWrap2();
 
   /// 从 JSON 构建 data 包装的首页轮播图列表响应。
-  factory BannerListWrap2.fromJson(Map<String, dynamic> json) =>
-      _$BannerListWrap2FromJson(json);
+  factory BannerListWrap2.fromJson(Map<String, dynamic> json) => _$BannerListWrap2FromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -141,8 +138,7 @@ class PageConfig {
   PageConfig();
 
   /// 从 JSON 构建首页页面配置。
-  factory PageConfig.fromJson(Map<String, dynamic> json) =>
-      _$PageConfigFromJson(json);
+  factory PageConfig.fromJson(Map<String, dynamic> json) => _$PageConfigFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PageConfigToJson(this);
@@ -159,8 +155,7 @@ class HomeBlockPageUiElementTitle {
   HomeBlockPageUiElementTitle();
 
   /// 从 JSON 构建首页区块标题元素。
-  factory HomeBlockPageUiElementTitle.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageUiElementTitleFromJson(json);
+  factory HomeBlockPageUiElementTitle.fromJson(Map<String, dynamic> json) => _$HomeBlockPageUiElementTitleFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeBlockPageUiElementTitleToJson(this);
@@ -186,8 +181,7 @@ class HomeBlockPageUiElementButton {
   HomeBlockPageUiElementButton();
 
   /// 从 JSON 构建首页区块按钮元素。
-  factory HomeBlockPageUiElementButton.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageUiElementButtonFromJson(json);
+  factory HomeBlockPageUiElementButton.fromJson(Map<String, dynamic> json) => _$HomeBlockPageUiElementButtonFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeBlockPageUiElementButtonToJson(this);
@@ -204,8 +198,7 @@ class HomeBlockPageUiElementImage {
   HomeBlockPageUiElementImage();
 
   /// 从 JSON 构建首页区块图片元素。
-  factory HomeBlockPageUiElementImage.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageUiElementImageFromJson(json);
+  factory HomeBlockPageUiElementImage.fromJson(Map<String, dynamic> json) => _$HomeBlockPageUiElementImageFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeBlockPageUiElementImageToJson(this);
@@ -234,8 +227,7 @@ class HomeBlockPageUiElement {
   HomeBlockPageUiElement();
 
   /// 从 JSON 构建首页区块 UI 元素组合。
-  factory HomeBlockPageUiElement.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageUiElementFromJson(json);
+  factory HomeBlockPageUiElement.fromJson(Map<String, dynamic> json) => _$HomeBlockPageUiElementFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeBlockPageUiElementToJson(this);
@@ -267,8 +259,7 @@ class HomeBlockPageResourceExt {
   HomeBlockPageResourceExt();
 
   /// 从 JSON 构建首页区块资源扩展信息。
-  factory HomeBlockPageResourceExt.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageResourceExtFromJson(json);
+  factory HomeBlockPageResourceExt.fromJson(Map<String, dynamic> json) => _$HomeBlockPageResourceExtFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeBlockPageResourceExtToJson(this);
@@ -309,8 +300,7 @@ class HomeBlockPageResource {
   HomeBlockPageResource();
 
   /// 从 JSON 构建首页区块资源。
-  factory HomeBlockPageResource.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageResourceFromJson(json);
+  factory HomeBlockPageResource.fromJson(Map<String, dynamic> json) => _$HomeBlockPageResourceFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeBlockPageResourceToJson(this);
@@ -348,8 +338,7 @@ class HomeBlockPageCreative {
   HomeBlockPageCreative();
 
   /// 从 JSON 构建首页创意卡片。
-  factory HomeBlockPageCreative.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageCreativeFromJson(json);
+  factory HomeBlockPageCreative.fromJson(Map<String, dynamic> json) => _$HomeBlockPageCreativeFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeBlockPageCreativeToJson(this);
@@ -387,8 +376,7 @@ class HomeBlockPageItem {
   HomeBlockPageItem();
 
   /// 从 JSON 构建首页区块。
-  factory HomeBlockPageItem.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageItemFromJson(json);
+  factory HomeBlockPageItem.fromJson(Map<String, dynamic> json) => _$HomeBlockPageItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeBlockPageItemToJson(this);
@@ -408,8 +396,7 @@ class HomeBlockPageCursor {
   HomeBlockPageCursor();
 
   /// 从 JSON 构建首页分页游标。
-  factory HomeBlockPageCursor.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageCursorFromJson(json);
+  factory HomeBlockPageCursor.fromJson(Map<String, dynamic> json) => _$HomeBlockPageCursorFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeBlockPageCursorToJson(this);
@@ -436,15 +423,13 @@ class HomeBlockPage {
   HomeBlockPage();
 
   /// 从 JSON 构建首页区块分页数据。
-  factory HomeBlockPage.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageFromJson(json);
+  factory HomeBlockPage.fromJson(Map<String, dynamic> json) => _$HomeBlockPageFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeBlockPageToJson(this);
 }
 
-HomeBlockPageCursor _stringToHomeBlockPageCursor(String value) =>
-    HomeBlockPageCursor?.fromJson(json.decode(value));
+HomeBlockPageCursor _stringToHomeBlockPageCursor(String value) => HomeBlockPageCursor?.fromJson(json.decode(value));
 
 @JsonSerializable()
 
@@ -457,8 +442,7 @@ class HomeBlockPageWrap extends ServerStatusBean {
   HomeBlockPageWrap();
 
   /// 从 JSON 构建首页区块分页响应。
-  factory HomeBlockPageWrap.fromJson(Map<String, dynamic> json) =>
-      _$HomeBlockPageWrapFromJson(json);
+  factory HomeBlockPageWrap.fromJson(Map<String, dynamic> json) => _$HomeBlockPageWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -488,8 +472,7 @@ class HomeDragonBallItem {
   HomeDragonBallItem();
 
   /// 从 JSON 构建首页金刚区入口。
-  factory HomeDragonBallItem.fromJson(Map<String, dynamic> json) =>
-      _$HomeDragonBallItemFromJson(json);
+  factory HomeDragonBallItem.fromJson(Map<String, dynamic> json) => _$HomeDragonBallItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$HomeDragonBallItemToJson(this);
@@ -506,8 +489,7 @@ class HomeDragonBallWrap extends ServerStatusBean {
   HomeDragonBallWrap();
 
   /// 从 JSON 构建首页金刚区入口响应。
-  factory HomeDragonBallWrap.fromJson(Map<String, dynamic> json) =>
-      _$HomeDragonBallWrapFromJson(json);
+  factory HomeDragonBallWrap.fromJson(Map<String, dynamic> json) => _$HomeDragonBallWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -534,8 +516,7 @@ class CountriesCodeItem {
   CountriesCodeItem();
 
   /// 从 JSON 构建国家或地区区号条目。
-  factory CountriesCodeItem.fromJson(Map<String, dynamic> json) =>
-      _$CountriesCodeItemFromJson(json);
+  factory CountriesCodeItem.fromJson(Map<String, dynamic> json) => _$CountriesCodeItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$CountriesCodeItemToJson(this);
@@ -555,8 +536,7 @@ class CountriesCodeIndex {
   CountriesCodeIndex();
 
   /// 从 JSON 构建国家或地区区号索引分组。
-  factory CountriesCodeIndex.fromJson(Map<String, dynamic> json) =>
-      _$CountriesCodeIndexFromJson(json);
+  factory CountriesCodeIndex.fromJson(Map<String, dynamic> json) => _$CountriesCodeIndexFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$CountriesCodeIndexToJson(this);
@@ -573,8 +553,7 @@ class CountriesCodeListWrap extends ServerStatusBean {
   CountriesCodeListWrap();
 
   /// 从 JSON 构建国家或地区区号列表响应。
-  factory CountriesCodeListWrap.fromJson(Map<String, dynamic> json) =>
-      _$CountriesCodeListWrapFromJson(json);
+  factory CountriesCodeListWrap.fromJson(Map<String, dynamic> json) => _$CountriesCodeListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -611,8 +590,7 @@ class PersonalizedPrivateContentItem {
   PersonalizedPrivateContentItem();
 
   /// 从 JSON 构建私人内容推荐条目。
-  factory PersonalizedPrivateContentItem.fromJson(Map<String, dynamic> json) =>
-      _$PersonalizedPrivateContentItemFromJson(json);
+  factory PersonalizedPrivateContentItem.fromJson(Map<String, dynamic> json) => _$PersonalizedPrivateContentItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PersonalizedPrivateContentItemToJson(this);
@@ -629,14 +607,11 @@ class PersonalizedPrivateContentListWrap extends ServerStatusBean {
   PersonalizedPrivateContentListWrap();
 
   /// 从 JSON 构建私人内容推荐列表响应。
-  factory PersonalizedPrivateContentListWrap.fromJson(
-          Map<String, dynamic> json) =>
-      _$PersonalizedPrivateContentListWrapFromJson(json);
+  factory PersonalizedPrivateContentListWrap.fromJson(Map<String, dynamic> json) => _$PersonalizedPrivateContentListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
-  Map<String, dynamic> toJson() =>
-      _$PersonalizedPrivateContentListWrapToJson(this);
+  Map<String, dynamic> toJson() => _$PersonalizedPrivateContentListWrapToJson(this);
 }
 
 @JsonSerializable()
@@ -653,8 +628,7 @@ class TopListTrack {
   TopListTrack();
 
   /// 从 JSON 构建榜单歌曲摘要。
-  factory TopListTrack.fromJson(Map<String, dynamic> json) =>
-      _$TopListTrackFromJson(json);
+  factory TopListTrack.fromJson(Map<String, dynamic> json) => _$TopListTrackFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$TopListTrackToJson(this);
@@ -769,8 +743,7 @@ class TopList {
   TopList();
 
   /// 从 JSON 构建音乐榜单信息。
-  factory TopList.fromJson(Map<String, dynamic> json) =>
-      _$TopListFromJson(json);
+  factory TopList.fromJson(Map<String, dynamic> json) => _$TopListFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$TopListToJson(this);
@@ -793,8 +766,7 @@ class ArtistTopListArtists {
   ArtistTopListArtists();
 
   /// 从 JSON 构建歌手榜单摘要。
-  factory ArtistTopListArtists.fromJson(Map<String, dynamic> json) =>
-      _$ArtistTopListArtistsFromJson(json);
+  factory ArtistTopListArtists.fromJson(Map<String, dynamic> json) => _$ArtistTopListArtistsFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$ArtistTopListArtistsToJson(this);
@@ -826,8 +798,7 @@ class ArtistTopList {
   ArtistTopList();
 
   /// 从 JSON 构建歌手榜单信息。
-  factory ArtistTopList.fromJson(Map<String, dynamic> json) =>
-      _$ArtistTopListFromJson(json);
+  factory ArtistTopList.fromJson(Map<String, dynamic> json) => _$ArtistTopListFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$ArtistTopListToJson(this);
@@ -850,8 +821,7 @@ class RewardTopList {
   RewardTopList();
 
   /// 从 JSON 构建赞赏榜单信息。
-  factory RewardTopList.fromJson(Map<String, dynamic> json) =>
-      _$RewardTopListFromJson(json);
+  factory RewardTopList.fromJson(Map<String, dynamic> json) => _$RewardTopListFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$RewardTopListToJson(this);
@@ -871,8 +841,7 @@ class TopListWrap extends ServerStatusBean {
   TopListWrap();
 
   /// 从 JSON 构建榜单列表响应。
-  factory TopListWrap.fromJson(Map<String, dynamic> json) =>
-      _$TopListWrapFromJson(json);
+  factory TopListWrap.fromJson(Map<String, dynamic> json) => _$TopListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -896,8 +865,7 @@ class TopListDetailWrap extends ServerStatusBean {
   TopListDetailWrap();
 
   /// 从 JSON 构建榜单详情响应。
-  factory TopListDetailWrap.fromJson(Map<String, dynamic> json) =>
-      _$TopListDetailWrapFromJson(json);
+  factory TopListDetailWrap.fromJson(Map<String, dynamic> json) => _$TopListDetailWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -957,8 +925,7 @@ class McalendarDetailEvent {
   McalendarDetailEvent();
 
   /// 从 JSON 构建音乐日历事件。
-  factory McalendarDetailEvent.fromJson(Map<String, dynamic> json) =>
-      _$McalendarDetailEventFromJson(json);
+  factory McalendarDetailEvent.fromJson(Map<String, dynamic> json) => _$McalendarDetailEventFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$McalendarDetailEventToJson(this);
@@ -975,8 +942,7 @@ class McalendarDetail {
   McalendarDetail();
 
   /// 从 JSON 构建音乐日历详情。
-  factory McalendarDetail.fromJson(Map<String, dynamic> json) =>
-      _$McalendarDetailFromJson(json);
+  factory McalendarDetail.fromJson(Map<String, dynamic> json) => _$McalendarDetailFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$McalendarDetailToJson(this);
@@ -993,8 +959,7 @@ class McalendarDetailWrap extends ServerStatusBean {
   McalendarDetailWrap();
 
   /// 从 JSON 构建音乐日历详情响应。
-  factory McalendarDetailWrap.fromJson(Map<String, dynamic> json) =>
-      _$McalendarDetailWrapFromJson(json);
+  factory McalendarDetailWrap.fromJson(Map<String, dynamic> json) => _$McalendarDetailWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1015,8 +980,7 @@ class AudioMatchResult {
   AudioMatchResult();
 
   /// 从 JSON 构建听歌识曲匹配结果。
-  factory AudioMatchResult.fromJson(Map<String, dynamic> json) =>
-      _$AudioMatchResultFromJson(json);
+  factory AudioMatchResult.fromJson(Map<String, dynamic> json) => _$AudioMatchResultFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$AudioMatchResultToJson(this);
@@ -1036,8 +1000,7 @@ class AudioMatchResultData {
   AudioMatchResultData();
 
   /// 从 JSON 构建听歌识曲匹配结果数据。
-  factory AudioMatchResultData.fromJson(Map<String, dynamic> json) =>
-      _$AudioMatchResultDataFromJson(json);
+  factory AudioMatchResultData.fromJson(Map<String, dynamic> json) => _$AudioMatchResultDataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$AudioMatchResultDataToJson(this);
@@ -1054,8 +1017,7 @@ class AudioMatchResultWrap extends ServerStatusBean {
   AudioMatchResultWrap();
 
   /// 从 JSON 构建听歌识曲匹配结果响应。
-  factory AudioMatchResultWrap.fromJson(Map<String, dynamic> json) =>
-      _$AudioMatchResultWrapFromJson(json);
+  factory AudioMatchResultWrap.fromJson(Map<String, dynamic> json) => _$AudioMatchResultWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1079,8 +1041,7 @@ class ListenTogetherStatusData {
   ListenTogetherStatusData();
 
   /// 从 JSON 构建一起听房间状态数据。
-  factory ListenTogetherStatusData.fromJson(Map<String, dynamic> json) =>
-      _$ListenTogetherStatusDataFromJson(json);
+  factory ListenTogetherStatusData.fromJson(Map<String, dynamic> json) => _$ListenTogetherStatusDataFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$ListenTogetherStatusDataToJson(this);
@@ -1097,8 +1058,7 @@ class ListenTogetherStatusWrap extends ServerStatusBean {
   ListenTogetherStatusWrap();
 
   /// 从 JSON 构建一起听房间状态响应。
-  factory ListenTogetherStatusWrap.fromJson(Map<String, dynamic> json) =>
-      _$ListenTogetherStatusWrapFromJson(json);
+  factory ListenTogetherStatusWrap.fromJson(Map<String, dynamic> json) => _$ListenTogetherStatusWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1125,8 +1085,7 @@ class UploadImageAlloc {
   UploadImageAlloc();
 
   /// 从 JSON 构建图片上传分配信息。
-  factory UploadImageAlloc.fromJson(Map<String, dynamic> json) =>
-      _$UploadImageAllocFromJson(json);
+  factory UploadImageAlloc.fromJson(Map<String, dynamic> json) => _$UploadImageAllocFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$UploadImageAllocToJson(this);
@@ -1143,8 +1102,7 @@ class UploadImageAllocWrap extends ServerStatusBean {
   UploadImageAllocWrap();
 
   /// 从 JSON 构建图片上传分配响应。
-  factory UploadImageAllocWrap.fromJson(Map<String, dynamic> json) =>
-      _$UploadImageAllocWrapFromJson(json);
+  factory UploadImageAllocWrap.fromJson(Map<String, dynamic> json) => _$UploadImageAllocWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -1166,8 +1124,7 @@ class UploadImageResult extends ServerStatusBean {
   UploadImageResult();
 
   /// 从 JSON 构建图片上传结果。
-  factory UploadImageResult.fromJson(Map<String, dynamic> json) =>
-      _$UploadImageResultFromJson(json);
+  factory UploadImageResult.fromJson(Map<String, dynamic> json) => _$UploadImageResultFromJson(json);
 
   /// 转换为 JSON。
   @override

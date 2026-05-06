@@ -35,8 +35,7 @@ class PresentationAdapterRegistrar {
         applyDominantColor: (color) {
           final settingsController = Get.find<SettingsController>();
           settingsController.albumColor.value = color;
-          settingsController.panelWidgetColor.value =
-              color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+          settingsController.panelWidgetColor.value = color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
         },
       ),
       permanent: true,
@@ -47,22 +46,18 @@ class PresentationAdapterRegistrar {
         currentQueueIndex: () => Get.find<PlayerController>().currentQueueIndex,
         selectionState: () => Get.find<PlayerController>().selectionState.value,
         runtimeState: () => Get.find<PlayerController>().runtimeState.value,
-        isFullScreenLyricOpen: () =>
-            Get.find<PlayerController>().isFullScreenLyricOpen.value,
-        updateFullScreenLyricTimerCounter: ({cancelTimer = false}) =>
-            Get.find<PlayerController>().updateFullScreenLyricTimerCounter(
+        isFullScreenLyricOpen: () => Get.find<PlayerController>().isFullScreenLyricOpen.value,
+        updateFullScreenLyricTimerCounter: ({cancelTimer = false}) => Get.find<PlayerController>().updateFullScreenLyricTimerCounter(
           cancelTimer: cancelTimer,
         ),
-        playQueueIndex: (index) =>
-            Get.find<PlayerController>().playQueueIndex(index),
+        playQueueIndex: (index) => Get.find<PlayerController>().playQueueIndex(index),
       ),
       permanent: true,
     );
     Get.put<ShellUserPort>(
       ShellUserPort(
         userInfo: () => Get.find<UserSessionController>().userInfo,
-        currentNickname: () =>
-            Get.find<UserSessionController>().userInfo.value.nickname,
+        currentNickname: () => Get.find<UserSessionController>().userInfo.value.nickname,
       ),
       permanent: true,
     );

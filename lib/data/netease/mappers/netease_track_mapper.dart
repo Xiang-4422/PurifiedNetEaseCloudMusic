@@ -14,8 +14,7 @@ class NeteaseTrackMapper {
       sourceType: SourceType.netease,
       sourceId: song.id,
       title: song.name ?? '',
-      artistNames:
-          (song.artists ?? []).map((artist) => artist.name ?? '').toList(),
+      artistNames: (song.artists ?? []).map((artist) => artist.name ?? '').toList(),
       albumTitle: song.album?.name,
       durationMs: song.duration,
       artworkUrl: song.album?.picUrl,
@@ -42,9 +41,7 @@ class NeteaseTrackMapper {
       durationMs: song.dt,
       artworkUrl: song.al?.picUrl,
       lyricKey: 'netease:${song.id}',
-      availability: (song.available ?? true)
-          ? TrackAvailability.playable
-          : TrackAvailability.unavailable,
+      availability: (song.available ?? true) ? TrackAvailability.playable : TrackAvailability.unavailable,
       metadata: {
         'mv': song.mv,
         'fee': song.fee,

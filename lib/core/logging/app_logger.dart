@@ -3,8 +3,7 @@ import 'package:flutter/foundation.dart';
 /// 应用调试日志工具。
 class AppLogger {
   static const _separator = '=';
-  static const _split =
-      '$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator';
+  static const _split = '$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator$_separator';
   static var _title = 'Yl-Log';
   static var _isDebug = true;
   static var _limitLength = 800;

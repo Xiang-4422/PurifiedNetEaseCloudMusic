@@ -10,15 +10,13 @@ extension ZoomDrawerContext on BuildContext {
   ZoomDrawerState? get drawer => ZoomDrawer.of(this);
 
   /// 当前抽屉最近一次完成的开合动作。
-  DrawerLastAction? get drawerLastAction =>
-      ZoomDrawer.of(this)?.drawerLastAction;
+  DrawerLastAction? get drawerLastAction => ZoomDrawer.of(this)?.drawerLastAction;
 
   /// 当前抽屉的动画状态。
   DrawerState? get drawerState => ZoomDrawer.of(this)?.stateNotifier.value;
 
   /// 当前抽屉状态通知器。
-  ValueNotifier<DrawerState>? get drawerStateNotifier =>
-      ZoomDrawer.of(this)?.stateNotifier;
+  ValueNotifier<DrawerState>? get drawerStateNotifier => ZoomDrawer.of(this)?.stateNotifier;
 
   /// 当前媒体查询中的屏幕宽度。
   double get screenWidth => MediaQuery.of(this).size.width;

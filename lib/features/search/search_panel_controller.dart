@@ -10,30 +10,24 @@ import 'package:flutter/foundation.dart';
 /// build 阶段继续构造请求描述，也能避免同一面板反复触发首屏请求。
 class SearchPanelController {
   /// 创建搜索面板控制器。
-  SearchPanelController({required SearchApplicationService service})
-      : _service = service;
+  SearchPanelController({required SearchApplicationService service}) : _service = service;
 
   final SearchApplicationService _service;
 
   /// 热搜关键词加载状态。
-  final ValueNotifier<LoadState<List<String>>> hotKeywordState =
-      ValueNotifier(const LoadState.loading());
+  final ValueNotifier<LoadState<List<String>>> hotKeywordState = ValueNotifier(const LoadState.loading());
 
   /// 歌曲搜索结果加载状态。
-  final ValueNotifier<LoadState<List<PlaybackQueueItem>>> songState =
-      ValueNotifier(const LoadState.empty());
+  final ValueNotifier<LoadState<List<PlaybackQueueItem>>> songState = ValueNotifier(const LoadState.empty());
 
   /// 歌单搜索结果加载状态。
-  final ValueNotifier<LoadState<List<PlaylistEntity>>> playlistState =
-      ValueNotifier(const LoadState.empty());
+  final ValueNotifier<LoadState<List<PlaylistEntity>>> playlistState = ValueNotifier(const LoadState.empty());
 
   /// 专辑搜索结果加载状态。
-  final ValueNotifier<LoadState<List<AlbumEntity>>> albumState =
-      ValueNotifier(const LoadState.empty());
+  final ValueNotifier<LoadState<List<AlbumEntity>>> albumState = ValueNotifier(const LoadState.empty());
 
   /// 歌手搜索结果加载状态。
-  final ValueNotifier<LoadState<List<ArtistEntity>>> artistState =
-      ValueNotifier(const LoadState.empty());
+  final ValueNotifier<LoadState<List<ArtistEntity>>> artistState = ValueNotifier(const LoadState.empty());
 
   bool _loadedOnce = false;
   String _currentKeyword = '';
@@ -84,8 +78,7 @@ class SearchPanelController {
       likedSongIds: likedSongIds,
       currentUserId: currentUserId,
     );
-    if (generation != _searchGeneration ||
-        normalizedKeyword != _currentKeyword) {
+    if (generation != _searchGeneration || normalizedKeyword != _currentKeyword) {
       return;
     }
     _applySearchState(nextState);

@@ -40,16 +40,13 @@ class DownloadTaskListController {
   StreamSubscription<List<DownloadTask>>? _tasksSubscription;
 
   /// 下载任务列表加载状态。
-  final ValueNotifier<LoadState<List<DownloadTaskListItemData>>> state =
-      ValueNotifier(const LoadState.loading());
+  final ValueNotifier<LoadState<List<DownloadTaskListItemData>>> state = ValueNotifier(const LoadState.loading());
 
   /// 首次加载任务列表并订阅任务变化。
   Future<void> loadInitial() async {
     state.value = const LoadState.loading();
     await _tasksSubscription?.cancel();
-    _tasksSubscription = _repository
-        .watchTasks(statuses: statuses)
-        .listen(_publishTasks, onError: (error, stackTrace) {
+    _tasksSubscription = _repository.watchTasks(statuses: statuses).listen(_publishTasks, onError: (error, stackTrace) {
       state.value = LoadState.error(
         error,
         stackTrace: stackTrace is StackTrace ? stackTrace : null,
@@ -181,9 +178,7 @@ class DownloadTaskListController {
       return;
     }
     final tracksById = {
-      for (final track in await _libraryRepository
-          .getTracksByIds(tasks.map((task) => task.trackId)))
-        track.id: track,
+      for (final track in await _libraryRepository.getTracksByIds(tasks.map((task) => task.trackId))) track.id: track,
     };
     final itemData = <DownloadTaskListItemData>[];
     for (final task in tasks) {

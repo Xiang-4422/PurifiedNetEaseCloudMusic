@@ -8,8 +8,7 @@ import 'package:bujuan/features/playback/playback_repository.dart';
 /// 将播放队列项解析成 just_audio 可消费的真实音源。
 class PlaybackSourceResolver {
   /// 创建播放源解析器。
-  PlaybackSourceResolver({required PlaybackRepository repository})
-      : _repository = repository;
+  PlaybackSourceResolver({required PlaybackRepository repository}) : _repository = repository;
 
   final PlaybackRepository _repository;
 
@@ -21,9 +20,7 @@ class PlaybackSourceResolver {
     if (item.mediaType == MediaType.local) {
       final url = item.playbackUrl ?? '';
       return PlaybackResolvedSource(
-        kind: url.isEmpty
-            ? PlaybackResolvedSourceKind.empty
-            : PlaybackResolvedSourceKind.filePath,
+        kind: url.isEmpty ? PlaybackResolvedSourceKind.empty : PlaybackResolvedSourceKind.filePath,
         url: url,
         markAsCached: url.isNotEmpty,
       );

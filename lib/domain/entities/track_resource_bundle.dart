@@ -28,14 +28,9 @@ class TrackResourceBundle {
     Object? lyrics = _unset,
   }) {
     return TrackResourceBundle(
-      audio:
-          identical(audio, _unset) ? this.audio : audio as LocalResourceEntry?,
-      artwork: identical(artwork, _unset)
-          ? this.artwork
-          : artwork as LocalResourceEntry?,
-      lyrics: identical(lyrics, _unset)
-          ? this.lyrics
-          : lyrics as LocalResourceEntry?,
+      audio: identical(audio, _unset) ? this.audio : audio as LocalResourceEntry?,
+      artwork: identical(artwork, _unset) ? this.artwork : artwork as LocalResourceEntry?,
+      lyrics: identical(lyrics, _unset) ? this.lyrics : lyrics as LocalResourceEntry?,
     );
   }
 

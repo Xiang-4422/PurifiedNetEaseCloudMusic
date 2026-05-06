@@ -5,14 +5,12 @@ import 'package:bujuan/domain/entities/comment_data.dart';
 /// 网易云评论远程数据源。
 class NeteaseCommentRemoteDataSource {
   /// 创建网易云评论远程数据源。
-  NeteaseCommentRemoteDataSource({NeteaseMusicApi? api})
-      : _api = api ?? NeteaseMusicApi();
+  NeteaseCommentRemoteDataSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
 
   final NeteaseMusicApi _api;
 
   /// 分页获取资源评论。
-  Future<({List<CommentData> items, bool hasMore, String? nextCursor})>
-      fetchComments(
+  Future<({List<CommentData> items, bool hasMore, String? nextCursor})> fetchComments(
     String id,
     String type, {
     required int pageNo,
@@ -40,8 +38,7 @@ class NeteaseCommentRemoteDataSource {
   }
 
   /// 分页获取楼层评论。
-  Future<({List<CommentData> items, bool hasMore, int nextTime})>
-      fetchFloorComments(
+  Future<({List<CommentData> items, bool hasMore, int nextTime})> fetchFloorComments(
     String id,
     String type,
     String parentCommentId, {

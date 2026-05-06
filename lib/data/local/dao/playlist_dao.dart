@@ -7,8 +7,7 @@ import 'package:drift/drift.dart' as drift;
 /// 歌单 DAO。
 class PlaylistDao {
   /// 创建歌单 DAO。
-  PlaylistDao({required db.BujuanDriftDatabase database})
-      : _database = database;
+  PlaylistDao({required db.BujuanDriftDatabase database}) : _database = database;
 
   final db.BujuanDriftDatabase _database;
 
@@ -17,9 +16,7 @@ class PlaylistDao {
     if (keyword.isEmpty) {
       return const [];
     }
-    final rows = await (_database.select(_database.playlists)
-          ..where((tbl) => tbl.title.like('%$keyword%')))
-        .get();
+    final rows = await (_database.select(_database.playlists)..where((tbl) => tbl.title.like('%$keyword%'))).get();
     final trackRefsByPlaylistId = await loadTrackRefsByPlaylistIds(
       rows.map((row) => row.playlistId).toList(),
     );
@@ -35,9 +32,7 @@ class PlaylistDao {
 
   /// 获取歌单。
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
-    final row = await (_database.select(_database.playlists)
-          ..where((tbl) => tbl.playlistId.equals(playlistId)))
-        .getSingleOrNull();
+    final row = await (_database.select(_database.playlists)..where((tbl) => tbl.playlistId.equals(playlistId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -97,9 +92,7 @@ class PlaylistDao {
 
   /// 清空歌单曲目引用。
   Future<void> clearPlaylistTrackRefs(String playlistId) {
-    return (_database.delete(_database.playlistTrackRefs)
-          ..where((tbl) => tbl.playlistId.equals(playlistId)))
-        .go();
+    return (_database.delete(_database.playlistTrackRefs)..where((tbl) => tbl.playlistId.equals(playlistId))).go();
   }
 
   /// 批量加载歌单曲目引用。

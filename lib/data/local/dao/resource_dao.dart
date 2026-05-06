@@ -77,9 +77,7 @@ class ResourceDao {
 
   /// 保存资源。
   Future<void> saveResource(LocalResourceEntry entry) {
-    return _database
-        .into(_database.localResourceEntries)
-        .insertOnConflictUpdate(
+    return _database.into(_database.localResourceEntries).insertOnConflictUpdate(
           LocalResourceEntriesCompanion(
             trackId: drift.Value(entry.trackId),
             kind: drift.Value(entry.kind.name),
@@ -122,16 +120,12 @@ class ResourceDao {
 
   /// 删除指定歌曲的全部资源。
   Future<void> removeTrackResources(String trackId) {
-    return (_database.delete(_database.localResourceEntries)
-          ..where((tbl) => tbl.trackId.equals(trackId)))
-        .go();
+    return (_database.delete(_database.localResourceEntries)..where((tbl) => tbl.trackId.equals(trackId))).go();
   }
 
   /// 删除指定来源的全部资源。
   Future<void> removeResourcesByOrigin(TrackResourceOrigin origin) {
-    return (_database.delete(_database.localResourceEntries)
-          ..where((tbl) => tbl.origin.equals(origin.name)))
-        .go();
+    return (_database.delete(_database.localResourceEntries)..where((tbl) => tbl.origin.equals(origin.name))).go();
   }
 
   LocalResourceEntry _mapRow(LocalResourceEntrie row) {

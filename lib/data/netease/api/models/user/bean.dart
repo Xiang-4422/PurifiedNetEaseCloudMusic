@@ -130,8 +130,7 @@ class UserSetting {
   UserSetting();
 
   /// 从 JSON 构建用户设置。
-  factory UserSetting.fromJson(Map<String, dynamic> json) =>
-      _$UserSettingFromJson(json);
+  factory UserSetting.fromJson(Map<String, dynamic> json) => _$UserSettingFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$UserSettingToJson(this);
@@ -147,8 +146,7 @@ class UserSettingWrap extends ServerStatusBean {
   UserSettingWrap();
 
   /// 从 JSON 构建用户设置响应。
-  factory UserSettingWrap.fromJson(Map<String, dynamic> json) =>
-      _$UserSettingWrapFromJson(json);
+  factory UserSettingWrap.fromJson(Map<String, dynamic> json) => _$UserSettingWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -175,8 +173,7 @@ class NeteaseSimpleUserInfo {
   NeteaseSimpleUserInfo();
 
   /// 从 JSON 构建简化用户资料。
-  factory NeteaseSimpleUserInfo.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseSimpleUserInfoFromJson(json);
+  factory NeteaseSimpleUserInfo.fromJson(Map<String, dynamic> json) => _$NeteaseSimpleUserInfoFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$NeteaseSimpleUserInfoToJson(this);
@@ -262,8 +259,7 @@ class NeteaseUserInfo {
   NeteaseUserInfo();
 
   /// 从 JSON 构建网易云用户资料。
-  factory NeteaseUserInfo.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseUserInfoFromJson(json);
+  factory NeteaseUserInfo.fromJson(Map<String, dynamic> json) => _$NeteaseUserInfoFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$NeteaseUserInfoToJson(this);
@@ -285,8 +281,7 @@ class NeteaseUserDetail extends ServerStatusBean {
   NeteaseUserDetail();
 
   /// 从 JSON 构建用户详情响应。
-  factory NeteaseUserDetail.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseUserDetailFromJson(json);
+  factory NeteaseUserDetail.fromJson(Map<String, dynamic> json) => _$NeteaseUserDetailFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -324,8 +319,7 @@ class NeteaseUserSubcount extends ServerStatusBean {
   NeteaseUserSubcount();
 
   /// 从 JSON 构建用户内容计数响应。
-  factory NeteaseUserSubcount.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseUserSubcountFromJson(json);
+  factory NeteaseUserSubcount.fromJson(Map<String, dynamic> json) => _$NeteaseUserSubcountFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -360,8 +354,7 @@ class NeteaseUserLevel {
   NeteaseUserLevel();
 
   /// 从 JSON 构建用户等级信息。
-  factory NeteaseUserLevel.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseUserLevelFromJson(json);
+  factory NeteaseUserLevel.fromJson(Map<String, dynamic> json) => _$NeteaseUserLevelFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$NeteaseUserLevelToJson(this);
@@ -380,8 +373,7 @@ class NeteaseUserLevelWrap extends ServerStatusBean {
   NeteaseUserLevelWrap();
 
   /// 从 JSON 构建用户等级响应。
-  factory NeteaseUserLevelWrap.fromJson(Map<String, dynamic> json) =>
-      _$NeteaseUserLevelWrapFromJson(json);
+  factory NeteaseUserLevelWrap.fromJson(Map<String, dynamic> json) => _$NeteaseUserLevelWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -398,8 +390,7 @@ class UserFollowListWrap extends ServerStatusBean {
   UserFollowListWrap();
 
   /// 从 JSON 构建用户关注列表响应。
-  factory UserFollowListWrap.fromJson(Map<String, dynamic> json) =>
-      _$UserFollowListWrapFromJson(json);
+  factory UserFollowListWrap.fromJson(Map<String, dynamic> json) => _$UserFollowListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -416,8 +407,7 @@ class UserFollowedListWrap extends ServerStatusBean {
   UserFollowedListWrap();
 
   /// 从 JSON 构建用户粉丝列表响应。
-  factory UserFollowedListWrap.fromJson(Map<String, dynamic> json) =>
-      _$UserFollowedListWrapFromJson(json);
+  factory UserFollowedListWrap.fromJson(Map<String, dynamic> json) => _$UserFollowedListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -434,8 +424,7 @@ class UserListWrap extends ServerStatusBean {
   UserListWrap();
 
   /// 从 JSON 构建用户搜索列表响应。
-  factory UserListWrap.fromJson(Map<String, dynamic> json) =>
-      _$UserListWrapFromJson(json);
+  factory UserListWrap.fromJson(Map<String, dynamic> json) => _$UserListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -452,8 +441,7 @@ class ArtistsSubListWrap extends ServerStatusListBean {
   ArtistsSubListWrap();
 
   /// 从 JSON 构建收藏歌手列表响应。
-  factory ArtistsSubListWrap.fromJson(Map<String, dynamic> json) =>
-      _$ArtistsSubListWrapFromJson(json);
+  factory ArtistsSubListWrap.fromJson(Map<String, dynamic> json) => _$ArtistsSubListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -470,8 +458,7 @@ class MvSubListWrap extends ServerStatusListBean {
   MvSubListWrap();
 
   /// 从 JSON 构建收藏 MV 列表响应。
-  factory MvSubListWrap.fromJson(Map<String, dynamic> json) =>
-      _$MvSubListWrapFromJson(json);
+  factory MvSubListWrap.fromJson(Map<String, dynamic> json) => _$MvSubListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -491,8 +478,7 @@ class AlbumSubListWrap extends ServerStatusListBean {
   AlbumSubListWrap();
 
   /// 从 JSON 构建收藏专辑列表响应。
-  factory AlbumSubListWrap.fromJson(Map<String, dynamic> json) =>
-      _$AlbumSubListWrapFromJson(json);
+  factory AlbumSubListWrap.fromJson(Map<String, dynamic> json) => _$AlbumSubListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -515,8 +501,7 @@ class PlayRecordItem {
   PlayRecordItem();
 
   /// 从 JSON 构建用户播放记录条目。
-  factory PlayRecordItem.fromJson(Map<String, dynamic> json) =>
-      _$PlayRecordItemFromJson(json);
+  factory PlayRecordItem.fromJson(Map<String, dynamic> json) => _$PlayRecordItemFromJson(json);
 
   /// 转换为 JSON。
   Map<String, dynamic> toJson() => _$PlayRecordItemToJson(this);
@@ -532,8 +517,7 @@ class PlayRecordListWrap extends ServerStatusBean {
   PlayRecordListWrap();
 
   /// 从 JSON 构建用户播放记录列表响应。
-  factory PlayRecordListWrap.fromJson(Map<String, dynamic> json) =>
-      _$PlayRecordListWrapFromJson(json);
+  factory PlayRecordListWrap.fromJson(Map<String, dynamic> json) => _$PlayRecordListWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -554,8 +538,7 @@ class PlaylistCreateWrap extends ServerStatusBean {
   PlaylistCreateWrap();
 
   /// 从 JSON 构建创建歌单响应。
-  factory PlaylistCreateWrap.fromJson(Map<String, dynamic> json) =>
-      _$PlaylistCreateWrapFromJson(json);
+  factory PlaylistCreateWrap.fromJson(Map<String, dynamic> json) => _$PlaylistCreateWrapFromJson(json);
 
   /// 转换为 JSON。
   @override
@@ -572,8 +555,7 @@ class PlaylistSubscribersWrap extends ServerStatusBean {
   PlaylistSubscribersWrap();
 
   /// 从 JSON 构建歌单收藏者列表响应。
-  factory PlaylistSubscribersWrap.fromJson(Map<String, dynamic> json) =>
-      _$PlaylistSubscribersWrapFromJson(json);
+  factory PlaylistSubscribersWrap.fromJson(Map<String, dynamic> json) => _$PlaylistSubscribersWrapFromJson(json);
 
   /// 转换为 JSON。
   @override

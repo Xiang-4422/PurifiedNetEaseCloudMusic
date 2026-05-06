@@ -20,8 +20,7 @@ class PlaybackService extends GetxService {
   AudioServiceHandler? _handler;
   void Function(PlaybackMode mode)? _onRestorePlaybackMode;
   void Function(PlaybackRepeatMode mode)? _onRepeatModeChanged;
-  void Function(String playlistName, String playlistHeader, bool isLikedSongs)?
-      _onPlaylistMetaChanged;
+  void Function(String playlistName, String playlistHeader, bool isLikedSongs)? _onPlaylistMetaChanged;
   bool Function()? _isHighQualityEnabled;
   Future<void> Function(PlaybackQueueItem item)? _onToggleLike;
   void Function(String message)? _onToast;
@@ -40,21 +39,17 @@ class PlaybackService extends GetxService {
   }
 
   /// 播放队列流。
-  Stream<List<PlaybackQueueItem>> get queueStream =>
-      handler.queue.map(PlaybackQueueItemAdapter.fromMediaItems);
+  Stream<List<PlaybackQueueItem>> get queueStream => handler.queue.map(PlaybackQueueItemAdapter.fromMediaItems);
 
   /// 当前 audio_service active queue 快照。
-  List<PlaybackQueueItem> get activeQueue =>
-      PlaybackQueueItemAdapter.fromMediaItems(handler.queue.value);
+  List<PlaybackQueueItem> get activeQueue => PlaybackQueueItemAdapter.fromMediaItems(handler.queue.value);
 
   /// 底层播放器是否已经拥有可播放 source。
   bool get hasAudioSource => handler.hasAudioSource;
 
   /// 当前媒体项流。
   Stream<PlaybackQueueItem?> get mediaItemStream => handler.mediaItem.map(
-        (mediaItem) => mediaItem == null
-            ? null
-            : PlaybackQueueItemAdapter.fromMediaItem(mediaItem),
+        (mediaItem) => mediaItem == null ? null : PlaybackQueueItemAdapter.fromMediaItem(mediaItem),
       );
 
   /// 底层播放状态流。
@@ -85,9 +80,7 @@ class PlaybackService extends GetxService {
   void bindControllerState({
     void Function(PlaybackMode mode)? onRestorePlaybackMode,
     void Function(PlaybackRepeatMode mode)? onRepeatModeChanged,
-    void Function(
-            String playlistName, String playlistHeader, bool isLikedSongs)?
-        onPlaylistMetaChanged,
+    void Function(String playlistName, String playlistHeader, bool isLikedSongs)? onPlaylistMetaChanged,
     bool Function()? isHighQualityEnabled,
     Future<void> Function(PlaybackQueueItem item)? onToggleLike,
     void Function(String message)? onToast,
@@ -119,10 +112,7 @@ class PlaybackService extends GetxService {
               ),
       onPlaylistMetaChanged: _onPlaylistMetaChanged,
       isHighQualityEnabled: _isHighQualityEnabled,
-      onToggleLike: _onToggleLike == null
-          ? null
-          : (mediaItem) =>
-              _onToggleLike!(PlaybackQueueItemAdapter.fromMediaItem(mediaItem)),
+      onToggleLike: _onToggleLike == null ? null : (mediaItem) => _onToggleLike!(PlaybackQueueItemAdapter.fromMediaItem(mediaItem)),
       onToast: _onToast,
       isPlaylistMode: _isPlaylistMode,
       isRoamingMode: _isRoamingMode,
@@ -203,9 +193,7 @@ class PlaybackService extends GetxService {
       return;
     }
     final confirmedItemId = handler.mediaItem.value?.id ?? '';
-    final confirmedIndex = confirmedItemId.isEmpty
-        ? -1
-        : queue.indexWhere((queueItem) => queueItem.id == confirmedItemId);
+    final confirmedIndex = confirmedItemId.isEmpty ? -1 : queue.indexWhere((queueItem) => queueItem.id == confirmedItemId);
     await handler.setSourceQueue(
       PlaybackQueueItemAdapter.toMediaItems(queue),
       currentIndex: confirmedIndex >= 0 ? confirmedIndex : fallbackIndex,

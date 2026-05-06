@@ -83,8 +83,7 @@ class SearchRepository {
     String keyword, {
     required String currentUserId,
   }) async {
-    final localPlaylists =
-        await _libraryRepository.searchLocalPlaylists(keyword);
+    final localPlaylists = await _libraryRepository.searchLocalPlaylists(keyword);
     final userPlaylists = currentUserId.isEmpty
         ? const <PlaylistEntity>[]
         : (await _userScopedDataSource.searchPlaylistItems(

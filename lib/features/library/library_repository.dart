@@ -87,9 +87,7 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return searchLocalTracks(keyword);
     }
-    final tracks = sourceKey == _localMusicSource.sourceKey
-        ? await _localMusicSource.searchTracks(keyword)
-        : await _neteaseSource.searchTracks(keyword);
+    final tracks = sourceKey == _localMusicSource.sourceKey ? await _localMusicSource.searchTracks(keyword) : await _neteaseSource.searchTracks(keyword);
     await _localDataSource.saveTracks(tracks);
     return tracks;
   }
@@ -107,9 +105,7 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return searchLocalPlaylists(keyword);
     }
-    final playlists = sourceKey == _localMusicSource.sourceKey
-        ? await _localMusicSource.searchPlaylists(keyword)
-        : await _neteaseSource.searchPlaylists(keyword);
+    final playlists = sourceKey == _localMusicSource.sourceKey ? await _localMusicSource.searchPlaylists(keyword) : await _neteaseSource.searchPlaylists(keyword);
     await _localDataSource.savePlaylists(playlists);
     return playlists;
   }
@@ -127,9 +123,7 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return searchLocalAlbums(keyword);
     }
-    final albums = sourceKey == _localMusicSource.sourceKey
-        ? await _localMusicSource.searchAlbums(keyword)
-        : await _neteaseSource.searchAlbums(keyword);
+    final albums = sourceKey == _localMusicSource.sourceKey ? await _localMusicSource.searchAlbums(keyword) : await _neteaseSource.searchAlbums(keyword);
     await _localDataSource.saveAlbums(albums);
     return albums;
   }
@@ -147,9 +141,7 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return searchLocalArtists(keyword);
     }
-    final artists = sourceKey == _localMusicSource.sourceKey
-        ? await _localMusicSource.searchArtists(keyword)
-        : await _neteaseSource.searchArtists(keyword);
+    final artists = sourceKey == _localMusicSource.sourceKey ? await _localMusicSource.searchArtists(keyword) : await _neteaseSource.searchArtists(keyword);
     await _localDataSource.saveArtists(artists);
     return artists;
   }
@@ -168,9 +160,7 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return null;
     }
-    final track = _isLocalTrackId(trackId)
-        ? await _localMusicSource.getTrack(trackId)
-        : await _neteaseSource.getTrack(trackId);
+    final track = _isLocalTrackId(trackId) ? await _localMusicSource.getTrack(trackId) : await _neteaseSource.getTrack(trackId);
     if (track != null) {
       await _localDataSource.saveTracks([track]);
     }
@@ -210,16 +200,14 @@ class LibraryRepository {
     if (tracks.isEmpty) {
       return const [];
     }
-    final resourcesByTrackId =
-        await _resourceIndexRepository.getTrackResourceBundles(
+    final resourcesByTrackId = await _resourceIndexRepository.getTrackResourceBundles(
       tracks.map((track) => track.id),
     );
     return tracks
         .map(
           (track) => TrackWithResources(
             track: track,
-            resources:
-                resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
+            resources: resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
           ),
         )
         .toList();
@@ -258,9 +246,7 @@ class LibraryRepository {
     if (isOfflineModeEnabled && !isLocalTrack) {
       return null;
     }
-    return isLocalTrack
-        ? _localMusicSource.getPlaybackUrl(trackId)
-        : _neteaseSource.getPlaybackUrl(trackId);
+    return isLocalTrack ? _localMusicSource.getPlaybackUrl(trackId) : _neteaseSource.getPlaybackUrl(trackId);
   }
 
   /// 按音质偏好解析播放地址，优先返回仍存在的本地音频资源。
@@ -298,9 +284,7 @@ class LibraryRepository {
     if (isOfflineModeEnabled && !isLocalTrack) {
       return null;
     }
-    return isLocalTrack
-        ? _localMusicSource.getPlaybackUrl(trackId, qualityLevel: qualityLevel)
-        : _neteaseSource.getPlaybackUrl(trackId, qualityLevel: qualityLevel);
+    return isLocalTrack ? _localMusicSource.getPlaybackUrl(trackId, qualityLevel: qualityLevel) : _neteaseSource.getPlaybackUrl(trackId, qualityLevel: qualityLevel);
   }
 
   /// 解析封面来源，优先返回仍存在的本地封面资源。
@@ -332,10 +316,8 @@ class LibraryRepository {
   }
 
   Future<TrackLyrics?> _loadLyrics(String trackId) async {
-    final lyricsResource =
-        (await _resourceIndexRepository.getTrackResourceBundle(trackId)).lyrics;
-    if (lyricsResource != null &&
-        await _touchIfLocalFileExists(lyricsResource)) {
+    final lyricsResource = (await _resourceIndexRepository.getTrackResourceBundle(trackId)).lyrics;
+    if (lyricsResource != null && await _touchIfLocalFileExists(lyricsResource)) {
       return TrackLyrics(
         main: await File(lyricsResource.path).readAsString(),
       );
@@ -347,9 +329,7 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return null;
     }
-    final lyrics = _isLocalTrackId(trackId)
-        ? await _localMusicSource.getLyrics(trackId)
-        : await _neteaseSource.getLyrics(trackId);
+    final lyrics = _isLocalTrackId(trackId) ? await _localMusicSource.getLyrics(trackId) : await _neteaseSource.getLyrics(trackId);
     if (lyrics != null) {
       await _localDataSource.saveLyrics(trackId, lyrics);
     }
@@ -364,8 +344,7 @@ class LibraryRepository {
     final cacheKey = '$trackId|${qualityLevel ?? ''}';
     final cachedUrl = _playbackUrlCache[cacheKey];
     final now = DateTime.now();
-    if (cachedUrl != null &&
-        now.difference(cachedUrl.createdAt) < _playbackUrlCacheTtl) {
+    if (cachedUrl != null && now.difference(cachedUrl.createdAt) < _playbackUrlCacheTtl) {
       return cachedUrl.url;
     }
     final loadingUrl = _playbackUrlLoads[cacheKey];
@@ -413,9 +392,7 @@ class LibraryRepository {
     if (isOfflineModeEnabled) {
       return null;
     }
-    final playlist = _isLocalPlaylistId(playlistId)
-        ? await _localMusicSource.getPlaylist(playlistId)
-        : await _neteaseSource.getPlaylist(playlistId);
+    final playlist = _isLocalPlaylistId(playlistId) ? await _localMusicSource.getPlaylist(playlistId) : await _neteaseSource.getPlaylist(playlistId);
     if (playlist != null) {
       await _localDataSource.savePlaylists([playlist]);
     }
@@ -510,8 +487,7 @@ class LibraryRepository {
     if (!file.existsSync()) {
       return false;
     }
-    await _resourceIndexRepository.touchResource(
-        resource.trackId, resource.kind);
+    await _resourceIndexRepository.touchResource(resource.trackId, resource.kind);
     return true;
   }
 

@@ -109,14 +109,12 @@ class PlaybackSwitchCoordinator {
     PlaybackSourcePrefetcher? sourcePrefetcher,
   })  : _playbackService = playbackService,
         _queueService = queueService,
-        _sourcePrefetcher = sourcePrefetcher ??
-            PlaybackSourcePrefetcher(resolver: sourceResolver);
+        _sourcePrefetcher = sourcePrefetcher ?? PlaybackSourcePrefetcher(resolver: sourceResolver);
 
   final PlaybackService _playbackService;
   final PlaybackQueueService _queueService;
   final PlaybackSourcePrefetcher _sourcePrefetcher;
-  final StreamController<PlaybackSwitchState> _stateController =
-      StreamController<PlaybackSwitchState>.broadcast(sync: true);
+  final StreamController<PlaybackSwitchState> _stateController = StreamController<PlaybackSwitchState>.broadcast(sync: true);
   int _latestVersion = 0;
   int _consecutiveAutoFailures = 0;
   int _switchId = 0;
@@ -160,8 +158,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.total',
         totalStopwatch,
-        details:
-            'switchId=$switchId version=$version id=${item.id} index=$activeIndex trigger=${trigger.name} playNow=$playNow outcome=$outcome success=${result.success} obsolete=${result.isObsolete} source=$sourceKind',
+        details: 'switchId=$switchId version=$version id=${item.id} index=$activeIndex trigger=${trigger.name} playNow=$playNow outcome=$outcome success=${result.success} obsolete=${result.isObsolete} source=$sourceKind',
       );
       return result;
     }
@@ -220,8 +217,7 @@ class PlaybackSwitchCoordinator {
     PlaybackPerformanceLogger.elapsed(
       'switch.resolveSource',
       resolveStopwatch,
-      details:
-          'switchId=$switchId version=$version id=${item.id} success=${sourceResult.isSuccess} message=${sourceResult.message ?? ''}',
+      details: 'switchId=$switchId version=$version id=${item.id} success=${sourceResult.isSuccess} message=${sourceResult.message ?? ''}',
     );
     if (_isObsolete(version)) {
       _emitCancelled(
@@ -264,8 +260,7 @@ class PlaybackSwitchCoordinator {
       trigger: trigger,
       autoplayIntent: playNow,
     ));
-    final shouldAutoPlay =
-        playNow && autoplayCancelVersion == _autoplayCancelVersion;
+    final shouldAutoPlay = playNow && autoplayCancelVersion == _autoplayCancelVersion;
     await _waitForReplaceTurn(
       switchId: switchId,
       selectionVersion: version,
@@ -315,8 +310,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.replaceSourceWithFallback',
         replaceStopwatch,
-        details:
-            'switchId=$switchId version=$version id=${item.id} index=$activeIndex source=${source.kind.name} success=$success playNow=$shouldAutoPlay',
+        details: 'switchId=$switchId version=$version id=${item.id} index=$activeIndex source=${source.kind.name} success=$success playNow=$shouldAutoPlay',
       );
     } finally {
       _completeReplaceTurn(replaceTurn);
@@ -345,8 +339,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.markConfirmed',
         confirmStopwatch,
-        details:
-            'switchId=$switchId version=$version id=${item.id} index=$activeIndex queue=${queue.length}',
+        details: 'switchId=$switchId version=$version id=${item.id} index=$activeIndex queue=${queue.length}',
       );
       _prefetchNeighbors(activeIndex);
       _emitState(_buildState(
@@ -393,8 +386,7 @@ class PlaybackSwitchCoordinator {
     PlaybackPerformanceLogger.elapsed(
       'switch.waitReplaceTurn',
       stopwatch,
-      details:
-          'switchId=$switchId version=$selectionVersion id=${item.id} index=$activeIndex',
+      details: 'switchId=$switchId version=$selectionVersion id=${item.id} index=$activeIndex',
       warnAfterMs: 1,
     );
   }
@@ -428,9 +420,7 @@ class PlaybackSwitchCoordinator {
       source: source,
       playNow: playNow,
     );
-    if (success ||
-        (source.kind != PlaybackResolvedSourceKind.filePath &&
-            source.kind != PlaybackResolvedSourceKind.neteaseCacheStream)) {
+    if (success || (source.kind != PlaybackResolvedSourceKind.filePath && source.kind != PlaybackResolvedSourceKind.neteaseCacheStream)) {
       return success;
     }
     final remoteSource = await _safeResolveRemote(item);
@@ -481,8 +471,7 @@ class PlaybackSwitchCoordinator {
         PlaybackPerformanceLogger.elapsed(
           'switch.tryResolveSource',
           stopwatch,
-          details:
-              'id=${item.id} highQuality=$preferHighQuality success=false empty=true',
+          details: 'id=${item.id} highQuality=$preferHighQuality success=false empty=true',
         );
         return const _SourceResolveResult.failure('当前歌曲暂无可用播放地址');
       }
@@ -492,8 +481,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.tryResolveSource',
         stopwatch,
-        details:
-            'id=${item.id} highQuality=$preferHighQuality success=true kind=${source.kind.name}',
+        details: 'id=${item.id} highQuality=$preferHighQuality success=true kind=${source.kind.name}',
       );
       return _SourceResolveResult.success(source);
     } on TimeoutException catch (error) {
@@ -501,8 +489,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.tryResolveSource',
         stopwatch,
-        details:
-            'id=${item.id} highQuality=$preferHighQuality success=false timeout=true',
+        details: 'id=${item.id} highQuality=$preferHighQuality success=false timeout=true',
       );
       return const _SourceResolveResult.failure('播放地址获取超时，请重试');
     } catch (error) {
@@ -510,8 +497,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.tryResolveSource',
         stopwatch,
-        details:
-            'id=${item.id} highQuality=$preferHighQuality success=false error=$error',
+        details: 'id=${item.id} highQuality=$preferHighQuality success=false error=$error',
       );
       return _SourceResolveResult.failure(_resolveErrorMessage(error));
     }
@@ -557,8 +543,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.replaceSource',
         stopwatch,
-        details:
-            'id=${item.id} index=$activeIndex queue=${queue.length} kind=${source.kind.name} playNow=$playNow success=$success',
+        details: 'id=${item.id} index=$activeIndex queue=${queue.length} kind=${source.kind.name} playNow=$playNow success=$success',
       );
       return success;
     } catch (error) {
@@ -566,8 +551,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.replaceSource',
         stopwatch,
-        details:
-            'id=${item.id} index=$activeIndex queue=${queue.length} kind=${source.kind.name} playNow=$playNow success=false error=$error',
+        details: 'id=${item.id} index=$activeIndex queue=${queue.length} kind=${source.kind.name} playNow=$playNow success=false error=$error',
       );
       return false;
     }
@@ -584,11 +568,7 @@ class PlaybackSwitchCoordinator {
     if (_isAutoAdvance(trigger)) {
       _consecutiveAutoFailures++;
     }
-    final resolvedMessage = message ??
-        (_isAutoAdvance(trigger) &&
-                _consecutiveAutoFailures >= maxAutoAdvanceFailures
-            ? '连续多首歌曲无法播放'
-            : '当前歌曲暂时无法播放');
+    final resolvedMessage = message ?? (_isAutoAdvance(trigger) && _consecutiveAutoFailures >= maxAutoAdvanceFailures ? '连续多首歌曲无法播放' : '当前歌曲暂时无法播放');
     _emitState(_buildState(
       switchId: switchId,
       selectionVersion: selectionVersion,
@@ -611,8 +591,7 @@ class PlaybackSwitchCoordinator {
   }
 
   bool _isAutoAdvance(PlaybackSwitchTrigger trigger) {
-    return trigger == PlaybackSwitchTrigger.queueCompletion ||
-        trigger == PlaybackSwitchTrigger.modeAutoAdvance;
+    return trigger == PlaybackSwitchTrigger.queueCompletion || trigger == PlaybackSwitchTrigger.modeAutoAdvance;
   }
 
   void _prefetchNeighbors(int activeIndex) {

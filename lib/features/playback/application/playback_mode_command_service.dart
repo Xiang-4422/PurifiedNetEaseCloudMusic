@@ -49,9 +49,7 @@ class PlaybackModeCommandService {
     required PlaybackQueueItem currentSong,
     required Future<void> Function({bool showToast}) quitHeartBeatMode,
     required Future<void> Function(PlaybackRepeatMode repeatMode) setRepeatMode,
-    required Future<void> Function(String startSongId,
-            {required bool fromPlayAll})
-        openHeartBeatMode,
+    required Future<void> Function(String startSongId, {required bool fromPlayAll}) openHeartBeatMode,
   }) async {
     if (isFmMode) {
       return;
@@ -62,8 +60,7 @@ class PlaybackModeCommandService {
       await _commandService.playLikedSongs(currentSong: currentSong);
       return;
     }
-    if (sessionState.isPlayingLikedSongs &&
-        sessionState.repeatMode == PlaybackRepeatMode.none) {
+    if (sessionState.isPlayingLikedSongs && sessionState.repeatMode == PlaybackRepeatMode.none) {
       await openHeartBeatMode(
         currentSong.id,
         fromPlayAll: false,
@@ -92,8 +89,7 @@ class PlaybackModeCommandService {
       startRoaming: () => _commandService.startRoamingMode(
         currentRepeatMode: currentRepeatMode,
       ),
-      startHeartBeat: (startSongId, fromPlayAll) =>
-          _commandService.startHeartBeatMode(
+      startHeartBeat: (startSongId, fromPlayAll) => _commandService.startHeartBeatMode(
         startSongId: startSongId,
         fromPlayAll: fromPlayAll,
         currentRepeatMode: currentRepeatMode,

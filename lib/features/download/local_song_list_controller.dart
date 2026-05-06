@@ -22,8 +22,7 @@ class LocalSongListController {
   final Set<TrackResourceOrigin>? origins;
 
   /// 本地歌曲列表加载状态。
-  final ValueNotifier<LoadState<List<LocalSongEntry>>> state =
-      ValueNotifier(const LoadState.loading());
+  final ValueNotifier<LoadState<List<LocalSongEntry>>> state = ValueNotifier(const LoadState.loading());
 
   /// 首次加载本地歌曲列表。
   Future<void> loadInitial() => refresh();

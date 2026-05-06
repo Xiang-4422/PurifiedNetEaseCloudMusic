@@ -12,12 +12,10 @@ class ImageUrlNormalizer {
     if (uri == null || !uri.queryParameters.containsKey('param')) {
       return url;
     }
-    final nextQueryParameters = Map<String, String>.from(uri.queryParameters)
-      ..remove('param');
+    final nextQueryParameters = Map<String, String>.from(uri.queryParameters)..remove('param');
     return uri
         .replace(
-          queryParameters:
-              nextQueryParameters.isEmpty ? null : nextQueryParameters,
+          queryParameters: nextQueryParameters.isEmpty ? null : nextQueryParameters,
         )
         .toString();
   }

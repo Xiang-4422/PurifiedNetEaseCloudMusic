@@ -31,8 +31,7 @@ class DownloadQueuePlanner {
     if (candidateIds.isEmpty) {
       return;
     }
-    final tracksWithResources =
-        await _libraryRepository.getTracksWithResources(candidateIds);
+    final tracksWithResources = await _libraryRepository.getTracksWithResources(candidateIds);
     final tracksById = {
       for (final item in tracksWithResources) item.track.id: item,
     };
@@ -51,8 +50,7 @@ class DownloadQueuePlanner {
       }
       final track = trackWithResources.track;
       final audioResource = trackWithResources.resources.audio;
-      if (track.sourceType == SourceType.local ||
-          audioResource?.origin == TrackResourceOrigin.managedDownload) {
+      if (track.sourceType == SourceType.local || audioResource?.origin == TrackResourceOrigin.managedDownload) {
         continue;
       }
       unawaited(

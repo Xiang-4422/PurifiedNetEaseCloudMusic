@@ -31,13 +31,10 @@ class BottomPanelProgressBar extends StatelessWidget {
         total: total,
         barHeight: AppDimensions.paddingLarge,
         barCapShape: BarCapShape.round,
-        progressBarColor:
-            SettingsController.to.panelWidgetColor.value.withValues(alpha: .1),
-        baseBarColor:
-            SettingsController.to.panelWidgetColor.value.withValues(alpha: .05),
+        progressBarColor: SettingsController.to.panelWidgetColor.value.withValues(alpha: .1),
+        baseBarColor: SettingsController.to.panelWidgetColor.value.withValues(alpha: .05),
         bufferedBarColor: Colors.transparent,
-        thumbColor:
-            SettingsController.to.panelWidgetColor.value.withValues(alpha: .05),
+        thumbColor: SettingsController.to.panelWidgetColor.value.withValues(alpha: .05),
         thumbRadius: AppDimensions.paddingLarge / 2,
         thumbGlowRadius: AppDimensions.paddingLarge * 2 / 3,
         thumbCanPaintOutsideBar: false,
@@ -57,13 +54,11 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
       child: Obx(() {
         final currentSong = PlayerController.to.currentSongState.value;
         final currentSongId = int.tryParse(currentSong.sourceId);
-        final isLiked =
-            UserLibraryController.to.likedSongIds.contains(currentSongId);
+        final isLiked = UserLibraryController.to.likedSongIds.contains(currentSongId);
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -71,8 +66,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
             _ButtonBackground(
               child: GestureDetector(
                 onTap: () async {
-                  final updatedSong = await UserLibraryController.to
-                      .toggleLikeStatus(currentSong);
+                  final updatedSong = await UserLibraryController.to.toggleLikeStatus(currentSong);
                   if (updatedSong != null) {
                     await PlayerController.to.updatePlaybackQueueItem(
                       updatedSong,
@@ -82,9 +76,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
                 child: Icon(
                   isLiked ? TablerIcons.heart_filled : TablerIcons.heart,
                   size: 30,
-                  color: isLiked
-                      ? Colors.red
-                      : SettingsController.to.panelWidgetColor.value,
+                  color: isLiked ? Colors.red : SettingsController.to.panelWidgetColor.value,
                 ),
               ),
             ),
@@ -105,9 +97,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
                 onTap: PlayerController.to.playOrPause,
                 child: Obx(
                   () => Icon(
-                    PlayerController.to.isPlaying.value
-                        ? TablerIcons.player_pause_filled
-                        : TablerIcons.player_play_filled,
+                    PlayerController.to.isPlaying.value ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
                     size: 60,
                     color: SettingsController.to.panelWidgetColor.value,
                   ),

@@ -33,9 +33,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
     super.initState();
     _radioId = context.routeData.queryParams.get('radioId');
     _radioName = context.routeData.queryParams.get('radioName');
-    _controller = Get.find<FeatureControllerFactory>()
-        .radioDetail(radioId: _radioId)
-      ..loadInitial();
+    _controller = Get.find<FeatureControllerFactory>().radioDetail(radioId: _radioId)..loadInitial();
   }
 
   @override

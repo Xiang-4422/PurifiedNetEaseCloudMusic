@@ -39,21 +39,18 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(selectionService.state.selectedItem.id, '2');
-      expect(selectionService.state.sourceStatus,
-          PlaybackSelectionSourceStatus.loading);
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.loading);
       expect(playbackService.replaceSourceCompleter.isCompleted, isFalse);
 
       playbackService.completeReplaceSource(true);
       await selectFuture;
 
-      expect(selectionService.state.sourceStatus,
-          PlaybackSelectionSourceStatus.ready);
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.ready);
       expect(playbackService.replacedIndexes, [1]);
       await subscription.cancel();
     });
 
-    test('keeps selection and reports error when source switch fails',
-        () async {
+    test('keeps selection and reports error when source switch fails', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
       final selectionService = PlaybackSelectionService(
@@ -74,8 +71,7 @@ void main() {
       await selectFuture;
 
       expect(selectionService.state.selectedItem.id, '1');
-      expect(selectionService.state.sourceStatus,
-          PlaybackSelectionSourceStatus.error);
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.error);
       expect(selectionService.state.sourceError, isNotEmpty);
     });
 
@@ -110,8 +106,7 @@ void main() {
       expect(queueService.state.confirmedIndex, 0);
       expect(queueService.state.selectedIndex, 0);
       expect(selectionService.state.selectedItem.id, '1');
-      expect(selectionService.state.sourceStatus,
-          PlaybackSelectionSourceStatus.error);
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.error);
       expect(selectionService.state.sourceError, isNotEmpty);
     });
 
@@ -149,8 +144,7 @@ void main() {
       await latest;
 
       expect(selectionService.state.selectedItem.id, '3');
-      expect(selectionService.state.sourceStatus,
-          PlaybackSelectionSourceStatus.ready);
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.ready);
       expect(playbackService.replacedIndexes, containsAllInOrder([0, 2]));
       expect(playbackService.replacedIndexes.last, 2);
     });
@@ -192,12 +186,10 @@ void main() {
       playbackService.completeReplaceSource(true);
       await Future.wait([olderSkip, latestSkip]);
 
-      expect(selectionService.state.sourceStatus,
-          PlaybackSelectionSourceStatus.ready);
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.ready);
     });
 
-    test('maps selected item to active queue after queue service reorder',
-        () async {
+    test('maps selected item to active queue after queue service reorder', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
       await queueService.setRepeatMode(PlaybackRepeatMode.none);
@@ -226,8 +218,7 @@ void main() {
       playbackService.completeReplaceSource(true);
       await selectFuture;
 
-      expect(playbackService.replacedIndexes,
-          [selectionService.state.selectedIndex]);
+      expect(playbackService.replacedIndexes, [selectionService.state.selectedIndex]);
     });
 
     test('submits playback source when selecting next track', () async {
@@ -261,13 +252,10 @@ void main() {
       playbackService.completeReplaceSource(true);
       await next;
 
-      expect(selectionService.state.sourceStatus,
-          PlaybackSelectionSourceStatus.ready);
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.ready);
     });
 
-    test(
-        'queue completion advances from confirmed index, not previewed selection',
-        () async {
+    test('queue completion advances from confirmed index, not previewed selection', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
       final selectionService = PlaybackSelectionService(
@@ -305,8 +293,7 @@ void main() {
       await completedNext;
     });
 
-    test('keeps selection error when resolver fails before source replace',
-        () async {
+    test('keeps selection error when resolver fails before source replace', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
       final selectionService = PlaybackSelectionService(
@@ -330,8 +317,7 @@ void main() {
       );
 
       expect(selectionService.state.selectedItem.id, '1');
-      expect(selectionService.state.sourceStatus,
-          PlaybackSelectionSourceStatus.error);
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.error);
       expect(selectionService.state.sourceError, '播放地址获取超时，请重试');
       expect(playbackService.replacedIndexes, isEmpty);
     });
@@ -357,8 +343,7 @@ void main() {
         playListName: 'Queue',
         trigger: PlaybackSwitchTrigger.userSelect,
       );
-      expect(selectionService.state.sourceStatus,
-          PlaybackSelectionSourceStatus.error);
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.error);
 
       final retry = selectionService.submitCurrent(
         trigger: PlaybackSwitchTrigger.userSelect,
@@ -368,8 +353,7 @@ void main() {
       await retry;
 
       expect(sourceResolver.resolveCount, 2);
-      expect(selectionService.state.sourceStatus,
-          PlaybackSelectionSourceStatus.ready);
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.ready);
       expect(playbackService.replacedIndexes, [0]);
     });
   });
@@ -382,9 +366,7 @@ PlaybackQueueService _queueService(_FakePlaybackService playbackService) {
   );
 }
 
-PlaybackSwitchCoordinator _switchCoordinator(
-    _FakePlaybackService playbackService, PlaybackQueueService queueService,
-    {PlaybackSourceResolver? sourceResolver}) {
+PlaybackSwitchCoordinator _switchCoordinator(_FakePlaybackService playbackService, PlaybackQueueService queueService, {PlaybackSourceResolver? sourceResolver}) {
   return PlaybackSwitchCoordinator(
     playbackService: playbackService,
     queueService: queueService,

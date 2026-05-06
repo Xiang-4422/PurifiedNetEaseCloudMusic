@@ -22,15 +22,12 @@ UserSetting _$UserSettingFromJson(Map<String, dynamic> json) => UserSetting()
   ..broadcastSetting = (json['broadcastSetting'] as num?)?.toInt()
   ..commentSetting = (json['commentSetting'] as num?)?.toInt()
   ..phoneFriendSetting = json['phoneFriendSetting'] as bool?
-  ..allowFollowedCanSeeMyPlayRecord =
-      json['allowFollowedCanSeeMyPlayRecord'] as bool?
+  ..allowFollowedCanSeeMyPlayRecord = json['allowFollowedCanSeeMyPlayRecord'] as bool?
   ..finishedFollowGuide = json['finishedFollowGuide'] as bool?
-  ..allowOfflinePrivateMessageNotify =
-      json['allowOfflinePrivateMessageNotify'] as bool?
+  ..allowOfflinePrivateMessageNotify = json['allowOfflinePrivateMessageNotify'] as bool?
   ..allowOfflineForwardNotify = json['allowOfflineForwardNotify'] as bool?
   ..allowOfflineCommentNotify = json['allowOfflineCommentNotify'] as bool?
-  ..allowOfflineCommentReplyNotify =
-      json['allowOfflineCommentReplyNotify'] as bool?
+  ..allowOfflineCommentReplyNotify = json['allowOfflineCommentReplyNotify'] as bool?
   ..allowOfflineNotify = json['allowOfflineNotify'] as bool?
   ..allowVideoSubscriptionNotify = json['allowVideoSubscriptionNotify'] as bool?
   ..sendMiuiMsg = json['sendMiuiMsg'] as bool?
@@ -44,16 +41,12 @@ UserSetting _$UserSettingFromJson(Map<String, dynamic> json) => UserSetting()
   ..needRcmdEvent = json['needRcmdEvent'] as bool?
   ..allowPlaylistShareNotify = json['allowPlaylistShareNotify'] as bool?
   ..allowDJProgramShareNotify = json['allowDJProgramShareNotify'] as bool?
-  ..allowDJRadioSubscriptionNotify =
-      json['allowDJRadioSubscriptionNotify'] as bool?
-  ..allowPeopleCanSeeMyPlaynNotify =
-      json['allowPeopleCanSeeMyPlaynNotify'] as bool?
+  ..allowDJRadioSubscriptionNotify = json['allowDJRadioSubscriptionNotify'] as bool?
+  ..allowPeopleCanSeeMyPlaynNotify = json['allowPeopleCanSeeMyPlaynNotify'] as bool?
   ..peopleNearbyCanSeeMe = json['peopleNearbyCanSeeMe'] as bool?
-  ..allowDJProgramSubscriptionNotify =
-      json['allowDJProgramSubscriptionNotify'] as bool?;
+  ..allowDJProgramSubscriptionNotify = json['allowDJProgramSubscriptionNotify'] as bool?;
 
-Map<String, dynamic> _$UserSettingToJson(UserSetting instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$UserSettingToJson(UserSetting instance) => <String, dynamic>{
       'userId': instance.userId,
       'profileSetting': instance.profileSetting,
       'ageSetting': instance.ageSetting,
@@ -69,11 +62,9 @@ Map<String, dynamic> _$UserSettingToJson(UserSetting instance) =>
       'broadcastSetting': instance.broadcastSetting,
       'commentSetting': instance.commentSetting,
       'phoneFriendSetting': instance.phoneFriendSetting,
-      'allowFollowedCanSeeMyPlayRecord':
-          instance.allowFollowedCanSeeMyPlayRecord,
+      'allowFollowedCanSeeMyPlayRecord': instance.allowFollowedCanSeeMyPlayRecord,
       'finishedFollowGuide': instance.finishedFollowGuide,
-      'allowOfflinePrivateMessageNotify':
-          instance.allowOfflinePrivateMessageNotify,
+      'allowOfflinePrivateMessageNotify': instance.allowOfflinePrivateMessageNotify,
       'allowOfflineForwardNotify': instance.allowOfflineForwardNotify,
       'allowOfflineCommentNotify': instance.allowOfflineCommentNotify,
       'allowOfflineCommentReplyNotify': instance.allowOfflineCommentReplyNotify,
@@ -93,73 +84,62 @@ Map<String, dynamic> _$UserSettingToJson(UserSetting instance) =>
       'allowDJRadioSubscriptionNotify': instance.allowDJRadioSubscriptionNotify,
       'allowPeopleCanSeeMyPlaynNotify': instance.allowPeopleCanSeeMyPlaynNotify,
       'peopleNearbyCanSeeMe': instance.peopleNearbyCanSeeMe,
-      'allowDJProgramSubscriptionNotify':
-          instance.allowDJProgramSubscriptionNotify,
+      'allowDJProgramSubscriptionNotify': instance.allowDJProgramSubscriptionNotify,
     };
 
-UserSettingWrap _$UserSettingWrapFromJson(Map<String, dynamic> json) =>
-    UserSettingWrap()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..setting = UserSetting.fromJson(json['setting'] as Map<String, dynamic>);
+UserSettingWrap _$UserSettingWrapFromJson(Map<String, dynamic> json) => UserSettingWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..setting = UserSetting.fromJson(json['setting'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$UserSettingWrapToJson(UserSettingWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$UserSettingWrapToJson(UserSettingWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'setting': instance.setting,
     };
 
-NeteaseSimpleUserInfo _$NeteaseSimpleUserInfoFromJson(
-        Map<String, dynamic> json) =>
-    NeteaseSimpleUserInfo()
-      ..userId = dynamicToString(json['userId'])
-      ..nickname = json['nickname'] as String?
-      ..avatar = json['avatar'] as String?
-      ..followed = json['followed'] as bool?;
+NeteaseSimpleUserInfo _$NeteaseSimpleUserInfoFromJson(Map<String, dynamic> json) => NeteaseSimpleUserInfo()
+  ..userId = dynamicToString(json['userId'])
+  ..nickname = json['nickname'] as String?
+  ..avatar = json['avatar'] as String?
+  ..followed = json['followed'] as bool?;
 
-Map<String, dynamic> _$NeteaseSimpleUserInfoToJson(
-        NeteaseSimpleUserInfo instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$NeteaseSimpleUserInfoToJson(NeteaseSimpleUserInfo instance) => <String, dynamic>{
       'userId': instance.userId,
       'nickname': instance.nickname,
       'avatar': instance.avatar,
       'followed': instance.followed,
     };
 
-NeteaseUserInfo _$NeteaseUserInfoFromJson(Map<String, dynamic> json) =>
-    NeteaseUserInfo()
-      ..userId = dynamicToString(json['userId'])
-      ..nickname = json['nickname'] as String?
-      ..avatarUrl = json['avatarUrl'] as String?
-      ..backgroundUrl = json['backgroundUrl'] as String?
-      ..signature = json['signature'] as String?
-      ..description = json['description'] as String?
-      ..detailDescription = json['detailDescription'] as String?
-      ..recommendReason = json['recommendReason'] as String?
-      ..gender = (json['gender'] as num?)?.toInt()
-      ..authority = (json['authority'] as num?)?.toInt()
-      ..birthday = (json['birthday'] as num?)?.toInt()
-      ..city = (json['city'] as num?)?.toInt()
-      ..province = (json['province'] as num?)?.toInt()
-      ..vipType = (json['vipType'] as num?)?.toInt()
-      ..authenticationTypes = (json['authenticationTypes'] as num?)?.toInt()
-      ..authStatus = (json['authStatus'] as num?)?.toInt()
-      ..djStatus = (json['djStatus'] as num?)?.toInt()
-      ..accountStatus = (json['accountStatus'] as num?)?.toInt()
-      ..expertTags = (json['expertTags'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList()
-      ..alg = json['alg'] as String?
-      ..followed = json['followed'] as bool?
-      ..mutual = json['mutual'] as bool?
-      ..anchor = json['anchor'] as bool?
-      ..defaultAvatar = json['defaultAvatar'] as bool?;
+NeteaseUserInfo _$NeteaseUserInfoFromJson(Map<String, dynamic> json) => NeteaseUserInfo()
+  ..userId = dynamicToString(json['userId'])
+  ..nickname = json['nickname'] as String?
+  ..avatarUrl = json['avatarUrl'] as String?
+  ..backgroundUrl = json['backgroundUrl'] as String?
+  ..signature = json['signature'] as String?
+  ..description = json['description'] as String?
+  ..detailDescription = json['detailDescription'] as String?
+  ..recommendReason = json['recommendReason'] as String?
+  ..gender = (json['gender'] as num?)?.toInt()
+  ..authority = (json['authority'] as num?)?.toInt()
+  ..birthday = (json['birthday'] as num?)?.toInt()
+  ..city = (json['city'] as num?)?.toInt()
+  ..province = (json['province'] as num?)?.toInt()
+  ..vipType = (json['vipType'] as num?)?.toInt()
+  ..authenticationTypes = (json['authenticationTypes'] as num?)?.toInt()
+  ..authStatus = (json['authStatus'] as num?)?.toInt()
+  ..djStatus = (json['djStatus'] as num?)?.toInt()
+  ..accountStatus = (json['accountStatus'] as num?)?.toInt()
+  ..expertTags = (json['expertTags'] as List<dynamic>?)?.map((e) => e as String).toList()
+  ..alg = json['alg'] as String?
+  ..followed = json['followed'] as bool?
+  ..mutual = json['mutual'] as bool?
+  ..anchor = json['anchor'] as bool?
+  ..defaultAvatar = json['defaultAvatar'] as bool?;
 
-Map<String, dynamic> _$NeteaseUserInfoToJson(NeteaseUserInfo instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$NeteaseUserInfoToJson(NeteaseUserInfo instance) => <String, dynamic>{
       'userId': instance.userId,
       'nickname': instance.nickname,
       'avatarUrl': instance.avatarUrl,
@@ -186,18 +166,15 @@ Map<String, dynamic> _$NeteaseUserInfoToJson(NeteaseUserInfo instance) =>
       'defaultAvatar': instance.defaultAvatar,
     };
 
-NeteaseUserDetail _$NeteaseUserDetailFromJson(Map<String, dynamic> json) =>
-    NeteaseUserDetail()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..createTime = (json['createTime'] as num?)?.toInt()
-      ..createDays = (json['createDays'] as num?)?.toInt()
-      ..profile = NeteaseAccountProfile.fromJson(
-          json['profile'] as Map<String, dynamic>);
+NeteaseUserDetail _$NeteaseUserDetailFromJson(Map<String, dynamic> json) => NeteaseUserDetail()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..createTime = (json['createTime'] as num?)?.toInt()
+  ..createDays = (json['createDays'] as num?)?.toInt()
+  ..profile = NeteaseAccountProfile.fromJson(json['profile'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$NeteaseUserDetailToJson(NeteaseUserDetail instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$NeteaseUserDetailToJson(NeteaseUserDetail instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -206,23 +183,20 @@ Map<String, dynamic> _$NeteaseUserDetailToJson(NeteaseUserDetail instance) =>
       'profile': instance.profile,
     };
 
-NeteaseUserSubcount _$NeteaseUserSubcountFromJson(Map<String, dynamic> json) =>
-    NeteaseUserSubcount()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..programCount = (json['programCount'] as num?)?.toInt()
-      ..djRadioCount = (json['djRadioCount'] as num?)?.toInt()
-      ..mvCount = (json['mvCount'] as num?)?.toInt()
-      ..artistCount = (json['artistCount'] as num?)?.toInt()
-      ..newProgramCount = (json['newProgramCount'] as num?)?.toInt()
-      ..createDjRadioCount = (json['createDjRadioCount'] as num?)?.toInt()
-      ..createdPlaylistCount = (json['createdPlaylistCount'] as num?)?.toInt()
-      ..subPlaylistCount = (json['subPlaylistCount'] as num?)?.toInt();
+NeteaseUserSubcount _$NeteaseUserSubcountFromJson(Map<String, dynamic> json) => NeteaseUserSubcount()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..programCount = (json['programCount'] as num?)?.toInt()
+  ..djRadioCount = (json['djRadioCount'] as num?)?.toInt()
+  ..mvCount = (json['mvCount'] as num?)?.toInt()
+  ..artistCount = (json['artistCount'] as num?)?.toInt()
+  ..newProgramCount = (json['newProgramCount'] as num?)?.toInt()
+  ..createDjRadioCount = (json['createDjRadioCount'] as num?)?.toInt()
+  ..createdPlaylistCount = (json['createdPlaylistCount'] as num?)?.toInt()
+  ..subPlaylistCount = (json['subPlaylistCount'] as num?)?.toInt();
 
-Map<String, dynamic> _$NeteaseUserSubcountToJson(
-        NeteaseUserSubcount instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$NeteaseUserSubcountToJson(NeteaseUserSubcount instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -236,18 +210,16 @@ Map<String, dynamic> _$NeteaseUserSubcountToJson(
       'subPlaylistCount': instance.subPlaylistCount,
     };
 
-NeteaseUserLevel _$NeteaseUserLevelFromJson(Map<String, dynamic> json) =>
-    NeteaseUserLevel()
-      ..info = json['info'] as String
-      ..progress = (json['progress'] as num?)?.toDouble()
-      ..nextPlayCount = (json['nextPlayCount'] as num?)?.toInt()
-      ..nextLoginCount = (json['nextLoginCount'] as num?)?.toInt()
-      ..nowPlayCount = (json['nowPlayCount'] as num?)?.toInt()
-      ..nowLoginCount = (json['nowLoginCount'] as num?)?.toInt()
-      ..level = (json['level'] as num?)?.toInt();
+NeteaseUserLevel _$NeteaseUserLevelFromJson(Map<String, dynamic> json) => NeteaseUserLevel()
+  ..info = json['info'] as String
+  ..progress = (json['progress'] as num?)?.toDouble()
+  ..nextPlayCount = (json['nextPlayCount'] as num?)?.toInt()
+  ..nextLoginCount = (json['nextLoginCount'] as num?)?.toInt()
+  ..nowPlayCount = (json['nowPlayCount'] as num?)?.toInt()
+  ..nowLoginCount = (json['nowLoginCount'] as num?)?.toInt()
+  ..level = (json['level'] as num?)?.toInt();
 
-Map<String, dynamic> _$NeteaseUserLevelToJson(NeteaseUserLevel instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$NeteaseUserLevelToJson(NeteaseUserLevel instance) => <String, dynamic>{
       'info': instance.info,
       'progress': instance.progress,
       'nextPlayCount': instance.nextPlayCount,
@@ -257,18 +229,14 @@ Map<String, dynamic> _$NeteaseUserLevelToJson(NeteaseUserLevel instance) =>
       'level': instance.level,
     };
 
-NeteaseUserLevelWrap _$NeteaseUserLevelWrapFromJson(
-        Map<String, dynamic> json) =>
-    NeteaseUserLevelWrap()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..full = json['full'] as bool?
-      ..data = NeteaseUserLevel.fromJson(json['data'] as Map<String, dynamic>);
+NeteaseUserLevelWrap _$NeteaseUserLevelWrapFromJson(Map<String, dynamic> json) => NeteaseUserLevelWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..full = json['full'] as bool?
+  ..data = NeteaseUserLevel.fromJson(json['data'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$NeteaseUserLevelWrapToJson(
-        NeteaseUserLevelWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$NeteaseUserLevelWrapToJson(NeteaseUserLevelWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -276,36 +244,26 @@ Map<String, dynamic> _$NeteaseUserLevelWrapToJson(
       'data': instance.data,
     };
 
-UserFollowListWrap _$UserFollowListWrapFromJson(Map<String, dynamic> json) =>
-    UserFollowListWrap()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..follow = (json['follow'] as List<dynamic>)
-          .map((e) => NeteaseAccountProfile.fromJson(e as Map<String, dynamic>))
-          .toList();
+UserFollowListWrap _$UserFollowListWrapFromJson(Map<String, dynamic> json) => UserFollowListWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..follow = (json['follow'] as List<dynamic>).map((e) => NeteaseAccountProfile.fromJson(e as Map<String, dynamic>)).toList();
 
-Map<String, dynamic> _$UserFollowListWrapToJson(UserFollowListWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$UserFollowListWrapToJson(UserFollowListWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'follow': instance.follow,
     };
 
-UserFollowedListWrap _$UserFollowedListWrapFromJson(
-        Map<String, dynamic> json) =>
-    UserFollowedListWrap()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..followeds = (json['followeds'] as List<dynamic>)
-          .map((e) => NeteaseAccountProfile.fromJson(e as Map<String, dynamic>))
-          .toList();
+UserFollowedListWrap _$UserFollowedListWrapFromJson(Map<String, dynamic> json) => UserFollowedListWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..followeds = (json['followeds'] as List<dynamic>).map((e) => NeteaseAccountProfile.fromJson(e as Map<String, dynamic>)).toList();
 
-Map<String, dynamic> _$UserFollowedListWrapToJson(
-        UserFollowedListWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$UserFollowedListWrapToJson(UserFollowedListWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -316,33 +274,26 @@ UserListWrap _$UserListWrapFromJson(Map<String, dynamic> json) => UserListWrap()
   ..code = dynamicToInt(json['code'])
   ..message = json['message'] as String?
   ..msg = json['msg'] as String?
-  ..userprofiles = (json['userprofiles'] as List<dynamic>)
-      .map((e) => NeteaseUserInfo.fromJson(e as Map<String, dynamic>))
-      .toList();
+  ..userprofiles = (json['userprofiles'] as List<dynamic>).map((e) => NeteaseUserInfo.fromJson(e as Map<String, dynamic>)).toList();
 
-Map<String, dynamic> _$UserListWrapToJson(UserListWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$UserListWrapToJson(UserListWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'userprofiles': instance.userprofiles,
     };
 
-ArtistsSubListWrap _$ArtistsSubListWrapFromJson(Map<String, dynamic> json) =>
-    ArtistsSubListWrap()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..more = json['more'] as bool?
-      ..hasMore = json['hasMore'] as bool?
-      ..count = (json['count'] as num?)?.toInt()
-      ..total = (json['total'] as num?)?.toInt()
-      ..data = (json['data'] as List<dynamic>)
-          .map((e) => Artist.fromJson(e as Map<String, dynamic>))
-          .toList();
+ArtistsSubListWrap _$ArtistsSubListWrapFromJson(Map<String, dynamic> json) => ArtistsSubListWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..more = json['more'] as bool?
+  ..hasMore = json['hasMore'] as bool?
+  ..count = (json['count'] as num?)?.toInt()
+  ..total = (json['total'] as num?)?.toInt()
+  ..data = (json['data'] as List<dynamic>).map((e) => Artist.fromJson(e as Map<String, dynamic>)).toList();
 
-Map<String, dynamic> _$ArtistsSubListWrapToJson(ArtistsSubListWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$ArtistsSubListWrapToJson(ArtistsSubListWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -353,21 +304,17 @@ Map<String, dynamic> _$ArtistsSubListWrapToJson(ArtistsSubListWrap instance) =>
       'data': instance.data,
     };
 
-MvSubListWrap _$MvSubListWrapFromJson(Map<String, dynamic> json) =>
-    MvSubListWrap()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..more = json['more'] as bool?
-      ..hasMore = json['hasMore'] as bool?
-      ..count = (json['count'] as num?)?.toInt()
-      ..total = (json['total'] as num?)?.toInt()
-      ..data = (json['data'] as List<dynamic>)
-          .map((e) => Mv2.fromJson(e as Map<String, dynamic>))
-          .toList();
+MvSubListWrap _$MvSubListWrapFromJson(Map<String, dynamic> json) => MvSubListWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..more = json['more'] as bool?
+  ..hasMore = json['hasMore'] as bool?
+  ..count = (json['count'] as num?)?.toInt()
+  ..total = (json['total'] as num?)?.toInt()
+  ..data = (json['data'] as List<dynamic>).map((e) => Mv2.fromJson(e as Map<String, dynamic>)).toList();
 
-Map<String, dynamic> _$MvSubListWrapToJson(MvSubListWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$MvSubListWrapToJson(MvSubListWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -378,22 +325,18 @@ Map<String, dynamic> _$MvSubListWrapToJson(MvSubListWrap instance) =>
       'data': instance.data,
     };
 
-AlbumSubListWrap _$AlbumSubListWrapFromJson(Map<String, dynamic> json) =>
-    AlbumSubListWrap()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..more = json['more'] as bool?
-      ..hasMore = json['hasMore'] as bool?
-      ..count = (json['count'] as num?)?.toInt()
-      ..total = (json['total'] as num?)?.toInt()
-      ..data = (json['data'] as List<dynamic>)
-          .map((e) => Album.fromJson(e as Map<String, dynamic>))
-          .toList()
-      ..paidCount = (json['paidCount'] as num?)?.toInt();
+AlbumSubListWrap _$AlbumSubListWrapFromJson(Map<String, dynamic> json) => AlbumSubListWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..more = json['more'] as bool?
+  ..hasMore = json['hasMore'] as bool?
+  ..count = (json['count'] as num?)?.toInt()
+  ..total = (json['total'] as num?)?.toInt()
+  ..data = (json['data'] as List<dynamic>).map((e) => Album.fromJson(e as Map<String, dynamic>)).toList()
+  ..paidCount = (json['paidCount'] as num?)?.toInt();
 
-Map<String, dynamic> _$AlbumSubListWrapToJson(AlbumSubListWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$AlbumSubListWrapToJson(AlbumSubListWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -405,46 +348,38 @@ Map<String, dynamic> _$AlbumSubListWrapToJson(AlbumSubListWrap instance) =>
       'paidCount': instance.paidCount,
     };
 
-PlayRecordItem _$PlayRecordItemFromJson(Map<String, dynamic> json) =>
-    PlayRecordItem()
-      ..playCount = (json['playCount'] as num?)?.toInt()
-      ..score = (json['score'] as num?)?.toInt()
-      ..song = Song.fromJson(json['song'] as Map<String, dynamic>);
+PlayRecordItem _$PlayRecordItemFromJson(Map<String, dynamic> json) => PlayRecordItem()
+  ..playCount = (json['playCount'] as num?)?.toInt()
+  ..score = (json['score'] as num?)?.toInt()
+  ..song = Song.fromJson(json['song'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$PlayRecordItemToJson(PlayRecordItem instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$PlayRecordItemToJson(PlayRecordItem instance) => <String, dynamic>{
       'playCount': instance.playCount,
       'score': instance.score,
       'song': instance.song,
     };
 
-PlayRecordListWrap _$PlayRecordListWrapFromJson(Map<String, dynamic> json) =>
-    PlayRecordListWrap()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..allData = (json['allData'] as List<dynamic>)
-          .map((e) => PlayRecordItem.fromJson(e as Map<String, dynamic>))
-          .toList();
+PlayRecordListWrap _$PlayRecordListWrapFromJson(Map<String, dynamic> json) => PlayRecordListWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..allData = (json['allData'] as List<dynamic>).map((e) => PlayRecordItem.fromJson(e as Map<String, dynamic>)).toList();
 
-Map<String, dynamic> _$PlayRecordListWrapToJson(PlayRecordListWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$PlayRecordListWrapToJson(PlayRecordListWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
       'allData': instance.allData,
     };
 
-PlaylistCreateWrap _$PlaylistCreateWrapFromJson(Map<String, dynamic> json) =>
-    PlaylistCreateWrap()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..id = dynamicToString(json['id'])
-      ..playlist = PlayList.fromJson(json['playlist'] as Map<String, dynamic>);
+PlaylistCreateWrap _$PlaylistCreateWrapFromJson(Map<String, dynamic> json) => PlaylistCreateWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..id = dynamicToString(json['id'])
+  ..playlist = PlayList.fromJson(json['playlist'] as Map<String, dynamic>);
 
-Map<String, dynamic> _$PlaylistCreateWrapToJson(PlaylistCreateWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$PlaylistCreateWrapToJson(PlaylistCreateWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,
@@ -452,19 +387,13 @@ Map<String, dynamic> _$PlaylistCreateWrapToJson(PlaylistCreateWrap instance) =>
       'playlist': instance.playlist,
     };
 
-PlaylistSubscribersWrap _$PlaylistSubscribersWrapFromJson(
-        Map<String, dynamic> json) =>
-    PlaylistSubscribersWrap()
-      ..code = dynamicToInt(json['code'])
-      ..message = json['message'] as String?
-      ..msg = json['msg'] as String?
-      ..subscribers = (json['subscribers'] as List<dynamic>)
-          .map((e) => NeteaseUserInfo.fromJson(e as Map<String, dynamic>))
-          .toList();
+PlaylistSubscribersWrap _$PlaylistSubscribersWrapFromJson(Map<String, dynamic> json) => PlaylistSubscribersWrap()
+  ..code = dynamicToInt(json['code'])
+  ..message = json['message'] as String?
+  ..msg = json['msg'] as String?
+  ..subscribers = (json['subscribers'] as List<dynamic>).map((e) => NeteaseUserInfo.fromJson(e as Map<String, dynamic>)).toList();
 
-Map<String, dynamic> _$PlaylistSubscribersWrapToJson(
-        PlaylistSubscribersWrap instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$PlaylistSubscribersWrapToJson(PlaylistSubscribersWrap instance) => <String, dynamic>{
       'code': instance.code,
       'message': instance.message,
       'msg': instance.msg,

@@ -72,9 +72,7 @@ class _BottomPanelQueueItem extends StatelessWidget {
                 Text(
                   item.title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: isCurrent
-                            ? Colors.red
-                            : SettingsController.to.panelWidgetColor.value,
+                        color: isCurrent ? Colors.red : SettingsController.to.panelWidgetColor.value,
                       ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -82,8 +80,7 @@ class _BottomPanelQueueItem extends StatelessWidget {
                 Text(
                   item.artist ?? '未知歌手',
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: SettingsController.to.panelWidgetColor.value
-                            .withValues(alpha: 0.5),
+                        color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
                       ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,

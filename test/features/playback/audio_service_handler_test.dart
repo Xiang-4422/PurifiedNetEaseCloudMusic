@@ -9,8 +9,7 @@ import 'package:just_audio/just_audio.dart';
 
 void main() {
   group('AudioServiceHandler', () {
-    test('replaceSource publishes confirmed media item after source set',
-        () async {
+    test('replaceSource publishes confirmed media item after source set', () async {
       final engine = _FakePlaybackEngine();
       final handler = AudioServiceHandler(engineAdapter: engine);
       await handler.updateQueue([_mediaItem('1')]);
@@ -58,8 +57,7 @@ void main() {
       expect(engine.playCount, 0);
     });
 
-    test('replaceSource pauses current engine at source replacement boundary',
-        () async {
+    test('replaceSource pauses current engine at source replacement boundary', () async {
       final engine = _FakePlaybackEngine(initialPlaying: true);
       final handler = AudioServiceHandler(engineAdapter: engine);
       await handler.updateQueue([_mediaItem('1')]);
@@ -102,8 +100,7 @@ void main() {
       engine.playCompleter?.complete();
     });
 
-    test('replaceSource skips restore seek for a different restored item',
-        () async {
+    test('replaceSource skips restore seek for a different restored item', () async {
       final engine = _FakePlaybackEngine();
       final handler = AudioServiceHandler(engineAdapter: engine);
       await handler.updateQueue([_mediaItem('restored'), _mediaItem('next')]);
@@ -153,8 +150,7 @@ class _FakePlaybackEngine implements PlaybackEnginePort {
 
   final bool holdPlayFuture;
 
-  final StreamController<PlaybackEvent> _events =
-      StreamController<PlaybackEvent>.broadcast();
+  final StreamController<PlaybackEvent> _events = StreamController<PlaybackEvent>.broadcast();
 
   final List<PlaybackResolvedSource> sources = <PlaybackResolvedSource>[];
 

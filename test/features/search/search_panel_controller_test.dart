@@ -34,8 +34,7 @@ void main() {
       expect(controller.songState.value.data?.single.title, 'latest');
     });
 
-    test('empty keyword clears state and prevents older result overwrite',
-        () async {
+    test('empty keyword clears state and prevents older result overwrite', () async {
       final service = _FakeSearchApplicationService();
       final controller = SearchPanelController(service: service);
       addTearDown(controller.dispose);
@@ -59,8 +58,7 @@ void main() {
 }
 
 class _FakeSearchApplicationService implements SearchApplicationService {
-  final Map<String, Completer<SearchResultState>> _pending =
-      <String, Completer<SearchResultState>>{};
+  final Map<String, Completer<SearchResultState>> _pending = <String, Completer<SearchResultState>>{};
 
   void complete(String keyword, SearchResultState state) {
     _pending[keyword]?.complete(state);

@@ -112,8 +112,7 @@ class PlaybackSelectionUiEffectCoordinator {
   ) async {
     try {
       final stopwatch = PlaybackPerformanceLogger.start();
-      final color =
-          _artworkPresenter.peekCachedDominantColor(selection.selectedItem);
+      final color = _artworkPresenter.peekCachedDominantColor(selection.selectedItem);
       if (color != null) {
         _themePort.applyDominantColor(color);
         PlaybackPerformanceLogger.log(
@@ -128,8 +127,7 @@ class PlaybackSelectionUiEffectCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'selectionUi.updateAlbumColor',
         stopwatch,
-        details:
-            'id=${selection.selectedItem.id} cacheHit=${color != null} queue=${selection.queue.length}',
+        details: 'id=${selection.selectedItem.id} cacheHit=${color != null} queue=${selection.queue.length}',
         warnAfterMs: 1,
       );
     } catch (_) {
@@ -149,10 +147,8 @@ class PlaybackSelectionUiEffectCoordinator {
     _colorPrewarmTimer = Timer(const Duration(milliseconds: 350), () {
       unawaited(() async {
         if (resolveCurrentColor) {
-          final resolvedColor =
-              await _artworkPresenter.resolveDominantColor(selectedItem);
-          if (resolvedColor != null &&
-              latestSelection().selectedItem.id == selectedItem.id) {
+          final resolvedColor = await _artworkPresenter.resolveDominantColor(selectedItem);
+          if (resolvedColor != null && latestSelection().selectedItem.id == selectedItem.id) {
             _themePort.applyDominantColor(resolvedColor);
             PlaybackPerformanceLogger.log(
               'selectionUi.applyAlbumColor.resolved id=${selectedItem.id}',

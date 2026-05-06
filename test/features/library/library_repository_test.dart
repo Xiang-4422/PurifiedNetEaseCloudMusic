@@ -13,8 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('LibraryRepository', () {
-    test('coalesces concurrent playback url loads and reuses fresh remote url',
-        () async {
+    test('coalesces concurrent playback url loads and reuses fresh remote url', () async {
       final neteaseSource = _FakeNeteaseMusicSource(
         playbackUrlDelay: const Duration(milliseconds: 20),
       );
@@ -58,8 +57,7 @@ void main() {
         repository.getLyrics('1'),
       ]);
 
-      expect(
-          lyrics.map((item) => item?.main), ['lyric-1', 'lyric-1', 'lyric-1']);
+      expect(lyrics.map((item) => item?.main), ['lyric-1', 'lyric-1', 'lyric-1']);
       expect(neteaseSource.lyricsCallCount, 1);
       expect(localDataSource.savedLyrics.length, 1);
     });
@@ -168,8 +166,7 @@ class _FakeLibraryPreferenceStore implements LibraryPreferenceStore {
   }
 }
 
-class _FakeLocalResourceIndexRepository
-    implements LocalResourceIndexRepository {
+class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository {
   @override
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) async {
     return const TrackResourceBundle();

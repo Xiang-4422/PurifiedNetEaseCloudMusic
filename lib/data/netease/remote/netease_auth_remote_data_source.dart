@@ -4,14 +4,12 @@ import 'package:bujuan/domain/entities/user_session_data.dart';
 /// 集中封装登录相关远程访问，避免 feature 直接持有网易云 API 入口。
 class NeteaseAuthRemoteDataSource {
   /// 创建网易云登录远程数据源。
-  NeteaseAuthRemoteDataSource({NeteaseMusicApi? api})
-      : _api = api ?? NeteaseMusicApi();
+  NeteaseAuthRemoteDataSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
 
   final NeteaseMusicApi _api;
 
   /// 创建二维码登录 key。
-  Future<({bool success, String unikey, String? message})>
-      createQrCodeKey() async {
+  Future<({bool success, String unikey, String? message})> createQrCodeKey() async {
     final result = await _api.loginQrCodeKey();
     return (
       success: result.code == 200,

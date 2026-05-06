@@ -14,8 +14,7 @@ class AppDimensions {
   static const double paddingLarge = 30;
 
   /// 歌单条目默认内边距。
-  static const EdgeInsets playListPadding =
-      EdgeInsets.symmetric(horizontal: 20, vertical: 10);
+  static const EdgeInsets playListPadding = EdgeInsets.symmetric(horizontal: 20, vertical: 10);
 
   /// 页面默认内边距。
   static const EdgeInsets screenPadding = EdgeInsets.all(paddingMedium);
@@ -24,20 +23,16 @@ class AppDimensions {
   static const EdgeInsets cardPadding = EdgeInsets.all(paddingSmall);
 
   /// 按钮默认内边距。
-  static const EdgeInsets buttonPadding =
-      EdgeInsets.symmetric(horizontal: paddingMedium, vertical: paddingSmall);
+  static const EdgeInsets buttonPadding = EdgeInsets.symmetric(horizontal: paddingMedium, vertical: paddingSmall);
 
   /// 小号圆角。
-  static const BorderRadius borderRadiusSmall =
-      BorderRadius.all(Radius.circular(4.0));
+  static const BorderRadius borderRadiusSmall = BorderRadius.all(Radius.circular(4.0));
 
   /// 中号圆角。
-  static const BorderRadius borderRadiusMedium =
-      BorderRadius.all(Radius.circular(8.0));
+  static const BorderRadius borderRadiusMedium = BorderRadius.all(Radius.circular(8.0));
 
   /// 大号圆角。
-  static const BorderRadius borderRadiusLarge =
-      BorderRadius.all(Radius.circular(12.0));
+  static const BorderRadius borderRadiusLarge = BorderRadius.all(Radius.circular(12.0));
 
   /// 小号图标尺寸。
   static const double iconSizeSmall = 18.0;

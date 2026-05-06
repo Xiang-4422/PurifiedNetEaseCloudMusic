@@ -87,14 +87,10 @@ class NeteaseMusicSource {
   }
 
   String _normalizeTrackId(String trackId) {
-    return trackId.startsWith('netease:')
-        ? trackId.substring('netease:'.length)
-        : trackId;
+    return trackId.startsWith('netease:') ? trackId.substring('netease:'.length) : trackId;
   }
 
   String _normalizePlaylistId(String playlistId) {
-    return playlistId.startsWith('netease:')
-        ? playlistId.substring('netease:'.length)
-        : playlistId;
+    return playlistId.startsWith('netease:') ? playlistId.substring('netease:'.length) : playlistId;
   }
 }

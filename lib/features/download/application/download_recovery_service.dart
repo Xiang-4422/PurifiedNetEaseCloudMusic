@@ -29,12 +29,8 @@ class DownloadRecoveryService {
         DownloadTaskStatus.downloading,
       },
     );
-    final queuedTasks = interruptedTasks
-        .where((task) => task.status == DownloadTaskStatus.queued)
-        .toList();
-    final downloadingTasks = interruptedTasks
-        .where((task) => task.status == DownloadTaskStatus.downloading)
-        .toList();
+    final queuedTasks = interruptedTasks.where((task) => task.status == DownloadTaskStatus.queued).toList();
+    final downloadingTasks = interruptedTasks.where((task) => task.status == DownloadTaskStatus.downloading).toList();
 
     for (final task in downloadingTasks) {
       await _fileStore.deleteTemporaryDownloadIfExists(task.temporaryPath);

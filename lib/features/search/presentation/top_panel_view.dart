@@ -27,8 +27,7 @@ class TopPanelView extends StatefulWidget {
   const TopPanelView({Key? key}) : super(key: key);
 
   /// 搜索面板控制器，随顶部面板生命周期复用。
-  static final SearchPanelController _searchPanelController =
-      Get.find<FeatureControllerFactory>().searchPanel();
+  static final SearchPanelController _searchPanelController = Get.find<FeatureControllerFactory>().searchPanel();
 
   @override
   State<TopPanelView> createState() => _TopPanelViewState();
@@ -44,8 +43,7 @@ class _TopPanelViewState extends State<TopPanelView> {
   @override
   void initState() {
     super.initState();
-    if (!SettingsController.to.isOfflineModeEnabled.value &&
-        controller.topPanelFullyClosed.isFalse) {
+    if (!SettingsController.to.isOfflineModeEnabled.value && controller.topPanelFullyClosed.isFalse) {
       TopPanelView._searchPanelController.loadInitial();
     }
     _panelOpenWorker = ever<bool>(controller.topPanelFullyClosed, (closed) {
@@ -84,13 +82,10 @@ class _TopPanelViewState extends State<TopPanelView> {
             return Stack(
               children: [
                 BlurryContainer(
-                  blur:
-                      15 * ShellController.to.topPanelAnimationController.value,
+                  blur: 15 * ShellController.to.topPanelAnimationController.value,
                   padding: EdgeInsets.zero,
                   borderRadius: BorderRadius.zero,
-                  color: context.theme.colorScheme.primary.withValues(
-                      alpha:
-                          ShellController.to.topPanelAnimationController.value),
+                  color: context.theme.colorScheme.primary.withValues(alpha: ShellController.to.topPanelAnimationController.value),
                   child: Container(),
                 )
               ],
@@ -138,16 +133,12 @@ class _TopPanelViewState extends State<TopPanelView> {
                       child: _buildTopPanelCard(
                           context,
                           Obx(
-                            () =>
-                                SettingsController.to.isOfflineModeEnabled.value
-                                    ? _buildOfflineSearchHint(context)
-                                    : _buildHotKeywordList(),
+                            () => SettingsController.to.isOfflineModeEnabled.value ? _buildOfflineSearchHint(context) : _buildHotKeywordList(),
                           )).marginOnly(top: AppDimensions.paddingSmall),
                     )),
               ),
               Container(
-                color:
-                    context.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
+                color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
                 child: Column(
                   children: [
                     Obx(() => Offstage(
@@ -157,41 +148,29 @@ class _TopPanelViewState extends State<TopPanelView> {
                             tabs: [
                               Text(
                                 "单曲",
-                                style: context.textTheme.titleMedium?.copyWith(
-                                    color: context.theme.colorScheme.onPrimary
-                                        .withValues(alpha: 0.5)),
+                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
                               ),
                               Text(
                                 "歌单",
-                                style: context.textTheme.titleMedium?.copyWith(
-                                    color: context.theme.colorScheme.onPrimary
-                                        .withValues(alpha: 0.5)),
+                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
                               ),
                               Text(
                                 "专辑",
-                                style: context.textTheme.titleMedium?.copyWith(
-                                    color: context.theme.colorScheme.onPrimary
-                                        .withValues(alpha: 0.5)),
+                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
                               ),
                               Text(
                                 "歌手",
-                                style: context.textTheme.titleMedium?.copyWith(
-                                    color: context.theme.colorScheme.onPrimary
-                                        .withValues(alpha: 0.5)),
+                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
                               ),
                             ],
                           ),
                         )),
-                    _buildSearchBar(
-                        context, AppDimensions.appBarHeight * 2 / 3),
+                    _buildSearchBar(context, AppDimensions.appBarHeight * 2 / 3),
                   ],
                 ),
               ),
               Obx(() => Container(
-                    height: ShellController.to.topPanelFullyClosed.isTrue
-                        ? AppDimensions.appBarHeight +
-                            context.mediaQueryPadding.top
-                        : ShellController.to.keyBoardHeight.value,
+                    height: ShellController.to.topPanelFullyClosed.isTrue ? AppDimensions.appBarHeight + context.mediaQueryPadding.top : ShellController.to.keyBoardHeight.value,
                   ))
             ],
           ),
@@ -219,17 +198,14 @@ class _TopPanelViewState extends State<TopPanelView> {
               child: TextField(
                 controller: controller.searchTextEditingController,
                 focusNode: controller.searchFocusNode,
-                cursorColor:
-                    Theme.of(context).primaryColor.withValues(alpha: .4),
+                cursorColor: Theme.of(context).primaryColor.withValues(alpha: .4),
                 style: context.textTheme.titleMedium,
                 decoration: InputDecoration(
                     hintText: '输入歌曲、歌手、歌单...',
                     hintStyle: context.textTheme.titleMedium!.copyWith(
-                      color: context.textTheme.titleMedium!.color!
-                          .withValues(alpha: 0.2),
+                      color: context.textTheme.titleMedium!.color!.withValues(alpha: 0.2),
                     ),
-                    border:
-                        const UnderlineInputBorder(borderSide: BorderSide.none),
+                    border: const UnderlineInputBorder(borderSide: BorderSide.none),
                     isDense: true),
               ),
             ),
@@ -239,8 +215,7 @@ class _TopPanelViewState extends State<TopPanelView> {
                     iconSize: iconSize,
                     padding: EdgeInsets.all(iconPadding),
                     style: IconButton.styleFrom(
-                      backgroundColor: context.theme.colorScheme.onPrimary
-                          .withValues(alpha: 0.1),
+                      backgroundColor: context.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
                     ),
                     icon: const Icon(
                       TablerIcons.arrow_up,
@@ -253,8 +228,7 @@ class _TopPanelViewState extends State<TopPanelView> {
                     iconSize: iconSize,
                     padding: EdgeInsets.all(iconPadding),
                     style: IconButton.styleFrom(
-                      backgroundColor: context.theme.colorScheme.onPrimary
-                          .withValues(alpha: 0.1),
+                      backgroundColor: context.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
                     ),
                     icon: const Icon(
                       TablerIcons.x,
@@ -271,8 +245,7 @@ class _TopPanelViewState extends State<TopPanelView> {
 
   Widget _buildTopPanelCard(BuildContext context, Widget child) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
       child: child,
     );
   }
@@ -389,8 +362,7 @@ class _TopPanelViewState extends State<TopPanelView> {
     );
   }
 
-  Future<void> _openPlaylist(
-      BuildContext context, PlaylistEntity playlist) async {
+  Future<void> _openPlaylist(BuildContext context, PlaylistEntity playlist) async {
     await ShellController.to.closeBottomPanel();
     await ShellController.to.closeTopPanel();
     if (!context.mounted) {
@@ -447,8 +419,7 @@ class _PlaylistSearchItem extends StatelessWidget {
     return UniversalListTile(
       picUrl: playlist.coverUrl,
       titleString: playlist.title,
-      subTitleString:
-          playlist.trackCount == null ? null : '${playlist.trackCount}首',
+      subTitleString: playlist.trackCount == null ? null : '${playlist.trackCount}首',
       onTap: onTap,
     );
   }

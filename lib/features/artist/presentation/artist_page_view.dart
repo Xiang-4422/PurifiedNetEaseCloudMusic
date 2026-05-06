@@ -34,8 +34,7 @@ class ArtistPageView extends StatefulWidget {
 }
 
 class _ArtistPageViewState extends State<ArtistPageView> {
-  final ArtistPageController _controller =
-      Get.find<FeatureControllerFactory>().artistPage();
+  final ArtistPageController _controller = Get.find<FeatureControllerFactory>().artistPage();
   final PlaybackActionPort _playbackAction = Get.find<PlaybackActionPort>();
   late String artistId;
   late ArtistEntity artist;
@@ -94,12 +93,8 @@ class _ArtistPageViewState extends State<ArtistPageView> {
           physics: const BouncingScrollPhysics(), // 关键：允许弹性滚动
           slivers: [
             SliverAppBar(
-              toolbarHeight: AppDimensions.appBarHeight -
-                  context.mediaQueryPadding.top +
-                  AppDimensions.paddingLarge,
-              collapsedHeight: AppDimensions.appBarHeight -
-                  context.mediaQueryPadding.top +
-                  AppDimensions.paddingLarge,
+              toolbarHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
+              collapsedHeight: AppDimensions.appBarHeight - context.mediaQueryPadding.top + AppDimensions.paddingLarge,
               expandedHeight: layoutMetrics.heroExtent,
               pinned: true,
               stretch: true,
@@ -184,8 +179,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         "专辑",
-                        style: TextStyle(
-                            color: onAlbumColor, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: onAlbumColor, fontWeight: FontWeight.bold),
                       ).paddingOnly(left: AppDimensions.paddingMedium))),
             ),
             SliverToBoxAdapter(
@@ -195,17 +189,12 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                 addAutomaticKeepAlives: true,
                 itemCount: hotAlbums.length,
                 scrollDirection: Axis.horizontal,
-                physics: SnappingScrollPhysics(
-                    itemExtent: albumWidth + AppDimensions.paddingMedium),
+                physics: SnappingScrollPhysics(itemExtent: albumWidth + AppDimensions.paddingMedium),
                 itemBuilder: (context, index) {
-                  double marginLeft =
-                      index == 0 ? AppDimensions.paddingMedium : 0;
+                  double marginLeft = index == 0 ? AppDimensions.paddingMedium : 0;
                   return KeepAliveWrapper(
                     child: GestureDetector(
-                      onTap: () => context.router.push(const gr.AlbumRouteView()
-                          .copyWith(queryParams: {
-                        'albumId': hotAlbums[index].sourceId
-                      })),
+                      onTap: () => context.router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': hotAlbums[index].sourceId})),
                       child: SizedBox(
                         height: albumWidth * 1.35,
                         width: albumWidth,
@@ -215,8 +204,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                             SimpleExtendedImage.avatar(
                                 width: albumWidth,
                                 shape: BoxShape.rectangle,
-                                borderRadius: BorderRadius.circular(
-                                    AppDimensions.paddingMedium),
+                                borderRadius: BorderRadius.circular(AppDimensions.paddingMedium),
                                 ArtworkPathResolver.resolvePreferredArtwork(
                                       hotAlbums[index].artworkUrl,
                                     ) ??
@@ -247,8 +235,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                         ),
                       ),
                     ),
-                  ).marginOnly(
-                      left: marginLeft, right: AppDimensions.paddingMedium);
+                  ).marginOnly(left: marginLeft, right: AppDimensions.paddingMedium);
                 },
               ),
             )),
@@ -260,8 +247,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         "单曲",
-                        style: TextStyle(
-                            color: onAlbumColor, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: onAlbumColor, fontWeight: FontWeight.bold),
                       ).paddingOnly(left: AppDimensions.paddingMedium))),
             ),
             SliverList(
@@ -273,16 +259,8 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                       height: AppDimensions.bottomPanelHeaderHeight,
                     );
                   }
-                  return SongItem(
-                          playlist: topSongs,
-                          index: index,
-                          playListName: artist.name,
-                          playListHeader: "歌手",
-                          stringColor: onAlbumColor,
-                          showIndex: true,
-                          onPlay: _playbackAction.playPlaylist)
-                      .paddingSymmetric(
-                          horizontal: AppDimensions.paddingMedium);
+                  return SongItem(playlist: topSongs, index: index, playListName: artist.name, playListHeader: "歌手", stringColor: onAlbumColor, showIndex: true, onPlay: _playbackAction.playPlaylist)
+                      .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
                 },
               ),
             ),
@@ -326,8 +304,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     });
   }
 
-  String? get _resolvedArtworkUrl =>
-      ArtworkPathResolver.resolvePreferredArtwork(
+  String? get _resolvedArtworkUrl => ArtworkPathResolver.resolvePreferredArtwork(
         artist.artworkUrl,
         fallbackItems: topSongs,
       );

@@ -5,16 +5,13 @@ import 'package:drift/drift.dart' as drift;
 /// 下载任务 DAO。
 class DownloadTaskDao {
   /// 创建下载任务 DAO。
-  DownloadTaskDao({required BujuanDriftDatabase database})
-      : _database = database;
+  DownloadTaskDao({required BujuanDriftDatabase database}) : _database = database;
 
   final BujuanDriftDatabase _database;
 
   /// 获取指定歌曲的下载任务。
   Future<domain.DownloadTask?> getTask(String trackId) async {
-    final row = await (_database.select(_database.downloadTasks)
-          ..where((tbl) => tbl.trackId.equals(trackId)))
-        .getSingleOrNull();
+    final row = await (_database.select(_database.downloadTasks)..where((tbl) => tbl.trackId.equals(trackId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -55,9 +52,7 @@ class DownloadTaskDao {
 
   /// 删除指定歌曲的下载任务。
   Future<void> removeTask(String trackId) {
-    return (_database.delete(_database.downloadTasks)
-          ..where((tbl) => tbl.trackId.equals(trackId)))
-        .go();
+    return (_database.delete(_database.downloadTasks)..where((tbl) => tbl.trackId.equals(trackId))).go();
   }
 
   domain.DownloadTask _mapRow(DownloadTask row) {

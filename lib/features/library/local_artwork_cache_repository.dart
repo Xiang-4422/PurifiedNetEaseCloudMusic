@@ -37,17 +37,14 @@ class LocalArtworkCacheRepository {
 
   /// 缓存单首曲目的封面；已有可用本地资源时直接返回原曲目。
   Future<Track> cacheSingleTrackArtwork(Track track) async {
-    final indexedResource =
-        await _resourceIndexRepository.getArtworkResource(track.id);
+    final indexedResource = await _resourceIndexRepository.getArtworkResource(track.id);
     final indexedPath = indexedResource?.path ?? '';
     if (indexedPath.isNotEmpty && File(indexedPath).existsSync()) {
       return track;
     }
 
     final artworkUrl = track.artworkUrl ?? '';
-    if (artworkUrl.isEmpty ||
-        !artworkUrl.startsWith('http://') &&
-            !artworkUrl.startsWith('https://')) {
+    if (artworkUrl.isEmpty || !artworkUrl.startsWith('http://') && !artworkUrl.startsWith('https://')) {
       return track;
     }
 
@@ -57,8 +54,7 @@ class LocalArtworkCacheRepository {
 
     try {
       final artworkDirectory = await _ensureArtworkCacheDirectory();
-      final artworkPath =
-          _buildArtworkPath(track, artworkUrl, artworkDirectory);
+      final artworkPath = _buildArtworkPath(track, artworkUrl, artworkDirectory);
       if (!File(artworkPath).existsSync()) {
         await _downloadArtwork(artworkUrl, artworkPath);
       }
@@ -77,8 +73,7 @@ class LocalArtworkCacheRepository {
 
   Future<Directory> _ensureArtworkCacheDirectory() async {
     final supportDirectory = await getApplicationSupportDirectory();
-    final artworkDirectory =
-        Directory('${supportDirectory.path}/zmusic/artwork-cache');
+    final artworkDirectory = Directory('${supportDirectory.path}/zmusic/artwork-cache');
     if (!artworkDirectory.existsSync()) {
       await artworkDirectory.create(recursive: true);
     }
@@ -133,10 +128,7 @@ class LocalArtworkCacheRepository {
   }
 
   String _safeFileSegment(String value) {
-    return value
-        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
-        .replaceAll(RegExp(r'\s+'), '_')
-        .trim();
+    return value.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_').replaceAll(RegExp(r'\s+'), '_').trim();
   }
 
   Iterable<List<Track>> _chunk(List<Track> tracks, int size) sync* {
@@ -147,7 +139,6 @@ class LocalArtworkCacheRepository {
   }
 
   static const Map<String, String> _imageHttpHeaders = {
-    'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
   };
 }

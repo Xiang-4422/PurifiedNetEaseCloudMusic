@@ -102,9 +102,7 @@ extension PlayerDownloadCommands on PlayerController {
   Future<void> _syncDownloadResultIfCurrent(
     CurrentTrackDownloadResult? result,
   ) async {
-    if (result == null ||
-        currentSongState.value.id != result.track.id ||
-        result.queueItem == null) {
+    if (result == null || currentSongState.value.id != result.track.id || result.queueItem == null) {
       return;
     }
     await _syncCurrentQueueItem(result.queueItem!);

@@ -36,12 +36,10 @@ class LongPressOverlayTransition extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<LongPressOverlayTransition> createState() =>
-      _LongPressOverlayTransitionState();
+  State<LongPressOverlayTransition> createState() => _LongPressOverlayTransitionState();
 }
 
-class _LongPressOverlayTransitionState extends State<LongPressOverlayTransition>
-    with SingleTickerProviderStateMixin {
+class _LongPressOverlayTransitionState extends State<LongPressOverlayTransition> with SingleTickerProviderStateMixin {
   final GlobalKey _childKey = GlobalKey();
   OverlayEntry? _overlayEntry;
   late AnimationController _controller;
@@ -55,8 +53,7 @@ class _LongPressOverlayTransitionState extends State<LongPressOverlayTransition>
       vsync: this,
       duration: widget.duration,
     );
-    _opacityAnimation =
-        CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    _opacityAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
   }
 
   @override
@@ -77,8 +74,7 @@ class _LongPressOverlayTransitionState extends State<LongPressOverlayTransition>
       height: widget.targetHeight,
     );
 
-    _rectAnimation =
-        RectTween(begin: startRect, end: endRect).animate(CurvedAnimation(
+    _rectAnimation = RectTween(begin: startRect, end: endRect).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
     ));
@@ -191,10 +187,7 @@ class _AsyncImageColorState extends State<AsyncImageColor> {
   @override
   void didUpdateWidget(covariant AsyncImageColor oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.imageUrl != widget.imageUrl ||
-        oldWidget.getLightColor != widget.getLightColor ||
-        oldWidget.fallbackColor != widget.fallbackColor ||
-        oldWidget.deferLoadUntilPostFrame != widget.deferLoadUntilPostFrame) {
+    if (oldWidget.imageUrl != widget.imageUrl || oldWidget.getLightColor != widget.getLightColor || oldWidget.fallbackColor != widget.fallbackColor || oldWidget.deferLoadUntilPostFrame != widget.deferLoadUntilPostFrame) {
       _bgColor = ImageColorService.peekCachedColor(
             widget.imageUrl,
             getLightColor: widget.getLightColor,
@@ -349,9 +342,6 @@ class _CircularProgressPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CircularProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.strokeWidth != strokeWidth ||
-        oldDelegate.backgroundColor != backgroundColor ||
-        oldDelegate.progressColor != progressColor;
+    return oldDelegate.progress != progress || oldDelegate.strokeWidth != strokeWidth || oldDelegate.backgroundColor != backgroundColor || oldDelegate.progressColor != progressColor;
   }
 }

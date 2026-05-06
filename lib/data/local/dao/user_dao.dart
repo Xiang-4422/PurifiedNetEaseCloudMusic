@@ -12,9 +12,7 @@ class UserDao {
 
   /// 读取用户资料。
   Future<UserProfileData?> loadProfile(String userId) async {
-    final row = await (_database.select(_database.userProfiles)
-          ..where((tbl) => tbl.userId.equals(userId)))
-        .getSingleOrNull();
+    final row = await (_database.select(_database.userProfiles)..where((tbl) => tbl.userId.equals(userId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -68,8 +66,7 @@ class UserDao {
     await _database.transaction(() async {
       await (_database.delete(_database.userTrackListRefs)
             ..where(
-              (tbl) =>
-                  tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
+              (tbl) => tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
             ))
           .go();
       if (trackIds.isEmpty) {
@@ -156,10 +153,7 @@ class UserDao {
   ) {
     return (_database.delete(_database.userTrackListRefs)
           ..where(
-            (tbl) =>
-                tbl.userId.equals(userId) &
-                tbl.listKind.equals(kind.name) &
-                tbl.trackId.equals(trackId),
+            (tbl) => tbl.userId.equals(userId) & tbl.listKind.equals(kind.name) & tbl.trackId.equals(trackId),
           ))
         .go();
   }
@@ -189,8 +183,7 @@ class UserDao {
   ) async {
     final row = await (_database.select(_database.userPlaylistStates)
           ..where(
-            (tbl) =>
-                tbl.userId.equals(userId) & tbl.playlistId.equals(playlistId),
+            (tbl) => tbl.userId.equals(userId) & tbl.playlistId.equals(playlistId),
           ))
         .getSingleOrNull();
     return row?.isSubscribed;
@@ -216,8 +209,7 @@ class UserDao {
   Future<DateTime?> loadSyncMarker(String userId, String markerKey) async {
     final row = await (_database.select(_database.userSyncMarkers)
           ..where(
-            (tbl) =>
-                tbl.userId.equals(userId) & tbl.markerKey.equals(markerKey),
+            (tbl) => tbl.userId.equals(userId) & tbl.markerKey.equals(markerKey),
           ))
         .getSingleOrNull();
     if (row == null) {
@@ -241,8 +233,7 @@ class UserDao {
   Future<void> clearSyncMarker(String userId, String markerKey) {
     return (_database.delete(_database.userSyncMarkers)
           ..where(
-            (tbl) =>
-                tbl.userId.equals(userId) & tbl.markerKey.equals(markerKey),
+            (tbl) => tbl.userId.equals(userId) & tbl.markerKey.equals(markerKey),
           ))
         .go();
   }

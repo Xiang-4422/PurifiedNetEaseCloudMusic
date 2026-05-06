@@ -69,10 +69,6 @@ class ParserLrc extends LyricsParse {
       millisecond = millisecond.substring(0, 3);
     }
     var minAndSecArray = timeArray.first.split(":");
-    return Duration(
-            minutes: int.parse(minAndSecArray.first),
-            seconds: int.parse(minAndSecArray.last),
-            milliseconds: int.parse(millisecond))
-        .inMilliseconds;
+    return Duration(minutes: int.parse(minAndSecArray.first), seconds: int.parse(minAndSecArray.last), milliseconds: int.parse(millisecond)).inMilliseconds;
   }
 }

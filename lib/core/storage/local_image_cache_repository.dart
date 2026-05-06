@@ -28,12 +28,9 @@ class LocalImageCacheRepository {
   final ImageCacheDownloader? _downloader;
   static const int _maxResolvedPathCacheSize = 512;
   static const int _maxRemoteDownloadConcurrency = 4;
-  static final Map<String, Future<String>> _pendingDownloads =
-      <String, Future<String>>{};
-  static final LinkedHashMap<String, String> _resolvedPaths =
-      LinkedHashMap<String, String>();
-  static final Queue<Completer<void>> _remoteDownloadWaiters =
-      Queue<Completer<void>>();
+  static final Map<String, Future<String>> _pendingDownloads = <String, Future<String>>{};
+  static final LinkedHashMap<String, String> _resolvedPaths = LinkedHashMap<String, String>();
+  static final Queue<Completer<void>> _remoteDownloadWaiters = Queue<Completer<void>>();
   static int _activeRemoteDownloads = 0;
 
   /// 同步读取已知图片路径。
@@ -78,16 +75,14 @@ class LocalImageCacheRepository {
 
   Future<String> _cacheRemoteImage(String imageUrl) async {
     final cacheDirectory = await _ensureCacheDirectory();
-    final outputPath =
-        '${cacheDirectory.path}/${_stableHash(imageUrl)}${_resolveExtension(imageUrl)}';
+    final outputPath = '${cacheDirectory.path}/${_stableHash(imageUrl)}${_resolveExtension(imageUrl)}';
     if (File(outputPath).existsSync()) {
       _rememberResolvedPath(imageUrl, outputPath);
       return outputPath;
     }
 
     final temporaryPath = '$outputPath.download';
-    final uniqueTemporaryPath =
-        '$temporaryPath.${DateTime.now().microsecondsSinceEpoch}';
+    final uniqueTemporaryPath = '$temporaryPath.${DateTime.now().microsecondsSinceEpoch}';
     final temporaryFile = File(temporaryPath);
     final uniqueTemporaryFile = File(uniqueTemporaryPath);
     if (temporaryFile.existsSync()) {
@@ -164,9 +159,7 @@ class LocalImageCacheRepository {
   }
 
   void _releaseRemoteDownloadPermit() {
-    final nextWaiter = _remoteDownloadWaiters.isEmpty
-        ? null
-        : _remoteDownloadWaiters.removeFirst();
+    final nextWaiter = _remoteDownloadWaiters.isEmpty ? null : _remoteDownloadWaiters.removeFirst();
     if (nextWaiter != null) {
       nextWaiter.complete();
       return;
@@ -175,11 +168,8 @@ class LocalImageCacheRepository {
   }
 
   Future<Directory> _ensureCacheDirectory() async {
-    final supportDirectory = _cacheDirectoryProvider == null
-        ? await getApplicationSupportDirectory()
-        : await _cacheDirectoryProvider!();
-    final cacheDirectory =
-        Directory('${supportDirectory.path}/zmusic/image-cache');
+    final supportDirectory = _cacheDirectoryProvider == null ? await getApplicationSupportDirectory() : await _cacheDirectoryProvider!();
+    final cacheDirectory = Directory('${supportDirectory.path}/zmusic/image-cache');
     if (!cacheDirectory.existsSync()) {
       await cacheDirectory.create(recursive: true);
     }
@@ -225,7 +215,6 @@ class LocalImageCacheRepository {
   }
 
   static const Map<String, String> _imageHttpHeaders = {
-    'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
   };
 }

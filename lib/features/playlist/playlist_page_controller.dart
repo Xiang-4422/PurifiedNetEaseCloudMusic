@@ -51,12 +51,11 @@ class PlaylistPageController {
 
   /// 读取歌单详情页初始化所需的本地数据。
   Future<PlaylistInitialDetailData> loadInitialDetail(String playlistId) async {
-    final localDetail = await loadLocalDetail(playlistId);
-    final cachedSnapshot = await loadCachedSnapshot(playlistId);
+    final initialData = await _detailService.loadLocalInitialDetail(playlistId);
     return PlaylistInitialDetailData(
-      localDetail: localDetail,
-      cachedSnapshot: cachedSnapshot,
-      localState: resolveLocalDetailState(localDetail),
+      localDetail: initialData.localDetail,
+      cachedSnapshot: initialData.cachedSnapshot,
+      localState: resolveLocalDetailState(initialData.localDetail),
     );
   }
 

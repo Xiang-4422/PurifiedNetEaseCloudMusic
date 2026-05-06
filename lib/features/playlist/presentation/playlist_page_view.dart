@@ -7,6 +7,7 @@ import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
+import 'package:bujuan/core/storage/local_image_cache_repository.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playlist/application/playlist_detail_service.dart';
 import 'package:bujuan/features/playlist/application/playlist_playback_use_case.dart';
@@ -28,6 +29,13 @@ enum _PlaylistPageLoadState {
   showingFull,
   loadFailedWithPartial,
   loadFailedEmpty,
+}
+
+enum _PlaylistFetchKind {
+  none,
+  initialRefresh,
+  loadMore,
+  completeForPlayback,
 }
 
 /// 歌单详情页面，展示歌单元信息和歌曲列表。
@@ -69,16 +77,14 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   String? coverUrl;
   int? trackCount;
   List<PlaybackQueueItem> songs = <PlaybackQueueItem>[];
-  int loadedSongCount = 0;
 
   bool isSubscribed = false;
   bool isMyPlayList = false;
-  bool refreshingInitialPage = false;
-  bool loadingMoreSongs = false;
-  bool completingFullPlaylist = false;
+  _PlaylistFetchKind _fetchKind = _PlaylistFetchKind.none;
   int _artworkColorRequestId = 0;
 
   _PlaylistPageLoadState loadState = _PlaylistPageLoadState.loadingInitial;
+  final LocalImageCacheRepository _imageCacheRepository = LocalImageCacheRepository();
 
   Color albumColor = Get.theme.colorScheme.primary;
   Color widgetColor = Get.theme.colorScheme.onPrimary;
@@ -90,6 +96,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     coverUrl = widget.coverUrl;
     trackCount = widget.trackCount;
     loadState = _hasPlaylistMetadata ? _PlaylistPageLoadState.showingMetadataOnly : _PlaylistPageLoadState.loadingInitial;
+    unawaited(_updateArtworkColors(_resolvedCoverUrl));
     _scrollController.addListener(_handleScrollNearBottom);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadPlaylistData();
@@ -129,6 +136,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       onRefresh: () => _refreshPlaylistData(showLoadingState: false),
       child: CustomScrollView(
         controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           _buildPlaylistAppBar(context, layoutMetrics),
           if (_isShowingPlaylistSkeleton)
@@ -152,7 +160,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                       onPlay: _playbackUseCase.playAt,
                     );
                   },
-                  childCount: loadedSongCount,
+                  childCount: songs.length,
                 ),
               ),
             ),
@@ -199,7 +207,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
               overflow: TextOverflow.ellipsis,
             ),
             Text(
-              "歌单·${trackCount ?? loadedSongCount}首",
+              "歌单·${trackCount ?? songs.length}首",
               style: context.textTheme.titleSmall?.copyWith(
                 color: widgetColor.withValues(alpha: 0.8),
               ),
@@ -385,12 +393,12 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _refreshPlaylistData({required bool showLoadingState}) async {
-    if (refreshingInitialPage) {
+    if (_fetchKind != _PlaylistFetchKind.none) {
       return;
     }
-    refreshingInitialPage = true;
     if (mounted) {
       setState(() {
+        _fetchKind = _PlaylistFetchKind.initialRefresh;
         if (showLoadingState && songs.isEmpty && !_hasPlaylistMetadata) {
           loadState = _PlaylistPageLoadState.loadingInitial;
         } else if (songs.isEmpty && _hasPlaylistMetadata) {
@@ -430,9 +438,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         loadState = _PlaylistPageLoadState.loadFailedEmpty;
       });
     } finally {
-      refreshingInitialPage = false;
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _fetchKind = _PlaylistFetchKind.none;
+        });
       }
     }
   }
@@ -460,7 +469,6 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     }
     setState(() {
       songs = data.songs;
-      loadedSongCount = songs.length;
       trackCount = data.expectedTrackCount ?? trackCount;
       isSubscribed = data.isSubscribed;
       isMyPlayList = data.isMyPlayList;
@@ -471,7 +479,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   Future<void> _updateArtworkColors(String? artworkPath) async {
     final requestId = ++_artworkColorRequestId;
-    final color = await ImageColorService.dominantColor(artworkPath);
+    final colorPath = await _resolveArtworkColorPath(artworkPath);
+    if (!mounted || requestId != _artworkColorRequestId) {
+      return;
+    }
+    final color = await ImageColorService.dominantColor(colorPath);
     if (!mounted || requestId != _artworkColorRequestId) {
       return;
     }
@@ -481,20 +493,39 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     });
   }
 
+  Future<String?> _resolveArtworkColorPath(String? artworkPath) async {
+    if (artworkPath == null || artworkPath.isEmpty || !_isRemoteArtwork(artworkPath)) {
+      return artworkPath;
+    }
+    try {
+      return await _imageCacheRepository.resolveImagePath(artworkPath);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _isRemoteArtwork(String artworkPath) {
+    return artworkPath.startsWith('http://') || artworkPath.startsWith('https://');
+  }
+
   String? get _resolvedCoverUrl => ArtworkPathResolver.resolveExplicitArtwork(
         coverUrl,
         fallbackItems: songs,
       );
 
-  bool get _canPlayFullPlaylist => songs.isNotEmpty && loadState != _PlaylistPageLoadState.loadingInitial && loadState != _PlaylistPageLoadState.loadFailedEmpty && !loadingMoreSongs && !completingFullPlaylist;
+  bool get _canPlayFullPlaylist => songs.isNotEmpty && loadState != _PlaylistPageLoadState.loadingInitial && loadState != _PlaylistPageLoadState.loadFailedEmpty && _fetchKind == _PlaylistFetchKind.none;
 
   Color get _playlistActionColor => _canPlayFullPlaylist ? widgetColor : widgetColor.withValues(alpha: 0.35);
 
   bool get _hasPlaylistMetadata => playlistName.trim().isNotEmpty || coverUrl?.isNotEmpty == true || trackCount != null;
 
-  bool get _isShowingPlaylistSkeleton => songs.isEmpty && refreshingInitialPage && _hasPlaylistMetadata;
+  bool get _isShowingPlaylistSkeleton => songs.isEmpty && _fetchKind == _PlaylistFetchKind.initialRefresh && _hasPlaylistMetadata;
 
-  bool get _isShowingStatusFooter => loadState == _PlaylistPageLoadState.loadFailedWithPartial || (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) || loadingMoreSongs || completingFullPlaylist;
+  bool get _isShowingStatusFooter =>
+      loadState == _PlaylistPageLoadState.loadFailedWithPartial ||
+      (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) ||
+      _fetchKind == _PlaylistFetchKind.loadMore ||
+      _fetchKind == _PlaylistFetchKind.completeForPlayback;
 
   String get _completionMessage {
     if (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) {
@@ -503,7 +534,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (loadState == _PlaylistPageLoadState.loadFailedWithPartial) {
       return '剩余歌曲加载失败，下拉可重试';
     }
-    return completingFullPlaylist ? '正在补全播放队列...' : '正在加载剩余歌曲...';
+    return _fetchKind == _PlaylistFetchKind.completeForPlayback ? '正在补全播放队列...' : '正在加载剩余歌曲...';
   }
 
   void _handleScrollNearBottom() {
@@ -514,17 +545,18 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _loadMorePlaylistSongs() async {
-    if (!mounted || refreshingInitialPage || loadingMoreSongs || completingFullPlaylist || loadState != _PlaylistPageLoadState.showingPartial) {
+    if (!mounted || _fetchKind != _PlaylistFetchKind.none || loadState != _PlaylistPageLoadState.showingPartial) {
       return;
     }
-    loadingMoreSongs = true;
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _fetchKind = _PlaylistFetchKind.loadMore;
+      });
     }
     try {
       final data = await _controller.fetchDetail(
         widget.playlistId,
-        offset: loadedSongCount,
+        offset: songs.length,
         limit: _nextPlaylistPageSize,
       );
       await _applyPlaylistDetail(
@@ -540,9 +572,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         loadState = _PlaylistPageLoadState.loadFailedWithPartial;
       });
     } finally {
-      loadingMoreSongs = false;
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _fetchKind = _PlaylistFetchKind.none;
+        });
       }
     }
   }
@@ -551,17 +584,18 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (loadState == _PlaylistPageLoadState.showingFull) {
       return songs.isNotEmpty;
     }
-    if (completingFullPlaylist) {
+    if (_fetchKind != _PlaylistFetchKind.none) {
       return false;
     }
-    completingFullPlaylist = true;
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _fetchKind = _PlaylistFetchKind.completeForPlayback;
+      });
     }
     try {
       final data = await _controller.fetchDetail(
         widget.playlistId,
-        offset: loadedSongCount,
+        offset: songs.length,
         limit: -1,
       );
       await _applyPlaylistDetail(
@@ -578,9 +612,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       }
       return false;
     } finally {
-      completingFullPlaylist = false;
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _fetchKind = _PlaylistFetchKind.none;
+        });
       }
     }
   }

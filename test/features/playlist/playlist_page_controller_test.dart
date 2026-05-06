@@ -5,6 +5,7 @@ import 'package:bujuan/data/netease/remote/netease_playlist_remote_data_source.d
 import 'package:bujuan/domain/entities/playback_media_type.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/domain/entities/playlist_track_ref.dart';
 import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track.dart';
 import 'package:bujuan/domain/entities/track_resource_bundle.dart';
@@ -120,6 +121,17 @@ void main() {
       expect(data.localState, PlaylistLocalDetailState.empty);
     });
 
+    test('loads initial detail without reading cached snapshot twice', () async {
+      final cacheDataSource = _CountingAppCacheDataSource();
+      final controller = _playlistPageController(
+        repository: _playlistRepository(cacheDataSource: cacheDataSource),
+      );
+
+      await controller.loadInitialDetail('1');
+
+      expect(cacheDataSource.snapshotPayloadLoadCount, 1);
+    });
+
     test('loads initial detail as partial when cache contains first page only', () async {
       final repository = _playlistRepository(totalTracks: 100);
       await repository.fetchPlaylistDetail(
@@ -223,6 +235,98 @@ void main() {
       final cachedSongs = await repository.loadCachedSongs('1');
       expect(cachedSongs, hasLength(100));
     });
+
+    test('refreshes first page without truncating complete cached songs', () async {
+      final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 250);
+      final repository = _playlistRepository(remoteDataSource: remoteDataSource);
+
+      await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+        offset: 0,
+        limit: -1,
+      );
+      remoteDataSource.titleVersion = 1;
+
+      final refreshed = await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+        offset: 0,
+        limit: 30,
+      );
+      final cachedSongs = await repository.loadCachedSongs('1');
+
+      expect(refreshed.songs, hasLength(250));
+      expect(refreshed.isComplete, isTrue);
+      expect(refreshed.songs.first.title, 'Song v1 0');
+      expect(refreshed.songs[29].title, 'Song v1 29');
+      expect(refreshed.songs[30].title, 'Song 30');
+      expect(cachedSongs, hasLength(250));
+    });
+
+    test('refreshes first page and drops cached suffix removed from latest snapshot', () async {
+      final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 250);
+      final repository = _playlistRepository(remoteDataSource: remoteDataSource);
+
+      await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+        offset: 0,
+        limit: -1,
+      );
+      remoteDataSource
+        ..totalTracks = 120
+        ..titleVersion = 1;
+
+      final refreshed = await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+        offset: 0,
+        limit: 30,
+      );
+      final cachedSongs = await repository.loadCachedSongs('1');
+
+      expect(refreshed.songs, hasLength(120));
+      expect(refreshed.isComplete, isTrue);
+      expect(refreshed.songs.first.title, 'Song v1 0');
+      expect(refreshed.songs[30].title, 'Song 30');
+      expect(refreshed.songs.last.sourceId, '119');
+      expect(cachedSongs, hasLength(120));
+    });
+
+    test('refreshes first page when latest snapshot contains raw track ids', () async {
+      final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 120);
+      final repository = _playlistRepository(remoteDataSource: remoteDataSource);
+
+      await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+        offset: 0,
+        limit: -1,
+      );
+      remoteDataSource
+        ..usesPlaylistTrackRefs = true
+        ..prefixPlaylistTrackRefs = false
+        ..titleVersion = 1;
+
+      final refreshed = await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+        offset: 0,
+        limit: 30,
+      );
+
+      expect(refreshed.songs, hasLength(120));
+      expect(refreshed.songs.first.id, 'netease:0');
+      expect(refreshed.songs.first.title, 'Song v1 0');
+      expect(refreshed.songs[30].title, 'Song 30');
+    });
   });
 }
 
@@ -262,10 +366,11 @@ PlaybackQueueItem _queueItem(int index) {
 PlaylistRepository _playlistRepository({
   int totalTracks = 100,
   _FakePlaylistRemoteDataSource? remoteDataSource,
+  AppCacheDataSource? cacheDataSource,
 }) {
   return PlaylistRepository(
     cacheStore: PlaylistCacheStore(
-      cacheDataSource: _InMemoryAppCacheDataSource(),
+      cacheDataSource: cacheDataSource ?? _InMemoryAppCacheDataSource(),
     ),
     libraryRepository: _FakeLibraryRepository(),
     localLibraryDataSource: _FakeLocalLibraryDataSource(),
@@ -289,7 +394,10 @@ PlaylistPageController _playlistPageController({
 class _FakePlaylistRemoteDataSource implements NeteasePlaylistRemoteDataSource {
   _FakePlaylistRemoteDataSource({required this.totalTracks});
 
-  final int totalTracks;
+  int totalTracks;
+  int titleVersion = 0;
+  bool usesPlaylistTrackRefs = false;
+  bool prefixPlaylistTrackRefs = true;
   final Set<int> failOffsets = <int>{};
 
   @override
@@ -309,6 +417,15 @@ class _FakePlaylistRemoteDataSource implements NeteasePlaylistRemoteDataSource {
         sourceId: playlistId,
         title: 'playlist',
         trackCount: totalTracks,
+        trackRefs: usesPlaylistTrackRefs
+            ? List.generate(
+                totalTracks,
+                (index) => PlaylistTrackRef(
+                  trackId: prefixPlaylistTrackRefs ? 'netease:$index' : '$index',
+                  order: index,
+                ),
+              )
+            : const [],
       ),
       trackIds: List.generate(totalTracks, (index) => '$index'),
       isSubscribed: false,
@@ -329,7 +446,7 @@ class _FakePlaylistRemoteDataSource implements NeteasePlaylistRemoteDataSource {
     }
     final targetIds = songIds.skip(offset);
     final ids = limit == -1 ? targetIds : targetIds.take(limit);
-    return ids.map((id) => _track(int.parse(id))).toList();
+    return ids.map((id) => _track(int.parse(id), titleVersion: titleVersion)).toList();
   }
 
   @override
@@ -451,12 +568,24 @@ class _InMemoryAppCacheDataSource implements AppCacheDataSource {
   }
 }
 
-Track _track(int index) {
+class _CountingAppCacheDataSource extends _InMemoryAppCacheDataSource {
+  int snapshotPayloadLoadCount = 0;
+
+  @override
+  Future<String?> loadPayloadJson(String cacheKey) {
+    if (cacheKey.startsWith('PLAYLIST_SNAPSHOT_')) {
+      snapshotPayloadLoadCount++;
+    }
+    return super.loadPayloadJson(cacheKey);
+  }
+}
+
+Track _track(int index, {int titleVersion = 0}) {
   return Track(
     id: 'netease:$index',
     sourceType: SourceType.netease,
     sourceId: '$index',
-    title: 'Song $index',
+    title: titleVersion == 0 ? 'Song $index' : 'Song v$titleVersion $index',
     artistNames: const ['Artist'],
     albumTitle: 'Album',
     durationMs: 1000,

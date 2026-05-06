@@ -12,55 +12,35 @@ import 'package:bujuan/domain/entities/track_resource_bundle.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playlist/application/playlist_detail_service.dart';
-import 'package:bujuan/features/playlist/playlist_cache_store.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PlaylistDetailData', () {
-    test('treats local detail as incomplete when snapshot has more track ids', () {
-      final snapshot = PlaylistSnapshotData(
-        id: '1',
-        name: 'playlist',
-        trackIds: List.generate(100, (index) => 'netease:$index'),
-        creatorUserId: null,
-      );
+    test('treats local detail as incomplete when ordered track count is larger', () {
       final detail = _detail(
         songCount: 30,
-        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(snapshot, null),
+        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(100, null),
       );
 
       expect(detail.expectedTrackCount, 100);
       expect(detail.isComplete, isFalse);
     });
 
-    test('treats local detail as complete when it reaches snapshot track ids', () {
-      final snapshot = PlaylistSnapshotData(
-        id: '1',
-        name: 'playlist',
-        trackIds: List.generate(100, (index) => 'netease:$index'),
-        creatorUserId: null,
-      );
+    test('treats local detail as complete when it reaches ordered track count', () {
       final detail = _detail(
         songCount: 100,
-        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(snapshot, null),
+        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(100, null),
       );
 
       expect(detail.isComplete, isTrue);
     });
 
-    test('uses fallback track count when snapshot track ids are unavailable', () {
-      const snapshot = PlaylistSnapshotData(
-        id: '1',
-        name: 'playlist',
-        trackIds: [],
-        creatorUserId: null,
-        trackCount: 100,
-      );
+    test('uses fallback track count when ordered track ids are unavailable', () {
       final detail = _detail(
         songCount: 30,
-        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(snapshot, null),
+        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(0, 100),
       );
 
       expect(detail.expectedTrackCount, 100);
@@ -117,22 +97,11 @@ void main() {
       final data = await controller.loadInitialDetail('1');
 
       expect(data.localDetail, isNull);
-      expect(data.cachedSnapshot, isNull);
+      expect(data.localPlaylist, isNull);
       expect(data.localState, PlaylistLocalDetailState.empty);
     });
 
-    test('loads initial detail without reading cached snapshot twice', () async {
-      final cacheDataSource = _CountingAppCacheDataSource();
-      final controller = _playlistPageController(
-        repository: _playlistRepository(cacheDataSource: cacheDataSource),
-      );
-
-      await controller.loadInitialDetail('1');
-
-      expect(cacheDataSource.snapshotPayloadLoadCount, 1);
-    });
-
-    test('loads initial detail as partial when cache contains first page only', () async {
+    test('loads initial detail as partial when local database contains first page only', () async {
       final repository = _playlistRepository(totalTracks: 100);
       await repository.fetchPlaylistDetail(
         playlistId: '1',
@@ -145,12 +114,12 @@ void main() {
 
       final data = await controller.loadInitialDetail('1');
 
-      expect(data.cachedSnapshot?.trackCount, 100);
+      expect(data.localPlaylist?.trackCount, 100);
       expect(data.localDetail?.songs, hasLength(30));
       expect(data.localState, PlaylistLocalDetailState.partial);
     });
 
-    test('loads initial detail as complete when cached songs cover snapshot', () async {
+    test('loads initial detail as complete when local tracks cover playlist index', () async {
       final repository = _playlistRepository(totalTracks: 30);
       await repository.fetchPlaylistDetail(
         playlistId: '1',
@@ -163,7 +132,7 @@ void main() {
 
       final data = await controller.loadInitialDetail('1');
 
-      expect(data.cachedSnapshot?.trackCount, 30);
+      expect(data.localPlaylist?.trackCount, 30);
       expect(data.localDetail?.songs, hasLength(30));
       expect(data.localState, PlaylistLocalDetailState.complete);
     });
@@ -204,8 +173,12 @@ void main() {
       expect(completed.songs, hasLength(250));
       expect(completed.isComplete, isTrue);
 
-      final cachedSongs = await repository.loadCachedSongs('1');
-      expect(cachedSongs, hasLength(250));
+      final localDetail = await repository.loadLocalPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+      );
+      expect(localDetail?.songs, hasLength(250));
     });
 
     test('keeps loaded songs in cache when a later page fails', () async {
@@ -232,8 +205,12 @@ void main() {
         throwsStateError,
       );
 
-      final cachedSongs = await repository.loadCachedSongs('1');
-      expect(cachedSongs, hasLength(100));
+      final localDetail = await repository.loadLocalPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+      );
+      expect(localDetail?.songs, hasLength(100));
     });
 
     test('refreshes first page without truncating complete cached songs', () async {
@@ -256,17 +233,21 @@ void main() {
         offset: 0,
         limit: 30,
       );
-      final cachedSongs = await repository.loadCachedSongs('1');
+      final localDetail = await repository.loadLocalPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+      );
 
       expect(refreshed.songs, hasLength(250));
       expect(refreshed.isComplete, isTrue);
       expect(refreshed.songs.first.title, 'Song v1 0');
       expect(refreshed.songs[29].title, 'Song v1 29');
       expect(refreshed.songs[30].title, 'Song 30');
-      expect(cachedSongs, hasLength(250));
+      expect(localDetail?.songs, hasLength(250));
     });
 
-    test('refreshes first page and drops cached suffix removed from latest snapshot', () async {
+    test('refreshes first page and drops local suffix removed from latest index', () async {
       final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 250);
       final repository = _playlistRepository(remoteDataSource: remoteDataSource);
 
@@ -288,17 +269,21 @@ void main() {
         offset: 0,
         limit: 30,
       );
-      final cachedSongs = await repository.loadCachedSongs('1');
+      final localDetail = await repository.loadLocalPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+      );
 
       expect(refreshed.songs, hasLength(120));
       expect(refreshed.isComplete, isTrue);
       expect(refreshed.songs.first.title, 'Song v1 0');
       expect(refreshed.songs[30].title, 'Song 30');
       expect(refreshed.songs.last.sourceId, '119');
-      expect(cachedSongs, hasLength(120));
+      expect(localDetail?.songs, hasLength(120));
     });
 
-    test('refreshes first page when latest snapshot contains raw track ids', () async {
+    test('refreshes first page when latest index contains raw track ids', () async {
       final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 120);
       final repository = _playlistRepository(remoteDataSource: remoteDataSource);
 
@@ -369,9 +354,7 @@ PlaylistRepository _playlistRepository({
   AppCacheDataSource? cacheDataSource,
 }) {
   return PlaylistRepository(
-    cacheStore: PlaylistCacheStore(
-      cacheDataSource: cacheDataSource ?? _InMemoryAppCacheDataSource(),
-    ),
+    appCacheDataSource: cacheDataSource ?? _InMemoryAppCacheDataSource(),
     libraryRepository: _FakeLibraryRepository(),
     localLibraryDataSource: _FakeLocalLibraryDataSource(),
     remoteDataSource: remoteDataSource ?? _FakePlaylistRemoteDataSource(totalTracks: totalTracks),
@@ -409,7 +392,7 @@ class _FakePlaylistRemoteDataSource implements NeteasePlaylistRemoteDataSource {
         String name,
         String? creatorUserId,
         bool isLikedSongs,
-      })> fetchPlaylistSnapshot(String playlistId) async {
+      })> fetchPlaylistIndex(String playlistId) async {
     return (
       playlist: PlaylistEntity(
         id: 'netease:$playlistId',
@@ -496,8 +479,28 @@ class _FakeLibraryRepository implements LibraryRepository {
 }
 
 class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
+  final Map<String, PlaylistEntity> _playlists = <String, PlaylistEntity>{};
+
   @override
-  Future<void> clearPlaylistTrackRefs(String playlistId) async {}
+  Future<PlaylistEntity?> getPlaylist(String playlistId) async {
+    return _playlists[playlistId];
+  }
+
+  @override
+  Future<void> savePlaylists(List<PlaylistEntity> playlists) async {
+    for (final playlist in playlists) {
+      _playlists[playlist.id] = playlist;
+    }
+  }
+
+  @override
+  Future<void> clearPlaylistTrackRefs(String playlistId) async {
+    final playlist = _playlists[playlistId];
+    if (playlist == null) {
+      return;
+    }
+    _playlists[playlistId] = playlist.copyWith(trackRefs: const []);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
@@ -565,18 +568,6 @@ class _InMemoryAppCacheDataSource implements AppCacheDataSource {
   @override
   Future<void> deleteByPrefix(String cacheKeyPrefix) async {
     _records.removeWhere((key, value) => key.startsWith(cacheKeyPrefix));
-  }
-}
-
-class _CountingAppCacheDataSource extends _InMemoryAppCacheDataSource {
-  int snapshotPayloadLoadCount = 0;
-
-  @override
-  Future<String?> loadPayloadJson(String cacheKey) {
-    if (cacheKey.startsWith('PLAYLIST_SNAPSHOT_')) {
-      snapshotPayloadLoadCount++;
-    }
-    return super.loadPayloadJson(cacheKey);
   }
 }
 

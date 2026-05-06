@@ -6,13 +6,13 @@ class AppDatabaseSchema {
   const AppDatabaseSchema._();
 
   /// 当前数据库 schema 版本。
-  static const int schemaVersion = 6;
+  static const int schemaVersion = 7;
 
-  /// 播放恢复快照集合说明。
-  static const DatabaseCollectionSchema playbackRestoreSnapshots = DatabaseCollectionSchema(
-    name: 'playback_restore_snapshots',
+  /// 播放恢复状态集合说明。
+  static const DatabaseCollectionSchema playbackRestoreEntries = DatabaseCollectionSchema(
+    name: 'playback_restore_entries',
     version: 1,
-    description: '播放恢复快照记录',
+    description: '播放恢复状态记录',
   );
 
   /// 本地资源索引集合说明。
@@ -33,7 +33,7 @@ class AppDatabaseSchema {
   static const DatabaseCollectionSchema userScopedCache = DatabaseCollectionSchema(
     name: 'user_scoped_cache',
     version: 1,
-    description: '用户作用域的关系与快照缓存',
+    description: '用户作用域的关系缓存',
   );
 
   /// 应用通用缓存集合说明。
@@ -45,7 +45,7 @@ class AppDatabaseSchema {
 
   /// 当前数据库包含的集合说明列表。
   static const List<DatabaseCollectionSchema> collections = [
-    playbackRestoreSnapshots,
+    playbackRestoreEntries,
     localResourceEntries,
     downloadTasks,
     userScopedCache,

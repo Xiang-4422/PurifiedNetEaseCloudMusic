@@ -38,19 +38,19 @@ class PlaylistPlaybackAction {
       return;
     }
     final likedSongIds = UserLibraryController.to.likedSongIds.toList();
-    final details = await _repository.fetchPlaylistSnapshot(
+    final index = await _repository.fetchPlaylistIndex(
       playlist.id,
       likedSongIds: likedSongIds,
     );
     final songs = await _repository.fetchPlaylistSongs(
       playlistId: playlist.id,
       likedSongIds: likedSongIds,
-      playlistSnapshot: details,
+      playlistIndex: index,
     );
     await _playPlaylist(
       songs,
       0,
-      playListName: details.name,
+      playListName: index.name,
       playListNameHeader: '歌单',
     );
   }

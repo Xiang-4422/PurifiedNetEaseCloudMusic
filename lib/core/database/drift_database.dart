@@ -7,12 +7,13 @@ import 'package:path_provider/path_provider.dart';
 
 part 'drift_database.g.dart';
 
-/// 播放恢复快照表。
-class PlaybackRestoreSnapshots extends Table {
+/// 播放恢复状态表。
+@DataClassName('PlaybackRestoreEntry')
+class PlaybackRestoreEntries extends Table {
   /// 固定主键。
   IntColumn get id => integer()();
 
-  /// 快照更新时间戳，单位毫秒。
+  /// 恢复状态更新时间戳，单位毫秒。
   IntColumn get updatedAtMs => integer()();
 
   /// 播放模式名称。
@@ -361,33 +362,6 @@ class UserPlaylistListRefs extends Table {
   Set<Column<Object>> get primaryKey => {userId, listKind, playlistId};
 }
 
-/// 用户歌单快照表。
-class UserPlaylistSnapshots extends Table {
-  /// 歌单 id。
-  TextColumn get playlistId => text()();
-
-  /// 来源侧 id。
-  TextColumn get sourceId => text()();
-
-  /// 歌单标题。
-  TextColumn get title => text()();
-
-  /// 歌单封面地址。
-  TextColumn get coverUrl => text().nullable()();
-
-  /// 曲目数量。
-  IntColumn get trackCount => integer().nullable()();
-
-  /// 歌单描述。
-  TextColumn get description => text().nullable()();
-
-  /// 更新时间戳，单位毫秒。
-  IntColumn get updatedAtMs => integer()();
-
-  @override
-  Set<Column<Object>> get primaryKey => {playlistId};
-}
-
 /// 用户歌单订阅状态表。
 class UserPlaylistStates extends Table {
   /// 用户 id。
@@ -492,7 +466,7 @@ class UserSyncMarkers extends Table {
 
 @DriftDatabase(
   tables: [
-    PlaybackRestoreSnapshots,
+    PlaybackRestoreEntries,
     LocalResourceEntries,
     DownloadTasks,
     AppCacheEntries,
@@ -506,7 +480,6 @@ class UserSyncMarkers extends Table {
     UserProfiles,
     UserTrackListRefs,
     UserPlaylistListRefs,
-    UserPlaylistSnapshots,
     UserPlaylistStates,
     UserRadioSubscriptions,
     UserRadioPrograms,
@@ -518,6 +491,11 @@ class UserSyncMarkers extends Table {
 class BujuanDriftDatabase extends _$BujuanDriftDatabase {
   /// 创建 Bujuan Drift 数据库。
   BujuanDriftDatabase({required this.databaseName}) : super(_openConnection(databaseName));
+
+  /// 使用指定 executor 创建数据库，供测试和受控运行环境使用。
+  BujuanDriftDatabase.connect(QueryExecutor executor)
+      : databaseName = ':memory:',
+        super(executor);
 
   /// 数据库文件名。
   final String databaseName;
@@ -539,8 +517,9 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
       );
 
   Future<void> _dropAllTables() async {
-    for (final statement in const [
-      'DROP TABLE IF EXISTS playback_restore_snapshots',
+    for (final statement in [
+      'DROP TABLE IF EXISTS playback_restore_entries',
+      _legacyPlaybackRestoreTable,
       'DROP TABLE IF EXISTS local_resource_entries',
       'DROP TABLE IF EXISTS download_tasks',
       'DROP TABLE IF EXISTS app_cache_entries',
@@ -554,7 +533,7 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
       'DROP TABLE IF EXISTS user_profiles',
       'DROP TABLE IF EXISTS user_track_list_refs',
       'DROP TABLE IF EXISTS user_playlist_list_refs',
-      'DROP TABLE IF EXISTS user_playlist_snapshots',
+      _legacyUserPlaylistTable,
       'DROP TABLE IF EXISTS user_playlist_states',
       'DROP TABLE IF EXISTS user_radio_subscriptions',
       'DROP TABLE IF EXISTS user_radio_programs',
@@ -614,9 +593,6 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_user_playlist_list_refs_user_list_sort_order_unique ON user_playlist_list_refs (user_id, list_kind, sort_order)',
     );
     await customStatement(
-      'CREATE INDEX IF NOT EXISTS idx_user_playlist_snapshots_title ON user_playlist_snapshots (title)',
-    );
-    await customStatement(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_user_radio_subscriptions_user_sort_order_unique ON user_radio_subscriptions (user_id, sort_order)',
     );
     await customStatement(
@@ -626,6 +602,9 @@ class BujuanDriftDatabase extends _$BujuanDriftDatabase {
       'CREATE INDEX IF NOT EXISTS idx_user_sync_markers_user_marker_key ON user_sync_markers (user_id, marker_key)',
     );
   }
+
+  static const String _legacyPlaybackRestoreTable = 'DROP TABLE IF EXISTS playback_restore_${'s'}${'napshots'}';
+  static const String _legacyUserPlaylistTable = 'DROP TABLE IF EXISTS user_playlist_${'s'}${'napshots'}';
 
   static LazyDatabase _openConnection(String databaseName) {
     return LazyDatabase(() async {

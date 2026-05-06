@@ -11,13 +11,13 @@ class PlaybackQueueStore {
 
   final PlaybackRepository _repository;
 
-  /// 从恢复快照解码播放队列。
-  Future<List<PlaybackQueueItem>> decodeQueue(List<String> queueSnapshot) {
-    return decodePlaybackQueueItemCacheList(queueSnapshot);
+  /// 从恢复队列状态解码播放队列。
+  Future<List<PlaybackQueueItem>> decodeQueue(List<String> queueState) {
+    return decodePlaybackQueueItemCacheList(queueState);
   }
 
-  /// 保存播放队列快照和队列名称。
-  Future<void> saveQueueSnapshot({
+  /// 保存播放队列状态和队列名称。
+  Future<void> saveQueueState({
     required List<PlaybackQueueItem> originalSongs,
     required String playlistName,
     required String playlistHeader,

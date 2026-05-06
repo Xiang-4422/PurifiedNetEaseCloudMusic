@@ -141,7 +141,7 @@ repository
 
 ```text
 PlaylistRepository
-  -> NeteasePlaylistRemoteDataSource.fetchPlaylistSnapshot()
+  -> NeteasePlaylistRemoteDataSource.fetchPlaylistIndex()
     -> injected NeteaseMusicApi.playListDetail()
       -> SinglePlayListWrap / PlayList / PlayTrackId
     -> NeteasePlaylistMapper.fromPlaylist()

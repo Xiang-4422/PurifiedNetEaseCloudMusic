@@ -48,12 +48,12 @@ void main() {
       );
     });
 
-    test('restore snapshot restores selection and pending position only', () async {
+    test('restore data restores selection and pending position only', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
 
-      await queueService.restoreSnapshot(
-        PlaybackRestoreSnapshot(
+      await queueService.restoreFromData(
+        PlaybackRestoreData(
           playbackMode: PlaybackMode.playlist,
           repeatMode: PlaybackRepeatMode.all,
           queue: [_item('1'), _item('2')],
@@ -187,7 +187,7 @@ class _FakePlaybackService implements PlaybackService {
 
 class _FakePlaybackQueueStore implements PlaybackQueueStore {
   @override
-  Future<void> saveQueueSnapshot({
+  Future<void> saveQueueState({
     required List<PlaybackQueueItem> originalSongs,
     required String playlistName,
     required String playlistHeader,

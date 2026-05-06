@@ -130,20 +130,8 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
       final now = DateTime.now().millisecondsSinceEpoch;
       await _database.batch((batch) {
         batch.insertAllOnConflictUpdate(
-          _database.userPlaylistSnapshots,
-          items
-              .map(
-                (item) => db.UserPlaylistSnapshotsCompanion(
-                  playlistId: drift.Value(_toEntityPlaylistId(item.id)),
-                  sourceId: drift.Value(item.id),
-                  title: drift.Value(item.title),
-                  coverUrl: drift.Value(item.coverUrl),
-                  trackCount: drift.Value(item.trackCount),
-                  description: drift.Value(item.description),
-                  updatedAtMs: drift.Value(now),
-                ),
-              )
-              .toList(),
+          _database.playlists,
+          _playlistCompanions(items),
         );
         batch.insertAll(
           _database.userPlaylistListRefs,
@@ -178,20 +166,8 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
-        _database.userPlaylistSnapshots,
-        items
-            .map(
-              (item) => db.UserPlaylistSnapshotsCompanion(
-                playlistId: drift.Value(_toEntityPlaylistId(item.id)),
-                sourceId: drift.Value(item.id),
-                title: drift.Value(item.title),
-                coverUrl: drift.Value(item.coverUrl),
-                trackCount: drift.Value(item.trackCount),
-                description: drift.Value(item.description),
-                updatedAtMs: drift.Value(now),
-              ),
-            )
-            .toList(),
+        _database.playlists,
+        _playlistCompanions(items),
       );
       batch.insertAllOnConflictUpdate(
         _database.userPlaylistListRefs,
@@ -451,19 +427,35 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
       return const [];
     }
     final normalizedKeyword = keyword?.trim() ?? '';
-    final snapshotRows = await (_database.select(_database.userPlaylistSnapshots)
+    final playlistRows = await (_database.select(_database.playlists)
           ..where((tbl) => tbl.playlistId.isIn(refs.map((item) => item.playlistId)))
           ..where(
             (tbl) => normalizedKeyword.isEmpty ? const drift.Constant(true) : tbl.title.like('%$normalizedKeyword%'),
           ))
         .get();
-    final snapshotsById = {
-      for (final row in snapshotRows) row.playlistId: row,
+    final playlistsById = {
+      for (final row in playlistRows) row.playlistId: row,
     };
-    return refs.map((ref) => snapshotsById[ref.playlistId]).whereType<db.UserPlaylistSnapshot>().map(_mapPlaylistSnapshotRow).toList();
+    return refs.map((ref) => playlistsById[ref.playlistId]).whereType<db.Playlist>().map(_mapPlaylistRow).toList();
   }
 
-  PlaylistSummaryData _mapPlaylistSnapshotRow(db.UserPlaylistSnapshot row) {
+  List<db.PlaylistsCompanion> _playlistCompanions(List<PlaylistSummaryData> items) {
+    return items
+        .map(
+          (item) => db.PlaylistsCompanion(
+            playlistId: drift.Value(_toEntityPlaylistId(item.id)),
+            sourceType: drift.Value(_sourceTypeName(item.id)),
+            sourceId: drift.Value(_toSourcePlaylistId(item.id)),
+            title: drift.Value(item.title),
+            description: drift.Value(item.description),
+            coverUrl: drift.Value(item.coverUrl),
+            trackCount: drift.Value(item.trackCount),
+          ),
+        )
+        .toList();
+  }
+
+  PlaylistSummaryData _mapPlaylistRow(db.Playlist row) {
     return PlaylistSummaryData(
       id: row.sourceId,
       title: row.title,
@@ -473,10 +465,30 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     );
   }
 
+  String _sourceTypeName(String playlistId) {
+    if (playlistId.startsWith('local:')) {
+      return 'local';
+    }
+    if (playlistId.startsWith('netease:')) {
+      return 'netease';
+    }
+    return 'netease';
+  }
+
   String _toEntityPlaylistId(String playlistId) {
     if (playlistId.startsWith('netease:') || playlistId.startsWith('local:')) {
       return playlistId;
     }
     return 'netease:$playlistId';
+  }
+
+  String _toSourcePlaylistId(String playlistId) {
+    if (playlistId.startsWith('netease:')) {
+      return playlistId.substring('netease:'.length);
+    }
+    if (playlistId.startsWith('local:')) {
+      return playlistId.substring('local:'.length);
+    }
+    return playlistId;
   }
 }

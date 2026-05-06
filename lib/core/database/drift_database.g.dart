@@ -3,11 +3,11 @@
 part of 'drift_database.dart';
 
 // ignore_for_file: type=lint
-class $PlaybackRestoreSnapshotsTable extends PlaybackRestoreSnapshots with TableInfo<$PlaybackRestoreSnapshotsTable, PlaybackRestoreSnapshot> {
+class $PlaybackRestoreEntriesTable extends PlaybackRestoreEntries with TableInfo<$PlaybackRestoreEntriesTable, PlaybackRestoreEntry> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $PlaybackRestoreSnapshotsTable(this.attachedDatabase, [this._alias]);
+  $PlaybackRestoreEntriesTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>('id', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: false);
@@ -38,11 +38,11 @@ class $PlaybackRestoreSnapshotsTable extends PlaybackRestoreSnapshots with Table
   @override
   List<GeneratedColumn> get $columns => [id, updatedAtMs, playbackMode, repeatMode, queueJson, currentSongId, playlistName, playlistHeader, positionMs];
   @override
-  String get aliasedName => _alias ?? 'playback_restore_snapshots';
+  String get aliasedName => _alias ?? 'playback_restore_entries';
   @override
-  String get actualTableName => 'playback_restore_snapshots';
+  String get actualTableName => 'playback_restore_entries';
   @override
-  VerificationContext validateIntegrity(Insertable<PlaybackRestoreSnapshot> instance, {bool isInserting = false}) {
+  VerificationContext validateIntegrity(Insertable<PlaybackRestoreEntry> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -94,9 +94,9 @@ class $PlaybackRestoreSnapshotsTable extends PlaybackRestoreSnapshots with Table
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  PlaybackRestoreSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
+  PlaybackRestoreEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return PlaybackRestoreSnapshot(
+    return PlaybackRestoreEntry(
       id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
       playbackMode: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}playback_mode'])!,
@@ -110,16 +110,16 @@ class $PlaybackRestoreSnapshotsTable extends PlaybackRestoreSnapshots with Table
   }
 
   @override
-  $PlaybackRestoreSnapshotsTable createAlias(String alias) {
-    return $PlaybackRestoreSnapshotsTable(attachedDatabase, alias);
+  $PlaybackRestoreEntriesTable createAlias(String alias) {
+    return $PlaybackRestoreEntriesTable(attachedDatabase, alias);
   }
 }
 
-class PlaybackRestoreSnapshot extends DataClass implements Insertable<PlaybackRestoreSnapshot> {
+class PlaybackRestoreEntry extends DataClass implements Insertable<PlaybackRestoreEntry> {
   /// 固定主键。
   final int id;
 
-  /// 快照更新时间戳，单位毫秒。
+  /// 恢复状态更新时间戳，单位毫秒。
   final int updatedAtMs;
 
   /// 播放模式名称。
@@ -142,7 +142,7 @@ class PlaybackRestoreSnapshot extends DataClass implements Insertable<PlaybackRe
 
   /// 当前播放进度，单位毫秒。
   final int positionMs;
-  const PlaybackRestoreSnapshot(
+  const PlaybackRestoreEntry(
       {required this.id,
       required this.updatedAtMs,
       required this.playbackMode,
@@ -167,8 +167,8 @@ class PlaybackRestoreSnapshot extends DataClass implements Insertable<PlaybackRe
     return map;
   }
 
-  PlaybackRestoreSnapshotsCompanion toCompanion(bool nullToAbsent) {
-    return PlaybackRestoreSnapshotsCompanion(
+  PlaybackRestoreEntriesCompanion toCompanion(bool nullToAbsent) {
+    return PlaybackRestoreEntriesCompanion(
       id: Value(id),
       updatedAtMs: Value(updatedAtMs),
       playbackMode: Value(playbackMode),
@@ -181,9 +181,9 @@ class PlaybackRestoreSnapshot extends DataClass implements Insertable<PlaybackRe
     );
   }
 
-  factory PlaybackRestoreSnapshot.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+  factory PlaybackRestoreEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return PlaybackRestoreSnapshot(
+    return PlaybackRestoreEntry(
       id: serializer.fromJson<int>(json['id']),
       updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
       playbackMode: serializer.fromJson<String>(json['playbackMode']),
@@ -211,7 +211,7 @@ class PlaybackRestoreSnapshot extends DataClass implements Insertable<PlaybackRe
     };
   }
 
-  PlaybackRestoreSnapshot copyWith({int? id, int? updatedAtMs, String? playbackMode, String? repeatMode, String? queueJson, String? currentSongId, String? playlistName, String? playlistHeader, int? positionMs}) => PlaybackRestoreSnapshot(
+  PlaybackRestoreEntry copyWith({int? id, int? updatedAtMs, String? playbackMode, String? repeatMode, String? queueJson, String? currentSongId, String? playlistName, String? playlistHeader, int? positionMs}) => PlaybackRestoreEntry(
         id: id ?? this.id,
         updatedAtMs: updatedAtMs ?? this.updatedAtMs,
         playbackMode: playbackMode ?? this.playbackMode,
@@ -224,7 +224,7 @@ class PlaybackRestoreSnapshot extends DataClass implements Insertable<PlaybackRe
       );
   @override
   String toString() {
-    return (StringBuffer('PlaybackRestoreSnapshot(')
+    return (StringBuffer('PlaybackRestoreEntry(')
           ..write('id: $id, ')
           ..write('updatedAtMs: $updatedAtMs, ')
           ..write('playbackMode: $playbackMode, ')
@@ -243,7 +243,7 @@ class PlaybackRestoreSnapshot extends DataClass implements Insertable<PlaybackRe
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is PlaybackRestoreSnapshot &&
+      (other is PlaybackRestoreEntry &&
           other.id == this.id &&
           other.updatedAtMs == this.updatedAtMs &&
           other.playbackMode == this.playbackMode &&
@@ -255,7 +255,7 @@ class PlaybackRestoreSnapshot extends DataClass implements Insertable<PlaybackRe
           other.positionMs == this.positionMs);
 }
 
-class PlaybackRestoreSnapshotsCompanion extends UpdateCompanion<PlaybackRestoreSnapshot> {
+class PlaybackRestoreEntriesCompanion extends UpdateCompanion<PlaybackRestoreEntry> {
   final Value<int> id;
   final Value<int> updatedAtMs;
   final Value<String> playbackMode;
@@ -265,7 +265,7 @@ class PlaybackRestoreSnapshotsCompanion extends UpdateCompanion<PlaybackRestoreS
   final Value<String> playlistName;
   final Value<String> playlistHeader;
   final Value<int> positionMs;
-  const PlaybackRestoreSnapshotsCompanion({
+  const PlaybackRestoreEntriesCompanion({
     this.id = const Value.absent(),
     this.updatedAtMs = const Value.absent(),
     this.playbackMode = const Value.absent(),
@@ -276,7 +276,7 @@ class PlaybackRestoreSnapshotsCompanion extends UpdateCompanion<PlaybackRestoreS
     this.playlistHeader = const Value.absent(),
     this.positionMs = const Value.absent(),
   });
-  PlaybackRestoreSnapshotsCompanion.insert({
+  PlaybackRestoreEntriesCompanion.insert({
     this.id = const Value.absent(),
     required int updatedAtMs,
     required String playbackMode,
@@ -294,7 +294,7 @@ class PlaybackRestoreSnapshotsCompanion extends UpdateCompanion<PlaybackRestoreS
         playlistName = Value(playlistName),
         playlistHeader = Value(playlistHeader),
         positionMs = Value(positionMs);
-  static Insertable<PlaybackRestoreSnapshot> custom({
+  static Insertable<PlaybackRestoreEntry> custom({
     Expression<int>? id,
     Expression<int>? updatedAtMs,
     Expression<String>? playbackMode,
@@ -318,7 +318,7 @@ class PlaybackRestoreSnapshotsCompanion extends UpdateCompanion<PlaybackRestoreS
     });
   }
 
-  PlaybackRestoreSnapshotsCompanion copyWith(
+  PlaybackRestoreEntriesCompanion copyWith(
       {Value<int>? id,
       Value<int>? updatedAtMs,
       Value<String>? playbackMode,
@@ -328,7 +328,7 @@ class PlaybackRestoreSnapshotsCompanion extends UpdateCompanion<PlaybackRestoreS
       Value<String>? playlistName,
       Value<String>? playlistHeader,
       Value<int>? positionMs}) {
-    return PlaybackRestoreSnapshotsCompanion(
+    return PlaybackRestoreEntriesCompanion(
       id: id ?? this.id,
       updatedAtMs: updatedAtMs ?? this.updatedAtMs,
       playbackMode: playbackMode ?? this.playbackMode,
@@ -376,7 +376,7 @@ class PlaybackRestoreSnapshotsCompanion extends UpdateCompanion<PlaybackRestoreS
 
   @override
   String toString() {
-    return (StringBuffer('PlaybackRestoreSnapshotsCompanion(')
+    return (StringBuffer('PlaybackRestoreEntriesCompanion(')
           ..write('id: $id, ')
           ..write('updatedAtMs: $updatedAtMs, ')
           ..write('playbackMode: $playbackMode, ')
@@ -4304,329 +4304,6 @@ class UserPlaylistListRefsCompanion extends UpdateCompanion<UserPlaylistListRef>
   }
 }
 
-class $UserPlaylistSnapshotsTable extends UserPlaylistSnapshots with TableInfo<$UserPlaylistSnapshotsTable, UserPlaylistSnapshot> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $UserPlaylistSnapshotsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _playlistIdMeta = const VerificationMeta('playlistId');
-  @override
-  late final GeneratedColumn<String> playlistId = GeneratedColumn<String>('playlist_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
-  @override
-  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>('source_id', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
-  @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>('title', aliasedName, false, type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _coverUrlMeta = const VerificationMeta('coverUrl');
-  @override
-  late final GeneratedColumn<String> coverUrl = GeneratedColumn<String>('cover_url', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _trackCountMeta = const VerificationMeta('trackCount');
-  @override
-  late final GeneratedColumn<int> trackCount = GeneratedColumn<int>('track_count', aliasedName, true, type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _descriptionMeta = const VerificationMeta('description');
-  @override
-  late final GeneratedColumn<String> description = GeneratedColumn<String>('description', aliasedName, true, type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _updatedAtMsMeta = const VerificationMeta('updatedAtMs');
-  @override
-  late final GeneratedColumn<int> updatedAtMs = GeneratedColumn<int>('updated_at_ms', aliasedName, false, type: DriftSqlType.int, requiredDuringInsert: true);
-  @override
-  List<GeneratedColumn> get $columns => [playlistId, sourceId, title, coverUrl, trackCount, description, updatedAtMs];
-  @override
-  String get aliasedName => _alias ?? 'user_playlist_snapshots';
-  @override
-  String get actualTableName => 'user_playlist_snapshots';
-  @override
-  VerificationContext validateIntegrity(Insertable<UserPlaylistSnapshot> instance, {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('playlist_id')) {
-      context.handle(_playlistIdMeta, playlistId.isAcceptableOrUnknown(data['playlist_id']!, _playlistIdMeta));
-    } else if (isInserting) {
-      context.missing(_playlistIdMeta);
-    }
-    if (data.containsKey('source_id')) {
-      context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
-    } else if (isInserting) {
-      context.missing(_sourceIdMeta);
-    }
-    if (data.containsKey('title')) {
-      context.handle(_titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
-    } else if (isInserting) {
-      context.missing(_titleMeta);
-    }
-    if (data.containsKey('cover_url')) {
-      context.handle(_coverUrlMeta, coverUrl.isAcceptableOrUnknown(data['cover_url']!, _coverUrlMeta));
-    }
-    if (data.containsKey('track_count')) {
-      context.handle(_trackCountMeta, trackCount.isAcceptableOrUnknown(data['track_count']!, _trackCountMeta));
-    }
-    if (data.containsKey('description')) {
-      context.handle(_descriptionMeta, description.isAcceptableOrUnknown(data['description']!, _descriptionMeta));
-    }
-    if (data.containsKey('updated_at_ms')) {
-      context.handle(_updatedAtMsMeta, updatedAtMs.isAcceptableOrUnknown(data['updated_at_ms']!, _updatedAtMsMeta));
-    } else if (isInserting) {
-      context.missing(_updatedAtMsMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {playlistId};
-  @override
-  UserPlaylistSnapshot map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return UserPlaylistSnapshot(
-      playlistId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}playlist_id'])!,
-      sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
-      title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title'])!,
-      coverUrl: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}cover_url']),
-      trackCount: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}track_count']),
-      description: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}description']),
-      updatedAtMs: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at_ms'])!,
-    );
-  }
-
-  @override
-  $UserPlaylistSnapshotsTable createAlias(String alias) {
-    return $UserPlaylistSnapshotsTable(attachedDatabase, alias);
-  }
-}
-
-class UserPlaylistSnapshot extends DataClass implements Insertable<UserPlaylistSnapshot> {
-  /// 歌单 id。
-  final String playlistId;
-
-  /// 来源侧 id。
-  final String sourceId;
-
-  /// 歌单标题。
-  final String title;
-
-  /// 歌单封面地址。
-  final String? coverUrl;
-
-  /// 曲目数量。
-  final int? trackCount;
-
-  /// 歌单描述。
-  final String? description;
-
-  /// 更新时间戳，单位毫秒。
-  final int updatedAtMs;
-  const UserPlaylistSnapshot({required this.playlistId, required this.sourceId, required this.title, this.coverUrl, this.trackCount, this.description, required this.updatedAtMs});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['playlist_id'] = Variable<String>(playlistId);
-    map['source_id'] = Variable<String>(sourceId);
-    map['title'] = Variable<String>(title);
-    if (!nullToAbsent || coverUrl != null) {
-      map['cover_url'] = Variable<String>(coverUrl);
-    }
-    if (!nullToAbsent || trackCount != null) {
-      map['track_count'] = Variable<int>(trackCount);
-    }
-    if (!nullToAbsent || description != null) {
-      map['description'] = Variable<String>(description);
-    }
-    map['updated_at_ms'] = Variable<int>(updatedAtMs);
-    return map;
-  }
-
-  UserPlaylistSnapshotsCompanion toCompanion(bool nullToAbsent) {
-    return UserPlaylistSnapshotsCompanion(
-      playlistId: Value(playlistId),
-      sourceId: Value(sourceId),
-      title: Value(title),
-      coverUrl: coverUrl == null && nullToAbsent ? const Value.absent() : Value(coverUrl),
-      trackCount: trackCount == null && nullToAbsent ? const Value.absent() : Value(trackCount),
-      description: description == null && nullToAbsent ? const Value.absent() : Value(description),
-      updatedAtMs: Value(updatedAtMs),
-    );
-  }
-
-  factory UserPlaylistSnapshot.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return UserPlaylistSnapshot(
-      playlistId: serializer.fromJson<String>(json['playlistId']),
-      sourceId: serializer.fromJson<String>(json['sourceId']),
-      title: serializer.fromJson<String>(json['title']),
-      coverUrl: serializer.fromJson<String?>(json['coverUrl']),
-      trackCount: serializer.fromJson<int?>(json['trackCount']),
-      description: serializer.fromJson<String?>(json['description']),
-      updatedAtMs: serializer.fromJson<int>(json['updatedAtMs']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'playlistId': serializer.toJson<String>(playlistId),
-      'sourceId': serializer.toJson<String>(sourceId),
-      'title': serializer.toJson<String>(title),
-      'coverUrl': serializer.toJson<String?>(coverUrl),
-      'trackCount': serializer.toJson<int?>(trackCount),
-      'description': serializer.toJson<String?>(description),
-      'updatedAtMs': serializer.toJson<int>(updatedAtMs),
-    };
-  }
-
-  UserPlaylistSnapshot copyWith(
-          {String? playlistId, String? sourceId, String? title, Value<String?> coverUrl = const Value.absent(), Value<int?> trackCount = const Value.absent(), Value<String?> description = const Value.absent(), int? updatedAtMs}) =>
-      UserPlaylistSnapshot(
-        playlistId: playlistId ?? this.playlistId,
-        sourceId: sourceId ?? this.sourceId,
-        title: title ?? this.title,
-        coverUrl: coverUrl.present ? coverUrl.value : this.coverUrl,
-        trackCount: trackCount.present ? trackCount.value : this.trackCount,
-        description: description.present ? description.value : this.description,
-        updatedAtMs: updatedAtMs ?? this.updatedAtMs,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('UserPlaylistSnapshot(')
-          ..write('playlistId: $playlistId, ')
-          ..write('sourceId: $sourceId, ')
-          ..write('title: $title, ')
-          ..write('coverUrl: $coverUrl, ')
-          ..write('trackCount: $trackCount, ')
-          ..write('description: $description, ')
-          ..write('updatedAtMs: $updatedAtMs')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(playlistId, sourceId, title, coverUrl, trackCount, description, updatedAtMs);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is UserPlaylistSnapshot &&
-          other.playlistId == this.playlistId &&
-          other.sourceId == this.sourceId &&
-          other.title == this.title &&
-          other.coverUrl == this.coverUrl &&
-          other.trackCount == this.trackCount &&
-          other.description == this.description &&
-          other.updatedAtMs == this.updatedAtMs);
-}
-
-class UserPlaylistSnapshotsCompanion extends UpdateCompanion<UserPlaylistSnapshot> {
-  final Value<String> playlistId;
-  final Value<String> sourceId;
-  final Value<String> title;
-  final Value<String?> coverUrl;
-  final Value<int?> trackCount;
-  final Value<String?> description;
-  final Value<int> updatedAtMs;
-  final Value<int> rowid;
-  const UserPlaylistSnapshotsCompanion({
-    this.playlistId = const Value.absent(),
-    this.sourceId = const Value.absent(),
-    this.title = const Value.absent(),
-    this.coverUrl = const Value.absent(),
-    this.trackCount = const Value.absent(),
-    this.description = const Value.absent(),
-    this.updatedAtMs = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  UserPlaylistSnapshotsCompanion.insert({
-    required String playlistId,
-    required String sourceId,
-    required String title,
-    this.coverUrl = const Value.absent(),
-    this.trackCount = const Value.absent(),
-    this.description = const Value.absent(),
-    required int updatedAtMs,
-    this.rowid = const Value.absent(),
-  })  : playlistId = Value(playlistId),
-        sourceId = Value(sourceId),
-        title = Value(title),
-        updatedAtMs = Value(updatedAtMs);
-  static Insertable<UserPlaylistSnapshot> custom({
-    Expression<String>? playlistId,
-    Expression<String>? sourceId,
-    Expression<String>? title,
-    Expression<String>? coverUrl,
-    Expression<int>? trackCount,
-    Expression<String>? description,
-    Expression<int>? updatedAtMs,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (playlistId != null) 'playlist_id': playlistId,
-      if (sourceId != null) 'source_id': sourceId,
-      if (title != null) 'title': title,
-      if (coverUrl != null) 'cover_url': coverUrl,
-      if (trackCount != null) 'track_count': trackCount,
-      if (description != null) 'description': description,
-      if (updatedAtMs != null) 'updated_at_ms': updatedAtMs,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  UserPlaylistSnapshotsCompanion copyWith(
-      {Value<String>? playlistId, Value<String>? sourceId, Value<String>? title, Value<String?>? coverUrl, Value<int?>? trackCount, Value<String?>? description, Value<int>? updatedAtMs, Value<int>? rowid}) {
-    return UserPlaylistSnapshotsCompanion(
-      playlistId: playlistId ?? this.playlistId,
-      sourceId: sourceId ?? this.sourceId,
-      title: title ?? this.title,
-      coverUrl: coverUrl ?? this.coverUrl,
-      trackCount: trackCount ?? this.trackCount,
-      description: description ?? this.description,
-      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (playlistId.present) {
-      map['playlist_id'] = Variable<String>(playlistId.value);
-    }
-    if (sourceId.present) {
-      map['source_id'] = Variable<String>(sourceId.value);
-    }
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
-    }
-    if (coverUrl.present) {
-      map['cover_url'] = Variable<String>(coverUrl.value);
-    }
-    if (trackCount.present) {
-      map['track_count'] = Variable<int>(trackCount.value);
-    }
-    if (description.present) {
-      map['description'] = Variable<String>(description.value);
-    }
-    if (updatedAtMs.present) {
-      map['updated_at_ms'] = Variable<int>(updatedAtMs.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('UserPlaylistSnapshotsCompanion(')
-          ..write('playlistId: $playlistId, ')
-          ..write('sourceId: $sourceId, ')
-          ..write('title: $title, ')
-          ..write('coverUrl: $coverUrl, ')
-          ..write('trackCount: $trackCount, ')
-          ..write('description: $description, ')
-          ..write('updatedAtMs: $updatedAtMs, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $UserPlaylistStatesTable extends UserPlaylistStates with TableInfo<$UserPlaylistStatesTable, UserPlaylistState> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -5891,7 +5568,7 @@ class UserSyncMarkersCompanion extends UpdateCompanion<UserSyncMarker> {
 
 abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
   _$BujuanDriftDatabase(QueryExecutor e) : super(e);
-  late final $PlaybackRestoreSnapshotsTable playbackRestoreSnapshots = $PlaybackRestoreSnapshotsTable(this);
+  late final $PlaybackRestoreEntriesTable playbackRestoreEntries = $PlaybackRestoreEntriesTable(this);
   late final $LocalResourceEntriesTable localResourceEntries = $LocalResourceEntriesTable(this);
   late final $DownloadTasksTable downloadTasks = $DownloadTasksTable(this);
   late final $AppCacheEntriesTable appCacheEntries = $AppCacheEntriesTable(this);
@@ -5905,7 +5582,6 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
   late final $UserProfilesTable userProfiles = $UserProfilesTable(this);
   late final $UserTrackListRefsTable userTrackListRefs = $UserTrackListRefsTable(this);
   late final $UserPlaylistListRefsTable userPlaylistListRefs = $UserPlaylistListRefsTable(this);
-  late final $UserPlaylistSnapshotsTable userPlaylistSnapshots = $UserPlaylistSnapshotsTable(this);
   late final $UserPlaylistStatesTable userPlaylistStates = $UserPlaylistStatesTable(this);
   late final $UserRadioSubscriptionsTable userRadioSubscriptions = $UserRadioSubscriptionsTable(this);
   late final $UserRadioProgramsTable userRadioPrograms = $UserRadioProgramsTable(this);
@@ -5914,7 +5590,7 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
   Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
-        playbackRestoreSnapshots,
+        playbackRestoreEntries,
         localResourceEntries,
         downloadTasks,
         appCacheEntries,
@@ -5928,7 +5604,6 @@ abstract class _$BujuanDriftDatabase extends GeneratedDatabase {
         userProfiles,
         userTrackListRefs,
         userPlaylistListRefs,
-        userPlaylistSnapshots,
         userPlaylistStates,
         userRadioSubscriptions,
         userRadioPrograms,

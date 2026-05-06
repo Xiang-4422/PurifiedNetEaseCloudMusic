@@ -126,15 +126,15 @@ class PlaybackStateSynchronizer {
       ),
     );
     await _playbackService.ensureInitialized();
-    final restoreSnapshot = await _playbackService.loadRestoreSnapshot();
+    final restoreData = await _playbackService.loadRestoreData();
     syncSessionState(
-      playbackMode: restoreSnapshot.playbackMode,
-      repeatMode: restoreSnapshot.repeatMode,
-      playlistName: restoreSnapshot.playlistName,
-      playlistHeader: restoreSnapshot.playlistHeader,
-      isPlayingLikedSongs: restoreSnapshot.playlistName == '喜欢的音乐',
+      playbackMode: restoreData.playbackMode,
+      repeatMode: restoreData.repeatMode,
+      playlistName: restoreData.playlistName,
+      playlistHeader: restoreData.playlistHeader,
+      isPlayingLikedSongs: restoreData.playlistName == '喜欢的音乐',
     );
-    await _queueService.restoreSnapshot(restoreSnapshot);
+    await _queueService.restoreFromData(restoreData);
     syncSelectionQueue(
       _selectionService.state.queue,
       _selectionService.state.selectedIndex,

@@ -1,3 +1,4 @@
+import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/features/album/album_repository.dart';
@@ -12,7 +13,6 @@ import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
-import 'package:bujuan/features/playlist/playlist_cache_store.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
@@ -29,7 +29,7 @@ class RepositoryRegistrar {
   static void register({
     required LibraryRepository libraryRepository,
     required UserScopedDataSource userScopedDataSource,
-    required PlaylistCacheStore playlistCacheStore,
+    required AppCacheDataSource appCacheDataSource,
     required LocalLibraryDataSource localLibraryDataSource,
     required SearchCacheStore searchCacheStore,
     required ExploreCacheStore exploreCacheStore,
@@ -48,7 +48,7 @@ class RepositoryRegistrar {
     );
     Get.put<PlaylistRepository>(
       PlaylistRepository(
-        cacheStore: playlistCacheStore,
+        appCacheDataSource: appCacheDataSource,
         libraryRepository: libraryRepository,
         localLibraryDataSource: localLibraryDataSource,
         userScopedDataSource: userScopedDataSource,

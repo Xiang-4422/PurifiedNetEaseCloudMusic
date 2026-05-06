@@ -4,10 +4,10 @@ import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
-/// 播放恢复快照，包含恢复播放器所需的队列和会话信息。
-class PlaybackRestoreSnapshot {
-  /// 创建播放恢复快照。
-  const PlaybackRestoreSnapshot({
+/// 播放恢复数据，包含恢复播放器所需的队列和会话信息。
+class PlaybackRestoreData {
+  /// 创建播放恢复数据。
+  const PlaybackRestoreData({
     required this.playbackMode,
     required this.repeatMode,
     required this.queue,
@@ -51,8 +51,8 @@ class PlaybackRestoreCoordinator {
   final PlaybackRepository _repository;
   final PlaybackQueueStore _queueStore;
 
-  /// 加载可直接用于恢复播放器的快照。
-  Future<PlaybackRestoreSnapshot> loadSnapshot() async {
+  /// 加载可直接用于恢复播放器的数据。
+  Future<PlaybackRestoreData> loadRestoreData() async {
     final restoreState = await _repository.getRestoreState();
     final playlist = restoreState.queue.isEmpty ? <PlaybackQueueItem>[] : await _queueStore.decodeQueue(restoreState.queue);
     var index = playlist.indexWhere(
@@ -61,7 +61,7 @@ class PlaybackRestoreCoordinator {
     if (index < 0 && playlist.isNotEmpty) {
       index = 0;
     }
-    return PlaybackRestoreSnapshot(
+    return PlaybackRestoreData(
       playbackMode: restoreState.playbackMode,
       repeatMode: restoreState.repeatMode,
       queue: playlist,

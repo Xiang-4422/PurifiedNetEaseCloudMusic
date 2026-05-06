@@ -431,7 +431,7 @@ class _ControllableSourceResolver implements PlaybackSourceResolver {
 
 class _FakePlaybackQueueStore implements PlaybackQueueStore {
   @override
-  Future<void> saveQueueSnapshot({
+  Future<void> saveQueueState({
     required List<PlaybackQueueItem> originalSongs,
     required String playlistName,
     required String playlistHeader,

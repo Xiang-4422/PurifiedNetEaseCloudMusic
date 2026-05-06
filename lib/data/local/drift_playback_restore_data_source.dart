@@ -17,7 +17,7 @@ class DriftPlaybackRestoreDataSource implements PlaybackRestoreDataSource {
 
   @override
   Future<PlaybackRestoreState?> getRestoreState() async {
-    final row = await (_database.select(_database.playbackRestoreSnapshots)..where((tbl) => tbl.id.equals(0))).getSingleOrNull();
+    final row = await (_database.select(_database.playbackRestoreEntries)..where((tbl) => tbl.id.equals(0))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -41,8 +41,8 @@ class DriftPlaybackRestoreDataSource implements PlaybackRestoreDataSource {
 
   @override
   Future<void> saveRestoreState(PlaybackRestoreState state) {
-    return _database.into(_database.playbackRestoreSnapshots).insertOnConflictUpdate(
-          PlaybackRestoreSnapshotsCompanion(
+    return _database.into(_database.playbackRestoreEntries).insertOnConflictUpdate(
+          PlaybackRestoreEntriesCompanion(
             id: const drift.Value(0),
             updatedAtMs: drift.Value(DateTime.now().millisecondsSinceEpoch),
             playbackMode: drift.Value(state.playbackMode.name),
@@ -59,10 +59,10 @@ class DriftPlaybackRestoreDataSource implements PlaybackRestoreDataSource {
   @override
   Future<void> saveRestorePosition(Duration position) async {
     final updatedCount = await (_database.update(
-      _database.playbackRestoreSnapshots,
+      _database.playbackRestoreEntries,
     )..where((tbl) => tbl.id.equals(0)))
         .write(
-      PlaybackRestoreSnapshotsCompanion(
+      PlaybackRestoreEntriesCompanion(
         updatedAtMs: drift.Value(DateTime.now().millisecondsSinceEpoch),
         positionMs: drift.Value(position.inMilliseconds),
       ),

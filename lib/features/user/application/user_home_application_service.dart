@@ -15,9 +15,9 @@ class UserHomeApplicationService {
     required String userId,
     required String markerKey,
     required Duration ttl,
-    required bool hasLocalSnapshot,
+    required bool hasLocalData,
   }) async {
-    if (!hasLocalSnapshot || userId.isEmpty) {
+    if (!hasLocalData || userId.isEmpty) {
       return true;
     }
     return !(await _repository.isSyncMarkerFresh(
@@ -38,13 +38,13 @@ class UserHomeApplicationService {
     );
   }
 
-  /// 从本地缓存读取首页推荐、日推和 FM 候选快照。
-  Future<UserHomeSnapshot> loadLocalSnapshot({
+  /// 从本地缓存读取首页推荐、日推和 FM 候选数据。
+  Future<UserHomeLocalData> loadLocalData({
     required String userId,
     required List<int> likedSongIds,
   }) async {
     if (userId.isEmpty) {
-      return const UserHomeSnapshot.empty();
+      return const UserHomeLocalData.empty();
     }
     final results = await Future.wait<Object>([
       _repository.loadCachedPlaylistList(
@@ -62,7 +62,7 @@ class UserHomeApplicationService {
         likedSongIds: likedSongIds,
       ),
     ]);
-    return UserHomeSnapshot(
+    return UserHomeLocalData(
       recommendedPlaylists: results[0] as List<PlaylistSummaryData>,
       todayRecommendSongs: results[1] as List<PlaybackQueueItem>,
       fmSongs: results[2] as List<PlaybackQueueItem>,
@@ -70,18 +70,18 @@ class UserHomeApplicationService {
   }
 
   /// 刷新首页启动阶段需要优先展示的日推和 FM 候选。
-  Future<UserHomeSnapshot> refreshQuickStartData({
+  Future<UserHomeLocalData> refreshQuickStartData({
     required String userId,
     required List<int> likedSongIds,
   }) async {
     if (userId.isEmpty || userId == '-1') {
-      return const UserHomeSnapshot.empty();
+      return const UserHomeLocalData.empty();
     }
     final results = await Future.wait<Object>([
       fetchTodayRecommendSongs(userId: userId, likedSongIds: likedSongIds),
       fetchFmSongs(userId: userId, likedSongIds: likedSongIds),
     ]);
-    return UserHomeSnapshot(
+    return UserHomeLocalData(
       recommendedPlaylists: const [],
       todayRecommendSongs: results[0] as List<PlaybackQueueItem>,
       fmSongs: results[1] as List<PlaybackQueueItem>,
@@ -124,30 +124,30 @@ class UserHomeApplicationService {
   }
 }
 
-/// 首页用户数据快照，包含推荐歌单、日推歌曲和 FM 候选歌曲。
-class UserHomeSnapshot {
-  /// 创建首页用户数据快照。
-  const UserHomeSnapshot({
+/// 首页用户本地数据，包含推荐歌单、日推歌曲和 FM 候选歌曲。
+class UserHomeLocalData {
+  /// 创建首页用户本地数据。
+  const UserHomeLocalData({
     required this.recommendedPlaylists,
     required this.todayRecommendSongs,
     required this.fmSongs,
   });
 
-  /// 创建空首页用户数据快照。
-  const UserHomeSnapshot.empty()
+  /// 创建空首页用户本地数据。
+  const UserHomeLocalData.empty()
       : recommendedPlaylists = const [],
         todayRecommendSongs = const [],
         fmSongs = const [];
 
-  /// 推荐歌单快照。
+  /// 推荐歌单数据。
   final List<PlaylistSummaryData> recommendedPlaylists;
 
-  /// 每日推荐歌曲快照。
+  /// 每日推荐歌曲数据。
   final List<PlaybackQueueItem> todayRecommendSongs;
 
-  /// 私人 FM 候选歌曲快照。
+  /// 私人 FM 候选歌曲数据。
   final List<PlaybackQueueItem> fmSongs;
 
-  /// 快照中是否包含任何可展示数据。
+  /// 是否包含任何可展示数据。
   bool get hasData => recommendedPlaylists.isNotEmpty || todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
 }

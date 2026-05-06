@@ -29,7 +29,7 @@ class PlaybackQueueService {
   PlaybackQueueState _state = const PlaybackQueueState();
   String _lastNotificationSignature = '';
 
-  /// 当前队列事实快照。
+  /// 当前队列事实状态。
   PlaybackQueueState get state => _state;
 
   /// 队列事实变化流。
@@ -68,7 +68,7 @@ class PlaybackQueueService {
     _emit(nextState);
     await _syncNotificationQueue();
     if (needStore) {
-      await _queueStore.saveQueueSnapshot(
+      await _queueStore.saveQueueState(
         originalSongs: _state.originalQueue,
         playlistName: playlistName,
         playlistHeader: playlistHeader,
@@ -308,39 +308,39 @@ class PlaybackQueueService {
     return _state;
   }
 
-  /// 从恢复快照重建队列事实。
-  Future<PlaybackQueueState> restoreSnapshot(
-    PlaybackRestoreSnapshot snapshot,
+  /// 从恢复数据重建队列事实。
+  Future<PlaybackQueueState> restoreFromData(
+    PlaybackRestoreData restoreData,
   ) async {
     _emit(_state.copyWith(
-      repeatMode: snapshot.repeatMode,
+      repeatMode: restoreData.repeatMode,
       orderMode: _state.orderMode,
-      playbackMode: snapshot.playbackMode,
-      pendingRestorePosition: snapshot.position,
+      playbackMode: restoreData.playbackMode,
+      pendingRestorePosition: restoreData.position,
     ));
-    if (snapshot.queue.isEmpty) {
+    if (restoreData.queue.isEmpty) {
       return _state;
     }
-    final selectedIndex = _clampIndex(snapshot.index, snapshot.queue.length);
-    final selectedItem = snapshot.queue[selectedIndex];
+    final selectedIndex = _clampIndex(restoreData.index, restoreData.queue.length);
+    final selectedItem = restoreData.queue[selectedIndex];
     final activeQueue = _buildActiveQueue(
-      originalQueue: snapshot.queue,
-      repeatMode: snapshot.repeatMode,
+      originalQueue: restoreData.queue,
+      repeatMode: restoreData.repeatMode,
       orderMode: _state.orderMode,
-      playbackMode: snapshot.playbackMode,
+      playbackMode: restoreData.playbackMode,
     );
     _emit(_state.copyWith(
-      originalQueue: List<PlaybackQueueItem>.unmodifiable(snapshot.queue),
+      originalQueue: List<PlaybackQueueItem>.unmodifiable(restoreData.queue),
       activeQueue: List<PlaybackQueueItem>.unmodifiable(activeQueue),
       selectedIndex: _indexOfItem(activeQueue, selectedItem.id),
       confirmedIndex: -1,
-      playlistName: snapshot.playlistName,
-      playlistHeader: snapshot.playlistHeader,
+      playlistName: restoreData.playlistName,
+      playlistHeader: restoreData.playlistHeader,
       selectionVersion: _state.selectionVersion + 1,
       queueVersion: _state.queueVersion + 1,
     ));
     await _playbackService.setPendingRestorePosition(
-      snapshot.position,
+      restoreData.position,
       mediaItemId: selectedItem.id,
     );
     await _syncNotificationQueue();

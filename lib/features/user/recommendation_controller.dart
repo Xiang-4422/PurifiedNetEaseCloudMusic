@@ -51,11 +51,11 @@ class RecommendationController extends GetxController {
 
   Future<void>? _cacheBootstrapFuture;
   Timer? _homeImageColorPrewarmTimer;
-  String _activeSnapshotUserId = '';
-  bool _hasLocalSnapshot = false;
+  String _activeLocalDataUserId = '';
+  bool _hasLocalData = false;
 
-  /// 当前账号是否已有本地首页快照。
-  bool get hasLocalSnapshot => _hasLocalSnapshot;
+  /// 当前账号是否已有本地首页数据。
+  bool get hasLocalData => _hasLocalData;
 
   /// 等待首页和用户资料缓存启动加载完成。
   Future<void> ensureCacheLoaded() async {
@@ -67,12 +67,12 @@ class RecommendationController extends GetxController {
     super.onInit();
     _cacheBootstrapFuture = _loadCache();
     ever<UserSessionData>(_sessionController.userInfo, (info) {
-      if (_activeSnapshotUserId == info.userId) {
+      if (_activeLocalDataUserId == info.userId) {
         return;
       }
-      _activeSnapshotUserId = info.userId;
+      _activeLocalDataUserId = info.userId;
       dateLoaded.value = false;
-      unawaited(_reloadScopedSnapshotAndBootstrap(info.userId));
+      unawaited(_reloadScopedLocalDataAndBootstrap(info.userId));
     });
   }
 
@@ -82,14 +82,14 @@ class RecommendationController extends GetxController {
     unawaited(startHomeBootstrap());
   }
 
-  /// 启动首页数据加载流程，优先展示本地快照再按 TTL 后台刷新。
+  /// 启动首页数据加载流程，优先展示本地数据再按 TTL 后台刷新。
   Future<void> startHomeBootstrap() async {
     await ensureCacheLoaded();
-    if (_hasLocalSnapshot) {
+    if (_hasLocalData) {
       dateLoaded.value = true;
       scheduleHomeImageColorPrewarm();
       unawaited(_validateLoginStateInBackground?.call());
-      if (!_libraryController.hasPlaylistSnapshot || await shouldRefreshStartupData()) {
+      if (!_libraryController.hasPlaylistData || await shouldRefreshStartupData()) {
         unawaited(updateData());
       }
       return;
@@ -97,16 +97,16 @@ class RecommendationController extends GetxController {
     await updateData();
   }
 
-  Future<void> _reloadScopedSnapshotAndBootstrap(String userId) async {
-    await _libraryController.loadScopedSnapshot(userId);
-    await _loadScopedSnapshot(userId);
+  Future<void> _reloadScopedLocalDataAndBootstrap(String userId) async {
+    await _libraryController.loadScopedLocalData(userId);
+    await _loadScopedLocalData(userId);
     await startHomeBootstrap();
   }
 
   /// 判断启动数据是否需要刷新。
   Future<bool> shouldRefreshStartupData() async {
     await ensureCacheLoaded();
-    if (!_hasLocalSnapshot) {
+    if (!_hasLocalData) {
       return true;
     }
     final userId = _sessionController.userInfo.value.userId;
@@ -117,7 +117,7 @@ class RecommendationController extends GetxController {
       userId: userId,
       markerKey: _startupSyncMarker,
       ttl: _startupDataTtl,
-      hasLocalSnapshot: _hasLocalSnapshot,
+      hasLocalData: _hasLocalData,
     );
   }
 
@@ -136,7 +136,7 @@ class RecommendationController extends GetxController {
       _updateQuickStartCardData(),
       updateRecoPlayLists(),
     ]);
-    _hasLocalSnapshot = true;
+    _hasLocalData = true;
     await _homeService.markStartupDataUpdated(
       userId: userId,
       markerKey: _startupSyncMarker,
@@ -207,41 +207,41 @@ class RecommendationController extends GetxController {
   Future<void> _loadCache() async {
     await _sessionController.ensureCacheLoaded();
     await _libraryController.ensureCacheLoaded();
-    _activeSnapshotUserId = _sessionController.userInfo.value.userId;
-    await _loadScopedSnapshot(_activeSnapshotUserId);
+    _activeLocalDataUserId = _sessionController.userInfo.value.userId;
+    await _loadScopedLocalData(_activeLocalDataUserId);
   }
 
-  Future<void> _loadScopedSnapshot(String userId) async {
+  Future<void> _loadScopedLocalData(String userId) async {
     recoPlayLists.clear();
     todayRecommendSongs.clear();
     fmSongs.clear();
     if (userId.isEmpty) {
-      _hasLocalSnapshot = false;
+      _hasLocalData = false;
       return;
     }
 
-    final snapshot = await _homeService.loadLocalSnapshot(
+    final localData = await _homeService.loadLocalData(
       userId: userId,
       likedSongIds: _libraryController.likedSongIds.toList(),
     );
-    recoPlayLists.addAll(snapshot.recommendedPlaylists);
-    todayRecommendSongs.addAll(snapshot.todayRecommendSongs);
-    fmSongs.addAll(snapshot.fmSongs);
-    _hasLocalSnapshot = snapshot.hasData;
+    recoPlayLists.addAll(localData.recommendedPlaylists);
+    todayRecommendSongs.addAll(localData.todayRecommendSongs);
+    fmSongs.addAll(localData.fmSongs);
+    _hasLocalData = localData.hasData;
   }
 
   Future<void> _updateQuickStartCardData() async {
-    final snapshot = await _homeService.refreshQuickStartData(
+    final localData = await _homeService.refreshQuickStartData(
       userId: _sessionController.userInfo.value.userId,
       likedSongIds: _libraryController.likedSongIds.toList(),
     );
     todayRecommendSongs
       ..clear()
-      ..addAll(snapshot.todayRecommendSongs);
+      ..addAll(localData.todayRecommendSongs);
 
     fmSongs
       ..clear()
-      ..addAll(snapshot.fmSongs);
+      ..addAll(localData.fmSongs);
   }
 
   @override

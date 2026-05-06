@@ -38,8 +38,8 @@ class PlaybackRestoreState {
     this.position = Duration.zero,
   });
 
-  /// 是否包含需要恢复的快照数据。
-  bool get hasSnapshotData {
+  /// 是否包含需要恢复的数据。
+  bool get hasRestoreData {
     return playbackMode != PlaybackMode.playlist || repeatMode != PlaybackRepeatMode.all || queue.isNotEmpty || currentSongId.isNotEmpty || playlistName.isNotEmpty || playlistHeader.isNotEmpty || position > Duration.zero;
   }
 

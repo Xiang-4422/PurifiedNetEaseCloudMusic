@@ -76,5 +76,5 @@ String downloadTasksSp = 'DOWNLOAD_TASKS';
 /// 本地资源索引快照的本地存储键。
 String localResourceIndexSp = 'LOCAL_RESOURCE_INDEX';
 
-/// 播放恢复快照的本地存储键。
-String playbackRestoreSnapshotSp = 'PLAYBACK_RESTORE_SNAPSHOT';
+/// 播放恢复状态的本地存储键。
+String playbackRestoreStateSp = 'PLAYBACK_RESTORE_STATE';

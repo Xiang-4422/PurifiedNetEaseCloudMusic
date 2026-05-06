@@ -7,8 +7,9 @@ import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
 import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/core/storage/local_image_cache_repository.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/features/playlist/application/playlist_artwork_color_service.dart';
 import 'package:bujuan/features/playlist/application/playlist_detail_service.dart';
 import 'package:bujuan/features/playlist/application/playlist_playback_use_case.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
@@ -84,7 +85,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   int _artworkColorRequestId = 0;
 
   _PlaylistPageLoadState loadState = _PlaylistPageLoadState.loadingInitial;
-  final LocalImageCacheRepository _imageCacheRepository = LocalImageCacheRepository();
+  final PlaylistArtworkColorService _artworkColorService = PlaylistArtworkColorService();
 
   Color albumColor = Get.theme.colorScheme.primary;
   Color widgetColor = Get.theme.colorScheme.onPrimary;
@@ -378,8 +379,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (!mounted) {
       return;
     }
-    if (initialDetail.cachedSnapshot != null) {
-      _applyCachedSnapshot(initialDetail.cachedSnapshot!);
+    if (initialDetail.localPlaylist != null) {
+      _applyLocalPlaylist(initialDetail.localPlaylist!);
     }
     if (initialDetail.localState != PlaylistLocalDetailState.empty && initialDetail.localDetail != null) {
       await _applyPlaylistDetail(
@@ -412,12 +413,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         offset: 0,
         limit: _initialPlaylistPageSize,
       );
-      final snapshot = await _controller.loadCachedSnapshot(widget.playlistId);
       if (!mounted) {
         return;
-      }
-      if (snapshot != null) {
-        _applyCachedSnapshot(snapshot);
       }
       await _applyPlaylistDetail(
         data,
@@ -446,14 +443,14 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     }
   }
 
-  void _applyCachedSnapshot(PlaylistSnapshotData snapshot) {
+  void _applyLocalPlaylist(PlaylistEntity playlist) {
     if (!mounted) {
       return;
     }
     setState(() {
-      playlistName = snapshot.name;
-      coverUrl = snapshot.coverUrl ?? coverUrl;
-      trackCount = snapshot.trackCount ?? trackCount;
+      playlistName = playlist.title;
+      coverUrl = playlist.coverUrl ?? coverUrl;
+      trackCount = playlist.trackCount ?? trackCount;
       if (songs.isEmpty && loadState == _PlaylistPageLoadState.loadingInitial && _hasPlaylistMetadata) {
         loadState = _PlaylistPageLoadState.showingMetadataOnly;
       }
@@ -469,6 +466,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     }
     setState(() {
       songs = data.songs;
+      playlistName = data.playlistName ?? playlistName;
+      coverUrl = data.coverUrl ?? coverUrl;
       trackCount = data.expectedTrackCount ?? trackCount;
       isSubscribed = data.isSubscribed;
       isMyPlayList = data.isMyPlayList;
@@ -479,7 +478,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   Future<void> _updateArtworkColors(String? artworkPath) async {
     final requestId = ++_artworkColorRequestId;
-    final colorPath = await _resolveArtworkColorPath(artworkPath);
+    final colorPath = await _artworkColorService.resolveColorPath(artworkPath);
     if (!mounted || requestId != _artworkColorRequestId) {
       return;
     }
@@ -491,21 +490,6 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       albumColor = color;
       widgetColor = color.invertedColor;
     });
-  }
-
-  Future<String?> _resolveArtworkColorPath(String? artworkPath) async {
-    if (artworkPath == null || artworkPath.isEmpty || !_isRemoteArtwork(artworkPath)) {
-      return artworkPath;
-    }
-    try {
-      return await _imageCacheRepository.resolveImagePath(artworkPath);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  bool _isRemoteArtwork(String artworkPath) {
-    return artworkPath.startsWith('http://') || artworkPath.startsWith('https://');
   }
 
   String? get _resolvedCoverUrl => ArtworkPathResolver.resolveExplicitArtwork(

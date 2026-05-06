@@ -45,7 +45,7 @@ class PlaybackRepository {
     return _libraryRepository.saveLyrics(trackId, lyrics);
   }
 
-  /// 读取播放恢复状态；无有效快照时返回空状态。
+  /// 读取播放恢复状态；无有效恢复数据时返回空状态。
   Future<PlaybackRestoreState> getRestoreState() async {
     final cachedState = _restoreStateCache;
     if (cachedState != null) {
@@ -70,7 +70,7 @@ class PlaybackRepository {
 
   Future<PlaybackRestoreState> _loadRestoreState() async {
     final localState = await _playbackRestoreDataSource.getRestoreState();
-    if (localState != null && localState.hasSnapshotData) {
+    if (localState != null && localState.hasRestoreData) {
       return localState;
     }
     return const PlaybackRestoreState();
@@ -123,7 +123,7 @@ class PlaybackRepository {
     }
   }
 
-  /// 高频播放进度保存只更新进度字段，不重写完整恢复快照。
+  /// 高频播放进度保存只更新进度字段，不重写完整恢复状态。
   Future<void> updateRestorePosition(Duration position) async {
     final nextState = (await getRestoreState()).copyWith(position: position);
     _restoreStateCache = nextState;

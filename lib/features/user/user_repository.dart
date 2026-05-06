@@ -12,7 +12,7 @@ import 'package:bujuan/domain/entities/user_library_kinds.dart';
 import 'package:bujuan/domain/entities/user_profile_data.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 
-/// 聚合用户远程数据、本地用户快照和曲库缓存的仓库。
+/// 聚合用户远程数据、本地用户数据和曲库缓存的仓库。
 class UserRepository {
   /// 创建用户仓库。
   UserRepository({
@@ -32,7 +32,7 @@ class UserRepository {
     return _userScopedDataSource.loadProfile(userId);
   }
 
-  /// 从远程拉取用户资料并写入本地用户快照。
+  /// 从远程拉取用户资料并写入本地用户数据。
   Future<UserProfileData> fetchUserDetail(String userId) async {
     final profile = await _remoteDataSource.fetchUserDetail(userId);
     await _userScopedDataSource.saveProfile(profile);
@@ -104,7 +104,7 @@ class UserRepository {
     return likedSongIds;
   }
 
-  /// 拉取推荐歌单，并按分页位置更新本地推荐歌单快照。
+  /// 拉取推荐歌单，并按分页位置更新本地推荐歌单数据。
   Future<List<PlaylistSummaryData>> fetchRecommendedPlaylists({
     required String userId,
     required int offset,
@@ -132,7 +132,7 @@ class UserRepository {
     return summaries;
   }
 
-  /// 拉取用户歌单，并拆分“我喜欢的音乐”和用户创建歌单快照。
+  /// 拉取用户歌单，并拆分“我喜欢的音乐”和用户创建歌单数据。
   Future<List<PlaylistSummaryData>> fetchUserPlaylists(String userId) async {
     final playlists = await _remoteDataSource.fetchUserPlaylists(userId);
     final summaries = playlists.map(PlaylistSummaryData.fromEntity).toList();

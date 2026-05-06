@@ -217,7 +217,7 @@ void main() {
         ]))
           _relativePath(selectionFile),
         if (_containsAny(synchronizerFile, const [
-          'syncQueueSnapshot',
+          'syncQueueState',
           'syncFromQueueState(',
         ]))
           _relativePath(synchronizerFile),
@@ -509,7 +509,6 @@ void main() {
         return path.endsWith('/search_cache_store.dart') ||
             path.endsWith('/explore_cache_store.dart') ||
             path.endsWith('/radio_cache_store.dart') ||
-            path.endsWith('/playlist_cache_store.dart') ||
             path.endsWith('/cloud_cache_store.dart') ||
             path.endsWith('/user_profile_cache_store.dart');
       });

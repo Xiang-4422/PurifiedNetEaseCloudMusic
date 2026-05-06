@@ -24,14 +24,14 @@ class UserLibraryController extends GetxController {
   final UserRepository _repository;
   final UserSessionController _sessionController;
   Future<void>? _cacheBootstrapFuture;
-  String _activeSnapshotUserId = '';
-  bool _hasLocalSnapshot = false;
+  String _activeLocalDataUserId = '';
+  bool _hasLocalData = false;
 
-  /// 当前账号是否已有本地资料库快照。
-  bool get hasLocalSnapshot => _hasLocalSnapshot;
+  /// 当前账号是否已有本地资料库数据。
+  bool get hasLocalData => _hasLocalData;
 
-  /// 当前账号是否已有本地歌单快照。
-  bool get hasPlaylistSnapshot => userPlayLists.isNotEmpty || userLikedSongPlayList.value.id.isNotEmpty;
+  /// 当前账号是否已有本地歌单数据。
+  bool get hasPlaylistData => userPlayLists.isNotEmpty || userLikedSongPlayList.value.id.isNotEmpty;
 
   /// 用户创建或收藏的普通歌单列表，不包含“我喜欢的音乐”入口。
   final List<PlaylistSummaryData> userPlayLists = <PlaylistSummaryData>[].obs;
@@ -56,9 +56,9 @@ class UserLibraryController extends GetxController {
     await (_cacheBootstrapFuture ?? Future<void>.value());
   }
 
-  /// 重新载入指定用户作用域下的本地资料库快照。
-  Future<void> loadScopedSnapshot(String userId) {
-    return _loadScopedSnapshot(userId);
+  /// 重新载入指定用户作用域下的本地资料库数据。
+  Future<void> loadScopedLocalData(String userId) {
+    return _loadScopedLocalData(userId);
   }
 
   @override
@@ -66,11 +66,11 @@ class UserLibraryController extends GetxController {
     super.onInit();
     _cacheBootstrapFuture = _loadCache();
     ever<UserSessionData>(_sessionController.userInfo, (info) {
-      if (_activeSnapshotUserId == info.userId) {
+      if (_activeLocalDataUserId == info.userId) {
         return;
       }
-      _activeSnapshotUserId = info.userId;
-      unawaited(loadScopedSnapshot(info.userId));
+      _activeLocalDataUserId = info.userId;
+      unawaited(loadScopedLocalData(info.userId));
     });
   }
 
@@ -81,7 +81,7 @@ class UserLibraryController extends GetxController {
       refreshUserPlaylists(),
     ]);
     await refreshRandomLikedSong();
-    _hasLocalSnapshot = true;
+    _hasLocalData = true;
   }
 
   /// 刷新用户喜欢歌曲 id 列表。
@@ -218,14 +218,14 @@ class UserLibraryController extends GetxController {
 
   Future<void> _loadCache() async {
     await _sessionController.ensureCacheLoaded();
-    _activeSnapshotUserId = _sessionController.userInfo.value.userId;
-    await loadScopedSnapshot(_activeSnapshotUserId);
+    _activeLocalDataUserId = _sessionController.userInfo.value.userId;
+    await loadScopedLocalData(_activeLocalDataUserId);
   }
 
-  Future<void> _loadScopedSnapshot(String userId) async {
+  Future<void> _loadScopedLocalData(String userId) async {
     _clearScopedState();
     if (userId.isEmpty) {
-      _hasLocalSnapshot = false;
+      _hasLocalData = false;
       return;
     }
 
@@ -254,7 +254,7 @@ class UserLibraryController extends GetxController {
 
     await refreshRandomLikedSong();
     hasCachedData = hasCachedData || randomLikedSongAlbumUrl.value.isNotEmpty;
-    _hasLocalSnapshot = hasCachedData;
+    _hasLocalData = hasCachedData;
   }
 
   String _resolveSongSourceId(PlaybackQueueItem song) {

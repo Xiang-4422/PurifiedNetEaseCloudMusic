@@ -20,7 +20,6 @@ import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_artwork_cache_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
-import 'package:bujuan/features/playlist/playlist_cache_store.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
@@ -46,9 +45,6 @@ class InfrastructureRegistrar {
     final downloadTaskDataSource = appDatabase.downloadTaskDataSource;
     final playbackRestoreDataSource = appDatabase.playbackRestoreDataSource;
     final appCacheDataSource = appDatabase.appCacheDataSource;
-    final playlistCacheStore = PlaylistCacheStore(
-      cacheDataSource: appCacheDataSource,
-    );
     final searchCacheStore = SearchCacheStore(
       cacheDataSource: appCacheDataSource,
     );
@@ -99,7 +95,7 @@ class InfrastructureRegistrar {
     RepositoryRegistrar.register(
       libraryRepository: libraryRepository,
       userScopedDataSource: userScopedDataSource,
-      playlistCacheStore: playlistCacheStore,
+      appCacheDataSource: appCacheDataSource,
       localLibraryDataSource: localLibraryDataSource,
       searchCacheStore: searchCacheStore,
       exploreCacheStore: exploreCacheStore,

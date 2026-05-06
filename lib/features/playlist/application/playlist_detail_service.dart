@@ -1,7 +1,7 @@
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 
-export 'package:bujuan/features/playlist/playlist_repository.dart' show PlaylistDetailData, PlaylistLocalInitialData, PlaylistSnapshotData;
+export 'package:bujuan/features/playlist/playlist_repository.dart' show PlaylistDetailData, PlaylistLocalInitialData;
 
 /// 歌单详情应用服务，统一补齐当前用户和喜欢歌曲参数。
 class PlaylistDetailService {
@@ -27,18 +27,13 @@ class PlaylistDetailService {
     );
   }
 
-  /// 读取页面初始化所需的本地详情和缓存快照。
+  /// 读取页面初始化所需的本地详情和歌单元信息。
   Future<PlaylistLocalInitialData> loadLocalInitialDetail(String playlistId) {
     return _repository.loadLocalInitialDetail(
       playlistId: playlistId,
       likedSongIds: _likedSongIds(),
       currentUserId: _currentUserId(),
     );
-  }
-
-  /// 读取缓存的歌单快照。
-  Future<PlaylistSnapshotData?> loadCachedSnapshot(String playlistId) {
-    return _repository.loadCachedSnapshot(playlistId);
   }
 
   /// 拉取远程歌单详情。

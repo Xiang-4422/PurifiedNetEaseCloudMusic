@@ -13,7 +13,7 @@ class NeteasePlaylistRemoteDataSource {
 
   final NeteaseMusicApi _api;
 
-  /// 获取歌单快照，包括歌单摘要、曲目 id 和订阅状态。
+  /// 获取歌单索引，包括歌单摘要、曲目 id 和订阅状态。
   Future<
       ({
         PlaylistEntity? playlist,
@@ -22,7 +22,7 @@ class NeteasePlaylistRemoteDataSource {
         String name,
         String? creatorUserId,
         bool isLikedSongs,
-      })> fetchPlaylistSnapshot(String playlistId) async {
+      })> fetchPlaylistIndex(String playlistId) async {
     final wrap = await _api.playListDetail(playlistId);
     final playlist = wrap.playlist;
     final playlistEntity = playlist == null ? null : NeteasePlaylistMapper.fromPlaylist(playlist);

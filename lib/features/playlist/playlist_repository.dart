@@ -1,18 +1,19 @@
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
+import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/data/netease/remote/netease_playlist_remote_data_source.dart';
+import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/domain/entities/playlist_track_ref.dart';
+import 'package:bujuan/domain/entities/source_type.dart';
 import 'package:bujuan/domain/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 
-import 'playlist_cache_store.dart';
-
 /// 歌单详情数据来源。
 enum PlaylistDetailSource {
-  /// 本地曲库或缓存。
+  /// 本地曲库。
   local,
 
   /// 远端接口。
@@ -28,6 +29,9 @@ class PlaylistDetailData {
     required this.isMyPlayList,
     required this.source,
     this.expectedTrackCount,
+    this.playlistName,
+    this.coverUrl,
+    this.trackCount,
   });
 
   /// 歌单内可播放歌曲队列。
@@ -42,61 +46,76 @@ class PlaylistDetailData {
   /// 歌单声明或推断出的曲目总数。
   final int? expectedTrackCount;
 
+  /// 歌单名称。
+  final String? playlistName;
+
+  /// 歌单封面地址。
+  final String? coverUrl;
+
+  /// 歌单声明的曲目总数。
+  final int? trackCount;
+
   /// 歌单详情来源。
   final PlaylistDetailSource source;
 
   /// 当前歌曲列表是否已覆盖预期曲目数量。
   bool get isComplete => expectedTrackCount == null || songs.length >= expectedTrackCount!;
 
-  /// 从歌单快照和兜底数量推断预期曲目数。
+  /// 从本地曲目顺序和兜底数量推断预期曲目数。
   static int? resolveExpectedTrackCount(
-    PlaylistSnapshotData? snapshot,
+    int orderedTrackCount,
     int? fallbackTrackCount,
   ) {
-    if (snapshot != null && snapshot.trackIds.isNotEmpty) {
-      return snapshot.trackIds.length;
+    if (orderedTrackCount > 0) {
+      return orderedTrackCount;
     }
-    final trackCount = snapshot?.trackCount ?? fallbackTrackCount;
-    return trackCount != null && trackCount > 0 ? trackCount : null;
+    return fallbackTrackCount != null && fallbackTrackCount > 0 ? fallbackTrackCount : null;
   }
 }
 
-/// 本地初始化数据，避免页面初始化时重复读取快照缓存。
+/// 页面初始化所需的本地歌单元信息和详情。
 class PlaylistLocalInitialData {
   /// 创建本地初始化数据。
   const PlaylistLocalInitialData({
     required this.localDetail,
-    required this.cachedSnapshot,
+    required this.localPlaylist,
   });
 
   /// 本地可展示的歌单详情。
   final PlaylistDetailData? localDetail;
 
-  /// 缓存的歌单快照。
-  final PlaylistSnapshotData? cachedSnapshot;
+  /// 本地保存的歌单元信息。
+  final PlaylistEntity? localPlaylist;
 }
 
-/// 歌单快照，保存歌单基础信息和曲目顺序。
-class PlaylistSnapshotData {
-  /// 创建歌单快照。
-  const PlaylistSnapshotData({
+/// 一次远程歌单索引读取的内存结果，不再作为本地持久化快照。
+class PlaylistIndexData {
+  /// 创建歌单索引数据。
+  const PlaylistIndexData({
     required this.id,
     required this.name,
     required this.trackIds,
-    required this.creatorUserId,
+    required this.isSubscribed,
+    required this.isLikedSongs,
+    this.creatorUserId,
     this.coverUrl,
     this.trackCount,
-    this.isLikedSongs = false,
   });
 
-  /// 歌单缓存 id。
+  /// 应用内部歌单 id。
   final String id;
 
   /// 歌单名称。
   final String name;
 
-  /// 歌单曲目 id，保持远程顺序。
+  /// 歌单曲目 id，保持歌单顺序并使用应用内部 id。
   final List<String> trackIds;
+
+  /// 当前用户是否已收藏歌单。
+  final bool isSubscribed;
+
+  /// 是否为网易云“我喜欢的音乐”特殊歌单。
+  final bool isLikedSongs;
 
   /// 歌单创建者用户 id。
   final String? creatorUserId;
@@ -107,105 +126,76 @@ class PlaylistSnapshotData {
   /// 歌单声明的曲目总数。
   final int? trackCount;
 
-  /// 是否为网易云“我喜欢的音乐”特殊歌单。
-  final bool isLikedSongs;
-
-  /// 从缓存 JSON 恢复歌单快照。
-  factory PlaylistSnapshotData.fromJson(Map<String, dynamic> json) {
-    return PlaylistSnapshotData(
-      id: json['id'] as String? ?? '',
-      name: json['name'] as String? ?? '',
-      trackIds: (json['trackIds'] as List? ?? const []).map((item) => '$item').toList(),
-      creatorUserId: json['creatorUserId'] as String?,
-      coverUrl: json['coverUrl'] as String?,
-      trackCount: json['trackCount'] as int?,
-      isLikedSongs: json['isLikedSongs'] as bool? ?? false,
-    );
-  }
-
-  /// 转换为缓存 JSON。
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'trackIds': trackIds,
-      'creatorUserId': creatorUserId,
-      'coverUrl': coverUrl,
-      'trackCount': trackCount,
-      'isLikedSongs': isLikedSongs,
-    };
-  }
+  /// 预期曲目数量。
+  int? get expectedTrackCount => PlaylistDetailData.resolveExpectedTrackCount(
+        trackIds.length,
+        trackCount,
+      );
 }
 
-/// 聚合歌单远程数据、曲库缓存和用户订阅状态的仓库。
+/// 聚合歌单远程数据、曲库和用户订阅状态的仓库。
 class PlaylistRepository {
   /// 创建歌单仓库。
   PlaylistRepository({
-    required PlaylistCacheStore cacheStore,
+    required AppCacheDataSource appCacheDataSource,
     required LibraryRepository libraryRepository,
     required LocalLibraryDataSource localLibraryDataSource,
     NeteasePlaylistRemoteDataSource? remoteDataSource,
     required UserScopedDataSource userScopedDataSource,
-  })  : _cacheStore = cacheStore,
+  })  : _appCacheDataSource = appCacheDataSource,
         _libraryRepository = libraryRepository,
         _localLibraryDataSource = localLibraryDataSource,
         _remoteDataSource = remoteDataSource ?? NeteasePlaylistRemoteDataSource(),
         _userScopedDataSource = userScopedDataSource;
 
-  final PlaylistCacheStore _cacheStore;
+  final AppCacheDataSource _appCacheDataSource;
   final LibraryRepository _libraryRepository;
   final LocalLibraryDataSource _localLibraryDataSource;
   final NeteasePlaylistRemoteDataSource _remoteDataSource;
   final UserScopedDataSource _userScopedDataSource;
 
-  /// 拉取歌单快照，并同步歌单基础信息和订阅状态缓存。
-  Future<PlaylistSnapshotData> fetchPlaylistSnapshot(
+  /// 拉取歌单索引，并同步歌单基础信息、曲目顺序和订阅状态到本地数据库。
+  Future<PlaylistIndexData> fetchPlaylistIndex(
     String playlistId, {
     String? currentUserId,
     List<int> likedSongIds = const [],
   }) async {
     final sourcePlaylistId = _toSourcePlaylistId(playlistId);
-    final cachePlaylistId = _toCachePlaylistId(playlistId);
-    final snapshot = await _remoteDataSource.fetchPlaylistSnapshot(
-      sourcePlaylistId,
+    final entityPlaylistId = _toEntityPlaylistId(playlistId);
+    final remoteIndex = await _remoteDataSource.fetchPlaylistIndex(sourcePlaylistId);
+    final trackIds = _resolveIndexTrackIds(
+      remoteTrackRefs: remoteIndex.playlist?.trackRefs ?? const <PlaylistTrackRef>[],
+      remoteTrackIds: remoteIndex.trackIds,
+      isLikedSongs: remoteIndex.isLikedSongs,
+      likedSongIds: likedSongIds,
     );
-    final trackIds = (snapshot.playlist?.trackRefs ?? const <PlaylistTrackRef>[]).map((item) => item.trackId).toList();
-    if (trackIds.isEmpty && snapshot.trackIds.isNotEmpty) {
-      trackIds.addAll(
-        snapshot.trackIds.map(
-          (id) => id.startsWith('netease:') ? id : 'netease:$id',
-        ),
-      );
-    }
-    if (snapshot.isLikedSongs && likedSongIds.isNotEmpty) {
-      final likedTrackIds = likedSongIds.map((id) => 'netease:$id').toList();
-      if (likedTrackIds.length > trackIds.length) {
-        trackIds
-          ..clear()
-          ..addAll(likedTrackIds);
-      }
-    }
-    if (snapshot.playlist != null) {
-      await _libraryRepository.savePlaylists([snapshot.playlist!]);
-    }
-    final playlistSnapshot = PlaylistSnapshotData(
-      id: cachePlaylistId,
-      name: snapshot.name,
+    final playlist = _playlistEntityFromIndex(
+      entityPlaylistId: entityPlaylistId,
+      sourcePlaylistId: sourcePlaylistId,
+      name: remoteIndex.name,
+      coverUrl: remoteIndex.playlist?.coverUrl,
+      trackCount: remoteIndex.playlist?.trackCount ?? trackIds.length,
+      basePlaylist: remoteIndex.playlist,
       trackIds: trackIds,
-      creatorUserId: snapshot.creatorUserId,
-      coverUrl: snapshot.playlist?.coverUrl,
-      trackCount: snapshot.playlist?.trackCount,
-      isLikedSongs: snapshot.isLikedSongs,
     );
-    await _cacheStore.saveSnapshot(cachePlaylistId, playlistSnapshot);
+    await _localLibraryDataSource.savePlaylists([playlist]);
     if (currentUserId?.isNotEmpty == true) {
       await _userScopedDataSource.savePlaylistSubscriptionState(
         currentUserId!,
-        _toEntityPlaylistId(playlistId),
-        snapshot.isSubscribed,
+        entityPlaylistId,
+        remoteIndex.isSubscribed,
       );
     }
-    return playlistSnapshot;
+    return PlaylistIndexData(
+      id: entityPlaylistId,
+      name: remoteIndex.name,
+      trackIds: trackIds,
+      isSubscribed: remoteIndex.isSubscribed,
+      isLikedSongs: remoteIndex.isLikedSongs,
+      creatorUserId: remoteIndex.creatorUserId,
+      coverUrl: remoteIndex.playlist?.coverUrl,
+      trackCount: remoteIndex.playlist?.trackCount ?? trackIds.length,
+    );
   }
 
   /// 拉取歌单歌曲，并转换为播放队列项。
@@ -214,13 +204,13 @@ class PlaylistRepository {
     required List<int> likedSongIds,
     int offset = 0,
     int limit = -1,
-    PlaylistSnapshotData? playlistSnapshot,
+    PlaylistIndexData? playlistIndex,
   }) async {
-    playlistSnapshot ??= await fetchPlaylistSnapshot(
+    playlistIndex ??= await fetchPlaylistIndex(
       playlistId,
       likedSongIds: likedSongIds,
     );
-    final songIds = playlistSnapshot.trackIds.map(_toSourceTrackId).where((id) => id.isNotEmpty).toList();
+    final songIds = playlistIndex.trackIds.map(_toSourceTrackId).where((id) => id.isNotEmpty).toList();
     if (offset >= songIds.length) {
       return const [];
     }
@@ -230,35 +220,27 @@ class PlaylistRepository {
       limit: limit,
     );
     await _libraryRepository.saveTracks(tracks);
-    final queueItems = PlaybackQueueItemMapper.fromTrackList(
+    if (tracks.isNotEmpty) {
+      await _touchRefresh(playlistId);
+    }
+    return PlaybackQueueItemMapper.fromTrackList(
       tracks,
       likedSongIds: likedSongIds,
     );
-    if (queueItems.isNotEmpty) {
-      await _cacheStore.touchRefresh(_toCachePlaylistId(playlistId));
-    }
-    return queueItems;
   }
 
-  /// 读取缓存的歌单歌曲队列。
-  Future<List<PlaybackQueueItem>?> loadCachedSongs(String playlistId) async {
-    return _cacheStore.loadSongs(_toCachePlaylistId(playlistId));
-  }
-
-  /// 读取缓存的歌单快照。
-  Future<PlaylistSnapshotData?> loadCachedSnapshot(String playlistId) {
-    return _cacheStore.loadSnapshot(_toCachePlaylistId(playlistId));
-  }
-
-  /// 判断歌单缓存是否仍在 TTL 内。
+  /// 判断歌单远程刷新标记是否仍在 TTL 内。
   Future<bool> isCacheFresh(
     String playlistId, {
     required Duration ttl,
   }) {
-    return _cacheStore.isFresh(_toCachePlaylistId(playlistId), ttl: ttl);
+    return _appCacheDataSource.isFresh(
+      _refreshCacheKey(playlistId),
+      ttl: ttl,
+    );
   }
 
-  /// 从本地曲库和缓存组合歌单详情。
+  /// 从本地曲库组合歌单详情。
   Future<PlaylistDetailData?> loadLocalPlaylistDetail({
     required String playlistId,
     required List<int> likedSongIds,
@@ -272,37 +254,22 @@ class PlaylistRepository {
     return initialData.localDetail;
   }
 
-  /// 从本地曲库和缓存组合歌单详情，并同时返回已读取的快照。
+  /// 从本地数据库组合页面初始化所需的歌单元信息和歌曲详情。
   Future<PlaylistLocalInitialData> loadLocalInitialDetail({
     required String playlistId,
     required List<int> likedSongIds,
     required String? currentUserId,
   }) async {
     final entityPlaylistId = _toEntityPlaylistId(playlistId);
-    final cachePlaylistId = _toCachePlaylistId(playlistId);
-    final localPlaylist = await _libraryRepository.getPlaylist(entityPlaylistId);
-    final cachedSnapshot = await _cacheStore.loadSnapshot(cachePlaylistId);
-
-    final localTrackIds = localPlaylist?.trackRefs.map((item) => item.trackId).toList();
-    final cachedTrackIds = cachedSnapshot?.trackIds;
-    final rawTrackIds = (cachedTrackIds != null && (localTrackIds == null || cachedTrackIds.length > localTrackIds.length)) ? cachedTrackIds : (localTrackIds ?? const <String>[]);
-    final trackIds = rawTrackIds.map(_toEntityTrackId).where((id) => id.isNotEmpty).toList();
-    final localSongs = await _loadLocalSongs(trackIds, likedSongIds: likedSongIds);
-    final cachedSongs = localSongs.isEmpty ? await _cacheStore.loadSongs(cachePlaylistId) : null;
-    final songs = localSongs.isNotEmpty ? localSongs : (cachedSongs ?? const <PlaybackQueueItem>[]);
-
-    final snapshotAvailable = localPlaylist != null || cachedSnapshot != null;
-    if (!snapshotAvailable && songs.isEmpty) {
-      return PlaylistLocalInitialData(
+    final localPlaylist = await _localLibraryDataSource.getPlaylist(entityPlaylistId);
+    if (localPlaylist == null) {
+      return const PlaylistLocalInitialData(
         localDetail: null,
-        cachedSnapshot: cachedSnapshot,
+        localPlaylist: null,
       );
     }
-
-    final expectedTrackCount = PlaylistDetailData.resolveExpectedTrackCount(
-      cachedSnapshot,
-      localPlaylist?.trackCount,
-    );
+    final trackIds = _trackIdsFromPlaylist(localPlaylist);
+    final songs = await _loadLocalSongs(trackIds, likedSongIds: likedSongIds);
     return PlaylistLocalInitialData(
       localDetail: PlaylistDetailData(
         songs: songs,
@@ -310,15 +277,21 @@ class PlaylistRepository {
           currentUserId,
           entityPlaylistId,
         ),
-        isMyPlayList: (cachedSnapshot?.creatorUserId ?? '') == currentUserId,
-        expectedTrackCount: expectedTrackCount,
+        isMyPlayList: false,
+        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(
+          trackIds.length,
+          localPlaylist.trackCount,
+        ),
+        playlistName: localPlaylist.title,
+        coverUrl: localPlaylist.coverUrl,
+        trackCount: localPlaylist.trackCount,
         source: PlaylistDetailSource.local,
       ),
-      cachedSnapshot: cachedSnapshot,
+      localPlaylist: localPlaylist,
     );
   }
 
-  /// 拉取完整歌单详情并刷新本地缓存。
+  /// 拉取歌单详情并刷新本地曲库。
   Future<PlaylistDetailData> fetchPlaylistDetail({
     required String playlistId,
     required List<int> likedSongIds,
@@ -326,172 +299,33 @@ class PlaylistRepository {
     int offset = 0,
     int limit = -1,
   }) async {
-    final cachePlaylistId = _toCachePlaylistId(playlistId);
-    final entityPlaylistId = _toEntityPlaylistId(playlistId);
-    final details = offset > 0
-        ? await _cacheStore.loadSnapshot(cachePlaylistId) ??
-            await fetchPlaylistSnapshot(
+    final index = offset > 0
+        ? await _loadLocalPlaylistIndex(
+              playlistId: playlistId,
+              currentUserId: currentUserId,
+            ) ??
+            await fetchPlaylistIndex(
               playlistId,
               currentUserId: currentUserId,
               likedSongIds: likedSongIds,
             )
-        : await fetchPlaylistSnapshot(
+        : await fetchPlaylistIndex(
             playlistId,
             currentUserId: currentUserId,
             likedSongIds: likedSongIds,
           );
-    final remoteSongs = await fetchPlaylistSongs(
+    await fetchPlaylistSongs(
       playlistId: playlistId,
       likedSongIds: likedSongIds,
-      playlistSnapshot: details,
+      playlistIndex: index,
       offset: offset,
       limit: limit,
     );
-
-    final cachedSongs = offset > 0 || limit > 0
-        ? await _loadExistingSongsForPageMerge(
-            playlistId: playlistId,
-            cachePlaylistId: cachePlaylistId,
-            likedSongIds: likedSongIds,
-            currentUserId: currentUserId,
-          )
-        : const <PlaybackQueueItem>[];
-    final mergedSongs = offset > 0
-        ? _mergePagedSongs(cachedSongs, remoteSongs, offset: offset)
-        : limit == -1
-            ? remoteSongs
-            : _mergeRefreshedPrefix(
-                cachedSongs,
-                remoteSongs,
-                snapshot: details,
-              );
-
-    if (mergedSongs.isEmpty) {
-      return PlaylistDetailData(
-        songs: const [],
-        isSubscribed: await _loadSubscriptionState(
-          currentUserId,
-          entityPlaylistId,
-        ),
-        isMyPlayList: details.creatorUserId == currentUserId,
-        expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(
-          details,
-          details.trackCount,
-        ),
-        source: PlaylistDetailSource.remote,
-      );
-    }
-
-    await _cacheStore.saveSongs(cachePlaylistId, mergedSongs);
-
-    return PlaylistDetailData(
-      songs: mergedSongs,
-      isSubscribed: await _loadSubscriptionState(
-        currentUserId,
-        entityPlaylistId,
-      ),
-      isMyPlayList: details.creatorUserId == currentUserId,
-      expectedTrackCount: PlaylistDetailData.resolveExpectedTrackCount(
-        details,
-        details.trackCount,
-      ),
-      source: PlaylistDetailSource.remote,
-    );
-  }
-
-  List<PlaybackQueueItem> _mergeRefreshedPrefix(
-    List<PlaybackQueueItem> cachedSongs,
-    List<PlaybackQueueItem> refreshedPrefix, {
-    required PlaylistSnapshotData snapshot,
-  }) {
-    if (cachedSongs.isEmpty) {
-      return refreshedPrefix;
-    }
-    final orderedTrackIds = snapshot.trackIds.map(_toEntityTrackId).where((id) => id.isNotEmpty).toList();
-    if (orderedTrackIds.isEmpty) {
-      return refreshedPrefix;
-    }
-    final refreshedById = <String, PlaybackQueueItem>{
-      for (final song in refreshedPrefix)
-        if (song.id.isNotEmpty) song.id: song,
-    };
-    final cachedById = <String, PlaybackQueueItem>{
-      for (final song in cachedSongs)
-        if (song.id.isNotEmpty) song.id: song,
-    };
-    final mergedSongs = <PlaybackQueueItem>[];
-    for (final trackId in orderedTrackIds) {
-      final refreshedSong = refreshedById[trackId];
-      if (refreshedSong != null) {
-        mergedSongs.add(refreshedSong);
-        continue;
-      }
-      final cachedSong = cachedById[trackId];
-      if (cachedSong != null) {
-        mergedSongs.add(cachedSong);
-      }
-    }
-    return mergedSongs;
-  }
-
-  List<PlaybackQueueItem> _mergePagedSongs(
-    List<PlaybackQueueItem> cachedSongs,
-    List<PlaybackQueueItem> pageSongs, {
-    required int offset,
-  }) {
-    if (pageSongs.isEmpty) {
-      return cachedSongs;
-    }
-    if (offset <= 0) {
-      return pageSongs;
-    }
-    final merged = cachedSongs.toList(growable: true);
-    if (merged.length > offset) {
-      merged.removeRange(offset, merged.length);
-    }
-    merged.addAll(pageSongs);
-    return merged;
-  }
-
-  Future<List<PlaybackQueueItem>> _loadExistingSongsForPageMerge({
-    required String playlistId,
-    required String cachePlaylistId,
-    required List<int> likedSongIds,
-    required String? currentUserId,
-  }) async {
-    final cachedSongs = await _cacheStore.loadSongs(cachePlaylistId);
-    if (cachedSongs != null && cachedSongs.isNotEmpty) {
-      return cachedSongs;
-    }
-    final localDetail = await loadLocalPlaylistDetail(
-      playlistId: playlistId,
+    return _buildDetailFromIndex(
+      index,
       likedSongIds: likedSongIds,
       currentUserId: currentUserId,
-    );
-    return localDetail?.songs ?? const <PlaybackQueueItem>[];
-  }
-
-  Future<List<PlaybackQueueItem>> _loadLocalSongs(
-    List<String> trackIds, {
-    required List<int> likedSongIds,
-  }) async {
-    if (trackIds.isEmpty) {
-      return const [];
-    }
-    final tracks = await _libraryRepository.getTracksWithResources(trackIds);
-    if (tracks.isEmpty) {
-      return const [];
-    }
-    final tracksById = <String, TrackWithResources>{
-      for (final track in tracks) track.track.id: track,
-    };
-    final orderedTracks = trackIds.map((trackId) => tracksById[trackId]).whereType<TrackWithResources>().toList();
-    if (orderedTracks.isEmpty) {
-      return const [];
-    }
-    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      orderedTracks,
-      likedSongIds: likedSongIds,
+      source: PlaylistDetailSource.remote,
     );
   }
 
@@ -518,7 +352,7 @@ class PlaylistRepository {
     );
   }
 
-  /// 添加或移除歌单歌曲，成功后失效本地歌单缓存。
+  /// 添加或移除歌单歌曲，成功后失效本地歌单索引和刷新标记。
   Future<OperationResult> manipulateTracks(
     String playlistId,
     String songId, {
@@ -531,8 +365,7 @@ class PlaylistRepository {
     );
     if (result.success) {
       final entityPlaylistId = _toEntityPlaylistId(playlistId);
-      final cachePlaylistId = _toCachePlaylistId(playlistId);
-      await _cacheStore.invalidate(cachePlaylistId);
+      await _appCacheDataSource.delete(_refreshCacheKey(playlistId));
       await _localLibraryDataSource.clearPlaylistTrackRefs(entityPlaylistId);
     }
     return OperationResult(
@@ -540,6 +373,141 @@ class PlaylistRepository {
       message: result.message,
     );
   }
+
+  Future<PlaylistDetailData> _buildDetailFromIndex(
+    PlaylistIndexData index, {
+    required List<int> likedSongIds,
+    required String? currentUserId,
+    required PlaylistDetailSource source,
+  }) async {
+    final songs = await _loadLocalSongs(index.trackIds, likedSongIds: likedSongIds);
+    return PlaylistDetailData(
+      songs: songs,
+      isSubscribed: index.isSubscribed,
+      isMyPlayList: index.creatorUserId != null && index.creatorUserId == currentUserId,
+      expectedTrackCount: index.expectedTrackCount,
+      playlistName: index.name,
+      coverUrl: index.coverUrl,
+      trackCount: index.trackCount,
+      source: source,
+    );
+  }
+
+  Future<PlaylistIndexData?> _loadLocalPlaylistIndex({
+    required String playlistId,
+    required String? currentUserId,
+  }) async {
+    final entityPlaylistId = _toEntityPlaylistId(playlistId);
+    final playlist = await _localLibraryDataSource.getPlaylist(entityPlaylistId);
+    if (playlist == null) {
+      return null;
+    }
+    return PlaylistIndexData(
+      id: playlist.id,
+      name: playlist.title,
+      trackIds: _trackIdsFromPlaylist(playlist),
+      isSubscribed: await _loadSubscriptionState(currentUserId, entityPlaylistId),
+      isLikedSongs: false,
+      coverUrl: playlist.coverUrl,
+      trackCount: playlist.trackCount,
+    );
+  }
+
+  PlaylistEntity _playlistEntityFromIndex({
+    required String entityPlaylistId,
+    required String sourcePlaylistId,
+    required String name,
+    required int? trackCount,
+    required List<String> trackIds,
+    PlaylistEntity? basePlaylist,
+    String? coverUrl,
+  }) {
+    final trackRefs = trackIds
+        .asMap()
+        .entries
+        .map(
+          (entry) => PlaylistTrackRef(
+            trackId: entry.value,
+            order: entry.key,
+          ),
+        )
+        .toList();
+    return (basePlaylist ??
+            PlaylistEntity(
+              id: entityPlaylistId,
+              sourceType: SourceType.netease,
+              sourceId: sourcePlaylistId,
+              title: name,
+              coverUrl: coverUrl,
+              trackCount: trackCount,
+            ))
+        .copyWith(
+      id: entityPlaylistId,
+      sourceId: sourcePlaylistId,
+      title: name,
+      coverUrl: coverUrl ?? basePlaylist?.coverUrl,
+      trackCount: trackCount,
+      trackRefs: trackRefs,
+    );
+  }
+
+  List<String> _resolveIndexTrackIds({
+    required List<PlaylistTrackRef> remoteTrackRefs,
+    required List<String> remoteTrackIds,
+    required bool isLikedSongs,
+    required List<int> likedSongIds,
+  }) {
+    final trackIds = remoteTrackRefs.map((item) => item.trackId).toList();
+    if (trackIds.isEmpty && remoteTrackIds.isNotEmpty) {
+      trackIds.addAll(remoteTrackIds);
+    }
+    if (isLikedSongs && likedSongIds.isNotEmpty) {
+      final likedTrackIds = likedSongIds.map((id) => 'netease:$id').toList();
+      if (likedTrackIds.length > trackIds.length) {
+        trackIds
+          ..clear()
+          ..addAll(likedTrackIds);
+      }
+    }
+    return trackIds.map(_toEntityTrackId).where((id) => id.isNotEmpty).toList();
+  }
+
+  List<String> _trackIdsFromPlaylist(PlaylistEntity playlist) {
+    return playlist.trackRefs.map((item) => _toEntityTrackId(item.trackId)).where((id) => id.isNotEmpty).toList();
+  }
+
+  Future<List<PlaybackQueueItem>> _loadLocalSongs(
+    List<String> trackIds, {
+    required List<int> likedSongIds,
+  }) async {
+    if (trackIds.isEmpty) {
+      return const [];
+    }
+    final tracks = await _libraryRepository.getTracksWithResources(trackIds);
+    if (tracks.isEmpty) {
+      return const [];
+    }
+    final tracksById = <String, TrackWithResources>{
+      for (final track in tracks) track.track.id: track,
+    };
+    final orderedTracks = trackIds.map((trackId) => tracksById[trackId]).whereType<TrackWithResources>().toList();
+    if (orderedTracks.isEmpty) {
+      return const [];
+    }
+    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
+      orderedTracks,
+      likedSongIds: likedSongIds,
+    );
+  }
+
+  Future<void> _touchRefresh(String playlistId) {
+    return _appCacheDataSource.save(
+      cacheKey: _refreshCacheKey(playlistId),
+      payloadJson: '{}',
+    );
+  }
+
+  String _refreshCacheKey(String playlistId) => 'PLAYLIST_CACHE_LAST_REFRESH_${_toSourcePlaylistId(playlistId)}';
 
   String _toEntityPlaylistId(String playlistId) {
     if (playlistId.startsWith('netease:') || playlistId.startsWith('local:')) {
@@ -553,10 +521,6 @@ class PlaylistRepository {
       return playlistId.substring('netease:'.length);
     }
     return playlistId;
-  }
-
-  String _toCachePlaylistId(String playlistId) {
-    return _toSourcePlaylistId(playlistId);
   }
 
   String _toSourceTrackId(String trackId) {

@@ -1,4 +1,5 @@
 import 'package:bujuan/core/network/operation_result.dart';
+import 'package:bujuan/domain/entities/playlist_entity.dart';
 import 'package:bujuan/features/playlist/application/playlist_detail_service.dart';
 
 /// 本地歌单详情可用于首屏展示的完整性状态。
@@ -18,15 +19,15 @@ class PlaylistInitialDetailData {
   /// 创建歌单详情页初始化数据。
   const PlaylistInitialDetailData({
     required this.localDetail,
-    required this.cachedSnapshot,
+    required this.localPlaylist,
     required this.localState,
   });
 
   /// 本地可展示的歌单详情。
   final PlaylistDetailData? localDetail;
 
-  /// 缓存的歌单元信息快照。
-  final PlaylistSnapshotData? cachedSnapshot;
+  /// 本地保存的歌单元信息。
+  final PlaylistEntity? localPlaylist;
 
   /// 本地详情可用于首屏展示的完整性状态。
   final PlaylistLocalDetailState localState;
@@ -44,17 +45,12 @@ class PlaylistPageController {
     return _detailService.loadLocalDetail(playlistId);
   }
 
-  /// 读取缓存的歌单快照。
-  Future<PlaylistSnapshotData?> loadCachedSnapshot(String playlistId) {
-    return _detailService.loadCachedSnapshot(playlistId);
-  }
-
   /// 读取歌单详情页初始化所需的本地数据。
   Future<PlaylistInitialDetailData> loadInitialDetail(String playlistId) async {
     final initialData = await _detailService.loadLocalInitialDetail(playlistId);
     return PlaylistInitialDetailData(
       localDetail: initialData.localDetail,
-      cachedSnapshot: initialData.cachedSnapshot,
+      localPlaylist: initialData.localPlaylist,
       localState: resolveLocalDetailState(initialData.localDetail),
     );
   }

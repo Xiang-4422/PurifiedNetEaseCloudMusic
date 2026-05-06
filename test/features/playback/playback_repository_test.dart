@@ -32,7 +32,7 @@ void main() {
       expect(dataSource.savedStates.last.position, const Duration(seconds: 49));
     });
 
-    test('position-only update does not rewrite queue snapshot', () async {
+    test('position-only update does not rewrite queue state', () async {
       final dataSource = _FakePlaybackRestoreDataSource();
       final repository = PlaybackRepository(
         libraryRepository: _FakeLibraryRepository(),

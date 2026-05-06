@@ -124,9 +124,9 @@ class PlaybackService extends GetxService {
   /// 恢复上次播放状态。
   Future<void> restoreLastPlayState() async {}
 
-  /// 读取上次播放恢复快照。
-  Future<PlaybackRestoreSnapshot> loadRestoreSnapshot() {
-    return _restoreCoordinator.loadSnapshot();
+  /// 读取上次播放恢复数据。
+  Future<PlaybackRestoreData> loadRestoreData() {
+    return _restoreCoordinator.loadRestoreData();
   }
 
   /// 设置等待音源确认后恢复的播放进度。

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bujuan/app/ui/toast_service.dart';
-import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/app/bootstrap/feature_controller_factory.dart';
 import 'package:bujuan/app/theme/image_color_service.dart';
 import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
@@ -258,9 +257,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     required String label,
     required bool shuffle,
   }) {
-    return BlurryContainer(
-      borderRadius: BorderRadius.circular(60),
-      padding: EdgeInsets.zero,
+    return _PlaylistActionButtonSurface(
       color: widgetColor.withValues(alpha: 0.05),
       child: IconButton(
         onPressed: _canPlayLoadedPlaylist
@@ -288,9 +285,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   Widget _buildSubscribeButton() {
     return Offstage(
       offstage: isMyPlayList,
-      child: BlurryContainer(
-        borderRadius: BorderRadius.circular(60),
-        padding: EdgeInsets.zero,
+      child: _PlaylistActionButtonSurface(
         color: widgetColor.withValues(alpha: 0.05),
         child: IconButton(
           color: Colors.red,
@@ -758,5 +753,25 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         isSubscribed = !isSubscribed;
       });
     }
+  }
+}
+
+class _PlaylistActionButtonSurface extends StatelessWidget {
+  const _PlaylistActionButtonSurface({
+    required this.color,
+    required this.child,
+  });
+
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(60),
+      clipBehavior: Clip.antiAlias,
+      child: child,
+    );
   }
 }

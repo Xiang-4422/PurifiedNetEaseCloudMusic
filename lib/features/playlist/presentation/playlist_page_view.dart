@@ -57,7 +57,7 @@ class PlayListPageView extends StatefulWidget {
 }
 
 class _PlayListPageViewState extends State<PlayListPageView> {
-  static const int _playlistPageSize = 100;
+  static const int _playlistPageSize = 30;
 
   final PlaylistPageController _controller = Get.find<FeatureControllerFactory>().playlistPage();
   final PlaylistPlaybackUseCase _playbackUseCase = Get.find<PlaylistPlaybackUseCase>();
@@ -112,186 +112,205 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                   onTap: () => _refreshPlaylistData(showLoadingState: true),
                   child: const ErrorView(),
                 )
-              : RefreshIndicator(
-                  onRefresh: () => _refreshPlaylistData(showLoadingState: false),
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    slivers: [
-                      SliverAppBar(
-                        toolbarHeight: AppDimensions.appBarHeight,
-                        expandedHeight: layoutMetrics.heroExtent,
-                        pinned: true,
-                        stretch: true,
-                        automaticallyImplyLeading: true,
-                        foregroundColor: Colors.transparent,
-                        surfaceTintColor: Colors.transparent,
-                        backgroundColor: albumColor,
-                        flexibleSpace: FlexibleSpaceBar(
-                          stretchModes: const <StretchMode>[
-                            StretchMode.zoomBackground,
-                          ],
-                          collapseMode: CollapseMode.pin,
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                playlistName,
-                                style: context.textTheme.titleLarge?.copyWith(
-                                  color: widgetColor,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                "歌单·${trackCount ?? loadedSongCount}首",
-                                style: context.textTheme.titleSmall?.copyWith(
-                                  color: widgetColor.withValues(alpha: 0.8),
-                                ),
-                              ),
-                            ],
-                          ),
-                          expandedTitleScale: 1.5,
-                          titlePadding: EdgeInsets.only(bottom: 60 + AppDimensions.paddingSmall, top: context.mediaQueryPadding.top, left: AppDimensions.paddingSmall, right: AppDimensions.paddingSmall),
-                          background: SimpleExtendedImage(
-                            width: context.width,
-                            height: layoutMetrics.heroExtent,
-                            _resolvedCoverUrl ?? '',
-                          ),
-                        ),
-                        bottom: PreferredSize(
-                            preferredSize: const Size.fromHeight(60),
-                            child: Row(
-                              spacing: AppDimensions.paddingSmall,
-                              children: [
-                                // 播放全部
-                                Flexible(
-                                    child: BlurryContainer(
-                                  borderRadius: BorderRadius.circular(60),
-                                  padding: EdgeInsets.zero,
-                                  color: widgetColor.withValues(alpha: 0.05),
-                                  child: IconButton(
-                                    onPressed: _canPlayFullPlaylist
-                                        ? () async {
-                                            await _playFullPlaylist(
-                                              shuffle: false,
-                                            );
-                                          }
-                                        : null,
-                                    icon: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                      children: [
-                                        Icon(
-                                          TablerIcons.repeat,
-                                          color: _playlistActionColor,
-                                        ),
-                                        Text('顺序播放', style: context.textTheme.titleMedium?.copyWith(color: _playlistActionColor)),
-                                      ],
-                                    ),
-                                  ),
-                                )),
-                                Offstage(
-                                  offstage: isMyPlayList,
-                                  child: BlurryContainer(
-                                    borderRadius: BorderRadius.circular(60),
-                                    padding: EdgeInsets.zero,
-                                    color: widgetColor.withValues(alpha: 0.05),
-                                    child: IconButton(
-                                        color: Colors.red,
-                                        padding: EdgeInsets.zero,
-                                        onPressed: () => _subscribePlayList(),
-                                        icon: Icon(
-                                          isSubscribed ? TablerIcons.heart_filled : TablerIcons.heart,
-                                          color: isSubscribed ? Colors.red : widgetColor,
-                                        )),
-                                  ),
-                                ),
-                                // 评论、收藏
-                                Flexible(
-                                    child: BlurryContainer(
-                                  borderRadius: BorderRadius.circular(60),
-                                  padding: EdgeInsets.zero,
-                                  color: widgetColor.withValues(alpha: 0.05),
-                                  child: IconButton(
-                                    onPressed: _canPlayFullPlaylist
-                                        ? () async {
-                                            await _playFullPlaylist(
-                                              shuffle: true,
-                                            );
-                                          }
-                                        : null,
-                                    icon: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                      children: [
-                                        Icon(
-                                          TablerIcons.arrows_shuffle,
-                                          color: _playlistActionColor,
-                                        ),
-                                        Text('随机播放', style: context.textTheme.titleMedium?.copyWith(color: _playlistActionColor)),
-                                      ],
-                                    ),
-                                  ),
-                                )),
-                              ],
-                            ).paddingAll(AppDimensions.paddingSmall)),
-                      ),
-                      SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (BuildContext context, int index) {
-                              return SongItem(
-                                index: index,
-                                playlist: songs,
-                                playListName: playlistName,
-                                playListHeader: "歌单",
-                                stringColor: widgetColor,
-                                beforeOnTap: () {
-                                  ShellController.to.jumpBottomPanelToPage(0);
-                                  ShellController.to.openBottomPanel();
-                                },
-                                onPlay: _playbackUseCase.playAt,
-                              );
-                            },
-                            childCount: loadedSongCount,
-                          ),
-                        ),
-                      ),
-                      if (_isCompletingPlaylist)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: AppDimensions.paddingMedium,
-                            ),
-                            child: Center(
-                              child: Text(
-                                loadState == _PlaylistPageLoadState.loadFailedWithPartial
-                                    ? '剩余歌曲加载失败，下拉可重试'
-                                    : completingFullPlaylist
-                                        ? '正在补全播放队列...'
-                                        : '正在加载剩余歌曲...',
-                                style: context.textTheme.titleSmall?.copyWith(
-                                  color: widgetColor.withValues(alpha: 0.7),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: AppDimensions.bottomPanelHeaderHeight,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              : _buildPlaylistContent(context, layoutMetrics),
+    );
+  }
+
+  Widget _buildPlaylistContent(
+    BuildContext context,
+    AdaptiveLayoutMetrics layoutMetrics,
+  ) {
+    return RefreshIndicator(
+      onRefresh: () => _refreshPlaylistData(showLoadingState: false),
+      child: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          _buildPlaylistAppBar(context, layoutMetrics),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  return SongItem(
+                    index: index,
+                    playlist: songs,
+                    playListName: playlistName,
+                    playListHeader: "歌单",
+                    stringColor: widgetColor,
+                    beforeOnTap: () {
+                      ShellController.to.jumpBottomPanelToPage(0);
+                      ShellController.to.openBottomPanel();
+                    },
+                    onPlay: _playbackUseCase.playAt,
+                  );
+                },
+                childCount: loadedSongCount,
+              ),
+            ),
+          ),
+          if (_isCompletingPlaylist) _buildCompletionFooter(context),
+          const SliverToBoxAdapter(
+            child: SizedBox(
+              height: AppDimensions.bottomPanelHeaderHeight,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  SliverAppBar _buildPlaylistAppBar(
+    BuildContext context,
+    AdaptiveLayoutMetrics layoutMetrics,
+  ) {
+    return SliverAppBar(
+      toolbarHeight: AppDimensions.appBarHeight,
+      expandedHeight: layoutMetrics.heroExtent,
+      pinned: true,
+      stretch: true,
+      automaticallyImplyLeading: true,
+      foregroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      backgroundColor: albumColor,
+      flexibleSpace: FlexibleSpaceBar(
+        stretchModes: const <StretchMode>[
+          StretchMode.zoomBackground,
+        ],
+        collapseMode: CollapseMode.pin,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              playlistName,
+              style: context.textTheme.titleLarge?.copyWith(
+                color: widgetColor,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              "歌单·${trackCount ?? loadedSongCount}首",
+              style: context.textTheme.titleSmall?.copyWith(
+                color: widgetColor.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
+        ),
+        expandedTitleScale: 1.5,
+        titlePadding: EdgeInsets.only(bottom: 60 + AppDimensions.paddingSmall, top: context.mediaQueryPadding.top, left: AppDimensions.paddingSmall, right: AppDimensions.paddingSmall),
+        background: SimpleExtendedImage(
+          width: context.width,
+          height: layoutMetrics.heroExtent,
+          _resolvedCoverUrl ?? '',
+        ),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: Row(
+          spacing: AppDimensions.paddingSmall,
+          children: [
+            Flexible(
+              child: _buildPlaylistActionButton(
+                context,
+                icon: TablerIcons.repeat,
+                label: '顺序播放',
+                shuffle: false,
+              ),
+            ),
+            _buildSubscribeButton(),
+            Flexible(
+              child: _buildPlaylistActionButton(
+                context,
+                icon: TablerIcons.arrows_shuffle,
+                label: '随机播放',
+                shuffle: true,
+              ),
+            ),
+          ],
+        ).paddingAll(AppDimensions.paddingSmall),
+      ),
+    );
+  }
+
+  Widget _buildPlaylistActionButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required bool shuffle,
+  }) {
+    return BlurryContainer(
+      borderRadius: BorderRadius.circular(60),
+      padding: EdgeInsets.zero,
+      color: widgetColor.withValues(alpha: 0.05),
+      child: IconButton(
+        onPressed: _canPlayFullPlaylist
+            ? () async {
+                await _playFullPlaylist(shuffle: shuffle);
+              }
+            : null,
+        icon: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Icon(
+              icon,
+              color: _playlistActionColor,
+            ),
+            Text(
+              label,
+              style: context.textTheme.titleMedium?.copyWith(color: _playlistActionColor),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubscribeButton() {
+    return Offstage(
+      offstage: isMyPlayList,
+      child: BlurryContainer(
+        borderRadius: BorderRadius.circular(60),
+        padding: EdgeInsets.zero,
+        color: widgetColor.withValues(alpha: 0.05),
+        child: IconButton(
+          color: Colors.red,
+          padding: EdgeInsets.zero,
+          onPressed: () => _subscribePlayList(),
+          icon: Icon(
+            isSubscribed ? TablerIcons.heart_filled : TablerIcons.heart,
+            color: isSubscribed ? Colors.red : widgetColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  SliverToBoxAdapter _buildCompletionFooter(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: AppDimensions.paddingMedium,
+        ),
+        child: Center(
+          child: Text(
+            _completionMessage,
+            style: context.textTheme.titleSmall?.copyWith(
+              color: widgetColor.withValues(alpha: 0.7),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
   Future<void> _loadPlaylistData() async {
     final localDetail = await _controller.loadLocalDetail(widget.playlistId);
     final cachedSnapshot = await _controller.loadCachedSnapshot(widget.playlistId);
+    if (!mounted) {
+      return;
+    }
     if (cachedSnapshot != null) {
       playlistName = cachedSnapshot.name;
       coverUrl = cachedSnapshot.coverUrl ?? coverUrl;
@@ -322,6 +341,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         limit: _playlistPageSize,
       );
       final snapshot = await _controller.loadCachedSnapshot(widget.playlistId);
+      if (!mounted) {
+        return;
+      }
       if (snapshot != null) {
         playlistName = snapshot.name;
         coverUrl = snapshot.coverUrl ?? coverUrl;
@@ -352,16 +374,17 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     PlaylistDetailData data, {
     required _PlaylistPageLoadState nextState,
   }) async {
-    songs = data.songs;
-    loadedSongCount = songs.length;
-    trackCount = data.expectedTrackCount ?? trackCount;
-    isSubscribed = data.isSubscribed;
-    isMyPlayList = data.isMyPlayList;
-    if (mounted) {
-      setState(() {
-        loadState = nextState;
-      });
+    if (!mounted) {
+      return;
     }
+    setState(() {
+      songs = data.songs;
+      loadedSongCount = songs.length;
+      trackCount = data.expectedTrackCount ?? trackCount;
+      isSubscribed = data.isSubscribed;
+      isMyPlayList = data.isMyPlayList;
+      loadState = nextState;
+    });
     unawaited(_updateArtworkColors(_resolvedCoverUrl));
   }
 
@@ -386,6 +409,13 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   Color get _playlistActionColor => _canPlayFullPlaylist ? widgetColor : widgetColor.withValues(alpha: 0.35);
 
   bool get _isCompletingPlaylist => loadState == _PlaylistPageLoadState.loadFailedWithPartial || loadingMoreSongs || completingFullPlaylist;
+
+  String get _completionMessage {
+    if (loadState == _PlaylistPageLoadState.loadFailedWithPartial) {
+      return '剩余歌曲加载失败，下拉可重试';
+    }
+    return completingFullPlaylist ? '正在补全播放队列...' : '正在加载剩余歌曲...';
+  }
 
   void _handleScrollNearBottom() {
     if (!_scrollController.hasClients || _scrollController.position.extentAfter > 800) {

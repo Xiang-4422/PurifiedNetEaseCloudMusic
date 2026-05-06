@@ -7,6 +7,7 @@ class PlaylistPerformanceLogger {
   PlaylistPerformanceLogger._();
 
   static const String _name = 'PlaylistPerf';
+  static const bool _verbose = false;
 
   /// 开始一段耗时测量。
   static Stopwatch start() {
@@ -15,7 +16,7 @@ class PlaylistPerformanceLogger {
 
   /// 输出诊断日志。
   static void log(String message) {
-    if (!kDebugMode) {
+    if (!kDebugMode || !_verbose) {
       return;
     }
     developer.log(message, name: _name);
@@ -34,11 +35,21 @@ class PlaylistPerformanceLogger {
     }
     stopwatch.stop();
     final elapsedMs = stopwatch.elapsedMilliseconds;
-    if (warnAfterMs > 0 && elapsedMs < warnAfterMs) {
+    if (!_shouldEmit(event, elapsedMs, warnAfterMs)) {
       return;
     }
     final suffix = details.isEmpty ? '' : ' $details';
     developer.log('$event ${elapsedMs}ms$suffix', name: _name);
     debugPrint('[$_name] $event ${elapsedMs}ms$suffix');
+  }
+
+  static bool _shouldEmit(String event, int elapsedMs, int warnAfterMs) {
+    if (_verbose) {
+      return true;
+    }
+    if (warnAfterMs > 0) {
+      return elapsedMs >= warnAfterMs;
+    }
+    return event.endsWith('.total') || event == 'repo.fetchSongs.remote' || event == 'repo.fetchSongs.saveTracks';
   }
 }

@@ -84,8 +84,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   _PlaylistPageLoadState loadState = _PlaylistPageLoadState.loadingInitial;
   final PlaylistArtworkColorService _artworkColorService = PlaylistArtworkColorService();
 
-  Color albumColor = Get.theme.colorScheme.primary;
-  Color widgetColor = Get.theme.colorScheme.onPrimary;
+  Color albumColor = Get.theme.scaffoldBackgroundColor;
+  Color widgetColor = Get.theme.scaffoldBackgroundColor.invertedColor;
 
   @override
   void initState() {
@@ -576,19 +576,33 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (!mounted || requestId != _artworkColorRequestId) {
       return;
     }
+    final cachedColor = ImageColorService.peekCachedColor(colorPath);
+    if (cachedColor != null) {
+      _applyArtworkColor(cachedColor);
+      PlaylistPerformanceLogger.elapsed(
+        'page.artworkColor.cacheHit',
+        stopwatch,
+        details: 'hasArtwork=${artworkPath?.isNotEmpty == true} hasColorPath=${colorPath?.isNotEmpty == true}',
+      );
+      return;
+    }
     final color = await ImageColorService.dominantColor(colorPath);
     if (!mounted || requestId != _artworkColorRequestId) {
       return;
     }
-    setState(() {
-      albumColor = color;
-      widgetColor = color.invertedColor;
-    });
+    _applyArtworkColor(color);
     PlaylistPerformanceLogger.elapsed(
       'page.artworkColor.update',
       stopwatch,
       details: 'hasArtwork=${artworkPath?.isNotEmpty == true} hasColorPath=${colorPath?.isNotEmpty == true}',
     );
+  }
+
+  void _applyArtworkColor(Color color) {
+    setState(() {
+      albumColor = color;
+      widgetColor = color.invertedColor;
+    });
   }
 
   String? get _resolvedCoverUrl => ArtworkPathResolver.resolveExplicitArtwork(

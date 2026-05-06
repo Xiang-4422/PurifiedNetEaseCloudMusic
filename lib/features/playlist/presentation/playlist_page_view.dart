@@ -481,7 +481,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     });
   }
 
-  String? get _resolvedCoverUrl => ArtworkPathResolver.resolvePreferredArtwork(
+  String? get _resolvedCoverUrl => ArtworkPathResolver.resolveExplicitArtwork(
         coverUrl,
         fallbackItems: songs,
       );

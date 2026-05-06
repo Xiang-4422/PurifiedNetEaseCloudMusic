@@ -45,6 +45,23 @@ class ArtworkPathResolver {
     return null;
   }
 
+  /// 页面已经有明确封面时，优先保持该封面稳定。
+  ///
+  /// 适用于歌单、专辑等详情页的主视觉，避免列表歌曲加载后用第一首歌封面临时
+  /// 替换页面封面。只有页面封面为空时才退回到 [fallbackItems]。
+  static String? resolveExplicitArtwork(
+    String? artworkUrl, {
+    Iterable<PlaybackQueueItem> fallbackItems = const <PlaybackQueueItem>[],
+  }) {
+    if (artworkUrl?.isNotEmpty == true) {
+      return artworkUrl;
+    }
+    return resolvePreferredArtwork(
+      artworkUrl,
+      fallbackItems: fallbackItems,
+    );
+  }
+
   /// 把 nullable 封面路径收敛成图片组件可直接接收的字符串。
   ///
   /// 这里故意不丢弃远程 URL，因为远程 URL 仍需要进入本地图片缓存后展示。

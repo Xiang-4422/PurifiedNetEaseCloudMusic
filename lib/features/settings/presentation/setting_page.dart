@@ -10,6 +10,7 @@ import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
 import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
 import 'package:bujuan/features/settings/presentation/cache_analysis_page.dart';
+import 'package:bujuan/features/settings/presentation/lottie_preview_page.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/widget/section_header.dart';
 import 'package:flutter/material.dart';
@@ -222,6 +223,16 @@ class _SettingPageViewState extends State<SettingPageView> {
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => const CacheAnalysisPageView(),
+            ),
+          ),
+        ),
+        _buildNavigationTile(
+          context,
+          title: 'Lottie 动画预览',
+          subtitle: '自动读取 assets/lottie 下的动画资源',
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const LottiePreviewPageView(),
             ),
           ),
         ),

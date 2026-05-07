@@ -6,7 +6,6 @@ import 'package:bujuan/features/cloud/presentation/cloud_drive_view.dart';
 import 'package:bujuan/features/playlist/presentation/playlist_page_view.dart';
 import 'package:bujuan/features/radio/presentation/my_radio_view.dart';
 import 'package:bujuan/features/radio/presentation/radio_details_view.dart';
-import 'package:bujuan/features/settings/presentation/update_view.dart';
 import 'package:bujuan/features/shell/presentation/app_body_page_view.dart';
 import 'package:bujuan/features/shell/presentation/app_home_page_view.dart';
 import 'package:bujuan/features/user/presentation/today_page_view.dart';
@@ -66,9 +65,6 @@ abstract class Routes {
 
   /// MV 页根路径。
   static const mv = '/mv';
-
-  /// 应用升级页根路径。
-  static const update = '/update';
 
   /// 本地音乐页子路径。
   static const local = 'local';
@@ -130,8 +126,6 @@ abstract class Routes {
       // 云盘
       AutoRoute(path: Routes.cloud, page: CloudDriveView),
     ]),
-    // 升级
-    AutoRoute(path: Routes.update, page: UpdateView),
   ],
 )
 

@@ -1,3 +1,4 @@
+import 'package:bujuan/generated/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -11,7 +12,7 @@ class DialogService {
       context: context,
       builder: (context) => Center(
         child: Lottie.asset(
-          'assets/lottie/empty_status.json',
+          Assets.lottieLoading,
           width: 750 / 4,
           height: 750 / 4,
           fit: BoxFit.fitWidth,

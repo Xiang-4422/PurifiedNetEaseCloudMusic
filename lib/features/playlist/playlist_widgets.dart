@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/generated/assets.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/keep_alive_wrapper.dart';
@@ -224,7 +225,7 @@ class PlayListWidget extends StatelessWidget {
                                           ),
                                         ),
                                         child: Lottie.asset(
-                                          'assets/lottie/music_playing.json',
+                                          Assets.lottieMusicPlaying,
                                           width: playButtonSize,
                                           height: playButtonSize,
                                         ),

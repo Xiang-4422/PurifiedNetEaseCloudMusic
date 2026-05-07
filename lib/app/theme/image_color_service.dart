@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:bujuan/common/constants/images.dart';
 import 'package:bujuan/core/storage/image_color_cache_store.dart';
 import 'package:bujuan/core/util/image_url_normalizer.dart';
+import 'package:bujuan/generated/assets.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -19,7 +19,7 @@ class ImageColorService {
   static Future<PaletteGenerator> palette(String? url) async {
     ImageProvider imageProvider;
     if (url == null || url.isEmpty || _isRemoteImageUrl(url)) {
-      imageProvider = const ExtendedAssetImageProvider(placeholderImage);
+      imageProvider = const ExtendedAssetImageProvider(Assets.imagesPlaceholder);
     } else {
       final normalizedUrl = ImageUrlNormalizer.normalize(url);
       imageProvider = ExtendedFileImageProvider(File(normalizedUrl.split('?').first));

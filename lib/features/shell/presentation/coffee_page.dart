@@ -1,3 +1,4 @@
+import 'package:bujuan/generated/assets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:flutter/material.dart';
 
@@ -19,7 +20,7 @@ class CoffeePageView extends GetView<ShellController> {
             ClipRRect(
               borderRadius: BorderRadius.circular(30),
               child: Image.asset(
-                'assets/images/coffee.jpg',
+                Assets.imagesCoffee,
                 width: context.width,
                 fit: BoxFit.fitWidth,
               ),

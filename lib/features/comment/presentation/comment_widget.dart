@@ -1,4 +1,4 @@
-import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/core/network/load_state.dart' show PagedState;
 import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_list_controller.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
@@ -83,49 +83,46 @@ class _CommentWidgetState extends State<CommentWidget> {
         if (state.isEmpty) {
           return const EmptyView();
         }
-        return SmartRefresher(
-          enablePullDown: true,
-          enablePullUp: state.hasMore,
-          controller: _refreshController,
-          onRefresh: () async {
-            await _controller.refresh();
-            _refreshController.refreshCompleted();
-            _refreshController.resetNoData();
-            if (!_controller.state.value.hasMore) {
-              _refreshController.loadNoData();
-            }
-          },
-          onLoading: () async {
-            final success = await _controller.loadMore();
-            if (!mounted) {
-              return;
-            }
-            if (!success) {
-              _refreshController.loadFailed();
-              return;
-            }
-            if (_controller.state.value.hasMore) {
-              _refreshController.loadComplete();
-            } else {
-              _refreshController.loadNoData();
-            }
-          },
-          child: ListView.builder(
-            itemBuilder: (BuildContext context, int index) {
-              if (index == 0) {
-                return SizedBox(height: widget.listPaddingTop);
+        return RefreshConfiguration(
+          maxOverScrollExtent: 0,
+          maxUnderScrollExtent: 0,
+          child: SmartRefresher(
+            physics: const ClampingScrollPhysics(),
+            enablePullDown: false,
+            enablePullUp: state.hasMore,
+            controller: _refreshController,
+            footer: CustomFooter(
+              builder: (context, mode) {
+                return mode == LoadStatus.loading ? const SizedBox(height: 60, child: LoadingView()) : SizedBox(height: widget.listPaddingBottom);
+              },
+            ),
+            onLoading: () async {
+              final success = await _controller.loadMore();
+              if (!mounted) {
+                return;
               }
-              if (index == state.items.length + 1) {
-                return SizedBox(height: widget.listPaddingBottom);
+              if (!success) {
+                _refreshController.loadFailed();
+                return;
               }
-              return CommentItemWidget(
-                id: widget.id,
-                idType: widget.idType,
-                comment: state.items[index - 1],
-                stringColor: widget.stringColor,
-              ).marginOnly(top: index == 1 ? 0 : 10);
+              if (_controller.state.value.hasMore) {
+                _refreshController.loadComplete();
+              } else {
+                _refreshController.loadNoData();
+              }
             },
-            itemCount: state.items.length + 2,
+            child: ListView.builder(
+              padding: EdgeInsets.fromLTRB(0, widget.listPaddingTop, 0, 0),
+              itemBuilder: (BuildContext context, int index) {
+                return CommentItemWidget(
+                  id: widget.id,
+                  idType: widget.idType,
+                  comment: state.items[index],
+                  stringColor: widget.stringColor,
+                ).marginOnly(top: index == 0 ? 0 : 10);
+              },
+              itemCount: state.items.length,
+            ),
           ),
         );
       },

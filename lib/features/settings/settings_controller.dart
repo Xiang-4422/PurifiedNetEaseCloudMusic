@@ -21,9 +21,6 @@ class SettingsController extends GetxController {
   /// 是否优先使用高音质播放地址。
   RxBool isHighSoundQualityOpen = false.obs;
 
-  /// 是否启用离线模式。
-  RxBool isOfflineModeEnabled = false.obs;
-
   /// 当前专辑封面主色。
   Rx<Color> albumColor = Colors.white.obs;
 
@@ -40,7 +37,6 @@ class SettingsController extends GetxController {
     isGradientBackground.value = _repository.isGradientBackgroundEnabled;
     isHighSoundQualityOpen.value = _repository.isHighSoundQualityEnabled;
     isRoundAlbumOpen.value = _repository.isRoundAlbumEnabled;
-    isOfflineModeEnabled.value = _repository.isOfflineModeEnabled;
   }
 
   /// 切换渐变背景设置。
@@ -62,12 +58,5 @@ class SettingsController extends GetxController {
     final nextValue = !isHighSoundQualityOpen.value;
     isHighSoundQualityOpen.value = nextValue;
     await _repository.saveHighSoundQualityEnabled(nextValue);
-  }
-
-  /// 切换离线模式。
-  Future<void> toggleOfflineMode() async {
-    final nextValue = !isOfflineModeEnabled.value;
-    isOfflineModeEnabled.value = nextValue;
-    await _repository.saveOfflineModeEnabled(nextValue);
   }
 }

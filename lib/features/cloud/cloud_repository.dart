@@ -1,24 +1,24 @@
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
-import 'package:bujuan/data/local/user_scoped_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_cloud_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_cloud_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 云盘仓库，聚合云盘远程数据、用户缓存和本地曲库资源。
 class CloudRepository {
   /// 创建云盘仓库。
   CloudRepository({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required UserScopedDataSource userScopedDataSource,
     required NeteaseCloudRemoteDataSource remoteDataSource,
   })  : _remoteDataSource = remoteDataSource,
-        _libraryRepository = libraryRepository,
+        _musicDataRepository = musicDataRepository,
         _userScopedDataSource = userScopedDataSource;
 
   final NeteaseCloudRemoteDataSource _remoteDataSource;
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final UserScopedDataSource _userScopedDataSource;
 
   /// 加载缓存的云盘歌曲。
@@ -33,7 +33,7 @@ class CloudRepository {
     if (trackIds.isEmpty) {
       return const [];
     }
-    final tracks = await _libraryRepository.getTracksWithResources(trackIds);
+    final tracks = await _musicDataRepository.getTracksWithResources(trackIds);
     if (tracks.isEmpty) {
       return const [];
     }
@@ -56,7 +56,7 @@ class CloudRepository {
       offset: offset,
       limit: limit,
     );
-    await _libraryRepository.saveTracks(result.tracks);
+    await _musicDataRepository.saveTracks(result.tracks);
     final items = PlaybackQueueItemMapper.fromTrackList(
       result.tracks,
       likedSongIds: likedSongIds,

@@ -1,9 +1,9 @@
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
-import 'package:bujuan/data/netease/remote/netease_album_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_album_remote_data_source.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 专辑详情数据。
 class AlbumDetailData {
@@ -24,12 +24,12 @@ class AlbumDetailData {
 class AlbumRepository {
   /// 创建专辑仓库。
   AlbumRepository({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required NeteaseAlbumRemoteDataSource remoteDataSource,
-  })  : _libraryRepository = libraryRepository,
+  })  : _musicDataRepository = musicDataRepository,
         _remoteDataSource = remoteDataSource;
 
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final NeteaseAlbumRemoteDataSource _remoteDataSource;
 
   /// 加载本地缓存的专辑详情。
@@ -37,11 +37,11 @@ class AlbumRepository {
     required String albumId,
     required List<int> likedSongIds,
   }) async {
-    final album = await _libraryRepository.getAlbum('netease:$albumId');
+    final album = await _musicDataRepository.getAlbum('netease:$albumId');
     if (album == null) {
       return null;
     }
-    final tracks = await _libraryRepository.getTracksByAlbumId(albumId);
+    final tracks = await _musicDataRepository.getTracksByAlbumId(albumId);
     return AlbumDetailData(
       album: album,
       albumSongs: _mapTracksToPlaybackQueueItems(
@@ -62,9 +62,9 @@ class AlbumRepository {
     final album = result.album;
     final tracks = result.tracks;
     if (album != null) {
-      await _libraryRepository.saveAlbums([album]);
+      await _musicDataRepository.saveAlbums([album]);
     }
-    await _libraryRepository.saveTracks(tracks);
+    await _musicDataRepository.saveTracks(tracks);
     return AlbumDetailData(
       album: album!,
       albumSongs: _mapTracksToPlaybackQueueItems(

@@ -1,22 +1,22 @@
 import 'package:bujuan/core/entities/playback_mode.dart';
-import 'package:bujuan/data/local/playback_restore_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/playback_restore_data_source.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/core/entities/playback_restore_state.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 聚合播放恢复状态、曲目资源和歌词读取的仓库。
 class PlaybackRepository {
   /// 创建播放仓库。
   PlaybackRepository({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required PlaybackRestoreDataSource playbackRestoreDataSource,
-  })  : _libraryRepository = libraryRepository,
+  })  : _musicDataRepository = musicDataRepository,
         _playbackRestoreDataSource = playbackRestoreDataSource;
 
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final PlaybackRestoreDataSource _playbackRestoreDataSource;
   PlaybackRestoreState? _restoreStateCache;
   Future<PlaybackRestoreState>? _restoreStateLoad;
@@ -27,22 +27,22 @@ class PlaybackRepository {
 
   /// 读取曲目歌词。
   Future<TrackLyrics?> fetchSongLyrics(String trackId) {
-    return _libraryRepository.getLyrics(trackId);
+    return _musicDataRepository.getLyrics(trackId);
   }
 
   /// 读取曲目基础信息。
   Future<Track?> getTrack(String trackId) {
-    return _libraryRepository.getTrack(trackId);
+    return _musicDataRepository.getTrack(trackId);
   }
 
   /// 读取曲目及其本地资源索引。
   Future<TrackWithResources?> getTrackWithResources(String trackId) {
-    return _libraryRepository.getTrackWithResources(trackId);
+    return _musicDataRepository.getTrackWithResources(trackId);
   }
 
   /// 保存曲目歌词。
   Future<void> saveSongLyrics(String trackId, TrackLyrics lyrics) {
-    return _libraryRepository.saveLyrics(trackId, lyrics);
+    return _musicDataRepository.saveLyrics(trackId, lyrics);
   }
 
   /// 读取播放恢复状态；无有效恢复数据时返回空状态。
@@ -163,7 +163,7 @@ class PlaybackRepository {
     String trackId, {
     required bool preferHighQuality,
   }) {
-    return _libraryRepository.getPlaybackUrlWithQuality(
+    return _musicDataRepository.getPlaybackUrlWithQuality(
       trackId,
       qualityLevel: preferHighQuality ? 'lossless' : 'exhigh',
     );

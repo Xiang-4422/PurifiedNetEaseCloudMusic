@@ -1,10 +1,10 @@
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
-import 'package:bujuan/data/netease/remote/netease_artist_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_artist_remote_data_source.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 歌手详情数据。
 class ArtistDetailData {
@@ -29,12 +29,12 @@ class ArtistDetailData {
 class ArtistRepository {
   /// 创建歌手仓库。
   ArtistRepository({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required NeteaseArtistRemoteDataSource remoteDataSource,
-  })  : _libraryRepository = libraryRepository,
+  })  : _musicDataRepository = musicDataRepository,
         _remoteDataSource = remoteDataSource;
 
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final NeteaseArtistRemoteDataSource _remoteDataSource;
 
   /// 加载本地缓存的歌手详情。
@@ -42,12 +42,12 @@ class ArtistRepository {
     required String artistId,
     required List<int> likedSongIds,
   }) async {
-    final artist = await _libraryRepository.getArtist('netease:$artistId');
+    final artist = await _musicDataRepository.getArtist('netease:$artistId');
     if (artist == null) {
       return null;
     }
-    final topTracks = await _libraryRepository.getTracksByArtistId(artistId);
-    final hotAlbums = await _libraryRepository.searchLocalAlbums(artist.name);
+    final topTracks = await _musicDataRepository.getTracksByArtistId(artistId);
+    final hotAlbums = await _musicDataRepository.searchLocalAlbums(artist.name);
     return ArtistDetailData(
       artist: artist,
       topSongs: _mapTracksToPlaybackQueueItems(
@@ -70,10 +70,10 @@ class ArtistRepository {
     final tracks = result.topTracks;
     final albums = result.hotAlbums;
     if (artist != null) {
-      await _libraryRepository.saveArtists([artist]);
+      await _musicDataRepository.saveArtists([artist]);
     }
-    await _libraryRepository.saveTracks(tracks);
-    await _libraryRepository.saveAlbums(albums);
+    await _musicDataRepository.saveTracks(tracks);
+    await _musicDataRepository.saveAlbums(albums);
 
     return ArtistDetailData(
       artist: artist!,

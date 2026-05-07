@@ -3,30 +3,31 @@ import 'dart:async';
 import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
-import 'package:bujuan/core/database/app_database.dart';
-import 'package:bujuan/core/database/drift_app_database.dart';
-import 'package:bujuan/core/database/local_database_config.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
-import 'package:bujuan/data/local/app_cache_data_source.dart';
-import 'package:bujuan/data/local/download_task_data_source.dart';
-import 'package:bujuan/data/local/local_library_data_source.dart';
-import 'package:bujuan/data/local/local_music_source.dart';
-import 'package:bujuan/data/local/local_resource_index_data_source.dart';
-import 'package:bujuan/data/local/playback_restore_data_source.dart';
-import 'package:bujuan/data/local/user_scoped_data_source.dart';
-import 'package:bujuan/data/netease/api/netease_music_api.dart';
-import 'package:bujuan/data/netease/netease_remote_bootstrap.dart';
-import 'package:bujuan/data/netease/netease_music_source.dart';
-import 'package:bujuan/data/netease/remote/netease_album_remote_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_artist_remote_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_auth_remote_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_cloud_remote_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_comment_remote_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_explore_remote_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_playlist_remote_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_radio_remote_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_search_remote_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_user_remote_data_source.dart';
+import 'package:bujuan/data/app_storage/app_preferences.dart';
+import 'package:bujuan/data/app_storage/cache_box.dart';
+import 'package:bujuan/data/music_data/sources/local/app_database.dart';
+import 'package:bujuan/data/music_data/sources/local/drift_app_database.dart';
+import 'package:bujuan/data/music_data/sources/local/local_database_config.dart';
+import 'package:bujuan/data/music_data/sources/local/app_cache_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/download_task_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/local_library_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/local_music_source.dart';
+import 'package:bujuan/data/music_data/sources/local/local_resource_index_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/playback_restore_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/api/netease_music_api.dart';
+import 'package:bujuan/data/music_data/sources/netease/netease_remote_bootstrap.dart';
+import 'package:bujuan/data/music_data/sources/netease/netease_music_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_album_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_artist_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_auth_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_cloud_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_comment_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_explore_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_radio_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_search_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_user_remote_data_source.dart';
 import 'package:bujuan/features/album/album_repository.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
@@ -38,10 +39,9 @@ import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/explore/explore_cache_store.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
-import 'package:bujuan/features/library/library_preference_store.dart';
-import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/features/library/local_artwork_cache_repository.dart';
-import 'package:bujuan/features/library/local_resource_index_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
+import 'package:bujuan/data/music_data/sources/local/local_artwork_cache_repository.dart';
+import 'package:bujuan/data/music_data/sources/local/local_resource_index_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/playback/application/confirmed_playback_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
@@ -148,6 +148,7 @@ Future<void> _initAppInfrastructure() async {
   await Hive.initFlutter('BuJuan');
   final cacheBox = await Hive.openBox('cache');
   CacheBox.init(cacheBox);
+  const appPreferences = AppPreferences();
 
   final localLibraryDataSource = appDatabase.localLibraryDataSource;
   final localResourceIndexDataSource = appDatabase.localResourceIndexDataSource;
@@ -172,26 +173,26 @@ Future<void> _initAppInfrastructure() async {
     dio: sharedDio,
     resourceIndexRepository: localResourceIndexRepository,
   );
-  final libraryRepository = LibraryRepository(
+  final musicDataRepository = MusicDataRepository(
     localDataSource: localLibraryDataSource,
     localMusicSource: localMusicSource,
     neteaseSource: NeteaseMusicSource(api: neteaseApi),
-    preferenceStore: const LibraryPreferenceStore(),
     resourceIndexRepository: localResourceIndexRepository,
     artworkCacheRepository: localArtworkCacheRepository,
   );
   final downloadRepository = DownloadRepository(
-    libraryRepository: libraryRepository,
+    musicDataRepository: musicDataRepository,
     taskDataSource: downloadTaskDataSource,
     resourceIndexRepository: localResourceIndexRepository,
     dio: sharedDio,
   );
   final playbackRepository = PlaybackRepository(
-    libraryRepository: libraryRepository,
+    musicDataRepository: musicDataRepository,
     playbackRestoreDataSource: playbackRestoreDataSource,
   );
 
   _registerInfrastructure(
+    appPreferences: appPreferences,
     appDatabase: appDatabase,
     localLibraryDataSource: localLibraryDataSource,
     playbackRestoreDataSource: playbackRestoreDataSource,
@@ -204,7 +205,8 @@ Future<void> _initAppInfrastructure() async {
     localArtworkCacheRepository: localArtworkCacheRepository,
   );
   _registerRepositories(
-    libraryRepository: libraryRepository,
+    appPreferences: appPreferences,
+    musicDataRepository: musicDataRepository,
     userScopedDataSource: userScopedDataSource,
     appCacheDataSource: appCacheDataSource,
     localLibraryDataSource: localLibraryDataSource,
@@ -220,6 +222,7 @@ Future<void> _initAppInfrastructure() async {
 }
 
 void _registerInfrastructure({
+  required AppPreferences appPreferences,
   required AppDatabase appDatabase,
   required LocalLibraryDataSource localLibraryDataSource,
   required PlaybackRestoreDataSource playbackRestoreDataSource,
@@ -231,6 +234,7 @@ void _registerInfrastructure({
   required LocalResourceIndexRepository localResourceIndexRepository,
   required LocalArtworkCacheRepository localArtworkCacheRepository,
 }) {
+  Get.put<AppPreferences>(appPreferences, permanent: true);
   Get.put<AppDatabase>(appDatabase, permanent: true);
   Get.put<LocalLibraryDataSource>(localLibraryDataSource, permanent: true);
   Get.put<PlaybackRestoreDataSource>(
@@ -256,7 +260,8 @@ void _registerInfrastructure({
 }
 
 void _registerRepositories({
-  required LibraryRepository libraryRepository,
+  required AppPreferences appPreferences,
+  required MusicDataRepository musicDataRepository,
   required UserScopedDataSource userScopedDataSource,
   required AppCacheDataSource appCacheDataSource,
   required LocalLibraryDataSource localLibraryDataSource,
@@ -278,7 +283,7 @@ void _registerRepositories({
   final commentRemoteDataSource = NeteaseCommentRemoteDataSource(api: neteaseApi);
   final exploreRemoteDataSource = NeteaseExploreRemoteDataSource(api: neteaseApi);
 
-  Get.put<LibraryRepository>(libraryRepository, permanent: true);
+  Get.put<MusicDataRepository>(musicDataRepository, permanent: true);
   Get.put<AuthRepository>(
     AuthRepository(
       stateStore: const AuthStateStore(),
@@ -286,10 +291,13 @@ void _registerRepositories({
     ),
     permanent: true,
   );
-  Get.put<SettingsRepository>(const SettingsRepository(), permanent: true);
+  Get.put<SettingsRepository>(
+    SettingsRepository(preferences: appPreferences),
+    permanent: true,
+  );
   Get.put<UserRepository>(
     UserRepository(
-      libraryRepository: libraryRepository,
+      musicDataRepository: musicDataRepository,
       remoteDataSource: userRemoteDataSource,
       userScopedDataSource: userScopedDataSource,
     ),
@@ -298,7 +306,7 @@ void _registerRepositories({
   Get.put<PlaylistRepository>(
     PlaylistRepository(
       appCacheDataSource: appCacheDataSource,
-      libraryRepository: libraryRepository,
+      musicDataRepository: musicDataRepository,
       localLibraryDataSource: localLibraryDataSource,
       remoteDataSource: playlistRemoteDataSource,
       userScopedDataSource: userScopedDataSource,
@@ -307,21 +315,21 @@ void _registerRepositories({
   );
   Get.put<AlbumRepository>(
     AlbumRepository(
-      libraryRepository: libraryRepository,
+      musicDataRepository: musicDataRepository,
       remoteDataSource: albumRemoteDataSource,
     ),
     permanent: true,
   );
   Get.put<ArtistRepository>(
     ArtistRepository(
-      libraryRepository: libraryRepository,
+      musicDataRepository: musicDataRepository,
       remoteDataSource: artistRemoteDataSource,
     ),
     permanent: true,
   );
   Get.put<CloudRepository>(
     CloudRepository(
-      libraryRepository: libraryRepository,
+      musicDataRepository: musicDataRepository,
       userScopedDataSource: userScopedDataSource,
       remoteDataSource: cloudRemoteDataSource,
     ),
@@ -336,7 +344,7 @@ void _registerRepositories({
   );
   Get.put<SearchRepository>(
     SearchRepository(
-      libraryRepository: libraryRepository,
+      musicDataRepository: musicDataRepository,
       remoteDataSource: searchRemoteDataSource,
       cacheStore: searchCacheStore,
       userScopedDataSource: userScopedDataSource,
@@ -345,7 +353,7 @@ void _registerRepositories({
   );
   Get.put<LocalMediaRepository>(
     LocalMediaRepository(
-      libraryRepository: libraryRepository,
+      musicDataRepository: musicDataRepository,
       resourceIndexRepository: localResourceIndexRepository,
     ),
     permanent: true,
@@ -576,7 +584,7 @@ void _registerFeatureApplications() {
   );
   Get.put<CacheAnalysisService>(
     CacheAnalysisService(
-      libraryRepository: Get.find<LibraryRepository>(),
+      musicDataRepository: Get.find<MusicDataRepository>(),
       resourceIndexRepository: Get.find<LocalResourceIndexRepository>(),
     ),
     permanent: true,

@@ -1,12 +1,12 @@
-import 'package:bujuan/data/local/user_scoped_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_search_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_search_remote_data_source.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
 
@@ -14,16 +14,16 @@ import 'package:bujuan/features/search/search_cache_store.dart';
 class SearchRepository {
   /// 创建搜索仓库。
   SearchRepository({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required NeteaseSearchRemoteDataSource remoteDataSource,
     required SearchCacheStore cacheStore,
     required UserScopedDataSource userScopedDataSource,
-  })  : _libraryRepository = libraryRepository,
+  })  : _musicDataRepository = musicDataRepository,
         _remoteDataSource = remoteDataSource,
         _cacheStore = cacheStore,
         _userScopedDataSource = userScopedDataSource;
 
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final NeteaseSearchRemoteDataSource _remoteDataSource;
   final SearchCacheStore _cacheStore;
   final UserScopedDataSource _userScopedDataSource;
@@ -54,22 +54,13 @@ class SearchRepository {
     String keyword, {
     required List<int> likedSongIds,
   }) async {
-    final localTracks = await _libraryRepository.searchLocalTracks(keyword);
-    if (_libraryRepository.isOfflineModeEnabled) {
-      final localTrackItems = await _libraryRepository.getTracksWithResources(
-        localTracks.map((track) => track.id),
-      );
-      return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-        localTrackItems,
-        likedSongIds: likedSongIds,
-      );
-    }
-    final remoteTracks = await _libraryRepository.searchTracks(
+    final localTracks = await _musicDataRepository.searchLocalTracks(keyword);
+    final remoteTracks = await _musicDataRepository.searchTracks(
       sourceKey: 'netease',
       keyword: keyword,
     );
     final tracks = _mergeById(localTracks, remoteTracks, (track) => track.id);
-    final trackItems = await _libraryRepository.getTracksWithResources(
+    final trackItems = await _musicDataRepository.getTracksWithResources(
       tracks.map((track) => track.id),
     );
     return PlaybackQueueItemMapper.fromTrackWithResourcesList(
@@ -83,7 +74,7 @@ class SearchRepository {
     String keyword, {
     required String currentUserId,
   }) async {
-    final localPlaylists = await _libraryRepository.searchLocalPlaylists(keyword);
+    final localPlaylists = await _musicDataRepository.searchLocalPlaylists(keyword);
     final userPlaylists = currentUserId.isEmpty
         ? const <PlaylistEntity>[]
         : (await _userScopedDataSource.searchPlaylistItems(
@@ -97,10 +88,7 @@ class SearchRepository {
       userPlaylists,
       (playlist) => playlist.id,
     );
-    if (_libraryRepository.isOfflineModeEnabled) {
-      return mergedLocalPlaylists;
-    }
-    final remotePlaylists = await _libraryRepository.searchPlaylists(
+    final remotePlaylists = await _musicDataRepository.searchPlaylists(
       sourceKey: 'netease',
       keyword: keyword,
     );
@@ -113,11 +101,8 @@ class SearchRepository {
 
   /// 搜索专辑。
   Future<List<AlbumEntity>> searchAlbums(String keyword) async {
-    final localAlbums = await _libraryRepository.searchLocalAlbums(keyword);
-    if (_libraryRepository.isOfflineModeEnabled) {
-      return localAlbums;
-    }
-    final remoteAlbums = await _libraryRepository.searchAlbums(
+    final localAlbums = await _musicDataRepository.searchLocalAlbums(keyword);
+    final remoteAlbums = await _musicDataRepository.searchAlbums(
       sourceKey: 'netease',
       keyword: keyword,
     );
@@ -126,11 +111,8 @@ class SearchRepository {
 
   /// 搜索歌手。
   Future<List<ArtistEntity>> searchArtists(String keyword) async {
-    final localArtists = await _libraryRepository.searchLocalArtists(keyword);
-    if (_libraryRepository.isOfflineModeEnabled) {
-      return localArtists;
-    }
-    final remoteArtists = await _libraryRepository.searchArtists(
+    final localArtists = await _musicDataRepository.searchLocalArtists(keyword);
+    final remoteArtists = await _musicDataRepository.searchArtists(
       sourceKey: 'netease',
       keyword: keyword,
     );

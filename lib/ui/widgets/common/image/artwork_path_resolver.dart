@@ -5,7 +5,7 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 /// 这里不下载图片，也不判断文件是否真实存在，只负责把页面手上已有的封面信息按
 /// “本地优先”的展示顺序整理成一个可传给图片组件的字符串。真正的远程图片落盘由
 /// `SimpleExtendedImage` / `LocalImageCacheRepository` 处理，歌曲封面资源入库由
-/// `LibraryRepository` / `LocalArtworkCacheRepository` 处理。
+/// `MusicDataRepository` / `LocalArtworkCacheRepository` 处理。
 class ArtworkPathResolver {
   const ArtworkPathResolver._();
 

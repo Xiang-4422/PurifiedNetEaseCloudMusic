@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:bujuan/core/storage/image_color_cache_store.dart';
+import 'package:bujuan/data/app_storage/image_color_cache_store.dart';
 import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/generated/assets.dart';
 import 'package:extended_image/extended_image.dart';
@@ -51,8 +51,9 @@ class ImageColorService {
       getLightColor: getLightColor,
     );
     if (diskCached != null) {
-      _remember(cacheKey, diskCached);
-      return diskCached;
+      final color = Color(diskCached);
+      _remember(cacheKey, color);
+      return color;
     }
 
     final pending = _pendingLoads[cacheKey];
@@ -69,7 +70,7 @@ class ImageColorService {
         await _cacheStore.save(
           imageUrl: normalizedUrl,
           getLightColor: getLightColor,
-          color: color,
+          argb32: color.toARGB32(),
         );
       }
       return color;
@@ -98,8 +99,9 @@ class ImageColorService {
       getLightColor: getLightColor,
     );
     if (diskCached != null) {
-      _remember(cacheKey, diskCached);
-      return diskCached;
+      final color = Color(diskCached);
+      _remember(cacheKey, color);
+      return color;
     }
     return null;
   }

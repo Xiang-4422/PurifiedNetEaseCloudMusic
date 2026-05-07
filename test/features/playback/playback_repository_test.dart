@@ -1,9 +1,9 @@
-import 'package:bujuan/data/local/playback_restore_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/playback_restore_data_source.dart';
 import 'package:bujuan/core/entities/playback_restore_state.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,7 +14,7 @@ void main() {
         saveDelay: const Duration(milliseconds: 30),
       );
       final repository = PlaybackRepository(
-        libraryRepository: _FakeLibraryRepository(),
+        musicDataRepository: _FakeMusicDataRepository(),
         playbackRestoreDataSource: dataSource,
       );
 
@@ -35,7 +35,7 @@ void main() {
     test('position-only update does not rewrite queue state', () async {
       final dataSource = _FakePlaybackRestoreDataSource();
       final repository = PlaybackRepository(
-        libraryRepository: _FakeLibraryRepository(),
+        musicDataRepository: _FakeMusicDataRepository(),
         playbackRestoreDataSource: dataSource,
       );
 
@@ -86,7 +86,7 @@ class _FakePlaybackRestoreDataSource implements PlaybackRestoreDataSource {
   }
 }
 
-class _FakeLibraryRepository implements LibraryRepository {
+class _FakeMusicDataRepository implements MusicDataRepository {
   @override
   Future<String?> getPlaybackUrlWithQuality(
     String trackId, {

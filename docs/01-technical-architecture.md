@@ -9,7 +9,7 @@
 
 当前目标是一个第三方网易云客户端形态的本地优先音乐应用：
 
-- 支持网易云远程数据、本地媒体库、离线缓存和无网络可用。
+- 支持网易云远程数据、本地媒体库、本地缓存和无网络下的已缓存内容可用。
 - UI 和播放器优先消费本地数据。
 - 网络请求主要承担刷新、补全和同步职责。
 
@@ -21,7 +21,7 @@
 lib/
   app/        应用启动、依赖装配和根路由
   core/       通用基础设施和跨 feature 共享实体，不包含业务 feature 逻辑
-  data/       本地 data source、DAO、网易云远程协议和 mapper
+  data/       music_data 音乐数据调度与 app_storage 应用级存储
   features/   页面、controller、repository、feature 内部 service
   ui/         页面、通用 widget、主题、布局工具和展示反馈服务
 ```
@@ -29,7 +29,7 @@ lib/
 普通业务链路默认如下：
 
 ```text
-Page/View + Controller -> Repository -> Local DB / Resource Index / Remote Source
+Page/View + Controller -> Repository -> MusicDataRepository / AppStorage
 ```
 
 保留的例外：
@@ -56,10 +56,10 @@ Page/View + Controller -> Repository -> Local DB / Resource Index / Remote Sourc
 - presentation 可以依赖 feature repository 和全局 `PlayerController`，但不能直接访问：
   - Drift DAO
   - Drift data source
-  - `data/netease` remote data source
+  - `data/music_data/sources/netease` remote data source
   - `NeteaseMusicApi`
 - `audio_service`、`just_audio`、`MediaItem` 只留在 playback 内部适配层。
-- 网易云协议细节只留在 `data/netease` 及其 mapper 内。
+- 网易云协议细节只留在 `data/music_data/sources/netease` 及其 mapper 内。
 - `CacheBox.instance` 不应继续扩散到业务层；新增轻量缓存需要通过明确 store 或 repository 包装。
 
 ## 4. 数据流
@@ -112,7 +112,6 @@ Page/View + Controller -> Repository -> Local DB / Resource Index / Remote Sourc
 
 - 登录态。
 - 设置项。
-- 离线模式开关。
 - 轻量 session 和视觉缓存，例如图片取色结果。
 
 禁止把业务事实写入 Hive，例如喜欢歌曲、用户歌单、歌单详情、云盘列表、播放恢复队列等。

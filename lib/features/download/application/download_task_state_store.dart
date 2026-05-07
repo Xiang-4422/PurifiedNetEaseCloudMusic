@@ -1,19 +1,19 @@
-import 'package:bujuan/data/local/download_task_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/download_task_data_source.dart';
 import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 下载任务状态存储，集中更新任务状态并回读曲目信息。
 class DownloadTaskStateStore {
   /// 创建下载任务状态存储。
   DownloadTaskStateStore({
     required DownloadTaskDataSource taskDataSource,
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
   })  : _taskDataSource = taskDataSource,
-        _libraryRepository = libraryRepository;
+        _musicDataRepository = musicDataRepository;
 
   final DownloadTaskDataSource _taskDataSource;
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
 
   /// 获取指定歌曲的下载任务。
   Future<DownloadTask?> getTask(String trackId) {
@@ -51,7 +51,7 @@ class DownloadTaskStateStore {
         temporaryPath: temporaryPath ?? currentTask?.temporaryPath,
       ),
     );
-    return _libraryRepository.getTrack(trackId);
+    return _musicDataRepository.getTrack(trackId);
   }
 
   /// 标记任务进入下载中状态。
@@ -70,7 +70,7 @@ class DownloadTaskStateStore {
         temporaryPath: temporaryPath ?? currentTask?.temporaryPath,
       ),
     );
-    return _libraryRepository.getTrack(trackId);
+    return _musicDataRepository.getTrack(trackId);
   }
 
   /// 标记任务失败。
@@ -86,6 +86,6 @@ class DownloadTaskStateStore {
         failureReason: reason,
       ),
     );
-    return _libraryRepository.getTrack(trackId);
+    return _musicDataRepository.getTrack(trackId);
   }
 }

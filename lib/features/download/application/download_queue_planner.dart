@@ -1,21 +1,21 @@
 import 'dart:async';
 
-import 'package:bujuan/data/local/download_task_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/download_task_data_source.dart';
 import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 下载队列规划器，负责过滤无需下载或已在下载中的曲目。
 class DownloadQueuePlanner {
   /// 创建下载队列规划器。
   DownloadQueuePlanner({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required DownloadTaskDataSource taskDataSource,
-  })  : _libraryRepository = libraryRepository,
+  })  : _musicDataRepository = musicDataRepository,
         _taskDataSource = taskDataSource;
 
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final DownloadTaskDataSource _taskDataSource;
 
   /// 将候选曲目加入下载队列。
@@ -31,7 +31,7 @@ class DownloadQueuePlanner {
     if (candidateIds.isEmpty) {
       return;
     }
-    final tracksWithResources = await _libraryRepository.getTracksWithResources(candidateIds);
+    final tracksWithResources = await _musicDataRepository.getTracksWithResources(candidateIds);
     final tracksById = {
       for (final item in tracksWithResources) item.track.id: item,
     };

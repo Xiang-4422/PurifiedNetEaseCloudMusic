@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/features/library/local_resource_index_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
+import 'package:bujuan/data/music_data/sources/local/local_resource_index_repository.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// 缓存分类。
@@ -72,19 +72,19 @@ class CacheAnalysisResult {
 class CacheAnalysisService {
   /// 创建缓存分析服务。
   const CacheAnalysisService({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required LocalResourceIndexRepository resourceIndexRepository,
-  })  : _libraryRepository = libraryRepository,
+  })  : _musicDataRepository = musicDataRepository,
         _resourceIndexRepository = resourceIndexRepository;
 
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final LocalResourceIndexRepository _resourceIndexRepository;
 
   /// 分析当前可安全清理的缓存。
   Future<CacheAnalysisResult> analyze() async {
     final supportDirectory = await getApplicationSupportDirectory();
     final temporaryDirectory = await getTemporaryDirectory();
-    final playbackEntries = await _libraryRepository.getLocalSongs(
+    final playbackEntries = await _musicDataRepository.getLocalSongs(
       origins: const {TrackResourceOrigin.playbackCache},
     );
     final categories = [
@@ -128,7 +128,7 @@ class CacheAnalysisService {
         );
         return;
       case CacheCategory.playback:
-        await _libraryRepository.removePlaybackCache();
+        await _musicDataRepository.removePlaybackCache();
         return;
       case CacheCategory.temporary:
         await _clearDirectory(await getTemporaryDirectory());

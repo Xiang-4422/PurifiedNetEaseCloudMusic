@@ -1,4 +1,4 @@
-import 'package:bujuan/core/storage/local_image_cache_repository.dart';
+import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
 
 /// 解析歌单封面取色使用的本地图片路径。
 class PlaylistArtworkColorService {

@@ -2,20 +2,20 @@ import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/core/entities/local_song_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/download_repository.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:flutter/foundation.dart';
 
 /// 本地歌曲资源列表控制器。
 class LocalSongListController {
   /// 创建本地歌曲列表控制器。
   LocalSongListController({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required DownloadRepository downloadRepository,
     this.origins,
-  })  : _libraryRepository = libraryRepository,
+  })  : _musicDataRepository = musicDataRepository,
         _downloadRepository = downloadRepository;
 
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final DownloadRepository _downloadRepository;
 
   /// 当前列表展示的本地资源来源过滤条件。
@@ -31,7 +31,7 @@ class LocalSongListController {
   Future<void> refresh() async {
     state.value = const LoadState.loading();
     try {
-      final entries = await _libraryRepository.getLocalSongs(origins: origins);
+      final entries = await _musicDataRepository.getLocalSongs(origins: origins);
       if (entries.isEmpty) {
         state.value = const LoadState.empty();
         return;

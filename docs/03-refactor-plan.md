@@ -69,13 +69,13 @@
 
 ### 5.2 目录归属项
 
-- 将 `common/constants/key.dart` 迁到 `core/storage/cache_keys.dart` 或等价位置。
+- 将 `common/constants/key.dart` 迁到 `data/app_storage/cache_keys.dart` 或等价位置。
 - 将 `common/constants/images.dart`、`common/constants/icon.dart` 迁到 `app/assets/` 或更明确的资源常量目录。
 - 逐步减少 `common`，禁止新增业务逻辑。
 
 ### 5.3 中风险项
 
-- 拆分 `lib/core/database/drift_database.dart` 的表定义，按 playback/library/user/download/cache 归类。
+- 拆分 `lib/data/music_data/sources/local/drift_database.dart` 的表定义，按 playback/library/user/download/cache 归类。
 - 继续缩小 `UserScopedDataSource` 和 `UserDao` 的接口宽度。
 - 梳理 `RequestRepository` 对网易云 SDK 内部扩展的依赖方向。
 - 评估 domain entity 内的 JSON 编解码是否需要迁到 data mapper。

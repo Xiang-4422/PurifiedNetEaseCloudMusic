@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/data/local/download_task_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/download_task_data_source.dart';
 import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/application/download_file_store.dart';

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:bujuan/data/local/download_task_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/download_task_data_source.dart';
 import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
@@ -10,8 +10,8 @@ import 'package:bujuan/features/download/application/download_recovery_service.d
 import 'package:bujuan/features/download/application/download_resource_writer.dart';
 import 'package:bujuan/features/download/application/download_task_state_store.dart';
 import 'package:bujuan/features/download/application/download_task_queue.dart';
-import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/features/library/local_resource_index_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
+import 'package:bujuan/data/music_data/sources/local/local_resource_index_repository.dart';
 import 'package:dio/dio.dart';
 
 part 'download_repository_workflow.dart';
@@ -20,7 +20,7 @@ part 'download_repository_workflow.dart';
 class DownloadRepository {
   /// 创建下载仓库。
   DownloadRepository({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required DownloadTaskDataSource taskDataSource,
     required LocalResourceIndexRepository resourceIndexRepository,
     Dio? dio,
@@ -30,7 +30,7 @@ class DownloadRepository {
     DownloadRecoveryService? recoveryService,
     DownloadQueuePlanner? queuePlanner,
     DownloadTaskStateStore? taskStateStore,
-  })  : _libraryRepository = libraryRepository,
+  })  : _musicDataRepository = musicDataRepository,
         _taskDataSource = taskDataSource,
         _taskQueue = taskQueue ?? DownloadTaskQueue(),
         _fileStore = fileStore ?? DownloadFileStore(dio: dio),
@@ -45,16 +45,16 @@ class DownloadRepository {
             ),
         _queuePlanner = queuePlanner ??
             DownloadQueuePlanner(
-              libraryRepository: libraryRepository,
+              musicDataRepository: musicDataRepository,
               taskDataSource: taskDataSource,
             ),
         _taskStateStore = taskStateStore ??
             DownloadTaskStateStore(
               taskDataSource: taskDataSource,
-              libraryRepository: libraryRepository,
+              musicDataRepository: musicDataRepository,
             );
 
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final DownloadTaskDataSource _taskDataSource;
   final DownloadTaskQueue _taskQueue;
   final DownloadFileStore _fileStore;
@@ -128,11 +128,11 @@ class DownloadRepository {
   /// 删除已下载曲目的本地资源。
   Future<void> removeDownloadedTrack(String trackId) async {
     await _taskStateStore.clearTask(trackId);
-    final trackWithResources = await _libraryRepository.getTrackWithResources(
+    final trackWithResources = await _musicDataRepository.getTrackWithResources(
       trackId,
     );
     final audioOrigin = trackWithResources?.resources.audio?.origin;
-    await _libraryRepository.removeLocalTrackResources(
+    await _musicDataRepository.removeLocalTrackResources(
       trackId,
       deleteSourceFiles: audioOrigin != TrackResourceOrigin.localImport,
     );
@@ -200,6 +200,6 @@ class DownloadRepository {
 
   /// 清理播放缓存资源。
   Future<void> clearPlaybackCache() {
-    return _libraryRepository.removePlaybackCache();
+    return _musicDataRepository.removePlaybackCache();
   }
 }

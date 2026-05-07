@@ -1,5 +1,5 @@
-import 'package:bujuan/core/storage/app_cache_keys.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
+import 'package:bujuan/data/app_storage/app_cache_keys.dart';
+import 'package:bujuan/data/app_storage/cache_box.dart';
 
 /// 登录态本地存储。
 class AuthStateStore {

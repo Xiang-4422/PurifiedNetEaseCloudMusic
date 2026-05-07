@@ -1,7 +1,7 @@
-import 'package:bujuan/data/local/app_cache_data_source.dart';
-import 'package:bujuan/data/local/local_library_data_source.dart';
-import 'package:bujuan/data/local/user_scoped_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_playlist_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/app_cache_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/local_library_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
@@ -10,7 +10,7 @@ import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -398,7 +398,7 @@ PlaylistRepository _playlistRepository({
   final tracks = <String, Track>{};
   return PlaylistRepository(
     appCacheDataSource: cacheDataSource ?? _InMemoryAppCacheDataSource(),
-    libraryRepository: _FakeLibraryRepository(tracks),
+    musicDataRepository: _FakeMusicDataRepository(tracks),
     localLibraryDataSource: _FakeLocalLibraryDataSource(tracks),
     remoteDataSource: remoteDataSource ?? _FakePlaylistRemoteDataSource(totalTracks: totalTracks),
     userScopedDataSource: _FakeUserScopedDataSource(),
@@ -485,8 +485,8 @@ class _FakePlaylistRemoteDataSource implements NeteasePlaylistRemoteDataSource {
   }
 }
 
-class _FakeLibraryRepository implements LibraryRepository {
-  _FakeLibraryRepository(this._tracks);
+class _FakeMusicDataRepository implements MusicDataRepository {
+  _FakeMusicDataRepository(this._tracks);
 
   final Map<String, Track> _tracks;
 

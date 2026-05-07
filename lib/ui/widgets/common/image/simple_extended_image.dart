@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:bujuan/core/storage/local_image_cache_repository.dart';
 import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/generated/assets.dart';
+import 'package:bujuan/ui/services/local_image_cache_service.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 
@@ -66,15 +66,13 @@ class SimpleExtendedImage extends StatefulWidget {
 
 /// SimpleExtendedImage 的状态对象，负责解析本地图片缓存路径。
 class SimpleExtendedImageState extends State<SimpleExtendedImage> {
-  static final LocalImageCacheRepository _imageCacheRepository = LocalImageCacheRepository();
-
   String _resolvedPath = '';
   int _resolveVersion = 0;
 
   @override
   void initState() {
     super.initState();
-    _resolvedPath = _imageCacheRepository.peekResolvedImagePath(widget.url.trim()) ?? '';
+    _resolvedPath = LocalImageCacheService.peekResolvedImagePath(widget.url.trim()) ?? '';
     _resolveImagePath();
   }
 
@@ -82,7 +80,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   void didUpdateWidget(covariant SimpleExtendedImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
-      _resolvedPath = _imageCacheRepository.peekResolvedImagePath(widget.url.trim()) ?? '';
+      _resolvedPath = LocalImageCacheService.peekResolvedImagePath(widget.url.trim()) ?? '';
       _resolveImagePath();
     }
   }
@@ -157,7 +155,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
       return;
     }
 
-    final resolvedPath = await _imageCacheRepository.resolveImagePath(rawPath).catchError((_) => '');
+    final resolvedPath = await LocalImageCacheService.resolveImagePath(rawPath).catchError((_) => '');
     if (!mounted || resolveVersion != _resolveVersion) {
       return;
     }

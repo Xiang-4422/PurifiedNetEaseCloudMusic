@@ -11,7 +11,7 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
       await clearCancelledTask(trackId);
       return null;
     }
-    final trackWithResources = await _libraryRepository.getTrackWithResources(
+    final trackWithResources = await _musicDataRepository.getTrackWithResources(
       trackId,
     );
     if (trackWithResources == null) {
@@ -42,7 +42,7 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
     }
 
     try {
-      final playbackUrl = await _libraryRepository.getPlaybackUrlWithQuality(
+      final playbackUrl = await _musicDataRepository.getPlaybackUrlWithQuality(
         trackId,
         qualityLevel: preferHighQuality ? 'lossless' : 'exhigh',
       );
@@ -82,7 +82,7 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
       final lyricsPath = await _fileStore.writeLyricsFile(
         trackId,
         directories.lyrics,
-        await _libraryRepository.getLyrics(trackId),
+        await _musicDataRepository.getLyrics(trackId),
       );
 
       await _resourceWriter.saveManagedDownloadResources(
@@ -111,7 +111,7 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
     String trackId, {
     required bool preferHighQuality,
   }) async {
-    final trackWithResources = await _libraryRepository.getTrackWithResources(
+    final trackWithResources = await _musicDataRepository.getTrackWithResources(
       trackId,
     );
     final track = trackWithResources?.track;
@@ -123,7 +123,7 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
       return track;
     }
     try {
-      final playbackUrl = await _libraryRepository.getPlaybackUrlWithQuality(
+      final playbackUrl = await _musicDataRepository.getPlaybackUrlWithQuality(
         trackId,
         qualityLevel: preferHighQuality ? 'lossless' : 'exhigh',
       );
@@ -144,7 +144,7 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
       final lyricsPath = await _fileStore.writeLyricsFile(
         trackId,
         directories.lyrics,
-        await _libraryRepository.getLyrics(trackId),
+        await _musicDataRepository.getLyrics(trackId),
       );
       await _resourceWriter.savePlaybackCacheResources(
         trackId,

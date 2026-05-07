@@ -1,17 +1,17 @@
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/core/diagnostics/playlist_performance_logger.dart';
-import 'package:bujuan/data/local/app_cache_data_source.dart';
-import 'package:bujuan/data/local/local_library_data_source.dart';
-import 'package:bujuan/data/local/user_scoped_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_playlist_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/app_cache_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/local_library_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/playlist_track_ref.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 歌单详情数据来源。
 enum PlaylistDetailSource {
@@ -140,18 +140,18 @@ class PlaylistRepository {
   /// 创建歌单仓库。
   PlaylistRepository({
     required AppCacheDataSource appCacheDataSource,
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required LocalLibraryDataSource localLibraryDataSource,
     required NeteasePlaylistRemoteDataSource remoteDataSource,
     required UserScopedDataSource userScopedDataSource,
   })  : _appCacheDataSource = appCacheDataSource,
-        _libraryRepository = libraryRepository,
+        _musicDataRepository = musicDataRepository,
         _localLibraryDataSource = localLibraryDataSource,
         _remoteDataSource = remoteDataSource,
         _userScopedDataSource = userScopedDataSource;
 
   final AppCacheDataSource _appCacheDataSource;
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final LocalLibraryDataSource _localLibraryDataSource;
   final NeteasePlaylistRemoteDataSource _remoteDataSource;
   final UserScopedDataSource _userScopedDataSource;
@@ -834,7 +834,7 @@ class PlaylistRepository {
       return const [];
     }
     final loadStopwatch = PlaylistPerformanceLogger.start();
-    final tracks = await _libraryRepository.getTracksWithResources(trackIds);
+    final tracks = await _musicDataRepository.getTracksWithResources(trackIds);
     PlaylistPerformanceLogger.elapsed(
       'repo.loadLocalSongs.getTracksWithResources',
       loadStopwatch,

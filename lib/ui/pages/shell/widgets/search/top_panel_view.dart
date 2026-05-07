@@ -7,7 +7,6 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
-import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
@@ -42,11 +41,11 @@ class _TopPanelViewState extends State<TopPanelView> {
   @override
   void initState() {
     super.initState();
-    if (!SettingsController.to.isOfflineModeEnabled.value && controller.topPanelFullyClosed.isFalse) {
+    if (controller.topPanelFullyClosed.isFalse) {
       TopPanelView._searchPanelController.loadInitial();
     }
     _panelOpenWorker = ever<bool>(controller.topPanelFullyClosed, (closed) {
-      if (closed || SettingsController.to.isOfflineModeEnabled.value) {
+      if (closed) {
         return;
       }
       TopPanelView._searchPanelController.loadInitial();
@@ -130,10 +129,9 @@ class _TopPanelViewState extends State<TopPanelView> {
                             ],
                           )),
                       child: _buildTopPanelCard(
-                          context,
-                          Obx(
-                            () => SettingsController.to.isOfflineModeEnabled.value ? _buildOfflineSearchHint(context) : _buildHotKeywordList(),
-                          )).marginOnly(top: AppDimensions.paddingSmall),
+                        context,
+                        _buildHotKeywordList(),
+                      ).marginOnly(top: AppDimensions.paddingSmall),
                     )),
               ),
               Container(
@@ -246,19 +244,6 @@ class _TopPanelViewState extends State<TopPanelView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
       child: child,
-    );
-  }
-
-  Widget _buildOfflineSearchHint(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        UniversalListTile(
-          titleString: '离线模式已开启',
-          subTitleString: '当前仅搜索本地已经存在的歌曲、歌单、专辑和歌手',
-          onTap: () {},
-        ),
-      ],
     );
   }
 

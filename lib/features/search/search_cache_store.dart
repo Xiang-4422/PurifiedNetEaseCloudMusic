@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:bujuan/core/storage/app_cache_keys.dart';
-import 'package:bujuan/data/local/app_cache_data_source.dart';
+import 'package:bujuan/data/app_storage/app_cache_keys.dart';
+import 'package:bujuan/data/music_data/sources/local/app_cache_data_source.dart';
 
 /// 搜索缓存存储。
 class SearchCacheStore {

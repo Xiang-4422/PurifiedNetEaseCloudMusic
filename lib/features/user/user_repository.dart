@@ -2,28 +2,28 @@ import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/network/operation_result.dart';
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
-import 'package:bujuan/data/local/user_scoped_data_source.dart';
-import 'package:bujuan/data/netease/remote/netease_user_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_user_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_profile_data.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 聚合用户远程数据、本地用户数据和曲库缓存的仓库。
 class UserRepository {
   /// 创建用户仓库。
   UserRepository({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required NeteaseUserRemoteDataSource remoteDataSource,
     required UserScopedDataSource userScopedDataSource,
-  })  : _libraryRepository = libraryRepository,
+  })  : _musicDataRepository = musicDataRepository,
         _remoteDataSource = remoteDataSource,
         _userScopedDataSource = userScopedDataSource;
 
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final NeteaseUserRemoteDataSource _remoteDataSource;
   final UserScopedDataSource _userScopedDataSource;
 
@@ -157,7 +157,7 @@ class UserRepository {
     required List<int> likedSongIds,
   }) async {
     final tracks = await _remoteDataSource.fetchTodayRecommendSongs();
-    await _libraryRepository.saveTracks(tracks);
+    await _musicDataRepository.saveTracks(tracks);
     await _userScopedDataSource.replaceTrackList(
       userId,
       UserTrackListKind.dailyRecommend,
@@ -172,7 +172,7 @@ class UserRepository {
     required List<int> likedSongIds,
   }) async {
     final tracks = await _remoteDataSource.fetchFmSongs();
-    await _libraryRepository.saveTracks(tracks);
+    await _musicDataRepository.saveTracks(tracks);
     await _userScopedDataSource.replaceTrackList(
       userId,
       UserTrackListKind.fm,
@@ -197,7 +197,7 @@ class UserRepository {
       randomLikedSongId: randomLikedSongId,
       fromPlayAll: fromPlayAll,
     );
-    await _libraryRepository.saveTracks(tracks);
+    await _musicDataRepository.saveTracks(tracks);
     return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
@@ -209,7 +209,7 @@ class UserRepository {
     final tracks = await _remoteDataSource.fetchSongsByIds(
       ids: ids,
     );
-    await _libraryRepository.saveTracks(tracks);
+    await _musicDataRepository.saveTracks(tracks);
     return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
@@ -219,7 +219,7 @@ class UserRepository {
     required List<int> likedSongIds,
   }) async {
     final normalizedIds = ids.map(_toTrackId).toList();
-    final tracks = await _libraryRepository.getTracksWithResources(normalizedIds);
+    final tracks = await _musicDataRepository.getTracksWithResources(normalizedIds);
     if (tracks.isEmpty) {
       return const [];
     }
@@ -238,7 +238,7 @@ class UserRepository {
 
   /// 从本地曲库读取歌曲封面地址。
   Future<String> loadCachedSongAlbumUrl(String songId) async {
-    final artworkSource = await _libraryRepository.getArtworkSource(
+    final artworkSource = await _musicDataRepository.getArtworkSource(
       _toTrackId(songId),
     );
     if (artworkSource.isEmpty) {
@@ -256,7 +256,7 @@ class UserRepository {
     final result = await _remoteDataSource.fetchSongsByIds(
       ids: [songId],
     );
-    await _libraryRepository.saveTracks(result);
+    await _musicDataRepository.saveTracks(result);
     return loadCachedSongAlbumUrl(songId);
   }
 
@@ -313,7 +313,7 @@ class UserRepository {
     if (tracks.isEmpty) {
       return const [];
     }
-    final mergedTracks = await _libraryRepository.getTracksByIds(
+    final mergedTracks = await _musicDataRepository.getTracksByIds(
       tracks.map((track) => track.id),
     );
     return PlaybackQueueItemMapper.fromTrackList(

@@ -123,10 +123,91 @@ void main() {
       );
     });
 
+    test('data directories use music data and app storage boundaries', () {
+      const expectedDataDirectories = [
+        'lib/data/app_storage',
+        'lib/data/music_data/sources/local',
+        'lib/data/music_data/sources/netease',
+      ];
+      const removedDataPaths = [
+        'lib/core/database',
+        'lib/core/storage',
+        'lib/data/local',
+        'lib/data/netease',
+        'lib/features/library',
+      ];
+      final missingExpected = expectedDataDirectories.where((path) => !Directory('${projectRoot.path}/$path').existsSync()).toList();
+      final existingRemoved = removedDataPaths.where((path) => Directory('${projectRoot.path}/$path').existsSync()).toList();
+      final musicDataRoot = Directory('${projectRoot.path}/lib/data/music_data');
+      final unexpectedMusicDataRootEntries =
+          musicDataRoot.listSync().map((entity) => entity.uri.pathSegments.where((segment) => segment.isNotEmpty).last).where((name) => !const {'music_data_repository.dart', 'sources'}.contains(name)).toList();
+
+      expect(
+        missingExpected,
+        isEmpty,
+        reason: '数据层只保留 app_storage 与 music_data/sources/local|netease 两条主线。',
+      );
+      expect(
+        existingRemoved,
+        isEmpty,
+        reason: 'database/storage/local/netease/library 旧目录不能继续和新 data 边界并存。',
+      );
+      expect(
+        unexpectedMusicDataRootEntries,
+        isEmpty,
+        reason: 'music_data 根目录只放统一入口 music_data_repository.dart 和 sources 目录。',
+      );
+    });
+
+    test('offline mode is removed from runtime code', () {
+      final violations = _dartFiles(libDirectory)
+          .where(
+            (file) => _containsAny(file, const [
+              'offlineModeSp',
+              'isOfflineModeEnabled',
+              'saveOfflineModeEnabled',
+              'toggleOfflineMode',
+              '离线模式',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '离线模式已从产品和数据调度策略中移除，不能保留运行时代码入口。',
+      );
+    });
+
+    test('feature controllers do not import storage or data source details', () {
+      final controllerFiles = _dartFiles(Directory('${projectRoot.path}/lib/features')).where((file) => _relativePath(file).endsWith('_controller.dart'));
+      final violations = controllerFiles
+          .where(
+            (file) => _containsAny(file, const [
+              'package:bujuan/data/music_data/sources/',
+              'package:bujuan/data/app_storage/cache_box.dart',
+              'package:hive/',
+              'package:hive_flutter/',
+              '/dao/',
+              '_data_source.dart',
+              'remote_data_source.dart',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'Controller 只能依赖页面状态、feature repository 或统一数据入口，不能直接触碰 source、DAO、Hive/CacheBox。',
+      );
+    });
+
     test('remote services and repositories are constructed in composition root', () {
       final remoteFiles = [
-        ..._dartFiles(Directory('${projectRoot.path}/lib/data/netease/remote')),
-        File('${projectRoot.path}/lib/data/netease/netease_music_source.dart'),
+        ..._dartFiles(Directory('${projectRoot.path}/lib/data/music_data/sources/netease/remote')),
+        File('${projectRoot.path}/lib/data/music_data/sources/netease/netease_music_source.dart'),
       ];
       final remoteViolations = remoteFiles
           .where(
@@ -304,21 +385,21 @@ void main() {
     });
 
     test('core does not depend on netease data implementation', () {
-      final violations = _dartFiles(Directory('${projectRoot.path}/lib/core')).where((file) => _contains(file, 'package:bujuan/data/netease/')).map(_relativePath).toList();
+      final violations = _dartFiles(Directory('${projectRoot.path}/lib/core')).where((file) => _contains(file, 'package:bujuan/data/music_data/sources/netease/')).map(_relativePath).toList();
 
       expect(
         violations,
         isEmpty,
-        reason: 'core 是跨数据源基础层，不能反向依赖网易云实现；请求细节应留在 data/netease/api/client。',
+        reason: 'core 是跨数据源基础层，不能反向依赖网易云实现；请求细节应留在 data/music_data/sources/netease/api/client。',
       );
     });
 
     test('netease remote data sources depend on api facade only', () {
-      final remoteFiles = _dartFiles(Directory('${projectRoot.path}/lib/data/netease/remote'));
+      final remoteFiles = _dartFiles(Directory('${projectRoot.path}/lib/data/music_data/sources/netease/remote'));
       final violations = remoteFiles
           .where(
             (file) => _containsAny(file, const [
-              'package:bujuan/data/netease/api/client/',
+              'package:bujuan/data/music_data/sources/netease/api/client/',
               'DioMetaData',
               'DioProxy',
               'Https.',
@@ -338,10 +419,10 @@ void main() {
     test('netease endpoint and model files do not import public api barrel', () {
       final sdkFiles = [
         ..._dartFiles(
-          Directory('${projectRoot.path}/lib/data/netease/api/endpoints'),
+          Directory('${projectRoot.path}/lib/data/music_data/sources/netease/api/endpoints'),
         ),
         ..._dartFiles(
-          Directory('${projectRoot.path}/lib/data/netease/api/models'),
+          Directory('${projectRoot.path}/lib/data/music_data/sources/netease/api/models'),
         ),
       ];
       final violations = sdkFiles.where((file) => _contains(file, 'netease_music_api.dart')).map(_relativePath).toList();
@@ -477,8 +558,8 @@ void main() {
           .expand(_dartFiles)
           .where(
             (file) => _containsAny(file, const [
-              'package:bujuan/data/netease/remote/',
-              'package:bujuan/data/local/',
+              'package:bujuan/data/music_data/sources/netease/remote/',
+              'package:bujuan/data/music_data/sources/local/',
               '/dao/',
               '_data_source.dart',
               'drift_',
@@ -570,7 +651,8 @@ void main() {
           })
           .where(
             (file) => _containsAny(file, const [
-              'package:bujuan/data/',
+              'package:bujuan/data/music_data/sources/',
+              'package:bujuan/data/app_storage/',
               '_data_source.dart',
             ]),
           )
@@ -877,8 +959,8 @@ void main() {
       final violations = <String>[
         if (_containsAny(shellController, const [
           'features/settings/settings_controller.dart',
-          '/data/local/',
-          '/data/netease/',
+          '/data/music_data/sources/local/',
+          '/data/music_data/sources/netease/',
         ]))
           _relativePath(shellController),
       ];
@@ -937,12 +1019,12 @@ void main() {
 
     test('drift dao layer exists', () {
       const expectedFiles = [
-        'lib/data/local/dao/track_dao.dart',
-        'lib/data/local/dao/playlist_dao.dart',
-        'lib/data/local/dao/user_dao.dart',
-        'lib/data/local/dao/download_task_dao.dart',
-        'lib/data/local/dao/resource_dao.dart',
-        'lib/data/local/dao/cache_dao.dart',
+        'lib/data/music_data/sources/local/dao/track_dao.dart',
+        'lib/data/music_data/sources/local/dao/playlist_dao.dart',
+        'lib/data/music_data/sources/local/dao/user_dao.dart',
+        'lib/data/music_data/sources/local/dao/download_task_dao.dart',
+        'lib/data/music_data/sources/local/dao/resource_dao.dart',
+        'lib/data/music_data/sources/local/dao/cache_dao.dart',
       ];
       final missing = expectedFiles.where((path) => !File('${projectRoot.path}/$path').existsSync()).toList();
 
@@ -955,28 +1037,28 @@ void main() {
 
     test('drift dao layer owns real data access methods', () {
       const expectedMethods = {
-        'lib/data/local/dao/cache_dao.dart': ['load(', 'save(', 'delete('],
-        'lib/data/local/dao/download_task_dao.dart': [
+        'lib/data/music_data/sources/local/dao/cache_dao.dart': ['load(', 'save(', 'delete('],
+        'lib/data/music_data/sources/local/dao/download_task_dao.dart': [
           'getTask(',
           'saveTask(',
           'watchTasks(',
         ],
-        'lib/data/local/dao/resource_dao.dart': [
+        'lib/data/music_data/sources/local/dao/resource_dao.dart': [
           'getResource(',
           'saveResource(',
           'listAudioResources(',
         ],
-        'lib/data/local/dao/track_dao.dart': [
+        'lib/data/music_data/sources/local/dao/track_dao.dart': [
           'getTrack(',
           'saveTracks(',
           'getLyrics(',
         ],
-        'lib/data/local/dao/playlist_dao.dart': [
+        'lib/data/music_data/sources/local/dao/playlist_dao.dart': [
           'getPlaylist(',
           'savePlaylists(',
           'loadTrackRefsByPlaylistIds(',
         ],
-        'lib/data/local/dao/user_dao.dart': [
+        'lib/data/music_data/sources/local/dao/user_dao.dart': [
           'loadProfile(',
           'saveProfile(',
           'loadTrackIds(',
@@ -1015,8 +1097,8 @@ void main() {
         'lib/features/playback/player_controller.dart': 450,
         'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart': 900,
         'lib/features/download/download_repository.dart': 360,
-        'lib/data/local/drift_local_library_data_source.dart': 360,
-        'lib/data/local/drift_user_scoped_data_source.dart': 500,
+        'lib/data/music_data/sources/local/drift_local_library_data_source.dart': 360,
+        'lib/data/music_data/sources/local/drift_user_scoped_data_source.dart': 500,
       };
       final risks = <String>[];
       for (final entry in watchedFiles.entries) {

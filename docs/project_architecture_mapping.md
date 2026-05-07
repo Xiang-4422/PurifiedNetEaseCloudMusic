@@ -15,8 +15,8 @@
 | `layout/` | `lib/ui/layout/` | 跨页面复用的响应式布局度量。 |
 | `models/` | `lib/core/entities/` | 跨层传递的领域数据模型，保持纯 Dart。 |
 | `controllers/` | `lib/features/*/*_controller.dart` | 页面状态、页面流程和 UI 命令入口。 |
-| `repositories/` | `lib/features/*/*_repository.dart` | 业务数据聚合、缓存策略、领域对象转换和跨 service 编排。 |
-| `services/` | `lib/data/*`、`lib/core/*`、`lib/features/*/application/*`、`lib/ui/services/*` | 网络、本地存储、SDK、播放、下载等底层能力、复杂业务应用服务，以及 Toast/Dialog/取色等展示服务。 |
+| `repositories/` | `lib/features/*/*_repository.dart`、`lib/data/music_data/music_data_repository.dart` | 业务数据聚合、缓存策略、领域对象转换和跨 service 编排。 |
+| `services/` | `lib/data/app_storage/*`、`lib/data/music_data/sources/*`、`lib/core/*`、`lib/features/*/application/*`、`lib/ui/services/*` | 网络、本地存储、SDK、播放、下载等底层能力、复杂业务应用服务，以及 Toast/Dialog/取色等展示服务。 |
 | `utils/constants/` | `lib/core/*`、`lib/ui/theme/*`、`lib/generated/assets.dart` | 通用工具、平台能力、缓存 key、资源常量和视觉常量。 |
 
 ## 调用方向
@@ -27,7 +27,7 @@
 ui page/widget
   -> feature controller
     -> feature repository / feature application service
-      -> data source / platform service / SDK facade
+      -> MusicDataRepository / data source / platform service / SDK facade
         -> DTO / database / network client
 ```
 
@@ -37,7 +37,8 @@ ui page/widget
 - `repository` 不依赖 Controller、Widget、Toast、Dialog、Navigator 或 GetX 容器。
 - `controller` 不直接访问 Dio、Hive、CacheBox、Drift DAO、remote data source 或平台 SDK。
 - `ui/widgets/common` 只保留通用展示组件，不能读取 feature controller/repository。
-- 网易云 DTO、API client 和 endpoint 细节只能留在 `lib/data/netease/api` 与 `lib/data/netease/remote`。
+- 网易云 DTO、API client 和 endpoint 细节只能留在 `lib/data/music_data/sources/netease/api` 与 `lib/data/music_data/sources/netease/remote`。
+- `lib/data/music_data/` 根目录只保留统一入口和 `sources/`，本地与网易云实现分别放入 `sources/local` 和 `sources/netease`。
 
 ## 组件归属
 

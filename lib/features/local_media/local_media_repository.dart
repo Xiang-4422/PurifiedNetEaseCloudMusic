@@ -1,18 +1,18 @@
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/features/library/local_resource_index_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
+import 'package:bujuan/data/music_data/sources/local/local_resource_index_repository.dart';
 
 /// 负责把本地文件导入资料库并登记本地资源索引。
 class LocalMediaRepository {
   /// 创建本地媒体仓库。
   LocalMediaRepository({
-    required LibraryRepository libraryRepository,
+    required MusicDataRepository musicDataRepository,
     required LocalResourceIndexRepository resourceIndexRepository,
-  })  : _libraryRepository = libraryRepository,
+  })  : _musicDataRepository = musicDataRepository,
         _resourceIndexRepository = resourceIndexRepository;
 
-  final LibraryRepository _libraryRepository;
+  final MusicDataRepository _musicDataRepository;
   final LocalResourceIndexRepository _resourceIndexRepository;
 
   /// 导入单个本地音频文件，并可同时登记封面和歌词资源。
@@ -39,7 +39,7 @@ class LocalMediaRepository {
       availability: TrackAvailability.localOnly,
       metadata: metadata,
     );
-    await _libraryRepository.saveTrack(track);
+    await _musicDataRepository.saveTrack(track);
     await _resourceIndexRepository.saveAudioResource(
       track.id,
       path: filePath,
@@ -80,7 +80,7 @@ class LocalMediaRepository {
           ),
         )
         .toList();
-    await _libraryRepository.saveTracks(importedTracks);
+    await _musicDataRepository.saveTracks(importedTracks);
     for (var i = 0; i < importedTracks.length; i++) {
       final track = importedTracks[i];
       final localPath = tracks[i].filePath;

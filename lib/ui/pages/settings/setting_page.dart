@@ -247,15 +247,6 @@ class _SettingPageViewState extends State<SettingPageView> {
             ),
           ),
         ),
-        _buildToggleTile(
-          context,
-          title: '离线模式',
-          subtitle: '仅使用本地已存在的数据与资源',
-          isEnabled: () => SettingsController.to.isOfflineModeEnabled.value,
-          onTap: () {
-            SettingsController.to.toggleOfflineMode();
-          },
-        ),
       ],
     );
   }

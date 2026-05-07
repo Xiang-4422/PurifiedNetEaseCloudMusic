@@ -4,7 +4,7 @@ import 'package:bujuan/core/entities/local_song_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/download/local_song_list_controller.dart';
-import 'package:bujuan/features/library/library_repository.dart';
+import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/feedback/load_state_view.dart';
 import 'package:flutter/material.dart';
@@ -49,7 +49,7 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> with Single
     Set<TrackResourceOrigin>? origins,
   }) {
     return LocalSongListController(
-      libraryRepository: Get.find<LibraryRepository>(),
+      musicDataRepository: Get.find<MusicDataRepository>(),
       downloadRepository: Get.find<DownloadRepository>(),
       origins: origins,
     );

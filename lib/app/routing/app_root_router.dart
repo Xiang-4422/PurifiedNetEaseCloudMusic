@@ -3,7 +3,7 @@ import 'package:bujuan/app/bootstrap/app_binding.dart';
 import 'package:bujuan/app/theme/app_colors.dart';
 import 'package:bujuan/features/auth/auth_state_store.dart';
 import 'package:bujuan/routes/router.gr.dart';
-import 'package:bujuan/widget/scroll_helpers.dart';
+import 'package:bujuan/ui/widgets/common/layout/scroll_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/playback/presentation/lyric_scroll_position.dart';
+import 'package:bujuan/features/playback/lyric_scroll_position.dart';
 import 'package:bujuan/features/shell/album_page_change_coordinator.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:bujuan/widget/custom_zoom_drawer/src/drawer_controller.dart';
+import 'package:bujuan/ui/widgets/shell/custom_zoom_drawer/flutter_zoom_drawer.dart';
 
 /// 统一承接首页壳层、抽屉、顶部搜索面板和底部播放面板的 UI 协调。
 class ShellController extends SuperController with GetTickerProviderStateMixin, WidgetsBindingObserver {

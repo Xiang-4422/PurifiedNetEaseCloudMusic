@@ -1,15 +1,15 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/features/album/presentation/album_page_view.dart';
-import 'package:bujuan/features/artist/presentation/artist_page_view.dart';
-import 'package:bujuan/features/auth/presentation/login_page_view.dart';
-import 'package:bujuan/features/cloud/presentation/cloud_drive_view.dart';
-import 'package:bujuan/features/playlist/presentation/playlist_page_view.dart';
-import 'package:bujuan/features/radio/presentation/my_radio_view.dart';
-import 'package:bujuan/features/radio/presentation/radio_details_view.dart';
-import 'package:bujuan/features/shell/presentation/app_body_page_view.dart';
-import 'package:bujuan/features/shell/presentation/app_home_page_view.dart';
-import 'package:bujuan/features/user/presentation/today_page_view.dart';
-import 'package:bujuan/features/user/presentation/user_setting_view.dart';
+import 'package:bujuan/ui/pages/album/album_page_view.dart';
+import 'package:bujuan/ui/pages/artist/artist_page_view.dart';
+import 'package:bujuan/ui/pages/auth/login_page_view.dart';
+import 'package:bujuan/ui/pages/cloud/cloud_drive_view.dart';
+import 'package:bujuan/ui/pages/playlist/playlist_page_view.dart';
+import 'package:bujuan/ui/pages/radio/my_radio_view.dart';
+import 'package:bujuan/ui/pages/radio/radio_details_view.dart';
+import 'package:bujuan/ui/pages/shell/app_body_page_view.dart';
+import 'package:bujuan/ui/pages/shell/app_home_page_view.dart';
+import 'package:bujuan/ui/pages/user/today_page_view.dart';
+import 'package:bujuan/ui/pages/user/user_setting_view.dart';
 
 /// 应用路由路径常量。
 abstract class Routes {

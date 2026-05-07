@@ -14,17 +14,17 @@
 import 'package:auto_route/auto_route.dart' as _i12;
 import 'package:flutter/material.dart' as _i13;
 
-import '../features/album/presentation/album_page_view.dart' as _i7;
-import '../features/artist/presentation/artist_page_view.dart' as _i8;
-import '../features/auth/presentation/login_page_view.dart' as _i1;
-import '../features/cloud/presentation/cloud_drive_view.dart' as _i11;
-import '../features/playlist/presentation/playlist_page_view.dart' as _i6;
-import '../features/radio/presentation/my_radio_view.dart' as _i9;
-import '../features/radio/presentation/radio_details_view.dart' as _i10;
-import '../features/shell/presentation/app_body_page_view.dart' as _i4;
-import '../features/shell/presentation/app_home_page_view.dart' as _i3;
-import '../features/user/presentation/today_page_view.dart' as _i5;
-import '../features/user/presentation/user_setting_view.dart' as _i2;
+import '../ui/pages/album/album_page_view.dart' as _i7;
+import '../ui/pages/artist/artist_page_view.dart' as _i8;
+import '../ui/pages/auth/login_page_view.dart' as _i1;
+import '../ui/pages/cloud/cloud_drive_view.dart' as _i11;
+import '../ui/pages/playlist/playlist_page_view.dart' as _i6;
+import '../ui/pages/radio/my_radio_view.dart' as _i9;
+import '../ui/pages/radio/radio_details_view.dart' as _i10;
+import '../ui/pages/shell/app_body_page_view.dart' as _i4;
+import '../ui/pages/shell/app_home_page_view.dart' as _i3;
+import '../ui/pages/user/today_page_view.dart' as _i5;
+import '../ui/pages/user/user_setting_view.dart' as _i2;
 
 class RootRouter extends _i12.RootStackRouter {
   RootRouter([_i13.GlobalKey<_i13.NavigatorState>? navigatorKey]) : super(navigatorKey);

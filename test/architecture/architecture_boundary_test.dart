@@ -7,11 +7,26 @@ void main() {
   final libDirectory = Directory('${projectRoot.path}/lib');
 
   group('architecture boundary', () {
-    test('global compatibility entry points stay removed', () {
+    test('root UI entry points stay isolated', () {
       expect(
         Directory('${projectRoot.path}/lib/pages').existsSync(),
         isFalse,
-        reason: '页面入口必须按 feature 内聚，不能恢复 lib/pages 双轨目录。',
+        reason: '页面入口统一放在 lib/ui/pages，不能恢复 lib/pages 双轨目录。',
+      );
+      expect(
+        Directory('${projectRoot.path}/lib/widgets').existsSync(),
+        isFalse,
+        reason: 'UI 组件统一放在 lib/ui/widgets，不能恢复 lib/widgets 双轨目录。',
+      );
+      expect(
+        Directory('${projectRoot.path}/lib/ui/pages').existsSync(),
+        isTrue,
+        reason: '页面入口必须统一放在 lib/ui/pages。',
+      );
+      expect(
+        Directory('${projectRoot.path}/lib/ui/widgets').existsSync(),
+        isTrue,
+        reason: 'UI 组件必须统一放在 lib/ui/widgets。',
       );
 
       final violations = _dartFiles(libDirectory)
@@ -277,9 +292,13 @@ void main() {
       );
     });
 
-    test('presentation does not import data sources directly', () {
-      final violations = _dartFiles(libDirectory)
-          .where((file) => _relativePath(file).contains('/presentation/'))
+    test('UI does not import data sources directly', () {
+      final uiDirectories = [
+        Directory('${projectRoot.path}/lib/ui/pages'),
+        Directory('${projectRoot.path}/lib/ui/widgets'),
+      ];
+      final violations = uiDirectories
+          .expand(_dartFiles)
           .where(
             (file) => _containsAny(file, const [
               'package:bujuan/data/netease/remote/',
@@ -295,33 +314,17 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: 'presentation 可以依赖 feature repository，但不能直连 remote/data source/DAO/Drift 细节。',
+        reason: 'UI 可以依赖 feature repository/controller，但不能直连 remote/data source/DAO/Drift 细节。',
       );
     });
 
-    test('presentation does not import other feature presentation directly', () {
-      final violations = <String>[];
-      for (final file in _dartFiles(libDirectory)) {
-        final path = _relativePath(file);
-        if (!path.contains('/presentation/')) {
-          continue;
-        }
-        final ownerFeature = _featureName(path);
-        for (final import in _featurePresentationImports(file)) {
-          if (_isAllowedPresentationFeatureImport(
-            ownerFeature: ownerFeature,
-            importedFeature: import,
-          )) {
-            continue;
-          }
-          violations.add('$path -> features/$import/presentation');
-        }
-      }
+    test('features do not keep presentation dart files', () {
+      final violations = _dartFiles(Directory('${projectRoot.path}/lib/features')).where((file) => _relativePath(file).contains('/presentation/')).map(_relativePath).toList();
 
       expect(
         violations,
         isEmpty,
-        reason: 'presentation 不能横向直连其他 feature 页面，跨页面跳转应走 route 或明确 wrapper。',
+        reason: 'UI 页面和组件应统一移动到 lib/ui/pages 与 lib/ui/widgets，features 只保留功能代码。',
       );
     });
 
@@ -343,20 +346,25 @@ void main() {
       );
     });
 
-    test('feature application layer does not import presentation', () {
+    test('feature application layer does not import UI', () {
       final violations = _dartFiles(libDirectory)
           .where((file) {
             final path = _relativePath(file);
             return path.startsWith('lib/features/') && path.contains('/application/');
           })
-          .where((file) => _contains(file, '/presentation/'))
+          .where(
+            (file) => _containsAny(file, const [
+              'package:bujuan/ui/',
+              '/presentation/',
+            ]),
+          )
           .map(_relativePath)
           .toList();
 
       expect(
         violations,
         isEmpty,
-        reason: 'application 层不能反向 import presentation，展示组合必须留在 route/binding/presentation 边界。',
+        reason: 'application 层不能反向 import UI，展示组合必须留在 lib/ui 或 route 装配边界。',
       );
     });
 
@@ -401,7 +409,7 @@ void main() {
     });
 
     test('playlist shared widgets stay controller free', () {
-      final playlistWidgetFile = File('${projectRoot.path}/lib/features/playlist/playlist_widgets.dart');
+      final playlistWidgetFile = File('${projectRoot.path}/lib/ui/widgets/playlist/playlist_widgets.dart');
       final violations = <String>[
         if (_contains(playlistWidgetFile, 'PlayerController')) _relativePath(playlistWidgetFile),
       ];
@@ -413,8 +421,8 @@ void main() {
       );
     });
 
-    test('shared widgets stay presentation only', () {
-      final widgetDirectory = Directory('${projectRoot.path}/lib/widget');
+    test('common widgets stay presentation only', () {
+      final widgetDirectory = Directory('${projectRoot.path}/lib/ui/widgets/common');
       final violations = _dartFiles(widgetDirectory)
           .where(
             (file) => _containsAny(file, const [
@@ -430,7 +438,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: 'lib/widget 只能保留通用展示组件，不能直接读取 feature controller/repository 或 data。',
+        reason: 'lib/ui/widgets/common 只能保留通用展示组件，不能直接读取 feature controller/repository 或 data。',
       );
     });
 
@@ -590,14 +598,19 @@ void main() {
             final path = _relativePath(file);
             return path != 'lib/app/bootstrap/registrars/presentation_adapter_registrar.dart';
           })
-          .where((file) => _contains(file, '/presentation/'))
+          .where(
+            (file) => _containsAny(file, const [
+              'package:bujuan/ui/',
+              '/presentation/',
+            ]),
+          )
           .map(_relativePath)
           .toList();
 
       expect(
         violations,
         isEmpty,
-        reason: 'AppBinding 和普通 registrar 不能直接构造 presentation，只有 presentation adapter registrar 可以承接 Widget/route adapter。',
+        reason: 'AppBinding 和普通 registrar 不能直接构造 UI，只有 presentation adapter registrar 可以承接 Widget/route adapter。',
       );
     });
 
@@ -695,17 +708,17 @@ void main() {
     test('demo pages stay in debug feature', () {
       expect(
         File(
-          '${projectRoot.path}/lib/features/playback/presentation/coverflow_demo_page_view.dart',
+          '${projectRoot.path}/lib/ui/pages/playback/coverflow_demo_page_view.dart',
         ).existsSync(),
         isFalse,
-        reason: '实验性 demo 页面不能继续混在正式 playback presentation 目录。',
+        reason: '实验性 demo 页面不能混在正式 playback 页面目录。',
       );
       expect(
         File(
-          '${projectRoot.path}/lib/features/debug/presentation/coverflow_demo_page_view.dart',
+          '${projectRoot.path}/lib/ui/pages/debug/coverflow_demo_page_view.dart',
         ).existsSync(),
         isTrue,
-        reason: '实验性 demo 页面应归类到 debug feature。',
+        reason: '实验性 demo 页面应归类到 debug UI 页面目录。',
       );
     });
 
@@ -815,7 +828,7 @@ void main() {
     test('large architecture files are reported as soft risks', () {
       const watchedFiles = {
         'lib/features/playback/player_controller.dart': 450,
-        'lib/features/playback/presentation/bottom_panel_view.dart': 900,
+        'lib/ui/widgets/playback/bottom_panel_view.dart': 900,
         'lib/features/download/download_repository.dart': 360,
         'lib/data/local/drift_local_library_data_source.dart': 360,
         'lib/data/local/drift_user_scoped_data_source.dart': 500,
@@ -883,31 +896,6 @@ String _featureName(String path) {
 List<String> _featureImports(File file) {
   final importPattern = RegExp(r"import 'package:bujuan/features/([^/]+)/[^']*';");
   return importPattern.allMatches(file.readAsStringSync()).map((match) => match.group(1) ?? '').where((feature) => feature.isNotEmpty).toList();
-}
-
-List<String> _featurePresentationImports(File file) {
-  final importPattern = RegExp(r"import 'package:bujuan/features/([^/]+)/presentation/[^']*';");
-  return importPattern.allMatches(file.readAsStringSync()).map((match) => match.group(1) ?? '').where((feature) => feature.isNotEmpty).toList();
-}
-
-bool _isAllowedPresentationFeatureImport({
-  required String ownerFeature,
-  required String importedFeature,
-}) {
-  if (ownerFeature == importedFeature) {
-    return true;
-  }
-  const temporaryRouteEntrypoints = {
-    'shell:explore',
-    'shell:settings',
-    'shell:user',
-    'shell:playback',
-    'shell:search',
-    'playback:comment',
-    'settings:debug',
-    'settings:download',
-  };
-  return temporaryRouteEntrypoints.contains('$ownerFeature:$importedFeature');
 }
 
 bool _isTemporaryGetFindFactoryException(String path) {

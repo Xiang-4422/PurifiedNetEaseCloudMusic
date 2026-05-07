@@ -1,4 +1,4 @@
-import 'package:bujuan/features/user/presentation/personal_home_layout_metrics.dart';
+import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

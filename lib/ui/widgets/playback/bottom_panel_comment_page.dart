@@ -1,4 +1,4 @@
-import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/app/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/comment/comment_widget.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';

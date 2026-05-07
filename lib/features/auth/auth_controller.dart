@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/app/ui/toast_service.dart';
+import 'package:bujuan/app/services/toast_service.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
-import 'package:bujuan/routes/router.dart';
+import 'package:bujuan/app/routing/router.dart';
 import 'package:get/get.dart';
 
 /// 承接二维码登录流程的瞬时状态，避免登录页继续持有轮询与鉴权副作用。

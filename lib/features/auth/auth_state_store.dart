@@ -1,4 +1,4 @@
-import 'package:bujuan/common/constants/key.dart';
+import 'package:bujuan/core/storage/app_cache_keys.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
 
 /// 登录态本地存储。

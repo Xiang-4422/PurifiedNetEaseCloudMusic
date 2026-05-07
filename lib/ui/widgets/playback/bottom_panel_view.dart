@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/common/constants/extensions.dart';
-import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/core/util/extensions.dart';
+import 'package:bujuan/app/theme/app_constants.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/ui/widgets/playback/bottom_panel_artwork_layer.dart';
@@ -12,7 +12,7 @@ import 'package:bujuan/ui/widgets/playback/bottom_panel_queue_view.dart';
 import 'package:bujuan/ui/widgets/playback/lyric_view.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/routes/router.gr.dart' as gr;
+import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/progress/circular_playback_progress.dart';
 import 'package:bujuan/ui/widgets/common/layout/keep_alive_wrapper.dart';

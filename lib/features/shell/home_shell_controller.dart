@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/routes/router.dart';
+import 'package:bujuan/app/routing/router.dart';
 import 'package:bujuan/ui/widgets/shell/custom_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';

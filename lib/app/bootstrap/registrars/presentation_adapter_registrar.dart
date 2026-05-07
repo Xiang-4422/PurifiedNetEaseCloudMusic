@@ -1,4 +1,4 @@
-import 'package:bujuan/app/ui/toast_service.dart';
+import 'package:bujuan/app/services/toast_service.dart';
 import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
 import 'package:bujuan/app/presentation_adapters/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';

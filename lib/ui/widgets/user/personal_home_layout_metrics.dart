@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
-import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/app/layout/adaptive_layout_metrics.dart';
+import 'package:bujuan/app/theme/app_constants.dart';
 import 'package:flutter/material.dart';
 
 /// 个人首页在不同屏幕比例下的布局参数。

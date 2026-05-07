@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/generated/assets.dart';
-import 'package:bujuan/routes/router.gr.dart' as gr;
+import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/layout/keep_alive_wrapper.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';

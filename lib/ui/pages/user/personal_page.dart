@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/app/theme/app_constants.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
@@ -11,7 +11,7 @@ import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/generated/assets.dart';
-import 'package:bujuan/routes/router.gr.dart' as gr;
+import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/ui/widgets/common/image/async_image_color.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/interaction/long_press_overlay_transition.dart';

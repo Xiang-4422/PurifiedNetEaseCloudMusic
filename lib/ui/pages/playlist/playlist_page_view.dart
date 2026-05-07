@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:bujuan/app/ui/toast_service.dart';
+import 'package:bujuan/app/services/toast_service.dart';
 import 'package:bujuan/app/theme/image_color_service.dart';
-import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
-import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/common/constants/extensions.dart';
+import 'package:bujuan/app/layout/adaptive_layout_metrics.dart';
+import 'package:bujuan/app/theme/app_constants.dart';
+import 'package:bujuan/core/util/extensions.dart';
 import 'package:bujuan/core/diagnostics/playlist_performance_logger.dart';
 import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';

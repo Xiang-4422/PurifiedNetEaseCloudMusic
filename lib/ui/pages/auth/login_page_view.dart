@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
-import 'package:bujuan/routes/router.dart';
+import 'package:bujuan/app/routing/router.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

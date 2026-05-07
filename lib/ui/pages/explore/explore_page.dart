@@ -1,6 +1,6 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/app/ui/adaptive_layout_metrics.dart';
-import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/app/layout/adaptive_layout_metrics.dart';
+import 'package:bujuan/app/theme/app_constants.dart';
 import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';

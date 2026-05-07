@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/common/constants/app_constants.dart';
+import 'package:bujuan/app/theme/app_constants.dart';
 import 'package:bujuan/ui/pages/explore/explore_page.dart';
 import 'package:bujuan/ui/pages/settings/setting_page.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
@@ -8,7 +8,7 @@ import 'package:bujuan/ui/pages/shell/coffee_page.dart';
 import 'package:bujuan/ui/pages/user/personal_page.dart';
 import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
-import 'package:bujuan/routes/router.dart';
+import 'package:bujuan/app/routing/router.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/shell/custom_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';

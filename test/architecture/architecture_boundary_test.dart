@@ -616,18 +616,18 @@ void main() {
 
     test('legacy mixed constants stay removed', () {
       const removedFiles = [
-        'lib/common/constants/other.dart',
-        'lib/common/constants/log.dart',
-        'lib/common/constants/platform_utils.dart',
+        'lib/app/theme/other.dart',
+        'lib/core/logging/log.dart',
+        'lib/core/platform/legacy_platform_utils.dart',
       ];
       final existing = removedFiles.where((path) => File('${projectRoot.path}/$path').existsSync()).toList();
 
       final importViolations = _dartFiles(libDirectory)
           .where(
             (file) => _containsAny(file, const [
-              'common/constants/other.dart',
-              'common/constants/log.dart',
-              'common/constants/platform_utils.dart',
+              'app/theme/other.dart',
+              'core/logging/log.dart',
+              'core/platform/legacy_platform_utils.dart',
             ]),
           )
           .map(_relativePath)

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:bujuan/common/constants/key.dart';
+import 'package:bujuan/core/storage/app_cache_keys.dart';
 import 'package:bujuan/domain/entities/user_session_data.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';

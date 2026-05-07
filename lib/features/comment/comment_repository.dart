@@ -5,7 +5,7 @@ import 'package:bujuan/domain/entities/comment_data.dart';
 /// 评论仓库，封装评论列表、楼层评论、发送评论和点赞操作。
 class CommentRepository {
   /// 创建评论仓库。
-  CommentRepository({NeteaseCommentRemoteDataSource? remoteDataSource}) : _remoteDataSource = remoteDataSource ?? NeteaseCommentRemoteDataSource();
+  CommentRepository({required NeteaseCommentRemoteDataSource remoteDataSource}) : _remoteDataSource = remoteDataSource;
 
   final NeteaseCommentRemoteDataSource _remoteDataSource;
 

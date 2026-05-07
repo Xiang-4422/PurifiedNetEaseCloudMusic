@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:bujuan/core/storage/app_cache_keys.dart';
 import 'package:bujuan/domain/entities/user_session_data.dart';
-import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
+import 'package:bujuan/features/user/user_session_store.dart';
 import 'package:get/get.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 /// 持有账号 session 与本地登录快照。
 class UserSessionController extends GetxController {
@@ -16,12 +13,15 @@ class UserSessionController extends GetxController {
   /// 创建用户 session 控制器。
   UserSessionController({
     required UserRepository repository,
-    required Box box,
+    required UserSessionStore sessionStore,
+    required Future<void> Function(bool value) saveLoginFlag,
   })  : _repository = repository,
-        _box = box;
+        _sessionStore = sessionStore,
+        _saveLoginFlag = saveLoginFlag;
 
   final UserRepository _repository;
-  final Box _box;
+  final UserSessionStore _sessionStore;
+  final Future<void> Function(bool value) _saveLoginFlag;
   Future<void>? _cacheBootstrapFuture;
 
   /// 当前登录用户快照。
@@ -44,33 +44,33 @@ class UserSessionController extends GetxController {
     final value = await _repository.logout();
     if (value.success) {
       await _clearLocalSession();
-      await SettingsController.to.updateLoginStatus(false);
+      await _saveLoginFlag(false);
     }
   }
 
   /// 标记登录已过期，并直接清空本地 session。
   Future<void> expireLoginSession() async {
     await _clearLocalSession();
-    await SettingsController.to.updateLoginStatus(false);
+    await _saveLoginFlag(false);
   }
 
   Future<void> _loadCache() async {
-    final String? userInfoStr = _box.get(userInfoSp);
-    if (userInfoStr != null) {
-      userInfo.value = UserSessionData.fromJson(jsonDecode(userInfoStr));
+    final cachedSession = _sessionStore.loadSession();
+    if (cachedSession != null) {
+      userInfo.value = cachedSession;
     }
   }
 
   Future<void> _persistSession(UserSessionData info) async {
     if (info.isLoggedIn) {
-      await _box.put(userInfoSp, jsonEncode(info.toJson()));
+      await _sessionStore.saveSession(info);
     } else {
-      await _box.delete(userInfoSp);
+      await _sessionStore.clearSession();
     }
   }
 
   Future<void> _clearLocalSession() async {
     userInfo.value = const UserSessionData.empty();
-    await _box.delete(userInfoSp);
+    await _sessionStore.clearSession();
   }
 }

@@ -17,10 +17,10 @@ class UserRepository {
   /// 创建用户仓库。
   UserRepository({
     required LibraryRepository libraryRepository,
-    NeteaseUserRemoteDataSource? remoteDataSource,
+    required NeteaseUserRemoteDataSource remoteDataSource,
     required UserScopedDataSource userScopedDataSource,
   })  : _libraryRepository = libraryRepository,
-        _remoteDataSource = remoteDataSource ?? NeteaseUserRemoteDataSource(),
+        _remoteDataSource = remoteDataSource,
         _userScopedDataSource = userScopedDataSource;
 
   final LibraryRepository _libraryRepository;

@@ -49,6 +49,127 @@ void main() {
       );
     });
 
+    test('project architecture mapping and app root stay explicit', () {
+      expect(
+        File('${projectRoot.path}/docs/project_architecture_mapping.md').existsSync(),
+        isTrue,
+        reason: '项目必须维护一份把中小项目规范映射到当前 app/ui/features/data/core/domain 的说明，避免后续机械搬目录。',
+      );
+      final mainFile = File('${projectRoot.path}/lib/main.dart');
+      expect(
+        File('${projectRoot.path}/lib/app.dart').existsSync(),
+        isTrue,
+        reason: '应用根组件必须保留在 lib/app.dart，对齐规范里的 app.dart 职责。',
+      );
+      expect(
+        mainFile.readAsStringSync(),
+        contains('runApp(const App())'),
+        reason: 'main.dart 只负责启动顺序，根组件应从 App 进入。',
+      );
+    });
+
+    test('remote services and repositories are constructed in composition root', () {
+      final remoteFiles = [
+        ..._dartFiles(Directory('${projectRoot.path}/lib/data/netease/remote')),
+        File('${projectRoot.path}/lib/data/netease/netease_music_source.dart'),
+      ];
+      final remoteViolations = remoteFiles
+          .where(
+            (file) => _containsAny(file, const [
+              'NeteaseMusicApi? api',
+              '?? NeteaseMusicApi()',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        remoteViolations,
+        isEmpty,
+        reason: '网易云 service/remote data source 必须显式接收 NeteaseMusicApi，由 bootstrap/registrar 统一创建。',
+      );
+
+      final repositoryViolations = _repositoryFiles(libDirectory)
+          .where(
+            (file) => _containsAny(file, const [
+              'RemoteDataSource? remoteDataSource',
+              '?? Netease',
+              'NeteaseMusicSource()',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        repositoryViolations,
+        isEmpty,
+        reason: 'feature repository 不能隐式创建 remote/data service；所有底层依赖必须由组合根显式传入。',
+      );
+    });
+
+    test('controllers publish state instead of touching storage or UI effects directly', () {
+      final controllerFiles = _dartFiles(libDirectory).where((file) {
+        final path = _relativePath(file);
+        return path.startsWith('lib/features/') && (path.endsWith('_controller.dart') || path.endsWith('_page_controller.dart') || path.endsWith('_scan_controller.dart'));
+      });
+
+      final violations = controllerFiles
+          .where(
+            (file) => _containsAny(file, const [
+              'CacheBox.instance',
+              'package:hive',
+              'hive_flutter',
+              'ToastService',
+              'DialogService',
+              'AutoRouter',
+              'Navigator.of',
+              'showDialog',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'Controller 只发布页面状态/一次性 effect，不能直接触碰 Hive/CacheBox/Toast/Dialog/路由跳转。',
+      );
+    });
+
+    test('shell-only widgets stay under shell page widgets', () {
+      final removedGlobalWidgetDirectories = [
+        'lib/ui/widgets/playback',
+        'lib/ui/widgets/search',
+        'lib/ui/widgets/comment',
+      ];
+      final existingGlobalDirectories = removedGlobalWidgetDirectories
+          .where(
+            (path) => Directory('${projectRoot.path}/$path').existsSync(),
+          )
+          .toList();
+
+      expect(
+        existingGlobalDirectories,
+        isEmpty,
+        reason: '播放面板、顶部搜索和评论面板只服务 shell 页面，不能继续占用全局 widgets 目录。',
+      );
+      expect(
+        Directory('${projectRoot.path}/lib/ui/pages/shell/widgets/playback').existsSync(),
+        isTrue,
+        reason: 'shell 专属播放面板组件必须归入 shell 页面局部 widgets。',
+      );
+      expect(
+        Directory('${projectRoot.path}/lib/ui/pages/shell/widgets/search').existsSync(),
+        isTrue,
+        reason: 'shell 专属顶部搜索组件必须归入 shell 页面局部 widgets。',
+      );
+      expect(
+        Directory('${projectRoot.path}/lib/ui/pages/shell/widgets/comment').existsSync(),
+        isTrue,
+        reason: 'shell 专属评论面板组件必须归入 shell 页面局部 widgets。',
+      );
+    });
+
     test('core data domain stay pure Dart and do not import features', () {
       final boundaryFiles = _dartFiles(libDirectory).where((file) {
         final path = _relativePath(file);
@@ -828,7 +949,7 @@ void main() {
     test('large architecture files are reported as soft risks', () {
       const watchedFiles = {
         'lib/features/playback/player_controller.dart': 450,
-        'lib/ui/widgets/playback/bottom_panel_view.dart': 900,
+        'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart': 900,
         'lib/features/download/download_repository.dart': 360,
         'lib/data/local/drift_local_library_data_source.dart': 360,
         'lib/data/local/drift_user_scoped_data_source.dart': 500,

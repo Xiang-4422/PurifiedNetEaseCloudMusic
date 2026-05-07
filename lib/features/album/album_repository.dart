@@ -25,9 +25,9 @@ class AlbumRepository {
   /// 创建专辑仓库。
   AlbumRepository({
     required LibraryRepository libraryRepository,
-    NeteaseAlbumRemoteDataSource? remoteDataSource,
+    required NeteaseAlbumRemoteDataSource remoteDataSource,
   })  : _libraryRepository = libraryRepository,
-        _remoteDataSource = remoteDataSource ?? NeteaseAlbumRemoteDataSource();
+        _remoteDataSource = remoteDataSource;
 
   final LibraryRepository _libraryRepository;
   final NeteaseAlbumRemoteDataSource _remoteDataSource;

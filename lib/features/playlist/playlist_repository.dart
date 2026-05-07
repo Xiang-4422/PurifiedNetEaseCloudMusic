@@ -142,12 +142,12 @@ class PlaylistRepository {
     required AppCacheDataSource appCacheDataSource,
     required LibraryRepository libraryRepository,
     required LocalLibraryDataSource localLibraryDataSource,
-    NeteasePlaylistRemoteDataSource? remoteDataSource,
+    required NeteasePlaylistRemoteDataSource remoteDataSource,
     required UserScopedDataSource userScopedDataSource,
   })  : _appCacheDataSource = appCacheDataSource,
         _libraryRepository = libraryRepository,
         _localLibraryDataSource = localLibraryDataSource,
-        _remoteDataSource = remoteDataSource ?? NeteasePlaylistRemoteDataSource(),
+        _remoteDataSource = remoteDataSource,
         _userScopedDataSource = userScopedDataSource;
 
   final AppCacheDataSource _appCacheDataSource;

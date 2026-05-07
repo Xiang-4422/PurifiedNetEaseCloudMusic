@@ -30,9 +30,9 @@ class ArtistRepository {
   /// 创建歌手仓库。
   ArtistRepository({
     required LibraryRepository libraryRepository,
-    NeteaseArtistRemoteDataSource? remoteDataSource,
+    required NeteaseArtistRemoteDataSource remoteDataSource,
   })  : _libraryRepository = libraryRepository,
-        _remoteDataSource = remoteDataSource ?? NeteaseArtistRemoteDataSource();
+        _remoteDataSource = remoteDataSource;
 
   final LibraryRepository _libraryRepository;
   final NeteaseArtistRemoteDataSource _remoteDataSource;

@@ -1,10 +1,8 @@
 import 'dart:async';
 
-import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/app/services/toast_service.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
+import 'package:bujuan/features/auth/auth_ui_effect.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
-import 'package:bujuan/app/routing/router.dart';
 import 'package:get/get.dart';
 
 /// 承接二维码登录流程的瞬时状态，避免登录页继续持有轮询与鉴权副作用。
@@ -28,6 +26,9 @@ class AuthController extends GetxController {
 
   /// 本轮登录流程是否已经完成。
   final loginCompleted = false.obs;
+
+  /// 登录流程的一次性展示副作用，由 presentation 边界消费。
+  final Rxn<AuthUiEffect> uiEffect = Rxn<AuthUiEffect>();
 
   Timer? _qrPollingTimer;
   Future<void>? _bootstrapFuture;
@@ -84,7 +85,7 @@ class AuthController extends GetxController {
 
     final qrCodeLoginKey = await _repository.createQrCodeKey();
     if (!qrCodeLoginKey.success) {
-      ToastService.show(qrCodeLoginKey.message ?? '未知错误');
+      uiEffect.value = AuthUiEffect.message(qrCodeLoginKey.message ?? '未知错误');
       return;
     }
 
@@ -97,6 +98,13 @@ class AuthController extends GetxController {
   /// 消费登录完成事件，避免页面重复跳转。
   void consumeLoginCompleted() {
     loginCompleted.value = false;
+  }
+
+  /// 消费当前登录展示副作用，避免重复展示。
+  void consumeUiEffect(AuthUiEffect effect) {
+    if (identical(uiEffect.value, effect)) {
+      uiEffect.value = null;
+    }
   }
 
   @override
@@ -112,7 +120,7 @@ class AuthController extends GetxController {
     if (!isLoginStateActive) {
       await _repository.setLoginFlag(false);
       await UserSessionController.to.expireLoginSession();
-      ToastService.show('登录失效,请重新登录');
+      uiEffect.value = const AuthUiEffect.loginExpired('登录失效,请重新登录');
       isLoading.value = false;
       return;
     }
@@ -132,14 +140,7 @@ class AuthController extends GetxController {
 
     await _repository.setLoginFlag(false);
     await UserSessionController.to.expireLoginSession();
-    ToastService.show('登录失效,请重新登录');
-    Future.microtask(() {
-      final context = Get.context;
-      if (context != null) {
-        // ignore: use_build_context_synchronously
-        AutoRouter.of(context).replaceNamed(Routes.login);
-      }
-    });
+    uiEffect.value = const AuthUiEffect.loginExpired('登录失效,请重新登录');
   }
 
   void _startPolling(String unikey) {

@@ -15,11 +15,11 @@ class SearchRepository {
   /// 创建搜索仓库。
   SearchRepository({
     required LibraryRepository libraryRepository,
-    NeteaseSearchRemoteDataSource? remoteDataSource,
+    required NeteaseSearchRemoteDataSource remoteDataSource,
     required SearchCacheStore cacheStore,
     required UserScopedDataSource userScopedDataSource,
   })  : _libraryRepository = libraryRepository,
-        _remoteDataSource = remoteDataSource ?? NeteaseSearchRemoteDataSource(),
+        _remoteDataSource = remoteDataSource,
         _cacheStore = cacheStore,
         _userScopedDataSource = userScopedDataSource;
 

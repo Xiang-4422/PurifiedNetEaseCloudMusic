@@ -31,6 +31,8 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 part 'player_download_commands.dart';
+part 'player_state_sync.dart';
+part 'player_artwork_sync.dart';
 
 /// 面向页面暴露播放状态和播放模式切换入口。
 ///
@@ -167,197 +169,8 @@ class PlayerController extends GetxController {
   void onReady() {
     super.onReady();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(_initAudioHandler());
+      unawaited(initAudioHandler());
     });
-  }
-
-  /// 统一接管音频服务的状态流，避免页面各自监听 `AudioService` 形成重复副作用。
-  Future<void> _initAudioHandler() async {
-    await _stateSynchronizer.start(
-      syncSessionState: _syncSessionState,
-      syncRuntimeState: _syncRuntimeState,
-      syncLyricState: _syncLyricState,
-      syncSelectionQueue: _syncSelectionQueue,
-      updateCurrentPlayIndex: _updateCurPlayIndex,
-      toggleLike: _toggleLikeFromPlayback,
-      ensureCurrentTrackArtwork: _ensureCurrentTrackArtwork,
-      syncCurrentQueueItem: _syncCurrentQueueItem,
-      runtimeState: () => runtimeState.value,
-      lyricState: () => lyricState.value,
-      playbackMode: () => playbackMode.value,
-      setIsPlaying: _setIsPlaying,
-      isPlaying: () => isPlaying.value,
-      setFullScreenLyricOpen: (value) => isFullScreenLyricOpen.value = value,
-    );
-    _selectionService.configure(
-      repeatMode: () => curRepeatMode.value,
-      playbackMode: () => playbackMode.value,
-    );
-    _selectionSubscription ??= _selectionService.stream.listen(
-      _syncSelectionState,
-    );
-    _syncSelectionState(_selectionService.state);
-  }
-
-  void _syncSessionState({
-    PlaybackMode? playbackMode,
-    PlaybackRepeatMode? repeatMode,
-    String? playlistName,
-    String? playlistHeader,
-    bool? isPlayingLikedSongs,
-  }) {
-    final nextState = sessionState.value.copyWith(
-      playbackMode: playbackMode,
-      repeatMode: repeatMode,
-      playlistName: playlistName,
-      playlistHeader: playlistHeader,
-      isPlayingLikedSongs: isPlayingLikedSongs,
-    );
-    sessionState.value = nextState;
-    this.playbackMode.value = nextState.playbackMode;
-    curRepeatMode.value = nextState.repeatMode;
-    unawaited(
-      _queueStore.savePlaybackMode(nextState.playbackMode),
-    );
-    unawaited(_queueService.setPlaybackMode(nextState.playbackMode));
-  }
-
-  void _syncRuntimeState({
-    List<PlaybackQueueItem>? queue,
-    PlaybackQueueItem? currentSong,
-    int? currentIndex,
-    Duration? currentPosition,
-  }) {
-    final stopwatch = PlaybackPerformanceLogger.start();
-    final nextState = runtimeState.value.copyWith(
-      queue: queue,
-      currentSong: currentSong,
-      currentIndex: currentIndex,
-      currentPosition: currentPosition,
-    );
-    runtimeState.value = nextState;
-    confirmedState.value = PlaybackConfirmedState.fromRuntime(
-      nextState,
-      isPlaying: isPlaying.value,
-    );
-    if (currentSong != null && !selectionState.value.hasSelection) {
-      currentSongState.value = currentSong;
-    }
-    if (currentPosition != null && currentPositionState.value != currentPosition) {
-      currentPositionState.value = currentPosition;
-    }
-    if (queue != null) {
-      _syncQueueStateItems(queue);
-      _syncArtworkPageItems(queue);
-    }
-    if (currentIndex != null && !selectionState.value.hasSelection && currentQueueIndex.value != currentIndex) {
-      currentQueueIndex.value = currentIndex;
-    }
-    PlaybackPerformanceLogger.elapsed(
-      'controller.syncRuntimeState',
-      stopwatch,
-      details: 'queue=${queue?.length ?? '-'} song=${currentSong?.id ?? '-'} index=${currentIndex ?? '-'} position=${currentPosition != null}',
-      warnAfterMs: 4,
-    );
-  }
-
-  void _syncSelectionQueue(List<PlaybackQueueItem> queue, int selectedIndex) {
-    _syncSelectionState(_selectionService.state);
-  }
-
-  void _syncSelectionState(PlaybackSelectionState nextState) {
-    final stopwatch = PlaybackPerformanceLogger.start();
-    selectionState.value = nextState;
-    displayState.value = PlaybackDisplayState.fromSelection(nextState);
-    curOrderMode.value = _queueService.state.orderMode;
-    if (nextState.selectedItem.id.isNotEmpty) {
-      currentSongState.value = nextState.selectedItem;
-    }
-    if (nextState.selectedIndex >= 0 && currentQueueIndex.value != nextState.selectedIndex) {
-      currentQueueIndex.value = nextState.selectedIndex;
-    }
-    final queueItemsStopwatch = PlaybackPerformanceLogger.start();
-    _syncQueueStateItems(nextState.queue);
-    PlaybackPerformanceLogger.elapsed(
-      'controller.syncSelectionState.queueItems',
-      queueItemsStopwatch,
-      details: 'queue=${nextState.queue.length}',
-      warnAfterMs: 1,
-    );
-    final artworkItemsStopwatch = PlaybackPerformanceLogger.start();
-    _syncArtworkPageItems(nextState.queue);
-    PlaybackPerformanceLogger.elapsed(
-      'controller.syncSelectionState.artworkItems',
-      artworkItemsStopwatch,
-      details: 'queue=${nextState.queue.length}',
-      warnAfterMs: 1,
-    );
-    _scheduleSelectionUiSideEffects(nextState);
-    _showSelectionSourceError(nextState);
-    PlaybackPerformanceLogger.elapsed(
-      'controller.syncSelectionState',
-      stopwatch,
-      details: 'version=${nextState.selectionVersion} id=${nextState.selectedItem.id} index=${nextState.selectedIndex} queue=${nextState.queue.length} source=${nextState.sourceStatus.name}',
-      warnAfterMs: 4,
-    );
-  }
-
-  void _setIsPlaying(bool value) {
-    isPlaying.value = value;
-    confirmedState.value = PlaybackConfirmedState.fromRuntime(
-      runtimeState.value,
-      isPlaying: value,
-    );
-  }
-
-  void _syncLyricState({
-    List<LyricsLineModel>? lines,
-    int? currentIndex,
-    bool? hasTranslatedLyrics,
-  }) {
-    final nextState = lyricState.value.copyWith(
-      lines: lines,
-      currentIndex: currentIndex,
-      hasTranslatedLyrics: hasTranslatedLyrics,
-    );
-    lyricState.value = nextState;
-  }
-
-  Future<void> _updateCurPlayIndex({bool currentItemUpdated = true}) async {
-    final stopwatch = PlaybackPerformanceLogger.start();
-    final currentRuntimeState = runtimeState.value;
-    final currentIndex = currentRuntimeState.queue.indexWhere(
-      (element) => element.id == currentRuntimeState.currentSong.id,
-    );
-    _syncRuntimeState(currentIndex: currentIndex);
-    PlaybackPerformanceLogger.elapsed(
-      'controller.updateCurPlayIndex',
-      stopwatch,
-      details: 'id=${currentRuntimeState.currentSong.id} index=$currentIndex queue=${currentRuntimeState.queue.length} currentItemUpdated=$currentItemUpdated',
-      warnAfterMs: 1,
-    );
-  }
-
-  void _scheduleSelectionUiSideEffects(PlaybackSelectionState selection) {
-    _selectionUiEffectCoordinator.schedule(
-      selection: selection,
-      latestSelection: () => selectionState.value,
-      syncLyricState: _syncLyricState,
-      preloadImages: _preloadImages,
-    );
-  }
-
-  void _showSelectionSourceError(PlaybackSelectionState selection) {
-    final errorMessage = selection.sourceError;
-    if (selection.sourceStatus != PlaybackSelectionSourceStatus.error || errorMessage == null || errorMessage.isEmpty) {
-      return;
-    }
-    final toastKey = '${selection.selectionVersion}:${selection.selectedItem.id}:$errorMessage';
-    if (_lastSelectionErrorToastKey == toastKey) {
-      return;
-    }
-    _lastSelectionErrorToastKey = toastKey;
-    _toastPort.show(errorMessage);
   }
 
   /// 播放或暂停当前歌曲。
@@ -394,18 +207,11 @@ class PlayerController extends GetxController {
   Future<void> updatePlaybackQueueItem(PlaybackQueueItem item) async {
     final queue = runtimeState.value.queue.map((queueItem) => queueItem.id == item.id ? item : queueItem).toList(growable: false);
     await _queueService.updateQueueItem(item);
-    _syncRuntimeState(
+    syncRuntimeState(
       queue: queue,
       currentSong: runtimeState.value.currentSong.id == item.id ? item : null,
     );
     await _playbackService.updateQueueItem(item);
-  }
-
-  Future<void> _toggleLikeFromPlayback(PlaybackQueueItem item) async {
-    final updatedItem = await _userContentPort.toggleLikeStatus(item);
-    if (updatedItem != null) {
-      await updatePlaybackQueueItem(updatedItem);
-    }
   }
 
   /// 跳转到指定播放进度。
@@ -448,7 +254,7 @@ class PlayerController extends GetxController {
   Future<void> quitFmMode({bool showToast = true}) async {
     await _modeCommandService.quitFmMode(
       currentMode: playbackMode.value,
-      syncMode: (mode) async => _syncSessionState(playbackMode: mode),
+      syncMode: (mode) async => syncSessionState(playbackMode: mode),
       showToast: showToast,
     );
   }
@@ -472,7 +278,7 @@ class PlayerController extends GetxController {
   Future<void> quitHeartBeatMode({bool showToast = true}) async {
     await _modeCommandService.quitHeartBeatMode(
       currentMode: playbackMode.value,
-      syncMode: (mode) async => _syncSessionState(playbackMode: mode),
+      syncMode: (mode) async => syncSessionState(playbackMode: mode),
       showToast: showToast,
     );
   }
@@ -505,7 +311,7 @@ class PlayerController extends GetxController {
       newMode: newMode,
       isPlaying: isPlaying.value,
       currentRepeatMode: sessionState.value.repeatMode,
-      syncMode: (mode) async => _syncSessionState(playbackMode: mode),
+      syncMode: (mode) async => syncSessionState(playbackMode: mode),
       playOrPauseWhenPaused: playOrPause,
       contextData: contextData,
     );
@@ -543,110 +349,6 @@ class PlayerController extends GetxController {
       isPlaying: isPlaying.value,
       setFullScreenLyricOpen: (value) => isFullScreenLyricOpen.value = value,
       cancelTimer: cancelTimer,
-    );
-  }
-
-  Future<void> _ensureCurrentTrackArtwork(PlaybackQueueItem item) async {
-    final updatedItem = await _artworkPresenter.resolveMissingArtwork(item);
-    if (updatedItem == null || runtimeState.value.currentSong.id != item.id) {
-      return;
-    }
-    await _syncCurrentQueueItem(updatedItem);
-  }
-
-  Future<void> _syncCurrentQueueItem(PlaybackQueueItem updatedItem) async {
-    final queue = runtimeState.value.queue.map((item) => item.id == updatedItem.id ? updatedItem : item).toList(growable: false);
-    await _queueService.updateQueueItem(updatedItem);
-    _syncRuntimeState(
-      queue: queue,
-      currentSong: updatedItem,
-    );
-    await _playbackService.updateQueueItem(updatedItem);
-  }
-
-  void _syncArtworkPageItems(List<PlaybackQueueItem> queue) {
-    final stopwatch = PlaybackPerformanceLogger.start();
-    final nextItems = queue.map(PlaybackArtworkPageItem.fromQueueItem).toList(growable: false);
-    if (artworkPageItems.length != nextItems.length) {
-      artworkPageItems.assignAll(nextItems);
-      PlaybackPerformanceLogger.elapsed(
-        'controller.syncArtworkPageItems.assignAll',
-        stopwatch,
-        details: 'count=${nextItems.length}',
-        warnAfterMs: 2,
-      );
-      return;
-    }
-    var changedCount = 0;
-    for (var index = 0; index < nextItems.length; index++) {
-      if (!artworkPageItems[index].hasSameArtwork(nextItems[index])) {
-        artworkPageItems[index] = nextItems[index];
-        changedCount++;
-      }
-    }
-    PlaybackPerformanceLogger.elapsed(
-      'controller.syncArtworkPageItems.incremental',
-      stopwatch,
-      details: 'count=${nextItems.length} changed=$changedCount',
-      warnAfterMs: 2,
-    );
-  }
-
-  void _syncQueueStateItems(List<PlaybackQueueItem> queue) {
-    final stopwatch = PlaybackPerformanceLogger.start();
-    if (queueState.length != queue.length) {
-      queueState.assignAll(queue);
-      PlaybackPerformanceLogger.elapsed(
-        'controller.syncQueueStateItems.assignAll',
-        stopwatch,
-        details: 'count=${queue.length}',
-        warnAfterMs: 2,
-      );
-      return;
-    }
-    var changedCount = 0;
-    for (var index = 0; index < queue.length; index++) {
-      if (!_hasSameQueueItem(queueState[index], queue[index])) {
-        queueState[index] = queue[index];
-        changedCount++;
-      }
-    }
-    PlaybackPerformanceLogger.elapsed(
-      'controller.syncQueueStateItems.incremental',
-      stopwatch,
-      details: 'count=${queue.length} changed=$changedCount',
-      warnAfterMs: 2,
-    );
-  }
-
-  bool _hasSameQueueItem(
-    PlaybackQueueItem current,
-    PlaybackQueueItem next,
-  ) {
-    return current.id == next.id &&
-        current.title == next.title &&
-        current.artist == next.artist &&
-        current.artworkUrl == next.artworkUrl &&
-        current.localArtworkPath == next.localArtworkPath &&
-        current.isLiked == next.isLiked &&
-        current.isCached == next.isCached;
-  }
-
-  void _preloadImages() {
-    if (isPlaying.isFalse) {
-      return;
-    }
-    final stopwatch = PlaybackPerformanceLogger.start();
-    _artworkPresenter.preloadQueueArtwork(
-      queue: selectionState.value.queue,
-      currentIndex: selectionState.value.selectedIndex,
-      context: Get.context,
-    );
-    PlaybackPerformanceLogger.elapsed(
-      'controller.preloadArtwork',
-      stopwatch,
-      details: 'index=${selectionState.value.selectedIndex} queue=${selectionState.value.queue.length}',
-      warnAfterMs: 2,
     );
   }
 

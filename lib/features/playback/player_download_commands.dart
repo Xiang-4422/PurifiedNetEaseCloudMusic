@@ -105,6 +105,6 @@ extension PlayerDownloadCommands on PlayerController {
     if (result == null || currentSongState.value.id != result.track.id || result.queueItem == null) {
       return;
     }
-    await _syncCurrentQueueItem(result.queueItem!);
+    await syncCurrentQueueItem(result.queueItem!);
   }
 }

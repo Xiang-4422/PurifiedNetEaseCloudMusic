@@ -12,7 +12,7 @@ import 'package:bujuan/domain/entities/track_lyrics.dart';
 /// 网易云音乐来源门面。
 class NeteaseMusicSource {
   /// 创建网易云音乐来源门面。
-  NeteaseMusicSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
+  NeteaseMusicSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 

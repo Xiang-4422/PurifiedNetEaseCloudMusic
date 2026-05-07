@@ -1,11 +1,13 @@
-import 'package:bujuan/core/storage/cache_box.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
+import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
+import 'package:bujuan/features/settings/settings_repository.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
+import 'package:bujuan/features/user/user_session_store.dart';
 import 'package:get/get.dart';
 
 /// 用户与设置相关控制器注册器。
@@ -16,11 +18,15 @@ class UserRegistrar {
   /// 注册用户 session、用户资料、推荐和设置相关控制器。
   static void register() {
     Get.lazyPut(() => HomeShellController(), fenix: true);
-    Get.lazyPut(() => SettingsController(), fenix: true);
+    Get.lazyPut(
+      () => SettingsController(repository: Get.find<SettingsRepository>()),
+      fenix: true,
+    );
     Get.lazyPut(
       () => UserSessionController(
         repository: Get.find<UserRepository>(),
-        box: CacheBox.instance,
+        sessionStore: const UserSessionStore(),
+        saveLoginFlag: Get.find<AuthRepository>().setLoginFlag,
       ),
       fenix: true,
     );

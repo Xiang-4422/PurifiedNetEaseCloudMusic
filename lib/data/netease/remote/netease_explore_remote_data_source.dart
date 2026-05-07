@@ -5,7 +5,7 @@ import 'package:bujuan/domain/entities/playlist_entity.dart';
 /// 探索页远程入口集中在 data/netease，便于后续继续下沉平台细节。
 class NeteaseExploreRemoteDataSource {
   /// 创建网易云探索远程数据源。
-  NeteaseExploreRemoteDataSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
+  NeteaseExploreRemoteDataSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 

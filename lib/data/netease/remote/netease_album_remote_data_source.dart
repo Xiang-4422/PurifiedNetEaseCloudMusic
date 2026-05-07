@@ -7,7 +7,7 @@ import 'package:bujuan/domain/entities/track.dart';
 /// 网易云专辑远程数据源。
 class NeteaseAlbumRemoteDataSource {
   /// 创建网易云专辑远程数据源。
-  NeteaseAlbumRemoteDataSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
+  NeteaseAlbumRemoteDataSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 

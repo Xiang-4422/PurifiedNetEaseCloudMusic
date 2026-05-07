@@ -11,7 +11,7 @@ import 'package:bujuan/domain/entities/user_profile_data.dart';
 /// 网易云用户远程数据源。
 class NeteaseUserRemoteDataSource {
   /// 创建网易云用户远程数据源。
-  NeteaseUserRemoteDataSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
+  NeteaseUserRemoteDataSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 

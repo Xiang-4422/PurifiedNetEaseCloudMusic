@@ -7,8 +7,8 @@ class RadioRepository {
   /// 创建电台仓库。
   RadioRepository({
     required UserScopedDataSource userScopedDataSource,
-    NeteaseRadioRemoteDataSource? remoteDataSource,
-  })  : _remoteDataSource = remoteDataSource ?? NeteaseRadioRemoteDataSource(),
+    required NeteaseRadioRemoteDataSource remoteDataSource,
+  })  : _remoteDataSource = remoteDataSource,
         _userScopedDataSource = userScopedDataSource;
 
   final NeteaseRadioRemoteDataSource _remoteDataSource;

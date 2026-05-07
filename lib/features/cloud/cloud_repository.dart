@@ -12,8 +12,8 @@ class CloudRepository {
   CloudRepository({
     required LibraryRepository libraryRepository,
     required UserScopedDataSource userScopedDataSource,
-    NeteaseCloudRemoteDataSource? remoteDataSource,
-  })  : _remoteDataSource = remoteDataSource ?? NeteaseCloudRemoteDataSource(),
+    required NeteaseCloudRemoteDataSource remoteDataSource,
+  })  : _remoteDataSource = remoteDataSource,
         _libraryRepository = libraryRepository,
         _userScopedDataSource = userScopedDataSource;
 

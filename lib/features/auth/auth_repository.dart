@@ -8,10 +8,10 @@ import 'auth_state_store.dart';
 class AuthRepository {
   /// 创建登录仓库。
   AuthRepository({
-    AuthStateStore? stateStore,
-    NeteaseAuthRemoteDataSource? remoteDataSource,
-  })  : _stateStore = stateStore ?? const AuthStateStore(),
-        _remoteDataSource = remoteDataSource ?? NeteaseAuthRemoteDataSource();
+    required AuthStateStore stateStore,
+    required NeteaseAuthRemoteDataSource remoteDataSource,
+  })  : _stateStore = stateStore,
+        _remoteDataSource = remoteDataSource;
 
   final AuthStateStore _stateStore;
   final NeteaseAuthRemoteDataSource _remoteDataSource;

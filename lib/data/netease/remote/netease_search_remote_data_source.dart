@@ -3,7 +3,7 @@ import 'package:bujuan/data/netease/api/netease_music_api.dart';
 /// 网易云搜索远程数据源。
 class NeteaseSearchRemoteDataSource {
   /// 创建网易云搜索远程数据源。
-  NeteaseSearchRemoteDataSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
+  NeteaseSearchRemoteDataSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 

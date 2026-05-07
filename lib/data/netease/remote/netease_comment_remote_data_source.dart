@@ -5,7 +5,7 @@ import 'package:bujuan/domain/entities/comment_data.dart';
 /// 网易云评论远程数据源。
 class NeteaseCommentRemoteDataSource {
   /// 创建网易云评论远程数据源。
-  NeteaseCommentRemoteDataSource({NeteaseMusicApi? api}) : _api = api ?? NeteaseMusicApi();
+  NeteaseCommentRemoteDataSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 

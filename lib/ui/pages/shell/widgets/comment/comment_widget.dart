@@ -2,7 +2,7 @@ import 'package:bujuan/core/network/load_state.dart' show PagedState;
 import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_list_controller.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
-import 'package:bujuan/ui/widgets/comment/comment_item_view.dart';
+import 'package:bujuan/ui/pages/shell/widgets/comment/comment_item_view.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:flutter/material.dart';

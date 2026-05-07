@@ -12,6 +12,7 @@ import 'package:bujuan/data/local/local_music_source.dart';
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/netease_music_source.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/explore/explore_cache_store.dart';
@@ -51,6 +52,7 @@ class InfrastructureRegistrar {
     final exploreCacheStore = ExploreCacheStore(
       cacheDataSource: appCacheDataSource,
     );
+    final neteaseApi = NeteaseMusicApi();
     final localMusicSource = LocalMusicSource(localDataSource: localLibraryDataSource);
     final localResourceIndexRepository = LocalResourceIndexRepository(
       dataSource: localResourceIndexDataSource,
@@ -64,7 +66,7 @@ class InfrastructureRegistrar {
     final libraryRepository = LibraryRepository(
       localDataSource: localLibraryDataSource,
       localMusicSource: localMusicSource,
-      neteaseSource: NeteaseMusicSource(),
+      neteaseSource: NeteaseMusicSource(api: neteaseApi),
       preferenceStore: const LibraryPreferenceStore(),
       resourceIndexRepository: localResourceIndexRepository,
       artworkCacheRepository: localArtworkCacheRepository,
@@ -102,6 +104,7 @@ class InfrastructureRegistrar {
       localResourceIndexRepository: localResourceIndexRepository,
       downloadRepository: downloadRepository,
       playbackRepository: playbackRepository,
+      neteaseApi: neteaseApi,
     );
 
     unawaited(downloadRepository.recoverInterruptedTasks());

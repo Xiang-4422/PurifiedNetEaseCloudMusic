@@ -5,7 +5,7 @@ import 'package:bujuan/core/time/date_time_formatter.dart';
 import 'package:bujuan/domain/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/comment/floor_comment_controller.dart';
-import 'package:bujuan/ui/widgets/comment/custom_field.dart';
+import 'package:bujuan/ui/pages/shell/widgets/comment/custom_field.dart';
 import 'package:bujuan/features/comment/reply_sheet_controller.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';

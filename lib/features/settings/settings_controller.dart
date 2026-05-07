@@ -1,18 +1,16 @@
-import 'package:bujuan/core/storage/app_cache_keys.dart';
-import 'package:bujuan/core/storage/cache_box.dart';
-import 'package:bujuan/features/library/library_preference_store.dart';
+import 'package:bujuan/features/settings/settings_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive_flutter/adapters.dart';
 
 /// 管理应用设置和轻量 UI 偏好状态。
 class SettingsController extends GetxController {
   /// 当前设置控制器实例。
   static SettingsController get to => Get.find();
 
-  /// 轻量设置持久化 box。
-  final Box box = CacheBox.instance;
-  final LibraryPreferenceStore _libraryPreferenceStore = const LibraryPreferenceStore();
+  /// 创建设置控制器。
+  SettingsController({required SettingsRepository repository}) : _repository = repository;
+
+  final SettingsRepository _repository;
 
   /// 是否启用渐变背景。
   RxBool isGradientBackground = false.obs;
@@ -39,54 +37,37 @@ class SettingsController extends GetxController {
   }
 
   void _initAppSetting() {
-    isGradientBackground.value = box.get(gradientBackgroundSp, defaultValue: true);
-    isHighSoundQualityOpen.value = box.get(highSong, defaultValue: false);
-    isRoundAlbumOpen.value = box.get(roundAlbumSp, defaultValue: false);
-    isOfflineModeEnabled.value = _libraryPreferenceStore.isOfflineModeEnabled;
+    isGradientBackground.value = _repository.isGradientBackgroundEnabled;
+    isHighSoundQualityOpen.value = _repository.isHighSoundQualityEnabled;
+    isRoundAlbumOpen.value = _repository.isRoundAlbumEnabled;
+    isOfflineModeEnabled.value = _repository.isOfflineModeEnabled;
   }
 
   /// 切换渐变背景设置。
   Future<void> toggleGradientBackground() async {
-    await _updateBoolSetting(
-      target: isGradientBackground,
-      key: gradientBackgroundSp,
-    );
+    final nextValue = !isGradientBackground.value;
+    isGradientBackground.value = nextValue;
+    await _repository.saveGradientBackgroundEnabled(nextValue);
   }
 
   /// 切换圆形专辑封面设置。
   Future<void> toggleRoundAlbumOpen() async {
-    await _updateBoolSetting(
-      target: isRoundAlbumOpen,
-      key: roundAlbumSp,
-    );
+    final nextValue = !isRoundAlbumOpen.value;
+    isRoundAlbumOpen.value = nextValue;
+    await _repository.saveRoundAlbumEnabled(nextValue);
   }
 
   /// 切换高音质播放设置。
   Future<void> toggleHighSoundQualityOpen() async {
-    await _updateBoolSetting(
-      target: isHighSoundQualityOpen,
-      key: highSong,
-    );
+    final nextValue = !isHighSoundQualityOpen.value;
+    isHighSoundQualityOpen.value = nextValue;
+    await _repository.saveHighSoundQualityEnabled(nextValue);
   }
 
   /// 切换离线模式。
   Future<void> toggleOfflineMode() async {
     final nextValue = !isOfflineModeEnabled.value;
     isOfflineModeEnabled.value = nextValue;
-    await _libraryPreferenceStore.saveOfflineMode(nextValue);
-  }
-
-  /// 更新本地登录状态标记。
-  Future<void> updateLoginStatus(bool value) async {
-    await box.put(isLoginSP, value);
-  }
-
-  Future<void> _updateBoolSetting({
-    required RxBool target,
-    required String key,
-  }) async {
-    final nextValue = !target.value;
-    target.value = nextValue;
-    await box.put(key, nextValue);
+    await _repository.saveOfflineModeEnabled(nextValue);
   }
 }

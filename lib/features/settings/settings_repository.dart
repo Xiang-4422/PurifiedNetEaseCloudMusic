@@ -1,0 +1,40 @@
+import 'package:bujuan/core/storage/app_cache_keys.dart';
+import 'package:bujuan/core/storage/cache_box.dart';
+
+/// 持久化应用设置和轻量偏好，避免控制器直接触碰 Hive/CacheBox。
+class SettingsRepository {
+  /// 创建设置仓库。
+  const SettingsRepository();
+
+  /// 是否启用渐变背景。
+  bool get isGradientBackgroundEnabled => CacheBox.instance.get(gradientBackgroundSp, defaultValue: true) ?? true;
+
+  /// 是否启用圆形专辑封面。
+  bool get isRoundAlbumEnabled => CacheBox.instance.get(roundAlbumSp, defaultValue: false) ?? false;
+
+  /// 是否优先使用高音质播放地址。
+  bool get isHighSoundQualityEnabled => CacheBox.instance.get(highSong, defaultValue: false) ?? false;
+
+  /// 是否启用离线模式。
+  bool get isOfflineModeEnabled => CacheBox.instance.get(offlineModeSp, defaultValue: false) ?? false;
+
+  /// 保存渐变背景开关。
+  Future<void> saveGradientBackgroundEnabled(bool value) {
+    return CacheBox.instance.put(gradientBackgroundSp, value);
+  }
+
+  /// 保存圆形专辑封面开关。
+  Future<void> saveRoundAlbumEnabled(bool value) {
+    return CacheBox.instance.put(roundAlbumSp, value);
+  }
+
+  /// 保存高音质播放开关。
+  Future<void> saveHighSoundQualityEnabled(bool value) {
+    return CacheBox.instance.put(highSong, value);
+  }
+
+  /// 保存离线模式开关。
+  Future<void> saveOfflineModeEnabled(bool value) {
+    return CacheBox.instance.put(offlineModeSp, value);
+  }
+}

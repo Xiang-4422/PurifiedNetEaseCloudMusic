@@ -7,9 +7,9 @@ import 'package:bujuan/domain/entities/playlist_summary_data.dart';
 class ExploreRepository {
   /// 创建探索仓库。
   ExploreRepository({
-    NeteaseExploreRemoteDataSource? remoteDataSource,
+    required NeteaseExploreRemoteDataSource remoteDataSource,
     required ExploreCacheStore cacheStore,
-  })  : _remoteDataSource = remoteDataSource ?? NeteaseExploreRemoteDataSource(),
+  })  : _remoteDataSource = remoteDataSource,
         _cacheStore = cacheStore;
 
   final NeteaseExploreRemoteDataSource _remoteDataSource;

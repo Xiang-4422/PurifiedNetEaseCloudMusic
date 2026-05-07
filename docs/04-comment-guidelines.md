@@ -70,7 +70,7 @@
 - public 类、枚举、扩展、mixin、typedef
 - public 方法、函数、构造函数、getter、setter
 - public 字段、属性、顶层变量、常量
-- domain entity、application service/usecase、repository、data source、DAO、controller 公开状态和跨层 port 中的 public 成员
+- domain entity、repository、feature service、data source、DAO、controller、播放内部协调组件以及必要 adapter 中的 public 成员
 
 本文中的 public 指 Dart 中非 `_` 开头的声明。项目接受注释数量增加，因此不再为 DTO、enum value、生命周期样板方法、override 方法或 widget helper 设置项目级豁免。
 

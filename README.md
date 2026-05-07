@@ -9,24 +9,18 @@ README 是本项目文档入口。`docs/` 下文档按编号阅读：
 
 ## 当前结论
 
-本项目后续采用“基于现有仓库的渐进式重构”策略，不做一次性推倒重来。
+项目当前采用“本地优先 + feature-first + 渐进瘦身”的工程方向，不做一次性重写，也不继续追加低价值分层。
 
-长期目标已经明确升级为：
-
-- 面向第三方网易云客户端的本地优先音乐应用
-- 支持网易云远程数据、本地媒体库、离线缓存与无网络可用
-- UI 与播放器优先消费本地数据，而不是直接依赖远程接口返回
-
-- 保留现有稳定基础设施：`Flutter`、`auto_route`、`Dio`、`Hive`、`just_audio + audio_service`
-- 现阶段不以迁移状态管理框架为第一目标
-- 优先修正职责边界：页面不再直调业务流程，Controller 不再继续膨胀，数据访问统一收口到 `Repository`
-- 后续将逐步建立统一领域实体、本地媒体库、网易云远程层与离线能力
-- 后续所有架构调整与进度更新，以文档为准
+- 普通页面默认走 `Page/View + Controller -> Repository`。
+- 全局播放能力允许页面直接使用 `PlayerController`，不用再通过空壳 port/usecase 转发。
+- 业务事实来源收敛为 `Drift` 本地数据库和网络刷新；自有业务 `snapshot` 持久化已经移除。
+- `Hive` 只保留登录态、设置项和轻量视觉缓存。
+- 继续保留 `Flutter`、`GetX`、`auto_route`、`Dio`、`Drift`、`Hive`、`just_audio + audio_service`。
+- 硬边界仍然保留：`core/data/domain` 不依赖 Flutter/GetX，presentation 不直接访问 DAO、Drift data source 或网易云 remote data source。
 
 ## 文档使用规则
 
-- 技术方案、目录方案、边界约束，以 [`docs/01-technical-architecture.md`](./docs/01-technical-architecture.md) 为准
-- 本地缓存、`Drift` 表结构、账号作用域和 ID 规则，以 [`docs/02-local-cache-architecture.md`](./docs/02-local-cache-architecture.md) 为准
-- 分阶段任务、完成情况、阻塞项，以 [`docs/03-refactor-plan.md`](./docs/03-refactor-plan.md) 为准
-- 后续每完成一个阶段性改动，都需要同步更新进度文档
-- 更完整的后续任务拆解、执行优先级和关键决策，也已固定在 [`docs/03-refactor-plan.md`](./docs/03-refactor-plan.md)
+- 技术方案、目录方案、边界约束，以 [`docs/01-technical-architecture.md`](./docs/01-technical-architecture.md) 为准。
+- 本地缓存、`Drift` 表结构、账号作用域和 ID 规则，以 [`docs/02-local-cache-architecture.md`](./docs/02-local-cache-architecture.md) 为准。
+- 后续整理项、完成情况、阻塞项，以 [`docs/03-refactor-plan.md`](./docs/03-refactor-plan.md) 为准。
+- 每次阶段性架构调整后，同步更新相关文档，避免文档继续描述已删除的结构。

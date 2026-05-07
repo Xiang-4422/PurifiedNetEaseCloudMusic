@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
 import 'package:bujuan/app/presentation_adapters/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/domain/entities/playback_mode.dart';
-import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
+import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 import 'package:bujuan/domain/entities/playback_order_mode.dart';
 import 'package:bujuan/domain/entities/playback_queue_item.dart';
 import 'package:bujuan/domain/entities/playback_repeat_mode.dart';

@@ -94,10 +94,10 @@ void main() {
       );
     });
 
-    test('data and lyric parser stay Flutter free', () {
+    test('data and playback lyric parser stay Flutter free', () {
       final handWrittenDataFiles = _dartFiles(Directory('${projectRoot.path}/lib/data')).where((file) => !_isGeneratedDartFile(_relativePath(file)));
       final lyricParserFiles = _dartFiles(
-        Directory('${projectRoot.path}/lib/common/lyric_parser'),
+        Directory('${projectRoot.path}/lib/features/playback/lyrics'),
       );
 
       final violations = [

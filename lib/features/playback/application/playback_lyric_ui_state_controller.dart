@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
+import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 
 /// 播放歌词 UI 状态控制器，负责歌词自动展开和当前行计算。
 class PlaybackLyricUiStateController {

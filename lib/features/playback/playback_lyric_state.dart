@@ -1,4 +1,4 @@
-import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
+import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 
 /// 歌词状态和运行时播放状态分开存放，避免歌词解析结果把主播放状态对象变成高频大对象。
 class PlaybackLyricState {

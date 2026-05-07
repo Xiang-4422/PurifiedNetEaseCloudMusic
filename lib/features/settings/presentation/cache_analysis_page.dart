@@ -1,8 +1,8 @@
 import 'package:bujuan/app/ui/dialog_service.dart';
 import 'package:bujuan/app/ui/toast_service.dart';
 import 'package:bujuan/common/constants/app_constants.dart';
-import 'package:bujuan/features/settings/application/cache_analysis_service.dart';
-import 'package:bujuan/features/playlist/playlist_widgets.dart';
+import 'package:bujuan/features/settings/cache_analysis_service.dart';
+import 'package:bujuan/widget/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';

@@ -9,9 +9,9 @@ import 'package:bujuan/features/download/presentation/download_task_page_view.da
 import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
 import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
-import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/settings/presentation/cache_analysis_page.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
+import 'package:bujuan/widget/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';

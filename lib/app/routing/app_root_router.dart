@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/bootstrap/app_binding.dart';
-import 'package:bujuan/common/constants/colors.dart';
-import 'package:bujuan/features/auth/application/startup_session_resolver.dart';
+import 'package:bujuan/app/theme/app_colors.dart';
+import 'package:bujuan/features/auth/auth_state_store.dart';
 import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/scroll_helpers.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +17,10 @@ class AppRootRouter extends StatelessWidget {
   // 根路由在应用生命周期内保持单例语义更稳，避免 rebuild 时重新生成
   // delegate 把历史导航状态打散。
   final _rootRouter = RootRouter();
-  final _startupSessionResolver = const StartupSessionResolver();
+  final _authStateStore = const AuthStateStore();
 
   List<PageRouteInfo> _buildInitialRoutes() {
-    if (_startupSessionResolver.shouldOpenHome) {
+    if (_authStateStore.hasCachedSession) {
       return const [AppHomeRouteView()];
     }
     return const [LoginRouteView()];

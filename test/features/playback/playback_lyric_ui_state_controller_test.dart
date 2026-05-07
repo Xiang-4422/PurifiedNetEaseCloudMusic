@@ -1,4 +1,4 @@
-import 'package:bujuan/common/lyric_parser/lyrics_reader_model.dart';
+import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 

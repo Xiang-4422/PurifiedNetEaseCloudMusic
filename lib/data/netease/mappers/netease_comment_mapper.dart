@@ -1,5 +1,5 @@
 import 'package:bujuan/data/netease/api/models/event/bean.dart';
-import 'package:bujuan/domain/entities/comment_data.dart';
+import 'package:bujuan/core/entities/comment_data.dart';
 
 /// 网易云评论 mapper。
 class NeteaseCommentMapper {

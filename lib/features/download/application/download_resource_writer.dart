@@ -1,5 +1,5 @@
-import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/domain/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 
 /// 下载资源索引写入器，集中处理缓存资源和正式下载资源的归属。

@@ -1,6 +1,6 @@
 import 'package:bujuan/core/database/drift_database.dart' as db;
-import 'package:bujuan/domain/entities/user_library_kinds.dart';
-import 'package:bujuan/domain/entities/user_profile_data.dart';
+import 'package:bujuan/core/entities/user_library_kinds.dart';
+import 'package:bujuan/core/entities/user_profile_data.dart';
 import 'package:drift/drift.dart' as drift;
 
 /// 用户作用域 DAO。

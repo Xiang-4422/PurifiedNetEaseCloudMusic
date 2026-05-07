@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bujuan/core/network/load_state.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:flutter/foundation.dart';
 

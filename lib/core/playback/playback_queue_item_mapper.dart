@@ -1,10 +1,10 @@
-import 'package:bujuan/domain/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/util/image_url_normalizer.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
-import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/domain/entities/track_resource_bundle.dart';
-import 'package:bujuan/domain/entities/track_with_resources.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/track_with_resources.dart';
 
 /// 播放队列项 mapper，负责从曲目领域实体构建播放队列模型。
 class PlaybackQueueItemMapper {

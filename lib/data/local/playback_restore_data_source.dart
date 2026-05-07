@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/playback_restore_state.dart';
+import 'package:bujuan/core/entities/playback_restore_state.dart';
 
 /// 播放恢复状态本地数据源。
 abstract class PlaybackRestoreDataSource {

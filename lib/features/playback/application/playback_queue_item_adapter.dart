@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/domain/entities/playback_media_type.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 
 /// 播放队列项与 audio_service [MediaItem] 的边界适配器。
 class PlaybackQueueItemAdapter {

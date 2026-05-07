@@ -1,5 +1,5 @@
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
-import 'package:bujuan/domain/entities/user_session_data.dart';
+import 'package:bujuan/core/entities/user_session_data.dart';
 
 /// 集中封装登录相关远程访问，避免 feature 直接持有网易云 API 入口。
 class NeteaseAuthRemoteDataSource {

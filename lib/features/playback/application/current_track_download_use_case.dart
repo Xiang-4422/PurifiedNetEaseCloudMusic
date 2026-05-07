@@ -1,8 +1,8 @@
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/domain/entities/track_resource_bundle.dart';
-import 'package:bujuan/domain/entities/track_with_resources.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';

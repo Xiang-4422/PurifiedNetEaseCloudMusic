@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:bujuan/data/local/local_resource_index_data_source.dart';
 import 'package:bujuan/data/local/local_library_data_source.dart';
-import 'package:bujuan/domain/entities/local_song_entry.dart';
-import 'package:bujuan/domain/entities/local_resource_entry.dart';
-import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/domain/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/local_song_entry.dart';
+import 'package:bujuan/core/entities/local_resource_entry.dart';
+import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
 
 /// 管理曲目本地音频、封面和歌词资源索引。
 class LocalResourceIndexRepository {

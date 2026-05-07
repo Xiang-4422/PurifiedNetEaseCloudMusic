@@ -1,13 +1,13 @@
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/remote/netease_search_remote_data_source.dart';
-import 'package:bujuan/domain/entities/album_entity.dart';
-import 'package:bujuan/domain/entities/artist_entity.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/playlist_entity.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
+import 'package:bujuan/core/entities/album_entity.dart';
+import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
 import 'package:bujuan/features/library/library_repository.dart';
-import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
 
 /// 搜索仓库，聚合本地曲库、网易云搜索和用户歌单缓存。

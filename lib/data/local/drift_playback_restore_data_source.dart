@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:bujuan/domain/entities/playback_mode.dart';
+import 'package:bujuan/core/entities/playback_mode.dart';
 import 'package:bujuan/core/database/drift_database.dart';
-import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
-import 'package:bujuan/domain/entities/playback_restore_state.dart';
+import 'package:bujuan/core/entities/playback_repeat_mode.dart';
+import 'package:bujuan/core/entities/playback_restore_state.dart';
 import 'package:drift/drift.dart' as drift;
 
 import 'playback_restore_data_source.dart';

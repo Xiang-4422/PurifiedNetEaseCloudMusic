@@ -1,6 +1,6 @@
-import 'package:bujuan/domain/entities/playback_media_type.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/ui/widgets/playlist/playlist_widgets.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';

@@ -1,8 +1,8 @@
 import 'package:bujuan/core/network/load_state.dart';
-import 'package:bujuan/domain/entities/album_entity.dart';
-import 'package:bujuan/domain/entities/artist_entity.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/core/entities/album_entity.dart';
+import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:flutter/foundation.dart';
 

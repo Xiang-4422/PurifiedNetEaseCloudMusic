@@ -1,7 +1,7 @@
 import 'package:bujuan/core/database/drift_database.dart' as db;
-import 'package:bujuan/domain/entities/playlist_entity.dart';
-import 'package:bujuan/domain/entities/playlist_track_ref.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
+import 'package:bujuan/core/entities/playlist_track_ref.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 import 'package:drift/drift.dart' as drift;
 
 /// 歌单 DAO。

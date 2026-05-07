@@ -1,6 +1,6 @@
 import 'package:bujuan/core/network/load_state.dart';
-import 'package:bujuan/domain/entities/local_song_entry.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/local_song_entry.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:flutter/foundation.dart';

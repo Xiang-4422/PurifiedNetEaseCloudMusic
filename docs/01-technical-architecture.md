@@ -20,9 +20,8 @@
 ```text
 lib/
   app/        应用启动、路由、绑定、主题、少量展示适配
-  core/       通用基础设施，不包含业务 feature 逻辑
+  core/       通用基础设施和跨 feature 共享实体，不包含业务 feature 逻辑
   data/       本地 data source、DAO、网易云远程协议和 mapper
-  domain/     纯 Dart 领域实体和值对象
   features/   页面、controller、repository、feature 内部 service
   routes/     auto_route 路由定义
   widget/     可跨 feature 复用的通用 UI 组件
@@ -51,8 +50,8 @@ Page/View + Controller -> Repository -> Local DB / Resource Index / Remote Sourc
 
 这些边界仍然需要通过代码和架构测试守住：
 
-- `core / data / domain` 不依赖 Flutter、GetX、页面 controller 或全局容器。
-- `domain` 保持纯 Dart，不 import data source、DAO、SDK DTO、Flutter 或 GetX。
+- `core / data` 不依赖 Flutter、GetX、页面 controller 或全局容器。
+- `core/entities` 保持纯 Dart，不 import data source、DAO、SDK DTO、Flutter 或 GetX。
 - `Repository` 不依赖 UI、GetX、`BuildContext`、Widget。
 - presentation 可以依赖 feature repository 和全局 `PlayerController`，但不能直接访问：
   - Drift DAO
@@ -193,7 +192,7 @@ features/<feature>/
 - `Hive`
 - `just_audio + audio_service`
 
-当前不迁移状态管理框架。未来如果迁移 Riverpod 或其他方案，只替换绑定和 controller 创建方式，不改变 repository/data/domain 边界。
+当前不迁移状态管理框架。未来如果迁移 Riverpod 或其他方案，只替换绑定和 controller 创建方式，不改变 repository/data/core entities 边界。
 
 ## 8. ID 规则
 
@@ -206,7 +205,7 @@ features/<feature>/
 
 架构测试只守真正边界：
 
-- `core/data/domain` 纯净。
+- `core/data` 纯净。
 - presentation 不直接访问 remote data source、DAO、Drift data source。
 - `audio_service` 和 `MediaItem` 不泄漏到普通页面。
 - 不新增只有一行转发的 `*UseCase` / `*ApplicationService`。

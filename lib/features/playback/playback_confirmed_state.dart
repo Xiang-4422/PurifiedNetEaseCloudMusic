@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 
 /// 底层播放器已经确认的真实播放态。

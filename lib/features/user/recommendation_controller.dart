@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:bujuan/app/theme/image_color_service.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/playlist_summary_data.dart';
-import 'package:bujuan/domain/entities/user_library_kinds.dart';
-import 'package:bujuan/domain/entities/user_session_data.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playlist_summary_data.dart';
+import 'package:bujuan/core/entities/user_library_kinds.dart';
+import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';

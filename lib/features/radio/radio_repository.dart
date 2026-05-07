@@ -1,6 +1,6 @@
 import 'package:bujuan/data/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/netease/remote/netease_radio_remote_data_source.dart';
-import 'package:bujuan/domain/entities/radio_data.dart';
+import 'package:bujuan/core/entities/radio_data.dart';
 
 /// 电台仓库，聚合用户电台缓存和网易云远程电台数据。
 class RadioRepository {

@@ -1,7 +1,7 @@
-import 'package:bujuan/domain/entities/playlist_summary_data.dart';
-import 'package:bujuan/domain/entities/radio_data.dart';
-import 'package:bujuan/domain/entities/user_library_kinds.dart';
-import 'package:bujuan/domain/entities/user_profile_data.dart';
+import 'package:bujuan/core/entities/playlist_summary_data.dart';
+import 'package:bujuan/core/entities/radio_data.dart';
+import 'package:bujuan/core/entities/user_library_kinds.dart';
+import 'package:bujuan/core/entities/user_profile_data.dart';
 
 /// 用户作用域本地数据源。
 abstract class UserScopedDataSource {

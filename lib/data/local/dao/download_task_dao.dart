@@ -1,5 +1,5 @@
 import 'package:bujuan/core/database/drift_database.dart';
-import 'package:bujuan/domain/entities/download_task.dart' as domain;
+import 'package:bujuan/core/entities/download_task.dart' as domain;
 import 'package:drift/drift.dart' as drift;
 
 /// 下载任务 DAO。

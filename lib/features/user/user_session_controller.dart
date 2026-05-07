@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/domain/entities/user_session_data.dart';
+import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_store.dart';
 import 'package:get/get.dart';

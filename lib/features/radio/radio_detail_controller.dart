@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bujuan/core/network/load_state.dart';
-import 'package:bujuan/domain/entities/radio_data.dart';
+import 'package:bujuan/core/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:flutter/foundation.dart';
 

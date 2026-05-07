@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 
 /// 底部封面分页只需要的稳定展示字段。
 ///

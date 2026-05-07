@@ -1,8 +1,8 @@
 import 'package:bujuan/core/database/drift_database.dart';
 import 'package:bujuan/data/local/dao/user_dao.dart';
 import 'package:bujuan/data/local/drift_user_scoped_data_source.dart';
-import 'package:bujuan/domain/entities/playlist_summary_data.dart';
-import 'package:bujuan/domain/entities/user_library_kinds.dart';
+import 'package:bujuan/core/entities/playlist_summary_data.dart';
+import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 

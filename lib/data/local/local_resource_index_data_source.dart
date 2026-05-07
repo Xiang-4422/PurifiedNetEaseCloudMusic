@@ -1,6 +1,6 @@
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/track.dart';
 
-import 'package:bujuan/domain/entities/local_resource_entry.dart';
+import 'package:bujuan/core/entities/local_resource_entry.dart';
 
 /// 本地资源索引数据源。
 abstract class LocalResourceIndexDataSource {

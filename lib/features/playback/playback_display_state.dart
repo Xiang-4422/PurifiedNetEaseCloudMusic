@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/playback_selection_state.dart';
 
 /// 播放页面当前应该展示的选择态。

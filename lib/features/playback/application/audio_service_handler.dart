@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
-import 'package:bujuan/domain/entities/playback_mode.dart';
+import 'package:bujuan/core/entities/playback_mode.dart';
 import 'package:bujuan/features/playback/application/audio_service_queue_synchronizer.dart';
 import 'package:bujuan/features/playback/application/playback_engine_adapter.dart';
 import 'package:bujuan/features/playback/application/playback_notification_controls_presenter.dart';

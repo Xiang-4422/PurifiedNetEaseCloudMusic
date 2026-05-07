@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:bujuan/data/local/download_task_data_source.dart';
-import 'package:bujuan/domain/entities/download_task.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/download_task.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/application/download_file_store.dart';
 
 /// 启动恢复服务，负责把中断中的下载任务转成可重试状态并恢复 queued 任务。

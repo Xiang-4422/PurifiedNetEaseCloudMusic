@@ -1,6 +1,6 @@
 import 'package:bujuan/data/netease/api/models/play/bean.dart';
-import 'package:bujuan/domain/entities/album_entity.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
+import 'package:bujuan/core/entities/album_entity.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 
 /// 网易云专辑 mapper。
 class NeteaseAlbumMapper {

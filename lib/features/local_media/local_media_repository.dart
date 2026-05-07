@@ -1,5 +1,5 @@
-import 'package:bujuan/domain/entities/source_type.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_resource_index_repository.dart';
 

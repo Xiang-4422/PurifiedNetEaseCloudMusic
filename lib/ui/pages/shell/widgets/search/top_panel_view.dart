@@ -1,10 +1,10 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/theme/app_constants.dart';
-import 'package:bujuan/domain/entities/album_entity.dart';
-import 'package:bujuan/domain/entities/artist_entity.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/core/entities/album_entity.dart';
+import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';

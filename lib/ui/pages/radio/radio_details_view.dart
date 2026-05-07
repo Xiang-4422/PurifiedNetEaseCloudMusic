@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/core/network/load_state.dart';
-import 'package:bujuan/domain/entities/radio_data.dart';
+import 'package:bujuan/core/entities/radio_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
 import 'package:bujuan/features/radio/radio_playback_queue_item_mapper.dart';

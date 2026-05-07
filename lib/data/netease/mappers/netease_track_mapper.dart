@@ -1,6 +1,6 @@
 import 'package:bujuan/data/netease/api/models/play/bean.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart';
 
 /// 网易云曲目 mapper。
 class NeteaseTrackMapper {

@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/comment_data.dart';
+import 'package:bujuan/core/entities/comment_data.dart';
 import 'package:bujuan/features/comment/floor_comment_controller.dart';
 import 'package:flutter/foundation.dart';
 

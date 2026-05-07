@@ -1,8 +1,8 @@
-import 'package:bujuan/domain/entities/album_entity.dart';
-import 'package:bujuan/domain/entities/artist_entity.dart';
-import 'package:bujuan/domain/entities/playlist_entity.dart';
-import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/domain/entities/track_lyrics.dart';
+import 'package:bujuan/core/entities/album_entity.dart';
+import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
+import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_lyrics.dart';
 
 import 'dao/playlist_dao.dart';
 import 'dao/track_dao.dart';

@@ -1,6 +1,6 @@
 import 'package:bujuan/app/layout/adaptive_layout_metrics.dart';
 import 'package:bujuan/app/theme/app_constants.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';

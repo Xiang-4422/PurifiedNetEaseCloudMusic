@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
 
 /// 页面和控制器只需要歌单摘要时，统一使用这层轻量模型，避免继续暴露远程歌单模型。
 class PlaylistSummaryData {

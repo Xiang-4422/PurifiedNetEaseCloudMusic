@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
 import 'package:bujuan/app/presentation_adapters/playback_selection_ui_effect_coordinator.dart';
-import 'package:bujuan/domain/entities/playback_mode.dart';
+import 'package:bujuan/core/entities/playback_mode.dart';
 import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
-import 'package:bujuan/domain/entities/playback_order_mode.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/playback_order_mode.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_repeat_mode.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';

@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 
 /// 只负责根据当前队列和播放模式计算选择索引。
 ///

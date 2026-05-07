@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 
 /// 播放应用层读取用户侧内容的最小接口。
 class PlaybackUserContentPort {

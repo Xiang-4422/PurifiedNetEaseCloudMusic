@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 
 /// 异步解码播放队列项缓存列表。
 Future<List<PlaybackQueueItem>> decodePlaybackQueueItemCacheList(

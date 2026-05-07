@@ -1,6 +1,6 @@
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_comment_mapper.dart';
-import 'package:bujuan/domain/entities/comment_data.dart';
+import 'package:bujuan/core/entities/comment_data.dart';
 
 /// 网易云评论远程数据源。
 class NeteaseCommentRemoteDataSource {

@@ -1,6 +1,6 @@
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
-import 'package:bujuan/domain/entities/playlist_entity.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
 
 /// 探索页远程入口集中在 data/netease，便于后续继续下沉平台细节。
 class NeteaseExploreRemoteDataSource {

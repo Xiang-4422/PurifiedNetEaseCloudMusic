@@ -2,9 +2,9 @@ import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_album_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_artist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
-import 'package:bujuan/domain/entities/album_entity.dart';
-import 'package:bujuan/domain/entities/artist_entity.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/album_entity.dart';
+import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/track.dart';
 
 /// 网易云歌手远程数据源。
 class NeteaseArtistRemoteDataSource {

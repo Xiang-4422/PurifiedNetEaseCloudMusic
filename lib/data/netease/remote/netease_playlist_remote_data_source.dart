@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:bujuan/data/netease/api/netease_music_api.dart';
 import 'package:bujuan/data/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/netease/mappers/netease_track_mapper.dart';
-import 'package:bujuan/domain/entities/playlist_entity.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
+import 'package:bujuan/core/entities/track.dart';
 
 /// 网易云歌单远程数据源。
 class NeteasePlaylistRemoteDataSource {

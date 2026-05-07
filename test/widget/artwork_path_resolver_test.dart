@@ -1,5 +1,5 @@
-import 'package:bujuan/domain/entities/playback_media_type.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:flutter_test/flutter_test.dart';
 

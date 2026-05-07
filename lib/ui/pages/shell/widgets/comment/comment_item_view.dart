@@ -1,6 +1,6 @@
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/core/time/date_time_formatter.dart';
-import 'package:bujuan/domain/entities/comment_data.dart';
+import 'package:bujuan/core/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_item_controller.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/comment/floor_comment_controller.dart';

@@ -1,5 +1,5 @@
-import 'package:bujuan/domain/entities/playback_mode.dart';
-import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/core/entities/playback_mode.dart';
+import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 
 /// 播放恢复状态描述“应用下次启动时最少需要恢复什么”。
 ///

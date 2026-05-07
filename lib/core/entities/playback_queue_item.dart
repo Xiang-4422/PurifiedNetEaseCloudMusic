@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playback_media_type.dart';
 
 /// 播放队列项实体，作为 UI、repository 和播放 service 之间的统一播放模型。
 class PlaybackQueueItem {

@@ -1,5 +1,5 @@
 import 'package:bujuan/core/network/load_state.dart';
-import 'package:bujuan/domain/entities/comment_data.dart';
+import 'package:bujuan/core/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';
 

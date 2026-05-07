@@ -1,10 +1,10 @@
 import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
-import 'package:bujuan/domain/entities/local_resource_entry.dart';
-import 'package:bujuan/domain/entities/playback_media_type.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
-import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/domain/entities/track_resource_bundle.dart';
-import 'package:bujuan/domain/entities/track_with_resources.dart';
+import 'package:bujuan/core/entities/local_resource_entry.dart';
+import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -1,6 +1,6 @@
 import 'package:bujuan/data/netease/api/models/play/bean.dart';
-import 'package:bujuan/domain/entities/artist_entity.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
+import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 
 /// 网易云歌手 mapper。
 class NeteaseArtistMapper {

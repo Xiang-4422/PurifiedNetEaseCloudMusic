@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:flutter/foundation.dart';
 
 /// 在 isolate 中解码播放队列缓存列表。

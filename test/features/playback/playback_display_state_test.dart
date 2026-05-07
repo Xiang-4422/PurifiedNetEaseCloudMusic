@@ -1,5 +1,5 @@
-import 'package:bujuan/domain/entities/playback_media_type.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/playback_confirmed_state.dart';
 import 'package:bujuan/features/playback/playback_display_state.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';

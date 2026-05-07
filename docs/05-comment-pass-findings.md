@@ -27,14 +27,14 @@
 
 ### 4. 领域实体仍承担 JSON 编解码
 
-- **位置**：`lib/domain/entities/*`
+- **位置**：`lib/core/entities/*`
 - **现象**：部分 domain entity 内部包含 `fromJson`、`toJson`。
 - **风险**：持久化和传输格式进入领域模型，数据格式变化会影响 domain。
 - **建议**：按风险逐步把 JSON 编解码迁到 data mapper 或 cache codec。
 
 ### 5. PlaybackQueueItem 仍保留播放适配字段
 
-- **位置**：`lib/domain/entities/playback_queue_item.dart`
+- **位置**：`lib/core/entities/playback_queue_item.dart`
 - **现象**：`album`、`artist`、`artUri`、`extras` 更接近 audio service 或展示适配字段。
 - **风险**：播放 adapter 需求会继续影响 domain entity 形状。
 - **建议**：后续将这些 getter 移到 playback adapter/mapper，domain 保留原始字段和最小派生规则。

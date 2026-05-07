@@ -1,7 +1,7 @@
 import 'package:bujuan/data/netease/remote/netease_explore_remote_data_source.dart';
 import 'package:bujuan/features/explore/explore_cache_store.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
-import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/core/entities/playlist_summary_data.dart';
 
 /// 探索仓库，聚合探索分类远程数据和本地缓存。
 class ExploreRepository {

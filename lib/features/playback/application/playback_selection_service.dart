@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
-import 'package:bujuan/domain/entities/playback_mode.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/core/entities/playback_mode.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_selection_navigator.dart';
 import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';

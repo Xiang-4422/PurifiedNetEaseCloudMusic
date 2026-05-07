@@ -53,7 +53,7 @@ void main() {
       expect(
         File('${projectRoot.path}/docs/project_architecture_mapping.md').existsSync(),
         isTrue,
-        reason: '项目必须维护一份把中小项目规范映射到当前 app/ui/features/data/core/domain 的说明，避免后续机械搬目录。',
+        reason: '项目必须维护一份把中小项目规范映射到当前 app/ui/features/data/core 的说明，避免后续机械搬目录。',
       );
       final mainFile = File('${projectRoot.path}/lib/main.dart');
       expect(
@@ -62,9 +62,26 @@ void main() {
         reason: '应用根组件必须保留在 lib/app.dart，对齐规范里的 app.dart 职责。',
       );
       expect(
+        Directory('${projectRoot.path}/lib/domain').existsSync(),
+        isFalse,
+        reason: '共享模型统一归入 lib/core/entities，不能恢复根目录 lib/domain。',
+      );
+      final appFile = File('${projectRoot.path}/lib/app.dart');
+      final appContent = appFile.readAsStringSync();
+      expect(
         mainFile.readAsStringSync(),
         contains('runApp(const App())'),
         reason: 'main.dart 只负责启动顺序，根组件应从 App 进入。',
+      );
+      expect(
+        appContent,
+        contains('GetMaterialApp.router'),
+        reason: 'lib/app.dart 必须直接承接 App 根组件，不能退化成只转发到另一个 root router。',
+      );
+      expect(
+        File('${projectRoot.path}/lib/app/routing/app_root_router.dart').existsSync(),
+        isFalse,
+        reason: 'App 根壳层不能在 lib/app.dart 和 app_root_router.dart 之间双轨拆分。',
       );
     });
 
@@ -170,10 +187,10 @@ void main() {
       );
     });
 
-    test('core data domain stay pure Dart and do not import features', () {
+    test('core entities and data stay pure Dart and do not import features', () {
       final boundaryFiles = _dartFiles(libDirectory).where((file) {
         final path = _relativePath(file);
-        return path.startsWith('lib/core/') || path.startsWith('lib/data/') || path.startsWith('lib/domain/');
+        return path.startsWith('lib/core/') || path.startsWith('lib/data/');
       }).toList();
 
       final getxViolations = boundaryFiles
@@ -200,7 +217,7 @@ void main() {
       expect(
         getxViolations,
         isEmpty,
-        reason: 'core/data/domain 不能依赖 GetX，未来迁移 Riverpod 时业务层不能被展示层容器绑死。',
+        reason: 'core/data 不能依赖 GetX，未来迁移 Riverpod 时业务层不能被展示层容器绑死。',
       );
 
       final featureImportViolations = boundaryFiles.where((file) => _contains(file, "package:bujuan/features/")).map(_relativePath).toList();
@@ -208,11 +225,11 @@ void main() {
       expect(
         featureImportViolations,
         isEmpty,
-        reason: 'core/data/domain 不能反向 import features。',
+        reason: 'core/data 不能反向 import features。',
       );
 
-      final domainFlutterViolations = boundaryFiles
-          .where((file) => _relativePath(file).startsWith('lib/domain/'))
+      final entityFlutterViolations = boundaryFiles
+          .where((file) => _relativePath(file).startsWith('lib/core/entities/'))
           .where(
             (file) => _containsAny(file, const [
               "package:flutter/",
@@ -224,9 +241,9 @@ void main() {
           .toList();
 
       expect(
-        domainFlutterViolations,
+        entityFlutterViolations,
         isEmpty,
-        reason: 'domain 必须保持纯 Dart，不能依赖 Flutter、audio_service 或 just_audio。',
+        reason: 'core/entities 必须保持纯 Dart，不能依赖 Flutter、audio_service 或 just_audio。',
       );
     });
 
@@ -613,7 +630,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: 'feature repository 之间不能横向随意依赖；共享能力应上移到 domain/application 或显式白名单。',
+        reason: 'feature repository 之间不能横向随意依赖；共享能力应上移到 core/entities、application service 或显式白名单。',
       );
     });
 
@@ -636,11 +653,11 @@ void main() {
       );
     });
 
-    test('core data domain do not import legacy common UI constants', () {
+    test('core entities and data do not import legacy common UI constants', () {
       final violations = _dartFiles(libDirectory)
           .where((file) {
             final path = _relativePath(file);
-            return path.startsWith('lib/core/') || path.startsWith('lib/data/') || path.startsWith('lib/domain/');
+            return path.startsWith('lib/core/') || path.startsWith('lib/data/');
           })
           .where(
             (file) => _containsAny(file, const [
@@ -659,7 +676,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: 'core/data/domain 不能继续依赖 common/constants 中的 UI 或历史混合常量。',
+        reason: 'core/data 不能继续依赖 common/constants 中的 UI 或历史混合常量。',
       );
     });
 
@@ -712,12 +729,15 @@ void main() {
       );
     });
 
-    test('presentation adapter imports stay isolated in bootstrap', () {
+    test('presentation adapter imports stay isolated in the composition root', () {
       final bootstrapFiles = _dartFiles(Directory('${projectRoot.path}/lib/app/bootstrap'));
+      const allowedFiles = {
+        'lib/app/bootstrap/app_bootstrap.dart',
+      };
       final violations = bootstrapFiles
           .where((file) {
             final path = _relativePath(file);
-            return path != 'lib/app/bootstrap/registrars/presentation_adapter_registrar.dart';
+            return !allowedFiles.contains(path);
           })
           .where(
             (file) => _containsAny(file, const [
@@ -731,7 +751,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: 'AppBinding 和普通 registrar 不能直接构造 UI，只有 presentation adapter registrar 可以承接 Widget/route adapter。',
+        reason: '展示层 adapter 只能在 composition root 里被装配，不能扩散到普通 bootstrap 辅助文件。',
       );
     });
 
@@ -782,27 +802,33 @@ void main() {
       );
     });
 
-    test('composition root is split into focused registrars', () {
-      const expectedRegistrars = [
-        'infrastructure_registrar.dart',
-        'repository_registrar.dart',
-        'playback_registrar.dart',
-        'user_registrar.dart',
-        'feature_controller_registrar.dart',
-        'presentation_adapter_registrar.dart',
+    test('composition root stays consolidated but sectioned', () {
+      final registrarDirectory = Directory('${projectRoot.path}/lib/app/bootstrap/registrars');
+      final bootstrapFile = File('${projectRoot.path}/lib/app/bootstrap/app_bootstrap.dart');
+      final content = bootstrapFile.readAsStringSync();
+      const expectedSections = [
+        'Future<void> bootstrapApplication()',
+        'class AppBinding extends Bindings',
+        'Future<void> _initAppInfrastructure()',
+        'void _registerInfrastructure({',
+        'void _registerRepositories({',
+        'void _registerUserControllers()',
+        'void _registerPlayback()',
+        'void _registerPresentationAdapters()',
+        'void _registerFeatureApplications()',
+        'void _registerFeatureControllers()',
       ];
-      final missing = expectedRegistrars
-          .where(
-            (name) => !File(
-              '${projectRoot.path}/lib/app/bootstrap/registrars/$name',
-            ).existsSync(),
-          )
-          .toList();
+      final missingSections = expectedSections.where((section) => !content.contains(section)).toList();
 
       expect(
-        missing,
+        registrarDirectory.existsSync(),
+        isFalse,
+        reason: 'bootstrap 目录保持一个组合根文件，避免 registrar 文件层级重新膨胀。',
+      );
+      expect(
+        missingSections,
         isEmpty,
-        reason: 'AppBinding 必须保持轻量入口，具体注册职责拆到 registrar，避免组合根重新膨胀。',
+        reason: '单文件组合根仍要用清晰私有 section 分隔初始化、仓库、播放、展示适配器和控制器职责。',
       );
     });
 

@@ -1,8 +1,8 @@
 import 'package:bujuan/data/local/playback_restore_data_source.dart';
-import 'package:bujuan/domain/entities/playback_restore_state.dart';
-import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/domain/entities/track_lyrics.dart';
-import 'package:bujuan/domain/entities/track_with_resources.dart';
+import 'package:bujuan/core/entities/playback_restore_state.dart';
+import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_lyrics.dart';
+import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:flutter_test/flutter_test.dart';

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:dio/dio.dart';
 
 /// 下载任务串行队列，集中管理去重、取消 token 和取消标记。

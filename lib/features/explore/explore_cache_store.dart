@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:bujuan/core/storage/app_cache_keys.dart';
 import 'package:bujuan/data/local/app_cache_data_source.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
-import 'package:bujuan/domain/entities/playlist_summary_data.dart';
+import 'package:bujuan/core/entities/playlist_summary_data.dart';
 
 /// 保存探索页歌单分类与分类歌单缓存。
 class ExploreCacheStore {

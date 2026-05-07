@@ -1,5 +1,5 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:bujuan/domain/entities/playback_repeat_mode.dart';
+import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 
 /// 播放重复模式与 audio_service 重复模式的边界转换器。
 class PlaybackRepeatModeMapper {

@@ -1,6 +1,6 @@
-import 'package:bujuan/domain/entities/playback_media_type.dart';
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
-import 'package:bujuan/domain/entities/radio_data.dart';
+import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/radio_data.dart';
 
 /// 电台节目到播放队列项的 mapper。
 class RadioPlaybackQueueItemMapper {

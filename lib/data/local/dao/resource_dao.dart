@@ -1,6 +1,6 @@
 import 'package:bujuan/core/database/drift_database.dart';
-import 'package:bujuan/domain/entities/local_resource_entry.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/local_resource_entry.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:drift/drift.dart' as drift;
 
 /// 本地资源 DAO。

@@ -1,10 +1,10 @@
 import 'package:bujuan/data/local/local_library_data_source.dart';
 import 'package:bujuan/data/local/local_music_source.dart';
 import 'package:bujuan/data/netease/netease_music_source.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
-import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/domain/entities/track_lyrics.dart';
-import 'package:bujuan/domain/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_lyrics.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/features/library/library_preference_store.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 import 'package:bujuan/features/library/local_artwork_cache_repository.dart';

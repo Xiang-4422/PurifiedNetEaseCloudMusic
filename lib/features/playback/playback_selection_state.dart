@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 
 /// 播放选择层的音源状态。
 enum PlaybackSelectionSourceStatus {

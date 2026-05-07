@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/download_task.dart';
+import 'package:bujuan/core/entities/download_task.dart';
 
 /// 下载任务本地数据源。
 abstract class DownloadTaskDataSource {

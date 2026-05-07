@@ -1,6 +1,6 @@
 import 'package:bujuan/data/local/download_task_data_source.dart';
-import 'package:bujuan/domain/entities/download_task.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/download_task.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 
 /// 下载任务状态存储，集中更新任务状态并回读曲目信息。

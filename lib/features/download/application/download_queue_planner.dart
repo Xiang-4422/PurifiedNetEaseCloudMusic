@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:bujuan/data/local/download_task_data_source.dart';
-import 'package:bujuan/domain/entities/download_task.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/download_task.dart';
+import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/library/library_repository.dart';
 
 /// 下载队列规划器，负责过滤无需下载或已在下载中的曲目。

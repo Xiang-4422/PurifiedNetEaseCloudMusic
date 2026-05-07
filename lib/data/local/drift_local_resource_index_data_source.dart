@@ -1,5 +1,5 @@
-import 'package:bujuan/domain/entities/local_resource_entry.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/local_resource_entry.dart';
+import 'package:bujuan/core/entities/track.dart';
 
 import 'dao/resource_dao.dart';
 import 'local_resource_index_data_source.dart';

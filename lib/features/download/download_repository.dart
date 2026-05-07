@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:bujuan/data/local/download_task_data_source.dart';
-import 'package:bujuan/domain/entities/download_task.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
-import 'package:bujuan/domain/entities/track.dart';
+import 'package:bujuan/core/entities/download_task.dart';
+import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/application/download_file_store.dart';
 import 'package:bujuan/features/download/application/download_queue_planner.dart';
 import 'package:bujuan/features/download/application/download_recovery_service.dart';

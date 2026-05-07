@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:bujuan/core/storage/app_cache_keys.dart';
 import 'package:bujuan/core/storage/cache_box.dart';
-import 'package:bujuan/domain/entities/user_session_data.dart';
+import 'package:bujuan/core/entities/user_session_data.dart';
 
 /// 持久化当前用户 session 快照，避免用户控制器直接触碰 Hive/CacheBox。
 class UserSessionStore {

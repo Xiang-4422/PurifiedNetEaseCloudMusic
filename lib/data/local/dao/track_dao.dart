@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:bujuan/core/database/drift_database.dart' as db;
-import 'package:bujuan/domain/entities/album_entity.dart';
-import 'package:bujuan/domain/entities/artist_entity.dart';
-import 'package:bujuan/domain/entities/source_type.dart';
-import 'package:bujuan/domain/entities/track.dart';
-import 'package:bujuan/domain/entities/track_lyrics.dart';
+import 'package:bujuan/core/entities/album_entity.dart';
+import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_lyrics.dart';
 import 'package:drift/drift.dart' as drift;
 
 /// 曲目、专辑和歌手 DAO。

@@ -1,4 +1,4 @@
-import 'package:bujuan/domain/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 
 /// 运行时播放状态描述“播放器此刻正在播放什么、队列在哪、进度到哪”。
 ///

@@ -6,12 +6,12 @@ import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/widget/app_smart_refresher.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/music_list_tile.dart';
 import 'package:bujuan/widget/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 
 Future<void> _playPlaylistSummary(PlaylistSummaryData playlist) async {
@@ -51,18 +51,12 @@ class ExplorePageView extends GetView<ExplorePageController> {
     final tagStripHeight = (34 * layoutMetrics.textScale).clamp(34.0, 44.0).toDouble();
     return Obx(() {
       if (controller.loading.isTrue) return const LoadingView();
-      return SmartRefresher(
-        onRefresh: () => controller.updateData(force: true),
+      return AppSmartRefresher(
+        controller: controller.refreshController,
         enablePullUp: true,
         onLoading: () => controller.updateRankingPlayListSongs(offset: controller.curTopPlayListSongs.length),
-        footer: ClassicFooter(
-            height: 60 + AppDimensions.bottomPanelHeaderHeight,
-            outerBuilder: (child) {
-              return Container(height: 60, margin: const EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight), alignment: Alignment.center, child: child);
-            }),
-        controller: controller.refreshController,
         child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           slivers: [
             PinnedHeaderSliver(
               child: Container(height: context.mediaQueryPadding.top),
@@ -351,6 +345,9 @@ class ExplorePageView extends GetView<ExplorePageController> {
               addAutomaticKeepAlives: false,
               childCount: controller.curTopPlayListSongs.length,
             )),
+            const SliverToBoxAdapter(
+              child: SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
+            ),
           ],
         ),
       );

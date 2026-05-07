@@ -7,6 +7,7 @@ import 'package:bujuan/features/radio/radio_playback_queue_item_mapper.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
+import 'package:bujuan/widget/app_smart_refresher.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/music_list_tile.dart';
 import 'package:flutter/material.dart';
@@ -72,18 +73,9 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
             state.items,
             likedSongIds: UserLibraryController.to.likedSongIds.toList(),
           );
-          return SmartRefresher(
-            enablePullDown: true,
-            enablePullUp: state.hasMore,
+          return AppSmartRefresher(
             controller: _refreshController,
-            onRefresh: () async {
-              await _controller.refresh();
-              _refreshController.refreshCompleted();
-              _refreshController.resetNoData();
-              if (!_controller.state.value.hasMore) {
-                _refreshController.loadNoData();
-              }
-            },
+            enablePullUp: state.hasMore,
             onLoading: () async {
               final success = await _controller.loadMore();
               if (!mounted) {
@@ -100,6 +92,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
               }
             },
             child: ListView.builder(
+              physics: const ClampingScrollPhysics(),
               itemBuilder: (context, index) {
                 return SongItem(
                   index: index,

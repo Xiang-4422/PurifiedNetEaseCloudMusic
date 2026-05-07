@@ -9,6 +9,7 @@ import 'package:bujuan/features/comment/presentation/custom_field.dart';
 import 'package:bujuan/features/comment/reply_sheet_controller.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
 import 'package:bujuan/widget/data_widget.dart';
+import 'package:bujuan/widget/app_smart_refresher.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -142,18 +143,9 @@ class _FoolTalkState extends State<FoolTalk> {
                   if (state.isEmpty) {
                     return const EmptyView();
                   }
-                  return SmartRefresher(
-                    enablePullDown: true,
-                    enablePullUp: state.hasMore,
+                  return AppSmartRefresher(
                     controller: _refreshController,
-                    onRefresh: () async {
-                      await _controller.refresh();
-                      _refreshController.refreshCompleted();
-                      _refreshController.resetNoData();
-                      if (!_controller.state.value.hasMore) {
-                        _refreshController.loadNoData();
-                      }
-                    },
+                    enablePullUp: state.hasMore,
                     onLoading: () async {
                       final success = await _controller.loadMore();
                       if (!mounted) {
@@ -170,6 +162,7 @@ class _FoolTalkState extends State<FoolTalk> {
                       }
                     },
                     child: ListView.builder(
+                      physics: const ClampingScrollPhysics(),
                       itemBuilder: (context, index) => _buildItem(state.items[index]),
                       itemCount: state.items.length,
                     ),

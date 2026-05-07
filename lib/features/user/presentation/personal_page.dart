@@ -13,6 +13,7 @@ import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/routes/router.gr.dart' as gr;
 import 'package:bujuan/widget/common_widgets.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
+import 'package:bujuan/widget/app_smart_refresher.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/music_list_tile.dart';
 import 'package:bujuan/widget/scroll_helpers.dart';
@@ -24,7 +25,6 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 Future<void> _playPlaylistSummary(PlaylistSummaryData playlist) async {
   final playerController = Get.find<PlayerController>();
@@ -83,20 +83,11 @@ class PersonalPageView extends GetView<ShellController> {
           shellController: controller,
         );
       }
-      return SmartRefresher(
-        onRefresh: () async {
-          recommendationController.updateData();
-        },
-        enablePullUp: true,
-        enablePullDown: true,
-        onLoading: () => recommendationController.updateRecoPlayLists(getMore: true),
-        footer: ClassicFooter(
-            height: 60 + AppDimensions.bottomPanelHeaderHeight,
-            outerBuilder: (child) {
-              return Container(height: 60, margin: const EdgeInsets.only(bottom: AppDimensions.bottomPanelHeaderHeight), alignment: Alignment.center, child: child);
-            }),
+      return AppSmartRefresher(
         controller: recommendationController.refreshController,
-        child: CustomScrollView(cacheExtent: 120, slivers: [
+        enablePullUp: true,
+        onLoading: () => recommendationController.updateRecoPlayLists(getMore: true),
+        child: CustomScrollView(cacheExtent: 120, physics: const ClampingScrollPhysics(), slivers: [
           SliverToBoxAdapter(
             child: Container(
               height: context.mediaQueryPadding.top,
@@ -263,6 +254,9 @@ class PersonalPageView extends GetView<ShellController> {
             itemBuilder: (BuildContext context, int index) {
               return PlayListItem(recommendationController.recoPlayLists[index]).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
             },
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
           ),
         ]),
       );
@@ -529,29 +523,13 @@ class RecommendedPlaylistsPageView extends StatelessWidget {
       if (recommendationController.dateLoaded.isFalse) {
         return const LoadingView();
       }
-      return SmartRefresher(
-        onRefresh: () async {
-          await recommendationController.updateData();
-        },
-        enablePullUp: true,
-        enablePullDown: true,
-        onLoading: () => recommendationController.updateRecoPlayLists(getMore: true),
-        footer: ClassicFooter(
-          height: 60 + AppDimensions.bottomPanelHeaderHeight,
-          outerBuilder: (child) {
-            return Container(
-              height: 60,
-              margin: const EdgeInsets.only(
-                bottom: AppDimensions.bottomPanelHeaderHeight,
-              ),
-              alignment: Alignment.center,
-              child: child,
-            );
-          },
-        ),
+      return AppSmartRefresher(
         controller: recommendationController.refreshController,
+        enablePullUp: true,
+        onLoading: () => recommendationController.updateRecoPlayLists(getMore: true),
         child: CustomScrollView(
           cacheExtent: 120,
+          physics: const ClampingScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
               child: SizedBox(height: context.mediaQueryPadding.top),

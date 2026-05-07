@@ -4,6 +4,7 @@ import 'package:bujuan/features/comment/comment_list_controller.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/comment/presentation/comment_item_view.dart';
 import 'package:bujuan/widget/data_widget.dart';
+import 'package:bujuan/widget/app_smart_refresher.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -83,46 +84,38 @@ class _CommentWidgetState extends State<CommentWidget> {
         if (state.isEmpty) {
           return const EmptyView();
         }
-        return RefreshConfiguration(
-          maxOverScrollExtent: 0,
-          maxUnderScrollExtent: 0,
-          child: SmartRefresher(
-            physics: const ClampingScrollPhysics(),
-            enablePullDown: false,
-            enablePullUp: state.hasMore,
-            controller: _refreshController,
-            footer: CustomFooter(
-              builder: (context, mode) {
-                return mode == LoadStatus.loading ? const SizedBox(height: 60, child: LoadingView()) : SizedBox(height: widget.listPaddingBottom);
-              },
-            ),
-            onLoading: () async {
-              final success = await _controller.loadMore();
-              if (!mounted) {
-                return;
-              }
-              if (!success) {
-                _refreshController.loadFailed();
-                return;
-              }
-              if (_controller.state.value.hasMore) {
-                _refreshController.loadComplete();
-              } else {
-                _refreshController.loadNoData();
-              }
+        return AppSmartRefresher(
+          controller: _refreshController,
+          enablePullUp: state.hasMore,
+          footer: loadingFooter(
+            idleWidget: SizedBox(height: widget.listPaddingBottom),
+          ),
+          onLoading: () async {
+            final success = await _controller.loadMore();
+            if (!mounted) {
+              return;
+            }
+            if (!success) {
+              _refreshController.loadFailed();
+              return;
+            }
+            if (_controller.state.value.hasMore) {
+              _refreshController.loadComplete();
+            } else {
+              _refreshController.loadNoData();
+            }
+          },
+          child: ListView.builder(
+            padding: EdgeInsets.fromLTRB(0, widget.listPaddingTop, 0, 0),
+            itemBuilder: (BuildContext context, int index) {
+              return CommentItemWidget(
+                id: widget.id,
+                idType: widget.idType,
+                comment: state.items[index],
+                stringColor: widget.stringColor,
+              ).marginOnly(top: index == 0 ? 0 : 10);
             },
-            child: ListView.builder(
-              padding: EdgeInsets.fromLTRB(0, widget.listPaddingTop, 0, 0),
-              itemBuilder: (BuildContext context, int index) {
-                return CommentItemWidget(
-                  id: widget.id,
-                  idType: widget.idType,
-                  comment: state.items[index],
-                  stringColor: widget.stringColor,
-                ).marginOnly(top: index == 0 ? 0 : 10);
-              },
-              itemCount: state.items.length,
-            ),
+            itemCount: state.items.length,
           ),
         );
       },

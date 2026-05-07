@@ -7,6 +7,7 @@ import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/routes/router.gr.dart';
 import 'package:bujuan/widget/artwork_path_resolver.dart';
+import 'package:bujuan/widget/app_smart_refresher.dart';
 import 'package:bujuan/widget/data_widget.dart';
 import 'package:bujuan/widget/simple_extended_image.dart';
 import 'package:flutter/material.dart';
@@ -63,18 +64,9 @@ class _MyRadioViewState extends State<MyRadioView> {
               if (state.isEmpty) {
                 return const EmptyView();
               }
-              return SmartRefresher(
-                enablePullDown: true,
-                enablePullUp: state.hasMore,
+              return AppSmartRefresher(
                 controller: _refreshController,
-                onRefresh: () async {
-                  await _controller.refresh();
-                  _refreshController.refreshCompleted();
-                  _refreshController.resetNoData();
-                  if (!_controller.state.value.hasMore) {
-                    _refreshController.loadNoData();
-                  }
-                },
+                enablePullUp: state.hasMore,
                 onLoading: () async {
                   final success = await _controller.loadMore();
                   if (!mounted) {
@@ -92,6 +84,7 @@ class _MyRadioViewState extends State<MyRadioView> {
                 },
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
+                  physics: const ClampingScrollPhysics(),
                   itemBuilder: (context, index) => _buildItem(state.items[index]),
                   itemCount: state.items.length,
                 ),

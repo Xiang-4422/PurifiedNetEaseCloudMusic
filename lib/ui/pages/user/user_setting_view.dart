@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/app/theme/app_constants.dart';
+import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/user/user_profile_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';

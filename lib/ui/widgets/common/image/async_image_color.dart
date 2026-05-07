@@ -1,4 +1,4 @@
-import 'package:bujuan/app/theme/image_color_service.dart';
+import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:flutter/material.dart';
 
 /// 这里保留“图片异步取色 + 包裹 child”的组合，是为了让页面只关心结果，不重复维护取色生命周期。

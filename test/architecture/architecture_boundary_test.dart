@@ -85,6 +85,44 @@ void main() {
       );
     });
 
+    test('app directory only keeps composition and routing', () {
+      const expectedAppDirectories = [
+        'lib/app/bootstrap',
+        'lib/app/routing',
+      ];
+      const removedAppDirectories = [
+        'lib/app/layout',
+        'lib/app/presentation_adapters',
+        'lib/app/services',
+        'lib/app/theme',
+      ];
+      const expectedUiDirectories = [
+        'lib/ui/layout',
+        'lib/ui/services',
+        'lib/ui/theme',
+      ];
+
+      final missingExpectedAppDirectories = expectedAppDirectories.where((path) => !Directory('${projectRoot.path}/$path').existsSync()).toList();
+      final existingRemovedAppDirectories = removedAppDirectories.where((path) => Directory('${projectRoot.path}/$path').existsSync()).toList();
+      final missingExpectedUiDirectories = expectedUiDirectories.where((path) => !Directory('${projectRoot.path}/$path').existsSync()).toList();
+
+      expect(
+        missingExpectedAppDirectories,
+        isEmpty,
+        reason: 'lib/app 只保留启动装配和路由目录。',
+      );
+      expect(
+        existingRemovedAppDirectories,
+        isEmpty,
+        reason: '主题、布局、Toast/Dialog 和播放展示协作对象不能继续留在 app 目录。',
+      );
+      expect(
+        missingExpectedUiDirectories,
+        isEmpty,
+        reason: '通用 UI 主题、布局和展示服务统一归入 lib/ui。',
+      );
+    });
+
     test('remote services and repositories are constructed in composition root', () {
       final remoteFiles = [
         ..._dartFiles(Directory('${projectRoot.path}/lib/data/netease/remote')),

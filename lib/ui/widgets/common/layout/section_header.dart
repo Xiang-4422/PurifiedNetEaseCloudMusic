@@ -1,4 +1,4 @@
-import 'package:bujuan/app/theme/app_constants.dart';
+import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:flutter/material.dart';
 
 /// 通用列表分区标题。

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/app/theme/image_color_service.dart';
+import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';

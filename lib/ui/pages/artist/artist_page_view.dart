@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/app/theme/image_color_service.dart';
-import 'package:bujuan/app/layout/adaptive_layout_metrics.dart';
-import 'package:bujuan/app/theme/app_constants.dart';
+import 'package:bujuan/ui/services/image_color_service.dart';
+import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
+import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/util/extensions.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';

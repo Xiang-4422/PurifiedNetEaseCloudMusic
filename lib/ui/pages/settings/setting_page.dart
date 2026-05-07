@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:bujuan/app/layout/adaptive_layout_metrics.dart';
-import 'package:bujuan/app/services/dialog_service.dart';
-import 'package:bujuan/app/services/toast_service.dart';
-import 'package:bujuan/app/theme/app_constants.dart';
+import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
+import 'package:bujuan/ui/services/dialog_service.dart';
+import 'package:bujuan/ui/services/toast_service.dart';
+import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/pages/debug/coverflow_demo_page_view.dart';
 import 'package:bujuan/ui/pages/download/download_task_page_view.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';

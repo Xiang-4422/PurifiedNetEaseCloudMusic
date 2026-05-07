@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:bujuan/app/theme/image_color_service.dart';
+import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/core/storage/local_image_cache_repository.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';

@@ -9,14 +9,15 @@
 | `main.dart` | `lib/main.dart` | 只负责启动顺序：初始化后 `runApp(const App())`。 |
 | `app.dart` | `lib/app.dart` | 应用根组件，直接承接 `GetMaterialApp.router`、主题、根路由和依赖装配入口。 |
 | `routes/` | `lib/app/routing/` | 路由声明、生成路由和路由观察者。 |
-| `theme/` | `lib/app/theme/` | 颜色、尺寸、主题和视觉缓存适配。 |
+| `theme/` | `lib/ui/theme/` | 颜色、尺寸和主题配置。 |
 | `pages/` | `lib/ui/pages/` | 页面入口和页面局部 widget。 |
 | `widgets/` | `lib/ui/widgets/` | 两个及以上页面复用的全局展示组件。 |
+| `layout/` | `lib/ui/layout/` | 跨页面复用的响应式布局度量。 |
 | `models/` | `lib/core/entities/` | 跨层传递的领域数据模型，保持纯 Dart。 |
 | `controllers/` | `lib/features/*/*_controller.dart` | 页面状态、页面流程和 UI 命令入口。 |
 | `repositories/` | `lib/features/*/*_repository.dart` | 业务数据聚合、缓存策略、领域对象转换和跨 service 编排。 |
-| `services/` | `lib/data/*`、`lib/core/*`、`lib/features/*/application/*` | 网络、本地存储、SDK、播放、下载等底层能力或复杂业务应用服务。 |
-| `utils/constants/` | `lib/core/*`、`lib/app/theme/*`、`lib/generated/assets.dart` | 通用工具、平台能力、缓存 key、资源常量和视觉常量。 |
+| `services/` | `lib/data/*`、`lib/core/*`、`lib/features/*/application/*`、`lib/ui/services/*` | 网络、本地存储、SDK、播放、下载等底层能力、复杂业务应用服务，以及 Toast/Dialog/取色等展示服务。 |
+| `utils/constants/` | `lib/core/*`、`lib/ui/theme/*`、`lib/generated/assets.dart` | 通用工具、平台能力、缓存 key、资源常量和视觉常量。 |
 
 ## 调用方向
 

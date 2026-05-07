@@ -19,12 +19,11 @@
 
 ```text
 lib/
-  app/        应用启动、路由、绑定、主题、少量展示适配
+  app/        应用启动、依赖装配和根路由
   core/       通用基础设施和跨 feature 共享实体，不包含业务 feature 逻辑
   data/       本地 data source、DAO、网易云远程协议和 mapper
   features/   页面、controller、repository、feature 内部 service
-  routes/     auto_route 路由定义
-  widget/     可跨 feature 复用的通用 UI 组件
+  ui/         页面、通用 widget、主题、布局工具和展示反馈服务
 ```
 
 普通业务链路默认如下：
@@ -37,13 +36,14 @@ Page/View + Controller -> Repository -> Local DB / Resource Index / Remote Sourc
 
 - playback 内部仍允许保留必要的 application/service/coordinator，因为它需要隔离 `audio_service`、`just_audio`、后台播放、恢复态和下载协调。
 - 下载内部仍允许保留 queue/file/resource/recovery 等组件，因为它们有真实状态机和文件生命周期。
-- `app/presentation_adapters` 只保留确实需要跨 Flutter UI 边界的适配，例如播放选择 UI 效果和封面取色回调。
+- playback 的 Flutter UI 协作对象保留在 `features/playback` 根下；不能回到纯 `features/playback/application`。
 
 已经删除或不再作为默认方向的结构：
 
 - 空壳 `ApplicationService` / `UseCase`。
 - 页面 controller factory。
 - 只做转发的 playback/shell/settings/comment/theme port。
+- `app/theme`、`app/layout`、`app/services` 和 `app/presentation_adapters` 混合展示目录。
 - 自有业务 `snapshot` 持久化架构。
 
 ## 3. 硬边界

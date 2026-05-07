@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
+import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';

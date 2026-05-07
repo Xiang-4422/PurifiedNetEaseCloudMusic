@@ -1,6 +1,6 @@
-import 'package:bujuan/app/services/dialog_service.dart';
-import 'package:bujuan/app/services/toast_service.dart';
-import 'package:bujuan/app/theme/app_constants.dart';
+import 'package:bujuan/ui/services/dialog_service.dart';
+import 'package:bujuan/ui/services/toast_service.dart';
+import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/settings/cache_analysis_service.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
 import 'package:flutter/material.dart';

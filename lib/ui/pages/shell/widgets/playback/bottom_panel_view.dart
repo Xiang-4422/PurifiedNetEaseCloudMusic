@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/core/util/extensions.dart';
-import 'package:bujuan/app/theme/app_constants.dart';
+import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_artwork_layer.dart';

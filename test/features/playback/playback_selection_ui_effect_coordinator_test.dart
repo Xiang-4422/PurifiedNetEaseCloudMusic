@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
-import 'package:bujuan/app/presentation_adapters/playback_selection_ui_effect_coordinator.dart';
+import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
+import 'package:bujuan/features/playback/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';

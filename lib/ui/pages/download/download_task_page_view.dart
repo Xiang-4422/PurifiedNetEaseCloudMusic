@@ -1,4 +1,4 @@
-import 'package:bujuan/app/theme/app_constants.dart';
+import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/network/load_state.dart';
 import 'package:bujuan/core/entities/local_song_entry.dart';
 import 'package:bujuan/core/entities/track.dart';

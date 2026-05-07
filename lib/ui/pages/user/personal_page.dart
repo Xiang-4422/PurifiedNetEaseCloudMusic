@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/app/theme/app_constants.dart';
+import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';

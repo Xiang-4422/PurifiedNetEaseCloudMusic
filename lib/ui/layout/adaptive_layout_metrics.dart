@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:bujuan/app/theme/app_constants.dart';
+import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:flutter/material.dart';
 
 /// App 级响应式布局尺寸。

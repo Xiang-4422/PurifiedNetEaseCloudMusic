@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:bujuan/app/presentation_adapters/playback_artwork_presenter.dart';
-import 'package:bujuan/app/presentation_adapters/playback_selection_ui_effect_coordinator.dart';
-import 'package:bujuan/app/services/toast_service.dart';
+import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
+import 'package:bujuan/features/playback/playback_selection_ui_effect_coordinator.dart';
+import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/core/database/app_database.dart';
 import 'package:bujuan/core/database/drift_app_database.dart';
 import 'package:bujuan/core/database/local_database_config.dart';

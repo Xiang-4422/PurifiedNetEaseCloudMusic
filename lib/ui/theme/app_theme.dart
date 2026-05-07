@@ -1,34 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// 颜色
-class AppColors {
-  AppColors._();
-
-  /// 应用主色。
-  static const Color primaryColor = Color(0xFF1976D2);
-
-  /// 应用强调色。
-  static const Color accentColor = Color(0xFFFFA000);
-
-  /// 默认页面背景色。
-  static const Color backgroundColor = Color(0xFFF5F5F5);
-
-  /// 主要文本颜色。
-  static const Color textColorPrimary = Colors.black87;
-
-  /// 次要文本颜色。
-  static const Color textColorSecondary = Colors.black54;
-
-  /// 成功状态颜色。
-  static const Color successColor = Colors.green;
-
-  /// 错误状态颜色。
-  static const Color errorColor = Colors.red;
-}
-
 /// 应用主题定义，集中提供亮色和暗色主题及基础色板。
 class AppTheme {
-  /// 亮色主题
+  AppTheme._();
+
+  /// 亮色主题。
   static ThemeData light = ThemeData.light().copyWith(
     colorScheme: ThemeData.light().colorScheme.copyWith(
           primary: primary,
@@ -64,7 +40,7 @@ class AppTheme {
     scaffoldBackgroundColor: const Color(0xFFF5F3F3),
   );
 
-  /// 黑暗模式主题
+  /// 黑暗模式主题。
   static ThemeData dark = ThemeData.dark().copyWith(
     colorScheme: ThemeData.dark().colorScheme.copyWith(
           primary: primaryDark,

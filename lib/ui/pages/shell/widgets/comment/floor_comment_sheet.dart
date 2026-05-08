@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
-import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/time/date_time_formatter.dart';
 import 'package:bujuan/core/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';

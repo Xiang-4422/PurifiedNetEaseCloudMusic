@@ -1,4 +1,4 @@
-import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
+import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_cloud_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';

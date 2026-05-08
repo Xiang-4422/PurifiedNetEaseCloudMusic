@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/user_profile_data.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:flutter/foundation.dart';

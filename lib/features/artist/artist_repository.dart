@@ -1,4 +1,4 @@
-import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
+import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_artist_remote_data_source.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';

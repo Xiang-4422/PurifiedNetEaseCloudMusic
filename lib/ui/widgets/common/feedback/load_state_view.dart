@@ -1,4 +1,4 @@
-import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:flutter/material.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';

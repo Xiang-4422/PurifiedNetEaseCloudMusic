@@ -1,5 +1,5 @@
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';

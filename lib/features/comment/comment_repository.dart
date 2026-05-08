@@ -1,4 +1,4 @@
-import 'package:bujuan/core/network/operation_result.dart';
+import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_comment_remote_data_source.dart';
 import 'package:bujuan/core/entities/comment_data.dart';
 

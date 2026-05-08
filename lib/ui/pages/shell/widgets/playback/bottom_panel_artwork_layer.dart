@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
+import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
@@ -128,7 +128,7 @@ class _BottomPanelArtworkPageLayerState extends State<BottomPanelArtworkPageLaye
               },
               child: Obx(
                 () {
-                  final stopwatch = PlaybackPerformanceLogger.start();
+                  final stopwatch = PerformanceLogger.start();
                   final queue = PlayerController.to.artworkPageItems.toList();
                   final pageView = PageView.builder(
                     controller: widget.controller.albumPageController,
@@ -178,7 +178,7 @@ class _BottomPanelArtworkPageLayerState extends State<BottomPanelArtworkPageLaye
                       );
                     },
                   );
-                  PlaybackPerformanceLogger.elapsed(
+                  PerformanceLogger.elapsed(
                     'artworkPageLayer.buildPageView',
                     stopwatch,
                     details: 'queue=${queue.length}',

@@ -10,7 +10,7 @@ import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
-import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
+import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';

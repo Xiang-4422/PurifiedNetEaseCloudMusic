@@ -6,7 +6,7 @@ import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/util/extensions.dart';
-import 'package:bujuan/core/diagnostics/playlist_performance_logger.dart';
+import 'package:bujuan/features/playlist/playlist_performance_logger.dart';
 import 'package:bujuan/core/entities/playback_order_mode.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';

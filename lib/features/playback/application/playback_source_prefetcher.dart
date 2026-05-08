@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
+import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';

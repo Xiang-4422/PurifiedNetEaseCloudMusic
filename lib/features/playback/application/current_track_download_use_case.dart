@@ -1,4 +1,4 @@
-import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
+import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';

@@ -4,7 +4,7 @@ import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_lyrics_presenter.dart';
-import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
+import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/playback_selection_state.dart';
 import 'package:flutter/material.dart';
 

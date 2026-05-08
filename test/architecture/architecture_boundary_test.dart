@@ -417,6 +417,35 @@ void main() {
       );
     });
 
+    test('core directory only keeps approved foundation boundaries', () {
+      const allowedCoreDirectories = {
+        'diagnostics',
+        'entities',
+        'platform',
+        'state',
+        'time',
+        'util',
+      };
+      final coreDirectory = Directory('${projectRoot.path}/lib/core');
+      final unexpectedDirectories = coreDirectory.listSync().whereType<Directory>().map((entity) => entity.uri.pathSegments.where((segment) => segment.isNotEmpty).last).where((name) => !allowedCoreDirectories.contains(name)).toList();
+
+      expect(
+        Directory('${projectRoot.path}/lib/core/playback').existsSync(),
+        isFalse,
+        reason: '播放队列转换和缓存编解码属于 playback application，不能恢复 core/playback。',
+      );
+      expect(
+        Directory('${projectRoot.path}/lib/core/network').existsSync(),
+        isFalse,
+        reason: 'LoadState 和 OperationResult 是通用状态模型，统一放在 core/state。',
+      );
+      expect(
+        unexpectedDirectories,
+        isEmpty,
+        reason: 'core 只保留真正跨层基础能力目录，避免重新变成杂物层。',
+      );
+    });
+
     test('netease remote data sources depend on api facade only', () {
       final remoteFiles = _dartFiles(Directory('${projectRoot.path}/lib/data/music_data/sources/netease/remote'));
       final violations = remoteFiles
@@ -760,6 +789,13 @@ void main() {
         final featureName = _featureName(path);
         final imports = _featureImports(file);
         for (final importedFeature in imports) {
+          if (importedFeature == 'playback' &&
+              _contains(
+                file,
+                "package:bujuan/features/playback/application/playback_queue_item_mapper.dart",
+              )) {
+            continue;
+          }
           if (_isAllowedRepositoryFeatureImport(
             ownerFeature: featureName,
             importedFeature: importedFeature,

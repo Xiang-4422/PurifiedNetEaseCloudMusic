@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
+import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/lyric_scroll_position.dart';
 import 'package:bujuan/features/shell/album_page_change_coordinator.dart';
@@ -260,7 +260,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
 
   /// 提交封面页切换索引到播放队列。
   Future<void> _commitAlbumPageChange(int index) async {
-    final stopwatch = PlaybackPerformanceLogger.start();
+    final stopwatch = PerformanceLogger.start();
     final selectionState = _playerController.selectionState.value;
     final ignoredProgrammaticTarget = index == _ignoredProgrammaticAlbumPageIndex;
     if (ignoredProgrammaticTarget) {
@@ -274,7 +274,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
       queueLength: selectionState.queue.length,
       playIndex: _playerController.playQueueIndex,
     );
-    PlaybackPerformanceLogger.elapsed(
+    PerformanceLogger.elapsed(
       'shell.albumPageChange.commit',
       stopwatch,
       details: 'index=$index current=${selectionState.selectedIndex} programmatic=$isProgrammatic ignoredTarget=$ignoredProgrammaticTarget committed=$committed queue=${selectionState.queue.length}',
@@ -427,11 +427,11 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
 
   // 列表页打开时直接滚到当前播放项，可以减少“当前歌曲已变但列表还停在旧位置”的错觉。
   Future<void> _animatePlayListToCurSong() async {
-    final stopwatch = PlaybackPerformanceLogger.start();
+    final stopwatch = PerformanceLogger.start();
     if (curPanelPageIndex.value == 0 && bottomPanelFullyOpened.isTrue && playListScrollController.hasClients) {
       if (_playlistScrollInFlight) {
         _playlistScrollPending = true;
-        PlaybackPerformanceLogger.log('shell.playlistScroll.pending');
+        PerformanceLogger.log('shell.playlistScroll.pending');
         return;
       }
       final currentIndex = _playerController.currentQueueIndex.value;
@@ -441,7 +441,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
       double offset = currentIndex * 55.0;
       final distance = (playListScrollController.offset - offset).abs();
       if (distance < 55.0) {
-        PlaybackPerformanceLogger.elapsed(
+        PerformanceLogger.elapsed(
           'shell.playlistScroll.skipNear',
           stopwatch,
           details: 'index=$currentIndex currentOffset=${playListScrollController.offset.toStringAsFixed(1)} target=${offset.toStringAsFixed(1)}',
@@ -456,14 +456,14 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
             playListScrollController.position.maxScrollExtent,
           );
           playListScrollController.jumpTo(targetOffset);
-          PlaybackPerformanceLogger.elapsed(
+          PerformanceLogger.elapsed(
             'shell.playlistScroll.jump',
             stopwatch,
             details: 'index=$currentIndex target=${targetOffset.toStringAsFixed(1)} distance=${distance.toStringAsFixed(1)}',
           );
         } else {
           await playListScrollController.animateTo(offset, duration: const Duration(milliseconds: 500), curve: Curves.ease);
-          PlaybackPerformanceLogger.elapsed(
+          PerformanceLogger.elapsed(
             'shell.playlistScroll.animate',
             stopwatch,
             details: 'index=$currentIndex target=${offset.toStringAsFixed(1)}',
@@ -482,7 +482,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   /// 将专辑页同步到当前播放索引。
   void syncAlbumPage({bool jump = false}) {
     if (isAlbumScrollingProgrammatic) {
-      PlaybackPerformanceLogger.log('shell.albumSync.skipProgrammatic');
+      PerformanceLogger.log('shell.albumSync.skipProgrammatic');
       return;
     }
     _animateAlbumPageViewToCurSong(jump: jump);
@@ -501,14 +501,14 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
         _pendingAlbumSyncCount++;
         final pendingDistance = ((albumPageController.page ?? currentIndex.toDouble()) - currentIndex).abs();
         _pendingAlbumSyncShouldJump = _pendingAlbumSyncShouldJump || jump || _pendingAlbumSyncCount > 1 || pendingDistance > 1.5;
-        PlaybackPerformanceLogger.log(
+        PerformanceLogger.log(
           'shell.albumSync.pending index=$currentIndex jump=$_pendingAlbumSyncShouldJump count=$_pendingAlbumSyncCount distance=${pendingDistance.toStringAsFixed(2)}',
         );
         return;
       }
       double currentPage = albumPageController.page ?? 0;
       if ((currentPage - currentIndex).abs() < AlbumPageChangeCoordinator.settledPageTolerance) {
-        PlaybackPerformanceLogger.log(
+        PerformanceLogger.log(
           'shell.albumSync.skipNear currentPage=${currentPage.toStringAsFixed(2)} target=$currentIndex jump=$jump',
         );
         return;
@@ -516,15 +516,15 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
 
       isAlbumScrollingProgrammatic = true;
       _ignoredProgrammaticAlbumPageIndex = currentIndex;
-      final stopwatch = PlaybackPerformanceLogger.start();
+      final stopwatch = PerformanceLogger.start();
       final pageDistance = (currentPage - currentIndex).abs();
       final shouldJump = jump || pageDistance > _albumAnimatedSyncMaxDistance;
-      PlaybackPerformanceLogger.log(
+      PerformanceLogger.log(
         'shell.albumSync.start currentPage=${currentPage.toStringAsFixed(2)} target=$currentIndex jump=$shouldJump distance=${pageDistance.toStringAsFixed(2)}',
       );
       final syncFuture = shouldJump ? Future<void>(() => albumPageController.jumpToPage(currentIndex)) : albumPageController.animateToPage(currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.ease);
       syncFuture.whenComplete(() {
-        PlaybackPerformanceLogger.elapsed(
+        PerformanceLogger.elapsed(
           'shell.albumSync.complete',
           stopwatch,
           details: 'target=$currentIndex jump=$shouldJump',

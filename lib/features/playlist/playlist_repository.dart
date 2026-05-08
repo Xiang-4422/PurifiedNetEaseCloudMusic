@@ -1,6 +1,6 @@
-import 'package:bujuan/core/network/operation_result.dart';
-import 'package:bujuan/core/playback/playback_queue_item_mapper.dart';
-import 'package:bujuan/core/diagnostics/playlist_performance_logger.dart';
+import 'package:bujuan/core/state/operation_result.dart';
+import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
+import 'package:bujuan/features/playlist/playlist_performance_logger.dart';
 import 'package:bujuan/data/music_data/sources/local/app_cache_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/local_library_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';

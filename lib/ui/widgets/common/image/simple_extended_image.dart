@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
+import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/ui/assets/app_assets.dart';
 import 'package:bujuan/ui/services/local_image_cache_service.dart';
 import 'package:extended_image/extended_image.dart';
@@ -143,7 +143,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   }
 
   Future<void> _resolveImagePath() async {
-    final stopwatch = PlaybackPerformanceLogger.start();
+    final stopwatch = PerformanceLogger.start();
     final resolveVersion = ++_resolveVersion;
     final rawPath = widget.url.trim();
     if (rawPath.isEmpty) {
@@ -164,7 +164,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
         _resolvedPath = resolvedPath;
       });
     }
-    PlaybackPerformanceLogger.elapsed(
+    PerformanceLogger.elapsed(
       'image.resolvePath',
       stopwatch,
       details: 'remote=${rawPath.startsWith('http://') || rawPath.startsWith('https://')} resolved=${resolvedPath.isNotEmpty}',

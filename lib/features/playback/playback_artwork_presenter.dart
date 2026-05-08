@@ -4,7 +4,7 @@ import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
-import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
+import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:flutter/material.dart';
 

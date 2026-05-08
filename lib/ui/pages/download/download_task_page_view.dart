@@ -1,5 +1,5 @@
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/core/network/load_state.dart';
+import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/local_song_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/download_repository.dart';

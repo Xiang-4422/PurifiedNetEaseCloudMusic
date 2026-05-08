@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:bujuan/data/music_data/sources/local/download_task_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/download_task_data_source.dart';
 import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
@@ -11,7 +11,7 @@ import 'package:bujuan/features/download/application/download_resource_writer.da
 import 'package:bujuan/features/download/application/download_task_state_store.dart';
 import 'package:bujuan/features/download/application/download_task_queue.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
-import 'package:bujuan/data/music_data/sources/local/local_resource_index_repository.dart';
+import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 import 'package:dio/dio.dart';
 
 part 'download_repository_workflow.dart';

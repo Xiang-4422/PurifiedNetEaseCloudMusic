@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:bujuan/core/entities/playback_mode.dart';
-import 'package:bujuan/data/music_data/sources/local/drift_database.dart';
+import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/core/entities/playback_restore_state.dart';
 import 'package:drift/drift.dart' as drift;

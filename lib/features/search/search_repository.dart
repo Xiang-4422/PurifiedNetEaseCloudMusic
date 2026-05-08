@@ -1,4 +1,4 @@
-import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_search_remote_data_source.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';

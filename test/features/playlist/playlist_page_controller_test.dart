@@ -1,6 +1,6 @@
-import 'package:bujuan/data/music_data/sources/local/app_cache_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/local_library_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_library_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';

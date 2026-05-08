@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:bujuan/data/music_data/sources/local/local_library_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_library_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/local_music_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/netease_music_source.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
@@ -14,8 +14,8 @@ import 'package:bujuan/core/entities/track_lyrics.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
 
-import 'sources/local/local_artwork_cache_repository.dart';
-import 'sources/local/local_resource_index_repository.dart';
+import 'sources/local/resources/local_artwork_cache_repository.dart';
+import 'sources/local/resources/local_resource_index_repository.dart';
 
 /// 聚合本地曲库、网易云曲库和本地资源索引的音乐数据仓库。
 class MusicDataRepository {

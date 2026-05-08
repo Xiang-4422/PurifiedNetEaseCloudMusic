@@ -1,9 +1,9 @@
 import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/features/playlist/playlist_performance_logger.dart';
-import 'package:bujuan/data/music_data/sources/local/app_cache_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/local_library_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_library_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';

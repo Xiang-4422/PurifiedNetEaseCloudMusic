@@ -1,4 +1,4 @@
-import 'package:bujuan/data/music_data/sources/local/drift_database.dart' as db;
+import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart' as db;
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/playlist_track_ref.dart';
 import 'package:bujuan/core/entities/source_type.dart';

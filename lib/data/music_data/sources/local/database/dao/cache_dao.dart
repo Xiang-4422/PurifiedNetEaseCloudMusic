@@ -1,5 +1,5 @@
-import 'package:bujuan/data/music_data/sources/local/drift_database.dart';
-import 'package:bujuan/data/music_data/sources/local/app_cache_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart';
 import 'package:drift/drift.dart' as drift;
 
 /// 应用缓存 DAO。

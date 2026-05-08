@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:bujuan/data/music_data/sources/local/local_database_config.dart';
+import 'package:bujuan/data/music_data/sources/local/database/local_database_config.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';

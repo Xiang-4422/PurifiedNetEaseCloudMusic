@@ -1,7 +1,7 @@
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
-import 'package:bujuan/data/music_data/sources/local/local_resource_index_repository.dart';
+import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 
 /// 负责把本地文件导入资料库并登记本地资源索引。
 class LocalMediaRepository {

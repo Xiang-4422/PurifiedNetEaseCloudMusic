@@ -1,6 +1,6 @@
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
-import 'package:bujuan/data/music_data/sources/local/local_resource_index_repository.dart';
+import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 
 /// 下载资源索引写入器，集中处理缓存资源和正式下载资源的归属。
 class DownloadResourceWriter {

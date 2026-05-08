@@ -1,6 +1,6 @@
 import 'package:bujuan/core/entities/download_task.dart' as domain;
 
-import 'dao/download_task_dao.dart';
+import '../dao/download_task_dao.dart';
 import 'download_task_data_source.dart';
 
 /// Drift 实现的下载任务数据源。

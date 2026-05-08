@@ -1,25 +1,19 @@
-import 'package:bujuan/data/music_data/sources/local/app_database.dart';
-import 'package:bujuan/data/music_data/sources/local/app_database_schema.dart';
-import 'package:bujuan/data/music_data/sources/local/database_collection_schema.dart';
-import 'package:bujuan/data/music_data/sources/local/drift_database.dart';
-import 'package:bujuan/data/music_data/sources/local/app_cache_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/dao/cache_dao.dart';
-import 'package:bujuan/data/music_data/sources/local/dao/download_task_dao.dart';
-import 'package:bujuan/data/music_data/sources/local/dao/playlist_dao.dart';
-import 'package:bujuan/data/music_data/sources/local/dao/resource_dao.dart';
-import 'package:bujuan/data/music_data/sources/local/dao/track_dao.dart';
-import 'package:bujuan/data/music_data/sources/local/dao/user_dao.dart';
-import 'package:bujuan/data/music_data/sources/local/download_task_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/drift_app_cache_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/drift_download_task_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/drift_local_library_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/drift_local_resource_index_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/drift_playback_restore_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/drift_user_scoped_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/local_library_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/local_resource_index_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/playback_restore_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/app_database.dart';
+import 'package:bujuan/data/music_data/sources/local/database/schema/app_database_schema.dart';
+import 'package:bujuan/data/music_data/sources/local/database/schema/database_collection_schema.dart';
+import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/cache_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/download_task_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/playlist_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/resource_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/track_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/user_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_app_cache_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_download_task_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_local_library_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_local_resource_index_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_playback_restore_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_user_scoped_data_source.dart';
 
 /// Drift 实现的应用数据库门面。
 class DriftAppDatabase implements AppDatabase {

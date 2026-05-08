@@ -4,8 +4,8 @@ import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
 
-import 'dao/playlist_dao.dart';
-import 'dao/track_dao.dart';
+import '../dao/playlist_dao.dart';
+import '../dao/track_dao.dart';
 import 'local_library_data_source.dart';
 
 /// Drift 实现的本地曲库数据源。

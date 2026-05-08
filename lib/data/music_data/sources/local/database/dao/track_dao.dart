@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:bujuan/data/music_data/sources/local/drift_database.dart' as db;
+import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart' as db;
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/source_type.dart';

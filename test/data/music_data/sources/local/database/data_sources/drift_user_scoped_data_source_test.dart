@@ -1,6 +1,6 @@
-import 'package:bujuan/data/music_data/sources/local/drift_database.dart';
-import 'package:bujuan/data/music_data/sources/local/dao/user_dao.dart';
-import 'package:bujuan/data/music_data/sources/local/drift_user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/user_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_user_scoped_data_source.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:drift/native.dart';

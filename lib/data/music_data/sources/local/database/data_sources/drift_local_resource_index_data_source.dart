@@ -1,7 +1,7 @@
 import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
 
-import 'dao/resource_dao.dart';
+import '../dao/resource_dao.dart';
 import 'local_resource_index_data_source.dart';
 
 /// Drift 实现的本地资源索引数据源。

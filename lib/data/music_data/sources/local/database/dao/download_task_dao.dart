@@ -1,4 +1,4 @@
-import 'package:bujuan/data/music_data/sources/local/drift_database.dart';
+import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart';
 import 'package:bujuan/core/entities/download_task.dart' as domain;
 import 'package:drift/drift.dart' as drift;
 

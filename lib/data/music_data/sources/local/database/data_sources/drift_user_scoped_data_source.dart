@@ -1,11 +1,11 @@
-import 'package:bujuan/data/music_data/sources/local/drift_database.dart' as db;
+import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart' as db;
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_profile_data.dart';
 import 'package:drift/drift.dart' as drift;
 
-import 'dao/user_dao.dart';
+import '../dao/user_dao.dart';
 import 'user_scoped_data_source.dart';
 
 /// Drift 实现的用户作用域数据源。

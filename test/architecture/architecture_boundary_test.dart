@@ -1078,12 +1078,12 @@ void main() {
 
     test('drift dao layer exists', () {
       const expectedFiles = [
-        'lib/data/music_data/sources/local/dao/track_dao.dart',
-        'lib/data/music_data/sources/local/dao/playlist_dao.dart',
-        'lib/data/music_data/sources/local/dao/user_dao.dart',
-        'lib/data/music_data/sources/local/dao/download_task_dao.dart',
-        'lib/data/music_data/sources/local/dao/resource_dao.dart',
-        'lib/data/music_data/sources/local/dao/cache_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/track_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/playlist_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/user_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/download_task_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/resource_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/cache_dao.dart',
       ];
       final missing = expectedFiles.where((path) => !File('${projectRoot.path}/$path').existsSync()).toList();
 
@@ -1094,30 +1094,78 @@ void main() {
       );
     });
 
+    test('local music source keeps database and resource details nested', () {
+      final localRoot = Directory('${projectRoot.path}/lib/data/music_data/sources/local');
+      final rootDartFiles = localRoot.listSync().whereType<File>().where((file) => file.path.endsWith('.dart')).map(_relativePath).toList();
+      final unexpectedRootFiles = rootDartFiles
+          .where(
+            (path) => path != 'lib/data/music_data/sources/local/local_music_source.dart',
+          )
+          .toList();
+      final unexpectedRootDirectories =
+          localRoot.listSync().whereType<Directory>().map((entity) => entity.uri.pathSegments.where((segment) => segment.isNotEmpty).last).where((name) => !const {'database', 'resources'}.contains(name)).toList();
+      final flatLocalDetails = _dartFiles(localRoot)
+          .where((file) {
+            final path = _relativePath(file);
+            return path.startsWith('lib/data/music_data/sources/local/') &&
+                !path.startsWith('lib/data/music_data/sources/local/database/') &&
+                !path.startsWith('lib/data/music_data/sources/local/resources/') &&
+                path != 'lib/data/music_data/sources/local/local_music_source.dart';
+          })
+          .map(_relativePath)
+          .toList();
+      final bootstrap = File('${projectRoot.path}/lib/app/bootstrap/app_bootstrap.dart');
+      final bootstrapViolations = _containsAny(bootstrap, const [
+        'package:bujuan/data/music_data/sources/local/database/dao/',
+        'package:bujuan/data/music_data/sources/local/database/data_sources/drift_',
+      ]);
+
+      expect(
+        unexpectedRootFiles,
+        isEmpty,
+        reason: 'local 根层只暴露本地音乐来源门面，数据库和资源细节必须下沉。',
+      );
+      expect(
+        unexpectedRootDirectories,
+        isEmpty,
+        reason: 'local 根层只允许 database 与 resources 两条实现边界。',
+      );
+      expect(
+        flatLocalDetails,
+        isEmpty,
+        reason: 'drift_*、*_data_source.dart、*_record.dart 不能继续平铺在 local 根层。',
+      );
+      expect(
+        bootstrapViolations,
+        isFalse,
+        reason: '组合根可以装配 AppDatabase 和资源仓库，但不能直接 import DAO 或 Drift data source 实现。',
+      );
+    });
+
     test('drift dao layer owns real data access methods', () {
       const expectedMethods = {
-        'lib/data/music_data/sources/local/dao/cache_dao.dart': ['load(', 'save(', 'delete('],
-        'lib/data/music_data/sources/local/dao/download_task_dao.dart': [
+        'lib/data/music_data/sources/local/database/dao/cache_dao.dart': ['load(', 'save(', 'delete('],
+        'lib/data/music_data/sources/local/database/dao/download_task_dao.dart': [
           'getTask(',
           'saveTask(',
           'watchTasks(',
         ],
-        'lib/data/music_data/sources/local/dao/resource_dao.dart': [
+        'lib/data/music_data/sources/local/database/dao/resource_dao.dart': [
           'getResource(',
           'saveResource(',
           'listAudioResources(',
         ],
-        'lib/data/music_data/sources/local/dao/track_dao.dart': [
+        'lib/data/music_data/sources/local/database/dao/track_dao.dart': [
           'getTrack(',
           'saveTracks(',
           'getLyrics(',
         ],
-        'lib/data/music_data/sources/local/dao/playlist_dao.dart': [
+        'lib/data/music_data/sources/local/database/dao/playlist_dao.dart': [
           'getPlaylist(',
           'savePlaylists(',
           'loadTrackRefsByPlaylistIds(',
         ],
-        'lib/data/music_data/sources/local/dao/user_dao.dart': [
+        'lib/data/music_data/sources/local/database/dao/user_dao.dart': [
           'loadProfile(',
           'saveProfile(',
           'loadTrackIds(',
@@ -1156,8 +1204,8 @@ void main() {
         'lib/features/playback/player_controller.dart': 450,
         'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart': 900,
         'lib/features/download/download_repository.dart': 360,
-        'lib/data/music_data/sources/local/drift_local_library_data_source.dart': 360,
-        'lib/data/music_data/sources/local/drift_user_scoped_data_source.dart': 500,
+        'lib/data/music_data/sources/local/database/data_sources/drift_local_library_data_source.dart': 360,
+        'lib/data/music_data/sources/local/database/data_sources/drift_user_scoped_data_source.dart': 500,
       };
       final risks = <String>[];
       for (final entry in watchedFiles.entries) {

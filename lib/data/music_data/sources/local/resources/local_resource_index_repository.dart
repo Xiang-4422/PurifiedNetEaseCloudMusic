@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:bujuan/data/music_data/sources/local/local_resource_index_data_source.dart';
-import 'package:bujuan/data/music_data/sources/local/local_library_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_resource_index_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_library_data_source.dart';
 import 'package:bujuan/core/entities/local_song_entry.dart';
 import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/track.dart';

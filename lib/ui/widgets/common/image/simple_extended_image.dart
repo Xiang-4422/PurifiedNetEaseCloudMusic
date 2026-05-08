@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:bujuan/core/diagnostics/playback_performance_logger.dart';
-import 'package:bujuan/generated/assets.dart';
+import 'package:bujuan/ui/assets/app_assets.dart';
 import 'package:bujuan/ui/services/local_image_cache_service.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
@@ -49,13 +49,13 @@ class SimpleExtendedImage extends StatefulWidget {
   final int? cacheHeight;
 
   /// 用于封面、歌单、专辑等普通本地图片。
-  const SimpleExtendedImage(this.url, {Key? key, this.width, this.height, this.placeholder = Assets.imagesPlaceholder, this.replacement, this.fit, this.shape = BoxShape.rectangle, this.borderRadius, this.cacheWidth, this.cacheHeight})
+  const SimpleExtendedImage(this.url, {Key? key, this.width, this.height, this.placeholder = AppAssets.imagesPlaceholder, this.replacement, this.fit, this.shape = BoxShape.rectangle, this.borderRadius, this.cacheWidth, this.cacheHeight})
       : super(key: key);
 
   /// 用于头像展示。
   ///
   /// 头像默认使用圆形裁剪，并保留独立头像占位图。
-  const SimpleExtendedImage.avatar(this.url, {Key? key, this.width, this.height, this.placeholder = Assets.imagesLogo, this.replacement, this.fit, this.shape = BoxShape.circle, this.borderRadius, this.cacheWidth = 300, this.cacheHeight})
+  const SimpleExtendedImage.avatar(this.url, {Key? key, this.width, this.height, this.placeholder = AppAssets.imagesLogo, this.replacement, this.fit, this.shape = BoxShape.circle, this.borderRadius, this.cacheWidth = 300, this.cacheHeight})
       : super(key: key);
 
   @override
@@ -194,7 +194,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
       );
     }
 
-    if (widget.placeholder != Assets.imagesPlaceholder) {
+    if (widget.placeholder != AppAssets.imagesPlaceholder) {
       return Image.asset(
         widget.placeholder,
         width: width,

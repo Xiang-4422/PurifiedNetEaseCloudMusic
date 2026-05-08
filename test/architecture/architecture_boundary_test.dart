@@ -159,6 +159,29 @@ void main() {
       );
     });
 
+    test('generated root directory stays removed', () {
+      expect(
+        Directory('${projectRoot.path}/lib/generated').existsSync(),
+        isFalse,
+        reason: '根目录 generated 语义不清；资源路径索引归 UI，网易云 JSON 解析归 netease api models 自身生成文件。',
+      );
+
+      final generatedImports = _dartFiles(libDirectory)
+          .where(
+            (file) => _containsAny(file, const [
+              'package:bujuan/generated/',
+              "import '../generated/",
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+      expect(
+        generatedImports,
+        isEmpty,
+        reason: '运行时代码不能继续依赖 lib/generated。',
+      );
+    });
+
     test('offline mode is removed from runtime code', () {
       final violations = _dartFiles(libDirectory)
           .where(

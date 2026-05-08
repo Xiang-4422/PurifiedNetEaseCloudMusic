@@ -1,4 +1,4 @@
-import 'package:bujuan/generated/assets.dart';
+import 'package:bujuan/ui/assets/app_assets.dart';
 import 'package:flutter/material.dart';
 
 import 'package:lottie/lottie.dart';
@@ -15,7 +15,7 @@ class LoadingView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.center,
-      child: Lottie.asset(Assets.lottieLoading, height: MediaQuery.sizeOf(context).width / 3.5, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
+      child: Lottie.asset(AppAssets.lottieLoading, height: MediaQuery.sizeOf(context).width / 3.5, fit: BoxFit.fitHeight, filterQuality: FilterQuality.low),
     );
   }
 }

@@ -10,7 +10,7 @@ import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
-import 'package:bujuan/generated/assets.dart';
+import 'package:bujuan/ui/assets/app_assets.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/ui/widgets/common/image/async_image_color.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
@@ -158,7 +158,7 @@ class PersonalPageView extends GetView<ShellController> {
                                     TablerIcons.player_play_filled,
                                     color: Colors.white,
                                   )),
-                              child: Lottie.asset(Assets.lottieMusicPlaying, width: 50),
+                              child: Lottie.asset(AppAssets.lottieMusicPlaying, width: 50),
                             )
                           ],
                         ).marginSymmetric(horizontal: AppDimensions.paddingSmall),
@@ -180,7 +180,7 @@ class PersonalPageView extends GetView<ShellController> {
                                 },
                               );
                             }),
-                            Offstage(offstage: !playbackAction.isFmModeValue || !playbackAction.isPlaying.value, child: Lottie.asset(Assets.lottieMusicPlaying, width: 50)),
+                            Offstage(offstage: !playbackAction.isFmModeValue || !playbackAction.isPlaying.value, child: Lottie.asset(AppAssets.lottieMusicPlaying, width: 50)),
                           ],
                         ).marginOnly(right: AppDimensions.paddingSmall),
                         Stack(
@@ -204,7 +204,7 @@ class PersonalPageView extends GetView<ShellController> {
                                 },
                               );
                             }),
-                            Offstage(offstage: !playbackAction.isHeartBeatModeValue || !playbackAction.isPlaying.value, child: Lottie.asset(Assets.lottieMusicPlaying, width: 50)),
+                            Offstage(offstage: !playbackAction.isHeartBeatModeValue || !playbackAction.isPlaying.value, child: Lottie.asset(AppAssets.lottieMusicPlaying, width: 50)),
                           ],
                         ).marginOnly(right: AppDimensions.paddingSmall),
                       ],
@@ -444,7 +444,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                   ),
                 ),
                 child: Lottie.asset(
-                  Assets.lottieMusicPlaying,
+                  AppAssets.lottieMusicPlaying,
                   width: 50,
                 ),
               ),
@@ -471,7 +471,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
               Offstage(
                 offstage: !playbackAction.isFmModeValue || !playbackAction.isPlaying.value,
                 child: Lottie.asset(
-                  Assets.lottieMusicPlaying,
+                  AppAssets.lottieMusicPlaying,
                   width: 50,
                 ),
               ),
@@ -501,7 +501,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
               Offstage(
                 offstage: !playbackAction.isHeartBeatModeValue || !playbackAction.isPlaying.value,
                 child: Lottie.asset(
-                  Assets.lottieMusicPlaying,
+                  AppAssets.lottieMusicPlaying,
                   width: 50,
                 ),
               ),

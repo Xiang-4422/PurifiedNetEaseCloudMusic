@@ -1,5 +1,5 @@
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/generated/assets.dart';
+import 'package:bujuan/ui/assets/app_assets.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,7 +23,7 @@ class _LottiePreviewPageViewState extends State<LottiePreviewPageView> {
   }
 
   bool _isLottieAsset(String path) {
-    return path.startsWith(Assets.lottieDirectory) && path.endsWith('.json');
+    return path.startsWith(AppAssets.lottieDirectory) && path.endsWith('.json');
   }
 
   @override

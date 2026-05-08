@@ -1,6 +1,6 @@
 /// 应用静态资源路径索引。
-class Assets {
-  Assets._();
+class AppAssets {
+  AppAssets._();
 
   /// 图片资源目录。
   static const String imagesDirectory = 'assets/images/';

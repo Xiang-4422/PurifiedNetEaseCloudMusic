@@ -35,14 +35,16 @@ class DownloadQueuePlanner {
     final tracksById = {
       for (final item in tracksWithResources) item.track.id: item,
     };
+    final activeTasks = await _taskDataSource.getTasks(
+      statuses: const {
+        DownloadTaskStatus.queued,
+        DownloadTaskStatus.downloading,
+      },
+    );
+    final activeTaskIds = activeTasks.map((task) => task.trackId).toSet();
     for (final trackId in candidateIds) {
       final trackWithResources = tracksById[trackId];
-      final currentTask = await _taskDataSource.getTask(trackId);
-      if (currentTask != null &&
-          {
-            DownloadTaskStatus.queued,
-            DownloadTaskStatus.downloading,
-          }.contains(currentTask.status)) {
+      if (activeTaskIds.contains(trackId)) {
         continue;
       }
       if (trackWithResources == null) {

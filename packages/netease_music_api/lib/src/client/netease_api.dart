@@ -14,6 +14,7 @@ import '../endpoints/dj/api.dart';
 import '../endpoints/event/api.dart';
 import '../endpoints/login/api.dart';
 import '../endpoints/play/api.dart';
+import '../endpoints/raw/api_enhanced_raw.dart';
 import '../endpoints/search/api.dart';
 import '../endpoints/uncategorized/api.dart';
 import '../endpoints/user/api.dart';
@@ -24,7 +25,7 @@ import 'netease_handler.dart';
 import 'platform_utils.dart';
 
 /// 网易云音乐 SDK 入口，组合登录、播放、搜索、用户等接口 mixin。
-class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearch, ApiUncategorized {
+class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearch, ApiUncategorized, ApiEnhancedRaw {
   static NeteaseMusicApi? _neteaseMusicApi;
 
   /// 当前全局 Cookie 管理器。

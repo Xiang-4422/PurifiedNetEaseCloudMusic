@@ -31,7 +31,7 @@ void neteaseInterceptor(RequestOptions option, RequestInterceptorHandler handler
     if (realIP != null) {
       option.headers['X-Real-IP'] = realIP;
     }
-    option.headers[HttpHeaders.userAgentHeader] = _chooseUserAgent(option.extra['userAgent']);
+    option.headers[HttpHeaders.userAgentHeader] = _chooseUserAgent(option.extra['userAgent'], rawUserAgent: option.extra['rawUserAgent']);
 
     var cookies = await loadCookies(host: option.uri);
 
@@ -53,6 +53,8 @@ void neteaseInterceptor(RequestOptions option, RequestInterceptorHandler handler
         case EncryptType.EApi:
           _handleEApi(option, cookies);
           break;
+        case EncryptType.Api:
+          break;
       }
       option.extra['hookRequestDataSuccess'] = true;
     }
@@ -70,6 +72,9 @@ enum EncryptType {
 
   /// eapi 接口加密。
   EApi,
+
+  /// 原始 api 请求，不加密请求体。
+  Api,
 }
 
 /// 请求使用的 User-Agent 类型。
@@ -227,7 +232,10 @@ void _handleEApi(RequestOptions option, List<Cookie> cookies) {
   option.data = 'params=${Uri.encodeComponent(encrypted)}';
 }
 
-String _chooseUserAgent(UserAgent agent) {
+String _chooseUserAgent(UserAgent agent, {String? rawUserAgent}) {
+  if (rawUserAgent != null && rawUserAgent.isNotEmpty) {
+    return rawUserAgent;
+  }
   var random = Random();
   switch (agent) {
     case UserAgent.Random:
@@ -240,8 +248,28 @@ String _chooseUserAgent(UserAgent agent) {
 }
 
 /// 创建带网易云加密拦截参数的 Dio 请求选项。
-Options joinOptions({hookRequestDate = true, EncryptType encryptType = EncryptType.WeApi, UserAgent userAgent = UserAgent.Random, Map<String, String> cookies = const {}, String eApiUrl = '', String? realIP}) =>
-    Options(contentType: ContentType.json.value, extra: {'hookRequestData': hookRequestDate, 'encryptType': encryptType, 'userAgent': userAgent, 'cookies': cookies, 'eApiUrl': eApiUrl, 'realIP': realIP});
+Options joinOptions({
+  hookRequestDate = true,
+  EncryptType encryptType = EncryptType.WeApi,
+  UserAgent userAgent = UserAgent.Random,
+  Map<String, String> cookies = const {},
+  String eApiUrl = '',
+  String? realIP,
+  String? rawUserAgent,
+  String? domain,
+  bool checkToken = false,
+}) =>
+    Options(contentType: ContentType.json.value, extra: {
+      'hookRequestData': hookRequestDate,
+      'encryptType': encryptType,
+      'userAgent': userAgent,
+      'cookies': cookies,
+      'eApiUrl': eApiUrl,
+      'realIP': realIP,
+      'rawUserAgent': rawUserAgent,
+      'domain': domain,
+      'checkToken': checkToken,
+    });
 
 /// 将相对路径拼成网易云主站 URI。
 Uri joinUri(String path) {

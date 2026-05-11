@@ -16,6 +16,16 @@ class Https {
 
   /// SDK 共享 Dio 代理。
   static DioProxy get dioProxy => _dioProxy ??= DioProxy();
+
+  /// 测试时替换 SDK 共享 Dio 实例。
+  static void setDioForTesting(Dio dio) {
+    _dio = dio;
+  }
+
+  /// 测试时替换 SDK 共享 Dio 代理。
+  static void setDioProxyForTesting(DioProxy dioProxy) {
+    _dioProxy = dioProxy;
+  }
 }
 
 /// SDK 请求元数据，允许把请求构造和实际发起分离。
@@ -29,18 +39,35 @@ class DioMetaData {
   /// 请求选项。
   Options? options;
 
+  /// 请求方法。
+  String method;
+
   /// 构造阶段产生的错误。
   Error? error;
 
   /// 创建正常请求元数据。
-  DioMetaData(this.uri, {this.data, this.options});
+  DioMetaData(this.uri, {this.data, this.options, this.method = 'POST'});
 
   /// 创建携带错误的请求元数据。
-  DioMetaData.error(this.error);
+  DioMetaData.error(this.error) : method = 'POST';
 }
 
 /// Dio 调用代理，统一处理 [DioMetaData] 中的延迟错误。
 class DioProxy {
+  /// 根据元数据中的 HTTP 方法发起 URI 请求。
+  Future<Response<T>> requestUri<T>(
+    DioMetaData metaData, {
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final method = metaData.method.toUpperCase();
+    if (method == 'GET') {
+      return getUri(metaData, cancelToken: cancelToken, onReceiveProgress: onReceiveProgress);
+    }
+    return postUri(metaData, cancelToken: cancelToken, onSendProgress: onSendProgress, onReceiveProgress: onReceiveProgress);
+  }
+
   /// 发起 POST URI 请求。
   Future<Response<T>> postUri<T>(
     DioMetaData metaData, {

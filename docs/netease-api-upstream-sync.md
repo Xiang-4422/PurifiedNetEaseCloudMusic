@@ -33,10 +33,12 @@ git diff --submodule
 上游变更的主要入口在 `third_party/api-enhanced/module/*.js`。同步到 Dart 时按这个顺序处理：
 
 1. 对照上游模块请求路径、HTTP 方法、参数默认值和加密方式。
-2. 在 `packages/netease_music_api/lib/src/endpoints/<domain>/api.dart` 更新或新增接口方法。
-3. 在 `packages/netease_music_api/lib/src/models/<domain>/bean.dart` 更新 DTO，并重新生成 `*.g.dart`。
-4. 如上层需要领域实体，更新 `mappers/` 和 `remote/netease_*_remote_data_source.dart`。
-5. 补充对应 repository/controller 测试或 mapper 测试。
+2. 运行 `node packages/netease_music_api/tool/generate_api_enhanced_modules.js` 更新 raw API manifest。
+3. 如果上游新增复杂模块，在 `ApiEnhancedRaw.requestModule` 增加手写 override。
+4. 如上层需要领域实体，再更新 typed endpoint、DTO、`mappers/` 和 `remote/netease_*_remote_data_source.dart`。
+5. 补充 raw manifest 覆盖测试，必要时补 repository/controller 测试或 mapper 测试。
+
+Raw API 返回 `dynamic`，用于保证上游模块完整可调用；主项目实际使用且需要稳定类型的接口，再逐步补 typed API 和 DTO。
 
 不要直接在 feature、controller 或 UI 中调用 submodule 里的 JavaScript 代码；`third_party/api-enhanced` 只作为协议参考和更新来源。
 

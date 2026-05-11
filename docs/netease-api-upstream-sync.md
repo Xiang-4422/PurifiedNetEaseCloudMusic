@@ -6,6 +6,10 @@
 third_party/api-enhanced
 ```
 
+上游项目地址：https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced
+
+上游在线文档：https://neteasecloudmusicapienhanced.js.org/#/
+
 ## 更新上游源码
 
 首次拉取包含 submodule 的仓库后执行：

@@ -3,7 +3,6 @@ import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_cloud_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
-import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 云盘仓库，聚合云盘远程数据、用户缓存和本地曲库资源。
@@ -37,10 +36,8 @@ class CloudRepository {
     if (tracks.isEmpty) {
       return const [];
     }
-    final tracksById = {for (final track in tracks) track.track.id: track};
-    final orderedTracks = trackIds.map((trackId) => tracksById[trackId]).whereType<TrackWithResources>().toList();
     return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      orderedTracks,
+      tracks,
       likedSongIds: likedSongIds,
     );
   }

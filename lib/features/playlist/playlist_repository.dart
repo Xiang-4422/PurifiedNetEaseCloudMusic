@@ -10,7 +10,6 @@ import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/playlist_track_ref.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 歌单详情数据来源。
@@ -849,26 +848,14 @@ class PlaylistRepository {
       return const [];
     }
     final mapStopwatch = PlaylistPerformanceLogger.start();
-    final tracksById = <String, TrackWithResources>{
-      for (final track in tracks) track.track.id: track,
-    };
-    final orderedTracks = trackIds.map((trackId) => tracksById[trackId]).whereType<TrackWithResources>().toList();
-    if (orderedTracks.isEmpty) {
-      PlaylistPerformanceLogger.elapsed(
-        'repo.loadLocalSongs.total',
-        stopwatch,
-        details: 'trackIds=${trackIds.length} songs=0 ordered=0',
-      );
-      return const [];
-    }
     final items = PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      orderedTracks,
+      tracks,
       likedSongIds: likedSongIds,
     );
     PlaylistPerformanceLogger.elapsed(
       'repo.loadLocalSongs.map',
       mapStopwatch,
-      details: 'ordered=${orderedTracks.length} items=${items.length}',
+      details: 'tracks=${tracks.length} items=${items.length}',
     );
     PlaylistPerformanceLogger.elapsed(
       'repo.loadLocalSongs.total',

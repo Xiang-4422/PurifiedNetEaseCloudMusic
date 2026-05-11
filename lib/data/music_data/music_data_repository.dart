@@ -178,13 +178,21 @@ class MusicDataRepository {
     final resourcesByTrackId = await _resourceIndexRepository.getTrackResourceBundles(
       tracks.map((track) => track.id),
     );
-    return tracks
-        .map(
-          (track) => TrackWithResources(
+    final tracksById = {
+      for (final track in tracks) track.id: track,
+    };
+    return ids
+        .map((trackId) {
+          final track = tracksById[trackId];
+          if (track == null) {
+            return null;
+          }
+          return TrackWithResources(
             track: track,
             resources: resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
-          ),
-        )
+          );
+        })
+        .whereType<TrackWithResources>()
         .toList();
   }
 

@@ -6,7 +6,6 @@ import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_user_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_profile_data.dart';
@@ -223,15 +222,8 @@ class UserRepository {
     if (tracks.isEmpty) {
       return const [];
     }
-    final tracksById = {
-      for (final track in tracks) track.track.id: track,
-    };
-    final orderedTracks = normalizedIds.map((trackId) => tracksById[trackId]).whereType<TrackWithResources>().toList();
-    if (orderedTracks.isEmpty) {
-      return const [];
-    }
     return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      orderedTracks,
+      tracks,
       likedSongIds: likedSongIds,
     );
   }

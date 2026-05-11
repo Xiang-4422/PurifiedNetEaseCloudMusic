@@ -60,6 +60,36 @@ void main() {
       expect(neteaseSource.lyricsCallCount, 1);
       expect(localDataSource.savedLyrics.length, 1);
     });
+
+    test('keeps first requested order when loading tracks with resources', () async {
+      final localDataSource = _FakeLocalLibraryDataSource(
+        tracks: {
+          '1': const Track(
+            id: '1',
+            sourceType: SourceType.netease,
+            sourceId: '1',
+            title: 'Track 1',
+          ),
+          '2': const Track(
+            id: '2',
+            sourceType: SourceType.netease,
+            sourceId: '2',
+            title: 'Track 2',
+          ),
+          '3': const Track(
+            id: '3',
+            sourceType: SourceType.netease,
+            sourceId: '3',
+            title: 'Track 3',
+          ),
+        },
+      );
+      final repository = _buildRepository(localDataSource: localDataSource);
+
+      final tracks = await repository.getTracksWithResources(['3', '1', '3', '2']);
+
+      expect(tracks.map((item) => item.track.id), ['3', '1', '2']);
+    });
   });
 }
 
@@ -78,10 +108,17 @@ MusicDataRepository _buildRepository({
 }
 
 class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
+  _FakeLocalLibraryDataSource({Map<String, Track>? tracks}) : _tracks = tracks ?? {};
+
   final Map<String, TrackLyrics> savedLyrics = {};
+  final Map<String, Track> _tracks;
 
   @override
   Future<Track?> getTrack(String trackId) async {
+    final track = _tracks[trackId];
+    if (track != null) {
+      return track;
+    }
     return Track(
       id: trackId,
       sourceType: SourceType.netease,
@@ -93,6 +130,11 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
   @override
   Future<TrackLyrics?> getLyrics(String trackId) async {
     return savedLyrics[trackId];
+  }
+
+  @override
+  Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
+    return trackIds.map((trackId) => _tracks[trackId]).whereType<Track>().toList().reversed.toList();
   }
 
   @override
@@ -158,6 +200,15 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
   @override
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) async {
     return const TrackResourceBundle();
+  }
+
+  @override
+  Future<Map<String, TrackResourceBundle>> getTrackResourceBundles(
+    Iterable<String> trackIds,
+  ) async {
+    return {
+      for (final trackId in trackIds) trackId: const TrackResourceBundle(),
+    };
   }
 
   @override

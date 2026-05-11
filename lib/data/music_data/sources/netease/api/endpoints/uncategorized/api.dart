@@ -172,6 +172,95 @@ mixin ApiUncategorized {
     });
   }
 
+  /// 跑步漫游。
+  Future<dynamic> radioSport({int bpm = 50}) {
+    return Https.dioProxy.postUri(radioSportDioMetaData(bpm: bpm)).then((Response value) {
+      return value.data;
+    });
+  }
+
+  /// 构建跑步漫游请求元数据。
+  DioMetaData radioSportDioMetaData({int bpm = 50}) {
+    var params = {'bpm': bpm};
+    return DioMetaData(joinUri('/api/radio/sport/get'), data: params, options: joinOptions());
+  }
+
+  /// 助眠解压标签列表。
+  Future<dynamic> satiTagList() {
+    return Https.dioProxy.postUri(satiTagListDioMetaData()).then((Response value) {
+      return value.data;
+    });
+  }
+
+  /// 构建助眠解压标签列表请求元数据。
+  DioMetaData satiTagListDioMetaData() {
+    return DioMetaData(joinUri('/api/voice/sati/tag/list'), data: {}, options: joinOptions());
+  }
+
+  /// 助眠解压标签下资源列表。
+  Future<dynamic> satiResourceList(String tag) {
+    return Https.dioProxy.postUri(satiResourceListDioMetaData(tag)).then((Response value) {
+      return value.data;
+    });
+  }
+
+  /// 构建助眠解压标签下资源列表请求元数据。
+  DioMetaData satiResourceListDioMetaData(String tag) {
+    var params = {'tag': tag, 'firstQuery': false};
+    return DioMetaData(joinUri('/api/voice/sati/resource/list'), data: params, options: joinOptions());
+  }
+
+  /// 助眠解压同类推荐。
+  Future<dynamic> satiResourceListMore(String id) {
+    return Https.dioProxy.postUri(satiResourceListMoreDioMetaData(id)).then((Response value) {
+      return value.data;
+    });
+  }
+
+  /// 构建助眠解压同类推荐请求元数据。
+  DioMetaData satiResourceListMoreDioMetaData(String id) {
+    var params = {'id': id};
+    return DioMetaData(joinUri('/api/voice/sati/resource/list/more/v1'), data: params, options: joinOptions());
+  }
+
+  /// 收藏或取消收藏助眠解压资源。
+  Future<dynamic> satiResourceSub(String id, {bool cancel = false}) {
+    return Https.dioProxy.postUri(satiResourceSubDioMetaData(id, cancel: cancel)).then((Response value) {
+      return value.data;
+    });
+  }
+
+  /// 构建收藏或取消收藏助眠解压资源请求元数据。
+  DioMetaData satiResourceSubDioMetaData(String id, {bool cancel = false}) {
+    var params = {'id': id, 'cancel': cancel};
+    return DioMetaData(joinUri('/api/voice/sati/resource/sub'), data: params, options: joinOptions());
+  }
+
+  /// 助眠解压收藏列表。
+  Future<dynamic> satiResourceSubList() {
+    return Https.dioProxy.postUri(satiResourceSubListDioMetaData()).then((Response value) {
+      return value.data;
+    });
+  }
+
+  /// 构建助眠解压收藏列表请求元数据。
+  DioMetaData satiResourceSubListDioMetaData() {
+    return DioMetaData(joinUri('/api/voice/sati/resource/sub/list'), data: {}, options: joinOptions());
+  }
+
+  /// 助眠解压特定时间场景推荐资源。
+  Future<dynamic> satiTimeSceneResources() {
+    return Https.dioProxy.postUri(satiTimeSceneResourcesDioMetaData()).then((Response value) {
+      return value.data;
+    });
+  }
+
+  /// 构建助眠解压特定时间场景推荐资源请求元数据。
+  DioMetaData satiTimeSceneResourcesDioMetaData() {
+    var params = {'firstQuery': false};
+    return DioMetaData(joinUri('/api/voice/sati/timescene/resources/get'), data: params, options: joinOptions());
+  }
+
   /// 申请图片空间
   DioMetaData uploadAllocDioMetaData(String fileName, {String bucket = '', String ext = '', int nosProduct = 0, String type = ''}) {
     var params = {'bucket': bucket, 'ext': ext, 'filename': fileName, 'local': false, 'nos_product': nosProduct, 'return_body': '{"code": 200, "size": "\$(ObjectSize)"}', 'type': type};

@@ -248,15 +248,18 @@ mixin ApiPlay {
 
   /// 推荐音乐列表
   /// !需要登录
-  Future<RecommendSongListWrapX> recommendSongList() {
-    return Https.dioProxy.postUri(recommendSongListDioMetaData()).then((Response value) {
+  Future<RecommendSongListWrapX> recommendSongList({bool? afresh}) {
+    return Https.dioProxy.postUri(recommendSongListDioMetaData(afresh: afresh)).then((Response value) {
       return RecommendSongListWrapX.fromJson(value.data);
     });
   }
 
   /// 构建每日推荐歌曲请求元数据。
-  DioMetaData recommendSongListDioMetaData() {
-    return DioMetaData(joinUri('/api/v3/discovery/recommend/songs'), data: {}, options: joinOptions(cookies: {'os': 'ios'}));
+  DioMetaData recommendSongListDioMetaData({bool? afresh}) {
+    var params = <String, dynamic>{
+      if (afresh != null) 'afresh': afresh,
+    };
+    return DioMetaData(joinUri('/api/v3/discovery/recommend/songs'), data: params, options: joinOptions(cookies: {'os': 'ios'}));
   }
 
   /// 历史推荐音乐列表 可用日期列表
@@ -517,6 +520,36 @@ mixin ApiPlay {
       'c': songIds.map((e) => jsonEncode({'id': e})).toList()
     };
     return DioMetaData(joinUri('/api/v3/song/detail'), data: params, options: joinOptions());
+  }
+
+  /// 灰色歌曲的其他版本推荐。
+  Future<dynamic> songCopyrightRecommendation({String? songId, String? id}) {
+    return Https.dioProxy.postUri(songCopyrightRecommendationDioMetaData(songId: songId, id: id)).then((Response value) {
+      return value.data;
+    });
+  }
+
+  /// 构建灰色歌曲其他版本推荐请求元数据。
+  DioMetaData songCopyrightRecommendationDioMetaData({String? songId, String? id}) {
+    var params = {'songid': songId ?? id};
+    return DioMetaData(
+      joinUri('/api/song/copyright/rcmd'),
+      data: params,
+      options: joinOptions(encryptType: EncryptType.EApi, eApiUrl: '/api/song/copyright/rcmd'),
+    );
+  }
+
+  /// 歌曲创作者信息。
+  Future<dynamic> songCreators(String songId) {
+    return Https.dioProxy.postUri(songCreatorsDioMetaData(songId)).then((Response value) {
+      return value.data;
+    });
+  }
+
+  /// 构建歌曲创作者信息请求元数据。
+  DioMetaData songCreatorsDioMetaData(String songId) {
+    var params = {'songId': songId};
+    return DioMetaData(joinUri('/api/song/creators'), data: params, options: joinOptions());
   }
 
   /// 音乐url

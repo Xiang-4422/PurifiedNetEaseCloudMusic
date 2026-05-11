@@ -4,6 +4,8 @@
 
 本目录不属于业务编排层，也不属于展示层。页面、controller、application service 不应直接依赖 `api` 里的 SDK/DTO。
 
+底层协议参考来自 `NeteaseCloudMusicApiEnhanced/api-enhanced`，本仓库通过 `third_party/api-enhanced` submodule 固定上游源码。更新上游和同步 Dart API 的流程见 [docs/netease-api-upstream-sync.md](../../../../../docs/netease-api-upstream-sync.md)。
+
 ## 目录结构
 
 ```text

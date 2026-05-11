@@ -1,0 +1,4 @@
+[submodule "third_party/api-enhanced"]
+	path = third_party/api-enhanced
+	url = https://github.com/NeteaseCloudMusicApiEnhanced/api-enhanced.git
+	branch = main

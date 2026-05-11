@@ -9,7 +9,7 @@ import 'package:bujuan/data/music_data/sources/local/database/app_database.dart'
 import 'package:bujuan/data/music_data/sources/local/database/drift_app_database.dart';
 import 'package:bujuan/data/music_data/sources/local/database/local_database_config.dart';
 import 'package:bujuan/data/music_data/sources/local/local_music_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/api/netease_music_api.dart';
+import 'package:netease_music_api/netease_music_api.dart';
 import 'package:bujuan/data/music_data/sources/netease/netease_remote_bootstrap.dart';
 import 'package:bujuan/data/music_data/sources/netease/netease_music_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_album_remote_data_source.dart';

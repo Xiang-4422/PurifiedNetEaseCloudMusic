@@ -1,4 +1,4 @@
-import 'package:bujuan/data/music_data/sources/netease/api/models/event/bean.dart';
+import 'package:netease_music_api/netease_music_api.dart';
 import 'package:bujuan/core/entities/comment_data.dart';
 
 /// 网易云评论 mapper。

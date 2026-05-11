@@ -1,6 +1,6 @@
-import 'package:bujuan/data/music_data/sources/netease/api/client/netease_handler.dart';
-import 'package:bujuan/data/music_data/sources/netease/api/endpoints/play/api.dart';
-import 'package:bujuan/data/music_data/sources/netease/api/endpoints/uncategorized/api.dart';
+import 'package:netease_music_api/src/client/netease_handler.dart';
+import 'package:netease_music_api/src/endpoints/play/api.dart';
+import 'package:netease_music_api/src/endpoints/uncategorized/api.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -1,4 +1,4 @@
-import 'package:bujuan/data/music_data/sources/netease/api/models/common/bean.dart';
+import '../common/bean.dart';
 
 /// 云盘歌曲列表响应。
 class CloudEntity extends ServerStatusBean {

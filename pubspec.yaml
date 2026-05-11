@@ -1,12 +1,16 @@
 name: bujuan
 description: A clean MusicPlayer.
 version: 2.0.4+25
+publish_to: none
 environment:
   sdk: ">=3.0.0"
   flutter: ">=3.0.0"
 dependencies:
   flutter:
     sdk: flutter
+
+  netease_music_api:
+    path: packages/netease_music_api
 
   logger: ^2.6.0
 

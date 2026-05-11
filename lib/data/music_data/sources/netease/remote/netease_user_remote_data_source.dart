@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:bujuan/core/util/image_url_normalizer.dart';
-import 'package:bujuan/data/music_data/sources/netease/api/netease_music_api.dart';
+import 'package:netease_music_api/netease_music_api.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';

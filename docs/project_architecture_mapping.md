@@ -37,7 +37,7 @@ ui page/widget
 - `repository` 不依赖 Controller、Widget、Toast、Dialog、Navigator 或 GetX 容器。
 - `controller` 不直接访问 Dio、Hive、CacheBox、Drift DAO、remote data source 或平台 SDK。
 - `ui/widgets/common` 只保留通用展示组件，不能读取 feature controller/repository。
-- 网易云 DTO、API client 和 endpoint 细节只能留在 `lib/data/music_data/sources/netease/api` 与 `lib/data/music_data/sources/netease/remote`。
+- 网易云 DTO、API client 和 endpoint 细节只能留在 `packages/netease_music_api`；主项目的 `lib/data/music_data/sources/netease/remote` 只通过 API package 门面访问。
 - `lib/data/music_data/` 根目录只保留统一入口和 `sources/`，本地与网易云实现分别放入 `sources/local` 和 `sources/netease`。
 
 ## 组件归属

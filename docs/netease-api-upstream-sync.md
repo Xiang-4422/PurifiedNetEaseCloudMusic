@@ -1,6 +1,6 @@
 # Netease API Upstream Sync
 
-本项目的 Dart 网易云 API 基于 `NeteaseCloudMusicApiEnhanced/api-enhanced` 维护。上游源码以 Git submodule 形式固定在：
+本项目的 Dart 网易云 API 基于 `NeteaseCloudMusicApiEnhanced/api-enhanced` 维护。Dart API 独立放在 `packages/netease_music_api`，上游源码以 Git submodule 形式固定在：
 
 ```text
 third_party/api-enhanced
@@ -33,8 +33,8 @@ git diff --submodule
 上游变更的主要入口在 `third_party/api-enhanced/module/*.js`。同步到 Dart 时按这个顺序处理：
 
 1. 对照上游模块请求路径、HTTP 方法、参数默认值和加密方式。
-2. 在 `lib/data/music_data/sources/netease/api/endpoints/<domain>/api.dart` 更新或新增接口方法。
-3. 在 `lib/data/music_data/sources/netease/api/models/<domain>/bean.dart` 更新 DTO，并重新生成 `*.g.dart`。
+2. 在 `packages/netease_music_api/lib/src/endpoints/<domain>/api.dart` 更新或新增接口方法。
+3. 在 `packages/netease_music_api/lib/src/models/<domain>/bean.dart` 更新 DTO，并重新生成 `*.g.dart`。
 4. 如上层需要领域实体，更新 `mappers/` 和 `remote/netease_*_remote_data_source.dart`。
 5. 补充对应 repository/controller 测试或 mapper 测试。
 

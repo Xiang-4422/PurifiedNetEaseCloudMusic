@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:bujuan/core/platform/platform_utils.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
@@ -22,6 +21,7 @@ import '../models/common/bean.dart';
 import 'dio_ext.dart';
 import 'netease_bean.dart';
 import 'netease_handler.dart';
+import 'platform_utils.dart';
 
 /// 网易云音乐 SDK 入口，组合登录、播放、搜索、用户等接口 mixin。
 class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearch, ApiUncategorized {

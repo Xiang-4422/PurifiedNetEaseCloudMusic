@@ -1,4 +1,4 @@
-import 'package:bujuan/data/music_data/sources/netease/api/netease_music_api.dart';
+import 'package:netease_music_api/netease_music_api.dart';
 
 /// 网易云远程能力初始化入口。
 class NeteaseRemoteBootstrap {

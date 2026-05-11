@@ -1,4 +1,4 @@
-import 'package:bujuan/data/music_data/sources/netease/api/models/play/bean.dart';
+import 'package:netease_music_api/netease_music_api.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 

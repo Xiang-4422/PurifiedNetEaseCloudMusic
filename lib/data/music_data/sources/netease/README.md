@@ -1,29 +1,23 @@
 # Netease 数据接入架构
 
-`lib/data/music_data/sources/netease` 是网易云音乐远程数据接入层。它负责把网易云接口、Cookie、加密、DTO 和领域实体转换隔离在 data 层内，对上只暴露面向 repository 使用的 remote data source 和少量 source 门面。
+`lib/data/music_data/sources/netease` 是网易云音乐远程数据接入层。它负责把独立 API package 返回的网易云 DTO 转换为项目领域实体，对上只暴露面向 repository 使用的 remote data source 和少量 source 门面。
 
-本目录不属于业务编排层，也不属于展示层。页面、controller、application service 不应直接依赖 `api` 里的 SDK/DTO。
+本目录不属于业务编排层，也不属于展示层。页面、controller、application service 不应直接依赖 `packages/netease_music_api` 里的 SDK/DTO。
 
-底层协议参考来自 `NeteaseCloudMusicApiEnhanced/api-enhanced`，本仓库通过 `third_party/api-enhanced` submodule 固定上游源码。更新上游和同步 Dart API 的流程见 [docs/netease-api-upstream-sync.md](../../../../../docs/netease-api-upstream-sync.md)。
+底层协议参考来自 `NeteaseCloudMusicApiEnhanced/api-enhanced`，本仓库通过 `third_party/api-enhanced` submodule 固定上游源码。Dart API 独立放在 `packages/netease_music_api`，更新上游和同步 Dart API 的流程见 [docs/netease-api-upstream-sync.md](../../../../../docs/netease-api-upstream-sync.md)。
 
 ## 目录结构
 
 ```text
-lib/data/music_data/sources/netease/
-├── api/
+packages/netease_music_api/
+├── lib/
 │   ├── netease_music_api.dart
-│   ├── client/
-│   │   ├── dio_ext.dart
-│   │   ├── encrypt_ext.dart
-│   │   ├── netease_api.dart
-│   │   ├── netease_bean.dart
-│   │   └── netease_handler.dart
-│   ├── endpoints/
-│   │   └── */api.dart
-│   └── models/
-│       ├── common/bean.dart
-│       ├── */bean.dart
-│       └── */bean.g.dart
+│   └── src/
+│       ├── client/
+│       ├── endpoints/
+│       └── models/
+
+lib/data/music_data/sources/netease/
 ├── mappers/
 │   ├── netease_album_mapper.dart
 │   ├── netease_artist_mapper.dart
@@ -48,22 +42,22 @@ lib/data/music_data/sources/netease/
 
 ## 分层职责
 
-### `api/`
+### `packages/netease_music_api`
 
-`api/` 是网易云 SDK 兼容层，保留接口请求、响应 DTO、Cookie、加密、Dio 拦截器和登录态刷新逻辑。
+`packages/netease_music_api` 是网易云 SDK 兼容层，保留接口请求、响应 DTO、Cookie、加密、Dio 拦截器和登录态刷新逻辑。
 
-- `api/netease_music_api.dart` 是对外 export 入口。
-- `api/client/netease_api.dart` 定义 `NeteaseMusicApi`，通过 mixin 组合登录、播放、搜索、用户、动态、播客等接口。
-- `api/client/dio_ext.dart`、`encrypt_ext.dart`、`netease_handler.dart` 负责请求参数、加密、Cookie 和响应处理。
-- `api/client/netease_bean.dart` 汇总 DTO export 和网易云接口状态码。
-- `api/endpoints/*/api.dart` 是按接口域拆分的请求方法。
-- `api/models/*/bean.dart` 是接口 DTO。
-- `api/models/*/bean.g.dart` 是 JSON 序列化生成文件，不手写业务逻辑。
-- `api/models/common/bean.dart` 是各接口共享的基础响应 DTO。
+- `lib/netease_music_api.dart` 是对主项目开放的 public barrel。
+- `lib/src/client/netease_api.dart` 定义 `NeteaseMusicApi`，通过 mixin 组合登录、播放、搜索、用户、动态、播客等接口。
+- `lib/src/client/dio_ext.dart`、`encrypt_ext.dart`、`netease_handler.dart` 负责请求参数、加密、Cookie 和响应处理。
+- `lib/src/client/netease_bean.dart` 汇总 DTO export 和网易云接口状态码。
+- `lib/src/endpoints/*/api.dart` 是按接口域拆分的请求方法。
+- `lib/src/models/*/bean.dart` 是接口 DTO。
+- `lib/src/models/*/bean.g.dart` 是 JSON 序列化生成文件，不手写业务逻辑。
+- `lib/src/models/common/bean.dart` 是各接口共享的基础响应 DTO。
 
 这一层可以依赖 Dio、Cookie、JSON DTO 和网易云协议细节，但不应依赖 feature、controller、repository 或 Flutter UI。
 
-内部依赖方向也要保持单向：`netease_music_api.dart` 只作为对外 barrel；`endpoints/` 需要 SDK 状态或请求能力时依赖 `client/`；`models/` 只依赖具体 DTO 文件或 `models/common/bean.dart`，不能反向 import 对外 barrel。
+内部依赖方向也要保持单向：`netease_music_api.dart` 只作为对外 barrel；`endpoints/` 需要 SDK 状态或请求能力时依赖 `client/`；`models/` 只依赖具体 DTO 文件或 `models/common/bean.dart`，不能反向 import 对外 barrel。主项目代码默认只 import `package:netease_music_api/netease_music_api.dart`，不直接 import `package:netease_music_api/src/...`。
 
 ### `mappers/`
 
@@ -94,7 +88,7 @@ mapper 是 data/domain 边界，允许 import 网易云 DTO 和 domain entity，
 - `netease_radio_remote_data_source.dart`：电台、播客相关远程数据。
 - `netease_explore_remote_data_source.dart`：首页、榜单、发现页远程数据。
 
-remote data source 可以知道网易云接口和 mapper，但不负责页面流程、缓存策略编排、播放队列模式切换或 UI 提示。它也不直接依赖 `api/client`、`DioMetaData`、`Https` 或 `DioProxy`，这些底层请求细节只能留在 SDK client/endpoints 内。
+remote data source 可以知道网易云接口和 mapper，但不负责页面流程、缓存策略编排、播放队列模式切换或 UI 提示。它也不直接依赖 `package:netease_music_api/src/client`、`DioMetaData`、`Https` 或 `DioProxy`，这些底层请求细节只能留在 SDK client/endpoints 内。
 
 ### `netease_music_source.dart`
 
@@ -113,9 +107,10 @@ remote data source 可以知道网易云接口和 mapper，但不负责页面流
 ```text
 repository
   -> remote/netease_*_remote_data_source
-    -> NeteaseMusicApi 注入门面
-      -> api/endpoints/* + api/models/*
-      -> api/client/*
+    -> package:netease_music_api/netease_music_api.dart
+      -> packages/netease_music_api/lib/src/endpoints/*
+      -> packages/netease_music_api/lib/src/models/*
+      -> packages/netease_music_api/lib/src/client/*
     -> mappers/*
       -> domain entity
 ```
@@ -129,10 +124,10 @@ repository
 
 禁止：
 
-- presentation/controller/application 直接 import `data/music_data/sources/netease/api`。
+- presentation/controller/application 直接 import `package:netease_music_api`。
 - feature 页面直接调用 `NeteaseMusicApi`。
-- remote data source 直接 import `api/client` 或创建临时 `NeteaseMusicApi().xxx` 调用。
-- `api/endpoints`、`api/models` 反向 import `api/netease_music_api.dart` 对外 barrel。
+- remote data source 直接 import `package:netease_music_api/src/client` 或创建临时 `NeteaseMusicApi().xxx` 调用。
+- `packages/netease_music_api/lib/src/endpoints`、`packages/netease_music_api/lib/src/models` 反向 import `package:netease_music_api/netease_music_api.dart` 对外 barrel。
 - mapper 或 remote data source 使用 GetX、Flutter UI、toast、dialog、route。
 - repository 把网易云 DTO 透传给 presentation。
 - domain 依赖本目录的任何文件。
@@ -154,7 +149,7 @@ PlaylistRepository
 
 ## DTO 与生成文件
 
-`api/models/*/bean.dart` 是接口 DTO，字段通常直接跟随网易云接口命名。这里会出现缩写字段、历史兼容字段和服务端拼写错误字段，这是 SDK 边界的正常现象。
+`packages/netease_music_api/lib/src/models/*/bean.dart` 是接口 DTO，字段通常直接跟随网易云接口命名。这里会出现缩写字段、历史兼容字段和服务端拼写错误字段，这是 SDK 边界的正常现象。
 
 维护规则：
 
@@ -165,8 +160,8 @@ PlaylistRepository
 
 ## 扩展新接口的步骤
 
-1. 在 `api/endpoints/<domain>/api.dart` 增加底层接口方法。
-2. 在对应 `api/models/<domain>/bean.dart` 增加 DTO，并保持 JSON 映射完整。
+1. 在 `packages/netease_music_api/lib/src/endpoints/<domain>/api.dart` 增加底层接口方法。
+2. 在对应 `packages/netease_music_api/lib/src/models/<domain>/bean.dart` 增加 DTO，并保持 JSON 映射完整。
 3. 如果上层需要 domain entity，在 `mappers/` 增加或扩展 mapper。
 4. 在对应 `remote/netease_*_remote_data_source.dart` 增加远程数据源方法。
 5. repository 通过构造函数注入并调用 remote data source。

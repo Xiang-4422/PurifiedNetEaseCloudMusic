@@ -413,7 +413,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: 'core 是跨数据源基础层，不能反向依赖网易云实现；请求细节应留在 data/music_data/sources/netease/api/client。',
+        reason: 'core 是跨数据源基础层，不能反向依赖网易云实现；请求细节应留在 packages/netease_music_api。',
       );
     });
 
@@ -451,7 +451,7 @@ void main() {
       final violations = remoteFiles
           .where(
             (file) => _containsAny(file, const [
-              'package:bujuan/data/music_data/sources/netease/api/client/',
+              'package:netease_music_api/src/client/',
               'DioMetaData',
               'DioProxy',
               'Https.',
@@ -468,13 +468,28 @@ void main() {
       );
     });
 
+    test('main app imports netease api package through public facade', () {
+      final violations = _dartFiles(libDirectory)
+          .where(
+            (file) => _contains(file, 'package:netease_music_api/src/'),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '主项目代码只能 import package:netease_music_api/netease_music_api.dart，不能直接依赖 API package 的 src 内部实现。',
+      );
+    });
+
     test('netease endpoint and model files do not import public api barrel', () {
       final sdkFiles = [
         ..._dartFiles(
-          Directory('${projectRoot.path}/lib/data/music_data/sources/netease/api/endpoints'),
+          Directory('${projectRoot.path}/packages/netease_music_api/lib/src/endpoints'),
         ),
         ..._dartFiles(
-          Directory('${projectRoot.path}/lib/data/music_data/sources/netease/api/models'),
+          Directory('${projectRoot.path}/packages/netease_music_api/lib/src/models'),
         ),
       ];
       final violations = sdkFiles.where((file) => _contains(file, 'netease_music_api.dart')).map(_relativePath).toList();

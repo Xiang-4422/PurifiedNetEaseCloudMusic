@@ -1,5 +1,5 @@
 import 'package:bujuan/core/entities/radio_data.dart';
-import 'package:bujuan/data/music_data/sources/netease/api/models/dj/bean.dart';
+import 'package:netease_music_api/netease_music_api.dart';
 
 /// 网易云电台 mapper。
 class NeteaseRadioMapper {

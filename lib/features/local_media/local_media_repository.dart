@@ -39,7 +39,7 @@ class LocalMediaRepository {
       availability: TrackAvailability.localOnly,
       metadata: metadata,
     );
-    await _musicDataRepository.saveTrack(track);
+    await _musicDataRepository.saveTrack(track, precacheArtwork: false);
     await _resourceIndexRepository.saveAudioResource(
       track.id,
       path: filePath,
@@ -80,7 +80,10 @@ class LocalMediaRepository {
           ),
         )
         .toList();
-    await _musicDataRepository.saveTracks(importedTracks);
+    await _musicDataRepository.saveTracks(
+      importedTracks,
+      precacheArtwork: false,
+    );
     for (var i = 0; i < importedTracks.length; i++) {
       final track = importedTracks[i];
       final localPath = tracks[i].filePath;

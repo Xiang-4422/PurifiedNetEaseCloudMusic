@@ -53,7 +53,10 @@ class CloudRepository {
       offset: offset,
       limit: limit,
     );
-    await _musicDataRepository.saveTracks(result.tracks);
+    await _musicDataRepository.saveTracks(
+      result.tracks,
+      precacheArtwork: true,
+    );
     final items = PlaybackQueueItemMapper.fromTrackList(
       result.tracks,
       likedSongIds: likedSongIds,

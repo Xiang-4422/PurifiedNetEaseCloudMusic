@@ -491,7 +491,10 @@ class _FakeMusicDataRepository implements MusicDataRepository {
   final Map<String, Track> _tracks;
 
   @override
-  Future<void> saveTracks(List<Track> tracks) async {
+  Future<void> saveTracks(
+    List<Track> tracks, {
+    bool precacheArtwork = true,
+  }) async {
     for (final track in tracks) {
       _tracks[track.id] = track;
     }

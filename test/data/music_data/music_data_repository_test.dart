@@ -90,12 +90,27 @@ void main() {
 
       expect(tracks.map((item) => item.track.id), ['3', '1', '2']);
     });
+
+    test('pre-caches artwork only when requested while saving tracks', () async {
+      final artworkCacheRepository = _FakeLocalArtworkCacheRepository();
+      final repository = _buildRepository(
+        artworkCacheRepository: artworkCacheRepository,
+      );
+      final tracks = [_track('1')];
+
+      await repository.saveTracks(tracks);
+      await repository.saveTracks(tracks, precacheArtwork: false);
+
+      expect(artworkCacheRepository.cacheCallCount, 1);
+      expect(artworkCacheRepository.cachedTrackIds, ['1']);
+    });
   });
 }
 
 MusicDataRepository _buildRepository({
   _FakeLocalLibraryDataSource? localDataSource,
   _FakeNeteaseMusicSource? neteaseSource,
+  _FakeLocalArtworkCacheRepository? artworkCacheRepository,
 }) {
   final local = localDataSource ?? _FakeLocalLibraryDataSource();
   return MusicDataRepository(
@@ -103,7 +118,16 @@ MusicDataRepository _buildRepository({
     neteaseSource: neteaseSource ?? _FakeNeteaseMusicSource(),
     localMusicSource: _FakeLocalMusicSource(),
     resourceIndexRepository: _FakeLocalResourceIndexRepository(),
-    artworkCacheRepository: _FakeLocalArtworkCacheRepository(),
+    artworkCacheRepository: artworkCacheRepository ?? _FakeLocalArtworkCacheRepository(),
+  );
+}
+
+Track _track(String id) {
+  return Track(
+    id: id,
+    sourceType: SourceType.netease,
+    sourceId: id,
+    title: 'Track $id',
   );
 }
 
@@ -131,6 +155,9 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
   Future<TrackLyrics?> getLyrics(String trackId) async {
     return savedLyrics[trackId];
   }
+
+  @override
+  Future<void> saveTracks(List<Track> tracks) async {}
 
   @override
   Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
@@ -218,8 +245,13 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
 }
 
 class _FakeLocalArtworkCacheRepository implements LocalArtworkCacheRepository {
+  int cacheCallCount = 0;
+  final List<String> cachedTrackIds = [];
+
   @override
   Future<List<Track>> cacheTrackArtwork(List<Track> tracks) async {
+    cacheCallCount++;
+    cachedTrackIds.addAll(tracks.map((track) => track.id));
     return tracks;
   }
 

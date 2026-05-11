@@ -72,7 +72,7 @@ class ArtistRepository {
     if (artist != null) {
       await _musicDataRepository.saveArtists([artist]);
     }
-    await _musicDataRepository.saveTracks(tracks);
+    await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
     await _musicDataRepository.saveAlbums(albums);
 
     return ArtistDetailData(

@@ -156,7 +156,7 @@ class UserRepository {
     required List<int> likedSongIds,
   }) async {
     final tracks = await _remoteDataSource.fetchTodayRecommendSongs();
-    await _musicDataRepository.saveTracks(tracks);
+    await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
     await _userScopedDataSource.replaceTrackList(
       userId,
       UserTrackListKind.dailyRecommend,
@@ -171,7 +171,7 @@ class UserRepository {
     required List<int> likedSongIds,
   }) async {
     final tracks = await _remoteDataSource.fetchFmSongs();
-    await _musicDataRepository.saveTracks(tracks);
+    await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
     await _userScopedDataSource.replaceTrackList(
       userId,
       UserTrackListKind.fm,
@@ -196,7 +196,7 @@ class UserRepository {
       randomLikedSongId: randomLikedSongId,
       fromPlayAll: fromPlayAll,
     );
-    await _musicDataRepository.saveTracks(tracks);
+    await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
     return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
@@ -208,7 +208,7 @@ class UserRepository {
     final tracks = await _remoteDataSource.fetchSongsByIds(
       ids: ids,
     );
-    await _musicDataRepository.saveTracks(tracks);
+    await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
     return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
@@ -248,7 +248,7 @@ class UserRepository {
     final result = await _remoteDataSource.fetchSongsByIds(
       ids: [songId],
     );
-    await _musicDataRepository.saveTracks(result);
+    await _musicDataRepository.saveTracks(result, precacheArtwork: true);
     return loadCachedSongAlbumUrl(songId);
   }
 

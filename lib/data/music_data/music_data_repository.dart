@@ -44,14 +44,22 @@ class MusicDataRepository {
   static const Duration _playbackUrlCacheTtl = Duration(minutes: 2);
 
   /// 保存曲目并预缓存封面。
-  Future<void> saveTracks(List<Track> tracks) async {
+  Future<void> saveTracks(
+    List<Track> tracks, {
+    bool precacheArtwork = true,
+  }) async {
     await _localDataSource.saveTracks(tracks);
-    await _artworkCacheRepository.cacheTrackArtwork(tracks);
+    if (precacheArtwork) {
+      await _artworkCacheRepository.cacheTrackArtwork(tracks);
+    }
   }
 
   /// 保存单首曲目。
-  Future<void> saveTrack(Track track) async {
-    await saveTracks([track]);
+  Future<void> saveTrack(
+    Track track, {
+    bool precacheArtwork = true,
+  }) async {
+    await saveTracks([track], precacheArtwork: precacheArtwork);
   }
 
   /// 保存歌单摘要或详情。

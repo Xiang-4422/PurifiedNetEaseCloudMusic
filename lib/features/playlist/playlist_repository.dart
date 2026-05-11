@@ -10,6 +10,7 @@ import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/playlist_track_ref.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 歌单详情数据来源。
@@ -176,8 +177,8 @@ class PlaylistRepository {
     required bool persist,
   }) async {
     final stopwatch = PlaylistPerformanceLogger.start();
-    final sourcePlaylistId = _toSourcePlaylistId(playlistId);
-    final entityPlaylistId = _toEntityPlaylistId(playlistId);
+    final sourcePlaylistId = MusicResourceId.toNeteaseSourceId(playlistId);
+    final entityPlaylistId = MusicResourceId.toNeteaseEntityId(playlistId);
     final remoteStopwatch = PlaylistPerformanceLogger.start();
     final remoteIndex = await _remoteDataSource.fetchPlaylistIndex(sourcePlaylistId);
     PlaylistPerformanceLogger.elapsed(
@@ -253,7 +254,7 @@ class PlaylistRepository {
       playlistId,
       likedSongIds: likedSongIds,
     );
-    final songIds = playlistIndex.trackIds.map(_toSourceTrackId).where((id) => id.isNotEmpty).toList();
+    final songIds = playlistIndex.trackIds.map(MusicResourceId.toNeteaseSourceId).where((id) => id.isNotEmpty).toList();
     if (offset >= songIds.length) {
       PlaylistPerformanceLogger.log('repo.fetchSongs.skip playlistId=$playlistId offset=$offset total=${songIds.length}');
       return const [];
@@ -314,7 +315,7 @@ class PlaylistRepository {
     required String? currentUserId,
   }) async {
     final stopwatch = PlaylistPerformanceLogger.start();
-    final entityPlaylistId = _toEntityPlaylistId(playlistId);
+    final entityPlaylistId = MusicResourceId.toNeteaseEntityId(playlistId);
     final playlistStopwatch = PlaylistPerformanceLogger.start();
     final localPlaylist = await _localLibraryDataSource.getPlaylist(entityPlaylistId);
     PlaylistPerformanceLogger.elapsed(
@@ -476,7 +477,7 @@ class PlaylistRepository {
       likedSongIds: likedSongIds,
       persist: false,
     );
-    final songIds = index.trackIds.map(_toSourceTrackId).where((id) => id.isNotEmpty).toList();
+    final songIds = index.trackIds.map(MusicResourceId.toNeteaseSourceId).where((id) => id.isNotEmpty).toList();
     final tracks = await _fetchRemotePlaylistTracks(
       playlistId: playlistId,
       songIds: songIds,
@@ -513,7 +514,7 @@ class PlaylistRepository {
       likedSongIds: likedSongIds,
       persist: false,
     );
-    final songIds = index.trackIds.map(_toSourceTrackId).where((id) => id.isNotEmpty).toList();
+    final songIds = index.trackIds.map(MusicResourceId.toNeteaseSourceId).where((id) => id.isNotEmpty).toList();
     final tracks = await _fetchRemotePlaylistTracks(
       playlistId: playlistId,
       songIds: songIds,
@@ -553,7 +554,7 @@ class PlaylistRepository {
     if (result.success && currentUserId?.isNotEmpty == true) {
       await _userScopedDataSource.savePlaylistSubscriptionState(
         currentUserId!,
-        _toEntityPlaylistId(playlistId),
+        MusicResourceId.toNeteaseEntityId(playlistId),
         subscribe,
       );
     }
@@ -575,7 +576,7 @@ class PlaylistRepository {
       add: add,
     );
     if (result.success) {
-      final entityPlaylistId = _toEntityPlaylistId(playlistId);
+      final entityPlaylistId = MusicResourceId.toNeteaseEntityId(playlistId);
       await _appCacheDataSource.delete(_refreshCacheKey(playlistId));
       await _localLibraryDataSource.clearPlaylistTrackRefs(entityPlaylistId);
     }
@@ -683,8 +684,8 @@ class PlaylistRepository {
     required List<Track> tracks,
     required String? currentUserId,
   }) async {
-    final sourcePlaylistId = _toSourcePlaylistId(playlistId);
-    final returnedTrackIds = tracks.map((track) => _toEntityTrackId(track.id)).where((id) => id.isNotEmpty).toSet();
+    final sourcePlaylistId = MusicResourceId.toNeteaseSourceId(playlistId);
+    final returnedTrackIds = tracks.map((track) => MusicResourceId.toNeteaseEntityId(track.id)).where((id) => id.isNotEmpty).toSet();
     final savedTrackIds = index.trackIds.where(returnedTrackIds.contains).toList();
     final persistStopwatch = PlaylistPerformanceLogger.start();
     await _persistTracksAndRefreshMarker(
@@ -729,7 +730,7 @@ class PlaylistRepository {
     required String? currentUserId,
   }) async {
     final stopwatch = PlaylistPerformanceLogger.start();
-    final entityPlaylistId = _toEntityPlaylistId(playlistId);
+    final entityPlaylistId = MusicResourceId.toNeteaseEntityId(playlistId);
     final playlist = await _localLibraryDataSource.getPlaylist(entityPlaylistId);
     if (playlist == null) {
       PlaylistPerformanceLogger.elapsed(
@@ -812,11 +813,11 @@ class PlaylistRepository {
           ..addAll(likedTrackIds);
       }
     }
-    return trackIds.map(_toEntityTrackId).where((id) => id.isNotEmpty).toList();
+    return trackIds.map(MusicResourceId.toNeteaseEntityId).where((id) => id.isNotEmpty).toList();
   }
 
   List<String> _trackIdsFromPlaylist(PlaylistEntity playlist) {
-    return playlist.trackRefs.map((item) => _toEntityTrackId(item.trackId)).where((id) => id.isNotEmpty).toList();
+    return playlist.trackRefs.map((item) => MusicResourceId.toNeteaseEntityId(item.trackId)).where((id) => id.isNotEmpty).toList();
   }
 
   Future<List<PlaybackQueueItem>> _loadLocalSongs(
@@ -872,35 +873,7 @@ class PlaylistRepository {
     );
   }
 
-  String _refreshCacheKey(String playlistId) => 'PLAYLIST_CACHE_LAST_REFRESH_${_toSourcePlaylistId(playlistId)}';
-
-  String _toEntityPlaylistId(String playlistId) {
-    if (playlistId.startsWith('netease:') || playlistId.startsWith('local:')) {
-      return playlistId;
-    }
-    return 'netease:$playlistId';
-  }
-
-  String _toSourcePlaylistId(String playlistId) {
-    if (playlistId.startsWith('netease:')) {
-      return playlistId.substring('netease:'.length);
-    }
-    return playlistId;
-  }
-
-  String _toSourceTrackId(String trackId) {
-    if (trackId.startsWith('netease:')) {
-      return trackId.substring('netease:'.length);
-    }
-    return trackId;
-  }
-
-  String _toEntityTrackId(String trackId) {
-    if (trackId.isEmpty || trackId.startsWith('netease:') || trackId.startsWith('local:')) {
-      return trackId;
-    }
-    return 'netease:$trackId';
-  }
+  String _refreshCacheKey(String playlistId) => 'PLAYLIST_CACHE_LAST_REFRESH_${MusicResourceId.toNeteaseSourceId(playlistId)}';
 
   Future<bool> _loadSubscriptionState(
     String? currentUserId,

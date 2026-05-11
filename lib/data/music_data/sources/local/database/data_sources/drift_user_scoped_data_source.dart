@@ -1,4 +1,5 @@
 import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart' as db;
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
@@ -142,7 +143,7 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
                 (entry) => db.UserPlaylistListRefsCompanion.insert(
                   userId: userId,
                   listKind: kind.name,
-                  playlistId: _toEntityPlaylistId(entry.value.id),
+                  playlistId: MusicResourceId.toNeteaseEntityId(entry.value.id),
                   sortOrder: entry.key,
                   updatedAtMs: now,
                 ),
@@ -178,7 +179,7 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
               (entry) => db.UserPlaylistListRefsCompanion(
                 userId: drift.Value(userId),
                 listKind: drift.Value(kind.name),
-                playlistId: drift.Value(_toEntityPlaylistId(entry.value.id)),
+                playlistId: drift.Value(MusicResourceId.toNeteaseEntityId(entry.value.id)),
                 sortOrder: drift.Value(startOrder + entry.key),
                 updatedAtMs: drift.Value(now),
               ),
@@ -443,9 +444,9 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     return items
         .map(
           (item) => db.PlaylistsCompanion(
-            playlistId: drift.Value(_toEntityPlaylistId(item.id)),
-            sourceType: drift.Value(_sourceTypeName(item.id)),
-            sourceId: drift.Value(_toSourcePlaylistId(item.id)),
+            playlistId: drift.Value(MusicResourceId.toNeteaseEntityId(item.id)),
+            sourceType: drift.Value(MusicResourceId.sourceTypeOf(item.id).name),
+            sourceId: drift.Value(MusicResourceId.toSourceId(item.id)),
             title: drift.Value(item.title),
             description: drift.Value(item.description),
             coverUrl: drift.Value(item.coverUrl),
@@ -465,30 +466,4 @@ class DriftUserScopedDataSource implements UserScopedDataSource {
     );
   }
 
-  String _sourceTypeName(String playlistId) {
-    if (playlistId.startsWith('local:')) {
-      return 'local';
-    }
-    if (playlistId.startsWith('netease:')) {
-      return 'netease';
-    }
-    return 'netease';
-  }
-
-  String _toEntityPlaylistId(String playlistId) {
-    if (playlistId.startsWith('netease:') || playlistId.startsWith('local:')) {
-      return playlistId;
-    }
-    return 'netease:$playlistId';
-  }
-
-  String _toSourcePlaylistId(String playlistId) {
-    if (playlistId.startsWith('netease:')) {
-      return playlistId.substring('netease:'.length);
-    }
-    if (playlistId.startsWith('local:')) {
-      return playlistId.substring('local:'.length);
-    }
-    return playlistId;
-  }
 }

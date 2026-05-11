@@ -1,4 +1,5 @@
 import 'package:bujuan/core/util/image_url_normalizer.dart';
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
@@ -98,7 +99,7 @@ class UserRepository {
     await _userScopedDataSource.replaceTrackList(
       userId,
       UserTrackListKind.liked,
-      likedSongIds.map((songId) => 'netease:$songId').toList(),
+      likedSongIds.map((songId) => MusicResourceId.toNeteaseEntityId('$songId')).toList(),
     );
     return likedSongIds;
   }
@@ -217,7 +218,7 @@ class UserRepository {
     required List<String> ids,
     required List<int> likedSongIds,
   }) async {
-    final normalizedIds = ids.map(_toTrackId).toList();
+    final normalizedIds = ids.map(MusicResourceId.toNeteaseEntityId).toList();
     final tracks = await _musicDataRepository.getTracksWithResources(normalizedIds);
     if (tracks.isEmpty) {
       return const [];
@@ -231,7 +232,7 @@ class UserRepository {
   /// 从本地曲库读取歌曲封面地址。
   Future<String> loadCachedSongAlbumUrl(String songId) async {
     final artworkSource = await _musicDataRepository.getArtworkSource(
-      _toTrackId(songId),
+      MusicResourceId.toNeteaseEntityId(songId),
     );
     if (artworkSource.isEmpty) {
       return '';
@@ -260,7 +261,7 @@ class UserRepository {
   ) async {
     final result = await _remoteDataSource.toggleLikeSong(songId, like);
     if (result.success) {
-      final trackId = _toTrackId(songId);
+      final trackId = MusicResourceId.toNeteaseEntityId(songId);
       if (like) {
         await _userScopedDataSource.upsertTrackRef(
           userId,
@@ -290,13 +291,6 @@ class UserRepository {
     );
   }
 
-  String _toTrackId(String songId) {
-    if (songId.startsWith('netease:') || songId.startsWith('local:')) {
-      return songId;
-    }
-    return 'netease:$songId';
-  }
-
   Future<List<PlaybackQueueItem>> _queueItemsFromSavedTracks(
     List<Track> tracks, {
     required List<int> likedSongIds,
@@ -316,7 +310,6 @@ class UserRepository {
   }
 
   int? _toSongSourceId(String trackId) {
-    final sourceId = trackId.startsWith('netease:') ? trackId.substring('netease:'.length) : trackId;
-    return int.tryParse(sourceId);
+    return int.tryParse(MusicResourceId.toNeteaseSourceId(trackId));
   }
 }

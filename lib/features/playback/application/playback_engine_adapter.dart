@@ -1,3 +1,5 @@
+// ignore_for_file: experimental_member_use
+
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -106,7 +108,6 @@ class PlaybackEngineAdapter implements PlaybackEnginePort {
   Future<void> dispose() => _player.dispose();
 }
 
-// ignore: experimental_member_use
 /// 网易云 `.uc!` 缓存文件解密后的音频流来源。
 class NeteaseCacheStreamSource extends StreamAudioSource {
   /// 创建网易云缓存流音源。
@@ -119,7 +120,6 @@ class NeteaseCacheStreamSource extends StreamAudioSource {
   final String fileType;
 
   @override
-  // ignore: experimental_member_use
   /// 读取并解密缓存文件字节流。
   Future<StreamAudioResponse> request([int? start, int? end]) async {
     final file = File(uri);
@@ -127,7 +127,6 @@ class NeteaseCacheStreamSource extends StreamAudioSource {
     final offset = _clampRangeValue(start ?? 0, 0, sourceLength);
     final resolvedEnd = _clampRangeValue(end ?? sourceLength, offset, sourceLength);
 
-    // ignore: experimental_member_use
     return StreamAudioResponse(
       sourceLength: sourceLength,
       contentLength: resolvedEnd - offset,

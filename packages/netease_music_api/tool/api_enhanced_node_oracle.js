@@ -42,18 +42,38 @@ const fixtures = [
       offset: 0,
     },
   },
+  {
+    module: 'song_detail',
+    query: {
+      ids: '101, 202',
+    },
+  },
+  {
+    module: 'lyric_new',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'playlist_detail',
+    query: {
+      id: '888',
+      s: 4,
+    },
+  },
 ]
 
 async function captureFixture(fixture) {
   const modulePath = path.join(upstreamRoot, 'module', `${fixture.module}.js`)
   const upstreamModule = require(modulePath)
+  const query = JSON.parse(JSON.stringify(fixture.query))
   let captured = null
   const request = (uri, data, options) => {
     captured = { uri, data, options }
     return Promise.resolve({ status: 200, body: { code: 200 }, cookie: [] })
   }
 
-  await upstreamModule(fixture.query, request)
+  await upstreamModule(query, request)
   if (!captured) {
     throw new Error(`Module ${fixture.module} did not call request`)
   }

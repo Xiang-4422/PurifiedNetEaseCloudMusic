@@ -579,6 +579,28 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'limit': query['limit'] ?? 30,
         'offset': query['offset'] ?? 0,
       };
+    case 'song_detail':
+      return {
+        'c': '[${_splitIds(query['ids']).map((id) => '{"id":$id}').join(',')}]',
+      };
+    case 'lyric_new':
+      return {
+        'id': query['id'],
+        'cp': false,
+        'tv': 0,
+        'lv': 0,
+        'rv': 0,
+        'kv': 0,
+        'yv': 0,
+        'ytv': 0,
+        'yrv': 0,
+      };
+    case 'playlist_detail':
+      return {
+        'id': query['id'],
+        'n': 100000,
+        's': query['s'] ?? 8,
+      };
   }
   final data = <String, dynamic>{};
   query.forEach((key, value) {
@@ -587,6 +609,13 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     }
   });
   return data;
+}
+
+List<String> _splitIds(dynamic value) {
+  if (value is Iterable) {
+    return value.map((id) => id.toString()).where((id) => id.isNotEmpty).toList();
+  }
+  return value.toString().split(RegExp(r'\s*,\s*')).where((id) => id.isNotEmpty).toList();
 }
 
 String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {

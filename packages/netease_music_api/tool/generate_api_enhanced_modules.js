@@ -25,6 +25,7 @@ const specialModules = new Set([
   'inner_version',
   'login_qr_create',
   'playlist_track_all',
+  'playlist_tracks',
   'related_playlist',
   'scrobble',
   'song_url_match',

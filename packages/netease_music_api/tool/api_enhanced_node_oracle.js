@@ -76,14 +76,6 @@ const fixtures = [
     },
   },
   {
-    module: 'playlist_tracks',
-    query: {
-      op: 'add',
-      pid: '888',
-      tracks: '101,202',
-    },
-  },
-  {
     module: 'user_playlist',
     query: {
       uid: '42',

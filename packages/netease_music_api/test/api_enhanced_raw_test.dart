@@ -68,6 +68,7 @@ void main() {
         'inner_version',
         'login_qr_create',
         'playlist_track_all',
+        'playlist_tracks',
         'playlist_cover_update',
         'register_anonimous',
         'register_xeapikey',
@@ -104,6 +105,22 @@ void main() {
 
       expect(pathlessModules, isNotEmpty);
       expect(pathlessModules.every((module) => module.special), isTrue);
+    });
+
+    test('multi request modules are explicit special modules', () {
+      const branchOnlyModules = {'search'};
+      final moduleDir = _findUpstreamModuleDir();
+
+      for (final file in moduleDir.listSync().whereType<File>().where((file) => file.path.endsWith('.js'))) {
+        final module = file.uri.pathSegments.last.replaceFirst('.js', '');
+        if (branchOnlyModules.contains(module)) {
+          continue;
+        }
+        final requestCount = RegExp(r'\brequest\s*\(').allMatches(file.readAsStringSync()).length;
+        if (requestCount > 1) {
+          expect(apiEnhancedModuleByName[module]!.special, isTrue, reason: module);
+        }
+      }
     });
   });
 
@@ -383,6 +400,68 @@ void main() {
       });
     });
 
+    test('playlist tracks special module wraps successful manipulate response', () async {
+      final proxy = _QueuedPostDioProxy([
+        {
+          'code': 200,
+          'ok': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.requestModule('playlist_tracks', {
+        'op': 'add',
+        'pid': '888',
+        'tracks': '101,202',
+      });
+
+      expect(proxy.paths, ['/api/playlist/manipulate/tracks']);
+      expect(proxy.requests.single.data, {
+        'op': 'add',
+        'pid': '888',
+        'trackIds': '["101","202"]',
+        'imme': 'true',
+      });
+      expect(result, {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'ok': true,
+        },
+      });
+    });
+
+    test('playlist tracks special module retries duplicated tracks on 512', () async {
+      final proxy = _QueuedPostDioProxy([
+        DioException(
+          requestOptions: RequestOptions(path: '/api/playlist/manipulate/tracks'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/api/playlist/manipulate/tracks'),
+            data: {'code': 512},
+          ),
+        ),
+        {
+          'code': 200,
+          'retry': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.requestModule('playlist_tracks', {
+        'op': 'add',
+        'pid': '888',
+        'tracks': '101,202',
+      });
+
+      expect(proxy.paths, ['/api/playlist/manipulate/tracks', '/api/playlist/manipulate/tracks']);
+      expect(proxy.requests.first.data, containsPair('trackIds', '["101","202"]'));
+      expect(proxy.requests.last.data, containsPair('trackIds', '["101","202","101","202"]'));
+      expect(result, {
+        'code': 200,
+        'retry': true,
+      });
+    });
+
     test('scrobble special module sends startplay and play weblog events', () async {
       final proxy = _QueuedPostDioProxy([
         {'ok': 'startplay'},
@@ -623,7 +702,7 @@ class _CaptureDioProxy extends DioProxy {
 class _QueuedPostDioProxy extends DioProxy {
   _QueuedPostDioProxy(this._responses);
 
-  final List<Map<String, dynamic>> _responses;
+  final List<dynamic> _responses;
   final List<DioMetaData> requests = [];
 
   List<String> get paths => requests.map((request) => request.uri.path).toList();
@@ -637,9 +716,13 @@ class _QueuedPostDioProxy extends DioProxy {
   }) async {
     requests.add(metaData);
     final index = requests.length - 1;
+    final response = _responses[index];
+    if (response is DioException) {
+      throw response;
+    }
     return Response<T>(
       requestOptions: RequestOptions(path: metaData.uri.toString()),
-      data: _responses[index] as T,
+      data: response as T,
       headers: Headers.fromMap({
         HttpHeaders.setCookieHeader: ['cookie-${index + 1}=value'],
       }),

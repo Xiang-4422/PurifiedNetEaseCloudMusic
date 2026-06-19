@@ -72,6 +72,8 @@ mixin ApiEnhancedRaw {
         return playlistCoverUpdate(query);
       case 'playlist_track_all':
         return playlistTrackAllRaw(query);
+      case 'playlist_tracks':
+        return playlistTracksRaw(query);
       case 'cloud':
         return cloud(query);
       case 'cloud_import':
@@ -428,6 +430,36 @@ mixin ApiEnhancedRaw {
     };
     final songsResponse = await _rawPost('/api/v3/song/detail', detailData, query);
     return songsResponse.data;
+  }
+
+  /// Adds or removes playlist tracks, including upstream 512 retry behavior.
+  Future<dynamic> playlistTracksRaw(Map<String, dynamic> query) async {
+    final tracks = _splitCommaValues(query['tracks']);
+    try {
+      final response = await _rawPost(
+        '/api/playlist/manipulate/tracks',
+        _playlistTracksData(query, tracks),
+        query,
+      );
+      return {
+        'status': 200,
+        'body': _asMap(response.data),
+      };
+    } catch (error) {
+      final body = _dioErrorBody(error);
+      if (body['code'] == 512) {
+        final response = await _rawPost(
+          '/api/playlist/manipulate/tracks',
+          _playlistTracksData(query, [...tracks, ...tracks]),
+          query,
+        );
+        return response.data;
+      }
+      return {
+        'status': 200,
+        'body': body,
+      };
+    }
   }
 
   /// Reports listening history with upstream startplay and play weblog events.
@@ -948,6 +980,22 @@ String _trackIdValue(dynamic value) {
     return value['id']?.toString() ?? '';
   }
   return value?.toString() ?? '';
+}
+
+Map<String, dynamic> _playlistTracksData(Map<String, dynamic> query, List<String> tracks) {
+  return {
+    'op': query['op'],
+    'pid': query['pid'],
+    'trackIds': jsonEncode(tracks),
+    'imme': 'true',
+  };
+}
+
+Map<String, dynamic> _dioErrorBody(Object error) {
+  if (error is DioException) {
+    return _asMap(error.response?.data);
+  }
+  return <String, dynamic>{};
 }
 
 dynamic _cloudImportSongId(dynamic value) {

@@ -40,6 +40,7 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
     sourceId: json['sourceId'] as String? ?? '',
     title: json['title'] as String? ?? '',
     albumTitle: json['albumTitle'] as String?,
+    albumId: _stringOrNull(json['albumId']) ?? _stringOrNull((json['metadata'] as Map?)?['albumId']),
     artistNames: (json['artistNames'] as List? ?? const []).map((item) => '$item').toList(),
     artistIds: (json['artistIds'] as List? ?? const []).map((item) => '$item').toList(),
     duration: json['duration'] is int ? Duration(milliseconds: json['duration'] as int) : null,
@@ -63,6 +64,7 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
     'sourceId': item.sourceId,
     'title': item.title,
     'albumTitle': item.albumTitle,
+    'albumId': item.albumId,
     'artistNames': item.artistNames,
     'artistIds': item.artistIds,
     'duration': item.duration?.inMilliseconds,
@@ -75,4 +77,11 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
     'isCached': item.isCached,
     'metadata': item.metadata,
   };
+}
+
+String? _stringOrNull(Object? value) {
+  if (value == null || '$value'.isEmpty) {
+    return null;
+  }
+  return '$value';
 }

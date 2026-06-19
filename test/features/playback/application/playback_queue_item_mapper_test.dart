@@ -42,15 +42,37 @@ void main() {
       expect(item.mediaType, MediaType.neteaseCache);
       expect(item.playbackUrl, '/cache/audio/song.mp3.uc!');
     });
+
+    test('maps album id as explicit queue item field instead of metadata key', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(
+              metadata: const {
+                'albumId': 20,
+              },
+            ),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.albumId, '20');
+      expect(item.metadata.containsKey('albumId'), isFalse);
+    });
   });
 }
 
-Track _track() {
-  return const Track(
+Track _track({
+  Map<String, Object?> metadata = const {},
+}) {
+  return Track(
     id: 'netease:1',
     sourceType: SourceType.netease,
     sourceId: '1',
     title: 'Track',
+    metadata: metadata,
   );
 }
 

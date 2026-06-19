@@ -312,12 +312,13 @@ class BottomPanelView extends GetView<ShellController> {
                                               GestureDetector(
                                                 onTap: () async {
                                                   final currentSong = PlayerController.to.currentSongState.value;
-                                                  if (currentSong.albumTitle?.isNotEmpty != true) {
+                                                  final albumId = currentSong.albumId;
+                                                  if (albumId?.isNotEmpty != true) {
                                                     return;
                                                   }
                                                   final router = context.router;
                                                   await controller.bottomPanelController.close();
-                                                  router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': currentSong.metadata['albumId']}));
+                                                  router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': albumId}));
                                                 },
                                                 child: Container(
                                                   alignment: Alignment.center,

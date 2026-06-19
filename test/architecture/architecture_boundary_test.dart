@@ -531,6 +531,17 @@ void main() {
       );
     });
 
+    test('playback UI reads explicit queue item fields instead of metadata keys', () {
+      final playbackUiFiles = _dartFiles(Directory('${projectRoot.path}/lib/ui')).where((file) => _relativePath(file).contains('/playback/'));
+      final violations = playbackUiFiles.where((file) => _contains(file, '.metadata[')).map(_relativePath).toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放 UI 只能读取 PlaybackQueueItem 的显式字段，不能依赖 metadata 动态键。',
+      );
+    });
+
     test('playback selection layer stays independent from audio service', () {
       final selectionFiles = _dartFiles(
         Directory('${projectRoot.path}/lib/features/playback'),

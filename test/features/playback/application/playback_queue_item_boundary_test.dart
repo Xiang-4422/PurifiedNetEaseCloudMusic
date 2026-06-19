@@ -39,8 +39,8 @@ void main() {
       expect(item.sourceId, '1');
       expect(item.artistNames, ['Artist']);
       expect(item.playbackUrl, 'https://example.com/song.mp3');
+      expect(item.albumId, '20');
       expect(item.metadata, {
-        'albumId': '20',
         'sourceType': 'netease',
       });
     });
@@ -48,8 +48,8 @@ void main() {
     test('adapter owns MediaItem extras without requiring queue item extras getter', () {
       final mediaItem = PlaybackQueueItemAdapter.toMediaItem(
         _queueItem(
+          albumId: '20',
           metadata: const {
-            'albumId': '20',
             'sourceType': 'netease',
           },
         ),
@@ -66,26 +66,30 @@ void main() {
     test('cache codec owns queue item JSON persistence format', () async {
       final encoded = await encodePlaybackQueueItemCacheList([
         _queueItem(
+          albumId: '20',
           metadata: const {
-            'albumId': '20',
+            'sourceType': 'netease',
           },
         ),
       ]);
       final raw = jsonDecode(encoded.single) as Map<String, dynamic>;
 
       expect(raw['mediaType'], 'playlist');
-      expect(raw['metadata'], {'albumId': '20'});
+      expect(raw['albumId'], '20');
+      expect(raw['metadata'], {'sourceType': 'netease'});
 
       final decoded = await decodePlaybackQueueItemCacheList(encoded);
 
       expect(decoded.single.id, 'netease:1');
+      expect(decoded.single.albumId, '20');
       expect(decoded.single.duration, const Duration(seconds: 3));
-      expect(decoded.single.metadata, {'albumId': '20'});
+      expect(decoded.single.metadata, {'sourceType': 'netease'});
     });
   });
 }
 
 PlaybackQueueItem _queueItem({
+  String? albumId,
   Map<String, dynamic> metadata = const {},
 }) {
   return PlaybackQueueItem(
@@ -93,6 +97,7 @@ PlaybackQueueItem _queueItem({
     sourceId: '1',
     title: 'Track',
     albumTitle: 'Album',
+    albumId: albumId,
     artistNames: const ['Artist'],
     artistIds: const ['10'],
     duration: const Duration(seconds: 3),

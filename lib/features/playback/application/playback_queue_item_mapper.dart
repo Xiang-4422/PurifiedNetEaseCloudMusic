@@ -45,19 +45,20 @@ class PlaybackQueueItemMapper {
       final localLyricsPath = _emptyToNull(resources.lyrics?.path);
       final localAudioPath = _emptyToNull(resources.audio?.path);
       final artworkUrl = localArtworkPath ?? _emptyToNull(ImageUrlNormalizer.normalize(track.artworkUrl));
+      final albumId = _emptyToNull(track.metadata['albumId']?.toString());
       final artistIds = (track.metadata['artistIds'] as List? ?? const []).map((item) => '$item').toList();
       final metadata = <String, dynamic>{
         ...track.metadata,
-        'albumId': track.metadata['albumId']?.toString() ?? '',
         'sourceType': track.sourceType.name,
         'localLyricsPath': localLyricsPath ?? '',
         'availability': track.availability.name,
-      };
+      }..remove('albumId');
       return PlaybackQueueItem(
         id: track.id,
         sourceId: track.sourceId,
         title: track.title,
         albumTitle: track.albumTitle,
+        albumId: albumId,
         artistNames: track.artistNames,
         artistIds: artistIds,
         duration: track.durationMs == null ? null : Duration(milliseconds: track.durationMs!),

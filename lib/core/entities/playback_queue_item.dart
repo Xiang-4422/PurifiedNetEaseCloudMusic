@@ -10,6 +10,7 @@ class PlaybackQueueItem {
     required this.sourceId,
     required this.title,
     required this.albumTitle,
+    this.albumId,
     required this.artistNames,
     required this.artistIds,
     required this.duration,
@@ -29,6 +30,7 @@ class PlaybackQueueItem {
         sourceId = '',
         title = '暂无',
         albumTitle = null,
+        albumId = null,
         artistNames = const [],
         artistIds = const [],
         duration = null,
@@ -52,6 +54,9 @@ class PlaybackQueueItem {
 
   /// 专辑标题。
   final String? albumTitle;
+
+  /// 专辑 id。
+  final String? albumId;
 
   /// 歌手名称列表。
   final List<String> artistNames;
@@ -100,6 +105,7 @@ class PlaybackQueueItem {
     String? sourceId,
     String? title,
     Object? albumTitle = _unset,
+    Object? albumId = _unset,
     List<String>? artistNames,
     List<String>? artistIds,
     Object? duration = _unset,
@@ -117,6 +123,7 @@ class PlaybackQueueItem {
       sourceId: sourceId ?? this.sourceId,
       title: title ?? this.title,
       albumTitle: identical(albumTitle, _unset) ? this.albumTitle : albumTitle as String?,
+      albumId: identical(albumId, _unset) ? this.albumId : albumId as String?,
       artistNames: artistNames ?? this.artistNames,
       artistIds: artistIds ?? this.artistIds,
       duration: identical(duration, _unset) ? this.duration : duration as Duration?,

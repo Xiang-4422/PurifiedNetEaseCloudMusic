@@ -18,30 +18,39 @@ class UserRepository {
   UserRepository({
     required MusicDataRepository musicDataRepository,
     required NeteaseUserRemoteDataSource remoteDataSource,
-    required UserScopedDataSource userScopedDataSource,
+    required UserProfileDataSource userProfileDataSource,
+    required UserTrackListDataSource userTrackListDataSource,
+    required UserPlaylistListDataSource userPlaylistListDataSource,
+    required UserSyncMarkerDataSource userSyncMarkerDataSource,
   })  : _musicDataRepository = musicDataRepository,
         _remoteDataSource = remoteDataSource,
-        _userScopedDataSource = userScopedDataSource;
+        _userProfileDataSource = userProfileDataSource,
+        _userTrackListDataSource = userTrackListDataSource,
+        _userPlaylistListDataSource = userPlaylistListDataSource,
+        _userSyncMarkerDataSource = userSyncMarkerDataSource;
 
   final MusicDataRepository _musicDataRepository;
   final NeteaseUserRemoteDataSource _remoteDataSource;
-  final UserScopedDataSource _userScopedDataSource;
+  final UserProfileDataSource _userProfileDataSource;
+  final UserTrackListDataSource _userTrackListDataSource;
+  final UserPlaylistListDataSource _userPlaylistListDataSource;
+  final UserSyncMarkerDataSource _userSyncMarkerDataSource;
 
   /// 从本地用户作用域缓存读取用户资料。
   Future<UserProfileData?> loadCachedUserDetail(String userId) {
-    return _userScopedDataSource.loadProfile(userId);
+    return _userProfileDataSource.loadProfile(userId);
   }
 
   /// 从远程拉取用户资料并写入本地用户数据。
   Future<UserProfileData> fetchUserDetail(String userId) async {
     final profile = await _remoteDataSource.fetchUserDetail(userId);
-    await _userScopedDataSource.saveProfile(profile);
+    await _userProfileDataSource.saveProfile(profile);
     return profile;
   }
 
   /// 从本地用户作用域缓存读取喜欢歌曲的网易云数字 id。
   Future<List<int>> loadCachedLikedSongIds(String userId) async {
-    final trackIds = await _userScopedDataSource.loadTrackIds(
+    final trackIds = await _userTrackListDataSource.loadTrackIds(
       userId,
       UserTrackListKind.liked,
     );
@@ -53,7 +62,7 @@ class UserRepository {
     String userId,
     UserPlaylistListKind kind,
   ) {
-    return _userScopedDataSource.loadPlaylistItems(userId, kind);
+    return _userPlaylistListDataSource.loadPlaylistItems(userId, kind);
   }
 
   /// 从本地用户作用域缓存读取指定类型的曲目列表并转换为播放队列项。
@@ -62,7 +71,7 @@ class UserRepository {
     required UserTrackListKind kind,
     required List<int> likedSongIds,
   }) async {
-    final trackIds = await _userScopedDataSource.loadTrackIds(userId, kind);
+    final trackIds = await _userTrackListDataSource.loadTrackIds(userId, kind);
     return loadCachedSongsByIds(
       ids: trackIds,
       likedSongIds: likedSongIds,
@@ -75,7 +84,7 @@ class UserRepository {
     required String markerKey,
     required Duration ttl,
   }) async {
-    final updatedAt = await _userScopedDataSource.loadSyncMarker(
+    final updatedAt = await _userSyncMarkerDataSource.loadSyncMarker(
       userId,
       markerKey,
     );
@@ -90,13 +99,13 @@ class UserRepository {
     required String userId,
     required String markerKey,
   }) {
-    return _userScopedDataSource.markSyncMarkerUpdated(userId, markerKey);
+    return _userSyncMarkerDataSource.markSyncMarkerUpdated(userId, markerKey);
   }
 
   /// 拉取用户喜欢歌曲 id，并替换本地喜欢歌曲索引。
   Future<List<int>> fetchLikedSongIds(String userId) async {
     final likedSongIds = await _remoteDataSource.fetchLikedSongIds(userId);
-    await _userScopedDataSource.replaceTrackList(
+    await _userTrackListDataSource.replaceTrackList(
       userId,
       UserTrackListKind.liked,
       likedSongIds.map((songId) => MusicResourceId.toNeteaseEntityId('$songId')).toList(),
@@ -116,13 +125,13 @@ class UserRepository {
     );
     final summaries = playlists.map(PlaylistSummaryData.fromEntity).toList();
     if (offset == 0) {
-      await _userScopedDataSource.replacePlaylistItems(
+      await _userPlaylistListDataSource.replacePlaylistItems(
         userId,
         UserPlaylistListKind.recommended,
         summaries,
       );
     } else {
-      await _userScopedDataSource.appendPlaylistItems(
+      await _userPlaylistListDataSource.appendPlaylistItems(
         userId,
         UserPlaylistListKind.recommended,
         summaries,
@@ -138,12 +147,12 @@ class UserRepository {
     final summaries = playlists.map(PlaylistSummaryData.fromEntity).toList();
     final likedCollection = summaries.take(1).toList();
     final ownPlaylists = summaries.length > 1 ? summaries.sublist(1) : <PlaylistSummaryData>[];
-    await _userScopedDataSource.replacePlaylistItems(
+    await _userPlaylistListDataSource.replacePlaylistItems(
       userId,
       UserPlaylistListKind.likedCollection,
       likedCollection,
     );
-    await _userScopedDataSource.replacePlaylistItems(
+    await _userPlaylistListDataSource.replacePlaylistItems(
       userId,
       UserPlaylistListKind.userPlaylists,
       ownPlaylists,
@@ -158,7 +167,7 @@ class UserRepository {
   }) async {
     final tracks = await _remoteDataSource.fetchTodayRecommendSongs();
     await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
-    await _userScopedDataSource.replaceTrackList(
+    await _userTrackListDataSource.replaceTrackList(
       userId,
       UserTrackListKind.dailyRecommend,
       tracks.map((track) => track.id).toList(),
@@ -173,7 +182,7 @@ class UserRepository {
   }) async {
     final tracks = await _remoteDataSource.fetchFmSongs();
     await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
-    await _userScopedDataSource.replaceTrackList(
+    await _userTrackListDataSource.replaceTrackList(
       userId,
       UserTrackListKind.fm,
       tracks.map((track) => track.id).toList(),
@@ -263,13 +272,13 @@ class UserRepository {
     if (result.success) {
       final trackId = MusicResourceId.toNeteaseEntityId(songId);
       if (like) {
-        await _userScopedDataSource.upsertTrackRef(
+        await _userTrackListDataSource.upsertTrackRef(
           userId,
           UserTrackListKind.liked,
           trackId,
         );
       } else {
-        await _userScopedDataSource.deleteTrackRef(
+        await _userTrackListDataSource.deleteTrackRef(
           userId,
           UserTrackListKind.liked,
           trackId,

@@ -143,18 +143,18 @@ class PlaylistRepository {
     required MusicDataRepository musicDataRepository,
     required LocalLibraryDataSource localLibraryDataSource,
     required NeteasePlaylistRemoteDataSource remoteDataSource,
-    required UserScopedDataSource userScopedDataSource,
+    required PlaylistSubscriptionDataSource playlistSubscriptionDataSource,
   })  : _appCacheDataSource = appCacheDataSource,
         _musicDataRepository = musicDataRepository,
         _localLibraryDataSource = localLibraryDataSource,
         _remoteDataSource = remoteDataSource,
-        _userScopedDataSource = userScopedDataSource;
+        _playlistSubscriptionDataSource = playlistSubscriptionDataSource;
 
   final AppCacheDataSource _appCacheDataSource;
   final MusicDataRepository _musicDataRepository;
   final LocalLibraryDataSource _localLibraryDataSource;
   final NeteasePlaylistRemoteDataSource _remoteDataSource;
-  final UserScopedDataSource _userScopedDataSource;
+  final PlaylistSubscriptionDataSource _playlistSubscriptionDataSource;
 
   /// 拉取歌单索引，并同步歌单基础信息、曲目顺序和订阅状态到本地数据库。
   Future<PlaylistIndexData> fetchPlaylistIndex(
@@ -211,7 +211,7 @@ class PlaylistRepository {
       );
       if (currentUserId?.isNotEmpty == true) {
         final subscriptionStopwatch = PlaylistPerformanceLogger.start();
-        await _userScopedDataSource.savePlaylistSubscriptionState(
+        await _playlistSubscriptionDataSource.savePlaylistSubscriptionState(
           currentUserId!,
           entityPlaylistId,
           remoteIndex.isSubscribed,
@@ -552,7 +552,7 @@ class PlaylistRepository {
       subscribe: subscribe,
     );
     if (result.success && currentUserId?.isNotEmpty == true) {
-      await _userScopedDataSource.savePlaylistSubscriptionState(
+      await _playlistSubscriptionDataSource.savePlaylistSubscriptionState(
         currentUserId!,
         MusicResourceId.toNeteaseEntityId(playlistId),
         subscribe,
@@ -702,7 +702,7 @@ class PlaylistRepository {
     );
     await _localLibraryDataSource.savePlaylists([playlist]);
     if (currentUserId?.isNotEmpty == true) {
-      await _userScopedDataSource.savePlaylistSubscriptionState(
+      await _playlistSubscriptionDataSource.savePlaylistSubscriptionState(
         currentUserId!,
         index.id,
         index.isSubscribed,
@@ -882,7 +882,7 @@ class PlaylistRepository {
     if (currentUserId?.isNotEmpty != true) {
       return false;
     }
-    return await _userScopedDataSource.loadPlaylistSubscriptionState(
+    return await _playlistSubscriptionDataSource.loadPlaylistSubscriptionState(
           currentUserId!,
           playlistId,
         ) ??

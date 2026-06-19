@@ -847,6 +847,16 @@ void main() {
       );
     });
 
+    test('feature repositories use narrow user scoped data capabilities', () {
+      final violations = _repositoryFiles(libDirectory).where((file) => _contains(file, 'UserScopedDataSource')).map(_relativePath).toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'feature repository 只能依赖用户资料、曲目列表、歌单列表、订阅、电台或同步标记等窄接口，不能重新吃下整个 UserScopedDataSource。',
+      );
+    });
+
     test('core entities and data do not import legacy common UI constants', () {
       final violations = _dartFiles(libDirectory)
           .where((file) {

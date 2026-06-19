@@ -401,7 +401,7 @@ PlaylistRepository _playlistRepository({
     musicDataRepository: _FakeMusicDataRepository(tracks),
     localLibraryDataSource: _FakeLocalLibraryDataSource(tracks),
     remoteDataSource: remoteDataSource ?? _FakePlaylistRemoteDataSource(totalTracks: totalTracks),
-    userScopedDataSource: _FakeUserScopedDataSource(),
+    playlistSubscriptionDataSource: _FakePlaylistSubscriptionDataSource(),
   );
 }
 
@@ -570,7 +570,7 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
   }
 }
 
-class _FakeUserScopedDataSource implements UserScopedDataSource {
+class _FakePlaylistSubscriptionDataSource implements PlaylistSubscriptionDataSource {
   @override
   Future<bool?> loadPlaylistSubscriptionState(
     String userId,

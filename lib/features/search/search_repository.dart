@@ -17,16 +17,16 @@ class SearchRepository {
     required MusicDataRepository musicDataRepository,
     required NeteaseSearchRemoteDataSource remoteDataSource,
     required SearchCacheStore cacheStore,
-    required UserScopedDataSource userScopedDataSource,
+    required UserPlaylistListDataSource userPlaylistListDataSource,
   })  : _musicDataRepository = musicDataRepository,
         _remoteDataSource = remoteDataSource,
         _cacheStore = cacheStore,
-        _userScopedDataSource = userScopedDataSource;
+        _userPlaylistListDataSource = userPlaylistListDataSource;
 
   final MusicDataRepository _musicDataRepository;
   final NeteaseSearchRemoteDataSource _remoteDataSource;
   final SearchCacheStore _cacheStore;
-  final UserScopedDataSource _userScopedDataSource;
+  final UserPlaylistListDataSource _userPlaylistListDataSource;
 
   /// 加载缓存的热搜关键词。
   Future<List<String>?> loadCachedHotKeywords() {
@@ -77,7 +77,7 @@ class SearchRepository {
     final localPlaylists = await _musicDataRepository.searchLocalPlaylists(keyword);
     final userPlaylists = currentUserId.isEmpty
         ? const <PlaylistEntity>[]
-        : (await _userScopedDataSource.searchPlaylistItems(
+        : (await _userPlaylistListDataSource.searchPlaylistItems(
             currentUserId,
             keyword,
           ))

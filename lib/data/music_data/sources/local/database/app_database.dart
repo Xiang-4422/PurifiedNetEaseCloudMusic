@@ -41,4 +41,22 @@ abstract class AppDatabase {
 
   /// 用户作用域数据源。
   UserScopedDataSource get userScopedDataSource;
+
+  /// 用户资料数据源。
+  UserProfileDataSource get userProfileDataSource;
+
+  /// 用户曲目列表数据源。
+  UserTrackListDataSource get userTrackListDataSource;
+
+  /// 用户歌单列表数据源。
+  UserPlaylistListDataSource get userPlaylistListDataSource;
+
+  /// 用户歌单订阅状态数据源。
+  PlaylistSubscriptionDataSource get playlistSubscriptionDataSource;
+
+  /// 用户电台数据源。
+  UserRadioDataSource get userRadioDataSource;
+
+  /// 用户同步标记数据源。
+  UserSyncMarkerDataSource get userSyncMarkerDataSource;
 }

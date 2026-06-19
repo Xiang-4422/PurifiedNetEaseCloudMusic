@@ -76,4 +76,22 @@ class DriftAppDatabase implements AppDatabase {
 
   @override
   UserScopedDataSource get userScopedDataSource => _userScopedDataSource;
+
+  @override
+  UserProfileDataSource get userProfileDataSource => _userScopedDataSource;
+
+  @override
+  UserTrackListDataSource get userTrackListDataSource => _userScopedDataSource;
+
+  @override
+  UserPlaylistListDataSource get userPlaylistListDataSource => _userScopedDataSource;
+
+  @override
+  PlaylistSubscriptionDataSource get playlistSubscriptionDataSource => _userScopedDataSource;
+
+  @override
+  UserRadioDataSource get userRadioDataSource => _userScopedDataSource;
+
+  @override
+  UserSyncMarkerDataSource get userSyncMarkerDataSource => _userScopedDataSource;
 }

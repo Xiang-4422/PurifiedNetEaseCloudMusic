@@ -27,7 +27,7 @@ void main() {
         musicDataRepository: musicDataRepository,
         remoteDataSource: _FakeNeteaseSearchRemoteDataSource(),
         cacheStore: _FakeSearchCacheStore(),
-        userScopedDataSource: _FakeUserScopedDataSource(),
+        userPlaylistListDataSource: _FakeUserPlaylistListDataSource(),
       );
 
       final items = await repository.searchTrackQueueItems(
@@ -126,7 +126,7 @@ class _FakeSearchCacheStore implements SearchCacheStore {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _FakeUserScopedDataSource implements UserScopedDataSource {
+class _FakeUserPlaylistListDataSource implements UserPlaylistListDataSource {
   @override
   Future<List<PlaylistSummaryData>> searchPlaylistItems(
     String userId,

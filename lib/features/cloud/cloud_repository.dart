@@ -10,22 +10,22 @@ class CloudRepository {
   /// 创建云盘仓库。
   CloudRepository({
     required MusicDataRepository musicDataRepository,
-    required UserScopedDataSource userScopedDataSource,
+    required UserTrackListDataSource userTrackListDataSource,
     required NeteaseCloudRemoteDataSource remoteDataSource,
   })  : _remoteDataSource = remoteDataSource,
         _musicDataRepository = musicDataRepository,
-        _userScopedDataSource = userScopedDataSource;
+        _userTrackListDataSource = userTrackListDataSource;
 
   final NeteaseCloudRemoteDataSource _remoteDataSource;
   final MusicDataRepository _musicDataRepository;
-  final UserScopedDataSource _userScopedDataSource;
+  final UserTrackListDataSource _userTrackListDataSource;
 
   /// 加载缓存的云盘歌曲。
   Future<List<PlaybackQueueItem>> loadCachedSongs({
     required String userId,
     required List<int> likedSongIds,
   }) async {
-    final trackIds = await _userScopedDataSource.loadTrackIds(
+    final trackIds = await _userTrackListDataSource.loadTrackIds(
       userId,
       UserTrackListKind.cloud,
     );
@@ -63,13 +63,13 @@ class CloudRepository {
     );
     final trackIds = result.tracks.map((track) => track.id).toList();
     if (offset == 0) {
-      await _userScopedDataSource.replaceTrackList(
+      await _userTrackListDataSource.replaceTrackList(
         userId,
         UserTrackListKind.cloud,
         trackIds,
       );
     } else {
-      await _userScopedDataSource.appendTrackList(
+      await _userTrackListDataSource.appendTrackList(
         userId,
         UserTrackListKind.cloud,
         trackIds,

@@ -3,14 +3,17 @@ import 'package:bujuan/core/entities/radio_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_profile_data.dart';
 
-/// 用户作用域本地数据源。
-abstract class UserScopedDataSource {
+/// 用户资料本地数据源。
+abstract class UserProfileDataSource {
   /// 读取用户资料。
   Future<UserProfileData?> loadProfile(String userId);
 
   /// 保存用户资料。
   Future<void> saveProfile(UserProfileData profile);
+}
 
+/// 用户曲目列表本地数据源。
+abstract class UserTrackListDataSource {
   /// 读取用户曲目 id 列表。
   Future<List<String>> loadTrackIds(
     String userId,
@@ -52,7 +55,10 @@ abstract class UserScopedDataSource {
     String userId,
     UserTrackListKind kind,
   );
+}
 
+/// 用户歌单列表本地数据源。
+abstract class UserPlaylistListDataSource {
   /// 读取用户歌单摘要列表。
   Future<List<PlaylistSummaryData>> loadPlaylistItems(
     String userId,
@@ -80,7 +86,10 @@ abstract class UserScopedDataSource {
     List<PlaylistSummaryData> items, {
     required int startOrder,
   });
+}
 
+/// 用户歌单订阅状态本地数据源。
+abstract class PlaylistSubscriptionDataSource {
   /// 读取歌单订阅状态。
   Future<bool?> loadPlaylistSubscriptionState(
     String userId,
@@ -93,7 +102,10 @@ abstract class UserScopedDataSource {
     String playlistId,
     bool isSubscribed,
   );
+}
 
+/// 用户电台本地数据源。
+abstract class UserRadioDataSource {
   /// 读取用户订阅电台列表。
   Future<List<RadioSummaryData>> loadSubscribedRadios(String userId);
 
@@ -133,7 +145,10 @@ abstract class UserScopedDataSource {
     required List<RadioProgramData> items,
     required int startOrder,
   });
+}
 
+/// 用户同步标记本地数据源。
+abstract class UserSyncMarkerDataSource {
   /// 读取同步标记时间。
   Future<DateTime?> loadSyncMarker(
     String userId,
@@ -152,3 +167,6 @@ abstract class UserScopedDataSource {
     String markerKey,
   );
 }
+
+/// 用户作用域本地数据源聚合接口，仅用于数据库门面和兼容装配。
+abstract class UserScopedDataSource implements UserProfileDataSource, UserTrackListDataSource, UserPlaylistListDataSource, PlaylistSubscriptionDataSource, UserRadioDataSource, UserSyncMarkerDataSource {}

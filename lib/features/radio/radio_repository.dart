@@ -6,17 +6,17 @@ import 'package:bujuan/core/entities/radio_data.dart';
 class RadioRepository {
   /// 创建电台仓库。
   RadioRepository({
-    required UserScopedDataSource userScopedDataSource,
+    required UserRadioDataSource userRadioDataSource,
     required NeteaseRadioRemoteDataSource remoteDataSource,
   })  : _remoteDataSource = remoteDataSource,
-        _userScopedDataSource = userScopedDataSource;
+        _userRadioDataSource = userRadioDataSource;
 
   final NeteaseRadioRemoteDataSource _remoteDataSource;
-  final UserScopedDataSource _userScopedDataSource;
+  final UserRadioDataSource _userRadioDataSource;
 
   /// 加载缓存的已订阅电台。
   Future<List<RadioSummaryData>> loadCachedSubscribedRadios(String userId) {
-    return _userScopedDataSource.loadSubscribedRadios(userId);
+    return _userRadioDataSource.loadSubscribedRadios(userId);
   }
 
   /// 加载缓存的电台节目。
@@ -25,7 +25,7 @@ class RadioRepository {
     String radioId, {
     required bool asc,
   }) {
-    return _userScopedDataSource.loadPrograms(
+    return _userRadioDataSource.loadPrograms(
       userId,
       radioId,
       asc: asc,
@@ -45,9 +45,9 @@ class RadioRepository {
       limit: limit,
     );
     if (offset == 0) {
-      await _userScopedDataSource.replaceSubscribedRadios(userId, result.items);
+      await _userRadioDataSource.replaceSubscribedRadios(userId, result.items);
     } else {
-      await _userScopedDataSource.appendSubscribedRadios(
+      await _userRadioDataSource.appendSubscribedRadios(
         userId,
         result.items,
         startOrder: offset,
@@ -75,14 +75,14 @@ class RadioRepository {
       asc: asc,
     );
     if (offset == 0) {
-      await _userScopedDataSource.replacePrograms(
+      await _userRadioDataSource.replacePrograms(
         userId,
         radioId,
         asc: asc,
         items: result.items,
       );
     } else {
-      await _userScopedDataSource.appendPrograms(
+      await _userRadioDataSource.appendPrograms(
         userId,
         radioId,
         asc: asc,

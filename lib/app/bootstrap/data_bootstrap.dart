@@ -54,7 +54,12 @@ Future<void> initializeDataInfrastructure() async {
 
   final localLibraryDataSource = appDatabase.localLibraryDataSource;
   final localResourceIndexDataSource = appDatabase.localResourceIndexDataSource;
-  final userScopedDataSource = appDatabase.userScopedDataSource;
+  final userProfileDataSource = appDatabase.userProfileDataSource;
+  final userTrackListDataSource = appDatabase.userTrackListDataSource;
+  final userPlaylistListDataSource = appDatabase.userPlaylistListDataSource;
+  final playlistSubscriptionDataSource = appDatabase.playlistSubscriptionDataSource;
+  final userRadioDataSource = appDatabase.userRadioDataSource;
+  final userSyncMarkerDataSource = appDatabase.userSyncMarkerDataSource;
   final downloadTaskDataSource = appDatabase.downloadTaskDataSource;
   final playbackRestoreDataSource = appDatabase.playbackRestoreDataSource;
   final appCacheDataSource = appDatabase.appCacheDataSource;
@@ -101,7 +106,12 @@ Future<void> initializeDataInfrastructure() async {
     localResourceIndexDataSource: localResourceIndexDataSource,
     downloadTaskDataSource: downloadTaskDataSource,
     appCacheDataSource: appCacheDataSource,
-    userScopedDataSource: userScopedDataSource,
+    userProfileDataSource: userProfileDataSource,
+    userTrackListDataSource: userTrackListDataSource,
+    userPlaylistListDataSource: userPlaylistListDataSource,
+    playlistSubscriptionDataSource: playlistSubscriptionDataSource,
+    userRadioDataSource: userRadioDataSource,
+    userSyncMarkerDataSource: userSyncMarkerDataSource,
     localMusicSource: localMusicSource,
     localResourceIndexRepository: localResourceIndexRepository,
     localArtworkCacheRepository: localArtworkCacheRepository,
@@ -109,7 +119,12 @@ Future<void> initializeDataInfrastructure() async {
   _registerRepositories(
     appPreferences: appPreferences,
     musicDataRepository: musicDataRepository,
-    userScopedDataSource: userScopedDataSource,
+    userProfileDataSource: userProfileDataSource,
+    userTrackListDataSource: userTrackListDataSource,
+    userPlaylistListDataSource: userPlaylistListDataSource,
+    playlistSubscriptionDataSource: playlistSubscriptionDataSource,
+    userRadioDataSource: userRadioDataSource,
+    userSyncMarkerDataSource: userSyncMarkerDataSource,
     appCacheDataSource: appCacheDataSource,
     localLibraryDataSource: localLibraryDataSource,
     searchCacheStore: searchCacheStore,
@@ -131,7 +146,12 @@ void _registerInfrastructure({
   required LocalResourceIndexDataSource localResourceIndexDataSource,
   required DownloadTaskDataSource downloadTaskDataSource,
   required AppCacheDataSource appCacheDataSource,
-  required UserScopedDataSource userScopedDataSource,
+  required UserProfileDataSource userProfileDataSource,
+  required UserTrackListDataSource userTrackListDataSource,
+  required UserPlaylistListDataSource userPlaylistListDataSource,
+  required PlaylistSubscriptionDataSource playlistSubscriptionDataSource,
+  required UserRadioDataSource userRadioDataSource,
+  required UserSyncMarkerDataSource userSyncMarkerDataSource,
   required LocalMusicSource localMusicSource,
   required LocalResourceIndexRepository localResourceIndexRepository,
   required LocalArtworkCacheRepository localArtworkCacheRepository,
@@ -149,7 +169,18 @@ void _registerInfrastructure({
   );
   Get.put<DownloadTaskDataSource>(downloadTaskDataSource, permanent: true);
   Get.put<AppCacheDataSource>(appCacheDataSource, permanent: true);
-  Get.put<UserScopedDataSource>(userScopedDataSource, permanent: true);
+  Get.put<UserProfileDataSource>(userProfileDataSource, permanent: true);
+  Get.put<UserTrackListDataSource>(userTrackListDataSource, permanent: true);
+  Get.put<UserPlaylistListDataSource>(
+    userPlaylistListDataSource,
+    permanent: true,
+  );
+  Get.put<PlaylistSubscriptionDataSource>(
+    playlistSubscriptionDataSource,
+    permanent: true,
+  );
+  Get.put<UserRadioDataSource>(userRadioDataSource, permanent: true);
+  Get.put<UserSyncMarkerDataSource>(userSyncMarkerDataSource, permanent: true);
   Get.put<LocalMusicSource>(localMusicSource, permanent: true);
   Get.put<LocalResourceIndexRepository>(
     localResourceIndexRepository,
@@ -164,7 +195,12 @@ void _registerInfrastructure({
 void _registerRepositories({
   required AppPreferences appPreferences,
   required MusicDataRepository musicDataRepository,
-  required UserScopedDataSource userScopedDataSource,
+  required UserProfileDataSource userProfileDataSource,
+  required UserTrackListDataSource userTrackListDataSource,
+  required UserPlaylistListDataSource userPlaylistListDataSource,
+  required PlaylistSubscriptionDataSource playlistSubscriptionDataSource,
+  required UserRadioDataSource userRadioDataSource,
+  required UserSyncMarkerDataSource userSyncMarkerDataSource,
   required AppCacheDataSource appCacheDataSource,
   required LocalLibraryDataSource localLibraryDataSource,
   required SearchCacheStore searchCacheStore,
@@ -201,7 +237,10 @@ void _registerRepositories({
     UserRepository(
       musicDataRepository: musicDataRepository,
       remoteDataSource: userRemoteDataSource,
-      userScopedDataSource: userScopedDataSource,
+      userProfileDataSource: userProfileDataSource,
+      userTrackListDataSource: userTrackListDataSource,
+      userPlaylistListDataSource: userPlaylistListDataSource,
+      userSyncMarkerDataSource: userSyncMarkerDataSource,
     ),
     permanent: true,
   );
@@ -211,7 +250,7 @@ void _registerRepositories({
       musicDataRepository: musicDataRepository,
       localLibraryDataSource: localLibraryDataSource,
       remoteDataSource: playlistRemoteDataSource,
-      userScopedDataSource: userScopedDataSource,
+      playlistSubscriptionDataSource: playlistSubscriptionDataSource,
     ),
     permanent: true,
   );
@@ -232,14 +271,14 @@ void _registerRepositories({
   Get.put<CloudRepository>(
     CloudRepository(
       musicDataRepository: musicDataRepository,
-      userScopedDataSource: userScopedDataSource,
+      userTrackListDataSource: userTrackListDataSource,
       remoteDataSource: cloudRemoteDataSource,
     ),
     permanent: true,
   );
   Get.put<RadioRepository>(
     RadioRepository(
-      userScopedDataSource: userScopedDataSource,
+      userRadioDataSource: userRadioDataSource,
       remoteDataSource: radioRemoteDataSource,
     ),
     permanent: true,
@@ -249,7 +288,7 @@ void _registerRepositories({
       musicDataRepository: musicDataRepository,
       remoteDataSource: searchRemoteDataSource,
       cacheStore: searchCacheStore,
-      userScopedDataSource: userScopedDataSource,
+      userPlaylistListDataSource: userPlaylistListDataSource,
     ),
     permanent: true,
   );

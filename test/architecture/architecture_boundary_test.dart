@@ -1318,27 +1318,69 @@ void main() {
       );
     });
 
-    test('drift table definitions stay in schema part', () {
+    test('drift table definitions stay split by schema domain', () {
       final databaseFile = File(
         '${projectRoot.path}/lib/data/music_data/sources/local/database/drift_database.dart',
       );
-      final tablePartFile = File(
-        '${projectRoot.path}/lib/data/music_data/sources/local/database/schema/drift_tables.dart',
-      );
       final databaseContent = databaseFile.readAsStringSync();
-      final tablePartContent = tablePartFile.readAsStringSync();
+      const expectedSchemaParts = {
+        'schema/drift_playback_tables.dart': [
+          'class PlaybackRestoreEntries extends Table',
+        ],
+        'schema/drift_local_resource_tables.dart': [
+          'class LocalResourceEntries extends Table',
+        ],
+        'schema/drift_download_tables.dart': [
+          'class DownloadTasks extends Table',
+        ],
+        'schema/drift_cache_tables.dart': [
+          'class AppCacheEntries extends Table',
+        ],
+        'schema/drift_library_tables.dart': [
+          'class Tracks extends Table',
+          'class Albums extends Table',
+          'class Artists extends Table',
+        ],
+        'schema/drift_playlist_tables.dart': [
+          'class Playlists extends Table',
+          'class PlaylistTrackRefs extends Table',
+        ],
+        'schema/drift_user_tables.dart': [
+          'class UserProfiles extends Table',
+          'class UserSyncMarkers extends Table',
+        ],
+      };
       final violations = <String>[
-        if (!databaseContent.contains("part 'schema/drift_tables.dart';")) 'missing drift_tables part',
         if (databaseContent.contains(' extends Table')) 'drift_database.dart defines tables',
-        if (!tablePartContent.contains("part of '../drift_database.dart';")) 'drift_tables.dart missing part-of',
-        if (!tablePartContent.contains('class Tracks extends Table')) 'drift_tables.dart missing Tracks table',
-        if (!tablePartContent.contains('class UserSyncMarkers extends Table')) 'drift_tables.dart missing user tables',
+        if (File('${projectRoot.path}/lib/data/music_data/sources/local/database/schema/drift_tables.dart').existsSync()) 'legacy drift_tables.dart exists',
       ];
+      for (final entry in expectedSchemaParts.entries) {
+        final partPath = entry.key;
+        final partFile = File(
+          '${projectRoot.path}/lib/data/music_data/sources/local/database/$partPath',
+        );
+        if (!databaseContent.contains("part '$partPath';")) {
+          violations.add('missing $partPath part');
+        }
+        if (!partFile.existsSync()) {
+          violations.add('$partPath missing');
+          continue;
+        }
+        final partContent = partFile.readAsStringSync();
+        if (!partContent.contains("part of '../drift_database.dart';")) {
+          violations.add('$partPath missing part-of');
+        }
+        for (final expectedTable in entry.value) {
+          if (!partContent.contains(expectedTable)) {
+            violations.add('$partPath missing $expectedTable');
+          }
+        }
+      }
 
       expect(
         violations,
         isEmpty,
-        reason: 'Drift 表定义必须放在 schema/drift_tables.dart，drift_database.dart 只保留数据库、迁移和索引装配。',
+        reason: 'Drift 表定义必须按 playback、local_resource、download、cache、library、playlist、user 业务域拆分。',
       );
     });
 

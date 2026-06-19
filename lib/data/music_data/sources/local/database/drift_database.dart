@@ -6,8 +6,14 @@ import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 
 part 'drift_database.g.dart';
+part 'schema/drift_cache_tables.dart';
+part 'schema/drift_download_tables.dart';
+part 'schema/drift_library_tables.dart';
+part 'schema/drift_local_resource_tables.dart';
+part 'schema/drift_playback_tables.dart';
+part 'schema/drift_playlist_tables.dart';
 part 'schema/drift_schema_maintenance.dart';
-part 'schema/drift_tables.dart';
+part 'schema/drift_user_tables.dart';
 
 @DriftDatabase(
   tables: [

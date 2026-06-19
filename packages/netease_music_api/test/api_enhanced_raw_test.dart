@@ -130,6 +130,7 @@ void main() {
         'ua': 'unit-test',
         'domain': 'https://example.test',
         'checkToken': true,
+        'proxy': 'http://127.0.0.1:8080',
         'cookie': {'MUSIC_U': 'token'},
       });
 
@@ -138,7 +139,32 @@ void main() {
       expect(metaData.options!.extra!['rawUserAgent'], 'unit-test');
       expect(metaData.options!.extra!['domain'], 'https://example.test');
       expect(metaData.options!.extra!['checkToken'], isTrue);
+      expect(metaData.options!.extra!['proxy'], 'http://127.0.0.1:8080');
       expect(metaData.options!.extra!['cookies'], {'MUSIC_U': 'token'});
+    });
+
+    test('maps proxy option to native proxy rules', () {
+      expect(neteaseProxyRule('http://127.0.0.1:8080'), 'PROXY 127.0.0.1:8080');
+      expect(neteaseProxyRule('https://proxy.example.test'), 'PROXY proxy.example.test:443');
+      expect(neteaseProxyRule('127.0.0.1:8080'), 'PROXY 127.0.0.1:8080');
+      expect(neteaseProxyRule(''), isNull);
+    });
+
+    test('reports unsupported proxy forms explicitly', () {
+      expect(() => neteaseProxyRule('http://example.test/proxy.pac'), throwsUnsupportedError);
+      expect(() => neteaseProxyRule('http://user:pass@127.0.0.1:8080'), throwsUnsupportedError);
+      expect(() => neteaseProxyRule('socks5://127.0.0.1:1080'), throwsUnsupportedError);
+    });
+
+    test('installs proxy-aware Dio adapter once', () {
+      final dio = Dio();
+      Https.ensureProxyAdapter(dio);
+      final adapter = dio.httpClientAdapter;
+
+      expect(adapter, isA<NeteaseProxyHttpClientAdapter>());
+
+      Https.ensureProxyAdapter(dio);
+      expect(identical(dio.httpClientAdapter, adapter), isTrue);
     });
 
     test('maps randomCNIP to a generated real IP', () {

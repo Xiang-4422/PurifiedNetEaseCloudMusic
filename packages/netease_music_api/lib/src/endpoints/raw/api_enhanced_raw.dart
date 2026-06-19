@@ -610,6 +610,7 @@ Options _rawOptions(EncryptType crypto, String path, Map<String, dynamic> query)
     domain: query['domain']?.toString(),
     checkToken: _boolOption(query['checkToken']),
     randomCNIP: _boolOption(query['randomCNIP']),
+    proxy: query['proxy']?.toString(),
     cookies: _stringMap(query['cookie']),
   );
 }

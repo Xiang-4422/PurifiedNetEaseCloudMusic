@@ -398,6 +398,7 @@ Options joinOptions({
   String? domain,
   bool checkToken = false,
   bool randomCNIP = false,
+  String? proxy,
 }) =>
     Options(contentType: ContentType.json.value, extra: {
       'hookRequestData': hookRequestDate,
@@ -410,6 +411,7 @@ Options joinOptions({
       'domain': domain,
       'checkToken': checkToken,
       'randomCNIP': randomCNIP,
+      'proxy': proxy,
     });
 
 /// 将相对路径拼成网易云主站 URI。

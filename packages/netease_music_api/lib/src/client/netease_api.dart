@@ -61,6 +61,7 @@ class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearc
     bool refreshToken,
     bool logResponseBody,
   ) {
+    Https.ensureProxyAdapter(dio);
     dio.interceptors.add(cookieManager);
     // Dio日志拦截器
     if (debug) {

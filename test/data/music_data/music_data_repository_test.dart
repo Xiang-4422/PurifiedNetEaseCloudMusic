@@ -70,6 +70,32 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 2);
     });
 
+    test('force refresh bypasses fresh playback url cache', () async {
+      final neteaseSource = _FakeNeteaseMusicSource(
+        includeCallCountInPlaybackUrl: true,
+      );
+      final repository = _buildRepository(neteaseSource: neteaseSource);
+
+      final cached = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+      final refreshed = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+        forceRefresh: true,
+      );
+      final reusedRefresh = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+
+      expect(cached, 'https://audio.test/1-1.mp3');
+      expect(refreshed, 'https://audio.test/1-2.mp3');
+      expect(reusedRefresh, refreshed);
+      expect(neteaseSource.playbackUrlCallCount, 2);
+    });
+
     test('coalesces concurrent lyric loads', () async {
       final localDataSource = _FakeLocalLibraryDataSource();
       final neteaseSource = _FakeNeteaseMusicSource(
@@ -210,11 +236,13 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
     this.playbackUrlDelay = Duration.zero,
     this.lyricsDelay = Duration.zero,
     this.includeQualityInPlaybackUrl = false,
+    this.includeCallCountInPlaybackUrl = false,
   });
 
   final Duration playbackUrlDelay;
   final Duration lyricsDelay;
   final bool includeQualityInPlaybackUrl;
+  final bool includeCallCountInPlaybackUrl;
   int playbackUrlCallCount = 0;
   int lyricsCallCount = 0;
 
@@ -229,6 +257,9 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
     }
     if (includeQualityInPlaybackUrl) {
       return 'https://audio.test/$trackId-${qualityLevel ?? 'normal'}.mp3';
+    }
+    if (includeCallCountInPlaybackUrl) {
+      return 'https://audio.test/$trackId-$playbackUrlCallCount.mp3';
     }
     return 'https://audio.test/$trackId.mp3';
   }

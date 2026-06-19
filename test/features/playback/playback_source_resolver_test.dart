@@ -96,6 +96,23 @@ void main() {
       expect(source.url, audioFile.path);
       expect(source.markAsCached, isTrue);
     });
+
+    test('forwards force refresh when resolving remote playback url', () async {
+      final repository = _FakePlaybackRepository();
+      final resolver = PlaybackSourceResolver(repository: repository);
+
+      await resolver.resolveRemote(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: true,
+        forceRefresh: true,
+      );
+
+      expect(repository.forceRefreshValues, [true]);
+      expect(repository.preferHighQualityValues, [true]);
+    });
   });
 }
 
@@ -127,12 +144,17 @@ class _FakePlaybackRepository implements PlaybackRepository {
   });
 
   final String playbackUrl;
+  final List<bool> forceRefreshValues = <bool>[];
+  final List<bool> preferHighQualityValues = <bool>[];
 
   @override
   Future<String?> fetchPlaybackUrl(
     String trackId, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) async {
+    preferHighQualityValues.add(preferHighQuality);
+    forceRefreshValues.add(forceRefresh);
     return playbackUrl;
   }
 

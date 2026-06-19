@@ -168,6 +168,35 @@ void main() {
       expect(playbackService.replaceCalls.last.source.kind, PlaybackResolvedSourceKind.url);
     });
 
+    test('refreshes remote url when remote source replacement fails', () async {
+      final playbackService = _FakePlaybackService(failFirstReplace: true);
+      final resolver = _RemoteRefreshSourceResolver();
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+      );
+      final queue = [_item('1')];
+      await queueService.replaceQueue(queue, 0, playlistName: 'Queue');
+
+      final result = await coordinator.switchToSelection(
+        queue: queue,
+        item: queue.first,
+        activeIndex: 0,
+        selectionVersion: queueService.state.selectionVersion,
+        trigger: PlaybackSwitchTrigger.userSelect,
+        playNow: true,
+      );
+
+      expect(result.success, isTrue);
+      expect(playbackService.replaceCalls.map((call) => call.source.url), [
+        'stale-url-1',
+        'fresh-url-1',
+      ]);
+      expect(resolver.remoteForceRefreshValues, [true]);
+    });
+
     test('captures resolver timeout without replacing current source', () async {
       final playbackService = _FakePlaybackService();
       final resolver = _ThrowingSourceResolver(TimeoutException('slow url'));
@@ -348,6 +377,7 @@ class _ThrowingSourceResolver implements PlaybackSourceResolver {
   Future<PlaybackResolvedSource> resolveRemote(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) {
     return resolve(item, preferHighQuality: preferHighQuality);
   }
@@ -375,6 +405,7 @@ class _QualityFallbackSourceResolver implements PlaybackSourceResolver {
   Future<PlaybackResolvedSource> resolveRemote(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) {
     return resolve(item, preferHighQuality: preferHighQuality);
   }
@@ -393,8 +424,37 @@ class _ImmediateSourceResolver implements PlaybackSourceResolver {
   Future<PlaybackResolvedSource> resolveRemote(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) {
     return resolve(item, preferHighQuality: preferHighQuality);
+  }
+}
+
+class _RemoteRefreshSourceResolver implements PlaybackSourceResolver {
+  final List<bool> remoteForceRefreshValues = <bool>[];
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: 'stale-url-${item.id}',
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) async {
+    remoteForceRefreshValues.add(forceRefresh);
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: 'fresh-url-${item.id}',
+    );
   }
 }
 
@@ -415,6 +475,7 @@ class _ControllableSourceResolver implements PlaybackSourceResolver {
   Future<PlaybackResolvedSource> resolveRemote(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) {
     _remoteCompleter = Completer<PlaybackResolvedSource>();
     return _remoteCompleter!.future;

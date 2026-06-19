@@ -50,6 +50,24 @@ void main() {
       expect(dataSource.savedPositions, [const Duration(seconds: 42)]);
       expect(dataSource.loadCount, 1);
     });
+
+    test('forwards quality and force refresh when fetching playback url', () async {
+      final musicDataRepository = _FakeMusicDataRepository();
+      final repository = PlaybackRepository(
+        musicDataRepository: musicDataRepository,
+        playbackRestoreDataSource: _FakePlaybackRestoreDataSource(),
+      );
+
+      await repository.fetchPlaybackUrl(
+        'netease:1',
+        preferHighQuality: true,
+        forceRefresh: true,
+      );
+
+      expect(musicDataRepository.requestedTrackIds, ['netease:1']);
+      expect(musicDataRepository.requestedQualityLevels, ['lossless']);
+      expect(musicDataRepository.forceRefreshValues, [true]);
+    });
   });
 }
 
@@ -87,12 +105,20 @@ class _FakePlaybackRestoreDataSource implements PlaybackRestoreDataSource {
 }
 
 class _FakeMusicDataRepository implements MusicDataRepository {
+  final List<String> requestedTrackIds = <String>[];
+  final List<String?> requestedQualityLevels = <String?>[];
+  final List<bool> forceRefreshValues = <bool>[];
+
   @override
   Future<String?> getPlaybackUrlWithQuality(
     String trackId, {
     String? qualityLevel,
+    bool forceRefresh = false,
   }) async {
-    return null;
+    requestedTrackIds.add(trackId);
+    requestedQualityLevels.add(qualityLevel);
+    forceRefreshValues.add(forceRefresh);
+    return 'https://audio.test/$trackId.mp3';
   }
 
   @override

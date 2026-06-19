@@ -68,6 +68,8 @@ void main() {
       );
       await Future<void>.delayed(Duration.zero);
       playbackService.completeReplaceSource(false);
+      await _waitUntil(() => playbackService.replaceSourceCallCount == 2);
+      playbackService.completeReplaceSource(false);
       await selectFuture;
 
       expect(selectionService.state.selectedItem.id, '1');
@@ -100,6 +102,8 @@ void main() {
         trigger: PlaybackSwitchTrigger.userSelect,
       );
       await Future<void>.delayed(Duration.zero);
+      playbackService.completeReplaceSource(false);
+      await _waitUntil(() => playbackService.replaceSourceCallCount == 3);
       playbackService.completeReplaceSource(false);
       await failedSwitch;
 
@@ -398,6 +402,8 @@ class _FakePlaybackService implements PlaybackService {
   final List<Completer<bool>> _replaceSourceCompleters = <Completer<bool>>[];
   List<PlaybackQueueItem> notificationQueue = const <PlaybackQueueItem>[];
 
+  int get replaceSourceCallCount => _replaceSourceCompleters.length;
+
   Completer<bool> get replaceSourceCompleter => _replaceSourceCompleters.last;
 
   @override
@@ -455,6 +461,7 @@ class _FakePlaybackSourceResolver implements PlaybackSourceResolver {
   Future<PlaybackResolvedSource> resolveRemote(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) {
     return resolve(item, preferHighQuality: preferHighQuality);
   }
@@ -477,6 +484,7 @@ class _ThrowingPlaybackSourceResolver implements PlaybackSourceResolver {
   Future<PlaybackResolvedSource> resolveRemote(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) {
     return resolve(item, preferHighQuality: preferHighQuality);
   }
@@ -504,6 +512,7 @@ class _FailThenResolveSourceResolver implements PlaybackSourceResolver {
   Future<PlaybackResolvedSource> resolveRemote(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) {
     return resolve(item, preferHighQuality: preferHighQuality);
   }
@@ -528,4 +537,17 @@ class _FakePlaybackQueueStore implements PlaybackQueueStore {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+Future<void> _waitUntil(
+  bool Function() condition, {
+  Duration timeout = const Duration(seconds: 1),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('Timed out waiting for condition');
+    }
+    await Future<void>.delayed(Duration.zero);
+  }
 }

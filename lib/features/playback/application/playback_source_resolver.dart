@@ -47,10 +47,12 @@ class PlaybackSourceResolver {
   Future<PlaybackResolvedSource> resolveRemote(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) async {
     final url = await _repository.fetchPlaybackUrl(
           item.id,
           preferHighQuality: preferHighQuality,
+          forceRefresh: forceRefresh,
         ) ??
         '';
     if (url.isEmpty) {

@@ -162,10 +162,12 @@ class PlaybackRepository {
   Future<String?> fetchPlaybackUrl(
     String trackId, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) {
     return _musicDataRepository.getPlaybackUrlWithQuality(
       trackId,
       qualityLevel: preferHighQuality ? 'lossless' : 'exhigh',
+      forceRefresh: forceRefresh,
     );
   }
 }

@@ -49,11 +49,17 @@ class PlaybackSourcePrefetcher {
   Future<PlaybackResolvedSource> resolveRemote(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) {
     final key = '${_cacheKey(item, preferHighQuality: preferHighQuality)}|remote';
     return _resolveAndCache(
       key,
-      () => _resolver.resolveRemote(item, preferHighQuality: preferHighQuality),
+      () => _resolver.resolveRemote(
+        item,
+        preferHighQuality: preferHighQuality,
+        forceRefresh: forceRefresh,
+      ),
+      forceRefresh: forceRefresh,
     );
   }
 
@@ -76,15 +82,17 @@ class PlaybackSourcePrefetcher {
 
   Future<PlaybackResolvedSource> _resolveAndCache(
     String key,
-    Future<PlaybackResolvedSource> Function() load,
-  ) {
+    Future<PlaybackResolvedSource> Function() load, {
+    bool forceRefresh = false,
+  }) {
     final loading = _inFlight[key];
-    if (loading != null) {
+    if (!forceRefresh && loading != null) {
       PlaybackPerformanceLogger.log('sourcePrefetch.inFlight key=$key');
       return loading;
     }
     final stopwatch = PlaybackPerformanceLogger.start();
-    final loadFuture = load().then((source) {
+    late final Future<PlaybackResolvedSource> loadFuture;
+    loadFuture = load().then((source) {
       if (!source.isEmpty) {
         _cache[key] = _CachedPlaybackSource(source, DateTime.now());
         _trimCache();
@@ -96,7 +104,9 @@ class PlaybackSourcePrefetcher {
       );
       return source;
     }).whenComplete(() {
-      _inFlight.remove(key);
+      if (identical(_inFlight[key], loadFuture)) {
+        _inFlight.remove(key);
+      }
     });
     _inFlight[key] = loadFuture;
     return loadFuture;

@@ -212,10 +212,14 @@ class MusicDataRepository {
   }
 
   /// 解析曲目播放地址，优先返回仍存在的本地音频资源。
-  Future<String?> getPlaybackUrl(String trackId) async {
+  Future<String?> getPlaybackUrl(
+    String trackId, {
+    bool forceRefresh = false,
+  }) async {
     return _coalescePlaybackUrl(
       trackId,
       qualityLevel: null,
+      forceRefresh: forceRefresh,
       load: () => _resolvePlaybackUrl(trackId),
     );
   }
@@ -241,10 +245,12 @@ class MusicDataRepository {
   Future<String?> getPlaybackUrlWithQuality(
     String trackId, {
     String? qualityLevel,
+    bool forceRefresh = false,
   }) async {
     return _coalescePlaybackUrl(
       trackId,
       qualityLevel: qualityLevel,
+      forceRefresh: forceRefresh,
       load: () => _resolvePlaybackUrlWithQuality(
         trackId,
         qualityLevel: qualityLevel,
@@ -321,19 +327,25 @@ class MusicDataRepository {
   Future<String?> _coalescePlaybackUrl(
     String trackId, {
     required String? qualityLevel,
+    required bool forceRefresh,
     required Future<String?> Function() load,
   }) async {
     final cacheKey = '$trackId|${qualityLevel ?? ''}';
     final cachedUrl = _playbackUrlCache[cacheKey];
     final now = DateTime.now();
-    if (cachedUrl != null && now.difference(cachedUrl.createdAt) < _playbackUrlCacheTtl) {
+    if (!forceRefresh && cachedUrl != null && now.difference(cachedUrl.createdAt) < _playbackUrlCacheTtl) {
       return cachedUrl.url;
     }
     final loadingUrl = _playbackUrlLoads[cacheKey];
-    if (loadingUrl != null) {
+    if (!forceRefresh && loadingUrl != null) {
       return loadingUrl;
     }
-    final loadFuture = _loadPlaybackUrl(cacheKey, load);
+    late final Future<String?> loadFuture;
+    loadFuture = _loadPlaybackUrl(cacheKey, load).whenComplete(() {
+      if (identical(_playbackUrlLoads[cacheKey], loadFuture)) {
+        _playbackUrlLoads.remove(cacheKey);
+      }
+    });
     _playbackUrlLoads[cacheKey] = loadFuture;
     return loadFuture;
   }
@@ -342,18 +354,14 @@ class MusicDataRepository {
     String cacheKey,
     Future<String?> Function() load,
   ) async {
-    try {
-      final url = await load();
-      if (url != null && _isRemoteUrl(url)) {
-        _playbackUrlCache[cacheKey] = _CachedPlaybackUrl(
-          url: url,
-          createdAt: DateTime.now(),
-        );
-      }
-      return url;
-    } finally {
-      _playbackUrlLoads.remove(cacheKey);
+    final url = await load();
+    if (url != null && _isRemoteUrl(url)) {
+      _playbackUrlCache[cacheKey] = _CachedPlaybackUrl(
+        url: url,
+        createdAt: DateTime.now(),
+      );
     }
+    return url;
   }
 
   bool _isRemoteUrl(String url) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
@@ -43,6 +45,35 @@ void main() {
       expect(resolver.resolveCallCount, 2);
       expect(resolver.preferences, [false, true]);
     });
+
+    test('force refresh keeps newer in-flight remote source active', () async {
+      final resolver = _ControllableRemoteSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final item = _item('1');
+
+      final stale = prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+      );
+      final refreshed = prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+        forceRefresh: true,
+      );
+
+      resolver.complete(0, 'stale-url');
+      expect(await stale, _hasUrl('stale-url'));
+
+      final coalesced = prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+      );
+
+      expect(resolver.remoteCallCount, 2);
+      resolver.complete(1, 'fresh-url');
+      expect(await refreshed, _hasUrl('fresh-url'));
+      expect(await coalesced, _hasUrl('fresh-url'));
+    });
   });
 }
 
@@ -86,7 +117,50 @@ class _CountingSourceResolver implements PlaybackSourceResolver {
   Future<PlaybackResolvedSource> resolveRemote(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool forceRefresh = false,
   }) {
     return resolve(item, preferHighQuality: preferHighQuality);
   }
+}
+
+class _ControllableRemoteSourceResolver implements PlaybackSourceResolver {
+  final List<Completer<PlaybackResolvedSource>> _remoteCompleters = [];
+
+  int get remoteCallCount => _remoteCompleters.length;
+
+  void complete(int index, String url) {
+    _remoteCompleters[index].complete(
+      PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.url,
+        url: url,
+      ),
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    return resolveRemote(item, preferHighQuality: preferHighQuality);
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) {
+    final completer = Completer<PlaybackResolvedSource>();
+    _remoteCompleters.add(completer);
+    return completer.future;
+  }
+}
+
+Matcher _hasUrl(String url) {
+  return isA<PlaybackResolvedSource>().having(
+    (source) => source.url,
+    'url',
+    url,
+  );
 }

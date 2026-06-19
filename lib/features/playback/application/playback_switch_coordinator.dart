@@ -420,8 +420,27 @@ class PlaybackSwitchCoordinator {
       source: source,
       playNow: playNow,
     );
-    if (success || (source.kind != PlaybackResolvedSourceKind.filePath && source.kind != PlaybackResolvedSourceKind.neteaseCacheStream)) {
-      return success;
+    if (success) {
+      return true;
+    }
+    if (source.kind == PlaybackResolvedSourceKind.url) {
+      final refreshedSource = await _safeResolveRemote(
+        item,
+        forceRefresh: true,
+      );
+      if (refreshedSource.isEmpty) {
+        return false;
+      }
+      return _replaceSource(
+        queue: queue,
+        item: item,
+        activeIndex: activeIndex,
+        source: refreshedSource,
+        playNow: playNow,
+      );
+    }
+    if (source.kind != PlaybackResolvedSourceKind.filePath && source.kind != PlaybackResolvedSourceKind.neteaseCacheStream) {
+      return false;
     }
     final remoteSource = await _safeResolveRemote(item);
     if (remoteSource.isEmpty) {
@@ -504,13 +523,15 @@ class PlaybackSwitchCoordinator {
   }
 
   Future<PlaybackResolvedSource> _safeResolveRemote(
-    PlaybackQueueItem item,
-  ) async {
+    PlaybackQueueItem item, {
+    bool forceRefresh = false,
+  }) async {
     try {
       return await _sourcePrefetcher
           .resolveRemote(
             item,
             preferHighQuality: _playbackService.isHighQualityEnabled(),
+            forceRefresh: forceRefresh,
           )
           .timeout(const Duration(seconds: 12));
     } catch (error) {

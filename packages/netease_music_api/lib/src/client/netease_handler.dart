@@ -45,6 +45,12 @@ void neteaseInterceptor(RequestOptions option, RequestInterceptorHandler handler
     option.extra['cookiesHash'] = await loadCookiesHash(cookies: cookies) + NeteaseMusicApi().loginRefreshVersion;
 
     if (!(option.extra['hookRequestDataSuccess'] ?? false)) {
+      _applyEncryptedResponseOverride(option);
+      final encryptType = option.extra['encryptType'];
+      if ((encryptType == EncryptType.EApi || encryptType == EncryptType.WeApi) && _usesEncryptedResponse(option)) {
+        option.responseType = ResponseType.bytes;
+        option.extra['encryptedResponse'] = true;
+      }
       switch (option.extra['encryptType']) {
         case EncryptType.LinuxForward:
           _handleLinuxForward(option);
@@ -65,6 +71,36 @@ void neteaseInterceptor(RequestOptions option, RequestInterceptorHandler handler
     }
   }
   handler.next(option);
+}
+
+void _applyEncryptedResponseOverride(RequestOptions option) {
+  if (!option.extra.containsKey('e_r') || option.extra['e_r'] == null) {
+    return;
+  }
+  final data = option.data;
+  if (data is! Map) {
+    return;
+  }
+  option.data = Map<String, dynamic>.from(data)..['e_r'] = _boolRequestFlag(option.extra['e_r']);
+}
+
+bool _usesEncryptedResponse(RequestOptions option) {
+  if (option.extra.containsKey('e_r') && option.extra['e_r'] != null) {
+    return _boolRequestFlag(option.extra['e_r']);
+  }
+  final data = option.data;
+  if (data is Map && data.containsKey('e_r')) {
+    return _boolRequestFlag(data['e_r']);
+  }
+  return false;
+}
+
+bool _boolRequestFlag(dynamic value) {
+  if (value is bool) {
+    return value;
+  }
+  final text = value?.toString().toLowerCase();
+  return text == 'true' || text == '1';
 }
 
 /// 网易云接口请求体加密方式。
@@ -399,6 +435,7 @@ Options joinOptions({
   bool checkToken = false,
   bool randomCNIP = false,
   String? proxy,
+  bool? encryptedResponse,
 }) =>
     Options(contentType: ContentType.json.value, extra: {
       'hookRequestData': hookRequestDate,
@@ -412,6 +449,7 @@ Options joinOptions({
       'checkToken': checkToken,
       'randomCNIP': randomCNIP,
       'proxy': proxy,
+      'e_r': encryptedResponse,
     });
 
 /// 将相对路径拼成网易云主站 URI。

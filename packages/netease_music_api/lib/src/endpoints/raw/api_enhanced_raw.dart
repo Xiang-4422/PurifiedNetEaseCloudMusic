@@ -668,6 +668,14 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], 0),
         'includeVideo': true,
       };
+    case 'voicelist_search':
+      return {
+        'keyword': query['keyword'] ?? '',
+        'scene': 'normal',
+        'limit': _jsDefault(query['limit'], '10'),
+        'offset': _jsDefault(query['offset'], '30'),
+        'e_r': true,
+      };
   }
   final data = <String, dynamic>{};
   query.forEach((key, value) {
@@ -768,6 +776,7 @@ Options _rawOptions(EncryptType crypto, String path, Map<String, dynamic> query)
     checkToken: _boolOption(query['checkToken']),
     randomCNIP: _boolOption(query['randomCNIP']),
     proxy: query['proxy']?.toString(),
+    encryptedResponse: query.containsKey('e_r') ? _boolOption(query['e_r']) : null,
     cookies: _stringMap(query['cookie']),
   );
 }

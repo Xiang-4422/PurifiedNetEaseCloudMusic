@@ -85,6 +85,18 @@ void main() {
         'ok': true,
       });
     });
+
+    test('decrypts eapi encrypted response body', () {
+      final encrypted = Encrypter(AES(Key.fromUtf8('e82ckenh8dichen8'), mode: AESMode.ecb)).encrypt(
+        '{"code":200,"encrypted":true}',
+        iv: IV.fromLength(0),
+      );
+
+      expect(eapiResDecrypt(encrypted.bytes), {
+        'code': 200,
+        'encrypted': true,
+      });
+    });
   });
 }
 

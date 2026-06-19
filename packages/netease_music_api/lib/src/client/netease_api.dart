@@ -88,6 +88,8 @@ class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearc
             if (response.data is List<int>) {
               response.data = xeapiResDecrypt(response.data as List<int>);
             }
+          } else if (requestOptions.extra['encryptedResponse'] == true && response.data is List<int>) {
+            response.data = eapiResDecrypt(response.data as List<int>);
           }
 
           if (response.data is String) {

@@ -321,6 +321,16 @@ dynamic xeapiResDecrypt(List<int> body) {
   return jsonDecode(utf8.decode(plaintext));
 }
 
+/// Decrypts an encrypted eapi/weapi response body when upstream `e_r` is enabled.
+dynamic eapiResDecrypt(List<int> body) {
+  final decrypted = _aesEcbDecrypt(
+    Uint8List.fromList(utf8.encode(_eapiKey)),
+    Uint8List.fromList(body),
+  );
+  final plaintext = decrypted.length >= 2 && decrypted[0] == 0x1f && decrypted[1] == 0x8b ? gzip.decode(decrypted) : decrypted;
+  return jsonDecode(utf8.decode(plaintext));
+}
+
 /// URL-encodes form data with the same shape as JavaScript URLSearchParams.
 String formEncode(Map<String, dynamic> data) {
   return data.entries.map((entry) {

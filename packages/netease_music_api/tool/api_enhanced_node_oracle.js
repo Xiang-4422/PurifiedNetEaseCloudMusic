@@ -122,6 +122,12 @@ const fixtures = [
     module: 'search_hot_detail',
     query: {},
   },
+  {
+    module: 'voicelist_search',
+    query: {
+      keyword: 'podcast',
+    },
+  },
 ]
 
 async function captureFixture(fixture) {

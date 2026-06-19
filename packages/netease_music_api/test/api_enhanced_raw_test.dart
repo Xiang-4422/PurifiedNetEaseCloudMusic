@@ -144,6 +144,15 @@ void main() {
       expect(metaData.options!.extra!['cookies'], {'MUSIC_U': 'token'});
     });
 
+    test('maps e_r runtime option for encrypted responses', () {
+      final metaData = api.requestModuleDioMetaData('album', {
+        'id': '1',
+        'e_r': true,
+      });
+
+      expect(metaData.options!.extra!['e_r'], isTrue);
+    });
+
     test('maps proxy option to native proxy rules', () {
       expect(neteaseProxyRule('http://127.0.0.1:8080'), 'PROXY 127.0.0.1:8080');
       expect(neteaseProxyRule('https://proxy.example.test'), 'PROXY proxy.example.test:443');
@@ -193,6 +202,21 @@ void main() {
     test('maps dynamic path templates', () {
       final album = api.requestModuleDioMetaData('album', {'id': '456'});
       expect(album.uri.path, '/api/v1/album/456');
+    });
+
+    test('maps voicelist search defaults and encrypted response flag', () {
+      final metaData = api.requestModuleDioMetaData('voicelist_search', {
+        'keyword': 'podcast',
+      });
+
+      expect(metaData.uri.path, '/api/search/voicelist/get');
+      expect(metaData.data, {
+        'keyword': 'podcast',
+        'scene': 'normal',
+        'limit': '10',
+        'offset': '30',
+        'e_r': true,
+      });
     });
 
     test('DioProxy dispatches request metadata by method', () async {

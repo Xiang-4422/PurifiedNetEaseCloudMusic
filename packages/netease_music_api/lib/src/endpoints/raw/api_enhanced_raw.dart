@@ -18,6 +18,7 @@ part 'api_enhanced_raw_methods.g.dart';
 const _apiDomain = 'https://interface.music.163.com';
 const _xeapiDomain = 'https://interface3.music.163.com';
 const _eapiKey = 'e82ckenh8dichen8';
+const _upstreamCheckToken = '9ca17ae2e6ffcda170e2e6ee8af14fbabdb988f225b3868eb2c15a879b9a83d274a790ac8ff54a97b889d5d42af0feaec3b92af58cff99c470a7eafd88f75e839a9ea7c14e909da883e83fb692a3abdb6b92adee9e';
 
 const _rawOptionKeys = {
   'cookie',
@@ -108,11 +109,12 @@ mixin ApiEnhancedRaw {
     final data = _requestData(metadata.module, query);
     final method = (query['method']?.toString() ?? metadata.httpMethod).toUpperCase();
     final uri = _rawUri(path, crypto, query['domain']?.toString(), data: method == 'GET' ? data : null);
+    final optionsQuery = _requestOptionsQuery(metadata.module, query);
     return DioMetaData(
       uri,
       data: method == 'GET' ? null : data,
       method: method,
-      options: _rawOptions(crypto, path, query),
+      options: _rawOptions(crypto, path, optionsQuery),
     );
   }
 
@@ -621,6 +623,18 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'n': 100000,
         's': _jsDefault(query['s'], 8),
       };
+    case 'playlist_subscribe':
+      return {
+        'id': query['id'],
+        if (query['t'] is int && query['t'] == 1) 'checkToken': _jsDefault(query['checkToken'], _upstreamCheckToken),
+      };
+    case 'playlist_tracks':
+      return {
+        'op': query['op'],
+        'pid': query['pid'],
+        'trackIds': jsonEncode(_splitCommaValues(query['tracks'])),
+        'imme': 'true',
+      };
     case 'personalized':
       return {
         'limit': _jsDefault(query['limit'], 30),
@@ -680,10 +694,23 @@ dynamic _jsDefault(dynamic value, dynamic fallback) {
 
 String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
   switch (metadata.module) {
+    case 'playlist_subscribe':
+      return query['t']?.toString() == '1' ? '/api/playlist/subscribe' : '/api/playlist/unsubscribe';
     case 'search':
       return query['type']?.toString() == '2000' ? '/api/search/voice/get' : '/api/search/get';
   }
   return _resolvePath(metadata.pathTemplate, query);
+}
+
+Map<String, dynamic> _requestOptionsQuery(String module, Map<String, dynamic> query) {
+  switch (module) {
+    case 'playlist_subscribe':
+      return {
+        ...query,
+        'checkToken': true,
+      };
+  }
+  return query;
 }
 
 Map<String, dynamic> _asMap(dynamic value) {

@@ -30,9 +30,25 @@ class PlaybackUiCommandService {
   final PlaybackQueueService _queueService;
   final PlaybackSelectionService _selectionService;
   final PlaybackSwitchCoordinator _switchCoordinator;
+  Future<void>? _playOrPauseInFlight;
 
   /// 根据当前播放状态执行播放或暂停。
-  Future<void> playOrPause({required bool isPlaying}) async {
+  Future<void> playOrPause({required bool isPlaying}) {
+    final pending = _playOrPauseInFlight;
+    if (pending != null) {
+      return pending;
+    }
+    late final Future<void> command;
+    command = _runPlayOrPause(isPlaying: isPlaying).whenComplete(() {
+      if (identical(_playOrPauseInFlight, command)) {
+        _playOrPauseInFlight = null;
+      }
+    });
+    _playOrPauseInFlight = command;
+    return command;
+  }
+
+  Future<void> _runPlayOrPause({required bool isPlaying}) async {
     if (isPlaying) {
       _switchCoordinator.cancelAutoplayIntent();
       await _playbackService.pause();

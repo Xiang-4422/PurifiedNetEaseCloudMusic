@@ -878,6 +878,19 @@ void main() {
       );
     });
 
+    test('CacheBox direct access stays inside key-value adapter', () {
+      const allowedFiles = {
+        'lib/data/app_storage/hive_key_value_store.dart',
+      };
+      final violations = _dartFiles(libDirectory).where((file) => _contains(file, 'CacheBox.instance')).map(_relativePath).where((path) => !allowedFiles.contains(path)).toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'CacheBox.instance 只能留在 HiveKeyValueStore，其他代码必须通过 AppKeyValueStore 或更窄的领域存储边界访问。',
+      );
+    });
+
     test('image color cache uses key-value boundary instead of CacheBox directly', () {
       final cacheStoreFile = File(
         '${projectRoot.path}/lib/data/app_storage/image_color_cache_store.dart',

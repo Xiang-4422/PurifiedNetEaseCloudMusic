@@ -912,6 +912,30 @@ void main() {
       );
     });
 
+    test('auth and user session stores use key-value boundary instead of CacheBox directly', () {
+      const storePaths = [
+        'lib/features/auth/auth_state_store.dart',
+        'lib/features/user/user_session_store.dart',
+      ];
+      final violations = <String>[];
+      for (final path in storePaths) {
+        final file = File('${projectRoot.path}/$path');
+        final content = file.readAsStringSync();
+        if (content.contains('CacheBox.instance')) {
+          violations.add('$path reads CacheBox directly');
+        }
+        if (!content.contains('AppKeyValueStore')) {
+          violations.add('$path missing key-value boundary');
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '登录标记和用户 session 可以落在 Hive，但必须通过窄 key-value 边界访问，避免账号状态存储继续扩散 CacheBox。',
+      );
+    });
+
     test('feature repositories use narrow user scoped data capabilities', () {
       final violations = _repositoryFiles(libDirectory).where((file) => _contains(file, 'UserScopedDataSource')).map(_relativePath).toList();
 

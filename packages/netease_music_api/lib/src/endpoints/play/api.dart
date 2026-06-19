@@ -10,6 +10,8 @@ import '../../models/common/bean.dart';
 import '../../client/dio_ext.dart';
 import '../../client/netease_handler.dart';
 
+const _playlistSubscribeCheckToken = '9ca17ae2e6ffcda170e2e6ee8af14fbabdb988f225b3868eb2c15a879b9a83d274a790ac8ff54a97b889d5d42af0feaec3b92af58cff99c470a7eafd88f75e839a9ea7c14e909da883e83fb692a3abdb6b92adee9e';
+
 /// 播放、歌单、歌曲、歌手、专辑、MV 和视频相关接口。
 mixin ApiPlay {
   String _normalizeImageUrl(String url) {
@@ -47,8 +49,20 @@ mixin ApiPlay {
 
   /// 构建歌单收藏或取消收藏请求元数据。
   DioMetaData subscribePlayListDioMetaData(String pid, {bool subscribe = true}) {
-    var params = {'id': pid};
-    return DioMetaData(joinUri('/weapi/playlist/${subscribe ? 'subscribe' : 'unsubscribe'}'), data: params, options: joinOptions());
+    final path = '/api/playlist/${subscribe ? 'subscribe' : 'unsubscribe'}';
+    var params = {
+      'id': pid,
+      if (subscribe) 'checkToken': _playlistSubscribeCheckToken,
+    };
+    return DioMetaData(
+      joinUri(path),
+      data: params,
+      options: joinOptions(
+        encryptType: EncryptType.EApi,
+        eApiUrl: path,
+        checkToken: true,
+      ),
+    );
   }
 
   /// 歌单分类

@@ -1,6 +1,7 @@
 import 'package:netease_music_api/src/client/netease_handler.dart';
 import 'package:netease_music_api/src/endpoints/play/api.dart';
 import 'package:netease_music_api/src/endpoints/uncategorized/api.dart';
+import 'package:netease_music_api/src/endpoints/user/api.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -65,7 +66,37 @@ void main() {
       expect(timeSceneMetaData.uri.path, '/api/voice/sati/timescene/resources/get');
       expect(timeSceneMetaData.data, {'firstQuery': false});
     });
+
+    test('playlist operations follow upstream eapi metadata', () {
+      final subscribe = api.subscribePlayListDioMetaData('888');
+      expect(subscribe.uri.path, '/api/playlist/subscribe');
+      expect(subscribe.data, {
+        'id': '888',
+        'checkToken': isA<String>(),
+      });
+      expect(subscribe.options!.extra!['encryptType'], EncryptType.EApi);
+      expect(subscribe.options!.extra!['eApiUrl'], '/api/playlist/subscribe');
+      expect(subscribe.options!.extra!['checkToken'], isTrue);
+
+      final unsubscribe = api.subscribePlayListDioMetaData('888', subscribe: false);
+      expect(unsubscribe.uri.path, '/api/playlist/unsubscribe');
+      expect(unsubscribe.data, {'id': '888'});
+      expect(unsubscribe.options!.extra!['encryptType'], EncryptType.EApi);
+      expect(unsubscribe.options!.extra!['eApiUrl'], '/api/playlist/unsubscribe');
+      expect(unsubscribe.options!.extra!['checkToken'], isTrue);
+
+      final manipulateTracks = api.playlistManipulateTracksDioMetaData('888', '101,202', true);
+      expect(manipulateTracks.uri.path, '/api/playlist/manipulate/tracks');
+      expect(manipulateTracks.data, {
+        'op': 'add',
+        'pid': '888',
+        'trackIds': '["101","202"]',
+        'imme': 'true',
+      });
+      expect(manipulateTracks.options!.extra!['encryptType'], EncryptType.EApi);
+      expect(manipulateTracks.options!.extra!['eApiUrl'], '/api/playlist/manipulate/tracks');
+    });
   });
 }
 
-class _TestNeteaseApi with ApiPlay, ApiUncategorized {}
+class _TestNeteaseApi with ApiPlay, ApiUncategorized, ApiUser {}

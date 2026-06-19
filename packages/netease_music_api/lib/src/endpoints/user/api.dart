@@ -472,9 +472,21 @@ mixin ApiUser {
 
   /// 构建歌单歌曲增删请求元数据。
   DioMetaData playlistManipulateTracksDioMetaData(String pid, String trackId, bool add) {
-    // 批量?
-    var params = {'op': add ? 'add' : 'del', 'pid': pid, 'trackIds': '[$trackId]'};
-    return DioMetaData(joinUri('/weapi/playlist/manipulate/tracks'), data: params, options: joinOptions());
+    const path = '/api/playlist/manipulate/tracks';
+    var params = {
+      'op': add ? 'add' : 'del',
+      'pid': pid,
+      'trackIds': jsonEncode(trackId.split(',')),
+      'imme': 'true',
+    };
+    return DioMetaData(
+      joinUri(path),
+      data: params,
+      options: joinOptions(
+        encryptType: EncryptType.EApi,
+        eApiUrl: path,
+      ),
+    );
   }
 
   /// 收藏单曲到歌单 从歌单删除歌曲

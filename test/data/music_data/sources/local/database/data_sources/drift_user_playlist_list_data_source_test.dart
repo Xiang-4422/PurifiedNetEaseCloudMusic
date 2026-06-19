@@ -1,3 +1,4 @@
+import 'package:bujuan/data/music_data/sources/local/database/dao/playlist_dao.dart';
 import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_user_playlist_list_data_source.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
@@ -13,7 +14,7 @@ void main() {
     setUp(() {
       database = BujuanDriftDatabase.connect(NativeDatabase.memory());
       dataSource = DriftUserPlaylistListDataSource(
-        database: database,
+        dao: PlaylistDao(database: database),
       );
     });
 

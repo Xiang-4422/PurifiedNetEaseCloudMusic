@@ -45,9 +45,10 @@ class DriftAppDatabase implements AppDatabase {
   @override
   Future<void> init() async {
     _database = BujuanDriftDatabase(databaseName: databaseName);
+    final playlistDao = PlaylistDao(database: _database);
     _localLibraryDataSource = DriftLocalLibraryDataSource(
       trackDao: TrackDao(database: _database),
-      playlistDao: PlaylistDao(database: _database),
+      playlistDao: playlistDao,
     );
     _playbackRestoreDataSource = DriftPlaybackRestoreDataSource(database: _database);
     _localResourceIndexDataSource = DriftLocalResourceIndexDataSource(
@@ -63,7 +64,7 @@ class DriftAppDatabase implements AppDatabase {
     _userProfileDataSource = DriftUserProfileDataSource(userDao: userDao);
     _userTrackListDataSource = DriftUserTrackListDataSource(userDao: userDao);
     _userPlaylistListDataSource = DriftUserPlaylistListDataSource(
-      database: _database,
+      dao: playlistDao,
     );
     _playlistSubscriptionDataSource = DriftPlaylistSubscriptionDataSource(
       userDao: userDao,

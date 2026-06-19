@@ -40,6 +40,36 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 1);
     });
 
+    test('keeps playback url cache separated by quality level', () async {
+      final neteaseSource = _FakeNeteaseMusicSource(
+        includeQualityInPlaybackUrl: true,
+      );
+      final repository = _buildRepository(neteaseSource: neteaseSource);
+
+      final lossless = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+      final standard = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'standard',
+      );
+      final cachedLossless = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+      final cachedStandard = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'standard',
+      );
+
+      expect(lossless, 'https://audio.test/1-lossless.mp3');
+      expect(standard, 'https://audio.test/1-standard.mp3');
+      expect(cachedLossless, lossless);
+      expect(cachedStandard, standard);
+      expect(neteaseSource.playbackUrlCallCount, 2);
+    });
+
     test('coalesces concurrent lyric loads', () async {
       final localDataSource = _FakeLocalLibraryDataSource();
       final neteaseSource = _FakeNeteaseMusicSource(
@@ -179,10 +209,12 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
   _FakeNeteaseMusicSource({
     this.playbackUrlDelay = Duration.zero,
     this.lyricsDelay = Duration.zero,
+    this.includeQualityInPlaybackUrl = false,
   });
 
   final Duration playbackUrlDelay;
   final Duration lyricsDelay;
+  final bool includeQualityInPlaybackUrl;
   int playbackUrlCallCount = 0;
   int lyricsCallCount = 0;
 
@@ -194,6 +226,9 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
     playbackUrlCallCount++;
     if (playbackUrlDelay > Duration.zero) {
       await Future<void>.delayed(playbackUrlDelay);
+    }
+    if (includeQualityInPlaybackUrl) {
+      return 'https://audio.test/$trackId-${qualityLevel ?? 'normal'}.mp3';
     }
     return 'https://audio.test/$trackId.mp3';
   }

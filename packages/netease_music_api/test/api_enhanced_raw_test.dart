@@ -244,6 +244,39 @@ void main() {
       });
     });
 
+    test('maps login request data shapes', () {
+      expect(api.requestModuleDioMetaData('login', {'email': 'user@example.test', 'md5_password': '0123456789abcdef0123456789abcdef'}).data, {
+        'type': '0',
+        'https': 'true',
+        'username': 'user@example.test',
+        'password': '0123456789abcdef0123456789abcdef',
+        'rememberLogin': 'true',
+      });
+      expect(api.requestModuleDioMetaData('login', {'email': 'user@example.test', 'password': 'password'}).data, {
+        'type': '0',
+        'https': 'true',
+        'username': 'user@example.test',
+        'password': '5f4dcc3b5aa765d61d8327deb882cf99',
+        'rememberLogin': 'true',
+      });
+      expect(api.requestModuleDioMetaData('login_cellphone', {'phone': '13000000000', 'md5_password': 'fedcba9876543210fedcba9876543210'}).data, {
+        'type': '1',
+        'https': 'true',
+        'phone': '13000000000',
+        'countrycode': '86',
+        'password': 'fedcba9876543210fedcba9876543210',
+        'remember': 'true',
+      });
+      expect(api.requestModuleDioMetaData('login_cellphone', {'phone': '13000000000', 'countrycode': '1', 'captcha': '1234'}).data, {
+        'type': '1',
+        'https': 'true',
+        'phone': '13000000000',
+        'countrycode': '1',
+        'captcha': '1234',
+        'remember': 'true',
+      });
+    });
+
     test('DioProxy dispatches request metadata by method', () async {
       final proxy = _RecordingDioProxy();
 

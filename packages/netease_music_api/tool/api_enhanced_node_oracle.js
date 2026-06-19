@@ -25,6 +25,27 @@ const fixtures = [
     },
   },
   {
+    module: 'album',
+    query: {
+      id: '456',
+      crypto: 'api',
+    },
+  },
+  {
+    module: 'album',
+    query: {
+      id: '456',
+      crypto: 'linuxapi',
+    },
+  },
+  {
+    module: 'album',
+    query: {
+      id: '456',
+      crypto: 'xeapi',
+    },
+  },
+  {
     module: 'search',
     query: {
       keywords: 'hello',
@@ -85,6 +106,14 @@ const fixtures = [
     module: 'song_url',
     query: {
       id: '101,202',
+    },
+  },
+  {
+    module: 'song_url',
+    query: {
+      id: '101,202',
+      br: 320000,
+      crypto: 'xeapi',
     },
   },
   {

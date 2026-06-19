@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart';
+import 'package:pointycastle/digests/md5.dart';
 
 import '../../client/dio_ext.dart';
 import '../../client/netease_handler.dart';
@@ -898,6 +899,26 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'ytv': 0,
         'yrv': 0,
       };
+    case 'login':
+      return {
+        'type': '0',
+        'https': 'true',
+        'username': query['email'],
+        'password': _loginPassword(query),
+        'rememberLogin': 'true',
+      };
+    case 'login_cellphone':
+      final captcha = query['captcha'];
+      final hasCaptcha = _jsTruthy(captcha);
+      return {
+        'type': '1',
+        'https': 'true',
+        'phone': query['phone'],
+        'countrycode': _jsDefault(query['countrycode'], '86'),
+        if (!hasCaptcha && query.containsKey('captcha')) 'captcha': captcha,
+        hasCaptcha ? 'captcha' : 'password': hasCaptcha ? captcha : _loginPassword(query),
+        'remember': 'true',
+      };
     case 'playlist_detail':
       return {
         'id': query['id'],
@@ -979,6 +1000,21 @@ dynamic _jsDefault(dynamic value, dynamic fallback) {
     return fallback;
   }
   return value;
+}
+
+bool _jsTruthy(dynamic value) {
+  if (value == null || value == false || value == 0 || value == '') {
+    return false;
+  }
+  return true;
+}
+
+String _loginPassword(Map<String, dynamic> query) {
+  final md5Password = query['md5_password'];
+  if (_jsTruthy(md5Password)) {
+    return md5Password.toString();
+  }
+  return Encrypted(MD5Digest().process(Uint8List.fromList(utf8.encode(query['password']?.toString() ?? '')))).base16;
 }
 
 String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {

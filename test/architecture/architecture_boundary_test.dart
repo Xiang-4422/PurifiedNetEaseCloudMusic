@@ -878,6 +878,23 @@ void main() {
       );
     });
 
+    test('image color cache uses key-value boundary instead of CacheBox directly', () {
+      final cacheStoreFile = File(
+        '${projectRoot.path}/lib/data/app_storage/image_color_cache_store.dart',
+      );
+      final content = cacheStoreFile.readAsStringSync();
+      final violations = <String>[
+        if (content.contains('CacheBox.instance')) 'reads CacheBox directly',
+        if (!content.contains('AppKeyValueStore')) 'missing key-value boundary',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '图片主色缓存属于轻量视觉缓存，但仍应通过窄 key-value 边界访问 Hive，避免 CacheBox 全局入口继续扩散。',
+      );
+    });
+
     test('feature repositories use narrow user scoped data capabilities', () {
       final violations = _repositoryFiles(libDirectory).where((file) => _contains(file, 'UserScopedDataSource')).map(_relativePath).toList();
 

@@ -1,0 +1,98 @@
+import 'package:bujuan/data/app_storage/app_key_value_store.dart';
+import 'package:bujuan/data/app_storage/image_color_cache_store.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  group('ImageColorCacheStore', () {
+    test('stores and loads colors through injected key-value store', () async {
+      final keyValueStore = _MemoryKeyValueStore();
+      final cacheStore = ImageColorCacheStore(keyValueStore: keyValueStore);
+
+      await cacheStore.save(
+        imageUrl: '/cache/art.jpg',
+        getLightColor: false,
+        argb32: 0xff112233,
+      );
+
+      expect(
+        cacheStore.load(
+          imageUrl: '/cache/art.jpg',
+          getLightColor: false,
+        ),
+        0xff112233,
+      );
+      expect(keyValueStore.keys.any((key) => key.startsWith('IMAGE_COLOR_DARK_')), isTrue);
+    });
+
+    test('clears both light and dark color entries for an image', () async {
+      final keyValueStore = _MemoryKeyValueStore();
+      final cacheStore = ImageColorCacheStore(keyValueStore: keyValueStore);
+
+      await cacheStore.save(
+        imageUrl: '/cache/art.jpg',
+        getLightColor: false,
+        argb32: 0xff112233,
+      );
+      await cacheStore.save(
+        imageUrl: '/cache/art.jpg',
+        getLightColor: true,
+        argb32: 0xffffffff,
+      );
+
+      await cacheStore.clear('/cache/art.jpg');
+
+      expect(
+        cacheStore.load(
+          imageUrl: '/cache/art.jpg',
+          getLightColor: false,
+        ),
+        isNull,
+      );
+      expect(
+        cacheStore.load(
+          imageUrl: '/cache/art.jpg',
+          getLightColor: true,
+        ),
+        isNull,
+      );
+    });
+
+    test('prunes old color entries through the key-value boundary', () async {
+      final keyValueStore = _MemoryKeyValueStore();
+      final cacheStore = ImageColorCacheStore(keyValueStore: keyValueStore);
+
+      for (var index = 0; index < 305; index += 1) {
+        await cacheStore.save(
+          imageUrl: '/cache/art_$index.jpg',
+          getLightColor: false,
+          argb32: 0xff000000 + index,
+        );
+      }
+
+      final colorKeyCount = keyValueStore.keys.where((key) => key.startsWith('IMAGE_COLOR_DARK_')).length;
+
+      expect(colorKeyCount, lessThanOrEqualTo(300));
+    });
+  });
+}
+
+class _MemoryKeyValueStore implements AppKeyValueStore {
+  final Map<String, Object?> _values = <String, Object?>{};
+
+  Iterable<String> get keys => _values.keys;
+
+  @override
+  Object? get(String key, {Object? defaultValue}) {
+    return _values.containsKey(key) ? _values[key] : defaultValue;
+  }
+
+  @override
+  Future<void> put(String key, Object? value) async {
+    _values[key] = value;
+  }
+
+  @override
+  Future<void> delete(String key) async {
+    _values.remove(key);
+  }
+}

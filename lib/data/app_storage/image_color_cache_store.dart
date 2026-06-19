@@ -1,16 +1,21 @@
-import 'cache_box.dart';
+import 'app_key_value_store.dart';
+import 'hive_key_value_store.dart';
 
 /// 图片主色缓存存储。
 class ImageColorCacheStore {
   /// 创建图片主色缓存存储。
-  const ImageColorCacheStore();
+  const ImageColorCacheStore({
+    AppKeyValueStore keyValueStore = const HiveKeyValueStore(),
+  }) : _keyValueStore = keyValueStore;
+
+  final AppKeyValueStore _keyValueStore;
 
   /// 读取图片主色缓存。
   int? load({
     required String imageUrl,
     required bool getLightColor,
   }) {
-    final raw = CacheBox.instance.get(_colorKey(
+    final raw = _keyValueStore.get(_colorKey(
       imageUrl: imageUrl,
       getLightColor: getLightColor,
     ));
@@ -26,7 +31,7 @@ class ImageColorCacheStore {
     required bool getLightColor,
     required int argb32,
   }) async {
-    await CacheBox.instance.put(
+    await _keyValueStore.put(
       _colorKey(
         imageUrl: imageUrl,
         getLightColor: getLightColor,
@@ -39,10 +44,10 @@ class ImageColorCacheStore {
 
   /// 清理指定图片的主色缓存。
   Future<void> clear(String imageUrl) async {
-    await CacheBox.instance.delete(
+    await _keyValueStore.delete(
       _colorKey(imageUrl: imageUrl, getLightColor: true),
     );
-    await CacheBox.instance.delete(
+    await _keyValueStore.delete(
       _colorKey(imageUrl: imageUrl, getLightColor: false),
     );
   }
@@ -56,7 +61,7 @@ class ImageColorCacheStore {
   }
 
   Future<void> _touchAccess(String imageUrl) async {
-    final raw = CacheBox.instance.get(_accessKey);
+    final raw = _keyValueStore.get(_accessKey);
     final accessMap = <String, int>{};
     if (raw is Map) {
       for (final entry in raw.entries) {
@@ -64,11 +69,11 @@ class ImageColorCacheStore {
       }
     }
     accessMap[imageUrl] = DateTime.now().millisecondsSinceEpoch;
-    await CacheBox.instance.put(_accessKey, accessMap);
+    await _keyValueStore.put(_accessKey, accessMap);
   }
 
   Future<void> _pruneCaches() async {
-    final raw = CacheBox.instance.get(_accessKey);
+    final raw = _keyValueStore.get(_accessKey);
     if (raw is! Map) {
       return;
     }
@@ -92,7 +97,7 @@ class ImageColorCacheStore {
     for (final entry in accessEntries.take(removeCount)) {
       await clear(entry.key);
     }
-    await CacheBox.instance.put(_accessKey, nextMap);
+    await _keyValueStore.put(_accessKey, nextMap);
   }
 
   static const String _accessKey = 'IMAGE_COLOR_CACHE_LAST_ACCESS';

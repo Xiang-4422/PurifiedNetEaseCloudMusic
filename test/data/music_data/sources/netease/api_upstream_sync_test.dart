@@ -131,6 +131,17 @@ void main() {
       });
       expect(like.options!.extra!['encryptType'], EncryptType.WeApi);
 
+      final playbackUrl = api.songDownloadUrlDioMetaData(['101', '202'], level: 'sky');
+      expect(playbackUrl.uri.toString(), 'https://interface3.music.163.com/api/song/enhance/player/url/v1');
+      expect(playbackUrl.data, {
+        'ids': '[101,202]',
+        'level': 'sky',
+        'encodeType': 'flac',
+        'immerseType': 'c51',
+      });
+      expect(playbackUrl.options!.extra!['encryptType'], EncryptType.XeApi);
+      expect(playbackUrl.options!.extra!['eApiUrl'], '/api/song/enhance/player/url/v1');
+
       final userPlaylist = api.userPlayListDioMetaData('42');
       expect(userPlaylist.uri.path, '/api/user/playlist');
       expect(userPlaylist.data, {

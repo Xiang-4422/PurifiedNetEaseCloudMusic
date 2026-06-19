@@ -9,6 +9,8 @@ import '../../client/netease_bean.dart';
 import '../../models/common/bean.dart';
 import '../../client/dio_ext.dart';
 import '../../client/netease_handler.dart';
+import '../../client/xeapi_crypto.dart';
+import '../raw/api_enhanced_raw.dart';
 
 const _playlistSubscribeCheckToken = '9ca17ae2e6ffcda170e2e6ee8af14fbabdb988f225b3868eb2c15a879b9a83d274a790ac8ff54a97b889d5d42af0feaec3b92af58cff99c470a7eafd88f75e839a9ea7c14e909da883e83fb692a3abdb6b92adee9e';
 
@@ -569,7 +571,7 @@ mixin ApiPlay {
   /// https://binaryify.github.io/NeteaseCloudMusicApi/#/?id=%e8%8e%b7%e5%8f%96%e9%9f%b3%e4%b9%90-url
   /// 说明 : 使用歌单详情接口后 , 能得到的音乐的 id, 但不能得到的音乐 url, 调用此接口, 传入的音乐 id( 可多个 , 用逗号隔开 ), 可以获取对应的音乐的 url,未登录状态返回试听片段(返回字段包含被截取的正常歌曲的开始时间和结束时间)
   /// 注 : 部分用户反馈获取的 url 会 403,hwaphon找到的 解决方案是当获取到音乐的 id 后，将 https://music.163.com/song/media/outer/url?id=id.mp3 以 src 赋予 Audio 即可播放
-  /// [br] 码率,默认设置了 999000 即最大码率,如果要 320k 则可设置为 320000,其他类推
+  /// [level] 音质等级，例如 standard、exhigh、lossless、hires、sky。
   Future<SongUrlListWrap> songUrl(List<String> songIds, {int br = 320000}) {
     return Https.dioProxy.postUri(songUrlDioMetaData(songIds, br: br)).then((Response value) {
       return SongUrlListWrap.fromJson(value.data);
@@ -587,14 +589,44 @@ mixin ApiPlay {
   /// 说明 : 使用歌单详情接口后 , 能得到的音乐的 id, 但不能得到的音乐 url, 调用此接口, 传入的音乐 id( 可多个 , 用逗号隔开 ), 可以获取对应的音乐的 url,未登录状态返回试听片段(返回字段包含被截取的正常歌曲的开始时间和结束时间)
   /// 注 : 部分用户反馈获取的 url 会 403,hwaphon找到的 解决方案是当获取到音乐的 id 后，将 https://music.163.com/song/media/outer/url?id=id.mp3 以 src 赋予 Audio 即可播放
   /// [br] 码率,默认设置了 999000 即最大码率,如果要 320k 则可设置为 320000,其他类推
-  Future<SongUrlListWrap> songDownloadUrl(List<String> songIds, {String level = 'exhigh'}) {
-    return Https.dioProxy.postUri(songDownloadUrlDioMetaData(songIds, level: level)).then((Response value) {
-      return SongUrlListWrap.fromJson(value.data);
-    });
+  Future<SongUrlListWrap> songDownloadUrl(List<String> songIds, {String level = 'exhigh'}) async {
+    try {
+      await _ensureXeApiPublicKey();
+      final response = await Https.dioProxy.postUri(songDownloadUrlDioMetaData(songIds, level: level));
+      return SongUrlListWrap.fromJson(response.data);
+    } on DioException {
+      final response = await Https.dioProxy.postUri(_legacySongDownloadUrlDioMetaData(songIds, level: level));
+      return SongUrlListWrap.fromJson(response.data);
+    } on StateError {
+      final response = await Https.dioProxy.postUri(_legacySongDownloadUrlDioMetaData(songIds, level: level));
+      return SongUrlListWrap.fromJson(response.data);
+    }
   }
 
-  /// 构建歌曲下载地址请求元数据。
+  Future<void> _ensureXeApiPublicKey() async {
+    if (XeApiStateStore.loadPublicKey() != null) {
+      return;
+    }
+    final Object rawApi = this;
+    if (rawApi is ApiEnhancedRaw) {
+      await rawApi.registerXeapiKey({});
+      return;
+    }
+    throw StateError('xeapi public key is missing; ApiEnhancedRaw is required to register it');
+  }
+
+  /// 构建歌曲播放地址 V1 请求元数据。
   DioMetaData songDownloadUrlDioMetaData(List<String> songIds, {String level = 'exhigh'}) {
+    var params = {
+      'ids': '[${songIds.join(',')}]',
+      'level': level,
+      'encodeType': 'flac',
+      if (level == 'sky') 'immerseType': 'c51',
+    };
+    return DioMetaData(Uri.parse('https://interface3.music.163.com/api/song/enhance/player/url/v1'), data: params, options: joinOptions(encryptType: EncryptType.XeApi, eApiUrl: '/api/song/enhance/player/url/v1'));
+  }
+
+  DioMetaData _legacySongDownloadUrlDioMetaData(List<String> songIds, {String level = 'exhigh'}) {
     var params = {
       'ids': songIds,
       'level': level,

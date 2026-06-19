@@ -424,33 +424,86 @@ class PlaybackSwitchCoordinator {
       return true;
     }
     if (source.kind == PlaybackResolvedSourceKind.url) {
-      final refreshedSource = await _safeResolveRemote(
-        item,
-        forceRefresh: true,
-      );
-      if (refreshedSource.isEmpty) {
-        return false;
-      }
-      return _replaceSource(
+      return _replaceRemoteSourceWithFallback(
         queue: queue,
         item: item,
         activeIndex: activeIndex,
-        source: refreshedSource,
         playNow: playNow,
+        forceRefreshBeforeFirst: true,
       );
     }
     if (source.kind != PlaybackResolvedSourceKind.filePath && source.kind != PlaybackResolvedSourceKind.neteaseCacheStream) {
       return false;
     }
-    final remoteSource = await _safeResolveRemote(item);
-    if (remoteSource.isEmpty) {
+    return _replaceRemoteSourceWithFallback(
+      queue: queue,
+      item: item,
+      activeIndex: activeIndex,
+      playNow: playNow,
+    );
+  }
+
+  Future<bool> _replaceRemoteSourceWithFallback({
+    required List<PlaybackQueueItem> queue,
+    required PlaybackQueueItem item,
+    required int activeIndex,
+    required bool playNow,
+    bool forceRefreshBeforeFirst = false,
+  }) async {
+    if (await _replaceResolvedRemoteSource(
+      queue: queue,
+      item: item,
+      activeIndex: activeIndex,
+      playNow: playNow,
+      forceRefresh: forceRefreshBeforeFirst,
+    )) {
+      return true;
+    }
+    if (!forceRefreshBeforeFirst &&
+        await _replaceResolvedRemoteSource(
+          queue: queue,
+          item: item,
+          activeIndex: activeIndex,
+          playNow: playNow,
+          forceRefresh: true,
+        )) {
+      return true;
+    }
+    if (!_playbackService.isHighQualityEnabled()) {
+      return false;
+    }
+    _logSwitch('fallback-normal-quality-after-replace-failure id=${item.id}');
+    return _replaceResolvedRemoteSource(
+      queue: queue,
+      item: item,
+      activeIndex: activeIndex,
+      playNow: playNow,
+      preferHighQuality: false,
+      forceRefresh: true,
+    );
+  }
+
+  Future<bool> _replaceResolvedRemoteSource({
+    required List<PlaybackQueueItem> queue,
+    required PlaybackQueueItem item,
+    required int activeIndex,
+    required bool playNow,
+    bool? preferHighQuality,
+    bool forceRefresh = false,
+  }) async {
+    final source = await _safeResolveRemote(
+      item,
+      preferHighQuality: preferHighQuality,
+      forceRefresh: forceRefresh,
+    );
+    if (source.isEmpty) {
       return false;
     }
     return _replaceSource(
       queue: queue,
       item: item,
       activeIndex: activeIndex,
-      source: remoteSource,
+      source: source,
       playNow: playNow,
     );
   }
@@ -524,13 +577,14 @@ class PlaybackSwitchCoordinator {
 
   Future<PlaybackResolvedSource> _safeResolveRemote(
     PlaybackQueueItem item, {
+    bool? preferHighQuality,
     bool forceRefresh = false,
   }) async {
     try {
       return await _sourcePrefetcher
           .resolveRemote(
             item,
-            preferHighQuality: _playbackService.isHighQualityEnabled(),
+            preferHighQuality: preferHighQuality ?? _playbackService.isHighQualityEnabled(),
             forceRefresh: forceRefresh,
           )
           .timeout(const Duration(seconds: 12));

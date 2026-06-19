@@ -71,6 +71,7 @@ void main() {
         'register_anonimous',
         'register_xeapikey',
         'related_playlist',
+        'scrobble',
         'song_url_match',
         'song_url_ncmget',
         'song_url_v1',
@@ -378,6 +379,48 @@ void main() {
           {'id': 101},
           {'id': 102},
         ],
+      });
+    });
+
+    test('scrobble special module sends startplay and play weblog events', () async {
+      final proxy = _QueuedPostDioProxy([
+        {'ok': 'startplay'},
+        {'ok': 'play'},
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.requestModule('scrobble', {
+        'id': '100',
+        'sourceid': '200',
+        'time': 30,
+        'cookie': {'MUSIC_U': 'token'},
+        'domain': 'https://ignored.test',
+      });
+
+      expect(proxy.paths, ['/api/feedback/weblog', '/api/feedback/weblog']);
+      expect(proxy.requests.map((request) => request.uri.host), ['clientlog.music.163.com', 'clientlog.music.163.com']);
+      expect(proxy.requests.first.options!.extra!['cookies'], {
+        'os': 'osx',
+        'MUSIC_U': 'token',
+      });
+      final startplayLog = (jsonDecode((proxy.requests.first.data as Map)['logs'] as String) as List).single as Map<String, dynamic>;
+      final playLog = (jsonDecode((proxy.requests.last.data as Map)['logs'] as String) as List).single as Map<String, dynamic>;
+
+      expect(startplayLog['action'], 'startplay');
+      expect(startplayLog['json'], containsPair('content', 'id=200'));
+      expect(playLog['action'], 'play');
+      expect(playLog['json'], containsPair('sourceId', '200'));
+      expect(playLog['json'], containsPair('time', 30));
+      expect(result, {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': 'success',
+          'details': {
+            'startplay': {'ok': 'startplay'},
+            'play': {'ok': 'play'},
+          },
+        },
       });
     });
 

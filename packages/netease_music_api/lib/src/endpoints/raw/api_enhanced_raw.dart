@@ -90,6 +90,8 @@ mixin ApiEnhancedRaw {
         return registerXeapiKey(query);
       case 'register_anonimous':
         return registerAnonimousRaw(query);
+      case 'scrobble':
+        return scrobbleRaw(query);
       case 'song_url_v1':
         return songUrlV1Raw(query);
       case 'song_url_v1_302':
@@ -424,6 +426,68 @@ mixin ApiEnhancedRaw {
     };
     final songsResponse = await _rawPost('/api/v3/song/detail', detailData, query);
     return songsResponse.data;
+  }
+
+  /// Reports listening history with upstream startplay and play weblog events.
+  Future<dynamic> scrobbleRaw(Map<String, dynamic> query) async {
+    final scrobbleQuery = {
+      ...query,
+      'cookie': _scrobbleCookie(query['cookie']),
+      'domain': 'https://clientlog.music.163.com',
+    };
+    final startplayResponse = await _rawPost(
+      '/api/feedback/weblog',
+      {
+        'logs': jsonEncode([
+          {
+            'action': 'startplay',
+            'json': {
+              'id': query['id'],
+              'type': 'song',
+              'mainsite': '1',
+              'mainsiteWeb': '1',
+              'content': 'id=${query['sourceid']}',
+            },
+          },
+        ]),
+      },
+      scrobbleQuery,
+    );
+    final playResponse = await _rawPost(
+      '/api/feedback/weblog',
+      {
+        'logs': jsonEncode([
+          {
+            'action': 'play',
+            'json': {
+              'download': 0,
+              'end': 'playend',
+              'id': query['id'],
+              'sourceId': query['sourceid'],
+              'time': query['time'],
+              'type': 'song',
+              'wifi': 0,
+              'source': 'list',
+              'mainsite': '1',
+              'mainsiteWeb': '1',
+              'content': 'id=${query['sourceid']}',
+            },
+          },
+        ]),
+      },
+      scrobbleQuery,
+    );
+    return {
+      'status': 200,
+      'body': {
+        'code': 200,
+        'data': 'success',
+        'details': {
+          'startplay': startplayResponse.data,
+          'play': playResponse.data,
+        },
+      },
+    };
   }
 
   /// Uploads a user avatar image.
@@ -873,6 +937,17 @@ List<dynamic> _jsSlice(List<dynamic> values, int start, int end) {
     return const [];
   }
   return values.sublist(normalizedStart, normalizedEnd);
+}
+
+dynamic _scrobbleCookie(dynamic cookie) {
+  if (cookie is Map) {
+    return {'os': 'osx', ..._stringMap(cookie)};
+  }
+  final text = cookie?.toString() ?? '';
+  if (text.contains('os=')) {
+    return text.replaceAll(RegExp(r'os=[^;]+'), 'os=osx');
+  }
+  return '$text; os=osx';
 }
 
 Map<String, dynamic> _asMap(dynamic value) {

@@ -1955,7 +1955,7 @@ const List<ApiEnhancedModule> apiEnhancedModules = [
     pathTemplate: '/api/feedback/weblog',
     crypto: 'eapi',
     httpMethod: 'POST',
-    special: false,
+    special: true,
   ),
   ApiEnhancedModule(
     module: 'search',
@@ -5150,7 +5150,7 @@ const Map<String, ApiEnhancedModule> apiEnhancedModuleByName = {
     pathTemplate: '/api/feedback/weblog',
     crypto: 'eapi',
     httpMethod: 'POST',
-    special: false,
+    special: true,
   ),
   'search': ApiEnhancedModule(
     module: 'search',

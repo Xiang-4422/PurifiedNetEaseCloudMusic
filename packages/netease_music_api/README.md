@@ -1,4 +1,4 @@
-# netease_music_api
+# 网易云音乐 Dart SDK
 
 Dart client package for NetEase Cloud Music APIs used by Purified NetEase Cloud Music.
 
@@ -32,8 +32,9 @@ Regenerate the upstream module manifest after updating `third_party/api-enhanced
 
 ```shell
 node packages/netease_music_api/tool/generate_api_enhanced_modules.js
-dart format packages/netease_music_api/lib/src/generated packages/netease_music_api/lib/src/endpoints/raw
 ```
+
+The generator formats generated Dart files before writing them back.
 
 Upstream protocol reference is tracked in the repository submodule:
 

@@ -895,6 +895,23 @@ void main() {
       );
     });
 
+    test('app preferences use key-value boundary instead of CacheBox directly', () {
+      final preferencesFile = File(
+        '${projectRoot.path}/lib/data/app_storage/app_preferences.dart',
+      );
+      final content = preferencesFile.readAsStringSync();
+      final violations = <String>[
+        if (content.contains('CacheBox.instance')) 'reads CacheBox directly',
+        if (!content.contains('AppKeyValueStore')) 'missing key-value boundary',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '设置项可以保存在 Hive，但 AppPreferences 应通过窄 key-value 边界访问，避免 CacheBox 全局入口扩散。',
+      );
+    });
+
     test('feature repositories use narrow user scoped data capabilities', () {
       final violations = _repositoryFiles(libDirectory).where((file) => _contains(file, 'UserScopedDataSource')).map(_relativePath).toList();
 

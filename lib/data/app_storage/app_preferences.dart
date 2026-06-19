@@ -1,32 +1,37 @@
 import 'app_cache_keys.dart';
-import 'cache_box.dart';
+import 'app_key_value_store.dart';
+import 'hive_key_value_store.dart';
 
 /// 应用轻量偏好存储。
 class AppPreferences {
   /// 创建应用轻量偏好存储。
-  const AppPreferences();
+  const AppPreferences({
+    AppKeyValueStore keyValueStore = const HiveKeyValueStore(),
+  }) : _keyValueStore = keyValueStore;
+
+  final AppKeyValueStore _keyValueStore;
 
   /// 是否启用渐变背景。
-  bool get isGradientBackgroundEnabled => CacheBox.instance.get(gradientBackgroundSp, defaultValue: true) ?? true;
+  bool get isGradientBackgroundEnabled => _keyValueStore.get(gradientBackgroundSp, defaultValue: true) == true;
 
   /// 是否启用圆形专辑封面。
-  bool get isRoundAlbumEnabled => CacheBox.instance.get(roundAlbumSp, defaultValue: false) ?? false;
+  bool get isRoundAlbumEnabled => _keyValueStore.get(roundAlbumSp, defaultValue: false) == true;
 
   /// 是否优先使用高音质播放地址。
-  bool get isHighSoundQualityEnabled => CacheBox.instance.get(highSong, defaultValue: false) ?? false;
+  bool get isHighSoundQualityEnabled => _keyValueStore.get(highSong, defaultValue: false) == true;
 
   /// 保存渐变背景开关。
   Future<void> saveGradientBackgroundEnabled(bool value) {
-    return CacheBox.instance.put(gradientBackgroundSp, value);
+    return _keyValueStore.put(gradientBackgroundSp, value);
   }
 
   /// 保存圆形专辑封面开关。
   Future<void> saveRoundAlbumEnabled(bool value) {
-    return CacheBox.instance.put(roundAlbumSp, value);
+    return _keyValueStore.put(roundAlbumSp, value);
   }
 
   /// 保存高音质播放开关。
   Future<void> saveHighSoundQualityEnabled(bool value) {
-    return CacheBox.instance.put(highSong, value);
+    return _keyValueStore.put(highSong, value);
   }
 }

@@ -52,14 +52,53 @@ void main() {
     });
 
     test('special modules are marked for manual override', () {
-      expect(apiEnhancedModuleByName['api']?.special, isTrue);
-      expect(apiEnhancedModuleByName['eapi_decrypt']?.special, isTrue);
-      expect(apiEnhancedModuleByName['avatar_upload']?.special, isTrue);
-      expect(apiEnhancedModuleByName['playlist_cover_update']?.special, isTrue);
-      expect(apiEnhancedModuleByName['cloud']?.special, isTrue);
-      expect(apiEnhancedModuleByName['cloud_upload_token']?.special, isTrue);
-      expect(apiEnhancedModuleByName['cloud_upload_complete']?.special, isTrue);
-      expect(apiEnhancedModuleByName['voice_upload']?.special, isTrue);
+      final specialModules = apiEnhancedModules.where((module) => module.special).map((module) => module.module).toSet();
+
+      expect(specialModules, {
+        'api',
+        'audio_match',
+        'avatar_upload',
+        'cloud',
+        'cloud_upload_complete',
+        'cloud_upload_token',
+        'decrypt',
+        'eapi_decrypt',
+        'inner_version',
+        'login_qr_create',
+        'playlist_cover_update',
+        'register_anonimous',
+        'register_xeapikey',
+        'related_playlist',
+        'song_url_match',
+        'song_url_ncmget',
+        'song_url_v1',
+        'vip_sign_history',
+        'vip_tasks_v1',
+        'voice_upload',
+      });
+    });
+
+    test('normal modules use supported crypto and concrete paths', () {
+      const supportedCrypto = {'weapi', 'eapi', 'linuxapi', 'api', 'xeapi'};
+
+      for (final module in apiEnhancedModules.where((module) => !module.special)) {
+        expect(module.pathTemplate, isNotEmpty, reason: module.module);
+        expect(supportedCrypto, contains(module.crypto), reason: module.module);
+      }
+    });
+
+    test('modules that require xeapi-specific data shaping are explicit special modules', () {
+      final xeapiModules = apiEnhancedModules.where((module) => module.crypto == 'xeapi').toList();
+
+      expect(xeapiModules.map((module) => module.module), containsAll(['register_anonimous', 'song_url_v1', 'vip_sign_history', 'vip_tasks_v1']));
+      expect(xeapiModules.every((module) => module.special), isTrue);
+    });
+
+    test('modules without request path are explicit special modules', () {
+      final pathlessModules = apiEnhancedModules.where((module) => module.pathTemplate.isEmpty).toList();
+
+      expect(pathlessModules, isNotEmpty);
+      expect(pathlessModules.every((module) => module.special), isTrue);
     });
   });
 
@@ -75,6 +114,13 @@ void main() {
       expect(api.requestModuleDioMetaData('album_privilege', {'id': '1'}).options!.extra!['encryptType'], EncryptType.EApi);
       expect(api.requestModuleDioMetaData('login', {'crypto': 'api'}).options!.extra!['encryptType'], EncryptType.Api);
       expect(api.requestModuleDioMetaData('login', {'crypto': 'linuxapi'}).options!.extra!['encryptType'], EncryptType.LinuxForward);
+      expect(api.requestModuleDioMetaData('album', {'id': '1', 'crypto': 'xeapi'}).options!.extra!['encryptType'], EncryptType.XeApi);
+    });
+
+    test('xeapi metadata uses interface3 domain', () {
+      final metaData = api.requestModuleDioMetaData('album', {'id': '1', 'crypto': 'xeapi'});
+
+      expect(metaData.uri.toString(), 'https://interface3.music.163.com/api/v1/album/1');
     });
 
     test('maps request options', () {
@@ -111,7 +157,7 @@ void main() {
     });
 
     test('eapi decrypt reports missing input', () {
-      expect(api.eapiDecrypt({}), {'code': 400, 'message': 'hex string is required'});
+      expect(api.eapiDecrypt({}), {'code': 400, 'message': 'data is required'});
     });
 
     test('eapi decrypt decodes request and response payloads', () {
@@ -125,6 +171,22 @@ void main() {
       expect(api.eapiDecrypt({'hexString': responseHex, 'isReq': 'false'})['data'], {
         'code': 200,
         'ok': true,
+      });
+    });
+
+    test('song url v1 special module rewrites upstream xeapi data shape', () async {
+      final proxy = _CaptureDioProxy();
+      Https.setDioProxyForTesting(proxy);
+
+      await api.songUrlV1Raw({'id': '123', 'level': 'sky'});
+
+      expect(proxy.metaData!.uri.toString(), 'https://interface3.music.163.com/api/song/enhance/player/url/v1');
+      expect(proxy.metaData!.options!.extra!['encryptType'], EncryptType.XeApi);
+      expect(proxy.metaData!.data, {
+        'ids': '[123]',
+        'level': 'sky',
+        'encodeType': 'flac',
+        'immerseType': 'c51',
       });
     });
 
@@ -212,6 +274,24 @@ class _UploadDioProxy extends DioProxy {
         } as T,
       );
     }
+    return Response<T>(
+      requestOptions: RequestOptions(path: metaData.uri.toString()),
+      data: {'code': 200} as T,
+    );
+  }
+}
+
+class _CaptureDioProxy extends DioProxy {
+  DioMetaData? metaData;
+
+  @override
+  Future<Response<T>> postUri<T>(
+    DioMetaData metaData, {
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    this.metaData = metaData;
     return Response<T>(
       requestOptions: RequestOptions(path: metaData.uri.toString()),
       data: {'code': 200} as T,

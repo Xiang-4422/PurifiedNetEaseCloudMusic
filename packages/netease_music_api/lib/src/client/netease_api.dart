@@ -23,6 +23,7 @@ import 'dio_ext.dart';
 import 'netease_bean.dart';
 import 'netease_handler.dart';
 import 'platform_utils.dart';
+import 'xeapi_crypto.dart';
 
 /// 网易云音乐 SDK 入口，组合登录、播放、搜索、用户等接口 mixin。
 class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearch, ApiUncategorized, ApiEnhancedRaw {
@@ -46,6 +47,7 @@ class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearc
     // 初始化 pathProvider
     pathProvider = provider ?? PathProvider();
     await pathProvider.init();
+    XeApiStateStore.configureDirectory(pathProvider.getDataSavedPath());
     // 初始化 cookieManager
     cookieManager = CookieManager(PersistCookieJar(storage: FileStorage(pathProvider.getCookieSavedPath())));
     // 初始化 dio
@@ -76,6 +78,16 @@ class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearc
         onRequest: neteaseInterceptor,
         onResponse: (Response response, ResponseInterceptorHandler handler) async {
           var requestOptions = response.requestOptions;
+
+          if (requestOptions.extra['encryptType'] == EncryptType.XeApi) {
+            XeApiStateStore.updateSession(
+              sessionId: response.headers.value('x-encr-ssid'),
+              sessionKey: response.headers.value('x-encr-sskey'),
+            );
+            if (response.data is List<int>) {
+              response.data = xeapiResDecrypt(response.data as List<int>);
+            }
+          }
 
           if (response.data is String) {
             try {

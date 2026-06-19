@@ -9,12 +9,14 @@ import 'package:encrypt/encrypt.dart';
 
 import '../../client/dio_ext.dart';
 import '../../client/netease_handler.dart';
+import '../../client/xeapi_crypto.dart';
 import '../../generated/api_enhanced_module.dart';
 import '../../generated/api_enhanced_modules.g.dart';
 
 part 'api_enhanced_raw_methods.g.dart';
 
 const _apiDomain = 'https://interface.music.163.com';
+const _xeapiDomain = 'https://interface3.music.163.com';
 const _eapiKey = 'e82ckenh8dichen8';
 
 const _rawOptionKeys = {
@@ -46,7 +48,11 @@ mixin ApiEnhancedRaw {
     if (metadata.special) {
       return DioMetaData.error(UnsupportedError('Module $module uses a manual override and cannot be represented by one request metadata object.'));
     }
-    return _buildRawMetaData(metadata, query);
+    try {
+      return _buildRawMetaData(metadata, query);
+    } on Error catch (error) {
+      return DioMetaData.error(error);
+    }
   }
 
   /// Calls a raw api-enhanced module and returns the raw response body.
@@ -54,6 +60,7 @@ mixin ApiEnhancedRaw {
     switch (module) {
       case 'api':
         return enhancedApi(query);
+      case 'decrypt':
       case 'eapi_decrypt':
         return eapiDecrypt(query);
       case 'audio_match':
@@ -76,6 +83,16 @@ mixin ApiEnhancedRaw {
         return loginQrCreate(query);
       case 'related_playlist':
         return relatedPlaylistRaw(query);
+      case 'register_xeapikey':
+        return registerXeapiKey(query);
+      case 'register_anonimous':
+        return registerAnonimousRaw(query);
+      case 'song_url_v1':
+        return songUrlV1Raw(query);
+      case 'vip_sign_history':
+        return vipSignHistoryRaw(query);
+      case 'vip_tasks_v1':
+        return vipTasksV1Raw(query);
       case 'song_url_match':
         return {'code': 500, 'msg': 'song_url_match depends on upstream unblockmusic-utils and is not available in the Dart client', 'data': []};
       case 'song_url_ncmget':
@@ -118,11 +135,18 @@ mixin ApiEnhancedRaw {
 
   /// Local EAPI request/response decrypt helper.
   dynamic eapiDecrypt(Map<String, dynamic> query) {
-    final hexString = query['hexString']?.toString().replaceAll(RegExp(r'\s+'), '');
+    final crypto = query['crypto']?.toString() ?? 'eapi';
+    if (crypto != 'eapi' && crypto != 'weapi') {
+      return {
+        'code': 400,
+        'message': 'decrypt currently supports eapi-compatible payloads only',
+      };
+    }
+    final hexString = (query['data'] ?? query['hexString'])?.toString().replaceAll(RegExp(r'\s+'), '');
     if (hexString == null || hexString.isEmpty) {
       return {
         'code': 400,
-        'message': 'hex string is required',
+        'message': 'data is required',
       };
     }
     final isReq = query['isReq']?.toString() != 'false';
@@ -188,6 +212,125 @@ mixin ApiEnhancedRaw {
   /// Loads related playlist HTML. Existing typed API keeps the parsed version.
   Future<dynamic> relatedPlaylistRaw(Map<String, dynamic> query) async {
     final response = await Https.dio.get('https://music.163.com/playlist', queryParameters: {'id': query['id']});
+    return response.data;
+  }
+
+  /// Registers and persists xeapi public key state.
+  Future<dynamic> registerXeapiKey(Map<String, dynamic> query) async {
+    final nonce = query['nonce']?.toString() ?? generateXeApiNonce();
+    final timestamp = query['timestamp']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final deviceId = query['deviceId']?.toString() ?? XeApiStateStore.loadPublicKey()?.deviceId ?? '';
+    final currentKeyVersion = query['currentKeyVersion']?.toString() ?? XeApiStateStore.loadPublicKey()?.version ?? '';
+    final data = {
+      'appVersion': '9.1.65',
+      'currentKeyVersion': currentKeyVersion,
+      'deviceId': deviceId,
+      'nonce': nonce,
+      'os': 'android',
+      'requestType': 'active',
+      'signature': xeapiSign(timestamp, nonce),
+      't1': '',
+      't2': '',
+      'timestamp': timestamp,
+      'uid': '',
+    };
+    final response = await Https.dio.post(
+      '$_apiDomain/api/gorilla/anti/crawler/security/key/get',
+      data: formEncode(data),
+      options: Options(
+        contentType: Headers.formUrlEncodedContentType,
+        headers: {
+          'User-Agent': 'NeteaseMusic/9.1.65.240927161425(9001065);Dalvik/2.1.0 (Linux; U; Android 14; 23013RK75C Build/UKQ1.230804.001)',
+          if (deviceId.isNotEmpty) HttpHeaders.cookieHeader: 'deviceId=${Uri.encodeComponent(deviceId)}',
+        },
+      ),
+    );
+    final responseData = _asMap(response.data);
+    final bodyData = _asMap(responseData['data']);
+    if (responseData['code'] != 200 || bodyData['encryptedData'] == null) {
+      throw StateError('xeapi public key request failed');
+    }
+    if (bodyData['signature'] == null || xeapiSign(bodyData['timestamp'].toString(), nonce) != bodyData['signature']) {
+      throw StateError('xeapi public key response signature mismatch');
+    }
+    final publicKeyState = xeapiDecryptPublicKey(bodyData['encryptedData'].toString(), deviceId: deviceId);
+    if (publicKeyState.sk == null || publicKeyState.sk!.isEmpty) {
+      throw StateError('xeapi public key response missing sk');
+    }
+    await XeApiStateStore.savePublicKey(publicKeyState);
+    return publicKeyState.toJson();
+  }
+
+  /// Anonymous login through the upstream xeapi module.
+  Future<dynamic> registerAnonimousRaw(Map<String, dynamic> query) async {
+    final deviceId = query['deviceId']?.toString() ?? generateXeApiDeviceId();
+    if (XeApiStateStore.loadPublicKey() == null) {
+      await registerXeapiKey({...query, 'deviceId': deviceId});
+    }
+    final cookies = {..._stringMap(query['cookie']), 'deviceId': deviceId};
+    final response = await Https.dioProxy.postUri(
+      DioMetaData(
+        _rawUri('/api/register/anonimous', EncryptType.XeApi, query['domain']?.toString()),
+        data: {'username': buildXeApiAnonymousUsername(deviceId)},
+        options: _rawOptions(EncryptType.XeApi, '/api/register/anonimous', {...query, 'cookie': cookies}),
+      ),
+    );
+    final body = _asMap(response.data);
+    if (body['code'] == 200) {
+      return {
+        ...body,
+        'cookie': response.headers[HttpHeaders.setCookieHeader]?.join(';') ?? '',
+      };
+    }
+    return body;
+  }
+
+  /// Song URL v1 xeapi module.
+  Future<dynamic> songUrlV1Raw(Map<String, dynamic> query) async {
+    if (query['unblock']?.toString() == 'true') {
+      return {
+        'code': 500,
+        'msg': 'song_url_v1 unblock depends on upstream unblockmusic-utils; use song_url_match when a Dart replacement is available',
+        'data': [],
+      };
+    }
+    final level = query['level'] ?? 'standard';
+    return _xeapiPost(
+      '/api/song/enhance/player/url/v1',
+      {
+        'ids': '[${query['id']}]',
+        'level': level,
+        'encodeType': 'flac',
+        if (level == 'sky') 'immerseType': 'c51',
+      },
+      query,
+    );
+  }
+
+  /// VIP sign history xeapi module.
+  Future<dynamic> vipSignHistoryRaw(Map<String, dynamic> query) {
+    return _xeapiPost('/api/vipnewcenter/app/minidesk/music/sign/pc', {'type': '0'}, query);
+  }
+
+  /// VIP task center xeapi module.
+  Future<dynamic> vipTasksV1Raw(Map<String, dynamic> query) {
+    return _xeapiPost(
+        '/api/middle/vip/mission/user/progress/list',
+        {
+          'taskType': 'app_vip_task_center',
+          'userId': query['id'],
+        },
+        query);
+  }
+
+  Future<dynamic> _xeapiPost(String path, Map<String, dynamic> data, Map<String, dynamic> query) async {
+    final response = await Https.dioProxy.postUri(
+      DioMetaData(
+        _rawUri(path, EncryptType.XeApi, query['domain']?.toString()),
+        data: data,
+        options: _rawOptions(EncryptType.XeApi, path, query),
+      ),
+    );
     return response.data;
   }
 
@@ -449,6 +592,8 @@ EncryptType _cryptoFromQuery(String crypto) {
       return EncryptType.LinuxForward;
     case 'api':
       return EncryptType.Api;
+    case 'xeapi':
+      return EncryptType.XeApi;
     case 'weapi':
     case '':
     default:
@@ -486,7 +631,12 @@ Map<String, String> _stringMap(dynamic value) {
 }
 
 Uri _rawUri(String path, EncryptType crypto, String? domain, {Map<String, dynamic>? data}) {
-  final base = domain ?? (crypto == EncryptType.EApi || crypto == EncryptType.Api ? _apiDomain : HOST);
+  final base = domain ??
+      (crypto == EncryptType.XeApi
+          ? _xeapiDomain
+          : crypto == EncryptType.EApi || crypto == EncryptType.Api
+              ? _apiDomain
+              : HOST);
   var uri = Uri.parse(path.startsWith('http') ? path : '$base$path');
   if (data != null && data.isNotEmpty) {
     uri = uri.replace(queryParameters: {...uri.queryParameters, ...data.map((key, value) => MapEntry(key, value?.toString() ?? ''))});

@@ -13,6 +13,7 @@ import 'package:pointycastle/export.dart' hide Algorithm;
 
 import 'encrypt_ext.dart';
 import 'netease_api.dart';
+import 'xeapi_crypto.dart';
 
 /// [option.extra] 'hookRequestData' [bool] 是否对request body加密
 /// [option.extra] 'userAgent' [UserAgent]
@@ -55,6 +56,9 @@ void neteaseInterceptor(RequestOptions option, RequestInterceptorHandler handler
           break;
         case EncryptType.Api:
           break;
+        case EncryptType.XeApi:
+          await _handleXeApi(option, cookies);
+          break;
       }
       option.extra['hookRequestDataSuccess'] = true;
     }
@@ -75,6 +79,9 @@ enum EncryptType {
 
   /// 原始 api 请求，不加密请求体。
   Api,
+
+  /// xeapi 接口加密。
+  XeApi,
 }
 
 /// 请求使用的 User-Agent 类型。
@@ -232,6 +239,75 @@ void _handleEApi(RequestOptions option, List<Cookie> cookies) {
   option.data = 'params=${Uri.encodeComponent(encrypted)}';
 }
 
+Future<void> _handleXeApi(RequestOptions option, List<Cookie> cookies) async {
+  final publicKeyState = XeApiStateStore.loadPublicKey();
+  if (publicKeyState == null) {
+    throw StateError('xeapi public key is missing; call register_xeapikey first');
+  }
+
+  final cookiesMap = cookies.fold(<String, String>{}, (map, cookie) {
+    map[cookie.name] = cookie.value;
+    return map;
+  });
+  cookiesMap.addAll(Map<String, String>.from(option.extra['cookies'] as Map));
+
+  final xeapiOs = cookiesMap['os'] == 'android' ? cookiesMap['os']! : 'android';
+  final xeapiAppver = cookiesMap['os'] == 'android' && (cookiesMap['appver']?.isNotEmpty ?? false) ? cookiesMap['appver']! : '9.1.65';
+  final xeapiOsver = cookiesMap['os'] == 'android' && (cookiesMap['osver']?.isNotEmpty ?? false) ? cookiesMap['osver']! : '16';
+  final xeapiBuildver = cookiesMap['buildver'] ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+  final deviceId = cookiesMap['deviceId'] ?? publicKeyState.deviceId ?? '';
+  final sDeviceId = cookiesMap['sDeviceId'] ?? deviceId;
+
+  option.headers[HttpHeaders.userAgentHeader] = _chooseUserAgent(option.extra['userAgent'], rawUserAgent: option.extra['rawUserAgent']);
+  option.headers['X-Client-Enc-State'] = 'ENCRYPTED';
+  option.headers['x-aeapi'] = 'true';
+  if (deviceId.isNotEmpty) {
+    option.headers['x-deviceid'] = deviceId;
+    option.headers['x-sdeviceid'] = sDeviceId;
+  }
+  option.headers['x-os'] = xeapiOs;
+  option.headers['x-osver'] = xeapiOsver;
+  option.headers['x-appver'] = xeapiAppver;
+  option.headers['x-buildver'] = xeapiBuildver;
+  if (cookiesMap['MUSIC_U']?.isNotEmpty ?? false) {
+    option.headers['x-music-u'] = cookiesMap['MUSIC_U'];
+  }
+
+  final xeapiCookie = {
+    ...cookiesMap,
+    'os': xeapiOs,
+    'osver': xeapiOsver,
+    'appver': xeapiAppver,
+    'buildver': xeapiBuildver,
+    if (deviceId.isNotEmpty) 'deviceId': deviceId,
+    if (sDeviceId.isNotEmpty) 'sDeviceId': sDeviceId,
+  };
+  option.headers[HttpHeaders.cookieHeader] = _cookieMapToString(xeapiCookie);
+
+  final originalPath = option.uri.path;
+  final originalUri = originalPath + (option.uri.hasQuery ? '?${option.uri.query}' : '');
+  final xeapiPath = originalPath.startsWith('/api/') ? '/xeapi/${originalPath.substring(5)}' : '/xeapi/${originalPath.replaceFirst(RegExp(r'^/'), '')}';
+  option.path = Uri(
+    scheme: option.uri.scheme,
+    host: option.uri.host,
+    port: option.uri.hasPort ? option.uri.port : null,
+    path: xeapiPath,
+  ).toString();
+  option.responseType = ResponseType.bytes;
+
+  final encryptedData = await xeapiEncrypt(
+    originalUri,
+    option.data is Map ? Map<String, dynamic>.from(option.data as Map) : <String, dynamic>{},
+    publicKeyState: publicKeyState,
+    method: option.method,
+    contentType: Headers.formUrlEncodedContentType,
+    os: xeapiOs,
+    sessionId: XeApiStateStore.sessionId,
+    sessionKey: XeApiStateStore.sessionKey,
+  );
+  option.data = formEncode(encryptedData);
+}
+
 String _chooseUserAgent(UserAgent agent, {String? rawUserAgent}) {
   if (rawUserAgent != null && rawUserAgent.isNotEmpty) {
     return rawUserAgent;
@@ -245,6 +321,12 @@ String _chooseUserAgent(UserAgent agent, {String? rawUserAgent}) {
     case UserAgent.Mobile:
       return userAgentList[random.nextInt(7)];
   }
+}
+
+String _cookieMapToString(Map<String, String> cookies) {
+  return cookies.entries.map((entry) {
+    return '${Uri.encodeComponent(entry.key)}=${Uri.encodeComponent(entry.value)}';
+  }).join('; ');
 }
 
 /// 创建带网易云加密拦截参数的 Dio 请求选项。

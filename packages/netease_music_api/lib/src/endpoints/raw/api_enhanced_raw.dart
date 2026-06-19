@@ -375,7 +375,7 @@ mixin ApiEnhancedRaw {
     if (query['unblock']?.toString() == 'true') {
       return {
         'code': 500,
-        'msg': 'song_url_v1 unblock depends on upstream unblockmusic-utils; use song_url_match when a Dart replacement is available',
+        'msg': 'song_url_v1 unblock and source order depend on upstream unblockmusic-utils; use App playback fallback until a Dart replacement is available',
         'data': [],
       };
     }

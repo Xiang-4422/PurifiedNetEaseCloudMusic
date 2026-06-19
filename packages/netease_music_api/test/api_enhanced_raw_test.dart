@@ -359,7 +359,11 @@ void main() {
       final proxy = _CaptureDioProxy();
       Https.setDioProxyForTesting(proxy);
 
-      await api.songUrlV1Raw({'id': '123', 'level': 'sky'});
+      await api.songUrlV1Raw({
+        'id': '123',
+        'level': 'sky',
+        'source': 'qq,kugou,kuwo',
+      });
 
       expect(proxy.metaData!.uri.toString(), 'https://interface3.music.163.com/api/song/enhance/player/url/v1');
       expect(proxy.metaData!.options!.extra!['encryptType'], EncryptType.XeApi);
@@ -369,6 +373,20 @@ void main() {
         'encodeType': 'flac',
         'immerseType': 'c51',
       });
+    });
+
+    test('song url v1 keeps source order scoped to unsupported unblock path', () async {
+      final proxy = _CaptureDioProxy();
+      Https.setDioProxyForTesting(proxy);
+
+      await api.songUrlV1Raw({
+        'id': '123',
+        'level': 'lossless',
+        'source': 'qq,kugou,kuwo',
+      });
+
+      expect(proxy.metaData!.data, isNot(contains('source')));
+      expect(proxy.metaData!.data, containsPair('encodeType', 'flac'));
     });
 
     test('song url v1 302 special module returns redirect from download url', () async {
@@ -590,7 +608,7 @@ void main() {
     test('unblock special modules expose explicit Dart behavior', () async {
       expect(await api.songUrlV1Raw({'id': '123', 'level': 'lossless', 'unblock': 'true'}), {
         'code': 500,
-        'msg': 'song_url_v1 unblock depends on upstream unblockmusic-utils; use song_url_match when a Dart replacement is available',
+        'msg': 'song_url_v1 unblock and source order depend on upstream unblockmusic-utils; use App playback fallback until a Dart replacement is available',
         'data': [],
       });
 

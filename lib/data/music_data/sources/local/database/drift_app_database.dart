@@ -5,6 +5,7 @@ import 'package:bujuan/data/music_data/sources/local/database/drift_database.dar
 import 'package:bujuan/data/music_data/sources/local/database/dao/cache_dao.dart';
 import 'package:bujuan/data/music_data/sources/local/database/dao/download_task_dao.dart';
 import 'package:bujuan/data/music_data/sources/local/database/dao/playlist_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/radio_dao.dart';
 import 'package:bujuan/data/music_data/sources/local/database/dao/resource_dao.dart';
 import 'package:bujuan/data/music_data/sources/local/database/dao/track_dao.dart';
 import 'package:bujuan/data/music_data/sources/local/database/dao/user_dao.dart';
@@ -69,7 +70,9 @@ class DriftAppDatabase implements AppDatabase {
     _playlistSubscriptionDataSource = DriftPlaylistSubscriptionDataSource(
       userDao: userDao,
     );
-    _userRadioDataSource = DriftUserRadioDataSource(database: _database);
+    _userRadioDataSource = DriftUserRadioDataSource(
+      dao: RadioDao(database: _database),
+    );
     _userSyncMarkerDataSource = DriftUserSyncMarkerDataSource(userDao: userDao);
     _userScopedDataSource = DriftUserScopedDataSource(
       userProfileDataSource: _userProfileDataSource,

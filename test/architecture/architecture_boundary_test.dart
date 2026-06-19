@@ -879,6 +879,37 @@ void main() {
       );
     });
 
+    test('user scoped drift data sources delegate table access to dao', () {
+      const dataSourcePaths = [
+        'lib/data/music_data/sources/local/database/data_sources/drift_playlist_subscription_data_source.dart',
+        'lib/data/music_data/sources/local/database/data_sources/drift_user_playlist_list_data_source.dart',
+        'lib/data/music_data/sources/local/database/data_sources/drift_user_profile_data_source.dart',
+        'lib/data/music_data/sources/local/database/data_sources/drift_user_radio_data_source.dart',
+        'lib/data/music_data/sources/local/database/data_sources/drift_user_sync_marker_data_source.dart',
+        'lib/data/music_data/sources/local/database/data_sources/drift_user_track_list_data_source.dart',
+      ];
+      final violations = dataSourcePaths
+          .map((path) => File('${projectRoot.path}/$path'))
+          .where(
+            (file) => _containsAny(file, const [
+              'BujuanDriftDatabase',
+              '.select(',
+              '.delete(',
+              '.batch(',
+              '.transaction(',
+              'drift_database.dart',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '用户作用域窄 data source 只做接口适配，Drift 表访问应下沉到 dao。',
+      );
+    });
+
     test('core entities and data do not import legacy common UI constants', () {
       final violations = _dartFiles(libDirectory)
           .where((file) {
@@ -1162,6 +1193,7 @@ void main() {
         'lib/data/music_data/sources/local/database/dao/track_dao.dart',
         'lib/data/music_data/sources/local/database/dao/playlist_dao.dart',
         'lib/data/music_data/sources/local/database/dao/user_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/radio_dao.dart',
         'lib/data/music_data/sources/local/database/dao/download_task_dao.dart',
         'lib/data/music_data/sources/local/database/dao/resource_dao.dart',
         'lib/data/music_data/sources/local/database/dao/cache_dao.dart',
@@ -1253,6 +1285,12 @@ void main() {
           'replaceTrackList(',
           'loadPlaylistSubscriptionState(',
           'loadSyncMarker(',
+        ],
+        'lib/data/music_data/sources/local/database/dao/radio_dao.dart': [
+          'loadSubscribedRadios(',
+          'replaceSubscribedRadios(',
+          'loadPrograms(',
+          'replacePrograms(',
         ],
       };
       final violations = <String>[];

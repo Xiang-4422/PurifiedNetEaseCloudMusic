@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
-import 'package:bujuan/core/util/extensions.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
@@ -313,7 +312,7 @@ class BottomPanelView extends GetView<ShellController> {
                                               GestureDetector(
                                                 onTap: () async {
                                                   final currentSong = PlayerController.to.currentSongState.value;
-                                                  if (PlayerController.to.currentSongState.value.album.isNullOrEmpty) {
+                                                  if (currentSong.albumTitle?.isNotEmpty != true) {
                                                     return;
                                                   }
                                                   final router = context.router;
@@ -333,7 +332,7 @@ class BottomPanelView extends GetView<ShellController> {
                                                     child: Container(
                                                       padding: const EdgeInsets.symmetric(horizontal: albumPadding / 2),
                                                       child: Obx(() => Text(
-                                                            PlayerController.to.currentSongState.value.album.orDefault("未知专辑"),
+                                                            PlayerController.to.currentSongState.value.albumTitle ?? "未知专辑",
                                                             textAlign: TextAlign.center,
                                                             style: TextStyle(color: SettingsController.to.panelWidgetColor.value),
                                                             overflow: TextOverflow.ellipsis,

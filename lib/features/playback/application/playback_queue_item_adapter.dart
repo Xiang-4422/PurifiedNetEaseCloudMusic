@@ -18,21 +18,7 @@ class PlaybackQueueItemAdapter {
       artist: item.artist,
       duration: item.duration,
       artUri: _toArtUri(item.localArtworkPath),
-      extras: {
-        ...item.metadata,
-        'type': item.mediaType.name,
-        'image': item.artworkUrl ?? item.localArtworkPath ?? '',
-        'url': item.playbackUrl ?? '',
-        'liked': item.isLiked,
-        'artist': item.artist ?? '',
-        'artistNames': item.artistNames,
-        'artistIds': item.artistIds,
-        'albumTitle': item.albumTitle ?? '',
-        'sourceId': item.sourceId,
-        'localArtworkPath': item.localArtworkPath ?? '',
-        'lyricKey': item.lyricKey ?? '',
-        'cache': item.isCached,
-      },
+      extras: _toMediaItemExtras(item),
     );
   }
 
@@ -64,7 +50,7 @@ class PlaybackQueueItemAdapter {
       lyricKey: _stringOrNull(extras['lyricKey']),
       isLiked: extras['liked'] == true,
       isCached: extras['cache'] == true,
-      metadata: Map<String, dynamic>.from(extras),
+      metadata: _customMetadata(extras),
     );
   }
 
@@ -85,5 +71,45 @@ class PlaybackQueueItemAdapter {
       return null;
     }
     return '$value';
+  }
+
+  static Map<String, dynamic> _toMediaItemExtras(PlaybackQueueItem item) {
+    return {
+      ...item.metadata,
+      'type': item.mediaType.name,
+      'image': item.artworkUrl ?? item.localArtworkPath ?? '',
+      'url': item.playbackUrl ?? '',
+      'liked': item.isLiked,
+      'artist': item.artist ?? '',
+      'artistNames': item.artistNames,
+      'artistIds': item.artistIds,
+      'albumTitle': item.albumTitle ?? '',
+      'sourceId': item.sourceId,
+      'localArtworkPath': item.localArtworkPath ?? '',
+      'lyricKey': item.lyricKey ?? '',
+      'cache': item.isCached,
+    };
+  }
+
+  static Map<String, dynamic> _customMetadata(Map<String, dynamic> extras) {
+    const adapterKeys = {
+      'type',
+      'image',
+      'url',
+      'liked',
+      'artist',
+      'artistNames',
+      'artistIds',
+      'albumTitle',
+      'sourceId',
+      'localArtworkPath',
+      'lyricKey',
+      'cache',
+    };
+    final metadata = Map<String, dynamic>.from(extras);
+    for (final key in adapterKeys) {
+      metadata.remove(key);
+    }
+    return metadata;
   }
 }

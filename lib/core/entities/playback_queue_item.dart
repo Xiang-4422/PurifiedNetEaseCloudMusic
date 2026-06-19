@@ -86,43 +86,12 @@ class PlaybackQueueItem {
   /// 扩展元数据。
   final Map<String, dynamic> metadata;
 
-  /// 兼容播放适配层使用的专辑名。
-  String? get album => albumTitle;
-
   /// 拼接后的歌手名。
   String? get artist {
     if (artistNames.isEmpty) {
       return null;
     }
     return artistNames.join(' / ');
-  }
-
-  /// 播放适配层使用的封面 URI。
-  Uri? get artUri {
-    final source = localArtworkPath?.isNotEmpty == true ? localArtworkPath : artworkUrl;
-    if (source == null || source.isEmpty) {
-      return null;
-    }
-    return Uri.tryParse(source);
-  }
-
-  /// 播放适配层使用的扩展字段。
-  Map<String, dynamic>? get extras {
-    return {
-      ...metadata,
-      'type': mediaType.name,
-      'image': artworkUrl ?? localArtworkPath ?? '',
-      'url': playbackUrl ?? '',
-      'liked': isLiked,
-      'artist': artist ?? '',
-      'artistNames': artistNames,
-      'artistIds': artistIds,
-      'albumTitle': albumTitle ?? '',
-      'sourceId': sourceId,
-      'localArtworkPath': localArtworkPath ?? '',
-      'lyricKey': lyricKey ?? '',
-      'cache': isCached,
-    };
   }
 
   /// 复制播放队列项并替换指定字段。
@@ -160,50 +129,5 @@ class PlaybackQueueItem {
       isCached: isCached ?? this.isCached,
       metadata: metadata ?? this.metadata,
     );
-  }
-
-  /// 从 JSON 创建播放队列项。
-  factory PlaybackQueueItem.fromJson(Map<String, dynamic> json) {
-    return PlaybackQueueItem(
-      id: json['id'] as String? ?? '',
-      sourceId: json['sourceId'] as String? ?? '',
-      title: json['title'] as String? ?? '',
-      albumTitle: json['albumTitle'] as String?,
-      artistNames: (json['artistNames'] as List? ?? const []).map((e) => '$e').toList(),
-      artistIds: (json['artistIds'] as List? ?? const []).map((e) => '$e').toList(),
-      duration: json['duration'] is int ? Duration(milliseconds: json['duration'] as int) : null,
-      artworkUrl: json['artworkUrl'] as String?,
-      localArtworkPath: json['localArtworkPath'] as String?,
-      mediaType: MediaType.values.firstWhere(
-        (item) => item.name == json['mediaType'],
-        orElse: () => MediaType.playlist,
-      ),
-      playbackUrl: json['playbackUrl'] as String?,
-      lyricKey: json['lyricKey'] as String?,
-      isLiked: json['isLiked'] as bool? ?? false,
-      isCached: json['isCached'] as bool? ?? false,
-      metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? const {}),
-    );
-  }
-
-  /// 转为可持久化 JSON。
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'sourceId': sourceId,
-      'title': title,
-      'albumTitle': albumTitle,
-      'artistNames': artistNames,
-      'artistIds': artistIds,
-      'duration': duration?.inMilliseconds,
-      'artworkUrl': artworkUrl,
-      'localArtworkPath': localArtworkPath,
-      'mediaType': mediaType.name,
-      'playbackUrl': playbackUrl,
-      'lyricKey': lyricKey,
-      'isLiked': isLiked,
-      'isCached': isCached,
-      'metadata': metadata,
-    };
   }
 }

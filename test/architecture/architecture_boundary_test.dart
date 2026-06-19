@@ -511,6 +511,26 @@ void main() {
       );
     });
 
+    test('playback queue item stays free of adapter and cache serialization concerns', () {
+      final queueItemFile = File(
+        '${projectRoot.path}/lib/core/entities/playback_queue_item.dart',
+      );
+      final content = queueItemFile.readAsStringSync();
+      final violations = <String>[
+        if (content.contains('MediaItem')) 'depends on MediaItem',
+        if (content.contains('extras')) 'exposes adapter extras',
+        if (content.contains('fromJson(')) 'owns cache JSON decoding',
+        if (content.contains('toJson(')) 'owns cache JSON encoding',
+        if (content.contains('artUri')) 'owns adapter artUri',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'PlaybackQueueItem 是应用播放队列实体，MediaItem extras 和缓存 JSON 格式必须留在 adapter/codec 边界。',
+      );
+    });
+
     test('playback selection layer stays independent from audio service', () {
       final selectionFiles = _dartFiles(
         Directory('${projectRoot.path}/lib/features/playback'),

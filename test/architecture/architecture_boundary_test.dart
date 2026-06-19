@@ -857,6 +857,28 @@ void main() {
       );
     });
 
+    test('drift user scoped aggregate stays delegation only', () {
+      final aggregateFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/data_sources/drift_user_scoped_data_source.dart',
+      );
+      final violations = _containsAny(aggregateFile, const [
+        'BujuanDriftDatabase',
+        'UserDao',
+        '.select(',
+        '.delete(',
+        '.batch(',
+        '.transaction(',
+      ])
+          ? [_relativePath(aggregateFile)]
+          : const <String>[];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'DriftUserScopedDataSource 只做兼容聚合委托；真实表访问应留在窄 Drift data source 或 DAO。',
+      );
+    });
+
     test('core entities and data do not import legacy common UI constants', () {
       final violations = _dartFiles(libDirectory)
           .where((file) {

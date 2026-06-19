@@ -1,21 +1,19 @@
 import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart';
-import 'package:bujuan/data/music_data/sources/local/database/dao/user_dao.dart';
-import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_user_scoped_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_user_playlist_list_data_source.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('DriftUserScopedDataSource playlist items', () {
+  group('DriftUserPlaylistListDataSource', () {
     late BujuanDriftDatabase database;
-    late DriftUserScopedDataSource dataSource;
+    late DriftUserPlaylistListDataSource dataSource;
 
     setUp(() {
       database = BujuanDriftDatabase.connect(NativeDatabase.memory());
-      dataSource = DriftUserScopedDataSource(
+      dataSource = DriftUserPlaylistListDataSource(
         database: database,
-        userDao: UserDao(database: database),
       );
     });
 

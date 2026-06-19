@@ -239,6 +239,22 @@ void main() {
       });
     });
 
+    test('unblock special modules expose explicit Dart behavior', () async {
+      expect(await api.songUrlV1Raw({'id': '123', 'level': 'lossless', 'unblock': 'true'}), {
+        'code': 500,
+        'msg': 'song_url_v1 unblock depends on upstream unblockmusic-utils; use song_url_match when a Dart replacement is available',
+        'data': [],
+      });
+
+      expect(await api.requestModule('song_url_match', {'id': '123'}), {
+        'code': 500,
+        'msg': 'song_url_match depends on upstream unblockmusic-utils and is not available in the Dart client',
+        'data': [],
+      });
+
+      expect(await api.requestModule('song_url_ncmget', {'id': '123'}), {'code': 200, 'data': []});
+    });
+
     test('image upload special module uses token allocation and binary upload', () async {
       final proxy = _UploadDioProxy();
       final adapter = _UploadAdapter();

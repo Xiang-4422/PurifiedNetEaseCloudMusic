@@ -95,9 +95,9 @@ mixin ApiEnhancedRaw {
       case 'vip_tasks_v1':
         return vipTasksV1Raw(query);
       case 'song_url_match':
-        return {'code': 500, 'msg': 'song_url_match depends on upstream unblockmusic-utils and is not available in the Dart client', 'data': []};
+        return songUrlMatchRaw(query);
       case 'song_url_ncmget':
-        return {'code': 200, 'data': []};
+        return songUrlNcmgetRaw(query);
     }
     final response = await Https.dioProxy.requestUri(requestModuleDioMetaData(module, query));
     return response.data;
@@ -307,6 +307,20 @@ mixin ApiEnhancedRaw {
       },
       query,
     );
+  }
+
+  /// Song URL match depends on upstream Node unblockmusic-utils.
+  dynamic songUrlMatchRaw(Map<String, dynamic> query) {
+    return {
+      'code': 500,
+      'msg': 'song_url_match depends on upstream unblockmusic-utils and is not available in the Dart client',
+      'data': [],
+    };
+  }
+
+  /// Upstream song_url_ncmget intentionally returns an empty successful body.
+  dynamic songUrlNcmgetRaw(Map<String, dynamic> query) {
+    return {'code': 200, 'data': []};
   }
 
   /// VIP sign history xeapi module.

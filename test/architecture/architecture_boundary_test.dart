@@ -926,7 +926,7 @@ void main() {
     test('presentation adapter imports stay isolated in the composition root', () {
       final bootstrapFiles = _dartFiles(Directory('${projectRoot.path}/lib/app/bootstrap'));
       const allowedFiles = {
-        'lib/app/bootstrap/app_bootstrap.dart',
+        'lib/app/bootstrap/presentation_bootstrap.dart',
       };
       final violations = bootstrapFiles
           .where((file) {
@@ -945,7 +945,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: '展示层 adapter 只能在 composition root 里被装配，不能扩散到普通 bootstrap 辅助文件。',
+        reason: '展示层 adapter 只能在 presentation bootstrap 里被装配，不能扩散到普通启动辅助文件。',
       );
     });
 
@@ -996,33 +996,67 @@ void main() {
       );
     });
 
-    test('composition root stays consolidated but sectioned', () {
+    test('composition root stays split by bootstrap responsibility', () {
       final registrarDirectory = Directory('${projectRoot.path}/lib/app/bootstrap/registrars');
-      final bootstrapFile = File('${projectRoot.path}/lib/app/bootstrap/app_bootstrap.dart');
-      final content = bootstrapFile.readAsStringSync();
-      const expectedSections = [
-        'Future<void> bootstrapApplication()',
-        'class AppBinding extends Bindings',
-        'Future<void> _initAppInfrastructure()',
-        'void _registerInfrastructure({',
-        'void _registerRepositories({',
-        'void _registerUserControllers()',
-        'void _registerPlayback()',
-        'void _registerPresentationAdapters()',
-        'void _registerFeatureApplications()',
-        'void _registerFeatureControllers()',
+      const expectedFiles = [
+        'lib/app/bootstrap/app_bootstrap.dart',
+        'lib/app/bootstrap/bootstrap_ui.dart',
+        'lib/app/bootstrap/sdk_bootstrap.dart',
+        'lib/app/bootstrap/data_bootstrap.dart',
+        'lib/app/bootstrap/playback_bootstrap.dart',
+        'lib/app/bootstrap/presentation_bootstrap.dart',
+        'lib/app/bootstrap/feature_bootstrap.dart',
       ];
-      final missingSections = expectedSections.where((section) => !content.contains(section)).toList();
+      const expectedEntrypoints = {
+        'lib/app/bootstrap/app_bootstrap.dart': [
+          'Future<void> bootstrapApplication()',
+          'class AppBinding extends Bindings',
+        ],
+        'lib/app/bootstrap/bootstrap_ui.dart': [
+          'Future<void> initializeBootstrapUi()',
+        ],
+        'lib/app/bootstrap/sdk_bootstrap.dart': [
+          'Future<void> initializeSdk({required bool debug})',
+        ],
+        'lib/app/bootstrap/data_bootstrap.dart': [
+          'Future<void> initializeDataInfrastructure()',
+        ],
+        'lib/app/bootstrap/playback_bootstrap.dart': [
+          'void registerPlaybackDependencies()',
+        ],
+        'lib/app/bootstrap/presentation_bootstrap.dart': [
+          'void registerPresentationAdapters()',
+        ],
+        'lib/app/bootstrap/feature_bootstrap.dart': [
+          'void registerUserControllers()',
+          'void registerFeatureApplications()',
+          'void registerFeatureControllers()',
+        ],
+      };
+      final missingFiles = expectedFiles.where((path) => !File('${projectRoot.path}/$path').existsSync()).toList();
+      final missingEntrypoints = <String>[];
+      for (final entry in expectedEntrypoints.entries) {
+        final file = File('${projectRoot.path}/${entry.key}');
+        final content = file.existsSync() ? file.readAsStringSync() : '';
+        missingEntrypoints.addAll(
+          entry.value.where((symbol) => !content.contains(symbol)).map((symbol) => '${entry.key}: $symbol'),
+        );
+      }
 
       expect(
         registrarDirectory.existsSync(),
         isFalse,
-        reason: 'bootstrap 目录保持一个组合根文件，避免 registrar 文件层级重新膨胀。',
+        reason: 'bootstrap 可以按职责拆文件，但不要恢复 registrar 目录层级。',
       );
       expect(
-        missingSections,
+        missingFiles,
         isEmpty,
-        reason: '单文件组合根仍要用清晰私有 section 分隔初始化、仓库、播放、展示适配器和控制器职责。',
+        reason: 'bootstrap 应按 UI、SDK、数据、播放、展示适配器、feature/controller 职责拆分。',
+      );
+      expect(
+        missingEntrypoints,
+        isEmpty,
+        reason: '每个 bootstrap 文件必须保留清晰入口，避免装配职责重新混到单个大文件。',
       );
     });
 

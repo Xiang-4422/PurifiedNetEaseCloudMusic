@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_mode.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -46,6 +48,54 @@ void main() {
       expect(source.kind, PlaybackResolvedSourceKind.neteaseCacheStream);
       expect(source.fileType, 'mp3');
     });
+
+    test('keeps remote playback url query parameters intact', () async {
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(
+          playbackUrl: 'https://example.com/song.mp3?auth=temp&expires=1',
+        ),
+      );
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: true,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.url);
+      expect(source.url, 'https://example.com/song.mp3?auth=temp&expires=1');
+      expect(source.markAsCached, isFalse);
+    });
+
+    test('strips query only when resolving an existing local file path', () async {
+      final directory = await Directory.systemTemp.createTemp('playback-source-resolver-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final audioFile = File('${directory.path}/song.mp3');
+      await audioFile.writeAsString('audio');
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(
+          playbackUrl: '${audioFile.path}?token=local',
+        ),
+      );
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.filePath);
+      expect(source.url, audioFile.path);
+      expect(source.markAsCached, isTrue);
+    });
   });
 }
 
@@ -72,12 +122,18 @@ PlaybackQueueItem _mediaItem({
 }
 
 class _FakePlaybackRepository implements PlaybackRepository {
+  _FakePlaybackRepository({
+    this.playbackUrl = 'https://example.com/song.mp3',
+  });
+
+  final String playbackUrl;
+
   @override
   Future<String?> fetchPlaybackUrl(
     String trackId, {
     required bool preferHighQuality,
   }) async {
-    return 'https://example.com/song.mp3';
+    return playbackUrl;
   }
 
   @override

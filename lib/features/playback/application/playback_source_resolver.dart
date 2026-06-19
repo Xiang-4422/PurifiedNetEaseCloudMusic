@@ -48,23 +48,22 @@ class PlaybackSourceResolver {
     PlaybackQueueItem item, {
     required bool preferHighQuality,
   }) async {
-    final url = (await _repository.fetchPlaybackUrl(
-              item.id,
-              preferHighQuality: preferHighQuality,
-            ) ??
-            '')
-        .split('?')
-        .first;
+    final url = await _repository.fetchPlaybackUrl(
+          item.id,
+          preferHighQuality: preferHighQuality,
+        ) ??
+        '';
     if (url.isEmpty) {
       return const PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.empty,
       );
     }
 
-    if (File(url).existsSync()) {
+    final localPath = _localPathCandidate(url);
+    if (File(localPath).existsSync()) {
       return PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.filePath,
-        url: url,
+        url: localPath,
         markAsCached: true,
       );
     }
@@ -76,5 +75,12 @@ class PlaybackSourceResolver {
 
   bool _isEncryptedNeteaseCache(String url) {
     return url.endsWith('.uc!');
+  }
+
+  String _localPathCandidate(String url) {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    return url.split('?').first;
   }
 }

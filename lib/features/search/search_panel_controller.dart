@@ -102,21 +102,58 @@ class SearchPanelController {
     albumState.value = const LoadState.loading();
     artistState.value = const LoadState.loading();
     final stopwatch = PerformanceLogger.start();
-    final nextState = await _searchAll(
-      normalizedKeyword,
-      likedSongIds: likedSongIds,
-      currentUserId: currentUserId,
-    );
-    if (generation != _searchGeneration || normalizedKeyword != _currentKeyword) {
-      return;
+
+    var loggedFirstResult = false;
+    void applyIfCurrent({
+      required VoidCallback apply,
+      required String category,
+      required int count,
+    }) {
+      if (generation != _searchGeneration || normalizedKeyword != _currentKeyword) {
+        return;
+      }
+      apply();
+      if (loggedFirstResult) {
+        return;
+      }
+      loggedFirstResult = true;
+      PerformanceLogger.elapsedMetric(
+        AppPerformanceMetrics.searchFirstResults,
+        stopwatch,
+        details: 'category=$category keywordLength=${normalizedKeyword.length} count=$count',
+      );
     }
-    _applySearchState(nextState);
-    PerformanceLogger.elapsedMetric(
-      AppPerformanceMetrics.searchFirstResults,
-      stopwatch,
-      details:
-          'keywordLength=${normalizedKeyword.length} songs=${nextState.songs.data?.length ?? 0} playlists=${nextState.playlists.data?.length ?? 0} albums=${nextState.albums.data?.length ?? 0} artists=${nextState.artists.data?.length ?? 0}',
-    );
+
+    await Future.wait<void>([
+      _loadSongs(normalizedKeyword, likedSongIds: likedSongIds).then((state) {
+        applyIfCurrent(
+          apply: () => songState.value = state,
+          category: 'songs',
+          count: state.data?.length ?? 0,
+        );
+      }),
+      _loadPlaylists(normalizedKeyword, currentUserId: currentUserId).then((state) {
+        applyIfCurrent(
+          apply: () => playlistState.value = state,
+          category: 'playlists',
+          count: state.data?.length ?? 0,
+        );
+      }),
+      _loadAlbums(normalizedKeyword).then((state) {
+        applyIfCurrent(
+          apply: () => albumState.value = state,
+          category: 'albums',
+          count: state.data?.length ?? 0,
+        );
+      }),
+      _loadArtists(normalizedKeyword).then((state) {
+        applyIfCurrent(
+          apply: () => artistState.value = state,
+          category: 'artists',
+          count: state.data?.length ?? 0,
+        );
+      }),
+    ]);
   }
 
   Future<LoadState<List<String>>> _loadInitialHotKeywords({
@@ -139,34 +176,6 @@ class SearchPanelController {
       }
       return LoadState.error(error, stackTrace: stackTrace);
     }
-  }
-
-  Future<SearchResultState> _searchAll(
-    String keyword, {
-    required List<int> likedSongIds,
-    required String currentUserId,
-  }) async {
-    final normalizedKeyword = keyword.trim();
-    if (normalizedKeyword.isEmpty) {
-      return const SearchResultState(
-        songs: LoadState.empty(),
-        playlists: LoadState.empty(),
-        albums: LoadState.empty(),
-        artists: LoadState.empty(),
-      );
-    }
-    final results = await Future.wait<LoadState<dynamic>>([
-      _loadSongs(normalizedKeyword, likedSongIds: likedSongIds),
-      _loadPlaylists(normalizedKeyword, currentUserId: currentUserId),
-      _loadAlbums(normalizedKeyword),
-      _loadArtists(normalizedKeyword),
-    ]);
-    return SearchResultState(
-      songs: results[0] as LoadState<List<PlaybackQueueItem>>,
-      playlists: results[1] as LoadState<List<PlaylistEntity>>,
-      albums: results[2] as LoadState<List<AlbumEntity>>,
-      artists: results[3] as LoadState<List<ArtistEntity>>,
-    );
   }
 
   Future<LoadState<List<PlaybackQueueItem>>> _loadSongs(

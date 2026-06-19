@@ -6,6 +6,7 @@ import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,14 +58,59 @@ void main() {
       await firstSearch;
       expect(controller.songState.value.status, LoadStatus.empty);
     });
+
+    test('publishes first completed category before slower categories finish', () async {
+      final repository = _FakeSearchRepository();
+      final controller = SearchPanelController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final search = controller.search(
+        'keyword',
+        likedSongIds: const [],
+        currentUserId: '42',
+      );
+
+      repository.completeSongs('keyword', [_queueItem('song')]);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.songState.value.data?.single.title, 'song');
+      expect(controller.playlistState.value.status, LoadStatus.loading);
+      expect(controller.albumState.value.status, LoadStatus.loading);
+      expect(controller.artistState.value.status, LoadStatus.loading);
+
+      repository.completePlaylists('keyword', [_playlist('playlist')]);
+      repository.completeAlbums('keyword', [_album('album')]);
+      repository.completeArtists('keyword', [_artist('artist')]);
+      await search;
+
+      expect(controller.playlistState.value.data?.single.title, 'playlist');
+      expect(controller.albumState.value.data?.single.title, 'album');
+      expect(controller.artistState.value.data?.single.name, 'artist');
+    });
   });
 }
 
 class _FakeSearchRepository implements SearchRepository {
-  final Map<String, Completer<SearchResultState>> _pending = <String, Completer<SearchResultState>>{};
+  final Map<String, _PendingSearchResult> _pending = <String, _PendingSearchResult>{};
 
   void complete(String keyword, SearchResultState state) {
-    _pending[keyword]?.complete(state);
+    _pendingResult(keyword).complete(state);
+  }
+
+  void completeSongs(String keyword, List<PlaybackQueueItem> songs) {
+    _pendingResult(keyword).completeSongs(songs);
+  }
+
+  void completePlaylists(String keyword, List<PlaylistEntity> playlists) {
+    _pendingResult(keyword).completePlaylists(playlists);
+  }
+
+  void completeAlbums(String keyword, List<AlbumEntity> albums) {
+    _pendingResult(keyword).completeAlbums(albums);
+  }
+
+  void completeArtists(String keyword, List<ArtistEntity> artists) {
+    _pendingResult(keyword).completeArtists(artists);
   }
 
   @override
@@ -81,7 +127,7 @@ class _FakeSearchRepository implements SearchRepository {
     String keyword, {
     required List<int> likedSongIds,
   }) async {
-    return (await _stateFor(keyword)).songs.data ?? const <PlaybackQueueItem>[];
+    return _pendingResult(keyword).songs.future;
   }
 
   @override
@@ -89,30 +135,67 @@ class _FakeSearchRepository implements SearchRepository {
     String keyword, {
     required String currentUserId,
   }) async {
-    return (await _stateFor(keyword)).playlists.data ?? const <PlaylistEntity>[];
+    return _pendingResult(keyword).playlists.future;
   }
 
   @override
   Future<List<AlbumEntity>> searchAlbums(String keyword) async {
-    return (await _stateFor(keyword)).albums.data ?? const <AlbumEntity>[];
+    return _pendingResult(keyword).albums.future;
   }
 
   @override
   Future<List<ArtistEntity>> searchArtists(String keyword) async {
-    return (await _stateFor(keyword)).artists.data ?? const <ArtistEntity>[];
+    return _pendingResult(keyword).artists.future;
   }
 
-  Future<SearchResultState> _stateFor(String keyword) {
-    final completer = _pending.putIfAbsent(
+  _PendingSearchResult _pendingResult(String keyword) {
+    return _pending.putIfAbsent(
       keyword,
-      () => Completer<SearchResultState>(),
+      _PendingSearchResult.new,
     );
-    return completer.future;
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
+  }
+}
+
+class _PendingSearchResult {
+  final Completer<List<PlaybackQueueItem>> songs = Completer<List<PlaybackQueueItem>>();
+  final Completer<List<PlaylistEntity>> playlists = Completer<List<PlaylistEntity>>();
+  final Completer<List<AlbumEntity>> albums = Completer<List<AlbumEntity>>();
+  final Completer<List<ArtistEntity>> artists = Completer<List<ArtistEntity>>();
+
+  void complete(SearchResultState state) {
+    completeSongs(state.songs.data ?? const <PlaybackQueueItem>[]);
+    completePlaylists(state.playlists.data ?? const <PlaylistEntity>[]);
+    completeAlbums(state.albums.data ?? const <AlbumEntity>[]);
+    completeArtists(state.artists.data ?? const <ArtistEntity>[]);
+  }
+
+  void completeSongs(List<PlaybackQueueItem> value) {
+    if (!songs.isCompleted) {
+      songs.complete(value);
+    }
+  }
+
+  void completePlaylists(List<PlaylistEntity> value) {
+    if (!playlists.isCompleted) {
+      playlists.complete(value);
+    }
+  }
+
+  void completeAlbums(List<AlbumEntity> value) {
+    if (!albums.isCompleted) {
+      albums.complete(value);
+    }
+  }
+
+  void completeArtists(List<ArtistEntity> value) {
+    if (!artists.isCompleted) {
+      artists.complete(value);
+    }
   }
 }
 
@@ -141,5 +224,32 @@ PlaybackQueueItem _queueItem(String title) {
     lyricKey: null,
     isLiked: false,
     isCached: false,
+  );
+}
+
+PlaylistEntity _playlist(String title) {
+  return PlaylistEntity(
+    id: 'netease:$title',
+    sourceType: SourceType.netease,
+    sourceId: title,
+    title: title,
+  );
+}
+
+AlbumEntity _album(String title) {
+  return AlbumEntity(
+    id: 'netease:$title',
+    sourceType: SourceType.netease,
+    sourceId: title,
+    title: title,
+  );
+}
+
+ArtistEntity _artist(String name) {
+  return ArtistEntity(
+    id: 'netease:$name',
+    sourceType: SourceType.netease,
+    sourceId: name,
+    name: name,
   );
 }

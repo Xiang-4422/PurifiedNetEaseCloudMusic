@@ -18,6 +18,7 @@ const specialModules = new Set([
   'avatar_upload',
   'playlist_cover_update',
   'cloud',
+  'cloud_import',
   'cloud_upload_token',
   'cloud_upload_complete',
   'voice_upload',

@@ -60,6 +60,7 @@ void main() {
         'audio_match',
         'avatar_upload',
         'cloud',
+        'cloud_import',
         'cloud_upload_complete',
         'cloud_upload_token',
         'decrypt',
@@ -457,6 +458,54 @@ void main() {
       expect(adapter.uploadToken, 'upload-token');
       expect(result['data']['imgId'], 123);
       expect(result['data']['code'], 200);
+    });
+
+    test('cloud import special module checks upload before import', () async {
+      final proxy = _QueuedPostDioProxy([
+        {
+          'data': [
+            {'songId': 456}
+          ],
+        },
+        {
+          'code': 200,
+          'imported': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.requestModule('cloud_import', {
+        'md5': 'abc',
+        'bitrate': 320000,
+        'fileSize': 12345,
+        'song': 'Imported Song',
+        'fileType': 'flac',
+      });
+
+      expect(proxy.paths, ['/api/cloud/upload/check/v2', '/api/cloud/user/song/import']);
+      final checkSongs = jsonDecode((proxy.requests.first.data as Map)['songs'] as String) as List;
+      expect(proxy.requests.first.data, containsPair('uploadType', 0));
+      expect(checkSongs.single, {
+        'md5': 'abc',
+        'songId': -2,
+        'bitrate': 320000,
+        'fileSize': 12345,
+      });
+
+      final importSongs = jsonDecode((proxy.requests.last.data as Map)['songs'] as String) as List;
+      expect(proxy.requests.last.data, containsPair('uploadType', 0));
+      expect(importSongs.single, {
+        'songId': 456,
+        'bitrate': 320000,
+        'song': 'Imported Song',
+        'artist': '未知',
+        'album': '未知',
+        'fileName': 'Imported Song.flac',
+      });
+      expect(result, {
+        'code': 200,
+        'imported': true,
+      });
     });
 
     test('matches upstream Node request metadata for oracle fixtures', () async {

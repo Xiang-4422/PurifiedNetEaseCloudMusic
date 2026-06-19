@@ -74,6 +74,8 @@ mixin ApiEnhancedRaw {
         return playlistTrackAllRaw(query);
       case 'cloud':
         return cloud(query);
+      case 'cloud_import':
+        return cloudImportRaw(query);
       case 'cloud_upload_token':
         return cloudUploadToken(query);
       case 'cloud_upload_complete':
@@ -538,6 +540,47 @@ mixin ApiEnhancedRaw {
     });
   }
 
+  /// Imports a cloud song through upstream check and import requests.
+  Future<dynamic> cloudImportRaw(Map<String, dynamic> query) async {
+    final songId = _jsDefault(query['id'], -2);
+    final artist = _jsDefault(query['artist'], '未知');
+    final album = _jsDefault(query['album'], '未知');
+    final checkResponse = await _rawPost(
+      '/api/cloud/upload/check/v2',
+      {
+        'uploadType': 0,
+        'songs': jsonEncode([
+          {
+            'md5': query['md5'],
+            'songId': songId,
+            'bitrate': query['bitrate'],
+            'fileSize': query['fileSize'],
+          },
+        ]),
+      },
+      query,
+    );
+    final cloudSongId = _cloudImportSongId(checkResponse.data);
+    final importResponse = await _rawPost(
+      '/api/cloud/user/song/import',
+      {
+        'uploadType': 0,
+        'songs': jsonEncode([
+          {
+            'songId': cloudSongId,
+            'bitrate': query['bitrate'],
+            'song': query['song'],
+            'artist': artist,
+            'album': album,
+            'fileName': '${query['song']}.${query['fileType']}',
+          },
+        ]),
+      },
+      query,
+    );
+    return importResponse.data;
+  }
+
   /// Gets cloud upload token and upload URL.
   Future<dynamic> cloudUploadToken(Map<String, dynamic> query) async {
     final filename = _filename(query);
@@ -905,6 +948,14 @@ String _trackIdValue(dynamic value) {
     return value['id']?.toString() ?? '';
   }
   return value?.toString() ?? '';
+}
+
+dynamic _cloudImportSongId(dynamic value) {
+  final data = _asMap(value)['data'];
+  if (data is List && data.isNotEmpty) {
+    return _asMap(data.first)['songId'];
+  }
+  return null;
 }
 
 int _jsParseIntOrDefault(dynamic value, int fallback) {

@@ -387,7 +387,7 @@ const List<ApiEnhancedModule> apiEnhancedModules = [
     pathTemplate: '/api/cloud/upload/check/v2',
     crypto: 'eapi',
     httpMethod: 'POST',
-    special: false,
+    special: true,
   ),
   ApiEnhancedModule(
     module: 'cloud_lyric_get',
@@ -3582,7 +3582,7 @@ const Map<String, ApiEnhancedModule> apiEnhancedModuleByName = {
     pathTemplate: '/api/cloud/upload/check/v2',
     crypto: 'eapi',
     httpMethod: 'POST',
-    special: false,
+    special: true,
   ),
   'cloud_lyric_get': ApiEnhancedModule(
     module: 'cloud_lyric_get',

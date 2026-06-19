@@ -61,6 +61,45 @@ const fixtures = [
       s: 4,
     },
   },
+  {
+    module: 'user_playlist',
+    query: {
+      uid: '42',
+    },
+  },
+  {
+    module: 'song_url',
+    query: {
+      id: '101,202',
+    },
+  },
+  {
+    module: 'like',
+    query: {
+      id: '101',
+      like: 'false',
+    },
+  },
+  {
+    module: 'cloudsearch',
+    query: {
+      keywords: 'hello',
+    },
+  },
+  {
+    module: 'personalized',
+    query: {},
+  },
+  {
+    module: 'recommend_songs',
+    query: {
+      afresh: true,
+    },
+  },
+  {
+    module: 'search_hot_detail',
+    query: {},
+  },
 ]
 
 async function captureFixture(fixture) {
@@ -70,7 +109,7 @@ async function captureFixture(fixture) {
   let captured = null
   const request = (uri, data, options) => {
     captured = { uri, data, options }
-    return Promise.resolve({ status: 200, body: { code: 200 }, cookie: [] })
+    return Promise.resolve({ status: 200, body: { code: 200, data: [] }, cookie: [] })
   }
 
   await upstreamModule(query, request)

@@ -569,19 +569,39 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         return {
           'keyword': query['keywords'],
           'scene': 'normal',
-          'limit': query['limit'] ?? 30,
-          'offset': query['offset'] ?? 0,
+          'limit': _jsDefault(query['limit'], 30),
+          'offset': _jsDefault(query['offset'], 0),
         };
       }
       return {
         's': query['keywords'],
-        'type': query['type'] ?? 1,
-        'limit': query['limit'] ?? 30,
-        'offset': query['offset'] ?? 0,
+        'type': _jsDefault(query['type'], 1),
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'cloudsearch':
+      return {
+        's': query['keywords'],
+        'type': _jsDefault(query['type'], 1),
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
+    case 'like':
+      return {
+        'alg': 'itembased',
+        'trackId': query['id'],
+        'like': query['like']?.toString() == 'false' ? false : true,
+        'time': '3',
       };
     case 'song_detail':
       return {
         'c': '[${_splitIds(query['ids']).map((id) => '{"id":$id}').join(',')}]',
+      };
+    case 'song_url':
+      return {
+        'ids': jsonEncode(_splitCommaValues(query['id'])),
+        'br': _songUrlBitrate(query['br']),
       };
     case 'lyric_new':
       return {
@@ -599,7 +619,26 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         'id': query['id'],
         'n': 100000,
-        's': query['s'] ?? 8,
+        's': _jsDefault(query['s'], 8),
+      };
+    case 'personalized':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'total': true,
+        'n': 1000,
+      };
+    case 'recommend_songs':
+      return {
+        if (query.containsKey('afresh')) 'afresh': query['afresh'],
+      };
+    case 'search_hot_detail':
+      return {};
+    case 'user_playlist':
+      return {
+        'uid': query['uid'],
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+        'includeVideo': true,
       };
   }
   final data = <String, dynamic>{};
@@ -616,6 +655,27 @@ List<String> _splitIds(dynamic value) {
     return value.map((id) => id.toString()).where((id) => id.isNotEmpty).toList();
   }
   return value.toString().split(RegExp(r'\s*,\s*')).where((id) => id.isNotEmpty).toList();
+}
+
+List<String> _splitCommaValues(dynamic value) {
+  if (value is Iterable) {
+    return value.map((id) => id.toString()).toList();
+  }
+  return value.toString().split(',');
+}
+
+int _songUrlBitrate(dynamic value) {
+  if (value == null || value == false || value == 0 || value == '') {
+    return 999000;
+  }
+  return int.tryParse(value.toString()) ?? 999000;
+}
+
+dynamic _jsDefault(dynamic value, dynamic fallback) {
+  if (value == null || value == false || value == 0 || value == '') {
+    return fallback;
+  }
+  return value;
 }
 
 String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
@@ -155,8 +156,8 @@ class PlaybackSwitchCoordinator {
       PlaybackSwitchResult result, {
       required String outcome,
     }) {
-      PlaybackPerformanceLogger.elapsed(
-        'switch.total',
+      PlaybackPerformanceLogger.elapsedMetric(
+        AppPerformanceMetrics.trackSwitch,
         totalStopwatch,
         details: 'switchId=$switchId version=$version id=${item.id} index=$activeIndex trigger=${trigger.name} playNow=$playNow outcome=$outcome success=${result.success} obsolete=${result.isObsolete} source=$sourceKind',
       );

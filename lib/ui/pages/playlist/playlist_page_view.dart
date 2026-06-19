@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
@@ -417,16 +418,16 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         );
         unawaited(_loadRemainingPlaylistSongs(offset: initialDetail.localDetail!.songs.length));
       }
-      PlaylistPerformanceLogger.elapsed(
-        'page.loadInitial.total',
+      PlaylistPerformanceLogger.elapsedMetric(
+        AppPerformanceMetrics.cachedPlaylistOpen,
         stopwatch,
         details: 'source=local state=${initialDetail.localState.name} songs=${songs.length}',
       );
       return;
     }
     await _loadFirstPageAndRemaining(showLoadingState: true);
-    PlaylistPerformanceLogger.elapsed(
-      'page.loadInitial.total',
+    PlaylistPerformanceLogger.elapsedMetric(
+      AppPerformanceMetrics.cachedPlaylistOpen,
       stopwatch,
       details: 'source=remote songs=${songs.length} state=${loadState.name}',
     );

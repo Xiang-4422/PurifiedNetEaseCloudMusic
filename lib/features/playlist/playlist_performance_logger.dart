@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 
+import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:flutter/foundation.dart';
 
 /// 歌单详情加载性能诊断日志。
@@ -41,6 +42,21 @@ class PlaylistPerformanceLogger {
     final suffix = details.isEmpty ? '' : ' $details';
     developer.log('$event ${elapsedMs}ms$suffix', name: _name);
     debugPrint('[$_name] $event ${elapsedMs}ms$suffix');
+  }
+
+  /// 按关键指标输出耗时测量。
+  static void elapsedMetric(
+    AppPerformanceMetric metric,
+    Stopwatch stopwatch, {
+    String details = '',
+    int warnAfterMs = 0,
+  }) {
+    elapsed(
+      metric.eventName,
+      stopwatch,
+      details: details,
+      warnAfterMs: warnAfterMs,
+    );
   }
 
   static bool _shouldEmit(String event, int elapsedMs, int warnAfterMs) {

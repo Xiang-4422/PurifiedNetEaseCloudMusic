@@ -1,3 +1,5 @@
+import 'package:bujuan/core/diagnostics/performance_logger.dart';
+import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
@@ -99,6 +101,7 @@ class SearchPanelController {
     playlistState.value = const LoadState.loading();
     albumState.value = const LoadState.loading();
     artistState.value = const LoadState.loading();
+    final stopwatch = PerformanceLogger.start();
     final nextState = await _searchAll(
       normalizedKeyword,
       likedSongIds: likedSongIds,
@@ -108,6 +111,12 @@ class SearchPanelController {
       return;
     }
     _applySearchState(nextState);
+    PerformanceLogger.elapsedMetric(
+      AppPerformanceMetrics.searchFirstResults,
+      stopwatch,
+      details:
+          'keywordLength=${normalizedKeyword.length} songs=${nextState.songs.data?.length ?? 0} playlists=${nextState.playlists.data?.length ?? 0} albums=${nextState.albums.data?.length ?? 0} artists=${nextState.artists.data?.length ?? 0}',
+    );
   }
 
   Future<LoadState<List<String>>> _loadInitialHotKeywords({

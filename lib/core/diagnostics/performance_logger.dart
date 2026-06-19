@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 
+import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:flutter/foundation.dart';
 
 /// 通用性能诊断日志。
@@ -39,5 +40,22 @@ class PerformanceLogger {
     final suffix = details.isEmpty ? '' : ' $details';
     developer.log('$event ${elapsedMs}ms$suffix', name: name);
     debugPrint('[$name] $event ${elapsedMs}ms$suffix');
+  }
+
+  /// 按关键指标输出耗时测量。
+  static void elapsedMetric(
+    AppPerformanceMetric metric,
+    Stopwatch stopwatch, {
+    String details = '',
+    String name = 'Perf',
+    int warnAfterMs = 0,
+  }) {
+    elapsed(
+      metric.eventName,
+      stopwatch,
+      details: details,
+      name: name,
+      warnAfterMs: warnAfterMs,
+    );
   }
 }

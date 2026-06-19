@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/core/entities/playback_mode.dart';
@@ -175,7 +176,14 @@ class PlayerController extends GetxController {
 
   /// 播放或暂停当前歌曲。
   Future<void> playOrPause() async {
-    await _commandService.playOrPause(isPlaying: isPlaying.value);
+    final stopwatch = PlaybackPerformanceLogger.start();
+    final wasPlaying = isPlaying.value;
+    await _commandService.playOrPause(isPlaying: wasPlaying);
+    PlaybackPerformanceLogger.elapsedMetric(
+      AppPerformanceMetrics.miniPlayerFeedback,
+      stopwatch,
+      details: 'action=${wasPlaying ? 'pause' : 'play'}',
+    );
   }
 
   /// 播放列表切换先统一走播放控制器，避免页面继续直接触碰 `audioHandler`

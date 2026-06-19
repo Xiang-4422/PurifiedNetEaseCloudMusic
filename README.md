@@ -1,11 +1,12 @@
 # PurifiedNetEaseCloudMusic
 
-README 是本项目文档入口。`docs/` 下文档按编号阅读：
+README 是本项目文档入口。`docs/` 下只保留少量人工维护文档：
 
-1. [技术架构设计](./docs/01-technical-architecture.md)
-2. [本地缓存与表结构设计](./docs/02-local-cache-architecture.md)
-3. [重构计划与进度](./docs/03-refactor-plan.md)
-4. [代码注释规范](./docs/04-comment-guidelines.md)
+1. [项目架构](./docs/项目架构.md)
+2. [重构路线](./docs/重构路线.md)
+3. [网易云接口开发包](./docs/网易云接口开发包.md)
+4. [代码注释规范](./docs/代码注释规范.md)
+5. [Flutter 中小项目架构规范](./docs/中小项目架构规范.md)
 
 ## 当前结论
 
@@ -20,7 +21,8 @@ README 是本项目文档入口。`docs/` 下文档按编号阅读：
 
 ## 文档使用规则
 
-- 技术方案、目录方案、边界约束，以 [`docs/01-technical-architecture.md`](./docs/01-technical-architecture.md) 为准。
-- 本地缓存、`Drift` 表结构、账号作用域和 ID 规则，以 [`docs/02-local-cache-architecture.md`](./docs/02-local-cache-architecture.md) 为准。
-- 后续整理项、完成情况、阻塞项，以 [`docs/03-refactor-plan.md`](./docs/03-refactor-plan.md) 为准。
+- 技术方案、目录方案、本地缓存和边界约束，以 [`docs/项目架构.md`](./docs/项目架构.md) 为准。
+- 后续整理项、阶段路线和 UI 方向，以 [`docs/重构路线.md`](./docs/重构路线.md) 为准。
+- 复刻并跟随上游网易云接口仓库，以 [`docs/网易云接口开发包.md`](./docs/网易云接口开发包.md) 为准。
+- 代码注释要求，以 [`docs/代码注释规范.md`](./docs/代码注释规范.md) 为准。
 - 每次阶段性架构调整后，同步更新相关文档，避免文档继续描述已删除的结构。

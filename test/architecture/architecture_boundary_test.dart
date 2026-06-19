@@ -51,9 +51,9 @@ void main() {
 
     test('project architecture mapping and app root stay explicit', () {
       expect(
-        File('${projectRoot.path}/docs/project_architecture_mapping.md').existsSync(),
+        File('${projectRoot.path}/docs/项目架构.md').existsSync(),
         isTrue,
-        reason: '项目必须维护一份把中小项目规范映射到当前 app/ui/features/data/core 的说明，避免后续机械搬目录。',
+        reason: '项目必须维护一份说明当前 app/ui/features/data/core 职责边界的中文架构文档，避免后续机械搬目录。',
       );
       final mainFile = File('${projectRoot.path}/lib/main.dart');
       expect(

@@ -66,6 +66,7 @@ void main() {
         'eapi_decrypt',
         'inner_version',
         'login_qr_create',
+        'playlist_track_all',
         'playlist_cover_update',
         'register_anonimous',
         'register_xeapikey',
@@ -269,7 +270,7 @@ void main() {
     });
 
     test('song url v1 302 special module returns redirect from download url', () async {
-      final proxy = _SongUrl302DioProxy([
+      final proxy = _QueuedPostDioProxy([
         {
           'data': [
             {'url': 'https://audio.test/download.flac'}
@@ -298,7 +299,7 @@ void main() {
     });
 
     test('song url v1 302 special module falls back to player url', () async {
-      final proxy = _SongUrl302DioProxy([
+      final proxy = _QueuedPostDioProxy([
         {
           'data': [
             {'url': null}
@@ -332,6 +333,51 @@ void main() {
         'body': '',
         'cookie': ['cookie-2=value'],
         'redirectUrl': 'https://audio.test/player.flac',
+      });
+    });
+
+    test('playlist track all special module fetches details before song detail', () async {
+      final proxy = _QueuedPostDioProxy([
+        {
+          'playlist': {
+            'trackIds': [
+              {'id': 100},
+              {'id': 101},
+              {'id': 102},
+              {'id': 103},
+            ],
+          },
+        },
+        {
+          'songs': [
+            {'id': 101},
+            {'id': 102},
+          ],
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.requestModule('playlist_track_all', {
+        'id': '888',
+        's': 4,
+        'limit': '2',
+        'offset': '1',
+      });
+
+      expect(proxy.paths, ['/api/v6/playlist/detail', '/api/v3/song/detail']);
+      expect(proxy.requests.first.data, {
+        'id': '888',
+        'n': 100000,
+        's': 4,
+      });
+      expect(proxy.requests.last.data, {
+        'c': '[{"id":101},{"id":102}]',
+      });
+      expect(result, {
+        'songs': [
+          {'id': 101},
+          {'id': 102},
+        ],
       });
     });
 
@@ -482,8 +528,8 @@ class _CaptureDioProxy extends DioProxy {
   }
 }
 
-class _SongUrl302DioProxy extends DioProxy {
-  _SongUrl302DioProxy(this._responses);
+class _QueuedPostDioProxy extends DioProxy {
+  _QueuedPostDioProxy(this._responses);
 
   final List<Map<String, dynamic>> _responses;
   final List<DioMetaData> requests = [];

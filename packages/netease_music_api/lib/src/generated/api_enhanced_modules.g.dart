@@ -1683,7 +1683,7 @@ const List<ApiEnhancedModule> apiEnhancedModules = [
     pathTemplate: '/api/v6/playlist/detail',
     crypto: 'eapi',
     httpMethod: 'POST',
-    special: false,
+    special: true,
   ),
   ApiEnhancedModule(
     module: 'playlist_track_delete',
@@ -4878,7 +4878,7 @@ const Map<String, ApiEnhancedModule> apiEnhancedModuleByName = {
     pathTemplate: '/api/v6/playlist/detail',
     crypto: 'eapi',
     httpMethod: 'POST',
-    special: false,
+    special: true,
   ),
   'playlist_track_delete': ApiEnhancedModule(
     module: 'playlist_track_delete',

@@ -23,6 +23,7 @@ const specialModules = new Set([
   'voice_upload',
   'inner_version',
   'login_qr_create',
+  'playlist_track_all',
   'related_playlist',
   'song_url_match',
   'song_url_ncmget',

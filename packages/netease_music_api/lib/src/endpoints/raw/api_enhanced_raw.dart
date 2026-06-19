@@ -70,6 +70,8 @@ mixin ApiEnhancedRaw {
         return avatarUpload(query);
       case 'playlist_cover_update':
         return playlistCoverUpdate(query);
+      case 'playlist_track_all':
+        return playlistTrackAllRaw(query);
       case 'cloud':
         return cloud(query);
       case 'cloud_upload_token':
@@ -400,6 +402,28 @@ mixin ApiEnhancedRaw {
         options: _rawOptions(crypto, path, query),
       ),
     );
+  }
+
+  /// Fetches all playlist tracks through the upstream two-step detail flow.
+  Future<dynamic> playlistTrackAllRaw(Map<String, dynamic> query) async {
+    final detailResponse = await _rawPost(
+      '/api/v6/playlist/detail',
+      {
+        'id': query['id'],
+        'n': 100000,
+        's': _jsDefault(query['s'], 8),
+      },
+      query,
+    );
+    final trackIds = _asList(_asMap(_asMap(detailResponse.data)['playlist'])['trackIds']);
+    final limit = _jsParseIntOrDefault(query['limit'], 1000);
+    final offset = _jsParseIntOrDefault(query['offset'], 0);
+    final selectedIds = _jsSlice(trackIds, offset, offset + limit).map(_trackIdValue).where((id) => id.isNotEmpty);
+    final detailData = {
+      'c': '[${selectedIds.map((id) => '{"id":$id}').join(',')}]',
+    };
+    final songsResponse = await _rawPost('/api/v3/song/detail', detailData, query);
+    return songsResponse.data;
   }
 
   /// Uploads a user avatar image.
@@ -806,6 +830,49 @@ Map<String, dynamic> _redirectResponse(String url, Response<dynamic> response) {
     'cookie': response.headers[HttpHeaders.setCookieHeader] ?? const <String>[],
     'redirectUrl': url,
   };
+}
+
+List<dynamic> _asList(dynamic value) {
+  return value is List ? value : const [];
+}
+
+String _trackIdValue(dynamic value) {
+  if (value is Map) {
+    return value['id']?.toString() ?? '';
+  }
+  return value?.toString() ?? '';
+}
+
+int _jsParseIntOrDefault(dynamic value, int fallback) {
+  if (value == null || value == false) {
+    return fallback;
+  }
+  final match = RegExp(r'^\s*[+-]?\d+').firstMatch(value.toString());
+  if (match == null) {
+    return fallback;
+  }
+  final parsed = int.tryParse(match.group(0)!.trim());
+  if (parsed == null || parsed == 0) {
+    return fallback;
+  }
+  return parsed;
+}
+
+List<dynamic> _jsSlice(List<dynamic> values, int start, int end) {
+  int normalize(int index) {
+    if (index < 0) {
+      final fromEnd = values.length + index;
+      return fromEnd < 0 ? 0 : fromEnd;
+    }
+    return index > values.length ? values.length : index;
+  }
+
+  final normalizedStart = normalize(start);
+  final normalizedEnd = normalize(end);
+  if (normalizedEnd <= normalizedStart) {
+    return const [];
+  }
+  return values.sublist(normalizedStart, normalizedEnd);
 }
 
 Map<String, dynamic> _asMap(dynamic value) {

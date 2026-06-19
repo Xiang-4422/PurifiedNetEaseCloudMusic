@@ -170,6 +170,9 @@ class LocalResourceIndexRepository {
   }) async {
     final now = DateTime.now();
     final existing = await _dataSource.getResource(trackId, kind);
+    if (_shouldKeepExistingResource(existing, origin)) {
+      return;
+    }
     final file = File(path);
     final sizeBytes = file.existsSync() ? await file.length() : 0;
     await _dataSource.saveResource(
@@ -183,6 +186,32 @@ class LocalResourceIndexRepository {
         lastAccessedAt: now,
       ),
     );
+  }
+
+  bool _shouldKeepExistingResource(
+    LocalResourceEntry? existing,
+    TrackResourceOrigin newOrigin,
+  ) {
+    if (existing == null) {
+      return false;
+    }
+    final existingPriority = _originPriority(existing.origin);
+    final newPriority = _originPriority(newOrigin);
+    return existingPriority > newPriority && File(existing.path).existsSync();
+  }
+
+  int _originPriority(TrackResourceOrigin origin) {
+    switch (origin) {
+      case TrackResourceOrigin.localImport:
+        return 3;
+      case TrackResourceOrigin.managedDownload:
+        return 2;
+      case TrackResourceOrigin.playbackCache:
+        return 1;
+      case TrackResourceOrigin.artworkCache:
+      case TrackResourceOrigin.none:
+        return 0;
+    }
   }
 
   TrackResourceBundle _toBundle(List<LocalResourceEntry> resources) {

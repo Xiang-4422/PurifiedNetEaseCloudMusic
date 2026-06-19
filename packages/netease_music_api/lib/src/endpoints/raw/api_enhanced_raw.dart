@@ -103,9 +103,9 @@ mixin ApiEnhancedRaw {
   }
 
   DioMetaData _buildRawMetaData(ApiEnhancedModule metadata, Map<String, dynamic> query) {
-    final path = _resolvePath(metadata.pathTemplate, query);
+    final path = _requestPath(metadata, query);
     final crypto = _cryptoFromQuery(query['crypto']?.toString() ?? metadata.crypto);
-    final data = _requestData(query);
+    final data = _requestData(metadata.module, query);
     final method = (query['method']?.toString() ?? metadata.httpMethod).toUpperCase();
     final uri = _rawUri(path, crypto, query['domain']?.toString(), data: method == 'GET' ? data : null);
     return DioMetaData(
@@ -560,7 +560,26 @@ mixin ApiEnhancedRaw {
   }
 }
 
-Map<String, dynamic> _requestData(Map<String, dynamic> query) {
+Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
+  switch (module) {
+    case 'album':
+      return {};
+    case 'search':
+      if (query['type']?.toString() == '2000') {
+        return {
+          'keyword': query['keywords'],
+          'scene': 'normal',
+          'limit': query['limit'] ?? 30,
+          'offset': query['offset'] ?? 0,
+        };
+      }
+      return {
+        's': query['keywords'],
+        'type': query['type'] ?? 1,
+        'limit': query['limit'] ?? 30,
+        'offset': query['offset'] ?? 0,
+      };
+  }
   final data = <String, dynamic>{};
   query.forEach((key, value) {
     if (!_rawOptionKeys.contains(key)) {
@@ -568,6 +587,14 @@ Map<String, dynamic> _requestData(Map<String, dynamic> query) {
     }
   });
   return data;
+}
+
+String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
+  switch (metadata.module) {
+    case 'search':
+      return query['type']?.toString() == '2000' ? '/api/search/voice/get' : '/api/search/get';
+  }
+  return _resolvePath(metadata.pathTemplate, query);
 }
 
 Map<String, dynamic> _asMap(dynamic value) {

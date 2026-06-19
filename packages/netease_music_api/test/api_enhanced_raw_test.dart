@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -256,6 +257,28 @@ void main() {
       expect(result['data']['imgId'], 123);
       expect(result['data']['code'], 200);
     });
+
+    test('matches upstream Node request metadata for oracle fixtures', () async {
+      final fixtures = await _loadNodeOracleFixtures();
+
+      for (final fixture in fixtures) {
+        final module = fixture['module'] as String;
+        final query = _jsonMap(fixture['query']);
+        final nodeOptions = _jsonMap(fixture['options']);
+        final metaData = api.requestModuleDioMetaData(module, query);
+        final extra = metaData.options!.extra!;
+
+        expect(metaData.uri.path, fixture['uri'], reason: module);
+        expect(_jsonMap(metaData.data), _jsonMap(fixture['data']), reason: module);
+        expect(_encryptTypeName(extra['encryptType'] as EncryptType), _effectiveNodeCrypto(nodeOptions), reason: module);
+        expect(extra['realIP'], nodeOptions['realIP'], reason: module);
+        expect(_optionString(extra['rawUserAgent']), _optionString(nodeOptions['ua']), reason: module);
+        expect(_optionString(extra['domain']), _optionString(nodeOptions['domain']), reason: module);
+        expect(extra['checkToken'], nodeOptions['checkToken'] == true, reason: module);
+        expect(_optionString(extra['proxy']), _optionString(nodeOptions['proxy']), reason: module);
+        expect(extra['cookies'], nodeOptions.containsKey('cookie') ? _stringJsonMap(nodeOptions['cookie']) : <String, String>{}, reason: module);
+      }
+    });
   });
 }
 
@@ -367,6 +390,66 @@ class _UploadAdapter implements HttpClientAdapter {
 String _encryptEapiText(String text) {
   final encrypter = Encrypter(AES(Key.fromUtf8('e82ckenh8dichen8'), mode: AESMode.ecb));
   return encrypter.encrypt(text, iv: IV.fromLength(0)).base16;
+}
+
+Future<List<Map<String, dynamic>>> _loadNodeOracleFixtures() async {
+  final script = _findNodeOracleScript();
+  final result = await Process.run('node', [script.path]);
+  if (result.exitCode != 0) {
+    fail('Node oracle failed: ${result.stderr}');
+  }
+  final decoded = jsonDecode(result.stdout as String);
+  return (decoded as List).map((value) => _jsonMap(value)).toList();
+}
+
+File _findNodeOracleScript() {
+  var current = Directory.current;
+  for (var i = 0; i < 5; i++) {
+    final candidate = File('${current.path}/packages/netease_music_api/tool/api_enhanced_node_oracle.js');
+    if (candidate.existsSync()) {
+      return candidate;
+    }
+    current = current.parent;
+  }
+  throw StateError('Cannot find packages/netease_music_api/tool/api_enhanced_node_oracle.js');
+}
+
+Map<String, dynamic> _jsonMap(dynamic value) {
+  if (value is Map<String, dynamic>) {
+    return value;
+  }
+  if (value is Map) {
+    return Map<String, dynamic>.from(value);
+  }
+  return <String, dynamic>{};
+}
+
+Map<String, String> _stringJsonMap(dynamic value) {
+  return _jsonMap(value).map((key, value) => MapEntry(key, value.toString()));
+}
+
+String _effectiveNodeCrypto(Map<String, dynamic> options) {
+  final crypto = options['crypto']?.toString();
+  return crypto == null || crypto.isEmpty ? 'eapi' : crypto;
+}
+
+String _optionString(dynamic value) {
+  return value?.toString() ?? '';
+}
+
+String _encryptTypeName(EncryptType type) {
+  switch (type) {
+    case EncryptType.WeApi:
+      return 'weapi';
+    case EncryptType.EApi:
+      return 'eapi';
+    case EncryptType.LinuxForward:
+      return 'linuxapi';
+    case EncryptType.Api:
+      return 'api';
+    case EncryptType.XeApi:
+      return 'xeapi';
+  }
 }
 
 bool _isIpv4(String value) {

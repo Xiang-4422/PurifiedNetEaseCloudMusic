@@ -504,13 +504,13 @@ mixin ApiPlay {
 
   /// 构建喜欢或取消喜欢歌曲请求元数据。
   DioMetaData likeSongDioMetaData(String songId, bool like, {int time = 3, String alg = 'itembased'}) {
-    var params = {'trackId': songId, 'like': like};
-    return DioMetaData(joinUri('/weapi/radio/like?alg=$alg&trackId=$songId&time=$time'),
-        data: params,
-        options: joinOptions(
-          userAgent: UserAgent.Pc,
-          cookies: {'os': 'pc', 'appver': '2.9.7'},
-        ));
+    var params = {
+      'alg': 'itembased',
+      'trackId': songId,
+      'like': like,
+      'time': '3',
+    };
+    return DioMetaData(joinUri('/api/radio/like'), data: params, options: joinOptions());
   }
 
   /// 听歌打卡
@@ -530,8 +530,7 @@ mixin ApiPlay {
   /// 构建歌曲详情请求元数据。
   DioMetaData songDetailDioMetaData(List<String> songIds) {
     var params = {
-      // 'ids': songIds,
-      'c': songIds.map((e) => jsonEncode({'id': e})).toList()
+      'c': '[${songIds.map((id) => '{"id":$id}').join(',')}]',
     };
     return DioMetaData(joinUri('/api/v3/song/detail'), data: params, options: joinOptions());
   }
@@ -613,8 +612,18 @@ mixin ApiPlay {
 
   /// 构建歌曲歌词请求元数据。
   DioMetaData songLyricDioMetaData(String songId) {
-    var params = {'id': songId, 'lv': -1, 'kv': -1, 'tv': -1};
-    return DioMetaData(joinUri('/api/song/lyric'), data: params, options: joinOptions(encryptType: EncryptType.WeApi, cookies: {'os': 'pc'}));
+    var params = {
+      'id': songId,
+      'cp': false,
+      'tv': 0,
+      'lv': 0,
+      'rv': 0,
+      'kv': 0,
+      'yv': 0,
+      'ytv': 0,
+      'yrv': 0,
+    };
+    return DioMetaData(joinUri('/api/song/lyric/v1'), data: params, options: joinOptions(encryptType: EncryptType.EApi, eApiUrl: '/api/song/lyric/v1'));
   }
 
   /// 音乐是否可用

@@ -96,6 +96,51 @@ void main() {
       expect(manipulateTracks.options!.extra!['encryptType'], EncryptType.EApi);
       expect(manipulateTracks.options!.extra!['eApiUrl'], '/api/playlist/manipulate/tracks');
     });
+
+    test('core music typed APIs follow upstream request metadata', () {
+      final songDetail = api.songDetailDioMetaData(['101', '202']);
+      expect(songDetail.uri.path, '/api/v3/song/detail');
+      expect(songDetail.data, {
+        'c': '[{"id":101},{"id":202}]',
+      });
+      expect(songDetail.options!.extra!['encryptType'], EncryptType.WeApi);
+
+      final lyric = api.songLyricDioMetaData('101');
+      expect(lyric.uri.path, '/api/song/lyric/v1');
+      expect(lyric.data, {
+        'id': '101',
+        'cp': false,
+        'tv': 0,
+        'lv': 0,
+        'rv': 0,
+        'kv': 0,
+        'yv': 0,
+        'ytv': 0,
+        'yrv': 0,
+      });
+      expect(lyric.options!.extra!['encryptType'], EncryptType.EApi);
+      expect(lyric.options!.extra!['eApiUrl'], '/api/song/lyric/v1');
+
+      final like = api.likeSongDioMetaData('101', false);
+      expect(like.uri.path, '/api/radio/like');
+      expect(like.data, {
+        'alg': 'itembased',
+        'trackId': '101',
+        'like': false,
+        'time': '3',
+      });
+      expect(like.options!.extra!['encryptType'], EncryptType.WeApi);
+
+      final userPlaylist = api.userPlayListDioMetaData('42');
+      expect(userPlaylist.uri.path, '/api/user/playlist');
+      expect(userPlaylist.data, {
+        'uid': '42',
+        'limit': 30,
+        'offset': 0,
+        'includeVideo': true,
+      });
+      expect(userPlaylist.options!.extra!['encryptType'], EncryptType.WeApi);
+    });
   });
 }
 

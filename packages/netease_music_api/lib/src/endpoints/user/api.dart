@@ -118,8 +118,13 @@ mixin ApiUser {
 
   /// 构建用户歌单列表请求元数据。
   DioMetaData userPlayListDioMetaData(String userId, {int offset = 0, int limit = 30}) {
-    var params = {'uid': userId, 'limit': limit, 'offset': offset};
-    return DioMetaData(joinUri('/weapi/user/playlist'), data: params, options: joinOptions());
+    var params = {
+      'uid': userId,
+      'limit': limit,
+      'offset': offset,
+      'includeVideo': true,
+    };
+    return DioMetaData(joinUri('/api/user/playlist'), data: params, options: joinOptions());
   }
 
   /// 获取用户歌单

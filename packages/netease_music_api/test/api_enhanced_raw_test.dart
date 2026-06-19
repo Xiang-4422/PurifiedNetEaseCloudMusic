@@ -255,7 +255,8 @@ void main() {
     });
 
     test('eapi decrypt reports missing input', () {
-      expect(api.eapiDecrypt({}), {'code': 400, 'message': 'data is required'});
+      expect(api.eapiDecrypt({}), {'code': 400, 'message': 'hex string is required'});
+      expect(api.eapiDecrypt({'data': '00'}), {'code': 400, 'message': 'hex string is required'});
     });
 
     test('eapi decrypt decodes request and response payloads', () {
@@ -272,7 +273,11 @@ void main() {
       });
     });
 
-    test('decrypt supports api, linuxapi, weapi response, and xeapi response', () {
+    test('decrypt reports missing input', () async {
+      expect(await api.requestModule('decrypt', {}), {'code': 400, 'message': 'data is required'});
+    });
+
+    test('decrypt supports api, linuxapi, weapi response, and xeapi response', () async {
       final linuxHex = _encryptAesEcbText(
         '{"method":"POST","url":"https://music.163.com/api/test","params":{"id":1}}',
         'rFgB&h#%2?^eDg:Q',
@@ -280,38 +285,38 @@ void main() {
       final encryptedResponseHex = _encryptEapiText('{"code":200,"encrypted":true}');
       final xeapiResponse = base64Encode(Encrypted.fromBase16(encryptedResponseHex).bytes);
 
-      expect(api.eapiDecrypt({'crypto': 'api', 'data': '{"code":200,"plain":true}'})['data'], {
+      expect((await api.requestModule('decrypt', {'crypto': 'api', 'data': '{"code":200,"plain":true}'}))['data'], {
         'code': 200,
         'plain': true,
       });
-      expect(api.eapiDecrypt({'crypto': 'linuxapi', 'data': linuxHex})['data'], {
+      expect((await api.requestModule('decrypt', {'crypto': 'linuxapi', 'data': linuxHex}))['data'], {
         'method': 'POST',
         'url': 'https://music.163.com/api/test',
         'params': {'id': 1},
       });
-      expect(api.eapiDecrypt({'crypto': 'linuxapi', 'data': '{"code":200}', 'isReq': 'false'})['data'], {
+      expect((await api.requestModule('decrypt', {'crypto': 'linuxapi', 'data': '{"code":200}', 'isReq': 'false'}))['data'], {
         'code': 200,
       });
-      expect(api.eapiDecrypt({'crypto': 'weapi', 'data': encryptedResponseHex, 'isReq': 'false'})['data'], {
+      expect((await api.requestModule('decrypt', {'crypto': 'weapi', 'data': encryptedResponseHex, 'isReq': 'false'}))['data'], {
         'code': 200,
         'encrypted': true,
       });
-      expect(api.eapiDecrypt({'crypto': 'xeapi', 'data': xeapiResponse, 'isReq': 'false'})['data'], {
+      expect((await api.requestModule('decrypt', {'crypto': 'xeapi', 'data': xeapiResponse, 'isReq': 'false'}))['data'], {
         'code': 200,
         'encrypted': true,
       });
     });
 
-    test('decrypt reports unsupported request crypto forms', () {
-      expect(api.eapiDecrypt({'crypto': 'weapi', 'data': '00'}), {
+    test('decrypt reports unsupported request crypto forms', () async {
+      expect(await api.requestModule('decrypt', {'crypto': 'weapi', 'data': '00'}), {
         'code': 400,
         'message': 'weapi 请求解密需要 RSA 私钥，暂不支持；仅支持 weapi 返回数据解密（e_r=true 时与 eapi 相同）',
       });
-      expect(api.eapiDecrypt({'crypto': 'xeapi', 'data': 'AA=='}), {
+      expect(await api.requestModule('decrypt', {'crypto': 'xeapi', 'data': 'AA=='}), {
         'code': 400,
         'message': 'xeapi 请求解密涉及 X25519 ECDH 密钥交换，流程复杂，暂不支持；仅支持 xeapi 返回数据解密',
       });
-      expect(api.eapiDecrypt({'crypto': 'unknown', 'data': '00'}), {
+      expect(await api.requestModule('decrypt', {'crypto': 'unknown', 'data': '00'}), {
         'code': 400,
         'message': '未知加密方式: unknown',
       });

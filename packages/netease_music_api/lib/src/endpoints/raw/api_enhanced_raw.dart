@@ -63,6 +63,7 @@ mixin ApiEnhancedRaw {
       case 'api':
         return enhancedApi(query);
       case 'decrypt':
+        return decryptRaw(query);
       case 'eapi_decrypt':
         return eapiDecrypt(query);
       case 'audio_match':
@@ -146,8 +147,8 @@ mixin ApiEnhancedRaw {
     return (await Https.dioProxy.requestUri(metadata)).data;
   }
 
-  /// Local upstream-compatible decrypt helper.
-  dynamic eapiDecrypt(Map<String, dynamic> query) {
+  /// Local upstream-compatible multi-crypto decrypt helper.
+  dynamic decryptRaw(Map<String, dynamic> query) {
     final crypto = query['crypto']?.toString() ?? 'eapi';
     final input = query['data'] ?? query['hexString'];
     if (input == null || input == '') {
@@ -203,6 +204,31 @@ mixin ApiEnhancedRaw {
             'message': '未知加密方式: $crypto',
           };
       }
+    } catch (error) {
+      return {
+        'code': 400,
+        'message': '解密失败: $error',
+      };
+    }
+  }
+
+  /// Local upstream-compatible EAPI decrypt helper.
+  dynamic eapiDecrypt(Map<String, dynamic> query) {
+    final input = query['hexString'];
+    if (input == null || input == '') {
+      return {
+        'code': 400,
+        'message': 'hex string is required',
+      };
+    }
+    final hexString = input.toString();
+    final isReq = query['isReq']?.toString() != 'false';
+
+    try {
+      return {
+        'code': 200,
+        'data': isReq ? _eapiReqDecrypt(hexString) : eapiResDecrypt(_hexBytes(hexString)),
+      };
     } catch (error) {
       return {
         'code': 400,

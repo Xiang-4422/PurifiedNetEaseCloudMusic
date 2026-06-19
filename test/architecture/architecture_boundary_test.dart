@@ -1318,6 +1318,30 @@ void main() {
       );
     });
 
+    test('drift table definitions stay in schema part', () {
+      final databaseFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/drift_database.dart',
+      );
+      final tablePartFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/schema/drift_tables.dart',
+      );
+      final databaseContent = databaseFile.readAsStringSync();
+      final tablePartContent = tablePartFile.readAsStringSync();
+      final violations = <String>[
+        if (!databaseContent.contains("part 'schema/drift_tables.dart';")) 'missing drift_tables part',
+        if (databaseContent.contains(' extends Table')) 'drift_database.dart defines tables',
+        if (!tablePartContent.contains("part of '../drift_database.dart';")) 'drift_tables.dart missing part-of',
+        if (!tablePartContent.contains('class Tracks extends Table')) 'drift_tables.dart missing Tracks table',
+        if (!tablePartContent.contains('class UserSyncMarkers extends Table')) 'drift_tables.dart missing user tables',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'Drift 表定义必须放在 schema/drift_tables.dart，drift_database.dart 只保留数据库、迁移和索引装配。',
+      );
+    });
+
     test('large architecture files are reported as soft risks', () {
       const watchedFiles = {
         'lib/features/playback/player_controller.dart': 450,

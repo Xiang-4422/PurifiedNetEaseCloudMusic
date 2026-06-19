@@ -141,6 +141,28 @@ void main() {
       expect(metaData.options!.extra!['cookies'], {'MUSIC_U': 'token'});
     });
 
+    test('maps randomCNIP to a generated real IP', () {
+      final metaData = api.requestModuleDioMetaData('album', {
+        'id': '1',
+        'randomCNIP': true,
+      });
+      final realIP = metaData.options!.extra!['realIP'];
+
+      expect(realIP, isA<String>());
+      expect(_isIpv4(realIP as String), isTrue);
+      expect(metaData.options!.extra!['randomCNIP'], isTrue);
+    });
+
+    test('keeps explicit realIP before randomCNIP', () {
+      final metaData = api.requestModuleDioMetaData('album', {
+        'id': '1',
+        'realIP': '1.2.3.4',
+        'randomCNIP': true,
+      });
+
+      expect(metaData.options!.extra!['realIP'], '1.2.3.4');
+    });
+
     test('maps dynamic path templates', () {
       final album = api.requestModuleDioMetaData('album', {'id': '456'});
       expect(album.uri.path, '/api/v1/album/456');
@@ -319,4 +341,15 @@ class _UploadAdapter implements HttpClientAdapter {
 String _encryptEapiText(String text) {
   final encrypter = Encrypter(AES(Key.fromUtf8('e82ckenh8dichen8'), mode: AESMode.ecb));
   return encrypter.encrypt(text, iv: IV.fromLength(0)).base16;
+}
+
+bool _isIpv4(String value) {
+  final parts = value.split('.');
+  if (parts.length != 4) {
+    return false;
+  }
+  return parts.every((part) {
+    final parsed = int.tryParse(part);
+    return parsed != null && parsed >= 0 && parsed <= 255;
+  });
 }

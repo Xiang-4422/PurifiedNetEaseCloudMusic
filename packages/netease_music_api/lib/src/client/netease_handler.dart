@@ -31,6 +31,7 @@ void neteaseInterceptor(RequestOptions option, RequestInterceptorHandler handler
     var realIP = option.extra['realIP'];
     if (realIP != null) {
       option.headers['X-Real-IP'] = realIP;
+      option.headers['X-Forwarded-For'] = realIP;
     }
     option.headers[HttpHeaders.userAgentHeader] = _chooseUserAgent(option.extra['userAgent'], rawUserAgent: option.extra['rawUserAgent']);
 
@@ -119,6 +120,7 @@ const String _presetKeyLinuxForward = 'rFgB&h#%2?^eDg:Q';
 
 const _presetKeyWeApi = '0CoJUm6Qyw8W8jud';
 const _ivWeApi = '0102030405060708';
+const _checkToken = '9ca17ae2e6ffcda170e2e6ee8af14fbabdb988f225b3868eb2c15a879b9a83d274a790ac8ff54a97b889d5d42af0feaec3b92af58cff99c470a7eafd88f75e839a9ea7c14e909da883e83fb692a3abdb6b92adee9e';
 const _publicKeyWeApi =
     '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDgtQn2JZ34ZC28NWYpAUd98iZ37BUrX/aKzmFbt7clFSs6sXqHauqKWqdtLkF2KexO40H1YTX8z2lSgBBOAxLsvaklV8k4cBFK9snQXE9/DDaFt6Rr7iVZMldczhC0JNgTz+SHXT6CBHuX3e9SdB1Ua44oncaTWz7OBGLbCiK45wIDAQAB\n-----END PUBLIC KEY-----';
 
@@ -214,6 +216,9 @@ void _handleEApi(RequestOptions option, List<Cookie> cookies) {
   header['os'] = cookiesMap['os'] ?? 'android';
   header['channel'] = cookiesMap['channel'];
   header['__csrf'] = cookiesMap['__csrf'] ?? '';
+  if (option.extra['checkToken'] == true) {
+    header['X-antiCheatToken'] = _checkToken;
+  }
   if (cookiesMap['MUSIC_U'] != null) {
     header['MUSIC_U'] = cookiesMap['MUSIC_U'];
   }
@@ -329,6 +334,58 @@ String _cookieMapToString(Map<String, String> cookies) {
   }).join('; ');
 }
 
+String? _resolveRequestRealIp(String? realIP, {required bool randomCNIP}) {
+  final explicit = realIP?.trim();
+  if (explicit != null && explicit.isNotEmpty) {
+    return explicit;
+  }
+  return randomCNIP ? _generateRandomChineseIp() : null;
+}
+
+String _generateRandomChineseIp({Random? random}) {
+  final source = random ?? Random();
+  final block = _chinaIpCBlocks[source.nextInt(_chinaIpCBlocks.length)];
+  final third = block.thirdStart + source.nextInt(block.thirdEnd - block.thirdStart + 1);
+  final fourth = source.nextInt(254) + 1;
+  return '${block.first}.${block.second}.$third.$fourth';
+}
+
+const _chinaIpCBlocks = [
+  _ChinaIpCBlock(1, 1, 8, 8),
+  _ChinaIpCBlock(1, 2, 4, 4),
+  _ChinaIpCBlock(14, 16, 0, 255),
+  _ChinaIpCBlock(14, 112, 0, 255),
+  _ChinaIpCBlock(27, 16, 0, 255),
+  _ChinaIpCBlock(27, 40, 0, 255),
+  _ChinaIpCBlock(36, 128, 0, 255),
+  _ChinaIpCBlock(39, 144, 0, 255),
+  _ChinaIpCBlock(42, 48, 0, 255),
+  _ChinaIpCBlock(58, 30, 0, 255),
+  _ChinaIpCBlock(101, 64, 0, 255),
+  _ChinaIpCBlock(111, 0, 0, 255),
+  _ChinaIpCBlock(112, 64, 0, 255),
+  _ChinaIpCBlock(116, 16, 0, 255),
+  _ChinaIpCBlock(117, 128, 0, 255),
+  _ChinaIpCBlock(121, 32, 0, 255),
+  _ChinaIpCBlock(123, 112, 0, 255),
+  _ChinaIpCBlock(183, 128, 0, 255),
+  _ChinaIpCBlock(223, 64, 0, 255),
+];
+
+class _ChinaIpCBlock {
+  const _ChinaIpCBlock(
+    this.first,
+    this.second,
+    this.thirdStart,
+    this.thirdEnd,
+  );
+
+  final int first;
+  final int second;
+  final int thirdStart;
+  final int thirdEnd;
+}
+
 /// 创建带网易云加密拦截参数的 Dio 请求选项。
 Options joinOptions({
   hookRequestDate = true,
@@ -340,6 +397,7 @@ Options joinOptions({
   String? rawUserAgent,
   String? domain,
   bool checkToken = false,
+  bool randomCNIP = false,
 }) =>
     Options(contentType: ContentType.json.value, extra: {
       'hookRequestData': hookRequestDate,
@@ -347,10 +405,11 @@ Options joinOptions({
       'userAgent': userAgent,
       'cookies': cookies,
       'eApiUrl': eApiUrl,
-      'realIP': realIP,
+      'realIP': _resolveRequestRealIp(realIP, randomCNIP: randomCNIP),
       'rawUserAgent': rawUserAgent,
       'domain': domain,
       'checkToken': checkToken,
+      'randomCNIP': randomCNIP,
     });
 
 /// 将相对路径拼成网易云主站 URI。

@@ -608,9 +608,18 @@ Options _rawOptions(EncryptType crypto, String path, Map<String, dynamic> query)
     realIP: query['realIP']?.toString(),
     rawUserAgent: query['ua']?.toString(),
     domain: query['domain']?.toString(),
-    checkToken: query['checkToken'] == true,
+    checkToken: _boolOption(query['checkToken']),
+    randomCNIP: _boolOption(query['randomCNIP']),
     cookies: _stringMap(query['cookie']),
   );
+}
+
+bool _boolOption(dynamic value) {
+  if (value is bool) {
+    return value;
+  }
+  final text = value?.toString().toLowerCase();
+  return text == 'true' || text == '1';
 }
 
 Map<String, String> _stringMap(dynamic value) {

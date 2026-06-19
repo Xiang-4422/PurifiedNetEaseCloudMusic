@@ -1342,6 +1342,31 @@ void main() {
       );
     });
 
+    test('drift schema maintenance sql stays in schema part', () {
+      final databaseFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/drift_database.dart',
+      );
+      final maintenancePartFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/schema/drift_schema_maintenance.dart',
+      );
+      final databaseContent = databaseFile.readAsStringSync();
+      final maintenanceContent = maintenancePartFile.readAsStringSync();
+      final violations = <String>[
+        if (!databaseContent.contains("part 'schema/drift_schema_maintenance.dart';")) 'missing maintenance part',
+        if (databaseContent.contains('CREATE INDEX')) 'drift_database.dart creates indexes',
+        if (databaseContent.contains('DROP TABLE')) 'drift_database.dart drops tables',
+        if (!maintenanceContent.contains("part of '../drift_database.dart';")) 'maintenance part missing part-of',
+        if (!maintenanceContent.contains('dropAllTablesForMigration(')) 'maintenance part missing migration drops',
+        if (!maintenanceContent.contains('createQueryIndexes(')) 'maintenance part missing index creation',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'Drift 迁移和索引 SQL 必须放在 schema/drift_schema_maintenance.dart，主数据库文件只做组合入口。',
+      );
+    });
+
     test('large architecture files are reported as soft risks', () {
       const watchedFiles = {
         'lib/features/playback/player_controller.dart': 450,

@@ -18,6 +18,7 @@ part 'api_enhanced_raw_methods.g.dart';
 const _apiDomain = 'https://interface.music.163.com';
 const _xeapiDomain = 'https://interface3.music.163.com';
 const _eapiKey = 'e82ckenh8dichen8';
+const _linuxapiKey = 'rFgB&h#%2?^eDg:Q';
 const _upstreamCheckToken = '9ca17ae2e6ffcda170e2e6ee8af14fbabdb988f225b3868eb2c15a879b9a83d274a790ac8ff54a97b889d5d42af0feaec3b92af58cff99c470a7eafd88f75e839a9ea7c14e909da883e83fb692a3abdb6b92adee9e';
 
 const _rawOptionKeys = {
@@ -145,44 +146,69 @@ mixin ApiEnhancedRaw {
     return (await Https.dioProxy.requestUri(metadata)).data;
   }
 
-  /// Local EAPI request/response decrypt helper.
+  /// Local upstream-compatible decrypt helper.
   dynamic eapiDecrypt(Map<String, dynamic> query) {
     final crypto = query['crypto']?.toString() ?? 'eapi';
-    if (crypto != 'eapi' && crypto != 'weapi') {
-      return {
-        'code': 400,
-        'message': 'decrypt currently supports eapi-compatible payloads only',
-      };
-    }
-    final hexString = (query['data'] ?? query['hexString'])?.toString().replaceAll(RegExp(r'\s+'), '');
-    if (hexString == null || hexString.isEmpty) {
+    final input = query['data'] ?? query['hexString'];
+    if (input == null || input == '') {
       return {
         'code': 400,
         'message': 'data is required',
       };
     }
     final isReq = query['isReq']?.toString() != 'false';
-    final text = _aesEcbDecryptHex(hexString);
-    if (isReq) {
-      final match = RegExp(r'(.*?)-36cd479b6b5-(.*?)-36cd479b6b5-(.*)').firstMatch(text);
-      if (match == null) {
-        return {'code': 200, 'data': null};
+
+    try {
+      switch (crypto) {
+        case 'eapi':
+          return {
+            'code': 200,
+            'data': isReq ? _eapiReqDecrypt(input.toString()) : eapiResDecrypt(_hexBytes(input.toString())),
+          };
+        case 'weapi':
+          if (isReq) {
+            return {
+              'code': 400,
+              'message': 'weapi 请求解密需要 RSA 私钥，暂不支持；仅支持 weapi 返回数据解密（e_r=true 时与 eapi 相同）',
+            };
+          }
+          return {
+            'code': 200,
+            'data': eapiResDecrypt(_hexBytes(input.toString())),
+          };
+        case 'linuxapi':
+          return {
+            'code': 200,
+            'data': isReq ? jsonDecode(_aesEcbDecryptHex(input.toString(), key: _linuxapiKey)) : _jsonOrValue(input),
+          };
+        case 'xeapi':
+          if (isReq) {
+            return {
+              'code': 400,
+              'message': 'xeapi 请求解密涉及 X25519 ECDH 密钥交换，流程复杂，暂不支持；仅支持 xeapi 返回数据解密',
+            };
+          }
+          return {
+            'code': 200,
+            'data': xeapiResDecrypt(base64Decode(input.toString())),
+          };
+        case 'api':
+          return {
+            'code': 200,
+            'data': _jsonOrValue(input),
+          };
+        default:
+          return {
+            'code': 400,
+            'message': '未知加密方式: $crypto',
+          };
       }
+    } catch (error) {
       return {
-        'code': 200,
-        'data': {
-          'url': match.group(1),
-          'data': jsonDecode(match.group(2)!),
-        },
+        'code': 400,
+        'message': '解密失败: $error',
       };
     }
-    dynamic data;
-    try {
-      data = jsonDecode(text);
-    } catch (_) {
-      data = text;
-    }
-    return {'code': 200, 'data': data};
   }
 
   /// Direct audio fingerprint match helper.
@@ -1152,9 +1178,32 @@ String _resolvePath(String template, Map<String, dynamic> query) {
   });
 }
 
-String _aesEcbDecryptHex(String hexString) {
-  final encrypted = Encrypted.fromBase16(hexString);
-  final encrypter = Encrypter(AES(Key.fromUtf8(_eapiKey), mode: AESMode.ecb));
+dynamic _eapiReqDecrypt(String hexString) {
+  final text = _aesEcbDecryptHex(hexString);
+  final match = RegExp(r'(.*?)-36cd479b6b5-(.*?)-36cd479b6b5-(.*)').firstMatch(text);
+  if (match == null) {
+    return null;
+  }
+  return {
+    'url': match.group(1),
+    'data': jsonDecode(match.group(2)!),
+  };
+}
+
+dynamic _jsonOrValue(dynamic value) {
+  if (value is! String) {
+    return value;
+  }
+  return jsonDecode(value);
+}
+
+List<int> _hexBytes(String hexString) {
+  return Encrypted.fromBase16(hexString.replaceAll(RegExp(r'\s+'), '')).bytes;
+}
+
+String _aesEcbDecryptHex(String hexString, {String key = _eapiKey}) {
+  final encrypted = Encrypted.fromBase16(hexString.replaceAll(RegExp(r'\s+'), ''));
+  final encrypter = Encrypter(AES(Key.fromUtf8(key), mode: AESMode.ecb));
   return encrypter.decrypt(encrypted, iv: IV.fromLength(0));
 }
 

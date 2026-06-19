@@ -272,6 +272,51 @@ void main() {
       });
     });
 
+    test('decrypt supports api, linuxapi, weapi response, and xeapi response', () {
+      final linuxHex = _encryptAesEcbText(
+        '{"method":"POST","url":"https://music.163.com/api/test","params":{"id":1}}',
+        'rFgB&h#%2?^eDg:Q',
+      );
+      final encryptedResponseHex = _encryptEapiText('{"code":200,"encrypted":true}');
+      final xeapiResponse = base64Encode(Encrypted.fromBase16(encryptedResponseHex).bytes);
+
+      expect(api.eapiDecrypt({'crypto': 'api', 'data': '{"code":200,"plain":true}'})['data'], {
+        'code': 200,
+        'plain': true,
+      });
+      expect(api.eapiDecrypt({'crypto': 'linuxapi', 'data': linuxHex})['data'], {
+        'method': 'POST',
+        'url': 'https://music.163.com/api/test',
+        'params': {'id': 1},
+      });
+      expect(api.eapiDecrypt({'crypto': 'linuxapi', 'data': '{"code":200}', 'isReq': 'false'})['data'], {
+        'code': 200,
+      });
+      expect(api.eapiDecrypt({'crypto': 'weapi', 'data': encryptedResponseHex, 'isReq': 'false'})['data'], {
+        'code': 200,
+        'encrypted': true,
+      });
+      expect(api.eapiDecrypt({'crypto': 'xeapi', 'data': xeapiResponse, 'isReq': 'false'})['data'], {
+        'code': 200,
+        'encrypted': true,
+      });
+    });
+
+    test('decrypt reports unsupported request crypto forms', () {
+      expect(api.eapiDecrypt({'crypto': 'weapi', 'data': '00'}), {
+        'code': 400,
+        'message': 'weapi 请求解密需要 RSA 私钥，暂不支持；仅支持 weapi 返回数据解密（e_r=true 时与 eapi 相同）',
+      });
+      expect(api.eapiDecrypt({'crypto': 'xeapi', 'data': 'AA=='}), {
+        'code': 400,
+        'message': 'xeapi 请求解密涉及 X25519 ECDH 密钥交换，流程复杂，暂不支持；仅支持 xeapi 返回数据解密',
+      });
+      expect(api.eapiDecrypt({'crypto': 'unknown', 'data': '00'}), {
+        'code': 400,
+        'message': '未知加密方式: unknown',
+      });
+    });
+
     test('song url v1 special module rewrites upstream xeapi data shape', () async {
       final proxy = _CaptureDioProxy();
       Https.setDioProxyForTesting(proxy);
@@ -748,7 +793,11 @@ class _UploadAdapter implements HttpClientAdapter {
 }
 
 String _encryptEapiText(String text) {
-  final encrypter = Encrypter(AES(Key.fromUtf8('e82ckenh8dichen8'), mode: AESMode.ecb));
+  return _encryptAesEcbText(text, 'e82ckenh8dichen8');
+}
+
+String _encryptAesEcbText(String text, String key) {
+  final encrypter = Encrypter(AES(Key.fromUtf8(key), mode: AESMode.ecb));
   return encrypter.encrypt(text, iv: IV.fromLength(0)).base16;
 }
 

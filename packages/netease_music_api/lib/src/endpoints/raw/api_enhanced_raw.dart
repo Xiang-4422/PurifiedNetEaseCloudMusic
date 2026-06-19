@@ -21,6 +21,26 @@ const _xeapiDomain = 'https://interface3.music.163.com';
 const _eapiKey = 'e82ckenh8dichen8';
 const _linuxapiKey = 'rFgB&h#%2?^eDg:Q';
 const _upstreamCheckToken = '9ca17ae2e6ffcda170e2e6ee8af14fbabdb988f225b3868eb2c15a879b9a83d274a790ac8ff54a97b889d5d42af0feaec3b92af58cff99c470a7eafd88f75e839a9ea7c14e909da883e83fb692a3abdb6b92adee9e';
+const _resourceTypePrefixes = {
+  '0': 'R_SO_4_',
+  '1': 'R_MV_5_',
+  '2': 'A_PL_0_',
+  '3': 'R_AL_3_',
+  '4': 'A_DJ_1_',
+  '5': 'R_VI_62_',
+  '6': 'A_EV_2_',
+  '7': 'A_DR_14_',
+};
+const _resourceTypeIds = {
+  '0': '4',
+  '1': '5',
+  '2': '0',
+  '3': '3',
+  '4': '1',
+  '5': '62',
+  '6': '2',
+  '7': '14',
+};
 
 const _rawOptionKeys = {
   'cookie',
@@ -919,11 +939,91 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         hasCaptcha ? 'captcha' : 'password': hasCaptcha ? captcha : _loginPassword(query),
         'remember': 'true',
       };
+    case 'comment_music':
+    case 'comment_playlist':
+    case 'comment_hot':
+      return {
+        'rid': query['id'],
+        'limit': _jsDefault(query['limit'], 20),
+        'offset': _jsDefault(query['offset'], 0),
+        'beforeTime': _jsDefault(query['before'], 0),
+      };
+    case 'comment_new':
+      final pageSize = _jsDefault(query['pageSize'], 20);
+      final pageNo = _jsDefault(query['pageNo'], 1);
+      var sortType = _jsNumberOrDefault(query['sortType'], 99);
+      if (sortType == 1) {
+        sortType = 99;
+      }
+      return {
+        'threadId': '${_resourceTypePrefix(query['type'])}${query['id']}',
+        'pageNo': pageNo,
+        'showInner': _jsDefault(query['showInner'], true),
+        'pageSize': pageSize,
+        'cursor': _commentNewCursor(
+          sortType,
+          pageNo: pageNo,
+          pageSize: pageSize,
+          query: query,
+        ),
+        'sortType': sortType,
+      };
+    case 'comment_like':
+      final prefix = _resourceTypePrefix(query['type']);
+      return {
+        'threadId': prefix == 'A_EV_2_' ? query['threadId'] : '$prefix${query['id']}',
+        'commentId': query['cid'],
+      };
+    case 'comment_floor':
+      return {
+        'parentCommentId': query['parentCommentId'],
+        'threadId': '${_resourceTypePrefix(query['type'])}${query['id']}',
+        'time': _jsDefault(query['time'], -1),
+        'limit': _jsDefault(query['limit'], 20),
+      };
+    case 'comment_hug_list':
+      return {
+        'targetUserId': query['uid'],
+        'commentId': query['cid'],
+        'cursor': _jsDefault(query['cursor'], '-1'),
+        'threadId': '${_resourceTypePrefix(query['type'], fallbackType: '0')}${query['sid']}',
+        'pageNo': _jsDefault(query['page'], 1),
+        'idCursor': _jsDefault(query['idCursor'], -1),
+        'pageSize': _jsDefault(query['pageSize'], 100),
+      };
+    case 'comment_info_list':
+      return {
+        'resourceType': _resourceTypeId(_jsDefault(query['type'], 0)),
+        'resourceIds': jsonEncode(_splitIds(query['ids'] ?? query['id'] ?? '')),
+      };
     case 'playlist_detail':
       return {
         'id': query['id'],
         'n': 100000,
         's': _jsDefault(query['s'], 8),
+      };
+    case 'playlist_detail_dynamic':
+      return {
+        'id': query['id'],
+        'n': 100000,
+        's': _jsDefault(query['s'], 8),
+      };
+    case 'playlist_hot':
+      return {};
+    case 'top_playlist':
+      return {
+        'cat': _jsDefault(query['cat'], '全部'),
+        'order': _jsDefault(query['order'], 'hot'),
+        'limit': _jsDefault(query['limit'], 50),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
+    case 'top_playlist_highquality':
+      return {
+        'cat': _jsDefault(query['cat'], '全部'),
+        'limit': _jsDefault(query['limit'], 50),
+        'lasttime': _jsDefault(query['before'], 0),
+        'total': true,
       };
     case 'playlist_subscribe':
       return {
@@ -1009,6 +1109,51 @@ bool _jsTruthy(dynamic value) {
   return true;
 }
 
+int _jsNumberOrDefault(dynamic value, int fallback) {
+  if (!_jsTruthy(value)) {
+    return fallback;
+  }
+  final parsed = num.tryParse(value.toString());
+  if (parsed == null || parsed == 0) {
+    return fallback;
+  }
+  return parsed.toInt();
+}
+
+num _jsNumberValue(dynamic value) {
+  if (value is num) {
+    return value;
+  }
+  return num.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+String _resourceTypePrefix(dynamic type, {String? fallbackType}) {
+  final key = type == null || type == '' ? fallbackType : type.toString();
+  return _resourceTypePrefixes[key] ?? '';
+}
+
+String _resourceTypeId(dynamic type) {
+  return _resourceTypeIds[type.toString()] ?? '';
+}
+
+dynamic _commentNewCursor(
+  int sortType, {
+  required dynamic pageNo,
+  required dynamic pageSize,
+  required Map<String, dynamic> query,
+}) {
+  switch (sortType) {
+    case 99:
+      return (_jsNumberValue(pageNo) - 1) * _jsNumberValue(pageSize);
+    case 2:
+      return 'normalHot#${(_jsNumberValue(pageNo) - 1) * _jsNumberValue(pageSize)}';
+    case 3:
+      return _jsDefault(query['cursor'], '0');
+    default:
+      return '';
+  }
+}
+
 String _loginPassword(Map<String, dynamic> query) {
   final md5Password = query['md5_password'];
   if (_jsTruthy(md5Password)) {
@@ -1019,6 +1164,10 @@ String _loginPassword(Map<String, dynamic> query) {
 
 String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
   switch (metadata.module) {
+    case 'comment_hot':
+      return '/api/v1/resource/hotcomments/${_resourceTypePrefix(query['type'])}${query['id']}';
+    case 'comment_like':
+      return '/api/v1/comment/${query['t']?.toString() == '1' ? 'like' : 'unlike'}';
     case 'playlist_subscribe':
       return query['t']?.toString() == '1' ? '/api/playlist/subscribe' : '/api/playlist/unsubscribe';
     case 'search':

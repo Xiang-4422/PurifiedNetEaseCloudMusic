@@ -26,6 +26,7 @@ const specialModules = new Set([
   'related_playlist',
   'song_url_match',
   'song_url_ncmget',
+  'song_url_v1_302',
   'audio_match',
   'register_anonimous',
   'register_xeapikey',

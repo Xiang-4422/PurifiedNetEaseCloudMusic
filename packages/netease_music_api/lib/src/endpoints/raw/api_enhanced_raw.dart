@@ -90,6 +90,8 @@ mixin ApiEnhancedRaw {
         return registerAnonimousRaw(query);
       case 'song_url_v1':
         return songUrlV1Raw(query);
+      case 'song_url_v1_302':
+        return songUrlV1302Raw(query);
       case 'vip_sign_history':
         return vipSignHistoryRaw(query);
       case 'vip_tasks_v1':
@@ -105,7 +107,7 @@ mixin ApiEnhancedRaw {
 
   DioMetaData _buildRawMetaData(ApiEnhancedModule metadata, Map<String, dynamic> query) {
     final path = _requestPath(metadata, query);
-    final crypto = _cryptoFromQuery(query['crypto']?.toString() ?? metadata.crypto);
+    final crypto = _cryptoFromQuery(_cryptoName(query, metadata.crypto));
     final data = _requestData(metadata.module, query);
     final method = (query['method']?.toString() ?? metadata.httpMethod).toUpperCase();
     final uri = _rawUri(path, crypto, query['domain']?.toString(), data: method == 'GET' ? data : null);
@@ -309,6 +311,41 @@ mixin ApiEnhancedRaw {
     );
   }
 
+  /// Song URL v1 302 module, including upstream download-url fallback behavior.
+  Future<dynamic> songUrlV1302Raw(Map<String, dynamic> query) async {
+    final level = query['level'];
+    final downloadResponse = await _rawPost(
+      '/api/song/enhance/download/url/v1',
+      {
+        'id': query['id'],
+        'immerseType': 'c51',
+        'level': level,
+      },
+      query,
+    );
+    final downloadUrl = _firstSongUrl(downloadResponse.data);
+    if (downloadUrl.isNotEmpty) {
+      return _redirectResponse(downloadUrl, downloadResponse);
+    }
+
+    final fallbackData = {
+      'ids': '[${query['id']}]',
+      'level': level,
+      'encodeType': 'flac',
+      if (level == 'sky') 'immerseType': 'c51',
+    };
+    final fallbackResponse = await _rawPost(
+      '/api/song/enhance/player/url/v1',
+      fallbackData,
+      query,
+    );
+    final fallbackUrl = _firstSongUrl(fallbackResponse.data);
+    if (fallbackUrl.isEmpty) {
+      return fallbackResponse.data;
+    }
+    return _redirectResponse(fallbackUrl, fallbackResponse);
+  }
+
   /// Song URL match depends on upstream Node unblockmusic-utils.
   dynamic songUrlMatchRaw(Map<String, dynamic> query) {
     return {
@@ -348,6 +385,21 @@ mixin ApiEnhancedRaw {
       ),
     );
     return response.data;
+  }
+
+  Future<Response<dynamic>> _rawPost(
+    String path,
+    Map<String, dynamic> data,
+    Map<String, dynamic> query,
+  ) {
+    final crypto = _cryptoFromQuery(_cryptoName(query, 'eapi'));
+    return Https.dioProxy.postUri(
+      DioMetaData(
+        _rawUri(path, crypto, query['domain']?.toString()),
+        data: data,
+        options: _rawOptions(crypto, path, query),
+      ),
+    );
   }
 
   /// Uploads a user avatar image.
@@ -735,6 +787,27 @@ Map<String, dynamic> _requestOptionsQuery(String module, Map<String, dynamic> qu
   return query;
 }
 
+String _firstSongUrl(dynamic value) {
+  final data = _asMap(value)['data'];
+  if (data is! List || data.isEmpty) {
+    return '';
+  }
+  final first = data.first;
+  if (first is! Map) {
+    return '';
+  }
+  return first['url']?.toString() ?? '';
+}
+
+Map<String, dynamic> _redirectResponse(String url, Response<dynamic> response) {
+  return {
+    'status': 302,
+    'body': '',
+    'cookie': response.headers[HttpHeaders.setCookieHeader] ?? const <String>[],
+    'redirectUrl': url,
+  };
+}
+
 Map<String, dynamic> _asMap(dynamic value) {
   if (value is Map<String, dynamic>) {
     return value;
@@ -764,6 +837,14 @@ EncryptType _cryptoFromQuery(String crypto) {
     default:
       return EncryptType.WeApi;
   }
+}
+
+String _cryptoName(Map<String, dynamic> query, String fallback) {
+  final override = query['crypto']?.toString();
+  if (override != null && override.isNotEmpty) {
+    return override;
+  }
+  return fallback.isEmpty ? 'eapi' : fallback;
 }
 
 Options _rawOptions(EncryptType crypto, String path, Map<String, dynamic> query) {

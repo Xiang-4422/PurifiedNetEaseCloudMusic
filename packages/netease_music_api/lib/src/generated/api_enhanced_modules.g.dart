@@ -2347,7 +2347,7 @@ const List<ApiEnhancedModule> apiEnhancedModules = [
     pathTemplate: '/api/song/enhance/download/url/v1',
     crypto: 'eapi',
     httpMethod: 'POST',
-    special: false,
+    special: true,
   ),
   ApiEnhancedModule(
     module: 'song_wiki_summary',
@@ -5542,7 +5542,7 @@ const Map<String, ApiEnhancedModule> apiEnhancedModuleByName = {
     pathTemplate: '/api/song/enhance/download/url/v1',
     crypto: 'eapi',
     httpMethod: 'POST',
-    special: false,
+    special: true,
   ),
   'song_wiki_summary': ApiEnhancedModule(
     module: 'song_wiki_summary',

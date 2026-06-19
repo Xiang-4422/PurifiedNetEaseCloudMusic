@@ -73,6 +73,7 @@ void main() {
         'song_url_match',
         'song_url_ncmget',
         'song_url_v1',
+        'song_url_v1_302',
         'vip_sign_history',
         'vip_tasks_v1',
         'voice_upload',
@@ -116,6 +117,10 @@ void main() {
       expect(api.requestModuleDioMetaData('login', {'crypto': 'api'}).options!.extra!['encryptType'], EncryptType.Api);
       expect(api.requestModuleDioMetaData('login', {'crypto': 'linuxapi'}).options!.extra!['encryptType'], EncryptType.LinuxForward);
       expect(api.requestModuleDioMetaData('album', {'id': '1', 'crypto': 'xeapi'}).options!.extra!['encryptType'], EncryptType.XeApi);
+    });
+
+    test('keeps module default crypto when query crypto is empty', () {
+      expect(api.requestModuleDioMetaData('album_privilege', {'id': '1', 'crypto': ''}).options!.extra!['encryptType'], EncryptType.EApi);
     });
 
     test('xeapi metadata uses interface3 domain', () {
@@ -263,6 +268,73 @@ void main() {
       });
     });
 
+    test('song url v1 302 special module returns redirect from download url', () async {
+      final proxy = _SongUrl302DioProxy([
+        {
+          'data': [
+            {'url': 'https://audio.test/download.flac'}
+          ],
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.requestModule('song_url_v1_302', {
+        'id': '123',
+        'level': 'lossless',
+      });
+
+      expect(proxy.paths, ['/api/song/enhance/download/url/v1']);
+      expect(proxy.requests.first.data, {
+        'id': '123',
+        'immerseType': 'c51',
+        'level': 'lossless',
+      });
+      expect(result, {
+        'status': 302,
+        'body': '',
+        'cookie': ['cookie-1=value'],
+        'redirectUrl': 'https://audio.test/download.flac',
+      });
+    });
+
+    test('song url v1 302 special module falls back to player url', () async {
+      final proxy = _SongUrl302DioProxy([
+        {
+          'data': [
+            {'url': null}
+          ],
+        },
+        {
+          'data': [
+            {'url': 'https://audio.test/player.flac'}
+          ],
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.requestModule('song_url_v1_302', {
+        'id': '123',
+        'level': 'sky',
+      });
+
+      expect(proxy.paths, [
+        '/api/song/enhance/download/url/v1',
+        '/api/song/enhance/player/url/v1',
+      ]);
+      expect(proxy.requests.last.data, {
+        'ids': '[123]',
+        'level': 'sky',
+        'encodeType': 'flac',
+        'immerseType': 'c51',
+      });
+      expect(result, {
+        'status': 302,
+        'body': '',
+        'cookie': ['cookie-2=value'],
+        'redirectUrl': 'https://audio.test/player.flac',
+      });
+    });
+
     test('unblock special modules expose explicit Dart behavior', () async {
       expect(await api.songUrlV1Raw({'id': '123', 'level': 'lossless', 'unblock': 'true'}), {
         'code': 500,
@@ -406,6 +478,33 @@ class _CaptureDioProxy extends DioProxy {
     return Response<T>(
       requestOptions: RequestOptions(path: metaData.uri.toString()),
       data: {'code': 200} as T,
+    );
+  }
+}
+
+class _SongUrl302DioProxy extends DioProxy {
+  _SongUrl302DioProxy(this._responses);
+
+  final List<Map<String, dynamic>> _responses;
+  final List<DioMetaData> requests = [];
+
+  List<String> get paths => requests.map((request) => request.uri.path).toList();
+
+  @override
+  Future<Response<T>> postUri<T>(
+    DioMetaData metaData, {
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    requests.add(metaData);
+    final index = requests.length - 1;
+    return Response<T>(
+      requestOptions: RequestOptions(path: metaData.uri.toString()),
+      data: _responses[index] as T,
+      headers: Headers.fromMap({
+        HttpHeaders.setCookieHeader: ['cookie-${index + 1}=value'],
+      }),
     );
   }
 }

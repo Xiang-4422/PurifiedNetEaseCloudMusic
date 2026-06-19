@@ -101,6 +101,14 @@ class LocalResourceIndexRepository {
     return entries;
   }
 
+  /// 列出本地资源，可按来源和类型过滤。
+  Future<List<LocalResourceEntry>> listResources({
+    Set<TrackResourceOrigin>? origins,
+    Set<LocalResourceKind>? kinds,
+  }) {
+    return _dataSource.listResources(origins: origins, kinds: kinds);
+  }
+
   /// 保存曲目的音频资源索引。
   Future<void> saveAudioResource(
     String trackId, {
@@ -155,6 +163,11 @@ class LocalResourceIndexRepository {
   /// 删除指定曲目的全部资源索引。
   Future<void> removeTrackResources(String trackId) {
     return _dataSource.removeTrackResources(trackId);
+  }
+
+  /// 删除指定曲目的指定资源索引。
+  Future<void> removeResource(String trackId, LocalResourceKind kind) {
+    return _dataSource.removeResource(trackId, kind);
   }
 
   /// 删除指定来源的全部资源索引。

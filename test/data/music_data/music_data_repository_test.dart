@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_library_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/local_music_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/netease_music_source.dart';
@@ -160,6 +163,52 @@ void main() {
       expect(artworkCacheRepository.cacheCallCount, 1);
       expect(artworkCacheRepository.cachedTrackIds, ['1']);
     });
+
+    test('clears playback cache resources without deleting other indexed resources', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-cache-cleanup-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final playbackAudio = await _writeFile(directory, 'playback.mp3');
+      final playbackLyrics = await _writeFile(directory, 'playback.lrc');
+      final managedArtwork = await _writeFile(directory, 'managed.jpg');
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.audio,
+            path: playbackAudio.path,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.lyrics,
+            path: playbackLyrics.path,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.artwork,
+            path: managedArtwork.path,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final repository = _buildRepository(
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      await repository.removePlaybackCache();
+
+      expect(playbackAudio.existsSync(), isFalse);
+      expect(playbackLyrics.existsSync(), isFalse);
+      expect(managedArtwork.existsSync(), isTrue);
+      expect(resourceIndexRepository.remainingResourceKinds('1'), {
+        LocalResourceKind.artwork,
+      });
+    });
   });
 }
 
@@ -167,13 +216,14 @@ MusicDataRepository _buildRepository({
   _FakeLocalLibraryDataSource? localDataSource,
   _FakeNeteaseMusicSource? neteaseSource,
   _FakeLocalArtworkCacheRepository? artworkCacheRepository,
+  _FakeLocalResourceIndexRepository? resourceIndexRepository,
 }) {
   final local = localDataSource ?? _FakeLocalLibraryDataSource();
   return MusicDataRepository(
     localDataSource: local,
     neteaseSource: neteaseSource ?? _FakeNeteaseMusicSource(),
     localMusicSource: _FakeLocalMusicSource(),
-    resourceIndexRepository: _FakeLocalResourceIndexRepository(),
+    resourceIndexRepository: resourceIndexRepository ?? _FakeLocalResourceIndexRepository(),
     artworkCacheRepository: artworkCacheRepository ?? _FakeLocalArtworkCacheRepository(),
   );
 }
@@ -184,6 +234,30 @@ Track _track(String id) {
     sourceType: SourceType.netease,
     sourceId: id,
     title: 'Track $id',
+  );
+}
+
+Future<File> _writeFile(Directory directory, String name) async {
+  final file = File('${directory.path}/$name');
+  await file.writeAsString(name);
+  return file;
+}
+
+LocalResourceEntry _resource({
+  required String trackId,
+  required LocalResourceKind kind,
+  required String path,
+  required TrackResourceOrigin origin,
+}) {
+  final now = DateTime(2026);
+  return LocalResourceEntry(
+    trackId: trackId,
+    kind: kind,
+    path: path,
+    origin: origin,
+    sizeBytes: 1,
+    createdAt: now,
+    lastAccessedAt: now,
   );
 }
 
@@ -290,9 +364,17 @@ class _FakeLocalMusicSource implements LocalMusicSource {
 }
 
 class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository {
+  _FakeLocalResourceIndexRepository({
+    List<LocalResourceEntry> resources = const [],
+  }) : _resources = {
+          for (final resource in resources) _key(resource.trackId, resource.kind): resource,
+        };
+
+  final Map<String, LocalResourceEntry> _resources;
+
   @override
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) async {
-    return const TrackResourceBundle();
+    return _toBundle(_resources.values.where((resource) => resource.trackId == trackId));
   }
 
   @override
@@ -300,9 +382,52 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
     Iterable<String> trackIds,
   ) async {
     return {
-      for (final trackId in trackIds) trackId: const TrackResourceBundle(),
+      for (final trackId in trackIds) trackId: await getTrackResourceBundle(trackId),
     };
   }
+
+  @override
+  Future<List<LocalResourceEntry>> listResources({
+    Set<TrackResourceOrigin>? origins,
+    Set<LocalResourceKind>? kinds,
+  }) async {
+    return _resources.values
+        .where(
+          (resource) => (origins == null || origins.isEmpty || origins.contains(resource.origin)) && (kinds == null || kinds.isEmpty || kinds.contains(resource.kind)),
+        )
+        .toList();
+  }
+
+  @override
+  Future<void> removeResource(String trackId, LocalResourceKind kind) async {
+    _resources.remove(_key(trackId, kind));
+  }
+
+  Set<LocalResourceKind> remainingResourceKinds(String trackId) {
+    return _resources.values.where((resource) => resource.trackId == trackId).map((resource) => resource.kind).toSet();
+  }
+
+  TrackResourceBundle _toBundle(Iterable<LocalResourceEntry> resources) {
+    LocalResourceEntry? audio;
+    LocalResourceEntry? artwork;
+    LocalResourceEntry? lyrics;
+    for (final resource in resources) {
+      switch (resource.kind) {
+        case LocalResourceKind.audio:
+          audio = resource;
+          break;
+        case LocalResourceKind.artwork:
+          artwork = resource;
+          break;
+        case LocalResourceKind.lyrics:
+          lyrics = resource;
+          break;
+      }
+    }
+    return TrackResourceBundle(audio: audio, artwork: artwork, lyrics: lyrics);
+  }
+
+  static String _key(String trackId, LocalResourceKind kind) => '$trackId|${kind.name}';
 
   @override
   dynamic noSuchMethod(Invocation invocation) {

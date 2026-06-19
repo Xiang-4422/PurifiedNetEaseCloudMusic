@@ -39,6 +39,14 @@ class DriftLocalResourceIndexDataSource implements LocalResourceIndexDataSource 
   }
 
   @override
+  Future<List<LocalResourceEntry>> listResources({
+    Set<TrackResourceOrigin>? origins,
+    Set<LocalResourceKind>? kinds,
+  }) {
+    return _dao.listResources(origins: origins, kinds: kinds);
+  }
+
+  @override
   Future<void> saveResource(LocalResourceEntry entry) {
     return _dao.saveResource(entry);
   }

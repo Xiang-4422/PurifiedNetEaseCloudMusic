@@ -445,13 +445,14 @@ class MusicDataRepository {
 
   /// 清理播放缓存来源的本地资源。
   Future<void> removePlaybackCache() async {
-    final entries = await getLocalSongs(
+    final resources = await _resourceIndexRepository.listResources(
       origins: const {TrackResourceOrigin.playbackCache},
     );
-    for (final entry in entries) {
-      await removeLocalTrackResources(
-        entry.track.id,
-        deleteSourceFiles: true,
+    for (final resource in resources) {
+      await _deleteResourceFile(resource, deleteFile: true);
+      await _resourceIndexRepository.removeResource(
+        resource.trackId,
+        resource.kind,
       );
     }
   }

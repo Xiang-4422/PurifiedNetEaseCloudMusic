@@ -63,11 +63,25 @@ class ResourceDao {
   Future<List<LocalResourceEntry>> listAudioResources({
     Set<TrackResourceOrigin>? origins,
   }) async {
+    return listResources(
+      origins: origins,
+      kinds: const {LocalResourceKind.audio},
+    );
+  }
+
+  /// 列出资源。
+  Future<List<LocalResourceEntry>> listResources({
+    Set<TrackResourceOrigin>? origins,
+    Set<LocalResourceKind>? kinds,
+  }) async {
     final query = _database.select(_database.localResourceEntries)
-      ..where((tbl) => tbl.kind.equals(LocalResourceKind.audio.name))
       ..orderBy([
         (tbl) => drift.OrderingTerm.asc(tbl.trackId),
+        (tbl) => drift.OrderingTerm.asc(tbl.kind),
       ]);
+    if (kinds != null && kinds.isNotEmpty) {
+      query.where((tbl) => tbl.kind.isIn(kinds.map((item) => item.name)));
+    }
     if (origins != null && origins.isNotEmpty) {
       query.where((tbl) => tbl.origin.isIn(origins.map((item) => item.name)));
     }

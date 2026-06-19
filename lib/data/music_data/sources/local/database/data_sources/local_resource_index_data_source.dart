@@ -23,6 +23,12 @@ abstract class LocalResourceIndexDataSource {
     Set<TrackResourceOrigin>? origins,
   });
 
+  /// 列出本地资源，可按来源和类型过滤。
+  Future<List<LocalResourceEntry>> listResources({
+    Set<TrackResourceOrigin>? origins,
+    Set<LocalResourceKind>? kinds,
+  });
+
   /// 保存本地资源。
   Future<void> saveResource(LocalResourceEntry entry);
 

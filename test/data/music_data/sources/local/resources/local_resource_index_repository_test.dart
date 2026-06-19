@@ -153,6 +153,18 @@ class _InMemoryResourceIndexDataSource implements LocalResourceIndexDataSource {
   }
 
   @override
+  Future<List<LocalResourceEntry>> listResources({
+    Set<TrackResourceOrigin>? origins,
+    Set<LocalResourceKind>? kinds,
+  }) async {
+    return _resources.values
+        .where(
+          (resource) => (origins == null || origins.isEmpty || origins.contains(resource.origin)) && (kinds == null || kinds.isEmpty || kinds.contains(resource.kind)),
+        )
+        .toList();
+  }
+
+  @override
   Future<void> saveResource(LocalResourceEntry entry) async {
     _resources[_key(entry.trackId, entry.kind)] = entry;
   }

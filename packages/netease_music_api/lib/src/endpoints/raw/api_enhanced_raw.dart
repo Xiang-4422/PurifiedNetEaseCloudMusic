@@ -1922,6 +1922,30 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], 0),
         'includeVideo': true,
       };
+    case 'voicelist_detail':
+      return {
+        'id': query['id'],
+      };
+    case 'voicelist_list':
+      return {
+        'limit': _jsDefault(query['limit'], '200'),
+        'offset': _jsDefault(query['offset'], '0'),
+        'voiceListId': query['voiceListId'],
+      };
+    case 'voicelist_list_search':
+      return {
+        'limit': _jsDefault(query['limit'], '200'),
+        'offset': _jsDefault(query['offset'], '0'),
+        'name': _jsDefault(query['name'], null),
+        'displayStatus': _jsDefault(query['displayStatus'], null),
+        'type': _jsDefault(query['type'], null),
+        'voiceFeeType': _jsDefault(query['voiceFeeType'], null),
+        'radioId': query['voiceListId'],
+      };
+    case 'voicelist_my_created':
+      return {
+        'limit': _jsDefault(query['limit'], 20),
+      };
     case 'voicelist_search':
       return {
         'keyword': query['keyword'] ?? '',
@@ -1929,6 +1953,14 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'limit': _jsDefault(query['limit'], '10'),
         'offset': _jsDefault(query['offset'], '30'),
         'e_r': true,
+      };
+    case 'voicelist_trans':
+      return {
+        'limit': _jsDefault(query['limit'], '200'),
+        'offset': _jsDefault(query['offset'], '0'),
+        'radioId': _jsDefault(query['radioId'], null),
+        'programId': _jsDefault(query['programId'], '0'),
+        'position': _jsDefault(query['position'], '1'),
       };
     case 'album_new':
       return {

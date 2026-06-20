@@ -1076,6 +1076,38 @@ const fixtures = [
     },
   },
   {
+    module: 'voicelist_detail',
+    query: {
+      id: '500',
+    },
+  },
+  {
+    module: 'voicelist_list',
+    query: {
+      voiceListId: '300',
+      limit: 0,
+      offset: '',
+    },
+  },
+  {
+    module: 'voicelist_list_search',
+    query: {
+      voiceListId: '300',
+    },
+  },
+  {
+    module: 'voicelist_my_created',
+    query: {
+      limit: 0,
+    },
+  },
+  {
+    module: 'voicelist_trans',
+    query: {
+      radioId: '300',
+    },
+  },
+  {
     module: 'album_new',
     query: {
       area: 'ZH',

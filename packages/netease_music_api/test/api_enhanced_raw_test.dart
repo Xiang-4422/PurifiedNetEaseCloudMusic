@@ -609,7 +609,29 @@ void main() {
       });
     });
 
-    test('maps voicelist search defaults and encrypted response flag', () {
+    test('maps voicelist request data like upstream', () {
+      expect(api.requestModuleDioMetaData('voicelist_detail', {'id': '500'}).data, {
+        'id': '500',
+      });
+      expect(api.requestModuleDioMetaData('voicelist_list', {'voiceListId': '300', 'limit': 0, 'offset': ''}).data, {
+        'limit': '200',
+        'offset': '0',
+        'voiceListId': '300',
+      });
+      expect(api.requestModuleDioMetaData('voicelist_list_search', {'voiceListId': '300'}).data, {
+        'limit': '200',
+        'offset': '0',
+        'name': null,
+        'displayStatus': null,
+        'type': null,
+        'voiceFeeType': null,
+        'radioId': '300',
+      });
+      final createdMetaData = api.requestModuleDioMetaData('voicelist_my_created', {'limit': 0});
+      expect(createdMetaData.data, {
+        'limit': 20,
+      });
+      expect(createdMetaData.options!.extra!['encryptType'], EncryptType.WeApi);
       final metaData = api.requestModuleDioMetaData('voicelist_search', {
         'keyword': 'podcast',
       });
@@ -621,6 +643,13 @@ void main() {
         'limit': '10',
         'offset': '30',
         'e_r': true,
+      });
+      expect(api.requestModuleDioMetaData('voicelist_trans', {'radioId': '300'}).data, {
+        'limit': '200',
+        'offset': '0',
+        'radioId': '300',
+        'programId': '0',
+        'position': '1',
       });
     });
 

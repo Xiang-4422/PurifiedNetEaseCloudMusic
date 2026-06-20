@@ -1980,6 +1980,32 @@ void main() {
       expect(adapter.called, isFalse);
     });
 
+    test('DioProxy forwards POST progress callbacks to Dio', () async {
+      final adapter = _ProgressRequestAdapter();
+      final dio = Dio()..httpClientAdapter = adapter;
+      final sentEvents = <(int, int)>[];
+      final receivedEvents = <(int, int)>[];
+      Https.setDioForTesting(dio);
+
+      await DioProxy().postUri(
+        DioMetaData(
+          Uri.parse('https://example.test/post'),
+          data: utf8.encode('payload'),
+        ),
+        onSendProgress: (sent, total) => sentEvents.add((sent, total)),
+        onReceiveProgress: (received, total) => receivedEvents.add((
+          received,
+          total,
+        )),
+      );
+
+      expect(adapter.bodyText, 'payload');
+      expect(sentEvents, isNotEmpty);
+      expect(sentEvents.last.$1, sentEvents.last.$2);
+      expect(receivedEvents, isNotEmpty);
+      expect(receivedEvents.last.$1, greaterThan(0));
+    });
+
     test('generic api special module dispatches raw request metadata', () async {
       final proxy = _CaptureDioProxy();
       Https.setDioProxyForTesting(proxy);
@@ -3550,6 +3576,33 @@ class _UnexpectedRequestAdapter implements HttpClientAdapter {
   ) async {
     called = true;
     return ResponseBody.fromString('{"code":200}', 200);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _ProgressRequestAdapter implements HttpClientAdapter {
+  List<int> bodyBytes = const [];
+
+  String get bodyText => utf8.decode(bodyBytes);
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    final bytes = <int>[];
+    if (requestStream != null) {
+      await for (final chunk in requestStream) {
+        bytes.addAll(chunk);
+      }
+    }
+    bodyBytes = bytes;
+    return ResponseBody.fromBytes(utf8.encode('{"code":200}'), 200, headers: {
+      Headers.contentTypeHeader: [Headers.jsonContentType],
+    });
   }
 
   @override

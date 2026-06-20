@@ -81,6 +81,30 @@ void main() {
       expect(item.metadata.containsKey('artistIds'), isFalse);
     });
 
+    test('prefers explicit track album and artist ids over legacy metadata', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(
+              albumId: 'explicit-album',
+              artistIds: const ['explicit-artist'],
+              metadata: const {
+                'albumId': 'legacy-album',
+                'artistIds': ['legacy-artist'],
+              },
+            ),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.albumId, 'explicit-album');
+      expect(item.artistIds, ['explicit-artist']);
+      expect(item.metadata.containsKey('albumId'), isFalse);
+      expect(item.metadata.containsKey('artistIds'), isFalse);
+    });
+
     test('maps source type as explicit queue item field instead of metadata key', () {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [
@@ -130,6 +154,8 @@ void main() {
 
 Track _track({
   SourceType sourceType = SourceType.netease,
+  String? albumId,
+  List<String> artistIds = const [],
   TrackAvailability availability = TrackAvailability.unknown,
   Map<String, Object?> metadata = const {},
 }) {
@@ -138,6 +164,8 @@ Track _track({
     sourceType: sourceType,
     sourceId: '1',
     title: 'Track',
+    albumId: albumId,
+    artistIds: artistIds,
     availability: availability,
     metadata: metadata,
   );

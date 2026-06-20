@@ -45,6 +45,8 @@ class Track {
     required this.title,
     this.artistNames = const [],
     this.albumTitle,
+    this.albumId,
+    this.artistIds = const [],
     this.durationMs,
     this.artworkUrl,
     this.remoteUrl,
@@ -70,6 +72,12 @@ class Track {
 
   /// 专辑标题。
   final String? albumTitle;
+
+  /// 来源侧专辑 id。
+  final String? albumId;
+
+  /// 来源侧歌手 id 列表。
+  final List<String> artistIds;
 
   /// 曲目时长，单位毫秒。
   final int? durationMs;
@@ -97,6 +105,8 @@ class Track {
     String? title,
     List<String>? artistNames,
     Object? albumTitle = _unset,
+    Object? albumId = _unset,
+    List<String>? artistIds,
     int? durationMs,
     Object? artworkUrl = _unset,
     Object? remoteUrl = _unset,
@@ -111,6 +121,8 @@ class Track {
       title: title ?? this.title,
       artistNames: artistNames ?? this.artistNames,
       albumTitle: identical(albumTitle, _unset) ? this.albumTitle : albumTitle as String?,
+      albumId: identical(albumId, _unset) ? this.albumId : albumId as String?,
+      artistIds: artistIds ?? this.artistIds,
       durationMs: durationMs ?? this.durationMs,
       artworkUrl: identical(artworkUrl, _unset) ? this.artworkUrl : artworkUrl as String?,
       remoteUrl: identical(remoteUrl, _unset) ? this.remoteUrl : remoteUrl as String?,

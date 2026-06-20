@@ -26,7 +26,7 @@ class TrackDao {
             (tbl) => tbl.title.like(likeKeyword) | tbl.artistSearchText.like(likeKeyword) | (tbl.albumTitle.isNotNull() & tbl.albumTitle.like(likeKeyword)),
           ))
         .get();
-    return rows.map(_mapTrackRow).toList();
+    return _mapTrackRows(rows);
   }
 
   /// 获取曲目。
@@ -35,7 +35,7 @@ class TrackDao {
     if (row == null) {
       return null;
     }
-    return _mapTrackRow(row);
+    return (await _mapTrackRows([row])).single;
   }
 
   /// 按 id 批量获取曲目。
@@ -45,13 +45,13 @@ class TrackDao {
       return const [];
     }
     final rows = await (_database.select(_database.tracks)..where((tbl) => tbl.trackId.isIn(ids))).get();
-    return rows.map(_mapTrackRow).toList();
+    return _mapTrackRows(rows);
   }
 
   /// 按专辑来源 id 获取曲目。
   Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
     final rows = await (_database.select(_database.tracks)..where((tbl) => tbl.albumSourceId.equals(albumSourceId))).get();
-    return rows.map(_mapTrackRow).toList();
+    return _mapTrackRows(rows);
   }
 
   /// 按歌手来源 id 获取曲目。
@@ -67,7 +67,7 @@ class TrackDao {
         drift.OrderingTerm.asc(_database.trackArtistRefs.sortOrder),
       ]);
     final rows = await query.map((row) => row.readTable(_database.tracks)).get();
-    return rows.map(_mapTrackRow).toList();
+    return _mapTrackRows(rows);
   }
 
   /// 保存曲目列表。
@@ -96,7 +96,7 @@ class TrackDao {
                   remoteUrl: drift.Value(track.remoteUrl),
                   lyricKey: drift.Value(track.lyricKey),
                   availability: drift.Value(track.availability.name),
-                  metadataJson: drift.Value(jsonEncode(track.metadata)),
+                  metadataJson: drift.Value(jsonEncode(_customMetadata(track.metadata))),
                 ),
               )
               .toList(),
@@ -106,7 +106,7 @@ class TrackDao {
         await (_database.delete(_database.trackArtistRefs)..where((tbl) => tbl.trackId.isIn(trackIdChunk))).go();
       }
       final artistRefs = tracks.expand((track) {
-        return _artistSourceIds(track).asMap().entries.map(
+        return _artistSourceIdsForSave(track).asMap().entries.map(
               (entry) => db.TrackArtistRefsCompanion.insert(
                 trackId: track.id,
                 artistSourceId: entry.value,
@@ -243,16 +243,14 @@ class TrackDao {
   }
 
   String? _albumSourceId(Track track) {
-    final raw = track.metadata['albumId'];
-    if (raw == null) {
-      return null;
-    }
-    final value = '$raw';
-    return value.isEmpty ? null : value;
+    return _stringOrNull(track.albumId) ?? _stringOrNull(track.metadata['albumId']);
   }
 
-  List<String> _artistSourceIds(Track track) {
-    return (track.metadata['artistIds'] as List? ?? const []).map((item) => '$item').where((item) => item.isNotEmpty).toList(growable: false);
+  List<String> _artistSourceIdsForSave(Track track) {
+    if (track.artistIds.isNotEmpty) {
+      return track.artistIds.where((item) => item.isNotEmpty).toList(growable: false);
+    }
+    return _metadataArtistSourceIds(track.metadata);
   }
 
   Iterable<List<T>> _chunks<T>(List<T> items, int size) sync* {
@@ -262,7 +260,48 @@ class TrackDao {
     }
   }
 
-  Track _mapTrackRow(db.Track row) {
+  Future<List<Track>> _mapTrackRows(List<db.Track> rows) async {
+    if (rows.isEmpty) {
+      return const [];
+    }
+    final artistIdsByTrackId = await _loadArtistSourceIdsByTrackId(
+      rows.map((row) => row.trackId),
+    );
+    return rows
+        .map(
+          (row) => _mapTrackRow(
+            row,
+            artistIds: artistIdsByTrackId[row.trackId] ?? const [],
+          ),
+        )
+        .toList();
+  }
+
+  Future<Map<String, List<String>>> _loadArtistSourceIdsByTrackId(
+    Iterable<String> trackIds,
+  ) async {
+    final ids = trackIds.toSet().toList();
+    if (ids.isEmpty) {
+      return const {};
+    }
+    final rows = await (_database.select(_database.trackArtistRefs)
+          ..where((tbl) => tbl.trackId.isIn(ids))
+          ..orderBy([
+            (tbl) => drift.OrderingTerm.asc(tbl.trackId),
+            (tbl) => drift.OrderingTerm.asc(tbl.sortOrder),
+          ]))
+        .get();
+    final result = <String, List<String>>{};
+    for (final row in rows) {
+      result.putIfAbsent(row.trackId, () => <String>[]).add(row.artistSourceId);
+    }
+    return result;
+  }
+
+  Track _mapTrackRow(
+    db.Track row, {
+    required List<String> artistIds,
+  }) {
     final artistNames = (jsonDecode(row.artistNamesJson) as List?)?.cast<String>() ?? const <String>[];
     final metadataDecoded = jsonDecode(row.metadataJson);
     final metadata = metadataDecoded is Map
@@ -270,6 +309,7 @@ class TrackDao {
             metadataDecoded.map((key, value) => MapEntry('$key', value)),
           )
         : const <String, Object?>{};
+    final migratedArtistIds = artistIds.isNotEmpty ? artistIds : _metadataArtistSourceIds(metadata);
     return Track(
       id: row.trackId,
       sourceType: SourceType.values.firstWhere(
@@ -280,6 +320,8 @@ class TrackDao {
       title: row.title,
       artistNames: artistNames,
       albumTitle: row.albumTitle,
+      albumId: row.albumSourceId ?? _stringOrNull(metadata['albumId']),
+      artistIds: migratedArtistIds,
       durationMs: row.durationMs,
       artworkUrl: row.artworkUrl,
       remoteUrl: row.remoteUrl,
@@ -288,8 +330,25 @@ class TrackDao {
         (item) => item.name == row.availability,
         orElse: () => TrackAvailability.unknown,
       ),
-      metadata: metadata,
+      metadata: _customMetadata(metadata),
     );
+  }
+
+  List<String> _metadataArtistSourceIds(Map<String, Object?> metadata) {
+    return (metadata['artistIds'] as List? ?? const []).map((item) => '$item').where((item) => item.isNotEmpty).toList(growable: false);
+  }
+
+  Map<String, Object?> _customMetadata(Map<String, Object?> metadata) {
+    return Map<String, Object?>.from(metadata)
+      ..remove('albumId')
+      ..remove('artistIds');
+  }
+
+  String? _stringOrNull(Object? value) {
+    if (value == null || '$value'.isEmpty) {
+      return null;
+    }
+    return '$value';
   }
 
   AlbumEntity _mapAlbumRow(db.Album row) {

@@ -45,8 +45,8 @@ class PlaybackQueueItemMapper {
       final localLyricsPath = _emptyToNull(resources.lyrics?.path);
       final localAudioPath = _emptyToNull(resources.audio?.path);
       final artworkUrl = localArtworkPath ?? _emptyToNull(ImageUrlNormalizer.normalize(track.artworkUrl));
-      final albumId = _emptyToNull(track.metadata['albumId']?.toString());
-      final artistIds = (track.metadata['artistIds'] as List? ?? const []).map((item) => '$item').toList();
+      final albumId = _emptyToNull(track.albumId) ?? _emptyToNull(track.metadata['albumId']?.toString());
+      final artistIds = track.artistIds.isNotEmpty ? track.artistIds : (track.metadata['artistIds'] as List? ?? const []).map((item) => '$item').toList();
       final metadata = <String, dynamic>{...track.metadata}
         ..remove('albumId')
         ..remove('artistIds')

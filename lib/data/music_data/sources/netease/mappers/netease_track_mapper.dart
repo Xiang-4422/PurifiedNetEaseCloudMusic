@@ -16,6 +16,8 @@ class NeteaseTrackMapper {
       title: song.name ?? '',
       artistNames: (song.artists ?? []).map((artist) => artist.name ?? '').toList(),
       albumTitle: song.album?.name,
+      albumId: _stringOrNull(song.album?.id),
+      artistIds: (song.artists ?? []).map((artist) => _stringOrNull(artist.id)).whereType<String>().toList(),
       durationMs: song.duration,
       artworkUrl: song.album?.picUrl,
       lyricKey: 'netease:${song.id}',
@@ -23,8 +25,6 @@ class NeteaseTrackMapper {
       metadata: {
         'mv': song.mvid,
         'fee': song.fee,
-        'albumId': song.album?.id,
-        'artistIds': (song.artists ?? []).map((artist) => artist.id).toList(),
       },
     );
   }
@@ -38,6 +38,8 @@ class NeteaseTrackMapper {
       title: song.name ?? '',
       artistNames: (song.ar ?? []).map((artist) => artist.name ?? '').toList(),
       albumTitle: song.al?.name,
+      albumId: _stringOrNull(song.al?.id),
+      artistIds: (song.ar ?? []).map((artist) => _stringOrNull(artist.id)).whereType<String>().toList(),
       durationMs: song.dt,
       artworkUrl: song.al?.picUrl,
       lyricKey: 'netease:${song.id}',
@@ -46,8 +48,6 @@ class NeteaseTrackMapper {
         'mv': song.mv,
         'fee': song.fee,
         'publishTime': song.publishTime,
-        'albumId': song.al?.id,
-        'artistIds': (song.ar ?? []).map((artist) => artist.id).toList(),
       },
     );
   }
@@ -78,5 +78,12 @@ class NeteaseTrackMapper {
   /// 将网易云云盘歌曲列表转换为领域曲目列表。
   static List<Track> fromCloudSongList(List<CloudSongItem> songs) {
     return songs.map(fromCloudSong).toList();
+  }
+
+  static String? _stringOrNull(Object? value) {
+    if (value == null || '$value'.isEmpty) {
+      return null;
+    }
+    return '$value';
   }
 }

@@ -1435,6 +1435,14 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'n': 100000,
         's': _jsDefault(query['s'], 8),
       };
+    case 'playlist_detail_rcmd_get':
+      return {
+        'scene': 'playlist_head',
+        'playlistId': query['id'],
+        'newStyle': 'true',
+      };
+    case 'playlist_video_recent':
+      return {};
     case 'playlist_hot':
       return {};
     case 'top_playlist':

@@ -435,6 +435,18 @@ const fixtures = [
     },
   },
   {
+    module: 'playlist_detail_rcmd_get',
+    query: {
+      id: '888',
+    },
+  },
+  {
+    module: 'playlist_video_recent',
+    query: {
+      limit: 5,
+    },
+  },
+  {
     module: 'playlist_hot',
     query: {},
   },

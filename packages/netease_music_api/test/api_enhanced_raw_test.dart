@@ -509,6 +509,12 @@ void main() {
         '/api/playlist/tags/update': '{"id":888,"tags":""}',
         '/api/playlist/update/name': '{"id":888,"name":"Renamed"}',
       });
+      expect(api.requestModuleDioMetaData('playlist_detail_rcmd_get', {'id': '888'}).data, {
+        'scene': 'playlist_head',
+        'playlistId': '888',
+        'newStyle': 'true',
+      });
+      expect(api.requestModuleDioMetaData('playlist_video_recent', {'limit': 5}).data, isEmpty);
     });
 
     test('maps playmode request data like upstream', () {

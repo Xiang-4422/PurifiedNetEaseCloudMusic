@@ -100,6 +100,7 @@ const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial
 const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelain']) || ''
 const manifestMissingUpstreamModules = sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module)))
 const manifestUnknownUpstreamModules = sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module)))
+const oracleUnknownModules = sorted([...oracleModules].filter((module) => !manifestModuleSet.has(module)))
 const normalMissingOracle = sorted(normalModules.filter((module) => !oracleModules.has(module)))
 const specialMissingStatus = sorted(specialModules.filter((module) => !categorizedSpecial.has(module)))
 const specialUnknownStatus = sorted([...categorizedSpecial].filter((module) => !specialSet.has(module)))
@@ -129,6 +130,13 @@ function buildSdkDifferences() {
       module,
       status: 'missing_node_oracle',
       reason: 'Normal module has no Node oracle fixture.',
+    })
+  }
+  for (const module of oracleUnknownModules) {
+    differences.push({
+      module,
+      status: 'unknown_node_oracle_fixture',
+      reason: 'Node oracle fixture references a module that is not in the generated manifest.',
     })
   }
   for (const module of specialMissingStatus) {
@@ -174,6 +182,7 @@ const report = {
   nodeOracleFixtureCount: oracleModules.size,
   manifestMissingUpstreamModules,
   manifestUnknownUpstreamModules,
+  oracleUnknownModules,
   normalMissingOracle,
   specialMissingStatus,
   specialUnknownStatus,
@@ -192,6 +201,7 @@ const hasFailure =
   report.upstreamDirty ||
   report.manifestMissingUpstreamModules.length > 0 ||
   report.manifestUnknownUpstreamModules.length > 0 ||
+  report.oracleUnknownModules.length > 0 ||
   report.normalMissingOracle.length > 0 ||
   report.specialMissingStatus.length > 0 ||
   report.specialUnknownStatus.length > 0 ||
@@ -213,6 +223,7 @@ if (jsonOutput) {
   console.log(`manifest missing upstream modules: ${report.manifestMissingUpstreamModules.length}`)
   console.log(`manifest unknown upstream modules: ${report.manifestUnknownUpstreamModules.length}`)
   console.log(`node oracle fixtures: ${report.nodeOracleFixtureCount}`)
+  console.log(`node oracle unknown modules: ${report.oracleUnknownModules.length}`)
   console.log(`normal modules missing oracle: ${report.normalMissingOracle.length}`)
   console.log(`special modules missing status: ${report.specialMissingStatus.length}`)
   console.log(`special node-oracle modules missing fixture: ${report.specialNodeOracleMissingFixture.length}`)

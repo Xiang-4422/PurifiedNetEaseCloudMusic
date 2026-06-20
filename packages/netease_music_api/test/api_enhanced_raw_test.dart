@@ -125,6 +125,7 @@ void main() {
       expect(report['moduleCount'], apiEnhancedModules.length);
       expect(report['manifestMissingUpstreamModules'], isEmpty);
       expect(report['manifestUnknownUpstreamModules'], isEmpty);
+      expect(report['oracleUnknownModules'], isEmpty);
       expect(report['normalMissingOracle'], isEmpty);
       expect(report['specialMissingStatus'], isEmpty);
       expect(report['specialNodeOracleMissingFixture'], isEmpty);

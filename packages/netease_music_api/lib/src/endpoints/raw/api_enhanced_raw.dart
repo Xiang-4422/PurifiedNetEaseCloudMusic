@@ -1929,6 +1929,43 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         'id': query['id'],
       };
+    case 'artist_fans':
+      return {
+        'id': query['id'],
+        'limit': _jsDefault(query['limit'], 20),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'artist_follow_count':
+      return {
+        'id': query['id'],
+      };
+    case 'artist_new_mv':
+    case 'artist_new_song':
+      return {
+        'limit': _jsDefault(query['limit'], 20),
+        'startTimestamp': _jsDefault(query['before'], DateTime.now().millisecondsSinceEpoch),
+      };
+    case 'artist_sub':
+      return {
+        'artistId': query['id'],
+        'artistIds': '[${query['id']}]',
+      };
+    case 'artist_sublist':
+      return {
+        'limit': _jsDefault(query['limit'], 25),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
+    case 'artist_video':
+      return {
+        'artistId': query['id'],
+        'page': jsonEncode({
+          'size': _jsDefault(query['size'], 10),
+          'cursor': _jsDefault(query['cursor'], 0),
+        }),
+        'tab': 0,
+        'order': _jsDefault(query['order'], 0),
+      };
     case 'user_detail':
       return {};
     case 'user_detail_new':
@@ -2402,6 +2439,8 @@ String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
       return '/api/feealbum/songsaleboard/${_jsDefault(query['type'], 'daily')}/type';
     case 'album_sub':
       return '/api/album/${query['t']?.toString() == '1' ? 'sub' : 'unsub'}';
+    case 'artist_sub':
+      return '/api/artist/${query['t']?.toString() == '1' ? 'sub' : 'unsub'}';
     case 'comment':
       return '/api/resource/comments/${_commentAction(query['t'])}';
     case 'comment_hot':

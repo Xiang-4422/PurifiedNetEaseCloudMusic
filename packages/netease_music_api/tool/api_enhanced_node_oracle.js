@@ -1159,6 +1159,64 @@ const fixtures = [
     },
   },
   {
+    module: 'artist_fans',
+    query: {
+      id: '6452',
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'artist_follow_count',
+    query: {
+      id: '6452',
+    },
+  },
+  {
+    module: 'artist_new_mv',
+    query: {
+      limit: 10,
+      before: 1700000000000,
+    },
+  },
+  {
+    module: 'artist_new_song',
+    query: {
+      limit: 10,
+      before: 1700000000000,
+    },
+  },
+  {
+    module: 'artist_sub',
+    query: {
+      id: '6452',
+      t: 1,
+    },
+  },
+  {
+    module: 'artist_sub',
+    query: {
+      id: '6452',
+      t: 0,
+    },
+  },
+  {
+    module: 'artist_sublist',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'artist_video',
+    query: {
+      id: '6452',
+      size: 20,
+      cursor: 'cursor-1',
+      order: 1,
+    },
+  },
+  {
     module: 'user_detail',
     query: {
       uid: '32953014',

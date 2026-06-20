@@ -464,6 +464,41 @@ void main() {
         'type': 2,
         'area': 7,
       });
+
+      expect(api.requestModuleDioMetaData('artist_fans', {'id': '6452'}).data, {
+        'id': '6452',
+        'limit': 20,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('artist_follow_count', {'id': '6452'}).data, {
+        'id': '6452',
+      });
+      expect(api.requestModuleDioMetaData('artist_new_mv', {'limit': 10, 'before': 1700000000000}).data, {
+        'limit': 10,
+        'startTimestamp': 1700000000000,
+      });
+      expect(api.requestModuleDioMetaData('artist_new_song', {'limit': 10, 'before': 1700000000000}).data, {
+        'limit': 10,
+        'startTimestamp': 1700000000000,
+      });
+      final artistSub = api.requestModuleDioMetaData('artist_sub', {'id': '6452', 't': 1});
+      expect(artistSub.uri.path, '/api/artist/sub');
+      expect(artistSub.data, {
+        'artistId': '6452',
+        'artistIds': '[6452]',
+      });
+      expect(api.requestModuleDioMetaData('artist_sub', {'id': '6452', 't': 0}).uri.path, '/api/artist/unsub');
+      expect(api.requestModuleDioMetaData('artist_sublist', {}).data, {
+        'limit': 25,
+        'offset': 0,
+        'total': true,
+      });
+      expect(api.requestModuleDioMetaData('artist_video', {'id': '6452', 'size': 20, 'cursor': 'cursor-1', 'order': 1}).data, {
+        'artistId': '6452',
+        'page': '{"size":20,"cursor":"cursor-1"}',
+        'tab': 0,
+        'order': 1,
+      });
     });
 
     test('maps playlist management request data like upstream', () {

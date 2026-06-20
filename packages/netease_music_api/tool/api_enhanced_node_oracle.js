@@ -871,6 +871,28 @@ const fixtures = [
     },
   },
   {
+    module: 'recommend_songs_dislike',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'history_recommend_songs',
+    query: {
+      date: '2026-06-20',
+    },
+  },
+  {
+    module: 'history_recommend_songs_detail',
+    query: {},
+  },
+  {
+    module: 'history_recommend_songs_detail',
+    query: {
+      date: '2026-06-20',
+    },
+  },
+  {
     module: 'simi_artist',
     query: {
       id: '6452',

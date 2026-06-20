@@ -702,6 +702,18 @@ void main() {
         'total': true,
         'area': 'ALL',
       });
+      expect(api.requestModuleDioMetaData('recommend_songs_dislike', {'id': '101'}).data, {
+        'resId': '101',
+        'resType': 4,
+        'sceneType': 1,
+      });
+      expect(api.requestModuleDioMetaData('history_recommend_songs', {'date': '2026-06-20'}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('history_recommend_songs_detail', {}).data, {
+        'date': '',
+      });
+      expect(api.requestModuleDioMetaData('history_recommend_songs_detail', {'date': '2026-06-20'}).data, {
+        'date': '2026-06-20',
+      });
     });
 
     test('maps song detail and lyric request data like upstream', () {

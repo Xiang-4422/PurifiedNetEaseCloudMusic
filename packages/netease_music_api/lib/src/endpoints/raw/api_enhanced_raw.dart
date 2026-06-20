@@ -1617,6 +1617,18 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         if (query.containsKey('afresh')) 'afresh': query['afresh'],
       };
+    case 'recommend_songs_dislike':
+      return {
+        'resId': query['id'],
+        'resType': 4,
+        'sceneType': 1,
+      };
+    case 'history_recommend_songs':
+      return {};
+    case 'history_recommend_songs_detail':
+      return {
+        'date': _jsDefault(query['date'], ''),
+      };
     case 'search_hot_detail':
       return {};
     case 'search_suggest':

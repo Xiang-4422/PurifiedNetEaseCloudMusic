@@ -36,7 +36,11 @@ class LoadState<T> {
   final StackTrace? stackTrace;
 
   /// 创建加载中状态。
-  const LoadState.loading() : this._(status: LoadStatus.loading);
+  const LoadState.loading({T? data})
+      : this._(
+          status: LoadStatus.loading,
+          data: data,
+        );
 
   /// 创建空数据状态。
   const LoadState.empty() : this._(status: LoadStatus.empty);
@@ -52,8 +56,10 @@ class LoadState<T> {
   const LoadState.error(
     Object error, {
     StackTrace? stackTrace,
+    T? data,
   }) : this._(
           status: LoadStatus.error,
+          data: data,
           error: error,
           stackTrace: stackTrace,
         );
@@ -62,7 +68,7 @@ class LoadState<T> {
   bool get isLoading => status == LoadStatus.loading;
 
   /// 是否存在有效数据。
-  bool get hasData => status == LoadStatus.data && data != null;
+  bool get hasData => data != null;
 
   /// 是否为空数据状态。
   bool get isEmpty => status == LoadStatus.empty;

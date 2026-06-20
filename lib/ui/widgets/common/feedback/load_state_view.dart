@@ -31,15 +31,19 @@ class LoadStateView<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final data = state.data;
+    if (data != null) {
+      return builder(data);
+    }
     if (state.isLoading) {
       return loadingView ?? const LoadingView();
     }
     if (state.hasError) {
       return errorView ?? const ErrorView();
     }
-    if (state.isEmpty || state.data == null) {
+    if (state.isEmpty) {
       return emptyView ?? const EmptyView();
     }
-    return builder(state.data as T);
+    return emptyView ?? const EmptyView();
   }
 }

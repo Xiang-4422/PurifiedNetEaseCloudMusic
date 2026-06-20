@@ -29,7 +29,8 @@ class LocalSongListController {
 
   /// 刷新本地歌曲列表。
   Future<void> refresh() async {
-    state.value = const LoadState.loading();
+    final previousEntries = state.value.data;
+    state.value = previousEntries == null || previousEntries.isEmpty ? const LoadState.loading() : LoadState.loading(data: previousEntries);
     try {
       final entries = await _musicDataRepository.getLocalSongs(origins: origins);
       if (entries.isEmpty) {
@@ -38,7 +39,13 @@ class LocalSongListController {
       }
       state.value = LoadState.data(entries);
     } catch (error, stackTrace) {
-      state.value = LoadState.error(error, stackTrace: stackTrace);
+      state.value = previousEntries == null || previousEntries.isEmpty
+          ? LoadState.error(error, stackTrace: stackTrace)
+          : LoadState.error(
+              error,
+              stackTrace: stackTrace,
+              data: previousEntries,
+            );
     }
   }
 

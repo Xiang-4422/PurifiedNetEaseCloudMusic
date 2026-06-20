@@ -407,6 +407,53 @@ void main() {
       expect(base64Decode(qrImg.split(',').last).take(8), [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     });
 
+    test('related playlist special module parses upstream playlist html', () async {
+      const html = '''
+<div class="cver u-cover u-cover-3">
+  <img src="https://p1.music.126.net/cover-a.jpg?param=50y50">
+  <a class="sname f-fs1 s-fc0" href="/playlist?id=123" title="ignored">Related A</a>
+  <a class="nm nm f-thide s-fc3" href="/user/home?id=42" title="ignored">Alice</a>
+</div>
+<div class="cver u-cover u-cover-3">
+  <img src="https://p1.music.126.net/cover-b.jpg?param=50y50">
+  <a class="sname f-fs1 s-fc0" href="/playlist?id=456">Related B</a>
+  <a class="nm nm f-thide s-fc3" href="/user/home?id=77">Bob</a>
+</div>
+''';
+      final adapter = _TextResponseAdapter(html);
+      Https.setDioForTesting(Dio()..httpClientAdapter = adapter);
+
+      final result = await api.requestModule('related_playlist', {'id': '888'});
+
+      expect(adapter.requestedUri.toString(), 'https://music.163.com/playlist?id=888');
+      expect(result, {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'playlists': [
+            {
+              'creator': {
+                'userId': '42',
+                'nickname': 'Alice',
+              },
+              'coverImgUrl': 'https://p1.music.126.net/cover-a.jpg',
+              'name': 'Related A',
+              'id': '123',
+            },
+            {
+              'creator': {
+                'userId': '77',
+                'nickname': 'Bob',
+              },
+              'coverImgUrl': 'https://p1.music.126.net/cover-b.jpg',
+              'name': 'Related B',
+              'id': '456',
+            },
+          ],
+        },
+      });
+    });
+
     test('song url v1 special module rewrites upstream xeapi data shape', () async {
       final proxy = _CaptureDioProxy();
       Https.setDioProxyForTesting(proxy);
@@ -1033,6 +1080,24 @@ class _UploadAdapter implements HttpClientAdapter {
     uploadToken = options.headers['x-nos-token']?.toString();
     return ResponseBody.fromString('{"code":200}', 200, headers: {
       Headers.contentTypeHeader: [Headers.jsonContentType],
+    });
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _TextResponseAdapter implements HttpClientAdapter {
+  _TextResponseAdapter(this.body);
+
+  final String body;
+  Uri? requestedUri;
+
+  @override
+  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+    requestedUri = options.uri;
+    return ResponseBody.fromString(body, 200, headers: {
+      Headers.contentTypeHeader: ['text/html; charset=utf-8'],
     });
   }
 

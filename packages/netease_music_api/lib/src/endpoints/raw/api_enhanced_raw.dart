@@ -299,10 +299,16 @@ mixin ApiEnhancedRaw {
     };
   }
 
-  /// Loads related playlist HTML. Existing typed API keeps the parsed version.
+  /// Parses related playlists from the upstream playlist page HTML.
   Future<dynamic> relatedPlaylistRaw(Map<String, dynamic> query) async {
     final response = await Https.dio.get('https://music.163.com/playlist', queryParameters: {'id': query['id']});
-    return response.data;
+    return {
+      'status': response.statusCode ?? 200,
+      'body': {
+        'code': 200,
+        'playlists': _parseRelatedPlaylists(response.data?.toString() ?? ''),
+      },
+    };
   }
 
   /// Registers and persists xeapi public key state.
@@ -1439,6 +1445,26 @@ String? _cookieValue(dynamic cookie, String name) {
   final cookies = _stringMap(cookie);
   final value = cookies[name];
   return value == null || value.isEmpty ? null : value;
+}
+
+List<Map<String, dynamic>> _parseRelatedPlaylists(String html) {
+  final pattern = RegExp(
+    r'<div class="cver u-cover u-cover-3">[\s\S]*?<img src="([^"]+)">[\s\S]*?<a class="sname f-fs1 s-fc0" href="([^"]+)"[^>]*>([^<]+?)</a>[\s\S]*?<a class="nm nm f-thide s-fc3" href="([^"]+)"[^>]*>([^<]+?)</a>',
+  );
+  return pattern.allMatches(html).map((match) {
+    final coverUrl = match.group(1)!;
+    final playlistHref = match.group(2)!;
+    final creatorHref = match.group(4)!;
+    return {
+      'creator': {
+        'userId': creatorHref.startsWith('/user/home?id=') ? creatorHref.substring('/user/home?id='.length) : creatorHref,
+        'nickname': match.group(5),
+      },
+      'coverImgUrl': coverUrl.endsWith('?param=50y50') ? coverUrl.substring(0, coverUrl.length - '?param=50y50'.length) : coverUrl,
+      'name': match.group(3),
+      'id': playlistHref.startsWith('/playlist?id=') ? playlistHref.substring('/playlist?id='.length) : playlistHref,
+    };
+  }).toList(growable: false);
 }
 
 String _qrPngDataUrl(String data) {

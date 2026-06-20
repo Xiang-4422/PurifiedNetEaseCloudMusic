@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bujuan/features/playback/playback_performance_logger.dart';
+import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
@@ -36,6 +37,7 @@ class PlaybackSourcePrefetcher {
       key,
       item: item,
       preferHighQuality: preferHighQuality,
+      allowLocalRecovery: true,
     );
     if (cached != null) {
       return Future.value(cached);
@@ -58,6 +60,7 @@ class PlaybackSourcePrefetcher {
         key,
         item: item,
         preferHighQuality: preferHighQuality,
+        allowLocalRecovery: false,
       );
       if (cached != null) {
         return Future.value(cached);
@@ -95,13 +98,14 @@ class PlaybackSourcePrefetcher {
     String key, {
     required PlaybackQueueItem item,
     required bool preferHighQuality,
+    required bool allowLocalRecovery,
   }) {
     final cached = _cache[key];
     final now = DateTime.now();
     if (cached == null || now.difference(cached.createdAt) >= ttl) {
       return null;
     }
-    if (!_isCachedSourceStillUsable(cached.source)) {
+    if (!_isCachedSourceStillUsable(cached.source) || (allowLocalRecovery && _itemLocalSourceRecovered(item, cached.source))) {
       _cache.remove(key);
       return null;
     }
@@ -120,6 +124,27 @@ class PlaybackSourcePrefetcher {
       case PlaybackResolvedSourceKind.empty:
         return true;
     }
+  }
+
+  bool _itemLocalSourceRecovered(
+    PlaybackQueueItem item,
+    PlaybackResolvedSource cachedSource,
+  ) {
+    if (cachedSource.kind != PlaybackResolvedSourceKind.url) {
+      return false;
+    }
+    if (item.mediaType != MediaType.local && item.mediaType != MediaType.neteaseCache) {
+      return false;
+    }
+    final localPath = _localPathCandidate(item.playbackUrl ?? '');
+    return localPath.isNotEmpty && File(localPath).existsSync();
+  }
+
+  String _localPathCandidate(String url) {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return '';
+    }
+    return url.split('?').first;
   }
 
   Future<PlaybackResolvedSource> _resolveAndCache(

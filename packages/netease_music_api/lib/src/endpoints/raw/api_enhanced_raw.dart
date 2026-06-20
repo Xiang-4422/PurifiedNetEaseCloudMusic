@@ -831,6 +831,7 @@ mixin ApiEnhancedRaw {
     if (checkBody['needUpload'] == true) {
       await _uploadCloudSongBinary(query, filename: filename, md5: fileMd5, fileSize: fileSize);
     }
+    final metadata = await _cloudAudioMetadata(query);
 
     final infoRes = await Https.dioProxy.postUri(
       DioMetaData(
@@ -839,9 +840,9 @@ mixin ApiEnhancedRaw {
           'md5': fileMd5,
           'songid': checkBody['songId'],
           'filename': filename,
-          'song': _cloudSongName(query, filename),
-          'album': query['album'] ?? '未知专辑',
-          'artist': query['artist'] ?? '未知艺术家',
+          'song': _cloudSongName(query, filename, metadata),
+          'album': _cloudMetadataValue(query['album'], metadata.album, '未知专辑'),
+          'artist': _cloudMetadataValue(query['artist'], metadata.artist, '未知艺术家'),
           'bitrate': '$bitrate',
           'resourceId': tokenResult['resourceId'],
         },
@@ -3678,12 +3679,25 @@ String _cloudSanitizedFilename(String filename) {
   return filename.replaceAll(RegExp(r'\.[^.]+$'), '').replaceAll(RegExp(r'\s'), '').replaceAll('.', '_');
 }
 
-String _cloudSongName(Map<String, dynamic> query, String filename) {
+String _cloudSongName(Map<String, dynamic> query, String filename, _CloudAudioMetadata metadata) {
   final song = query['song'];
   if (_jsTruthy(song)) {
     return song.toString();
   }
+  if (_jsTruthy(metadata.title)) {
+    return metadata.title!;
+  }
   return _cloudSanitizedFilename(filename);
+}
+
+String _cloudMetadataValue(dynamic explicit, String? parsed, String fallback) {
+  if (_jsTruthy(explicit)) {
+    return explicit.toString();
+  }
+  if (_jsTruthy(parsed)) {
+    return parsed!;
+  }
+  return fallback;
 }
 
 Map<String, dynamic> _voiceUploadData(
@@ -3824,4 +3838,239 @@ Future<String?> _fileMd5(Map<String, dynamic> query) async {
   } catch (_) {
     return null;
   }
+}
+
+class _CloudAudioMetadata {
+  const _CloudAudioMetadata({
+    this.title,
+    this.album,
+    this.artist,
+  });
+
+  final String? title;
+  final String? album;
+  final String? artist;
+}
+
+Future<_CloudAudioMetadata> _cloudAudioMetadata(Map<String, dynamic> query) async {
+  try {
+    final bytes = await _uploadBytes(query);
+    return _parseCloudAudioMetadata(bytes) ?? const _CloudAudioMetadata();
+  } catch (_) {
+    return const _CloudAudioMetadata();
+  }
+}
+
+_CloudAudioMetadata? _parseCloudAudioMetadata(Uint8List bytes) {
+  return _parseId3v2Metadata(bytes) ?? _parseFlacVorbisMetadata(bytes);
+}
+
+_CloudAudioMetadata? _parseId3v2Metadata(Uint8List bytes) {
+  if (bytes.length < 10 || !_asciiEquals(bytes, 0, 'ID3')) {
+    return null;
+  }
+  final version = bytes[3];
+  final tagSize = _syncSafeInt(bytes, 6);
+  var offset = 10;
+  final tagEnd = min(bytes.length, offset + tagSize);
+  String? title;
+  String? album;
+  String? artist;
+
+  if (version == 2) {
+    while (offset + 6 <= tagEnd) {
+      final frameId = String.fromCharCodes(bytes.sublist(offset, offset + 3));
+      if (frameId.trim().isEmpty || bytes.sublist(offset, offset + 3).every((byte) => byte == 0)) {
+        break;
+      }
+      final frameSize = (bytes[offset + 3] << 16) | (bytes[offset + 4] << 8) | bytes[offset + 5];
+      offset += 6;
+      if (frameSize <= 0 || offset + frameSize > tagEnd) {
+        break;
+      }
+      final value = _decodeId3TextFrame(bytes.sublist(offset, offset + frameSize));
+      switch (frameId) {
+        case 'TT2':
+          title ??= value;
+        case 'TAL':
+          album ??= value;
+        case 'TP1':
+          artist ??= value;
+      }
+      offset += frameSize;
+    }
+  } else {
+    while (offset + 10 <= tagEnd) {
+      final frameHeader = bytes.sublist(offset, offset + 4);
+      final frameId = String.fromCharCodes(frameHeader);
+      if (frameId.trim().isEmpty || frameHeader.every((byte) => byte == 0)) {
+        break;
+      }
+      final frameSize = version == 4 ? _syncSafeInt(bytes, offset + 4) : _uint32BE(bytes, offset + 4);
+      offset += 10;
+      if (frameSize <= 0 || offset + frameSize > tagEnd) {
+        break;
+      }
+      final value = _decodeId3TextFrame(bytes.sublist(offset, offset + frameSize));
+      switch (frameId) {
+        case 'TIT2':
+          title ??= value;
+        case 'TALB':
+          album ??= value;
+        case 'TPE1':
+          artist ??= value;
+      }
+      offset += frameSize;
+    }
+  }
+
+  if (title == null && album == null && artist == null) {
+    return null;
+  }
+  return _CloudAudioMetadata(title: title, album: album, artist: artist);
+}
+
+String? _decodeId3TextFrame(Uint8List frame) {
+  if (frame.isEmpty) {
+    return null;
+  }
+  final encoding = frame.first;
+  var payload = frame.sublist(1);
+  String value;
+  switch (encoding) {
+    case 0:
+      value = latin1.decode(payload, allowInvalid: true);
+    case 1:
+      if (payload.length >= 2 && payload[0] == 0xFE && payload[1] == 0xFF) {
+        value = _decodeUtf16(payload.sublist(2), bigEndian: true);
+      } else if (payload.length >= 2 && payload[0] == 0xFF && payload[1] == 0xFE) {
+        value = _decodeUtf16(payload.sublist(2), bigEndian: false);
+      } else {
+        value = _decodeUtf16(payload, bigEndian: false);
+      }
+    case 2:
+      value = _decodeUtf16(payload, bigEndian: true);
+    case 3:
+      value = utf8.decode(payload, allowMalformed: true);
+    default:
+      value = utf8.decode(payload, allowMalformed: true);
+  }
+  return _cleanMetadataText(value);
+}
+
+_CloudAudioMetadata? _parseFlacVorbisMetadata(Uint8List bytes) {
+  if (bytes.length < 8 || !_asciiEquals(bytes, 0, 'fLaC')) {
+    return null;
+  }
+  var offset = 4;
+  while (offset + 4 <= bytes.length) {
+    final blockType = bytes[offset] & 0x7F;
+    final isLast = (bytes[offset] & 0x80) != 0;
+    final blockLength = (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
+    offset += 4;
+    if (blockLength < 0 || offset + blockLength > bytes.length) {
+      return null;
+    }
+    if (blockType == 4) {
+      return _parseVorbisComment(bytes.sublist(offset, offset + blockLength));
+    }
+    offset += blockLength;
+    if (isLast) {
+      break;
+    }
+  }
+  return null;
+}
+
+_CloudAudioMetadata? _parseVorbisComment(Uint8List bytes) {
+  var offset = 0;
+  if (offset + 4 > bytes.length) {
+    return null;
+  }
+  final vendorLength = _uint32LE(bytes, offset);
+  offset += 4 + vendorLength;
+  if (offset + 4 > bytes.length) {
+    return null;
+  }
+  final commentCount = _uint32LE(bytes, offset);
+  offset += 4;
+  String? title;
+  String? album;
+  String? artist;
+  for (var i = 0; i < commentCount && offset + 4 <= bytes.length; i++) {
+    final commentLength = _uint32LE(bytes, offset);
+    offset += 4;
+    if (offset + commentLength > bytes.length) {
+      break;
+    }
+    final comment = utf8.decode(bytes.sublist(offset, offset + commentLength), allowMalformed: true);
+    offset += commentLength;
+    final splitIndex = comment.indexOf('=');
+    if (splitIndex <= 0) {
+      continue;
+    }
+    final key = comment.substring(0, splitIndex).toUpperCase();
+    final value = _cleanMetadataText(comment.substring(splitIndex + 1));
+    switch (key) {
+      case 'TITLE':
+        title ??= value;
+      case 'ALBUM':
+        album ??= value;
+      case 'ARTIST':
+        artist ??= value;
+    }
+  }
+  if (title == null && album == null && artist == null) {
+    return null;
+  }
+  return _CloudAudioMetadata(title: title, album: album, artist: artist);
+}
+
+String? _cleanMetadataText(String value) {
+  final cleaned = value.replaceAll('\u0000', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+  return cleaned.isEmpty ? null : cleaned;
+}
+
+String _decodeUtf16(Uint8List bytes, {required bool bigEndian}) {
+  final codeUnits = <int>[];
+  for (var i = 0; i + 1 < bytes.length; i += 2) {
+    final codeUnit = bigEndian ? (bytes[i] << 8) | bytes[i + 1] : (bytes[i + 1] << 8) | bytes[i];
+    if (codeUnit != 0) {
+      codeUnits.add(codeUnit);
+    }
+  }
+  return String.fromCharCodes(codeUnits);
+}
+
+bool _asciiEquals(Uint8List bytes, int offset, String value) {
+  if (offset + value.length > bytes.length) {
+    return false;
+  }
+  for (var i = 0; i < value.length; i++) {
+    if (bytes[offset + i] != value.codeUnitAt(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+int _syncSafeInt(Uint8List bytes, int offset) {
+  if (offset + 4 > bytes.length) {
+    return 0;
+  }
+  return ((bytes[offset] & 0x7F) << 21) | ((bytes[offset + 1] & 0x7F) << 14) | ((bytes[offset + 2] & 0x7F) << 7) | (bytes[offset + 3] & 0x7F);
+}
+
+int _uint32BE(Uint8List bytes, int offset) {
+  if (offset + 4 > bytes.length) {
+    return 0;
+  }
+  return (bytes[offset] << 24) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3];
+}
+
+int _uint32LE(Uint8List bytes, int offset) {
+  if (offset + 4 > bytes.length) {
+    return 0;
+  }
+  return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24);
 }

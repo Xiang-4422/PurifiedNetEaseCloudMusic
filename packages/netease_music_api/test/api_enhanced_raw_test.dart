@@ -2990,6 +2990,92 @@ void main() {
       });
     });
 
+    test('cloud special module reads common audio tags before filename fallback', () async {
+      final proxy = _QueuedPostDioProxy([
+        {
+          'needUpload': false,
+          'songId': 456,
+        },
+        {
+          'result': {
+            'objectKey': 'cloud/object-key',
+            'token': 'cloud-token',
+            'resourceId': 'resource-1',
+          },
+        },
+        {
+          'code': 200,
+          'songId': 789,
+        },
+        {
+          'code': 200,
+          'published': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      await api.cloud({
+        'songFile': {
+          'name': 'Fallback.mp3',
+          'mimetype': 'audio/mpeg',
+          'size': 12345,
+          'md5': 'abc',
+          'data': _id3v23Tag(
+            title: 'Tagged Title',
+            album: 'Tagged Album',
+            artist: 'Tagged Artist',
+          ),
+        },
+      });
+
+      expect(proxy.requests[2].data, containsPair('song', 'Tagged Title'));
+      expect(proxy.requests[2].data, containsPair('album', 'Tagged Album'));
+      expect(proxy.requests[2].data, containsPair('artist', 'Tagged Artist'));
+    });
+
+    test('cloud special module reads FLAC Vorbis comments before filename fallback', () async {
+      final proxy = _QueuedPostDioProxy([
+        {
+          'needUpload': false,
+          'songId': 456,
+        },
+        {
+          'result': {
+            'objectKey': 'cloud/object-key',
+            'token': 'cloud-token',
+            'resourceId': 'resource-1',
+          },
+        },
+        {
+          'code': 200,
+          'songId': 789,
+        },
+        {
+          'code': 200,
+          'published': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      await api.cloud({
+        'songFile': {
+          'name': 'Fallback.flac',
+          'mimetype': 'audio/flac',
+          'size': 12345,
+          'md5': 'abc',
+          'data': _flacVorbisComment(
+            title: 'FLAC Title',
+            album: 'FLAC Album',
+            artist: 'FLAC Artist',
+          ),
+        },
+      });
+
+      expect(proxy.requests[2].data, containsPair('song', 'FLAC Title'));
+      expect(proxy.requests[2].data, containsPair('album', 'FLAC Album'));
+      expect(proxy.requests[2].data, containsPair('artist', 'FLAC Artist'));
+    });
+
     test('voice upload special module mirrors upstream multipart flow and envelope', () async {
       expect(await api.voiceUpload({}), {
         'status': 500,
@@ -3752,6 +3838,97 @@ String _encryptEapiText(String text) {
 String _encryptAesEcbText(String text, String key) {
   final encrypter = Encrypter(AES(Key.fromUtf8(key), mode: AESMode.ecb));
   return encrypter.encrypt(text, iv: IV.fromLength(0)).base16;
+}
+
+Uint8List _id3v23Tag({
+  required String title,
+  required String album,
+  required String artist,
+}) {
+  final frames = <int>[
+    ..._id3v23TextFrame('TIT2', title),
+    ..._id3v23TextFrame('TALB', album),
+    ..._id3v23TextFrame('TPE1', artist),
+  ];
+  return Uint8List.fromList([
+    ...'ID3'.codeUnits,
+    3,
+    0,
+    0,
+    ..._syncSafeBytes(frames.length),
+    ...frames,
+    0,
+    0,
+    0,
+  ]);
+}
+
+Uint8List _flacVorbisComment({
+  required String title,
+  required String album,
+  required String artist,
+}) {
+  final vendor = utf8.encode('test');
+  final comments = [
+    'TITLE=$title',
+    'ALBUM=$album',
+    'ARTIST=$artist',
+  ].map(utf8.encode).toList();
+  final block = <int>[
+    ..._uint32LEBytes(vendor.length),
+    ...vendor,
+    ..._uint32LEBytes(comments.length),
+    for (final comment in comments) ...[
+      ..._uint32LEBytes(comment.length),
+      ...comment,
+    ],
+  ];
+  return Uint8List.fromList([
+    ...'fLaC'.codeUnits,
+    0x84,
+    (block.length >> 16) & 0xFF,
+    (block.length >> 8) & 0xFF,
+    block.length & 0xFF,
+    ...block,
+  ]);
+}
+
+List<int> _id3v23TextFrame(String id, String value) {
+  final payload = <int>[3, ...utf8.encode(value)];
+  return [
+    ...id.codeUnits,
+    ..._uint32BEBytes(payload.length),
+    0,
+    0,
+    ...payload,
+  ];
+}
+
+List<int> _uint32BEBytes(int value) {
+  return [
+    (value >> 24) & 0xFF,
+    (value >> 16) & 0xFF,
+    (value >> 8) & 0xFF,
+    value & 0xFF,
+  ];
+}
+
+List<int> _uint32LEBytes(int value) {
+  return [
+    value & 0xFF,
+    (value >> 8) & 0xFF,
+    (value >> 16) & 0xFF,
+    (value >> 24) & 0xFF,
+  ];
+}
+
+List<int> _syncSafeBytes(int value) {
+  return [
+    (value >> 21) & 0x7F,
+    (value >> 14) & 0x7F,
+    (value >> 7) & 0x7F,
+    value & 0x7F,
+  ];
 }
 
 Future<List<Map<String, dynamic>>> _loadNodeOracleFixtures() async {

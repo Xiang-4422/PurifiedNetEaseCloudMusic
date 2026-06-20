@@ -16,6 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('PlaybackSourceResolver', () {
     test('treats normal cached audio path as file source', () async {
+      final audioFile = await _createTempAudioFile('song.mp3');
       final resolver = PlaybackSourceResolver(
         repository: _FakePlaybackRepository(),
       );
@@ -23,16 +24,17 @@ void main() {
       final source = await resolver.resolve(
         _mediaItem(
           type: MediaType.neteaseCache,
-          url: '/cache/audio/song.mp3',
+          url: audioFile.path,
         ),
         preferHighQuality: false,
       );
 
       expect(source.kind, PlaybackResolvedSourceKind.filePath);
-      expect(source.url, '/cache/audio/song.mp3');
+      expect(source.url, audioFile.path);
     });
 
     test('keeps uc cache path on decrypted stream source', () async {
+      final audioFile = await _createTempAudioFile('song.mp3.uc!');
       final resolver = PlaybackSourceResolver(
         repository: _FakePlaybackRepository(),
       );
@@ -40,13 +42,48 @@ void main() {
       final source = await resolver.resolve(
         _mediaItem(
           type: MediaType.neteaseCache,
-          url: '/cache/audio/song.mp3.uc!',
+          url: audioFile.path,
         ),
         preferHighQuality: false,
       );
 
       expect(source.kind, PlaybackResolvedSourceKind.neteaseCacheStream);
+      expect(source.url, audioFile.path);
       expect(source.fileType, 'mp3');
+    });
+
+    test('returns empty source when local file path no longer exists', () async {
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(),
+      );
+
+      final source = await resolver.resolve(
+        _mediaItem(
+          type: MediaType.local,
+          url: '/missing/audio/song.mp3',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.empty);
+      expect(source.isEmpty, isTrue);
+    });
+
+    test('returns empty source when netease cache file no longer exists', () async {
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(),
+      );
+
+      final source = await resolver.resolve(
+        _mediaItem(
+          type: MediaType.neteaseCache,
+          url: '/missing/audio/song.mp3.uc!',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.empty);
+      expect(source.isEmpty, isTrue);
     });
 
     test('keeps remote playback url query parameters intact', () async {
@@ -114,6 +151,18 @@ void main() {
       expect(repository.preferHighQualityValues, [true]);
     });
   });
+}
+
+Future<File> _createTempAudioFile(String name) async {
+  final directory = await Directory.systemTemp.createTemp('playback-source-resolver-');
+  addTearDown(() async {
+    if (directory.existsSync()) {
+      await directory.delete(recursive: true);
+    }
+  });
+  final audioFile = File('${directory.path}/$name');
+  await audioFile.writeAsString('audio');
+  return audioFile;
 }
 
 PlaybackQueueItem _mediaItem({

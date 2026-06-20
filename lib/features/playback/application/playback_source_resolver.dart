@@ -18,26 +18,11 @@ class PlaybackSourceResolver {
     required bool preferHighQuality,
   }) async {
     if (item.mediaType == MediaType.local) {
-      final url = item.playbackUrl ?? '';
-      return PlaybackResolvedSource(
-        kind: url.isEmpty ? PlaybackResolvedSourceKind.empty : PlaybackResolvedSourceKind.filePath,
-        url: url,
-        markAsCached: url.isNotEmpty,
-      );
+      return _resolveLocalFileSource(item.playbackUrl ?? '');
     }
 
     if (item.mediaType == MediaType.neteaseCache) {
-      final url = item.playbackUrl ?? '';
-      return PlaybackResolvedSource(
-        kind: url.isEmpty
-            ? PlaybackResolvedSourceKind.empty
-            : _isEncryptedNeteaseCache(url)
-                ? PlaybackResolvedSourceKind.neteaseCacheStream
-                : PlaybackResolvedSourceKind.filePath,
-        url: url,
-        fileType: url.replaceAll('.uc!', '').split('.').last,
-        markAsCached: url.isNotEmpty,
-      );
+      return _resolveNeteaseCacheSource(item.playbackUrl ?? '');
     }
 
     return resolveRemote(item, preferHighQuality: preferHighQuality);
@@ -77,6 +62,36 @@ class PlaybackSourceResolver {
 
   bool _isEncryptedNeteaseCache(String url) {
     return url.endsWith('.uc!');
+  }
+
+  PlaybackResolvedSource _resolveLocalFileSource(String url) {
+    final localPath = _localPathCandidate(url);
+    if (localPath.isEmpty || !File(localPath).existsSync()) {
+      return const PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.empty,
+      );
+    }
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.filePath,
+      url: localPath,
+      markAsCached: true,
+    );
+  }
+
+  PlaybackResolvedSource _resolveNeteaseCacheSource(String url) {
+    final localPath = _localPathCandidate(url);
+    if (localPath.isEmpty || !File(localPath).existsSync()) {
+      return const PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.empty,
+      );
+    }
+    final isEncryptedCache = _isEncryptedNeteaseCache(localPath);
+    return PlaybackResolvedSource(
+      kind: isEncryptedCache ? PlaybackResolvedSourceKind.neteaseCacheStream : PlaybackResolvedSourceKind.filePath,
+      url: localPath,
+      fileType: isEncryptedCache ? localPath.replaceAll('.uc!', '').split('.').last : '',
+      markAsCached: true,
+    );
   }
 
   String _localPathCandidate(String url) {

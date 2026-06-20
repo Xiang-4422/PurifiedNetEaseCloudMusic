@@ -4,6 +4,7 @@ import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/data/app_storage/app_key_value_store.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
+import 'package:bujuan/features/auth/auth_ui_effect.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/features/user/user_session_store.dart';
@@ -74,6 +75,68 @@ void main() {
       expect(authRepository.savedLoginFlags, isEmpty);
     });
 
+    test('keeps cached session when background validation request fails', () async {
+      final authRepository = _FakeAuthRepository(hasCachedLogin: true);
+      final sessionController = _putSessionController();
+      final controller = AuthController(repository: authRepository);
+
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'cached-user',
+        nickname: 'Cached',
+        avatarUrl: '',
+      );
+      final validation = controller.validateLoginStateInBackgroundIfNeeded();
+
+      authRepository.failNextFetch(StateError('network failed'));
+      await validation;
+
+      expect(sessionController.userInfo.value.userId, 'cached-user');
+      expect(sessionController.userInfo.value.nickname, 'Cached');
+      expect(authRepository.savedLoginFlags, isEmpty);
+      expect(controller.uiEffect.value, isNull);
+    });
+
+    test('cached session bootstrap ignores failed background validation', () async {
+      final authRepository = _FakeAuthRepository(hasCachedLogin: true);
+      final sessionController = _putSessionController();
+      final controller = AuthController(repository: authRepository);
+
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'cached-user',
+        nickname: 'Cached',
+        avatarUrl: '',
+      );
+      await controller.bootstrap();
+
+      authRepository.failNextFetch(StateError('network failed'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.loginCompleted.value, isTrue);
+      expect(sessionController.userInfo.value.userId, 'cached-user');
+      expect(authRepository.savedLoginFlags, isEmpty);
+      expect(controller.uiEffect.value, isNull);
+    });
+
+    test('expires cached session when background validation returns logged out user', () async {
+      final authRepository = _FakeAuthRepository(hasCachedLogin: true);
+      final sessionController = _putSessionController();
+      final controller = AuthController(repository: authRepository);
+
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'cached-user',
+        nickname: 'Cached',
+        avatarUrl: '',
+      );
+      final validation = controller.validateLoginStateInBackgroundIfNeeded();
+
+      authRepository.completeNextFetch(const UserSessionData.empty());
+      await validation;
+
+      expect(sessionController.userInfo.value.isLoggedIn, isFalse);
+      expect(authRepository.savedLoginFlags, [false]);
+      expect(controller.uiEffect.value?.type, AuthUiEffectType.loginExpired);
+    });
+
     test('cached login bootstrap stores fetched session and clears loading', () async {
       final authRepository = _FakeAuthRepository(hasCachedLogin: true);
       final sessionController = _putSessionController();
@@ -126,6 +189,10 @@ class _FakeAuthRepository implements AuthRepository {
 
   void completeNextFetch(UserSessionData value) {
     _fetches.removeAt(0).complete(value);
+  }
+
+  void failNextFetch(Object error) {
+    _fetches.removeAt(0).completeError(error);
   }
 
   @override

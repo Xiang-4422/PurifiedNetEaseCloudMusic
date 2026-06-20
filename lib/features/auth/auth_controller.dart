@@ -58,7 +58,7 @@ class AuthController extends GetxController {
     if (!sessionController.userInfo.value.isLoggedIn) {
       return;
     }
-    await _validateLoginStateInBackground();
+    await _validateLoginStateInBackgroundSafely();
   }
 
   Future<void> _runBootstrap() async {
@@ -66,7 +66,7 @@ class AuthController extends GetxController {
       final sessionController = UserSessionController.to;
       if (sessionController.userInfo.value.isLoggedIn) {
         loginCompleted.value = true;
-        unawaited(_validateLoginStateInBackground());
+        unawaited(_validateLoginStateInBackgroundSafely());
         return;
       }
 
@@ -151,6 +151,14 @@ class AuthController extends GetxController {
     await _repository.setLoginFlag(false);
     await UserSessionController.to.expireLoginSession();
     uiEffect.value = const AuthUiEffect.loginExpired('登录失效,请重新登录');
+  }
+
+  Future<void> _validateLoginStateInBackgroundSafely() async {
+    try {
+      await _validateLoginStateInBackground();
+    } catch (_) {
+      // Background validation is best-effort; keep the cached session on transient failures.
+    }
   }
 
   void _startPolling(String unikey) {

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
@@ -18,11 +19,19 @@ class PlaybackSourceResolver {
     required bool preferHighQuality,
   }) async {
     if (item.mediaType == MediaType.local) {
-      return _resolveLocalFileSource(item.playbackUrl ?? '');
+      final source = _resolveLocalFileSource(item.playbackUrl ?? '');
+      if (!source.isEmpty || item.sourceType == SourceType.local) {
+        return source;
+      }
+      return resolveRemote(item, preferHighQuality: preferHighQuality);
     }
 
     if (item.mediaType == MediaType.neteaseCache) {
-      return _resolveNeteaseCacheSource(item.playbackUrl ?? '');
+      final source = _resolveNeteaseCacheSource(item.playbackUrl ?? '');
+      if (!source.isEmpty || item.sourceType == SourceType.local) {
+        return source;
+      }
+      return resolveRemote(item, preferHighQuality: preferHighQuality);
     }
 
     return resolveRemote(item, preferHighQuality: preferHighQuality);

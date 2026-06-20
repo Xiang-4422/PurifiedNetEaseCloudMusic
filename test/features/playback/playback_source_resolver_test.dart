@@ -5,6 +5,7 @@ import 'package:bujuan/core/entities/playback_mode.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/core/entities/playback_restore_state.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
@@ -52,13 +53,14 @@ void main() {
       expect(source.fileType, 'mp3');
     });
 
-    test('returns empty source when local file path no longer exists', () async {
+    test('returns empty source when local import file no longer exists', () async {
       final resolver = PlaybackSourceResolver(
         repository: _FakePlaybackRepository(),
       );
 
       final source = await resolver.resolve(
         _mediaItem(
+          sourceType: SourceType.local,
           type: MediaType.local,
           url: '/missing/audio/song.mp3',
         ),
@@ -69,13 +71,54 @@ void main() {
       expect(source.isEmpty, isTrue);
     });
 
-    test('returns empty source when netease cache file no longer exists', () async {
+    test('falls back to remote url when downloaded audio file no longer exists', () async {
+      final repository = _FakePlaybackRepository(
+        playbackUrl: 'https://example.com/fallback.mp3',
+      );
+      final resolver = PlaybackSourceResolver(repository: repository);
+
+      final source = await resolver.resolve(
+        _mediaItem(
+          type: MediaType.local,
+          url: '/missing/audio/download.mp3',
+        ),
+        preferHighQuality: true,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.url);
+      expect(source.url, 'https://example.com/fallback.mp3');
+      expect(repository.preferHighQualityValues, [true]);
+      expect(repository.forceRefreshValues, [false]);
+    });
+
+    test('falls back to remote url when netease cache file no longer exists', () async {
+      final repository = _FakePlaybackRepository(
+        playbackUrl: 'https://example.com/cache-fallback.mp3',
+      );
+      final resolver = PlaybackSourceResolver(repository: repository);
+
+      final source = await resolver.resolve(
+        _mediaItem(
+          type: MediaType.neteaseCache,
+          url: '/missing/audio/song.mp3.uc!',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.url);
+      expect(source.url, 'https://example.com/cache-fallback.mp3');
+      expect(repository.preferHighQualityValues, [false]);
+      expect(repository.forceRefreshValues, [false]);
+    });
+
+    test('returns empty source when local import is marked as netease cache but file is missing', () async {
       final resolver = PlaybackSourceResolver(
         repository: _FakePlaybackRepository(),
       );
 
       final source = await resolver.resolve(
         _mediaItem(
+          sourceType: SourceType.local,
           type: MediaType.neteaseCache,
           url: '/missing/audio/song.mp3.uc!',
         ),
@@ -166,12 +209,14 @@ Future<File> _createTempAudioFile(String name) async {
 }
 
 PlaybackQueueItem _mediaItem({
+  SourceType sourceType = SourceType.netease,
   required MediaType type,
   required String url,
 }) {
   return PlaybackQueueItem(
     id: 'netease:1',
     sourceId: 'netease:1',
+    sourceType: sourceType,
     title: 'Track',
     albumTitle: null,
     artistNames: const [],

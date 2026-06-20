@@ -11,6 +11,7 @@ import 'package:bujuan/features/playback/application/playback_source_prefetcher.
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
 import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
+import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -200,6 +201,41 @@ void main() {
       expect(playbackService.replaceCalls, hasLength(1));
       expect(playbackService.replaceCalls.single.source.kind, PlaybackResolvedSourceKind.filePath);
       expect(resolver.remoteForceRefreshValues, isEmpty);
+    });
+
+    test('falls back to remote url when downloaded local file is missing', () async {
+      final playbackService = _FakePlaybackService();
+      final repository = _RemoteUrlPlaybackRepository('remote-url-1');
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: PlaybackSourceResolver(repository: repository),
+      );
+      final queue = [
+        _item(
+          '1',
+          sourceType: SourceType.netease,
+          mediaType: MediaType.local,
+          playbackUrl: '/missing/download.mp3',
+        ),
+      ];
+      await queueService.replaceQueue(queue, 0, playlistName: 'Queue');
+
+      final result = await coordinator.switchToSelection(
+        queue: queue,
+        item: queue.first,
+        activeIndex: 0,
+        selectionVersion: queueService.state.selectionVersion,
+        trigger: PlaybackSwitchTrigger.userSelect,
+        playNow: true,
+      );
+
+      expect(result.success, isTrue);
+      expect(playbackService.replaceCalls.single.source.kind, PlaybackResolvedSourceKind.url);
+      expect(playbackService.replaceCalls.single.source.url, 'remote-url-1');
+      expect(repository.trackIds, ['1']);
+      expect(repository.forceRefreshValues, [false]);
     });
 
     test('refreshes remote url when remote source replacement fails', () async {
@@ -461,6 +497,7 @@ PlaybackQueueItem _item(
   String id, {
   SourceType sourceType = SourceType.netease,
   MediaType mediaType = MediaType.playlist,
+  String? playbackUrl,
 }) {
   return PlaybackQueueItem(
     id: id,
@@ -474,7 +511,7 @@ PlaybackQueueItem _item(
     artworkUrl: null,
     localArtworkPath: null,
     mediaType: mediaType,
-    playbackUrl: null,
+    playbackUrl: playbackUrl,
     lyricKey: null,
     isLiked: false,
     isCached: false,
@@ -486,6 +523,28 @@ PlaybackResolvedSource _urlSource(String id) {
     kind: PlaybackResolvedSourceKind.url,
     url: 'url-$id',
   );
+}
+
+class _RemoteUrlPlaybackRepository implements PlaybackRepository {
+  _RemoteUrlPlaybackRepository(this.url);
+
+  final String url;
+  final List<String> trackIds = <String>[];
+  final List<bool> forceRefreshValues = <bool>[];
+
+  @override
+  Future<String?> fetchPlaybackUrl(
+    String trackId, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) async {
+    trackIds.add(trackId);
+    forceRefreshValues.add(forceRefresh);
+    return url;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _ReplaceCall {

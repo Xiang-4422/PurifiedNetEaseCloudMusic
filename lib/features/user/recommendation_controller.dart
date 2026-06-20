@@ -81,6 +81,7 @@ class RecommendationController extends GetxController {
   Future<void>? _cacheBootstrapFuture;
   Timer? _homeImageColorPrewarmTimer;
   String _activeLocalDataUserId = '';
+  int _localDataGeneration = 0;
   bool _hasLocalData = false;
 
   /// 当前账号是否已有本地首页数据。
@@ -99,7 +100,6 @@ class RecommendationController extends GetxController {
       if (_activeLocalDataUserId == info.userId) {
         return;
       }
-      _activeLocalDataUserId = info.userId;
       dateLoaded.value = false;
       unawaited(_reloadScopedLocalDataAndBootstrap(info.userId));
     });
@@ -127,8 +127,16 @@ class RecommendationController extends GetxController {
   }
 
   Future<void> _reloadScopedLocalDataAndBootstrap(String userId) async {
+    _activeLocalDataUserId = userId;
+    final generation = ++_localDataGeneration;
     await _libraryController.loadScopedLocalData(userId);
-    await _loadScopedLocalData(userId);
+    if (!_isCurrentLocalDataLoad(userId, generation)) {
+      return;
+    }
+    await _loadScopedLocalData(userId, generation);
+    if (!_isCurrentLocalDataLoad(userId, generation)) {
+      return;
+    }
     await startHomeBootstrap();
   }
 
@@ -160,15 +168,24 @@ class RecommendationController extends GetxController {
     }
 
     await _libraryController.refreshUserLibrary();
+    if (!_isActiveSession(userId)) {
+      return;
+    }
     await Future.wait([
-      _updateQuickStartCardData(),
+      _updateQuickStartCardData(userId),
       updateRecoPlayLists(),
     ]);
+    if (!_isActiveSession(userId)) {
+      return;
+    }
     _hasLocalData = true;
     await _repository.markSyncMarkerUpdated(
       userId: userId,
       markerKey: _startupSyncMarker,
     );
+    if (!_isActiveSession(userId)) {
+      return;
+    }
     dateLoaded.value = true;
     scheduleHomeImageColorPrewarm();
     refreshController.refreshCompleted();
@@ -185,6 +202,9 @@ class RecommendationController extends GetxController {
       userId: userId,
       offset: getMore ? recoPlayLists.length : 0,
     );
+    if (!_isActiveSession(userId)) {
+      return;
+    }
     if (!getMore) {
       recoPlayLists.clear();
     }
@@ -236,10 +256,14 @@ class RecommendationController extends GetxController {
     await _sessionController.ensureCacheLoaded();
     await _libraryController.ensureCacheLoaded();
     _activeLocalDataUserId = _sessionController.userInfo.value.userId;
-    await _loadScopedLocalData(_activeLocalDataUserId);
+    final generation = ++_localDataGeneration;
+    await _loadScopedLocalData(_activeLocalDataUserId, generation);
   }
 
-  Future<void> _loadScopedLocalData(String userId) async {
+  Future<void> _loadScopedLocalData(String userId, int generation) async {
+    if (!_isCurrentLocalDataLoad(userId, generation)) {
+      return;
+    }
     recoPlayLists.clear();
     todayRecommendSongs.clear();
     fmSongs.clear();
@@ -249,14 +273,20 @@ class RecommendationController extends GetxController {
     }
 
     final localData = await _loadLocalData(userId);
+    if (!_isCurrentLocalDataLoad(userId, generation)) {
+      return;
+    }
     recoPlayLists.addAll(localData.recommendedPlaylists);
     todayRecommendSongs.addAll(localData.todayRecommendSongs);
     fmSongs.addAll(localData.fmSongs);
     _hasLocalData = localData.hasData;
   }
 
-  Future<void> _updateQuickStartCardData() async {
-    final localData = await _refreshQuickStartData();
+  Future<void> _updateQuickStartCardData(String userId) async {
+    final localData = await _refreshQuickStartData(userId);
+    if (!_isActiveSession(userId)) {
+      return;
+    }
     todayRecommendSongs
       ..clear()
       ..addAll(localData.todayRecommendSongs);
@@ -294,8 +324,7 @@ class RecommendationController extends GetxController {
     );
   }
 
-  Future<UserHomeLocalData> _refreshQuickStartData() async {
-    final userId = _sessionController.userInfo.value.userId;
+  Future<UserHomeLocalData> _refreshQuickStartData(String userId) async {
     if (userId.isEmpty || userId == '-1') {
       return const UserHomeLocalData.empty();
     }
@@ -315,6 +344,14 @@ class RecommendationController extends GetxController {
       todayRecommendSongs: results[0] as List<PlaybackQueueItem>,
       fmSongs: results[1] as List<PlaybackQueueItem>,
     );
+  }
+
+  bool _isCurrentLocalDataLoad(String userId, int generation) {
+    return generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionController.userInfo.value.userId == userId;
+  }
+
+  bool _isActiveSession(String userId) {
+    return _sessionController.userInfo.value.userId == userId;
   }
 
   @override

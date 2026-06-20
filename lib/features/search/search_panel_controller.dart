@@ -119,12 +119,16 @@ class SearchPanelController {
     if (!force && normalizedKeyword == _currentKeyword) {
       return;
     }
+    final previousSongs = normalizedKeyword == _currentKeyword ? songState.value.data : null;
+    final previousPlaylists = normalizedKeyword == _currentKeyword ? playlistState.value.data : null;
+    final previousAlbums = normalizedKeyword == _currentKeyword ? albumState.value.data : null;
+    final previousArtists = normalizedKeyword == _currentKeyword ? artistState.value.data : null;
     _currentKeyword = normalizedKeyword;
     final generation = ++_searchGeneration;
-    songState.value = const LoadState.loading();
-    playlistState.value = const LoadState.loading();
-    albumState.value = const LoadState.loading();
-    artistState.value = const LoadState.loading();
+    songState.value = _loadingState(previousSongs);
+    playlistState.value = _loadingState(previousPlaylists);
+    albumState.value = _loadingState(previousAlbums);
+    artistState.value = _loadingState(previousArtists);
     final stopwatch = PerformanceLogger.start();
 
     var loggedFirstResult = false;
@@ -132,12 +136,13 @@ class SearchPanelController {
       required VoidCallback apply,
       required String category,
       required int count,
+      required bool logAsFirstResult,
     }) {
       if (generation != _searchGeneration || normalizedKeyword != _currentKeyword) {
         return;
       }
       apply();
-      if (loggedFirstResult) {
+      if (loggedFirstResult || !logAsFirstResult) {
         return;
       }
       loggedFirstResult = true;
@@ -149,32 +154,50 @@ class SearchPanelController {
     }
 
     await Future.wait<void>([
-      _loadSongs(normalizedKeyword, likedSongIds: likedSongIds).then((state) {
+      _loadSongs(
+        normalizedKeyword,
+        likedSongIds: likedSongIds,
+        previousItems: previousSongs,
+      ).then((state) {
         applyIfCurrent(
           apply: () => songState.value = state,
           category: 'songs',
           count: state.data?.length ?? 0,
+          logAsFirstResult: state.status == LoadStatus.data,
         );
       }),
-      _loadPlaylists(normalizedKeyword, currentUserId: currentUserId).then((state) {
+      _loadPlaylists(
+        normalizedKeyword,
+        currentUserId: currentUserId,
+        previousItems: previousPlaylists,
+      ).then((state) {
         applyIfCurrent(
           apply: () => playlistState.value = state,
           category: 'playlists',
           count: state.data?.length ?? 0,
+          logAsFirstResult: state.status == LoadStatus.data,
         );
       }),
-      _loadAlbums(normalizedKeyword).then((state) {
+      _loadAlbums(
+        normalizedKeyword,
+        previousItems: previousAlbums,
+      ).then((state) {
         applyIfCurrent(
           apply: () => albumState.value = state,
           category: 'albums',
           count: state.data?.length ?? 0,
+          logAsFirstResult: state.status == LoadStatus.data,
         );
       }),
-      _loadArtists(normalizedKeyword).then((state) {
+      _loadArtists(
+        normalizedKeyword,
+        previousItems: previousArtists,
+      ).then((state) {
         applyIfCurrent(
           apply: () => artistState.value = state,
           category: 'artists',
           count: state.data?.length ?? 0,
+          logAsFirstResult: state.status == LoadStatus.data,
         );
       }),
     ]);
@@ -200,6 +223,7 @@ class SearchPanelController {
   Future<LoadState<List<PlaybackQueueItem>>> _loadSongs(
     String keyword, {
     required List<int> likedSongIds,
+    required List<PlaybackQueueItem>? previousItems,
   }) async {
     try {
       final songs = await _repository.searchTrackQueueItems(
@@ -208,13 +232,14 @@ class SearchPanelController {
       );
       return songs.isEmpty ? const LoadState.empty() : LoadState.data(songs);
     } catch (error, stackTrace) {
-      return LoadState.error(error, stackTrace: stackTrace);
+      return _errorState(error, stackTrace, previousItems);
     }
   }
 
   Future<LoadState<List<PlaylistEntity>>> _loadPlaylists(
     String keyword, {
     required String currentUserId,
+    required List<PlaylistEntity>? previousItems,
   }) async {
     try {
       final playlists = await _repository.searchPlaylists(
@@ -223,26 +248,50 @@ class SearchPanelController {
       );
       return playlists.isEmpty ? const LoadState.empty() : LoadState.data(playlists);
     } catch (error, stackTrace) {
-      return LoadState.error(error, stackTrace: stackTrace);
+      return _errorState(error, stackTrace, previousItems);
     }
   }
 
-  Future<LoadState<List<AlbumEntity>>> _loadAlbums(String keyword) async {
+  Future<LoadState<List<AlbumEntity>>> _loadAlbums(
+    String keyword, {
+    required List<AlbumEntity>? previousItems,
+  }) async {
     try {
       final albums = await _repository.searchAlbums(keyword);
       return albums.isEmpty ? const LoadState.empty() : LoadState.data(albums);
     } catch (error, stackTrace) {
-      return LoadState.error(error, stackTrace: stackTrace);
+      return _errorState(error, stackTrace, previousItems);
     }
   }
 
-  Future<LoadState<List<ArtistEntity>>> _loadArtists(String keyword) async {
+  Future<LoadState<List<ArtistEntity>>> _loadArtists(
+    String keyword, {
+    required List<ArtistEntity>? previousItems,
+  }) async {
     try {
       final artists = await _repository.searchArtists(keyword);
       return artists.isEmpty ? const LoadState.empty() : LoadState.data(artists);
     } catch (error, stackTrace) {
-      return LoadState.error(error, stackTrace: stackTrace);
+      return _errorState(error, stackTrace, previousItems);
     }
+  }
+
+  LoadState<List<T>> _loadingState<T>(List<T>? previousItems) {
+    return previousItems == null || previousItems.isEmpty ? const LoadState.loading() : LoadState.loading(data: previousItems);
+  }
+
+  LoadState<List<T>> _errorState<T>(
+    Object error,
+    StackTrace stackTrace,
+    List<T>? previousItems,
+  ) {
+    return previousItems == null || previousItems.isEmpty
+        ? LoadState.error(error, stackTrace: stackTrace)
+        : LoadState.error(
+            error,
+            stackTrace: stackTrace,
+            data: previousItems,
+          );
   }
 
   void _applySearchState(SearchResultState state) {

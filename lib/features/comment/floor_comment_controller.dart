@@ -94,6 +94,7 @@ class FloorCommentController {
         parentCommentId,
         time: -1,
         limit: pageSize,
+        forceRefresh: state.value.refreshing,
       );
       _time = page.nextTime;
       state.value = PagedState.data(

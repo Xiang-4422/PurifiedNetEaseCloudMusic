@@ -205,7 +205,10 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
     ),
     downloadRepository: downloadRepository,
     playbackRepository: playbackRepository,
-    commentRepository: CommentRepository(remoteDataSource: commentRemoteDataSource),
+    commentRepository: CommentRepository(
+      remoteDataSource: commentRemoteDataSource,
+      cacheStore: dataSources.commentCacheStore,
+    ),
     exploreRepository: ExploreRepository(
       remoteDataSource: exploreRemoteDataSource,
       cacheStore: dataSources.exploreCacheStore,

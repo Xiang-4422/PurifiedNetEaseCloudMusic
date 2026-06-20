@@ -67,6 +67,12 @@ String explorePlaylistCatalogueSp = 'EXPLORE_PLAYLIST_CATALOGUE';
 /// 探索页歌单分类刷新时间戳的本地存储键。
 String explorePlaylistCatalogueLastRefreshSp = 'EXPLORE_PLAYLIST_CATALOGUE_LAST_REFRESH';
 
+/// 评论列表短期缓存键前缀。
+String commentListCacheSp = 'COMMENT_LIST';
+
+/// 楼层评论短期缓存键前缀。
+String floorCommentCacheSp = 'FLOOR_COMMENT';
+
 /// 下载任务快照的本地存储键。
 String downloadTasksSp = 'DOWNLOAD_TASKS';
 

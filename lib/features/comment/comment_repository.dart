@@ -1,13 +1,22 @@
 import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_comment_remote_data_source.dart';
 import 'package:bujuan/core/entities/comment_data.dart';
+import 'package:bujuan/features/comment/comment_cache_store.dart';
 
 /// 评论仓库，封装评论列表、楼层评论、发送评论和点赞操作。
 class CommentRepository {
   /// 创建评论仓库。
-  CommentRepository({required NeteaseCommentRemoteDataSource remoteDataSource}) : _remoteDataSource = remoteDataSource;
+  CommentRepository({
+    required NeteaseCommentRemoteDataSource remoteDataSource,
+    required CommentCacheStore cacheStore,
+    Duration cacheTtl = const Duration(minutes: 10),
+  })  : _remoteDataSource = remoteDataSource,
+        _cacheStore = cacheStore,
+        _cacheTtl = cacheTtl;
 
   final NeteaseCommentRemoteDataSource _remoteDataSource;
+  final CommentCacheStore _cacheStore;
+  final Duration _cacheTtl;
 
   /// 分页获取评论列表。
   Future<CommentPage> fetchComments(
@@ -18,20 +27,67 @@ class CommentRepository {
     bool showInner = false,
     int? sortType,
     String? cursor,
+    bool forceRefresh = false,
   }) async {
-    final page = await _remoteDataSource.fetchComments(
-      id,
-      type,
+    final cacheKey = CommentListCacheKey(
+      id: id,
+      type: type,
       pageNo: pageNo,
       pageSize: pageSize,
       showInner: showInner,
       sortType: sortType ?? 99,
       cursor: cursor ?? '0',
     );
+    final freshCachedPage = forceRefresh ? null : await _loadFreshCommentPage(cacheKey);
+    if (freshCachedPage != null) {
+      return freshCachedPage;
+    }
+    try {
+      final page = await _remoteDataSource.fetchComments(
+        id,
+        type,
+        pageNo: cacheKey.pageNo,
+        pageSize: cacheKey.pageSize,
+        showInner: cacheKey.showInner,
+        sortType: cacheKey.sortType,
+        cursor: cacheKey.cursor,
+      );
+      await _cacheStore.saveComments(
+        cacheKey,
+        items: page.items,
+        hasMore: page.hasMore,
+        nextCursor: page.nextCursor,
+      );
+      return CommentPage(
+        items: page.items,
+        hasMore: page.hasMore,
+        nextCursor: page.nextCursor,
+      );
+    } catch (_) {
+      final cachedPage = await _loadCommentPage(cacheKey);
+      if (cachedPage != null) {
+        return cachedPage;
+      }
+      rethrow;
+    }
+  }
+
+  Future<CommentPage?> _loadFreshCommentPage(CommentListCacheKey cacheKey) async {
+    if (!await _cacheStore.isCommentsFresh(cacheKey, ttl: _cacheTtl)) {
+      return null;
+    }
+    return _loadCommentPage(cacheKey);
+  }
+
+  Future<CommentPage?> _loadCommentPage(CommentListCacheKey cacheKey) async {
+    final cachedPage = await _cacheStore.loadComments(cacheKey);
+    if (cachedPage == null) {
+      return null;
+    }
     return CommentPage(
-      items: page.items,
-      hasMore: page.hasMore,
-      nextCursor: page.nextCursor,
+      items: cachedPage.items,
+      hasMore: cachedPage.hasMore,
+      nextCursor: cachedPage.nextCursor,
     );
   }
 
@@ -42,18 +98,67 @@ class CommentRepository {
     String parentCommentId, {
     int time = -1,
     int limit = 20,
+    bool forceRefresh = false,
   }) async {
-    final page = await _remoteDataSource.fetchFloorComments(
-      id,
-      type,
-      parentCommentId,
+    final cacheKey = FloorCommentCacheKey(
+      id: id,
+      type: type,
+      parentCommentId: parentCommentId,
       time: time,
       limit: limit,
     );
+    final freshCachedPage = forceRefresh ? null : await _loadFreshFloorCommentPage(cacheKey);
+    if (freshCachedPage != null) {
+      return freshCachedPage;
+    }
+    try {
+      final page = await _remoteDataSource.fetchFloorComments(
+        id,
+        type,
+        parentCommentId,
+        time: cacheKey.time,
+        limit: cacheKey.limit,
+      );
+      await _cacheStore.saveFloorComments(
+        cacheKey,
+        items: page.items,
+        hasMore: page.hasMore,
+        nextTime: page.nextTime,
+      );
+      return FloorCommentPage(
+        items: page.items,
+        hasMore: page.hasMore,
+        nextTime: page.nextTime,
+      );
+    } catch (_) {
+      final cachedPage = await _loadFloorCommentPage(cacheKey);
+      if (cachedPage != null) {
+        return cachedPage;
+      }
+      rethrow;
+    }
+  }
+
+  Future<FloorCommentPage?> _loadFreshFloorCommentPage(
+    FloorCommentCacheKey cacheKey,
+  ) async {
+    if (!await _cacheStore.isFloorCommentsFresh(cacheKey, ttl: _cacheTtl)) {
+      return null;
+    }
+    return _loadFloorCommentPage(cacheKey);
+  }
+
+  Future<FloorCommentPage?> _loadFloorCommentPage(
+    FloorCommentCacheKey cacheKey,
+  ) async {
+    final cachedPage = await _cacheStore.loadFloorComments(cacheKey);
+    if (cachedPage == null) {
+      return null;
+    }
     return FloorCommentPage(
-      items: page.items,
-      hasMore: page.hasMore,
-      nextTime: page.nextTime,
+      items: cachedPage.items,
+      hasMore: cachedPage.hasMore,
+      nextTime: cachedPage.nextTime,
     );
   }
 

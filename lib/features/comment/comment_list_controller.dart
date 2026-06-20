@@ -92,6 +92,7 @@ class CommentListController {
         pageNo: 1,
         pageSize: pageSize,
         sortType: sortType,
+        forceRefresh: state.value.refreshing,
       );
       _pageNo = 1;
       _cursor = page.nextCursor;

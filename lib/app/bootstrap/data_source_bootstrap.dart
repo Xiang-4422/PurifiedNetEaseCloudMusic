@@ -1,5 +1,6 @@
 import 'package:bujuan/data/music_data/sources/local/database/app_database.dart';
 import 'package:bujuan/data/music_data/sources/local/local_music_source.dart';
+import 'package:bujuan/features/comment/comment_cache_store.dart';
 import 'package:bujuan/features/explore/explore_cache_store.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
 
@@ -18,6 +19,7 @@ class AppDataSourceBootstrapResult {
     required this.downloadTaskDataSource,
     required this.playbackRestoreDataSource,
     required this.appCacheDataSource,
+    required this.commentCacheStore,
     required this.searchCacheStore,
     required this.exploreCacheStore,
     required this.localMusicSource,
@@ -56,6 +58,9 @@ class AppDataSourceBootstrapResult {
   /// 通用短期缓存数据源。
   final AppCacheDataSource appCacheDataSource;
 
+  /// 评论缓存 store。
+  final CommentCacheStore commentCacheStore;
+
   /// 搜索缓存 store。
   final SearchCacheStore searchCacheStore;
 
@@ -84,6 +89,7 @@ AppDataSourceBootstrapResult initializeDataSourceInfrastructure({
     downloadTaskDataSource: appDatabase.downloadTaskDataSource,
     playbackRestoreDataSource: appDatabase.playbackRestoreDataSource,
     appCacheDataSource: appCacheDataSource,
+    commentCacheStore: CommentCacheStore(cacheDataSource: appCacheDataSource),
     searchCacheStore: SearchCacheStore(cacheDataSource: appCacheDataSource),
     exploreCacheStore: ExploreCacheStore(cacheDataSource: appCacheDataSource),
     localMusicSource: LocalMusicSource(localDataSource: localLibraryDataSource),

@@ -11,6 +11,22 @@ class CommentUserData {
 
   /// 用户头像地址。
   final String avatarUrl;
+
+  /// 从 JSON 创建评论用户摘要。
+  factory CommentUserData.fromJson(Map<String, dynamic> json) {
+    return CommentUserData(
+      nickname: json['nickname']?.toString() ?? '',
+      avatarUrl: json['avatarUrl']?.toString() ?? '',
+    );
+  }
+
+  /// 转换为 JSON。
+  Map<String, dynamic> toJson() {
+    return {
+      'nickname': nickname,
+      'avatarUrl': avatarUrl,
+    };
+  }
 }
 
 /// 评论领域数据。
@@ -47,6 +63,35 @@ class CommentData {
   /// 当前用户是否已点赞。
   final bool liked;
 
+  /// 从 JSON 创建评论数据。
+  factory CommentData.fromJson(Map<String, dynamic> json) {
+    final rawUser = json['user'];
+    return CommentData(
+      commentId: json['commentId']?.toString() ?? '',
+      user: CommentUserData.fromJson(
+        rawUser is Map ? Map<String, dynamic>.from(rawUser.map((key, value) => MapEntry('$key', value))) : const {},
+      ),
+      content: json['content']?.toString() ?? '',
+      time: _intFromJson(json['time']),
+      replyCount: _intFromJson(json['replyCount']),
+      likedCount: _intFromJson(json['likedCount']),
+      liked: json['liked'] == true,
+    );
+  }
+
+  /// 转换为 JSON。
+  Map<String, dynamic> toJson() {
+    return {
+      'commentId': commentId,
+      'user': user.toJson(),
+      'content': content,
+      'time': time,
+      'replyCount': replyCount,
+      'likedCount': likedCount,
+      'liked': liked,
+    };
+  }
+
   /// 复制评论数据并替换指定字段。
   CommentData copyWith({
     String? commentId,
@@ -67,4 +112,11 @@ class CommentData {
       liked: liked ?? this.liked,
     );
   }
+}
+
+int _intFromJson(dynamic value) {
+  if (value is int) {
+    return value;
+  }
+  return int.tryParse(value?.toString() ?? '') ?? 0;
 }

@@ -542,6 +542,32 @@ void main() {
       );
     });
 
+    test('playback metadata key access stays in queue boundary codecs', () {
+      const allowedPaths = {
+        'lib/features/playback/application/playback_queue_item_adapter.dart',
+        'lib/features/playback/application/playback_queue_item_cache_codec.dart',
+        'lib/features/playback/application/playback_queue_item_mapper.dart',
+      };
+      final playbackFiles = _dartFiles(Directory('${projectRoot.path}/lib/features/playback'));
+      final violations = playbackFiles
+          .where(
+            (file) => _containsAny(file, const [
+              '.metadata[',
+              "metadata['",
+              'metadata["',
+            ]),
+          )
+          .map(_relativePath)
+          .where((path) => !allowedPaths.contains(path))
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'PlaybackQueueItem.metadata 动态键只能在 mapper/adapter/cache codec 边界做兼容迁移，播放服务和 controller 必须使用显式字段。',
+      );
+    });
+
     test('playback selection layer stays independent from audio service', () {
       final selectionFiles = _dartFiles(
         Directory('${projectRoot.path}/lib/features/playback'),

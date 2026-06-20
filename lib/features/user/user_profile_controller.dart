@@ -46,10 +46,14 @@ class UserProfileController {
       final detail = await _repository.fetchUserDetail(userId);
       state.value = detail.userId.isEmpty ? const LoadState.empty() : LoadState.data(detail);
     } catch (error, stackTrace) {
-      if (state.value.data != null) {
-        return;
-      }
-      state.value = LoadState.error(error, stackTrace: stackTrace);
+      final previousDetail = state.value.data;
+      state.value = previousDetail == null
+          ? LoadState.error(error, stackTrace: stackTrace)
+          : LoadState.error(
+              error,
+              stackTrace: stackTrace,
+              data: previousDetail,
+            );
     }
   }
 

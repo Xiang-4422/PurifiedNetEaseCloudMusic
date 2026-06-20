@@ -1604,6 +1604,36 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'send_album',
+    query: {
+      id: '100',
+      msg: 0,
+      user_ids: [101, 202],
+    },
+  },
+  {
+    module: 'send_playlist',
+    query: {
+      playlist: '200',
+      msg: '歌单',
+      user_ids: '101,202',
+    },
+  },
+  {
+    module: 'send_song',
+    query: {
+      id: '300',
+      user_ids: '101',
+    },
+  },
+  {
+    module: 'send_text',
+    query: {
+      msg: 'hello',
+      user_ids: '101,202',
+    },
+  },
+  {
     module: 'fanscenter_basicinfo_age_get',
     query: {},
   },

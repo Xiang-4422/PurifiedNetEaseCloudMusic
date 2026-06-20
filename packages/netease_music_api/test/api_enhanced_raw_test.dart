@@ -1136,6 +1136,38 @@ void main() {
       expect(api.requestModuleDioMetaData('msg_recentcontact', {}).data, isEmpty);
     });
 
+    test('maps send private message request data like upstream', () {
+      final albumMetaData = api.requestModuleDioMetaData('send_album', {
+        'id': '100',
+        'msg': 0,
+        'user_ids': [101, 202],
+      });
+      expect(albumMetaData.uri.path, '/api/msg/private/send');
+      expect(albumMetaData.data, {
+        'id': '100',
+        'msg': '',
+        'type': 'album',
+        'userIds': '[101,202]',
+      });
+      expect(api.requestModuleDioMetaData('send_playlist', {'playlist': '200', 'msg': '歌单', 'user_ids': '101,202'}).data, {
+        'id': '200',
+        'type': 'playlist',
+        'msg': '歌单',
+        'userIds': '[101,202]',
+      });
+      expect(api.requestModuleDioMetaData('send_song', {'id': '300', 'user_ids': '101'}).data, {
+        'id': '300',
+        'msg': '',
+        'type': 'song',
+        'userIds': '[101]',
+      });
+      expect(api.requestModuleDioMetaData('send_text', {'msg': 'hello', 'user_ids': '101,202'}).data, {
+        'type': 'text',
+        'msg': 'hello',
+        'userIds': '[101,202]',
+      });
+    });
+
     test('maps fanscenter request data like upstream', () {
       expect(api.requestModuleDioMetaData('fanscenter_basicinfo_age_get', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('fanscenter_basicinfo_gender_get', {}).data, isEmpty);

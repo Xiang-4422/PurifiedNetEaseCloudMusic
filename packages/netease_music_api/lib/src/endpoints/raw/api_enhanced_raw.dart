@@ -2276,6 +2276,33 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       };
     case 'msg_recentcontact':
       return {};
+    case 'send_album':
+      return {
+        'id': query['id'],
+        'msg': _jsDefault(query['msg'], ''),
+        'type': 'album',
+        'userIds': '[${_jsString(query['user_ids'])}]',
+      };
+    case 'send_playlist':
+      return {
+        'id': query['playlist'],
+        'type': 'playlist',
+        'msg': query['msg'],
+        'userIds': '[${_jsString(query['user_ids'])}]',
+      };
+    case 'send_song':
+      return {
+        'id': query['id'],
+        'msg': _jsDefault(query['msg'], ''),
+        'type': 'song',
+        'userIds': '[${_jsString(query['user_ids'])}]',
+      };
+    case 'send_text':
+      return {
+        'type': 'text',
+        'msg': query['msg'],
+        'userIds': '[${_jsString(query['user_ids'])}]',
+      };
     case 'fanscenter_basicinfo_age_get':
     case 'fanscenter_basicinfo_gender_get':
     case 'fanscenter_basicinfo_province_get':
@@ -2650,6 +2677,16 @@ bool _jsTruthy(dynamic value) {
     return false;
   }
   return true;
+}
+
+String _jsString(dynamic value) {
+  if (value == null) {
+    return 'null';
+  }
+  if (value is List) {
+    return value.map(_jsString).join(',');
+  }
+  return value.toString();
 }
 
 bool _jsLooseEqualsOne(dynamic value) {

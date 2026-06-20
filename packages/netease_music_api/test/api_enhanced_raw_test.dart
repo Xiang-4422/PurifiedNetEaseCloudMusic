@@ -492,6 +492,55 @@ void main() {
       });
     });
 
+    test('maps song detail and lyric request data like upstream', () {
+      expect(api.requestModuleDioMetaData('lyric', {'id': '101'}).data, {
+        'id': '101',
+        'tv': -1,
+        'lv': -1,
+        'rv': -1,
+        'kv': -1,
+        '_nmclfl': 1,
+      });
+      expect(api.requestModuleDioMetaData('song_music_detail', {'id': '101'}).data, {
+        'songId': '101',
+      });
+      expect(api.requestModuleDioMetaData('song_chorus', {'id': '101'}).data, {
+        'ids': '["101"]',
+      });
+      expect(api.requestModuleDioMetaData('cloud_lyric_get', {'uid': '42', 'sid': '101'}).data, {
+        'userId': '42',
+        'songId': '101',
+        'lv': -1,
+        'kv': -1,
+      });
+      expect(api.requestModuleDioMetaData('cloud_match', {'uid': '42', 'sid': '101', 'asid': '202'}).data, {
+        'userId': '42',
+        'songId': '101',
+        'adjustSongId': '202',
+      });
+      expect(api.requestModuleDioMetaData('song_downlist', {}).data, {
+        'limit': '20',
+        'offset': '0',
+        'total': 'true',
+      });
+      expect(api.requestModuleDioMetaData('song_purchased', {}).data, {
+        'limit': 20,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('song_lyrics_mark_add', {'id': '101'}).data, {
+        'songId': '101',
+        'markId': '',
+        'data': '[]',
+      });
+      expect(api.requestModuleDioMetaData('song_lyrics_mark_del', {'id': 'mark-1'}).data, {
+        'markIds': 'mark-1',
+      });
+      expect(api.requestModuleDioMetaData('song_lyrics_mark_user_page', {}).data, {
+        'limit': 10,
+        'offset': 0,
+      });
+    });
+
     test('DioProxy dispatches request metadata by method', () async {
       final proxy = _RecordingDioProxy();
 

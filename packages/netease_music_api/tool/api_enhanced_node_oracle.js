@@ -143,6 +143,105 @@ const fixtures = [
     },
   },
   {
+    module: 'lyric',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'song_music_detail',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'song_dynamic_cover',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'song_wiki_summary',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'song_chorus',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'song_red_count',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'cloud_lyric_get',
+    query: {
+      uid: '42',
+      sid: '101',
+    },
+  },
+  {
+    module: 'cloud_match',
+    query: {
+      uid: '42',
+      sid: '101',
+      asid: '202',
+    },
+  },
+  {
+    module: 'song_cloud_download',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'song_downlist',
+    query: {},
+  },
+  {
+    module: 'song_monthdownlist',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'song_singledownlist',
+    query: {},
+  },
+  {
+    module: 'song_purchased',
+    query: {},
+  },
+  {
+    module: 'song_lyrics_mark',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'song_lyrics_mark_add',
+    query: {
+      id: '101',
+      data: '[{"startTimeStamp":800}]',
+    },
+  },
+  {
+    module: 'song_lyrics_mark_del',
+    query: {
+      id: 'mark-1',
+    },
+  },
+  {
+    module: 'song_lyrics_mark_user_page',
+    query: {},
+  },
+  {
     module: 'login',
     query: {
       email: 'user@example.test',

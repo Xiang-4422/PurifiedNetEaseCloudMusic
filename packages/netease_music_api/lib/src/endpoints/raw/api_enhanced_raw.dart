@@ -1120,6 +1120,72 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'ytv': 0,
         'yrv': 0,
       };
+    case 'lyric':
+      return {
+        'id': query['id'],
+        'tv': -1,
+        'lv': -1,
+        'rv': -1,
+        'kv': -1,
+        '_nmclfl': 1,
+      };
+    case 'song_music_detail':
+    case 'song_dynamic_cover':
+    case 'song_wiki_summary':
+    case 'song_red_count':
+    case 'song_lyrics_mark':
+      return {
+        'songId': query['id'],
+      };
+    case 'song_chorus':
+      return {
+        'ids': jsonEncode([query['id']]),
+      };
+    case 'cloud_lyric_get':
+      return {
+        'userId': query['uid'],
+        'songId': query['sid'],
+        'lv': -1,
+        'kv': -1,
+      };
+    case 'cloud_match':
+      return {
+        'userId': query['uid'],
+        'songId': query['sid'],
+        'adjustSongId': query['asid'],
+      };
+    case 'song_cloud_download':
+      return {
+        'songId': query['id'],
+      };
+    case 'song_downlist':
+    case 'song_monthdownlist':
+    case 'song_singledownlist':
+      return {
+        'limit': _jsDefault(query['limit'], '20'),
+        'offset': _jsDefault(query['offset'], '0'),
+        'total': 'true',
+      };
+    case 'song_purchased':
+      return {
+        'limit': _jsDefault(query['limit'], 20),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'song_lyrics_mark_add':
+      return {
+        'songId': query['id'],
+        'markId': _jsDefault(query['markId'], ''),
+        'data': _jsDefault(query['data'], '[]'),
+      };
+    case 'song_lyrics_mark_del':
+      return {
+        'markIds': query['id'],
+      };
+    case 'song_lyrics_mark_user_page':
+      return {
+        'limit': _jsDefault(query['limit'], 10),
+        'offset': _jsDefault(query['offset'], 0),
+      };
     case 'login':
       return {
         'type': '0',

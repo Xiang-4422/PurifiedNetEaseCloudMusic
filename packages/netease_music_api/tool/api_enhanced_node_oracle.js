@@ -6,6 +6,17 @@ const Module = require('module')
 
 const repoRoot = path.resolve(__dirname, '../../..')
 const upstreamRoot = path.join(repoRoot, 'third_party/api-enhanced')
+const relatedPlaylistHtml = `<div class="cver u-cover u-cover-3">
+  <img src="https://p1.music.126.net/cover-a.jpg?param=50y50">
+  <a class="sname f-fs1 s-fc0" href="/playlist?id=123" title="ignored">Related A</a>
+  <a class="nm nm f-thide s-fc3" href="/user/home?id=42" title="ignored">Alice</a>
+</div>
+<div class="cver u-cover u-cover-3">
+  <img src="https://p1.music.126.net/cover-b.jpg?param=50y50">
+  <a class="sname f-fs1 s-fc0" href="/playlist?id=456">Related B</a>
+  <a class="nm nm f-thide s-fc3" href="/user/home?id=77">Bob</a>
+</div>
+`
 
 const originalRequire = Module.prototype.require
 Module.prototype.require = function patchedRequire(request) {
@@ -36,6 +47,9 @@ Module.prototype.require = function patchedRequire(request) {
       default: async (config) => {
         if (config.url && config.url.includes('/api/music/audio/match')) {
           return { data: { data: { songId: 123, name: 'Matched' } }, headers: {} }
+        }
+        if (config.url && config.url.startsWith('https://music.163.com/playlist')) {
+          return { status: 200, data: relatedPlaylistHtml }
         }
         if (config.url && config.url.includes('wanproxy.127.net/lbs')) {
           return { data: { upload: ['https://upload.test'] } }
@@ -2760,6 +2774,13 @@ const fixtures = [
     query: {
       duration: 12,
       audioFP: 'finger print +/=?',
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'related_playlist',
+    query: {
+      id: '888',
     },
     allowNoRequest: true,
   },

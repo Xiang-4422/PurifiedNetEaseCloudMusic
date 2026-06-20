@@ -315,11 +315,13 @@ mixin ApiEnhancedRaw {
   /// Parses related playlists from the upstream playlist page HTML.
   Future<dynamic> relatedPlaylistRaw(Map<String, dynamic> query) async {
     final response = await Https.dio.get('https://music.163.com/playlist', queryParameters: {'id': query['id']});
+    final html = response.data?.toString() ?? '';
     return {
       'status': response.statusCode ?? 200,
+      'data': html,
       'body': {
         'code': 200,
-        'playlists': _parseRelatedPlaylists(response.data?.toString() ?? ''),
+        'playlists': _parseRelatedPlaylists(html),
       },
     };
   }

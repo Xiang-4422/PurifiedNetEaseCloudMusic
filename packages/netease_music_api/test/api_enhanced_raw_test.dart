@@ -12,6 +12,18 @@ import 'package:netease_music_api/src/endpoints/raw/api_enhanced_raw.dart';
 import 'package:netease_music_api/src/generated/api_enhanced_modules.g.dart';
 
 const _encryptedXeApiPublicKeyFixture = 'Ix+68DGNS+G6Oiwlq/g/+pJlf+CLRzLMsVxgAP9Sq82SZX/gi0cyzLFcYAD/UqvNXpKKq45tTezVfnTCJ+SJPc19vHxGXOOCLiTjXypVtRo2werynr5A9/iH1qGdKGF4';
+const _relatedPlaylistHtml = '''
+<div class="cver u-cover u-cover-3">
+  <img src="https://p1.music.126.net/cover-a.jpg?param=50y50">
+  <a class="sname f-fs1 s-fc0" href="/playlist?id=123" title="ignored">Related A</a>
+  <a class="nm nm f-thide s-fc3" href="/user/home?id=42" title="ignored">Alice</a>
+</div>
+<div class="cver u-cover u-cover-3">
+  <img src="https://p1.music.126.net/cover-b.jpg?param=50y50">
+  <a class="sname f-fs1 s-fc0" href="/playlist?id=456">Related B</a>
+  <a class="nm nm f-thide s-fc3" href="/user/home?id=77">Bob</a>
+</div>
+''';
 
 void main() {
   group('ApiEnhancedRaw manifest', () {
@@ -2046,19 +2058,7 @@ void main() {
     });
 
     test('related playlist special module parses upstream playlist html', () async {
-      const html = '''
-<div class="cver u-cover u-cover-3">
-  <img src="https://p1.music.126.net/cover-a.jpg?param=50y50">
-  <a class="sname f-fs1 s-fc0" href="/playlist?id=123" title="ignored">Related A</a>
-  <a class="nm nm f-thide s-fc3" href="/user/home?id=42" title="ignored">Alice</a>
-</div>
-<div class="cver u-cover u-cover-3">
-  <img src="https://p1.music.126.net/cover-b.jpg?param=50y50">
-  <a class="sname f-fs1 s-fc0" href="/playlist?id=456">Related B</a>
-  <a class="nm nm f-thide s-fc3" href="/user/home?id=77">Bob</a>
-</div>
-''';
-      final adapter = _TextResponseAdapter(html);
+      final adapter = _TextResponseAdapter(_relatedPlaylistHtml);
       Https.setDioForTesting(Dio()..httpClientAdapter = adapter);
 
       final result = await api.requestModule('related_playlist', {'id': '888'});
@@ -2066,6 +2066,7 @@ void main() {
       expect(adapter.requestedUri.toString(), 'https://music.163.com/playlist?id=888');
       expect(result, {
         'status': 200,
+        'data': _relatedPlaylistHtml,
         'body': {
           'code': 200,
           'playlists': [
@@ -3061,6 +3062,9 @@ Future<dynamic> _dartResultForNoRequestOracleFixture(
       return api.requestModule(module, query);
     case 'inner_version':
     case 'login_qr_create':
+      return api.requestModule(module, query);
+    case 'related_playlist':
+      Https.setDioForTesting(Dio()..httpClientAdapter = _TextResponseAdapter(_relatedPlaylistHtml));
       return api.requestModule(module, query);
     case 'song_url_ncmget':
       return api.requestModule(module, query);

@@ -22,7 +22,9 @@ void main() {
 
     test('ignores stale background validation after current user changes', () async {
       final authRepository = _FakeAuthRepository(hasCachedLogin: true);
-      final sessionController = _putSessionController();
+      final sessionController = _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
       final controller = AuthController(repository: authRepository);
 
       sessionController.userInfo.value = const UserSessionData(
@@ -53,7 +55,9 @@ void main() {
 
     test('does not expire a newer current user when stale validation fails', () async {
       final authRepository = _FakeAuthRepository(hasCachedLogin: true);
-      final sessionController = _putSessionController();
+      final sessionController = _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
       final controller = AuthController(repository: authRepository);
 
       sessionController.userInfo.value = const UserSessionData(
@@ -78,7 +82,9 @@ void main() {
 
     test('keeps cached session when background validation request fails', () async {
       final authRepository = _FakeAuthRepository(hasCachedLogin: true);
-      final sessionController = _putSessionController();
+      final sessionController = _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
       final controller = AuthController(repository: authRepository);
 
       sessionController.userInfo.value = const UserSessionData(
@@ -99,7 +105,9 @@ void main() {
 
     test('cached session bootstrap ignores failed background validation', () async {
       final authRepository = _FakeAuthRepository(hasCachedLogin: true);
-      final sessionController = _putSessionController();
+      final sessionController = _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
       final controller = AuthController(repository: authRepository);
 
       sessionController.userInfo.value = const UserSessionData(
@@ -120,7 +128,9 @@ void main() {
 
     test('expires cached session when background validation returns logged out user', () async {
       final authRepository = _FakeAuthRepository(hasCachedLogin: true);
-      final sessionController = _putSessionController();
+      final sessionController = _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
       final controller = AuthController(repository: authRepository);
 
       sessionController.userInfo.value = const UserSessionData(
@@ -140,7 +150,9 @@ void main() {
 
     test('cached login bootstrap stores fetched session and clears loading', () async {
       final authRepository = _FakeAuthRepository(hasCachedLogin: true);
-      final sessionController = _putSessionController();
+      final sessionController = _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
       final controller = AuthController(repository: authRepository);
 
       final bootstrap = controller.bootstrap();
@@ -163,7 +175,9 @@ void main() {
 
     test('cached login bootstrap falls back to qr when account fetch fails', () async {
       final authRepository = _FakeAuthRepository(hasCachedLogin: true);
-      final sessionController = _putSessionController();
+      final sessionController = _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
       final controller = AuthController(repository: authRepository);
 
       final bootstrap = controller.bootstrap();
@@ -179,12 +193,14 @@ void main() {
       expect(controller.qrCodeNeedRefresh.value, isFalse);
       expect(controller.uiEffect.value?.type, AuthUiEffectType.message);
       expect(authRepository.createdQrKeys, ['qr-key-1']);
-      expect(authRepository.savedLoginFlags, isEmpty);
+      expect(authRepository.savedLoginFlags, [false]);
     });
 
     test('qr refresh failure exposes retry state without throwing', () async {
       final authRepository = _FakeAuthRepository(hasCachedLogin: false)..failNextQrCreation(StateError('network failed'));
-      _putSessionController();
+      _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
       final controller = AuthController(repository: authRepository);
 
       await controller.refreshQrCode();
@@ -200,7 +216,9 @@ void main() {
 
     test('qr polling failure keeps current code retrying', () async {
       final authRepository = _FakeAuthRepository(hasCachedLogin: false)..nextQrStatusError = StateError('network failed');
-      _putSessionController();
+      _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
       final controller = AuthController(
         repository: authRepository,
         qrPollingInterval: const Duration(milliseconds: 100),
@@ -229,11 +247,13 @@ void main() {
   });
 }
 
-UserSessionController _putSessionController() {
+UserSessionController _putSessionController({
+  Future<void> Function(bool value)? saveLoginFlag,
+}) {
   final controller = UserSessionController(
     repository: _FakeUserRepository(),
     sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
-    saveLoginFlag: (_) async {},
+    saveLoginFlag: saveLoginFlag ?? (_) async {},
   );
   return Get.put<UserSessionController>(controller);
 }

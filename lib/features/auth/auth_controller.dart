@@ -135,8 +135,7 @@ class AuthController extends GetxController {
       final isLoginStateActive = accountInfo.isLoggedIn;
 
       if (!isLoginStateActive) {
-        await _repository.setLoginFlag(false);
-        await UserSessionController.to.expireLoginSession();
+        await _expireLocalLoginSession();
         uiEffect.value = const AuthUiEffect.loginExpired('登录失效,请重新登录');
         _prepareQrRetry();
         return false;
@@ -147,6 +146,9 @@ class AuthController extends GetxController {
       loginCompleted.value = true;
       return true;
     } catch (_) {
+      if (!UserSessionController.to.userInfo.value.isLoggedIn) {
+        await _expireLocalLoginSession();
+      }
       uiEffect.value = const AuthUiEffect.message('登录状态校验失败，请重新登录');
       _prepareQrRetry();
       return false;
@@ -181,9 +183,12 @@ class AuthController extends GetxController {
       return;
     }
 
-    await _repository.setLoginFlag(false);
-    await UserSessionController.to.expireLoginSession();
+    await _expireLocalLoginSession();
     uiEffect.value = const AuthUiEffect.loginExpired('登录失效,请重新登录');
+  }
+
+  Future<void> _expireLocalLoginSession() {
+    return UserSessionController.to.expireLoginSession();
   }
 
   Future<void> _validateLoginStateInBackgroundSafely() async {

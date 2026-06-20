@@ -536,6 +536,36 @@ const fixtures = [
       { status: 200, body: { songs: [{ id: 101 }, { id: 102 }] }, cookie: [] },
     ],
   },
+  {
+    module: 'scrobble',
+    query: {
+      id: '100',
+      sourceid: '200',
+      time: 30,
+      cookie: { MUSIC_U: 'token' },
+      domain: 'https://ignored.test',
+    },
+    captureRequests: true,
+    responses: [
+      { status: 200, body: { ok: 'startplay' }, cookie: [] },
+      { status: 200, body: { ok: 'play' }, cookie: [] },
+    ],
+  },
+  {
+    module: 'cloud_import',
+    query: {
+      md5: 'abc',
+      bitrate: 320000,
+      fileSize: 12345,
+      song: 'Imported Song',
+      fileType: 'flac',
+    },
+    captureRequests: true,
+    responses: [
+      { status: 200, body: { data: [{ songId: 456 }] }, cookie: [] },
+      { status: 200, body: { code: 200, imported: true }, cookie: [] },
+    ],
+  },
 ]
 
 async function captureFixture(fixture) {

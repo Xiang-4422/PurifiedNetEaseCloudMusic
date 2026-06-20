@@ -13,6 +13,7 @@ import 'package:netease_music_api/src/endpoints/raw/api_enhanced_raw.dart';
 import 'package:netease_music_api/src/generated/api_enhanced_modules.g.dart';
 
 const _encryptedXeApiPublicKeyFixture = 'Ix+68DGNS+G6Oiwlq/g/+pJlf+CLRzLMsVxgAP9Sq82SZX/gi0cyzLFcYAD/UqvNXpKKq45tTezVfnTCJ+SJPc19vHxGXOOCLiTjXypVtRo2werynr5A9/iH1qGdKGF4';
+const _upstreamCheckTokenFixture = '9ca17ae2e6ffcda170e2e6ee8af14fbabdb988f225b3868eb2c15a879b9a83d274a790ac8ff54a97b889d5d42af0feaec3b92af58cff99c470a7eafd88f75e839a9ea7c14e909da883e83fb692a3abdb6b92adee9e';
 const _relatedPlaylistHtml = '''
 <div class="cver u-cover u-cover-3">
   <img src="https://p1.music.126.net/cover-a.jpg?param=50y50">
@@ -518,6 +519,42 @@ void main() {
         expect(adapter.requestHeaders['X-Forwarded-For'], '1.2.3.4');
         expect(adapter.requestHeaders[HttpHeaders.refererHeader], HOST);
         expect(adapter.requestHeaders[HttpHeaders.cookieHeader], contains('os=pc'));
+      } finally {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      }
+    });
+
+    test('injects checkToken into encrypted eapi header', () async {
+      final directory = await Directory.systemTemp.createTemp('netease-api-eapi-');
+      final adapter = _JsonResponseAdapter({'code': 200});
+      final dio = Dio()..httpClientAdapter = adapter;
+      Https.setDioForTesting(dio);
+      await NeteaseMusicApi.init(provider: _TestPathProvider(directory));
+
+      try {
+        await Https.dioProxy.postUri(
+          DioMetaData(
+            Uri.parse('https://interface.music.163.com/api/playlist/subscribe'),
+            data: {'id': '1'},
+            options: joinOptions(
+              encryptType: EncryptType.EApi,
+              eApiUrl: '/api/playlist/subscribe',
+              checkToken: true,
+            ),
+          ),
+        );
+
+        final requestData = adapter.requestData as String;
+        expect(requestData, startsWith('params='));
+        final encrypted = Uri.decodeQueryComponent(requestData.substring('params='.length));
+        final decrypted = _jsonMap(_jsonMap(api.eapiDecrypt({'hexString': encrypted})['body'])['data']);
+        final payload = _jsonMap(decrypted['data']);
+        final header = _jsonMap(payload['header']);
+
+        expect(decrypted['url'], '/api/playlist/subscribe');
+        expect(header['X-antiCheatToken'], _upstreamCheckTokenFixture);
       } finally {
         if (directory.existsSync()) {
           await directory.delete(recursive: true);

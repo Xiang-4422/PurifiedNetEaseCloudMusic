@@ -253,6 +253,35 @@ void main() {
       expect(docs, contains('module 数量：${apiEnhancedModules.length}'));
     });
 
+    test('documented SDK differences match coverage report', () async {
+      final repoRoot = _findRepoRoot();
+      final docs = File('${repoRoot.path}/docs/网易云接口开发包.md').readAsStringSync();
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(
+        result.exitCode,
+        0,
+        reason: '${result.stdout}\n${result.stderr}',
+      );
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      final documentedDifferences = _documentedSdkDifferences(docs);
+
+      expect(documentedDifferences, sdkDifferences.map((difference) => difference['module']).toSet());
+      for (final difference in sdkDifferences) {
+        expect(difference['status'], 'limited', reason: difference['module'].toString());
+        expect(difference['reason'], isA<String>(), reason: difference['module'].toString());
+        expect((difference['reason'] as String).trim(), isNotEmpty, reason: difference['module'].toString());
+      }
+    });
+
     test('normal modules build request metadata', () {
       final normalModules = apiEnhancedModules.where((module) => !module.special);
 
@@ -4146,6 +4175,16 @@ Set<String> _stringSet(dynamic value) {
     return {};
   }
   return value.map((item) => item.toString()).toSet();
+}
+
+Set<String> _documentedSdkDifferences(String docs) {
+  final start = docs.indexOf('当前 SDK 差异清单：');
+  final end = docs.indexOf('当前 `sdkDifferences`', start);
+  if (start == -1 || end == -1 || end <= start) {
+    return {};
+  }
+  final section = docs.substring(start, end);
+  return RegExp(r'^- `([^`]+)`$', multiLine: true).allMatches(section).map((match) => match.group(1)!).toSet();
 }
 
 File _findSpecialCoverageStatusFile() {

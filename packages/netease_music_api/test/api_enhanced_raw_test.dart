@@ -154,6 +154,27 @@ void main() {
       final limitedReasons = _jsonMap(report['specialLimitedReasons']);
       expect(limitedReasons.keys.toSet(), _stringSet(report['specialLimited']));
       expect(limitedReasons['song_url_match'], contains('unblockmusic-utils'));
+      final oracleModules = _nodeOracleFixtureModules();
+      final specialStatusByModule = _jsonMap(report['specialCoverageStatusByModule']);
+      expect(specialStatusByModule, hasLength(report['specialModuleCount']));
+      for (final module in apiEnhancedModules.where((module) => module.special)) {
+        final status = _jsonMap(specialStatusByModule[module.module]);
+        expect(_stringSet(status['coverage']), isNotEmpty, reason: module.module);
+        expect(status['hasNodeOracleFixture'], oracleModules.contains(module.module), reason: module.module);
+        if (_stringSet(report['specialLimited']).contains(module.module)) {
+          expect(status['limitedReason'], limitedReasons[module.module], reason: module.module);
+        }
+      }
+      final cloudStatus = _jsonMap(specialStatusByModule['cloud']);
+      expect(_stringSet(cloudStatus['coverage']), containsAll({'nodeOracle', 'limited'}));
+      expect(cloudStatus['hasNodeOracleFixture'], isTrue);
+      final songUrlV1Status = _jsonMap(specialStatusByModule['song_url_v1']);
+      expect(_stringSet(songUrlV1Status['coverage']), containsAll({'nodeOracle', 'limited'}));
+      expect(songUrlV1Status['hasNodeOracleFixture'], isTrue);
+      final songUrlMatchStatus = _jsonMap(specialStatusByModule['song_url_match']);
+      expect(_stringSet(songUrlMatchStatus['coverage']), {'limited'});
+      expect(songUrlMatchStatus['hasNodeOracleFixture'], isFalse);
+      expect(songUrlMatchStatus['limitedReason'], contains('unblockmusic-utils'));
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
       expect(sdkDifferences.map((item) => item['module']).toSet(), _stringSet(report['specialLimited']));
       expect(sdkDifferences.map((item) => item['status']).toSet(), {'limited'});

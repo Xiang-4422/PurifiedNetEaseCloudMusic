@@ -554,6 +554,28 @@ function buildSdkDifferences() {
   return differences.sort((left, right) => `${left.module}:${left.status}`.localeCompare(`${right.module}:${right.status}`))
 }
 
+function buildSpecialCoverageStatusByModule() {
+  const statusByModule = {}
+  for (const module of sorted(specialModules)) {
+    const coverage = []
+    if (nodeOracleSpecial.has(module)) {
+      coverage.push('nodeOracle')
+    }
+    if (dartBehaviorSpecial.has(module)) {
+      coverage.push('dartBehavior')
+    }
+    if (limitedSpecial.has(module)) {
+      coverage.push('limited')
+    }
+    statusByModule[module] = {
+      coverage,
+      hasNodeOracleFixture: oracleModules.has(module),
+      limitedReason: specialLimitedReasons[module] || null,
+    }
+  }
+  return statusByModule
+}
+
 const report = {
   upstreamVersion: upstreamPackage.version,
   upstreamSubmodulePath: path.relative(repoRoot, upstreamRepoPath).replace(/\\/g, '/'),
@@ -586,6 +608,7 @@ const report = {
   specialNodeOracle: sorted(nodeOracleSpecial),
   specialDartBehavior: sorted(dartBehaviorSpecial),
   specialLimited: sorted(limitedSpecial),
+  specialCoverageStatusByModule: buildSpecialCoverageStatusByModule(),
   specialLimitedReasons,
   sdkDifferences: buildSdkDifferences(),
 }
@@ -644,6 +667,7 @@ if (jsonOutput) {
   console.log(`special node oracle: ${report.specialNodeOracle.join(', ')}`)
   console.log(`special dart behavior: ${report.specialDartBehavior.join(', ')}`)
   console.log(`special limited: ${report.specialLimited.join(', ')}`)
+  console.log(`special coverage status entries: ${Object.keys(report.specialCoverageStatusByModule).length}`)
   console.log(`SDK differences: ${report.sdkDifferences.length}`)
   console.log('special limited reasons:')
   for (const [module, reason] of Object.entries(report.specialLimitedReasons)) {

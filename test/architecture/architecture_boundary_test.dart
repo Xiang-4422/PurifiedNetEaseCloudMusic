@@ -1239,6 +1239,7 @@ void main() {
         'lib/app/bootstrap/sdk_bootstrap.dart',
         'lib/app/bootstrap/storage_bootstrap.dart',
         'lib/app/bootstrap/data_source_bootstrap.dart',
+        'lib/app/bootstrap/repository_bootstrap.dart',
         'lib/app/bootstrap/data_bootstrap.dart',
         'lib/app/bootstrap/playback_bootstrap.dart',
         'lib/app/bootstrap/presentation_bootstrap.dart',
@@ -1262,6 +1263,11 @@ void main() {
         'lib/app/bootstrap/data_source_bootstrap.dart': [
           'class AppDataSourceBootstrapResult',
           'AppDataSourceBootstrapResult initializeDataSourceInfrastructure({',
+        ],
+        'lib/app/bootstrap/repository_bootstrap.dart': [
+          'class AppRepositoryBootstrapResult',
+          'AppRepositoryBootstrapResult initializeRepositoryInfrastructure({',
+          'void registerRepositoryInfrastructure(AppRepositoryBootstrapResult repositories)',
         ],
         'lib/app/bootstrap/data_bootstrap.dart': [
           'Future<void> initializeDataInfrastructure({',
@@ -1290,6 +1296,7 @@ void main() {
       }
       final appBootstrap = File('${projectRoot.path}/lib/app/bootstrap/app_bootstrap.dart').readAsStringSync();
       final dataBootstrap = File('${projectRoot.path}/lib/app/bootstrap/data_bootstrap.dart').readAsStringSync();
+      final repositoryBootstrap = File('${projectRoot.path}/lib/app/bootstrap/repository_bootstrap.dart').readAsStringSync();
       final sdkBootstrap = File('${projectRoot.path}/lib/app/bootstrap/sdk_bootstrap.dart').readAsStringSync();
       final sdkOwnershipViolations = <String>[
         if (!appBootstrap.contains('final neteaseApi = await initializeSdk(')) 'app_bootstrap does not receive SDK instance from sdk_bootstrap',
@@ -1314,6 +1321,17 @@ void main() {
         if (dataBootstrap.contains('ExploreCacheStore(')) 'data_bootstrap creates explore cache store directly',
         if (dataBootstrap.contains('LocalMusicSource(')) 'data_bootstrap creates local music source directly',
       ];
+      final repositoryOwnershipViolations = <String>[
+        if (!dataBootstrap.contains('final repositories = initializeRepositoryInfrastructure(')) 'data_bootstrap does not receive repositories from repository_bootstrap',
+        if (!dataBootstrap.contains('registerRepositoryInfrastructure(repositories);')) 'data_bootstrap does not delegate repository registration',
+        if (!repositoryBootstrap.contains('NeteaseMusicSource(api: neteaseApi)')) 'repository_bootstrap does not construct netease music source with injected SDK',
+        if (dataBootstrap.contains('Get.put<MusicDataRepository>')) 'data_bootstrap registers music data repository directly',
+        if (dataBootstrap.contains('NeteaseAuthRemoteDataSource(')) 'data_bootstrap creates auth remote data source directly',
+        if (dataBootstrap.contains('NeteaseMusicSource(api:')) 'data_bootstrap creates netease music source directly',
+        if (dataBootstrap.contains('LocalResourceIndexRepository(')) 'data_bootstrap creates local resource repository directly',
+        if (dataBootstrap.contains('LocalArtworkCacheRepository(')) 'data_bootstrap creates artwork cache repository directly',
+        if (dataBootstrap.contains('DownloadRepository(')) 'data_bootstrap creates download repository directly',
+      ];
 
       expect(
         registrarDirectory.existsSync(),
@@ -1323,7 +1341,7 @@ void main() {
       expect(
         missingFiles,
         isEmpty,
-        reason: 'bootstrap 应按 UI、SDK、数据、播放、展示适配器、feature/controller 职责拆分。',
+        reason: 'bootstrap 应按 UI、SDK、storage、数据源、repository、数据装配、播放、展示适配器、feature/controller 职责拆分。',
       );
       expect(
         missingEntrypoints,
@@ -1344,6 +1362,11 @@ void main() {
         dataSourceOwnershipViolations,
         isEmpty,
         reason: 'data source bootstrap 必须收口本地数据源和轻量 cache store 构建，data_bootstrap 只消费结果对象。',
+      );
+      expect(
+        repositoryOwnershipViolations,
+        isEmpty,
+        reason: 'repository bootstrap 必须收口核心 repository、feature repository 和远程 data source 构建，data_bootstrap 只保留启动顺序。',
       );
     });
 

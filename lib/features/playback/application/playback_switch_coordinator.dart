@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/application/playback_source_prefetcher.dart';
@@ -439,12 +440,19 @@ class PlaybackSwitchCoordinator {
     if (source.kind != PlaybackResolvedSourceKind.filePath && source.kind != PlaybackResolvedSourceKind.neteaseCacheStream) {
       return false;
     }
+    if (!_canResolveRemoteFallback(item)) {
+      return false;
+    }
     return _replaceRemoteSourceWithFallback(
       queue: queue,
       item: item,
       activeIndex: activeIndex,
       playNow: playNow,
     );
+  }
+
+  bool _canResolveRemoteFallback(PlaybackQueueItem item) {
+    return item.sourceType != SourceType.local;
   }
 
   Future<bool> _replaceRemoteSourceWithFallback({
@@ -518,6 +526,9 @@ class PlaybackSwitchCoordinator {
   }) async {
     final preferHighQuality = _playbackService.isHighQualityEnabled();
     if (trigger == PlaybackSwitchTrigger.sourceError) {
+      if (!_canResolveRemoteFallback(item)) {
+        return const _SourceResolveResult.failure('当前本地歌曲文件不可用');
+      }
       final primary = await _tryResolveSource(
         item,
         preferHighQuality: preferHighQuality,

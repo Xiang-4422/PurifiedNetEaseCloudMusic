@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
@@ -168,6 +169,39 @@ void main() {
       expect(playbackService.replaceCalls.last.source.kind, PlaybackResolvedSourceKind.url);
     });
 
+    test('does not resolve remote fallback when local import file fails', () async {
+      final playbackService = _FakePlaybackService(failFirstReplace: true);
+      final resolver = _LocalThenRemoteRefreshSourceResolver();
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+      );
+      final queue = [
+        _item(
+          '1',
+          sourceType: SourceType.local,
+          mediaType: MediaType.local,
+        ),
+      ];
+      await queueService.replaceQueue(queue, 0, playlistName: 'Queue');
+
+      final result = await coordinator.switchToSelection(
+        queue: queue,
+        item: queue.first,
+        activeIndex: 0,
+        selectionVersion: queueService.state.selectionVersion,
+        trigger: PlaybackSwitchTrigger.userSelect,
+        playNow: true,
+      );
+
+      expect(result.success, isFalse);
+      expect(playbackService.replaceCalls, hasLength(1));
+      expect(playbackService.replaceCalls.single.source.kind, PlaybackResolvedSourceKind.filePath);
+      expect(resolver.remoteForceRefreshValues, isEmpty);
+    });
+
     test('refreshes remote url when remote source replacement fails', () async {
       final playbackService = _FakePlaybackService(failFirstReplace: true);
       final resolver = _RemoteRefreshSourceResolver();
@@ -224,6 +258,40 @@ void main() {
       ]);
       expect(resolver.resolveCalls, 0);
       expect(resolver.remoteForceRefreshValues, [true]);
+    });
+
+    test('source error does not resolve remote for local import', () async {
+      final playbackService = _FakePlaybackService();
+      final resolver = _RemoteRefreshSourceResolver();
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+      );
+      final queue = [
+        _item(
+          '1',
+          sourceType: SourceType.local,
+          mediaType: MediaType.local,
+        ),
+      ];
+      await queueService.replaceQueue(queue, 0, playlistName: 'Queue');
+
+      final result = await coordinator.switchToSelection(
+        queue: queue,
+        item: queue.first,
+        activeIndex: 0,
+        selectionVersion: queueService.state.selectionVersion,
+        trigger: PlaybackSwitchTrigger.sourceError,
+        playNow: true,
+      );
+
+      expect(result.success, isFalse);
+      expect(result.message, '当前本地歌曲文件不可用');
+      expect(playbackService.replaceCalls, isEmpty);
+      expect(resolver.resolveCalls, 0);
+      expect(resolver.remoteForceRefreshValues, isEmpty);
     });
 
     test('source error falls back to refreshed normal quality when high quality refresh fails', () async {
@@ -389,10 +457,15 @@ PlaybackQueueService _queueService(_FakePlaybackService playbackService) {
   );
 }
 
-PlaybackQueueItem _item(String id) {
+PlaybackQueueItem _item(
+  String id, {
+  SourceType sourceType = SourceType.netease,
+  MediaType mediaType = MediaType.playlist,
+}) {
   return PlaybackQueueItem(
     id: id,
     sourceId: id,
+    sourceType: sourceType,
     title: 'Track $id',
     albumTitle: null,
     artistNames: const [],
@@ -400,7 +473,7 @@ PlaybackQueueItem _item(String id) {
     duration: null,
     artworkUrl: null,
     localArtworkPath: null,
-    mediaType: MediaType.playlist,
+    mediaType: mediaType,
     playbackUrl: null,
     lyricKey: null,
     isLiked: false,

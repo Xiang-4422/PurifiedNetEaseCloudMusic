@@ -444,6 +444,54 @@ void main() {
       });
     });
 
+    test('maps home discovery request data like upstream', () {
+      expect(api.requestModuleDioMetaData('homepage_block_page', {}).data, {
+        'refresh': false,
+      });
+      expect(api.requestModuleDioMetaData('homepage_block_page', {'refresh': true, 'cursor': 'page-2'}).data, {
+        'refresh': true,
+        'cursor': 'page-2',
+      });
+      expect(api.requestModuleDioMetaData('personalized_newsong', {}).data, {
+        'type': 'recommend',
+        'limit': 10,
+        'areaId': 0,
+      });
+      expect(api.requestModuleDioMetaData('personalized_mv', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('personalized_djprogram', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('personalized_privatecontent', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('personalized_privatecontent_list', {'offset': 20, 'limit': 10}).data, {
+        'offset': 20,
+        'total': 'true',
+        'limit': 10,
+      });
+      expect(api.requestModuleDioMetaData('top_song', {'type': 7}).data, {
+        'areaId': 7,
+        'total': true,
+      });
+      expect(api.requestModuleDioMetaData('top_artists', {}).data, {
+        'limit': 50,
+        'offset': 0,
+        'total': true,
+      });
+      expect(api.requestModuleDioMetaData('top_album', {'year': 2025, 'month': 6}).data, {
+        'area': 'ALL',
+        'limit': 50,
+        'offset': 0,
+        'type': 'new',
+        'year': 2025,
+        'month': 6,
+        'total': false,
+        'rcmd': true,
+      });
+      expect(api.requestModuleDioMetaData('album_list', {}).data, {
+        'limit': 30,
+        'offset': 0,
+        'total': true,
+        'area': 'ALL',
+      });
+    });
+
     test('DioProxy dispatches request metadata by method', () async {
       final proxy = _RecordingDioProxy();
 

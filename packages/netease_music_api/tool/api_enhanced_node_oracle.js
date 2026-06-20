@@ -491,6 +491,72 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'homepage_block_page',
+    query: {
+      refresh: true,
+      cursor: 'page-2',
+    },
+  },
+  {
+    module: 'personalized_newsong',
+    query: {
+      limit: 12,
+      areaId: 7,
+    },
+  },
+  {
+    module: 'personalized_mv',
+    query: {},
+  },
+  {
+    module: 'personalized_djprogram',
+    query: {},
+  },
+  {
+    module: 'personalized_privatecontent',
+    query: {},
+  },
+  {
+    module: 'personalized_privatecontent_list',
+    query: {
+      offset: 20,
+      limit: 10,
+    },
+  },
+  {
+    module: 'top_song',
+    query: {
+      type: 7,
+    },
+  },
+  {
+    module: 'top_artists',
+    query: {
+      limit: 20,
+      offset: 40,
+    },
+  },
+  {
+    module: 'top_album',
+    query: {
+      area: 'ZH',
+      limit: 20,
+      offset: 40,
+      type: 'hot',
+      year: 2025,
+      month: 6,
+    },
+  },
+  {
+    module: 'album_list',
+    query: {
+      area: 'EA',
+      limit: 20,
+      offset: 40,
+      type: 'new',
+    },
+  },
+  {
     module: 'recommend_songs',
     query: {
       afresh: true,

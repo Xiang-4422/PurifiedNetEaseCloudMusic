@@ -1348,6 +1348,58 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'total': true,
         'n': 1000,
       };
+    case 'homepage_block_page':
+      return {
+        'refresh': _jsDefault(query['refresh'], false),
+        if (query.containsKey('cursor')) 'cursor': query['cursor'],
+      };
+    case 'personalized_newsong':
+      return {
+        'type': 'recommend',
+        'limit': _jsDefault(query['limit'], 10),
+        'areaId': _jsDefault(query['areaId'], 0),
+      };
+    case 'personalized_mv':
+    case 'personalized_djprogram':
+    case 'personalized_privatecontent':
+      return {};
+    case 'personalized_privatecontent_list':
+      return {
+        'offset': _jsDefault(query['offset'], 0),
+        'total': 'true',
+        'limit': _jsDefault(query['limit'], 60),
+      };
+    case 'top_song':
+      return {
+        'areaId': _jsDefault(query['type'], 0),
+        'total': true,
+      };
+    case 'top_artists':
+      return {
+        'limit': _jsDefault(query['limit'], 50),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
+    case 'top_album':
+      final now = DateTime.now();
+      return {
+        'area': _jsDefault(query['area'], 'ALL'),
+        'limit': _jsDefault(query['limit'], 50),
+        'offset': _jsDefault(query['offset'], 0),
+        'type': _jsDefault(query['type'], 'new'),
+        'year': _jsDefault(query['year'], now.year),
+        'month': _jsDefault(query['month'], now.month),
+        'total': false,
+        'rcmd': true,
+      };
+    case 'album_list':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+        'area': _jsDefault(query['area'], 'ALL'),
+        if (query.containsKey('type')) 'type': query['type'],
+      };
     case 'recommend_songs':
       return {
         if (query.containsKey('afresh')) 'afresh': query['afresh'],

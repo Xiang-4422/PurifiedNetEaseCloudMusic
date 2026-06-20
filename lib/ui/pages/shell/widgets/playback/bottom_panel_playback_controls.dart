@@ -1,5 +1,8 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:bujuan/core/entities/playback_mode.dart';
+import 'package:bujuan/core/entities/playback_order_mode.dart';
+import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
@@ -62,6 +65,9 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
         final isPlaying = PlayerController.to.isPlaying.value;
         final panelColor = SettingsController.to.panelWidgetColor.value;
         final repeatIcon = PlayerController.to.getRepeatIcon();
+        final playbackMode = PlayerController.to.playbackMode.value;
+        final orderMode = PlayerController.to.curOrderMode.value;
+        final repeatMode = PlayerController.to.curRepeatMode.value;
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -120,7 +126,11 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               ),
             ),
             _PlaybackControlButton(
-              semanticsLabel: '切换播放模式',
+              semanticsLabel: playbackModeControlLabel(
+                playbackMode: playbackMode,
+                orderMode: orderMode,
+                repeatMode: repeatMode,
+              ),
               onTap: PlayerController.to.handleRepeatModeTap,
               child: _ButtonBackground(
                 child: Icon(
@@ -173,6 +183,30 @@ String playbackLikeControlLabel({required bool isLiked}) {
 @visibleForTesting
 String playbackPlayPauseControlLabel({required bool isPlaying}) {
   return isPlaying ? '暂停' : '播放';
+}
+
+/// 生成播放模式按钮的辅助语义标签。
+@visibleForTesting
+String playbackModeControlLabel({
+  required PlaybackMode playbackMode,
+  required PlaybackOrderMode orderMode,
+  required PlaybackRepeatMode repeatMode,
+}) {
+  if (playbackMode == PlaybackMode.roaming) {
+    return '播放模式：私人 FM';
+  }
+  if (playbackMode == PlaybackMode.heartbeat) {
+    return '播放模式：心动模式';
+  }
+  if (orderMode == PlaybackOrderMode.shuffle) {
+    return '播放模式：随机播放';
+  }
+  return switch (repeatMode) {
+    PlaybackRepeatMode.one => '播放模式：单曲循环',
+    PlaybackRepeatMode.none => '播放模式：不循环',
+    PlaybackRepeatMode.all => '播放模式：列表循环',
+    PlaybackRepeatMode.group => '播放模式：分组循环',
+  };
 }
 
 class _ButtonBackground extends GetView<ShellController> {

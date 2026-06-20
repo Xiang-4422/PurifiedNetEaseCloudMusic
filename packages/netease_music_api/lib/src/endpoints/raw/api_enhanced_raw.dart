@@ -3843,52 +3843,68 @@ class _CloudAudioMetadata {
   final String? artist;
 }
 
+class _CloudMetadataProbe {
+  const _CloudMetadataProbe({
+    required this.prefix,
+    this.tail,
+  });
+
+  final Uint8List prefix;
+  final Uint8List? tail;
+}
+
 Future<_CloudAudioMetadata> _cloudAudioMetadata(Map<String, dynamic> query) async {
   try {
-    final bytes = await _cloudMetadataBytes(query);
-    if (bytes == null || bytes.isEmpty) {
+    final probe = await _cloudMetadataProbe(query);
+    if (probe == null || (probe.prefix.isEmpty && (probe.tail == null || probe.tail!.isEmpty))) {
       return const _CloudAudioMetadata();
     }
-    return _parseCloudAudioMetadata(bytes) ?? const _CloudAudioMetadata();
+    return _parseCloudAudioMetadata(probe) ?? const _CloudAudioMetadata();
   } catch (_) {
     return const _CloudAudioMetadata();
   }
 }
 
-Future<Uint8List?> _cloudMetadataBytes(Map<String, dynamic> query) async {
+Future<_CloudMetadataProbe?> _cloudMetadataProbe(Map<String, dynamic> query) async {
   final songFile = _songFileMap(query);
   final inMemory = _bytesFromUploadValue(query['bytes'] ?? query['data'] ?? songFile['data']);
   if (inMemory != null) {
-    return inMemory;
+    return _CloudMetadataProbe(prefix: inMemory, tail: inMemory);
   }
   final filePath = query['filePath']?.toString();
   if (filePath != null && filePath.isNotEmpty) {
-    return _readFilePrefix(filePath, _cloudMetadataProbeLimit);
+    return _readFileMetadataProbe(filePath, _cloudMetadataProbeLimit);
   }
   final tempFilePath = songFile['tempFilePath']?.toString();
   if (tempFilePath != null && tempFilePath.isNotEmpty) {
-    return _readFilePrefix(tempFilePath, _cloudMetadataProbeLimit);
+    return _readFileMetadataProbe(tempFilePath, _cloudMetadataProbeLimit);
   }
   return null;
 }
 
-Future<Uint8List> _readFilePrefix(String path, int limit) async {
+Future<_CloudMetadataProbe> _readFileMetadataProbe(String path, int prefixLimit) async {
   final file = File(path);
   final length = await file.length();
-  if (length <= 0 || limit <= 0) {
-    return Uint8List(0);
+  if (length <= 0 || prefixLimit <= 0) {
+    return _CloudMetadataProbe(prefix: Uint8List(0));
   }
-  final count = min(length, limit);
+  final prefixCount = min(length, prefixLimit);
   final handle = await file.open();
   try {
-    return await handle.read(count);
+    final prefix = await handle.read(prefixCount);
+    if (length <= prefixCount || length < 128) {
+      return _CloudMetadataProbe(prefix: prefix, tail: prefix);
+    }
+    await handle.setPosition(length - 128);
+    final tail = await handle.read(128);
+    return _CloudMetadataProbe(prefix: prefix, tail: tail);
   } finally {
     await handle.close();
   }
 }
 
-_CloudAudioMetadata? _parseCloudAudioMetadata(Uint8List bytes) {
-  return _parseId3v2Metadata(bytes) ?? _parseFlacVorbisMetadata(bytes);
+_CloudAudioMetadata? _parseCloudAudioMetadata(_CloudMetadataProbe probe) {
+  return _parseId3v2Metadata(probe.prefix) ?? _parseFlacVorbisMetadata(probe.prefix) ?? _parseId3v1Metadata(probe.tail ?? probe.prefix);
 }
 
 _CloudAudioMetadata? _parseId3v2Metadata(Uint8List bytes) {
@@ -3982,6 +3998,30 @@ String? _decodeId3TextFrame(Uint8List frame) {
       value = utf8.decode(payload, allowMalformed: true);
   }
   return _cleanMetadataText(value);
+}
+
+_CloudAudioMetadata? _parseId3v1Metadata(Uint8List bytes) {
+  if (bytes.length < 128) {
+    return null;
+  }
+  final offset = bytes.length - 128;
+  if (!_asciiEquals(bytes, offset, 'TAG')) {
+    return null;
+  }
+  final title = _decodeId3v1Field(bytes, offset + 3, 30);
+  final artist = _decodeId3v1Field(bytes, offset + 33, 30);
+  final album = _decodeId3v1Field(bytes, offset + 63, 30);
+  if (title == null && album == null && artist == null) {
+    return null;
+  }
+  return _CloudAudioMetadata(title: title, album: album, artist: artist);
+}
+
+String? _decodeId3v1Field(Uint8List bytes, int offset, int length) {
+  if (offset + length > bytes.length) {
+    return null;
+  }
+  return _cleanMetadataText(latin1.decode(bytes.sublist(offset, offset + length), allowInvalid: true));
 }
 
 _CloudAudioMetadata? _parseFlacVorbisMetadata(Uint8List bytes) {

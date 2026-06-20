@@ -3264,6 +3264,56 @@ void main() {
       }
     });
 
+    test('cloud special module reads ID3v1 tail tags from probed file path', () async {
+      final directory = await Directory.systemTemp.createTemp('netease-cloud-id3v1-');
+      try {
+        final audioFile = File('${directory.path}/Tail Tagged.mp3');
+        await audioFile.writeAsBytes([
+          ...List.filled(300 * 1024, 0),
+          ..._id3v1Tag(
+            title: 'Tail Title',
+            album: 'Tail Album',
+            artist: 'Tail Artist',
+          ),
+        ]);
+        final proxy = _QueuedPostDioProxy([
+          {
+            'needUpload': false,
+            'songId': 456,
+          },
+          {
+            'result': {
+              'objectKey': 'cloud/object-key',
+              'token': 'cloud-token',
+              'resourceId': 'resource-1',
+            },
+          },
+          {
+            'code': 200,
+            'songId': 789,
+          },
+          {
+            'code': 200,
+            'published': true,
+          },
+        ]);
+        Https.setDioProxyForTesting(proxy);
+
+        await api.cloud({
+          'filename': 'Fallback.mp3',
+          'filePath': audioFile.path,
+          'fileSize': await audioFile.length(),
+          'md5': 'abc',
+        });
+
+        expect(proxy.requests[2].data, containsPair('song', 'Tail Title'));
+        expect(proxy.requests[2].data, containsPair('album', 'Tail Album'));
+        expect(proxy.requests[2].data, containsPair('artist', 'Tail Artist'));
+      } finally {
+        await directory.delete(recursive: true);
+      }
+    });
+
     test('cloud special module reads FLAC Vorbis comments before filename fallback', () async {
       final proxy = _QueuedPostDioProxy([
         {
@@ -4122,6 +4172,31 @@ Uint8List _flacVorbisComment({
     block.length & 0xFF,
     ...block,
   ]);
+}
+
+Uint8List _id3v1Tag({
+  required String title,
+  required String album,
+  required String artist,
+}) {
+  return Uint8List.fromList([
+    ...'TAG'.codeUnits,
+    ..._id3v1Field(title, 30),
+    ..._id3v1Field(artist, 30),
+    ..._id3v1Field(album, 30),
+    ..._id3v1Field('2026', 4),
+    ..._id3v1Field('', 30),
+    0,
+  ]);
+}
+
+List<int> _id3v1Field(String value, int length) {
+  final encoded = latin1.encode(value);
+  final field = List<int>.filled(length, 0);
+  for (var index = 0; index < encoded.length && index < field.length; index++) {
+    field[index] = encoded[index];
+  }
+  return field;
 }
 
 List<int> _id3v23TextFrame(String id, String value) {

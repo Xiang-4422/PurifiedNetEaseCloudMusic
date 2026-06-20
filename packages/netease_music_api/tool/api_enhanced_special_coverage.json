@@ -28,7 +28,7 @@
   ],
   "dartBehavior": [],
   "limited": {
-    "cloud": "Request sequence is covered; Dart parses common ID3v2/FLAC tags with bounded file-path probing but does not include a full music-metadata equivalent and falls back to query or sanitized filename.",
+    "cloud": "Request sequence is covered; Dart parses common ID3v2/ID3v1/FLAC tags with bounded file-path probing but does not include a full music-metadata equivalent and falls back to query or sanitized filename.",
     "song_url_match": "Depends on upstream unblockmusic-utils and returns an explicit limitation envelope in Dart.",
     "song_url_v1": "Base xeapi and 302 fallback are covered; unblock=true degrades to the normal xeapi player URL, while actual unblock/source order depends on upstream unblockmusic-utils."
   }

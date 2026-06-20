@@ -18,9 +18,11 @@ import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
+import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/recent_playback_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/search/search_repository.dart';
@@ -124,6 +126,13 @@ void registerFeatureControllers() {
       selectionUiEffectCoordinator: Get.find<PlaybackSelectionUiEffectCoordinator>(),
       downloadUseCase: Get.find<CurrentTrackDownloadUseCase>(),
       toastPort: Get.find<PlaybackToastPort>(),
+    ),
+    fenix: true,
+  );
+  Get.lazyPut(
+    () => RecentPlaybackController(
+      repository: Get.find<PlaybackRepository>(),
+      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
     ),
     fenix: true,
   );

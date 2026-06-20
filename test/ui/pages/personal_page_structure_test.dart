@@ -36,6 +36,21 @@ void main() {
     expect(source, contains('context.router.push(const gr.CloudDriveView())'));
   });
 
+  test('personal page shows recent playback before the library sections', () {
+    final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final recentControllerIndex = source.indexOf('RecentPlaybackController.to..watchCurrentSong(playbackAction)');
+    final recentStripIndex = source.indexOf('child: _RecentPlaybackStrip(');
+    final recentHeaderIndex = source.indexOf("'最近播放'");
+    final playlistHeaderIndex = source.indexOf("'我的歌单'");
+
+    expect(recentControllerIndex, isNonNegative);
+    expect(recentStripIndex, isNonNegative);
+    expect(recentHeaderIndex, isNonNegative);
+    expect(playlistHeaderIndex, isNonNegative);
+    expect(recentStripIndex, lessThan(playlistHeaderIndex));
+    expect(source, contains("playListName: '最近播放'"));
+  });
+
   test('download task page can open a focused local library tab', () {
     final source = File('lib/ui/pages/download/download_task_page_view.dart').readAsStringSync();
 

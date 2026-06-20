@@ -2006,6 +2006,23 @@ void main() {
       expect(receivedEvents.last.$1, greaterThan(0));
     });
 
+    test('DioProxy path POST accepts bytes and forwards send progress', () async {
+      final adapter = _ProgressRequestAdapter();
+      final dio = Dio()..httpClientAdapter = adapter;
+      final sentEvents = <(int, int)>[];
+      Https.setDioForTesting(dio);
+
+      await DioProxy().post(
+        'https://example.test/post',
+        data: utf8.encode('payload'),
+        onSendProgress: (sent, total) => sentEvents.add((sent, total)),
+      );
+
+      expect(adapter.bodyText, 'payload');
+      expect(sentEvents, isNotEmpty);
+      expect(sentEvents.last.$1, sentEvents.last.$2);
+    });
+
     test('generic api special module dispatches raw request metadata', () async {
       final proxy = _CaptureDioProxy();
       Https.setDioProxyForTesting(proxy);

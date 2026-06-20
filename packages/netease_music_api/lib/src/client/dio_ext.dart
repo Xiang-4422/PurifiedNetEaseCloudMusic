@@ -222,11 +222,19 @@ class DioProxy {
   /// 发起 POST 路径请求。
   Future<Response<T>> post<T>(
     String path, {
-    Map<String, dynamic>? data,
+    Object? data,
     Options? options,
     CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) {
-    return Https.dio.post(path, data: data, options: options, cancelToken: cancelToken, onReceiveProgress: onReceiveProgress);
+    return Https.dio.post(
+      path,
+      data: data,
+      options: options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
   }
 }

@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const vm = require('vm')
 const { execFileSync } = require('child_process')
 
 const repoRoot = path.resolve(__dirname, '../../..')
@@ -50,9 +51,26 @@ function loadUpstreamModules() {
     .sort()
 }
 
-function loadOracleModules() {
+function loadOracleFixtures() {
   const source = fs.readFileSync(oracleScriptPath, 'utf8')
-  return new Set([...source.matchAll(/module: '([^']+)'/g)].map((match) => match[1]))
+  const prefixEnd = source.indexOf('\nconst originalRequire')
+  const fixturesStart = source.indexOf('const fixtures = [')
+  const fixturesEnd = source.indexOf('\n\nasync function captureFixture', fixturesStart)
+  if (prefixEnd === -1 || fixturesStart === -1 || fixturesEnd === -1) {
+    throw new Error(`Cannot parse Node oracle fixtures: ${oracleScriptPath}`)
+  }
+
+  const fixtureSource = [
+    source.slice(0, prefixEnd),
+    source.slice(fixturesStart, fixturesEnd),
+    'fixtures',
+  ].join('\n')
+  return vm.runInNewContext(fixtureSource, {
+    Buffer,
+    JSON,
+    __dirname: path.dirname(oracleScriptPath),
+    require,
+  })
 }
 
 function gitOutput(args) {
@@ -71,6 +89,40 @@ function sorted(values) {
   return [...values].sort()
 }
 
+function stableStringify(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(',')}]`
+  }
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`)
+      .join(',')}}`
+  }
+  return JSON.stringify(value)
+}
+
+function duplicateFixtures(fixtures) {
+  const seen = new Set()
+  const duplicate = new Set()
+  for (const fixture of fixtures) {
+    const signature = stableStringify({
+      allowNoRequest: fixture.allowNoRequest,
+      captureRequests: fixture.captureRequests,
+      fixedNow: fixture.fixedNow,
+      fixedRandomDigits: fixture.fixedRandomDigits,
+      module: fixture.module,
+      query: fixture.query,
+      responses: fixture.responses,
+    })
+    if (seen.has(signature)) {
+      duplicate.add(fixture.module)
+    }
+    seen.add(signature)
+  }
+  return sorted(duplicate)
+}
+
 function setFrom(value) {
   if (!Array.isArray(value)) {
     return new Set()
@@ -86,7 +138,9 @@ const upstreamPackage = readJson(upstreamPackagePath)
 const coverage = readJson(specialCoveragePath)
 const upstreamModules = loadUpstreamModules()
 const entries = loadManifestEntries()
-const oracleModules = loadOracleModules()
+const oracleFixtures = loadOracleFixtures()
+const oracleModuleList = oracleFixtures.map((fixture) => fixture.module)
+const oracleModules = new Set(oracleModuleList)
 const manifestModules = entries.map((entry) => entry.module)
 const upstreamModuleSet = new Set(upstreamModules)
 const manifestModuleSet = new Set(manifestModules)
@@ -100,6 +154,7 @@ const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial
 const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelain']) || ''
 const manifestMissingUpstreamModules = sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module)))
 const manifestUnknownUpstreamModules = sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module)))
+const oracleDuplicateFixtures = duplicateFixtures(oracleFixtures)
 const oracleUnknownModules = sorted([...oracleModules].filter((module) => !manifestModuleSet.has(module)))
 const normalMissingOracle = sorted(normalModules.filter((module) => !oracleModules.has(module)))
 const specialMissingStatus = sorted(specialModules.filter((module) => !categorizedSpecial.has(module)))
@@ -137,6 +192,13 @@ function buildSdkDifferences() {
       module,
       status: 'unknown_node_oracle_fixture',
       reason: 'Node oracle fixture references a module that is not in the generated manifest.',
+    })
+  }
+  for (const module of oracleDuplicateFixtures) {
+    differences.push({
+      module,
+      status: 'duplicate_node_oracle_fixture',
+      reason: 'Node oracle fixture defines the same scenario more than once.',
     })
   }
   for (const module of specialMissingStatus) {
@@ -179,9 +241,11 @@ const report = {
   moduleCount: entries.length,
   normalModuleCount: normalModules.length,
   specialModuleCount: specialModules.length,
+  nodeOracleScenarioCount: oracleFixtures.length,
   nodeOracleFixtureCount: oracleModules.size,
   manifestMissingUpstreamModules,
   manifestUnknownUpstreamModules,
+  oracleDuplicateFixtures,
   oracleUnknownModules,
   normalMissingOracle,
   specialMissingStatus,
@@ -201,6 +265,7 @@ const hasFailure =
   report.upstreamDirty ||
   report.manifestMissingUpstreamModules.length > 0 ||
   report.manifestUnknownUpstreamModules.length > 0 ||
+  report.oracleDuplicateFixtures.length > 0 ||
   report.oracleUnknownModules.length > 0 ||
   report.normalMissingOracle.length > 0 ||
   report.specialMissingStatus.length > 0 ||
@@ -222,7 +287,9 @@ if (jsonOutput) {
   )
   console.log(`manifest missing upstream modules: ${report.manifestMissingUpstreamModules.length}`)
   console.log(`manifest unknown upstream modules: ${report.manifestUnknownUpstreamModules.length}`)
+  console.log(`node oracle scenarios: ${report.nodeOracleScenarioCount}`)
   console.log(`node oracle fixtures: ${report.nodeOracleFixtureCount}`)
+  console.log(`node oracle duplicate fixtures: ${report.oracleDuplicateFixtures.length}`)
   console.log(`node oracle unknown modules: ${report.oracleUnknownModules.length}`)
   console.log(`normal modules missing oracle: ${report.normalMissingOracle.length}`)
   console.log(`special modules missing status: ${report.specialMissingStatus.length}`)

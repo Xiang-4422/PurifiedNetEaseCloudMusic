@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart' show TrackAvailability;
 
 /// 异步解码播放队列项缓存列表。
 Future<List<PlaybackQueueItem>> decodePlaybackQueueItemCacheList(
@@ -55,15 +56,20 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
     ),
     playbackUrl: json['playbackUrl'] as String?,
     lyricKey: json['lyricKey'] as String?,
+    localLyricsPath: _stringOrNull(json['localLyricsPath']) ?? _stringOrNull(metadata['localLyricsPath']),
+    availability: _availabilityFrom(json['availability'] ?? metadata['availability']),
     isLiked: json['isLiked'] as bool? ?? false,
     isCached: json['isCached'] as bool? ?? false,
     metadata: metadata
       ..remove('albumId')
-      ..remove('sourceType'),
+      ..remove('sourceType')
+      ..remove('localLyricsPath')
+      ..remove('availability'),
   );
 }
 
 Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
+  final availability = item.availability == TrackAvailability.unknown ? _availabilityFrom(item.metadata['availability']) : item.availability;
   return {
     'id': item.id,
     'sourceId': item.sourceId,
@@ -79,6 +85,8 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
     'mediaType': item.mediaType.name,
     'playbackUrl': item.playbackUrl,
     'lyricKey': item.lyricKey,
+    'localLyricsPath': item.localLyricsPath ?? _stringOrNull(item.metadata['localLyricsPath']),
+    'availability': availability.name,
     'isLiked': item.isLiked,
     'isCached': item.isCached,
     'metadata': _customMetadata(item.metadata),
@@ -88,13 +96,22 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
 Map<String, dynamic> _customMetadata(Map<String, dynamic> metadata) {
   return Map<String, dynamic>.from(metadata)
     ..remove('albumId')
-    ..remove('sourceType');
+    ..remove('sourceType')
+    ..remove('localLyricsPath')
+    ..remove('availability');
 }
 
 SourceType _sourceTypeFrom(Object? value) {
   return SourceType.values.firstWhere(
     (item) => item.name == value,
     orElse: () => SourceType.netease,
+  );
+}
+
+TrackAvailability _availabilityFrom(Object? value) {
+  return TrackAvailability.values.firstWhere(
+    (item) => item.name == value,
+    orElse: () => TrackAvailability.unknown,
   );
 }
 

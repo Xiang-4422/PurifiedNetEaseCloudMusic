@@ -1,5 +1,6 @@
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart' show TrackAvailability;
 
 /// 播放队列项实体，作为 UI、repository 和播放 service 之间的统一播放模型。
 class PlaybackQueueItem {
@@ -21,6 +22,8 @@ class PlaybackQueueItem {
     required this.mediaType,
     required this.playbackUrl,
     required this.lyricKey,
+    this.localLyricsPath,
+    this.availability = TrackAvailability.unknown,
     required this.isLiked,
     required this.isCached,
     this.metadata = const {},
@@ -42,6 +45,8 @@ class PlaybackQueueItem {
         mediaType = MediaType.playlist,
         playbackUrl = null,
         lyricKey = null,
+        localLyricsPath = null,
+        availability = TrackAvailability.unknown,
         isLiked = false,
         isCached = false,
         metadata = const {};
@@ -88,6 +93,12 @@ class PlaybackQueueItem {
   /// 歌词键。
   final String? lyricKey;
 
+  /// 本地歌词路径。
+  final String? localLyricsPath;
+
+  /// 曲目可播放状态。
+  final TrackAvailability availability;
+
   /// 当前用户是否喜欢。
   final bool isLiked;
 
@@ -121,6 +132,8 @@ class PlaybackQueueItem {
     MediaType? mediaType,
     Object? playbackUrl = _unset,
     Object? lyricKey = _unset,
+    Object? localLyricsPath = _unset,
+    TrackAvailability? availability,
     bool? isLiked,
     bool? isCached,
     Map<String, dynamic>? metadata,
@@ -140,6 +153,8 @@ class PlaybackQueueItem {
       mediaType: mediaType ?? this.mediaType,
       playbackUrl: identical(playbackUrl, _unset) ? this.playbackUrl : playbackUrl as String?,
       lyricKey: identical(lyricKey, _unset) ? this.lyricKey : lyricKey as String?,
+      localLyricsPath: identical(localLyricsPath, _unset) ? this.localLyricsPath : localLyricsPath as String?,
+      availability: availability ?? this.availability,
       isLiked: isLiked ?? this.isLiked,
       isCached: isCached ?? this.isCached,
       metadata: metadata ?? this.metadata,

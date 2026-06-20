@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart' show TrackAvailability;
 
 /// 播放队列项与 audio_service [MediaItem] 的边界适配器。
 class PlaybackQueueItemAdapter {
@@ -51,6 +52,8 @@ class PlaybackQueueItemAdapter {
       ),
       playbackUrl: _stringOrNull(extras['url']),
       lyricKey: _stringOrNull(extras['lyricKey']),
+      localLyricsPath: _stringOrNull(extras['localLyricsPath']),
+      availability: _availabilityFrom(extras['availability']),
       isLiked: extras['liked'] == true,
       isCached: extras['cache'] == true,
       metadata: _customMetadata(extras),
@@ -83,10 +86,19 @@ class PlaybackQueueItemAdapter {
     );
   }
 
+  static TrackAvailability _availabilityFrom(Object? value) {
+    return TrackAvailability.values.firstWhere(
+      (item) => item.name == value,
+      orElse: () => TrackAvailability.unknown,
+    );
+  }
+
   static Map<String, dynamic> _toMediaItemExtras(PlaybackQueueItem item) {
+    final availability = item.availability == TrackAvailability.unknown ? _availabilityFrom(item.metadata['availability']) : item.availability;
     return {
       ...item.metadata,
       'sourceType': item.sourceType.name,
+      'availability': availability.name,
       'type': item.mediaType.name,
       'image': item.artworkUrl ?? item.localArtworkPath ?? '',
       'url': item.playbackUrl ?? '',
@@ -99,6 +111,7 @@ class PlaybackQueueItemAdapter {
       'sourceId': item.sourceId,
       'localArtworkPath': item.localArtworkPath ?? '',
       'lyricKey': item.lyricKey ?? '',
+      'localLyricsPath': item.localLyricsPath ?? _stringOrNull(item.metadata['localLyricsPath']) ?? '',
       'cache': item.isCached,
     };
   }
@@ -118,6 +131,8 @@ class PlaybackQueueItemAdapter {
       'sourceType',
       'localArtworkPath',
       'lyricKey',
+      'localLyricsPath',
+      'availability',
       'cache',
     };
     final metadata = Map<String, dynamic>.from(extras);

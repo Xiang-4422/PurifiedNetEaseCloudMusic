@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart' show TrackAvailability;
 import 'package:bujuan/features/playback/application/playback_queue_item_adapter.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_cache_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -32,6 +33,8 @@ void main() {
           'cache': true,
           'albumId': '20',
           'sourceType': 'netease',
+          'localLyricsPath': '/cache/lyrics.lrc',
+          'availability': 'playable',
         },
       );
 
@@ -42,6 +45,8 @@ void main() {
       expect(item.playbackUrl, 'https://example.com/song.mp3');
       expect(item.albumId, '20');
       expect(item.sourceType, SourceType.netease);
+      expect(item.localLyricsPath, '/cache/lyrics.lrc');
+      expect(item.availability, TrackAvailability.playable);
       expect(item.metadata, isEmpty);
     });
 
@@ -49,8 +54,12 @@ void main() {
       final mediaItem = PlaybackQueueItemAdapter.toMediaItem(
         _queueItem(
           albumId: '20',
+          localLyricsPath: '/cache/lyrics.lrc',
+          availability: TrackAvailability.playable,
           metadata: const {
             'sourceType': 'netease',
+            'localLyricsPath': '/legacy/lyrics.lrc',
+            'availability': 'unavailable',
           },
         ),
       );
@@ -60,6 +69,8 @@ void main() {
       expect(mediaItem.artUri?.toFilePath(), '/cache/art.jpg');
       expect(mediaItem.extras?['albumId'], '20');
       expect(mediaItem.extras?['sourceType'], 'netease');
+      expect(mediaItem.extras?['localLyricsPath'], '/cache/lyrics.lrc');
+      expect(mediaItem.extras?['availability'], 'playable');
       expect(mediaItem.extras?['type'], 'playlist');
       expect(mediaItem.extras?['url'], 'https://example.com/song.mp3');
     });
@@ -68,8 +79,12 @@ void main() {
       final encoded = await encodePlaybackQueueItemCacheList([
         _queueItem(
           albumId: '20',
+          localLyricsPath: '/cache/lyrics.lrc',
+          availability: TrackAvailability.playable,
           metadata: const {
             'sourceType': 'netease',
+            'localLyricsPath': '/legacy/lyrics.lrc',
+            'availability': 'unavailable',
           },
         ),
       ]);
@@ -78,6 +93,8 @@ void main() {
       expect(raw['mediaType'], 'playlist');
       expect(raw['albumId'], '20');
       expect(raw['sourceType'], 'netease');
+      expect(raw['localLyricsPath'], '/cache/lyrics.lrc');
+      expect(raw['availability'], 'playable');
       expect(raw['metadata'], isEmpty);
 
       final decoded = await decodePlaybackQueueItemCacheList(encoded);
@@ -85,6 +102,8 @@ void main() {
       expect(decoded.single.id, 'netease:1');
       expect(decoded.single.albumId, '20');
       expect(decoded.single.sourceType, SourceType.netease);
+      expect(decoded.single.localLyricsPath, '/cache/lyrics.lrc');
+      expect(decoded.single.availability, TrackAvailability.playable);
       expect(decoded.single.duration, const Duration(seconds: 3));
       expect(decoded.single.metadata, isEmpty);
     });
@@ -98,6 +117,8 @@ void main() {
         'metadata': {
           'sourceType': 'local',
           'albumId': '30',
+          'localLyricsPath': '/music/a.lrc',
+          'availability': 'localOnly',
           'custom': 'keep',
         },
       });
@@ -106,6 +127,8 @@ void main() {
 
       expect(decoded.single.sourceType, SourceType.local);
       expect(decoded.single.albumId, '30');
+      expect(decoded.single.localLyricsPath, '/music/a.lrc');
+      expect(decoded.single.availability, TrackAvailability.localOnly);
       expect(decoded.single.metadata, {'custom': 'keep'});
     });
   });
@@ -114,6 +137,8 @@ void main() {
 PlaybackQueueItem _queueItem({
   String? albumId,
   SourceType sourceType = SourceType.netease,
+  String? localLyricsPath,
+  TrackAvailability availability = TrackAvailability.unknown,
   Map<String, dynamic> metadata = const {},
 }) {
   return PlaybackQueueItem(
@@ -131,6 +156,8 @@ PlaybackQueueItem _queueItem({
     mediaType: MediaType.playlist,
     playbackUrl: 'https://example.com/song.mp3',
     lyricKey: 'netease:1',
+    localLyricsPath: localLyricsPath,
+    availability: availability,
     isLiked: true,
     isCached: true,
     metadata: metadata,

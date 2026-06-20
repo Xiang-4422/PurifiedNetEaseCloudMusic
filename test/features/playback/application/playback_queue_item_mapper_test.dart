@@ -81,11 +81,37 @@ void main() {
       expect(item.sourceType, SourceType.local);
       expect(item.metadata.containsKey('sourceType'), isFalse);
     });
+
+    test('maps lyrics path and availability as explicit queue item fields', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(
+              availability: TrackAvailability.playable,
+              metadata: const {
+                'localLyricsPath': '/legacy/lyrics.lrc',
+                'availability': 'unavailable',
+              },
+            ),
+            resources: TrackResourceBundle(
+              lyrics: _lyricsResource('/cache/lyrics/song.lrc'),
+            ),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.localLyricsPath, '/cache/lyrics/song.lrc');
+      expect(item.availability, TrackAvailability.playable);
+      expect(item.metadata.containsKey('localLyricsPath'), isFalse);
+      expect(item.metadata.containsKey('availability'), isFalse);
+    });
   });
 }
 
 Track _track({
   SourceType sourceType = SourceType.netease,
+  TrackAvailability availability = TrackAvailability.unknown,
   Map<String, Object?> metadata = const {},
 }) {
   return Track(
@@ -93,6 +119,7 @@ Track _track({
     sourceType: sourceType,
     sourceId: '1',
     title: 'Track',
+    availability: availability,
     metadata: metadata,
   );
 }
@@ -102,6 +129,19 @@ LocalResourceEntry _audioResource(String path) {
   return LocalResourceEntry(
     trackId: 'netease:1',
     kind: LocalResourceKind.audio,
+    path: path,
+    origin: TrackResourceOrigin.playbackCache,
+    sizeBytes: 10,
+    createdAt: now,
+    lastAccessedAt: now,
+  );
+}
+
+LocalResourceEntry _lyricsResource(String path) {
+  final now = DateTime(2026);
+  return LocalResourceEntry(
+    trackId: 'netease:1',
+    kind: LocalResourceKind.lyrics,
     path: path,
     origin: TrackResourceOrigin.playbackCache,
     sizeBytes: 10,

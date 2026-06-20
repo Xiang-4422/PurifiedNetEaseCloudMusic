@@ -103,6 +103,71 @@ void main() {
       expect(controller.likedSongs.map((song) => song.title), ['Cached liked song']);
     });
 
+    test('keeps visible library state when snapshot refresh fails', () async {
+      final repository = _FakeUserRepository()..fetchUserLibrarySnapshotError = StateError('offline');
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.likedSongIds.addAll([101]);
+      controller.userLikedSongPlayList.value = const PlaylistSummaryData(
+        id: 'cached-liked',
+        title: 'Cached Liked',
+      );
+      controller.userPlayLists.add(
+        const PlaylistSummaryData(id: 'cached-playlist', title: 'Cached Playlist'),
+      );
+      controller.randomLikedSongId.value = '101';
+      controller.randomLikedSongAlbumUrl.value = 'cached-art-101';
+
+      await expectLater(controller.refreshUserLibrary(), completes);
+
+      expect(controller.likedSongIds, [101]);
+      expect(controller.userLikedSongPlayList.value.id, 'cached-liked');
+      expect(controller.userPlayLists.map((playlist) => playlist.id), ['cached-playlist']);
+      expect(controller.randomLikedSongId.value, '101');
+      expect(controller.randomLikedSongAlbumUrl.value, 'cached-art-101');
+      expect(controller.hasLocalData, isTrue);
+    });
+
+    test('propagates snapshot refresh failure without visible library data', () async {
+      final repository = _FakeUserRepository()..fetchUserLibrarySnapshotError = StateError('offline');
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+
+      await expectLater(
+        controller.refreshUserLibrary(),
+        throwsA(isA<StateError>()),
+      );
+
+      expect(controller.likedSongIds, isEmpty);
+      expect(controller.userLikedSongPlayList.value.id, isEmpty);
+      expect(controller.userPlayLists, isEmpty);
+      expect(controller.hasLocalData, isFalse);
+    });
+
     test('ignores stale liked songs load after switching users', () async {
       final repository = _FakeUserRepository();
       final oldFetch = Completer<List<PlaybackQueueItem>>();
@@ -250,6 +315,9 @@ void main() {
 
 class _FakeUserRepository implements UserRepository {
   final Map<String, _PendingUserCache> _caches = <String, _PendingUserCache>{};
+  Object? fetchUserLibrarySnapshotError;
+  List<int> remoteLikedSongIds = const [];
+  List<PlaylistSummaryData> remoteUserPlaylists = const [];
   Object? fetchSongsByIdsError;
   List<PlaybackQueueItem> remoteSongsByIds = const [];
   Future<List<PlaybackQueueItem>> Function({
@@ -282,6 +350,20 @@ class _FakeUserRepository implements UserRepository {
   @override
   Future<String> fetchSongAlbumUrl(String songId) async {
     return 'remote-art-$songId';
+  }
+
+  @override
+  Future<({List<int> likedSongIds, List<PlaylistSummaryData> playlists})> fetchUserLibrarySnapshot(
+    String userId,
+  ) async {
+    final error = fetchUserLibrarySnapshotError;
+    if (error != null) {
+      throw error;
+    }
+    return (
+      likedSongIds: remoteLikedSongIds,
+      playlists: remoteUserPlaylists,
+    );
   }
 
   @override

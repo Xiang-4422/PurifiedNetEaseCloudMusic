@@ -1,5 +1,6 @@
 import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
@@ -97,6 +98,66 @@ void main() {
       expect(items.last.playbackUrl, isNull);
       expect(items.last.isCached, isFalse);
     });
+
+    test('writes user library snapshot after all remote branches succeed', () async {
+      final remoteDataSource = _FakeNeteaseUserRemoteDataSource(
+        likedSongIds: const [101],
+        userPlaylists: [
+          _playlist('liked', title: 'Liked'),
+          _playlist('own', title: 'Own'),
+        ],
+      );
+      final trackListDataSource = _FakeUserTrackListDataSource();
+      final playlistListDataSource = _FakeUserPlaylistListDataSource();
+      final repository = _buildRepository(
+        musicDataRepository: _FakeMusicDataRepository(resourcesByTrackId: const {}),
+        remoteDataSource: remoteDataSource,
+        trackListDataSource: trackListDataSource,
+        playlistListDataSource: playlistListDataSource,
+      );
+
+      final snapshot = await repository.fetchUserLibrarySnapshot('user-1');
+
+      expect(snapshot.likedSongIds, [101]);
+      expect(snapshot.playlists.map((playlist) => playlist.id), [
+        'liked',
+        'own',
+      ]);
+      expect(trackListDataSource.replacedKind, UserTrackListKind.liked);
+      expect(trackListDataSource.replacedTrackIds, ['netease:101']);
+      expect(
+        playlistListDataSource.replacedPlaylistItems[UserPlaylistListKind.likedCollection]?.map((playlist) => playlist.id),
+        ['liked'],
+      );
+      expect(
+        playlistListDataSource.replacedPlaylistItems[UserPlaylistListKind.userPlaylists]?.map((playlist) => playlist.id),
+        ['own'],
+      );
+    });
+
+    test('does not replace local library snapshot when a remote branch fails', () async {
+      final remoteDataSource = _FakeNeteaseUserRemoteDataSource(
+        likedSongIds: const [101],
+        userPlaylistsError: StateError('offline'),
+      );
+      final trackListDataSource = _FakeUserTrackListDataSource();
+      final playlistListDataSource = _FakeUserPlaylistListDataSource();
+      final repository = _buildRepository(
+        musicDataRepository: _FakeMusicDataRepository(resourcesByTrackId: const {}),
+        remoteDataSource: remoteDataSource,
+        trackListDataSource: trackListDataSource,
+        playlistListDataSource: playlistListDataSource,
+      );
+
+      await expectLater(
+        repository.fetchUserLibrarySnapshot('user-1'),
+        throwsA(isA<StateError>()),
+      );
+
+      expect(trackListDataSource.replacedKind, isNull);
+      expect(trackListDataSource.replacedTrackIds, isEmpty);
+      expect(playlistListDataSource.replacedPlaylistItems, isEmpty);
+    });
   });
 }
 
@@ -104,13 +165,14 @@ UserRepository _buildRepository({
   required _FakeMusicDataRepository musicDataRepository,
   required _FakeNeteaseUserRemoteDataSource remoteDataSource,
   required _FakeUserTrackListDataSource trackListDataSource,
+  _FakeUserPlaylistListDataSource? playlistListDataSource,
 }) {
   return UserRepository(
     musicDataRepository: musicDataRepository,
     remoteDataSource: remoteDataSource,
     userProfileDataSource: _FakeUserProfileDataSource(),
     userTrackListDataSource: trackListDataSource,
-    userPlaylistListDataSource: _FakeUserPlaylistListDataSource(),
+    userPlaylistListDataSource: playlistListDataSource ?? _FakeUserPlaylistListDataSource(),
     userSyncMarkerDataSource: _FakeUserSyncMarkerDataSource(),
   );
 }
@@ -121,6 +183,15 @@ Track _track(String id) {
     sourceType: SourceType.netease,
     sourceId: id.split(':').last,
     title: 'Track $id',
+  );
+}
+
+PlaylistEntity _playlist(String sourceId, {required String title}) {
+  return PlaylistEntity(
+    id: 'netease:$sourceId',
+    sourceType: SourceType.netease,
+    sourceId: sourceId,
+    title: title,
   );
 }
 
@@ -181,9 +252,31 @@ class _FakeMusicDataRepository implements MusicDataRepository {
 }
 
 class _FakeNeteaseUserRemoteDataSource implements NeteaseUserRemoteDataSource {
-  _FakeNeteaseUserRemoteDataSource({required this.fmSongs});
+  _FakeNeteaseUserRemoteDataSource({
+    this.fmSongs = const [],
+    this.likedSongIds = const [],
+    this.userPlaylists = const [],
+    this.userPlaylistsError,
+  });
 
   final List<Track> fmSongs;
+  final List<int> likedSongIds;
+  final List<PlaylistEntity> userPlaylists;
+  final Object? userPlaylistsError;
+
+  @override
+  Future<List<int>> fetchLikedSongIds(String userId) async {
+    return likedSongIds;
+  }
+
+  @override
+  Future<List<PlaylistEntity>> fetchUserPlaylists(String userId) async {
+    final error = userPlaylistsError;
+    if (error != null) {
+      throw error;
+    }
+    return userPlaylists;
+  }
 
   @override
   Future<List<Track>> fetchFmSongs() async {
@@ -235,6 +328,8 @@ class _FakeUserTrackListDataSource implements UserTrackListDataSource {
 }
 
 class _FakeUserPlaylistListDataSource implements UserPlaylistListDataSource {
+  final Map<UserPlaylistListKind, List<PlaylistSummaryData>> replacedPlaylistItems = {};
+
   @override
   Future<List<PlaylistSummaryData>> loadPlaylistItems(
     String userId,
@@ -250,6 +345,15 @@ class _FakeUserPlaylistListDataSource implements UserPlaylistListDataSource {
     String keyword,
   ) async {
     return const [];
+  }
+
+  @override
+  Future<void> replacePlaylistItems(
+    String userId,
+    UserPlaylistListKind kind,
+    List<PlaylistSummaryData> playlists,
+  ) async {
+    replacedPlaylistItems[kind] = playlists;
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
@@ -113,6 +114,40 @@ class UserRepository {
       likedSongIds.map((songId) => MusicResourceId.toNeteaseEntityId('$songId')).toList(),
     );
     return likedSongIds;
+  }
+
+  /// 拉取用户资料库启动快照，远程数据全部成功后再替换本地索引。
+  Future<({List<int> likedSongIds, List<PlaylistSummaryData> playlists})> fetchUserLibrarySnapshot(
+    String userId,
+  ) async {
+    final results = await Future.wait<Object>([
+      _remoteDataSource.fetchLikedSongIds(userId),
+      _remoteDataSource.fetchUserPlaylists(userId),
+    ]);
+    final likedSongIds = List<int>.from(results[0] as List<int>);
+    final summaries = (results[1] as List<PlaylistEntity>).map(PlaylistSummaryData.fromEntity).toList();
+    final likedCollection = summaries.take(1).toList();
+    final ownPlaylists = summaries.length > 1 ? summaries.sublist(1) : <PlaylistSummaryData>[];
+
+    await _userTrackListDataSource.replaceTrackList(
+      userId,
+      UserTrackListKind.liked,
+      likedSongIds.map((songId) => MusicResourceId.toNeteaseEntityId('$songId')).toList(),
+    );
+    await _userPlaylistListDataSource.replacePlaylistItems(
+      userId,
+      UserPlaylistListKind.likedCollection,
+      likedCollection,
+    );
+    await _userPlaylistListDataSource.replacePlaylistItems(
+      userId,
+      UserPlaylistListKind.userPlaylists,
+      ownPlaylists,
+    );
+    return (
+      likedSongIds: likedSongIds,
+      playlists: summaries,
+    );
   }
 
   /// 拉取推荐歌单，并按分页位置更新本地推荐歌单数据。

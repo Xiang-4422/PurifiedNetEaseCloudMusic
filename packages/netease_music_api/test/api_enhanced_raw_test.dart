@@ -584,6 +584,83 @@ void main() {
       });
     });
 
+    test('maps comment request data like upstream', () {
+      final commentAdd = api.requestModuleDioMetaData('comment', {
+        't': 1,
+        'type': 0,
+        'id': '101',
+        'content': 'nice',
+      });
+      expect(commentAdd.uri.path, '/api/resource/comments/add');
+      expect(commentAdd.data, {
+        'threadId': 'R_SO_4_101',
+        'content': 'nice',
+      });
+
+      final eventReply = api.requestModuleDioMetaData('comment', {
+        't': 2,
+        'type': 6,
+        'id': 'ignored',
+        'threadId': 'A_EV_2_101',
+        'commentId': '555',
+        'content': 'reply',
+      });
+      expect(eventReply.uri.path, '/api/resource/comments/reply');
+      expect(eventReply.data, {
+        'threadId': 'A_EV_2_101',
+        'commentId': '555',
+        'content': 'reply',
+      });
+
+      expect(api.requestModuleDioMetaData('comment_album', {'id': '123'}).data, {
+        'rid': '123',
+        'limit': 20,
+        'offset': 0,
+        'beforeTime': 0,
+      });
+      expect(api.requestModuleDioMetaData('comment_dj', {'id': '336355127'}).data, {
+        'rid': '336355127',
+        'limit': 20,
+        'offset': 0,
+        'beforeTime': 0,
+      });
+      expect(api.requestModuleDioMetaData('comment_mv', {'id': '5436712'}).data, {
+        'rid': '5436712',
+        'limit': 20,
+        'offset': 0,
+        'beforeTime': 0,
+      });
+      expect(api.requestModuleDioMetaData('comment_video', {'id': '89ADDE33C0AAE8EC14B99F6750DB954D'}).data, {
+        'rid': '89ADDE33C0AAE8EC14B99F6750DB954D',
+        'limit': 20,
+        'offset': 0,
+        'beforeTime': 0,
+      });
+      expect(
+        api.requestModuleDioMetaData('comment_event', {
+          'threadId': 'A_EV_2_101',
+          'limit': 10,
+          'offset': 20,
+          'before': 123456,
+        }).data,
+        {
+          'limit': 10,
+          'offset': 20,
+          'beforeTime': 123456,
+        },
+      );
+      expect(api.requestModuleDioMetaData('comment_report', {'id': '101', 'cid': '555', 'reason': 'spam'}).data, {
+        'threadId': 'R_SO_4_101',
+        'commentId': '555',
+        'reason': 'spam',
+      });
+      expect(api.requestModuleDioMetaData('hug_comment', {'type': 0, 'sid': '101', 'uid': '42', 'cid': '555'}).data, {
+        'targetUserId': '42',
+        'commentId': '555',
+        'threadId': 'R_SO_4_101',
+      });
+    });
+
     test('DioProxy dispatches request metadata by method', () async {
       final proxy = _RecordingDioProxy();
 

@@ -489,6 +489,26 @@ const fixtures = [
     },
   },
   {
+    module: 'comment',
+    query: {
+      t: 1,
+      type: 0,
+      id: '101',
+      content: 'nice',
+    },
+  },
+  {
+    module: 'comment',
+    query: {
+      t: 2,
+      type: 6,
+      id: 'ignored',
+      threadId: 'A_EV_2_101',
+      commentId: '555',
+      content: 'reply',
+    },
+  },
+  {
     module: 'comment_music',
     query: {
       id: '101',
@@ -513,6 +533,51 @@ const fixtures = [
       id: '101',
       limit: 10,
       offset: 20,
+    },
+  },
+  {
+    module: 'comment_album',
+    query: {
+      id: '123',
+      limit: 10,
+      offset: 20,
+      before: 123456,
+    },
+  },
+  {
+    module: 'comment_dj',
+    query: {
+      id: '336355127',
+      limit: 10,
+      offset: 20,
+      before: 123456,
+    },
+  },
+  {
+    module: 'comment_event',
+    query: {
+      threadId: 'A_EV_2_101',
+      limit: 10,
+      offset: 20,
+      before: 123456,
+    },
+  },
+  {
+    module: 'comment_mv',
+    query: {
+      id: '5436712',
+      limit: 10,
+      offset: 20,
+      before: 123456,
+    },
+  },
+  {
+    module: 'comment_video',
+    query: {
+      id: '89ADDE33C0AAE8EC14B99F6750DB954D',
+      limit: 10,
+      offset: 20,
+      before: 123456,
     },
   },
   {
@@ -552,6 +617,23 @@ const fixtures = [
       parentCommentId: '777',
       time: 123,
       limit: 15,
+    },
+  },
+  {
+    module: 'comment_report',
+    query: {
+      id: '101',
+      cid: '555',
+      reason: 'spam',
+    },
+  },
+  {
+    module: 'hug_comment',
+    query: {
+      type: 0,
+      sid: '101',
+      uid: '42',
+      cid: '555',
     },
   },
   {

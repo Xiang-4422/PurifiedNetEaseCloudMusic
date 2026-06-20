@@ -1233,12 +1233,36 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       };
     case 'comment_music':
     case 'comment_playlist':
+    case 'comment_album':
+    case 'comment_dj':
+    case 'comment_mv':
+    case 'comment_video':
     case 'comment_hot':
       return {
         'rid': query['id'],
         'limit': _jsDefault(query['limit'], 20),
         'offset': _jsDefault(query['offset'], 0),
         'beforeTime': _jsDefault(query['before'], 0),
+      };
+    case 'comment_event':
+      return {
+        'limit': _jsDefault(query['limit'], 20),
+        'offset': _jsDefault(query['offset'], 0),
+        'beforeTime': _jsDefault(query['before'], 0),
+      };
+    case 'comment':
+      return _commentData(query);
+    case 'comment_report':
+      return {
+        'threadId': 'R_SO_4_${query['id']}',
+        'commentId': query['cid'],
+        'reason': query['reason'],
+      };
+    case 'hug_comment':
+      return {
+        'targetUserId': query['uid'],
+        'commentId': query['cid'],
+        'threadId': '${_resourceTypePrefix(_jsDefault(query['type'], 0))}${query['sid']}',
       };
     case 'comment_new':
       final pageSize = _jsDefault(query['pageSize'], 20);
@@ -1893,8 +1917,36 @@ String _loginPassword(Map<String, dynamic> query) {
   return Encrypted(MD5Digest().process(Uint8List.fromList(utf8.encode(query['password']?.toString() ?? '')))).base16;
 }
 
+String? _commentAction(dynamic value) {
+  switch (value?.toString()) {
+    case '1':
+      return 'add';
+    case '0':
+      return 'delete';
+    case '2':
+      return 'reply';
+  }
+  return null;
+}
+
+Map<String, dynamic> _commentData(Map<String, dynamic> query) {
+  final action = _commentAction(query['t']);
+  final prefix = _resourceTypePrefix(query['type']);
+  return {
+    'threadId': prefix == 'A_EV_2_' ? query['threadId'] : '$prefix${query['id']}',
+    if (action == 'add') 'content': query['content'],
+    if (action == 'delete') 'commentId': query['commentId'],
+    if (action == 'reply') ...{
+      'commentId': query['commentId'],
+      'content': query['content'],
+    },
+  };
+}
+
 String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
   switch (metadata.module) {
+    case 'comment':
+      return '/api/resource/comments/${_commentAction(query['t'])}';
     case 'comment_hot':
       return '/api/v1/resource/hotcomments/${_resourceTypePrefix(query['type'])}${query['id']}';
     case 'comment_like':

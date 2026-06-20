@@ -2176,6 +2176,23 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'province': query['province'],
         'signature': query['signature'],
       };
+    case 'musician_cloudbean':
+    case 'musician_data_overview':
+    case 'musician_sign':
+    case 'musician_tasks':
+    case 'musician_tasks_new':
+    case 'musician_vip_tasks':
+      return {};
+    case 'musician_cloudbean_obtain':
+      return {
+        'userMissionId': query['id'],
+        'period': query['period'],
+      };
+    case 'musician_play_trend':
+      return {
+        'startTime': query['startTime'],
+        'endTime': query['endTime'],
+      };
     case 'mv_all':
       return {
         'tags': jsonEncode({

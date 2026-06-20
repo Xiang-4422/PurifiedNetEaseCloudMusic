@@ -1443,6 +1443,44 @@ const fixtures = [
     },
   },
   {
+    module: 'musician_cloudbean',
+    query: {},
+  },
+  {
+    module: 'musician_cloudbean_obtain',
+    query: {
+      id: 'mission-1',
+      period: 7,
+    },
+  },
+  {
+    module: 'musician_data_overview',
+    query: {},
+  },
+  {
+    module: 'musician_play_trend',
+    query: {
+      startTime: 1700000000000,
+      endTime: 1700604800000,
+    },
+  },
+  {
+    module: 'musician_sign',
+    query: {},
+  },
+  {
+    module: 'musician_tasks',
+    query: {},
+  },
+  {
+    module: 'musician_tasks_new',
+    query: {},
+  },
+  {
+    module: 'musician_vip_tasks',
+    query: {},
+  },
+  {
     module: 'mv_all',
     query: {
       area: '内地',

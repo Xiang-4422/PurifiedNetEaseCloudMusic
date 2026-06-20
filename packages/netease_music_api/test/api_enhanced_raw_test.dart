@@ -1018,6 +1018,25 @@ void main() {
       expect(api.requestModuleDioMetaData('yunbei_today', {}).data, isEmpty);
     });
 
+    test('maps musician request data like upstream', () {
+      expect(api.requestModuleDioMetaData('musician_cloudbean', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('musician_cloudbean_obtain', {'id': 'mission-1', 'period': 7}).data, {
+        'userMissionId': 'mission-1',
+        'period': 7,
+      });
+      expect(api.requestModuleDioMetaData('musician_data_overview', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('musician_play_trend', {'startTime': 1700000000000, 'endTime': 1700604800000}).data, {
+        'startTime': 1700000000000,
+        'endTime': 1700604800000,
+      });
+      expect(api.requestModuleDioMetaData('musician_sign', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('musician_tasks', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('musician_tasks_new', {}).data, isEmpty);
+      expect(Uri.decodeFull(api.requestModuleDioMetaData('musician_tasks_new', {}).uri.path), '/api/nmusician/workbench/mission/stage/list ');
+      expect(api.requestModuleDioMetaData('musician_vip_tasks', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('musician_vip_tasks', {}).options!.extra!['encryptType'], EncryptType.EApi);
+    });
+
     test('maps mv request data like upstream', () {
       expect(api.requestModuleDioMetaData('mv_all', {}).data, {
         'tags': '{"地区":"全部","类型":"全部","排序":"上升最快"}',
@@ -2523,7 +2542,7 @@ void _expectDartRequestMatchesNode(
   final nodeOptions = _jsonMap(nodeRequest['options']);
   final extra = metaData.options!.extra!;
 
-  expect(metaData.uri.path, nodeRequest['uri'], reason: reason);
+  expect(Uri.decodeFull(metaData.uri.path), nodeRequest['uri'], reason: reason);
   expect(_normalizedRequestData(metaData.data), _normalizedRequestData(nodeRequest['data']), reason: reason);
   expect(_encryptTypeName(extra['encryptType'] as EncryptType), _effectiveNodeCrypto(nodeOptions), reason: reason);
   expect(extra['realIP'], nodeOptions['realIP'], reason: reason);

@@ -261,13 +261,19 @@ class ExplorePageController extends GetxController {
 
   /// 刷新探索页分类歌单和榜单数据。
   Future<void> updateData({bool force = false}) async {
-    await _refreshPlaylistCatalogue(force: force);
-    await Future.wait([
-      updatePlayLists(force: force),
-      updateRankingPlayListSongs(force: force),
-    ]);
-    refreshController.refreshCompleted();
-    refreshController.resetNoData();
+    try {
+      await _refreshPlaylistCatalogue(force: force);
+      await Future.wait([
+        updatePlayLists(force: force),
+        updateRankingPlayListSongs(force: force),
+      ]);
+      refreshController.refreshCompleted();
+      refreshController.resetNoData();
+    } catch (_) {
+      loading.value = false;
+      refreshController.refreshFailed();
+      refreshController.resetNoData();
+    }
   }
 
   Future<void> _refreshPlaylistCatalogue({bool force = false}) async {
@@ -322,17 +328,33 @@ class ExplorePageController extends GetxController {
         return;
       }
     }
-    if (offset == 0) {
-      curTopPlayListSongs.clear();
+    final previousSongs = offset == 0 ? curTopPlayListSongs.toList(growable: false) : null;
+    try {
+      final songs = await _playlistRepository.fetchPlaylistSongs(
+        playlistId: curTopPlayListId.value,
+        likedSongIds: _likedSongIds(),
+        offset: offset,
+        limit: limit,
+      );
+      if (offset == 0) {
+        curTopPlayListSongs
+          ..clear()
+          ..addAll(songs);
+      } else {
+        curTopPlayListSongs.addAll(songs);
+      }
+      _updateLoadMoreState(songs.length);
+    } catch (_) {
+      if (offset == 0 && previousSongs != null && previousSongs.isNotEmpty) {
+        curTopPlayListSongs
+          ..clear()
+          ..addAll(previousSongs);
+        refreshController.loadComplete();
+        return;
+      }
+      refreshController.loadFailed();
+      rethrow;
     }
-    final songs = await _playlistRepository.fetchPlaylistSongs(
-      playlistId: curTopPlayListId.value,
-      likedSongIds: _likedSongIds(),
-      offset: offset,
-      limit: limit,
-    );
-    curTopPlayListSongs.addAll(songs);
-    _updateLoadMoreState(songs.length);
   }
 
   void _updateLoadMoreState(int currentBatchSize) {

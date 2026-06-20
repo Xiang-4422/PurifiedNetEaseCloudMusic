@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
@@ -27,10 +29,13 @@ class LocalMediaRepository {
     String? localLyricsPath,
     Map<String, Object?> metadata = const {},
   }) async {
+    final localFilePath = _normalizeLocalFilePath(filePath);
+    final artworkPath = _normalizeOptionalLocalFilePath(localArtworkPath);
+    final lyricsPath = _normalizeOptionalLocalFilePath(localLyricsPath);
     final track = Track(
-      id: _buildLocalTrackId(filePath),
+      id: _buildLocalTrackId(localFilePath),
       sourceType: SourceType.local,
-      sourceId: filePath,
+      sourceId: localFilePath,
       title: title,
       artistNames: artistNames,
       albumTitle: albumTitle,
@@ -42,20 +47,20 @@ class LocalMediaRepository {
     await _musicDataRepository.saveTrack(track, precacheArtwork: false);
     await _resourceIndexRepository.saveAudioResource(
       track.id,
-      path: filePath,
+      path: localFilePath,
       origin: TrackResourceOrigin.localImport,
     );
-    if (localArtworkPath?.isNotEmpty == true) {
+    if (artworkPath != null) {
       await _resourceIndexRepository.saveArtworkResource(
         track.id,
-        path: localArtworkPath!,
+        path: artworkPath,
         origin: TrackResourceOrigin.localImport,
       );
     }
-    if (localLyricsPath?.isNotEmpty == true) {
+    if (lyricsPath != null) {
       await _resourceIndexRepository.saveLyricsResource(
         track.id,
-        path: localLyricsPath!,
+        path: lyricsPath,
         origin: TrackResourceOrigin.localImport,
       );
     }
@@ -64,35 +69,46 @@ class LocalMediaRepository {
 
   /// 批量导入本地音频文件，并保持输入顺序写入资源索引。
   Future<List<Track>> importLocalTracks(List<LocalTrackImport> tracks) async {
-    final importedTracks = tracks
+    final normalizedTracks = tracks
         .map(
-          (track) => Track(
-            id: _buildLocalTrackId(track.filePath),
-            sourceType: SourceType.local,
-            sourceId: track.filePath,
-            title: track.title,
-            artistNames: track.artistNames,
-            albumTitle: track.albumTitle,
-            durationMs: track.durationMs,
-            artworkUrl: track.artworkUrl,
-            availability: TrackAvailability.localOnly,
-            metadata: track.metadata,
+          (track) => track.copyWith(
+            filePath: _normalizeLocalFilePath(track.filePath),
+            localArtworkPath: _normalizeOptionalLocalFilePath(
+              track.localArtworkPath,
+            ),
+            localLyricsPath: _normalizeOptionalLocalFilePath(
+              track.localLyricsPath,
+            ),
           ),
         )
         .toList();
+    final importedTracks = normalizedTracks.map((track) {
+      return Track(
+        id: _buildLocalTrackId(track.filePath),
+        sourceType: SourceType.local,
+        sourceId: track.filePath,
+        title: track.title,
+        artistNames: track.artistNames,
+        albumTitle: track.albumTitle,
+        durationMs: track.durationMs,
+        artworkUrl: track.artworkUrl,
+        availability: TrackAvailability.localOnly,
+        metadata: track.metadata,
+      );
+    }).toList();
     await _musicDataRepository.saveTracks(
       importedTracks,
       precacheArtwork: false,
     );
     for (var i = 0; i < importedTracks.length; i++) {
       final track = importedTracks[i];
-      final localPath = tracks[i].filePath;
+      final localPath = normalizedTracks[i].filePath;
       await _resourceIndexRepository.saveAudioResource(
         track.id,
         path: localPath,
         origin: TrackResourceOrigin.localImport,
       );
-      final localArtworkPath = tracks[i].localArtworkPath;
+      final localArtworkPath = normalizedTracks[i].localArtworkPath;
       if (localArtworkPath?.isNotEmpty == true) {
         await _resourceIndexRepository.saveArtworkResource(
           track.id,
@@ -100,7 +116,7 @@ class LocalMediaRepository {
           origin: TrackResourceOrigin.localImport,
         );
       }
-      final localLyricsPath = tracks[i].localLyricsPath;
+      final localLyricsPath = normalizedTracks[i].localLyricsPath;
       if (localLyricsPath?.isNotEmpty == true) {
         await _resourceIndexRepository.saveLyricsResource(
           track.id,
@@ -125,6 +141,42 @@ class LocalMediaRepository {
 
   String _buildLocalTrackId(String filePath) {
     return 'local:$filePath';
+  }
+
+  String _normalizeLocalFilePath(String path) {
+    final normalized = _localFilePath(path);
+    return normalized.isEmpty ? path.trim() : normalized;
+  }
+
+  String? _normalizeOptionalLocalFilePath(String? path) {
+    if (path == null || path.trim().isEmpty) {
+      return null;
+    }
+    return _normalizeLocalFilePath(path);
+  }
+
+  String _localFilePath(String rawPath) {
+    final trimmedPath = rawPath.trim();
+    if (trimmedPath.isEmpty) {
+      return '';
+    }
+    final uri = Uri.tryParse(trimmedPath);
+    final scheme = uri?.scheme.toLowerCase();
+    if (uri != null && scheme == 'file') {
+      final host = uri.host.toLowerCase();
+      if (!Platform.isWindows && host.isNotEmpty && host != 'localhost') {
+        return '';
+      }
+      return Uri(
+        scheme: 'file',
+        host: Platform.isWindows && host.isNotEmpty && host != 'localhost' ? uri.host : null,
+        path: uri.path,
+      ).toFilePath(windows: Platform.isWindows);
+    }
+    if (scheme == 'http' || scheme == 'https') {
+      return '';
+    }
+    return File(trimmedPath.split('?').first).path;
   }
 }
 
@@ -169,4 +221,31 @@ class LocalTrackImport {
 
   /// 导入时保留的扩展元数据。
   final Map<String, Object?> metadata;
+
+  /// 复制导入参数并替换指定字段。
+  LocalTrackImport copyWith({
+    String? filePath,
+    String? title,
+    List<String>? artistNames,
+    String? albumTitle,
+    int? durationMs,
+    String? artworkUrl,
+    Object? localArtworkPath = _unset,
+    Object? localLyricsPath = _unset,
+    Map<String, Object?>? metadata,
+  }) {
+    return LocalTrackImport(
+      filePath: filePath ?? this.filePath,
+      title: title ?? this.title,
+      artistNames: artistNames ?? this.artistNames,
+      albumTitle: albumTitle ?? this.albumTitle,
+      durationMs: durationMs ?? this.durationMs,
+      artworkUrl: artworkUrl ?? this.artworkUrl,
+      localArtworkPath: identical(localArtworkPath, _unset) ? this.localArtworkPath : localArtworkPath as String?,
+      localLyricsPath: identical(localLyricsPath, _unset) ? this.localLyricsPath : localLyricsPath as String?,
+      metadata: metadata ?? this.metadata,
+    );
+  }
+
+  static const Object _unset = Object();
 }

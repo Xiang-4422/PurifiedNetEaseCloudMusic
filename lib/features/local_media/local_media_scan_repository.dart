@@ -38,7 +38,11 @@ class LocalMediaScanRepository {
     final imports = <LocalTrackImport>[];
     final seenPaths = <String>{};
     for (final directoryPath in directoryPaths) {
-      final directory = Directory(directoryPath);
+      final normalizedDirectoryPath = _localFilePath(directoryPath);
+      if (normalizedDirectoryPath.isEmpty) {
+        continue;
+      }
+      final directory = Directory(normalizedDirectoryPath);
       if (!directory.existsSync()) {
         continue;
       }
@@ -72,8 +76,9 @@ class LocalMediaScanRepository {
   Future<List<LocalTrackImport>> scanFiles(List<String> filePaths) async {
     final imports = <LocalTrackImport>[];
     final seenPaths = <String>{};
-    for (final filePath in filePaths) {
-      if (!seenPaths.add(filePath) || !_isSupportedAudioFile(filePath)) {
+    for (final rawFilePath in filePaths) {
+      final filePath = _localFilePath(rawFilePath);
+      if (filePath.isEmpty || !seenPaths.add(filePath) || !_isSupportedAudioFile(filePath)) {
         continue;
       }
       final file = File(filePath);
@@ -122,6 +127,30 @@ class LocalMediaScanRepository {
   bool _isSupportedAudioFile(String path) {
     final normalizedPath = path.toLowerCase();
     return _supportedExtensions.any(normalizedPath.endsWith);
+  }
+
+  String _localFilePath(String rawPath) {
+    final trimmedPath = rawPath.trim();
+    if (trimmedPath.isEmpty) {
+      return '';
+    }
+    final uri = Uri.tryParse(trimmedPath);
+    final scheme = uri?.scheme.toLowerCase();
+    if (uri != null && scheme == 'file') {
+      final host = uri.host.toLowerCase();
+      if (!Platform.isWindows && host.isNotEmpty && host != 'localhost') {
+        return '';
+      }
+      return Uri(
+        scheme: 'file',
+        host: Platform.isWindows && host.isNotEmpty && host != 'localhost' ? uri.host : null,
+        path: uri.path,
+      ).toFilePath(windows: Platform.isWindows);
+    }
+    if (scheme == 'http' || scheme == 'https') {
+      return '';
+    }
+    return File(trimmedPath.split('?').first).path;
   }
 
   /// 本地导入时优先猜测同目录同名资源，避免用户明明已经整理好封面和歌词，

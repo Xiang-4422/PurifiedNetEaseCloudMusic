@@ -99,6 +99,43 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 2);
     });
 
+    test('prefers newly available local audio over fresh remote playback url cache', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-local-priority-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final localAudio = await _writeFile(directory, 'downloaded.mp3');
+      final neteaseSource = _FakeNeteaseMusicSource();
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository();
+      final repository = _buildRepository(
+        neteaseSource: neteaseSource,
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final remote = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+      resourceIndexRepository.saveResource(
+        _resource(
+          trackId: '1',
+          kind: LocalResourceKind.audio,
+          path: localAudio.path,
+          origin: TrackResourceOrigin.managedDownload,
+        ),
+      );
+      final local = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+
+      expect(remote, 'https://audio.test/1.mp3');
+      expect(local, localAudio.path);
+      expect(neteaseSource.playbackUrlCallCount, 1);
+    });
+
     test('coalesces concurrent lyric loads', () async {
       final localDataSource = _FakeLocalLibraryDataSource();
       final neteaseSource = _FakeNeteaseMusicSource(
@@ -519,6 +556,19 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
   @override
   Future<void> removeTrackResources(String trackId) async {
     _resources.removeWhere((key, resource) => resource.trackId == trackId);
+  }
+
+  void saveResource(LocalResourceEntry resource) {
+    _resources[_key(resource.trackId, resource.kind)] = resource;
+  }
+
+  @override
+  Future<void> touchResource(String trackId, LocalResourceKind kind) async {
+    final key = _key(trackId, kind);
+    final resource = _resources[key];
+    if (resource != null) {
+      _resources[key] = resource.copyWith(lastAccessedAt: DateTime.now());
+    }
   }
 
   Set<LocalResourceKind> remainingResourceKinds(String trackId) {

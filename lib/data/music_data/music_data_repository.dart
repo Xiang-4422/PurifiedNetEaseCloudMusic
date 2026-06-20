@@ -334,6 +334,10 @@ class MusicDataRepository {
     final cachedUrl = _playbackUrlCache[cacheKey];
     final now = DateTime.now();
     if (!forceRefresh && cachedUrl != null && now.difference(cachedUrl.createdAt) < _playbackUrlCacheTtl) {
+      final localUrl = await _resolveIndexedAudioResourceUrl(trackId);
+      if (localUrl != null) {
+        return localUrl;
+      }
       return cachedUrl.url;
     }
     final loadingUrl = _playbackUrlLoads[cacheKey];
@@ -366,6 +370,14 @@ class MusicDataRepository {
 
   bool _isRemoteUrl(String url) {
     return url.startsWith('http://') || url.startsWith('https://');
+  }
+
+  Future<String?> _resolveIndexedAudioResourceUrl(String trackId) async {
+    final localAudio = (await _resourceIndexRepository.getTrackResourceBundle(trackId)).audio;
+    if (localAudio != null && await _touchIfLocalFileExists(localAudio)) {
+      return localAudio.path;
+    }
+    return null;
   }
 
   /// 保存曲目歌词缓存。

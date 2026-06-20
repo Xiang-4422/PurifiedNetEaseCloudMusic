@@ -310,21 +310,20 @@ class UserRepository {
     if (tracks.isEmpty) {
       return const [];
     }
-    final mergedTracks = await _musicDataRepository.getTracksWithResources(
+    final tracksWithResources = await _musicDataRepository.getTracksWithResources(
       tracks.map((track) => track.id),
     );
-    final tracksWithResources = mergedTracks.isEmpty
-        ? tracks
-            .map(
-              (track) => TrackWithResources(
-                track: track,
-                resources: const TrackResourceBundle(),
-              ),
-            )
-            .toList()
-        : mergedTracks;
+    final resourcesByTrackId = {
+      for (final item in tracksWithResources) item.track.id: item.resources,
+    };
     return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      tracksWithResources,
+      [
+        for (final track in tracks)
+          TrackWithResources(
+            track: track,
+            resources: resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
+          ),
+      ],
       likedSongIds: likedSongIds,
       mediaType: mediaType,
     );

@@ -51,6 +51,52 @@ void main() {
       expect(items.single.isCached, isTrue);
       expect(items.single.isLiked, isTrue);
     });
+
+    test('keeps remote FM songs when local resource aggregation is partial', () async {
+      final remoteDataSource = _FakeNeteaseUserRemoteDataSource(
+        fmSongs: [
+          _track('netease:1'),
+          _track('netease:2'),
+        ],
+      );
+      final musicDataRepository = _FakeMusicDataRepository(
+        resourcesByTrackId: {
+          'netease:1': TrackResourceBundle(
+            audio: _audioResource(
+              trackId: 'netease:1',
+              path: '/cache/audio/fm-1.mp3',
+            ),
+          ),
+        },
+        missingResourceTrackIds: const {'netease:2'},
+      );
+      final trackListDataSource = _FakeUserTrackListDataSource();
+      final repository = _buildRepository(
+        musicDataRepository: musicDataRepository,
+        remoteDataSource: remoteDataSource,
+        trackListDataSource: trackListDataSource,
+      );
+
+      final items = await repository.fetchFmSongs(
+        userId: 'user-1',
+        likedSongIds: const [],
+      );
+
+      expect(musicDataRepository.requestedResourceIds, [
+        'netease:1',
+        'netease:2',
+      ]);
+      expect(items.map((item) => item.id), [
+        'netease:1',
+        'netease:2',
+      ]);
+      expect(items.first.mediaType, MediaType.local);
+      expect(items.first.playbackUrl, '/cache/audio/fm-1.mp3');
+      expect(items.first.isCached, isTrue);
+      expect(items.last.mediaType, MediaType.fm);
+      expect(items.last.playbackUrl, isNull);
+      expect(items.last.isCached, isFalse);
+    });
   });
 }
 
@@ -95,9 +141,13 @@ LocalResourceEntry _audioResource({
 }
 
 class _FakeMusicDataRepository implements MusicDataRepository {
-  _FakeMusicDataRepository({required this.resourcesByTrackId});
+  _FakeMusicDataRepository({
+    required this.resourcesByTrackId,
+    this.missingResourceTrackIds = const {},
+  });
 
   final Map<String, TrackResourceBundle> resourcesByTrackId;
+  final Set<String> missingResourceTrackIds;
   final List<String> savedTrackIds = [];
   final List<String> requestedResourceIds = [];
 
@@ -116,10 +166,11 @@ class _FakeMusicDataRepository implements MusicDataRepository {
     requestedResourceIds.addAll(trackIds);
     return [
       for (final trackId in trackIds)
-        TrackWithResources(
-          track: _track(trackId),
-          resources: resourcesByTrackId[trackId] ?? const TrackResourceBundle(),
-        ),
+        if (!missingResourceTrackIds.contains(trackId))
+          TrackWithResources(
+            track: _track(trackId),
+            resources: resourcesByTrackId[trackId] ?? const TrackResourceBundle(),
+          ),
     ];
   }
 

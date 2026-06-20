@@ -60,6 +60,8 @@ class SearchPanelController {
   bool _loadedOnce = false;
   bool _disposed = false;
   String _currentKeyword = '';
+  String _currentUserId = '';
+  String _currentLikedSongIdsSignature = '';
   int _hotKeywordGeneration = 0;
   int _searchGeneration = 0;
 
@@ -107,8 +109,11 @@ class SearchPanelController {
       return;
     }
     final normalizedKeyword = keyword.trim();
+    final likedSongIdsSignature = _likedSongIdsSignature(likedSongIds);
     if (normalizedKeyword.isEmpty) {
       _currentKeyword = '';
+      _currentUserId = '';
+      _currentLikedSongIdsSignature = '';
       _searchGeneration++;
       _applySearchState(
         const SearchResultState(
@@ -120,14 +125,20 @@ class SearchPanelController {
       );
       return;
     }
-    if (!force && normalizedKeyword == _currentKeyword) {
+    final sameKeyword = normalizedKeyword == _currentKeyword;
+    final sameUser = currentUserId == _currentUserId;
+    final sameSearchContext = sameKeyword && sameUser && likedSongIdsSignature == _currentLikedSongIdsSignature;
+    if (!force && sameSearchContext) {
       return;
     }
-    final previousSongs = normalizedKeyword == _currentKeyword ? songState.value.data : null;
-    final previousPlaylists = normalizedKeyword == _currentKeyword ? playlistState.value.data : null;
-    final previousAlbums = normalizedKeyword == _currentKeyword ? albumState.value.data : null;
-    final previousArtists = normalizedKeyword == _currentKeyword ? artistState.value.data : null;
+    final canReusePreviousItems = sameKeyword && sameUser;
+    final previousSongs = canReusePreviousItems ? songState.value.data : null;
+    final previousPlaylists = canReusePreviousItems ? playlistState.value.data : null;
+    final previousAlbums = canReusePreviousItems ? albumState.value.data : null;
+    final previousArtists = canReusePreviousItems ? artistState.value.data : null;
     _currentKeyword = normalizedKeyword;
+    _currentUserId = currentUserId;
+    _currentLikedSongIdsSignature = likedSongIdsSignature;
     final generation = ++_searchGeneration;
     songState.value = _loadingState(previousSongs);
     playlistState.value = _loadingState(previousPlaylists);
@@ -142,7 +153,12 @@ class SearchPanelController {
       required int count,
       required bool logAsFirstResult,
     }) {
-      if (!_isCurrentSearch(generation, normalizedKeyword)) {
+      if (!_isCurrentSearch(
+        generation,
+        normalizedKeyword,
+        currentUserId,
+        likedSongIdsSignature,
+      )) {
         return;
       }
       apply();
@@ -302,8 +318,13 @@ class SearchPanelController {
     return !_disposed && generation == _hotKeywordGeneration;
   }
 
-  bool _isCurrentSearch(int generation, String keyword) {
-    return !_disposed && generation == _searchGeneration && keyword == _currentKeyword;
+  bool _isCurrentSearch(
+    int generation,
+    String keyword,
+    String userId,
+    String likedSongIdsSignature,
+  ) {
+    return !_disposed && generation == _searchGeneration && keyword == _currentKeyword && userId == _currentUserId && likedSongIdsSignature == _currentLikedSongIdsSignature;
   }
 
   void _applySearchState(SearchResultState state) {
@@ -327,4 +348,9 @@ class SearchPanelController {
     albumState.dispose();
     artistState.dispose();
   }
+}
+
+String _likedSongIdsSignature(List<int> likedSongIds) {
+  final normalizedIds = likedSongIds.toSet().toList()..sort();
+  return normalizedIds.join(',');
 }

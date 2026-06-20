@@ -59,6 +59,115 @@ void main() {
       expect(controller.songState.value.status, LoadStatus.empty);
     });
 
+    test('reruns same keyword when current user changes and drops scoped results', () async {
+      final repository = _FakeSearchRepository();
+      final controller = SearchPanelController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final firstSearch = controller.search(
+        'keyword',
+        likedSongIds: const [],
+        currentUserId: 'user-1',
+      );
+      await _flushAsync();
+      repository.complete(
+        'keyword',
+        SearchResultState(
+          songs: LoadState.data([_queueItem('song-user-1')]),
+          playlists: LoadState.data([_playlist('playlist-user-1')]),
+          albums: const LoadState.empty(),
+          artists: const LoadState.empty(),
+        ),
+      );
+      await firstSearch;
+
+      expect(controller.playlistState.value.data?.single.title, 'playlist-user-1');
+
+      final secondSearch = controller.search(
+        'keyword',
+        likedSongIds: const [],
+        currentUserId: 'user-2',
+      );
+      await _flushAsync();
+
+      expect(repository.requestedPlaylistUserIds, ['user-1', 'user-2']);
+      expect(controller.playlistState.value.status, LoadStatus.loading);
+      expect(controller.playlistState.value.data, isNull);
+
+      repository.complete(
+        'keyword',
+        SearchResultState(
+          songs: LoadState.data([_queueItem('song-user-2')]),
+          playlists: LoadState.data([_playlist('playlist-user-2')]),
+          albums: const LoadState.empty(),
+          artists: const LoadState.empty(),
+        ),
+      );
+      await secondSearch;
+
+      expect(controller.playlistState.value.data?.single.title, 'playlist-user-2');
+    });
+
+    test('reruns same keyword when liked song ids change', () async {
+      final repository = _FakeSearchRepository();
+      final controller = SearchPanelController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final firstSearch = controller.search(
+        'keyword',
+        likedSongIds: const [101],
+        currentUserId: 'user-1',
+      );
+      await _flushAsync();
+      repository.complete('keyword', _resultFor('first'));
+      await firstSearch;
+
+      final secondSearch = controller.search(
+        'keyword',
+        likedSongIds: const [202],
+        currentUserId: 'user-1',
+      );
+      await _flushAsync();
+
+      expect(repository.requestedLikedSongIds, [
+        [101],
+        [202],
+      ]);
+      expect(controller.songState.value.status, LoadStatus.loading);
+      expect(controller.songState.value.data?.single.title, 'first');
+
+      repository.complete('keyword', _resultFor('second'));
+      await secondSearch;
+
+      expect(controller.songState.value.data?.single.title, 'second');
+    });
+
+    test('does not rerun same keyword when liked song ids only reorder', () async {
+      final repository = _FakeSearchRepository();
+      final controller = SearchPanelController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final firstSearch = controller.search(
+        'keyword',
+        likedSongIds: const [202, 101],
+        currentUserId: 'user-1',
+      );
+      await _flushAsync();
+      repository.complete('keyword', _resultFor('first'));
+      await firstSearch;
+
+      await controller.search(
+        'keyword',
+        likedSongIds: const [101, 202],
+        currentUserId: 'user-1',
+      );
+
+      expect(repository.requestedLikedSongIds, [
+        [202, 101],
+      ]);
+      expect(controller.songState.value.data?.single.title, 'first');
+    });
+
     test('publishes first completed category before slower categories finish', () async {
       final repository = _FakeSearchRepository();
       final controller = SearchPanelController(repository: repository);
@@ -243,6 +352,8 @@ class _FakeSearchRepository implements SearchRepository {
   final List<Completer<List<String>>> _hotKeywordRequests = <Completer<List<String>>>[];
   final List<String>? cachedHotKeywords;
   final bool hotKeywordCacheFresh;
+  final List<List<int>> requestedLikedSongIds = <List<int>>[];
+  final List<String> requestedPlaylistUserIds = <String>[];
 
   int get hotKeywordRequestCount => _hotKeywordRequests.length;
 
@@ -302,6 +413,7 @@ class _FakeSearchRepository implements SearchRepository {
     String keyword, {
     required List<int> likedSongIds,
   }) async {
+    requestedLikedSongIds.add(List<int>.from(likedSongIds));
     return _startPendingResult(keyword).songs.future;
   }
 
@@ -310,6 +422,7 @@ class _FakeSearchRepository implements SearchRepository {
     String keyword, {
     required String currentUserId,
   }) async {
+    requestedPlaylistUserIds.add(currentUserId);
     return _activePendingResult(keyword).playlists.future;
   }
 

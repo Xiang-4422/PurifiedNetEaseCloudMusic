@@ -27,10 +27,16 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
     final audioResource = trackWithResources.resources.audio;
     if (audioResource != null && File(audioResource.path).existsSync()) {
       if (audioResource.origin != TrackResourceOrigin.managedDownload && track.sourceType != SourceType.local) {
-        await _resourceWriter.promoteResourcesToManagedDownload(
+        final promoted = await _resourceWriter.promoteResourcesToManagedDownload(
           track.id,
           trackWithResources.resources,
         );
+        if (!promoted) {
+          return _taskStateStore.markFailed(
+            trackId,
+            reason: 'local_resource_index_unavailable',
+          );
+        }
       }
       await _taskStateStore.clearTask(trackId);
       return track;
@@ -85,12 +91,21 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
         await _musicDataRepository.getLyrics(trackId),
       );
 
-      await _resourceWriter.saveManagedDownloadResources(
+      final savedResources = await _resourceWriter.saveManagedDownloadResources(
         trackId,
         localPath: audioPath,
         artworkPath: artworkPath,
         lyricsPath: lyricsPath,
       );
+      if (!savedResources) {
+        await _fileStore.deleteFileIfExists(audioPath);
+        await _fileStore.deleteFileIfExists(artworkPath);
+        await _fileStore.deleteFileIfExists(lyricsPath);
+        return _taskStateStore.markFailed(
+          trackId,
+          reason: 'local_resource_index_unavailable',
+        );
+      }
       await _taskStateStore.clearTask(trackId);
       return track;
     } on DioException catch (error) {

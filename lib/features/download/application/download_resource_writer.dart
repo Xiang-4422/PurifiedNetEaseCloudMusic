@@ -12,7 +12,7 @@ class DownloadResourceWriter {
   final LocalResourceIndexRepository _resourceIndexRepository;
 
   /// 保存正式下载资源索引。
-  Future<void> saveManagedDownloadResources(
+  Future<bool> saveManagedDownloadResources(
     String trackId, {
     required String localPath,
     String? artworkPath,
@@ -24,11 +24,15 @@ class DownloadResourceWriter {
       artworkPath: artworkPath,
       lyricsPath: lyricsPath,
       origin: TrackResourceOrigin.managedDownload,
+      availableAudioOrigins: const {
+        TrackResourceOrigin.localImport,
+        TrackResourceOrigin.managedDownload,
+      },
     );
   }
 
   /// 保存播放缓存资源索引。
-  Future<void> savePlaybackCacheResources(
+  Future<bool> savePlaybackCacheResources(
     String trackId, {
     required String audioPath,
     String? artworkPath,
@@ -40,11 +44,16 @@ class DownloadResourceWriter {
       artworkPath: artworkPath,
       lyricsPath: lyricsPath,
       origin: TrackResourceOrigin.playbackCache,
+      availableAudioOrigins: const {
+        TrackResourceOrigin.localImport,
+        TrackResourceOrigin.managedDownload,
+        TrackResourceOrigin.playbackCache,
+      },
     );
   }
 
   /// 将已有资源提升为正式下载资源。
-  Future<void> promoteResourcesToManagedDownload(
+  Future<bool> promoteResourcesToManagedDownload(
     String trackId,
     TrackResourceBundle bundle,
   ) async {
@@ -54,6 +63,16 @@ class DownloadResourceWriter {
         path: bundle.audio!.path,
         origin: TrackResourceOrigin.managedDownload,
       );
+    }
+    final audioAvailable = await _hasAvailableAudioResource(
+      trackId,
+      availableAudioOrigins: const {
+        TrackResourceOrigin.localImport,
+        TrackResourceOrigin.managedDownload,
+      },
+    );
+    if (!audioAvailable) {
+      return false;
     }
     if (bundle.artwork?.path.isNotEmpty == true) {
       await _resourceIndexRepository.saveArtworkResource(
@@ -69,20 +88,29 @@ class DownloadResourceWriter {
         origin: TrackResourceOrigin.managedDownload,
       );
     }
+    return true;
   }
 
-  Future<void> _saveResources(
+  Future<bool> _saveResources(
     String trackId, {
     required String audioPath,
     String? artworkPath,
     String? lyricsPath,
     required TrackResourceOrigin origin,
+    required Set<TrackResourceOrigin> availableAudioOrigins,
   }) async {
     await _resourceIndexRepository.saveAudioResource(
       trackId,
       path: audioPath,
       origin: origin,
     );
+    final audioAvailable = await _hasAvailableAudioResource(
+      trackId,
+      availableAudioOrigins: availableAudioOrigins,
+    );
+    if (!audioAvailable) {
+      return false;
+    }
     if (artworkPath?.isNotEmpty == true) {
       await _resourceIndexRepository.saveArtworkResource(
         trackId,
@@ -97,5 +125,14 @@ class DownloadResourceWriter {
         origin: origin,
       );
     }
+    return true;
+  }
+
+  Future<bool> _hasAvailableAudioResource(
+    String trackId, {
+    required Set<TrackResourceOrigin> availableAudioOrigins,
+  }) async {
+    final audioResource = await _resourceIndexRepository.getPrimaryAudioResource(trackId);
+    return audioResource != null && availableAudioOrigins.contains(audioResource.origin);
   }
 }

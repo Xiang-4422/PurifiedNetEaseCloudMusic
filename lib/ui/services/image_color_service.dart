@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:bujuan/data/app_storage/image_color_cache_store.dart';
@@ -12,7 +13,7 @@ class ImageColorService {
   ImageColorService._();
 
   static const ImageColorCacheStore _cacheStore = ImageColorCacheStore();
-  static final Map<String, Color> _memoryCache = {};
+  static final ImageColorMemoryCache _memoryCache = ImageColorMemoryCache(maxEntries: 120);
   static final Map<String, Future<Color>> _pendingLoads = {};
 
   /// 从本地图片生成调色板；远程或空地址会退回占位图。
@@ -41,7 +42,7 @@ class ImageColorService {
     }
     final cacheKey = '$normalizedUrl|${getLightColor ? 'light' : 'dark'}';
 
-    final memoryCached = _memoryCache[cacheKey];
+    final memoryCached = _memoryCache.read(cacheKey);
     if (memoryCached != null) {
       return memoryCached;
     }
@@ -89,7 +90,7 @@ class ImageColorService {
     final normalizedUrl = ImageUrlNormalizer.normalize(url);
     final cacheKey = '$normalizedUrl|${getLightColor ? 'light' : 'dark'}';
 
-    final memoryCached = _memoryCache[cacheKey];
+    final memoryCached = _memoryCache.read(cacheKey);
     if (memoryCached != null) {
       return memoryCached;
     }
@@ -126,13 +127,46 @@ class ImageColorService {
   }
 
   static void _remember(String cacheKey, Color color) {
-    if (_memoryCache.length > 120) {
-      _memoryCache.remove(_memoryCache.keys.first);
-    }
-    _memoryCache[cacheKey] = color;
+    _memoryCache.remember(cacheKey, color);
   }
 
   static bool _isRemoteImageUrl(String url) {
     return url.startsWith('http://') || url.startsWith('https://');
+  }
+}
+
+/// 图片取色内存缓存，按最近使用顺序保留有限条目。
+class ImageColorMemoryCache {
+  /// 创建图片取色内存缓存。
+  ImageColorMemoryCache({required this.maxEntries}) : assert(maxEntries > 0);
+
+  /// 最大缓存条目数。
+  final int maxEntries;
+
+  final LinkedHashMap<String, Color> _entries = LinkedHashMap<String, Color>();
+
+  /// 当前缓存条目数。
+  int get length => _entries.length;
+
+  /// 是否包含指定缓存键。
+  bool containsKey(String cacheKey) => _entries.containsKey(cacheKey);
+
+  /// 读取并刷新最近使用顺序。
+  Color? read(String cacheKey) {
+    final color = _entries.remove(cacheKey);
+    if (color == null) {
+      return null;
+    }
+    _entries[cacheKey] = color;
+    return color;
+  }
+
+  /// 写入颜色，并按最近使用顺序淘汰旧条目。
+  void remember(String cacheKey, Color color) {
+    _entries.remove(cacheKey);
+    _entries[cacheKey] = color;
+    while (_entries.length > maxEntries) {
+      _entries.remove(_entries.keys.first);
+    }
   }
 }

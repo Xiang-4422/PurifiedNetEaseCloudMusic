@@ -66,6 +66,38 @@ void main() {
       expect(result.stdout, contains('Generated api-enhanced files are up to date'));
     });
 
+    test('coverage report keeps upstream module and special status complete', () async {
+      final repoRoot = _findRepoRoot();
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(
+        result.exitCode,
+        0,
+        reason: '${result.stdout}\n${result.stderr}',
+      );
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+
+      expect(report['moduleCount'], apiEnhancedModules.length);
+      expect(report['normalMissingOracle'], isEmpty);
+      expect(report['specialMissingStatus'], isEmpty);
+      expect(report['specialNodeOracleMissingFixture'], isEmpty);
+      expect(report['specialNonLimitedMissingOracle'], isEmpty);
+      expect(report['specialUnknownStatus'], isEmpty);
+      expect(_stringSet(report['specialLimited']), {
+        'cloud',
+        'decrypt',
+        'song_url_match',
+        'song_url_v1',
+      });
+    });
+
     test('normal modules build request metadata', () {
       final normalModules = apiEnhancedModules.where((module) => !module.special);
 

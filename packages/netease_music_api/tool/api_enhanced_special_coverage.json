@@ -11,6 +11,7 @@
     "playlist_track_all",
     "playlist_tracks",
     "related_playlist",
+    "register_xeapikey",
     "scrobble",
     "song_url_ncmget",
     "song_url_v1",
@@ -26,7 +27,6 @@
     "decrypt",
     "eapi_decrypt",
     "register_anonimous",
-    "register_xeapikey",
     "song_url_match"
   ],
   "limited": {

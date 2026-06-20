@@ -6,6 +6,10 @@ const Module = require('module')
 
 const repoRoot = path.resolve(__dirname, '../../..')
 const upstreamRoot = path.join(repoRoot, 'third_party/api-enhanced')
+const encryptedXeApiPublicKeyFixture =
+  'Ix+68DGNS+G6Oiwlq/g/+pJlf+CLRzLMsVxgAP9Sq82SZX/gi0cyzLFcYAD/UqvNXpKKq45tTezVfnTCJ+SJPc19vHxGXOOCLiTjXypVtRo2werynr5A9/iH1qGdKGF4'
+const xeapiSignKey =
+  'mUHCwVNWJbunMqAHf5MImuirT6plvs6VSFW62MGHstFQxhBGdEoIhLItH3djc4+FB/OKty3+lL2rGeoFBpVe5g=='
 const relatedPlaylistHtml = `<div class="cver u-cover u-cover-3">
   <img src="https://p1.music.126.net/cover-a.jpg?param=50y50">
   <a class="sname f-fs1 s-fc0" href="/playlist?id=123" title="ignored">Related A</a>
@@ -17,6 +21,10 @@ const relatedPlaylistHtml = `<div class="cver u-cover u-cover-3">
   <a class="nm nm f-thide s-fc3" href="/user/home?id=77">Bob</a>
 </div>
 `
+
+function xeapiSign(timestamp, nonce) {
+  return crypto.createHmac('sha256', xeapiSignKey).update(`${timestamp}${nonce}`).digest('base64')
+}
 
 const originalRequire = Module.prototype.require
 Module.prototype.require = function patchedRequire(request) {
@@ -42,6 +50,24 @@ Module.prototype.require = function patchedRequire(request) {
       },
     }
   }
+  if (request === 'node-forge') {
+    return {
+      pki: {
+        publicKeyFromPem() {
+          return {
+            encrypt() {
+              return ''
+            },
+          }
+        },
+      },
+      util: {
+        bytesToHex() {
+          return ''
+        },
+      },
+    }
+  }
   if (request === 'axios') {
     return {
       default: async (config) => {
@@ -50,6 +76,21 @@ Module.prototype.require = function patchedRequire(request) {
         }
         if (config.url && config.url.startsWith('https://music.163.com/playlist')) {
           return { status: 200, data: relatedPlaylistHtml }
+        }
+        if (config.url && config.url.includes('/api/gorilla/anti/crawler/security/key/get')) {
+          const params = new URLSearchParams(config.data)
+          const timestamp = params.get('timestamp')
+          const nonce = params.get('nonce')
+          return {
+            data: {
+              code: 200,
+              data: {
+                encryptedData: encryptedXeApiPublicKeyFixture,
+                timestamp,
+                signature: xeapiSign(timestamp, nonce),
+              },
+            },
+          }
         }
         if (config.url && config.url.includes('wanproxy.127.net/lbs')) {
           return { data: { upload: ['https://upload.test'] } }
@@ -2785,6 +2826,18 @@ const fixtures = [
     allowNoRequest: true,
   },
   {
+    module: 'register_xeapikey',
+    query: {
+      nonce: '1234567890123456',
+      timestamp: '1700000000000',
+      deviceId: 'device-1',
+      currentKeyVersion: '0',
+    },
+    allowNoRequest: true,
+    fixedNow: 1700000000000,
+    fixedRandomDigits: '1234567890123456',
+  },
+  {
     module: 'playlist_track_all',
     query: {
       id: '888',
@@ -3004,7 +3057,27 @@ async function captureFixture(fixture) {
     return Promise.resolve(JSON.parse(JSON.stringify(response)))
   }
 
-  const upstreamResult = await upstreamModule(query, request)
+  const originalDateNow = Date.now
+  const originalRandom = Math.random
+  if (fixture.fixedNow !== undefined) {
+    Date.now = () => fixture.fixedNow
+  }
+  if (fixture.fixedRandomDigits) {
+    let randomIndex = 0
+    Math.random = () => {
+      const digit = fixture.fixedRandomDigits[randomIndex % fixture.fixedRandomDigits.length]
+      randomIndex += 1
+      return Number(digit) / 10
+    }
+  }
+
+  let upstreamResult
+  try {
+    upstreamResult = await upstreamModule(query, request)
+  } finally {
+    Date.now = originalDateNow
+    Math.random = originalRandom
+  }
   if (!captured && !fixture.allowNoRequest) {
     throw new Error(`Module ${fixture.module} did not call request`)
   }

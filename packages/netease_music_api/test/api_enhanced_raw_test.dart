@@ -2117,10 +2117,14 @@ void main() {
       expect(adapter.requestData.toString(), contains('currentKeyVersion=0'));
       expect(adapter.requestHeaders[HttpHeaders.cookieHeader], 'deviceId=device-1');
       expect(result, {
-        'publicKey': 'BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc=',
-        'version': '1',
-        'sk': 'secret-key',
-        'deviceId': 'device-1',
+        'status': 200,
+        'body': {
+          'publicKey': 'BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc=',
+          'version': '1',
+          'sk': 'secret-key',
+          'deviceId': 'device-1',
+        },
+        'cookie': [],
       });
       expect(XeApiStateStore.loadPublicKey()!.sk, 'secret-key');
     });
@@ -3065,6 +3069,19 @@ Future<dynamic> _dartResultForNoRequestOracleFixture(
       return api.requestModule(module, query);
     case 'related_playlist':
       Https.setDioForTesting(Dio()..httpClientAdapter = _TextResponseAdapter(_relatedPlaylistHtml));
+      return api.requestModule(module, query);
+    case 'register_xeapikey':
+      Https.setDioForTesting(
+        Dio()
+          ..httpClientAdapter = _JsonResponseAdapter({
+            'code': 200,
+            'data': {
+              'encryptedData': _encryptedXeApiPublicKeyFixture,
+              'timestamp': query['timestamp'],
+              'signature': xeapiSign(query['timestamp'].toString(), query['nonce'].toString()),
+            },
+          }),
+      );
       return api.requestModule(module, query);
     case 'song_url_ncmget':
       return api.requestModule(module, query);

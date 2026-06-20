@@ -369,7 +369,11 @@ mixin ApiEnhancedRaw {
       throw StateError('xeapi public key response missing sk');
     }
     await XeApiStateStore.savePublicKey(publicKeyState);
-    return publicKeyState.toJson();
+    return {
+      'status': 200,
+      'body': publicKeyState.toJson(),
+      'cookie': const <String>[],
+    };
   }
 
   /// Anonymous login through the upstream xeapi module.

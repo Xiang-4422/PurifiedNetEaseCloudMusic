@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -100,10 +101,25 @@ class PlaybackSourcePrefetcher {
     if (cached == null || now.difference(cached.createdAt) >= ttl) {
       return null;
     }
+    if (!_isCachedSourceStillUsable(cached.source)) {
+      _cache.remove(key);
+      return null;
+    }
     PlaybackPerformanceLogger.log(
       'sourcePrefetch.cacheHit id=${item.id} highQuality=$preferHighQuality kind=${cached.source.kind.name}',
     );
     return cached.source;
+  }
+
+  bool _isCachedSourceStillUsable(PlaybackResolvedSource source) {
+    switch (source.kind) {
+      case PlaybackResolvedSourceKind.filePath:
+      case PlaybackResolvedSourceKind.neteaseCacheStream:
+        return source.url.isNotEmpty && File(source.url).existsSync();
+      case PlaybackResolvedSourceKind.url:
+      case PlaybackResolvedSourceKind.empty:
+        return true;
+    }
   }
 
   Future<PlaybackResolvedSource> _resolveAndCache(

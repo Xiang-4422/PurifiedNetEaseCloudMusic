@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -44,6 +45,30 @@ void main() {
       expect(cachedHigh.url, high.url);
       expect(resolver.resolveCallCount, 2);
       expect(resolver.preferences, [false, true]);
+    });
+
+    test('re-resolves cached local file source after file is removed', () async {
+      final directory = await Directory.systemTemp.createTemp('source-prefetch-file-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final audioFile = File('${directory.path}/song.mp3');
+      await audioFile.writeAsString('audio');
+      final resolver = _LocalFileThenRemoteSourceResolver(audioFile);
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final item = _item('1');
+
+      final cachedFile = await prefetcher.resolve(item, preferHighQuality: false);
+      await audioFile.delete();
+      final refreshed = await prefetcher.resolve(item, preferHighQuality: false);
+
+      expect(cachedFile.kind, PlaybackResolvedSourceKind.filePath);
+      expect(cachedFile.url, audioFile.path);
+      expect(refreshed.kind, PlaybackResolvedSourceKind.url);
+      expect(refreshed.url, 'remote-url-2');
+      expect(resolver.resolveCallCount, 2);
     });
 
     test('force refresh keeps newer in-flight remote source active', () async {
@@ -140,6 +165,40 @@ class _CountingSourceResolver implements PlaybackSourceResolver {
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
       url: '${preferHighQuality ? 'high' : 'normal'}-url-$resolveCallCount',
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
+  }
+}
+
+class _LocalFileThenRemoteSourceResolver implements PlaybackSourceResolver {
+  _LocalFileThenRemoteSourceResolver(this.audioFile);
+
+  final File audioFile;
+  int resolveCallCount = 0;
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    resolveCallCount++;
+    if (audioFile.existsSync()) {
+      return PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.filePath,
+        url: audioFile.path,
+      );
+    }
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: 'remote-url-$resolveCallCount',
     );
   }
 

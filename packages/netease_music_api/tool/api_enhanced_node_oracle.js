@@ -616,6 +616,73 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'aidj_content_rcmd',
+    query: {
+      latitude: 40.0,
+      longitude: 116.0,
+    },
+  },
+  {
+    module: 'calendar',
+    query: {
+      startTime: 1000,
+      endTime: 2000,
+    },
+  },
+  {
+    module: 'follow',
+    query: {
+      id: '42',
+      t: 1,
+    },
+  },
+  {
+    module: 'follow',
+    query: {
+      id: '42',
+      t: 0,
+    },
+  },
+  {
+    module: 'relay_play_state_submit',
+    query: {
+      id: '101',
+      sessionId: 'SESSION00001',
+      progress: '30',
+      playMode: 'single_loop',
+    },
+  },
+  {
+    module: 'resource_like',
+    query: {
+      id: '101',
+      type: '0',
+      t: 1,
+    },
+  },
+  {
+    module: 'resource_like',
+    query: {
+      id: 'event-1',
+      type: '6',
+      threadId: 'A_EV_2_event-thread',
+      t: 0,
+    },
+  },
+  {
+    module: 'weblog',
+    query: {},
+  },
+  {
+    module: 'weblog',
+    query: {
+      data: {
+        action: 'play',
+        id: 101,
+      },
+    },
+  },
+  {
     module: 'recommend_resource',
     query: {},
   },

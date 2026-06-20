@@ -908,6 +908,48 @@ void main() {
       expect(summary2023.uri.path, '/api/activity/summary/annual/2023/data');
       expect(summary2023.data, isEmpty);
       expect(api.requestModuleDioMetaData('threshold_detail_get', {}).data, isEmpty);
+      final aidjData = api.requestModuleDioMetaData('aidj_content_rcmd', {
+        'latitude': 40.0,
+        'longitude': 116.0,
+      }).data as Map;
+      final aidjExtInfo = jsonDecode(aidjData['extInfo'] as String) as Map;
+      expect(aidjExtInfo['noAidjToAidj'], false);
+      expect(aidjExtInfo['lastRequestTimestamp'], isA<int>());
+      expect(aidjExtInfo['listenedTs'], false);
+      expect(aidjExtInfo['lbsInfoList'], [
+        {
+          'lat': 40.0,
+          'lon': 116.0,
+          'time': isA<int>(),
+        }
+      ]);
+      expect(api.requestModuleDioMetaData('calendar', {'startTime': 1000, 'endTime': 2000}).data, {
+        'startTime': 1000,
+        'endTime': 2000,
+      });
+      expect(api.requestModuleDioMetaData('follow', {'id': '42', 't': 1}).uri.path, '/api/user/follow/42');
+      expect(api.requestModuleDioMetaData('follow', {'id': '42', 't': 0}).uri.path, '/api/user/delfollow/42');
+      expect(api.requestModuleDioMetaData('follow', {'id': '42', 't': 1}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('relay_play_state_submit', {'id': '101', 'sessionId': 'SESSION00001', 'progress': '30', 'playMode': 'single_loop'}).data, {
+        'playStateSubmitReq': '{"resource":{"id":"101","type":"song"},"progress":30,"sessionId":"SESSION00001","playMode":"single_loop"}',
+      });
+      expect(api.requestModuleDioMetaData('resource_like', {'id': '101', 'type': '0', 't': 1}).uri.path, '/api/resource/like');
+      expect(api.requestModuleDioMetaData('resource_like', {'id': '101', 'type': '0', 't': 1}).data, {
+        'threadId': 'R_SO_4_101',
+      });
+      expect(api.requestModuleDioMetaData('resource_like', {'id': 'event-1', 'type': '6', 'threadId': 'A_EV_2_event-thread', 't': 0}).uri.path, '/api/resource/unlike');
+      expect(api.requestModuleDioMetaData('resource_like', {'id': 'event-1', 'type': '6', 'threadId': 'A_EV_2_event-thread', 't': 0}).data, {
+        'threadId': 'A_EV_2_event-thread',
+      });
+      expect(api.requestModuleDioMetaData('weblog', {}).data, isEmpty);
+      expect(
+          api.requestModuleDioMetaData('weblog', {
+            'data': {'action': 'play', 'id': 101}
+          }).data,
+          {
+            'action': 'play',
+            'id': 101,
+          });
       expect(api.requestModuleDioMetaData('fm_trash', {'id': '101'}).data, {
         'songId': '101',
         'alg': 'RT',
@@ -3195,6 +3237,24 @@ Map<String, dynamic> _normalizedRequestData(dynamic value) {
     }
     if (entry.key == 'voiceData' && entry.value is String) {
       result[entry.key] = jsonDecode(entry.value as String);
+      continue;
+    }
+    if (entry.key == 'extInfo' && entry.value is String) {
+      final extInfo = Map<String, dynamic>.from(jsonDecode(entry.value as String) as Map);
+      if (extInfo.containsKey('lastRequestTimestamp')) {
+        extInfo['lastRequestTimestamp'] = '<dynamic>';
+      }
+      final lbsInfoList = extInfo['lbsInfoList'];
+      if (lbsInfoList is List) {
+        extInfo['lbsInfoList'] = lbsInfoList.map((value) {
+          final item = Map<String, dynamic>.from(value as Map);
+          if (item.containsKey('time')) {
+            item['time'] = '<dynamic>';
+          }
+          return item;
+        }).toList();
+      }
+      result[entry.key] = extInfo;
       continue;
     }
     result[entry.key] = entry.value;

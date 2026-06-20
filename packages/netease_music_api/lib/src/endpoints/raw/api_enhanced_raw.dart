@@ -1125,10 +1125,34 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], 0),
         'total': true,
       };
+    case 'aidj_content_rcmd':
+      final now = DateTime.now();
+      final extInfo = <String, dynamic>{};
+      if (query['latitude'] != null) {
+        extInfo['lbsInfoList'] = [
+          {
+            'lat': query['latitude'],
+            'lon': query['longitude'],
+            'time': now.millisecondsSinceEpoch ~/ 1000,
+          },
+        ];
+      }
+      extInfo['noAidjToAidj'] = false;
+      extInfo['lastRequestTimestamp'] = now.millisecondsSinceEpoch;
+      extInfo['listenedTs'] = false;
+      return {
+        'extInfo': jsonEncode(extInfo),
+      };
     case 'batch':
       return Map.fromEntries(
         query.entries.where((entry) => entry.key.startsWith('/api/')),
       );
+    case 'calendar':
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return {
+        'startTime': _jsDefault(query['startTime'], now),
+        'endTime': _jsDefault(query['endTime'], now),
+      };
     case 'digitalAlbum_detail':
       return {
         'id': query['id'],
@@ -1231,6 +1255,24 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         'id': id,
         'type': RegExp(r'^\d+$').hasMatch(id?.toString() ?? '') ? 0 : 1,
+      };
+    case 'relay_play_state_submit':
+      final sessionId = _jsDefault(query['sessionId'], _generateSessionId());
+      return {
+        'playStateSubmitReq': jsonEncode({
+          'resource': {
+            'id': query['id'].toString(),
+            'type': _jsDefault(query['type'], 'song'),
+          },
+          'progress': _jsNumberValue(query['progress']),
+          'sessionId': sessionId,
+          'playMode': _jsDefault(query['playMode'], 'list_loop'),
+        }),
+      };
+    case 'resource_like':
+      final prefix = _resourceTypePrefix(query['type']);
+      return {
+        'threadId': prefix == 'A_EV_2_' ? query['threadId'] : '$prefix${query['id']}',
       };
     case 'share_resource':
       return {
@@ -1445,6 +1487,7 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'login_status':
     case 'login_refresh':
     case 'logout':
+    case 'follow':
     case 'pl_count':
     case 'setting':
     case 'sign_happy_info':
@@ -2037,6 +2080,8 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         'programId': query['id'],
       };
+    case 'weblog':
+      return _jsTruthy(query['data']) ? _asMap(query['data']) : <String, dynamic>{};
     case 'voicelist_detail':
       return {
         'id': query['id'],
@@ -2978,10 +3023,14 @@ String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
       return '/api/v1/comment/${query['t']?.toString() == '1' ? 'like' : 'unlike'}';
     case 'dj_sub':
       return '/api/djradio/${query['t']?.toString() == '1' ? 'sub' : 'unsub'}';
+    case 'follow':
+      return '/api/user/${query['t']?.toString() == '1' ? 'follow' : 'delfollow'}/${query['id']}';
     case 'mv_sub':
       return '/api/mv/${query['t']?.toString() == '1' ? 'sub' : 'unsub'}';
     case 'playlist_subscribe':
       return query['t']?.toString() == '1' ? '/api/playlist/subscribe' : '/api/playlist/unsubscribe';
+    case 'resource_like':
+      return '/api/resource/${query['t']?.toString() == '1' ? 'like' : 'unlike'}';
     case 'search':
       return query['type']?.toString() == '2000' ? '/api/search/voice/get' : '/api/search/get';
     case 'search_suggest':
@@ -3513,6 +3562,12 @@ String _xmlText(String xml, String tag) {
     throw StateError('$tag is missing from XML response');
   }
   return value;
+}
+
+String _generateSessionId() {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  final random = Random();
+  return List.generate(12, (_) => alphabet[random.nextInt(alphabet.length)]).join();
 }
 
 String _createDupkey() {

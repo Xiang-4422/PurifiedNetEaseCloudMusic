@@ -88,6 +88,7 @@ class RadioListController {
   }
 
   Future<bool> _reload() async {
+    final currentState = state.value;
     try {
       final page = await _repository.fetchSubscribedRadios(
         userId: _userId,
@@ -101,6 +102,16 @@ class RadioListController {
       );
       return true;
     } catch (error, stackTrace) {
+      if (currentState.items.isNotEmpty) {
+        state.value = currentState.copyWith(
+          initialLoading: false,
+          refreshing: false,
+          loadingMore: false,
+          error: error,
+          stackTrace: stackTrace,
+        );
+        return false;
+      }
       state.value = PagedState.error(
         error,
         stackTrace: stackTrace,

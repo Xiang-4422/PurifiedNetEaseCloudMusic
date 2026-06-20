@@ -49,13 +49,15 @@ class PlaybackQueueItemMapper {
       final artistIds = (track.metadata['artistIds'] as List? ?? const []).map((item) => '$item').toList();
       final metadata = <String, dynamic>{
         ...track.metadata,
-        'sourceType': track.sourceType.name,
         'localLyricsPath': localLyricsPath ?? '',
         'availability': track.availability.name,
-      }..remove('albumId');
+      }
+        ..remove('albumId')
+        ..remove('sourceType');
       return PlaybackQueueItem(
         id: track.id,
         sourceId: track.sourceId,
+        sourceType: track.sourceType,
         title: track.title,
         albumTitle: track.albumTitle,
         albumId: albumId,

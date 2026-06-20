@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 
 /// 播放队列项与 audio_service [MediaItem] 的边界适配器。
 class PlaybackQueueItemAdapter {
@@ -35,6 +36,7 @@ class PlaybackQueueItemAdapter {
     return PlaybackQueueItem(
       id: item.id,
       sourceId: _stringOrNull(extras['sourceId']) ?? item.id,
+      sourceType: _sourceTypeFrom(extras['sourceType']),
       title: item.title,
       albumTitle: item.album ?? _stringOrNull(extras['albumTitle']),
       albumId: _stringOrNull(extras['albumId']),
@@ -74,9 +76,17 @@ class PlaybackQueueItemAdapter {
     return '$value';
   }
 
+  static SourceType _sourceTypeFrom(Object? value) {
+    return SourceType.values.firstWhere(
+      (item) => item.name == value,
+      orElse: () => SourceType.netease,
+    );
+  }
+
   static Map<String, dynamic> _toMediaItemExtras(PlaybackQueueItem item) {
     return {
       ...item.metadata,
+      'sourceType': item.sourceType.name,
       'type': item.mediaType.name,
       'image': item.artworkUrl ?? item.localArtworkPath ?? '',
       'url': item.playbackUrl ?? '',
@@ -105,6 +115,7 @@ class PlaybackQueueItemAdapter {
       'albumTitle',
       'albumId',
       'sourceId',
+      'sourceType',
       'localArtworkPath',
       'lyricKey',
       'cache',

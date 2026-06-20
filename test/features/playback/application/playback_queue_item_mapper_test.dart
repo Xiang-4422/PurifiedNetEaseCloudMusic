@@ -61,15 +61,36 @@ void main() {
       expect(item.albumId, '20');
       expect(item.metadata.containsKey('albumId'), isFalse);
     });
+
+    test('maps source type as explicit queue item field instead of metadata key', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(
+              sourceType: SourceType.local,
+              metadata: const {
+                'sourceType': 'legacy',
+              },
+            ),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.sourceType, SourceType.local);
+      expect(item.metadata.containsKey('sourceType'), isFalse);
+    });
   });
 }
 
 Track _track({
+  SourceType sourceType = SourceType.netease,
   Map<String, Object?> metadata = const {},
 }) {
   return Track(
     id: 'netease:1',
-    sourceType: SourceType.netease,
+    sourceType: sourceType,
     sourceId: '1',
     title: 'Track',
     metadata: metadata,

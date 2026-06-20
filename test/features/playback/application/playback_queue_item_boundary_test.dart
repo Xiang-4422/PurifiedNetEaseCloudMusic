@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_adapter.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_cache_codec.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,9 +41,8 @@ void main() {
       expect(item.artistNames, ['Artist']);
       expect(item.playbackUrl, 'https://example.com/song.mp3');
       expect(item.albumId, '20');
-      expect(item.metadata, {
-        'sourceType': 'netease',
-      });
+      expect(item.sourceType, SourceType.netease);
+      expect(item.metadata, isEmpty);
     });
 
     test('adapter owns MediaItem extras without requiring queue item extras getter', () {
@@ -59,6 +59,7 @@ void main() {
       expect(mediaItem.artist, 'Artist');
       expect(mediaItem.artUri?.toFilePath(), '/cache/art.jpg');
       expect(mediaItem.extras?['albumId'], '20');
+      expect(mediaItem.extras?['sourceType'], 'netease');
       expect(mediaItem.extras?['type'], 'playlist');
       expect(mediaItem.extras?['url'], 'https://example.com/song.mp3');
     });
@@ -76,25 +77,49 @@ void main() {
 
       expect(raw['mediaType'], 'playlist');
       expect(raw['albumId'], '20');
-      expect(raw['metadata'], {'sourceType': 'netease'});
+      expect(raw['sourceType'], 'netease');
+      expect(raw['metadata'], isEmpty);
 
       final decoded = await decodePlaybackQueueItemCacheList(encoded);
 
       expect(decoded.single.id, 'netease:1');
       expect(decoded.single.albumId, '20');
+      expect(decoded.single.sourceType, SourceType.netease);
       expect(decoded.single.duration, const Duration(seconds: 3));
-      expect(decoded.single.metadata, {'sourceType': 'netease'});
+      expect(decoded.single.metadata, isEmpty);
+    });
+
+    test('cache codec migrates legacy metadata source type into explicit field', () async {
+      final encoded = jsonEncode({
+        'id': 'local:/music/a.mp3',
+        'sourceId': '/music/a.mp3',
+        'title': 'Local',
+        'mediaType': 'local',
+        'metadata': {
+          'sourceType': 'local',
+          'albumId': '30',
+          'custom': 'keep',
+        },
+      });
+
+      final decoded = await decodePlaybackQueueItemCacheList([encoded]);
+
+      expect(decoded.single.sourceType, SourceType.local);
+      expect(decoded.single.albumId, '30');
+      expect(decoded.single.metadata, {'custom': 'keep'});
     });
   });
 }
 
 PlaybackQueueItem _queueItem({
   String? albumId,
+  SourceType sourceType = SourceType.netease,
   Map<String, dynamic> metadata = const {},
 }) {
   return PlaybackQueueItem(
     id: 'netease:1',
     sourceId: '1',
+    sourceType: sourceType,
     title: 'Track',
     albumTitle: 'Album',
     albumId: albumId,

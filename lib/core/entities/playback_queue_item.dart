@@ -1,4 +1,5 @@
 import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 
 /// 播放队列项实体，作为 UI、repository 和播放 service 之间的统一播放模型。
 class PlaybackQueueItem {
@@ -8,6 +9,7 @@ class PlaybackQueueItem {
   const PlaybackQueueItem({
     required this.id,
     required this.sourceId,
+    this.sourceType = SourceType.netease,
     required this.title,
     required this.albumTitle,
     this.albumId,
@@ -28,6 +30,7 @@ class PlaybackQueueItem {
   const PlaybackQueueItem.empty()
       : id = '',
         sourceId = '',
+        sourceType = SourceType.unknown,
         title = '暂无',
         albumTitle = null,
         albumId = null,
@@ -48,6 +51,9 @@ class PlaybackQueueItem {
 
   /// 来源侧曲目 id。
   final String sourceId;
+
+  /// 曲目来源类型。
+  final SourceType sourceType;
 
   /// 曲目标题。
   final String title;
@@ -103,6 +109,7 @@ class PlaybackQueueItem {
   PlaybackQueueItem copyWith({
     String? id,
     String? sourceId,
+    SourceType? sourceType,
     String? title,
     Object? albumTitle = _unset,
     Object? albumId = _unset,
@@ -121,6 +128,7 @@ class PlaybackQueueItem {
     return PlaybackQueueItem(
       id: id ?? this.id,
       sourceId: sourceId ?? this.sourceId,
+      sourceType: sourceType ?? this.sourceType,
       title: title ?? this.title,
       albumTitle: identical(albumTitle, _unset) ? this.albumTitle : albumTitle as String?,
       albumId: identical(albumId, _unset) ? this.albumId : albumId as String?,

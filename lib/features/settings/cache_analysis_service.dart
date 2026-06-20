@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
@@ -92,9 +93,10 @@ class CacheAnalysisService {
         CacheCategory.image,
         Directory('${supportDirectory.path}/zmusic/image-cache'),
       ),
-      await _analyzeDirectory(
+      await _analyzeIndexedResourceCacheDirectory(
         CacheCategory.artwork,
         Directory('${supportDirectory.path}/zmusic/artwork-cache'),
+        origin: TrackResourceOrigin.artworkCache,
       ),
       CacheCategoryAnalysis(
         category: CacheCategory.playback,
@@ -122,9 +124,9 @@ class CacheAnalysisService {
         await _clearDirectory(Directory('${supportDirectory.path}/zmusic/image-cache'));
         return;
       case CacheCategory.artwork:
-        await _clearDirectory(Directory('${supportDirectory.path}/zmusic/artwork-cache'));
-        await _resourceIndexRepository.removeResourcesByOrigin(
-          TrackResourceOrigin.artworkCache,
+        await _clearIndexedResourceCacheDirectory(
+          Directory('${supportDirectory.path}/zmusic/artwork-cache'),
+          origin: TrackResourceOrigin.artworkCache,
         );
         return;
       case CacheCategory.playback:
@@ -157,6 +159,42 @@ class CacheAnalysisService {
     );
   }
 
+  Future<CacheCategoryAnalysis> _analyzeIndexedResourceCacheDirectory(
+    CacheCategory category,
+    Directory directory, {
+    required TrackResourceOrigin origin,
+  }) async {
+    final cacheResources = await _resourceIndexRepository.listResources(
+      origins: {origin},
+    );
+    final retainedPaths = _retainedResourcePathsAfterRemoving(
+      await _resourceIndexRepository.listResources(),
+      shouldRemove: (resource) => resource.origin == origin,
+    );
+    final countedPaths = <String>{};
+    var sizeBytes = 0;
+    var fileCount = 0;
+    for (final resource in cacheResources) {
+      if (retainedPaths.contains(resource.path) || !countedPaths.add(resource.path)) {
+        continue;
+      }
+      sizeBytes += resource.sizeBytes;
+      fileCount++;
+    }
+    final orphanStats = await _unretainedDirectoryStats(
+      directory,
+      retainedPaths: retainedPaths,
+      countedPaths: countedPaths,
+    );
+    return CacheCategoryAnalysis(
+      category: category,
+      title: _titleFor(category),
+      description: _descriptionFor(category),
+      sizeBytes: sizeBytes + orphanStats.sizeBytes,
+      fileCount: fileCount + orphanStats.fileCount,
+    );
+  }
+
   Future<({int sizeBytes, int fileCount})> _directoryStats(
     Directory directory,
   ) async {
@@ -174,6 +212,29 @@ class CacheAnalysisService {
     return (sizeBytes: sizeBytes, fileCount: fileCount);
   }
 
+  Future<({int sizeBytes, int fileCount})> _unretainedDirectoryStats(
+    Directory directory, {
+    required Set<String> retainedPaths,
+    required Set<String> countedPaths,
+  }) async {
+    if (!directory.existsSync()) {
+      return (sizeBytes: 0, fileCount: 0);
+    }
+    var sizeBytes = 0;
+    var fileCount = 0;
+    await for (final entity in directory.list(recursive: true, followLinks: false)) {
+      if (entity is! File) {
+        continue;
+      }
+      if (retainedPaths.contains(entity.path) || !countedPaths.add(entity.path)) {
+        continue;
+      }
+      fileCount++;
+      sizeBytes += await entity.length().catchError((_) => 0);
+    }
+    return (sizeBytes: sizeBytes, fileCount: fileCount);
+  }
+
   Future<void> _clearDirectory(Directory directory) async {
     if (directory.existsSync()) {
       await for (final entity in directory.list(followLinks: false)) {
@@ -183,6 +244,79 @@ class CacheAnalysisService {
       }
     }
     await directory.create(recursive: true);
+  }
+
+  Future<void> _clearIndexedResourceCacheDirectory(
+    Directory directory, {
+    required TrackResourceOrigin origin,
+  }) async {
+    final cacheResources = await _resourceIndexRepository.listResources(
+      origins: {origin},
+    );
+    final retainedPaths = _retainedResourcePathsAfterRemoving(
+      await _resourceIndexRepository.listResources(),
+      shouldRemove: (resource) => resource.origin == origin,
+    );
+    for (final resource in cacheResources) {
+      await _deleteFileUnlessRetained(resource.path, retainedPaths);
+    }
+    await _deleteUnretainedDirectoryFiles(
+      directory,
+      retainedPaths: retainedPaths,
+    );
+    await _resourceIndexRepository.removeResourcesByOrigin(origin);
+    await directory.create(recursive: true);
+  }
+
+  Set<String> _retainedResourcePathsAfterRemoving(
+    List<LocalResourceEntry> indexedResources, {
+    required bool Function(LocalResourceEntry resource) shouldRemove,
+  }) {
+    return {
+      for (final resource in indexedResources)
+        if (!shouldRemove(resource)) resource.path,
+    };
+  }
+
+  Future<void> _deleteFileUnlessRetained(
+    String path,
+    Set<String> retainedPaths,
+  ) async {
+    if (path.isEmpty || retainedPaths.contains(path)) {
+      return;
+    }
+    final file = File(path);
+    if (!file.existsSync()) {
+      return;
+    }
+    try {
+      await file.delete();
+    } catch (_) {}
+  }
+
+  Future<void> _deleteUnretainedDirectoryFiles(
+    Directory directory, {
+    required Set<String> retainedPaths,
+  }) async {
+    if (!directory.existsSync()) {
+      return;
+    }
+    final childDirectories = <Directory>[];
+    await for (final entity in directory.list(recursive: true, followLinks: false)) {
+      if (entity is File) {
+        await _deleteFileUnlessRetained(entity.path, retainedPaths);
+      } else if (entity is Directory) {
+        childDirectories.add(entity);
+      }
+    }
+    childDirectories.sort(
+      (left, right) => right.path.length.compareTo(left.path.length),
+    );
+    for (final childDirectory in childDirectories) {
+      try {
+        await childDirectory.delete();
+      } catch (_) {}
+    }
   }
 
   String _titleFor(CacheCategory category) {

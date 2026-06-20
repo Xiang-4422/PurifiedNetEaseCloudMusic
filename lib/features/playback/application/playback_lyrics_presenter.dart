@@ -1,5 +1,6 @@
 import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/lyrics/parser_lrc.dart';
+import 'package:bujuan/features/playback/lyrics/parser_qrc.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
@@ -26,15 +27,15 @@ class PlaybackLyricsPresenter {
         return _emptyLyricsState();
       }
 
-      final mainLyricsLineModels = ParserLrc(lyric).parseLines();
+      final mainLyricsLineModels = _parseLyricsLines(lyric);
       if (lyricTran.isNotEmpty) {
-        final extLyricsLineModels = ParserLrc(lyricTran).parseLines();
+        final extLyricsLineModels = _parseLyricsLines(lyricTran, isMain: false);
         for (final lyricsLineModel in extLyricsLineModels) {
           final index = mainLyricsLineModels.indexWhere(
             (element) => element.startTime == lyricsLineModel.startTime,
           );
           if (index != -1) {
-            mainLyricsLineModels[index].extText = lyricsLineModel.mainText;
+            mainLyricsLineModels[index].extText = lyricsLineModel.extText ?? lyricsLineModel.mainText;
           }
         }
       }
@@ -59,5 +60,13 @@ class PlaybackLyricsPresenter {
       currentIndex: -1,
       hasTranslatedLyrics: false,
     );
+  }
+
+  List<LyricsLineModel> _parseLyricsLines(String lyric, {bool isMain = true}) {
+    final qrc = ParserQrc(lyric);
+    if (qrc.isOK()) {
+      return qrc.parseLines(isMain: isMain);
+    }
+    return ParserLrc(lyric).parseLines(isMain: isMain);
   }
 }

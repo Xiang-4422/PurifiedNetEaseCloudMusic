@@ -41,11 +41,16 @@ class ParserQrc extends LyricsParse {
       // LyricsLog.logD("匹配time:$time($ts) 真实歌词：$realLyrics");
 
       List<LyricSpanInfo> spanList = getSpanList(realLyrics);
+      final text = realLyrics.replaceAll(qrcPattern, "");
 
-      var lineModel = LyricsLineModel()
-        ..mainText = realLyrics.replaceAll(qrcPattern, "")
-        ..startTime = ts
-        ..spanList = spanList;
+      var lineModel = LyricsLineModel()..startTime = ts;
+      if (isMain) {
+        lineModel
+          ..mainText = text
+          ..spanList = spanList;
+      } else {
+        lineModel.extText = text;
+      }
       lineList.add(lineModel);
     }
     return lineList;
@@ -53,24 +58,25 @@ class ParserQrc extends LyricsParse {
 
   /// 从单行 QRC 歌词中提取逐字时间片段。
   List<LyricSpanInfo> getSpanList(String realLyrics) {
-    var invalidLength = 0;
-    var startIndex = 0;
-    var spanList = qrcPattern.allMatches(realLyrics).map((element) {
+    final matches = qrcPattern.allMatches(realLyrics).toList(growable: false);
+    var textIndex = 0;
+    var spanList = <LyricSpanInfo>[];
+    for (var index = 0; index < matches.length; index++) {
+      final element = matches[index];
+      final nextStart = index + 1 < matches.length ? matches[index + 1].start : realLyrics.length;
+      final raw = realLyrics.substring(element.end, nextStart);
       var span = LyricSpanInfo();
 
-      span.raw = realLyrics.substring(startIndex + invalidLength, element.start);
-
-      var elementText = element.group(0) ?? "";
-      span.index = startIndex;
-      span.length = element.start - span.index - invalidLength;
-      invalidLength += elementText.length;
-      startIndex += span.length;
+      span.raw = raw;
+      span.index = textIndex;
+      span.length = raw.length;
+      textIndex += raw.length;
 
       var time = (element.group(1)?.split(",") ?? ["0", "0"]);
       span.start = int.parse(time[0]);
       span.duration = int.parse(time[1]);
-      return span;
-    }).toList();
+      spanList.add(span);
+    }
     return spanList;
   }
 

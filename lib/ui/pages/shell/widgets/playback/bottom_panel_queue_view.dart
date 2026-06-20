@@ -9,6 +9,9 @@ import 'package:bujuan/ui/widgets/common/layout/scroll_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+const _unknownQueueArtistText = '未知歌手';
+const _currentQueueItemColor = Colors.red;
+
 /// 底部播放面板中的当前播放队列视图。
 class BottomPanelQueueView extends GetView<ShellController> {
   /// 创建当前播放队列视图。
@@ -53,43 +56,76 @@ class _BottomPanelQueueItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => PlayerController.to.playQueueIndex(index),
-      child: Obx(() {
-        final metrics = AdaptiveLayoutMetrics.of(context);
-        final isCurrent = PlayerController.to.currentQueueIndex.value == index;
-        return ConstrainedBox(
-          constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
-          child: Container(
-            color: Colors.transparent,
-            alignment: AlignmentDirectional.centerStart,
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  item.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: isCurrent ? Colors.red : SettingsController.to.panelWidgetColor.value,
-                      ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                Text(
-                  item.artist ?? '未知歌手',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
-                      ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ],
+    return Obx(() {
+      final metrics = AdaptiveLayoutMetrics.of(context);
+      final isCurrent = PlayerController.to.currentQueueIndex.value == index;
+      final panelColor = SettingsController.to.panelWidgetColor.value;
+      final artistText = playbackQueueArtistDisplayText(item);
+      return Semantics(
+        button: true,
+        excludeSemantics: true,
+        selected: isCurrent,
+        label: '${item.title}, $artistText',
+        child: GestureDetector(
+          onTap: () => PlayerController.to.playQueueIndex(index),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
+            child: Container(
+              color: Colors.transparent,
+              alignment: AlignmentDirectional.centerStart,
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    item.title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: playbackQueueTitleColor(
+                            isCurrent: isCurrent,
+                            panelColor: panelColor,
+                          ),
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  Text(
+                    artistText,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: panelColor.withValues(alpha: 0.5),
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ],
+              ),
             ),
           ),
-        );
-      }),
-    );
+        ),
+      );
+    });
   }
+}
+
+/// 生成播放队列条目的歌手展示文本。
+@visibleForTesting
+String playbackQueueArtistDisplayText(PlaybackQueueItem item) {
+  final artist = item.artist?.trim();
+  if (artist == null || artist.isEmpty) {
+    return _unknownQueueArtistText;
+  }
+  return artist;
+}
+
+/// 生成播放队列条目的标题颜色。
+@visibleForTesting
+Color playbackQueueTitleColor({
+  required bool isCurrent,
+  required Color panelColor,
+}) {
+  if (isCurrent) {
+    return _currentQueueItemColor;
+  }
+  return panelColor;
 }

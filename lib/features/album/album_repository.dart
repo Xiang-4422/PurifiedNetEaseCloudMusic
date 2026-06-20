@@ -3,6 +3,8 @@ import 'package:bujuan/data/music_data/sources/netease/remote/netease_album_remo
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 专辑详情数据。
@@ -44,7 +46,7 @@ class AlbumRepository {
     final tracks = await _musicDataRepository.getTracksByAlbumId(albumId);
     return AlbumDetailData(
       album: album,
-      albumSongs: _mapTracksToPlaybackQueueItems(
+      albumSongs: await _mapTracksToPlaybackQueueItems(
         tracks,
         likedSongIds: likedSongIds,
       ),
@@ -67,22 +69,34 @@ class AlbumRepository {
     await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
     return AlbumDetailData(
       album: album!,
-      albumSongs: _mapTracksToPlaybackQueueItems(
+      albumSongs: await _mapTracksToPlaybackQueueItems(
         tracks,
         likedSongIds: likedSongIds,
       ),
     );
   }
 
-  List<PlaybackQueueItem> _mapTracksToPlaybackQueueItems(
+  Future<List<PlaybackQueueItem>> _mapTracksToPlaybackQueueItems(
     List<Track> tracks, {
     required List<int> likedSongIds,
-  }) {
+  }) async {
     if (tracks.isEmpty) {
       return const [];
     }
-    return PlaybackQueueItemMapper.fromTrackList(
-      tracks,
+    final tracksWithResources = await _musicDataRepository.getTracksWithResources(
+      tracks.map((track) => track.id),
+    );
+    final resourcesByTrackId = {
+      for (final item in tracksWithResources) item.track.id: item.resources,
+    };
+    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
+      [
+        for (final track in tracks)
+          TrackWithResources(
+            track: track,
+            resources: resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
+          ),
+      ],
       likedSongIds: likedSongIds,
     );
   }

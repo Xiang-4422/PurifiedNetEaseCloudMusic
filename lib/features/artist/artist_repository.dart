@@ -4,6 +4,8 @@ import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 歌手详情数据。
@@ -50,7 +52,7 @@ class ArtistRepository {
     final hotAlbums = await _musicDataRepository.searchLocalAlbums(artist.name);
     return ArtistDetailData(
       artist: artist,
-      topSongs: _mapTracksToPlaybackQueueItems(
+      topSongs: await _mapTracksToPlaybackQueueItems(
         topTracks,
         likedSongIds: likedSongIds,
       ),
@@ -77,7 +79,7 @@ class ArtistRepository {
 
     return ArtistDetailData(
       artist: artist!,
-      topSongs: _mapTracksToPlaybackQueueItems(
+      topSongs: await _mapTracksToPlaybackQueueItems(
         tracks,
         likedSongIds: likedSongIds,
       ),
@@ -85,15 +87,27 @@ class ArtistRepository {
     );
   }
 
-  List<PlaybackQueueItem> _mapTracksToPlaybackQueueItems(
+  Future<List<PlaybackQueueItem>> _mapTracksToPlaybackQueueItems(
     List<Track> tracks, {
     required List<int> likedSongIds,
-  }) {
+  }) async {
     if (tracks.isEmpty) {
       return const [];
     }
-    return PlaybackQueueItemMapper.fromTrackList(
-      tracks,
+    final tracksWithResources = await _musicDataRepository.getTracksWithResources(
+      tracks.map((track) => track.id),
+    );
+    final resourcesByTrackId = {
+      for (final item in tracksWithResources) item.track.id: item.resources,
+    };
+    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
+      [
+        for (final track in tracks)
+          TrackWithResources(
+            track: track,
+            resources: resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
+          ),
+      ],
       likedSongIds: likedSongIds,
     );
   }

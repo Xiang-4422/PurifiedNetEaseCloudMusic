@@ -69,14 +69,32 @@ class NeteaseProxyHttpClientAdapter implements HttpClientAdapter {
       return _directAdapter.fetch(options, requestStream, cancelFuture);
     }
     final adapter = _proxyAdapters.putIfAbsent(proxy, () {
-      final proxyRule = neteaseProxyRule(proxy);
-      if (proxyRule == null) {
+      final proxySettings = neteaseProxySettings(proxy);
+      if (proxySettings == null) {
         return IOHttpClientAdapter();
       }
       return IOHttpClientAdapter(
         createHttpClient: () {
           final client = HttpClient();
-          client.findProxy = (_) => proxyRule;
+          client.findProxy = (_) => proxySettings.rule;
+          final credentials = proxySettings.credentials;
+          if (credentials != null) {
+            client.authenticateProxy = (host, port, scheme, realm) {
+              if (host != proxySettings.host || port != proxySettings.port) {
+                return Future.value(false);
+              }
+              client.addProxyCredentials(
+                host,
+                port,
+                realm?.toString() ?? '',
+                HttpClientBasicCredentials(
+                  credentials.username,
+                  credentials.password,
+                ),
+              );
+              return Future.value(true);
+            };
+          }
           return client;
         },
       );
@@ -94,8 +112,51 @@ class NeteaseProxyHttpClientAdapter implements HttpClientAdapter {
   }
 }
 
+/// Parsed upstream-compatible proxy settings.
+class NeteaseProxySettings {
+  /// Creates proxy settings used by the Dio adapter.
+  const NeteaseProxySettings({
+    required this.rule,
+    required this.host,
+    required this.port,
+    this.credentials,
+  });
+
+  /// [HttpClient.findProxy] rule.
+  final String rule;
+
+  /// Proxy host.
+  final String host;
+
+  /// Proxy port.
+  final int port;
+
+  /// Optional proxy credentials.
+  final NeteaseProxyCredentials? credentials;
+}
+
+/// Basic proxy credentials parsed from the proxy URL user info.
+class NeteaseProxyCredentials {
+  /// Creates proxy credentials.
+  const NeteaseProxyCredentials({
+    required this.username,
+    required this.password,
+  });
+
+  /// Proxy username.
+  final String username;
+
+  /// Proxy password.
+  final String password;
+}
+
 /// Converts an upstream-style proxy URL into a Dart [HttpClient.findProxy] rule.
 String? neteaseProxyRule(String? proxy) {
+  return neteaseProxySettings(proxy)?.rule;
+}
+
+/// Converts an upstream-style proxy URL into Dart proxy settings.
+NeteaseProxySettings? neteaseProxySettings(String? proxy) {
   final trimmed = proxy?.trim();
   if (trimmed == null || trimmed.isEmpty) {
     return null;
@@ -109,9 +170,6 @@ String? neteaseProxyRule(String? proxy) {
   if (uri == null || uri.host.isEmpty) {
     throw ArgumentError.value(proxy, 'proxy', 'Invalid proxy URL.');
   }
-  if (uri.userInfo.isNotEmpty) {
-    throw UnsupportedError('Authenticated proxy is not supported by the Dart client.');
-  }
   final scheme = uri.scheme.toLowerCase();
   if (scheme != 'http' && scheme != 'https') {
     throw UnsupportedError('Only HTTP and HTTPS proxy URLs are supported.');
@@ -121,7 +179,25 @@ String? neteaseProxyRule(String? proxy) {
       : scheme == 'https'
           ? 443
           : 80;
-  return 'PROXY ${uri.host}:$port';
+  return NeteaseProxySettings(
+    rule: 'PROXY ${uri.host}:$port',
+    host: uri.host,
+    port: port,
+    credentials: _proxyCredentials(uri.userInfo),
+  );
+}
+
+NeteaseProxyCredentials? _proxyCredentials(String userInfo) {
+  if (userInfo.isEmpty) {
+    return null;
+  }
+  final splitIndex = userInfo.indexOf(':');
+  final username = splitIndex == -1 ? userInfo : userInfo.substring(0, splitIndex);
+  final password = splitIndex == -1 ? '' : userInfo.substring(splitIndex + 1);
+  return NeteaseProxyCredentials(
+    username: Uri.decodeComponent(username),
+    password: Uri.decodeComponent(password),
+  );
 }
 
 /// SDK 请求元数据，允许把请求构造和实际发起分离。

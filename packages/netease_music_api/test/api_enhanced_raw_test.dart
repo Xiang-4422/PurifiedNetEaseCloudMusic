@@ -465,9 +465,19 @@ void main() {
       expect(neteaseProxyRule(''), isNull);
     });
 
+    test('maps authenticated proxy option to native proxy settings', () {
+      final settings = neteaseProxySettings('http://user:p%40ss@127.0.0.1:8080');
+
+      expect(settings?.rule, 'PROXY 127.0.0.1:8080');
+      expect(settings?.host, '127.0.0.1');
+      expect(settings?.port, 8080);
+      expect(settings?.credentials?.username, 'user');
+      expect(settings?.credentials?.password, 'p@ss');
+      expect(neteaseProxyRule('https://name:secret@proxy.example.test'), 'PROXY proxy.example.test:443');
+    });
+
     test('reports unsupported proxy forms explicitly', () {
       expect(() => neteaseProxyRule('http://example.test/proxy.pac'), throwsUnsupportedError);
-      expect(() => neteaseProxyRule('http://user:pass@127.0.0.1:8080'), throwsUnsupportedError);
       expect(() => neteaseProxyRule('socks5://127.0.0.1:1080'), throwsUnsupportedError);
     });
 

@@ -385,11 +385,56 @@ const fixtures = [
     },
   },
   {
+    module: 'artist_desc',
+    query: {
+      id: '6452',
+    },
+  },
+  {
     module: 'artist_album',
     query: {
       id: '6452',
       limit: 12,
       offset: 24,
+    },
+  },
+  {
+    module: 'artist_mv',
+    query: {
+      id: '6452',
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'artist_top_song',
+    query: {
+      id: '6452',
+    },
+  },
+  {
+    module: 'artists',
+    query: {
+      id: '6452',
+    },
+  },
+  {
+    module: 'artist_songs',
+    query: {
+      id: '6452',
+      order: 'time',
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'artist_list',
+    query: {
+      initial: 'a',
+      type: 2,
+      area: 7,
+      limit: 10,
+      offset: 20,
     },
   },
   {

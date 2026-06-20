@@ -1278,11 +1278,43 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       };
     case 'album_newest':
       return {};
+    case 'artist_desc':
+    case 'artist_top_song':
+      return {
+        'id': query['id'],
+      };
     case 'artist_album':
       return {
         'limit': _jsDefault(query['limit'], 30),
         'offset': _jsDefault(query['offset'], 0),
         'total': true,
+      };
+    case 'artist_mv':
+      return {
+        'artistId': query['id'],
+        if (query.containsKey('limit')) 'limit': query['limit'],
+        if (query.containsKey('offset')) 'offset': query['offset'],
+        'total': true,
+      };
+    case 'artists':
+      return {};
+    case 'artist_songs':
+      return {
+        'id': query['id'],
+        'private_cloud': 'true',
+        'work_type': 1,
+        'order': _jsDefault(query['order'], 'hot'),
+        'offset': _jsDefault(query['offset'], 0),
+        'limit': _jsDefault(query['limit'], 100),
+      };
+    case 'artist_list':
+      return {
+        if (_artistInitial(query['initial']) != null) 'initial': _artistInitial(query['initial']),
+        'offset': _jsDefault(query['offset'], 0),
+        'limit': _jsDefault(query['limit'], 30),
+        'total': true,
+        'type': _jsDefault(query['type'], '1'),
+        if (query.containsKey('area')) 'area': query['area'],
       };
     case 'artist_detail':
     case 'artist_detail_dynamic':
@@ -1439,6 +1471,16 @@ dynamic _jsToBoolean(dynamic value) {
     return value;
   }
   return value == 'true' || value?.toString() == '1';
+}
+
+dynamic _artistInitial(dynamic value) {
+  if (value == null || value == false || value == '') {
+    return null;
+  }
+  if (value is num || num.tryParse(value.toString()) != null) {
+    return value;
+  }
+  return value.toString().toUpperCase().codeUnitAt(0);
 }
 
 dynamic _djToplistType(dynamic value) {

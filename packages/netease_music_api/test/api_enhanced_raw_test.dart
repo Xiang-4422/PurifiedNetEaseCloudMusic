@@ -278,6 +278,53 @@ void main() {
       });
     });
 
+    test('maps artist module request data like upstream', () {
+      expect(api.requestModuleDioMetaData('artists', {'id': '6452'}).data, isEmpty);
+
+      final artistMv = api.requestModuleDioMetaData('artist_mv', {
+        'id': '6452',
+        'limit': 10,
+        'offset': 20,
+      });
+      expect(artistMv.data, {
+        'artistId': '6452',
+        'limit': 10,
+        'offset': 20,
+        'total': true,
+      });
+
+      final artistSongs = api.requestModuleDioMetaData('artist_songs', {
+        'id': '6452',
+        'order': 'time',
+        'limit': 10,
+        'offset': 20,
+      });
+      expect(artistSongs.data, {
+        'id': '6452',
+        'private_cloud': 'true',
+        'work_type': 1,
+        'order': 'time',
+        'offset': 20,
+        'limit': 10,
+      });
+
+      final artistList = api.requestModuleDioMetaData('artist_list', {
+        'initial': 'a',
+        'type': 2,
+        'area': 7,
+        'limit': 10,
+        'offset': 20,
+      });
+      expect(artistList.data, {
+        'initial': 65,
+        'offset': 20,
+        'limit': 10,
+        'total': true,
+        'type': 2,
+        'area': 7,
+      });
+    });
+
     test('maps voicelist search defaults and encrypted response flag', () {
       final metaData = api.requestModuleDioMetaData('voicelist_search', {
         'keyword': 'podcast',

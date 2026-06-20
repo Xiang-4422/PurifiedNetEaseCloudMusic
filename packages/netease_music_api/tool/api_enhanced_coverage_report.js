@@ -55,6 +55,10 @@ function setFrom(value) {
   return new Set(value.map((item) => item.toString()))
 }
 
+function sortedObject(value) {
+  return Object.fromEntries(Object.keys(value || {}).sort().map((key) => [key, value[key]]))
+}
+
 const upstreamPackage = readJson(upstreamPackagePath)
 const coverage = readJson(specialCoveragePath)
 const entries = loadManifestEntries()
@@ -89,6 +93,7 @@ const report = {
   specialNodeOracle: sorted(nodeOracleSpecial),
   specialDartBehavior: sorted(dartBehaviorSpecial),
   specialLimited: sorted(limitedSpecial),
+  specialLimitedReasons: sortedObject(coverage.limited),
 }
 
 const hasFailure =
@@ -115,6 +120,10 @@ if (jsonOutput) {
   console.log(`special node oracle: ${report.specialNodeOracle.join(', ')}`)
   console.log(`special dart behavior: ${report.specialDartBehavior.join(', ')}`)
   console.log(`special limited: ${report.specialLimited.join(', ')}`)
+  console.log('special limited reasons:')
+  for (const [module, reason] of Object.entries(report.specialLimitedReasons)) {
+    console.log(`- ${module}: ${reason}`)
+  }
 
   if (hasFailure) {
     console.error('\ncoverage report failed; run with --json for machine-readable details')

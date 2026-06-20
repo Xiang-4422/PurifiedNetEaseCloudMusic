@@ -97,6 +97,9 @@ void main() {
         'song_url_match',
         'song_url_v1',
       });
+      final limitedReasons = _jsonMap(report['specialLimitedReasons']);
+      expect(limitedReasons.keys.toSet(), _stringSet(report['specialLimited']));
+      expect(limitedReasons['song_url_match'], contains('unblockmusic-utils'));
     });
 
     test('documented upstream baseline matches submodule and generated manifest', () async {

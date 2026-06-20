@@ -1896,7 +1896,7 @@ void main() {
 
       final result = await api.requestModule('api', {
         'uri': '/api/custom/path',
-        'data': {'id': '123'},
+        'data': jsonEncode({'id': '123', 'cookie': 'MUSIC_U=token; __csrf=csrf'}),
         'crypto': 'api',
         'method': 'POST',
         'realIP': '1.2.3.4',
@@ -1904,10 +1904,20 @@ void main() {
 
       expect(result, {'code': 200});
       expect(proxy.metaData!.uri.toString(), 'https://interface.music.163.com/api/custom/path');
-      expect(proxy.metaData!.data, {'id': '123'});
+      expect(proxy.metaData!.data, {
+        'id': '123',
+        'cookie': {
+          'MUSIC_U': 'token',
+          '__csrf': 'csrf',
+        },
+      });
       expect(proxy.metaData!.method, 'POST');
       expect(proxy.metaData!.options!.extra!['encryptType'], EncryptType.Api);
       expect(proxy.metaData!.options!.extra!['realIP'], '1.2.3.4');
+      expect(proxy.metaData!.options!.extra!['cookies'], {
+        'MUSIC_U': 'token',
+        '__csrf': 'csrf',
+      });
     });
 
     test('eapi decrypt reports missing input', () {
@@ -2889,6 +2899,8 @@ Future<DioMetaData> _dartMetaDataForOracleFixture(
   Map<String, dynamic> query,
 ) async {
   switch (module) {
+    case 'api':
+      return _captureSpecialMetaData(() => api.requestModule(module, query));
     case 'song_url_v1':
       return _captureSpecialMetaData(() => api.songUrlV1Raw(query));
     case 'vip_sign_history':

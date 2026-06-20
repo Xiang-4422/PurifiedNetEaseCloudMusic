@@ -159,6 +159,19 @@ Module.prototype.require = function patchedRequire(request) {
 
 const fixtures = [
   {
+    module: 'api',
+    query: {
+      uri: '/api/custom/path',
+      data: JSON.stringify({
+        id: '123',
+        cookie: 'MUSIC_U=token; __csrf=csrf',
+      }),
+      crypto: 'api',
+      realIP: '1.2.3.4',
+      ua: 'unit-test',
+    },
+  },
+  {
     module: 'album',
     query: {
       id: '456',

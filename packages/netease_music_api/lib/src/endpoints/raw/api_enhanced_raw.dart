@@ -161,13 +161,24 @@ mixin ApiEnhancedRaw {
     if (uri == null || uri.isEmpty) {
       throw ArgumentError('uri is required');
     }
-    final data = _asMap(query['data']);
+    var data = <String, dynamic>{};
+    try {
+      data = _asMap(query['data']);
+    } catch (_) {
+      data = <String, dynamic>{};
+    }
+    final optionsQuery = Map<String, dynamic>.from(query);
+    if (data['cookie'] is String) {
+      final cookies = _stringMap(data['cookie']);
+      data = {...data, 'cookie': cookies};
+      optionsQuery['cookie'] = cookies;
+    }
     final crypto = _cryptoFromQuery(query['crypto']?.toString() ?? '');
     final metadata = DioMetaData(
       _rawUri(uri, crypto, query['domain']?.toString()),
       data: data,
       method: query['method']?.toString().toUpperCase() ?? 'POST',
-      options: _rawOptions(crypto, uri, query),
+      options: _rawOptions(crypto, uri, optionsQuery),
     );
     return (await Https.dioProxy.requestUri(metadata)).data;
   }

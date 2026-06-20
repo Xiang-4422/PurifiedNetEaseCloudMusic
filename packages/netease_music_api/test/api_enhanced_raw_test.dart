@@ -137,7 +137,6 @@ void main() {
       expect(report['specialUnknownStatus'], isEmpty);
       expect(_stringSet(report['specialLimited']), {
         'cloud',
-        'decrypt',
         'song_url_match',
         'song_url_v1',
       });

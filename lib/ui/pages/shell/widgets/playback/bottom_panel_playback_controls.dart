@@ -59,72 +59,74 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
         final currentSong = PlayerController.to.currentSongState.value;
         final currentSongId = int.tryParse(currentSong.sourceId);
         final isLiked = UserLibraryController.to.likedSongIds.contains(currentSongId);
+        final isPlaying = PlayerController.to.isPlaying.value;
+        final panelColor = SettingsController.to.panelWidgetColor.value;
+        final repeatIcon = PlayerController.to.getRepeatIcon();
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _ButtonBackground(
-              child: GestureDetector(
-                onTap: () async {
-                  final updatedSong = await UserLibraryController.to.toggleLikeStatus(currentSong);
-                  if (updatedSong != null) {
-                    await PlayerController.to.updatePlaybackQueueItem(
-                      updatedSong,
-                    );
-                  }
-                },
+            _PlaybackControlButton(
+              semanticsLabel: playbackLikeControlLabel(isLiked: isLiked),
+              onTap: () async {
+                final updatedSong = await UserLibraryController.to.toggleLikeStatus(currentSong);
+                if (updatedSong != null) {
+                  await PlayerController.to.updatePlaybackQueueItem(
+                    updatedSong,
+                  );
+                }
+              },
+              child: _ButtonBackground(
                 child: Icon(
                   isLiked ? TablerIcons.heart_filled : TablerIcons.heart,
                   size: 30,
-                  color: isLiked ? Colors.red : SettingsController.to.panelWidgetColor.value,
+                  color: isLiked ? Colors.red : panelColor,
                 ),
               ),
             ),
-            _ButtonBackground(
-              child: GestureDetector(
-                onTap: PlayerController.to.skipToPreviousTrack,
-                child: Obx(
-                  () => Icon(
-                    TablerIcons.player_skip_back_filled,
-                    size: 30,
-                    color: SettingsController.to.panelWidgetColor.value,
-                  ),
+            _PlaybackControlButton(
+              semanticsLabel: '上一首',
+              onTap: PlayerController.to.skipToPreviousTrack,
+              child: _ButtonBackground(
+                child: Icon(
+                  TablerIcons.player_skip_back_filled,
+                  size: 30,
+                  color: panelColor,
                 ),
               ),
             ),
-            _ButtonBackground(
-              child: GestureDetector(
-                onTap: PlayerController.to.playOrPause,
-                child: Obx(
-                  () => Icon(
-                    PlayerController.to.isPlaying.value ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
-                    size: 60,
-                    color: SettingsController.to.panelWidgetColor.value,
-                  ),
+            _PlaybackControlButton(
+              semanticsLabel: playbackPlayPauseControlLabel(
+                isPlaying: isPlaying,
+              ),
+              onTap: PlayerController.to.playOrPause,
+              child: _ButtonBackground(
+                child: Icon(
+                  isPlaying ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
+                  size: 60,
+                  color: panelColor,
                 ),
               ),
             ),
-            _ButtonBackground(
-              child: GestureDetector(
-                onTap: PlayerController.to.skipToNextTrack,
-                child: Obx(
-                  () => Icon(
-                    TablerIcons.player_skip_forward_filled,
-                    size: 30,
-                    color: SettingsController.to.panelWidgetColor.value,
-                  ),
+            _PlaybackControlButton(
+              semanticsLabel: '下一首',
+              onTap: PlayerController.to.skipToNextTrack,
+              child: _ButtonBackground(
+                child: Icon(
+                  TablerIcons.player_skip_forward_filled,
+                  size: 30,
+                  color: panelColor,
                 ),
               ),
             ),
-            _ButtonBackground(
-              child: GestureDetector(
-                onTap: PlayerController.to.handleRepeatModeTap,
-                child: Obx(
-                  () => Icon(
-                    PlayerController.to.getRepeatIcon(),
-                    size: 30,
-                    color: SettingsController.to.panelWidgetColor.value,
-                  ),
+            _PlaybackControlButton(
+              semanticsLabel: '切换播放模式',
+              onTap: PlayerController.to.handleRepeatModeTap,
+              child: _ButtonBackground(
+                child: Icon(
+                  repeatIcon,
+                  size: 30,
+                  color: panelColor,
                 ),
               ),
             ),
@@ -133,6 +135,44 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
       }),
     );
   }
+}
+
+class _PlaybackControlButton extends StatelessWidget {
+  const _PlaybackControlButton({
+    required this.semanticsLabel,
+    required this.onTap,
+    required this.child,
+  });
+
+  final String semanticsLabel;
+  final GestureTapCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      excludeSemantics: true,
+      label: semanticsLabel,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: child,
+      ),
+    );
+  }
+}
+
+/// 生成喜欢按钮的辅助语义标签。
+@visibleForTesting
+String playbackLikeControlLabel({required bool isLiked}) {
+  return isLiked ? '取消喜欢' : '喜欢歌曲';
+}
+
+/// 生成播放按钮的辅助语义标签。
+@visibleForTesting
+String playbackPlayPauseControlLabel({required bool isPlaying}) {
+  return isPlaying ? '暂停' : '播放';
 }
 
 class _ButtonBackground extends GetView<ShellController> {

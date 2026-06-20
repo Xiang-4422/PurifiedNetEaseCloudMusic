@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netease_music_api/src/client/dio_ext.dart';
+import 'package:netease_music_api/src/client/netease_api.dart';
 import 'package:netease_music_api/src/client/netease_handler.dart';
 import 'package:netease_music_api/src/client/xeapi_crypto.dart';
 import 'package:netease_music_api/src/endpoints/raw/api_enhanced_raw.dart';
@@ -345,6 +346,39 @@ void main() {
       });
 
       expect(metaData.options!.extra!['realIP'], '1.2.3.4');
+    });
+
+    test('applies runtime headers to GET requests', () async {
+      final directory = await Directory.systemTemp.createTemp('netease-api-get-');
+      final adapter = _JsonResponseAdapter({'code': 200});
+      final dio = Dio()..httpClientAdapter = adapter;
+      Https.setDioForTesting(dio);
+      await NeteaseMusicApi.init(provider: _TestPathProvider(directory));
+
+      try {
+        await Https.dioProxy.getUri(
+          DioMetaData(
+            Uri.parse('https://music.163.com/playlist?id=1'),
+            method: 'GET',
+            options: joinOptions(
+              rawUserAgent: 'unit-test',
+              realIP: '1.2.3.4',
+              cookies: {'os': 'pc'},
+            ),
+          ),
+        );
+
+        expect(adapter.requestedUri.toString(), 'https://music.163.com/playlist?id=1');
+        expect(adapter.requestHeaders[HttpHeaders.userAgentHeader], 'unit-test');
+        expect(adapter.requestHeaders['X-Real-IP'], '1.2.3.4');
+        expect(adapter.requestHeaders['X-Forwarded-For'], '1.2.3.4');
+        expect(adapter.requestHeaders[HttpHeaders.refererHeader], HOST);
+        expect(adapter.requestHeaders[HttpHeaders.cookieHeader], contains('os=pc'));
+      } finally {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      }
     });
 
     test('maps dynamic path templates', () {
@@ -3624,6 +3658,28 @@ class _ProgressRequestAdapter implements HttpClientAdapter {
 
   @override
   void close({bool force = false}) {}
+}
+
+class _TestPathProvider extends PathProvider {
+  _TestPathProvider(this.directory);
+
+  final Directory directory;
+
+  @override
+  Future<void> init() async {
+    Directory(getCookieSavedPath()).createSync(recursive: true);
+    Directory(getDataSavedPath()).createSync(recursive: true);
+  }
+
+  @override
+  String getCookieSavedPath() {
+    return '${directory.path}/cookies/';
+  }
+
+  @override
+  String getDataSavedPath() {
+    return '${directory.path}/data/';
+  }
 }
 
 String _encryptEapiText(String text) {

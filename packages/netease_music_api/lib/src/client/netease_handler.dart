@@ -22,27 +22,15 @@ import 'xeapi_crypto.dart';
 /// [option.extra] 'eApiUrl' [String] eApi请求方式请求url 只能eApi方式使用
 /// 拦截网易云 SDK 请求并按接口要求补充 Cookie、User-Agent 和加密参数。
 void neteaseInterceptor(RequestOptions option, RequestInterceptorHandler handler) async {
-  if (option.method == 'POST' && HOSTS.contains(option.uri.host) && option.extra['hookRequestData']) {
+  if (HOSTS.contains(option.uri.host) && option.extra['hookRequestData'] == true) {
+    final cookies = await _applyNeteaseRequestHeaders(option);
+    if (option.method != 'POST') {
+      handler.next(option);
+      return;
+    }
     // debugPrint('$TAG   interceptor before: ${option.uri}   ${option.data}');
 
     option.contentType = Headers.formUrlEncodedContentType;
-    option.headers[HttpHeaders.refererHeader] = HOST;
-
-    var realIP = option.extra['realIP'];
-    if (realIP != null) {
-      option.headers['X-Real-IP'] = realIP;
-      option.headers['X-Forwarded-For'] = realIP;
-    }
-    option.headers[HttpHeaders.userAgentHeader] = _chooseUserAgent(option.extra['userAgent'], rawUserAgent: option.extra['rawUserAgent']);
-
-    var cookies = await loadCookies(host: option.uri);
-
-    var cookiesSb = StringBuffer(CookieManager.getCookies(cookies));
-    option.extra['cookies'].forEach((key, value) {
-      cookiesSb.write(' ;${Uri.encodeComponent(key)}=${Uri.encodeComponent(value)}');
-    });
-    option.headers[HttpHeaders.cookieHeader] = cookiesSb.toString();
-    option.extra['cookiesHash'] = await loadCookiesHash(cookies: cookies) + NeteaseMusicApi().loginRefreshVersion;
 
     if (!(option.extra['hookRequestDataSuccess'] ?? false)) {
       _applyEncryptedResponseOverride(option);
@@ -71,6 +59,32 @@ void neteaseInterceptor(RequestOptions option, RequestInterceptorHandler handler
     }
   }
   handler.next(option);
+}
+
+Future<List<Cookie>> _applyNeteaseRequestHeaders(RequestOptions option) async {
+  option.headers[HttpHeaders.refererHeader] = HOST;
+
+  final realIP = option.extra['realIP'];
+  if (realIP != null) {
+    option.headers['X-Real-IP'] = realIP;
+    option.headers['X-Forwarded-For'] = realIP;
+  }
+  option.headers[HttpHeaders.userAgentHeader] = _chooseUserAgent(
+    option.extra['userAgent'],
+    rawUserAgent: option.extra['rawUserAgent'],
+  );
+
+  final cookies = await loadCookies(host: option.uri);
+  final cookiesSb = StringBuffer(CookieManager.getCookies(cookies));
+  final extraCookies = option.extra['cookies'];
+  if (extraCookies is Map) {
+    extraCookies.forEach((key, value) {
+      cookiesSb.write(' ;${Uri.encodeComponent(key.toString())}=${Uri.encodeComponent(value.toString())}');
+    });
+  }
+  option.headers[HttpHeaders.cookieHeader] = cookiesSb.toString();
+  option.extra['cookiesHash'] = await loadCookiesHash(cookies: cookies) + NeteaseMusicApi().loginRefreshVersion;
+  return cookies;
 }
 
 void _applyEncryptedResponseOverride(RequestOptions option) {

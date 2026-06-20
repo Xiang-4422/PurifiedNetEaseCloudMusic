@@ -167,6 +167,39 @@ void main() {
         isNull,
       );
     });
+
+    test('lists only usable resources and prunes stale indexes', () async {
+      final missingAudio = File('${tempDirectory.path}/missing.mp3');
+      final existingAudio = await _writeTempFile(tempDirectory, 'cache.mp3');
+      await dataSource.saveResource(
+        _resource(
+          trackId: 'netease:missing',
+          path: missingAudio.path,
+          origin: TrackResourceOrigin.playbackCache,
+        ),
+      );
+      await dataSource.saveResource(
+        _resource(
+          trackId: 'netease:cached',
+          path: existingAudio.path,
+          origin: TrackResourceOrigin.playbackCache,
+        ),
+      );
+
+      final resources = await repository.listResources(
+        origins: const {TrackResourceOrigin.playbackCache},
+        kinds: const {LocalResourceKind.audio},
+      );
+
+      expect(resources.map((resource) => resource.trackId), ['netease:cached']);
+      expect(
+        await dataSource.getResource(
+          'netease:missing',
+          LocalResourceKind.audio,
+        ),
+        isNull,
+      );
+    });
   });
 }
 

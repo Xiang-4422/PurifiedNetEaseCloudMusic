@@ -107,12 +107,14 @@ class LocalResourceIndexRepository {
     return entries;
   }
 
-  /// 列出本地资源，可按来源和类型过滤。
+  /// 列出仍可用的本地资源，可按来源和类型过滤。
   Future<List<LocalResourceEntry>> listResources({
     Set<TrackResourceOrigin>? origins,
     Set<LocalResourceKind>? kinds,
-  }) {
-    return _dataSource.listResources(origins: origins, kinds: kinds);
+  }) async {
+    return _filterUsableResources(
+      await _dataSource.listResources(origins: origins, kinds: kinds),
+    );
   }
 
   /// 保存曲目的音频资源索引。

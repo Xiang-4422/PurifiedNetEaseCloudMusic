@@ -189,7 +189,8 @@ class LocalResourceIndexRepository {
     required String path,
     required TrackResourceOrigin origin,
   }) async {
-    if (path.isEmpty || !File(path).existsSync()) {
+    final file = _resourceFile(path);
+    if (file == null || !file.existsSync()) {
       return;
     }
     final now = DateTime.now();
@@ -197,13 +198,12 @@ class LocalResourceIndexRepository {
     if (_shouldKeepExistingResource(existing, origin)) {
       return;
     }
-    final file = File(path);
     final sizeBytes = await file.length();
     await _dataSource.saveResource(
       LocalResourceEntry(
         trackId: trackId,
         kind: kind,
-        path: path,
+        path: file.path,
         origin: origin,
         sizeBytes: sizeBytes,
         createdAt: existing?.createdAt ?? now,
@@ -221,7 +221,8 @@ class LocalResourceIndexRepository {
     }
     final existingPriority = _originPriority(existing.origin);
     final newPriority = _originPriority(newOrigin);
-    return existingPriority > newPriority && File(existing.path).existsSync();
+    final existingFile = _resourceFile(existing.path);
+    return existingPriority > newPriority && existingFile != null && existingFile.existsSync();
   }
 
   int _originPriority(TrackResourceOrigin origin) {
@@ -246,8 +247,9 @@ class LocalResourceIndexRepository {
     if (resource == null) {
       return null;
     }
-    if (_isUsableResource(resource)) {
-      return resource;
+    final usable = await _usableResource(resource);
+    if (usable != null) {
+      return usable;
     }
     await _dataSource.removeResource(resource.trackId, resource.kind);
     return null;
@@ -258,8 +260,9 @@ class LocalResourceIndexRepository {
   ) async {
     final usable = <LocalResourceEntry>[];
     for (final resource in resources) {
-      if (_isUsableResource(resource)) {
-        usable.add(resource);
+      final normalized = await _usableResource(resource);
+      if (normalized != null) {
+        usable.add(normalized);
         continue;
       }
       await _dataSource.removeResource(resource.trackId, resource.kind);
@@ -267,8 +270,44 @@ class LocalResourceIndexRepository {
     return usable;
   }
 
-  bool _isUsableResource(LocalResourceEntry resource) {
-    return resource.path.isNotEmpty && File(resource.path).existsSync();
+  Future<LocalResourceEntry?> _usableResource(LocalResourceEntry resource) async {
+    final file = _resourceFile(resource.path);
+    if (file == null || !file.existsSync()) {
+      return null;
+    }
+    if (file.path == resource.path) {
+      return resource;
+    }
+    final normalized = resource.copyWith(
+      path: file.path,
+      sizeBytes: await file.length(),
+    );
+    await _dataSource.saveResource(normalized);
+    return normalized;
+  }
+
+  File? _resourceFile(String rawPath) {
+    final path = _resourceFilePath(rawPath);
+    return path.isEmpty ? null : File(path);
+  }
+
+  String _resourceFilePath(String rawPath) {
+    final trimmedPath = rawPath.trim();
+    if (trimmedPath.isEmpty) {
+      return '';
+    }
+    final uri = Uri.tryParse(trimmedPath);
+    if (uri != null && uri.scheme == 'file') {
+      return Uri(
+        scheme: uri.scheme,
+        host: uri.host.isEmpty ? null : uri.host,
+        path: uri.path,
+      ).toFilePath(windows: Platform.isWindows);
+    }
+    if (trimmedPath.startsWith('http://') || trimmedPath.startsWith('https://')) {
+      return '';
+    }
+    return trimmedPath.split('?').first;
   }
 
   TrackResourceBundle _toBundle(List<LocalResourceEntry> resources) {

@@ -73,6 +73,24 @@ void main() {
       expect(resource?.origin, TrackResourceOrigin.localImport);
     });
 
+    test('normalizes file uri paths when saving resources', () async {
+      final localFile = await _writeTempFile(tempDirectory, 'local with space.flac');
+
+      await repository.saveAudioResource(
+        'netease:1',
+        path: localFile.uri.replace(queryParameters: {'token': 'local'}).toString(),
+        origin: TrackResourceOrigin.localImport,
+      );
+
+      final resource = await repository.getPrimaryAudioResource('netease:1');
+      expect(resource?.path, localFile.path);
+      expect(resource?.sizeBytes, await localFile.length());
+      expect(
+        (await dataSource.getResource('netease:1', LocalResourceKind.audio))?.path,
+        localFile.path,
+      );
+    });
+
     test('allows lower priority cache to replace missing higher priority file', () async {
       final missingManagedFile = File('${tempDirectory.path}/missing.flac');
       final cacheFile = await _writeTempFile(tempDirectory, 'cache.mp3');
@@ -198,6 +216,32 @@ void main() {
           LocalResourceKind.audio,
         ),
         isNull,
+      );
+    });
+
+    test('normalizes legacy file uri paths when listing resources', () async {
+      final existingAudio = await _writeTempFile(tempDirectory, 'legacy with space.mp3');
+      await dataSource.saveResource(
+        _resource(
+          trackId: 'netease:legacy',
+          path: existingAudio.uri.replace(queryParameters: {'token': 'legacy'}).toString(),
+          origin: TrackResourceOrigin.playbackCache,
+        ),
+      );
+
+      final resources = await repository.listResources(
+        origins: const {TrackResourceOrigin.playbackCache},
+        kinds: const {LocalResourceKind.audio},
+      );
+
+      expect(resources.single.path, existingAudio.path);
+      expect(
+        (await dataSource.getResource(
+          'netease:legacy',
+          LocalResourceKind.audio,
+        ))
+            ?.path,
+        existingAudio.path,
       );
     });
   });

@@ -55,6 +55,10 @@ void main() {
         ),
         isNull,
       );
+      expect(
+        keyValueStore.get('IMAGE_COLOR_CACHE_LAST_ACCESS'),
+        isNull,
+      );
     });
 
     test('prunes old color entries through the key-value boundary', () async {
@@ -70,8 +74,11 @@ void main() {
       }
 
       final colorKeyCount = keyValueStore.keys.where((key) => key.startsWith('IMAGE_COLOR_DARK_')).length;
+      final accessMap = Map<String, Object?>.from(keyValueStore.get('IMAGE_COLOR_CACHE_LAST_ACCESS')! as Map);
 
       expect(colorKeyCount, lessThanOrEqualTo(300));
+      expect(accessMap.length, lessThanOrEqualTo(300));
+      expect(accessMap.containsKey('/cache/art_0.jpg'), isFalse);
     });
   });
 }

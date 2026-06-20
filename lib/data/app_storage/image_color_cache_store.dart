@@ -50,6 +50,7 @@ class ImageColorCacheStore {
     await _keyValueStore.delete(
       _colorKey(imageUrl: imageUrl, getLightColor: false),
     );
+    await _deleteAccess(imageUrl);
   }
 
   String _colorKey({
@@ -69,6 +70,26 @@ class ImageColorCacheStore {
       }
     }
     accessMap[imageUrl] = DateTime.now().millisecondsSinceEpoch;
+    await _keyValueStore.put(_accessKey, accessMap);
+  }
+
+  Future<void> _deleteAccess(String imageUrl) async {
+    final raw = _keyValueStore.get(_accessKey);
+    if (raw is! Map || !raw.containsKey(imageUrl)) {
+      return;
+    }
+    final accessMap = <String, int>{};
+    for (final entry in raw.entries) {
+      final key = '${entry.key}';
+      if (key == imageUrl) {
+        continue;
+      }
+      accessMap[key] = entry.value is int ? entry.value as int : 0;
+    }
+    if (accessMap.isEmpty) {
+      await _keyValueStore.delete(_accessKey);
+      return;
+    }
     await _keyValueStore.put(_accessKey, accessMap);
   }
 

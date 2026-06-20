@@ -2244,6 +2244,18 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       };
     case 'msg_recentcontact':
       return {};
+    case 'fanscenter_basicinfo_age_get':
+    case 'fanscenter_basicinfo_gender_get':
+    case 'fanscenter_basicinfo_province_get':
+    case 'fanscenter_overview_get':
+      return {};
+    case 'fanscenter_trend_list':
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return {
+        'startTime': _jsDefault(query['startTime'], now - 7 * 24 * 3600 * 1000),
+        'endTime': _jsDefault(query['endTime'], now),
+        'type': _jsDefault(query['type'], 0),
+      };
     case 'mv_all':
       return {
         'tags': jsonEncode({

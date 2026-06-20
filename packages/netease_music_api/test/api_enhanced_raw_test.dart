@@ -1107,6 +1107,25 @@ void main() {
       expect(api.requestModuleDioMetaData('msg_recentcontact', {}).data, isEmpty);
     });
 
+    test('maps fanscenter request data like upstream', () {
+      expect(api.requestModuleDioMetaData('fanscenter_basicinfo_age_get', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('fanscenter_basicinfo_gender_get', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('fanscenter_basicinfo_province_get', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('fanscenter_overview_get', {}).data, isEmpty);
+      expect(
+        api.requestModuleDioMetaData('fanscenter_trend_list', {
+          'startTime': 1700000000000,
+          'endTime': 1700604800000,
+          'type': 1,
+        }).data,
+        {
+          'startTime': 1700000000000,
+          'endTime': 1700604800000,
+          'type': 1,
+        },
+      );
+    });
+
     test('maps mv request data like upstream', () {
       expect(api.requestModuleDioMetaData('mv_all', {}).data, {
         'tags': '{"地区":"全部","类型":"全部","排序":"上升最快"}',

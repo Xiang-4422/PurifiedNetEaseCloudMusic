@@ -1572,6 +1572,30 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'fanscenter_basicinfo_age_get',
+    query: {},
+  },
+  {
+    module: 'fanscenter_basicinfo_gender_get',
+    query: {},
+  },
+  {
+    module: 'fanscenter_basicinfo_province_get',
+    query: {},
+  },
+  {
+    module: 'fanscenter_overview_get',
+    query: {},
+  },
+  {
+    module: 'fanscenter_trend_list',
+    query: {
+      startTime: 1700000000000,
+      endTime: 1700604800000,
+      type: 1,
+    },
+  },
+  {
     module: 'mv_all',
     query: {
       area: '内地',

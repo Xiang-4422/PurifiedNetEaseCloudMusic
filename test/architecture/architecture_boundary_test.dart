@@ -1237,6 +1237,7 @@ void main() {
         'lib/app/bootstrap/app_bootstrap.dart',
         'lib/app/bootstrap/bootstrap_ui.dart',
         'lib/app/bootstrap/sdk_bootstrap.dart',
+        'lib/app/bootstrap/storage_bootstrap.dart',
         'lib/app/bootstrap/data_bootstrap.dart',
         'lib/app/bootstrap/playback_bootstrap.dart',
         'lib/app/bootstrap/presentation_bootstrap.dart',
@@ -1252,6 +1253,10 @@ void main() {
         ],
         'lib/app/bootstrap/sdk_bootstrap.dart': [
           'Future<NeteaseMusicApi> initializeSdk({required bool debug})',
+        ],
+        'lib/app/bootstrap/storage_bootstrap.dart': [
+          'class AppStorageBootstrapResult',
+          'Future<AppStorageBootstrapResult> initializeStorageInfrastructure()',
         ],
         'lib/app/bootstrap/data_bootstrap.dart': [
           'Future<void> initializeDataInfrastructure({',
@@ -1289,6 +1294,12 @@ void main() {
         if (!sdkBootstrap.contains('return NeteaseMusicApi();')) 'sdk_bootstrap does not create SDK instance',
         if (dataBootstrap.contains('NeteaseMusicApi()')) 'data_bootstrap creates SDK instance directly',
       ];
+      final storageOwnershipViolations = <String>[
+        if (!dataBootstrap.contains('final storage = await initializeStorageInfrastructure();')) 'data_bootstrap does not receive storage resources from storage_bootstrap',
+        if (dataBootstrap.contains('Hive.initFlutter')) 'data_bootstrap initializes Hive directly',
+        if (dataBootstrap.contains('CacheBox.init')) 'data_bootstrap initializes CacheBox directly',
+        if (dataBootstrap.contains('DriftAppDatabase(')) 'data_bootstrap creates Drift database directly',
+      ];
 
       expect(
         registrarDirectory.existsSync(),
@@ -1309,6 +1320,11 @@ void main() {
         sdkOwnershipViolations,
         isEmpty,
         reason: 'SDK 实例创建必须由 sdk_bootstrap 收口，data_bootstrap 只接收并注入已经创建好的 API 门面。',
+      );
+      expect(
+        storageOwnershipViolations,
+        isEmpty,
+        reason: 'storage bootstrap 必须收口 Drift/Hive 初始化，data_bootstrap 只消费已初始化的存储资源。',
       );
     });
 

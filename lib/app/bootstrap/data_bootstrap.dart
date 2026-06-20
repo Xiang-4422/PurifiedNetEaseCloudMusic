@@ -1,11 +1,9 @@
 import 'dart:async';
 
+import 'package:bujuan/app/bootstrap/storage_bootstrap.dart';
 import 'package:bujuan/data/app_storage/app_preferences.dart';
-import 'package:bujuan/data/app_storage/cache_box.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/database/app_database.dart';
-import 'package:bujuan/data/music_data/sources/local/database/drift_app_database.dart';
-import 'package:bujuan/data/music_data/sources/local/database/local_database_config.dart';
 import 'package:bujuan/data/music_data/sources/local/local_music_source.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_artwork_cache_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
@@ -39,20 +37,15 @@ import 'package:bujuan/features/settings/settings_repository.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:netease_music_api/netease_music_api.dart';
 
 /// Initializes local storage, data sources, repositories and long-running recovery.
 Future<void> initializeDataInfrastructure({
   required NeteaseMusicApi neteaseApi,
 }) async {
-  final appDatabase = DriftAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
-  await appDatabase.init();
-
-  await Hive.initFlutter('BuJuan');
-  final cacheBox = await Hive.openBox('cache');
-  CacheBox.init(cacheBox);
-  const appPreferences = AppPreferences();
+  final storage = await initializeStorageInfrastructure();
+  final appDatabase = storage.appDatabase;
+  final appPreferences = storage.appPreferences;
 
   final localLibraryDataSource = appDatabase.localLibraryDataSource;
   final localResourceIndexDataSource = appDatabase.localResourceIndexDataSource;

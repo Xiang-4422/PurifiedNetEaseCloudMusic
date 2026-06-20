@@ -2,6 +2,9 @@ import 'package:bujuan/features/playback/application/playback_queue_item_mapper.
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_cloud_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 
@@ -57,7 +60,7 @@ class CloudRepository {
       result.tracks,
       precacheArtwork: true,
     );
-    final items = PlaybackQueueItemMapper.fromTrackList(
+    final items = await _queueItemsFromSavedTracks(
       result.tracks,
       likedSongIds: likedSongIds,
     );
@@ -80,6 +83,32 @@ class CloudRepository {
       items: items,
       hasMore: result.itemCount >= limit,
       nextOffset: offset + result.itemCount,
+    );
+  }
+
+  Future<List<PlaybackQueueItem>> _queueItemsFromSavedTracks(
+    List<Track> tracks, {
+    required List<int> likedSongIds,
+  }) async {
+    if (tracks.isEmpty) {
+      return const [];
+    }
+    final tracksWithResources = await _musicDataRepository.getTracksWithResources(
+      tracks.map((track) => track.id),
+    );
+    final resourcesByTrackId = {
+      for (final item in tracksWithResources) item.track.id: item,
+    };
+    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
+      [
+        for (final track in tracks)
+          resourcesByTrackId[track.id] ??
+              TrackWithResources(
+                track: track,
+                resources: const TrackResourceBundle(),
+              ),
+      ],
+      likedSongIds: likedSongIds,
     );
   }
 }

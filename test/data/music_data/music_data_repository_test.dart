@@ -136,6 +136,48 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 1);
     });
 
+    test('prefers newly available local audio over in-flight remote playback url load', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-local-priority-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final localAudio = await _writeFile(directory, 'downloaded.mp3');
+      final neteaseSource = _FakeNeteaseMusicSource(
+        playbackUrlDelay: const Duration(milliseconds: 50),
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository();
+      final repository = _buildRepository(
+        neteaseSource: neteaseSource,
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final remoteLoad = repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+      while (neteaseSource.playbackUrlCallCount == 0) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      resourceIndexRepository.saveResource(
+        _resource(
+          trackId: '1',
+          kind: LocalResourceKind.audio,
+          path: localAudio.path,
+          origin: TrackResourceOrigin.managedDownload,
+        ),
+      );
+      final local = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+
+      expect(local, localAudio.path);
+      expect(await remoteLoad, 'https://audio.test/1.mp3');
+      expect(neteaseSource.playbackUrlCallCount, 1);
+    });
+
     test('coalesces concurrent lyric loads', () async {
       final localDataSource = _FakeLocalLibraryDataSource();
       final neteaseSource = _FakeNeteaseMusicSource(

@@ -342,6 +342,10 @@ class MusicDataRepository {
     }
     final loadingUrl = _playbackUrlLoads[cacheKey];
     if (!forceRefresh && loadingUrl != null) {
+      final localUrl = await _resolveIndexedAudioResourceUrl(trackId);
+      if (localUrl != null) {
+        return localUrl;
+      }
       return loadingUrl;
     }
     late final Future<String?> loadFuture;

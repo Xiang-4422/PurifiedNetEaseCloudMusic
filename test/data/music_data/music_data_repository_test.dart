@@ -100,6 +100,36 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 2);
     });
 
+    test('limits playback url cache and evicts least recently used remote entries', () async {
+      final neteaseSource = _FakeNeteaseMusicSource(
+        includeCallCountInPlaybackUrl: true,
+      );
+      final repository = _buildRepository(neteaseSource: neteaseSource);
+
+      for (var index = 0; index < 64; index++) {
+        await repository.getPlaybackUrlWithQuality(
+          '$index',
+          qualityLevel: 'standard',
+        );
+      }
+      final reusedOldest = await repository.getPlaybackUrlWithQuality(
+        '0',
+        qualityLevel: 'standard',
+      );
+      await repository.getPlaybackUrlWithQuality(
+        '64',
+        qualityLevel: 'standard',
+      );
+      final reloadedLeastRecent = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'standard',
+      );
+
+      expect(reusedOldest, 'https://audio.test/0-1.mp3');
+      expect(reloadedLeastRecent, 'https://audio.test/1-66.mp3');
+      expect(neteaseSource.playbackUrlCallCount, 66);
+    });
+
     test('late stale playback url load does not overwrite force refreshed cache', () async {
       final neteaseSource = _ControllablePlaybackUrlNeteaseMusicSource();
       final repository = _buildRepository(neteaseSource: neteaseSource);

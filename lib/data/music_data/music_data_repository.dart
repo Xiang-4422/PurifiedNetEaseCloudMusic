@@ -42,6 +42,7 @@ class MusicDataRepository {
   final Map<String, Future<TrackLyrics?>> _lyricsLoads = {};
 
   static const Duration _playbackUrlCacheTtl = Duration(minutes: 2);
+  static const int _maxPlaybackUrlCacheEntries = 64;
 
   /// 保存曲目并预缓存封面。
   Future<void> saveTracks(
@@ -372,12 +373,16 @@ class MusicDataRepository {
     final cacheKey = '$trackId|${qualityLevel ?? ''}';
     final cachedUrl = _playbackUrlCache[cacheKey];
     final now = DateTime.now();
-    if (!forceRefresh && cachedUrl != null && now.difference(cachedUrl.createdAt) < _playbackUrlCacheTtl) {
-      final localUrl = await _resolveIndexedAudioResourceUrl(trackId);
-      if (localUrl != null) {
-        return localUrl;
+    if (!forceRefresh && cachedUrl != null) {
+      if (now.difference(cachedUrl.createdAt) < _playbackUrlCacheTtl) {
+        final localUrl = await _resolveIndexedAudioResourceUrl(trackId);
+        if (localUrl != null) {
+          return localUrl;
+        }
+        _touchPlaybackUrlCache(cacheKey, cachedUrl);
+        return cachedUrl.url;
       }
-      return cachedUrl.url;
+      _playbackUrlCache.remove(cacheKey);
     }
     final loadingUrl = _playbackUrlLoads[cacheKey];
     if (!forceRefresh && loadingUrl != null) {
@@ -404,10 +409,24 @@ class MusicDataRepository {
 
   void _cachePlaybackUrl(String cacheKey, String? url) {
     if (url != null && _isRemoteUrl(url)) {
+      _playbackUrlCache.remove(cacheKey);
       _playbackUrlCache[cacheKey] = _CachedPlaybackUrl(
         url: url,
         createdAt: DateTime.now(),
       );
+      _trimPlaybackUrlCache();
+    }
+  }
+
+  void _touchPlaybackUrlCache(String cacheKey, _CachedPlaybackUrl cachedUrl) {
+    _playbackUrlCache
+      ..remove(cacheKey)
+      ..[cacheKey] = cachedUrl;
+  }
+
+  void _trimPlaybackUrlCache() {
+    while (_playbackUrlCache.length > _maxPlaybackUrlCacheEntries) {
+      _playbackUrlCache.remove(_playbackUrlCache.keys.first);
     }
   }
 

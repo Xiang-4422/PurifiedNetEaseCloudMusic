@@ -131,9 +131,16 @@ class AuthController extends GetxController {
   }
 
   Future<void> _validateLoginStateInBackground() async {
+    final sessionController = UserSessionController.to;
+    final validatingUserId = sessionController.userInfo.value.userId;
+    if (validatingUserId.isEmpty) {
+      return;
+    }
     final accountInfo = await _repository.fetchLoginAccountInfo();
+    if (sessionController.userInfo.value.userId != validatingUserId) {
+      return;
+    }
     if (accountInfo.isLoggedIn) {
-      final sessionController = UserSessionController.to;
       sessionController.userInfo.value = accountInfo;
       return;
     }

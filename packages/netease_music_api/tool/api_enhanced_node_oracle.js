@@ -298,6 +298,168 @@ const fixtures = [
       keyword: 'podcast',
     },
   },
+  {
+    module: 'album_new',
+    query: {
+      area: 'ZH',
+      limit: 12,
+      offset: 24,
+    },
+  },
+  {
+    module: 'album_newest',
+    query: {},
+  },
+  {
+    module: 'artist_detail',
+    query: {
+      id: '6452',
+    },
+  },
+  {
+    module: 'artist_detail_dynamic',
+    query: {
+      id: '6452',
+    },
+  },
+  {
+    module: 'user_detail',
+    query: {
+      uid: '32953014',
+    },
+  },
+  {
+    module: 'user_detail_new',
+    query: {
+      uid: '32953014',
+    },
+  },
+  {
+    module: 'mv_url',
+    query: {
+      id: '5436712',
+      r: 720,
+    },
+  },
+  {
+    module: 'video_url',
+    query: {
+      id: '89ADDE33C0AAE8EC14B99F6750DB954D',
+      res: 720,
+    },
+  },
+  {
+    module: 'record_recent_song',
+    query: {
+      limit: 30,
+    },
+  },
+  {
+    module: 'record_recent_video',
+    query: {
+      limit: 20,
+    },
+  },
+  {
+    module: 'song_download_url',
+    query: {
+      id: '101',
+      br: '320000',
+    },
+  },
+  {
+    module: 'song_download_url_v1',
+    query: {
+      id: '101',
+      level: 'lossless',
+    },
+  },
+  {
+    module: 'song_like_check',
+    query: {
+      ids: '[101,202]',
+    },
+  },
+  {
+    module: 'user_follow_mixed',
+    query: {
+      size: 40,
+      cursor: 100,
+      scene: 1,
+    },
+  },
+  {
+    module: 'playlist_catlist',
+    query: {},
+  },
+  {
+    module: 'toplist',
+    query: {},
+  },
+  {
+    module: 'toplist_detail',
+    query: {},
+  },
+  {
+    module: 'toplist_detail_v2',
+    query: {},
+  },
+  {
+    module: 'toplist_artist',
+    query: {
+      type: 2,
+    },
+  },
+  {
+    module: 'top_mv',
+    query: {
+      area: '内地',
+      limit: 20,
+      offset: 40,
+    },
+  },
+  {
+    module: 'dj_program',
+    query: {
+      rid: '336355127',
+      limit: 10,
+      offset: 20,
+      asc: 'true',
+    },
+  },
+  {
+    module: 'dj_program_detail',
+    query: {
+      id: '2069983500',
+    },
+  },
+  {
+    module: 'dj_toplist',
+    query: {
+      type: 'hot',
+      limit: 25,
+      offset: 50,
+    },
+  },
+  {
+    module: 'dj_toplist_hours',
+    query: {
+      limit: 10,
+    },
+  },
+  {
+    module: 'dj_toplist_newcomer',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'dj_toplist_popular',
+    query: {
+      limit: 10,
+    },
+  },
 ]
 
 async function captureFixture(fixture) {

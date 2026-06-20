@@ -1064,6 +1064,117 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], '30'),
         'e_r': true,
       };
+    case 'album_new':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+        'area': _jsDefault(query['area'], 'ALL'),
+      };
+    case 'album_newest':
+      return {};
+    case 'artist_detail':
+    case 'artist_detail_dynamic':
+      return {
+        'id': query['id'],
+      };
+    case 'user_detail':
+      return {};
+    case 'user_detail_new':
+      return {
+        'all': 'true',
+        'userId': query['uid'],
+      };
+    case 'mv_url':
+      return {
+        'id': query['id'],
+        'r': _jsDefault(query['r'], 1080),
+      };
+    case 'video_url':
+      return {
+        'ids': jsonEncode([query['id']?.toString() ?? '']),
+        'resolution': _jsDefault(query['res'], 1080),
+      };
+    case 'record_recent_song':
+    case 'record_recent_video':
+      return {
+        'limit': _jsDefault(query['limit'], 100),
+      };
+    case 'song_download_url':
+      return {
+        'id': query['id'],
+        'br': _jsParseIntOrDefault(query['br'], 999000),
+      };
+    case 'song_download_url_v1':
+      return {
+        'id': query['id'],
+        'immerseType': 'c51',
+        'level': query['level'],
+      };
+    case 'song_like_check':
+      return {
+        'trackIds': query['ids'],
+      };
+    case 'user_follow_mixed':
+      final size = _jsDefault(query['size'], 30);
+      final cursor = _jsDefault(query['cursor'], 0);
+      final scene = _jsDefault(query['scene'], 0);
+      return {
+        'authority': 'false',
+        'page': jsonEncode({
+          'size': size,
+          'cursor': cursor,
+        }),
+        'scene': scene,
+        'size': size,
+        'sortType': '0',
+      };
+    case 'playlist_catlist':
+    case 'toplist':
+    case 'toplist_detail':
+    case 'toplist_detail_v2':
+      return {};
+    case 'toplist_artist':
+      return {
+        'type': _jsDefault(query['type'], 1),
+        'limit': 100,
+        'offset': 0,
+        'total': true,
+      };
+    case 'top_mv':
+      return {
+        'area': _jsDefault(query['area'], ''),
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
+    case 'dj_program':
+      return {
+        'radioId': query['rid'],
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+        'asc': _jsToBoolean(query['asc']),
+      };
+    case 'dj_program_detail':
+      return {
+        'id': query['id'],
+      };
+    case 'dj_toplist':
+      return {
+        'limit': _jsDefault(query['limit'], 100),
+        'offset': _jsDefault(query['offset'], 0),
+        'type': _djToplistType(query['type']),
+      };
+    case 'dj_toplist_hours':
+    case 'dj_toplist_popular':
+      return {
+        'limit': _jsDefault(query['limit'], 100),
+      };
+    case 'dj_toplist_newcomer':
+      return {
+        'limit': _jsDefault(query['limit'], 100),
+        'offset': _jsDefault(query['offset'], 0),
+      };
   }
   final data = <String, dynamic>{};
   query.forEach((key, value) {
@@ -1107,6 +1218,24 @@ bool _jsTruthy(dynamic value) {
     return false;
   }
   return true;
+}
+
+dynamic _jsToBoolean(dynamic value) {
+  if (value is bool) {
+    return value;
+  }
+  if (value == '') {
+    return value;
+  }
+  return value == 'true' || value?.toString() == '1';
+}
+
+dynamic _djToplistType(dynamic value) {
+  final key = _jsDefault(value, 'new').toString();
+  if (key == 'hot') {
+    return 1;
+  }
+  return '0';
 }
 
 int _jsNumberOrDefault(dynamic value, int fallback) {

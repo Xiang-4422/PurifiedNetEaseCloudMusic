@@ -1302,6 +1302,22 @@ const fixtures = [
     },
   },
   {
+    module: 'chart_detail',
+    query: {
+      chartCode: 'weekly',
+      targetId: '19723756',
+      targetType: 'song',
+    },
+  },
+  {
+    module: 'chart_song_detail',
+    query: {
+      chartCode: 'weekly',
+      targetId: '19723756',
+      targetType: 'song',
+    },
+  },
+  {
     module: 'playlist_catlist',
     query: {},
   },

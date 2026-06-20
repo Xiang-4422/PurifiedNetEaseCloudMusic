@@ -1344,6 +1344,13 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'ids': '[${_jsParseIntString(query['id'])}]',
         'br': _jsParseIntOrDefault(query['br'], 999000),
       };
+    case 'chart_detail':
+    case 'chart_song_detail':
+      return {
+        'chartCode': query['chartCode'],
+        'targetId': query['targetId'],
+        'targetType': query['targetType'],
+      };
     case 'banner':
       return {
         'clientType': _bannerClientType(query['type']),

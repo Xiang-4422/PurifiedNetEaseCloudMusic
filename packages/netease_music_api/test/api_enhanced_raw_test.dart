@@ -628,6 +628,17 @@ void main() {
       });
     });
 
+    test('maps chart request data like upstream', () {
+      const query = {
+        'chartCode': 'weekly',
+        'targetId': '19723756',
+        'targetType': 'song',
+      };
+
+      expect(api.requestModuleDioMetaData('chart_detail', query).data, query);
+      expect(api.requestModuleDioMetaData('chart_song_detail', query).data, query);
+    });
+
     test('maps user library request data like upstream', () {
       expect(api.requestModuleDioMetaData('user_account', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('user_subcount', {}).data, isEmpty);

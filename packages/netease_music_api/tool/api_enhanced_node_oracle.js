@@ -17,6 +17,20 @@ Module.prototype.require = function patchedRequire(request) {
       },
     }
   }
+  if (request === '@neteasecloudmusicapienhanced/unblockmusic-utils') {
+    return {
+      async matchID() {
+        return { data: {} }
+      },
+    }
+  }
+  if (request === 'dotenv') {
+    return {
+      config() {
+        return {}
+      },
+    }
+  }
   return originalRequire.apply(this, arguments)
 }
 
@@ -458,6 +472,30 @@ const fixtures = [
     module: 'dj_toplist_popular',
     query: {
       limit: 10,
+    },
+  },
+  {
+    module: 'song_url_v1',
+    query: {
+      id: '101',
+      level: 'sky',
+      source: 'qq,kugou,kuwo',
+    },
+  },
+  {
+    module: 'vip_sign_history',
+    query: {},
+  },
+  {
+    module: 'vip_tasks_v1',
+    query: {
+      id: '42',
+      realIP: '1.2.3.4',
+      ua: 'unit-test',
+      domain: 'https://example.test',
+      checkToken: true,
+      proxy: 'http://127.0.0.1:8080',
+      cookie: { MUSIC_U: 'token' },
     },
   },
 ]

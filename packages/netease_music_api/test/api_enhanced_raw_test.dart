@@ -714,7 +714,7 @@ void main() {
         final module = fixture['module'] as String;
         final query = _jsonMap(fixture['query']);
         final nodeOptions = _jsonMap(fixture['options']);
-        final metaData = api.requestModuleDioMetaData(module, query);
+        final metaData = await _dartMetaDataForOracleFixture(api, module, query);
         final extra = metaData.options!.extra!;
 
         expect(metaData.uri.path, fixture['uri'], reason: module);
@@ -732,6 +732,36 @@ void main() {
 }
 
 class _RawApi with ApiEnhancedRaw {}
+
+Future<DioMetaData> _dartMetaDataForOracleFixture(
+  _RawApi api,
+  String module,
+  Map<String, dynamic> query,
+) async {
+  switch (module) {
+    case 'song_url_v1':
+      return _captureSpecialMetaData(() => api.songUrlV1Raw(query));
+    case 'vip_sign_history':
+      return _captureSpecialMetaData(() => api.vipSignHistoryRaw(query));
+    case 'vip_tasks_v1':
+      return _captureSpecialMetaData(() => api.vipTasksV1Raw(query));
+    default:
+      return api.requestModuleDioMetaData(module, query);
+  }
+}
+
+Future<DioMetaData> _captureSpecialMetaData(Future<dynamic> Function() call) async {
+  final proxy = _CaptureDioProxy();
+  Https.setDioProxyForTesting(proxy);
+
+  await call();
+
+  final metaData = proxy.metaData;
+  if (metaData == null) {
+    fail('Special raw module did not send request metadata');
+  }
+  return metaData;
+}
 
 Directory _findUpstreamModuleDir() {
   return Directory('${_findRepoRoot().path}/third_party/api-enhanced/module');

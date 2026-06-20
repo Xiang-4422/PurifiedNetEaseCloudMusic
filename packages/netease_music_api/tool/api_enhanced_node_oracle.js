@@ -784,6 +784,112 @@ const fixtures = [
     },
   },
   {
+    module: 'user_account',
+    query: {},
+  },
+  {
+    module: 'user_subcount',
+    query: {},
+  },
+  {
+    module: 'user_level',
+    query: {},
+  },
+  {
+    module: 'user_binding',
+    query: {
+      uid: '32953014',
+    },
+  },
+  {
+    module: 'user_cloud',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'user_cloud_detail',
+    query: {
+      id: '101, 202',
+    },
+  },
+  {
+    module: 'user_cloud_del',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'user_record',
+    query: {
+      uid: '32953014',
+      type: 1,
+    },
+  },
+  {
+    module: 'user_follows',
+    query: {
+      uid: '32953014',
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'user_followeds',
+    query: {
+      uid: '32953014',
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'user_dj',
+    query: {
+      uid: '32953014',
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'user_event',
+    query: {
+      uid: '32953014',
+      lasttime: 123456,
+      limit: 10,
+    },
+  },
+  {
+    module: 'user_audio',
+    query: {
+      uid: '32953014',
+    },
+  },
+  {
+    module: 'user_comment_history',
+    query: {
+      uid: '32953014',
+      limit: 10,
+      time: 123456,
+    },
+  },
+  {
+    module: 'user_playlist_collect',
+    query: {
+      uid: '32953014',
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'user_playlist_create',
+    query: {
+      uid: '32953014',
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
     module: 'mv_url',
     query: {
       id: '5436712',
@@ -807,6 +913,30 @@ const fixtures = [
     module: 'record_recent_video',
     query: {
       limit: 20,
+    },
+  },
+  {
+    module: 'record_recent_album',
+    query: {
+      limit: 10,
+    },
+  },
+  {
+    module: 'record_recent_dj',
+    query: {
+      limit: 10,
+    },
+  },
+  {
+    module: 'record_recent_playlist',
+    query: {
+      limit: 10,
+    },
+  },
+  {
+    module: 'record_recent_voice',
+    query: {
+      limit: 10,
     },
   },
   {

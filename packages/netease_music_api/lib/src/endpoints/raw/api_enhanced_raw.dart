@@ -1550,6 +1550,77 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'all': 'true',
         'userId': query['uid'],
       };
+    case 'user_account':
+    case 'user_subcount':
+    case 'user_level':
+    case 'user_binding':
+      return {};
+    case 'user_cloud':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'user_cloud_detail':
+      return {
+        'songIds': query['id'].toString().replaceAll(RegExp(r'\s'), '').split(','),
+      };
+    case 'user_cloud_del':
+      return {
+        'songIds': [query['id']],
+      };
+    case 'user_record':
+      return {
+        'uid': query['uid'],
+        'type': _jsDefault(query['type'], 0),
+      };
+    case 'user_follows':
+      return {
+        'offset': _jsDefault(query['offset'], 0),
+        'limit': _jsDefault(query['limit'], 30),
+        'order': true,
+      };
+    case 'user_followeds':
+      return {
+        'userId': query['uid'],
+        'time': '0',
+        'limit': _jsDefault(query['limit'], 20),
+        'offset': _jsDefault(query['offset'], 0),
+        'getcounts': 'true',
+      };
+    case 'user_dj':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'user_event':
+      return {
+        'getcounts': true,
+        'time': _jsDefault(query['lasttime'], -1),
+        'limit': _jsDefault(query['limit'], 30),
+        'total': false,
+      };
+    case 'user_audio':
+      return {
+        'userId': query['uid'],
+      };
+    case 'user_comment_history':
+      return {
+        'compose_reminder': 'true',
+        'compose_hot_comment': 'true',
+        'limit': _jsDefault(query['limit'], 10),
+        'user_id': query['uid'],
+        'time': _jsDefault(query['time'], 0),
+      };
+    case 'user_playlist_collect':
+    case 'user_playlist_create':
+      return {
+        'limit': _jsDefault(query['limit'], '100'),
+        'offset': _jsDefault(query['offset'], '0'),
+        'userId': query['uid'],
+        'isWebview': 'true',
+        'includeRedHeart': 'true',
+        'includeTop': 'true',
+      };
     case 'mv_url':
       return {
         'id': query['id'],
@@ -1562,6 +1633,10 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       };
     case 'record_recent_song':
     case 'record_recent_video':
+    case 'record_recent_album':
+    case 'record_recent_dj':
+    case 'record_recent_playlist':
+    case 'record_recent_voice':
       return {
         'limit': _jsDefault(query['limit'], 100),
       };

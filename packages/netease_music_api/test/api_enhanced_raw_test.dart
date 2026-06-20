@@ -444,6 +444,49 @@ void main() {
       });
     });
 
+    test('maps user library request data like upstream', () {
+      expect(api.requestModuleDioMetaData('user_account', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('user_subcount', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('user_level', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('user_cloud', {}).data, {
+        'limit': 30,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('user_cloud_detail', {'id': '101, 202'}).data, {
+        'songIds': ['101', '202'],
+      });
+      expect(api.requestModuleDioMetaData('user_cloud_del', {'id': '101'}).data, {
+        'songIds': ['101'],
+      });
+      expect(api.requestModuleDioMetaData('user_record', {'uid': '42'}).data, {
+        'uid': '42',
+        'type': 0,
+      });
+      expect(api.requestModuleDioMetaData('user_follows', {'uid': '42'}).data, {
+        'offset': 0,
+        'limit': 30,
+        'order': true,
+      });
+      expect(api.requestModuleDioMetaData('user_followeds', {'uid': '42'}).data, {
+        'userId': '42',
+        'time': '0',
+        'limit': 20,
+        'offset': 0,
+        'getcounts': 'true',
+      });
+      expect(api.requestModuleDioMetaData('user_playlist_collect', {'uid': '42'}).data, {
+        'limit': '100',
+        'offset': '0',
+        'userId': '42',
+        'isWebview': 'true',
+        'includeRedHeart': 'true',
+        'includeTop': 'true',
+      });
+      expect(api.requestModuleDioMetaData('record_recent_album', {}).data, {
+        'limit': 100,
+      });
+    });
+
     test('maps home discovery request data like upstream', () {
       expect(api.requestModuleDioMetaData('homepage_block_page', {}).data, {
         'refresh': false,

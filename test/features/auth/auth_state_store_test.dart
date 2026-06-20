@@ -31,6 +31,24 @@ void main() {
       keyValueStore.values[userInfoSp] = '';
       expect(store.hasCachedSession, isFalse);
     });
+
+    test('rejects corrupt or anonymous cached session payloads', () async {
+      final keyValueStore = _MemoryKeyValueStore();
+      final store = AuthStateStore(keyValueStore: keyValueStore);
+      await store.saveLoginFlag(true);
+
+      keyValueStore.values[userInfoSp] = 'not-json';
+      expect(store.hasCachedSession, isFalse);
+
+      keyValueStore.values[userInfoSp] = '[]';
+      expect(store.hasCachedSession, isFalse);
+
+      keyValueStore.values[userInfoSp] = '{"nickname":"User"}';
+      expect(store.hasCachedSession, isFalse);
+
+      keyValueStore.values[userInfoSp] = 1;
+      expect(store.hasCachedSession, isFalse);
+    });
   });
 }
 

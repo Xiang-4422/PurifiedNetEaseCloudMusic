@@ -16,11 +16,20 @@ class UserSessionStore {
 
   /// 读取本地用户 session 快照。
   UserSessionData? loadSession() {
-    final raw = _keyValueStore.get(userInfoSp) as String?;
-    if (raw == null) {
+    final raw = _keyValueStore.get(userInfoSp);
+    if (raw is! String || raw.isEmpty) {
       return null;
     }
-    return UserSessionData.fromJson(jsonDecode(raw));
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) {
+        return null;
+      }
+      final session = UserSessionData.fromJson(Map<String, dynamic>.from(decoded));
+      return session.isLoggedIn ? session : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// 保存本地用户 session 快照。

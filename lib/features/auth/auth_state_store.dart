@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bujuan/data/app_storage/app_cache_keys.dart';
 import 'package:bujuan/data/app_storage/app_key_value_store.dart';
 import 'package:bujuan/data/app_storage/hive_key_value_store.dart';
@@ -16,8 +18,19 @@ class AuthStateStore {
 
   /// 是否存在可用的本地 session。
   bool get hasCachedSession {
-    final userInfo = _keyValueStore.get(userInfoSp) as String?;
-    return hasCachedLogin && userInfo?.isNotEmpty == true;
+    if (!hasCachedLogin) {
+      return false;
+    }
+    final raw = _keyValueStore.get(userInfoSp);
+    if (raw is! String || raw.isEmpty) {
+      return false;
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      return decoded is Map && (decoded['userId']?.toString().isNotEmpty ?? false);
+    } catch (_) {
+      return false;
+    }
   }
 
   /// 保存本地登录标记。

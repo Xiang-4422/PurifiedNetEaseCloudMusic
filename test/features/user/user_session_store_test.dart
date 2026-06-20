@@ -41,6 +41,23 @@ void main() {
       expect(store.loadSession(), isNull);
       expect(keyValueStore.values.containsKey(userInfoSp), isFalse);
     });
+
+    test('ignores corrupt or anonymous cached session payloads', () {
+      final keyValueStore = _MemoryKeyValueStore();
+      final store = UserSessionStore(keyValueStore: keyValueStore);
+
+      keyValueStore.values[userInfoSp] = 'not-json';
+      expect(store.loadSession(), isNull);
+
+      keyValueStore.values[userInfoSp] = '[]';
+      expect(store.loadSession(), isNull);
+
+      keyValueStore.values[userInfoSp] = '{"nickname":"User"}';
+      expect(store.loadSession(), isNull);
+
+      keyValueStore.values[userInfoSp] = 1;
+      expect(store.loadSession(), isNull);
+    });
   });
 }
 

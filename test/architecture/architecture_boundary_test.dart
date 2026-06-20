@@ -483,6 +483,50 @@ void main() {
       );
     });
 
+    test('netease SDK access stays inside bootstrap and source boundary', () {
+      final violations = _dartFiles(libDirectory)
+          .where(
+            (file) => _containsAny(file, const [
+              'package:netease_music_api/',
+              'NeteaseMusicApi',
+              'ApiEnhancedRaw',
+              'requestModule(',
+            ]),
+          )
+          .map(_relativePath)
+          .where((path) => !_isAllowedNeteaseSdkBoundary(path))
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'UI、controller、feature repository 和普通 data 层不能直接访问网易云 SDK；SDK 只允许在 app/bootstrap 创建，在 data/music_data/sources/netease 调用和映射。',
+      );
+    });
+
+    test('bootstrap only initializes and injects netease SDK', () {
+      final violations = <String>[];
+      for (final file in _dartFiles(Directory('${projectRoot.path}/lib/app/bootstrap'))) {
+        final content = file.readAsStringSync();
+        final path = _relativePath(file);
+        if (content.contains('requestModule(')) {
+          violations.add('$path calls raw requestModule');
+        }
+        if (RegExp(r'\bneteaseApi\.\w+\s*\(').hasMatch(content)) {
+          violations.add('$path calls neteaseApi business method');
+        }
+        if (RegExp(r'\bNeteaseMusicApi\(\)\.\w+\s*\(').hasMatch(content)) {
+          violations.add('$path calls SDK singleton business method');
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'bootstrap 可以初始化 SDK 并注入 netease source，但不能在组合根直接发网易云业务请求。',
+      );
+    });
+
     test('netease endpoint and model files do not import public api barrel', () {
       final sdkFiles = [
         ..._dartFiles(
@@ -1595,6 +1639,10 @@ bool _isAllowedMediaItemFile(String path) {
       path == 'lib/features/playback/application/audio_service_queue_synchronizer.dart' ||
       path == 'lib/features/playback/application/playback_queue_item_adapter.dart' ||
       _isTemporaryMediaItemBoundaryException(path);
+}
+
+bool _isAllowedNeteaseSdkBoundary(String path) {
+  return path.startsWith('lib/app/bootstrap/') || path.startsWith('lib/data/music_data/sources/netease/');
 }
 
 String _featureName(String path) {

@@ -23,29 +23,47 @@ class LocalSongListController {
 
   /// 本地歌曲列表加载状态。
   final ValueNotifier<LoadState<List<LocalSongEntry>>> state = ValueNotifier(const LoadState.loading());
+  int _loadGeneration = 0;
+  bool _disposed = false;
 
   /// 首次加载本地歌曲列表。
   Future<void> loadInitial() => refresh();
 
   /// 刷新本地歌曲列表。
   Future<void> refresh() async {
+    if (_disposed) {
+      return;
+    }
+    final generation = ++_loadGeneration;
     final previousEntries = state.value.data;
-    state.value = previousEntries == null || previousEntries.isEmpty ? const LoadState.loading() : LoadState.loading(data: previousEntries);
+    _setStateIfCurrent(
+      generation,
+      previousEntries == null || previousEntries.isEmpty ? const LoadState.loading() : LoadState.loading(data: previousEntries),
+    );
     try {
       final entries = await _musicDataRepository.getLocalSongs(origins: origins);
-      if (entries.isEmpty) {
-        state.value = const LoadState.empty();
+      if (!_isCurrentLoad(generation)) {
         return;
       }
-      state.value = LoadState.data(entries);
+      if (entries.isEmpty) {
+        _setStateIfCurrent(generation, const LoadState.empty());
+        return;
+      }
+      _setStateIfCurrent(generation, LoadState.data(entries));
     } catch (error, stackTrace) {
-      state.value = previousEntries == null || previousEntries.isEmpty
-          ? LoadState.error(error, stackTrace: stackTrace)
-          : LoadState.error(
-              error,
-              stackTrace: stackTrace,
-              data: previousEntries,
-            );
+      if (!_isCurrentLoad(generation)) {
+        return;
+      }
+      _setStateIfCurrent(
+        generation,
+        previousEntries == null || previousEntries.isEmpty
+            ? LoadState.error(error, stackTrace: stackTrace)
+            : LoadState.error(
+                error,
+                stackTrace: stackTrace,
+                data: previousEntries,
+              ),
+      );
     }
   }
 
@@ -63,6 +81,21 @@ class LocalSongListController {
 
   /// 释放本地歌曲列表状态监听器。
   void dispose() {
+    _disposed = true;
+    _loadGeneration++;
     state.dispose();
+  }
+
+  bool _isCurrentLoad(int generation) {
+    return !_disposed && generation == _loadGeneration;
+  }
+
+  void _setStateIfCurrent(
+    int generation,
+    LoadState<List<LocalSongEntry>> nextState,
+  ) {
+    if (_isCurrentLoad(generation)) {
+      state.value = nextState;
+    }
   }
 }

@@ -58,6 +58,53 @@ void main() {
       expect(controller.state.value.data, isNull);
       expect(controller.state.value.hasData, isFalse);
     });
+
+    test('ignores stale refresh after newer refresh completes', () async {
+      final oldRefresh = Completer<List<LocalSongEntry>>();
+      final newRefresh = Completer<List<LocalSongEntry>>();
+      final musicDataRepository = _FakeMusicDataRepository()
+        ..enqueueLocalSongsFuture(oldRefresh.future)
+        ..enqueueLocalSongsFuture(newRefresh.future);
+      final controller = LocalSongListController(
+        musicDataRepository: musicDataRepository,
+        downloadRepository: _FakeDownloadRepository(),
+      );
+      addTearDown(controller.dispose);
+
+      final oldRefreshFuture = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+      final newRefreshFuture = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+
+      newRefresh.complete([_entry('fresh')]);
+      await newRefreshFuture;
+
+      expect(controller.state.value.status, LoadStatus.data);
+      expect(_titles(controller.state.value), ['Track fresh']);
+
+      oldRefresh.complete([_entry('stale')]);
+      await oldRefreshFuture;
+
+      expect(controller.state.value.status, LoadStatus.data);
+      expect(_titles(controller.state.value), ['Track fresh']);
+    });
+
+    test('ignores refresh completion after dispose', () async {
+      final refresh = Completer<List<LocalSongEntry>>();
+      final musicDataRepository = _FakeMusicDataRepository()..enqueueLocalSongsFuture(refresh.future);
+      final controller = LocalSongListController(
+        musicDataRepository: musicDataRepository,
+        downloadRepository: _FakeDownloadRepository(),
+      );
+
+      final refreshFuture = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+      controller.dispose();
+
+      refresh.complete([_entry('fresh')]);
+
+      await refreshFuture;
+    });
   });
 }
 

@@ -1295,6 +1295,18 @@ Future<List<DioMetaData>> _dartRequestSequenceForOracleFixture(
         }));
       await api.requestModule(module, query);
       return proxy.requests;
+    case 'avatar_upload':
+      final proxy = _UploadDioProxy();
+      Https.setDioProxyForTesting(proxy);
+      Https.setDioForTesting(Dio()..httpClientAdapter = _UploadAdapter());
+      await api.requestModule(module, query);
+      return proxy.requests;
+    case 'playlist_cover_update':
+      final proxy = _UploadDioProxy();
+      Https.setDioProxyForTesting(proxy);
+      Https.setDioForTesting(Dio()..httpClientAdapter = _UploadAdapter());
+      await api.requestModule(module, query);
+      return proxy.requests;
     case 'cloud_upload_complete':
       final proxy = _QueuedPostDioProxy([
         {

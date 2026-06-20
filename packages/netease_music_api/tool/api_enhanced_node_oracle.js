@@ -621,6 +621,61 @@ const fixtures = [
     ],
   },
   {
+    module: 'avatar_upload',
+    query: {
+      filename: 'avatar.jpg',
+      bytes: [1, 2, 3],
+      imgFile: {
+        name: 'avatar.jpg',
+        mimetype: 'image/jpeg',
+        data: [1, 2, 3],
+      },
+    },
+    captureRequests: true,
+    responses: [
+      {
+        status: 200,
+        body: {
+          result: {
+            objectKey: 'object-key',
+            token: 'upload-token',
+            docId: 123,
+          },
+        },
+        cookie: [],
+      },
+      { status: 200, body: { code: 200 }, cookie: [] },
+    ],
+  },
+  {
+    module: 'playlist_cover_update',
+    query: {
+      id: '888',
+      filename: 'cover.jpg',
+      bytes: [1, 2, 3],
+      imgFile: {
+        name: 'cover.jpg',
+        mimetype: 'image/jpeg',
+        data: [1, 2, 3],
+      },
+    },
+    captureRequests: true,
+    responses: [
+      {
+        status: 200,
+        body: {
+          result: {
+            objectKey: 'object-key',
+            token: 'upload-token',
+            docId: 123,
+          },
+        },
+        cookie: [],
+      },
+      { status: 200, body: { code: 200 }, cookie: [] },
+    ],
+  },
+  {
     module: 'cloud_upload_complete',
     query: {
       songId: 456,

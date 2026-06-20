@@ -1318,6 +1318,12 @@ const fixtures = [
     },
   },
   {
+    module: 'top_list',
+    query: {
+      id: '3779629',
+    },
+  },
+  {
     module: 'playlist_catlist',
     query: {},
   },

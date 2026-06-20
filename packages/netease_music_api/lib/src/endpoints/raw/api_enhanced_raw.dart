@@ -133,6 +133,8 @@ mixin ApiEnhancedRaw {
         return songUrlMatchRaw(query);
       case 'song_url_ncmget':
         return songUrlNcmgetRaw(query);
+      case 'top_list':
+        return topListRaw(query);
     }
     final response = await Https.dioProxy.requestUri(requestModuleDioMetaData(module, query));
     return response.data;
@@ -470,6 +472,29 @@ mixin ApiEnhancedRaw {
       'status': 200,
       'body': {'code': 200, 'data': []},
     };
+  }
+
+  /// Top list module mirrors the upstream idx guard before requesting by id.
+  Future<dynamic> topListRaw(Map<String, dynamic> query) async {
+    if (_jsTruthy(query['idx'])) {
+      return {
+        'status': 500,
+        'body': {
+          'code': 500,
+          'msg': '不支持此方式调用,只支持id调用',
+        },
+      };
+    }
+    final response = await _rawPost(
+      '/api/playlist/v4/detail',
+      {
+        'id': query['id'],
+        'n': '500',
+        's': '0',
+      },
+      query,
+    );
+    return response.data;
   }
 
   /// VIP sign history xeapi module.

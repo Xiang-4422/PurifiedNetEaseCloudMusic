@@ -2461,7 +2461,7 @@ const List<ApiEnhancedModule> apiEnhancedModules = [
     pathTemplate: '/api/playlist/v4/detail',
     crypto: 'eapi',
     httpMethod: 'POST',
-    special: false,
+    special: true,
   ),
   ApiEnhancedModule(
     module: 'top_mv',
@@ -5656,7 +5656,7 @@ const Map<String, ApiEnhancedModule> apiEnhancedModuleByName = {
     pathTemplate: '/api/playlist/v4/detail',
     crypto: 'eapi',
     httpMethod: 'POST',
-    special: false,
+    special: true,
   ),
   'top_mv': ApiEnhancedModule(
     module: 'top_mv',

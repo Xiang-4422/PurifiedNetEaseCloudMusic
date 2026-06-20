@@ -97,6 +97,7 @@ void main() {
         'song_url_ncmget',
         'song_url_v1',
         'song_url_v1_302',
+        'top_list',
         'vip_sign_history',
         'vip_tasks_v1',
         'voice_upload',
@@ -1382,6 +1383,27 @@ void main() {
       });
     });
 
+    test('top list special module mirrors idx guard and id request', () async {
+      expect(await api.requestModule('top_list', {'idx': 1}), {
+        'status': 500,
+        'body': {
+          'code': 500,
+          'msg': '不支持此方式调用,只支持id调用',
+        },
+      });
+
+      final proxy = _CaptureDioProxy();
+      Https.setDioProxyForTesting(proxy);
+
+      expect(await api.requestModule('top_list', {'id': '3779629'}), {'code': 200});
+      expect(proxy.metaData!.uri.path, '/api/playlist/v4/detail');
+      expect(proxy.metaData!.data, {
+        'id': '3779629',
+        'n': '500',
+        's': '0',
+      });
+    });
+
     test('image upload special module uses token allocation and binary upload', () async {
       final proxy = _UploadDioProxy();
       final adapter = _UploadAdapter();
@@ -1809,6 +1831,8 @@ Future<DioMetaData> _dartMetaDataForOracleFixture(
       return _captureSpecialMetaData(() => api.vipSignHistoryRaw(query));
     case 'vip_tasks_v1':
       return _captureSpecialMetaData(() => api.vipTasksV1Raw(query));
+    case 'top_list':
+      return _captureSpecialMetaData(() => api.topListRaw(query));
     default:
       return api.requestModuleDioMetaData(module, query);
   }

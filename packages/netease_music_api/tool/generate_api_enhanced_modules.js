@@ -40,6 +40,7 @@ const specialModules = new Set([
   'song_url_v1',
   'vip_sign_history',
   'vip_tasks_v1',
+  'top_list',
 ])
 
 const supportedCrypto = new Set(['', 'weapi', 'eapi', 'linuxapi', 'api', 'query', 'xeapi'])

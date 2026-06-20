@@ -7,6 +7,8 @@ import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_user_remote_data_source.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_profile_data.dart';
@@ -308,11 +310,21 @@ class UserRepository {
     if (tracks.isEmpty) {
       return const [];
     }
-    final mergedTracks = await _musicDataRepository.getTracksByIds(
+    final mergedTracks = await _musicDataRepository.getTracksWithResources(
       tracks.map((track) => track.id),
     );
-    return PlaybackQueueItemMapper.fromTrackList(
-      mergedTracks.isEmpty ? tracks : mergedTracks,
+    final tracksWithResources = mergedTracks.isEmpty
+        ? tracks
+            .map(
+              (track) => TrackWithResources(
+                track: track,
+                resources: const TrackResourceBundle(),
+              ),
+            )
+            .toList()
+        : mergedTracks;
+    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
+      tracksWithResources,
       likedSongIds: likedSongIds,
       mediaType: mediaType,
     );

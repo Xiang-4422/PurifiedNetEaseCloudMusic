@@ -448,8 +448,13 @@ class MusicDataRepository {
     final resources = await _resourceIndexRepository.listResources(
       origins: const {TrackResourceOrigin.playbackCache},
     );
+    final indexedResources = await _resourceIndexRepository.listResources();
+    final retainedPaths = indexedResources.where((resource) => resource.origin != TrackResourceOrigin.playbackCache).map((resource) => resource.path).toSet();
     for (final resource in resources) {
-      await _deleteResourceFile(resource, deleteFile: true);
+      await _deleteResourceFile(
+        resource,
+        deleteFile: !retainedPaths.contains(resource.path),
+      );
       await _resourceIndexRepository.removeResource(
         resource.trackId,
         resource.kind,

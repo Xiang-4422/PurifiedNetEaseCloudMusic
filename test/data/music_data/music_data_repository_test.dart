@@ -209,6 +209,52 @@ void main() {
         LocalResourceKind.artwork,
       });
     });
+
+    test('keeps playback cache files referenced by retained resource indexes', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-cache-shared-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final sharedAudio = await _writeFile(directory, 'shared.mp3');
+      final playbackOnly = await _writeFile(directory, 'playback-only.mp3');
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.audio,
+            path: sharedAudio.path,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          _resource(
+            trackId: '2',
+            kind: LocalResourceKind.audio,
+            path: sharedAudio.path,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+          _resource(
+            trackId: '3',
+            kind: LocalResourceKind.audio,
+            path: playbackOnly.path,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+        ],
+      );
+      final repository = _buildRepository(
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      await repository.removePlaybackCache();
+
+      expect(sharedAudio.existsSync(), isTrue);
+      expect(playbackOnly.existsSync(), isFalse);
+      expect(resourceIndexRepository.remainingResourceKinds('1'), isEmpty);
+      expect(resourceIndexRepository.remainingResourceKinds('2'), {
+        LocalResourceKind.audio,
+      });
+      expect(resourceIndexRepository.remainingResourceKinds('3'), isEmpty);
+    });
   });
 }
 

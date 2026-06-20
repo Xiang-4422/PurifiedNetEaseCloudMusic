@@ -2,6 +2,7 @@ import 'package:bujuan/data/music_data/sources/local/database/data_sources/downl
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_library_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_resource_index_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/playback_history_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/playback_restore_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/schema/database_collection_schema.dart';
@@ -10,6 +11,7 @@ export 'data_sources/app_cache_data_source.dart';
 export 'data_sources/download_task_data_source.dart';
 export 'data_sources/local_library_data_source.dart';
 export 'data_sources/local_resource_index_data_source.dart';
+export 'data_sources/playback_history_data_source.dart';
 export 'data_sources/playback_restore_data_source.dart';
 export 'data_sources/user_scoped_data_source.dart';
 
@@ -29,6 +31,9 @@ abstract class AppDatabase {
 
   /// 播放恢复快照数据源。
   PlaybackRestoreDataSource get playbackRestoreDataSource;
+
+  /// 播放历史数据源。
+  PlaybackHistoryDataSource get playbackHistoryDataSource;
 
   /// 本地资源索引数据源。
   LocalResourceIndexDataSource get localResourceIndexDataSource;

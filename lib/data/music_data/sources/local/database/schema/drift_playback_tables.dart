@@ -33,3 +33,16 @@ class PlaybackRestoreEntries extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+/// 播放历史表，只记录本地最近确认播放过的曲目事实。
+@DataClassName('PlaybackHistoryEntry')
+class PlaybackHistoryEntries extends Table {
+  /// 曲目 id。
+  TextColumn get trackId => text()();
+
+  /// 最近播放时间戳，单位毫秒。
+  IntColumn get playedAtMs => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {trackId};
+}

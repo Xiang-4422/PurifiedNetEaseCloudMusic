@@ -1,4 +1,5 @@
 import 'package:bujuan/core/entities/playback_mode.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/playback_history_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/playback_restore_data_source.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/core/entities/playback_restore_state.dart';
@@ -9,15 +10,20 @@ import 'package:bujuan/data/music_data/music_data_repository.dart';
 
 /// 聚合播放恢复状态、曲目资源和歌词读取的仓库。
 class PlaybackRepository {
+  static const int _maxRecentPlaybackEntries = 100;
+
   /// 创建播放仓库。
   PlaybackRepository({
     required MusicDataRepository musicDataRepository,
     required PlaybackRestoreDataSource playbackRestoreDataSource,
+    required PlaybackHistoryDataSource playbackHistoryDataSource,
   })  : _musicDataRepository = musicDataRepository,
-        _playbackRestoreDataSource = playbackRestoreDataSource;
+        _playbackRestoreDataSource = playbackRestoreDataSource,
+        _playbackHistoryDataSource = playbackHistoryDataSource;
 
   final MusicDataRepository _musicDataRepository;
   final PlaybackRestoreDataSource _playbackRestoreDataSource;
+  final PlaybackHistoryDataSource _playbackHistoryDataSource;
   PlaybackRestoreState? _restoreStateCache;
   Future<PlaybackRestoreState>? _restoreStateLoad;
   PlaybackRestoreState? _pendingRestoreState;
@@ -38,6 +44,31 @@ class PlaybackRepository {
   /// 读取曲目及其本地资源索引。
   Future<TrackWithResources?> getTrackWithResources(String trackId) {
     return _musicDataRepository.getTrackWithResources(trackId);
+  }
+
+  /// 读取最近播放的本地曲目及资源索引。
+  Future<List<TrackWithResources>> loadRecentPlayedTracks({int limit = 20}) async {
+    final trackIds = await _playbackHistoryDataSource.loadRecentTrackIds(
+      limit: limit,
+    );
+    return _musicDataRepository.getTracksWithResources(trackIds);
+  }
+
+  /// 记录底层播放器已经确认播放的曲目。
+  Future<void> recordPlayedTrack(
+    String trackId, {
+    DateTime? playedAt,
+  }) async {
+    if (trackId.isEmpty) {
+      return;
+    }
+    await _playbackHistoryDataSource.recordPlayedTrack(
+      trackId,
+      playedAt: playedAt,
+    );
+    await _playbackHistoryDataSource.prune(
+      maxEntries: _maxRecentPlaybackEntries,
+    );
   }
 
   /// 保存曲目歌词。

@@ -18,6 +18,7 @@ class AppDataSourceBootstrapResult {
     required this.userSyncMarkerDataSource,
     required this.downloadTaskDataSource,
     required this.playbackRestoreDataSource,
+    required this.playbackHistoryDataSource,
     required this.appCacheDataSource,
     required this.commentCacheStore,
     required this.searchCacheStore,
@@ -55,6 +56,9 @@ class AppDataSourceBootstrapResult {
   /// 播放恢复数据源。
   final PlaybackRestoreDataSource playbackRestoreDataSource;
 
+  /// 播放历史数据源。
+  final PlaybackHistoryDataSource playbackHistoryDataSource;
+
   /// 通用短期缓存数据源。
   final AppCacheDataSource appCacheDataSource;
 
@@ -88,6 +92,7 @@ AppDataSourceBootstrapResult initializeDataSourceInfrastructure({
     userSyncMarkerDataSource: appDatabase.userSyncMarkerDataSource,
     downloadTaskDataSource: appDatabase.downloadTaskDataSource,
     playbackRestoreDataSource: appDatabase.playbackRestoreDataSource,
+    playbackHistoryDataSource: appDatabase.playbackHistoryDataSource,
     appCacheDataSource: appCacheDataSource,
     commentCacheStore: CommentCacheStore(cacheDataSource: appCacheDataSource),
     searchCacheStore: SearchCacheStore(cacheDataSource: appCacheDataSource),

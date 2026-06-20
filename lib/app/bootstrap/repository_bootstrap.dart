@@ -139,6 +139,7 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
   final playbackRepository = PlaybackRepository(
     musicDataRepository: musicDataRepository,
     playbackRestoreDataSource: dataSources.playbackRestoreDataSource,
+    playbackHistoryDataSource: dataSources.playbackHistoryDataSource,
   );
 
   final authRemoteDataSource = NeteaseAuthRemoteDataSource(api: neteaseApi);

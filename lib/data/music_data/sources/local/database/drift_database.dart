@@ -18,6 +18,7 @@ part 'schema/drift_user_tables.dart';
 @DriftDatabase(
   tables: [
     PlaybackRestoreEntries,
+    PlaybackHistoryEntries,
     LocalResourceEntries,
     DownloadTasks,
     AppCacheEntries,

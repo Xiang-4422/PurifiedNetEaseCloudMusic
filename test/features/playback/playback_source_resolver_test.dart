@@ -336,9 +336,20 @@ class _FakePlaybackRepository implements PlaybackRepository {
   }
 
   @override
+  Future<List<TrackWithResources>> loadRecentPlayedTracks({int limit = 20}) async {
+    return const [];
+  }
+
+  @override
   Future<TrackLyrics?> fetchSongLyrics(String trackId) async {
     return null;
   }
+
+  @override
+  Future<void> recordPlayedTrack(
+    String trackId, {
+    DateTime? playedAt,
+  }) async {}
 
   @override
   Future<void> saveSongLyrics(String trackId, TrackLyrics lyrics) async {}

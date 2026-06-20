@@ -6,6 +6,7 @@ extension DriftSchemaMaintenance on BujuanDriftDatabase {
   Future<void> dropAllTablesForMigration() async {
     for (final statement in [
       'DROP TABLE IF EXISTS playback_restore_entries',
+      'DROP TABLE IF EXISTS playback_history_entries',
       _legacyPlaybackRestoreTable,
       'DROP TABLE IF EXISTS local_resource_entries',
       'DROP TABLE IF EXISTS download_tasks',
@@ -64,6 +65,9 @@ extension DriftSchemaMaintenance on BujuanDriftDatabase {
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_download_tasks_status_updated_at_ms ON download_tasks (status, updated_at_ms)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_playback_history_entries_played_at_ms ON playback_history_entries (played_at_ms DESC)',
     );
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_app_cache_entries_updated_at_ms ON app_cache_entries (updated_at_ms)',

@@ -14,6 +14,7 @@ import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_local_library_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_local_resource_index_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_playlist_subscription_data_source.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_playback_history_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_playback_restore_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_user_playlist_list_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_user_profile_data_source.dart';
@@ -32,6 +33,7 @@ class DriftAppDatabase implements AppDatabase {
   late final BujuanDriftDatabase _database;
   late final LocalLibraryDataSource _localLibraryDataSource;
   late final PlaybackRestoreDataSource _playbackRestoreDataSource;
+  late final PlaybackHistoryDataSource _playbackHistoryDataSource;
   late final LocalResourceIndexDataSource _localResourceIndexDataSource;
   late final DownloadTaskDataSource _downloadTaskDataSource;
   late final AppCacheDataSource _appCacheDataSource;
@@ -52,6 +54,7 @@ class DriftAppDatabase implements AppDatabase {
       playlistDao: playlistDao,
     );
     _playbackRestoreDataSource = DriftPlaybackRestoreDataSource(database: _database);
+    _playbackHistoryDataSource = DriftPlaybackHistoryDataSource(database: _database);
     _localResourceIndexDataSource = DriftLocalResourceIndexDataSource(
       dao: ResourceDao(database: _database),
     );
@@ -95,6 +98,9 @@ class DriftAppDatabase implements AppDatabase {
 
   @override
   PlaybackRestoreDataSource get playbackRestoreDataSource => _playbackRestoreDataSource;
+
+  @override
+  PlaybackHistoryDataSource get playbackHistoryDataSource => _playbackHistoryDataSource;
 
   @override
   LocalResourceIndexDataSource get localResourceIndexDataSource => _localResourceIndexDataSource;

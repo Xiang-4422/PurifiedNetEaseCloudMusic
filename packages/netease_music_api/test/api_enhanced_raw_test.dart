@@ -815,6 +815,23 @@ Future<List<DioMetaData>> _dartRequestSequenceForOracleFixture(
       Https.setDioProxyForTesting(proxy);
       await api.requestModule(module, query);
       return proxy.requests;
+    case 'playlist_tracks':
+      final proxy = _QueuedPostDioProxy([
+        DioException(
+          requestOptions: RequestOptions(path: '/api/playlist/manipulate/tracks'),
+          response: Response(
+            requestOptions: RequestOptions(path: '/api/playlist/manipulate/tracks'),
+            data: {'code': 512},
+          ),
+        ),
+        {
+          'code': 200,
+          'retry': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+      await api.requestModule(module, query);
+      return proxy.requests;
     default:
       fail('No request sequence capture configured for $module');
   }

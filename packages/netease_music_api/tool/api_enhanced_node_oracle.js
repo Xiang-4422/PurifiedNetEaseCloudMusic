@@ -566,6 +566,19 @@ const fixtures = [
       { status: 200, body: { code: 200, imported: true }, cookie: [] },
     ],
   },
+  {
+    module: 'playlist_tracks',
+    query: {
+      op: 'add',
+      pid: '888',
+      tracks: '101,202',
+    },
+    captureRequests: true,
+    responses: [
+      { reject: true, status: 500, body: { code: 512 }, cookie: [] },
+      { status: 200, body: { code: 200, retry: true }, cookie: [] },
+    ],
+  },
 ]
 
 async function captureFixture(fixture) {
@@ -583,6 +596,17 @@ async function captureFixture(fixture) {
         ? fixture.responses[requestIndex]
         : { status: 200, body: { code: 200, data: [] }, cookie: [] }
     requestIndex += 1
+    if (response.reject) {
+      return Promise.reject(
+        JSON.parse(
+          JSON.stringify({
+            status: response.status || 500,
+            body: response.body || {},
+            cookie: response.cookie || [],
+          }),
+        ),
+      )
+    }
     return Promise.resolve(JSON.parse(JSON.stringify(response)))
   }
 

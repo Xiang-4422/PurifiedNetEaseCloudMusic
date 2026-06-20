@@ -84,7 +84,7 @@ class CacheAnalysisService {
   Future<CacheAnalysisResult> analyze() async {
     final supportDirectory = await getApplicationSupportDirectory();
     final temporaryDirectory = await getTemporaryDirectory();
-    final playbackEntries = await _musicDataRepository.getLocalSongs(
+    final playbackResources = await _resourceIndexRepository.listResources(
       origins: const {TrackResourceOrigin.playbackCache},
     );
     final categories = [
@@ -100,11 +100,11 @@ class CacheAnalysisService {
         category: CacheCategory.playback,
         title: _titleFor(CacheCategory.playback),
         description: _descriptionFor(CacheCategory.playback),
-        sizeBytes: playbackEntries.fold<int>(
+        sizeBytes: playbackResources.fold<int>(
           0,
-          (sum, item) => sum + item.totalSizeBytes,
+          (sum, item) => sum + item.sizeBytes,
         ),
-        fileCount: playbackEntries.length,
+        fileCount: playbackResources.length,
       ),
       await _analyzeDirectory(
         CacheCategory.temporary,

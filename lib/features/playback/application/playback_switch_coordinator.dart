@@ -214,7 +214,10 @@ class PlaybackSwitchCoordinator {
       autoplayIntent: playNow,
     ));
     final resolveStopwatch = PlaybackPerformanceLogger.start();
-    final sourceResult = await _resolveSource(item);
+    final sourceResult = await _resolveSource(
+      item,
+      trigger: trigger,
+    );
     PlaybackPerformanceLogger.elapsed(
       'switch.resolveSource',
       resolveStopwatch,
@@ -509,8 +512,32 @@ class PlaybackSwitchCoordinator {
     );
   }
 
-  Future<_SourceResolveResult> _resolveSource(PlaybackQueueItem item) async {
+  Future<_SourceResolveResult> _resolveSource(
+    PlaybackQueueItem item, {
+    required PlaybackSwitchTrigger trigger,
+  }) async {
     final preferHighQuality = _playbackService.isHighQualityEnabled();
+    if (trigger == PlaybackSwitchTrigger.sourceError) {
+      final primary = await _tryResolveSource(
+        item,
+        preferHighQuality: preferHighQuality,
+        remoteOnly: true,
+        forceRefresh: true,
+      );
+      if (primary.isSuccess || !preferHighQuality) {
+        return primary;
+      }
+      _logSwitch(
+        'retry-normal-quality-after-source-error id=${item.id} reason=${primary.message}',
+      );
+      final fallback = await _tryResolveSource(
+        item,
+        preferHighQuality: false,
+        remoteOnly: true,
+        forceRefresh: true,
+      );
+      return fallback.isSuccess ? fallback : primary;
+    }
     final primary = await _tryResolveSource(
       item,
       preferHighQuality: preferHighQuality,
@@ -531,20 +558,27 @@ class PlaybackSwitchCoordinator {
   Future<_SourceResolveResult> _tryResolveSource(
     PlaybackQueueItem item, {
     required bool preferHighQuality,
+    bool remoteOnly = false,
+    bool forceRefresh = false,
   }) async {
     final stopwatch = PlaybackPerformanceLogger.start();
     try {
-      final source = await _sourcePrefetcher
-          .resolve(
-            item,
-            preferHighQuality: preferHighQuality,
-          )
-          .timeout(const Duration(seconds: 12));
+      final sourceFuture = remoteOnly
+          ? _sourcePrefetcher.resolveRemote(
+              item,
+              preferHighQuality: preferHighQuality,
+              forceRefresh: forceRefresh,
+            )
+          : _sourcePrefetcher.resolve(
+              item,
+              preferHighQuality: preferHighQuality,
+            );
+      final source = await sourceFuture.timeout(const Duration(seconds: 12));
       if (source.isEmpty) {
         PlaybackPerformanceLogger.elapsed(
           'switch.tryResolveSource',
           stopwatch,
-          details: 'id=${item.id} highQuality=$preferHighQuality success=false empty=true',
+          details: 'id=${item.id} highQuality=$preferHighQuality remoteOnly=$remoteOnly forceRefresh=$forceRefresh success=false empty=true',
         );
         return const _SourceResolveResult.failure('当前歌曲暂无可用播放地址');
       }
@@ -554,7 +588,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.tryResolveSource',
         stopwatch,
-        details: 'id=${item.id} highQuality=$preferHighQuality success=true kind=${source.kind.name}',
+        details: 'id=${item.id} highQuality=$preferHighQuality remoteOnly=$remoteOnly forceRefresh=$forceRefresh success=true kind=${source.kind.name}',
       );
       return _SourceResolveResult.success(source);
     } on TimeoutException catch (error) {
@@ -562,7 +596,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.tryResolveSource',
         stopwatch,
-        details: 'id=${item.id} highQuality=$preferHighQuality success=false timeout=true',
+        details: 'id=${item.id} highQuality=$preferHighQuality remoteOnly=$remoteOnly forceRefresh=$forceRefresh success=false timeout=true',
       );
       return const _SourceResolveResult.failure('播放地址获取超时，请重试');
     } catch (error) {
@@ -570,7 +604,7 @@ class PlaybackSwitchCoordinator {
       PlaybackPerformanceLogger.elapsed(
         'switch.tryResolveSource',
         stopwatch,
-        details: 'id=${item.id} highQuality=$preferHighQuality success=false error=$error',
+        details: 'id=${item.id} highQuality=$preferHighQuality remoteOnly=$remoteOnly forceRefresh=$forceRefresh success=false error=$error',
       );
       return _SourceResolveResult.failure(_resolveErrorMessage(error));
     }

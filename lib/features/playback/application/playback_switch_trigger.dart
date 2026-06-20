@@ -19,4 +19,7 @@ enum PlaybackSwitchTrigger {
 
   /// FM、心动等播放模式自动推进。
   modeAutoAdvance,
+
+  /// 底层播放器报告当前播放源不可用后重试当前歌曲。
+  sourceError,
 }

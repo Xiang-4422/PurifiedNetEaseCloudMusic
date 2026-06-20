@@ -18,6 +18,7 @@ import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
+import 'package:bujuan/features/playback/playback_selection_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
 /// 播放会话状态同步回调，用于把服务层变化写回控制器状态。
@@ -83,6 +84,8 @@ class PlaybackStateSynchronizer {
   bool _isFetchingFm = false;
   String? _lastConfirmedSideEffectKey;
   bool _completionAdvanceInFlight = false;
+  bool _sourceErrorRecoveryInFlight = false;
+  String? _lastSourceErrorRecoveryKey;
 
   static const Duration _positionSaveInterval = Duration(seconds: 5);
 
@@ -200,6 +203,11 @@ class PlaybackStateSynchronizer {
               trigger: PlaybackSwitchTrigger.queueCompletion,
             ),
           );
+        }
+        if (_hasConfirmedPlaybackSource(playbackState.processingState)) {
+          _lastSourceErrorRecoveryKey = null;
+        } else if (playbackState.processingState == AudioProcessingState.error) {
+          _recoverCurrentSourceAfterPlaybackError(runtimeState);
         }
       }),
     );
@@ -357,6 +365,45 @@ class PlaybackStateSynchronizer {
 
   bool _hasConfirmedPlaybackSource(AudioProcessingState processingState) {
     return processingState == AudioProcessingState.ready || processingState == AudioProcessingState.buffering;
+  }
+
+  void _recoverCurrentSourceAfterPlaybackError(
+    PlaybackRuntimeState Function() runtimeState,
+  ) {
+    if (_sourceErrorRecoveryInFlight) {
+      return;
+    }
+    final item = runtimeState().currentSong;
+    if (item.id.isEmpty) {
+      return;
+    }
+    final selection = _selectionService.state;
+    if (!selection.hasSelection || selection.selectedItem.id != item.id) {
+      return;
+    }
+    if (selection.sourceStatus == PlaybackSelectionSourceStatus.loading) {
+      return;
+    }
+    final recoveryKey = '${selection.selectionVersion}:${item.id}';
+    if (_lastSourceErrorRecoveryKey == recoveryKey) {
+      return;
+    }
+    _lastSourceErrorRecoveryKey = recoveryKey;
+    _sourceErrorRecoveryInFlight = true;
+    unawaited(_submitCurrentAfterPlaybackSourceError());
+  }
+
+  Future<void> _submitCurrentAfterPlaybackSourceError() async {
+    try {
+      await _selectionService.submitCurrent(
+        trigger: PlaybackSwitchTrigger.sourceError,
+        playNow: true,
+      );
+    } catch (_) {
+      // SelectionService will surface retry failures through sourceStatus/sourceError.
+    } finally {
+      _sourceErrorRecoveryInFlight = false;
+    }
   }
 
   bool _isStillCurrentTrack(

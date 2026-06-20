@@ -197,6 +197,62 @@ void main() {
       expect(resolver.remoteForceRefreshValues, [true]);
     });
 
+    test('source error retries current song with refreshed remote url first', () async {
+      final playbackService = _FakePlaybackService();
+      final resolver = _RemoteRefreshSourceResolver();
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+      );
+      final queue = [_item('1')];
+      await queueService.replaceQueue(queue, 0, playlistName: 'Queue');
+
+      final result = await coordinator.switchToSelection(
+        queue: queue,
+        item: queue.first,
+        activeIndex: 0,
+        selectionVersion: queueService.state.selectionVersion,
+        trigger: PlaybackSwitchTrigger.sourceError,
+        playNow: true,
+      );
+
+      expect(result.success, isTrue);
+      expect(playbackService.replaceCalls.map((call) => call.source.url), [
+        'fresh-url-1',
+      ]);
+      expect(resolver.resolveCalls, 0);
+      expect(resolver.remoteForceRefreshValues, [true]);
+    });
+
+    test('source error falls back to refreshed normal quality when high quality refresh fails', () async {
+      final playbackService = _FakePlaybackService(preferHighQuality: true);
+      final resolver = _SourceErrorQualityFallbackResolver();
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+      );
+      final queue = [_item('1')];
+      await queueService.replaceQueue(queue, 0, playlistName: 'Queue');
+
+      final result = await coordinator.switchToSelection(
+        queue: queue,
+        item: queue.first,
+        activeIndex: 0,
+        selectionVersion: queueService.state.selectionVersion,
+        trigger: PlaybackSwitchTrigger.sourceError,
+        playNow: true,
+      );
+
+      expect(result.success, isTrue);
+      expect(playbackService.replaceCalls.single.source.url, 'normal-fresh-1');
+      expect(resolver.remotePreferences, [true, false]);
+      expect(resolver.remoteForceRefreshValues, [true, true]);
+    });
+
     test('falls back to normal quality when refreshed high quality remote replacement fails', () async {
       final playbackService = _FakePlaybackService(
         failReplaceCount: 2,
@@ -497,6 +553,7 @@ class _ImmediateSourceResolver implements PlaybackSourceResolver {
 }
 
 class _RemoteRefreshSourceResolver implements PlaybackSourceResolver {
+  int resolveCalls = 0;
   final List<bool> remoteForceRefreshValues = <bool>[];
 
   @override
@@ -504,6 +561,7 @@ class _RemoteRefreshSourceResolver implements PlaybackSourceResolver {
     PlaybackQueueItem item, {
     required bool preferHighQuality,
   }) async {
+    resolveCalls++;
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
       url: 'stale-url-${item.id}',
@@ -520,6 +578,39 @@ class _RemoteRefreshSourceResolver implements PlaybackSourceResolver {
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
       url: 'fresh-url-${item.id}',
+    );
+  }
+}
+
+class _SourceErrorQualityFallbackResolver implements PlaybackSourceResolver {
+  final List<bool> remotePreferences = <bool>[];
+  final List<bool> remoteForceRefreshValues = <bool>[];
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: 'stale-${item.id}',
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) async {
+    remotePreferences.add(preferHighQuality);
+    remoteForceRefreshValues.add(forceRefresh);
+    if (preferHighQuality) {
+      throw TimeoutException('expired high quality url');
+    }
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: 'normal-fresh-${item.id}',
     );
   }
 }

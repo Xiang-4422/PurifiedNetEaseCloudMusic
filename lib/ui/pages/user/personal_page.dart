@@ -80,7 +80,7 @@ class PersonalPageView extends GetView<ShellController> {
     final recommendationController = RecommendationController.to;
     final libraryController = UserLibraryController.to;
     final playbackAction = Get.find<PlayerController>();
-    final recentPlaybackController = RecentPlaybackController.to..watchCurrentSong(playbackAction);
+    final recentPlaybackController = RecentPlaybackController.to;
     return Obx(() {
       if (recommendationController.dateLoaded.isFalse) {
         return const LoadingView();
@@ -94,6 +94,7 @@ class PersonalPageView extends GetView<ShellController> {
           recommendationController: recommendationController,
           libraryController: libraryController,
           playbackAction: playbackAction,
+          recentPlaybackController: recentPlaybackController,
           shellController: controller,
         );
       }
@@ -304,6 +305,7 @@ class _SquarePersonalPageView extends StatefulWidget {
     required this.recommendationController,
     required this.libraryController,
     required this.playbackAction,
+    required this.recentPlaybackController,
     required this.shellController,
   });
 
@@ -311,6 +313,7 @@ class _SquarePersonalPageView extends StatefulWidget {
   final RecommendationController recommendationController;
   final UserLibraryController libraryController;
   final PlayerController playbackAction;
+  final RecentPlaybackController recentPlaybackController;
   final ShellController shellController;
 
   @override
@@ -385,38 +388,56 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
   Widget _buildLibraryPage(BuildContext context) {
     return SafeArea(
       bottom: false,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Header(
-                '我的歌单',
-                padding: AppDimensions.paddingSmall,
-                height: widget.metrics.squareHeaderHeight,
+      child: CustomScrollView(
+        cacheExtent: 120,
+        physics: const ClampingScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: _RecentPlaybackStrip(
+              controller: widget.recentPlaybackController,
+              playbackAction: widget.playbackAction,
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Header(
+              '我的歌单',
+              padding: AppDimensions.paddingSmall,
+              height: widget.metrics.squareHeaderHeight,
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Obx(
+              () => PlayListWidget(
+                playLists: widget.libraryController.userPlayLists,
+                albumCountInWidget: widget.metrics.squarePlaylistCardCount,
+                albumMargin: AppDimensions.paddingSmall,
+                showSongCount: false,
+                isPlaying: widget.playbackAction.isPlaying.value,
+                playingPlaylistName: widget.playbackAction.sessionState.value.playlistName,
+                onPlayPlaylist: _playPlaylistSummary,
               ),
-              Obx(
-                () => PlayListWidget(
-                  playLists: widget.libraryController.userPlayLists,
-                  albumCountInWidget: widget.metrics.squarePlaylistCardCount,
-                  albumMargin: AppDimensions.paddingSmall,
-                  showSongCount: false,
-                  isPlaying: widget.playbackAction.isPlaying.value,
-                  playingPlaylistName: widget.playbackAction.sessionState.value.playlistName,
-                  onPlayPlaylist: _playPlaylistSummary,
-                ),
-              ),
-              const SizedBox(height: AppDimensions.paddingSmall),
-              PlayListItem(widget.libraryController.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
-              Header(
-                '资料库',
-                padding: AppDimensions.paddingSmall,
-                height: widget.metrics.squareHeaderHeight,
-              ),
-              const _LibraryShortcutBar(),
-            ],
-          );
-        },
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppDimensions.paddingSmall),
+          ),
+          SliverToBoxAdapter(
+            child: PlayListItem(widget.libraryController.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+          ),
+          SliverToBoxAdapter(
+            child: Header(
+              '资料库',
+              padding: AppDimensions.paddingSmall,
+              height: widget.metrics.squareHeaderHeight,
+            ),
+          ),
+          const SliverToBoxAdapter(
+            child: _LibraryShortcutBar(),
+          ),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppDimensions.paddingSmall),
+          ),
+        ],
       ),
     );
   }

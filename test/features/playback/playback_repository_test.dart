@@ -94,6 +94,25 @@ void main() {
       expect(historyDataSource.pruneMaxEntries, [100]);
     });
 
+    test('notifies after non-empty recent playback history is recorded', () async {
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: _FakePlaybackRestoreDataSource(),
+        playbackHistoryDataSource: _FakePlaybackHistoryDataSource(),
+      );
+      var updateCount = 0;
+      final subscription = repository.recentPlaybackUpdates.listen((_) {
+        updateCount++;
+      });
+      addTearDown(subscription.cancel);
+
+      await repository.recordPlayedTrack('netease:1');
+      await repository.recordPlayedTrack('');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(updateCount, 1);
+    });
+
     test('loads recently played tracks through music data repository', () async {
       final historyDataSource = _FakePlaybackHistoryDataSource(
         recentTrackIds: const ['netease:3', 'netease:1'],

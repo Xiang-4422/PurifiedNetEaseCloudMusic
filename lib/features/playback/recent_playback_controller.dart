@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:get/get.dart';
 
 /// 管理首页最近播放的本地优先展示状态。
@@ -32,7 +31,7 @@ class RecentPlaybackController extends GetxController {
   /// 最近播放加载错误；为空时表示无错误。
   final RxString errorMessage = ''.obs;
 
-  Worker? _playbackWorker;
+  StreamSubscription<void>? _recentPlaybackUpdates;
   int _requestGeneration = 0;
   int _lastLimit = _defaultLimit;
   bool _disposed = false;
@@ -40,23 +39,10 @@ class RecentPlaybackController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _recentPlaybackUpdates = _repository.recentPlaybackUpdates.listen((_) {
+      unawaited(loadRecent(limit: _lastLimit));
+    });
     unawaited(loadRecent());
-  }
-
-  /// 监听当前播放歌曲变化，并在确认歌曲变化后刷新最近播放。
-  void watchCurrentSong(PlayerController playbackController) {
-    if (_playbackWorker != null) {
-      return;
-    }
-    _playbackWorker = ever<PlaybackQueueItem>(
-      playbackController.currentSongState,
-      (song) {
-        if (song.id.isEmpty) {
-          return;
-        }
-        unawaited(loadRecent(limit: _lastLimit));
-      },
-    );
   }
 
   /// 从本地播放历史读取最近播放曲目。
@@ -94,7 +80,7 @@ class RecentPlaybackController extends GetxController {
   void onClose() {
     _disposed = true;
     _requestGeneration++;
-    _playbackWorker?.dispose();
+    unawaited(_recentPlaybackUpdates?.cancel());
     super.onClose();
   }
 }

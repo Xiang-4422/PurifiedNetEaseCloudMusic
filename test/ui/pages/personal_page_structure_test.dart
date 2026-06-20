@@ -38,17 +38,23 @@ void main() {
 
   test('personal page shows recent playback before the library sections', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
-    final recentControllerIndex = source.indexOf('RecentPlaybackController.to..watchCurrentSong(playbackAction)');
+    final recentControllerIndex = source.indexOf('final recentPlaybackController = RecentPlaybackController.to;');
     final recentStripIndex = source.indexOf('child: _RecentPlaybackStrip(');
+    final squareRecentStripIndex = source.indexOf('child: _RecentPlaybackStrip(', recentStripIndex + 1);
     final recentHeaderIndex = source.indexOf("'最近播放'");
     final playlistHeaderIndex = source.indexOf("'我的歌单'");
+    final squarePlaylistHeaderIndex = source.indexOf("'我的歌单'", playlistHeaderIndex + 1);
 
     expect(recentControllerIndex, isNonNegative);
     expect(recentStripIndex, isNonNegative);
+    expect(squareRecentStripIndex, isNonNegative);
     expect(recentHeaderIndex, isNonNegative);
     expect(playlistHeaderIndex, isNonNegative);
+    expect(squarePlaylistHeaderIndex, isNonNegative);
     expect(recentStripIndex, lessThan(playlistHeaderIndex));
+    expect(squareRecentStripIndex, lessThan(squarePlaylistHeaderIndex));
     expect(source, contains("playListName: '最近播放'"));
+    expect(source, isNot(contains('watchCurrentSong')));
   });
 
   test('download task page can open a focused local library tab', () {

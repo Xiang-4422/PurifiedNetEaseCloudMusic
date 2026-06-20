@@ -310,6 +310,9 @@ class _FakePlaybackRepository implements PlaybackRepository {
   final List<bool> preferHighQualityValues = <bool>[];
 
   @override
+  Stream<void> get recentPlaybackUpdates => const Stream<void>.empty();
+
+  @override
   Future<String?> fetchPlaybackUrl(
     String trackId, {
     required bool preferHighQuality,

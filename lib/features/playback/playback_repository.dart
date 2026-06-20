@@ -7,6 +7,7 @@ import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
+import 'package:bujuan/features/playback/application/recent_playback_updates.dart';
 
 /// 聚合播放恢复状态、曲目资源和歌词读取的仓库。
 class PlaybackRepository {
@@ -30,6 +31,10 @@ class PlaybackRepository {
   Future<void>? _restoreWriteFuture;
   Duration? _pendingRestorePosition;
   Future<void>? _positionWriteFuture;
+  final RecentPlaybackUpdates _recentPlaybackUpdates = RecentPlaybackUpdates();
+
+  /// 最近播放历史写入完成后的轻量通知。
+  Stream<void> get recentPlaybackUpdates => _recentPlaybackUpdates.stream;
 
   /// 读取曲目歌词。
   Future<TrackLyrics?> fetchSongLyrics(String trackId) {
@@ -69,6 +74,7 @@ class PlaybackRepository {
     await _playbackHistoryDataSource.prune(
       maxEntries: _maxRecentPlaybackEntries,
     );
+    _recentPlaybackUpdates.notify();
   }
 
   /// 保存曲目歌词。

@@ -78,13 +78,47 @@ void main() {
       expect(controller.errorMessage.value, contains('offline'));
       expect(controller.isLoading.value, isFalse);
     });
+
+    test('refreshes after local playback history update notification', () async {
+      final updates = StreamController<void>();
+      final controller = RecentPlaybackController(
+        repository: _FakePlaybackRepository(
+          results: [
+            Future.value([_track('netease:old')]),
+            Future.value([_track('netease:new')]),
+          ],
+          recentPlaybackUpdates: updates.stream,
+        ),
+        likedSongIds: () => const [],
+      );
+      addTearDown(() async {
+        controller.onClose();
+        await updates.close();
+      });
+
+      controller.onInit();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.recentTracks.map((item) => item.id), ['netease:old']);
+
+      updates.add(null);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.recentTracks.map((item) => item.id), ['netease:new']);
+    });
   });
 }
 
 class _FakePlaybackRepository implements PlaybackRepository {
-  _FakePlaybackRepository({required this.results});
+  _FakePlaybackRepository({
+    required this.results,
+    this.recentPlaybackUpdates = const Stream<void>.empty(),
+  });
 
   final List<Future<List<TrackWithResources>>> results;
+  @override
+  final Stream<void> recentPlaybackUpdates;
   final List<int> requestedLimits = <int>[];
 
   @override

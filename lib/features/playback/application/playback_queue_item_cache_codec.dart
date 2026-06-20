@@ -59,7 +59,7 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
       (item) => item.name == json['mediaType'],
       orElse: () => MediaType.playlist,
     ),
-    playbackUrl: json['playbackUrl'] as String?,
+    playbackUrl: _restorablePlaybackUrl(json['playbackUrl']),
     lyricKey: json['lyricKey'] as String?,
     localLyricsPath: _stringOrNull(json['localLyricsPath']) ?? _stringOrNull(metadata['localLyricsPath']),
     availability: _availabilityFrom(json['availability'] ?? metadata['availability']),
@@ -83,7 +83,7 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
     'artworkUrl': item.artworkUrl,
     'localArtworkPath': item.localArtworkPath,
     'mediaType': item.mediaType.name,
-    'playbackUrl': item.playbackUrl,
+    'playbackUrl': _restorablePlaybackUrl(item.playbackUrl),
     'lyricKey': item.lyricKey,
     'localLyricsPath': item.localLyricsPath,
     'availability': item.availability.name,
@@ -132,4 +132,16 @@ String? _stringOrNull(Object? value) {
     return null;
   }
   return '$value';
+}
+
+String? _restorablePlaybackUrl(Object? value) {
+  final url = _stringOrNull(value)?.trim();
+  if (url == null || url.isEmpty) {
+    return null;
+  }
+  final scheme = Uri.tryParse(url)?.scheme.toLowerCase();
+  if (scheme == 'http' || scheme == 'https') {
+    return null;
+  }
+  return url;
 }

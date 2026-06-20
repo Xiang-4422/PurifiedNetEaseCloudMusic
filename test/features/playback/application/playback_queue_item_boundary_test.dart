@@ -155,6 +155,44 @@ void main() {
       expect(raw['metadata'], {'custom': 'keep'});
     });
 
+    test('cache codec drops remote playback urls from restore cache', () async {
+      final encoded = await encodePlaybackQueueItemCacheList([
+        _queueItem(playbackUrl: 'https://example.com/song.mp3?expires=1'),
+      ]);
+      final raw = jsonDecode(encoded.single) as Map<String, dynamic>;
+
+      expect(raw['playbackUrl'], isNull);
+
+      final decoded = await decodePlaybackQueueItemCacheList(encoded);
+      expect(decoded.single.playbackUrl, isNull);
+
+      final legacy = jsonEncode({
+        'id': 'netease:1',
+        'sourceId': '1',
+        'title': 'Remote',
+        'mediaType': 'playlist',
+        'playbackUrl': 'https://example.com/legacy.mp3?expires=1',
+      });
+      final decodedLegacy = await decodePlaybackQueueItemCacheList([legacy]);
+
+      expect(decodedLegacy.single.playbackUrl, isNull);
+    });
+
+    test('cache codec preserves local playback urls for restore cache', () async {
+      final encoded = await encodePlaybackQueueItemCacheList([
+        _queueItem(
+          mediaType: MediaType.local,
+          playbackUrl: '/cache/audio/song.mp3',
+        ),
+      ]);
+      final raw = jsonDecode(encoded.single) as Map<String, dynamic>;
+
+      expect(raw['playbackUrl'], '/cache/audio/song.mp3');
+
+      final decoded = await decodePlaybackQueueItemCacheList(encoded);
+      expect(decoded.single.playbackUrl, '/cache/audio/song.mp3');
+    });
+
     test('cache codec migrates legacy metadata source type into explicit field', () async {
       final encoded = jsonEncode({
         'id': 'local:/music/a.mp3',
@@ -212,6 +250,8 @@ void main() {
 PlaybackQueueItem _queueItem({
   String? albumId,
   SourceType sourceType = SourceType.netease,
+  MediaType mediaType = MediaType.playlist,
+  String? playbackUrl = 'https://example.com/song.mp3',
   String? localLyricsPath,
   TrackAvailability availability = TrackAvailability.unknown,
   Map<String, dynamic> metadata = const {},
@@ -228,8 +268,8 @@ PlaybackQueueItem _queueItem({
     duration: const Duration(seconds: 3),
     artworkUrl: 'https://example.com/art.jpg',
     localArtworkPath: '/cache/art.jpg',
-    mediaType: MediaType.playlist,
-    playbackUrl: 'https://example.com/song.mp3',
+    mediaType: mediaType,
+    playbackUrl: playbackUrl,
     lyricKey: 'netease:1',
     localLyricsPath: localLyricsPath,
     availability: availability,

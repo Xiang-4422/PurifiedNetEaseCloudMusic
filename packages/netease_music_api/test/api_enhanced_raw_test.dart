@@ -374,6 +374,20 @@ void main() {
       });
     });
 
+    test('inner version mirrors upstream package version', () async {
+      final packageJson = _jsonMap(jsonDecode(File('${_findRepoRoot().path}/third_party/api-enhanced/package.json').readAsStringSync()));
+
+      expect(await api.requestModule('inner_version', {}), {
+        'code': 200,
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': {'version': packageJson['version']},
+        },
+      });
+      expect(apiEnhancedUpstreamVersion, packageJson['version']);
+    });
+
     test('login qr create mirrors upstream envelope and optional web qr image', () async {
       final pc = await api.requestModule('login_qr_create', {'key': 'abc'});
       expect(pc, {

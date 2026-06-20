@@ -279,7 +279,11 @@ mixin ApiEnhancedRaw {
   dynamic innerVersion() {
     return {
       'code': 200,
-      'data': {'version': '0.1.0'}
+      'status': 200,
+      'body': {
+        'code': 200,
+        'data': {'version': apiEnhancedUpstreamVersion},
+      },
     };
   }
 

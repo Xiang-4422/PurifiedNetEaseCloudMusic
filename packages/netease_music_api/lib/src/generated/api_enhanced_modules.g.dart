@@ -4,6 +4,8 @@
 
 import 'api_enhanced_module.dart';
 
+const String apiEnhancedUpstreamVersion = '4.35.2';
+
 const List<ApiEnhancedModule> apiEnhancedModules = [
   ApiEnhancedModule(
     module: 'activate_init_profile',

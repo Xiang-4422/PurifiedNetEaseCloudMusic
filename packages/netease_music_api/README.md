@@ -43,8 +43,8 @@ verifies generated files are up to date without writing them.
 The coverage report checks that normal upstream modules have Node oracle
 fixtures and that every special module is Node-oracle-covered or explicitly
 limited. It also reports the tracked submodule commit, dirty state, upstream
-module file count, and generated manifest differences so upstream refreshes are
-auditable from one command.
+module file count, generated manifest upstream version/commit, and generated
+manifest differences so upstream refreshes are auditable from one command.
 
 Upstream protocol reference is tracked in the repository submodule:
 

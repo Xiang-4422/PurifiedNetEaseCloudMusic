@@ -1791,6 +1791,8 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         'limit': _jsDefault(query['limit'], 100),
       };
+    case 'recent_listen_list':
+      return {};
     case 'song_download_url':
       return {
         'id': query['id'],

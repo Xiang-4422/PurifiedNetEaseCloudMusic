@@ -1207,6 +1207,12 @@ const fixtures = [
     },
   },
   {
+    module: 'recent_listen_list',
+    query: {
+      limit: 5,
+    },
+  },
+  {
     module: 'song_download_url',
     query: {
       id: '101',

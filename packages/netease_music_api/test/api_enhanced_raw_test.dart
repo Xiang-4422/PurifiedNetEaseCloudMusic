@@ -653,6 +653,7 @@ void main() {
       expect(api.requestModuleDioMetaData('record_recent_album', {}).data, {
         'limit': 100,
       });
+      expect(api.requestModuleDioMetaData('recent_listen_list', {'limit': 5}).data, isEmpty);
     });
 
     test('maps home discovery request data like upstream', () {

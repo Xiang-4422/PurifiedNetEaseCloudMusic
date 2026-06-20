@@ -3904,7 +3904,7 @@ Future<_CloudMetadataProbe> _readFileMetadataProbe(String path, int prefixLimit)
 }
 
 _CloudAudioMetadata? _parseCloudAudioMetadata(_CloudMetadataProbe probe) {
-  return _parseId3v2Metadata(probe.prefix) ?? _parseFlacVorbisMetadata(probe.prefix) ?? _parseId3v1Metadata(probe.tail ?? probe.prefix);
+  return _parseId3v2Metadata(probe.prefix) ?? _parseFlacVorbisMetadata(probe.prefix) ?? _parseMp4IlstMetadata(probe.prefix) ?? _parseId3v1Metadata(probe.tail ?? probe.prefix);
 }
 
 _CloudAudioMetadata? _parseId3v2Metadata(Uint8List bytes) {
@@ -4092,6 +4092,155 @@ _CloudAudioMetadata? _parseVorbisComment(Uint8List bytes) {
   return _CloudAudioMetadata(title: title, album: album, artist: artist);
 }
 
+_CloudAudioMetadata? _parseMp4IlstMetadata(Uint8List bytes) {
+  final values = <String, String>{};
+  _readMp4MetadataBoxes(bytes, 0, bytes.length, values, parentType: '', depth: 0);
+  if (values.isEmpty) {
+    return null;
+  }
+  return _CloudAudioMetadata(
+    title: values['title'],
+    album: values['album'],
+    artist: values['artist'] ?? values['albumArtist'],
+  );
+}
+
+void _readMp4MetadataBoxes(
+  Uint8List bytes,
+  int start,
+  int end,
+  Map<String, String> values, {
+  required String parentType,
+  required int depth,
+}) {
+  if (depth > 8 || start < 0 || end > bytes.length || start >= end) {
+    return;
+  }
+  var offset = start;
+  while (offset + 8 <= end) {
+    final boxStart = offset;
+    final declaredSize = _uint32BE(bytes, offset);
+    final typeOffset = offset + 4;
+    var headerSize = 8;
+    int boxSize;
+    if (declaredSize == 1) {
+      if (offset + 16 > end) {
+        break;
+      }
+      boxSize = _uint64BE(bytes, offset + 8);
+      headerSize = 16;
+    } else if (declaredSize == 0) {
+      boxSize = end - offset;
+    } else {
+      boxSize = declaredSize;
+    }
+    if (boxSize < headerSize) {
+      break;
+    }
+    final payloadStart = offset + headerSize;
+    final boxEnd = min(boxStart + boxSize, end);
+    if (payloadStart > boxEnd) {
+      break;
+    }
+
+    final type = _mp4AtomType(bytes, typeOffset);
+    if (parentType == 'ilst') {
+      final key = _mp4MetadataKey(bytes, typeOffset);
+      if (key != null && values[key] == null) {
+        final value = _parseMp4IlstDataValue(bytes, payloadStart, boxEnd);
+        if (value != null) {
+          values[key] = value;
+        }
+      }
+    } else if (_isMp4MetadataContainer(type)) {
+      final childStart = type == 'meta' ? min(payloadStart + 4, boxEnd) : payloadStart;
+      _readMp4MetadataBoxes(
+        bytes,
+        childStart,
+        boxEnd,
+        values,
+        parentType: type,
+        depth: depth + 1,
+      );
+    }
+
+    if (boxStart + boxSize > end) {
+      break;
+    }
+    offset = boxStart + boxSize;
+  }
+}
+
+bool _isMp4MetadataContainer(String type) {
+  switch (type) {
+    case 'moov':
+    case 'udta':
+    case 'meta':
+    case 'ilst':
+      return true;
+  }
+  return false;
+}
+
+String? _mp4MetadataKey(Uint8List bytes, int offset) {
+  if (_mp4AtomBytesEquals(bytes, offset, const [0xA9, 0x6E, 0x61, 0x6D])) {
+    return 'title';
+  }
+  if (_mp4AtomBytesEquals(bytes, offset, const [0xA9, 0x61, 0x6C, 0x62])) {
+    return 'album';
+  }
+  if (_mp4AtomBytesEquals(bytes, offset, const [0xA9, 0x41, 0x52, 0x54])) {
+    return 'artist';
+  }
+  if (_mp4AtomBytesEquals(bytes, offset, const [0x61, 0x41, 0x52, 0x54])) {
+    return 'albumArtist';
+  }
+  return null;
+}
+
+String? _parseMp4IlstDataValue(Uint8List bytes, int start, int end) {
+  var offset = start;
+  while (offset + 16 <= end) {
+    final boxStart = offset;
+    final declaredSize = _uint32BE(bytes, offset);
+    if (!_asciiEquals(bytes, offset + 4, 'data') || declaredSize < 16) {
+      if (declaredSize < 8) {
+        break;
+      }
+      offset += declaredSize;
+      continue;
+    }
+    final boxEnd = min(boxStart + declaredSize, end);
+    final payloadStart = boxStart + 16;
+    if (payloadStart > boxEnd) {
+      return null;
+    }
+    return _cleanMetadataText(
+      utf8.decode(bytes.sublist(payloadStart, boxEnd), allowMalformed: true),
+    );
+  }
+  return null;
+}
+
+String _mp4AtomType(Uint8List bytes, int offset) {
+  if (offset + 4 > bytes.length) {
+    return '';
+  }
+  return String.fromCharCodes(bytes.sublist(offset, offset + 4));
+}
+
+bool _mp4AtomBytesEquals(Uint8List bytes, int offset, List<int> expected) {
+  if (offset + expected.length > bytes.length) {
+    return false;
+  }
+  for (var index = 0; index < expected.length; index++) {
+    if (bytes[offset + index] != expected[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 String? _cleanMetadataText(String value) {
   final cleaned = value.replaceAll('\u0000', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
   return cleaned.isEmpty ? null : cleaned;
@@ -4139,4 +4288,15 @@ int _uint32LE(Uint8List bytes, int offset) {
     return 0;
   }
   return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24);
+}
+
+int _uint64BE(Uint8List bytes, int offset) {
+  if (offset + 8 > bytes.length) {
+    return 0;
+  }
+  var value = 0;
+  for (var index = 0; index < 8; index++) {
+    value = (value << 8) | bytes[offset + index];
+  }
+  return value;
 }

@@ -3357,6 +3357,49 @@ void main() {
       expect(proxy.requests[2].data, containsPair('artist', 'FLAC Artist'));
     });
 
+    test('cloud special module reads MP4 ilst tags before filename fallback', () async {
+      final proxy = _QueuedPostDioProxy([
+        {
+          'needUpload': false,
+          'songId': 456,
+        },
+        {
+          'result': {
+            'objectKey': 'cloud/object-key',
+            'token': 'cloud-token',
+            'resourceId': 'resource-1',
+          },
+        },
+        {
+          'code': 200,
+          'songId': 789,
+        },
+        {
+          'code': 200,
+          'published': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      await api.cloud({
+        'songFile': {
+          'name': 'Fallback.m4a',
+          'mimetype': 'audio/mp4',
+          'size': 12345,
+          'md5': 'abc',
+          'data': _mp4IlstMetadata(
+            title: 'M4A Title',
+            album: 'M4A Album',
+            artist: 'M4A Artist',
+          ),
+        },
+      });
+
+      expect(proxy.requests[2].data, containsPair('song', 'M4A Title'));
+      expect(proxy.requests[2].data, containsPair('album', 'M4A Album'));
+      expect(proxy.requests[2].data, containsPair('artist', 'M4A Artist'));
+    });
+
     test('voice upload special module mirrors upstream multipart flow and envelope', () async {
       expect(await api.voiceUpload({}), {
         'status': 500,
@@ -4172,6 +4215,62 @@ Uint8List _flacVorbisComment({
     block.length & 0xFF,
     ...block,
   ]);
+}
+
+Uint8List _mp4IlstMetadata({
+  required String title,
+  required String album,
+  required String artist,
+}) {
+  final ilst = _mp4Box('ilst'.codeUnits, [
+    ..._mp4TextTag(const [0xA9, 0x6E, 0x61, 0x6D], title),
+    ..._mp4TextTag(const [0xA9, 0x61, 0x6C, 0x62], album),
+    ..._mp4TextTag(const [0xA9, 0x41, 0x52, 0x54], artist),
+  ]);
+  final meta = _mp4Box('meta'.codeUnits, [
+    0,
+    0,
+    0,
+    0,
+    ...ilst,
+  ]);
+  final udta = _mp4Box('udta'.codeUnits, meta);
+  final moov = _mp4Box('moov'.codeUnits, udta);
+  return Uint8List.fromList([
+    ..._mp4Box('ftyp'.codeUnits, [
+      ...'M4A '.codeUnits,
+      0,
+      0,
+      0,
+      0,
+      ...'M4A '.codeUnits,
+      ...'mp42'.codeUnits,
+    ]),
+    ...moov,
+  ]);
+}
+
+List<int> _mp4TextTag(List<int> tag, String value) {
+  final data = _mp4Box('data'.codeUnits, [
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    ...utf8.encode(value),
+  ]);
+  return _mp4Box(tag, data);
+}
+
+List<int> _mp4Box(List<int> type, List<int> payload) {
+  return [
+    ..._uint32BEBytes(payload.length + 8),
+    ...type,
+    ...payload,
+  ];
 }
 
 Uint8List _id3v1Tag({

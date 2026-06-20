@@ -159,6 +159,48 @@ void main() {
       expect(controller.todayRecommendSongs.map((song) => song.id), ['new-today']);
       expect(controller.fmSongs.map((song) => song.id), ['new-fm']);
     });
+
+    test('ignores home refresh completion after close', () async {
+      final sessionController = _buildSessionController('user-1');
+      final libraryController = _FakeUserLibraryController();
+      final playlists = Completer<List<PlaylistSummaryData>>();
+      final todaySongs = Completer<List<PlaybackQueueItem>>();
+      final fmSongs = Completer<List<PlaybackQueueItem>>();
+      final repository = _FakeUserRepository(
+        fetchRecommendedPlaylistsWithArgs: ({required userId, required offset, required limit}) {
+          return playlists.future;
+        },
+        fetchTodayRecommendSongsWithArgs: ({required userId, required likedSongIds}) {
+          return todaySongs.future;
+        },
+        fetchFmSongsWithArgs: ({required userId, required likedSongIds}) {
+          return fmSongs.future;
+        },
+      );
+      final controller = RecommendationController(
+        repository: repository,
+        sessionController: sessionController,
+        libraryController: libraryController,
+      );
+      controller.recoPlayLists.add(const PlaylistSummaryData(id: 'visible-playlist', title: 'Visible'));
+      controller.todayRecommendSongs.add(_song('visible-today'));
+      controller.fmSongs.add(_song('visible-fm'));
+
+      final refresh = controller.updateData();
+      await _flushAsync();
+
+      controller.onClose();
+      playlists.complete([
+        const PlaylistSummaryData(id: 'late-playlist', title: 'Late'),
+      ]);
+      todaySongs.complete([_song('late-today')]);
+      fmSongs.complete([_song('late-fm')]);
+
+      await expectLater(refresh, completes);
+      expect(controller.recoPlayLists.map((playlist) => playlist.id), ['visible-playlist']);
+      expect(controller.todayRecommendSongs.map((song) => song.id), ['visible-today']);
+      expect(controller.fmSongs.map((song) => song.id), ['visible-fm']);
+    });
   });
 }
 
@@ -193,6 +235,12 @@ PlaybackQueueItem _song(String id) {
     isLiked: false,
     isCached: false,
   );
+}
+
+Future<void> _flushAsync() async {
+  for (var i = 0; i < 4; i++) {
+    await Future<void>.delayed(Duration.zero);
+  }
 }
 
 class _FakeUserLibraryController extends UserLibraryController {

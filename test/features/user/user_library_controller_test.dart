@@ -172,6 +172,79 @@ void main() {
 
       expect(controller.likedSongs.map((song) => song.title), ['Fresh liked song']);
     });
+
+    test('ignores scoped local data completion after close', () async {
+      final repository = _FakeUserRepository();
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+
+      final load = controller.loadScopedLocalData('user-1');
+      await _flushAsync();
+
+      controller.onClose();
+      repository.cacheFor('user-1').complete(
+        likedIds: [101],
+        userPlaylists: const [
+          PlaylistSummaryData(id: 'late-playlist', title: 'Late Playlist'),
+        ],
+        likedCollection: const [
+          PlaylistSummaryData(id: 'late-liked', title: 'Late Liked'),
+        ],
+      );
+
+      await expectLater(load, completes);
+      expect(controller.likedSongIds, isEmpty);
+      expect(controller.userPlayLists, isEmpty);
+      expect(controller.userLikedSongPlayList.value.id, isEmpty);
+      expect(controller.randomLikedSongId.value, isEmpty);
+      expect(controller.randomLikedSongAlbumUrl.value, isEmpty);
+      expect(controller.hasLocalData, isFalse);
+    });
+
+    test('ignores liked songs completion after close', () async {
+      final repository = _FakeUserRepository();
+      final remoteSongs = Completer<List<PlaybackQueueItem>>();
+      repository.fetchSongsByIdsWithArgs = ({required ids, required likedSongIds}) {
+        return remoteSongs.future;
+      };
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.likedSongIds.add(101);
+      controller.likedSongs.add(_song('101', title: 'Visible liked song'));
+
+      final load = controller.ensureLikedSongsLoaded(force: true);
+      await _flushAsync();
+
+      controller.onClose();
+      remoteSongs.complete([_song('101', title: 'Late remote song')]);
+
+      await expectLater(load, completes);
+      expect(controller.likedSongs.map((song) => song.title), ['Visible liked song']);
+    });
   });
 }
 
@@ -261,6 +334,12 @@ PlaybackQueueItem _song(String id, {required String title}) {
     isLiked: true,
     isCached: false,
   );
+}
+
+Future<void> _flushAsync() async {
+  for (var i = 0; i < 4; i++) {
+    await Future<void>.delayed(Duration.zero);
+  }
 }
 
 class _PendingUserCache {

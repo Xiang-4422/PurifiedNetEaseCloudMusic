@@ -87,6 +87,7 @@ class RecommendationController extends GetxController {
   int? _recoPlaylistRefreshGeneration;
   int? _recoPlaylistLoadMoreGeneration;
   bool _hasLocalData = false;
+  bool _disposed = false;
 
   /// 当前账号是否已有本地首页数据。
   bool get hasLocalData => _hasLocalData;
@@ -118,6 +119,9 @@ class RecommendationController extends GetxController {
   /// 启动首页数据加载流程，优先展示本地数据再按 TTL 后台刷新。
   Future<void> startHomeBootstrap() async {
     await ensureCacheLoaded();
+    if (_disposed) {
+      return;
+    }
     if (_hasLocalData) {
       dateLoaded.value = true;
       scheduleHomeImageColorPrewarm();
@@ -163,6 +167,9 @@ class RecommendationController extends GetxController {
 
   /// 刷新首页推荐、日推和 FM 候选数据。
   Future<void> updateData() async {
+    if (_disposed) {
+      return;
+    }
     final userId = _sessionController.userInfo.value.userId;
     final generation = ++_homeRefreshGeneration;
     if (userId.isEmpty) {
@@ -209,6 +216,9 @@ class RecommendationController extends GetxController {
 
   /// 刷新推荐歌单，`getMore` 为 true 时追加下一页。
   Future<void> updateRecoPlayLists({bool getMore = false}) async {
+    if (_disposed) {
+      return;
+    }
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
       return;
@@ -276,8 +286,14 @@ class RecommendationController extends GetxController {
 
   /// 延迟预热首页卡片封面主色，避免阻塞首帧数据展示。
   void scheduleHomeImageColorPrewarm() {
+    if (_disposed) {
+      return;
+    }
     _homeImageColorPrewarmTimer?.cancel();
     _homeImageColorPrewarmTimer = Timer(const Duration(milliseconds: 120), () {
+      if (_disposed) {
+        return;
+      }
       unawaited(
         ImageColorService.prewarm(
           [
@@ -385,19 +401,19 @@ class RecommendationController extends GetxController {
   }
 
   bool _isCurrentLocalDataLoad(String userId, int generation) {
-    return generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionController.userInfo.value.userId == userId;
+    return !_disposed && generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionController.userInfo.value.userId == userId;
   }
 
   bool _isCurrentRecoPlaylistLoad(String userId, int generation) {
-    return generation == _recoPlaylistGeneration && _isActiveSession(userId);
+    return !_disposed && generation == _recoPlaylistGeneration && _isActiveSession(userId);
   }
 
   bool _isCurrentHomeRefresh(String userId, int generation) {
-    return generation == _homeRefreshGeneration && _isActiveSession(userId);
+    return !_disposed && generation == _homeRefreshGeneration && _isActiveSession(userId);
   }
 
   bool _isActiveSession(String userId) {
-    return _sessionController.userInfo.value.userId == userId;
+    return !_disposed && _sessionController.userInfo.value.userId == userId;
   }
 
   bool get _hasVisibleHomeData {
@@ -406,6 +422,15 @@ class RecommendationController extends GetxController {
 
   @override
   void onClose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    _localDataGeneration++;
+    _homeRefreshGeneration++;
+    _recoPlaylistGeneration++;
+    _recoPlaylistRefreshGeneration = null;
+    _recoPlaylistLoadMoreGeneration = null;
     _homeImageColorPrewarmTimer?.cancel();
     refreshController.dispose();
     super.onClose();

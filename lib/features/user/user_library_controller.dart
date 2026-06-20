@@ -28,6 +28,7 @@ class UserLibraryController extends GetxController {
   int _localDataGeneration = 0;
   int _likedSongsLoadGeneration = 0;
   bool _hasLocalData = false;
+  bool _disposed = false;
 
   /// 当前账号是否已有本地资料库数据。
   bool get hasLocalData => _hasLocalData;
@@ -60,6 +61,9 @@ class UserLibraryController extends GetxController {
 
   /// 重新载入指定用户作用域下的本地资料库数据。
   Future<void> loadScopedLocalData(String userId) {
+    if (_disposed) {
+      return Future<void>.value();
+    }
     _activeLocalDataUserId = userId;
     final generation = ++_localDataGeneration;
     return _loadScopedLocalData(userId, generation);
@@ -79,6 +83,9 @@ class UserLibraryController extends GetxController {
 
   /// 刷新用户喜欢歌曲和歌单数据。
   Future<void> refreshUserLibrary() async {
+    if (_disposed) {
+      return;
+    }
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
       _clearScopedState();
@@ -89,11 +96,11 @@ class UserLibraryController extends GetxController {
       refreshLikedSongIds(),
       refreshUserPlaylists(),
     ]);
-    if (_sessionController.userInfo.value.userId != userId) {
+    if (!_isActiveSession(userId)) {
       return;
     }
     await refreshRandomLikedSong();
-    if (_sessionController.userInfo.value.userId != userId) {
+    if (!_isActiveSession(userId)) {
       return;
     }
     _hasLocalData = true;
@@ -101,13 +108,16 @@ class UserLibraryController extends GetxController {
 
   /// 刷新用户喜欢歌曲 id 列表。
   Future<void> refreshLikedSongIds() async {
+    if (_disposed) {
+      return;
+    }
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
       likedSongIds.clear();
       return;
     }
     final nextLikedSongIds = await _repository.fetchLikedSongIds(userId);
-    if (_sessionController.userInfo.value.userId != userId) {
+    if (!_isActiveSession(userId)) {
       return;
     }
     likedSongIds
@@ -117,6 +127,9 @@ class UserLibraryController extends GetxController {
 
   /// 刷新用户歌单列表并拆分“我喜欢的音乐”入口。
   Future<void> refreshUserPlaylists() async {
+    if (_disposed) {
+      return;
+    }
     final userId = _sessionController.userInfo.value.userId;
     if (userId.isEmpty || userId == '-1') {
       userPlayLists.clear();
@@ -124,7 +137,7 @@ class UserLibraryController extends GetxController {
       return;
     }
     final playLists = await _repository.fetchUserPlaylists(userId);
-    if (_sessionController.userInfo.value.userId != userId) {
+    if (!_isActiveSession(userId)) {
       return;
     }
     if (playLists.isEmpty) {
@@ -144,6 +157,9 @@ class UserLibraryController extends GetxController {
   Future<PlaybackQueueItem?> toggleLikeStatus(
     PlaybackQueueItem currentSong,
   ) async {
+    if (_disposed) {
+      return null;
+    }
     final userId = _sessionController.userInfo.value.userId;
     final songId = _resolveSongSourceId(currentSong);
     final numericSongId = int.tryParse(songId);
@@ -156,7 +172,7 @@ class UserLibraryController extends GetxController {
     if (!serverStatus.success) {
       return null;
     }
-    if (_sessionController.userInfo.value.userId != userId) {
+    if (!_isActiveSession(userId)) {
       return null;
     }
 
@@ -178,6 +194,9 @@ class UserLibraryController extends GetxController {
 
   /// 确保喜欢歌曲队列已加载，可通过 `force` 强制远程刷新。
   Future<void> ensureLikedSongsLoaded({bool force = false}) async {
+    if (_disposed) {
+      return;
+    }
     final userId = _sessionController.userInfo.value.userId;
     final requestedLikedSongIds = likedSongIds.toList();
     final generation = ++_likedSongsLoadGeneration;
@@ -246,9 +265,12 @@ class UserLibraryController extends GetxController {
 
   /// 刷新随机喜欢歌曲及其封面，用于心动模式入口展示。
   Future<void> refreshRandomLikedSong() async {
+    if (_disposed) {
+      return;
+    }
     final userId = _sessionController.userInfo.value.userId;
     final nextRandomLikedSong = await _resolveRandomLikedSong();
-    if (_sessionController.userInfo.value.userId != userId) {
+    if (!_isActiveSession(userId)) {
       return;
     }
     randomLikedSongId.value = nextRandomLikedSong.songId;
@@ -327,7 +349,7 @@ class UserLibraryController extends GetxController {
   }
 
   bool _isCurrentLocalDataLoad(String userId, int generation) {
-    return generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionController.userInfo.value.userId == userId;
+    return !_disposed && generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionController.userInfo.value.userId == userId;
   }
 
   bool _isCurrentLikedSongsLoad(
@@ -335,7 +357,11 @@ class UserLibraryController extends GetxController {
     int generation,
     List<int> requestedLikedSongIds,
   ) {
-    return generation == _likedSongsLoadGeneration && _sessionController.userInfo.value.userId == userId && _sameLikedSongIds(requestedLikedSongIds);
+    return !_disposed && generation == _likedSongsLoadGeneration && _isActiveSession(userId) && _sameLikedSongIds(requestedLikedSongIds);
+  }
+
+  bool _isActiveSession(String userId) {
+    return !_disposed && _sessionController.userInfo.value.userId == userId;
   }
 
   bool _sameLikedSongIds(List<int> requestedLikedSongIds) {
@@ -379,5 +405,16 @@ class UserLibraryController extends GetxController {
     userLikedSongPlayList.value = const PlaylistSummaryData(id: '', title: '');
     randomLikedSongAlbumUrl.value = '';
     randomLikedSongId.value = '';
+  }
+
+  @override
+  void onClose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    _localDataGeneration++;
+    _likedSongsLoadGeneration++;
+    super.onClose();
   }
 }

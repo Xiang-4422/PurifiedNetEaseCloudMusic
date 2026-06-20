@@ -1411,6 +1411,61 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'vip_growthpoint',
+    query: {},
+  },
+  {
+    module: 'vip_growthpoint_details',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'vip_growthpoint_get',
+    query: {
+      ids: 'task-1,task-2',
+    },
+  },
+  {
+    module: 'vip_info',
+    query: {
+      uid: '42',
+    },
+  },
+  {
+    module: 'vip_info_v2',
+    query: {
+      uid: '42',
+    },
+  },
+  {
+    module: 'vip_sign',
+    query: {},
+  },
+  {
+    module: 'vip_sign_detail',
+    query: {
+      timestamp: 1767110400000,
+    },
+  },
+  {
+    module: 'vip_sign_info',
+    query: {},
+  },
+  {
+    module: 'vip_tasks',
+    query: {},
+  },
+  {
+    module: 'vip_timemachine',
+    query: {
+      startTime: 1,
+      endTime: 2,
+      limit: 30,
+    },
+  },
+  {
     module: 'playlist_catlist',
     query: {},
   },

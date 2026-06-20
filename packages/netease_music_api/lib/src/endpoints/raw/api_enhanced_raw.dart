@@ -1375,6 +1375,10 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'listen_data_year_report':
     case 'sati_resource_sub_list':
     case 'sati_tag_list':
+    case 'vip_growthpoint':
+    case 'vip_sign':
+    case 'vip_sign_info':
+    case 'vip_tasks':
       return {};
     case 'broadcast_channel_collect_list':
       return {
@@ -1414,6 +1418,35 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'type': _jsDefault(query['type'], 'week'),
         if (query.containsKey('endTime')) 'endTime': query['endTime'],
       };
+    case 'vip_growthpoint_details':
+      return {
+        'limit': _jsDefault(query['limit'], 20),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'vip_growthpoint_get':
+      return {
+        'taskIds': query['ids'],
+      };
+    case 'vip_info':
+    case 'vip_info_v2':
+      return {
+        'userId': _jsDefault(query['uid'], ''),
+      };
+    case 'vip_sign_detail':
+      return {
+        if (query.containsKey('timestamp')) 'signDayTime': query['timestamp'],
+        'type': '1',
+      };
+    case 'vip_timemachine':
+      if (_jsTruthy(query['startTime']) && _jsTruthy(query['endTime'])) {
+        return {
+          'startTime': query['startTime'],
+          'endTime': query['endTime'],
+          'type': 1,
+          'limit': _jsDefault(query['limit'], 60),
+        };
+      }
+      return {};
     case 'sati_resource_list':
       return {
         'tag': query['tag'],

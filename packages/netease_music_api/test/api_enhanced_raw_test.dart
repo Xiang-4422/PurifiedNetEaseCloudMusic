@@ -708,6 +708,37 @@ void main() {
       expect(api.requestModuleDioMetaData('listen_data_year_report', {}).data, isEmpty);
     });
 
+    test('maps vip request data like upstream', () {
+      expect(api.requestModuleDioMetaData('vip_growthpoint', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('vip_growthpoint_details', {}).data, {
+        'limit': 20,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('vip_growthpoint_get', {'ids': 'task-1,task-2'}).data, {
+        'taskIds': 'task-1,task-2',
+      });
+      expect(api.requestModuleDioMetaData('vip_info', {}).data, {
+        'userId': '',
+      });
+      expect(api.requestModuleDioMetaData('vip_info_v2', {'uid': '42'}).data, {
+        'userId': '42',
+      });
+      expect(api.requestModuleDioMetaData('vip_sign', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('vip_sign_detail', {'timestamp': 1767110400000}).data, {
+        'signDayTime': 1767110400000,
+        'type': '1',
+      });
+      expect(api.requestModuleDioMetaData('vip_sign_info', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('vip_tasks', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('vip_timemachine', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('vip_timemachine', {'startTime': 1, 'endTime': 2}).data, {
+        'startTime': 1,
+        'endTime': 2,
+        'type': 1,
+        'limit': 60,
+      });
+    });
+
     test('maps user library request data like upstream', () {
       expect(api.requestModuleDioMetaData('user_account', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('user_subcount', {}).data, isEmpty);

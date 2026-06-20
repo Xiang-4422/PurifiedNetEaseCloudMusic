@@ -297,14 +297,19 @@ class LocalResourceIndexRepository {
       return '';
     }
     final uri = Uri.tryParse(trimmedPath);
-    if (uri != null && uri.scheme == 'file') {
+    final scheme = uri?.scheme.toLowerCase();
+    if (uri != null && scheme == 'file') {
+      final host = uri.host.toLowerCase();
+      if (!Platform.isWindows && host.isNotEmpty && host != 'localhost') {
+        return '';
+      }
       return Uri(
-        scheme: uri.scheme,
-        host: uri.host.isEmpty ? null : uri.host,
+        scheme: 'file',
+        host: Platform.isWindows && host.isNotEmpty && host != 'localhost' ? uri.host : null,
         path: uri.path,
       ).toFilePath(windows: Platform.isWindows);
     }
-    if (trimmedPath.startsWith('http://') || trimmedPath.startsWith('https://')) {
+    if (scheme == 'http' || scheme == 'https') {
       return '';
     }
     return trimmedPath.split('?').first;

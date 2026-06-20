@@ -91,6 +91,47 @@ void main() {
       );
     });
 
+    test('accepts localhost file uri authority when saving resources', () async {
+      final localFile = await _writeTempFile(tempDirectory, 'localhost.flac');
+
+      await repository.saveAudioResource(
+        'netease:1',
+        path: Uri(
+          scheme: 'file',
+          host: 'localhost',
+          path: localFile.path,
+          queryParameters: {'token': 'local'},
+        ).toString(),
+        origin: TrackResourceOrigin.localImport,
+      );
+
+      final resource = await repository.getPrimaryAudioResource('netease:1');
+      expect(resource?.path, localFile.path);
+    });
+
+    test('rejects non-localhost file uri authority when saving resources', () async {
+      final localFile = await _writeTempFile(tempDirectory, 'remote-authority.flac');
+
+      await repository.saveAudioResource(
+        'netease:1',
+        path: Uri(
+          scheme: 'file',
+          host: 'media-server',
+          path: localFile.path,
+        ).toString(),
+        origin: TrackResourceOrigin.localImport,
+      );
+
+      expect(await repository.getPrimaryAudioResource('netease:1'), isNull);
+      expect(
+        await dataSource.getResource(
+          'netease:1',
+          LocalResourceKind.audio,
+        ),
+        isNull,
+      );
+    });
+
     test('allows lower priority cache to replace missing higher priority file', () async {
       final missingManagedFile = File('${tempDirectory.path}/missing.flac');
       final cacheFile = await _writeTempFile(tempDirectory, 'cache.mp3');
@@ -213,6 +254,35 @@ void main() {
       expect(
         await dataSource.getResource(
           'netease:missing',
+          LocalResourceKind.audio,
+        ),
+        isNull,
+      );
+    });
+
+    test('prunes legacy non-localhost file uri resource indexes', () async {
+      final existingAudio = await _writeTempFile(tempDirectory, 'legacy-remote-authority.mp3');
+      await dataSource.saveResource(
+        _resource(
+          trackId: 'netease:legacy',
+          path: Uri(
+            scheme: 'file',
+            host: 'media-server',
+            path: existingAudio.path,
+          ).toString(),
+          origin: TrackResourceOrigin.playbackCache,
+        ),
+      );
+
+      final resources = await repository.listResources(
+        origins: const {TrackResourceOrigin.playbackCache},
+        kinds: const {LocalResourceKind.audio},
+      );
+
+      expect(resources, isEmpty);
+      expect(
+        await dataSource.getResource(
+          'netease:legacy',
           LocalResourceKind.audio,
         ),
         isNull,

@@ -1,15 +1,11 @@
 import 'dart:async';
 
-import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/bootstrap/app_bootstrap.dart';
-import 'package:bujuan/app/routing/app_router_observer.dart';
-import 'package:bujuan/app/routing/router.dart';
-import 'package:bujuan/app/routing/router.gr.dart';
+import 'package:bujuan/app/bootstrap/route_bootstrap.dart';
+import 'package:bujuan/features/auth/auth_controller.dart';
+import 'package:bujuan/features/auth/auth_ui_effect.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/theme/app_theme.dart';
-import 'package:bujuan/features/auth/auth_controller.dart';
-import 'package:bujuan/features/auth/auth_state_store.dart';
-import 'package:bujuan/features/auth/auth_ui_effect.dart';
 import 'package:bujuan/ui/widgets/common/layout/scroll_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -19,15 +15,7 @@ class App extends StatelessWidget {
   /// 创建应用根组件。
   const App({super.key});
 
-  static final RootRouter _rootRouter = RootRouter();
-  static const AuthStateStore _authStateStore = AuthStateStore();
-
-  static List<PageRouteInfo> _buildInitialRoutes() {
-    if (_authStateStore.hasCachedSession) {
-      return const [AppHomeRouteView()];
-    }
-    return const [LoginRouteView()];
-  }
+  static final AppRouteBootstrapResult _routes = initializeRouteInfrastructure();
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +28,13 @@ class App extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
-      routeInformationParser: _rootRouter.defaultRouteParser(),
-      routerDelegate: _rootRouter.delegate(
-        initialRoutes: _buildInitialRoutes(),
-        navigatorObservers: () => [AppRouterObserver()],
+      routeInformationParser: _routes.router.defaultRouteParser(),
+      routerDelegate: _routes.router.delegate(
+        initialRoutes: _routes.buildInitialRoutes(),
+        navigatorObservers: _routes.buildNavigatorObservers,
       ),
       builder: (context, child) => _AuthUiEffectListener(
-        onLoginExpired: () => _rootRouter.replaceNamed(Routes.login),
+        onLoginExpired: _routes.replaceWithLogin,
         child: child ?? const SizedBox.shrink(),
       ),
     );

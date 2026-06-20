@@ -1236,6 +1236,7 @@ void main() {
       const expectedFiles = [
         'lib/app/bootstrap/app_bootstrap.dart',
         'lib/app/bootstrap/bootstrap_ui.dart',
+        'lib/app/bootstrap/route_bootstrap.dart',
         'lib/app/bootstrap/sdk_bootstrap.dart',
         'lib/app/bootstrap/storage_bootstrap.dart',
         'lib/app/bootstrap/data_source_bootstrap.dart',
@@ -1252,6 +1253,11 @@ void main() {
         ],
         'lib/app/bootstrap/bootstrap_ui.dart': [
           'Future<void> initializeBootstrapUi()',
+        ],
+        'lib/app/bootstrap/route_bootstrap.dart': [
+          'class AppRouteBootstrapResult',
+          'AppRouteBootstrapResult initializeRouteInfrastructure()',
+          'List<PageRouteInfo> buildInitialRoutes()',
         ],
         'lib/app/bootstrap/sdk_bootstrap.dart': [
           'Future<NeteaseMusicApi> initializeSdk({required bool debug})',
@@ -1294,10 +1300,23 @@ void main() {
           entry.value.where((symbol) => !content.contains(symbol)).map((symbol) => '${entry.key}: $symbol'),
         );
       }
+      final appRoot = File('${projectRoot.path}/lib/app.dart').readAsStringSync();
       final appBootstrap = File('${projectRoot.path}/lib/app/bootstrap/app_bootstrap.dart').readAsStringSync();
       final dataBootstrap = File('${projectRoot.path}/lib/app/bootstrap/data_bootstrap.dart').readAsStringSync();
+      final routeBootstrap = File('${projectRoot.path}/lib/app/bootstrap/route_bootstrap.dart').readAsStringSync();
       final repositoryBootstrap = File('${projectRoot.path}/lib/app/bootstrap/repository_bootstrap.dart').readAsStringSync();
       final sdkBootstrap = File('${projectRoot.path}/lib/app/bootstrap/sdk_bootstrap.dart').readAsStringSync();
+      final routeOwnershipViolations = <String>[
+        if (!appRoot.contains('static final AppRouteBootstrapResult _routes = initializeRouteInfrastructure();')) 'app root does not initialize route bootstrap result',
+        if (!appRoot.contains('routeInformationParser: _routes.router.defaultRouteParser()')) 'app root does not delegate route parser to route bootstrap',
+        if (!appRoot.contains('navigatorObservers: _routes.buildNavigatorObservers')) 'app root does not delegate route observers to route bootstrap',
+        if (appRoot.contains('RootRouter(')) 'app root creates RootRouter directly',
+        if (appRoot.contains('AppRouterObserver(')) 'app root creates route observer directly',
+        if (appRoot.contains('AuthStateStore')) 'app root reads auth state store directly',
+        if (!routeBootstrap.contains('RootRouter()')) 'route_bootstrap does not create RootRouter',
+        if (!routeBootstrap.contains('hasCachedSession')) 'route_bootstrap does not own initial route session check',
+        if (!routeBootstrap.contains('replaceNamed(Routes.login)')) 'route_bootstrap does not own login-expired navigation target',
+      ];
       final sdkOwnershipViolations = <String>[
         if (!appBootstrap.contains('final neteaseApi = await initializeSdk(')) 'app_bootstrap does not receive SDK instance from sdk_bootstrap',
         if (!appBootstrap.contains('initializeDataInfrastructure(neteaseApi: neteaseApi)')) 'app_bootstrap does not pass SDK instance into data bootstrap',
@@ -1341,12 +1360,17 @@ void main() {
       expect(
         missingFiles,
         isEmpty,
-        reason: 'bootstrap 应按 UI、SDK、storage、数据源、repository、数据装配、播放、展示适配器、feature/controller 职责拆分。',
+        reason: 'bootstrap 应按 UI、route、SDK、storage、数据源、repository、数据装配、播放、展示适配器、feature/controller 职责拆分。',
       );
       expect(
         missingEntrypoints,
         isEmpty,
         reason: '每个 bootstrap 文件必须保留清晰入口，避免装配职责重新混到单个大文件。',
+      );
+      expect(
+        routeOwnershipViolations,
+        isEmpty,
+        reason: 'route bootstrap 必须收口根路由、初始路由和登录失效导航，App 根组件只承接 GetMaterialApp.router。',
       );
       expect(
         sdkOwnershipViolations,

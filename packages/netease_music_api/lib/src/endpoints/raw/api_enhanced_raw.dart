@@ -2007,6 +2007,48 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'includeRedHeart': 'true',
         'includeTop': 'true',
       };
+    case 'mv_all':
+      return {
+        'tags': jsonEncode({
+          '地区': _jsDefault(query['area'], '全部'),
+          '类型': _jsDefault(query['type'], '全部'),
+          '排序': _jsDefault(query['order'], '上升最快'),
+        }),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': 'true',
+        'limit': _jsDefault(query['limit'], 30),
+      };
+    case 'mv_detail':
+      return {
+        'id': query['mvid'],
+      };
+    case 'mv_detail_info':
+      return {
+        'threadid': 'R_MV_5_${query['mvid']}',
+        'composeliked': true,
+      };
+    case 'mv_exclusive_rcmd':
+      return {
+        'offset': _jsDefault(query['offset'], 0),
+        'limit': _jsDefault(query['limit'], 30),
+      };
+    case 'mv_first':
+      return {
+        'area': _jsDefault(query['area'], ''),
+        'limit': _jsDefault(query['limit'], 30),
+        'total': true,
+      };
+    case 'mv_sub':
+      return {
+        'mvId': query['mvid'],
+        'mvIds': '["${query['mvid']}"]',
+      };
+    case 'mv_sublist':
+      return {
+        'limit': _jsDefault(query['limit'], 25),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
     case 'mv_url':
       return {
         'id': query['id'],
@@ -2323,6 +2365,8 @@ String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
       return '/api/v1/resource/hotcomments/${_resourceTypePrefix(query['type'])}${query['id']}';
     case 'comment_like':
       return '/api/v1/comment/${query['t']?.toString() == '1' ? 'like' : 'unlike'}';
+    case 'mv_sub':
+      return '/api/mv/${query['t']?.toString() == '1' ? 'sub' : 'unsub'}';
     case 'playlist_subscribe':
       return query['t']?.toString() == '1' ? '/api/playlist/subscribe' : '/api/playlist/unsubscribe';
     case 'search':

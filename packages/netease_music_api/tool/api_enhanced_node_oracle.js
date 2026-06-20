@@ -1277,6 +1277,63 @@ const fixtures = [
     },
   },
   {
+    module: 'mv_all',
+    query: {
+      area: '内地',
+      type: '官方版',
+      order: '最新',
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'mv_detail',
+    query: {
+      mvid: '5436712',
+    },
+  },
+  {
+    module: 'mv_detail_info',
+    query: {
+      mvid: '5436712',
+    },
+  },
+  {
+    module: 'mv_exclusive_rcmd',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'mv_first',
+    query: {
+      area: '内地',
+      limit: 10,
+    },
+  },
+  {
+    module: 'mv_sub',
+    query: {
+      mvid: '5436712',
+      t: 1,
+    },
+  },
+  {
+    module: 'mv_sub',
+    query: {
+      mvid: '5436712',
+      t: 0,
+    },
+  },
+  {
+    module: 'mv_sublist',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
     module: 'mv_url',
     query: {
       id: '5436712',

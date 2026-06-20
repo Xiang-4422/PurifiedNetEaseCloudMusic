@@ -808,6 +808,43 @@ void main() {
       expect(api.requestModuleDioMetaData('yunbei_today', {}).data, isEmpty);
     });
 
+    test('maps mv request data like upstream', () {
+      expect(api.requestModuleDioMetaData('mv_all', {}).data, {
+        'tags': '{"地区":"全部","类型":"全部","排序":"上升最快"}',
+        'offset': 0,
+        'total': 'true',
+        'limit': 30,
+      });
+      expect(api.requestModuleDioMetaData('mv_detail', {'mvid': '5436712'}).data, {
+        'id': '5436712',
+      });
+      expect(api.requestModuleDioMetaData('mv_detail_info', {'mvid': '5436712'}).data, {
+        'threadid': 'R_MV_5_5436712',
+        'composeliked': true,
+      });
+      expect(api.requestModuleDioMetaData('mv_exclusive_rcmd', {}).data, {
+        'offset': 0,
+        'limit': 30,
+      });
+      expect(api.requestModuleDioMetaData('mv_first', {'area': '内地', 'limit': 10}).data, {
+        'area': '内地',
+        'limit': 10,
+        'total': true,
+      });
+      final subMetaData = api.requestModuleDioMetaData('mv_sub', {'mvid': '5436712', 't': 1});
+      expect(subMetaData.uri.path, '/api/mv/sub');
+      expect(subMetaData.data, {
+        'mvId': '5436712',
+        'mvIds': '["5436712"]',
+      });
+      expect(api.requestModuleDioMetaData('mv_sub', {'mvid': '5436712', 't': 0}).uri.path, '/api/mv/unsub');
+      expect(api.requestModuleDioMetaData('mv_sublist', {}).data, {
+        'limit': 25,
+        'offset': 0,
+        'total': true,
+      });
+    });
+
     test('maps user library request data like upstream', () {
       expect(api.requestModuleDioMetaData('user_account', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('user_subcount', {}).data, isEmpty);

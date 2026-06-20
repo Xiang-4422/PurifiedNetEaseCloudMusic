@@ -786,12 +786,51 @@ void main() {
       expect(api.requestModuleDioMetaData('verify_qrcodestatus', {'qr': 'qr-code'}).data, {
         'qrCode': 'qr-code',
       });
+      expect(api.requestModuleDioMetaData('register_cellphone', {'phone': '13000000000', 'password': 'secret', 'captcha': '1234', 'nickname': 'listener'}).data, {
+        'captcha': '1234',
+        'phone': '13000000000',
+        'password': '5ebe2294ecd0e0f08eab7690d2a6ee69',
+        'nickname': 'listener',
+        'countrycode': '86',
+        'force': 'false',
+      });
+      expect(api.requestModuleDioMetaData('register_cellphone', {'phone': '13000000000', 'password': 'secret', 'captcha': '1234', 'nickname': 'listener', 'countrycode': '1'}).data, {
+        'captcha': '1234',
+        'phone': '13000000000',
+        'password': '5ebe2294ecd0e0f08eab7690d2a6ee69',
+        'nickname': 'listener',
+        'countrycode': '1',
+        'force': 'false',
+      });
+      expect(api.requestModuleDioMetaData('rebind', {'phone': '13000000000', 'captcha': '1234', 'oldcaptcha': '5678'}).data, {
+        'captcha': '1234',
+        'phone': '13000000000',
+        'oldcaptcha': '5678',
+        'ctcode': '86',
+      });
+      expect(api.requestModuleDioMetaData('rebind', {'phone': '13000000000', 'captcha': '1234', 'oldcaptcha': '5678', 'ctcode': '1'}).data, {
+        'captcha': '1234',
+        'phone': '13000000000',
+        'oldcaptcha': '5678',
+        'ctcode': '1',
+      });
     });
 
     test('maps account and library request data like upstream', () {
       expect(api.requestModuleDioMetaData('login_status', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('login_refresh', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('logout', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('activate_init_profile', {'nickname': 'listener'}).data, {
+        'nickname': 'listener',
+      });
+      expect(api.requestModuleDioMetaData('creator_authinfo_get', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('get_userids', {'nicknames': 'alice,bob'}).data, {
+        'nicknames': 'alice,bob',
+      });
+      expect(api.requestModuleDioMetaData('nickname_check', {'nickname': 'listener'}).data, {
+        'nickname': 'listener',
+      });
+      expect(api.requestModuleDioMetaData('setting', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('recommend_resource', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('personal_fm', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('homepage_dragon_ball', {}).data, isEmpty);

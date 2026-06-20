@@ -1092,6 +1092,10 @@ mixin ApiEnhancedRaw {
 
 Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
   switch (module) {
+    case 'activate_init_profile':
+      return {
+        'nickname': query['nickname'],
+      };
     case 'album':
       return {};
     case 'album_detail_dynamic':
@@ -1368,6 +1372,8 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'cellphone': query['phone'],
         'countrycode': query['countrycode'],
       };
+    case 'creator_authinfo_get':
+      return {};
     case 'countries_code_list':
       return {};
     case 'verify_getQr':
@@ -1385,9 +1391,26 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         'qrCode': query['qr'],
       };
+    case 'register_cellphone':
+      return {
+        'captcha': query['captcha'],
+        'phone': query['phone'],
+        'password': _md5Hex(query['password']?.toString() ?? ''),
+        'nickname': query['nickname'],
+        'countrycode': _jsDefault(query['countrycode'], '86'),
+        'force': 'false',
+      };
+    case 'rebind':
+      return {
+        'captcha': query['captcha'],
+        'phone': query['phone'],
+        'oldcaptcha': query['oldcaptcha'],
+        'ctcode': _jsDefault(query['ctcode'], '86'),
+      };
     case 'login_status':
     case 'login_refresh':
     case 'logout':
+    case 'setting':
       return {};
     case 'likelist':
       return {
@@ -1925,6 +1948,14 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'search_suggest_pc':
       return {
         'keyword': _jsDefault(query['keyword'], ''),
+      };
+    case 'get_userids':
+      return {
+        'nicknames': query['nicknames'],
+      };
+    case 'nickname_check':
+      return {
+        'nickname': query['nickname'],
       };
     case 'sheet_list':
       return {

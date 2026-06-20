@@ -428,6 +428,42 @@ const fixtures = [
     },
   },
   {
+    module: 'register_cellphone',
+    query: {
+      phone: '13800000000',
+      password: 'secret',
+      captcha: '1234',
+      nickname: 'listener',
+    },
+  },
+  {
+    module: 'register_cellphone',
+    query: {
+      phone: '13800000000',
+      password: 'secret',
+      captcha: '1234',
+      nickname: 'listener',
+      countrycode: '1',
+    },
+  },
+  {
+    module: 'rebind',
+    query: {
+      phone: '13800000000',
+      captcha: '1234',
+      oldcaptcha: '5678',
+    },
+  },
+  {
+    module: 'rebind',
+    query: {
+      phone: '13800000000',
+      captcha: '1234',
+      oldcaptcha: '5678',
+      ctcode: '1',
+    },
+  },
+  {
     module: 'login_status',
     query: {},
   },
@@ -437,6 +473,32 @@ const fixtures = [
   },
   {
     module: 'logout',
+    query: {},
+  },
+  {
+    module: 'activate_init_profile',
+    query: {
+      nickname: 'listener',
+    },
+  },
+  {
+    module: 'creator_authinfo_get',
+    query: {},
+  },
+  {
+    module: 'get_userids',
+    query: {
+      nicknames: 'alice,bob',
+    },
+  },
+  {
+    module: 'nickname_check',
+    query: {
+      nickname: 'listener',
+    },
+  },
+  {
+    module: 'setting',
     query: {},
   },
   {

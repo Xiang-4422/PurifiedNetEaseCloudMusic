@@ -677,7 +677,11 @@ mixin ApiEnhancedRaw {
   /// Cloud upload full flow.
   Future<dynamic> cloud(Map<String, dynamic> query) async {
     final token = await cloudUploadToken(query);
-    final data = _asMap(token['data']);
+    final tokenBody = _asMap(token['body']);
+    if (token['status'] != 200) {
+      return token;
+    }
+    final data = _asMap(tokenBody['data']);
     if (data['needUpload'] == true && data['uploadUrl'] != null) {
       await _uploadBinary(data['uploadUrl'].toString(), query, token: data['uploadToken']?.toString(), contentMd5: data['md5']?.toString());
     }
@@ -737,7 +741,13 @@ mixin ApiEnhancedRaw {
     final fileSize = query['fileSize'] ?? await _fileSize(query);
     final md5 = query['md5']?.toString();
     if (md5 == null || fileSize == null || filename.isEmpty) {
-      throw ArgumentError('md5, fileSize and filename are required');
+      return {
+        'status': 400,
+        'body': {
+          'code': 400,
+          'msg': '缺少必要参数: md5, fileSize, filename',
+        },
+      };
     }
     final bitrate = query['bitrate'] ?? 999000;
     final checkRes = await Https.dioProxy.postUri(
@@ -763,23 +773,61 @@ mixin ApiEnhancedRaw {
         options: _rawOptions(EncryptType.WeApi, '/api/nos/token/alloc', query),
       ),
     );
-    final lbs = (await Https.dio.get('https://wanproxy.127.net/lbs', queryParameters: {'version': '1.0', 'bucketname': bucket})).data;
-    final uploadHost = _asMap(lbs)['upload'] is List && (_asMap(lbs)['upload'] as List).isNotEmpty ? (_asMap(lbs)['upload'] as List).first.toString() : '';
     final result = _asMap(_asMap(tokenRes.data)['result']);
+    if (result['objectKey'] == null) {
+      return {
+        'status': 500,
+        'body': {
+          'code': 500,
+          'msg': '获取上传token失败',
+          'detail': tokenRes.data,
+        },
+      };
+    }
+
+    dynamic lbs;
+    try {
+      lbs = (await Https.dio.get('https://wanproxy.127.net/lbs', queryParameters: {'version': '1.0', 'bucketname': bucket})).data;
+    } catch (error) {
+      return {
+        'status': 500,
+        'body': {
+          'code': 500,
+          'msg': '获取上传服务器地址失败',
+          'detail': error.toString(),
+        },
+      };
+    }
+    final uploadHosts = _asMap(lbs)['upload'];
+    if (uploadHosts is! List || uploadHosts.isEmpty) {
+      return {
+        'status': 500,
+        'body': {
+          'code': 500,
+          'msg': '获取上传服务器地址无效',
+          'detail': lbs,
+        },
+      };
+    }
+    final uploadHost = uploadHosts.first.toString();
     return {
-      'code': 200,
-      'data': {
-        'needUpload': _asMap(checkRes.data)['needUpload'],
-        'songId': _asMap(checkRes.data)['songId'],
-        'uploadToken': result['token'],
-        'objectKey': result['objectKey'],
-        'resourceId': result['resourceId'],
-        'uploadUrl': '$uploadHost/$bucket/${result['objectKey'].toString().replaceAll('/', '%2F')}?offset=0&complete=true&version=1.0',
-        'bucket': bucket,
-        'md5': md5,
-        'fileSize': fileSize,
-        'filename': filename,
+      'status': 200,
+      'body': {
+        'code': 200,
+        'data': {
+          'needUpload': _asMap(checkRes.data)['needUpload'],
+          'songId': _asMap(checkRes.data)['songId'],
+          'uploadToken': result['token'],
+          'objectKey': result['objectKey'],
+          'resourceId': result['resourceId'],
+          'uploadUrl': '$uploadHost/$bucket/${result['objectKey'].toString().replaceAll('/', '%2F')}?offset=0&complete=true&version=1.0',
+          'bucket': bucket,
+          'md5': md5,
+          'fileSize': fileSize,
+          'filename': filename,
+        },
       },
+      'cookie': checkRes.headers[HttpHeaders.setCookieHeader]?.join(';') ?? '',
     };
   }
 
@@ -790,7 +838,13 @@ mixin ApiEnhancedRaw {
     final md5 = query['md5'];
     final filename = query['filename'];
     if (songId == null || resourceId == null || md5 == null || filename == null) {
-      throw ArgumentError('songId, resourceId, md5 and filename are required');
+      return {
+        'status': 400,
+        'body': {
+          'code': 400,
+          'msg': '缺少必要参数: songId, resourceId, md5, filename',
+        },
+      };
     }
     final songName = query['song'] ?? filename.toString().replaceAll(RegExp(r'\.[^.]+$'), '');
     final infoRes = await Https.dioProxy.postUri(
@@ -809,16 +863,31 @@ mixin ApiEnhancedRaw {
         options: _rawOptions(EncryptType.EApi, '/api/upload/cloud/info/v2', query),
       ),
     );
+    final infoBody = _asMap(infoRes.data);
+    if (infoBody['code'] != 200) {
+      return {
+        'status': infoRes.statusCode ?? 500,
+        'body': {
+          'code': infoBody['code'] ?? 500,
+          'msg': infoBody['msg'] ?? '上传云盘信息失败',
+          'detail': infoBody,
+        },
+      };
+    }
     final publishRes = await Https.dioProxy.postUri(
       DioMetaData(
         joinUri('/api/cloud/pub/v2'),
-        data: {'songid': _asMap(infoRes.data)['songId']},
+        data: {'songid': infoBody['songId']},
         options: _rawOptions(EncryptType.EApi, '/api/cloud/pub/v2', query),
       ),
     );
     return {
-      'code': 200,
-      'data': {'songId': _asMap(infoRes.data)['songId'], ..._asMap(publishRes.data)},
+      'status': 200,
+      'body': {
+        'code': 200,
+        'data': {'songId': infoBody['songId'], ..._asMap(publishRes.data)},
+      },
+      'cookie': infoRes.headers[HttpHeaders.setCookieHeader]?.join(';') ?? '',
     };
   }
 

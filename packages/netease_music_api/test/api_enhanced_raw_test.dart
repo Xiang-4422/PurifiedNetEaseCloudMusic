@@ -832,6 +832,195 @@ void main() {
       });
     });
 
+    test('cloud upload token special module mirrors upstream envelope and guards', () async {
+      expect(await api.cloudUploadToken({'filename': 'demo.mp3'}), {
+        'status': 400,
+        'body': {
+          'code': 400,
+          'msg': '缺少必要参数: md5, fileSize, filename',
+        },
+      });
+
+      final proxy = _QueuedPostDioProxy([
+        {
+          'needUpload': true,
+          'songId': 456,
+        },
+        {
+          'result': {
+            'objectKey': 'cloud/object key',
+            'token': 'cloud-token',
+            'resourceId': 'resource-1',
+          },
+        },
+      ]);
+      final adapter = _JsonResponseAdapter({
+        'upload': ['https://upload.test'],
+      });
+      Https.setDioProxyForTesting(proxy);
+      Https.setDioForTesting(Dio()..httpClientAdapter = adapter);
+
+      final result = await api.cloudUploadToken({
+        'md5': 'abc',
+        'fileSize': 12345,
+        'filename': 'My Song.flac',
+      });
+
+      expect(proxy.paths, ['/api/cloud/upload/check', '/api/nos/token/alloc']);
+      expect(proxy.requests.first.data, {
+        'bitrate': '999000',
+        'ext': '',
+        'length': 12345,
+        'md5': 'abc',
+        'songId': '0',
+        'version': 1,
+      });
+      expect(proxy.requests.last.data, containsPair('filename', 'MySong'));
+      expect(adapter.requestedUri.toString(), 'https://wanproxy.127.net/lbs?version=1.0&bucketname=jd-musicrep-privatecloud-audio-public');
+      expect(result, {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': {
+            'needUpload': true,
+            'songId': 456,
+            'uploadToken': 'cloud-token',
+            'objectKey': 'cloud/object key',
+            'resourceId': 'resource-1',
+            'uploadUrl': 'https://upload.test/jd-musicrep-privatecloud-audio-public/cloud%2Fobject key?offset=0&complete=true&version=1.0',
+            'bucket': 'jd-musicrep-privatecloud-audio-public',
+            'md5': 'abc',
+            'fileSize': 12345,
+            'filename': 'My Song.flac',
+          },
+        },
+        'cookie': 'cookie-1=value',
+      });
+    });
+
+    test('cloud upload complete special module mirrors upstream envelope and error branch', () async {
+      expect(await api.cloudUploadComplete({'songId': 456}), {
+        'status': 400,
+        'body': {
+          'code': 400,
+          'msg': '缺少必要参数: songId, resourceId, md5, filename',
+        },
+      });
+
+      final errorProxy = _QueuedPostDioProxy([
+        {
+          'code': 501,
+          'msg': 'bad cloud info',
+        },
+      ]);
+      Https.setDioProxyForTesting(errorProxy);
+
+      expect(await api.cloudUploadComplete({'songId': 456, 'resourceId': 'resource-1', 'md5': 'abc', 'filename': 'My Song.flac'}), {
+        'status': 500,
+        'body': {
+          'code': 501,
+          'msg': 'bad cloud info',
+          'detail': {
+            'code': 501,
+            'msg': 'bad cloud info',
+          },
+        },
+      });
+
+      final proxy = _QueuedPostDioProxy([
+        {
+          'code': 200,
+          'songId': 789,
+        },
+        {
+          'code': 200,
+          'published': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.cloudUploadComplete({
+        'songId': 456,
+        'resourceId': 'resource-1',
+        'md5': 'abc',
+        'filename': 'My Song.flac',
+      });
+
+      expect(proxy.paths, ['/api/upload/cloud/info/v2', '/api/cloud/pub/v2']);
+      expect(proxy.requests.first.data, {
+        'md5': 'abc',
+        'songid': 456,
+        'filename': 'My Song.flac',
+        'song': 'My Song',
+        'album': '未知专辑',
+        'artist': '未知艺术家',
+        'bitrate': '999000',
+        'resourceId': 'resource-1',
+      });
+      expect(proxy.requests.last.data, {'songid': 789});
+      expect(result, {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': {
+            'songId': 789,
+            'code': 200,
+            'published': true,
+          },
+        },
+        'cookie': 'cookie-1=value',
+      });
+    });
+
+    test('cloud special module consumes upload token envelope before completion', () async {
+      final proxy = _QueuedPostDioProxy([
+        {
+          'needUpload': false,
+          'songId': 456,
+        },
+        {
+          'result': {
+            'objectKey': 'cloud/object-key',
+            'token': 'cloud-token',
+            'resourceId': 'resource-1',
+          },
+        },
+        {
+          'code': 200,
+          'songId': 789,
+        },
+        {
+          'code': 200,
+          'published': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+      Https.setDioForTesting(Dio()
+        ..httpClientAdapter = _JsonResponseAdapter({
+          'upload': ['https://upload.test'],
+        }));
+
+      final result = await api.cloud({
+        'md5': 'abc',
+        'fileSize': 12345,
+        'filename': 'My Song.flac',
+      });
+
+      expect(proxy.paths, ['/api/cloud/upload/check', '/api/nos/token/alloc', '/api/upload/cloud/info/v2', '/api/cloud/pub/v2']);
+      expect(result, {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': {
+            'songId': 789,
+            'code': 200,
+            'published': true,
+          },
+        },
+        'cookie': 'cookie-3=value',
+      });
+    });
+
     test('cloud import special module checks upload before import', () async {
       final proxy = _QueuedPostDioProxy([
         {
@@ -1174,6 +1363,24 @@ class _UploadAdapter implements HttpClientAdapter {
     uploadUrl = options.uri.toString();
     uploadToken = options.headers['x-nos-token']?.toString();
     return ResponseBody.fromString('{"code":200}', 200, headers: {
+      Headers.contentTypeHeader: [Headers.jsonContentType],
+    });
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _JsonResponseAdapter implements HttpClientAdapter {
+  _JsonResponseAdapter(this.body);
+
+  final Map<String, dynamic> body;
+  Uri? requestedUri;
+
+  @override
+  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+    requestedUri = options.uri;
+    return ResponseBody.fromString(jsonEncode(body), 200, headers: {
       Headers.contentTypeHeader: [Headers.jsonContentType],
     });
   }

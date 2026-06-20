@@ -47,6 +47,25 @@ void main() {
       expect(resolver.preferences, [false, true]);
     });
 
+    test('limits cache and evicts least recently used sources', () async {
+      final resolver = _CountingSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(
+        resolver: resolver,
+        maxEntries: 2,
+      );
+      final first = _item('1');
+      final second = _item('2');
+      final third = _item('3');
+
+      expect((await prefetcher.resolve(first, preferHighQuality: false)).url, 'normal-url-1');
+      expect((await prefetcher.resolve(second, preferHighQuality: false)).url, 'normal-url-2');
+      expect((await prefetcher.resolve(first, preferHighQuality: false)).url, 'normal-url-1');
+      expect((await prefetcher.resolve(third, preferHighQuality: false)).url, 'normal-url-3');
+      expect((await prefetcher.resolve(second, preferHighQuality: false)).url, 'normal-url-4');
+
+      expect(resolver.resolveCallCount, 4);
+    });
+
     test('re-resolves cached local file source after file is removed', () async {
       final directory = await Directory.systemTemp.createTemp('source-prefetch-file-');
       addTearDown(() async {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:bujuan/features/playback/playback_performance_logger.dart';
@@ -24,7 +25,7 @@ class PlaybackSourcePrefetcher {
   /// 最多缓存的播放源数量。
   final int maxEntries;
 
-  final Map<String, _CachedPlaybackSource> _cache = {};
+  final LinkedHashMap<String, _CachedPlaybackSource> _cache = LinkedHashMap<String, _CachedPlaybackSource>();
   final Map<String, Future<PlaybackResolvedSource>> _inFlight = {};
 
   /// 解析播放源，优先使用预取缓存。
@@ -102,7 +103,11 @@ class PlaybackSourcePrefetcher {
   }) {
     final cached = _cache[key];
     final now = DateTime.now();
-    if (cached == null || now.difference(cached.createdAt) >= ttl) {
+    if (cached == null) {
+      return null;
+    }
+    if (now.difference(cached.createdAt) >= ttl) {
+      _cache.remove(key);
       return null;
     }
     if (!_isCachedSourceStillUsable(cached.source) || (allowLocalRecovery && _itemLocalSourceRecovered(item, cached.source))) {
@@ -112,6 +117,7 @@ class PlaybackSourcePrefetcher {
     PlaybackPerformanceLogger.log(
       'sourcePrefetch.cacheHit id=${item.id} highQuality=$preferHighQuality kind=${cached.source.kind.name}',
     );
+    _touchCache(key, cached);
     return cached.source;
   }
 
@@ -178,6 +184,7 @@ class PlaybackSourcePrefetcher {
     late final Future<PlaybackResolvedSource> loadFuture;
     loadFuture = load().then((source) {
       if (identical(_inFlight[key], loadFuture) && !source.isEmpty) {
+        _cache.remove(key);
         _cache[key] = _CachedPlaybackSource(source, DateTime.now());
         _trimCache();
       }
@@ -194,6 +201,12 @@ class PlaybackSourcePrefetcher {
     });
     _inFlight[key] = loadFuture;
     return loadFuture;
+  }
+
+  void _touchCache(String key, _CachedPlaybackSource cached) {
+    _cache
+      ..remove(key)
+      ..[key] = cached;
   }
 
   void _trimCache() {

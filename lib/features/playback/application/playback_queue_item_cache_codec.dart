@@ -18,10 +18,14 @@ Future<List<PlaybackQueueItem>> decodePlaybackQueueItemCacheList(
 List<PlaybackQueueItem> _decodePlaybackQueueItemCacheList(
   List<String> cachedItems,
 ) {
-  return cachedItems.map((item) {
-    final raw = jsonDecode(item) as Map<String, dynamic>;
-    return _playbackQueueItemFromCacheJson(raw);
-  }).toList();
+  final decodedItems = <PlaybackQueueItem>[];
+  for (final item in cachedItems) {
+    final decodedItem = _tryDecodePlaybackQueueItemCache(item);
+    if (decodedItem != null && decodedItem.id.isNotEmpty) {
+      decodedItems.add(decodedItem);
+    }
+  }
+  return decodedItems;
 }
 
 /// 异步编码播放队列项缓存列表。
@@ -91,6 +95,18 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
 
 Map<String, dynamic> _customMetadata(Map<String, dynamic> metadata) {
   return playbackQueueCustomMetadata(metadata);
+}
+
+PlaybackQueueItem? _tryDecodePlaybackQueueItemCache(String item) {
+  try {
+    final raw = jsonDecode(item);
+    if (raw is! Map) {
+      return null;
+    }
+    return _playbackQueueItemFromCacheJson(Map<String, dynamic>.from(raw));
+  } catch (_) {
+    return null;
+  }
 }
 
 SourceType _sourceTypeFrom(Object? value) {

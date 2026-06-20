@@ -188,6 +188,24 @@ void main() {
       expect(decoded.single.availability, TrackAvailability.localOnly);
       expect(decoded.single.metadata, {'custom': 'keep'});
     });
+
+    test('cache codec skips corrupt cached queue entries', () async {
+      final encoded = await encodePlaybackQueueItemCacheList([_queueItem()]);
+      final emptyId = jsonEncode({
+        'id': '',
+        'sourceId': 'empty',
+        'title': 'Empty',
+      });
+
+      final decoded = await decodePlaybackQueueItemCacheList([
+        '{broken json',
+        emptyId,
+        encoded.single,
+        '[]',
+      ]);
+
+      expect(decoded.map((item) => item.id), ['netease:1']);
+    });
   });
 }
 

@@ -54,7 +54,7 @@ class PlaybackRestoreCoordinator {
   /// 加载可直接用于恢复播放器的数据。
   Future<PlaybackRestoreData> loadRestoreData() async {
     final restoreState = await _repository.getRestoreState();
-    final playlist = restoreState.queue.isEmpty ? <PlaybackQueueItem>[] : await _queueStore.decodeQueue(restoreState.queue);
+    final playlist = await _decodeQueueSafely(restoreState.queue);
     var index = playlist.indexWhere(
       (element) => element.id == restoreState.currentSongId,
     );
@@ -68,7 +68,18 @@ class PlaybackRestoreCoordinator {
       index: index,
       playlistName: restoreState.playlistName,
       playlistHeader: restoreState.playlistHeader,
-      position: restoreState.position,
+      position: playlist.isEmpty ? Duration.zero : restoreState.position,
     );
+  }
+
+  Future<List<PlaybackQueueItem>> _decodeQueueSafely(List<String> queueState) async {
+    if (queueState.isEmpty) {
+      return const <PlaybackQueueItem>[];
+    }
+    try {
+      return (await _queueStore.decodeQueue(queueState)).where((item) => item.id.isNotEmpty).toList(growable: false);
+    } catch (_) {
+      return const <PlaybackQueueItem>[];
+    }
   }
 }

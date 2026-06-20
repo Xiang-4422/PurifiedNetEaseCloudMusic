@@ -33,9 +33,14 @@ class RadioDetailController {
 
   int _offset = 0;
   int _requestGeneration = 0;
+  bool _disposed = false;
 
   /// 首次加载节目列表，优先展示缓存。
   Future<void> loadInitial() async {
+    if (_disposed) {
+      return;
+    }
+    final generation = ++_requestGeneration;
     if (_userId.isEmpty) {
       state.value = const PagedState(items: [], hasMore: false);
       return;
@@ -45,6 +50,9 @@ class RadioDetailController {
       radioId,
       asc: asc,
     );
+    if (!_isCurrentRequest(generation)) {
+      return;
+    }
     if (cachedItems.isNotEmpty) {
       _offset = cachedItems.length;
       state.value = PagedState.data(
@@ -60,6 +68,9 @@ class RadioDetailController {
 
   /// 刷新节目第一页。
   Future<bool> refresh() async {
+    if (_disposed) {
+      return true;
+    }
     state.value = state.value.copyWith(
       refreshing: true,
       error: null,
@@ -69,6 +80,9 @@ class RadioDetailController {
 
   /// 加载下一页节目。
   Future<bool> loadMore() async {
+    if (_disposed) {
+      return true;
+    }
     final currentState = state.value;
     if (currentState.initialLoading || currentState.refreshing || currentState.loadingMore || !currentState.hasMore) {
       return true;
@@ -86,7 +100,7 @@ class RadioDetailController {
         limit: pageSize,
         asc: asc,
       );
-      if (generation != _requestGeneration) {
+      if (!_isCurrentRequest(generation)) {
         return true;
       }
       _offset = page.nextOffset;
@@ -96,7 +110,7 @@ class RadioDetailController {
       );
       return true;
     } catch (error, stackTrace) {
-      if (generation != _requestGeneration) {
+      if (!_isCurrentRequest(generation)) {
         return true;
       }
       state.value = currentState.copyWith(
@@ -109,6 +123,9 @@ class RadioDetailController {
   }
 
   Future<bool> _reload() async {
+    if (_disposed) {
+      return true;
+    }
     final generation = ++_requestGeneration;
     final currentState = state.value;
     try {
@@ -119,7 +136,7 @@ class RadioDetailController {
         limit: pageSize,
         asc: asc,
       );
-      if (generation != _requestGeneration) {
+      if (!_isCurrentRequest(generation)) {
         return true;
       }
       _offset = page.nextOffset;
@@ -129,7 +146,7 @@ class RadioDetailController {
       );
       return true;
     } catch (error, stackTrace) {
-      if (generation != _requestGeneration) {
+      if (!_isCurrentRequest(generation)) {
         return true;
       }
       if (currentState.items.isNotEmpty) {
@@ -152,6 +169,15 @@ class RadioDetailController {
 
   /// 释放节目列表状态监听器。
   void dispose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    _requestGeneration++;
     state.dispose();
+  }
+
+  bool _isCurrentRequest(int generation) {
+    return !_disposed && generation == _requestGeneration;
   }
 }

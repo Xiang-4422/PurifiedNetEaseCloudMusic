@@ -113,6 +113,68 @@ void main() {
       expect(controller.state.value.loadingMore, isFalse);
       expect(controller.state.value.refreshing, isFalse);
     });
+
+    test('ignores refresh completion after dispose', () async {
+      final refresh = Completer<DjRadioPage>();
+      final repository = _FakeRadioRepository(
+        fetchSubscribedRadios: () => refresh.future,
+      );
+      final controller = RadioListController(
+        userId: 'user-1',
+        repository: repository,
+      );
+
+      final refreshFuture = controller.refresh();
+      await _flushAsync();
+
+      controller.dispose();
+      refresh.complete(
+        DjRadioPage(
+          items: [_radio('late-radio')],
+          hasMore: false,
+          nextOffset: 1,
+        ),
+      );
+
+      await expectLater(refreshFuture, completes);
+    });
+
+    test('ignores load more completion after dispose', () async {
+      final loadMore = Completer<DjRadioPage>();
+      final repository = _FakeRadioRepository(
+        fetchSubscribedRadiosWithArgs: ({required userId, required offset, required limit}) {
+          if (offset == 0) {
+            return Future.value(
+              DjRadioPage(
+                items: [_radio('cached-page-radio')],
+                hasMore: true,
+                nextOffset: 1,
+              ),
+            );
+          }
+          return loadMore.future;
+        },
+      );
+      final controller = RadioListController(
+        userId: 'user-1',
+        repository: repository,
+      );
+
+      await controller.loadInitial();
+      final loadMoreFuture = controller.loadMore();
+      await _flushAsync();
+
+      controller.dispose();
+      loadMore.complete(
+        DjRadioPage(
+          items: [_radio('late-radio')],
+          hasMore: false,
+          nextOffset: 2,
+        ),
+      );
+
+      await expectLater(loadMoreFuture, completes);
+    });
   });
 
   group('RadioDetailController', () {
@@ -224,6 +286,70 @@ void main() {
       expect(controller.state.value.loadingMore, isFalse);
       expect(controller.state.value.refreshing, isFalse);
     });
+
+    test('ignores refresh completion after dispose', () async {
+      final refresh = Completer<DjProgramPage>();
+      final repository = _FakeRadioRepository(
+        fetchPrograms: () => refresh.future,
+      );
+      final controller = RadioDetailController(
+        radioId: 'radio-1',
+        userId: 'user-1',
+        repository: repository,
+      );
+
+      final refreshFuture = controller.refresh();
+      await _flushAsync();
+
+      controller.dispose();
+      refresh.complete(
+        DjProgramPage(
+          items: [_program('late-program')],
+          hasMore: false,
+          nextOffset: 1,
+        ),
+      );
+
+      await expectLater(refreshFuture, completes);
+    });
+
+    test('ignores load more completion after dispose', () async {
+      final loadMore = Completer<DjProgramPage>();
+      final repository = _FakeRadioRepository(
+        fetchProgramsWithArgs: ({required userId, required radioId, required offset, required limit, required asc}) {
+          if (offset == 0) {
+            return Future.value(
+              DjProgramPage(
+                items: [_program('cached-page-program')],
+                hasMore: true,
+                nextOffset: 1,
+              ),
+            );
+          }
+          return loadMore.future;
+        },
+      );
+      final controller = RadioDetailController(
+        radioId: 'radio-1',
+        userId: 'user-1',
+        repository: repository,
+      );
+
+      await controller.loadInitial();
+      final loadMoreFuture = controller.loadMore();
+      await _flushAsync();
+
+      controller.dispose();
+      loadMore.complete(
+        DjProgramPage(
+          items: [_program('late-program')],
+          hasMore: false,
+          nextOffset: 2,
+        ),
+      );
+
+      await expectLater(loadMoreFuture, completes);
+    });
   });
 }
 
@@ -246,6 +372,12 @@ RadioProgramData _program(String id) {
     albumTitle: 'Album',
     durationMs: 1000,
   );
+}
+
+Future<void> _flushAsync() async {
+  for (var i = 0; i < 4; i++) {
+    await Future<void>.delayed(Duration.zero);
+  }
 }
 
 class _FakeRadioRepository implements RadioRepository {

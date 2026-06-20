@@ -388,6 +388,38 @@ void main() {
       expect(apiEnhancedUpstreamVersion, packageJson['version']);
     });
 
+    test('audio match mirrors upstream fixed query and response envelope', () async {
+      final adapter = _TextResponseAdapter('{"data":{"songId":123,"name":"Matched"}}');
+      Https.setDioForTesting(Dio()..httpClientAdapter = adapter);
+
+      final result = await api.requestModule('audio_match', {
+        'duration': 12,
+        'audioFP': 'finger print +/=?',
+        'sessionId': 'ignored',
+        'algorithmCode': 'ignored',
+        'times': 9,
+        'decrypt': 0,
+      });
+      final requestedUri = adapter.requestedUri!;
+
+      expect(requestedUri.toString(), startsWith('https://interface.music.163.com/api/music/audio/match?'));
+      expect(requestedUri.queryParameters, {
+        'sessionId': '0123456789abcdef',
+        'algorithmCode': 'shazam_v2',
+        'duration': '12',
+        'rawdata': 'finger print +/=?',
+        'times': '1',
+        'decrypt': '1',
+      });
+      expect(result, {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': {'songId': 123, 'name': 'Matched'},
+        },
+      });
+    });
+
     test('login qr create mirrors upstream envelope and optional web qr image', () async {
       final pc = await api.requestModule('login_qr_create', {'key': 'abc'});
       expect(pc, {

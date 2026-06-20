@@ -264,15 +264,21 @@ mixin ApiEnhancedRaw {
     final response = await Https.dio.get(
       'https://interface.music.163.com/api/music/audio/match',
       queryParameters: {
-        'sessionId': query['sessionId'] ?? '0123456789abcdef',
-        'algorithmCode': query['algorithmCode'] ?? 'shazam_v2',
+        'sessionId': '0123456789abcdef',
+        'algorithmCode': 'shazam_v2',
         'duration': query['duration'],
-        'rawdata': query['audioFP'] ?? query['rawdata'],
-        'times': query['times'] ?? 1,
-        'decrypt': query['decrypt'] ?? 1,
+        'rawdata': query['audioFP'],
+        'times': 1,
+        'decrypt': 1,
       },
     );
-    return {'code': 200, 'data': _asMap(response.data)['data']};
+    return {
+      'status': response.statusCode ?? 200,
+      'body': {
+        'code': 200,
+        'data': _asMap(response.data)['data'],
+      },
+    };
   }
 
   /// Returns the bundled upstream-compatible package version.

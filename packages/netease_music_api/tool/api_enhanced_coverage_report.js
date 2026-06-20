@@ -21,7 +21,11 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'))
 }
 
-function loadManifestEntries() {
+function parseConstString(source, name) {
+  return new RegExp(`const\\s+String\\s+${name}\\s*=\\s*'([^']*)';`).exec(source)?.[1] || null
+}
+
+function loadManifest() {
   const source = fs.readFileSync(generatedManifestPath, 'utf8')
   const listStart = source.indexOf('const List<ApiEnhancedModule> apiEnhancedModules')
   const mapStart = source.indexOf('const Map<String, ApiEnhancedModule> apiEnhancedModuleByName')
@@ -30,17 +34,21 @@ function loadManifestEntries() {
   }
 
   const listSource = source.slice(listStart, mapStart)
-  return [...listSource.matchAll(/ApiEnhancedModule\(([\s\S]*?)\),/g)].map((match) => {
-    const block = match[1]
-    const module = block.match(/module: '([^']+)'/)?.[1]
-    if (!module) {
-      throw new Error(`Cannot parse module entry: ${block}`)
-    }
-    return {
-      module,
-      special: /special: true/.test(block),
-    }
-  })
+  return {
+    upstreamVersion: parseConstString(source, 'apiEnhancedUpstreamVersion'),
+    upstreamCommit: parseConstString(source, 'apiEnhancedUpstreamCommit'),
+    entries: [...listSource.matchAll(/ApiEnhancedModule\(([\s\S]*?)\),/g)].map((match) => {
+      const block = match[1]
+      const module = block.match(/module: '([^']+)'/)?.[1]
+      if (!module) {
+        throw new Error(`Cannot parse module entry: ${block}`)
+      }
+      return {
+        module,
+        special: /special: true/.test(block),
+      }
+    }),
+  }
 }
 
 function loadUpstreamModules() {
@@ -243,7 +251,8 @@ function sortedObject(value) {
 const upstreamPackage = readJson(upstreamPackagePath)
 const coverage = readJson(specialCoveragePath)
 const upstreamModules = loadUpstreamModules()
-const entries = loadManifestEntries()
+const manifest = loadManifest()
+const entries = manifest.entries
 const oracleFixtures = loadOracleFixtures()
 const oracleFixtureList = Array.isArray(oracleFixtures) ? oracleFixtures : []
 const oracleModuleList = oracleFixtureList
@@ -261,9 +270,22 @@ const nodeOracleSpecial = setFrom(coverage.nodeOracle)
 const dartBehaviorSpecial = setFrom(coverage.dartBehavior)
 const limitedSpecial = new Set(Object.keys(coverage.limited || {}))
 const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial, ...limitedSpecial])
+const upstreamCommit = gitOutput(['-C', upstreamRepoPath, 'rev-parse', 'HEAD'])
 const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelain']) || ''
 const manifestMissingUpstreamModules = sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module)))
 const manifestUnknownUpstreamModules = sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module)))
+const manifestUpstreamMismatches = [
+  {
+    field: 'version',
+    manifest: manifest.upstreamVersion,
+    upstream: upstreamPackage.version,
+  },
+  {
+    field: 'commit',
+    manifest: manifest.upstreamCommit,
+    upstream: upstreamCommit,
+  },
+].filter((item) => item.manifest !== item.upstream)
 const oracleInvalidFixtures = validateOracleFixtures(oracleFixtures)
 const oracleDuplicateFixtures = duplicateFixtures(oracleFixtureList)
 const oracleUnknownModules = sorted([...oracleModules].filter((module) => !manifestModuleSet.has(module)))
@@ -347,14 +369,24 @@ function buildSdkDifferences() {
       reason: 'Limited special module must explain why it cannot be fully mirrored.',
     })
   }
+  for (const mismatch of manifestUpstreamMismatches) {
+    differences.push({
+      module: '<generated_manifest>',
+      status: `manifest_upstream_${mismatch.field}_mismatch`,
+      reason: `Generated manifest ${mismatch.field} ${mismatch.manifest || '<missing>'} does not match upstream ${mismatch.upstream || '<unknown>'}.`,
+    })
+  }
   return differences.sort((left, right) => `${left.module}:${left.status}`.localeCompare(`${right.module}:${right.status}`))
 }
 
 const report = {
   upstreamVersion: upstreamPackage.version,
   upstreamSubmodulePath: path.relative(repoRoot, upstreamRepoPath).replace(/\\/g, '/'),
-  upstreamCommit: gitOutput(['-C', upstreamRepoPath, 'rev-parse', 'HEAD']),
+  upstreamCommit,
   upstreamDirty: submoduleStatus.length > 0,
+  manifestUpstreamVersion: manifest.upstreamVersion,
+  manifestUpstreamCommit: manifest.upstreamCommit,
+  manifestUpstreamMismatches,
   upstreamModuleFileCount: upstreamModules.length,
   moduleCount: entries.length,
   normalModuleCount: normalModules.length,
@@ -382,6 +414,7 @@ const report = {
 const hasFailure =
   !report.upstreamCommit ||
   report.upstreamDirty ||
+  report.manifestUpstreamMismatches.length > 0 ||
   report.manifestMissingUpstreamModules.length > 0 ||
   report.manifestUnknownUpstreamModules.length > 0 ||
   report.oracleInvalidFixtures.length > 0 ||
@@ -402,6 +435,9 @@ if (jsonOutput) {
   console.log(`upstream submodule: ${report.upstreamSubmodulePath}`)
   console.log(`upstream commit: ${report.upstreamCommit || 'unknown'}`)
   console.log(`upstream dirty: ${report.upstreamDirty}`)
+  console.log(`manifest upstream version: ${report.manifestUpstreamVersion || 'unknown'}`)
+  console.log(`manifest upstream commit: ${report.manifestUpstreamCommit || 'unknown'}`)
+  console.log(`manifest upstream mismatches: ${report.manifestUpstreamMismatches.length}`)
   console.log(
     `modules: ${report.moduleCount} (upstream files ${report.upstreamModuleFileCount}, normal ${report.normalModuleCount}, special ${report.specialModuleCount})`,
   )

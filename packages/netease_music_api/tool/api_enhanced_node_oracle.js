@@ -24,6 +24,37 @@ Module.prototype.require = function patchedRequire(request) {
       },
     }
   }
+  if (request === 'axios') {
+    return {
+      default: async (config) => {
+        if (config.url && config.url.includes('wanproxy.127.net/lbs')) {
+          return { data: { upload: ['https://upload.test'] } }
+        }
+        if (config.url && config.url.includes('?uploads')) {
+          return {
+            data: '<InitiateMultipartUploadResult><UploadId>upload-id</UploadId></InitiateMultipartUploadResult>',
+          }
+        }
+        if (config.method === 'put') {
+          return { data: '', headers: { etag: 'etag-1' } }
+        }
+        return { data: '', headers: {} }
+      },
+    }
+  }
+  if (request === 'xml2js') {
+    return {
+      Parser: class {
+        async parseStringPromise() {
+          return {
+            InitiateMultipartUploadResult: {
+              UploadId: ['upload-id'],
+            },
+          }
+        }
+      },
+    }
+  }
   if (request === 'dotenv') {
     return {
       config() {
@@ -564,6 +595,75 @@ const fixtures = [
     responses: [
       { status: 200, body: { data: [{ songId: 456 }] }, cookie: [] },
       { status: 200, body: { code: 200, imported: true }, cookie: [] },
+    ],
+  },
+  {
+    module: 'cloud_upload_token',
+    query: {
+      md5: 'abc',
+      fileSize: 12345,
+      filename: 'My Song.flac',
+    },
+    captureRequests: true,
+    responses: [
+      { status: 200, body: { needUpload: true, songId: 456 }, cookie: [] },
+      {
+        status: 200,
+        body: {
+          result: {
+            objectKey: 'cloud/object key',
+            token: 'cloud-token',
+            resourceId: 'resource-1',
+          },
+        },
+        cookie: [],
+      },
+    ],
+  },
+  {
+    module: 'cloud_upload_complete',
+    query: {
+      songId: 456,
+      resourceId: 'resource-1',
+      md5: 'abc',
+      filename: 'My Song.flac',
+    },
+    captureRequests: true,
+    responses: [
+      { status: 200, body: { code: 200, songId: 789 }, cookie: [] },
+      { status: 200, body: { code: 200, published: true }, cookie: [] },
+    ],
+  },
+  {
+    module: 'voice_upload',
+    query: {
+      songFile: {
+        name: 'My Voice.mp3',
+        mimetype: 'audio/mpeg',
+        size: 3,
+        data: [1, 2, 3],
+      },
+      autoPublish: '1',
+      privacy: 1,
+      composedSongs: '100,200',
+      voiceListId: 'list-1',
+      categoryId: 'cat-1',
+    },
+    captureRequests: true,
+    responses: [
+      {
+        status: 200,
+        body: {
+          result: {
+            objectKey: 'voice/object-key',
+            token: 'voice-token',
+            docId: 321,
+          },
+        },
+        cookie: [],
+      },
+      { status: 200, body: { code: 200, preCheck: true }, cookie: [] },
+      { status: 200, body: { data: { voiceId: 999 } }, cookie: [] },
     ],
   },
   {

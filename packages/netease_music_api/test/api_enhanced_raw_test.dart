@@ -1274,6 +1274,64 @@ Future<List<DioMetaData>> _dartRequestSequenceForOracleFixture(
       Https.setDioProxyForTesting(proxy);
       await api.requestModule(module, query);
       return proxy.requests;
+    case 'cloud_upload_token':
+      final proxy = _QueuedPostDioProxy([
+        {
+          'needUpload': true,
+          'songId': 456,
+        },
+        {
+          'result': {
+            'objectKey': 'cloud/object key',
+            'token': 'cloud-token',
+            'resourceId': 'resource-1',
+          },
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+      Https.setDioForTesting(Dio()
+        ..httpClientAdapter = _JsonResponseAdapter({
+          'upload': ['https://upload.test'],
+        }));
+      await api.requestModule(module, query);
+      return proxy.requests;
+    case 'cloud_upload_complete':
+      final proxy = _QueuedPostDioProxy([
+        {
+          'code': 200,
+          'songId': 789,
+        },
+        {
+          'code': 200,
+          'published': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+      await api.requestModule(module, query);
+      return proxy.requests;
+    case 'voice_upload':
+      final proxy = _QueuedPostDioProxy([
+        {
+          'result': {
+            'objectKey': 'voice/object-key',
+            'token': 'voice-token',
+            'docId': 321,
+          },
+        },
+        {
+          'code': 200,
+          'preCheck': true,
+        },
+        {
+          'data': {
+            'voiceId': 999,
+          },
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+      Https.setDioForTesting(Dio()..httpClientAdapter = _MultipartUploadAdapter());
+      await api.requestModule(module, query);
+      return proxy.requests;
     case 'playlist_tracks':
       final proxy = _QueuedPostDioProxy([
         DioException(
@@ -1318,7 +1376,7 @@ void _expectDartRequestMatchesNode(
   final extra = metaData.options!.extra!;
 
   expect(metaData.uri.path, nodeRequest['uri'], reason: reason);
-  expect(_jsonMap(metaData.data), _jsonMap(nodeRequest['data']), reason: reason);
+  expect(_normalizedRequestData(metaData.data), _normalizedRequestData(nodeRequest['data']), reason: reason);
   expect(_encryptTypeName(extra['encryptType'] as EncryptType), _effectiveNodeCrypto(nodeOptions), reason: reason);
   expect(extra['realIP'], nodeOptions['realIP'], reason: reason);
   expect(_optionString(extra['rawUserAgent']), _optionString(nodeOptions['ua']), reason: reason);
@@ -1326,6 +1384,7 @@ void _expectDartRequestMatchesNode(
   expect(extra['checkToken'], nodeOptions['checkToken'] == true, reason: reason);
   expect(_optionString(extra['proxy']), _optionString(nodeOptions['proxy']), reason: reason);
   expect(extra['cookies'], nodeOptions.containsKey('cookie') ? _stringJsonMap(nodeOptions['cookie']) : <String, String>{}, reason: reason);
+  expect(_stringJsonMap(metaData.options?.headers), _stringJsonMap(nodeOptions['headers']), reason: reason);
 }
 
 Directory _findUpstreamModuleDir() {
@@ -1582,6 +1641,23 @@ Map<String, dynamic> _jsonMap(dynamic value) {
     return Map<String, dynamic>.from(value);
   }
   return <String, dynamic>{};
+}
+
+Map<String, dynamic> _normalizedRequestData(dynamic value) {
+  final data = _jsonMap(value);
+  final result = <String, dynamic>{};
+  for (final entry in data.entries) {
+    if (entry.key == 'dupkey') {
+      result[entry.key] = '<dynamic>';
+      continue;
+    }
+    if (entry.key == 'voiceData' && entry.value is String) {
+      result[entry.key] = jsonDecode(entry.value as String);
+      continue;
+    }
+    result[entry.key] = entry.value;
+  }
+  return result;
 }
 
 List<Map<String, dynamic>> _jsonMapList(dynamic value) {

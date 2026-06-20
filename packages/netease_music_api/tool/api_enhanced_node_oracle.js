@@ -792,6 +792,26 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'search_hot',
+    query: {},
+  },
+  {
+    module: 'search_match',
+    query: {
+      title: 'Song A',
+      album: 'Album A',
+      artist: 'Artist A',
+      duration: 240000,
+      md5: 'abc123',
+    },
+  },
+  {
+    module: 'search_multimatch',
+    query: {
+      keywords: 'hello',
+    },
+  },
+  {
     module: 'search_suggest',
     query: {
       keywords: 'hello',
@@ -802,6 +822,12 @@ const fixtures = [
     query: {
       keywords: 'hello',
       type: 'mobile',
+    },
+  },
+  {
+    module: 'search_suggest_pc',
+    query: {
+      keyword: 'hello',
     },
   },
   {

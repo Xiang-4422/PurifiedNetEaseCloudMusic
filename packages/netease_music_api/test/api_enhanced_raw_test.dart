@@ -313,6 +313,39 @@ void main() {
       expect(mobile.data, {'s': 'hello'});
     });
 
+    test('maps search request data like upstream', () {
+      expect(api.requestModuleDioMetaData('search_hot', {}).data, {
+        'type': 1111,
+      });
+
+      final match = api.requestModuleDioMetaData('search_match', {
+        'title': 'Song A',
+        'album': 'Album A',
+        'artist': 'Artist A',
+        'duration': 240000,
+        'md5': 'abc123',
+      });
+      expect(match.data, {
+        'songs': jsonEncode([
+          {
+            'title': 'Song A',
+            'album': 'Album A',
+            'artist': 'Artist A',
+            'duration': 240000,
+            'persistId': 'abc123',
+          },
+        ]),
+      });
+
+      expect(api.requestModuleDioMetaData('search_multimatch', {'keywords': 'hello'}).data, {
+        'type': 1,
+        's': 'hello',
+      });
+      expect(api.requestModuleDioMetaData('search_suggest_pc', {'keyword': 'hello'}).data, {
+        'keyword': 'hello',
+      });
+    });
+
     test('maps artist album id into path only', () {
       final metaData = api.requestModuleDioMetaData('artist_album', {
         'id': '6452',

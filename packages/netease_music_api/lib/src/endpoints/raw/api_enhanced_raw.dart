@@ -1119,6 +1119,27 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], 0),
         'total': true,
       };
+    case 'search_hot':
+      return {
+        'type': 1111,
+      };
+    case 'search_match':
+      return {
+        'songs': jsonEncode([
+          {
+            'title': _jsDefault(query['title'], ''),
+            'album': _jsDefault(query['album'], ''),
+            'artist': _jsDefault(query['artist'], ''),
+            'duration': _jsDefault(query['duration'], 0),
+            if (query.containsKey('md5')) 'persistId': query['md5'],
+          },
+        ]),
+      };
+    case 'search_multimatch':
+      return {
+        'type': _jsDefault(query['type'], 1),
+        's': _jsDefault(query['keywords'], ''),
+      };
     case 'like':
       return {
         'alg': 'itembased',
@@ -1526,6 +1547,10 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'search_suggest':
       return {
         's': query['keywords'] ?? '',
+      };
+    case 'search_suggest_pc':
+      return {
+        'keyword': _jsDefault(query['keyword'], ''),
       };
     case 'user_playlist':
       return {

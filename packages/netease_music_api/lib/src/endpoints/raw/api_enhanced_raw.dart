@@ -1231,6 +1231,85 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'id': query['id'],
         if (query['t'] is int && query['t'] == 1) 'checkToken': _jsDefault(query['checkToken'], _upstreamCheckToken),
       };
+    case 'playlist_create':
+      return {
+        'name': query['name'],
+        'privacy': _jsDefault(query['privacy'], '0'),
+        'type': _jsDefault(query['type'], 'NORMAL'),
+      };
+    case 'playlist_delete':
+      return {
+        'ids': '[${query['id']}]',
+      };
+    case 'playlist_desc_update':
+      return {
+        'id': query['id'],
+        'desc': query['desc'],
+      };
+    case 'playlist_highquality_tags':
+      return {};
+    case 'playlist_mylike':
+      return {
+        'time': _jsDefault(query['time'], '-1'),
+        'limit': _jsDefault(query['limit'], '12'),
+      };
+    case 'playlist_category_list':
+      return {
+        'cat': _jsDefault(query['cat'], '全部'),
+        'limit': _jsDefault(query['limit'], 24),
+        'newStyle': true,
+      };
+    case 'playlist_name_update':
+      return {
+        'id': query['id'],
+        'name': query['name'],
+      };
+    case 'playlist_order_update':
+      return {
+        'ids': query['ids'],
+      };
+    case 'playlist_privacy':
+      return {
+        'id': query['id'],
+        'privacy': 0,
+      };
+    case 'playlist_subscribers':
+      return {
+        'id': query['id'],
+        'limit': _jsDefault(query['limit'], 20),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'playlist_tags_update':
+      return {
+        'id': query['id'],
+        'tags': query['tags'],
+      };
+    case 'playlist_track_add':
+      return {
+        'id': query['pid'],
+        'tracks': jsonEncode(_playlistTrackObjects(_jsDefault(query['ids'], ''))),
+      };
+    case 'playlist_track_delete':
+      return {
+        'id': query['id'],
+        'tracks': jsonEncode(_playlistTrackObjects(_jsDefault(query['ids'], ''))),
+      };
+    case 'playlist_import_name_task_create':
+      return _playlistImportNameTaskCreateData(query);
+    case 'playlist_import_task_status':
+      return {
+        'taskIds': jsonEncode([query['id']]),
+      };
+    case 'playlist_update':
+      return {
+        '/api/playlist/desc/update': '{"id":${query['id']},"desc":"${_jsDefault(query['desc'], '')}"}',
+        '/api/playlist/tags/update': '{"id":${query['id']},"tags":"${_jsDefault(query['tags'], '')}"}',
+        '/api/playlist/update/name': '{"id":${query['id']},"name":"${query['name']}"}',
+      };
+    case 'playlist_update_playcount':
+      return {
+        'id': query['id'],
+      };
     case 'playlist_tracks':
       return {
         'op': query['op'],
@@ -1440,6 +1519,58 @@ List<String> _splitCommaValues(dynamic value) {
     return value.map((id) => id.toString()).toList();
   }
   return value.toString().split(',');
+}
+
+List<Map<String, dynamic>> _playlistTrackObjects(dynamic value) {
+  final ids = value.toString().split(',');
+  return ids.map((id) => {'type': 3, 'id': id}).toList();
+}
+
+Map<String, dynamic> _playlistImportNameTaskCreateData(Map<String, dynamic> query) {
+  final data = <String, dynamic>{
+    'importStarPlaylist': _jsDefault(query['importStarPlaylist'], false),
+  };
+  final local = query['local'];
+  if (_jsTruthy(local)) {
+    final rows = _asList(jsonDecode(local.toString()));
+    data['multiSongs'] = jsonEncode(rows.map((entry) {
+      final song = _asMap(entry);
+      return {
+        'songName': song['name'],
+        'artistName': song['artist'],
+        'albumName': song['album'],
+      };
+    }).toList());
+    return data;
+  }
+
+  final playlistName = _jsDefault(query['playlistName'], '导入音乐 ${DateTime.now().toLocal()}');
+  var songs = '';
+  if (_jsTruthy(query['text'])) {
+    songs = jsonEncode([
+      {
+        'name': playlistName,
+        'type': '',
+        'url': Uri.encodeFull('rpc://playlist/import?text=${query['text']}'),
+      },
+    ]);
+  }
+  if (_jsTruthy(query['link'])) {
+    final links = _asList(jsonDecode(query['link'].toString()));
+    songs = jsonEncode(links.map((link) {
+      return {
+        'name': playlistName,
+        'type': '',
+        'url': Uri.encodeFull(link.toString()),
+      };
+    }).toList());
+  }
+  return {
+    ...data,
+    'playlistName': playlistName,
+    'taskIdForLog': '',
+    'songs': songs,
+  };
 }
 
 int _songUrlBitrate(dynamic value) {

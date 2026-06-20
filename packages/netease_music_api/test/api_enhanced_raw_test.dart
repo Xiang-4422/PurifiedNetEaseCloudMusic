@@ -325,6 +325,52 @@ void main() {
       });
     });
 
+    test('maps playlist management request data like upstream', () {
+      expect(api.requestModuleDioMetaData('playlist_create', {'name': 'New List'}).data, {
+        'name': 'New List',
+        'privacy': '0',
+        'type': 'NORMAL',
+      });
+      expect(api.requestModuleDioMetaData('playlist_delete', {'id': '888'}).data, {
+        'ids': '[888]',
+      });
+      expect(api.requestModuleDioMetaData('playlist_mylike', {}).data, {
+        'time': '-1',
+        'limit': '12',
+      });
+      expect(api.requestModuleDioMetaData('playlist_category_list', {}).data, {
+        'cat': '全部',
+        'limit': 24,
+        'newStyle': true,
+      });
+      expect(api.requestModuleDioMetaData('playlist_privacy', {'id': '888', 'privacy': 10}).data, {
+        'id': '888',
+        'privacy': 0,
+      });
+      expect(api.requestModuleDioMetaData('playlist_track_add', {'pid': '888', 'ids': '101,202'}).data, {
+        'id': '888',
+        'tracks': '[{"type":3,"id":"101"},{"type":3,"id":"202"}]',
+      });
+      expect(
+        api.requestModuleDioMetaData('playlist_import_name_task_create', {
+          'importStarPlaylist': true,
+          'local': '[{"name":"Song A","artist":"Alice","album":"Album A"}]',
+        }).data,
+        {
+          'importStarPlaylist': true,
+          'multiSongs': '[{"songName":"Song A","artistName":"Alice","albumName":"Album A"}]',
+        },
+      );
+      expect(api.requestModuleDioMetaData('playlist_import_task_status', {'id': 'task-1'}).data, {
+        'taskIds': '["task-1"]',
+      });
+      expect(api.requestModuleDioMetaData('playlist_update', {'id': '888', 'name': 'Renamed'}).data, {
+        '/api/playlist/desc/update': '{"id":888,"desc":""}',
+        '/api/playlist/tags/update': '{"id":888,"tags":""}',
+        '/api/playlist/update/name': '{"id":888,"name":"Renamed"}',
+      });
+    });
+
     test('maps voicelist search defaults and encrypted response flag', () {
       final metaData = api.requestModuleDioMetaData('voicelist_search', {
         'keyword': 'podcast',

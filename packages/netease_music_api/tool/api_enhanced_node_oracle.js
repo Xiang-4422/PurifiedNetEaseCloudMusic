@@ -62,6 +62,13 @@ Module.prototype.require = function patchedRequire(request) {
       },
     }
   }
+  if (request.endsWith('/logger.js') || request === '../util/logger.js') {
+    return {
+      info() {},
+      warn() {},
+      error() {},
+    }
+  }
   return originalRequire.apply(this, arguments)
 }
 
@@ -204,6 +211,110 @@ const fixtures = [
     query: {
       id: '888',
       t: 2,
+    },
+  },
+  {
+    module: 'playlist_create',
+    query: {
+      name: 'New List',
+    },
+  },
+  {
+    module: 'playlist_delete',
+    query: {
+      id: '888',
+    },
+  },
+  {
+    module: 'playlist_desc_update',
+    query: {
+      id: '888',
+      desc: 'Quiet playlist',
+    },
+  },
+  {
+    module: 'playlist_highquality_tags',
+    query: {},
+  },
+  {
+    module: 'playlist_mylike',
+    query: {},
+  },
+  {
+    module: 'playlist_category_list',
+    query: {},
+  },
+  {
+    module: 'playlist_name_update',
+    query: {
+      id: '888',
+      name: 'Renamed',
+    },
+  },
+  {
+    module: 'playlist_order_update',
+    query: {
+      ids: '[888,777]',
+    },
+  },
+  {
+    module: 'playlist_privacy',
+    query: {
+      id: '888',
+      privacy: 10,
+    },
+  },
+  {
+    module: 'playlist_subscribers',
+    query: {
+      id: '888',
+    },
+  },
+  {
+    module: 'playlist_tags_update',
+    query: {
+      id: '888',
+      tags: '流行;华语',
+    },
+  },
+  {
+    module: 'playlist_track_add',
+    query: {
+      pid: '888',
+      ids: '101,202',
+    },
+  },
+  {
+    module: 'playlist_track_delete',
+    query: {
+      id: '888',
+      ids: '101,202',
+    },
+  },
+  {
+    module: 'playlist_import_name_task_create',
+    query: {
+      importStarPlaylist: true,
+      local: '[{"name":"Song A","artist":"Alice","album":"Album A"}]',
+    },
+  },
+  {
+    module: 'playlist_import_task_status',
+    query: {
+      id: 'task-1',
+    },
+  },
+  {
+    module: 'playlist_update',
+    query: {
+      id: '888',
+      name: 'Renamed',
+    },
+  },
+  {
+    module: 'playlist_update_playcount',
+    query: {
+      id: '888',
     },
   },
   {

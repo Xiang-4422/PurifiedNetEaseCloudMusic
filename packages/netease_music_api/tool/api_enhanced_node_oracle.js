@@ -1531,6 +1531,47 @@ const fixtures = [
     },
   },
   {
+    module: 'msg_comments',
+    query: {
+      uid: '32953014',
+      before: 123456,
+      limit: 10,
+    },
+  },
+  {
+    module: 'msg_forwards',
+    query: {
+      offset: 20,
+      limit: 10,
+    },
+  },
+  {
+    module: 'msg_notices',
+    query: {
+      lasttime: 123456,
+      limit: 10,
+    },
+  },
+  {
+    module: 'msg_private',
+    query: {
+      offset: 20,
+      limit: 10,
+    },
+  },
+  {
+    module: 'msg_private_history',
+    query: {
+      uid: '32953014',
+      before: 123456,
+      limit: 10,
+    },
+  },
+  {
+    module: 'msg_recentcontact',
+    query: {},
+  },
+  {
     module: 'mv_all',
     query: {
       area: '内地',

@@ -1069,6 +1069,44 @@ void main() {
       });
     });
 
+    test('maps message request data like upstream', () {
+      final commentsMetaData = api.requestModuleDioMetaData('msg_comments', {'uid': '42'});
+      expect(commentsMetaData.uri.path, '/api/v1/user/comments/42');
+      expect(commentsMetaData.data, {
+        'beforeTime': '-1',
+        'limit': 30,
+        'total': 'true',
+        'uid': '42',
+      });
+      expect(api.requestModuleDioMetaData('msg_comments', {'uid': '42', 'before': 123456, 'limit': 0}).data, {
+        'beforeTime': 123456,
+        'limit': 30,
+        'total': 'true',
+        'uid': '42',
+      });
+      expect(api.requestModuleDioMetaData('msg_forwards', {'offset': 20, 'limit': 10}).data, {
+        'offset': 20,
+        'limit': 10,
+        'total': 'true',
+      });
+      expect(api.requestModuleDioMetaData('msg_notices', {}).data, {
+        'limit': 30,
+        'time': -1,
+      });
+      expect(api.requestModuleDioMetaData('msg_private', {}).data, {
+        'offset': 0,
+        'limit': 30,
+        'total': 'true',
+      });
+      expect(api.requestModuleDioMetaData('msg_private_history', {'uid': '42', 'before': 123456, 'limit': 10}).data, {
+        'userId': '42',
+        'limit': 10,
+        'time': 123456,
+        'total': 'true',
+      });
+      expect(api.requestModuleDioMetaData('msg_recentcontact', {}).data, isEmpty);
+    });
+
     test('maps mv request data like upstream', () {
       expect(api.requestModuleDioMetaData('mv_all', {}).data, {
         'tags': '{"地区":"全部","类型":"全部","排序":"上升最快"}',

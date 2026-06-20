@@ -2216,6 +2216,34 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'style_list':
     case 'style_preference':
       return {};
+    case 'msg_comments':
+      return {
+        'beforeTime': _jsDefault(query['before'], '-1'),
+        'limit': _jsDefault(query['limit'], 30),
+        'total': 'true',
+        'uid': query['uid'],
+      };
+    case 'msg_forwards':
+    case 'msg_private':
+      return {
+        'offset': _jsDefault(query['offset'], 0),
+        'limit': _jsDefault(query['limit'], 30),
+        'total': 'true',
+      };
+    case 'msg_notices':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'time': _jsDefault(query['lasttime'], -1),
+      };
+    case 'msg_private_history':
+      return {
+        'userId': query['uid'],
+        'limit': _jsDefault(query['limit'], 30),
+        'time': _jsDefault(query['before'], 0),
+        'total': 'true',
+      };
+    case 'msg_recentcontact':
+      return {};
     case 'mv_all':
       return {
         'tags': jsonEncode({

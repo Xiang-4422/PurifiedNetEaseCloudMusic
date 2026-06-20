@@ -395,9 +395,12 @@ mixin ApiEnhancedRaw {
   Future<dynamic> songUrlV1Raw(Map<String, dynamic> query) async {
     if (query['unblock']?.toString() == 'true') {
       return {
-        'code': 500,
-        'msg': 'song_url_v1 unblock and source order depend on upstream unblockmusic-utils; use App playback fallback until a Dart replacement is available',
-        'data': [],
+        'status': 500,
+        'body': {
+          'code': 500,
+          'msg': 'song_url_v1 unblock and source order depend on upstream unblockmusic-utils; use App playback fallback until a Dart replacement is available',
+          'data': [],
+        },
       };
     }
     final level = query['level'] ?? 'standard';
@@ -451,15 +454,21 @@ mixin ApiEnhancedRaw {
   /// Song URL match depends on upstream Node unblockmusic-utils.
   dynamic songUrlMatchRaw(Map<String, dynamic> query) {
     return {
-      'code': 500,
-      'msg': 'song_url_match depends on upstream unblockmusic-utils and is not available in the Dart client',
-      'data': [],
+      'status': 500,
+      'body': {
+        'code': 500,
+        'msg': 'song_url_match depends on upstream unblockmusic-utils and is not available in the Dart client',
+        'data': [],
+      },
     };
   }
 
   /// Upstream song_url_ncmget intentionally returns an empty successful body.
   dynamic songUrlNcmgetRaw(Map<String, dynamic> query) {
-    return {'code': 200, 'data': []};
+    return {
+      'status': 200,
+      'body': {'code': 200, 'data': []},
+    };
   }
 
   /// VIP sign history xeapi module.

@@ -98,6 +98,69 @@ const dartBehaviorSpecial = setFrom(coverage.dartBehavior)
 const limitedSpecial = new Set(Object.keys(coverage.limited || {}))
 const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial, ...limitedSpecial])
 const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelain']) || ''
+const manifestMissingUpstreamModules = sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module)))
+const manifestUnknownUpstreamModules = sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module)))
+const normalMissingOracle = sorted(normalModules.filter((module) => !oracleModules.has(module)))
+const specialMissingStatus = sorted(specialModules.filter((module) => !categorizedSpecial.has(module)))
+const specialUnknownStatus = sorted([...categorizedSpecial].filter((module) => !specialSet.has(module)))
+const specialNodeOracleMissingFixture = sorted([...nodeOracleSpecial].filter((module) => !oracleModules.has(module)))
+const specialNonLimitedMissingOracle = sorted(
+  specialModules.filter((module) => !limitedSpecial.has(module) && !nodeOracleSpecial.has(module)),
+)
+const specialLimitedMissingReason = sorted(
+  [...limitedSpecial].filter((module) => {
+    const reason = coverage.limited[module]
+    return typeof reason !== 'string' || reason.trim().length === 0
+  }),
+)
+const specialLimitedReasons = sortedObject(coverage.limited)
+
+function buildSdkDifferences() {
+  const differences = []
+  for (const [module, reason] of Object.entries(specialLimitedReasons)) {
+    differences.push({
+      module,
+      status: 'limited',
+      reason,
+    })
+  }
+  for (const module of normalMissingOracle) {
+    differences.push({
+      module,
+      status: 'missing_node_oracle',
+      reason: 'Normal module has no Node oracle fixture.',
+    })
+  }
+  for (const module of specialMissingStatus) {
+    differences.push({
+      module,
+      status: 'missing_special_status',
+      reason: 'Special module is not categorized as Node oracle, Dart behavior, or limited.',
+    })
+  }
+  for (const module of specialNodeOracleMissingFixture) {
+    differences.push({
+      module,
+      status: 'missing_special_oracle_fixture',
+      reason: 'Special module is marked as Node oracle covered but has no fixture.',
+    })
+  }
+  for (const module of specialNonLimitedMissingOracle) {
+    differences.push({
+      module,
+      status: 'missing_special_oracle_or_limit',
+      reason: 'Special module is not limited and has no Node oracle fixture.',
+    })
+  }
+  for (const module of specialLimitedMissingReason) {
+    differences.push({
+      module,
+      status: 'missing_limited_reason',
+      reason: 'Limited special module must explain why it cannot be fully mirrored.',
+    })
+  }
+  return differences.sort((left, right) => `${left.module}:${left.status}`.localeCompare(`${right.module}:${right.status}`))
+}
 
 const report = {
   upstreamVersion: upstreamPackage.version,
@@ -109,25 +172,19 @@ const report = {
   normalModuleCount: normalModules.length,
   specialModuleCount: specialModules.length,
   nodeOracleFixtureCount: oracleModules.size,
-  manifestMissingUpstreamModules: sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module))),
-  manifestUnknownUpstreamModules: sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module))),
-  normalMissingOracle: sorted(normalModules.filter((module) => !oracleModules.has(module))),
-  specialMissingStatus: sorted(specialModules.filter((module) => !categorizedSpecial.has(module))),
-  specialUnknownStatus: sorted([...categorizedSpecial].filter((module) => !specialSet.has(module))),
-  specialNodeOracleMissingFixture: sorted([...nodeOracleSpecial].filter((module) => !oracleModules.has(module))),
-  specialNonLimitedMissingOracle: sorted(
-    specialModules.filter((module) => !limitedSpecial.has(module) && !nodeOracleSpecial.has(module)),
-  ),
-  specialLimitedMissingReason: sorted(
-    [...limitedSpecial].filter((module) => {
-      const reason = coverage.limited[module]
-      return typeof reason !== 'string' || reason.trim().length === 0
-    }),
-  ),
+  manifestMissingUpstreamModules,
+  manifestUnknownUpstreamModules,
+  normalMissingOracle,
+  specialMissingStatus,
+  specialUnknownStatus,
+  specialNodeOracleMissingFixture,
+  specialNonLimitedMissingOracle,
+  specialLimitedMissingReason,
   specialNodeOracle: sorted(nodeOracleSpecial),
   specialDartBehavior: sorted(dartBehaviorSpecial),
   specialLimited: sorted(limitedSpecial),
-  specialLimitedReasons: sortedObject(coverage.limited),
+  specialLimitedReasons,
+  sdkDifferences: buildSdkDifferences(),
 }
 
 const hasFailure =
@@ -165,6 +222,7 @@ if (jsonOutput) {
   console.log(`special node oracle: ${report.specialNodeOracle.join(', ')}`)
   console.log(`special dart behavior: ${report.specialDartBehavior.join(', ')}`)
   console.log(`special limited: ${report.specialLimited.join(', ')}`)
+  console.log(`SDK differences: ${report.sdkDifferences.length}`)
   console.log('special limited reasons:')
   for (const [module, reason] of Object.entries(report.specialLimitedReasons)) {
     console.log(`- ${module}: ${reason}`)

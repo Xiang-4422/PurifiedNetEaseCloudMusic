@@ -951,6 +951,12 @@ void main() {
       expect(api.requestModuleDioMetaData('user_account', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('user_subcount', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('user_level', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('user_bindingcellphone', {'phone': '13000000000', 'captcha': '1234', 'password': 'secret'}).data, {
+        'phone': '13000000000',
+        'countrycode': '86',
+        'captcha': '1234',
+        'password': '5ebe2294ecd0e0f08eab7690d2a6ee69',
+      });
       expect(api.requestModuleDioMetaData('user_cloud', {}).data, {
         'limit': 30,
         'offset': 0,
@@ -985,6 +991,51 @@ void main() {
         'includeRedHeart': 'true',
         'includeTop': 'true',
       });
+      expect(api.requestModuleDioMetaData('user_medal', {'uid': '42'}).data, {
+        'uid': '42',
+      });
+      expect(api.requestModuleDioMetaData('user_mutualfollow_get', {'uid': '42'}).data, {
+        'friendid': '42',
+      });
+      expect(api.requestModuleDioMetaData('user_replacephone', {'phone': '13000000000', 'captcha': '1234', 'oldcaptcha': '5678'}).data, {
+        'phone': '13000000000',
+        'captcha': '1234',
+        'oldcaptcha': '5678',
+        'countrycode': '86',
+      });
+      expect(api.requestModuleDioMetaData('user_social_status', {'uid': '42'}).data, {
+        'visitorId': '42',
+      });
+      expect(
+        api.requestModuleDioMetaData('user_social_status_edit', {
+          'type': 'music',
+          'iconUrl': 'https://example.test/icon.png',
+          'content': 'listening',
+          'actionUrl': 'orpheus://song/1',
+        }).data,
+        {
+          'content': '{"type":"music","iconUrl":"https://example.test/icon.png","content":"listening","actionUrl":"orpheus://song/1"}',
+        },
+      );
+      expect(api.requestModuleDioMetaData('user_social_status_rcmd', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('user_social_status_support', {}).data, isEmpty);
+      expect(
+          api.requestModuleDioMetaData('user_update', {
+            'birthday': 1700000000000,
+            'city': 110101,
+            'gender': 1,
+            'nickname': 'nick',
+            'province': 110000,
+            'signature': 'hello',
+          }).data,
+          {
+            'birthday': 1700000000000,
+            'city': 110101,
+            'gender': 1,
+            'nickname': 'nick',
+            'province': 110000,
+            'signature': 'hello',
+          });
       expect(api.requestModuleDioMetaData('record_recent_album', {}).data, {
         'limit': 100,
       });

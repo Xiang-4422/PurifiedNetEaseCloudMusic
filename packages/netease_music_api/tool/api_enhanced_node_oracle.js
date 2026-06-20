@@ -1293,6 +1293,14 @@ const fixtures = [
     },
   },
   {
+    module: 'user_bindingcellphone',
+    query: {
+      phone: '13000000000',
+      captcha: '1234',
+      password: 'secret',
+    },
+  },
+  {
     module: 'user_cloud',
     query: {
       limit: 10,
@@ -1378,6 +1386,60 @@ const fixtures = [
       uid: '32953014',
       limit: 10,
       offset: 20,
+    },
+  },
+  {
+    module: 'user_medal',
+    query: {
+      uid: '32953014',
+    },
+  },
+  {
+    module: 'user_mutualfollow_get',
+    query: {
+      uid: '32953014',
+    },
+  },
+  {
+    module: 'user_replacephone',
+    query: {
+      phone: '13000000000',
+      captcha: '1234',
+      oldcaptcha: '5678',
+    },
+  },
+  {
+    module: 'user_social_status',
+    query: {
+      uid: '32953014',
+    },
+  },
+  {
+    module: 'user_social_status_edit',
+    query: {
+      type: 'music',
+      iconUrl: 'https://example.test/icon.png',
+      content: 'listening',
+      actionUrl: 'orpheus://song/1',
+    },
+  },
+  {
+    module: 'user_social_status_rcmd',
+    query: {},
+  },
+  {
+    module: 'user_social_status_support',
+    query: {},
+  },
+  {
+    module: 'user_update',
+    query: {
+      birthday: 1700000000000,
+      city: 110101,
+      gender: 1,
+      nickname: 'nick',
+      province: 110000,
+      signature: 'hello',
     },
   },
   {

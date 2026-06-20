@@ -2010,6 +2010,13 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'user_level':
     case 'user_binding':
       return {};
+    case 'user_bindingcellphone':
+      return {
+        'phone': query['phone'],
+        'countrycode': _jsDefault(query['countrycode'], '86'),
+        'captcha': query['captcha'],
+        'password': _userBindingPassword(query),
+      };
     case 'user_cloud':
       return {
         'limit': _jsDefault(query['limit'], 30),
@@ -2075,6 +2082,46 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'isWebview': 'true',
         'includeRedHeart': 'true',
         'includeTop': 'true',
+      };
+    case 'user_medal':
+      return {
+        'uid': query['uid'],
+      };
+    case 'user_mutualfollow_get':
+      return {
+        'friendid': query['uid'],
+      };
+    case 'user_replacephone':
+      return {
+        'phone': query['phone'],
+        'captcha': query['captcha'],
+        'oldcaptcha': query['oldcaptcha'],
+        'countrycode': _jsDefault(query['countrycode'], '86'),
+      };
+    case 'user_social_status':
+      return {
+        'visitorId': query['uid'],
+      };
+    case 'user_social_status_edit':
+      return {
+        'content': jsonEncode({
+          'type': query['type'],
+          'iconUrl': query['iconUrl'],
+          'content': query['content'],
+          'actionUrl': query['actionUrl'],
+        }),
+      };
+    case 'user_social_status_rcmd':
+    case 'user_social_status_support':
+      return {};
+    case 'user_update':
+      return {
+        'birthday': query['birthday'],
+        'city': query['city'],
+        'gender': query['gender'],
+        'nickname': query['nickname'],
+        'province': query['province'],
+        'signature': query['signature'],
       };
     case 'mv_all':
       return {
@@ -2436,7 +2483,19 @@ String _loginPassword(Map<String, dynamic> query) {
   if (_jsTruthy(md5Password)) {
     return md5Password.toString();
   }
-  return Encrypted(MD5Digest().process(Uint8List.fromList(utf8.encode(query['password']?.toString() ?? '')))).base16;
+  return _md5Hex(query['password']?.toString() ?? '');
+}
+
+String _userBindingPassword(Map<String, dynamic> query) {
+  final password = query['password'];
+  if (!_jsTruthy(password)) {
+    return '';
+  }
+  return _md5Hex(password.toString());
+}
+
+String _md5Hex(String value) {
+  return Encrypted(MD5Digest().process(Uint8List.fromList(utf8.encode(value)))).base16;
 }
 
 String? _commentAction(dynamic value) {

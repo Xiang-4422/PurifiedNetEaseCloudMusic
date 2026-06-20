@@ -36,7 +36,8 @@ node packages/netease_music_api/tool/generate_api_enhanced_modules.js --check
 node packages/netease_music_api/tool/api_enhanced_coverage_report.js
 ```
 
-The generator formats generated Dart files before writing them back. `--check`
+The generator formats generated Dart files before writing them back and records
+the upstream version plus submodule commit in the generated manifest. `--check`
 verifies generated files are up to date without writing them.
 
 The coverage report checks that normal upstream modules have Node oracle

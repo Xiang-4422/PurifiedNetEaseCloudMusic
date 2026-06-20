@@ -162,6 +162,8 @@ void main() {
       );
       final upstreamCommit = (commitResult.stdout as String).trim();
 
+      expect(apiEnhancedUpstreamVersion, packageJson['version']);
+      expect(apiEnhancedUpstreamCommit, upstreamCommit);
       expect(docs, contains('版本：v${packageJson['version']}'));
       expect(docs, contains('commit：$upstreamCommit'));
       expect(docs, contains('module 数量：${apiEnhancedModules.length}'));

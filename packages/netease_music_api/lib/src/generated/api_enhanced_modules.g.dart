@@ -5,6 +5,8 @@
 import 'api_enhanced_module.dart';
 
 const String apiEnhancedUpstreamVersion = '4.35.2';
+const String apiEnhancedUpstreamCommit =
+    '60ee927e3224ab675679d023065225af11bdc693';
 
 const List<ApiEnhancedModule> apiEnhancedModules = [
   ApiEnhancedModule(

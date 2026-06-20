@@ -6,8 +6,9 @@ const os = require('os')
 const { spawnSync } = require('child_process')
 
 const repoRoot = path.resolve(__dirname, '../../..')
-const upstreamDir = path.join(repoRoot, 'third_party/api-enhanced/module')
-const upstreamPackagePath = path.join(repoRoot, 'third_party/api-enhanced/package.json')
+const upstreamRepoPath = path.join(repoRoot, 'third_party/api-enhanced')
+const upstreamDir = path.join(upstreamRepoPath, 'module')
+const upstreamPackagePath = path.join(upstreamRepoPath, 'package.json')
 const packageDir = path.resolve(__dirname, '..')
 const generatedDir = path.join(packageDir, 'lib/src/generated')
 const rawDir = path.join(packageDir, 'lib/src/endpoints/raw')
@@ -88,6 +89,20 @@ function writeGeneratedFile(filePath, source) {
   return true
 }
 
+function gitOutput(args) {
+  const result = spawnSync('git', args, {
+    cwd: repoRoot,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  if (result.status !== 0) {
+    process.stderr.write(result.stdout || '')
+    process.stderr.write(result.stderr || '')
+    process.exit(result.status || 1)
+  }
+  return result.stdout.trim()
+}
+
 function moduleEntry(fileName) {
   const module = fileName.replace(/\.js$/, '')
   const source = fs.readFileSync(path.join(upstreamDir, fileName), 'utf8')
@@ -113,11 +128,12 @@ const entries = fs
   .sort()
   .map(moduleEntry)
 const upstreamVersion = JSON.parse(fs.readFileSync(upstreamPackagePath, 'utf8')).version
+const upstreamCommit = gitOutput(['-C', upstreamRepoPath, 'rev-parse', 'HEAD'])
 
 fs.mkdirSync(generatedDir, { recursive: true })
 fs.mkdirSync(rawDir, { recursive: true })
 
-let modules = `// GENERATED CODE - DO NOT MODIFY BY HAND.\n// ignore_for_file: public_member_api_docs\n// Generated from third_party/api-enhanced/module/*.js.\n\nimport 'api_enhanced_module.dart';\n\nconst String apiEnhancedUpstreamVersion = '${esc(upstreamVersion)}';\n\nconst List<ApiEnhancedModule> apiEnhancedModules = [\n`
+let modules = `// GENERATED CODE - DO NOT MODIFY BY HAND.\n// ignore_for_file: public_member_api_docs\n// Generated from third_party/api-enhanced/module/*.js.\n\nimport 'api_enhanced_module.dart';\n\nconst String apiEnhancedUpstreamVersion = '${esc(upstreamVersion)}';\nconst String apiEnhancedUpstreamCommit = '${esc(upstreamCommit)}';\n\nconst List<ApiEnhancedModule> apiEnhancedModules = [\n`
 for (const entry of entries) {
   modules += `  ApiEnhancedModule(module: '${esc(entry.module)}', methodName: '${esc(entry.methodName)}', pathTemplate: '${esc(entry.pathTemplate)}', crypto: '${esc(entry.crypto)}', httpMethod: '${entry.httpMethod}', special: ${entry.special}),\n`
 }

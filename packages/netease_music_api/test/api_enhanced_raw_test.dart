@@ -501,6 +501,34 @@ void main() {
       });
     });
 
+    test('maps ugc request data like upstream', () {
+      expect(api.requestModuleDioMetaData('ugc_album_get', {'id': '100'}).data, {
+        'albumId': '100',
+      });
+      expect(api.requestModuleDioMetaData('ugc_artist_get', {'id': '200'}).data, {
+        'artistId': '200',
+      });
+      expect(api.requestModuleDioMetaData('ugc_artist_search', {'keyword': 'artist'}).data, {
+        'keyword': 'artist',
+        'limit': 40,
+      });
+      expect(api.requestModuleDioMetaData('ugc_detail', {}).data, {
+        'auditStatus': '',
+        'limit': 10,
+        'offset': 0,
+        'order': 'desc',
+        'sortBy': 'createTime',
+        'type': 1,
+      });
+      expect(api.requestModuleDioMetaData('ugc_mv_get', {'id': '300'}).data, {
+        'mvId': '300',
+      });
+      expect(api.requestModuleDioMetaData('ugc_song_get', {'id': '400'}).data, {
+        'songId': '400',
+      });
+      expect(api.requestModuleDioMetaData('ugc_user_devote', {}).data, isEmpty);
+    });
+
     test('maps playlist management request data like upstream', () {
       expect(api.requestModuleDioMetaData('playlist_create', {'name': 'New List'}).data, {
         'name': 'New List',

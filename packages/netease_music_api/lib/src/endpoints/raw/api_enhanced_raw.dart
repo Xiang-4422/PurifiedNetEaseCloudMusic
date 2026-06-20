@@ -1966,6 +1966,38 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'tab': 0,
         'order': _jsDefault(query['order'], 0),
       };
+    case 'ugc_album_get':
+      return {
+        'albumId': query['id'],
+      };
+    case 'ugc_artist_get':
+      return {
+        'artistId': query['id'],
+      };
+    case 'ugc_artist_search':
+      return {
+        'keyword': query['keyword'],
+        'limit': _jsDefault(query['limit'], 40),
+      };
+    case 'ugc_detail':
+      return {
+        'auditStatus': _jsDefault(query['auditStatus'], ''),
+        'limit': _jsDefault(query['limit'], 10),
+        'offset': _jsDefault(query['offset'], 0),
+        'order': _jsDefault(query['order'], 'desc'),
+        'sortBy': _jsDefault(query['sortBy'], 'createTime'),
+        'type': _jsDefault(query['type'], 1),
+      };
+    case 'ugc_mv_get':
+      return {
+        'mvId': query['id'],
+      };
+    case 'ugc_song_get':
+      return {
+        'songId': query['id'],
+      };
+    case 'ugc_user_devote':
+      return {};
     case 'user_detail':
       return {};
     case 'user_detail_new':

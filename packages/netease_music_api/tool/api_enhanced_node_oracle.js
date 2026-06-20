@@ -1217,6 +1217,52 @@ const fixtures = [
     },
   },
   {
+    module: 'ugc_album_get',
+    query: {
+      id: '100',
+    },
+  },
+  {
+    module: 'ugc_artist_get',
+    query: {
+      id: '200',
+    },
+  },
+  {
+    module: 'ugc_artist_search',
+    query: {
+      keyword: 'artist',
+      limit: 20,
+    },
+  },
+  {
+    module: 'ugc_detail',
+    query: {
+      auditStatus: 5,
+      limit: 20,
+      offset: 10,
+      order: 'asc',
+      sortBy: 'updateTime',
+      type: 3,
+    },
+  },
+  {
+    module: 'ugc_mv_get',
+    query: {
+      id: '300',
+    },
+  },
+  {
+    module: 'ugc_song_get',
+    query: {
+      id: '400',
+    },
+  },
+  {
+    module: 'ugc_user_devote',
+    query: {},
+  },
+  {
     module: 'user_detail',
     query: {
       uid: '32953014',

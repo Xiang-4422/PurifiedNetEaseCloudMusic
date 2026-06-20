@@ -13,8 +13,26 @@ import 'package:get/get.dart';
 
 /// 本地歌曲与下载缓存管理页面。
 class DownloadTaskPageView extends StatefulWidget {
+  /// 全部本地资源 tab。
+  static const int tabAll = 0;
+
+  /// 播放缓存 tab。
+  static const int tabPlaybackCache = 1;
+
+  /// 手动下载 tab。
+  static const int tabDownloaded = 2;
+
+  /// 本地导入 tab。
+  static const int tabLocalImport = 3;
+
   /// 创建本地歌曲与下载缓存管理页面。
-  const DownloadTaskPageView({super.key});
+  const DownloadTaskPageView({
+    super.key,
+    this.initialTabIndex = tabAll,
+  });
+
+  /// 初始展示的 tab 索引。
+  final int initialTabIndex;
 
   @override
   State<DownloadTaskPageView> createState() => _DownloadTaskPageViewState();
@@ -32,7 +50,16 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> with Single
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: widget.initialTabIndex
+          .clamp(
+            DownloadTaskPageView.tabAll,
+            DownloadTaskPageView.tabLocalImport,
+          )
+          .toInt(),
+    );
     _allController = _localSongList()..loadInitial();
     _cacheController = _localSongList(
       origins: const {TrackResourceOrigin.playbackCache},

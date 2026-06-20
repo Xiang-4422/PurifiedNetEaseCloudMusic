@@ -5,6 +5,7 @@ import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
+import 'package:bujuan/ui/pages/download/download_task_page_view.dart';
 import 'package:bujuan/ui/widgets/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
@@ -50,6 +51,14 @@ Future<void> _playPlaylistSummary(PlaylistSummaryData playlist) async {
     0,
     playListName: index.name,
     playListNameHeader: '歌单',
+  );
+}
+
+void _openDownloadTaskPage(BuildContext context, int initialTabIndex) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => DownloadTaskPageView(initialTabIndex: initialTabIndex),
+    ),
   );
 }
 
@@ -240,6 +249,13 @@ class PersonalPageView extends GetView<ShellController> {
           // 我的喜欢
           SliverToBoxAdapter(child: PlayListItem(libraryController.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall)),
 
+          SliverToBoxAdapter(
+            child: const Header('资料库', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
+          ),
+          const SliverToBoxAdapter(
+            child: _LibraryShortcutBar(),
+          ),
+
           // 推荐歌单 Header
           SliverLayoutBuilder(
             builder: (BuildContext context, SliverConstraints constraints) {
@@ -382,6 +398,12 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
               ),
               const SizedBox(height: AppDimensions.paddingSmall),
               PlayListItem(widget.libraryController.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
+              Header(
+                '资料库',
+                padding: AppDimensions.paddingSmall,
+                height: widget.metrics.squareHeaderHeight,
+              ),
+              const _LibraryShortcutBar(),
             ],
           );
         },
@@ -572,6 +594,125 @@ class _ContinuePlaybackQuickStartCard extends StatelessWidget {
         ],
       );
     });
+  }
+}
+
+class _LibraryShortcutBar extends StatelessWidget {
+  const _LibraryShortcutBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final shortcuts = [
+      _LibraryShortcutAction(
+        label: '本地音乐',
+        icon: TablerIcons.music,
+        onTap: () => _openDownloadTaskPage(
+          context,
+          DownloadTaskPageView.tabLocalImport,
+        ),
+      ),
+      _LibraryShortcutAction(
+        label: '已下载',
+        icon: TablerIcons.download,
+        onTap: () => _openDownloadTaskPage(
+          context,
+          DownloadTaskPageView.tabDownloaded,
+        ),
+      ),
+      _LibraryShortcutAction(
+        label: '云盘',
+        icon: TablerIcons.cloud,
+        onTap: () => context.router.push(const gr.CloudDriveView()),
+      ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
+      child: SizedBox(
+        height: 72,
+        child: Row(
+          children: [
+            for (var index = 0; index < shortcuts.length; index++) ...[
+              if (index > 0) const SizedBox(width: AppDimensions.paddingSmall),
+              Expanded(
+                child: _LibraryShortcutButton(action: shortcuts[index]),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LibraryShortcutAction {
+  const _LibraryShortcutAction({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+}
+
+class _LibraryShortcutButton extends StatelessWidget {
+  const _LibraryShortcutButton({required this.action});
+
+  final _LibraryShortcutAction action;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final backgroundColor = Color.alphaBlend(
+      colorScheme.primary.withValues(alpha: 0.08),
+      colorScheme.surface,
+    );
+
+    return Tooltip(
+      message: action.label,
+      child: Semantics(
+        button: true,
+        label: action.label,
+        child: Material(
+          color: backgroundColor,
+          borderRadius: AppDimensions.borderRadiusMedium,
+          child: InkWell(
+            borderRadius: AppDimensions.borderRadiusMedium,
+            onTap: action.onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.paddingSmall / 2,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    action.icon,
+                    size: AppDimensions.iconSizeMedium,
+                    color: colorScheme.primary,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    action.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

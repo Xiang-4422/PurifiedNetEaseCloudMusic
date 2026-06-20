@@ -512,6 +512,24 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'pl_count',
+    query: {},
+  },
+  {
+    module: 'sign_happy_info',
+    query: {},
+  },
+  {
+    module: 'signin_progress',
+    query: {},
+  },
+  {
+    module: 'signin_progress',
+    query: {
+      moduleId: 'custom-signin',
+    },
+  },
+  {
     module: 'recommend_resource',
     query: {},
   },

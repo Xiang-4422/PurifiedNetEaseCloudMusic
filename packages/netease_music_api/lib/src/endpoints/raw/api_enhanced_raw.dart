@@ -1410,7 +1410,9 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'login_status':
     case 'login_refresh':
     case 'logout':
+    case 'pl_count':
     case 'setting':
+    case 'sign_happy_info':
       return {};
     case 'likelist':
       return {
@@ -1948,6 +1950,10 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'search_suggest_pc':
       return {
         'keyword': _jsDefault(query['keyword'], ''),
+      };
+    case 'signin_progress':
+      return {
+        'moduleId': _jsDefault(query['moduleId'], '1207signin-1207signin'),
       };
     case 'get_userids':
       return {

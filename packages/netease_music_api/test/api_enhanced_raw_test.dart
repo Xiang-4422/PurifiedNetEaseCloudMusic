@@ -840,6 +840,14 @@ void main() {
       expect(api.requestModuleDioMetaData('daily_signin', {}).data, {
         'type': 0,
       });
+      expect(api.requestModuleDioMetaData('pl_count', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('sign_happy_info', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('signin_progress', {}).data, {
+        'moduleId': '1207signin-1207signin',
+      });
+      expect(api.requestModuleDioMetaData('signin_progress', {'moduleId': 'custom-signin'}).data, {
+        'moduleId': 'custom-signin',
+      });
       expect(api.requestModuleDioMetaData('fm_trash', {'id': '101'}).data, {
         'songId': '101',
         'alg': 'RT',

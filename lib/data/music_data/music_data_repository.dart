@@ -224,6 +224,45 @@ class MusicDataRepository {
     );
   }
 
+  String _localFilePathCandidate(String rawPath) {
+    final trimmedPath = rawPath.trim();
+    if (trimmedPath.isEmpty) {
+      return '';
+    }
+    final uri = Uri.tryParse(trimmedPath);
+    final scheme = uri?.scheme.toLowerCase();
+    if (uri != null && scheme == 'file') {
+      final host = uri.host.toLowerCase();
+      if (!Platform.isWindows && host.isNotEmpty && host != 'localhost') {
+        return '';
+      }
+      return Uri(
+        scheme: 'file',
+        host: Platform.isWindows && host.isNotEmpty && host != 'localhost' ? uri.host : null,
+        path: uri.path,
+      ).toFilePath(windows: Platform.isWindows);
+    }
+    if (scheme == 'http' || scheme == 'https') {
+      return '';
+    }
+    return File(trimmedPath.split('?').first).path;
+  }
+
+  Future<String?> _resolveLocalTrackSourceUrl(Track? track) async {
+    if (track?.sourceId.isNotEmpty != true) {
+      return null;
+    }
+    final sourcePath = _localFilePathCandidate(track!.sourceId);
+    if (sourcePath.isEmpty) {
+      return null;
+    }
+    final localFile = File(sourcePath);
+    if (localFile.existsSync()) {
+      return localFile.path;
+    }
+    return null;
+  }
+
   Future<String?> _resolvePlaybackUrl(String trackId) async {
     final trackWithResources = await getTrackWithResources(trackId);
     final localAudio = trackWithResources?.resources.audio;
@@ -232,10 +271,10 @@ class MusicDataRepository {
     }
     final track = trackWithResources?.track;
     final isLocalTrack = _isLocalTrackId(trackId);
-    if (isLocalTrack && track?.sourceId.isNotEmpty == true) {
-      final localFile = File(track!.sourceId);
-      if (localFile.existsSync()) {
-        return localFile.path;
+    if (isLocalTrack) {
+      final localUrl = await _resolveLocalTrackSourceUrl(track);
+      if (localUrl != null) {
+        return localUrl;
       }
     }
     return isLocalTrack ? _localMusicSource.getPlaybackUrl(trackId) : _neteaseSource.getPlaybackUrl(trackId);
@@ -269,10 +308,10 @@ class MusicDataRepository {
     }
     final track = trackWithResources?.track;
     final isLocalTrack = _isLocalTrackId(trackId);
-    if (isLocalTrack && track?.sourceId.isNotEmpty == true) {
-      final localFile = File(track!.sourceId);
-      if (localFile.existsSync()) {
-        return localFile.path;
+    if (isLocalTrack) {
+      final localUrl = await _resolveLocalTrackSourceUrl(track);
+      if (localUrl != null) {
+        return localUrl;
       }
     }
     return isLocalTrack ? _localMusicSource.getPlaybackUrl(trackId, qualityLevel: qualityLevel) : _neteaseSource.getPlaybackUrl(trackId, qualityLevel: qualityLevel);

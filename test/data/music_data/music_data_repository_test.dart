@@ -178,6 +178,36 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 1);
     });
 
+    test('normalizes local track file uri source id before fallback', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-local-source-uri-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final localAudio = await _writeFile(directory, 'Local Song.mp3');
+      final trackId = 'local:${localAudio.path}';
+      final sourceUri = localAudio.uri.replace(queryParameters: {'token': 'local'}).toString();
+      final localDataSource = _FakeLocalLibraryDataSource(
+        tracks: {
+          trackId: Track(
+            id: trackId,
+            sourceType: SourceType.local,
+            sourceId: sourceUri,
+            title: 'Local Song',
+          ),
+        },
+      );
+      final repository = _buildRepository(localDataSource: localDataSource);
+
+      final url = await repository.getPlaybackUrlWithQuality(
+        trackId,
+        qualityLevel: 'lossless',
+      );
+
+      expect(url, localAudio.path);
+    });
+
     test('coalesces concurrent lyric loads', () async {
       final localDataSource = _FakeLocalLibraryDataSource();
       final neteaseSource = _FakeNeteaseMusicSource(

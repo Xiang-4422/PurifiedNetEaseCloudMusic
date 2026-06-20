@@ -68,8 +68,26 @@ class SearchPanelController {
       return;
     }
     final generation = ++_hotKeywordGeneration;
-    hotKeywordState.value = const LoadState.loading();
-    final state = await _loadInitialHotKeywords(force: force);
+    final cachedKeywords = await _repository.loadCachedHotKeywords();
+    if (generation != _hotKeywordGeneration) {
+      return;
+    }
+    final hasCachedKeywords = cachedKeywords != null && cachedKeywords.isNotEmpty;
+    if (hasCachedKeywords) {
+      hotKeywordState.value = LoadState.data(cachedKeywords);
+      _loadedOnce = true;
+    } else {
+      hotKeywordState.value = const LoadState.loading();
+    }
+    final cacheFresh = hasCachedKeywords && await _repository.isHotKeywordCacheFresh(ttl: hotKeywordTtl);
+    if (generation != _hotKeywordGeneration) {
+      return;
+    }
+    final shouldRefresh = force || !cacheFresh || !hasCachedKeywords;
+    if (!shouldRefresh) {
+      return;
+    }
+    final state = await _fetchHotKeywords(cachedKeywords: cachedKeywords);
     if (generation != _hotKeywordGeneration) {
       return;
     }
@@ -162,14 +180,9 @@ class SearchPanelController {
     ]);
   }
 
-  Future<LoadState<List<String>>> _loadInitialHotKeywords({
-    bool force = false,
+  Future<LoadState<List<String>>> _fetchHotKeywords({
+    required List<String>? cachedKeywords,
   }) async {
-    final cachedKeywords = await _repository.loadCachedHotKeywords();
-    final shouldRefresh = force || !(await _repository.isHotKeywordCacheFresh(ttl: hotKeywordTtl)) || cachedKeywords == null || cachedKeywords.isEmpty;
-    if (cachedKeywords != null && cachedKeywords.isNotEmpty && !shouldRefresh) {
-      return LoadState.data(cachedKeywords);
-    }
     try {
       final keywords = await _repository.fetchHotKeywords();
       if (keywords.isEmpty) {

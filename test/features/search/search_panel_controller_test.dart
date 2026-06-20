@@ -112,6 +112,45 @@ void main() {
       await firstLoad;
       expect(controller.hotKeywordState.value.data, const ['latest']);
     });
+
+    test('publishes cached hot keywords before stale refresh completes', () async {
+      final repository = _FakeSearchRepository(
+        cachedHotKeywords: const ['cached'],
+        hotKeywordCacheFresh: false,
+      );
+      final controller = SearchPanelController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final load = controller.loadInitial();
+      await _flushAsync();
+
+      expect(controller.hotKeywordState.value.data, const ['cached']);
+      expect(repository.hotKeywordRequestCount, 1);
+
+      repository.completeHotKeywords(0, const ['fresh']);
+      await load;
+
+      expect(controller.hotKeywordState.value.data, const ['fresh']);
+    });
+
+    test('keeps cached hot keywords when refresh fails', () async {
+      final repository = _FakeSearchRepository(
+        cachedHotKeywords: const ['cached'],
+        hotKeywordCacheFresh: false,
+      );
+      final controller = SearchPanelController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final load = controller.loadInitial();
+      await _flushAsync();
+      repository.failHotKeywords(0, StateError('offline'));
+      await load;
+
+      expect(controller.hotKeywordState.value.data, const ['cached']);
+
+      await controller.loadInitial();
+      expect(repository.hotKeywordRequestCount, 1);
+    });
   });
 }
 
@@ -136,6 +175,13 @@ class _FakeSearchRepository implements SearchRepository {
     final request = _hotKeywordRequests[index];
     if (!request.isCompleted) {
       request.complete(keywords);
+    }
+  }
+
+  void failHotKeywords(int index, Object error) {
+    final request = _hotKeywordRequests[index];
+    if (!request.isCompleted) {
+      request.completeError(error, StackTrace.current);
     }
   }
 

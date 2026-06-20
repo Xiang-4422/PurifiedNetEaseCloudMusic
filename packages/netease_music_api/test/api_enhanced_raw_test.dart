@@ -378,6 +378,16 @@ void main() {
       expect(metaData.options!.extra!['randomCNIP'], isTrue);
     });
 
+    test('keeps randomCNIP false from generating request IP', () {
+      final metaData = api.requestModuleDioMetaData('album', {
+        'id': '1',
+        'randomCNIP': false,
+      });
+
+      expect(metaData.options!.extra!['realIP'], isNull);
+      expect(metaData.options!.extra!['randomCNIP'], isFalse);
+    });
+
     test('keeps explicit realIP before randomCNIP', () {
       final metaData = api.requestModuleDioMetaData('album', {
         'id': '1',
@@ -3432,6 +3442,8 @@ void _expectDartRequestMatchesNode(
   expect(_optionString(extra['rawUserAgent']), _optionString(nodeOptions['ua']), reason: reason);
   expect(_optionString(extra['domain']), _optionString(nodeOptions['domain']), reason: reason);
   expect(extra['checkToken'], nodeOptions['checkToken'] == true, reason: reason);
+  expect(extra['randomCNIP'], nodeOptions['randomCNIP'] == true, reason: reason);
+  expect(extra['e_r'], nodeOptions.containsKey('e_r') ? nodeOptions['e_r'] == true : null, reason: reason);
   expect(_optionString(extra['proxy']), _optionString(nodeOptions['proxy']), reason: reason);
   expect(extra['cookies'], nodeOptions.containsKey('cookie') ? _stringJsonMap(nodeOptions['cookie']) : <String, String>{}, reason: reason);
   expect(_stringJsonMap(metaData.options?.headers), _stringJsonMap(nodeOptions['headers']), reason: reason);

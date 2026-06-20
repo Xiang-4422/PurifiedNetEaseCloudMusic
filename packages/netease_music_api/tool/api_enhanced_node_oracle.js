@@ -265,6 +265,14 @@ const fixtures = [
     },
   },
   {
+    module: 'album',
+    query: {
+      id: '456',
+      e_r: true,
+      randomCNIP: false,
+    },
+  },
+  {
     module: 'album_privilege',
     query: {
       id: '456',

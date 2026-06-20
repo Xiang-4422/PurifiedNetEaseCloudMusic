@@ -46,6 +46,65 @@ void main() {
       expect(controller.state.value.error, same(error));
       expect(controller.state.value.hasInitialError, isTrue);
     });
+
+    test('ignores stale load more result after refresh completes', () async {
+      final loadMore = Completer<CloudSongPage>();
+      final refresh = Completer<CloudSongPage>();
+      var firstPageLoaded = false;
+      final repository = _FakeCloudRepository(
+        fetchCloudSongsWithArgs: ({required userId, required offset, required limit, required likedSongIds}) {
+          if (offset == 0 && !firstPageLoaded) {
+            firstPageLoaded = true;
+            return Future.value(
+              CloudSongPage(
+                items: [_song('old-first')],
+                hasMore: true,
+                nextOffset: 1,
+              ),
+            );
+          }
+          if (offset == 0) {
+            return refresh.future;
+          }
+          return loadMore.future;
+        },
+      );
+      final controller = _buildController(repository);
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      expect(controller.state.value.items.map((item) => item.id), ['old-first']);
+
+      final loadMoreFuture = controller.loadMore();
+      await Future<void>.delayed(Duration.zero);
+      expect(controller.state.value.loadingMore, isTrue);
+
+      final refreshFuture = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+      refresh.complete(
+        CloudSongPage(
+          items: [_song('fresh-first')],
+          hasMore: true,
+          nextOffset: 1,
+        ),
+      );
+      await refreshFuture;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-first']);
+
+      loadMore.complete(
+        CloudSongPage(
+          items: [_song('stale-more')],
+          hasMore: false,
+          nextOffset: 2,
+        ),
+      );
+      await loadMoreFuture;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-first']);
+      expect(controller.state.value.loadingMore, isFalse);
+      expect(controller.state.value.refreshing, isFalse);
+    });
   });
 }
 
@@ -79,8 +138,15 @@ PlaybackQueueItem _song(String id) {
 class _FakeCloudRepository extends CloudRepository {
   _FakeCloudRepository({
     this.cachedSongs = const [],
-    required Future<CloudSongPage> Function() fetchCloudSongs,
+    Future<CloudSongPage> Function()? fetchCloudSongs,
+    Future<CloudSongPage> Function({
+      required String userId,
+      required int offset,
+      required int limit,
+      required List<int> likedSongIds,
+    })? fetchCloudSongsWithArgs,
   })  : _fetchCloudSongs = fetchCloudSongs,
+        _fetchCloudSongsWithArgs = fetchCloudSongsWithArgs,
         super(
           musicDataRepository: _UnusedMusicDataRepository(),
           userTrackListDataSource: _UnusedUserTrackListDataSource(),
@@ -88,7 +154,13 @@ class _FakeCloudRepository extends CloudRepository {
         );
 
   final List<PlaybackQueueItem> cachedSongs;
-  final Future<CloudSongPage> Function() _fetchCloudSongs;
+  final Future<CloudSongPage> Function()? _fetchCloudSongs;
+  final Future<CloudSongPage> Function({
+    required String userId,
+    required int offset,
+    required int limit,
+    required List<int> likedSongIds,
+  })? _fetchCloudSongsWithArgs;
 
   @override
   Future<List<PlaybackQueueItem>> loadCachedSongs({
@@ -105,7 +177,16 @@ class _FakeCloudRepository extends CloudRepository {
     required int limit,
     required List<int> likedSongIds,
   }) {
-    return _fetchCloudSongs();
+    final fetchWithArgs = _fetchCloudSongsWithArgs;
+    if (fetchWithArgs != null) {
+      return fetchWithArgs(
+        userId: userId,
+        offset: offset,
+        limit: limit,
+        likedSongIds: likedSongIds,
+      );
+    }
+    return _fetchCloudSongs!.call();
   }
 }
 

@@ -28,6 +28,7 @@ class CloudPageController {
   final ValueNotifier<PagedState<PlaybackQueueItem>> state = ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
+  int _requestGeneration = 0;
 
   /// 首次加载云盘歌曲，优先展示本地缓存。
   Future<void> loadInitial() async {
@@ -64,9 +65,10 @@ class CloudPageController {
   /// 加载下一页云盘歌曲。
   Future<bool> loadMore() async {
     final currentState = state.value;
-    if (currentState.loadingMore || !currentState.hasMore) {
+    if (currentState.initialLoading || currentState.refreshing || currentState.loadingMore || !currentState.hasMore) {
       return true;
     }
+    final generation = _requestGeneration;
     state.value = currentState.copyWith(
       loadingMore: true,
       error: null,
@@ -78,6 +80,9 @@ class CloudPageController {
         limit: pageSize,
         likedSongIds: _likedSongIds,
       );
+      if (generation != _requestGeneration) {
+        return true;
+      }
       _offset = page.nextOffset;
       state.value = PagedState(
         items: [...currentState.items, ...page.items],
@@ -85,6 +90,9 @@ class CloudPageController {
       );
       return true;
     } catch (error, stackTrace) {
+      if (generation != _requestGeneration) {
+        return true;
+      }
       state.value = currentState.copyWith(
         loadingMore: false,
         error: error,
@@ -95,6 +103,7 @@ class CloudPageController {
   }
 
   Future<bool> _reload() async {
+    final generation = ++_requestGeneration;
     final currentState = state.value;
     try {
       final page = await _repository.fetchCloudSongs(
@@ -103,6 +112,9 @@ class CloudPageController {
         limit: pageSize,
         likedSongIds: _likedSongIds,
       );
+      if (generation != _requestGeneration) {
+        return true;
+      }
       _offset = page.nextOffset;
       state.value = PagedState.data(
         page.items,
@@ -110,6 +122,9 @@ class CloudPageController {
       );
       return true;
     } catch (error, stackTrace) {
+      if (generation != _requestGeneration) {
+        return true;
+      }
       if (currentState.items.isNotEmpty) {
         state.value = currentState.copyWith(
           initialLoading: false,

@@ -51,6 +51,68 @@ void main() {
       expect(controller.state.value.error, same(error));
       expect(controller.state.value.hasInitialError, isTrue);
     });
+
+    test('ignores stale load more result after refresh completes', () async {
+      final loadMore = Completer<DjRadioPage>();
+      final refresh = Completer<DjRadioPage>();
+      var firstPageLoaded = false;
+      final repository = _FakeRadioRepository(
+        fetchSubscribedRadiosWithArgs: ({required userId, required offset, required limit}) {
+          if (offset == 0 && !firstPageLoaded) {
+            firstPageLoaded = true;
+            return Future.value(
+              DjRadioPage(
+                items: [_radio('old-radio')],
+                hasMore: true,
+                nextOffset: 1,
+              ),
+            );
+          }
+          if (offset == 0) {
+            return refresh.future;
+          }
+          return loadMore.future;
+        },
+      );
+      final controller = RadioListController(
+        userId: 'user-1',
+        repository: repository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      expect(controller.state.value.items.map((item) => item.id), ['old-radio']);
+
+      final loadMoreFuture = controller.loadMore();
+      await Future<void>.delayed(Duration.zero);
+      expect(controller.state.value.loadingMore, isTrue);
+
+      final refreshFuture = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+      refresh.complete(
+        DjRadioPage(
+          items: [_radio('fresh-radio')],
+          hasMore: true,
+          nextOffset: 1,
+        ),
+      );
+      await refreshFuture;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-radio']);
+
+      loadMore.complete(
+        DjRadioPage(
+          items: [_radio('stale-radio')],
+          hasMore: false,
+          nextOffset: 2,
+        ),
+      );
+      await loadMoreFuture;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-radio']);
+      expect(controller.state.value.loadingMore, isFalse);
+      expect(controller.state.value.refreshing, isFalse);
+    });
   });
 
   group('RadioDetailController', () {
@@ -99,6 +161,69 @@ void main() {
       expect(controller.state.value.error, same(error));
       expect(controller.state.value.hasInitialError, isTrue);
     });
+
+    test('ignores stale load more result after refresh completes', () async {
+      final loadMore = Completer<DjProgramPage>();
+      final refresh = Completer<DjProgramPage>();
+      var firstPageLoaded = false;
+      final repository = _FakeRadioRepository(
+        fetchProgramsWithArgs: ({required userId, required radioId, required offset, required limit, required asc}) {
+          if (offset == 0 && !firstPageLoaded) {
+            firstPageLoaded = true;
+            return Future.value(
+              DjProgramPage(
+                items: [_program('old-program')],
+                hasMore: true,
+                nextOffset: 1,
+              ),
+            );
+          }
+          if (offset == 0) {
+            return refresh.future;
+          }
+          return loadMore.future;
+        },
+      );
+      final controller = RadioDetailController(
+        radioId: 'radio-1',
+        userId: 'user-1',
+        repository: repository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      expect(controller.state.value.items.map((item) => item.id), ['old-program']);
+
+      final loadMoreFuture = controller.loadMore();
+      await Future<void>.delayed(Duration.zero);
+      expect(controller.state.value.loadingMore, isTrue);
+
+      final refreshFuture = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+      refresh.complete(
+        DjProgramPage(
+          items: [_program('fresh-program')],
+          hasMore: true,
+          nextOffset: 1,
+        ),
+      );
+      await refreshFuture;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-program']);
+
+      loadMore.complete(
+        DjProgramPage(
+          items: [_program('stale-program')],
+          hasMore: false,
+          nextOffset: 2,
+        ),
+      );
+      await loadMoreFuture;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-program']);
+      expect(controller.state.value.loadingMore, isFalse);
+      expect(controller.state.value.refreshing, isFalse);
+    });
   });
 }
 
@@ -129,13 +254,39 @@ class _FakeRadioRepository implements RadioRepository {
     this.cachedPrograms = const [],
     Future<DjRadioPage> Function()? fetchSubscribedRadios,
     Future<DjProgramPage> Function()? fetchPrograms,
+    Future<DjRadioPage> Function({
+      required String userId,
+      required int offset,
+      required int limit,
+    })? fetchSubscribedRadiosWithArgs,
+    Future<DjProgramPage> Function({
+      required String userId,
+      required String radioId,
+      required int offset,
+      required int limit,
+      required bool asc,
+    })? fetchProgramsWithArgs,
   })  : _fetchSubscribedRadios = fetchSubscribedRadios,
-        _fetchPrograms = fetchPrograms;
+        _fetchPrograms = fetchPrograms,
+        _fetchSubscribedRadiosWithArgs = fetchSubscribedRadiosWithArgs,
+        _fetchProgramsWithArgs = fetchProgramsWithArgs;
 
   final List<RadioSummaryData> cachedRadios;
   final List<RadioProgramData> cachedPrograms;
   final Future<DjRadioPage> Function()? _fetchSubscribedRadios;
   final Future<DjProgramPage> Function()? _fetchPrograms;
+  final Future<DjRadioPage> Function({
+    required String userId,
+    required int offset,
+    required int limit,
+  })? _fetchSubscribedRadiosWithArgs;
+  final Future<DjProgramPage> Function({
+    required String userId,
+    required String radioId,
+    required int offset,
+    required int limit,
+    required bool asc,
+  })? _fetchProgramsWithArgs;
 
   @override
   Future<List<RadioSummaryData>> loadCachedSubscribedRadios(String userId) async {
@@ -158,6 +309,14 @@ class _FakeRadioRepository implements RadioRepository {
     required int offset,
     required int limit,
   }) {
+    final fetchWithArgs = _fetchSubscribedRadiosWithArgs;
+    if (fetchWithArgs != null) {
+      return fetchWithArgs(
+        userId: userId,
+        offset: offset,
+        limit: limit,
+      );
+    }
     return _fetchSubscribedRadios?.call() ??
         Future.value(
           const DjRadioPage(
@@ -176,6 +335,16 @@ class _FakeRadioRepository implements RadioRepository {
     required int limit,
     required bool asc,
   }) {
+    final fetchWithArgs = _fetchProgramsWithArgs;
+    if (fetchWithArgs != null) {
+      return fetchWithArgs(
+        userId: userId,
+        radioId: radioId,
+        offset: offset,
+        limit: limit,
+        asc: asc,
+      );
+    }
     return _fetchPrograms?.call() ??
         Future.value(
           const DjProgramPage(

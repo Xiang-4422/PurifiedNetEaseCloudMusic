@@ -32,6 +32,7 @@ class RadioDetailController {
   final ValueNotifier<PagedState<RadioProgramData>> state = ValueNotifier(PagedState.initialLoading());
 
   int _offset = 0;
+  int _requestGeneration = 0;
 
   /// 首次加载节目列表，优先展示缓存。
   Future<void> loadInitial() async {
@@ -69,9 +70,10 @@ class RadioDetailController {
   /// 加载下一页节目。
   Future<bool> loadMore() async {
     final currentState = state.value;
-    if (currentState.loadingMore || !currentState.hasMore) {
+    if (currentState.initialLoading || currentState.refreshing || currentState.loadingMore || !currentState.hasMore) {
       return true;
     }
+    final generation = _requestGeneration;
     state.value = currentState.copyWith(
       loadingMore: true,
       error: null,
@@ -84,6 +86,9 @@ class RadioDetailController {
         limit: pageSize,
         asc: asc,
       );
+      if (generation != _requestGeneration) {
+        return true;
+      }
       _offset = page.nextOffset;
       state.value = PagedState(
         items: [...currentState.items, ...page.items],
@@ -91,6 +96,9 @@ class RadioDetailController {
       );
       return true;
     } catch (error, stackTrace) {
+      if (generation != _requestGeneration) {
+        return true;
+      }
       state.value = currentState.copyWith(
         loadingMore: false,
         error: error,
@@ -101,6 +109,7 @@ class RadioDetailController {
   }
 
   Future<bool> _reload() async {
+    final generation = ++_requestGeneration;
     final currentState = state.value;
     try {
       final page = await _repository.fetchPrograms(
@@ -110,6 +119,9 @@ class RadioDetailController {
         limit: pageSize,
         asc: asc,
       );
+      if (generation != _requestGeneration) {
+        return true;
+      }
       _offset = page.nextOffset;
       state.value = PagedState.data(
         page.items,
@@ -117,6 +129,9 @@ class RadioDetailController {
       );
       return true;
     } catch (error, stackTrace) {
+      if (generation != _requestGeneration) {
+        return true;
+      }
       if (currentState.items.isNotEmpty) {
         state.value = currentState.copyWith(
           initialLoading: false,

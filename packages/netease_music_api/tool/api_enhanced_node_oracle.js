@@ -1295,6 +1295,27 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'event',
+    query: {
+      pagesize: 0,
+      lasttime: 0,
+    },
+  },
+  {
+    module: 'event_del',
+    query: {
+      evId: '900',
+    },
+  },
+  {
+    module: 'event_forward',
+    query: {
+      forwards: '转发内容',
+      evId: '900',
+      uid: '42',
+    },
+  },
+  {
     module: 'user_detail',
     query: {
       uid: '32953014',

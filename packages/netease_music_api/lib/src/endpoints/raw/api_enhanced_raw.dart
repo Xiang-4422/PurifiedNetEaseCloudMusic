@@ -2083,6 +2083,21 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       };
     case 'ugc_user_devote':
       return {};
+    case 'event':
+      return {
+        'pagesize': _jsDefault(query['pagesize'], 20),
+        'lasttime': _jsDefault(query['lasttime'], -1),
+      };
+    case 'event_del':
+      return {
+        'id': query['evId'],
+      };
+    case 'event_forward':
+      return {
+        'forwards': query['forwards'],
+        'id': query['evId'],
+        'eventUserId': query['uid'],
+      };
     case 'user_detail':
       return {};
     case 'user_detail_new':

@@ -529,6 +529,34 @@ void main() {
       expect(api.requestModuleDioMetaData('ugc_user_devote', {}).data, isEmpty);
     });
 
+    test('maps event request data like upstream', () {
+      final eventMetaData = api.requestModuleDioMetaData('event', {'pagesize': 0, 'lasttime': 0});
+      expect(eventMetaData.data, {
+        'pagesize': 20,
+        'lasttime': -1,
+      });
+      expect(eventMetaData.options!.extra!['encryptType'], EncryptType.WeApi);
+
+      final deleteMetaData = api.requestModuleDioMetaData('event_del', {'evId': '900'});
+      expect(deleteMetaData.data, {
+        'id': '900',
+      });
+      expect(deleteMetaData.options!.extra!['encryptType'], EncryptType.WeApi);
+
+      final forwardMetaData = api.requestModuleDioMetaData('event_forward', {
+        'forwards': '转发内容',
+        'evId': '900',
+        'uid': '42',
+      });
+      expect(forwardMetaData.uri.path, '/api/event/forward');
+      expect(forwardMetaData.data, {
+        'forwards': '转发内容',
+        'id': '900',
+        'eventUserId': '42',
+      });
+      expect(forwardMetaData.options!.extra!['encryptType'], EncryptType.EApi);
+    });
+
     test('maps playlist management request data like upstream', () {
       expect(api.requestModuleDioMetaData('playlist_create', {'name': 'New List'}).data, {
         'name': 'New List',

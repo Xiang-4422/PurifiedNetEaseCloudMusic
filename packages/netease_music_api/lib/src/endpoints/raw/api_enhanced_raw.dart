@@ -189,8 +189,11 @@ mixin ApiEnhancedRaw {
     final input = query['data'] ?? query['hexString'];
     if (input == null || input == '') {
       return {
-        'code': 400,
-        'message': 'data is required',
+        'status': 400,
+        'body': {
+          'code': 400,
+          'message': 'data is required',
+        },
       };
     }
     final isReq = query['isReq']?.toString() != 'false';
@@ -199,51 +202,78 @@ mixin ApiEnhancedRaw {
       switch (crypto) {
         case 'eapi':
           return {
-            'code': 200,
-            'data': isReq ? _eapiReqDecrypt(input.toString()) : eapiResDecrypt(_hexBytes(input.toString())),
+            'status': 200,
+            'body': {
+              'code': 200,
+              'data': isReq ? _eapiReqDecrypt(input.toString()) : eapiResDecrypt(_hexBytes(input.toString())),
+            },
           };
         case 'weapi':
           if (isReq) {
             return {
-              'code': 400,
-              'message': 'weapi 请求解密需要 RSA 私钥，暂不支持；仅支持 weapi 返回数据解密（e_r=true 时与 eapi 相同）',
+              'status': 400,
+              'body': {
+                'code': 400,
+                'message': 'weapi 请求解密需要 RSA 私钥，暂不支持；仅支持 weapi 返回数据解密（e_r=true 时与 eapi 相同）',
+              },
             };
           }
           return {
-            'code': 200,
-            'data': eapiResDecrypt(_hexBytes(input.toString())),
+            'status': 200,
+            'body': {
+              'code': 200,
+              'data': eapiResDecrypt(_hexBytes(input.toString())),
+            },
           };
         case 'linuxapi':
           return {
-            'code': 200,
-            'data': isReq ? jsonDecode(_aesEcbDecryptHex(input.toString(), key: _linuxapiKey)) : _jsonOrValue(input),
+            'status': 200,
+            'body': {
+              'code': 200,
+              'data': isReq ? jsonDecode(_aesEcbDecryptHex(input.toString(), key: _linuxapiKey)) : _jsonOrValue(input),
+            },
           };
         case 'xeapi':
           if (isReq) {
             return {
-              'code': 400,
-              'message': 'xeapi 请求解密涉及 X25519 ECDH 密钥交换，流程复杂，暂不支持；仅支持 xeapi 返回数据解密',
+              'status': 400,
+              'body': {
+                'code': 400,
+                'message': 'xeapi 请求解密涉及 X25519 ECDH 密钥交换，流程复杂，暂不支持；仅支持 xeapi 返回数据解密',
+              },
             };
           }
           return {
-            'code': 200,
-            'data': xeapiResDecrypt(base64Decode(input.toString())),
+            'status': 200,
+            'body': {
+              'code': 200,
+              'data': xeapiResDecrypt(base64Decode(input.toString())),
+            },
           };
         case 'api':
           return {
-            'code': 200,
-            'data': _jsonOrValue(input),
+            'status': 200,
+            'body': {
+              'code': 200,
+              'data': _jsonOrValue(input),
+            },
           };
         default:
           return {
-            'code': 400,
-            'message': '未知加密方式: $crypto',
+            'status': 400,
+            'body': {
+              'code': 400,
+              'message': '未知加密方式: $crypto',
+            },
           };
       }
     } catch (error) {
       return {
-        'code': 400,
-        'message': '解密失败: $error',
+        'status': 400,
+        'body': {
+          'code': 400,
+          'message': '解密失败: $error',
+        },
       };
     }
   }

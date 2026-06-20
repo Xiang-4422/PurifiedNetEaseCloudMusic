@@ -1952,7 +1952,13 @@ void main() {
     });
 
     test('decrypt reports missing input', () async {
-      expect(await api.requestModule('decrypt', {}), {'code': 400, 'message': 'data is required'});
+      expect(await api.requestModule('decrypt', {}), {
+        'status': 400,
+        'body': {
+          'code': 400,
+          'message': 'data is required',
+        },
+      });
     });
 
     test('decrypt supports api, linuxapi, weapi response, and xeapi response', () async {
@@ -1963,23 +1969,23 @@ void main() {
       final encryptedResponseHex = _encryptEapiText('{"code":200,"encrypted":true}');
       final xeapiResponse = base64Encode(Encrypted.fromBase16(encryptedResponseHex).bytes);
 
-      expect((await api.requestModule('decrypt', {'crypto': 'api', 'data': '{"code":200,"plain":true}'}))['data'], {
+      expect(_jsonMap((await api.requestModule('decrypt', {'crypto': 'api', 'data': '{"code":200,"plain":true}'}))['body'])['data'], {
         'code': 200,
         'plain': true,
       });
-      expect((await api.requestModule('decrypt', {'crypto': 'linuxapi', 'data': linuxHex}))['data'], {
+      expect(_jsonMap((await api.requestModule('decrypt', {'crypto': 'linuxapi', 'data': linuxHex}))['body'])['data'], {
         'method': 'POST',
         'url': 'https://music.163.com/api/test',
         'params': {'id': 1},
       });
-      expect((await api.requestModule('decrypt', {'crypto': 'linuxapi', 'data': '{"code":200}', 'isReq': 'false'}))['data'], {
+      expect(_jsonMap((await api.requestModule('decrypt', {'crypto': 'linuxapi', 'data': '{"code":200}', 'isReq': 'false'}))['body'])['data'], {
         'code': 200,
       });
-      expect((await api.requestModule('decrypt', {'crypto': 'weapi', 'data': encryptedResponseHex, 'isReq': 'false'}))['data'], {
+      expect(_jsonMap((await api.requestModule('decrypt', {'crypto': 'weapi', 'data': encryptedResponseHex, 'isReq': 'false'}))['body'])['data'], {
         'code': 200,
         'encrypted': true,
       });
-      expect((await api.requestModule('decrypt', {'crypto': 'xeapi', 'data': xeapiResponse, 'isReq': 'false'}))['data'], {
+      expect(_jsonMap((await api.requestModule('decrypt', {'crypto': 'xeapi', 'data': xeapiResponse, 'isReq': 'false'}))['body'])['data'], {
         'code': 200,
         'encrypted': true,
       });
@@ -1987,16 +1993,25 @@ void main() {
 
     test('decrypt reports unsupported request crypto forms', () async {
       expect(await api.requestModule('decrypt', {'crypto': 'weapi', 'data': '00'}), {
-        'code': 400,
-        'message': 'weapi 请求解密需要 RSA 私钥，暂不支持；仅支持 weapi 返回数据解密（e_r=true 时与 eapi 相同）',
+        'status': 400,
+        'body': {
+          'code': 400,
+          'message': 'weapi 请求解密需要 RSA 私钥，暂不支持；仅支持 weapi 返回数据解密（e_r=true 时与 eapi 相同）',
+        },
       });
       expect(await api.requestModule('decrypt', {'crypto': 'xeapi', 'data': 'AA=='}), {
-        'code': 400,
-        'message': 'xeapi 请求解密涉及 X25519 ECDH 密钥交换，流程复杂，暂不支持；仅支持 xeapi 返回数据解密',
+        'status': 400,
+        'body': {
+          'code': 400,
+          'message': 'xeapi 请求解密涉及 X25519 ECDH 密钥交换，流程复杂，暂不支持；仅支持 xeapi 返回数据解密',
+        },
       });
       expect(await api.requestModule('decrypt', {'crypto': 'unknown', 'data': '00'}), {
-        'code': 400,
-        'message': '未知加密方式: unknown',
+        'status': 400,
+        'body': {
+          'code': 400,
+          'message': '未知加密方式: unknown',
+        },
       });
     });
 
@@ -3112,6 +3127,8 @@ Future<dynamic> _dartResultForNoRequestOracleFixture(
   switch (module) {
     case 'audio_match':
       Https.setDioForTesting(Dio()..httpClientAdapter = _TextResponseAdapter('{"data":{"songId":123,"name":"Matched"}}'));
+      return api.requestModule(module, query);
+    case 'decrypt':
       return api.requestModule(module, query);
     case 'eapi_decrypt':
       return api.requestModule(module, query);

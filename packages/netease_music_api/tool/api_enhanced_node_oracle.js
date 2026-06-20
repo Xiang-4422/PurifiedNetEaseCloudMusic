@@ -23,21 +23,47 @@ const relatedPlaylistHtml = `<div class="cver u-cover u-cover-3">
 </div>
 `
 const eapiKey = Buffer.from('e82ckenh8dichen8', 'utf8')
+const linuxapiKey = Buffer.from('rFgB&h#%2?^eDg:Q', 'utf8')
 const eapiRequestHex = eapiEncryptText('/api/test-36cd479b6b5-{"id":1}-36cd479b6b5-digest')
 const eapiResponseHex = eapiEncryptText('{"code":200,"ok":true}')
+const linuxapiRequestHex = aesEcbEncryptText('{"method":"POST","url":"https://music.163.com/api/test","params":{"id":1}}', linuxapiKey)
+const xeapiResponseBase64 = aesEcbEncryptBytes('{"code":200,"xeapi":true}').toString('base64')
 
 function xeapiSign(timestamp, nonce) {
   return crypto.createHmac('sha256', xeapiSignKey).update(`${timestamp}${nonce}`).digest('base64')
 }
 
 function eapiEncryptText(text) {
-  const cipher = crypto.createCipheriv('aes-128-ecb', eapiKey, null)
-  return Buffer.concat([cipher.update(Buffer.from(text, 'utf8')), cipher.final()]).toString('hex').toUpperCase()
+  return aesEcbEncryptText(text)
 }
 
 function eapiDecryptText(hexString) {
-  const decipher = crypto.createDecipheriv('aes-128-ecb', eapiKey, null)
-  return Buffer.concat([decipher.update(Buffer.from(hexString, 'hex')), decipher.final()]).toString('utf8')
+  return aesEcbDecryptBytes(Buffer.from(hexString.replace(/\s/g, ''), 'hex')).toString('utf8')
+}
+
+function aesEcbEncryptText(text, key = eapiKey) {
+  return aesEcbEncryptBytes(text, key).toString('hex').toUpperCase()
+}
+
+function aesEcbEncryptBytes(text, key = eapiKey) {
+  const cipher = crypto.createCipheriv(`aes-${key.length * 8}-ecb`, key, null)
+  return Buffer.concat([cipher.update(Buffer.from(text, 'utf8')), cipher.final()])
+}
+
+function aesEcbDecryptBytes(ciphertext, key = eapiKey) {
+  const decipher = crypto.createDecipheriv(`aes-${key.length * 8}-ecb`, key, null)
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()])
+}
+
+function aesDecrypt(ciphertext, key, _iv, format = 'base64') {
+  const keyBuffer = Buffer.isBuffer(key) ? key : Buffer.from(String(key), 'utf8')
+  const data = format === 'hex' ? Buffer.from(String(ciphertext).replace(/\s/g, ''), 'hex') : Buffer.from(String(ciphertext), 'base64')
+  const plaintext = aesEcbDecryptBytes(data, keyBuffer).toString('utf8')
+  return {
+    toString() {
+      return plaintext
+    },
+  }
 }
 
 function eapiReqDecrypt(hexString) {
@@ -56,12 +82,22 @@ function eapiResDecrypt(hexString) {
   return JSON.parse(eapiDecryptText(hexString))
 }
 
+function xeapiResDecrypt(body) {
+  return JSON.parse(aesEcbDecryptBytes(body).toString('utf8'))
+}
+
 const originalRequire = Module.prototype.require
 Module.prototype.require = function patchedRequire(request) {
-  if (request === '../util/crypto' && this.filename && this.filename.endsWith('/module/eapi_decrypt.js')) {
+  if (
+    request === '../util/crypto' &&
+    this.filename &&
+    (this.filename.endsWith('/module/eapi_decrypt.js') || this.filename.endsWith('/module/decrypt.js'))
+  ) {
     return {
+      aesDecrypt,
       eapiReqDecrypt,
       eapiResDecrypt,
+      xeapiResDecrypt,
     }
   }
   if (request === 'crypto-js') {
@@ -2898,6 +2934,72 @@ const fixtures = [
     query: {
       hexString: eapiResponseHex,
       isReq: 'false',
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'decrypt',
+    query: {
+      data: eapiRequestHex,
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'decrypt',
+    query: {
+      crypto: 'api',
+      data: '{"code":200,"plain":true}',
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'decrypt',
+    query: {
+      crypto: 'linuxapi',
+      data: linuxapiRequestHex,
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'decrypt',
+    query: {
+      crypto: 'linuxapi',
+      data: '{"code":200,"linuxResponse":true}',
+      isReq: 'false',
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'decrypt',
+    query: {
+      crypto: 'weapi',
+      data: eapiResponseHex,
+      isReq: 'false',
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'decrypt',
+    query: {
+      crypto: 'xeapi',
+      data: xeapiResponseBase64,
+      isReq: 'false',
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'decrypt',
+    query: {
+      crypto: 'weapi',
+      data: '00',
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'decrypt',
+    query: {
+      crypto: 'xeapi',
+      data: 'AA==',
     },
     allowNoRequest: true,
   },

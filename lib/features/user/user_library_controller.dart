@@ -378,6 +378,8 @@ class UserLibraryController extends GetxController {
 
   void _applyUserPlaylists(List<PlaylistSummaryData> playLists) {
     if (playLists.isEmpty) {
+      userLikedSongPlayList.value = const PlaylistSummaryData(id: '', title: '');
+      userPlayLists.clear();
       return;
     }
 

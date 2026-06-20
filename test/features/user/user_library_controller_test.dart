@@ -168,6 +168,75 @@ void main() {
       expect(controller.hasLocalData, isFalse);
     });
 
+    test('clears visible playlists when successful snapshot returns no playlists', () async {
+      final repository = _FakeUserRepository()
+        ..remoteLikedSongIds = const []
+        ..remoteUserPlaylists = const [];
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.likedSongIds.add(101);
+      controller.userLikedSongPlayList.value = const PlaylistSummaryData(
+        id: 'old-liked',
+        title: 'Old Liked',
+      );
+      controller.userPlayLists.add(
+        const PlaylistSummaryData(id: 'old-playlist', title: 'Old Playlist'),
+      );
+      controller.randomLikedSongId.value = '101';
+      controller.randomLikedSongAlbumUrl.value = 'cached-art-101';
+
+      await controller.refreshUserLibrary();
+
+      expect(controller.likedSongIds, isEmpty);
+      expect(controller.userLikedSongPlayList.value.id, isEmpty);
+      expect(controller.userPlayLists, isEmpty);
+      expect(controller.randomLikedSongId.value, isEmpty);
+      expect(controller.randomLikedSongAlbumUrl.value, isEmpty);
+      expect(controller.hasLocalData, isTrue);
+    });
+
+    test('clears visible playlists when playlist refresh succeeds with no playlists', () async {
+      final repository = _FakeUserRepository()..remoteUserPlaylists = const [];
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.userLikedSongPlayList.value = const PlaylistSummaryData(
+        id: 'old-liked',
+        title: 'Old Liked',
+      );
+      controller.userPlayLists.add(
+        const PlaylistSummaryData(id: 'old-playlist', title: 'Old Playlist'),
+      );
+
+      await controller.refreshUserPlaylists();
+
+      expect(controller.userLikedSongPlayList.value.id, isEmpty);
+      expect(controller.userPlayLists, isEmpty);
+    });
+
     test('ignores stale liked songs load after switching users', () async {
       final repository = _FakeUserRepository();
       final oldFetch = Completer<List<PlaybackQueueItem>>();
@@ -364,6 +433,11 @@ class _FakeUserRepository implements UserRepository {
       likedSongIds: remoteLikedSongIds,
       playlists: remoteUserPlaylists,
     );
+  }
+
+  @override
+  Future<List<PlaylistSummaryData>> fetchUserPlaylists(String userId) async {
+    return remoteUserPlaylists;
   }
 
   @override

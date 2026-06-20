@@ -574,6 +574,28 @@ const fixtures = [
     },
   },
   {
+    module: 'playmode_intelligence_list',
+    query: {
+      id: '101',
+      pid: '888',
+    },
+  },
+  {
+    module: 'playmode_intelligence_list',
+    query: {
+      id: '101',
+      pid: '888',
+      sid: '202',
+      count: 0,
+    },
+  },
+  {
+    module: 'playmode_song_vector',
+    query: {
+      ids: '101,202',
+    },
+  },
+  {
     module: 'user_playlist',
     query: {
       uid: '42',

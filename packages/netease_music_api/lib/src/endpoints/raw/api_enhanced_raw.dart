@@ -1543,6 +1543,18 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'trackIds': jsonEncode(_splitCommaValues(query['tracks'])),
         'imme': 'true',
       };
+    case 'playmode_intelligence_list':
+      return {
+        'songId': query['id'],
+        'type': 'fromPlayOne',
+        'playlistId': query['pid'],
+        'startMusicId': _jsDefault(query['sid'], query['id']),
+        'count': _jsDefault(query['count'], 1),
+      };
+    case 'playmode_song_vector':
+      return {
+        'ids': query['ids'],
+      };
     case 'personalized':
       return {
         'limit': _jsDefault(query['limit'], 30),

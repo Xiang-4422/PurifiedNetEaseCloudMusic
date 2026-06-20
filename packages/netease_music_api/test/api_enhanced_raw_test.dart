@@ -511,6 +511,34 @@ void main() {
       });
     });
 
+    test('maps playmode request data like upstream', () {
+      expect(api.requestModuleDioMetaData('playmode_intelligence_list', {'id': '101', 'pid': '888'}).data, {
+        'songId': '101',
+        'type': 'fromPlayOne',
+        'playlistId': '888',
+        'startMusicId': '101',
+        'count': 1,
+      });
+      expect(
+        api.requestModuleDioMetaData('playmode_intelligence_list', {
+          'id': '101',
+          'pid': '888',
+          'sid': '202',
+          'count': 0,
+        }).data,
+        {
+          'songId': '101',
+          'type': 'fromPlayOne',
+          'playlistId': '888',
+          'startMusicId': '202',
+          'count': 1,
+        },
+      );
+      expect(api.requestModuleDioMetaData('playmode_song_vector', {'ids': '101,202'}).data, {
+        'ids': '101,202',
+      });
+    });
+
     test('maps voicelist search defaults and encrypted response flag', () {
       final metaData = api.requestModuleDioMetaData('voicelist_search', {
         'keyword': 'podcast',

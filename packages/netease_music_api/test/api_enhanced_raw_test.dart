@@ -790,8 +790,46 @@ void main() {
       expect(proxy.paths, ['/api/nos/token/alloc', '/api/user/avatar/upload/v1']);
       expect(adapter.uploadUrl, contains('https://nosup-hz1.127.net/yyimgs/object-key'));
       expect(adapter.uploadToken, 'upload-token');
-      expect(result['data']['imgId'], 123);
-      expect(result['data']['code'], 200);
+      expect(result['status'], 200);
+      expect(result['body']['data']['imgId'], 123);
+      expect(result['body']['data']['code'], 200);
+    });
+
+    test('playlist cover update special module mirrors upload envelope and missing image guard', () async {
+      expect(await api.playlistCoverUpdate({'id': '888'}), {
+        'status': 400,
+        'body': {
+          'code': 400,
+          'msg': 'imgFile is required',
+        },
+      });
+
+      final proxy = _UploadDioProxy();
+      final adapter = _UploadAdapter();
+      final dio = Dio()..httpClientAdapter = adapter;
+      Https.setDioProxyForTesting(proxy);
+      Https.setDioForTesting(dio);
+
+      final result = await api.playlistCoverUpdate({
+        'id': '888',
+        'filename': 'cover.jpg',
+        'bytes': [1, 2, 3],
+      });
+
+      expect(proxy.paths, ['/api/nos/token/alloc', '/api/playlist/cover/update']);
+      expect(proxy.requests.last.data, {'id': '888', 'coverImgId': 123});
+      expect(adapter.uploadUrl, contains('https://nosup-hz1.127.net/yyimgs/object-key'));
+      expect(result, {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': {
+            'url_pre': 'https://p1.music.126.net/object-key',
+            'imgId': 123,
+            'code': 200,
+          },
+        },
+      });
     });
 
     test('cloud import special module checks upload before import', () async {
@@ -1047,7 +1085,9 @@ class _RecordingDioProxy extends DioProxy {
 }
 
 class _UploadDioProxy extends DioProxy {
-  final paths = <String>[];
+  final requests = <DioMetaData>[];
+
+  List<String> get paths => requests.map((request) => request.uri.path).toList();
 
   @override
   Future<Response<T>> postUri<T>(
@@ -1056,7 +1096,7 @@ class _UploadDioProxy extends DioProxy {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    paths.add(metaData.uri.path);
+    requests.add(metaData);
     if (metaData.uri.path == '/api/nos/token/alloc') {
       return Response<T>(
         requestOptions: RequestOptions(path: metaData.uri.toString()),

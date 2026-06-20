@@ -638,13 +638,25 @@ mixin ApiEnhancedRaw {
       ),
     );
     return {
-      'code': 200,
-      'data': {...uploadInfo, ..._asMap(response.data)}
+      'status': 200,
+      'body': {
+        'code': 200,
+        'data': {...uploadInfo, ..._asMap(response.data)},
+      },
     };
   }
 
   /// Uploads and updates playlist cover image.
   Future<dynamic> playlistCoverUpdate(Map<String, dynamic> query) async {
+    if (!_hasUploadData(query)) {
+      return {
+        'status': 400,
+        'body': {
+          'code': 400,
+          'msg': 'imgFile is required',
+        },
+      };
+    }
     final uploadInfo = await _uploadImage(query);
     final response = await Https.dioProxy.postUri(
       DioMetaData(
@@ -654,8 +666,11 @@ mixin ApiEnhancedRaw {
       ),
     );
     return {
-      'code': 200,
-      'data': {...uploadInfo, ..._asMap(response.data)}
+      'status': 200,
+      'body': {
+        'code': 200,
+        'data': {...uploadInfo, ..._asMap(response.data)},
+      },
     };
   }
 
@@ -1702,6 +1717,11 @@ String _filename(Map<String, dynamic> query) {
     return filePath.split(Platform.pathSeparator).last;
   }
   return '';
+}
+
+bool _hasUploadData(Map<String, dynamic> query) {
+  final filePath = query['filePath']?.toString();
+  return query['bytes'] != null || query['data'] != null || query['imgFile'] != null || (filePath != null && filePath.isNotEmpty);
 }
 
 Future<int?> _fileSize(Map<String, dynamic> query) async {

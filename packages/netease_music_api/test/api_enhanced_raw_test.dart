@@ -11,44 +11,6 @@ import 'package:netease_music_api/src/client/xeapi_crypto.dart';
 import 'package:netease_music_api/src/endpoints/raw/api_enhanced_raw.dart';
 import 'package:netease_music_api/src/generated/api_enhanced_modules.g.dart';
 
-const _nodeOracleSpecialModules = {
-  'avatar_upload',
-  'cloud_import',
-  'cloud_upload_complete',
-  'cloud_upload_token',
-  'playlist_cover_update',
-  'playlist_track_all',
-  'playlist_tracks',
-  'scrobble',
-  'song_url_v1',
-  'song_url_v1_302',
-  'top_list',
-  'vip_sign_history',
-  'vip_tasks_v1',
-  'voice_upload',
-};
-
-const _dartBehaviorSpecialModules = {
-  'api',
-  'audio_match',
-  'cloud',
-  'decrypt',
-  'eapi_decrypt',
-  'inner_version',
-  'login_qr_create',
-  'register_anonimous',
-  'register_xeapikey',
-  'related_playlist',
-  'song_url_match',
-  'song_url_ncmget',
-};
-
-const _limitedSpecialModules = {
-  'decrypt',
-  'song_url_match',
-  'song_url_v1',
-};
-
 const _encryptedXeApiPublicKeyFixture = 'Ix+68DGNS+G6Oiwlq/g/+pJlf+CLRzLMsVxgAP9Sq82SZX/gi0cyzLFcYAD/UqvNXpKKq45tTezVfnTCJ+SJPc19vHxGXOOCLiTjXypVtRo2werynr5A9/iH1qGdKGF4';
 
 void main() {
@@ -148,10 +110,14 @@ void main() {
     test('special modules have explicit coverage status', () {
       final specialModules = apiEnhancedModules.where((module) => module.special).map((module) => module.module).toSet();
       final oracleModules = _nodeOracleFixtureModules();
+      final status = _loadSpecialCoverageStatus();
+      final nodeOracleSpecialModules = _stringSet(status['nodeOracle']);
+      final dartBehaviorSpecialModules = _stringSet(status['dartBehavior']);
+      final limitedSpecialModules = _jsonMap(status['limited']).keys.toSet();
 
-      expect(oracleModules.intersection(_nodeOracleSpecialModules), _nodeOracleSpecialModules);
-      expect({..._nodeOracleSpecialModules, ..._dartBehaviorSpecialModules}, specialModules);
-      expect(_limitedSpecialModules.difference(specialModules), isEmpty);
+      expect(oracleModules.intersection(nodeOracleSpecialModules), nodeOracleSpecialModules);
+      expect({...nodeOracleSpecialModules, ...dartBehaviorSpecialModules, ...limitedSpecialModules}, specialModules);
+      expect(limitedSpecialModules.difference(specialModules), isEmpty);
     });
 
     test('node oracle fixtures cover every normal upstream module', () {
@@ -3353,6 +3319,29 @@ Future<List<Map<String, dynamic>>> _loadNodeOracleFixtures() async {
 Set<String> _nodeOracleFixtureModules() {
   final script = _findNodeOracleScript().readAsStringSync();
   return RegExp(r"module: '([^']+)'").allMatches(script).map((match) => match.group(1)!).toSet();
+}
+
+Map<String, dynamic> _loadSpecialCoverageStatus() {
+  return _jsonMap(jsonDecode(_findSpecialCoverageStatusFile().readAsStringSync()));
+}
+
+Set<String> _stringSet(dynamic value) {
+  if (value is! List) {
+    return {};
+  }
+  return value.map((item) => item.toString()).toSet();
+}
+
+File _findSpecialCoverageStatusFile() {
+  var current = Directory.current;
+  for (var i = 0; i < 5; i++) {
+    final candidate = File('${current.path}/packages/netease_music_api/tool/api_enhanced_special_coverage.json');
+    if (candidate.existsSync()) {
+      return candidate;
+    }
+    current = current.parent;
+  }
+  throw StateError('Cannot find packages/netease_music_api/tool/api_enhanced_special_coverage.json');
 }
 
 File _findNodeOracleScript() {

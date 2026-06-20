@@ -1,0 +1,37 @@
+{
+  "nodeOracle": [
+    "avatar_upload",
+    "cloud_import",
+    "cloud_upload_complete",
+    "cloud_upload_token",
+    "playlist_cover_update",
+    "playlist_track_all",
+    "playlist_tracks",
+    "scrobble",
+    "song_url_v1",
+    "song_url_v1_302",
+    "top_list",
+    "vip_sign_history",
+    "vip_tasks_v1",
+    "voice_upload"
+  ],
+  "dartBehavior": [
+    "api",
+    "audio_match",
+    "cloud",
+    "decrypt",
+    "eapi_decrypt",
+    "inner_version",
+    "login_qr_create",
+    "register_anonimous",
+    "register_xeapikey",
+    "related_playlist",
+    "song_url_match",
+    "song_url_ncmget"
+  ],
+  "limited": {
+    "decrypt": "Does not support weapi and xeapi request decryption; response decryption is covered.",
+    "song_url_match": "Depends on upstream unblockmusic-utils and returns an explicit limitation envelope in Dart.",
+    "song_url_v1": "Base xeapi and 302 fallback are covered; unblock/source order depends on upstream unblockmusic-utils."
+  }
+}

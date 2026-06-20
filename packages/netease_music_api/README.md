@@ -33,10 +33,15 @@ Regenerate the upstream module manifest after updating `third_party/api-enhanced
 ```shell
 node packages/netease_music_api/tool/generate_api_enhanced_modules.js
 node packages/netease_music_api/tool/generate_api_enhanced_modules.js --check
+node packages/netease_music_api/tool/api_enhanced_coverage_report.js
 ```
 
 The generator formats generated Dart files before writing them back. `--check`
 verifies generated files are up to date without writing them.
+
+The coverage report checks that normal upstream modules have Node oracle
+fixtures and that every special module is categorized as Node-oracle-covered,
+Dart-behavior-covered, or explicitly limited.
 
 Upstream protocol reference is tracked in the repository submodule:
 

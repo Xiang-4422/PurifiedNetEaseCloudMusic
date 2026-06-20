@@ -1,0 +1,111 @@
+#!/usr/bin/env node
+
+const fs = require('fs')
+const path = require('path')
+
+const repoRoot = path.resolve(__dirname, '../../..')
+const upstreamPackagePath = path.join(repoRoot, 'third_party/api-enhanced/package.json')
+const generatedManifestPath = path.join(
+  repoRoot,
+  'packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
+)
+const oracleScriptPath = path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_node_oracle.js')
+const specialCoveragePath = path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_special_coverage.json')
+const jsonOutput = process.argv.includes('--json')
+
+function readJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'))
+}
+
+function loadManifestEntries() {
+  const source = fs.readFileSync(generatedManifestPath, 'utf8')
+  const listStart = source.indexOf('const List<ApiEnhancedModule> apiEnhancedModules')
+  const mapStart = source.indexOf('const Map<String, ApiEnhancedModule> apiEnhancedModuleByName')
+  if (listStart === -1 || mapStart === -1 || mapStart <= listStart) {
+    throw new Error(`Cannot parse generated manifest: ${generatedManifestPath}`)
+  }
+
+  const listSource = source.slice(listStart, mapStart)
+  return [...listSource.matchAll(/ApiEnhancedModule\(([\s\S]*?)\),/g)].map((match) => {
+    const block = match[1]
+    const module = block.match(/module: '([^']+)'/)?.[1]
+    if (!module) {
+      throw new Error(`Cannot parse module entry: ${block}`)
+    }
+    return {
+      module,
+      special: /special: true/.test(block),
+    }
+  })
+}
+
+function loadOracleModules() {
+  const source = fs.readFileSync(oracleScriptPath, 'utf8')
+  return new Set([...source.matchAll(/module: '([^']+)'/g)].map((match) => match[1]))
+}
+
+function sorted(values) {
+  return [...values].sort()
+}
+
+function setFrom(value) {
+  if (!Array.isArray(value)) {
+    return new Set()
+  }
+  return new Set(value.map((item) => item.toString()))
+}
+
+const upstreamPackage = readJson(upstreamPackagePath)
+const coverage = readJson(specialCoveragePath)
+const entries = loadManifestEntries()
+const oracleModules = loadOracleModules()
+const normalModules = entries.filter((entry) => !entry.special).map((entry) => entry.module)
+const specialModules = entries.filter((entry) => entry.special).map((entry) => entry.module)
+const specialSet = new Set(specialModules)
+const nodeOracleSpecial = setFrom(coverage.nodeOracle)
+const dartBehaviorSpecial = setFrom(coverage.dartBehavior)
+const limitedSpecial = new Set(Object.keys(coverage.limited || {}))
+const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial, ...limitedSpecial])
+
+const report = {
+  upstreamVersion: upstreamPackage.version,
+  moduleCount: entries.length,
+  normalModuleCount: normalModules.length,
+  specialModuleCount: specialModules.length,
+  nodeOracleFixtureCount: oracleModules.size,
+  normalMissingOracle: sorted(normalModules.filter((module) => !oracleModules.has(module))),
+  specialMissingStatus: sorted(specialModules.filter((module) => !categorizedSpecial.has(module))),
+  specialUnknownStatus: sorted([...categorizedSpecial].filter((module) => !specialSet.has(module))),
+  specialNodeOracleMissingFixture: sorted([...nodeOracleSpecial].filter((module) => !oracleModules.has(module))),
+  specialNodeOracle: sorted(nodeOracleSpecial),
+  specialDartBehavior: sorted(dartBehaviorSpecial),
+  specialLimited: sorted(limitedSpecial),
+}
+
+const hasFailure =
+  report.normalMissingOracle.length > 0 ||
+  report.specialMissingStatus.length > 0 ||
+  report.specialUnknownStatus.length > 0 ||
+  report.specialNodeOracleMissingFixture.length > 0
+
+if (jsonOutput) {
+  console.log(JSON.stringify(report, null, 2))
+} else {
+  console.log('api-enhanced coverage report')
+  console.log(`upstream version: ${report.upstreamVersion}`)
+  console.log(`modules: ${report.moduleCount} (normal ${report.normalModuleCount}, special ${report.specialModuleCount})`)
+  console.log(`node oracle fixtures: ${report.nodeOracleFixtureCount}`)
+  console.log(`normal modules missing oracle: ${report.normalMissingOracle.length}`)
+  console.log(`special modules missing status: ${report.specialMissingStatus.length}`)
+  console.log(`special node-oracle modules missing fixture: ${report.specialNodeOracleMissingFixture.length}`)
+  console.log(`special status unknown modules: ${report.specialUnknownStatus.length}`)
+  console.log(`special node oracle: ${report.specialNodeOracle.join(', ')}`)
+  console.log(`special dart behavior: ${report.specialDartBehavior.join(', ')}`)
+  console.log(`special limited: ${report.specialLimited.join(', ')}`)
+
+  if (hasFailure) {
+    console.error('\ncoverage report failed; run with --json for machine-readable details')
+  }
+}
+
+process.exit(hasFailure ? 1 : 0)

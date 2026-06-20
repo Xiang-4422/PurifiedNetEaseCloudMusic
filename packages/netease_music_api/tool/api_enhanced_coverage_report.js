@@ -89,6 +89,10 @@ function sorted(values) {
   return [...values].sort()
 }
 
+function isRecord(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
 function stableStringify(value) {
   if (Array.isArray(value)) {
     return `[${value.map((item) => stableStringify(item)).join(',')}]`
@@ -103,9 +107,15 @@ function stableStringify(value) {
 }
 
 function duplicateFixtures(fixtures) {
+  if (!Array.isArray(fixtures)) {
+    return []
+  }
   const seen = new Set()
   const duplicate = new Set()
   for (const fixture of fixtures) {
+    if (!isRecord(fixture)) {
+      continue
+    }
     const signature = stableStringify({
       allowNoRequest: fixture.allowNoRequest,
       captureRequests: fixture.captureRequests,
@@ -121,6 +131,102 @@ function duplicateFixtures(fixtures) {
     seen.add(signature)
   }
   return sorted(duplicate)
+}
+
+function validateOracleFixtures(fixtures) {
+  if (!Array.isArray(fixtures)) {
+    return [
+      {
+        index: -1,
+        module: '<fixtures>',
+        reason: 'Node oracle fixtures must be an array.',
+      },
+    ]
+  }
+
+  const fixtureKeys = new Set([
+    'allowNoRequest',
+    'captureRequests',
+    'fixedNow',
+    'fixedRandomDigits',
+    'module',
+    'query',
+    'responses',
+  ])
+  const responseKeys = new Set(['body', 'cookie', 'reject', 'status'])
+  const invalid = []
+
+  function push(index, module, reason) {
+    invalid.push({
+      index,
+      module: typeof module === 'string' && module.length > 0 ? module : `<fixture:${index}>`,
+      reason,
+    })
+  }
+
+  fixtures.forEach((fixture, index) => {
+    if (!isRecord(fixture)) {
+      push(index, null, 'Node oracle fixture must be an object.')
+      return
+    }
+
+    const unknownKeys = Object.keys(fixture).filter((key) => !fixtureKeys.has(key)).sort()
+    if (unknownKeys.length > 0) {
+      push(index, fixture.module, `Node oracle fixture has unknown keys: ${unknownKeys.join(', ')}.`)
+    }
+    if (typeof fixture.module !== 'string' || fixture.module.trim().length === 0) {
+      push(index, fixture.module, 'Node oracle fixture module must be a non-empty string.')
+    }
+    if (!isRecord(fixture.query)) {
+      push(index, fixture.module, 'Node oracle fixture query must be an object.')
+    }
+    if ('allowNoRequest' in fixture && typeof fixture.allowNoRequest !== 'boolean') {
+      push(index, fixture.module, 'Node oracle fixture allowNoRequest must be a boolean.')
+    }
+    if ('captureRequests' in fixture && typeof fixture.captureRequests !== 'boolean') {
+      push(index, fixture.module, 'Node oracle fixture captureRequests must be a boolean.')
+    }
+    if ('fixedNow' in fixture && typeof fixture.fixedNow !== 'number') {
+      push(index, fixture.module, 'Node oracle fixture fixedNow must be a number.')
+    }
+    if ('fixedRandomDigits' in fixture && typeof fixture.fixedRandomDigits !== 'string') {
+      push(index, fixture.module, 'Node oracle fixture fixedRandomDigits must be a string.')
+    }
+    if ('responses' in fixture) {
+      if (!Array.isArray(fixture.responses)) {
+        push(index, fixture.module, 'Node oracle fixture responses must be an array.')
+      } else {
+        fixture.responses.forEach((response, responseIndex) => {
+          if (!isRecord(response)) {
+            push(index, fixture.module, `Node oracle response ${responseIndex} must be an object.`)
+            return
+          }
+          const unknownResponseKeys = Object.keys(response).filter((key) => !responseKeys.has(key)).sort()
+          if (unknownResponseKeys.length > 0) {
+            push(
+              index,
+              fixture.module,
+              `Node oracle response ${responseIndex} has unknown keys: ${unknownResponseKeys.join(', ')}.`,
+            )
+          }
+          if ('reject' in response && typeof response.reject !== 'boolean') {
+            push(index, fixture.module, `Node oracle response ${responseIndex} reject must be a boolean.`)
+          }
+          if ('status' in response && typeof response.status !== 'number') {
+            push(index, fixture.module, `Node oracle response ${responseIndex} status must be a number.`)
+          }
+          if ('body' in response && !isRecord(response.body)) {
+            push(index, fixture.module, `Node oracle response ${responseIndex} body must be an object.`)
+          }
+          if ('cookie' in response && !Array.isArray(response.cookie)) {
+            push(index, fixture.module, `Node oracle response ${responseIndex} cookie must be an array.`)
+          }
+        })
+      }
+    }
+  })
+
+  return invalid
 }
 
 function setFrom(value) {
@@ -139,7 +245,11 @@ const coverage = readJson(specialCoveragePath)
 const upstreamModules = loadUpstreamModules()
 const entries = loadManifestEntries()
 const oracleFixtures = loadOracleFixtures()
-const oracleModuleList = oracleFixtures.map((fixture) => fixture.module)
+const oracleFixtureList = Array.isArray(oracleFixtures) ? oracleFixtures : []
+const oracleModuleList = oracleFixtureList
+  .filter((fixture) => isRecord(fixture))
+  .map((fixture) => fixture.module)
+  .filter((module) => typeof module === 'string')
 const oracleModules = new Set(oracleModuleList)
 const manifestModules = entries.map((entry) => entry.module)
 const upstreamModuleSet = new Set(upstreamModules)
@@ -154,7 +264,8 @@ const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial
 const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelain']) || ''
 const manifestMissingUpstreamModules = sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module)))
 const manifestUnknownUpstreamModules = sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module)))
-const oracleDuplicateFixtures = duplicateFixtures(oracleFixtures)
+const oracleInvalidFixtures = validateOracleFixtures(oracleFixtures)
+const oracleDuplicateFixtures = duplicateFixtures(oracleFixtureList)
 const oracleUnknownModules = sorted([...oracleModules].filter((module) => !manifestModuleSet.has(module)))
 const normalMissingOracle = sorted(normalModules.filter((module) => !oracleModules.has(module)))
 const specialMissingStatus = sorted(specialModules.filter((module) => !categorizedSpecial.has(module)))
@@ -201,6 +312,13 @@ function buildSdkDifferences() {
       reason: 'Node oracle fixture defines the same scenario more than once.',
     })
   }
+  for (const fixture of oracleInvalidFixtures) {
+    differences.push({
+      module: fixture.module,
+      status: 'invalid_node_oracle_fixture',
+      reason: fixture.reason,
+    })
+  }
   for (const module of specialMissingStatus) {
     differences.push({
       module,
@@ -241,10 +359,11 @@ const report = {
   moduleCount: entries.length,
   normalModuleCount: normalModules.length,
   specialModuleCount: specialModules.length,
-  nodeOracleScenarioCount: oracleFixtures.length,
+  nodeOracleScenarioCount: oracleFixtureList.length,
   nodeOracleFixtureCount: oracleModules.size,
   manifestMissingUpstreamModules,
   manifestUnknownUpstreamModules,
+  oracleInvalidFixtures,
   oracleDuplicateFixtures,
   oracleUnknownModules,
   normalMissingOracle,
@@ -265,6 +384,7 @@ const hasFailure =
   report.upstreamDirty ||
   report.manifestMissingUpstreamModules.length > 0 ||
   report.manifestUnknownUpstreamModules.length > 0 ||
+  report.oracleInvalidFixtures.length > 0 ||
   report.oracleDuplicateFixtures.length > 0 ||
   report.oracleUnknownModules.length > 0 ||
   report.normalMissingOracle.length > 0 ||
@@ -289,6 +409,7 @@ if (jsonOutput) {
   console.log(`manifest unknown upstream modules: ${report.manifestUnknownUpstreamModules.length}`)
   console.log(`node oracle scenarios: ${report.nodeOracleScenarioCount}`)
   console.log(`node oracle fixtures: ${report.nodeOracleFixtureCount}`)
+  console.log(`node oracle invalid fixtures: ${report.oracleInvalidFixtures.length}`)
   console.log(`node oracle duplicate fixtures: ${report.oracleDuplicateFixtures.length}`)
   console.log(`node oracle unknown modules: ${report.oracleUnknownModules.length}`)
   console.log(`normal modules missing oracle: ${report.normalMissingOracle.length}`)

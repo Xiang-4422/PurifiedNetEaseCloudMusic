@@ -123,8 +123,10 @@ void main() {
       expect((statusResult.stdout as String).trim(), isEmpty);
       expect(report['upstreamModuleFileCount'], upstreamModuleCount);
       expect(report['moduleCount'], apiEnhancedModules.length);
+      expect(report['nodeOracleScenarioCount'], greaterThanOrEqualTo(report['nodeOracleFixtureCount']));
       expect(report['manifestMissingUpstreamModules'], isEmpty);
       expect(report['manifestUnknownUpstreamModules'], isEmpty);
+      expect(report['oracleInvalidFixtures'], isEmpty);
       expect(report['oracleDuplicateFixtures'], isEmpty);
       expect(report['oracleUnknownModules'], isEmpty);
       expect(report['normalMissingOracle'], isEmpty);

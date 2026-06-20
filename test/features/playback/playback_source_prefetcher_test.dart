@@ -74,6 +74,36 @@ void main() {
       expect(await refreshed, _hasUrl('fresh-url'));
       expect(await coalesced, _hasUrl('fresh-url'));
     });
+
+    test('late stale remote result does not overwrite refreshed cache', () async {
+      final resolver = _ControllableRemoteSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final item = _item('1');
+
+      final stale = prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+      );
+      final refreshed = prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+        forceRefresh: true,
+      );
+
+      resolver.complete(1, 'fresh-url');
+      expect(await refreshed, _hasUrl('fresh-url'));
+
+      resolver.complete(0, 'stale-url');
+      expect(await stale, _hasUrl('stale-url'));
+
+      final cached = await prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+      );
+
+      expect(cached, _hasUrl('fresh-url'));
+      expect(resolver.remoteCallCount, 2);
+    });
   });
 }
 

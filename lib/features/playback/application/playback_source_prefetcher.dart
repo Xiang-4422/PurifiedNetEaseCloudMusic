@@ -31,13 +31,13 @@ class PlaybackSourcePrefetcher {
     required bool preferHighQuality,
   }) {
     final key = _cacheKey(item, preferHighQuality: preferHighQuality);
-    final cached = _cache[key];
-    final now = DateTime.now();
-    if (cached != null && now.difference(cached.createdAt) < ttl) {
-      PlaybackPerformanceLogger.log(
-        'sourcePrefetch.cacheHit id=${item.id} highQuality=$preferHighQuality kind=${cached.source.kind.name}',
-      );
-      return Future.value(cached.source);
+    final cached = _freshCachedSource(
+      key,
+      item: item,
+      preferHighQuality: preferHighQuality,
+    );
+    if (cached != null) {
+      return Future.value(cached);
     }
     return _resolveAndCache(
       key,
@@ -52,6 +52,16 @@ class PlaybackSourcePrefetcher {
     bool forceRefresh = false,
   }) {
     final key = '${_cacheKey(item, preferHighQuality: preferHighQuality)}|remote';
+    if (!forceRefresh) {
+      final cached = _freshCachedSource(
+        key,
+        item: item,
+        preferHighQuality: preferHighQuality,
+      );
+      if (cached != null) {
+        return Future.value(cached);
+      }
+    }
     return _resolveAndCache(
       key,
       () => _resolver.resolveRemote(
@@ -80,6 +90,22 @@ class PlaybackSourcePrefetcher {
     );
   }
 
+  PlaybackResolvedSource? _freshCachedSource(
+    String key, {
+    required PlaybackQueueItem item,
+    required bool preferHighQuality,
+  }) {
+    final cached = _cache[key];
+    final now = DateTime.now();
+    if (cached == null || now.difference(cached.createdAt) >= ttl) {
+      return null;
+    }
+    PlaybackPerformanceLogger.log(
+      'sourcePrefetch.cacheHit id=${item.id} highQuality=$preferHighQuality kind=${cached.source.kind.name}',
+    );
+    return cached.source;
+  }
+
   Future<PlaybackResolvedSource> _resolveAndCache(
     String key,
     Future<PlaybackResolvedSource> Function() load, {
@@ -93,7 +119,7 @@ class PlaybackSourcePrefetcher {
     final stopwatch = PlaybackPerformanceLogger.start();
     late final Future<PlaybackResolvedSource> loadFuture;
     loadFuture = load().then((source) {
-      if (!source.isEmpty) {
+      if (identical(_inFlight[key], loadFuture) && !source.isEmpty) {
         _cache[key] = _CachedPlaybackSource(source, DateTime.now());
         _trimCache();
       }

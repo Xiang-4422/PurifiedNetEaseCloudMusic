@@ -9,7 +9,6 @@ import 'package:bujuan/ui/widgets/common/layout/scroll_helpers.dart';
 import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
-// TODO YU4422 逐字歌词进度和播放态缩放。
 /// 底部播放面板中的歌词列表视图。
 class LyricView extends GetView<ShellController> {
   /// 歌词行按钮的内边距。
@@ -59,9 +58,11 @@ class LyricView extends GetView<ShellController> {
                       final line = lyricState.lines[index];
                       child = Obx(() {
                         final isActive = PlayerController.to.lyricState.value.currentIndex == index;
+                        final currentPosition = isActive ? PlayerController.to.currentPositionState.value : Duration.zero;
                         return LyricLineText(
                           line: line,
                           isActive: isActive,
+                          currentPosition: currentPosition,
                           color: SettingsController.to.panelWidgetColor.value,
                           baseStyle: context.theme.textTheme.titleLarge,
                         );
@@ -99,6 +100,7 @@ class LyricLineText extends StatelessWidget {
     required this.line,
     required this.isActive,
     required this.color,
+    this.currentPosition = Duration.zero,
     this.baseStyle,
     super.key,
   });
@@ -112,32 +114,110 @@ class LyricLineText extends StatelessWidget {
   /// 歌词基准颜色。
   final Color color;
 
+  /// 当前播放进度，仅当前行使用。
+  final Duration currentPosition;
+
   /// 页面传入的基础文字样式。
   final TextStyle? baseStyle;
 
   @override
   Widget build(BuildContext context) {
-    final style = (baseStyle ?? Theme.of(context).textTheme.titleLarge ?? const TextStyle()).copyWith(
+    final inheritedStyle = baseStyle ?? Theme.of(context).textTheme.titleLarge ?? const TextStyle();
+    final fontSize = inheritedStyle.fontSize;
+    final style = inheritedStyle.copyWith(
       fontFamily: 'monospace',
       color: color.withValues(alpha: isActive ? 1 : 0.2),
       fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+      fontSize: fontSize == null ? null : fontSize * (isActive ? 1.06 : 1),
       height: 1.25,
     );
+    final progressText = isActive ? lyricLineProgressText(line, currentPosition) : const LyricLineProgressText.empty();
     return AnimatedDefaultTextStyle(
       style: style,
       curve: Curves.decelerate,
       textAlign: TextAlign.start,
       duration: const Duration(milliseconds: 500),
-      child: Text(
-        lyricLineDisplayText(line),
-        softWrap: true,
-        maxLines: null,
-        overflow: TextOverflow.visible,
-        textAlign: TextAlign.start,
-        textWidthBasis: TextWidthBasis.parent,
-      ),
+      child: progressText.hasProgress ? _buildProgressText(style, progressText) : _buildPlainText(line),
     );
   }
+
+  Widget _buildPlainText(LyricsLineModel line) {
+    return Text(
+      lyricLineDisplayText(line),
+      softWrap: true,
+      maxLines: null,
+      overflow: TextOverflow.visible,
+      textAlign: TextAlign.start,
+      textWidthBasis: TextWidthBasis.parent,
+    );
+  }
+
+  Widget _buildProgressText(
+    TextStyle style,
+    LyricLineProgressText progressText,
+  ) {
+    final children = <InlineSpan>[
+      TextSpan(
+        text: progressText.playedText,
+        style: style.copyWith(
+          color: color.withValues(alpha: 1),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      TextSpan(
+        text: progressText.upcomingText,
+        style: style.copyWith(
+          color: color.withValues(alpha: 0.42),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ];
+    final extText = (line.extText ?? '').trim();
+    if (extText.isNotEmpty) {
+      children.add(
+        TextSpan(
+          text: '\n$extText',
+          style: style.copyWith(
+            color: color.withValues(alpha: 0.68),
+            fontSize: style.fontSize == null ? null : style.fontSize! * 0.86,
+            fontWeight: FontWeight.normal,
+          ),
+        ),
+      );
+    }
+    return Text.rich(
+      TextSpan(children: children),
+      softWrap: true,
+      maxLines: null,
+      overflow: TextOverflow.visible,
+      textAlign: TextAlign.start,
+      textWidthBasis: TextWidthBasis.parent,
+    );
+  }
+}
+
+/// 单行逐字歌词展示文本切分结果。
+@visibleForTesting
+class LyricLineProgressText {
+  /// 创建逐字歌词展示文本切分结果。
+  const LyricLineProgressText({
+    required this.playedText,
+    required this.upcomingText,
+  });
+
+  /// 空结果。
+  const LyricLineProgressText.empty()
+      : playedText = '',
+        upcomingText = '';
+
+  /// 已经播放到的片段文本。
+  final String playedText;
+
+  /// 尚未播放到的片段文本。
+  final String upcomingText;
+
+  /// 是否包含可用于逐字展示的文本。
+  bool get hasProgress => playedText.isNotEmpty || upcomingText.isNotEmpty;
 }
 
 /// 生成单行歌词展示文本。
@@ -150,4 +230,49 @@ String lyricLineDisplayText(LyricsLineModel line) {
     return primaryText;
   }
   return '$primaryText\n$extText';
+}
+
+/// 根据当前播放进度切分逐字歌词中已播放和未播放的片段。
+@visibleForTesting
+LyricLineProgressText lyricLineProgressText(
+  LyricsLineModel line,
+  Duration currentPosition,
+) {
+  final mainText = (line.mainText ?? '').trim();
+  final spans = line.spanList;
+  if (mainText.isEmpty || spans == null || spans.isEmpty) {
+    return const LyricLineProgressText.empty();
+  }
+  final targetMs = currentPosition.inMilliseconds;
+  final played = StringBuffer();
+  final upcoming = StringBuffer();
+  for (final span in spans) {
+    final text = _spanText(mainText, span);
+    if (text.isEmpty) {
+      continue;
+    }
+    if (targetMs >= span.start) {
+      played.write(text);
+    } else {
+      upcoming.write(text);
+    }
+  }
+  return LyricLineProgressText(
+    playedText: played.toString(),
+    upcomingText: upcoming.toString(),
+  );
+}
+
+String _spanText(String mainText, LyricSpanInfo span) {
+  if (span.raw.isNotEmpty) {
+    return span.raw;
+  }
+  if (span.index < 0 || span.length <= 0 || span.index >= mainText.length) {
+    return '';
+  }
+  final end = span.endIndex > mainText.length ? mainText.length : span.endIndex;
+  if (end <= span.index) {
+    return '';
+  }
+  return mainText.substring(span.index, end);
 }

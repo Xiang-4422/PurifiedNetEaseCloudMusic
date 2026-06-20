@@ -713,19 +713,17 @@ void main() {
       for (final fixture in fixtures) {
         final module = fixture['module'] as String;
         final query = _jsonMap(fixture['query']);
-        final nodeOptions = _jsonMap(fixture['options']);
+        final nodeRequests = _jsonMapList(fixture['requests']);
+        if (nodeRequests.isNotEmpty) {
+          final dartRequests = await _dartRequestSequenceForOracleFixture(api, module, query);
+          expect(dartRequests, hasLength(nodeRequests.length), reason: module);
+          for (var i = 0; i < nodeRequests.length; i++) {
+            _expectDartRequestMatchesNode(dartRequests[i], nodeRequests[i], '$module request #${i + 1}');
+          }
+          continue;
+        }
         final metaData = await _dartMetaDataForOracleFixture(api, module, query);
-        final extra = metaData.options!.extra!;
-
-        expect(metaData.uri.path, fixture['uri'], reason: module);
-        expect(_jsonMap(metaData.data), _jsonMap(fixture['data']), reason: module);
-        expect(_encryptTypeName(extra['encryptType'] as EncryptType), _effectiveNodeCrypto(nodeOptions), reason: module);
-        expect(extra['realIP'], nodeOptions['realIP'], reason: module);
-        expect(_optionString(extra['rawUserAgent']), _optionString(nodeOptions['ua']), reason: module);
-        expect(_optionString(extra['domain']), _optionString(nodeOptions['domain']), reason: module);
-        expect(extra['checkToken'], nodeOptions['checkToken'] == true, reason: module);
-        expect(_optionString(extra['proxy']), _optionString(nodeOptions['proxy']), reason: module);
-        expect(extra['cookies'], nodeOptions.containsKey('cookie') ? _stringJsonMap(nodeOptions['cookie']) : <String, String>{}, reason: module);
+        _expectDartRequestMatchesNode(metaData, fixture, module);
       }
     });
   });
@@ -750,6 +748,55 @@ Future<DioMetaData> _dartMetaDataForOracleFixture(
   }
 }
 
+Future<List<DioMetaData>> _dartRequestSequenceForOracleFixture(
+  _RawApi api,
+  String module,
+  Map<String, dynamic> query,
+) async {
+  switch (module) {
+    case 'song_url_v1_302':
+      final proxy = _QueuedPostDioProxy([
+        {
+          'data': [
+            {'url': null}
+          ],
+        },
+        {
+          'data': [
+            {'url': 'https://audio.test/player.flac'}
+          ],
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+      await api.requestModule(module, query);
+      return proxy.requests;
+    case 'playlist_track_all':
+      final proxy = _QueuedPostDioProxy([
+        {
+          'playlist': {
+            'trackIds': [
+              {'id': 100},
+              {'id': 101},
+              {'id': 102},
+              {'id': 103},
+            ],
+          },
+        },
+        {
+          'songs': [
+            {'id': 101},
+            {'id': 102},
+          ],
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+      await api.requestModule(module, query);
+      return proxy.requests;
+    default:
+      fail('No request sequence capture configured for $module');
+  }
+}
+
 Future<DioMetaData> _captureSpecialMetaData(Future<dynamic> Function() call) async {
   final proxy = _CaptureDioProxy();
   Https.setDioProxyForTesting(proxy);
@@ -761,6 +808,25 @@ Future<DioMetaData> _captureSpecialMetaData(Future<dynamic> Function() call) asy
     fail('Special raw module did not send request metadata');
   }
   return metaData;
+}
+
+void _expectDartRequestMatchesNode(
+  DioMetaData metaData,
+  Map<String, dynamic> nodeRequest,
+  String reason,
+) {
+  final nodeOptions = _jsonMap(nodeRequest['options']);
+  final extra = metaData.options!.extra!;
+
+  expect(metaData.uri.path, nodeRequest['uri'], reason: reason);
+  expect(_jsonMap(metaData.data), _jsonMap(nodeRequest['data']), reason: reason);
+  expect(_encryptTypeName(extra['encryptType'] as EncryptType), _effectiveNodeCrypto(nodeOptions), reason: reason);
+  expect(extra['realIP'], nodeOptions['realIP'], reason: reason);
+  expect(_optionString(extra['rawUserAgent']), _optionString(nodeOptions['ua']), reason: reason);
+  expect(_optionString(extra['domain']), _optionString(nodeOptions['domain']), reason: reason);
+  expect(extra['checkToken'], nodeOptions['checkToken'] == true, reason: reason);
+  expect(_optionString(extra['proxy']), _optionString(nodeOptions['proxy']), reason: reason);
+  expect(extra['cookies'], nodeOptions.containsKey('cookie') ? _stringJsonMap(nodeOptions['cookie']) : <String, String>{}, reason: reason);
 }
 
 Directory _findUpstreamModuleDir() {
@@ -940,6 +1006,13 @@ Map<String, dynamic> _jsonMap(dynamic value) {
     return Map<String, dynamic>.from(value);
   }
   return <String, dynamic>{};
+}
+
+List<Map<String, dynamic>> _jsonMapList(dynamic value) {
+  if (value is! List) {
+    return const [];
+  }
+  return value.map(_jsonMap).toList(growable: false);
 }
 
 Map<String, String> _stringJsonMap(dynamic value) {

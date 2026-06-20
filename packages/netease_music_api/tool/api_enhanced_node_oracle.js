@@ -498,6 +498,44 @@ const fixtures = [
       cookie: { MUSIC_U: 'token' },
     },
   },
+  {
+    module: 'song_url_v1_302',
+    query: {
+      id: '101',
+      level: 'sky',
+    },
+    captureRequests: true,
+    responses: [
+      { status: 200, body: { data: [{ url: null }] }, cookie: [] },
+      {
+        status: 200,
+        body: { data: [{ url: 'https://audio.test/player.flac' }] },
+        cookie: [],
+      },
+    ],
+  },
+  {
+    module: 'playlist_track_all',
+    query: {
+      id: '888',
+      s: 4,
+      limit: '2',
+      offset: '1',
+    },
+    captureRequests: true,
+    responses: [
+      {
+        status: 200,
+        body: {
+          playlist: {
+            trackIds: [{ id: 100 }, { id: 101 }, { id: 102 }, { id: 103 }],
+          },
+        },
+        cookie: [],
+      },
+      { status: 200, body: { songs: [{ id: 101 }, { id: 102 }] }, cookie: [] },
+    ],
+  },
 ]
 
 async function captureFixture(fixture) {
@@ -505,20 +543,32 @@ async function captureFixture(fixture) {
   const upstreamModule = require(modulePath)
   const query = JSON.parse(JSON.stringify(fixture.query))
   let captured = null
+  const requests = []
+  let requestIndex = 0
   const request = (uri, data, options) => {
     captured = { uri, data, options }
-    return Promise.resolve({ status: 200, body: { code: 200, data: [] }, cookie: [] })
+    requests.push(captured)
+    const response =
+      fixture.responses && requestIndex < fixture.responses.length
+        ? fixture.responses[requestIndex]
+        : { status: 200, body: { code: 200, data: [] }, cookie: [] }
+    requestIndex += 1
+    return Promise.resolve(JSON.parse(JSON.stringify(response)))
   }
 
   await upstreamModule(query, request)
   if (!captured) {
     throw new Error(`Module ${fixture.module} did not call request`)
   }
-  return {
+  const result = {
     module: fixture.module,
     query: fixture.query,
     ...captured,
   }
+  if (fixture.captureRequests) {
+    result.requests = requests
+  }
+  return result
 }
 
 async function main() {

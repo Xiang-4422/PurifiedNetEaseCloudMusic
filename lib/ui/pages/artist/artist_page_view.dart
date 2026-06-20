@@ -45,6 +45,8 @@ class _ArtistPageViewState extends State<ArtistPageView> {
   final List<AlbumEntity> hotAlbums = [];
 
   bool loading = true;
+  bool loadFailed = false;
+  bool hasLoadedDetail = false;
   Color albumColor = Get.theme.colorScheme.primary;
   Color onAlbumColor = Get.theme.colorScheme.onPrimary;
 
@@ -68,6 +70,8 @@ class _ArtistPageViewState extends State<ArtistPageView> {
         }
         setState(() {
           loading = false;
+          loadFailed = false;
+          hasLoadedDetail = true;
         });
         unawaited(_updateArtistColor(_resolvedArtworkUrl));
         unawaited(_refreshArtistDetail(showLoadingState: false));
@@ -79,8 +83,17 @@ class _ArtistPageViewState extends State<ArtistPageView> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
+    if (loading && !hasLoadedDetail) {
       return Container(color: albumColor, child: const LoadingView());
+    }
+    if (loadFailed && !hasLoadedDetail) {
+      return Container(
+        color: albumColor,
+        child: ErrorView(
+          message: '歌手加载失败',
+          onRetry: () => unawaited(_refreshArtistDetail(showLoadingState: true)),
+        ),
+      );
     }
 
     final layoutMetrics = AdaptiveLayoutMetrics.of(context);
@@ -276,23 +289,36 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     if (showLoadingState && mounted) {
       setState(() {
         loading = true;
+        loadFailed = false;
       });
     }
-    final artistDetail = await _controller.fetchDetail(artistId);
-    artist = artistDetail.artist;
-    topSongs
-      ..clear()
-      ..addAll(artistDetail.topSongs);
-    hotAlbums
-      ..clear()
-      ..addAll(artistDetail.hotAlbums);
-    if (!mounted) {
-      return;
+    try {
+      final artistDetail = await _controller.fetchDetail(artistId);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        artist = artistDetail.artist;
+        topSongs
+          ..clear()
+          ..addAll(artistDetail.topSongs);
+        hotAlbums
+          ..clear()
+          ..addAll(artistDetail.hotAlbums);
+        loading = false;
+        loadFailed = false;
+        hasLoadedDetail = true;
+      });
+      unawaited(_updateArtistColor(_resolvedArtworkUrl));
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        loading = false;
+        loadFailed = !hasLoadedDetail;
+      });
     }
-    setState(() {
-      loading = false;
-    });
-    unawaited(_updateArtistColor(_resolvedArtworkUrl));
   }
 
   Future<void> _updateArtistColor(String? artworkPath) async {

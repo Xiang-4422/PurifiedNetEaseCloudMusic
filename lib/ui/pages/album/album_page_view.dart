@@ -38,6 +38,8 @@ class _AlbumPageViewState extends State<AlbumPageView> {
   List<PlaybackQueueItem> albumSongs = [];
 
   bool loading = true;
+  bool loadFailed = false;
+  bool hasLoadedDetail = false;
   Color albumColor = Get.theme.colorScheme.primary;
   Color onAlbumColor = Get.theme.colorScheme.onPrimary;
 
@@ -59,6 +61,8 @@ class _AlbumPageViewState extends State<AlbumPageView> {
         }
         setState(() {
           loading = false;
+          loadFailed = false;
+          hasLoadedDetail = true;
         });
         unawaited(_updateAlbumColor(_resolvedArtworkUrl));
         unawaited(_refreshAlbumDetail(showLoadingState: false));
@@ -70,8 +74,17 @@ class _AlbumPageViewState extends State<AlbumPageView> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
+    if (loading && !hasLoadedDetail) {
       return Container(color: albumColor, child: const LoadingView());
+    }
+    if (loadFailed && !hasLoadedDetail) {
+      return Container(
+        color: albumColor,
+        child: ErrorView(
+          message: '专辑加载失败',
+          onRetry: () => unawaited(_refreshAlbumDetail(showLoadingState: true)),
+        ),
+      );
     }
     final layoutMetrics = AdaptiveLayoutMetrics.of(context);
 
@@ -182,20 +195,33 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     if (showLoadingState && mounted) {
       setState(() {
         loading = true;
+        loadFailed = false;
       });
     }
-    final albumDetail = await _controller.fetchDetail(albumId);
-    album = albumDetail.album;
-    albumSongs
-      ..clear()
-      ..addAll(albumDetail.albumSongs);
-    if (!mounted) {
-      return;
+    try {
+      final albumDetail = await _controller.fetchDetail(albumId);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        album = albumDetail.album;
+        albumSongs
+          ..clear()
+          ..addAll(albumDetail.albumSongs);
+        loading = false;
+        loadFailed = false;
+        hasLoadedDetail = true;
+      });
+      unawaited(_updateAlbumColor(_resolvedArtworkUrl));
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        loading = false;
+        loadFailed = !hasLoadedDetail;
+      });
     }
-    setState(() {
-      loading = false;
-    });
-    unawaited(_updateAlbumColor(_resolvedArtworkUrl));
   }
 
   Future<void> _updateAlbumColor(String? artworkPath) async {

@@ -113,6 +113,12 @@ class PersonalPageView extends GetView<ShellController> {
                       scrollDirection: Axis.horizontal,
                       physics: SnappingScrollPhysics(itemExtent: userItemWidth + AppDimensions.paddingSmall),
                       children: [
+                        _ContinuePlaybackQuickStartCard(
+                          width: userItemWidth,
+                          height: userItemWidth * 1.3,
+                          playbackAction: playbackAction,
+                          shellController: controller,
+                        ).marginSymmetric(horizontal: AppDimensions.paddingSmall),
                         Stack(
                           alignment: Alignment.bottomRight,
                           children: [
@@ -161,7 +167,7 @@ class PersonalPageView extends GetView<ShellController> {
                               child: Lottie.asset(AppAssets.lottieMusicPlaying, width: 50),
                             )
                           ],
-                        ).marginSymmetric(horizontal: AppDimensions.paddingSmall),
+                        ).marginOnly(right: AppDimensions.paddingSmall),
                         Stack(
                           alignment: Alignment.bottomRight,
                           children: [
@@ -397,6 +403,12 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
           itemExtent: cardSize.width + AppDimensions.paddingSmall,
         ),
         children: [
+          _ContinuePlaybackQuickStartCard(
+            width: cardSize.width,
+            height: cardSize.height,
+            playbackAction: playbackAction,
+            shellController: widget.shellController,
+          ).marginSymmetric(horizontal: AppDimensions.paddingSmall),
           Stack(
             alignment: Alignment.bottomRight,
             children: [
@@ -449,7 +461,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 ),
               ),
             ],
-          ).marginSymmetric(horizontal: AppDimensions.paddingSmall),
+          ).marginOnly(right: AppDimensions.paddingSmall),
           Stack(
             alignment: Alignment.bottomRight,
             children: [
@@ -510,6 +522,56 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
         ],
       ),
     );
+  }
+}
+
+class _ContinuePlaybackQuickStartCard extends StatelessWidget {
+  const _ContinuePlaybackQuickStartCard({
+    required this.width,
+    required this.height,
+    required this.playbackAction,
+    required this.shellController,
+  });
+
+  final double width;
+  final double height;
+  final PlayerController playbackAction;
+  final ShellController shellController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final currentSong = playbackAction.currentSongState.value;
+      final hasCurrentSong = currentSong.id.isNotEmpty;
+      return Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          QuickStartCard(
+            width: width,
+            height: height,
+            albumUrl: currentSong.artworkUrl ?? '',
+            icon: TablerIcons.player_play,
+            title: '继续播放',
+            onTap: hasCurrentSong
+                ? () async {
+                    shellController.jumpBottomPanelToPage(1);
+                    shellController.openBottomPanel();
+                    if (!playbackAction.isPlaying.value) {
+                      await playbackAction.playOrPause();
+                    }
+                  }
+                : null,
+          ),
+          Offstage(
+            offstage: !hasCurrentSong || !playbackAction.isPlaying.value,
+            child: Lottie.asset(
+              AppAssets.lottieMusicPlaying,
+              width: 50,
+            ),
+          ),
+        ],
+      );
+    });
   }
 }
 

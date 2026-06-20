@@ -1958,6 +1958,28 @@ void main() {
       expect(proxy.called, 'POST');
     });
 
+    test('DioProxy forwards GET cancel token to Dio', () async {
+      final adapter = _UnexpectedRequestAdapter();
+      final dio = Dio()..httpClientAdapter = adapter;
+      final cancelToken = CancelToken()..cancel('cancelled');
+      Https.setDioForTesting(dio);
+
+      await expectLater(
+        DioProxy().getUri(
+          DioMetaData(Uri.parse('https://example.test/get'), method: 'GET'),
+          cancelToken: cancelToken,
+        ),
+        throwsA(
+          isA<DioException>().having(
+            (error) => error.type,
+            'type',
+            DioExceptionType.cancel,
+          ),
+        ),
+      );
+      expect(adapter.called, isFalse);
+    });
+
     test('generic api special module dispatches raw request metadata', () async {
       final proxy = _CaptureDioProxy();
       Https.setDioProxyForTesting(proxy);
@@ -3511,6 +3533,23 @@ class _TextResponseAdapter implements HttpClientAdapter {
     return ResponseBody.fromString(body, 200, headers: {
       Headers.contentTypeHeader: ['text/html; charset=utf-8'],
     });
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _UnexpectedRequestAdapter implements HttpClientAdapter {
+  bool called = false;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    called = true;
+    return ResponseBody.fromString('{"code":200}', 200);
   }
 
   @override

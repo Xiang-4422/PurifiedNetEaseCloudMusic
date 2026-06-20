@@ -193,7 +193,12 @@ class DioProxy {
     if (error != null) {
       return Future.error(error);
     }
-    return Https.dio.getUri(metaData.uri, options: metaData.options);
+    return Https.dio.getUri(
+      metaData.uri,
+      options: metaData.options,
+      cancelToken: cancelToken,
+      onReceiveProgress: onReceiveProgress,
+    );
   }
 
   /// 发起 GET 路径请求。

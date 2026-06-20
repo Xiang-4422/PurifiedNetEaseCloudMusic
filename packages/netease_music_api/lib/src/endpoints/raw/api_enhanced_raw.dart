@@ -1369,6 +1369,57 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'ids': '[${_jsParseIntString(query['id'])}]',
         'br': _jsParseIntOrDefault(query['br'], 999000),
       };
+    case 'broadcast_category_region_get':
+    case 'sati_resource_sub_list':
+    case 'sati_tag_list':
+      return {};
+    case 'broadcast_channel_collect_list':
+      return {
+        'contentType': 'BROADCAST',
+        'limit': _jsDefault(query['limit'], '99999'),
+        'timeReverseOrder': 'true',
+        'startDate': '4762584922000',
+      };
+    case 'broadcast_channel_currentinfo':
+      return {
+        'channelId': query['id'],
+      };
+    case 'broadcast_channel_list':
+      return {
+        'categoryId': _jsDefault(query['categoryId'], '0'),
+        'regionId': _jsDefault(query['regionId'], '0'),
+        'limit': _jsDefault(query['limit'], '20'),
+        'lastId': _jsDefault(query['lastId'], '0'),
+        'score': _jsDefault(query['score'], '-1'),
+      };
+    case 'broadcast_sub':
+      return {
+        'contentType': 'BROADCAST',
+        'contentId': query['id'],
+        'cancelCollect': _jsLooseEqualsOne(query['t']) ? 'false' : 'true',
+      };
+    case 'radio_sport_get':
+      return {
+        'bpm': _jsDefault(query['bpm'], 50),
+      };
+    case 'sati_resource_list':
+      return {
+        'tag': query['tag'],
+        'firstQuery': false,
+      };
+    case 'sati_resource_list_more':
+      return {
+        'id': query['id'],
+      };
+    case 'sati_resource_sub':
+      return {
+        'id': query['id'],
+        'cancel': _jsDefault(query['cancel'], false),
+      };
+    case 'sati_timescene_resources_get':
+      return {
+        'firstQuery': false,
+      };
     case 'chart_detail':
     case 'chart_song_detail':
       return {
@@ -2027,6 +2078,10 @@ bool _jsTruthy(dynamic value) {
     return false;
   }
   return true;
+}
+
+bool _jsLooseEqualsOne(dynamic value) {
+  return value == 1 || value == true || value?.toString() == '1';
 }
 
 dynamic _jsToBoolean(dynamic value) {

@@ -640,6 +640,55 @@ void main() {
       expect(api.requestModuleDioMetaData('chart_song_detail', query).data, query);
     });
 
+    test('maps broadcast and ambient radio request data like upstream', () {
+      expect(api.requestModuleDioMetaData('broadcast_category_region_get', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('broadcast_channel_collect_list', {}).data, {
+        'contentType': 'BROADCAST',
+        'limit': '99999',
+        'timeReverseOrder': 'true',
+        'startDate': '4762584922000',
+      });
+      expect(api.requestModuleDioMetaData('broadcast_channel_currentinfo', {'id': '5'}).data, {
+        'channelId': '5',
+      });
+      expect(api.requestModuleDioMetaData('broadcast_channel_list', {}).data, {
+        'categoryId': '0',
+        'regionId': '0',
+        'limit': '20',
+        'lastId': '0',
+        'score': '-1',
+      });
+      expect(api.requestModuleDioMetaData('broadcast_sub', {'id': '5', 't': 1}).data, {
+        'contentType': 'BROADCAST',
+        'contentId': '5',
+        'cancelCollect': 'false',
+      });
+      expect(api.requestModuleDioMetaData('broadcast_sub', {'id': '5', 't': 0}).data, {
+        'contentType': 'BROADCAST',
+        'contentId': '5',
+        'cancelCollect': 'true',
+      });
+      expect(api.requestModuleDioMetaData('radio_sport_get', {}).data, {
+        'bpm': 50,
+      });
+      expect(api.requestModuleDioMetaData('sati_resource_list', {'tag': 'rain'}).data, {
+        'tag': 'rain',
+        'firstQuery': false,
+      });
+      expect(api.requestModuleDioMetaData('sati_resource_list_more', {'id': '167003'}).data, {
+        'id': '167003',
+      });
+      expect(api.requestModuleDioMetaData('sati_resource_sub', {'id': '167003'}).data, {
+        'id': '167003',
+        'cancel': false,
+      });
+      expect(api.requestModuleDioMetaData('sati_resource_sub_list', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('sati_tag_list', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('sati_timescene_resources_get', {}).data, {
+        'firstQuery': false,
+      });
+    });
+
     test('maps user library request data like upstream', () {
       expect(api.requestModuleDioMetaData('user_account', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('user_subcount', {}).data, isEmpty);

@@ -1324,6 +1324,68 @@ const fixtures = [
     },
   },
   {
+    module: 'broadcast_category_region_get',
+    query: {},
+  },
+  {
+    module: 'broadcast_channel_collect_list',
+    query: {
+      limit: 50,
+    },
+  },
+  {
+    module: 'broadcast_channel_currentinfo',
+    query: {
+      id: '5',
+    },
+  },
+  {
+    module: 'broadcast_channel_list',
+    query: {},
+  },
+  {
+    module: 'broadcast_sub',
+    query: {
+      id: '5',
+      t: 1,
+    },
+  },
+  {
+    module: 'radio_sport_get',
+    query: {},
+  },
+  {
+    module: 'sati_resource_list',
+    query: {
+      tag: 'rain',
+    },
+  },
+  {
+    module: 'sati_resource_list_more',
+    query: {
+      id: '167003',
+    },
+  },
+  {
+    module: 'sati_resource_sub',
+    query: {
+      id: '167003',
+      cancel: true,
+    },
+  },
+  {
+    module: 'sati_resource_sub_list',
+    query: {},
+  },
+  {
+    module: 'sati_tag_list',
+    query: {},
+  },
+  {
+    module: 'sati_timescene_resources_get',
+    query: {},
+  },
+  {
     module: 'playlist_catlist',
     query: {},
   },

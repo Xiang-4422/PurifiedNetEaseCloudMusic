@@ -374,6 +374,39 @@ void main() {
       });
     });
 
+    test('login qr create mirrors upstream envelope and optional web qr image', () async {
+      final pc = await api.requestModule('login_qr_create', {'key': 'abc'});
+      expect(pc, {
+        'code': 200,
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': {
+            'qrurl': 'https://music.163.com/login?codekey=abc',
+            'qrimg': '',
+          },
+        },
+      });
+
+      final web = await api.requestModule('login_qr_create', {
+        'key': 'abc',
+        'platform': 'web',
+        'qrimg': true,
+        'cookie': 'sDeviceId=device-1; MUSIC_U=token',
+      });
+      final data = _jsonMap(_jsonMap(web['body'])['data']);
+      final qrUrl = data['qrurl'].toString();
+      final qrImg = data['qrimg'].toString();
+
+      expect(web['code'], 200);
+      expect(web['status'], 200);
+      expect(_jsonMap(web['body'])['code'], 200);
+      expect(qrUrl, startsWith('https://music.163.com/login?codekey=abc&chainId='));
+      expect(Uri.decodeComponent(qrUrl.split('chainId=').last), startsWith('v1_device-1_web_login_'));
+      expect(qrImg, startsWith('data:image/png;base64,'));
+      expect(base64Decode(qrImg.split(',').last).take(8), [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    });
+
     test('song url v1 special module rewrites upstream xeapi data shape', () async {
       final proxy = _CaptureDioProxy();
       Https.setDioProxyForTesting(proxy);

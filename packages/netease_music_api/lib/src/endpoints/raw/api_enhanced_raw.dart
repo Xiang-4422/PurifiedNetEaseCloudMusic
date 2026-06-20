@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:pointycastle/digests/md5.dart';
+import 'package:qr/qr.dart';
 
 import '../../client/dio_ext.dart';
 import '../../client/netease_handler.dart';
@@ -284,12 +285,16 @@ mixin ApiEnhancedRaw {
 
   /// Builds QR login URL data.
   dynamic loginQrCreate(Map<String, dynamic> query) {
-    final key = query['key']?.toString() ?? '';
+    final url = _loginQrUrl(query);
     return {
       'code': 200,
-      'data': {
-        'qrurl': 'https://music.163.com/login?codekey=$key',
-        'qrimg': '',
+      'status': 200,
+      'body': {
+        'code': 200,
+        'data': {
+          'qrurl': url,
+          'qrimg': _jsTruthy(query['qrimg']) ? _qrPngDataUrl(url) : '',
+        },
       },
     };
   }
@@ -1413,6 +1418,101 @@ dynamic _scrobbleCookie(dynamic cookie) {
     return text.replaceAll(RegExp(r'os=[^;]+'), 'os=osx');
   }
   return '$text; os=osx';
+}
+
+String _loginQrUrl(Map<String, dynamic> query) {
+  final key = query['key']?.toString() ?? '';
+  final url = StringBuffer('https://music.163.com/login?codekey=$key');
+  if ((query['platform']?.toString() ?? 'pc') == 'web') {
+    url.write('&chainId=${Uri.encodeQueryComponent(_generateChainId(query['cookie']))}');
+  }
+  return url.toString();
+}
+
+String _generateChainId(dynamic cookie) {
+  final randomNum = DateTime.now().microsecondsSinceEpoch.remainder(1000000);
+  final deviceId = _cookieValue(cookie, 'sDeviceId') ?? 'unknown-$randomNum';
+  return 'v1_${deviceId}_web_login_${DateTime.now().millisecondsSinceEpoch}';
+}
+
+String? _cookieValue(dynamic cookie, String name) {
+  final cookies = _stringMap(cookie);
+  final value = cookies[name];
+  return value == null || value.isEmpty ? null : value;
+}
+
+String _qrPngDataUrl(String data) {
+  final qrCode = QrCode.fromData(
+    data: data,
+    errorCorrectLevel: QrErrorCorrectLevel.M,
+  );
+  final qrImage = QrImage(qrCode);
+  const quietZone = 4;
+  const scale = 4;
+  final modules = qrImage.moduleCount + quietZone * 2;
+  final size = modules * scale;
+  final raw = <int>[];
+  for (var y = 0; y < size; y++) {
+    raw.add(0);
+    final row = y ~/ scale - quietZone;
+    for (var x = 0; x < size; x++) {
+      final col = x ~/ scale - quietZone;
+      final dark = row >= 0 && row < qrImage.moduleCount && col >= 0 && col < qrImage.moduleCount && qrImage.isDark(row, col);
+      raw.add(dark ? 0 : 255);
+    }
+  }
+  final bytes = <int>[
+    0x89,
+    0x50,
+    0x4e,
+    0x47,
+    0x0d,
+    0x0a,
+    0x1a,
+    0x0a,
+    ..._pngChunk('IHDR', [
+      ..._uint32Bytes(size),
+      ..._uint32Bytes(size),
+      8,
+      0,
+      0,
+      0,
+      0,
+    ]),
+    ..._pngChunk('IDAT', ZLibEncoder().convert(raw)),
+    ..._pngChunk('IEND', const []),
+  ];
+  return 'data:image/png;base64,${base64Encode(bytes)}';
+}
+
+List<int> _pngChunk(String type, List<int> data) {
+  final typeBytes = ascii.encode(type);
+  return [
+    ..._uint32Bytes(data.length),
+    ...typeBytes,
+    ...data,
+    ..._uint32Bytes(_crc32([...typeBytes, ...data])),
+  ];
+}
+
+List<int> _uint32Bytes(int value) {
+  return [
+    (value >> 24) & 0xff,
+    (value >> 16) & 0xff,
+    (value >> 8) & 0xff,
+    value & 0xff,
+  ];
+}
+
+int _crc32(List<int> bytes) {
+  var crc = 0xffffffff;
+  for (final byte in bytes) {
+    crc ^= byte;
+    for (var i = 0; i < 8; i++) {
+      crc = (crc & 1) == 1 ? (crc >> 1) ^ 0xedb88320 : crc >> 1;
+    }
+  }
+  return (crc ^ 0xffffffff) & 0xffffffff;
 }
 
 Map<String, dynamic> _asMap(dynamic value) {

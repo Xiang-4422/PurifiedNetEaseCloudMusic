@@ -637,6 +637,22 @@ void main() {
       });
     });
 
+    test('maps voice request data like upstream', () {
+      final deleteMetaData = api.requestModuleDioMetaData('voice_delete', {'ids': '101,202'});
+
+      expect(deleteMetaData.uri.path, '/api/content/voice/delete');
+      expect(deleteMetaData.data, {
+        'ids': '101,202',
+      });
+      expect(deleteMetaData.options!.extra!['encryptType'], EncryptType.EApi);
+      expect(api.requestModuleDioMetaData('voice_detail', {'id': 'voice-1'}).data, {
+        'id': 'voice-1',
+      });
+      expect(api.requestModuleDioMetaData('voice_lyric', {'id': 'voice-1'}).data, {
+        'programId': 'voice-1',
+      });
+    });
+
     test('maps voicelist request data like upstream', () {
       expect(api.requestModuleDioMetaData('voicelist_detail', {'id': '500'}).data, {
         'id': '500',

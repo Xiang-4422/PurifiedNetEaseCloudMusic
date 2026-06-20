@@ -1933,6 +1933,18 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], 0),
         'includeVideo': true,
       };
+    case 'voice_delete':
+      return {
+        'ids': query['ids'],
+      };
+    case 'voice_detail':
+      return {
+        'id': query['id'],
+      };
+    case 'voice_lyric':
+      return {
+        'programId': query['id'],
+      };
     case 'voicelist_detail':
       return {
         'id': query['id'],

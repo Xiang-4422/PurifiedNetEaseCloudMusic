@@ -1070,6 +1070,24 @@ const fixtures = [
     },
   },
   {
+    module: 'voice_delete',
+    query: {
+      ids: '101,202',
+    },
+  },
+  {
+    module: 'voice_detail',
+    query: {
+      id: 'voice-1',
+    },
+  },
+  {
+    module: 'voice_lyric',
+    query: {
+      id: 'voice-1',
+    },
+  },
+  {
     module: 'voicelist_search',
     query: {
       keyword: 'podcast',

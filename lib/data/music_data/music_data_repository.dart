@@ -388,7 +388,12 @@ class MusicDataRepository {
       return loadingUrl;
     }
     late final Future<String?> loadFuture;
-    loadFuture = _loadPlaybackUrl(cacheKey, load).whenComplete(() {
+    loadFuture = load().then((url) {
+      if (identical(_playbackUrlLoads[cacheKey], loadFuture)) {
+        _cachePlaybackUrl(cacheKey, url);
+      }
+      return url;
+    }).whenComplete(() {
       if (identical(_playbackUrlLoads[cacheKey], loadFuture)) {
         _playbackUrlLoads.remove(cacheKey);
       }
@@ -397,18 +402,13 @@ class MusicDataRepository {
     return loadFuture;
   }
 
-  Future<String?> _loadPlaybackUrl(
-    String cacheKey,
-    Future<String?> Function() load,
-  ) async {
-    final url = await load();
+  void _cachePlaybackUrl(String cacheKey, String? url) {
     if (url != null && _isRemoteUrl(url)) {
       _playbackUrlCache[cacheKey] = _CachedPlaybackUrl(
         url: url,
         createdAt: DateTime.now(),
       );
     }
-    return url;
   }
 
   bool _isRemoteUrl(String url) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bujuan/core/entities/local_resource_entry.dart';
@@ -96,6 +97,37 @@ void main() {
       expect(cached, 'https://audio.test/1-1.mp3');
       expect(refreshed, 'https://audio.test/1-2.mp3');
       expect(reusedRefresh, refreshed);
+      expect(neteaseSource.playbackUrlCallCount, 2);
+    });
+
+    test('late stale playback url load does not overwrite force refreshed cache', () async {
+      final neteaseSource = _ControllablePlaybackUrlNeteaseMusicSource();
+      final repository = _buildRepository(neteaseSource: neteaseSource);
+
+      final staleLoad = repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+      await _waitUntil(() => neteaseSource.playbackUrlCallCount == 1);
+      final refreshLoad = repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+        forceRefresh: true,
+      );
+      await _waitUntil(() => neteaseSource.playbackUrlCallCount == 2);
+
+      neteaseSource.complete(1, 'https://audio.test/1-fresh.mp3');
+      expect(await refreshLoad, 'https://audio.test/1-fresh.mp3');
+
+      neteaseSource.complete(0, 'https://audio.test/1-stale.mp3');
+      expect(await staleLoad, 'https://audio.test/1-stale.mp3');
+
+      final cached = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+
+      expect(cached, 'https://audio.test/1-fresh.mp3');
       expect(neteaseSource.playbackUrlCallCount, 2);
     });
 
@@ -422,7 +454,7 @@ void main() {
 
 MusicDataRepository _buildRepository({
   _FakeLocalLibraryDataSource? localDataSource,
-  _FakeNeteaseMusicSource? neteaseSource,
+  NeteaseMusicSource? neteaseSource,
   _FakeLocalArtworkCacheRepository? artworkCacheRepository,
   _FakeLocalResourceIndexRepository? resourceIndexRepository,
 }) {
@@ -575,6 +607,31 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
   }
 }
 
+class _ControllablePlaybackUrlNeteaseMusicSource implements NeteaseMusicSource {
+  final List<Completer<String?>> _playbackUrlCompleters = <Completer<String?>>[];
+
+  int get playbackUrlCallCount => _playbackUrlCompleters.length;
+
+  void complete(int index, String? url) {
+    _playbackUrlCompleters[index].complete(url);
+  }
+
+  @override
+  Future<String?> getPlaybackUrl(
+    String trackId, {
+    String? qualityLevel,
+  }) {
+    final completer = Completer<String?>();
+    _playbackUrlCompleters.add(completer);
+    return completer.future;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+}
+
 class _FakeLocalMusicSource implements LocalMusicSource {
   @override
   String get sourceKey => 'local';
@@ -582,6 +639,19 @@ class _FakeLocalMusicSource implements LocalMusicSource {
   @override
   dynamic noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
+  }
+}
+
+Future<void> _waitUntil(
+  bool Function() condition, {
+  Duration timeout = const Duration(seconds: 1),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('Timed out waiting for condition');
+    }
+    await Future<void>.delayed(Duration.zero);
   }
 }
 

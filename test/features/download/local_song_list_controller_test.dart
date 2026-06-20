@@ -105,6 +105,54 @@ void main() {
 
       await refreshFuture;
     });
+
+    test('removes deleted local track from visible fallback when refresh fails', () async {
+      final error = StateError('refresh failed');
+      final musicDataRepository = _FakeMusicDataRepository()
+        ..enqueueLocalSongs([
+          _entry('removed'),
+          _entry('kept'),
+        ])
+        ..enqueueLocalSongsError(error);
+      final downloadRepository = _FakeDownloadRepository();
+      final controller = LocalSongListController(
+        musicDataRepository: musicDataRepository,
+        downloadRepository: downloadRepository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      await controller.removeLocalTrack('netease:removed');
+
+      expect(downloadRepository.removedTrackIds, ['netease:removed']);
+      expect(controller.state.value.status, LoadStatus.error);
+      expect(controller.state.value.error, same(error));
+      expect(_titles(controller.state.value), ['Track kept']);
+    });
+
+    test('removes playback cache entries from visible fallback when refresh fails', () async {
+      final error = StateError('refresh failed');
+      final musicDataRepository = _FakeMusicDataRepository()
+        ..enqueueLocalSongs([
+          _entry('cache', origin: TrackResourceOrigin.playbackCache),
+          _entry('download'),
+        ])
+        ..enqueueLocalSongsError(error);
+      final downloadRepository = _FakeDownloadRepository();
+      final controller = LocalSongListController(
+        musicDataRepository: musicDataRepository,
+        downloadRepository: downloadRepository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      await controller.clearPlaybackCache();
+
+      expect(downloadRepository.clearPlaybackCacheCount, 1);
+      expect(controller.state.value.status, LoadStatus.error);
+      expect(controller.state.value.error, same(error));
+      expect(_titles(controller.state.value), ['Track download']);
+    });
   });
 }
 
@@ -148,18 +196,18 @@ LocalResourceEntry _audioResource(
 }
 
 class _FakeMusicDataRepository implements MusicDataRepository {
-  final List<Future<List<LocalSongEntry>>> _responses = [];
+  final List<Future<List<LocalSongEntry>> Function()> _responses = [];
 
   void enqueueLocalSongs(List<LocalSongEntry> entries) {
-    _responses.add(Future<List<LocalSongEntry>>.value(entries));
+    _responses.add(() => Future<List<LocalSongEntry>>.value(entries));
   }
 
   void enqueueLocalSongsFuture(Future<List<LocalSongEntry>> future) {
-    _responses.add(future);
+    _responses.add(() => future);
   }
 
   void enqueueLocalSongsError(Object error) {
-    _responses.add(Future<List<LocalSongEntry>>.error(error, StackTrace.current));
+    _responses.add(() => Future<List<LocalSongEntry>>.error(error, StackTrace.current));
   }
 
   @override
@@ -169,7 +217,7 @@ class _FakeMusicDataRepository implements MusicDataRepository {
     if (_responses.isEmpty) {
       return Future<List<LocalSongEntry>>.value(const []);
     }
-    return _responses.removeAt(0);
+    return _responses.removeAt(0)();
   }
 
   @override
@@ -177,6 +225,19 @@ class _FakeMusicDataRepository implements MusicDataRepository {
 }
 
 class _FakeDownloadRepository implements DownloadRepository {
+  final List<String> removedTrackIds = [];
+  int clearPlaybackCacheCount = 0;
+
+  @override
+  Future<void> removeLocalTrack(String trackId) async {
+    removedTrackIds.add(trackId);
+  }
+
+  @override
+  Future<void> clearPlaybackCache() async {
+    clearPlaybackCacheCount++;
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -70,12 +70,16 @@ class LocalSongListController {
   /// 删除指定本地曲目的资源。
   Future<void> removeLocalTrack(String trackId) async {
     await _downloadRepository.removeLocalTrack(trackId);
+    _removeVisibleEntries((entry) => entry.track.id == trackId);
     await refresh();
   }
 
   /// 清理播放缓存来源的本地歌曲资源。
   Future<void> clearPlaybackCache() async {
     await _downloadRepository.clearPlaybackCache();
+    _removeVisibleEntries(
+      (entry) => entry.origin == TrackResourceOrigin.playbackCache,
+    );
     await refresh();
   }
 
@@ -97,5 +101,20 @@ class LocalSongListController {
     if (_isCurrentLoad(generation)) {
       state.value = nextState;
     }
+  }
+
+  void _removeVisibleEntries(bool Function(LocalSongEntry entry) shouldRemove) {
+    if (_disposed) {
+      return;
+    }
+    final entries = state.value.data;
+    if (entries == null || entries.isEmpty) {
+      return;
+    }
+    final nextEntries = entries.where((entry) => !shouldRemove(entry)).toList(growable: false);
+    if (nextEntries.length == entries.length) {
+      return;
+    }
+    state.value = nextEntries.isEmpty ? const LoadState.empty() : LoadState.data(nextEntries);
   }
 }

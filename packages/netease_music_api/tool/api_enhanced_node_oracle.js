@@ -2734,6 +2734,13 @@ const fixtures = [
     ],
   },
   {
+    module: 'song_url_ncmget',
+    query: {
+      id: '123',
+    },
+    allowNoRequest: true,
+  },
+  {
     module: 'playlist_track_all',
     query: {
       id: '888',
@@ -2953,14 +2960,20 @@ async function captureFixture(fixture) {
     return Promise.resolve(JSON.parse(JSON.stringify(response)))
   }
 
-  await upstreamModule(query, request)
-  if (!captured) {
+  const upstreamResult = await upstreamModule(query, request)
+  if (!captured && !fixture.allowNoRequest) {
     throw new Error(`Module ${fixture.module} did not call request`)
   }
   const result = {
     module: fixture.module,
     query: fixture.query,
-    ...captured,
+  }
+  if (captured) {
+    Object.assign(result, captured)
+  }
+  if (fixture.allowNoRequest) {
+    result.requests = requests
+    result.result = upstreamResult
   }
   if (fixture.captureRequests) {
     result.requests = requests

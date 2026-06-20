@@ -8,6 +8,7 @@
     "playlist_track_all",
     "playlist_tracks",
     "scrobble",
+    "song_url_ncmget",
     "song_url_v1",
     "song_url_v1_302",
     "top_list",
@@ -26,8 +27,7 @@
     "register_anonimous",
     "register_xeapikey",
     "related_playlist",
-    "song_url_match",
-    "song_url_ncmget"
+    "song_url_match"
   ],
   "limited": {
     "decrypt": "Does not support weapi and xeapi request decryption; response decryption is covered.",

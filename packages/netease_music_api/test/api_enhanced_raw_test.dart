@@ -2858,6 +2858,11 @@ void main() {
           }
           continue;
         }
+        if (fixture.containsKey('result')) {
+          final dartResult = await _dartResultForNoRequestOracleFixture(api, module, query);
+          expect(dartResult, fixture['result'], reason: module);
+          continue;
+        }
         final metaData = await _dartMetaDataForOracleFixture(api, module, query);
         _expectDartRequestMatchesNode(metaData, fixture, module);
       }
@@ -3042,6 +3047,19 @@ Future<List<DioMetaData>> _dartRequestSequenceForOracleFixture(
       return proxy.requests;
     default:
       fail('No request sequence capture configured for $module');
+  }
+}
+
+Future<dynamic> _dartResultForNoRequestOracleFixture(
+  _RawApi api,
+  String module,
+  Map<String, dynamic> query,
+) {
+  switch (module) {
+    case 'song_url_ncmget':
+      return api.requestModule(module, query);
+    default:
+      fail('No no-request oracle result configured for $module');
   }
 }
 

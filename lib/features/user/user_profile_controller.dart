@@ -16,49 +16,85 @@ class UserProfileController {
   /// 当前资料页对应的用户 id。
   final String userId;
   final UserRepository _repository;
+  int _loadGeneration = 0;
+  bool _disposed = false;
 
   /// 用户资料加载状态。
   final ValueNotifier<LoadState<UserProfileData>> state = ValueNotifier(const LoadState.loading());
 
   /// 首次加载用户资料，优先展示缓存并后台刷新。
   Future<void> loadInitial() async {
+    final generation = ++_loadGeneration;
     if (userId.isEmpty || userId == '-1') {
-      state.value = const LoadState.empty();
+      _setStateIfCurrent(generation, const LoadState.empty());
       return;
     }
     final cachedDetail = await _repository.loadCachedUserDetail(userId);
+    if (!_isCurrentLoad(generation)) {
+      return;
+    }
     if (cachedDetail != null && cachedDetail.userId.isNotEmpty) {
-      state.value = LoadState.data(cachedDetail);
+      _setStateIfCurrent(generation, LoadState.data(cachedDetail));
       unawaited(refresh());
       return;
     }
-    state.value = const LoadState.loading();
-    await refresh();
+    _setStateIfCurrent(generation, const LoadState.loading());
+    await _refresh(generation);
   }
 
   /// 刷新用户资料。
   Future<void> refresh() async {
+    await _refresh(++_loadGeneration);
+  }
+
+  Future<void> _refresh(int generation) async {
     if (userId.isEmpty || userId == '-1') {
-      state.value = const LoadState.empty();
+      _setStateIfCurrent(generation, const LoadState.empty());
       return;
     }
     try {
       final detail = await _repository.fetchUserDetail(userId);
-      state.value = detail.userId.isEmpty ? const LoadState.empty() : LoadState.data(detail);
+      if (!_isCurrentLoad(generation)) {
+        return;
+      }
+      _setStateIfCurrent(
+        generation,
+        detail.userId.isEmpty ? const LoadState.empty() : LoadState.data(detail),
+      );
     } catch (error, stackTrace) {
+      if (!_isCurrentLoad(generation)) {
+        return;
+      }
       final previousDetail = state.value.data;
-      state.value = previousDetail == null
-          ? LoadState.error(error, stackTrace: stackTrace)
-          : LoadState.error(
-              error,
-              stackTrace: stackTrace,
-              data: previousDetail,
-            );
+      _setStateIfCurrent(
+        generation,
+        previousDetail == null
+            ? LoadState.error(error, stackTrace: stackTrace)
+            : LoadState.error(
+                error,
+                stackTrace: stackTrace,
+                data: previousDetail,
+              ),
+      );
     }
   }
 
   /// 释放资料页状态监听器。
   void dispose() {
+    _disposed = true;
     state.dispose();
+  }
+
+  bool _isCurrentLoad(int generation) {
+    return !_disposed && generation == _loadGeneration;
+  }
+
+  void _setStateIfCurrent(
+    int generation,
+    LoadState<UserProfileData> nextState,
+  ) {
+    if (_isCurrentLoad(generation)) {
+      state.value = nextState;
+    }
   }
 }

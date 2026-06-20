@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/core/entities/user_profile_data.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/features/user/user_profile_controller.dart';
@@ -42,6 +44,57 @@ void main() {
       expect(controller.state.value.data, isNull);
       expect(controller.state.value.error, isA<StateError>());
     });
+
+    test('ignores stale profile refresh after newer refresh completes', () async {
+      final repository = _FakeUserRepository(delayFetches: true);
+      final controller = UserProfileController(
+        userId: '42',
+        repository: repository,
+      );
+      addTearDown(controller.dispose);
+
+      final oldRefresh = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+      final newRefresh = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+
+      repository.completeFetchAt(
+        1,
+        _profile('42', nickname: 'fresh'),
+      );
+      await newRefresh;
+
+      expect(controller.state.value.status, LoadStatus.data);
+      expect(controller.state.value.data?.nickname, 'fresh');
+
+      repository.completeFetchAt(
+        0,
+        _profile('42', nickname: 'stale'),
+      );
+      await oldRefresh;
+
+      expect(controller.state.value.status, LoadStatus.data);
+      expect(controller.state.value.data?.nickname, 'fresh');
+    });
+
+    test('ignores profile refresh completion after dispose', () async {
+      final repository = _FakeUserRepository(delayFetches: true);
+      final controller = UserProfileController(
+        userId: '42',
+        repository: repository,
+      );
+
+      final refresh = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+      controller.dispose();
+
+      repository.completeFetchAt(
+        0,
+        _profile('42', nickname: 'fresh'),
+      );
+
+      await refresh;
+    });
   });
 }
 
@@ -49,10 +102,13 @@ class _FakeUserRepository implements UserRepository {
   _FakeUserRepository({
     this.cachedProfile,
     this.fetchError,
+    this.delayFetches = false,
   });
 
   final UserProfileData? cachedProfile;
   final Object? fetchError;
+  final bool delayFetches;
+  final List<Completer<UserProfileData>> _pendingFetches = [];
 
   @override
   Future<UserProfileData?> loadCachedUserDetail(String userId) async {
@@ -61,11 +117,20 @@ class _FakeUserRepository implements UserRepository {
 
   @override
   Future<UserProfileData> fetchUserDetail(String userId) async {
+    if (delayFetches) {
+      final completer = Completer<UserProfileData>();
+      _pendingFetches.add(completer);
+      return completer.future;
+    }
     final error = fetchError;
     if (error != null) {
       throw error;
     }
     return _profile(userId, nickname: 'fresh');
+  }
+
+  void completeFetchAt(int index, UserProfileData value) {
+    _pendingFetches.removeAt(index).complete(value);
   }
 
   @override

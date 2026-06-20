@@ -848,6 +848,66 @@ void main() {
       expect(api.requestModuleDioMetaData('signin_progress', {'moduleId': 'custom-signin'}).data, {
         'moduleId': 'custom-signin',
       });
+      expect(
+        api.requestModuleDioMetaData('batch', {
+          '/api/song/detail': {'id': 101},
+          'ignore': true,
+        }).data,
+        {
+          '/api/song/detail': {'id': 101},
+        },
+      );
+      expect(api.requestModuleDioMetaData('hot_topic', {}).data, {
+        'limit': 20,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('hot_topic', {'limit': 10, 'offset': 20}).data, {
+        'limit': 10,
+        'offset': 20,
+      });
+      expect(api.requestModuleDioMetaData('lbs_city_code', {}).data, {
+        'bizCode': '',
+      });
+      expect(api.requestModuleDioMetaData('music_first_listen_info', {'id': '101'}).data, {
+        'songId': '101',
+      });
+      expect(api.requestModuleDioMetaData('personal_fm_mode', {'mode': 'DEFAULT'}).data, {
+        'mode': 'DEFAULT',
+        'limit': 3,
+      });
+      expect(api.requestModuleDioMetaData('personal_fm_mode', {'mode': 'SCENE_RCMD', 'submode': 'FOCUS', 'limit': 5}).data, {
+        'mode': 'SCENE_RCMD',
+        'subMode': 'FOCUS',
+        'limit': 5,
+      });
+      expect(api.requestModuleDioMetaData('related_allvideo', {'id': '101'}).data, {
+        'id': '101',
+        'type': 0,
+      });
+      expect(api.requestModuleDioMetaData('related_allvideo', {'id': 'video-1'}).data, {
+        'id': 'video-1',
+        'type': 1,
+      });
+      expect(api.requestModuleDioMetaData('share_resource', {}).data, {
+        'type': 'song',
+        'msg': '',
+        'id': '',
+      });
+      expect(api.requestModuleDioMetaData('share_resource', {'type': 'playlist', 'msg': 'hello', 'id': '888'}).data, {
+        'type': 'playlist',
+        'msg': 'hello',
+        'id': '888',
+      });
+      expect(api.requestModuleDioMetaData('starpick_comments_summary', {}).data, {
+        'cursor': '{"offset":0,"blockCodeOrderList":["HOMEPAGE_BLOCK_NEW_HOT_COMMENT"],"refresh":true}',
+      });
+      final summary2018 = api.requestModuleDioMetaData('summary_annual', {'year': '2018'});
+      expect(summary2018.uri.path, '/api/activity/summary/annual/2018/userdata');
+      expect(summary2018.data, isEmpty);
+      final summary2023 = api.requestModuleDioMetaData('summary_annual', {'year': '2023'});
+      expect(summary2023.uri.path, '/api/activity/summary/annual/2023/data');
+      expect(summary2023.data, isEmpty);
+      expect(api.requestModuleDioMetaData('threshold_detail_get', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('fm_trash', {'id': '101'}).data, {
         'songId': '101',
         'alg': 'RT',

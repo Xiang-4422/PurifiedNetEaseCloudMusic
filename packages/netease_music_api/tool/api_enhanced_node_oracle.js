@@ -530,6 +530,92 @@ const fixtures = [
     },
   },
   {
+    module: 'batch',
+    query: {
+      '/api/song/detail': { id: 101 },
+      ignore: true,
+    },
+  },
+  {
+    module: 'hot_topic',
+    query: {},
+  },
+  {
+    module: 'hot_topic',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'lbs_city_code',
+    query: {},
+  },
+  {
+    module: 'music_first_listen_info',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'personal_fm_mode',
+    query: {
+      mode: 'DEFAULT',
+    },
+  },
+  {
+    module: 'personal_fm_mode',
+    query: {
+      mode: 'SCENE_RCMD',
+      submode: 'FOCUS',
+      limit: 5,
+    },
+  },
+  {
+    module: 'related_allvideo',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'related_allvideo',
+    query: {
+      id: 'video-1',
+    },
+  },
+  {
+    module: 'share_resource',
+    query: {},
+  },
+  {
+    module: 'share_resource',
+    query: {
+      type: 'playlist',
+      msg: 'hello',
+      id: '888',
+    },
+  },
+  {
+    module: 'starpick_comments_summary',
+    query: {},
+  },
+  {
+    module: 'summary_annual',
+    query: {
+      year: '2018',
+    },
+  },
+  {
+    module: 'summary_annual',
+    query: {
+      year: '2023',
+    },
+  },
+  {
+    module: 'threshold_detail_get',
+    query: {},
+  },
+  {
     module: 'recommend_resource',
     query: {},
   },

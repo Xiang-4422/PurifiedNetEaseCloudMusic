@@ -1125,6 +1125,10 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], 0),
         'total': true,
       };
+    case 'batch':
+      return Map.fromEntries(
+        query.entries.where((entry) => entry.key.startsWith('/api/')),
+      );
     case 'digitalAlbum_detail':
       return {
         'id': query['id'],
@@ -1202,6 +1206,37 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'trackId': query['id'],
         'like': query['like']?.toString() == 'false' ? false : true,
         'time': '3',
+      };
+    case 'hot_topic':
+      return {
+        'limit': _jsDefault(query['limit'], 20),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'lbs_city_code':
+      return {
+        'bizCode': _jsDefault(query['bizCode'], ''),
+      };
+    case 'music_first_listen_info':
+      return {
+        'songId': query['id'],
+      };
+    case 'personal_fm_mode':
+      return {
+        'mode': query['mode'],
+        if (query.containsKey('submode')) 'subMode': query['submode'],
+        'limit': _jsDefault(query['limit'], 3),
+      };
+    case 'related_allvideo':
+      final id = query['id'];
+      return {
+        'id': id,
+        'type': RegExp(r'^\d+$').hasMatch(id?.toString() ?? '') ? 0 : 1,
+      };
+    case 'share_resource':
+      return {
+        'type': _jsDefault(query['type'], 'song'),
+        'msg': _jsDefault(query['msg'], ''),
+        'id': _jsDefault(query['id'], ''),
       };
     case 'simi_artist':
       return {
@@ -1955,6 +1990,17 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         'moduleId': _jsDefault(query['moduleId'], '1207signin-1207signin'),
       };
+    case 'starpick_comments_summary':
+      return {
+        'cursor': jsonEncode({
+          'offset': 0,
+          'blockCodeOrderList': ['HOMEPAGE_BLOCK_NEW_HOT_COMMENT'],
+          'refresh': true,
+        }),
+      };
+    case 'summary_annual':
+    case 'threshold_detail_get':
+      return {};
     case 'get_userids':
       return {
         'nicknames': query['nicknames'],
@@ -2940,6 +2986,9 @@ String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
       return query['type']?.toString() == '2000' ? '/api/search/voice/get' : '/api/search/get';
     case 'search_suggest':
       return '/api/search/suggest/${query['type'] == 'mobile' ? 'keyword' : 'web'}';
+    case 'summary_annual':
+      final key = query['year'] == '2017' || query['year'] == '2018' || query['year'] == '2019' ? 'userdata' : 'data';
+      return '/api/activity/summary/annual/${query['year']}/$key';
     case 'video_sub':
       return '/api/cloudvideo/video/${query['t']?.toString() == '1' ? 'sub' : 'unsub'}';
   }

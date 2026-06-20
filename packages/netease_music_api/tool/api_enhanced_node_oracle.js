@@ -132,6 +132,30 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'digitalAlbum_detail',
+    query: {
+      id: '456',
+    },
+  },
+  {
+    module: 'digitalAlbum_ordering',
+    query: {
+      id: '456',
+      payment: 'alipay',
+      quantity: 2,
+    },
+  },
+  {
+    module: 'digitalAlbum_purchased',
+    query: {},
+  },
+  {
+    module: 'digitalAlbum_sales',
+    query: {
+      ids: '456,789',
+    },
+  },
+  {
     module: 'album',
     query: {
       id: '456',

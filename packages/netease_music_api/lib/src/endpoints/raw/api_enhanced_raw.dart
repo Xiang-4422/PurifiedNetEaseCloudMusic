@@ -1096,6 +1096,33 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], 0),
         'total': true,
       };
+    case 'digitalAlbum_detail':
+      return {
+        'id': query['id'],
+      };
+    case 'digitalAlbum_ordering':
+      return {
+        'business': 'Album',
+        'paymentMethod': query['payment'],
+        'digitalResources': jsonEncode([
+          {
+            'business': 'Album',
+            'resourceID': query['id'],
+            'quantity': query['quantity'],
+          },
+        ]),
+        'from': 'web',
+      };
+    case 'digitalAlbum_purchased':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
+    case 'digitalAlbum_sales':
+      return {
+        'albumIds': query['ids'],
+      };
     case 'search':
       if (query['type']?.toString() == '2000') {
         return {

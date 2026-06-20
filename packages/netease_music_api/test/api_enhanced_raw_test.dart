@@ -298,6 +298,39 @@ void main() {
       });
     });
 
+    test('maps digital album request data like upstream', () {
+      expect(api.requestModuleDioMetaData('digitalAlbum_detail', {'id': '456'}).data, {
+        'id': '456',
+      });
+      expect(
+        api.requestModuleDioMetaData('digitalAlbum_ordering', {
+          'id': '456',
+          'payment': 'alipay',
+          'quantity': 2,
+        }).data,
+        {
+          'business': 'Album',
+          'paymentMethod': 'alipay',
+          'digitalResources': jsonEncode([
+            {
+              'business': 'Album',
+              'resourceID': '456',
+              'quantity': 2,
+            },
+          ]),
+          'from': 'web',
+        },
+      );
+      expect(api.requestModuleDioMetaData('digitalAlbum_purchased', {}).data, {
+        'limit': 30,
+        'offset': 0,
+        'total': true,
+      });
+      expect(api.requestModuleDioMetaData('digitalAlbum_sales', {'ids': '456,789'}).data, {
+        'albumIds': '456,789',
+      });
+    });
+
     test('maps search suggest web and mobile branch paths', () {
       final web = api.requestModuleDioMetaData('search_suggest', {
         'keywords': 'hello',

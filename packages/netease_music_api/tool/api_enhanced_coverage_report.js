@@ -14,7 +14,10 @@ const generatedManifestPath = path.join(
   'packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
 )
 const oracleScriptPath = path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_node_oracle.js')
-const specialCoveragePath = path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_special_coverage.json')
+const specialCoverageArg = process.argv.find((arg) => arg.startsWith('--special-coverage='))
+const specialCoveragePath = specialCoverageArg
+  ? path.resolve(repoRoot, specialCoverageArg.slice('--special-coverage='.length))
+  : path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_special_coverage.json')
 const jsonOutput = process.argv.includes('--json')
 
 function readJson(filePath) {
@@ -254,19 +257,141 @@ function validateOracleFixtures(fixtures) {
   return invalid
 }
 
-function setFrom(value) {
+function stringSetFrom(value) {
   if (!Array.isArray(value)) {
     return new Set()
   }
-  return new Set(value.map((item) => item.toString()))
+  return new Set(
+    value
+      .filter((item) => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0),
+  )
 }
 
 function sortedObject(value) {
-  return Object.fromEntries(Object.keys(value || {}).sort().map((key) => [key, value[key]]))
+  if (!isRecord(value)) {
+    return {}
+  }
+  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, value[key]]))
+}
+
+function validateSpecialCoverageStringArray(coverage, key) {
+  const value = coverage[key]
+  if (!Array.isArray(value)) {
+    return [
+      {
+        field: key,
+        reason: `Special coverage ${key} must be an array.`,
+      },
+    ]
+  }
+
+  const invalid = []
+  value.forEach((item, index) => {
+    const field = `${key}[${index}]`
+    if (typeof item !== 'string') {
+      invalid.push({
+        field,
+        reason: `Special coverage ${key} entries must be strings.`,
+      })
+      return
+    }
+    if (item.trim().length === 0) {
+      invalid.push({
+        field,
+        reason: `Special coverage ${key} entries must be non-empty strings.`,
+      })
+      return
+    }
+    if (item !== item.trim()) {
+      invalid.push({
+        field,
+        reason: `Special coverage ${key} entries must not include surrounding whitespace.`,
+      })
+    }
+  })
+  return invalid
+}
+
+function validateSpecialCoverage(coverage) {
+  if (!isRecord(coverage)) {
+    return [
+      {
+        field: '<root>',
+        reason: 'Special coverage must be an object.',
+      },
+    ]
+  }
+
+  const invalid = []
+  const allowedKeys = new Set(['dartBehavior', 'limited', 'nodeOracle'])
+  const unknownKeys = Object.keys(coverage).filter((key) => !allowedKeys.has(key)).sort()
+  for (const key of unknownKeys) {
+    invalid.push({
+      field: key,
+      reason: `Special coverage has unknown top-level key: ${key}.`,
+    })
+  }
+  invalid.push(...validateSpecialCoverageStringArray(coverage, 'nodeOracle'))
+  invalid.push(...validateSpecialCoverageStringArray(coverage, 'dartBehavior'))
+
+  if (!isRecord(coverage.limited)) {
+    invalid.push({
+      field: 'limited',
+      reason: 'Special coverage limited must be an object.',
+    })
+  } else {
+    for (const [module, reason] of Object.entries(coverage.limited)) {
+      if (module.trim().length === 0) {
+        invalid.push({
+          field: 'limited',
+          reason: 'Special coverage limited module keys must be non-empty strings.',
+        })
+      } else if (module !== module.trim()) {
+        invalid.push({
+          field: `limited.${module}`,
+          reason: 'Special coverage limited module keys must not include surrounding whitespace.',
+        })
+      }
+      if (typeof reason !== 'string' || reason.trim().length === 0) {
+        invalid.push({
+          field: `limited.${module}`,
+          reason: 'Special coverage limited reasons must be non-empty strings.',
+        })
+      }
+    }
+  }
+  return invalid
+}
+
+function duplicateSpecialCoverageEntries(coverage) {
+  if (!isRecord(coverage)) {
+    return []
+  }
+
+  const duplicates = []
+  for (const field of ['nodeOracle', 'dartBehavior']) {
+    if (!Array.isArray(coverage[field])) {
+      continue
+    }
+    const entries = coverage[field]
+      .filter((item) => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0)
+    for (const module of duplicateValues(entries)) {
+      duplicates.push({
+        field,
+        module,
+      })
+    }
+  }
+  return duplicates.sort((left, right) => `${left.field}:${left.module}`.localeCompare(`${right.field}:${right.module}`))
 }
 
 const upstreamPackage = readJson(upstreamPackagePath)
 const coverage = readJson(specialCoveragePath)
+const specialCoverage = isRecord(coverage) ? coverage : {}
 const upstreamModules = loadUpstreamModules()
 const manifest = loadManifest()
 const entries = manifest.entries
@@ -284,9 +409,10 @@ const manifestModuleSet = new Set(manifestModules)
 const normalModules = entries.filter((entry) => !entry.special).map((entry) => entry.module)
 const specialModules = entries.filter((entry) => entry.special).map((entry) => entry.module)
 const specialSet = new Set(specialModules)
-const nodeOracleSpecial = setFrom(coverage.nodeOracle)
-const dartBehaviorSpecial = setFrom(coverage.dartBehavior)
-const limitedSpecial = new Set(Object.keys(coverage.limited || {}))
+const nodeOracleSpecial = stringSetFrom(specialCoverage.nodeOracle)
+const dartBehaviorSpecial = stringSetFrom(specialCoverage.dartBehavior)
+const specialLimitedReasons = sortedObject(specialCoverage.limited)
+const limitedSpecial = new Set(Object.keys(specialLimitedReasons))
 const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial, ...limitedSpecial])
 const upstreamCommit = gitOutput(['-C', upstreamRepoPath, 'rev-parse', 'HEAD'])
 const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelain']) || ''
@@ -306,6 +432,8 @@ const manifestUpstreamMismatches = [
     upstream: upstreamCommit,
   },
 ].filter((item) => item.manifest !== item.upstream)
+const specialCoverageInvalidEntries = validateSpecialCoverage(coverage)
+const specialCoverageDuplicateEntries = duplicateSpecialCoverageEntries(coverage)
 const oracleInvalidFixtures = validateOracleFixtures(oracleFixtures)
 const oracleDuplicateFixtures = duplicateFixtures(oracleFixtureList)
 const oracleUnknownModules = sorted([...oracleModules].filter((module) => !manifestModuleSet.has(module)))
@@ -318,14 +446,27 @@ const specialNonLimitedMissingOracle = sorted(
 )
 const specialLimitedMissingReason = sorted(
   [...limitedSpecial].filter((module) => {
-    const reason = coverage.limited[module]
+    const reason = specialLimitedReasons[module]
     return typeof reason !== 'string' || reason.trim().length === 0
   }),
 )
-const specialLimitedReasons = sortedObject(coverage.limited)
 
 function buildSdkDifferences() {
   const differences = []
+  for (const entry of specialCoverageInvalidEntries) {
+    differences.push({
+      module: '<special_coverage>',
+      status: 'invalid_special_coverage',
+      reason: `${entry.field}: ${entry.reason}`,
+    })
+  }
+  for (const entry of specialCoverageDuplicateEntries) {
+    differences.push({
+      module: entry.module,
+      status: 'duplicate_special_coverage_entry',
+      reason: `Special coverage ${entry.field} lists this module more than once.`,
+    })
+  }
   for (const [module, reason] of Object.entries(specialLimitedReasons)) {
     differences.push({
       module,
@@ -423,6 +564,8 @@ const report = {
   manifestUpstreamMismatches,
   manifestDuplicateModules,
   manifestDuplicateMethodNames,
+  specialCoverageInvalidEntries,
+  specialCoverageDuplicateEntries,
   upstreamModuleFileCount: upstreamModules.length,
   moduleCount: entries.length,
   normalModuleCount: normalModules.length,
@@ -453,6 +596,8 @@ const hasFailure =
   report.manifestUpstreamMismatches.length > 0 ||
   report.manifestDuplicateModules.length > 0 ||
   report.manifestDuplicateMethodNames.length > 0 ||
+  report.specialCoverageInvalidEntries.length > 0 ||
+  report.specialCoverageDuplicateEntries.length > 0 ||
   report.manifestMissingUpstreamModules.length > 0 ||
   report.manifestUnknownUpstreamModules.length > 0 ||
   report.oracleInvalidFixtures.length > 0 ||
@@ -478,6 +623,8 @@ if (jsonOutput) {
   console.log(`manifest upstream mismatches: ${report.manifestUpstreamMismatches.length}`)
   console.log(`manifest duplicate modules: ${report.manifestDuplicateModules.length}`)
   console.log(`manifest duplicate method names: ${report.manifestDuplicateMethodNames.length}`)
+  console.log(`special coverage invalid entries: ${report.specialCoverageInvalidEntries.length}`)
+  console.log(`special coverage duplicate entries: ${report.specialCoverageDuplicateEntries.length}`)
   console.log(
     `modules: ${report.moduleCount} (upstream files ${report.upstreamModuleFileCount}, normal ${report.normalModuleCount}, special ${report.specialModuleCount})`,
   )

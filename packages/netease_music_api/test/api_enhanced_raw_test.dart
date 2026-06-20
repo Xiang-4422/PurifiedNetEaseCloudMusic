@@ -125,6 +125,8 @@ void main() {
       expect(report['manifestUpstreamMismatches'], isEmpty);
       expect(report['manifestDuplicateModules'], isEmpty);
       expect(report['manifestDuplicateMethodNames'], isEmpty);
+      expect(report['specialCoverageInvalidEntries'], isEmpty);
+      expect(report['specialCoverageDuplicateEntries'], isEmpty);
       expect((statusResult.stdout as String).trim(), isEmpty);
       expect(report['upstreamModuleFileCount'], upstreamModuleCount);
       expect(report['moduleCount'], apiEnhancedModules.length);
@@ -155,6 +157,47 @@ void main() {
         expect(difference['module'], isA<String>());
         expect(difference['reason'], limitedReasons[difference['module']], reason: difference['module'].toString());
       }
+    });
+
+    test('coverage report rejects malformed special coverage config', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_special_coverage_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final coverageFile = File('${tempDir.path}/special_coverage.json');
+      coverageFile.writeAsStringSync(
+        jsonEncode({
+          'nodeOracle': ['api', 'api', 7, ' cloud '],
+          'dartBehavior': 'bad',
+          'limited': {'song_url_match': ''},
+          'unexpected': true,
+        }),
+      );
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--special-coverage=${coverageFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(_jsonMapList(report['specialCoverageInvalidEntries']), isNotEmpty);
+      expect(_jsonMapList(report['specialCoverageDuplicateEntries']), isNotEmpty);
+      expect(
+        _jsonMapList(report['sdkDifferences']).map((item) => item['status']).toSet(),
+        containsAll({
+          'invalid_special_coverage',
+          'duplicate_special_coverage_entry',
+        }),
+      );
     });
 
     test('documented upstream baseline matches submodule and generated manifest', () async {

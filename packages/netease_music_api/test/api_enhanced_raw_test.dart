@@ -798,6 +798,29 @@ void main() {
       expect(api.requestModuleDioMetaData('chart_song_detail', query).data, query);
     });
 
+    test('maps topic request data like upstream', () {
+      final detailMetaData = api.requestModuleDioMetaData('topic_detail', {'actid': 'act-1'});
+      expect(detailMetaData.data, {
+        'actid': 'act-1',
+      });
+      expect(detailMetaData.options!.extra!['encryptType'], EncryptType.WeApi);
+
+      final hotMetaData = api.requestModuleDioMetaData('topic_detail_event_hot', {'actid': 'act-1'});
+      expect(hotMetaData.uri.path, '/api/act/event/hot');
+      expect(hotMetaData.data, {
+        'actid': 'act-1',
+      });
+      expect(hotMetaData.options!.extra!['encryptType'], EncryptType.WeApi);
+
+      final sublistMetaData = api.requestModuleDioMetaData('topic_sublist', {'limit': 0, 'offset': 0});
+      expect(sublistMetaData.data, {
+        'limit': 50,
+        'offset': 0,
+        'total': true,
+      });
+      expect(sublistMetaData.options!.extra!['encryptType'], EncryptType.WeApi);
+    });
+
     test('maps broadcast and ambient radio request data like upstream', () {
       expect(api.requestModuleDioMetaData('broadcast_category_region_get', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('broadcast_channel_collect_list', {}).data, {

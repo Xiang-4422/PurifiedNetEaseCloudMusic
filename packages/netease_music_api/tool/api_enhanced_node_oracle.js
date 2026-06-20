@@ -1913,6 +1913,25 @@ const fixtures = [
     },
   },
   {
+    module: 'topic_detail',
+    query: {
+      actid: 'act-1',
+    },
+  },
+  {
+    module: 'topic_detail_event_hot',
+    query: {
+      actid: 'act-1',
+    },
+  },
+  {
+    module: 'topic_sublist',
+    query: {
+      limit: 0,
+      offset: 0,
+    },
+  },
+  {
     module: 'top_list',
     query: {
       id: '3779629',

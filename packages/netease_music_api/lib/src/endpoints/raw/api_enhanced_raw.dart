@@ -1863,6 +1863,17 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'areaId': _jsDefault(query['type'], 0),
         'total': true,
       };
+    case 'topic_detail':
+    case 'topic_detail_event_hot':
+      return {
+        'actid': query['actid'],
+      };
+    case 'topic_sublist':
+      return {
+        'limit': _jsDefault(query['limit'], 50),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
     case 'top_artists':
       return {
         'limit': _jsDefault(query['limit'], 50),

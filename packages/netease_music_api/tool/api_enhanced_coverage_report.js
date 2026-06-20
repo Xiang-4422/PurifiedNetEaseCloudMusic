@@ -2,9 +2,12 @@
 
 const fs = require('fs')
 const path = require('path')
+const { execFileSync } = require('child_process')
 
 const repoRoot = path.resolve(__dirname, '../../..')
-const upstreamPackagePath = path.join(repoRoot, 'third_party/api-enhanced/package.json')
+const upstreamRepoPath = path.join(repoRoot, 'third_party/api-enhanced')
+const upstreamPackagePath = path.join(upstreamRepoPath, 'package.json')
+const upstreamModuleDir = path.join(upstreamRepoPath, 'module')
 const generatedManifestPath = path.join(
   repoRoot,
   'packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
@@ -39,9 +42,29 @@ function loadManifestEntries() {
   })
 }
 
+function loadUpstreamModules() {
+  return fs
+    .readdirSync(upstreamModuleDir)
+    .filter((file) => file.endsWith('.js'))
+    .map((file) => file.replace(/\.js$/, ''))
+    .sort()
+}
+
 function loadOracleModules() {
   const source = fs.readFileSync(oracleScriptPath, 'utf8')
   return new Set([...source.matchAll(/module: '([^']+)'/g)].map((match) => match[1]))
+}
+
+function gitOutput(args) {
+  try {
+    return execFileSync('git', args, {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim()
+  } catch (_) {
+    return null
+  }
 }
 
 function sorted(values) {
@@ -61,8 +84,12 @@ function sortedObject(value) {
 
 const upstreamPackage = readJson(upstreamPackagePath)
 const coverage = readJson(specialCoveragePath)
+const upstreamModules = loadUpstreamModules()
 const entries = loadManifestEntries()
 const oracleModules = loadOracleModules()
+const manifestModules = entries.map((entry) => entry.module)
+const upstreamModuleSet = new Set(upstreamModules)
+const manifestModuleSet = new Set(manifestModules)
 const normalModules = entries.filter((entry) => !entry.special).map((entry) => entry.module)
 const specialModules = entries.filter((entry) => entry.special).map((entry) => entry.module)
 const specialSet = new Set(specialModules)
@@ -70,13 +97,20 @@ const nodeOracleSpecial = setFrom(coverage.nodeOracle)
 const dartBehaviorSpecial = setFrom(coverage.dartBehavior)
 const limitedSpecial = new Set(Object.keys(coverage.limited || {}))
 const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial, ...limitedSpecial])
+const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelain']) || ''
 
 const report = {
   upstreamVersion: upstreamPackage.version,
+  upstreamSubmodulePath: path.relative(repoRoot, upstreamRepoPath).replace(/\\/g, '/'),
+  upstreamCommit: gitOutput(['-C', upstreamRepoPath, 'rev-parse', 'HEAD']),
+  upstreamDirty: submoduleStatus.length > 0,
+  upstreamModuleFileCount: upstreamModules.length,
   moduleCount: entries.length,
   normalModuleCount: normalModules.length,
   specialModuleCount: specialModules.length,
   nodeOracleFixtureCount: oracleModules.size,
+  manifestMissingUpstreamModules: sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module))),
+  manifestUnknownUpstreamModules: sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module))),
   normalMissingOracle: sorted(normalModules.filter((module) => !oracleModules.has(module))),
   specialMissingStatus: sorted(specialModules.filter((module) => !categorizedSpecial.has(module))),
   specialUnknownStatus: sorted([...categorizedSpecial].filter((module) => !specialSet.has(module))),
@@ -97,6 +131,8 @@ const report = {
 }
 
 const hasFailure =
+  report.manifestMissingUpstreamModules.length > 0 ||
+  report.manifestUnknownUpstreamModules.length > 0 ||
   report.normalMissingOracle.length > 0 ||
   report.specialMissingStatus.length > 0 ||
   report.specialUnknownStatus.length > 0 ||
@@ -109,7 +145,14 @@ if (jsonOutput) {
 } else {
   console.log('api-enhanced coverage report')
   console.log(`upstream version: ${report.upstreamVersion}`)
-  console.log(`modules: ${report.moduleCount} (normal ${report.normalModuleCount}, special ${report.specialModuleCount})`)
+  console.log(`upstream submodule: ${report.upstreamSubmodulePath}`)
+  console.log(`upstream commit: ${report.upstreamCommit || 'unknown'}`)
+  console.log(`upstream dirty: ${report.upstreamDirty}`)
+  console.log(
+    `modules: ${report.moduleCount} (upstream files ${report.upstreamModuleFileCount}, normal ${report.normalModuleCount}, special ${report.specialModuleCount})`,
+  )
+  console.log(`manifest missing upstream modules: ${report.manifestMissingUpstreamModules.length}`)
+  console.log(`manifest unknown upstream modules: ${report.manifestUnknownUpstreamModules.length}`)
   console.log(`node oracle fixtures: ${report.nodeOracleFixtureCount}`)
   console.log(`normal modules missing oracle: ${report.normalMissingOracle.length}`)
   console.log(`special modules missing status: ${report.specialMissingStatus.length}`)

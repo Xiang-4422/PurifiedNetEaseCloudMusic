@@ -69,6 +69,27 @@ void main() {
 
     test('coverage report keeps upstream module and special status complete', () async {
       final repoRoot = _findRepoRoot();
+      final packageJson = _jsonMap(jsonDecode(File('${repoRoot.path}/third_party/api-enhanced/package.json').readAsStringSync()));
+      final moduleDir = _findUpstreamModuleDir();
+      final upstreamModuleCount = moduleDir.listSync().whereType<File>().where((file) => file.path.endsWith('.js')).length;
+      final commitResult = await Process.run(
+        'git',
+        [
+          '-C',
+          '${repoRoot.path}/third_party/api-enhanced',
+          'rev-parse',
+          'HEAD',
+        ],
+      );
+      final statusResult = await Process.run(
+        'git',
+        [
+          '-C',
+          '${repoRoot.path}/third_party/api-enhanced',
+          'status',
+          '--porcelain',
+        ],
+      );
       final result = await Process.run(
         'node',
         [
@@ -83,9 +104,26 @@ void main() {
         0,
         reason: '${result.stdout}\n${result.stderr}',
       );
+      expect(
+        commitResult.exitCode,
+        0,
+        reason: '${commitResult.stdout}\n${commitResult.stderr}',
+      );
+      expect(
+        statusResult.exitCode,
+        0,
+        reason: '${statusResult.stdout}\n${statusResult.stderr}',
+      );
       final report = _jsonMap(jsonDecode(result.stdout as String));
 
+      expect(report['upstreamVersion'], packageJson['version']);
+      expect(report['upstreamSubmodulePath'], 'third_party/api-enhanced');
+      expect(report['upstreamCommit'], (commitResult.stdout as String).trim());
+      expect(report['upstreamDirty'], (statusResult.stdout as String).trim().isNotEmpty);
+      expect(report['upstreamModuleFileCount'], upstreamModuleCount);
       expect(report['moduleCount'], apiEnhancedModules.length);
+      expect(report['manifestMissingUpstreamModules'], isEmpty);
+      expect(report['manifestUnknownUpstreamModules'], isEmpty);
       expect(report['normalMissingOracle'], isEmpty);
       expect(report['specialMissingStatus'], isEmpty);
       expect(report['specialNodeOracleMissingFixture'], isEmpty);

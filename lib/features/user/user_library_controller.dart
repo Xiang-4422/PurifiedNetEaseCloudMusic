@@ -196,11 +196,10 @@ class UserLibraryController extends GetxController {
         return;
       }
     }
+    final remoteLikedSongs = await getSongsByIds(likedSongIds.map((e) => e.toString()).toList());
     likedSongs
       ..clear()
-      ..addAll(
-        await getSongsByIds(likedSongIds.map((e) => e.toString()).toList()),
-      );
+      ..addAll(remoteLikedSongs);
   }
 
   /// 拉取心动模式歌曲队列。

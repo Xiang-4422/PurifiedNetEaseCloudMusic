@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_session_data.dart';
@@ -73,11 +75,40 @@ void main() {
       expect(controller.randomLikedSongId.value, '202');
       expect(controller.randomLikedSongAlbumUrl.value, 'cached-art-202');
     });
+
+    test('keeps visible liked songs when forced reload fails', () async {
+      final repository = _FakeUserRepository()..fetchSongsByIdsError = StateError('offline');
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.likedSongIds.addAll([101]);
+      controller.likedSongs.add(_song('101', title: 'Cached liked song'));
+
+      await expectLater(
+        controller.ensureLikedSongsLoaded(force: true),
+        throwsA(isA<StateError>()),
+      );
+
+      expect(controller.likedSongs.map((song) => song.title), ['Cached liked song']);
+    });
   });
 }
 
 class _FakeUserRepository implements UserRepository {
   final Map<String, _PendingUserCache> _caches = <String, _PendingUserCache>{};
+  Object? fetchSongsByIdsError;
+  List<PlaybackQueueItem> remoteSongsByIds = const [];
 
   _PendingUserCache cacheFor(String userId) {
     return _caches.putIfAbsent(userId, _PendingUserCache.new);
@@ -107,9 +138,48 @@ class _FakeUserRepository implements UserRepository {
   }
 
   @override
+  Future<List<PlaybackQueueItem>> loadCachedSongsByIds({
+    required List<String> ids,
+    required List<int> likedSongIds,
+  }) async {
+    return const [];
+  }
+
+  @override
+  Future<List<PlaybackQueueItem>> fetchSongsByIds({
+    required List<String> ids,
+    required List<int> likedSongIds,
+  }) async {
+    final error = fetchSongsByIdsError;
+    if (error != null) {
+      throw error;
+    }
+    return remoteSongsByIds;
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
+}
+
+PlaybackQueueItem _song(String id, {required String title}) {
+  return PlaybackQueueItem(
+    id: 'netease:$id',
+    sourceId: id,
+    title: title,
+    albumTitle: null,
+    artistNames: const [],
+    artistIds: const [],
+    duration: null,
+    artworkUrl: null,
+    localArtworkPath: null,
+    mediaType: MediaType.playlist,
+    playbackUrl: null,
+    lyricKey: null,
+    isLiked: true,
+    isCached: false,
+  );
 }
 
 class _PendingUserCache {

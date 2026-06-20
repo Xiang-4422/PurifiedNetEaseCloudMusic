@@ -53,6 +53,26 @@ void main() {
       expect(source.fileType, 'mp3');
     });
 
+    test('treats local file uri as file source', () async {
+      final audioFile = await _createTempAudioFile('song with space.mp3');
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(),
+      );
+
+      final source = await resolver.resolve(
+        _mediaItem(
+          sourceType: SourceType.local,
+          type: MediaType.local,
+          url: audioFile.uri.replace(queryParameters: {'token': 'local'}).toString(),
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.filePath);
+      expect(source.url, audioFile.path);
+      expect(source.markAsCached, isTrue);
+    });
+
     test('returns empty source when local import file no longer exists', () async {
       final resolver = PlaybackSourceResolver(
         repository: _FakePlaybackRepository(),

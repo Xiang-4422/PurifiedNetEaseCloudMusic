@@ -145,10 +145,14 @@ class DownloadRepository {
 
   /// 取消指定下载任务并清理临时文件。
   Future<void> cancelTask(String trackId) async {
+    final scheduledTask = _taskQueue.existingDownload(trackId);
     _taskQueue.markCancelled(trackId);
     final currentTask = await _taskDataSource.getTask(trackId);
     await _fileStore.deleteTemporaryDownloadIfExists(currentTask?.temporaryPath);
-    await clearCancelledTask(trackId);
+    await _taskStateStore.clearTask(trackId);
+    if (scheduledTask == null) {
+      _taskQueue.clearCancelled(trackId);
+    }
   }
 
   /// 读取指定曲目的下载任务。

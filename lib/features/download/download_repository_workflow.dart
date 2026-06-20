@@ -77,6 +77,7 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
       );
       if (_taskQueue.isCancelled(trackId)) {
         await _fileStore.deleteTemporaryDownloadIfExists(temporaryPath);
+        await _fileStore.deleteFileIfExists(audioPath);
         await clearCancelledTask(trackId);
         return null;
       }

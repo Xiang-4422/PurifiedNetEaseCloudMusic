@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bujuan/core/entities/download_task.dart';
@@ -94,6 +95,30 @@ void main() {
       expect(await taskDataSource.getTask('1'), isNull);
       expect(resourceWriter.savedPlaybackCacheAudioPaths.single, endsWith('/cache-audio/1.mp3'));
       expect(File(resourceWriter.savedPlaybackCacheAudioPaths.single).existsSync(), isFalse);
+    });
+
+    test('cancelled download does not save resource facts after file write completes', () async {
+      final taskDataSource = _FakeDownloadTaskDataSource();
+      final resourceWriter = _FakeDownloadResourceWriter(saveManagedResult: true);
+      final fileStore = _BlockingDownloadFileStore(tempDirectory);
+      final repository = _buildRepository(
+        taskDataSource: taskDataSource,
+        fileStore: fileStore,
+        resourceWriter: resourceWriter,
+      );
+
+      final downloadFuture = repository.downloadTrack('1');
+      await fileStore.downloadStarted.future;
+
+      await repository.cancelTask('1');
+      fileStore.finishDownload.complete();
+      final track = await downloadFuture;
+
+      expect(track, isNull);
+      expect(await taskDataSource.getTask('1'), isNull);
+      expect(resourceWriter.savedLocalPaths, isEmpty);
+      expect(fileStore.completedOutputPath, isNotNull);
+      expect(File(fileStore.completedOutputPath!).existsSync(), isFalse);
     });
   });
 }
@@ -216,6 +241,34 @@ class _FakeDownloadFileStore extends DownloadFileStore {
       await directory.create(recursive: true);
     }
     return directory;
+  }
+}
+
+class _BlockingDownloadFileStore extends _FakeDownloadFileStore {
+  _BlockingDownloadFileStore(super.rootDirectory);
+
+  final Completer<void> downloadStarted = Completer<void>();
+  final Completer<void> finishDownload = Completer<void>();
+  String? completedOutputPath;
+
+  @override
+  Future<void> downloadBinaryFile(
+    String url,
+    String outputPath, {
+    required Future<void> Function(double progress) onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    await onProgress(0.5);
+    if (!downloadStarted.isCompleted) {
+      downloadStarted.complete();
+    }
+    await finishDownload.future;
+    final temporaryPath = '$outputPath.download';
+    await File(temporaryPath).writeAsBytes([1, 2, 3]);
+    if (File(outputPath).existsSync()) {
+      await File(outputPath).delete();
+    }
+    completedOutputPath = (await File(temporaryPath).rename(outputPath)).path;
   }
 }
 

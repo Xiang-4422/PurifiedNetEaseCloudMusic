@@ -73,6 +73,54 @@ void main() {
       expect(source.markAsCached, isTrue);
     });
 
+    test('accepts localhost file uri authority as file source', () async {
+      final audioFile = await _createTempAudioFile('song.mp3');
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(),
+      );
+      final fileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: audioFile.path,
+        queryParameters: {'token': 'local'},
+      ).toString();
+
+      final source = await resolver.resolve(
+        _mediaItem(
+          sourceType: SourceType.local,
+          type: MediaType.local,
+          url: fileUri,
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.filePath);
+      expect(source.url, audioFile.path);
+    });
+
+    test('ignores non-localhost file uri authority for local imports', () async {
+      final audioFile = await _createTempAudioFile('song.mp3');
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(),
+      );
+      final fileUri = Uri(
+        scheme: 'file',
+        host: 'media-server',
+        path: audioFile.path,
+      ).toString();
+
+      final source = await resolver.resolve(
+        _mediaItem(
+          sourceType: SourceType.local,
+          type: MediaType.local,
+          url: fileUri,
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.empty);
+    });
+
     test('returns empty source when local import file no longer exists', () async {
       final resolver = PlaybackSourceResolver(
         repository: _FakePlaybackRepository(),

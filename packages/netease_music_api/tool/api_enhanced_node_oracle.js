@@ -1466,6 +1466,66 @@ const fixtures = [
     },
   },
   {
+    module: 'yunbei',
+    query: {},
+  },
+  {
+    module: 'yunbei_expense',
+    query: {
+      limit: 5,
+      offset: 10,
+    },
+  },
+  {
+    module: 'yunbei_info',
+    query: {},
+  },
+  {
+    module: 'yunbei_rcmd_song',
+    query: {
+      id: '101',
+      reason: '值得一听',
+      yunbeiNum: 20,
+    },
+  },
+  {
+    module: 'yunbei_rcmd_song_history',
+    query: {
+      size: 10,
+      cursor: 'cursor-1',
+    },
+  },
+  {
+    module: 'yunbei_receipt',
+    query: {
+      limit: 5,
+      offset: 10,
+    },
+  },
+  {
+    module: 'yunbei_sign',
+    query: {},
+  },
+  {
+    module: 'yunbei_task_finish',
+    query: {
+      userTaskId: 'task-1',
+      depositCode: 'deposit-1',
+    },
+  },
+  {
+    module: 'yunbei_tasks',
+    query: {},
+  },
+  {
+    module: 'yunbei_tasks_todo',
+    query: {},
+  },
+  {
+    module: 'yunbei_today',
+    query: {},
+  },
+  {
     module: 'playlist_catlist',
     query: {},
   },

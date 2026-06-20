@@ -1379,6 +1379,12 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'vip_sign':
     case 'vip_sign_info':
     case 'vip_tasks':
+    case 'yunbei':
+    case 'yunbei_info':
+    case 'yunbei_sign':
+    case 'yunbei_tasks':
+    case 'yunbei_tasks_todo':
+    case 'yunbei_today':
       return {};
     case 'broadcast_channel_collect_list':
       return {
@@ -1447,6 +1453,32 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         };
       }
       return {};
+    case 'yunbei_expense':
+    case 'yunbei_receipt':
+      return {
+        'limit': _jsDefault(query['limit'], 10),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'yunbei_rcmd_song':
+      return {
+        'songId': query['id'],
+        'reason': _jsDefault(query['reason'], '好歌献给你'),
+        'scene': '',
+        'fromUserId': -1,
+        'yunbeiNum': _jsDefault(query['yunbeiNum'], 10),
+      };
+    case 'yunbei_rcmd_song_history':
+      return {
+        'page': jsonEncode({
+          'size': _jsDefault(query['size'], 20),
+          'cursor': _jsDefault(query['cursor'], ''),
+        }),
+      };
+    case 'yunbei_task_finish':
+      return {
+        'userTaskId': query['userTaskId'],
+        'depositCode': _jsDefault(query['depositCode'], '0'),
+      };
     case 'sati_resource_list':
       return {
         'tag': query['tag'],

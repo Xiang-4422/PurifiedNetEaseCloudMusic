@@ -739,6 +739,37 @@ void main() {
       });
     });
 
+    test('maps yunbei request data like upstream', () {
+      expect(api.requestModuleDioMetaData('yunbei', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('yunbei_expense', {}).data, {
+        'limit': 10,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('yunbei_info', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('yunbei_rcmd_song', {'id': '101'}).data, {
+        'songId': '101',
+        'reason': '好歌献给你',
+        'scene': '',
+        'fromUserId': -1,
+        'yunbeiNum': 10,
+      });
+      expect(api.requestModuleDioMetaData('yunbei_rcmd_song_history', {}).data, {
+        'page': '{"size":20,"cursor":""}',
+      });
+      expect(api.requestModuleDioMetaData('yunbei_receipt', {'limit': 5, 'offset': 10}).data, {
+        'limit': 5,
+        'offset': 10,
+      });
+      expect(api.requestModuleDioMetaData('yunbei_sign', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('yunbei_task_finish', {'userTaskId': 'task-1'}).data, {
+        'userTaskId': 'task-1',
+        'depositCode': '0',
+      });
+      expect(api.requestModuleDioMetaData('yunbei_tasks', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('yunbei_tasks_todo', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('yunbei_today', {}).data, isEmpty);
+    });
+
     test('maps user library request data like upstream', () {
       expect(api.requestModuleDioMetaData('user_account', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('user_subcount', {}).data, isEmpty);

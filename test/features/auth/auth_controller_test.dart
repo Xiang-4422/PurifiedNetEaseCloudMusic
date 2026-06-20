@@ -181,6 +181,51 @@ void main() {
       expect(authRepository.createdQrKeys, ['qr-key-1']);
       expect(authRepository.savedLoginFlags, isEmpty);
     });
+
+    test('qr refresh failure exposes retry state without throwing', () async {
+      final authRepository = _FakeAuthRepository(hasCachedLogin: false)..failNextQrCreation(StateError('network failed'));
+      _putSessionController();
+      final controller = AuthController(repository: authRepository);
+
+      await controller.refreshQrCode();
+
+      expect(controller.isLoading.value, isFalse);
+      expect(controller.qrCodeUrl.value, isEmpty);
+      expect(controller.qrCodeNeedRefresh.value, isTrue);
+      expect(controller.hintText.value, '二维码获取失败，点击重试');
+      expect(controller.uiEffect.value?.type, AuthUiEffectType.message);
+      expect(controller.uiEffect.value?.message, '二维码获取失败，请稍后重试');
+      expect(authRepository.createdQrKeys, isEmpty);
+    });
+
+    test('qr polling failure keeps current code retrying', () async {
+      final authRepository = _FakeAuthRepository(hasCachedLogin: false)..nextQrStatusError = StateError('network failed');
+      _putSessionController();
+      final controller = AuthController(
+        repository: authRepository,
+        qrPollingInterval: const Duration(milliseconds: 100),
+      );
+
+      await controller.refreshQrCode();
+
+      expect(controller.qrCodeUrl.value, 'qr://qr-key-1');
+      expect(controller.qrCodeNeedRefresh.value, isFalse);
+
+      await Future<void>.delayed(const Duration(milliseconds: 130));
+
+      final checksAfterFailure = authRepository.checkedQrKeys.length;
+      expect(checksAfterFailure, greaterThanOrEqualTo(1));
+      expect(controller.hintText.value, '网络异常，等待重试');
+      expect(controller.qrCodeNeedRefresh.value, isFalse);
+
+      authRepository.nextQrStatus = const QrCodeStatusResult(code: 800);
+      await Future<void>.delayed(const Duration(milliseconds: 130));
+
+      expect(authRepository.checkedQrKeys.length, greaterThan(checksAfterFailure));
+      expect(controller.hintText.value, '二维码过期');
+      expect(controller.qrCodeNeedRefresh.value, isTrue);
+      controller.onClose();
+    });
   });
 }
 
@@ -202,6 +247,11 @@ class _FakeAuthRepository implements AuthRepository {
   final List<bool> savedLoginFlags = [];
   final List<Completer<UserSessionData>> _fetches = [];
   final List<String> createdQrKeys = [];
+  final List<String> checkedQrKeys = [];
+  Object? _nextQrCreationError;
+  QrCodeCreationResult? _nextQrCreationResult;
+  Object? nextQrStatusError;
+  QrCodeStatusResult nextQrStatus = const QrCodeStatusResult(code: 801);
 
   @override
   Future<UserSessionData> fetchLoginAccountInfo() {
@@ -218,6 +268,14 @@ class _FakeAuthRepository implements AuthRepository {
     _fetches.removeAt(0).completeError(error);
   }
 
+  void failNextQrCreation(Object error) {
+    _nextQrCreationError = error;
+  }
+
+  void completeNextQrCreation(QrCodeCreationResult result) {
+    _nextQrCreationResult = result;
+  }
+
   @override
   Future<void> setLoginFlag(bool value) async {
     savedLoginFlags.add(value);
@@ -225,6 +283,19 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<QrCodeCreationResult> createQrCodeKey() async {
+    final creationError = _nextQrCreationError;
+    if (creationError != null) {
+      _nextQrCreationError = null;
+      throw creationError;
+    }
+    final creationResult = _nextQrCreationResult;
+    if (creationResult != null) {
+      _nextQrCreationResult = null;
+      if (creationResult.success) {
+        createdQrKeys.add(creationResult.unikey);
+      }
+      return creationResult;
+    }
     final key = 'qr-key-${createdQrKeys.length + 1}';
     createdQrKeys.add(key);
     return QrCodeCreationResult(success: true, unikey: key);
@@ -233,6 +304,17 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   String buildQrCodeUrl(String unikey) {
     return 'qr://$unikey';
+  }
+
+  @override
+  Future<QrCodeStatusResult> checkQrCodeStatus(String unikey) async {
+    checkedQrKeys.add(unikey);
+    final statusError = nextQrStatusError;
+    if (statusError != null) {
+      nextQrStatusError = null;
+      throw statusError;
+    }
+    return nextQrStatus;
   }
 
   @override

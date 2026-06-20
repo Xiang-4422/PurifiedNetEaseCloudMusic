@@ -54,39 +54,41 @@ class _LoginPageViewState extends State<LoginPageView> {
       body: Obx(
         () => controller.isLoading.value
             ? const LoadingView()
-            : Visibility(
-                visible: controller.qrCodeUrl.isNotEmpty,
-                child: GestureDetector(
-                  onTap: controller.refreshQrCode,
-                  child: Container(
-                    color: Colors.white,
-                    alignment: Alignment.center,
-                    child: Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        QrImageView(
-                          backgroundColor: Colors.white,
-                          data: controller.qrCodeUrl.value,
-                          version: QrVersions.auto,
-                          padding: const EdgeInsets.all(100),
-                        ),
-                        Container(
-                          height: 100,
-                          alignment: Alignment.center,
-                          child: Text(
-                            controller.hintText.value,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
+            : controller.qrCodeUrl.value.isEmpty
+                ? ErrorView(
+                    message: controller.hintText.value,
+                    onRetry: controller.refreshQrCode,
+                  )
+                : GestureDetector(
+                    onTap: controller.refreshQrCode,
+                    child: Container(
+                      color: Colors.white,
+                      alignment: Alignment.center,
+                      child: Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          QrImageView(
+                            backgroundColor: Colors.white,
+                            data: controller.qrCodeUrl.value,
+                            version: QrVersions.auto,
+                            padding: const EdgeInsets.all(100),
+                          ),
+                          Container(
+                            height: 100,
+                            alignment: Alignment.center,
+                            child: Text(
+                              controller.hintText.value,
+                              style: const TextStyle(
+                                fontSize: 28,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ),
       ),
     );
   }

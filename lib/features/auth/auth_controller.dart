@@ -2,15 +2,21 @@ import 'dart:async';
 
 import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/auth/auth_ui_effect.dart';
+import 'package:bujuan/features/auth/qr_login_data.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:get/get.dart';
 
 /// 承接二维码登录流程的瞬时状态，避免登录页继续持有轮询与鉴权副作用。
 class AuthController extends GetxController {
   /// 创建二维码登录控制器。
-  AuthController({required AuthRepository repository}) : _repository = repository;
+  AuthController({
+    required AuthRepository repository,
+    Duration qrPollingInterval = const Duration(seconds: 3),
+  })  : _repository = repository,
+        _qrPollingInterval = qrPollingInterval;
 
   final AuthRepository _repository;
+  final Duration _qrPollingInterval;
 
   /// 当前二维码图片地址。
   final qrCodeUrl = ''.obs;
@@ -86,16 +92,23 @@ class AuthController extends GetxController {
       return;
     }
 
-    final qrCodeLoginKey = await _repository.createQrCodeKey();
-    if (!qrCodeLoginKey.success) {
-      uiEffect.value = AuthUiEffect.message(qrCodeLoginKey.message ?? '未知错误');
-      return;
-    }
+    isLoading.value = true;
+    try {
+      final qrCodeLoginKey = await _repository.createQrCodeKey();
+      if (!qrCodeLoginKey.success) {
+        _handleQrCodeRefreshFailure(qrCodeLoginKey.message ?? '二维码获取失败，请稍后重试');
+        return;
+      }
 
-    qrCodeUrl.value = _repository.buildQrCodeUrl(qrCodeLoginKey.unikey);
-    hintText.value = '扫描二维码登录';
-    qrCodeNeedRefresh.value = false;
-    _startPolling(qrCodeLoginKey.unikey);
+      qrCodeUrl.value = _repository.buildQrCodeUrl(qrCodeLoginKey.unikey);
+      hintText.value = '扫描二维码登录';
+      qrCodeNeedRefresh.value = false;
+      _startPolling(qrCodeLoginKey.unikey);
+    } catch (_) {
+      _handleQrCodeRefreshFailure('二维码获取失败，请稍后重试');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   /// 消费登录完成事件，避免页面重复跳转。
@@ -147,6 +160,12 @@ class AuthController extends GetxController {
     hintText.value = '扫描二维码登录';
   }
 
+  void _handleQrCodeRefreshFailure(String message) {
+    uiEffect.value = AuthUiEffect.message(message);
+    qrCodeNeedRefresh.value = true;
+    hintText.value = '二维码获取失败，点击重试';
+  }
+
   Future<void> _validateLoginStateInBackground() async {
     final sessionController = UserSessionController.to;
     final validatingUserId = sessionController.userInfo.value.userId;
@@ -177,8 +196,14 @@ class AuthController extends GetxController {
 
   void _startPolling(String unikey) {
     _qrPollingTimer?.cancel();
-    _qrPollingTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
-      final serverStatus = await _repository.checkQrCodeStatus(unikey);
+    _qrPollingTimer = Timer.periodic(_qrPollingInterval, (timer) async {
+      final QrCodeStatusResult serverStatus;
+      try {
+        serverStatus = await _repository.checkQrCodeStatus(unikey);
+      } catch (_) {
+        hintText.value = '网络异常，等待重试';
+        return;
+      }
       switch (serverStatus.code) {
         case 800:
           hintText.value = '二维码过期';

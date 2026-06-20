@@ -1333,6 +1333,12 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'personal_fm':
     case 'homepage_dragon_ball':
       return {};
+    case 'fm_trash':
+      return {
+        'songId': query['id'],
+        'alg': 'RT',
+        'time': _jsDefault(query['time'], 25),
+      };
     case 'check_music':
       return {
         'ids': '[${_jsParseIntString(query['id'])}]',
@@ -1589,6 +1595,12 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], 0),
         'total': 'true',
         'limit': _jsDefault(query['limit'], 60),
+      };
+    case 'program_recommend':
+      return {
+        'cateId': query['type'],
+        'limit': _jsDefault(query['limit'], 10),
+        'offset': _jsDefault(query['offset'], 0),
       };
     case 'top_song':
       return {

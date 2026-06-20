@@ -399,6 +399,19 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'fm_trash',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'fm_trash',
+    query: {
+      id: '101',
+      time: 0,
+    },
+  },
+  {
     module: 'check_music',
     query: {
       id: '101abc',
@@ -831,6 +844,20 @@ const fixtures = [
   {
     module: 'personalized_djprogram',
     query: {},
+  },
+  {
+    module: 'program_recommend',
+    query: {
+      type: 10001,
+    },
+  },
+  {
+    module: 'program_recommend',
+    query: {
+      type: 10001,
+      limit: 0,
+      offset: 5,
+    },
   },
   {
     module: 'personalized_privatecontent',

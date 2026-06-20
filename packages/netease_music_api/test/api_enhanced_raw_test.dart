@@ -606,6 +606,16 @@ void main() {
       expect(api.requestModuleDioMetaData('daily_signin', {}).data, {
         'type': 0,
       });
+      expect(api.requestModuleDioMetaData('fm_trash', {'id': '101'}).data, {
+        'songId': '101',
+        'alg': 'RT',
+        'time': 25,
+      });
+      expect(api.requestModuleDioMetaData('fm_trash', {'id': '101', 'time': 0}).data, {
+        'songId': '101',
+        'alg': 'RT',
+        'time': 25,
+      });
       expect(api.requestModuleDioMetaData('check_music', {'id': '101abc', 'br': '320000abc'}).data, {
         'ids': '[101]',
         'br': 320000,
@@ -682,6 +692,16 @@ void main() {
         'offset': 20,
         'total': 'true',
         'limit': 10,
+      });
+      expect(api.requestModuleDioMetaData('program_recommend', {'type': 10001}).data, {
+        'cateId': 10001,
+        'limit': 10,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('program_recommend', {'type': 10001, 'limit': 0, 'offset': 5}).data, {
+        'cateId': 10001,
+        'limit': 10,
+        'offset': 5,
       });
       expect(api.requestModuleDioMetaData('top_song', {'type': 7}).data, {
         'areaId': 7,

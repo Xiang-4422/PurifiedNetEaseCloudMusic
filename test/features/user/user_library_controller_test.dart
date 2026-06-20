@@ -103,6 +103,34 @@ void main() {
       expect(controller.likedSongs.map((song) => song.title), ['Cached liked song']);
     });
 
+    test('limits home frequent playlists without trimming library playlists', () {
+      final repository = _FakeUserRepository();
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.userPlayLists.addAll(
+        List.generate(
+          10,
+          (index) => PlaylistSummaryData(
+            id: 'playlist-$index',
+            title: 'Playlist $index',
+          ),
+        ),
+      );
+
+      expect(
+        controller.homeFrequentPlaylists.map((playlist) => playlist.id),
+        List.generate(8, (index) => 'playlist-$index'),
+      );
+      expect(controller.userPlayLists, hasLength(10));
+    });
+
     test('keeps visible library state when snapshot refresh fails', () async {
       final repository = _FakeUserRepository()..fetchUserLibrarySnapshotError = StateError('offline');
       final sessionController = UserSessionController(

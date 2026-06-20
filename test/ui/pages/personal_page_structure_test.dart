@@ -36,14 +36,15 @@ void main() {
     expect(source, contains('context.router.push(const gr.CloudDriveView())'));
   });
 
-  test('personal page shows recent playback before the library sections', () {
+  test('personal page shows recent playback before frequent playlists and library sections', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
     final recentControllerIndex = source.indexOf('final recentPlaybackController = RecentPlaybackController.to;');
     final recentStripIndex = source.indexOf('child: _RecentPlaybackStrip(');
     final squareRecentStripIndex = source.indexOf('child: _RecentPlaybackStrip(', recentStripIndex + 1);
     final recentHeaderIndex = source.indexOf("'最近播放'");
-    final playlistHeaderIndex = source.indexOf("'我的歌单'");
-    final squarePlaylistHeaderIndex = source.indexOf("'我的歌单'", playlistHeaderIndex + 1);
+    final playlistHeaderIndex = source.indexOf("'常用歌单'");
+    final squarePlaylistHeaderIndex = source.indexOf("'常用歌单'", playlistHeaderIndex + 1);
+    final libraryHeaderIndex = source.indexOf("'资料库'");
 
     expect(recentControllerIndex, isNonNegative);
     expect(recentStripIndex, isNonNegative);
@@ -51,9 +52,12 @@ void main() {
     expect(recentHeaderIndex, isNonNegative);
     expect(playlistHeaderIndex, isNonNegative);
     expect(squarePlaylistHeaderIndex, isNonNegative);
+    expect(libraryHeaderIndex, isNonNegative);
     expect(recentStripIndex, lessThan(playlistHeaderIndex));
     expect(squareRecentStripIndex, lessThan(squarePlaylistHeaderIndex));
+    expect(playlistHeaderIndex, lessThan(libraryHeaderIndex));
     expect(source, contains("playListName: '最近播放'"));
+    expect(source, contains('homeFrequentPlaylists'));
     expect(source, isNot(contains('watchCurrentSong')));
   });
 

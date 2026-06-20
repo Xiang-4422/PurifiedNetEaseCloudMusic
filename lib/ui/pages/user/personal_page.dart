@@ -239,15 +239,15 @@ class PersonalPageView extends GetView<ShellController> {
             ),
           ),
 
-          // 我的歌单 Header
+          // 常用歌单 Header
           SliverToBoxAdapter(
-            child: const Header('我的歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
+            child: const Header('常用歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
           ),
-          // 我的歌单
+          // 常用歌单
           SliverToBoxAdapter(
             child: Obx(
               () => PlayListWidget(
-                playLists: libraryController.userPlayLists,
+                playLists: libraryController.homeFrequentPlaylists,
                 albumCountInWidget: 3.2,
                 albumMargin: AppDimensions.paddingSmall,
                 showSongCount: false,
@@ -400,7 +400,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
           ),
           SliverToBoxAdapter(
             child: Header(
-              '我的歌单',
+              '常用歌单',
               padding: AppDimensions.paddingSmall,
               height: widget.metrics.squareHeaderHeight,
             ),
@@ -408,7 +408,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
           SliverToBoxAdapter(
             child: Obx(
               () => PlayListWidget(
-                playLists: widget.libraryController.userPlayLists,
+                playLists: widget.libraryController.homeFrequentPlaylists,
                 albumCountInWidget: widget.metrics.squarePlaylistCardCount,
                 albumMargin: AppDimensions.paddingSmall,
                 showSongCount: false,

@@ -11,6 +11,8 @@ import 'package:get/get.dart';
 
 /// 持有账号作用域下的资料库状态。
 class UserLibraryController extends GetxController {
+  static const int _homeFrequentPlaylistLimit = 8;
+
   /// 当前用户资料库控制器实例。
   static UserLibraryController get to => Get.find();
 
@@ -35,6 +37,11 @@ class UserLibraryController extends GetxController {
 
   /// 当前账号是否已有本地歌单数据。
   bool get hasPlaylistData => userPlayLists.isNotEmpty || userLikedSongPlayList.value.id.isNotEmpty;
+
+  /// 首页轻量展示的常用歌单，复用用户歌单顺序并限制数量。
+  List<PlaylistSummaryData> get homeFrequentPlaylists {
+    return userPlayLists.take(_homeFrequentPlaylistLimit).toList(growable: false);
+  }
 
   /// 用户创建或收藏的普通歌单列表，不包含“我喜欢的音乐”入口。
   final List<PlaylistSummaryData> userPlayLists = <PlaylistSummaryData>[].obs;

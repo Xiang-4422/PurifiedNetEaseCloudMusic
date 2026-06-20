@@ -1238,6 +1238,7 @@ void main() {
         'lib/app/bootstrap/bootstrap_ui.dart',
         'lib/app/bootstrap/sdk_bootstrap.dart',
         'lib/app/bootstrap/storage_bootstrap.dart',
+        'lib/app/bootstrap/data_source_bootstrap.dart',
         'lib/app/bootstrap/data_bootstrap.dart',
         'lib/app/bootstrap/playback_bootstrap.dart',
         'lib/app/bootstrap/presentation_bootstrap.dart',
@@ -1257,6 +1258,10 @@ void main() {
         'lib/app/bootstrap/storage_bootstrap.dart': [
           'class AppStorageBootstrapResult',
           'Future<AppStorageBootstrapResult> initializeStorageInfrastructure()',
+        ],
+        'lib/app/bootstrap/data_source_bootstrap.dart': [
+          'class AppDataSourceBootstrapResult',
+          'AppDataSourceBootstrapResult initializeDataSourceInfrastructure({',
         ],
         'lib/app/bootstrap/data_bootstrap.dart': [
           'Future<void> initializeDataInfrastructure({',
@@ -1300,6 +1305,15 @@ void main() {
         if (dataBootstrap.contains('CacheBox.init')) 'data_bootstrap initializes CacheBox directly',
         if (dataBootstrap.contains('DriftAppDatabase(')) 'data_bootstrap creates Drift database directly',
       ];
+      final dataSourceOwnershipViolations = <String>[
+        if (!dataBootstrap.contains('final dataSources = initializeDataSourceInfrastructure(appDatabase: appDatabase);')) 'data_bootstrap does not receive data sources from data_source_bootstrap',
+        if (dataBootstrap.contains('appDatabase.local')) 'data_bootstrap reads local data sources directly',
+        if (dataBootstrap.contains('appDatabase.user')) 'data_bootstrap reads user scoped data sources directly',
+        if (dataBootstrap.contains('appDatabase.appCacheDataSource')) 'data_bootstrap reads cache data source directly',
+        if (dataBootstrap.contains('SearchCacheStore(')) 'data_bootstrap creates search cache store directly',
+        if (dataBootstrap.contains('ExploreCacheStore(')) 'data_bootstrap creates explore cache store directly',
+        if (dataBootstrap.contains('LocalMusicSource(')) 'data_bootstrap creates local music source directly',
+      ];
 
       expect(
         registrarDirectory.existsSync(),
@@ -1325,6 +1339,11 @@ void main() {
         storageOwnershipViolations,
         isEmpty,
         reason: 'storage bootstrap 必须收口 Drift/Hive 初始化，data_bootstrap 只消费已初始化的存储资源。',
+      );
+      expect(
+        dataSourceOwnershipViolations,
+        isEmpty,
+        reason: 'data source bootstrap 必须收口本地数据源和轻量 cache store 构建，data_bootstrap 只消费结果对象。',
       );
     });
 

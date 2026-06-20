@@ -1185,6 +1185,26 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         'songId': query['id'],
       };
+    case 'song_copyright_rcmd':
+      return {
+        'songid': _jsDefault(query['songid'], query['id']),
+      };
+    case 'song_creators':
+      return {
+        'songId': query['id'],
+      };
+    case 'song_like':
+      return {
+        'trackId': query['id'],
+        'userid': query['uid'],
+        'like': query['like']?.toString() != 'false',
+      };
+    case 'song_order_update':
+      return {
+        'pid': query['pid'],
+        'trackIds': query['ids'],
+        'op': 'update',
+      };
     case 'song_chorus':
       return {
         'ids': jsonEncode([query['id']]),

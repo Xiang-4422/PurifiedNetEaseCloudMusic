@@ -630,6 +630,30 @@ void main() {
       expect(api.requestModuleDioMetaData('song_music_detail', {'id': '101'}).data, {
         'songId': '101',
       });
+      expect(api.requestModuleDioMetaData('song_copyright_rcmd', {'id': '101'}).data, {
+        'songid': '101',
+      });
+      expect(api.requestModuleDioMetaData('song_copyright_rcmd', {'songid': '202', 'id': '101'}).data, {
+        'songid': '202',
+      });
+      expect(api.requestModuleDioMetaData('song_creators', {'id': '101'}).data, {
+        'songId': '101',
+      });
+      expect(api.requestModuleDioMetaData('song_like', {'id': '101', 'uid': '42'}).data, {
+        'trackId': '101',
+        'userid': '42',
+        'like': true,
+      });
+      expect(api.requestModuleDioMetaData('song_like', {'id': '101', 'uid': '42', 'like': 'false'}).data, {
+        'trackId': '101',
+        'userid': '42',
+        'like': false,
+      });
+      expect(api.requestModuleDioMetaData('song_order_update', {'pid': '888', 'ids': '101,202'}).data, {
+        'pid': '888',
+        'trackIds': '101,202',
+        'op': 'update',
+      });
       expect(api.requestModuleDioMetaData('song_chorus', {'id': '101'}).data, {
         'ids': '["101"]',
       });

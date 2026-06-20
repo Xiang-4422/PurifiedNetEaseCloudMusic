@@ -195,6 +195,47 @@ const fixtures = [
     },
   },
   {
+    module: 'song_copyright_rcmd',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'song_copyright_rcmd',
+    query: {
+      songid: '202',
+      id: '101',
+    },
+  },
+  {
+    module: 'song_creators',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'song_like',
+    query: {
+      id: '101',
+      uid: '42',
+    },
+  },
+  {
+    module: 'song_like',
+    query: {
+      id: '101',
+      uid: '42',
+      like: 'false',
+    },
+  },
+  {
+    module: 'song_order_update',
+    query: {
+      pid: '888',
+      ids: '101,202',
+    },
+  },
+  {
     module: 'song_dynamic_cover',
     query: {
       id: '101',

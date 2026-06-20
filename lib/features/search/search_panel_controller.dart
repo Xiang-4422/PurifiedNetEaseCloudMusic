@@ -58,18 +58,19 @@ class SearchPanelController {
   final ValueNotifier<LoadState<List<ArtistEntity>>> artistState = ValueNotifier(const LoadState.empty());
 
   bool _loadedOnce = false;
+  bool _disposed = false;
   String _currentKeyword = '';
   int _hotKeywordGeneration = 0;
   int _searchGeneration = 0;
 
   /// 首次加载热搜关键词，可通过 `force` 强制刷新。
   Future<void> loadInitial({bool force = false}) async {
-    if (_loadedOnce && !force) {
+    if (_disposed || (_loadedOnce && !force)) {
       return;
     }
     final generation = ++_hotKeywordGeneration;
     final cachedKeywords = await _repository.loadCachedHotKeywords();
-    if (generation != _hotKeywordGeneration) {
+    if (!_isCurrentHotKeywordLoad(generation)) {
       return;
     }
     final hasCachedKeywords = cachedKeywords != null && cachedKeywords.isNotEmpty;
@@ -80,7 +81,7 @@ class SearchPanelController {
       hotKeywordState.value = const LoadState.loading();
     }
     final cacheFresh = hasCachedKeywords && await _repository.isHotKeywordCacheFresh(ttl: hotKeywordTtl);
-    if (generation != _hotKeywordGeneration) {
+    if (!_isCurrentHotKeywordLoad(generation)) {
       return;
     }
     final shouldRefresh = force || !cacheFresh || !hasCachedKeywords;
@@ -88,7 +89,7 @@ class SearchPanelController {
       return;
     }
     final state = await _fetchHotKeywords(cachedKeywords: cachedKeywords);
-    if (generation != _hotKeywordGeneration) {
+    if (!_isCurrentHotKeywordLoad(generation)) {
       return;
     }
     hotKeywordState.value = state;
@@ -102,6 +103,9 @@ class SearchPanelController {
     required String currentUserId,
     bool force = false,
   }) async {
+    if (_disposed) {
+      return;
+    }
     final normalizedKeyword = keyword.trim();
     if (normalizedKeyword.isEmpty) {
       _currentKeyword = '';
@@ -138,7 +142,7 @@ class SearchPanelController {
       required int count,
       required bool logAsFirstResult,
     }) {
-      if (generation != _searchGeneration || normalizedKeyword != _currentKeyword) {
+      if (!_isCurrentSearch(generation, normalizedKeyword)) {
         return;
       }
       apply();
@@ -294,6 +298,14 @@ class SearchPanelController {
           );
   }
 
+  bool _isCurrentHotKeywordLoad(int generation) {
+    return !_disposed && generation == _hotKeywordGeneration;
+  }
+
+  bool _isCurrentSearch(int generation, String keyword) {
+    return !_disposed && generation == _searchGeneration && keyword == _currentKeyword;
+  }
+
   void _applySearchState(SearchResultState state) {
     songState.value = state.songs;
     playlistState.value = state.playlists;
@@ -303,6 +315,12 @@ class SearchPanelController {
 
   /// 释放搜索面板状态监听器。
   void dispose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    _hotKeywordGeneration++;
+    _searchGeneration++;
     hotKeywordState.dispose();
     songState.dispose();
     playlistState.dispose();

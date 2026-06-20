@@ -88,6 +88,23 @@ void main() {
       expect(controller.artistState.value.data?.single.name, 'artist');
     });
 
+    test('ignores search results after dispose', () async {
+      final repository = _FakeSearchRepository();
+      final controller = SearchPanelController(repository: repository);
+
+      final search = controller.search(
+        'keyword',
+        likedSongIds: const [],
+        currentUserId: '42',
+      );
+      await _flushAsync();
+
+      controller.dispose();
+      repository.complete('keyword', _resultFor('late'));
+
+      await expectLater(search, completes);
+    });
+
     test('keeps current results while force refreshing same keyword fails', () async {
       final repository = _FakeSearchRepository();
       final controller = SearchPanelController(repository: repository);
@@ -175,6 +192,23 @@ void main() {
       await load;
 
       expect(controller.hotKeywordState.value.data, const ['fresh']);
+    });
+
+    test('ignores hot keyword refresh after dispose', () async {
+      final repository = _FakeSearchRepository(
+        cachedHotKeywords: null,
+        hotKeywordCacheFresh: false,
+      );
+      final controller = SearchPanelController(repository: repository);
+
+      final load = controller.loadInitial(force: true);
+      await _flushAsync();
+      expect(repository.hotKeywordRequestCount, 1);
+
+      controller.dispose();
+      repository.completeHotKeywords(0, const ['late']);
+
+      await expectLater(load, completes);
     });
 
     test('keeps cached hot keywords when refresh fails', () async {

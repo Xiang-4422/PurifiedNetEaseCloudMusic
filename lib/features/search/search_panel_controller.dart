@@ -59,6 +59,7 @@ class SearchPanelController {
 
   bool _loadedOnce = false;
   String _currentKeyword = '';
+  int _hotKeywordGeneration = 0;
   int _searchGeneration = 0;
 
   /// 首次加载热搜关键词，可通过 `force` 强制刷新。
@@ -66,9 +67,14 @@ class SearchPanelController {
     if (_loadedOnce && !force) {
       return;
     }
+    final generation = ++_hotKeywordGeneration;
     hotKeywordState.value = const LoadState.loading();
-    hotKeywordState.value = await _loadInitialHotKeywords(force: force);
-    _loadedOnce = hotKeywordState.value.hasData;
+    final state = await _loadInitialHotKeywords(force: force);
+    if (generation != _hotKeywordGeneration) {
+      return;
+    }
+    hotKeywordState.value = state;
+    _loadedOnce = state.hasData;
   }
 
   /// 搜索所有结果类型，空关键词会重置结果状态。

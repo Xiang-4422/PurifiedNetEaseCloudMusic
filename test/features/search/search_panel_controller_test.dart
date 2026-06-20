@@ -87,14 +87,56 @@ void main() {
       expect(controller.albumState.value.data?.single.title, 'album');
       expect(controller.artistState.value.data?.single.name, 'artist');
     });
+
+    test('only applies the latest hot keyword refresh', () async {
+      final repository = _FakeSearchRepository(
+        cachedHotKeywords: null,
+        hotKeywordCacheFresh: false,
+      );
+      final controller = SearchPanelController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final firstLoad = controller.loadInitial(force: true);
+      await _flushAsync();
+      expect(repository.hotKeywordRequestCount, 1);
+
+      final latestLoad = controller.loadInitial(force: true);
+      await _flushAsync();
+      expect(repository.hotKeywordRequestCount, 2);
+
+      repository.completeHotKeywords(1, const ['latest']);
+      await latestLoad;
+      expect(controller.hotKeywordState.value.data, const ['latest']);
+
+      repository.completeHotKeywords(0, const ['old']);
+      await firstLoad;
+      expect(controller.hotKeywordState.value.data, const ['latest']);
+    });
   });
 }
 
 class _FakeSearchRepository implements SearchRepository {
+  _FakeSearchRepository({
+    this.cachedHotKeywords = const <String>[],
+    this.hotKeywordCacheFresh = true,
+  });
+
   final Map<String, _PendingSearchResult> _pending = <String, _PendingSearchResult>{};
+  final List<Completer<List<String>>> _hotKeywordRequests = <Completer<List<String>>>[];
+  final List<String>? cachedHotKeywords;
+  final bool hotKeywordCacheFresh;
+
+  int get hotKeywordRequestCount => _hotKeywordRequests.length;
 
   void complete(String keyword, SearchResultState state) {
     _pendingResult(keyword).complete(state);
+  }
+
+  void completeHotKeywords(int index, List<String> keywords) {
+    final request = _hotKeywordRequests[index];
+    if (!request.isCompleted) {
+      request.complete(keywords);
+    }
   }
 
   void completeSongs(String keyword, List<PlaybackQueueItem> songs) {
@@ -114,13 +156,17 @@ class _FakeSearchRepository implements SearchRepository {
   }
 
   @override
-  Future<List<String>?> loadCachedHotKeywords() async => const [];
+  Future<List<String>?> loadCachedHotKeywords() => Future<List<String>?>.value(cachedHotKeywords);
 
   @override
-  Future<bool> isHotKeywordCacheFresh({required Duration ttl}) async => true;
+  Future<bool> isHotKeywordCacheFresh({required Duration ttl}) => Future<bool>.value(hotKeywordCacheFresh);
 
   @override
-  Future<List<String>> fetchHotKeywords() async => const [];
+  Future<List<String>> fetchHotKeywords() {
+    final request = Completer<List<String>>();
+    _hotKeywordRequests.add(request);
+    return request.future;
+  }
 
   @override
   Future<List<PlaybackQueueItem>> searchTrackQueueItems(
@@ -252,4 +298,10 @@ ArtistEntity _artist(String name) {
     sourceId: name,
     name: name,
   );
+}
+
+Future<void> _flushAsync() async {
+  for (var i = 0; i < 4; i++) {
+    await Future<void>.delayed(Duration.zero);
+  }
 }

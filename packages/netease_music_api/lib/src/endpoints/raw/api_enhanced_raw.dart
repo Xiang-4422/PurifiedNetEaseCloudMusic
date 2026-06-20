@@ -1416,6 +1416,7 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'listen_data_today_song':
     case 'listen_data_total':
     case 'listen_data_year_report':
+    case 'listentogether_status':
     case 'sati_resource_sub_list':
     case 'sati_tag_list':
     case 'vip_growthpoint':
@@ -1466,6 +1467,58 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         'type': _jsDefault(query['type'], 'week'),
         if (query.containsKey('endTime')) 'endTime': query['endTime'],
+      };
+    case 'listentogether_accept':
+      return {
+        'refer': 'inbox_invite',
+        'roomId': query['roomId'],
+        'inviterId': query['inviterId'],
+      };
+    case 'listentogether_end':
+    case 'listentogether_room_check':
+    case 'listentogether_sync_playlist_get':
+      return {
+        'roomId': query['roomId'],
+      };
+    case 'listentogether_heatbeat':
+      return {
+        'roomId': query['roomId'],
+        'songId': query['songId'],
+        'playStatus': query['playStatus'],
+        'progress': query['progress'],
+      };
+    case 'listentogether_play_command':
+      return {
+        'roomId': query['roomId'],
+        'commandInfo': jsonEncode({
+          if (query.containsKey('commandType')) 'commandType': query['commandType'],
+          'progress': _jsDefault(query['progress'], 0),
+          if (query.containsKey('playStatus')) 'playStatus': query['playStatus'],
+          if (query.containsKey('formerSongId')) 'formerSongId': query['formerSongId'],
+          if (query.containsKey('targetSongId')) 'targetSongId': query['targetSongId'],
+          if (query.containsKey('clientSeq')) 'clientSeq': query['clientSeq'],
+        }),
+      };
+    case 'listentogether_room_create':
+      return {
+        'refer': 'songplay_more',
+      };
+    case 'listentogether_sync_list_command':
+      return {
+        'roomId': query['roomId'],
+        'playlistParam': jsonEncode({
+          if (query.containsKey('commandType')) 'commandType': query['commandType'],
+          'version': [
+            {
+              if (query.containsKey('userId')) 'userId': query['userId'],
+              if (query.containsKey('version')) 'version': query['version'],
+            },
+          ],
+          'anchorSongId': '',
+          'anchorPosition': -1,
+          'randomList': _splitCommaValues(query['randomList']),
+          'displayList': _splitCommaValues(query['displayList']),
+        }),
       };
     case 'vip_growthpoint_details':
       return {

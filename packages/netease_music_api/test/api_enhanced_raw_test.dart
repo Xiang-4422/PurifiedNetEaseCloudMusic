@@ -893,6 +893,69 @@ void main() {
       expect(api.requestModuleDioMetaData('listen_data_year_report', {}).data, isEmpty);
     });
 
+    test('maps listen together request data like upstream', () {
+      expect(api.requestModuleDioMetaData('listentogether_accept', {'roomId': 'room-1', 'inviterId': '42'}).data, {
+        'refer': 'inbox_invite',
+        'roomId': 'room-1',
+        'inviterId': '42',
+      });
+      expect(api.requestModuleDioMetaData('listentogether_end', {'roomId': 'room-1'}).data, {
+        'roomId': 'room-1',
+      });
+      expect(
+        api.requestModuleDioMetaData('listentogether_heatbeat', {
+          'roomId': 'room-1',
+          'songId': '101',
+          'playStatus': 1,
+          'progress': 120000,
+        }).data,
+        {
+          'roomId': 'room-1',
+          'songId': '101',
+          'playStatus': 1,
+          'progress': 120000,
+        },
+      );
+      expect(
+        api.requestModuleDioMetaData('listentogether_play_command', {
+          'roomId': 'room-1',
+          'commandType': 'play',
+          'playStatus': 1,
+          'formerSongId': '101',
+          'targetSongId': '202',
+          'clientSeq': 7,
+        }).data,
+        {
+          'roomId': 'room-1',
+          'commandInfo': '{"commandType":"play","progress":0,"playStatus":1,"formerSongId":"101","targetSongId":"202","clientSeq":7}',
+        },
+      );
+      expect(api.requestModuleDioMetaData('listentogether_room_check', {'roomId': 'room-1'}).data, {
+        'roomId': 'room-1',
+      });
+      expect(api.requestModuleDioMetaData('listentogether_room_create', {}).data, {
+        'refer': 'songplay_more',
+      });
+      expect(api.requestModuleDioMetaData('listentogether_status', {}).data, isEmpty);
+      expect(
+        api.requestModuleDioMetaData('listentogether_sync_list_command', {
+          'roomId': 'room-1',
+          'commandType': 'sync',
+          'userId': '42',
+          'version': 3,
+          'randomList': '101,202',
+          'displayList': '202,101',
+        }).data,
+        {
+          'roomId': 'room-1',
+          'playlistParam': '{"commandType":"sync","version":[{"userId":"42","version":3}],"anchorSongId":"","anchorPosition":-1,"randomList":["101","202"],"displayList":["202","101"]}',
+        },
+      );
+      expect(api.requestModuleDioMetaData('listentogether_sync_playlist_get', {'roomId': 'room-1'}).data, {
+        'roomId': 'room-1',
+      });
+    });
+
     test('maps vip request data like upstream', () {
       expect(api.requestModuleDioMetaData('vip_growthpoint', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('vip_growthpoint_details', {}).data, {

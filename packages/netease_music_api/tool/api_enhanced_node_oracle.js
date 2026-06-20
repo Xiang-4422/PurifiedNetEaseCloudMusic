@@ -1749,6 +1749,70 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'listentogether_accept',
+    query: {
+      roomId: 'room-1',
+      inviterId: '42',
+    },
+  },
+  {
+    module: 'listentogether_end',
+    query: {
+      roomId: 'room-1',
+    },
+  },
+  {
+    module: 'listentogether_heatbeat',
+    query: {
+      roomId: 'room-1',
+      songId: '101',
+      playStatus: 1,
+      progress: 120000,
+    },
+  },
+  {
+    module: 'listentogether_play_command',
+    query: {
+      roomId: 'room-1',
+      commandType: 'play',
+      playStatus: 1,
+      formerSongId: '101',
+      targetSongId: '202',
+      clientSeq: 7,
+    },
+  },
+  {
+    module: 'listentogether_room_check',
+    query: {
+      roomId: 'room-1',
+    },
+  },
+  {
+    module: 'listentogether_room_create',
+    query: {},
+  },
+  {
+    module: 'listentogether_status',
+    query: {},
+  },
+  {
+    module: 'listentogether_sync_list_command',
+    query: {
+      roomId: 'room-1',
+      commandType: 'sync',
+      userId: '42',
+      version: 3,
+      randomList: '101,202',
+      displayList: '202,101',
+    },
+  },
+  {
+    module: 'listentogether_sync_playlist_get',
+    query: {
+      roomId: 'room-1',
+    },
+  },
+  {
     module: 'vip_growthpoint',
     query: {},
   },

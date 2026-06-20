@@ -26,6 +26,7 @@ class UserLibraryController extends GetxController {
   Future<void>? _cacheBootstrapFuture;
   String _activeLocalDataUserId = '';
   int _localDataGeneration = 0;
+  int _likedSongsLoadGeneration = 0;
   bool _hasLocalData = false;
 
   /// 当前账号是否已有本地资料库数据。
@@ -177,29 +178,48 @@ class UserLibraryController extends GetxController {
 
   /// 确保喜欢歌曲队列已加载，可通过 `force` 强制远程刷新。
   Future<void> ensureLikedSongsLoaded({bool force = false}) async {
-    if (likedSongIds.isEmpty) {
+    final userId = _sessionController.userInfo.value.userId;
+    final requestedLikedSongIds = likedSongIds.toList();
+    final generation = ++_likedSongsLoadGeneration;
+    if (userId.isEmpty || userId == '-1' || requestedLikedSongIds.isEmpty) {
       likedSongs.clear();
       return;
     }
-    if (!force && likedSongs.length == likedSongIds.length) {
+    if (!force && _likedSongsMatchIds(requestedLikedSongIds)) {
       return;
     }
-    if (!force) {
-      final cachedLikedSongs = await _repository.loadCachedSongsByIds(
-        ids: likedSongIds.map((e) => e.toString()).toList(),
-        likedSongIds: likedSongIds.toList(),
+    try {
+      if (!force) {
+        final cachedLikedSongs = await _repository.loadCachedSongsByIds(
+          ids: requestedLikedSongIds.map((e) => e.toString()).toList(),
+          likedSongIds: requestedLikedSongIds,
+        );
+        if (!_isCurrentLikedSongsLoad(userId, generation, requestedLikedSongIds)) {
+          return;
+        }
+        if (cachedLikedSongs.length == requestedLikedSongIds.length) {
+          likedSongs
+            ..clear()
+            ..addAll(cachedLikedSongs);
+          return;
+        }
+      }
+      final remoteLikedSongs = await _repository.fetchSongsByIds(
+        ids: requestedLikedSongIds.map((e) => e.toString()).toList(),
+        likedSongIds: requestedLikedSongIds,
       );
-      if (cachedLikedSongs.length == likedSongIds.length) {
-        likedSongs
-          ..clear()
-          ..addAll(cachedLikedSongs);
+      if (!_isCurrentLikedSongsLoad(userId, generation, requestedLikedSongIds)) {
         return;
       }
+      likedSongs
+        ..clear()
+        ..addAll(remoteLikedSongs);
+    } catch (_) {
+      if (!_isCurrentLikedSongsLoad(userId, generation, requestedLikedSongIds)) {
+        return;
+      }
+      rethrow;
     }
-    final remoteLikedSongs = await getSongsByIds(likedSongIds.map((e) => e.toString()).toList());
-    likedSongs
-      ..clear()
-      ..addAll(remoteLikedSongs);
   }
 
   /// 拉取心动模式歌曲队列。
@@ -308,6 +328,38 @@ class UserLibraryController extends GetxController {
 
   bool _isCurrentLocalDataLoad(String userId, int generation) {
     return generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionController.userInfo.value.userId == userId;
+  }
+
+  bool _isCurrentLikedSongsLoad(
+    String userId,
+    int generation,
+    List<int> requestedLikedSongIds,
+  ) {
+    return generation == _likedSongsLoadGeneration && _sessionController.userInfo.value.userId == userId && _sameLikedSongIds(requestedLikedSongIds);
+  }
+
+  bool _sameLikedSongIds(List<int> requestedLikedSongIds) {
+    if (likedSongIds.length != requestedLikedSongIds.length) {
+      return false;
+    }
+    for (var index = 0; index < requestedLikedSongIds.length; index++) {
+      if (likedSongIds[index] != requestedLikedSongIds[index]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _likedSongsMatchIds(List<int> requestedLikedSongIds) {
+    if (likedSongs.length != requestedLikedSongIds.length) {
+      return false;
+    }
+    for (var index = 0; index < requestedLikedSongIds.length; index++) {
+      if (_resolveSongSourceId(likedSongs[index]) != requestedLikedSongIds[index].toString()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   String _resolveSongSourceId(PlaybackQueueItem song) {

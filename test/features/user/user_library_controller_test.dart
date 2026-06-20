@@ -102,6 +102,76 @@ void main() {
 
       expect(controller.likedSongs.map((song) => song.title), ['Cached liked song']);
     });
+
+    test('ignores stale liked songs load after switching users', () async {
+      final repository = _FakeUserRepository();
+      final oldFetch = Completer<List<PlaybackQueueItem>>();
+      repository.fetchSongsByIdsWithArgs = ({required ids, required likedSongIds}) {
+        return oldFetch.future;
+      };
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'old-user',
+        nickname: 'Old',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.likedSongIds.add(101);
+
+      final oldLoad = controller.ensureLikedSongsLoaded(force: true);
+      await Future<void>.delayed(Duration.zero);
+
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'new-user',
+        nickname: 'New',
+        avatarUrl: '',
+      );
+      controller.likedSongIds
+        ..clear()
+        ..add(202);
+      controller.likedSongs
+        ..clear()
+        ..add(_song('202', title: 'New visible song'));
+
+      oldFetch.complete([_song('101', title: 'Old remote song')]);
+      await oldLoad;
+
+      expect(controller.likedSongs.map((song) => song.title), ['New visible song']);
+    });
+
+    test('reloads liked songs when id list changes with same length', () async {
+      final repository = _FakeUserRepository()..remoteSongsByIds = [_song('202', title: 'Fresh liked song')];
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.likedSongIds.add(101);
+      controller.likedSongs.add(_song('101', title: 'Old liked song'));
+      controller.likedSongIds
+        ..clear()
+        ..add(202);
+
+      await controller.ensureLikedSongsLoaded();
+
+      expect(controller.likedSongs.map((song) => song.title), ['Fresh liked song']);
+    });
   });
 }
 
@@ -109,6 +179,10 @@ class _FakeUserRepository implements UserRepository {
   final Map<String, _PendingUserCache> _caches = <String, _PendingUserCache>{};
   Object? fetchSongsByIdsError;
   List<PlaybackQueueItem> remoteSongsByIds = const [];
+  Future<List<PlaybackQueueItem>> Function({
+    required List<String> ids,
+    required List<int> likedSongIds,
+  })? fetchSongsByIdsWithArgs;
 
   _PendingUserCache cacheFor(String userId) {
     return _caches.putIfAbsent(userId, _PendingUserCache.new);
@@ -150,6 +224,13 @@ class _FakeUserRepository implements UserRepository {
     required List<String> ids,
     required List<int> likedSongIds,
   }) async {
+    final fetchWithArgs = fetchSongsByIdsWithArgs;
+    if (fetchWithArgs != null) {
+      return fetchWithArgs(
+        ids: ids,
+        likedSongIds: likedSongIds,
+      );
+    }
     final error = fetchSongsByIdsError;
     if (error != null) {
       throw error;

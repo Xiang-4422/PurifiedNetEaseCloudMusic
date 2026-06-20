@@ -73,6 +73,29 @@ void main() {
       expect(sessionController.userInfo.value.nickname, 'New');
       expect(authRepository.savedLoginFlags, isEmpty);
     });
+
+    test('cached login bootstrap stores fetched session and clears loading', () async {
+      final authRepository = _FakeAuthRepository(hasCachedLogin: true);
+      final sessionController = _putSessionController();
+      final controller = AuthController(repository: authRepository);
+
+      final bootstrap = controller.bootstrap();
+      expect(controller.isLoading.value, isTrue);
+
+      authRepository.completeNextFetch(
+        const UserSessionData(
+          userId: 'user-1',
+          nickname: 'User',
+          avatarUrl: 'avatar',
+        ),
+      );
+      await bootstrap;
+
+      expect(controller.isLoading.value, isFalse);
+      expect(controller.loginCompleted.value, isTrue);
+      expect(sessionController.userInfo.value.userId, 'user-1');
+      expect(sessionController.userInfo.value.nickname, 'User');
+    });
   });
 }
 

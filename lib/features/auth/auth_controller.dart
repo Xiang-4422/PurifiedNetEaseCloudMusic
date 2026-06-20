@@ -114,20 +114,23 @@ class AuthController extends GetxController {
   }
 
   Future<void> _loadUserData() async {
-    final accountInfo = await _repository.fetchLoginAccountInfo();
-    final isLoginStateActive = accountInfo.isLoggedIn;
+    try {
+      final accountInfo = await _repository.fetchLoginAccountInfo();
+      final isLoginStateActive = accountInfo.isLoggedIn;
 
-    if (!isLoginStateActive) {
-      await _repository.setLoginFlag(false);
-      await UserSessionController.to.expireLoginSession();
-      uiEffect.value = const AuthUiEffect.loginExpired('登录失效,请重新登录');
+      if (!isLoginStateActive) {
+        await _repository.setLoginFlag(false);
+        await UserSessionController.to.expireLoginSession();
+        uiEffect.value = const AuthUiEffect.loginExpired('登录失效,请重新登录');
+        return;
+      }
+
+      final sessionController = UserSessionController.to;
+      sessionController.userInfo.value = accountInfo;
+      loginCompleted.value = true;
+    } finally {
       isLoading.value = false;
-      return;
     }
-
-    final sessionController = UserSessionController.to;
-    sessionController.userInfo.value = accountInfo;
-    loginCompleted.value = true;
   }
 
   Future<void> _validateLoginStateInBackground() async {

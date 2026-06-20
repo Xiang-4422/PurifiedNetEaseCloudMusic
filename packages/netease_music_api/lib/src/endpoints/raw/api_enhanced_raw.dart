@@ -457,16 +457,6 @@ mixin ApiEnhancedRaw {
 
   /// Song URL v1 xeapi module.
   Future<dynamic> songUrlV1Raw(Map<String, dynamic> query) async {
-    if (query['unblock']?.toString() == 'true') {
-      return {
-        'status': 500,
-        'body': {
-          'code': 500,
-          'msg': 'song_url_v1 unblock and source order depend on upstream unblockmusic-utils; use App playback fallback until a Dart replacement is available',
-          'data': [],
-        },
-      };
-    }
     final level = query['level'] ?? 'standard';
     return _xeapiPost(
       '/api/song/enhance/player/url/v1',

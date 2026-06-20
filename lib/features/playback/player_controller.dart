@@ -178,12 +178,25 @@ class PlayerController extends GetxController {
   Future<void> playOrPause() async {
     final stopwatch = PlaybackPerformanceLogger.start();
     final wasPlaying = isPlaying.value;
-    await _commandService.playOrPause(isPlaying: wasPlaying);
-    PlaybackPerformanceLogger.elapsedMetric(
-      AppPerformanceMetrics.miniPlayerFeedback,
-      stopwatch,
-      details: 'action=${wasPlaying ? 'pause' : 'play'}',
-    );
+    Object? commandError;
+    var succeeded = false;
+    try {
+      await _commandService.playOrPause(isPlaying: wasPlaying);
+      succeeded = true;
+    } catch (error) {
+      commandError = error;
+      rethrow;
+    } finally {
+      PlaybackPerformanceLogger.elapsedMetric(
+        AppPerformanceMetrics.miniPlayerFeedback,
+        stopwatch,
+        details: miniPlayerFeedbackMetricDetails(
+          wasPlaying: wasPlaying,
+          succeeded: succeeded,
+          error: commandError,
+        ),
+      );
+    }
   }
 
   /// 播放列表切换先统一走播放控制器，避免页面继续直接触碰 `audioHandler`
@@ -368,4 +381,19 @@ class PlayerController extends GetxController {
     _lyricUiStateController.dispose();
     super.onClose();
   }
+}
+
+/// 生成 mini player 控制反馈指标的补充信息。
+@visibleForTesting
+String miniPlayerFeedbackMetricDetails({
+  required bool wasPlaying,
+  required bool succeeded,
+  Object? error,
+}) {
+  final action = wasPlaying ? 'pause' : 'play';
+  final result = succeeded ? 'success' : 'error';
+  if (succeeded || error == null) {
+    return 'action=$action result=$result';
+  }
+  return 'action=$action result=$result error=${error.runtimeType}';
 }

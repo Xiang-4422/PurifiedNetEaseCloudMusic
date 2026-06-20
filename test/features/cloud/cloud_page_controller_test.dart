@@ -105,6 +105,82 @@ void main() {
       expect(controller.state.value.loadingMore, isFalse);
       expect(controller.state.value.refreshing, isFalse);
     });
+
+    test('ignores stale cached load after refresh completes', () async {
+      final cachedLoad = Completer<List<PlaybackQueueItem>>();
+      final refresh = Completer<CloudSongPage>();
+      final repository = _FakeCloudRepository(
+        cachedSongsFuture: cachedLoad.future,
+        fetchCloudSongs: () => refresh.future,
+      );
+      final controller = _buildController(repository);
+      addTearDown(controller.dispose);
+
+      final initialLoad = controller.loadInitial();
+      await Future<void>.delayed(Duration.zero);
+
+      final refreshFuture = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+      refresh.complete(
+        CloudSongPage(
+          items: [_song('fresh-first')],
+          hasMore: true,
+          nextOffset: 1,
+        ),
+      );
+      await refreshFuture;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-first']);
+
+      cachedLoad.complete([_song('stale-cached')]);
+      await initialLoad;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-first']);
+      expect(controller.state.value.refreshing, isFalse);
+    });
+
+    test('ignores cached load completion after dispose', () async {
+      final cachedLoad = Completer<List<PlaybackQueueItem>>();
+      final repository = _FakeCloudRepository(
+        cachedSongsFuture: cachedLoad.future,
+        fetchCloudSongs: () => Future.value(
+          CloudSongPage(
+            items: [_song('remote')],
+            hasMore: false,
+            nextOffset: 1,
+          ),
+        ),
+      );
+      final controller = _buildController(repository);
+
+      final initialLoad = controller.loadInitial();
+      await Future<void>.delayed(Duration.zero);
+      controller.dispose();
+
+      cachedLoad.complete([_song('cached')]);
+      await initialLoad;
+    });
+
+    test('ignores refresh completion after dispose', () async {
+      final refresh = Completer<CloudSongPage>();
+      final repository = _FakeCloudRepository(
+        fetchCloudSongs: () => refresh.future,
+      );
+      final controller = _buildController(repository);
+
+      final refreshFuture = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+      controller.dispose();
+
+      refresh.complete(
+        CloudSongPage(
+          items: [_song('fresh')],
+          hasMore: false,
+          nextOffset: 1,
+        ),
+      );
+      await refreshFuture;
+    });
   });
 }
 
@@ -138,6 +214,7 @@ PlaybackQueueItem _song(String id) {
 class _FakeCloudRepository extends CloudRepository {
   _FakeCloudRepository({
     this.cachedSongs = const [],
+    this.cachedSongsFuture,
     Future<CloudSongPage> Function()? fetchCloudSongs,
     Future<CloudSongPage> Function({
       required String userId,
@@ -154,6 +231,7 @@ class _FakeCloudRepository extends CloudRepository {
         );
 
   final List<PlaybackQueueItem> cachedSongs;
+  final Future<List<PlaybackQueueItem>>? cachedSongsFuture;
   final Future<CloudSongPage> Function()? _fetchCloudSongs;
   final Future<CloudSongPage> Function({
     required String userId,
@@ -167,6 +245,10 @@ class _FakeCloudRepository extends CloudRepository {
     required String userId,
     required List<int> likedSongIds,
   }) async {
+    final future = cachedSongsFuture;
+    if (future != null) {
+      return future;
+    }
     return cachedSongs;
   }
 

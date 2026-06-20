@@ -29,49 +29,73 @@ class CloudPageController {
 
   int _offset = 0;
   int _requestGeneration = 0;
+  bool _disposed = false;
 
   /// 首次加载云盘歌曲，优先展示本地缓存。
   Future<void> loadInitial() async {
+    if (_disposed) {
+      return;
+    }
+    final generation = ++_requestGeneration;
     if (_userId.isEmpty) {
-      state.value = const PagedState(items: [], hasMore: false);
+      _setStateIfCurrent(generation, const PagedState(items: [], hasMore: false));
       return;
     }
     final cachedSongs = await _repository.loadCachedSongs(
       userId: _userId,
       likedSongIds: _likedSongIds,
     );
+    if (!_isCurrentRequest(generation)) {
+      return;
+    }
     if (cachedSongs.isNotEmpty) {
       _offset = cachedSongs.length;
-      state.value = PagedState.data(
-        cachedSongs,
-        hasMore: true,
+      _setStateIfCurrent(
+        generation,
+        PagedState.data(
+          cachedSongs,
+          hasMore: true,
+        ),
       );
       unawaited(refresh());
       return;
     }
-    state.value = PagedState.initialLoading();
-    await _reload();
+    _setStateIfCurrent(generation, PagedState.initialLoading());
+    await _reload(generation);
   }
 
   /// 刷新云盘第一页数据。
   Future<bool> refresh() async {
-    state.value = state.value.copyWith(
-      refreshing: true,
-      error: null,
+    if (_disposed) {
+      return true;
+    }
+    final generation = ++_requestGeneration;
+    _setStateIfCurrent(
+      generation,
+      state.value.copyWith(
+        refreshing: true,
+        error: null,
+      ),
     );
-    return _reload();
+    return _reload(generation);
   }
 
   /// 加载下一页云盘歌曲。
   Future<bool> loadMore() async {
+    if (_disposed) {
+      return true;
+    }
     final currentState = state.value;
     if (currentState.initialLoading || currentState.refreshing || currentState.loadingMore || !currentState.hasMore) {
       return true;
     }
     final generation = _requestGeneration;
-    state.value = currentState.copyWith(
-      loadingMore: true,
-      error: null,
+    _setStateIfCurrent(
+      generation,
+      currentState.copyWith(
+        loadingMore: true,
+        error: null,
+      ),
     );
     try {
       final page = await _repository.fetchCloudSongs(
@@ -80,30 +104,35 @@ class CloudPageController {
         limit: pageSize,
         likedSongIds: _likedSongIds,
       );
-      if (generation != _requestGeneration) {
+      if (!_isCurrentRequest(generation)) {
         return true;
       }
       _offset = page.nextOffset;
-      state.value = PagedState(
-        items: [...currentState.items, ...page.items],
-        hasMore: page.hasMore,
+      _setStateIfCurrent(
+        generation,
+        PagedState(
+          items: [...currentState.items, ...page.items],
+          hasMore: page.hasMore,
+        ),
       );
       return true;
     } catch (error, stackTrace) {
-      if (generation != _requestGeneration) {
+      if (!_isCurrentRequest(generation)) {
         return true;
       }
-      state.value = currentState.copyWith(
-        loadingMore: false,
-        error: error,
-        stackTrace: stackTrace,
+      _setStateIfCurrent(
+        generation,
+        currentState.copyWith(
+          loadingMore: false,
+          error: error,
+          stackTrace: stackTrace,
+        ),
       );
       return false;
     }
   }
 
-  Future<bool> _reload() async {
-    final generation = ++_requestGeneration;
+  Future<bool> _reload(int generation) async {
     final currentState = state.value;
     try {
       final page = await _repository.fetchCloudSongs(
@@ -112,32 +141,41 @@ class CloudPageController {
         limit: pageSize,
         likedSongIds: _likedSongIds,
       );
-      if (generation != _requestGeneration) {
+      if (!_isCurrentRequest(generation)) {
         return true;
       }
       _offset = page.nextOffset;
-      state.value = PagedState.data(
-        page.items,
-        hasMore: page.hasMore,
+      _setStateIfCurrent(
+        generation,
+        PagedState.data(
+          page.items,
+          hasMore: page.hasMore,
+        ),
       );
       return true;
     } catch (error, stackTrace) {
-      if (generation != _requestGeneration) {
+      if (!_isCurrentRequest(generation)) {
         return true;
       }
       if (currentState.items.isNotEmpty) {
-        state.value = currentState.copyWith(
-          initialLoading: false,
-          refreshing: false,
-          loadingMore: false,
-          error: error,
-          stackTrace: stackTrace,
+        _setStateIfCurrent(
+          generation,
+          currentState.copyWith(
+            initialLoading: false,
+            refreshing: false,
+            loadingMore: false,
+            error: error,
+            stackTrace: stackTrace,
+          ),
         );
         return false;
       }
-      state.value = PagedState.error(
-        error,
-        stackTrace: stackTrace,
+      _setStateIfCurrent(
+        generation,
+        PagedState.error(
+          error,
+          stackTrace: stackTrace,
+        ),
       );
       return false;
     }
@@ -145,6 +183,21 @@ class CloudPageController {
 
   /// 释放页面状态监听器。
   void dispose() {
+    _disposed = true;
+    _requestGeneration++;
     state.dispose();
+  }
+
+  bool _isCurrentRequest(int generation) {
+    return !_disposed && generation == _requestGeneration;
+  }
+
+  void _setStateIfCurrent(
+    int generation,
+    PagedState<PlaybackQueueItem> nextState,
+  ) {
+    if (_isCurrentRequest(generation)) {
+      state.value = nextState;
+    }
   }
 }

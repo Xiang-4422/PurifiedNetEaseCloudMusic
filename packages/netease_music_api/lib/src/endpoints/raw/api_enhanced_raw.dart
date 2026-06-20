@@ -1250,6 +1250,10 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       };
     case 'search_hot_detail':
       return {};
+    case 'search_suggest':
+      return {
+        's': query['keywords'] ?? '',
+      };
     case 'user_playlist':
       return {
         'uid': query['uid'],
@@ -1274,6 +1278,12 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       };
     case 'album_newest':
       return {};
+    case 'artist_album':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
     case 'artist_detail':
     case 'artist_detail_dynamic':
       return {
@@ -1502,6 +1512,8 @@ String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
       return query['t']?.toString() == '1' ? '/api/playlist/subscribe' : '/api/playlist/unsubscribe';
     case 'search':
       return query['type']?.toString() == '2000' ? '/api/search/voice/get' : '/api/search/get';
+    case 'search_suggest':
+      return '/api/search/suggest/${query['type'] == 'mobile' ? 'keyword' : 'web'}';
   }
   return _resolvePath(metadata.pathTemplate, query);
 }

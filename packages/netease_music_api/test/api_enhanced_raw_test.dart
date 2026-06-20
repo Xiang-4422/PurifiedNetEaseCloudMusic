@@ -248,6 +248,36 @@ void main() {
       expect(album.uri.path, '/api/v1/album/456');
     });
 
+    test('maps search suggest web and mobile branch paths', () {
+      final web = api.requestModuleDioMetaData('search_suggest', {
+        'keywords': 'hello',
+      });
+      expect(web.uri.path, '/api/search/suggest/web');
+      expect(web.data, {'s': 'hello'});
+
+      final mobile = api.requestModuleDioMetaData('search_suggest', {
+        'keywords': 'hello',
+        'type': 'mobile',
+      });
+      expect(mobile.uri.path, '/api/search/suggest/keyword');
+      expect(mobile.data, {'s': 'hello'});
+    });
+
+    test('maps artist album id into path only', () {
+      final metaData = api.requestModuleDioMetaData('artist_album', {
+        'id': '6452',
+        'limit': 12,
+        'offset': 24,
+      });
+
+      expect(metaData.uri.path, '/api/artist/albums/6452');
+      expect(metaData.data, {
+        'limit': 12,
+        'offset': 24,
+        'total': true,
+      });
+    });
+
     test('maps voicelist search defaults and encrypted response flag', () {
       final metaData = api.requestModuleDioMetaData('voicelist_search', {
         'keyword': 'podcast',

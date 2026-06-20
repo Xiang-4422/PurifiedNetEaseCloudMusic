@@ -338,6 +338,23 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'search_default',
+    query: {},
+  },
+  {
+    module: 'search_suggest',
+    query: {
+      keywords: 'hello',
+    },
+  },
+  {
+    module: 'search_suggest',
+    query: {
+      keywords: 'hello',
+      type: 'mobile',
+    },
+  },
+  {
     module: 'voicelist_search',
     query: {
       keyword: 'podcast',
@@ -356,9 +373,23 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'album_detail',
+    query: {
+      id: '12345',
+    },
+  },
+  {
     module: 'artist_detail',
     query: {
       id: '6452',
+    },
+  },
+  {
+    module: 'artist_album',
+    query: {
+      id: '6452',
+      limit: 12,
+      offset: 24,
     },
   },
   {

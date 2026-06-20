@@ -2741,6 +2741,18 @@ const fixtures = [
     allowNoRequest: true,
   },
   {
+    module: 'inner_version',
+    query: {},
+    allowNoRequest: true,
+  },
+  {
+    module: 'login_qr_create',
+    query: {
+      key: 'abc',
+    },
+    allowNoRequest: true,
+  },
+  {
     module: 'playlist_track_all',
     query: {
       id: '888',

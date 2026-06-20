@@ -3056,6 +3056,8 @@ Future<dynamic> _dartResultForNoRequestOracleFixture(
   Map<String, dynamic> query,
 ) {
   switch (module) {
+    case 'inner_version':
+    case 'login_qr_create':
     case 'song_url_ncmget':
       return api.requestModule(module, query);
     default:

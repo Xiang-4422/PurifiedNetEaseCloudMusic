@@ -10,6 +10,7 @@ const encryptedXeApiPublicKeyFixture =
   'Ix+68DGNS+G6Oiwlq/g/+pJlf+CLRzLMsVxgAP9Sq82SZX/gi0cyzLFcYAD/UqvNXpKKq45tTezVfnTCJ+SJPc19vHxGXOOCLiTjXypVtRo2werynr5A9/iH1qGdKGF4'
 const xeapiSignKey =
   'mUHCwVNWJbunMqAHf5MImuirT6plvs6VSFW62MGHstFQxhBGdEoIhLItH3djc4+FB/OKty3+lL2rGeoFBpVe5g=='
+const anonymousDeviceId = '0'.repeat(52)
 const relatedPlaylistHtml = `<div class="cver u-cover u-cover-3">
   <img src="https://p1.music.126.net/cover-a.jpg?param=50y50">
   <a class="sname f-fs1 s-fc0" href="/playlist?id=123" title="ignored">Related A</a>
@@ -31,8 +32,27 @@ Module.prototype.require = function patchedRequire(request) {
   if (request === 'crypto-js') {
     return {
       MD5(value) {
-        const digest = crypto.createHash('md5').update(String(value)).digest('hex')
-        return { toString: () => digest }
+        const input = Buffer.isBuffer(value) ? value : Buffer.from(String(value))
+        const digest = crypto.createHash('md5').update(input).digest()
+        return { bytes: digest, toString: () => digest.toString('hex') }
+      },
+      enc: {
+        Utf8: {
+          parse(value) {
+            return Buffer.from(String(value), 'utf8')
+          },
+        },
+        Base64: {
+          stringify(value) {
+            if (Buffer.isBuffer(value)) {
+              return value.toString('base64')
+            }
+            if (value && Buffer.isBuffer(value.bytes)) {
+              return value.bytes.toString('base64')
+            }
+            return Buffer.from(String(value), 'utf8').toString('base64')
+          },
+        },
       },
     }
   }
@@ -2836,6 +2856,20 @@ const fixtures = [
     allowNoRequest: true,
     fixedNow: 1700000000000,
     fixedRandomDigits: '1234567890123456',
+  },
+  {
+    module: 'register_anonimous',
+    query: {
+      nonce: '1234567890123456',
+      timestamp: '1700000000000',
+      deviceId: anonymousDeviceId,
+      cookie: {
+        MUSIC_A: 'anonymous-token',
+      },
+    },
+    captureRequests: true,
+    fixedRandomDigits: '0',
+    responses: [{ status: 200, body: { code: 200 }, cookie: [] }],
   },
   {
     module: 'playlist_track_all',

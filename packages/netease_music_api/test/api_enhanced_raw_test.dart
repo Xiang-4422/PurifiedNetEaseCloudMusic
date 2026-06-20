@@ -2150,14 +2150,20 @@ void main() {
         'cookie': {'MUSIC_A': 'anonymous-token'},
       });
 
-      expect(result, {'code': 200, 'cookie': ''});
+      expect(result, {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'cookie': '',
+        },
+        'cookie': [],
+      });
       expect(adapter.requestedUri.toString(), 'https://interface.music.163.com/api/gorilla/anti/crawler/security/key/get');
       expect(proxy.metaData!.uri.toString(), 'https://interface3.music.163.com/api/register/anonimous');
       expect(proxy.metaData!.data, {'username': buildXeApiAnonymousUsername('device-1')});
       expect(proxy.metaData!.options!.extra!['encryptType'], EncryptType.XeApi);
       expect(proxy.metaData!.options!.extra!['cookies'], {
         'MUSIC_A': 'anonymous-token',
-        'deviceId': 'device-1',
       });
     });
 
@@ -2902,6 +2908,25 @@ Future<List<DioMetaData>> _dartRequestSequenceForOracleFixture(
   Map<String, dynamic> query,
 ) async {
   switch (module) {
+    case 'register_anonimous':
+      XeApiStateStore.resetForTesting();
+      Https.setDioForTesting(
+        Dio()
+          ..httpClientAdapter = _JsonResponseAdapter({
+            'code': 200,
+            'data': {
+              'encryptedData': _encryptedXeApiPublicKeyFixture,
+              'timestamp': query['timestamp'],
+              'signature': xeapiSign(query['timestamp'].toString(), query['nonce'].toString()),
+            },
+          }),
+      );
+      final proxy = _QueuedPostDioProxy([
+        {'code': 200},
+      ]);
+      Https.setDioProxyForTesting(proxy);
+      await api.requestModule(module, query);
+      return proxy.requests;
     case 'song_url_v1_302':
       final proxy = _QueuedPostDioProxy([
         {

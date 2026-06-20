@@ -382,19 +382,23 @@ mixin ApiEnhancedRaw {
     if (XeApiStateStore.loadPublicKey() == null) {
       await registerXeapiKey({...query, 'deviceId': deviceId});
     }
-    final cookies = {..._stringMap(query['cookie']), 'deviceId': deviceId};
     final response = await Https.dioProxy.postUri(
       DioMetaData(
         _rawUri('/api/register/anonimous', EncryptType.XeApi, query['domain']?.toString()),
         data: {'username': buildXeApiAnonymousUsername(deviceId)},
-        options: _rawOptions(EncryptType.XeApi, '/api/register/anonimous', {...query, 'cookie': cookies}),
+        options: _rawOptions(EncryptType.XeApi, '/api/register/anonimous', query),
       ),
     );
     final body = _asMap(response.data);
     if (body['code'] == 200) {
+      final cookies = response.headers[HttpHeaders.setCookieHeader] ?? const <String>[];
       return {
-        ...body,
-        'cookie': response.headers[HttpHeaders.setCookieHeader]?.join(';') ?? '',
+        'status': 200,
+        'body': {
+          ...body,
+          'cookie': cookies.join(';'),
+        },
+        'cookie': cookies,
       };
     }
     return body;

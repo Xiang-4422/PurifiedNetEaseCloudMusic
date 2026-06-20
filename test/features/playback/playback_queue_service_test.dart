@@ -92,6 +92,44 @@ void main() {
       );
     });
 
+    test('relocates confirmed item when caller passes stale index', () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+      await queueService.replaceQueue(
+        [_item('1'), _item('2')],
+        0,
+        playlistName: 'Queue',
+      );
+
+      await queueService.markConfirmed(item: _item('2'), index: 0);
+
+      expect(queueService.state.confirmedIndex, 1);
+      expect(queueService.state.confirmedItem.id, '2');
+      expect(playbackService.notificationIndex, 1);
+    });
+
+    test('ignores stale confirmed item after queue replacement', () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+      await queueService.replaceQueue(
+        [_item('1'), _item('2')],
+        0,
+        playlistName: 'Old Queue',
+      );
+      await queueService.markConfirmed(item: _item('1'), index: 0);
+      await queueService.replaceQueue(
+        [_item('3'), _item('4')],
+        0,
+        playlistName: 'New Queue',
+      );
+
+      await queueService.markConfirmed(item: _item('1'), index: 0);
+
+      expect(queueService.state.confirmedIndex, -1);
+      expect(queueService.state.confirmedItem.id, isEmpty);
+      expect(playbackService.notificationIndex, -1);
+    });
+
     test('skips notification sync when notification signature is unchanged', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);

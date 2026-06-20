@@ -299,13 +299,20 @@ class PlaybackQueueService {
     required PlaybackQueueItem item,
     int? index,
   }) async {
-    final confirmedIndex = index ?? _indexOfItem(_state.activeQueue, item.id);
+    final confirmedIndex = _confirmedIndexForItem(item, index);
     if (confirmedIndex < 0) {
       return _state;
     }
     _emit(_state.copyWith(confirmedIndex: confirmedIndex));
     await _syncNotificationQueue();
     return _state;
+  }
+
+  int _confirmedIndexForItem(PlaybackQueueItem item, int? index) {
+    if (index != null && index >= 0 && index < _state.activeQueue.length && _state.activeQueue[index].id == item.id) {
+      return index;
+    }
+    return _indexOfItem(_state.activeQueue, item.id);
   }
 
   /// 从恢复数据重建队列事实。

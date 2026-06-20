@@ -378,9 +378,25 @@ class UserLibraryController extends GetxController {
   }
 
   void _applyLikedSongIds(List<int> nextLikedSongIds) {
+    final nextSongIds = nextLikedSongIds.map((songId) => songId.toString()).toList(growable: false);
     likedSongIds
       ..clear()
       ..addAll(nextLikedSongIds);
+    if (likedSongs.isEmpty) {
+      return;
+    }
+    if (nextSongIds.isEmpty) {
+      likedSongs.clear();
+      return;
+    }
+    final loadedSongsById = {
+      for (final song in likedSongs) _resolveSongSourceId(song): song,
+    };
+    likedSongs
+      ..clear()
+      ..addAll(
+        nextSongIds.map((songId) => loadedSongsById[songId]).whereType<PlaybackQueueItem>().map((song) => song.copyWith(isLiked: true)),
+      );
   }
 
   void _applyUserPlaylists(List<PlaylistSummaryData> playLists) {

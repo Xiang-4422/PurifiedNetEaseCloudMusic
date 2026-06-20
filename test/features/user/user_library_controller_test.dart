@@ -131,6 +131,62 @@ void main() {
       expect(controller.userPlayLists, hasLength(10));
     });
 
+    test('syncs visible liked songs when liked id refresh succeeds', () async {
+      final repository = _FakeUserRepository()..remoteLikedSongIds = [303, 202];
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.likedSongIds.addAll([101, 202, 303]);
+      controller.likedSongs.addAll([
+        _song('101', title: 'Removed liked song'),
+        _song('202', title: 'Second visible song'),
+        _song('303', title: 'First visible song'),
+      ]);
+
+      await controller.refreshLikedSongIds();
+
+      expect(controller.likedSongIds, [303, 202]);
+      expect(controller.likedSongs.map((song) => song.sourceId), ['303', '202']);
+      expect(controller.likedSongs.map((song) => song.title), ['First visible song', 'Second visible song']);
+      expect(controller.likedSongs.every((song) => song.isLiked), isTrue);
+    });
+
+    test('clears visible liked songs when liked id refresh succeeds with no ids', () async {
+      final repository = _FakeUserRepository()..remoteLikedSongIds = const [];
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.likedSongIds.add(101);
+      controller.likedSongs.add(_song('101', title: 'Old liked song'));
+
+      await controller.refreshLikedSongIds();
+
+      expect(controller.likedSongIds, isEmpty);
+      expect(controller.likedSongs, isEmpty);
+    });
+
     test('keeps visible library state when snapshot refresh fails', () async {
       final repository = _FakeUserRepository()..fetchUserLibrarySnapshotError = StateError('offline');
       final sessionController = UserSessionController(
@@ -461,6 +517,11 @@ class _FakeUserRepository implements UserRepository {
       likedSongIds: remoteLikedSongIds,
       playlists: remoteUserPlaylists,
     );
+  }
+
+  @override
+  Future<List<int>> fetchLikedSongIds(String userId) async {
+    return remoteLikedSongIds;
   }
 
   @override

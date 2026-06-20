@@ -7,8 +7,49 @@ import 'package:encrypt/encrypt.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netease_music_api/src/client/dio_ext.dart';
 import 'package:netease_music_api/src/client/netease_handler.dart';
+import 'package:netease_music_api/src/client/xeapi_crypto.dart';
 import 'package:netease_music_api/src/endpoints/raw/api_enhanced_raw.dart';
 import 'package:netease_music_api/src/generated/api_enhanced_modules.g.dart';
+
+const _nodeOracleSpecialModules = {
+  'avatar_upload',
+  'cloud_import',
+  'cloud_upload_complete',
+  'cloud_upload_token',
+  'playlist_cover_update',
+  'playlist_track_all',
+  'playlist_tracks',
+  'scrobble',
+  'song_url_v1',
+  'song_url_v1_302',
+  'top_list',
+  'vip_sign_history',
+  'vip_tasks_v1',
+  'voice_upload',
+};
+
+const _dartBehaviorSpecialModules = {
+  'api',
+  'audio_match',
+  'cloud',
+  'decrypt',
+  'eapi_decrypt',
+  'inner_version',
+  'login_qr_create',
+  'register_anonimous',
+  'register_xeapikey',
+  'related_playlist',
+  'song_url_match',
+  'song_url_ncmget',
+};
+
+const _limitedSpecialModules = {
+  'decrypt',
+  'song_url_match',
+  'song_url_v1',
+};
+
+const _encryptedXeApiPublicKeyFixture = 'Ix+68DGNS+G6Oiwlq/g/+pJlf+CLRzLMsVxgAP9Sq82SZX/gi0cyzLFcYAD/UqvNXpKKq45tTezVfnTCJ+SJPc19vHxGXOOCLiTjXypVtRo2werynr5A9/iH1qGdKGF4';
 
 void main() {
   group('ApiEnhancedRaw manifest', () {
@@ -102,6 +143,22 @@ void main() {
         'vip_tasks_v1',
         'voice_upload',
       });
+    });
+
+    test('special modules have explicit coverage status', () {
+      final specialModules = apiEnhancedModules.where((module) => module.special).map((module) => module.module).toSet();
+      final oracleModules = _nodeOracleFixtureModules();
+
+      expect(oracleModules.intersection(_nodeOracleSpecialModules), _nodeOracleSpecialModules);
+      expect({..._nodeOracleSpecialModules, ..._dartBehaviorSpecialModules}, specialModules);
+      expect(_limitedSpecialModules.difference(specialModules), isEmpty);
+    });
+
+    test('node oracle fixtures cover every normal upstream module', () {
+      final oracleModules = _nodeOracleFixtureModules();
+      final missingNormalModules = apiEnhancedModules.where((module) => !module.special && !oracleModules.contains(module.module)).map((module) => module.module).toList();
+
+      expect(missingNormalModules, isEmpty);
     });
 
     test('normal modules use supported crypto and concrete paths', () {
@@ -1855,6 +1912,26 @@ void main() {
       expect(proxy.called, 'POST');
     });
 
+    test('generic api special module dispatches raw request metadata', () async {
+      final proxy = _CaptureDioProxy();
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.requestModule('api', {
+        'uri': '/api/custom/path',
+        'data': {'id': '123'},
+        'crypto': 'api',
+        'method': 'POST',
+        'realIP': '1.2.3.4',
+      });
+
+      expect(result, {'code': 200});
+      expect(proxy.metaData!.uri.toString(), 'https://interface.music.163.com/api/custom/path');
+      expect(proxy.metaData!.data, {'id': '123'});
+      expect(proxy.metaData!.method, 'POST');
+      expect(proxy.metaData!.options!.extra!['encryptType'], EncryptType.Api);
+      expect(proxy.metaData!.options!.extra!['realIP'], '1.2.3.4');
+    });
+
     test('eapi decrypt reports missing input', () {
       expect(api.eapiDecrypt({}), {'code': 400, 'message': 'hex string is required'});
       expect(api.eapiDecrypt({'data': '00'}), {'code': 400, 'message': 'hex string is required'});
@@ -2046,6 +2123,70 @@ void main() {
             },
           ],
         },
+      });
+    });
+
+    test('register xeapi key special module verifies and stores public key state', () async {
+      XeApiStateStore.resetForTesting();
+      final adapter = _JsonResponseAdapter({
+        'code': 200,
+        'data': {
+          'encryptedData': _encryptedXeApiPublicKeyFixture,
+          'timestamp': '1700000000000',
+          'signature': xeapiSign('1700000000000', '1234567890123456'),
+        },
+      });
+      Https.setDioForTesting(Dio()..httpClientAdapter = adapter);
+
+      final result = await api.requestModule('register_xeapikey', {
+        'nonce': '1234567890123456',
+        'timestamp': '1700000000000',
+        'deviceId': 'device-1',
+        'currentKeyVersion': '0',
+      });
+
+      expect(adapter.requestedUri.toString(), 'https://interface.music.163.com/api/gorilla/anti/crawler/security/key/get');
+      expect(adapter.requestData.toString(), contains('deviceId=device-1'));
+      expect(adapter.requestData.toString(), contains('currentKeyVersion=0'));
+      expect(adapter.requestHeaders[HttpHeaders.cookieHeader], 'deviceId=device-1');
+      expect(result, {
+        'publicKey': 'BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwc=',
+        'version': '1',
+        'sk': 'secret-key',
+        'deviceId': 'device-1',
+      });
+      expect(XeApiStateStore.loadPublicKey()!.sk, 'secret-key');
+    });
+
+    test('anonymous register special module prepares xeapi username and cookie scope', () async {
+      XeApiStateStore.resetForTesting();
+      final adapter = _JsonResponseAdapter({
+        'code': 200,
+        'data': {
+          'encryptedData': _encryptedXeApiPublicKeyFixture,
+          'timestamp': '1700000000000',
+          'signature': xeapiSign('1700000000000', '1234567890123456'),
+        },
+      });
+      final proxy = _CaptureDioProxy();
+      Https.setDioForTesting(Dio()..httpClientAdapter = adapter);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.requestModule('register_anonimous', {
+        'nonce': '1234567890123456',
+        'timestamp': '1700000000000',
+        'deviceId': 'device-1',
+        'cookie': {'MUSIC_A': 'anonymous-token'},
+      });
+
+      expect(result, {'code': 200, 'cookie': ''});
+      expect(adapter.requestedUri.toString(), 'https://interface.music.163.com/api/gorilla/anti/crawler/security/key/get');
+      expect(proxy.metaData!.uri.toString(), 'https://interface3.music.163.com/api/register/anonimous');
+      expect(proxy.metaData!.data, {'username': buildXeApiAnonymousUsername('device-1')});
+      expect(proxy.metaData!.options!.extra!['encryptType'], EncryptType.XeApi);
+      expect(proxy.metaData!.options!.extra!['cookies'], {
+        'MUSIC_A': 'anonymous-token',
+        'deviceId': 'device-1',
       });
     });
 
@@ -3116,10 +3257,14 @@ class _JsonResponseAdapter implements HttpClientAdapter {
 
   final Map<String, dynamic> body;
   Uri? requestedUri;
+  dynamic requestData;
+  Map<String, dynamic> requestHeaders = {};
 
   @override
   Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
     requestedUri = options.uri;
+    requestData = options.data;
+    requestHeaders = Map<String, dynamic>.from(options.headers);
     return ResponseBody.fromString(jsonEncode(body), 200, headers: {
       Headers.contentTypeHeader: [Headers.jsonContentType],
     });
@@ -3203,6 +3348,11 @@ Future<List<Map<String, dynamic>>> _loadNodeOracleFixtures() async {
   }
   final decoded = jsonDecode(result.stdout as String);
   return (decoded as List).map((value) => _jsonMap(value)).toList();
+}
+
+Set<String> _nodeOracleFixtureModules() {
+  final script = _findNodeOracleScript().readAsStringSync();
+  return RegExp(r"module: '([^']+)'").allMatches(script).map((match) => match.group(1)!).toSet();
 }
 
 File _findNodeOracleScript() {

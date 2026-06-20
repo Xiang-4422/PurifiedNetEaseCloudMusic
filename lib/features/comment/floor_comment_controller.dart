@@ -87,6 +87,7 @@ class FloorCommentController {
   }
 
   Future<bool> _reload() async {
+    final previousState = state.value;
     try {
       final page = await _repository.fetchFloorComments(
         id,
@@ -104,10 +105,16 @@ class FloorCommentController {
       _loadedOnce = true;
       return true;
     } catch (error, stackTrace) {
-      state.value = PagedState.error(
-        error,
-        stackTrace: stackTrace,
-      );
+      state.value = previousState.items.isEmpty
+          ? PagedState.error(
+              error,
+              stackTrace: stackTrace,
+            )
+          : previousState.copyWith(
+              refreshing: false,
+              error: error,
+              stackTrace: stackTrace,
+            );
       return false;
     }
   }

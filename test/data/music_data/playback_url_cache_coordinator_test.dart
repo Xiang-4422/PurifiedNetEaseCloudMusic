@@ -1,0 +1,151 @@
+import 'dart:async';
+
+import 'package:bujuan/data/music_data/sources/local/resources/playback_url_cache_coordinator.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  group('PlaybackUrlCacheCoordinator', () {
+    test('coalesces concurrent remote loads and reuses fresh cache', () async {
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        return 'https://audio.test/1.mp3';
+      }
+
+      final urls = await Future.wait([
+        coordinator.resolve('1', qualityLevel: 'lossless', forceRefresh: false, load: load),
+        coordinator.resolve('1', qualityLevel: 'lossless', forceRefresh: false, load: load),
+        coordinator.resolve('1', qualityLevel: 'lossless', forceRefresh: false, load: load),
+      ]);
+      final cached = await coordinator.resolve('1', qualityLevel: 'lossless', forceRefresh: false, load: load);
+
+      expect(urls, [
+        'https://audio.test/1.mp3',
+        'https://audio.test/1.mp3',
+        'https://audio.test/1.mp3',
+      ]);
+      expect(cached, 'https://audio.test/1.mp3');
+      expect(loadCount, 1);
+    });
+
+    test('expires remote cache by ttl', () async {
+      var now = DateTime(2026);
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+        ttl: const Duration(minutes: 2),
+        now: () => now,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        return 'https://audio.test/1-$loadCount.mp3';
+      }
+
+      final initial = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+      now = now.add(const Duration(minutes: 1));
+      final cached = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+      now = now.add(const Duration(minutes: 2));
+      final expired = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+
+      expect(initial, 'https://audio.test/1-1.mp3');
+      expect(cached, initial);
+      expect(expired, 'https://audio.test/1-2.mp3');
+      expect(loadCount, 2);
+    });
+
+    test('prefers local resource over cached and in-flight remote url', () async {
+      String? localUrl;
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => localUrl,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        return 'https://audio.test/1.mp3';
+      }
+
+      final remote = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+      localUrl = '/music/downloaded.mp3';
+      final cachedLocal = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+
+      localUrl = null;
+      final completer = Completer<String?>();
+      final inFlight = coordinator.resolve(
+        '2',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () {
+          loadCount++;
+          return completer.future;
+        },
+      );
+      await _waitUntil(() => loadCount == 2);
+      localUrl = '/music/downloading.mp3';
+      final inFlightLocal = await coordinator.resolve(
+        '2',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async => 'https://audio.test/2-reloaded.mp3',
+      );
+      completer.complete('https://audio.test/2.mp3');
+
+      expect(remote, 'https://audio.test/1.mp3');
+      expect(cachedLocal, '/music/downloaded.mp3');
+      expect(inFlightLocal, '/music/downloading.mp3');
+      expect(await inFlight, 'https://audio.test/2.mp3');
+      expect(loadCount, 2);
+    });
+
+    test('late stale load does not overwrite force refreshed cache', () async {
+      final completers = <Completer<String?>>[];
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      Future<String?> load() {
+        final completer = Completer<String?>();
+        completers.add(completer);
+        return completer.future;
+      }
+
+      final staleLoad = coordinator.resolve('1', qualityLevel: 'lossless', forceRefresh: false, load: load);
+      await _waitUntil(() => completers.length == 1);
+      final refreshLoad = coordinator.resolve('1', qualityLevel: 'lossless', forceRefresh: true, load: load);
+      await _waitUntil(() => completers.length == 2);
+
+      completers[1].complete('https://audio.test/1-fresh.mp3');
+      expect(await refreshLoad, 'https://audio.test/1-fresh.mp3');
+      completers[0].complete('https://audio.test/1-stale.mp3');
+      expect(await staleLoad, 'https://audio.test/1-stale.mp3');
+
+      final cached = await coordinator.resolve(
+        '1',
+        qualityLevel: 'lossless',
+        forceRefresh: false,
+        load: () async => 'https://audio.test/1-reloaded.mp3',
+      );
+
+      expect(cached, 'https://audio.test/1-fresh.mp3');
+    });
+  });
+}
+
+Future<void> _waitUntil(
+  bool Function() condition, {
+  Duration timeout = const Duration(seconds: 1),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('Timed out waiting for condition');
+    }
+    await Future<void>.delayed(Duration.zero);
+  }
+}

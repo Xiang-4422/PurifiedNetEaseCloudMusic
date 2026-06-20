@@ -16,6 +16,7 @@ import 'package:bujuan/core/entities/track_with_resources.dart';
 
 import 'sources/local/resources/local_artwork_cache_repository.dart';
 import 'sources/local/resources/local_resource_index_repository.dart';
+import 'sources/local/resources/playback_url_cache_coordinator.dart';
 
 /// 聚合本地曲库、网易云曲库和本地资源索引的音乐数据仓库。
 class MusicDataRepository {
@@ -37,12 +38,10 @@ class MusicDataRepository {
   final LocalMusicSource _localMusicSource;
   final LocalResourceIndexRepository _resourceIndexRepository;
   final LocalArtworkCacheRepository _artworkCacheRepository;
-  final Map<String, Future<String?>> _playbackUrlLoads = {};
-  final Map<String, _CachedPlaybackUrl> _playbackUrlCache = {};
   final Map<String, Future<TrackLyrics?>> _lyricsLoads = {};
-
-  static const Duration _playbackUrlCacheTtl = Duration(minutes: 2);
-  static const int _maxPlaybackUrlCacheEntries = 64;
+  late final PlaybackUrlCacheCoordinator _playbackUrlCoordinator = PlaybackUrlCacheCoordinator(
+    resolveLocalResourceUrl: _resolveIndexedAudioResourceUrl,
+  );
 
   /// 保存曲目并预缓存封面。
   Future<void> saveTracks(
@@ -370,68 +369,12 @@ class MusicDataRepository {
     required bool forceRefresh,
     required Future<String?> Function() load,
   }) async {
-    final cacheKey = '$trackId|${qualityLevel ?? ''}';
-    final cachedUrl = _playbackUrlCache[cacheKey];
-    final now = DateTime.now();
-    if (!forceRefresh && cachedUrl != null) {
-      if (now.difference(cachedUrl.createdAt) < _playbackUrlCacheTtl) {
-        final localUrl = await _resolveIndexedAudioResourceUrl(trackId);
-        if (localUrl != null) {
-          return localUrl;
-        }
-        _touchPlaybackUrlCache(cacheKey, cachedUrl);
-        return cachedUrl.url;
-      }
-      _playbackUrlCache.remove(cacheKey);
-    }
-    final loadingUrl = _playbackUrlLoads[cacheKey];
-    if (!forceRefresh && loadingUrl != null) {
-      final localUrl = await _resolveIndexedAudioResourceUrl(trackId);
-      if (localUrl != null) {
-        return localUrl;
-      }
-      return loadingUrl;
-    }
-    late final Future<String?> loadFuture;
-    loadFuture = load().then((url) {
-      if (identical(_playbackUrlLoads[cacheKey], loadFuture)) {
-        _cachePlaybackUrl(cacheKey, url);
-      }
-      return url;
-    }).whenComplete(() {
-      if (identical(_playbackUrlLoads[cacheKey], loadFuture)) {
-        _playbackUrlLoads.remove(cacheKey);
-      }
-    });
-    _playbackUrlLoads[cacheKey] = loadFuture;
-    return loadFuture;
-  }
-
-  void _cachePlaybackUrl(String cacheKey, String? url) {
-    if (url != null && _isRemoteUrl(url)) {
-      _playbackUrlCache.remove(cacheKey);
-      _playbackUrlCache[cacheKey] = _CachedPlaybackUrl(
-        url: url,
-        createdAt: DateTime.now(),
-      );
-      _trimPlaybackUrlCache();
-    }
-  }
-
-  void _touchPlaybackUrlCache(String cacheKey, _CachedPlaybackUrl cachedUrl) {
-    _playbackUrlCache
-      ..remove(cacheKey)
-      ..[cacheKey] = cachedUrl;
-  }
-
-  void _trimPlaybackUrlCache() {
-    while (_playbackUrlCache.length > _maxPlaybackUrlCacheEntries) {
-      _playbackUrlCache.remove(_playbackUrlCache.keys.first);
-    }
-  }
-
-  bool _isRemoteUrl(String url) {
-    return url.startsWith('http://') || url.startsWith('https://');
+    return _playbackUrlCoordinator.resolve(
+      trackId,
+      qualityLevel: qualityLevel,
+      forceRefresh: forceRefresh,
+      load: load,
+    );
   }
 
   Future<String?> _resolveIndexedAudioResourceUrl(String trackId) async {
@@ -608,14 +551,4 @@ class MusicDataRepository {
   bool _isLocalPlaylistId(String playlistId) {
     return playlistId.startsWith('${_localMusicSource.sourceKey}:');
   }
-}
-
-class _CachedPlaybackUrl {
-  const _CachedPlaybackUrl({
-    required this.url,
-    required this.createdAt,
-  });
-
-  final String url;
-  final DateTime createdAt;
 }

@@ -575,6 +575,32 @@ void main() {
       );
     });
 
+    test('music data repository delegates playback url cache coordination', () {
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/data/music_data/music_data_repository.dart',
+      );
+      final coordinatorFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/resources/playback_url_cache_coordinator.dart',
+      );
+      final repositoryContent = repositoryFile.readAsStringSync();
+      final coordinatorContent = coordinatorFile.existsSync() ? coordinatorFile.readAsStringSync() : '';
+      final violations = <String>[
+        if (!coordinatorFile.existsSync()) 'playback url cache coordinator is missing',
+        if (!repositoryContent.contains('PlaybackUrlCacheCoordinator')) 'repository does not delegate to PlaybackUrlCacheCoordinator',
+        if (repositoryContent.contains('Map<String, Future<String?>> _playbackUrlLoads')) 'repository still owns playback URL in-flight loads',
+        if (repositoryContent.contains('Map<String, _CachedPlaybackUrl> _playbackUrlCache')) 'repository still owns playback URL cache entries',
+        if (repositoryContent.contains('class _CachedPlaybackUrl')) 'repository still owns cached playback URL model',
+        if (!coordinatorContent.contains('final Map<String, Future<String?>> _loads')) 'coordinator does not own in-flight load state',
+        if (!coordinatorContent.contains('final Map<String, _CachedPlaybackUrl> _cache')) 'coordinator does not own cache state',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放 URL 短 TTL、并发合并、本地资源优先重查和 LRU 淘汰必须留在独立协调器，MusicDataRepository 只编排数据来源。',
+      );
+    });
+
     test('playback UI reads explicit queue item fields instead of metadata keys', () {
       final playbackUiFiles = _dartFiles(Directory('${projectRoot.path}/lib/ui')).where((file) => _relativePath(file).contains('/playback/'));
       final violations = playbackUiFiles.where((file) => _contains(file, '.metadata[')).map(_relativePath).toList();

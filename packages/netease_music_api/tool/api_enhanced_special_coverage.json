@@ -6,6 +6,7 @@
     "cloud_import",
     "cloud_upload_complete",
     "cloud_upload_token",
+    "eapi_decrypt",
     "inner_version",
     "login_qr_create",
     "playlist_cover_update",
@@ -26,7 +27,6 @@
   "dartBehavior": [
     "cloud",
     "decrypt",
-    "eapi_decrypt",
     "song_url_match"
   ],
   "limited": {

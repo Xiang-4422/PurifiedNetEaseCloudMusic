@@ -22,13 +22,48 @@ const relatedPlaylistHtml = `<div class="cver u-cover u-cover-3">
   <a class="nm nm f-thide s-fc3" href="/user/home?id=77">Bob</a>
 </div>
 `
+const eapiKey = Buffer.from('e82ckenh8dichen8', 'utf8')
+const eapiRequestHex = eapiEncryptText('/api/test-36cd479b6b5-{"id":1}-36cd479b6b5-digest')
+const eapiResponseHex = eapiEncryptText('{"code":200,"ok":true}')
 
 function xeapiSign(timestamp, nonce) {
   return crypto.createHmac('sha256', xeapiSignKey).update(`${timestamp}${nonce}`).digest('base64')
 }
 
+function eapiEncryptText(text) {
+  const cipher = crypto.createCipheriv('aes-128-ecb', eapiKey, null)
+  return Buffer.concat([cipher.update(Buffer.from(text, 'utf8')), cipher.final()]).toString('hex').toUpperCase()
+}
+
+function eapiDecryptText(hexString) {
+  const decipher = crypto.createDecipheriv('aes-128-ecb', eapiKey, null)
+  return Buffer.concat([decipher.update(Buffer.from(hexString, 'hex')), decipher.final()]).toString('utf8')
+}
+
+function eapiReqDecrypt(hexString) {
+  const decryptedData = eapiDecryptText(hexString)
+  const match = decryptedData.match(/(.*?)-36cd479b6b5-(.*?)-36cd479b6b5-(.*)/)
+  if (!match) {
+    return null
+  }
+  return {
+    url: match[1],
+    data: JSON.parse(match[2]),
+  }
+}
+
+function eapiResDecrypt(hexString) {
+  return JSON.parse(eapiDecryptText(hexString))
+}
+
 const originalRequire = Module.prototype.require
 Module.prototype.require = function patchedRequire(request) {
+  if (request === '../util/crypto' && this.filename && this.filename.endsWith('/module/eapi_decrypt.js')) {
+    return {
+      eapiReqDecrypt,
+      eapiResDecrypt,
+    }
+  }
   if (request === 'crypto-js') {
     return {
       MD5(value) {
@@ -2848,6 +2883,21 @@ const fixtures = [
     query: {
       duration: 12,
       audioFP: 'finger print +/=?',
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'eapi_decrypt',
+    query: {
+      hexString: eapiRequestHex,
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'eapi_decrypt',
+    query: {
+      hexString: eapiResponseHex,
+      isReq: 'false',
     },
     allowNoRequest: true,
   },

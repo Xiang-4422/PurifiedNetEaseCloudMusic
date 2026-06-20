@@ -253,8 +253,11 @@ mixin ApiEnhancedRaw {
     final input = query['hexString'];
     if (input == null || input == '') {
       return {
-        'code': 400,
-        'message': 'hex string is required',
+        'status': 400,
+        'body': {
+          'code': 400,
+          'message': 'hex string is required',
+        },
       };
     }
     final hexString = input.toString();
@@ -262,13 +265,19 @@ mixin ApiEnhancedRaw {
 
     try {
       return {
-        'code': 200,
-        'data': isReq ? _eapiReqDecrypt(hexString) : eapiResDecrypt(_hexBytes(hexString)),
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': isReq ? _eapiReqDecrypt(hexString) : eapiResDecrypt(_hexBytes(hexString)),
+        },
       };
     } catch (error) {
       return {
-        'code': 400,
-        'message': '解密失败: $error',
+        'status': 400,
+        'body': {
+          'code': 400,
+          'message': '解密失败: $error',
+        },
       };
     }
   }

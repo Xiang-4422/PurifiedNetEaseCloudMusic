@@ -1921,19 +1921,31 @@ void main() {
     });
 
     test('eapi decrypt reports missing input', () {
-      expect(api.eapiDecrypt({}), {'code': 400, 'message': 'hex string is required'});
-      expect(api.eapiDecrypt({'data': '00'}), {'code': 400, 'message': 'hex string is required'});
+      expect(api.eapiDecrypt({}), {
+        'status': 400,
+        'body': {
+          'code': 400,
+          'message': 'hex string is required',
+        },
+      });
+      expect(api.eapiDecrypt({'data': '00'}), {
+        'status': 400,
+        'body': {
+          'code': 400,
+          'message': 'hex string is required',
+        },
+      });
     });
 
     test('eapi decrypt decodes request and response payloads', () {
       final requestHex = _encryptEapiText('/api/test-36cd479b6b5-{"id":1}-36cd479b6b5-digest');
       final responseHex = _encryptEapiText('{"code":200,"ok":true}');
 
-      expect(api.eapiDecrypt({'hexString': requestHex})['data'], {
+      expect(_jsonMap(api.eapiDecrypt({'hexString': requestHex})['body'])['data'], {
         'url': '/api/test',
         'data': {'id': 1},
       });
-      expect(api.eapiDecrypt({'hexString': responseHex, 'isReq': 'false'})['data'], {
+      expect(_jsonMap(api.eapiDecrypt({'hexString': responseHex, 'isReq': 'false'})['body'])['data'], {
         'code': 200,
         'ok': true,
       });
@@ -3100,6 +3112,8 @@ Future<dynamic> _dartResultForNoRequestOracleFixture(
   switch (module) {
     case 'audio_match':
       Https.setDioForTesting(Dio()..httpClientAdapter = _TextResponseAdapter('{"data":{"songId":123,"name":"Matched"}}'));
+      return api.requestModule(module, query);
+    case 'eapi_decrypt':
       return api.requestModule(module, query);
     case 'inner_version':
     case 'login_qr_create':

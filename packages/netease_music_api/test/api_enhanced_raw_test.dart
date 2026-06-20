@@ -89,6 +89,7 @@ void main() {
       expect(report['specialMissingStatus'], isEmpty);
       expect(report['specialNodeOracleMissingFixture'], isEmpty);
       expect(report['specialNonLimitedMissingOracle'], isEmpty);
+      expect(report['specialLimitedMissingReason'], isEmpty);
       expect(report['specialUnknownStatus'], isEmpty);
       expect(_stringSet(report['specialLimited']), {
         'cloud',
@@ -190,6 +191,10 @@ void main() {
       expect(dartBehaviorSpecialModules, isEmpty);
       expect(specialModules.difference(limitedSpecialModules).difference(nodeOracleSpecialModules), isEmpty);
       expect(limitedSpecialModules.difference(specialModules), isEmpty);
+      for (final entry in _jsonMap(status['limited']).entries) {
+        expect(entry.value, isA<String>(), reason: entry.key);
+        expect((entry.value as String).trim(), isNotEmpty, reason: entry.key);
+      }
     });
 
     test('node oracle fixtures cover every normal upstream module', () {

@@ -80,6 +80,12 @@ const report = {
   specialNonLimitedMissingOracle: sorted(
     specialModules.filter((module) => !limitedSpecial.has(module) && !nodeOracleSpecial.has(module)),
   ),
+  specialLimitedMissingReason: sorted(
+    [...limitedSpecial].filter((module) => {
+      const reason = coverage.limited[module]
+      return typeof reason !== 'string' || reason.trim().length === 0
+    }),
+  ),
   specialNodeOracle: sorted(nodeOracleSpecial),
   specialDartBehavior: sorted(dartBehaviorSpecial),
   specialLimited: sorted(limitedSpecial),
@@ -90,7 +96,8 @@ const hasFailure =
   report.specialMissingStatus.length > 0 ||
   report.specialUnknownStatus.length > 0 ||
   report.specialNodeOracleMissingFixture.length > 0 ||
-  report.specialNonLimitedMissingOracle.length > 0
+  report.specialNonLimitedMissingOracle.length > 0 ||
+  report.specialLimitedMissingReason.length > 0
 
 if (jsonOutput) {
   console.log(JSON.stringify(report, null, 2))
@@ -103,6 +110,7 @@ if (jsonOutput) {
   console.log(`special modules missing status: ${report.specialMissingStatus.length}`)
   console.log(`special node-oracle modules missing fixture: ${report.specialNodeOracleMissingFixture.length}`)
   console.log(`special non-limited modules missing oracle: ${report.specialNonLimitedMissingOracle.length}`)
+  console.log(`special limited modules missing reason: ${report.specialLimitedMissingReason.length}`)
   console.log(`special status unknown modules: ${report.specialUnknownStatus.length}`)
   console.log(`special node oracle: ${report.specialNodeOracle.join(', ')}`)
   console.log(`special dart behavior: ${report.specialDartBehavior.join(', ')}`)

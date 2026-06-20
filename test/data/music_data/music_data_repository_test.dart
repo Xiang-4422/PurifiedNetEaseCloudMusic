@@ -255,6 +255,59 @@ void main() {
       });
       expect(resourceIndexRepository.remainingResourceKinds('3'), isEmpty);
     });
+
+    test('keeps local resource files referenced by retained indexes', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-resource-shared-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final sharedAudio = await _writeFile(directory, 'shared.mp3');
+      final ownedLyrics = await _writeFile(directory, 'owned.lrc');
+      final localDataSource = _FakeLocalLibraryDataSource(
+        tracks: {
+          '1': _track('1'),
+          '2': _track('2'),
+        },
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.audio,
+            path: sharedAudio.path,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.lyrics,
+            path: ownedLyrics.path,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+          _resource(
+            trackId: '2',
+            kind: LocalResourceKind.audio,
+            path: sharedAudio.path,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final repository = _buildRepository(
+        localDataSource: localDataSource,
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      await repository.removeLocalTrackResources('1', deleteSourceFiles: true);
+
+      expect(sharedAudio.existsSync(), isTrue);
+      expect(ownedLyrics.existsSync(), isFalse);
+      expect(resourceIndexRepository.remainingResourceKinds('1'), isEmpty);
+      expect(resourceIndexRepository.remainingResourceKinds('2'), {
+        LocalResourceKind.audio,
+      });
+      expect(localDataSource.removedLyrics, ['1']);
+    });
   });
 }
 
@@ -311,6 +364,8 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
   _FakeLocalLibraryDataSource({Map<String, Track>? tracks}) : _tracks = tracks ?? {};
 
   final Map<String, TrackLyrics> savedLyrics = {};
+  final List<String> removedLyrics = [];
+  final List<String> removedTracks = [];
   final Map<String, Track> _tracks;
 
   @override
@@ -343,6 +398,18 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
   @override
   Future<void> saveLyrics(String trackId, TrackLyrics lyrics) async {
     savedLyrics[trackId] = lyrics;
+  }
+
+  @override
+  Future<void> removeTrack(String trackId) async {
+    removedTracks.add(trackId);
+    _tracks.remove(trackId);
+  }
+
+  @override
+  Future<void> removeLyrics(String trackId) async {
+    removedLyrics.add(trackId);
+    savedLyrics.remove(trackId);
   }
 
   @override
@@ -447,6 +514,11 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
   @override
   Future<void> removeResource(String trackId, LocalResourceKind kind) async {
     _resources.remove(_key(trackId, kind));
+  }
+
+  @override
+  Future<void> removeTrackResources(String trackId) async {
+    _resources.removeWhere((key, resource) => resource.trackId == trackId);
   }
 
   Set<LocalResourceKind> remainingResourceKinds(String trackId) {

@@ -424,17 +424,33 @@ class MusicDataRepository {
     }
     final track = trackWithResources.track;
     final resources = trackWithResources.resources;
+    final retainedPaths = _retainedResourcePathsAfterRemoving(
+      await _resourceIndexRepository.listResources(),
+      shouldRemove: (resource) => resource.trackId == trackId,
+    );
     await _deleteResourceFile(
       resources.audio,
-      deleteFile: deleteSourceFiles,
+      deleteFile: _shouldDeleteResourceFile(
+        resources.audio,
+        retainedPaths,
+        deleteSourceFiles: deleteSourceFiles,
+      ),
     );
     await _deleteResourceFile(
       resources.artwork,
-      deleteFile: deleteSourceFiles,
+      deleteFile: _shouldDeleteResourceFile(
+        resources.artwork,
+        retainedPaths,
+        deleteSourceFiles: deleteSourceFiles,
+      ),
     );
     await _deleteResourceFile(
       resources.lyrics,
-      deleteFile: deleteSourceFiles,
+      deleteFile: _shouldDeleteResourceFile(
+        resources.lyrics,
+        retainedPaths,
+        deleteSourceFiles: deleteSourceFiles,
+      ),
     );
     await _resourceIndexRepository.removeTrackResources(trackId);
     await _localDataSource.removeLyrics(trackId);
@@ -448,18 +464,45 @@ class MusicDataRepository {
     final resources = await _resourceIndexRepository.listResources(
       origins: const {TrackResourceOrigin.playbackCache},
     );
-    final indexedResources = await _resourceIndexRepository.listResources();
-    final retainedPaths = indexedResources.where((resource) => resource.origin != TrackResourceOrigin.playbackCache).map((resource) => resource.path).toSet();
+    final retainedPaths = _retainedResourcePathsAfterRemoving(
+      await _resourceIndexRepository.listResources(),
+      shouldRemove: (resource) => resource.origin == TrackResourceOrigin.playbackCache,
+    );
     for (final resource in resources) {
       await _deleteResourceFile(
         resource,
-        deleteFile: !retainedPaths.contains(resource.path),
+        deleteFile: _shouldDeleteResourceFile(
+          resource,
+          retainedPaths,
+          deleteSourceFiles: true,
+        ),
       );
       await _resourceIndexRepository.removeResource(
         resource.trackId,
         resource.kind,
       );
     }
+  }
+
+  Set<String> _retainedResourcePathsAfterRemoving(
+    List<LocalResourceEntry> indexedResources, {
+    required bool Function(LocalResourceEntry resource) shouldRemove,
+  }) {
+    return {
+      for (final resource in indexedResources)
+        if (!shouldRemove(resource)) resource.path,
+    };
+  }
+
+  bool _shouldDeleteResourceFile(
+    LocalResourceEntry? resource,
+    Set<String> retainedPaths, {
+    required bool deleteSourceFiles,
+  }) {
+    if (!deleteSourceFiles || resource == null) {
+      return false;
+    }
+    return !retainedPaths.contains(resource.path);
   }
 
   Future<void> _deleteResourceFile(

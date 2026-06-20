@@ -1341,6 +1341,62 @@ const fixtures = [
     },
   },
   {
+    module: 'video_category_list',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'video_detail',
+    query: {
+      id: '89ADDE33C0AAE8EC14B99F6750DB954D',
+    },
+  },
+  {
+    module: 'video_detail_info',
+    query: {
+      vid: '89ADDE33C0AAE8EC14B99F6750DB954D',
+    },
+  },
+  {
+    module: 'video_group',
+    query: {
+      id: 'group-1',
+      offset: 20,
+    },
+  },
+  {
+    module: 'video_group_list',
+    query: {},
+  },
+  {
+    module: 'video_sub',
+    query: {
+      id: '89ADDE33C0AAE8EC14B99F6750DB954D',
+      t: 1,
+    },
+  },
+  {
+    module: 'video_sub',
+    query: {
+      id: '89ADDE33C0AAE8EC14B99F6750DB954D',
+      t: 0,
+    },
+  },
+  {
+    module: 'video_timeline_all',
+    query: {
+      offset: 20,
+    },
+  },
+  {
+    module: 'video_timeline_recommend',
+    query: {
+      offset: 20,
+    },
+  },
+  {
     module: 'video_url',
     query: {
       id: '89ADDE33C0AAE8EC14B99F6750DB954D',

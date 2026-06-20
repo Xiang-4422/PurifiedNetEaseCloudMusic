@@ -845,6 +845,45 @@ void main() {
       });
     });
 
+    test('maps video request data like upstream', () {
+      expect(api.requestModuleDioMetaData('video_category_list', {}).data, {
+        'offset': 0,
+        'total': 'true',
+        'limit': 99,
+      });
+      expect(api.requestModuleDioMetaData('video_detail', {'id': 'video-1'}).data, {
+        'id': 'video-1',
+      });
+      expect(api.requestModuleDioMetaData('video_detail_info', {'vid': 'video-1'}).data, {
+        'threadid': 'R_VI_62_video-1',
+        'composeliked': true,
+      });
+      expect(api.requestModuleDioMetaData('video_group', {'id': 'group-1'}).data, {
+        'groupId': 'group-1',
+        'offset': 0,
+        'need_preview_url': 'true',
+        'total': true,
+      });
+      expect(api.requestModuleDioMetaData('video_group_list', {}).data, isEmpty);
+      final subMetaData = api.requestModuleDioMetaData('video_sub', {'id': 'video-1', 't': 1});
+      expect(subMetaData.uri.path, '/api/cloudvideo/video/sub');
+      expect(subMetaData.data, {'id': 'video-1'});
+      expect(api.requestModuleDioMetaData('video_sub', {'id': 'video-1', 't': 0}).uri.path, '/api/cloudvideo/video/unsub');
+      expect(api.requestModuleDioMetaData('video_timeline_all', {'offset': 20}).data, {
+        'groupId': 0,
+        'offset': 20,
+        'need_preview_url': 'true',
+        'total': true,
+      });
+      expect(api.requestModuleDioMetaData('video_timeline_recommend', {}).data, {
+        'offset': 0,
+        'filterLives': '[]',
+        'withProgramInfo': 'true',
+        'needUrl': '1',
+        'resolution': '480',
+      });
+    });
+
     test('maps user library request data like upstream', () {
       expect(api.requestModuleDioMetaData('user_account', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('user_subcount', {}).data, isEmpty);

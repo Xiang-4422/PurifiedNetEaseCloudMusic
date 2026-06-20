@@ -2054,6 +2054,49 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'id': query['id'],
         'r': _jsDefault(query['r'], 1080),
       };
+    case 'video_category_list':
+      return {
+        'offset': _jsDefault(query['offset'], 0),
+        'total': 'true',
+        'limit': _jsDefault(query['limit'], 99),
+      };
+    case 'video_detail':
+      return {
+        'id': query['id'],
+      };
+    case 'video_detail_info':
+      return {
+        'threadid': 'R_VI_62_${query['vid']}',
+        'composeliked': true,
+      };
+    case 'video_group':
+      return {
+        'groupId': query['id'],
+        'offset': _jsDefault(query['offset'], 0),
+        'need_preview_url': 'true',
+        'total': true,
+      };
+    case 'video_group_list':
+      return {};
+    case 'video_sub':
+      return {
+        'id': query['id'],
+      };
+    case 'video_timeline_all':
+      return {
+        'groupId': 0,
+        'offset': _jsDefault(query['offset'], 0),
+        'need_preview_url': 'true',
+        'total': true,
+      };
+    case 'video_timeline_recommend':
+      return {
+        'offset': _jsDefault(query['offset'], 0),
+        'filterLives': '[]',
+        'withProgramInfo': 'true',
+        'needUrl': '1',
+        'resolution': '480',
+      };
     case 'video_url':
       return {
         'ids': jsonEncode([query['id']?.toString() ?? '']),
@@ -2373,6 +2416,8 @@ String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
       return query['type']?.toString() == '2000' ? '/api/search/voice/get' : '/api/search/get';
     case 'search_suggest':
       return '/api/search/suggest/${query['type'] == 'mobile' ? 'keyword' : 'web'}';
+    case 'video_sub':
+      return '/api/cloudvideo/video/${query['t']?.toString() == '1' ? 'sub' : 'unsub'}';
   }
   return _resolvePath(metadata.pathTemplate, query);
 }

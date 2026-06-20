@@ -1251,10 +1251,11 @@ void main() {
           'Future<void> initializeBootstrapUi()',
         ],
         'lib/app/bootstrap/sdk_bootstrap.dart': [
-          'Future<void> initializeSdk({required bool debug})',
+          'Future<NeteaseMusicApi> initializeSdk({required bool debug})',
         ],
         'lib/app/bootstrap/data_bootstrap.dart': [
-          'Future<void> initializeDataInfrastructure()',
+          'Future<void> initializeDataInfrastructure({',
+          'required NeteaseMusicApi neteaseApi,',
         ],
         'lib/app/bootstrap/playback_bootstrap.dart': [
           'void registerPlaybackDependencies()',
@@ -1277,6 +1278,15 @@ void main() {
           entry.value.where((symbol) => !content.contains(symbol)).map((symbol) => '${entry.key}: $symbol'),
         );
       }
+      final appBootstrap = File('${projectRoot.path}/lib/app/bootstrap/app_bootstrap.dart').readAsStringSync();
+      final dataBootstrap = File('${projectRoot.path}/lib/app/bootstrap/data_bootstrap.dart').readAsStringSync();
+      final sdkBootstrap = File('${projectRoot.path}/lib/app/bootstrap/sdk_bootstrap.dart').readAsStringSync();
+      final sdkOwnershipViolations = <String>[
+        if (!appBootstrap.contains('final neteaseApi = await initializeSdk(')) 'app_bootstrap does not receive SDK instance from sdk_bootstrap',
+        if (!appBootstrap.contains('initializeDataInfrastructure(neteaseApi: neteaseApi)')) 'app_bootstrap does not pass SDK instance into data bootstrap',
+        if (!sdkBootstrap.contains('return NeteaseMusicApi();')) 'sdk_bootstrap does not create SDK instance',
+        if (dataBootstrap.contains('NeteaseMusicApi()')) 'data_bootstrap creates SDK instance directly',
+      ];
 
       expect(
         registrarDirectory.existsSync(),
@@ -1292,6 +1302,11 @@ void main() {
         missingEntrypoints,
         isEmpty,
         reason: '每个 bootstrap 文件必须保留清晰入口，避免装配职责重新混到单个大文件。',
+      );
+      expect(
+        sdkOwnershipViolations,
+        isEmpty,
+        reason: 'SDK 实例创建必须由 sdk_bootstrap 收口，data_bootstrap 只接收并注入已经创建好的 API 门面。',
       );
     });
 

@@ -43,7 +43,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:netease_music_api/netease_music_api.dart';
 
 /// Initializes local storage, data sources, repositories and long-running recovery.
-Future<void> initializeDataInfrastructure() async {
+Future<void> initializeDataInfrastructure({
+  required NeteaseMusicApi neteaseApi,
+}) async {
   final appDatabase = DriftAppDatabase(databaseName: LocalDatabaseConfig.databaseName);
   await appDatabase.init();
 
@@ -69,7 +71,6 @@ Future<void> initializeDataInfrastructure() async {
   final exploreCacheStore = ExploreCacheStore(
     cacheDataSource: appCacheDataSource,
   );
-  final neteaseApi = NeteaseMusicApi();
   final localMusicSource = LocalMusicSource(localDataSource: localLibraryDataSource);
   final localResourceIndexRepository = LocalResourceIndexRepository(
     dataSource: localResourceIndexDataSource,

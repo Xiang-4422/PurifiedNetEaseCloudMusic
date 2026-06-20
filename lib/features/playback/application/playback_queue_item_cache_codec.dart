@@ -46,7 +46,7 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
     albumTitle: json['albumTitle'] as String?,
     albumId: _stringOrNull(json['albumId']) ?? _stringOrNull(metadata['albumId']),
     artistNames: (json['artistNames'] as List? ?? const []).map((item) => '$item').toList(),
-    artistIds: (json['artistIds'] as List? ?? const []).map((item) => '$item').toList(),
+    artistIds: _stringList(json['artistIds'] ?? metadata['artistIds']),
     duration: json['duration'] is int ? Duration(milliseconds: json['duration'] as int) : null,
     artworkUrl: json['artworkUrl'] as String?,
     localArtworkPath: json['localArtworkPath'] as String?,
@@ -62,6 +62,7 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
     isCached: json['isCached'] as bool? ?? false,
     metadata: metadata
       ..remove('albumId')
+      ..remove('artistIds')
       ..remove('sourceType')
       ..remove('localLyricsPath')
       ..remove('availability'),
@@ -96,6 +97,7 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
 Map<String, dynamic> _customMetadata(Map<String, dynamic> metadata) {
   return Map<String, dynamic>.from(metadata)
     ..remove('albumId')
+    ..remove('artistIds')
     ..remove('sourceType')
     ..remove('localLyricsPath')
     ..remove('availability');
@@ -113,6 +115,10 @@ TrackAvailability _availabilityFrom(Object? value) {
     (item) => item.name == value,
     orElse: () => TrackAvailability.unknown,
   );
+}
+
+List<String> _stringList(Object? value) {
+  return (value as List? ?? const []).map((item) => '$item').where((item) => item.isNotEmpty).toList();
 }
 
 String? _stringOrNull(Object? value) {

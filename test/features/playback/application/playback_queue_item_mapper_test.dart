@@ -62,6 +62,25 @@ void main() {
       expect(item.metadata.containsKey('albumId'), isFalse);
     });
 
+    test('maps artist ids as explicit queue item field instead of metadata key', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(
+              metadata: const {
+                'artistIds': [10, '11'],
+              },
+            ),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.artistIds, ['10', '11']);
+      expect(item.metadata.containsKey('artistIds'), isFalse);
+    });
+
     test('maps source type as explicit queue item field instead of metadata key', () {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [

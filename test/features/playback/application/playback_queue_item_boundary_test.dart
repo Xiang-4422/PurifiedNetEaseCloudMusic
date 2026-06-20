@@ -58,6 +58,7 @@ void main() {
           availability: TrackAvailability.playable,
           metadata: const {
             'sourceType': 'netease',
+            'artistIds': ['legacy'],
             'localLyricsPath': '/legacy/lyrics.lrc',
             'availability': 'unavailable',
           },
@@ -93,6 +94,7 @@ void main() {
       expect(raw['mediaType'], 'playlist');
       expect(raw['albumId'], '20');
       expect(raw['sourceType'], 'netease');
+      expect(raw['artistIds'], ['10']);
       expect(raw['localLyricsPath'], '/cache/lyrics.lrc');
       expect(raw['availability'], 'playable');
       expect(raw['metadata'], isEmpty);
@@ -117,6 +119,7 @@ void main() {
         'metadata': {
           'sourceType': 'local',
           'albumId': '30',
+          'artistIds': [10, '11'],
           'localLyricsPath': '/music/a.lrc',
           'availability': 'localOnly',
           'custom': 'keep',
@@ -127,6 +130,7 @@ void main() {
 
       expect(decoded.single.sourceType, SourceType.local);
       expect(decoded.single.albumId, '30');
+      expect(decoded.single.artistIds, ['10', '11']);
       expect(decoded.single.localLyricsPath, '/music/a.lrc');
       expect(decoded.single.availability, TrackAvailability.localOnly);
       expect(decoded.single.metadata, {'custom': 'keep'});

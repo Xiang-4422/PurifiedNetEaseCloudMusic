@@ -248,6 +248,56 @@ void main() {
       expect(album.uri.path, '/api/v1/album/456');
     });
 
+    test('maps album request data like upstream', () {
+      expect(api.requestModuleDioMetaData('album_detail_dynamic', {'id': '456'}).data, {
+        'id': '456',
+      });
+      expect(api.requestModuleDioMetaData('album_list_style', {}).data, {
+        'limit': 10,
+        'offset': 0,
+        'total': true,
+        'area': 'Z_H',
+      });
+
+      final dailyBoard = api.requestModuleDioMetaData('album_songsaleboard', {});
+      expect(dailyBoard.uri.path, '/api/feealbum/songsaleboard/daily/type');
+      expect(dailyBoard.data, {
+        'albumType': 0,
+      });
+
+      final yearBoard = api.requestModuleDioMetaData('album_songsaleboard', {
+        'type': 'year',
+        'albumType': 1,
+        'year': 2025,
+      });
+      expect(yearBoard.uri.path, '/api/feealbum/songsaleboard/year/type');
+      expect(yearBoard.data, {
+        'albumType': 1,
+        'year': 2025,
+      });
+
+      final sub = api.requestModuleDioMetaData('album_sub', {
+        'id': '456',
+        't': 1,
+      });
+      expect(sub.uri.path, '/api/album/sub');
+      expect(sub.data, {
+        'id': '456',
+      });
+
+      final unsub = api.requestModuleDioMetaData('album_sub', {
+        'id': '456',
+        't': 0,
+      });
+      expect(unsub.uri.path, '/api/album/unsub');
+
+      expect(api.requestModuleDioMetaData('album_sublist', {}).data, {
+        'limit': 25,
+        'offset': 0,
+        'total': true,
+      });
+    });
+
     test('maps search suggest web and mobile branch paths', () {
       final web = api.requestModuleDioMetaData('search_suggest', {
         'keywords': 'hello',

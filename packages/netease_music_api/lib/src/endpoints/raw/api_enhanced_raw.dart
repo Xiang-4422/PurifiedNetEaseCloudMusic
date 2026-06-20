@@ -1069,6 +1069,33 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
   switch (module) {
     case 'album':
       return {};
+    case 'album_detail_dynamic':
+      return {
+        'id': query['id'],
+      };
+    case 'album_list_style':
+      return {
+        'limit': _jsDefault(query['limit'], 10),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+        'area': _jsDefault(query['area'], 'Z_H'),
+      };
+    case 'album_songsaleboard':
+      final type = _jsDefault(query['type'], 'daily');
+      return {
+        'albumType': _jsDefault(query['albumType'], 0),
+        if (type == 'year') 'year': query['year'],
+      };
+    case 'album_sub':
+      return {
+        'id': query['id'],
+      };
+    case 'album_sublist':
+      return {
+        'limit': _jsDefault(query['limit'], 25),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
     case 'search':
       if (query['type']?.toString() == '2000') {
         return {
@@ -1945,6 +1972,10 @@ Map<String, dynamic> _commentData(Map<String, dynamic> query) {
 
 String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
   switch (metadata.module) {
+    case 'album_songsaleboard':
+      return '/api/feealbum/songsaleboard/${_jsDefault(query['type'], 'daily')}/type';
+    case 'album_sub':
+      return '/api/album/${query['t']?.toString() == '1' ? 'sub' : 'unsub'}';
     case 'comment':
       return '/api/resource/comments/${_commentAction(query['t'])}';
     case 'comment_hot':

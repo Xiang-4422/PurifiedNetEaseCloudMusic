@@ -92,6 +92,46 @@ const fixtures = [
     },
   },
   {
+    module: 'album_detail_dynamic',
+    query: {
+      id: '456',
+    },
+  },
+  {
+    module: 'album_list_style',
+    query: {},
+  },
+  {
+    module: 'album_songsaleboard',
+    query: {},
+  },
+  {
+    module: 'album_songsaleboard',
+    query: {
+      type: 'year',
+      albumType: 1,
+      year: 2025,
+    },
+  },
+  {
+    module: 'album_sub',
+    query: {
+      id: '456',
+      t: 1,
+    },
+  },
+  {
+    module: 'album_sub',
+    query: {
+      id: '456',
+      t: 0,
+    },
+  },
+  {
+    module: 'album_sublist',
+    query: {},
+  },
+  {
     module: 'album',
     query: {
       id: '456',

@@ -40,11 +40,16 @@ function loadManifest() {
     entries: [...listSource.matchAll(/ApiEnhancedModule\(([\s\S]*?)\),/g)].map((match) => {
       const block = match[1]
       const module = block.match(/module: '([^']+)'/)?.[1]
+      const methodName = block.match(/methodName: '([^']+)'/)?.[1]
       if (!module) {
         throw new Error(`Cannot parse module entry: ${block}`)
       }
+      if (!methodName) {
+        throw new Error(`Cannot parse methodName entry: ${block}`)
+      }
       return {
         module,
+        methodName,
         special: /special: true/.test(block),
       }
     }),
@@ -95,6 +100,18 @@ function gitOutput(args) {
 
 function sorted(values) {
   return [...values].sort()
+}
+
+function duplicateValues(values) {
+  const seen = new Set()
+  const duplicate = new Set()
+  for (const value of values) {
+    if (seen.has(value)) {
+      duplicate.add(value)
+    }
+    seen.add(value)
+  }
+  return sorted(duplicate)
 }
 
 function isRecord(value) {
@@ -261,6 +278,7 @@ const oracleModuleList = oracleFixtureList
   .filter((module) => typeof module === 'string')
 const oracleModules = new Set(oracleModuleList)
 const manifestModules = entries.map((entry) => entry.module)
+const manifestMethodNames = entries.map((entry) => entry.methodName)
 const upstreamModuleSet = new Set(upstreamModules)
 const manifestModuleSet = new Set(manifestModules)
 const normalModules = entries.filter((entry) => !entry.special).map((entry) => entry.module)
@@ -272,6 +290,8 @@ const limitedSpecial = new Set(Object.keys(coverage.limited || {}))
 const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial, ...limitedSpecial])
 const upstreamCommit = gitOutput(['-C', upstreamRepoPath, 'rev-parse', 'HEAD'])
 const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelain']) || ''
+const manifestDuplicateModules = duplicateValues(manifestModules)
+const manifestDuplicateMethodNames = duplicateValues(manifestMethodNames)
 const manifestMissingUpstreamModules = sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module)))
 const manifestUnknownUpstreamModules = sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module)))
 const manifestUpstreamMismatches = [
@@ -376,6 +396,20 @@ function buildSdkDifferences() {
       reason: `Generated manifest ${mismatch.field} ${mismatch.manifest || '<missing>'} does not match upstream ${mismatch.upstream || '<unknown>'}.`,
     })
   }
+  for (const module of manifestDuplicateModules) {
+    differences.push({
+      module,
+      status: 'duplicate_manifest_module',
+      reason: 'Generated manifest defines the same module more than once.',
+    })
+  }
+  for (const methodName of manifestDuplicateMethodNames) {
+    differences.push({
+      module: '<generated_manifest>',
+      status: 'duplicate_manifest_method_name',
+      reason: `Generated manifest defines raw method name ${methodName} more than once.`,
+    })
+  }
   return differences.sort((left, right) => `${left.module}:${left.status}`.localeCompare(`${right.module}:${right.status}`))
 }
 
@@ -387,6 +421,8 @@ const report = {
   manifestUpstreamVersion: manifest.upstreamVersion,
   manifestUpstreamCommit: manifest.upstreamCommit,
   manifestUpstreamMismatches,
+  manifestDuplicateModules,
+  manifestDuplicateMethodNames,
   upstreamModuleFileCount: upstreamModules.length,
   moduleCount: entries.length,
   normalModuleCount: normalModules.length,
@@ -415,6 +451,8 @@ const hasFailure =
   !report.upstreamCommit ||
   report.upstreamDirty ||
   report.manifestUpstreamMismatches.length > 0 ||
+  report.manifestDuplicateModules.length > 0 ||
+  report.manifestDuplicateMethodNames.length > 0 ||
   report.manifestMissingUpstreamModules.length > 0 ||
   report.manifestUnknownUpstreamModules.length > 0 ||
   report.oracleInvalidFixtures.length > 0 ||
@@ -438,6 +476,8 @@ if (jsonOutput) {
   console.log(`manifest upstream version: ${report.manifestUpstreamVersion || 'unknown'}`)
   console.log(`manifest upstream commit: ${report.manifestUpstreamCommit || 'unknown'}`)
   console.log(`manifest upstream mismatches: ${report.manifestUpstreamMismatches.length}`)
+  console.log(`manifest duplicate modules: ${report.manifestDuplicateModules.length}`)
+  console.log(`manifest duplicate method names: ${report.manifestDuplicateMethodNames.length}`)
   console.log(
     `modules: ${report.moduleCount} (upstream files ${report.upstreamModuleFileCount}, normal ${report.normalModuleCount}, special ${report.specialModuleCount})`,
   )

@@ -123,6 +123,8 @@ void main() {
       expect(report['manifestUpstreamVersion'], packageJson['version']);
       expect(report['manifestUpstreamCommit'], (commitResult.stdout as String).trim());
       expect(report['manifestUpstreamMismatches'], isEmpty);
+      expect(report['manifestDuplicateModules'], isEmpty);
+      expect(report['manifestDuplicateMethodNames'], isEmpty);
       expect((statusResult.stdout as String).trim(), isEmpty);
       expect(report['upstreamModuleFileCount'], upstreamModuleCount);
       expect(report['moduleCount'], apiEnhancedModules.length);

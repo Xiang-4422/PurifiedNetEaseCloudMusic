@@ -48,5 +48,48 @@ void main() {
         0,
       );
     });
+
+    test('builds safe progress bar total duration', () {
+      expect(
+        safePlaybackProgressTotal(const Duration(minutes: 3)),
+        const Duration(minutes: 3),
+      );
+      expect(
+        safePlaybackProgressTotal(null),
+        const Duration(seconds: 10),
+      );
+      expect(
+        safePlaybackProgressTotal(Duration.zero),
+        const Duration(seconds: 10),
+      );
+      expect(
+        safePlaybackProgressTotal(const Duration(seconds: -1)),
+        const Duration(seconds: 10),
+      );
+    });
+
+    test('clamps progress bar position into total duration bounds', () {
+      expect(
+        clampPlaybackProgressPosition(
+          position: const Duration(seconds: 30),
+          total: const Duration(minutes: 2),
+        ),
+        const Duration(seconds: 30),
+      );
+      expect(
+        clampPlaybackProgressPosition(
+          position: const Duration(seconds: -5),
+          total: const Duration(minutes: 2),
+        ),
+        Duration.zero,
+      );
+      expect(
+        clampPlaybackProgressPosition(
+          position: const Duration(minutes: 3),
+          total: const Duration(minutes: 2),
+        ),
+        const Duration(minutes: 2),
+      );
+    });
   });
 }

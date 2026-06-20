@@ -5,6 +5,7 @@ import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/ui/widgets/common/progress/circular_playback_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
@@ -19,12 +20,11 @@ class BottomPanelProgressBar extends StatelessWidget {
     return Obx(() {
       final currentSong = PlayerController.to.currentSongState.value;
       final currentPosition = PlayerController.to.currentPositionState.value;
-      final total = currentSong.duration ?? const Duration(seconds: 10);
-      final safePosition = currentPosition < Duration.zero
-          ? Duration.zero
-          : currentPosition > total
-              ? total
-              : currentPosition;
+      final total = safePlaybackProgressTotal(currentSong.duration);
+      final safePosition = clampPlaybackProgressPosition(
+        position: currentPosition,
+        total: total,
+      );
       return ProgressBar(
         progress: safePosition,
         buffered: safePosition,

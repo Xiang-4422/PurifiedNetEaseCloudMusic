@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+const _fallbackPlaybackProgressTotal = Duration(seconds: 10);
+
 /// 下载页和播放面板都只需要消费“0 到 1 的进度结果”，绘制细节集中在这里更稳定。
 class CircularPlaybackProgress extends StatelessWidget {
   /// 进度值，绘制时会钳制到 0 到 1。
@@ -67,13 +69,35 @@ double playbackProgressFraction({
   required Duration position,
   required Duration? total,
 }) {
-  final totalMilliseconds = total?.inMilliseconds ?? 0;
-  if (totalMilliseconds <= 0) {
+  if (total == null || total <= Duration.zero) {
     return 0;
   }
+  final totalMilliseconds = total.inMilliseconds;
   return normalizePlaybackProgress(
     position.inMilliseconds / totalMilliseconds,
   );
+}
+
+/// 返回进度条可安全消费的总时长，未知或异常时使用最小占位时长。
+Duration safePlaybackProgressTotal(Duration? total) {
+  if (total == null || total <= Duration.zero) {
+    return _fallbackPlaybackProgressTotal;
+  }
+  return total;
+}
+
+/// 将播放位置钳制到进度条可展示区间。
+Duration clampPlaybackProgressPosition({
+  required Duration position,
+  required Duration total,
+}) {
+  if (position < Duration.zero) {
+    return Duration.zero;
+  }
+  if (position > total) {
+    return total;
+  }
+  return position;
 }
 
 class _CircularProgressPainter extends CustomPainter {

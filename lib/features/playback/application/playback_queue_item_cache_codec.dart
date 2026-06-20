@@ -70,7 +70,6 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
 }
 
 Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
-  final availability = item.availability == TrackAvailability.unknown ? _availabilityFrom(item.metadata['availability']) : item.availability;
   return {
     'id': item.id,
     'sourceId': item.sourceId,
@@ -86,8 +85,8 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
     'mediaType': item.mediaType.name,
     'playbackUrl': item.playbackUrl,
     'lyricKey': item.lyricKey,
-    'localLyricsPath': item.localLyricsPath ?? _stringOrNull(item.metadata['localLyricsPath']),
-    'availability': availability.name,
+    'localLyricsPath': item.localLyricsPath,
+    'availability': item.availability.name,
     'isLiked': item.isLiked,
     'isCached': item.isCached,
     'metadata': _customMetadata(item.metadata),

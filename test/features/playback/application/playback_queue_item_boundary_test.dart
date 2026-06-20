@@ -76,6 +76,22 @@ void main() {
       expect(mediaItem.extras?['url'], 'https://example.com/song.mp3');
     });
 
+    test('adapter writes explicit fields only and does not promote legacy metadata', () {
+      final mediaItem = PlaybackQueueItemAdapter.toMediaItem(
+        _queueItem(
+          metadata: const {
+            'albumId': 'legacy-album',
+            'localLyricsPath': '/legacy/lyrics.lrc',
+            'availability': 'playable',
+          },
+        ),
+      );
+
+      expect(mediaItem.extras?['albumId'], '');
+      expect(mediaItem.extras?['localLyricsPath'], '');
+      expect(mediaItem.extras?['availability'], 'unknown');
+    });
+
     test('cache codec owns queue item JSON persistence format', () async {
       final encoded = await encodePlaybackQueueItemCacheList([
         _queueItem(
@@ -108,6 +124,25 @@ void main() {
       expect(decoded.single.availability, TrackAvailability.playable);
       expect(decoded.single.duration, const Duration(seconds: 3));
       expect(decoded.single.metadata, isEmpty);
+    });
+
+    test('cache codec writes explicit fields only and drops legacy metadata fields', () async {
+      final encoded = await encodePlaybackQueueItemCacheList([
+        _queueItem(
+          metadata: const {
+            'albumId': 'legacy-album',
+            'localLyricsPath': '/legacy/lyrics.lrc',
+            'availability': 'playable',
+            'custom': 'keep',
+          },
+        ),
+      ]);
+      final raw = jsonDecode(encoded.single) as Map<String, dynamic>;
+
+      expect(raw['albumId'], isNull);
+      expect(raw['localLyricsPath'], isNull);
+      expect(raw['availability'], 'unknown');
+      expect(raw['metadata'], {'custom': 'keep'});
     });
 
     test('cache codec migrates legacy metadata source type into explicit field', () async {

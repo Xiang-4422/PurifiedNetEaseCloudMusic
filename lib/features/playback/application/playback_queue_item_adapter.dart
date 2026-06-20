@@ -94,11 +94,10 @@ class PlaybackQueueItemAdapter {
   }
 
   static Map<String, dynamic> _toMediaItemExtras(PlaybackQueueItem item) {
-    final availability = item.availability == TrackAvailability.unknown ? _availabilityFrom(item.metadata['availability']) : item.availability;
     return {
       ...item.metadata,
       'sourceType': item.sourceType.name,
-      'availability': availability.name,
+      'availability': item.availability.name,
       'type': item.mediaType.name,
       'image': item.artworkUrl ?? item.localArtworkPath ?? '',
       'url': item.playbackUrl ?? '',
@@ -107,11 +106,11 @@ class PlaybackQueueItemAdapter {
       'artistNames': item.artistNames,
       'artistIds': item.artistIds,
       'albumTitle': item.albumTitle ?? '',
-      'albumId': item.albumId ?? _stringOrNull(item.metadata['albumId']) ?? '',
+      'albumId': item.albumId ?? '',
       'sourceId': item.sourceId,
       'localArtworkPath': item.localArtworkPath ?? '',
       'lyricKey': item.lyricKey ?? '',
-      'localLyricsPath': item.localLyricsPath ?? _stringOrNull(item.metadata['localLyricsPath']) ?? '',
+      'localLyricsPath': item.localLyricsPath ?? '',
       'cache': item.isCached,
     };
   }

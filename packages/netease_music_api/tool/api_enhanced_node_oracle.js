@@ -165,6 +165,58 @@ const fixtures = [
     },
   },
   {
+    module: 'login_status',
+    query: {},
+  },
+  {
+    module: 'login_refresh',
+    query: {},
+  },
+  {
+    module: 'logout',
+    query: {},
+  },
+  {
+    module: 'likelist',
+    query: {
+      uid: '42',
+    },
+  },
+  {
+    module: 'daily_signin',
+    query: {},
+  },
+  {
+    module: 'recommend_resource',
+    query: {},
+  },
+  {
+    module: 'personal_fm',
+    query: {},
+  },
+  {
+    module: 'check_music',
+    query: {
+      id: '101abc',
+      br: '320000abc',
+    },
+    responses: [{ status: 200, body: { code: 200, data: [{ code: 200 }] }, cookie: [] }],
+  },
+  {
+    module: 'banner',
+    query: {},
+  },
+  {
+    module: 'banner',
+    query: {
+      type: 2,
+    },
+  },
+  {
+    module: 'homepage_dragon_ball',
+    query: {},
+  },
+  {
     module: 'playlist_detail',
     query: {
       id: '888',

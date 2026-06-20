@@ -419,6 +419,31 @@ void main() {
       });
     });
 
+    test('maps account and library request data like upstream', () {
+      expect(api.requestModuleDioMetaData('login_status', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('login_refresh', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('logout', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('recommend_resource', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('personal_fm', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('homepage_dragon_ball', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('likelist', {'uid': '42'}).data, {
+        'uid': '42',
+      });
+      expect(api.requestModuleDioMetaData('daily_signin', {}).data, {
+        'type': 0,
+      });
+      expect(api.requestModuleDioMetaData('check_music', {'id': '101abc', 'br': '320000abc'}).data, {
+        'ids': '[101]',
+        'br': 320000,
+      });
+      expect(api.requestModuleDioMetaData('banner', {}).data, {
+        'clientType': 'pc',
+      });
+      expect(api.requestModuleDioMetaData('banner', {'type': 2}).data, {
+        'clientType': 'iphone',
+      });
+    });
+
     test('DioProxy dispatches request metadata by method', () async {
       final proxy = _RecordingDioProxy();
 

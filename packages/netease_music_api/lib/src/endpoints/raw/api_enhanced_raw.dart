@@ -1140,6 +1140,31 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         hasCaptcha ? 'captcha' : 'password': hasCaptcha ? captcha : _loginPassword(query),
         'remember': 'true',
       };
+    case 'login_status':
+    case 'login_refresh':
+    case 'logout':
+      return {};
+    case 'likelist':
+      return {
+        'uid': query['uid'],
+      };
+    case 'daily_signin':
+      return {
+        'type': _jsDefault(query['type'], 0),
+      };
+    case 'recommend_resource':
+    case 'personal_fm':
+    case 'homepage_dragon_ball':
+      return {};
+    case 'check_music':
+      return {
+        'ids': '[${_jsParseIntString(query['id'])}]',
+        'br': _jsParseIntOrDefault(query['br'], 999000),
+      };
+    case 'banner':
+      return {
+        'clientType': _bannerClientType(query['type']),
+      };
     case 'comment_music':
     case 'comment_playlist':
     case 'comment_hot':
@@ -1771,6 +1796,24 @@ int _jsParseIntOrDefault(dynamic value, int fallback) {
     return fallback;
   }
   return parsed;
+}
+
+String _jsParseIntString(dynamic value) {
+  final match = RegExp(r'^\s*[+-]?\d+').firstMatch(value?.toString() ?? '');
+  if (match == null) {
+    return 'NaN';
+  }
+  return int.tryParse(match.group(0)!.trim())?.toString() ?? 'NaN';
+}
+
+String _bannerClientType(dynamic value) {
+  const clientTypes = {
+    '0': 'pc',
+    '1': 'android',
+    '2': 'iphone',
+    '3': 'ipad',
+  };
+  return clientTypes[_jsDefault(value, 0).toString()] ?? 'pc';
 }
 
 List<dynamic> _jsSlice(List<dynamic> values, int start, int end) {

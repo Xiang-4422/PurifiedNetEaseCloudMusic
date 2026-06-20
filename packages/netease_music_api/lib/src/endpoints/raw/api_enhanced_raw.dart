@@ -1147,6 +1147,22 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'like': query['like']?.toString() == 'false' ? false : true,
         'time': '3',
       };
+    case 'simi_artist':
+      return {
+        'artistid': query['id'],
+      };
+    case 'simi_mv':
+      return {
+        'mvid': query['mvid'],
+      };
+    case 'simi_playlist':
+    case 'simi_song':
+    case 'simi_user':
+      return {
+        'songid': query['id'],
+        'limit': _jsDefault(query['limit'], 50),
+        'offset': _jsDefault(query['offset'], 0),
+      };
     case 'song_detail':
       return {
         'c': '[${_splitIds(query['ids']).map((id) => '{"id":$id}').join(',')}]',

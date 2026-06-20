@@ -346,6 +346,30 @@ void main() {
       });
     });
 
+    test('maps similar recommendation request data like upstream', () {
+      expect(api.requestModuleDioMetaData('simi_artist', {'id': '6452'}).data, {
+        'artistid': '6452',
+      });
+      expect(api.requestModuleDioMetaData('simi_mv', {'mvid': '5436712'}).data, {
+        'mvid': '5436712',
+      });
+      expect(api.requestModuleDioMetaData('simi_playlist', {'id': '101'}).data, {
+        'songid': '101',
+        'limit': 50,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('simi_song', {'id': '101', 'limit': 10, 'offset': 20}).data, {
+        'songid': '101',
+        'limit': 10,
+        'offset': 20,
+      });
+      expect(api.requestModuleDioMetaData('simi_user', {'id': '101'}).data, {
+        'songid': '101',
+        'limit': 50,
+        'offset': 0,
+      });
+    });
+
     test('maps artist album id into path only', () {
       final metaData = api.requestModuleDioMetaData('artist_album', {
         'id': '6452',

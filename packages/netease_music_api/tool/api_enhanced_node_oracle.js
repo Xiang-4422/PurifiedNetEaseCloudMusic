@@ -825,6 +825,38 @@ const fixtures = [
     },
   },
   {
+    module: 'simi_artist',
+    query: {
+      id: '6452',
+    },
+  },
+  {
+    module: 'simi_mv',
+    query: {
+      mvid: '5436712',
+    },
+  },
+  {
+    module: 'simi_playlist',
+    query: {
+      id: '101',
+    },
+  },
+  {
+    module: 'simi_song',
+    query: {
+      id: '101',
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'simi_user',
+    query: {
+      id: '101',
+    },
+  },
+  {
     module: 'search_hot_detail',
     query: {},
   },

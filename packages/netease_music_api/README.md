@@ -32,9 +32,11 @@ Regenerate the upstream module manifest after updating `third_party/api-enhanced
 
 ```shell
 node packages/netease_music_api/tool/generate_api_enhanced_modules.js
+node packages/netease_music_api/tool/generate_api_enhanced_modules.js --check
 ```
 
-The generator formats generated Dart files before writing them back.
+The generator formats generated Dart files before writing them back. `--check`
+verifies generated files are up to date without writing them.
 
 Upstream protocol reference is tracked in the repository submodule:
 

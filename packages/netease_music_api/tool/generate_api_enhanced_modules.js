@@ -10,6 +10,8 @@ const upstreamDir = path.join(repoRoot, 'third_party/api-enhanced/module')
 const packageDir = path.resolve(__dirname, '..')
 const generatedDir = path.join(packageDir, 'lib/src/generated')
 const rawDir = path.join(packageDir, 'lib/src/endpoints/raw')
+const checkMode = process.argv.includes('--check')
+const staleGeneratedFiles = []
 
 const specialModules = new Set([
   'api',
@@ -72,9 +74,13 @@ function formatDart(fileName, source) {
   return formatted
 }
 
-function writeIfChanged(filePath, source) {
+function writeGeneratedFile(filePath, source) {
   if (fs.existsSync(filePath) && fs.readFileSync(filePath, 'utf8') === source) {
     return false
+  }
+  if (checkMode) {
+    staleGeneratedFiles.push(path.relative(repoRoot, filePath))
+    return true
   }
   fs.writeFileSync(filePath, source)
   return true
@@ -117,7 +123,7 @@ for (const entry of entries) {
   modules += `  '${esc(entry.module)}': ApiEnhancedModule(module: '${esc(entry.module)}', methodName: '${esc(entry.methodName)}', pathTemplate: '${esc(entry.pathTemplate)}', crypto: '${esc(entry.crypto)}', httpMethod: '${entry.httpMethod}', special: ${entry.special}),\n`
 }
 modules += `};\n`
-writeIfChanged(
+writeGeneratedFile(
   path.join(generatedDir, 'api_enhanced_modules.g.dart'),
   formatDart('api_enhanced_modules.g.dart', modules),
 )
@@ -127,9 +133,21 @@ for (const entry of entries) {
   methods += `  /// Raw api-enhanced module \`${entry.module}\`.\n  Future<dynamic> ${entry.methodName}(Map<String, dynamic> query) => requestModule('${esc(entry.module)}', query);\n\n`
 }
 methods += `}\n`
-writeIfChanged(
+writeGeneratedFile(
   path.join(rawDir, 'api_enhanced_raw_methods.g.dart'),
   formatDart('api_enhanced_raw_methods.g.dart', methods),
 )
 
-console.log(`Generated ${entries.length} api-enhanced module entries.`)
+if (checkMode) {
+  if (staleGeneratedFiles.length > 0) {
+    console.error('Generated api-enhanced files are stale:')
+    for (const filePath of staleGeneratedFiles) {
+      console.error(`- ${filePath}`)
+    }
+    console.error('Run: node packages/netease_music_api/tool/generate_api_enhanced_modules.js')
+    process.exit(1)
+  }
+  console.log(`Generated api-enhanced files are up to date (${entries.length} module entries).`)
+} else {
+  console.log(`Generated ${entries.length} api-enhanced module entries.`)
+}

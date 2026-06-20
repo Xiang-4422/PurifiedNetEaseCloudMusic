@@ -32,6 +32,25 @@ void main() {
       expect(methodNames.toSet(), hasLength(methodNames.length));
     });
 
+    test('generator check mode keeps generated files in sync', () async {
+      final repoRoot = _findRepoRoot();
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/generate_api_enhanced_modules.js',
+          '--check',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(
+        result.exitCode,
+        0,
+        reason: '${result.stdout}\n${result.stderr}',
+      );
+      expect(result.stdout, contains('Generated api-enhanced files are up to date'));
+    });
+
     test('normal modules build request metadata', () {
       final normalModules = apiEnhancedModules.where((module) => !module.special);
 
@@ -715,15 +734,19 @@ void main() {
 class _RawApi with ApiEnhancedRaw {}
 
 Directory _findUpstreamModuleDir() {
+  return Directory('${_findRepoRoot().path}/third_party/api-enhanced/module');
+}
+
+Directory _findRepoRoot() {
   var current = Directory.current;
   for (var i = 0; i < 5; i++) {
     final candidate = Directory('${current.path}/third_party/api-enhanced/module');
     if (candidate.existsSync()) {
-      return candidate;
+      return current;
     }
     current = current.parent;
   }
-  throw StateError('Cannot find third_party/api-enhanced/module');
+  throw StateError('Cannot find repository root with third_party/api-enhanced/module');
 }
 
 class _RecordingDioProxy extends DioProxy {

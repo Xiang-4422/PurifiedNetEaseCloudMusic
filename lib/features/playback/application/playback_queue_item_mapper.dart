@@ -65,7 +65,11 @@ class PlaybackQueueItemMapper {
         duration: track.durationMs == null ? null : Duration(milliseconds: track.durationMs!),
         artworkUrl: artworkUrl,
         localArtworkPath: localArtworkPath,
-        mediaType: mediaType ?? _mediaTypeForTrack(track, resources),
+        mediaType: _mediaTypeForTrack(
+          track,
+          resources,
+          fallback: mediaType,
+        ),
         playbackUrl: _emptyToNull(_resolvePlaybackUrl(track, resources)),
         lyricKey: track.lyricKey,
         localLyricsPath: localLyricsPath,
@@ -92,14 +96,18 @@ class PlaybackQueueItemMapper {
 
   static MediaType _mediaTypeForTrack(
     Track track,
-    TrackResourceBundle resources,
-  ) {
-    if (track.sourceType == SourceType.local) {
-      return MediaType.local;
-    }
+    TrackResourceBundle resources, {
+    MediaType? fallback,
+  }) {
     final audioPath = resources.audio?.path;
     if (audioPath?.isNotEmpty == true) {
       return audioPath!.endsWith('.uc!') ? MediaType.neteaseCache : MediaType.local;
+    }
+    if (track.sourceType == SourceType.local) {
+      return MediaType.local;
+    }
+    if (fallback != null) {
+      return fallback;
     }
     return MediaType.playlist;
   }

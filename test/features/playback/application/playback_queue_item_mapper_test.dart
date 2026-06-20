@@ -43,6 +43,25 @@ void main() {
       expect(item.playbackUrl, '/cache/audio/song.mp3.uc!');
     });
 
+    test('keeps indexed audio resource before explicit remote media type', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(),
+            resources: TrackResourceBundle(
+              audio: _audioResource('/cache/audio/song.mp3'),
+            ),
+          ),
+        ],
+        likedSongIds: const [],
+        mediaType: MediaType.fm,
+      ).single;
+
+      expect(item.mediaType, MediaType.local);
+      expect(item.playbackUrl, '/cache/audio/song.mp3');
+      expect(item.isCached, isTrue);
+    });
+
     test('maps album id as explicit queue item field instead of metadata key', () {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [

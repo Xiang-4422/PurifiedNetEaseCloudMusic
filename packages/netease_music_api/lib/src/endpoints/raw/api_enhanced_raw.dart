@@ -3534,7 +3534,7 @@ Options _rawOptions(EncryptType crypto, String path, Map<String, dynamic> query)
     rawUserAgent: query['ua']?.toString(),
     domain: query['domain']?.toString(),
     checkToken: _boolOption(query['checkToken']),
-    randomCNIP: _boolOption(query['randomCNIP']),
+    randomCNIP: query.containsKey('randomCNIP') ? _boolOption(query['randomCNIP']) : null,
     proxy: query['proxy']?.toString(),
     encryptedResponse: query.containsKey('e_r') ? _boolOption(query['e_r']) : null,
     cookies: _stringMap(query['cookie']),

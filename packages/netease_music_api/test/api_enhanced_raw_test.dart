@@ -31,6 +31,9 @@ void main() {
     late _RawApi api;
 
     setUp(() {
+      NeteaseMusicApi.configureRuntimeOptions(
+        enableRandomCNIPByDefault: false,
+      );
       api = _RawApi();
     });
 
@@ -351,6 +354,9 @@ void main() {
     late _RawApi api;
 
     setUp(() {
+      NeteaseMusicApi.configureRuntimeOptions(
+        enableRandomCNIPByDefault: false,
+      );
       api = _RawApi();
     });
 
@@ -455,6 +461,35 @@ void main() {
       });
 
       expect(metaData.options!.extra!['realIP'], '1.2.3.4');
+    });
+
+    test('uses SDK randomCNIP default when query omits option', () {
+      NeteaseMusicApi.configureRuntimeOptions(
+        enableRandomCNIPByDefault: true,
+      );
+
+      final metaData = api.requestModuleDioMetaData('album', {
+        'id': '1',
+      });
+      final realIP = metaData.options!.extra!['realIP'];
+
+      expect(realIP, isA<String>());
+      expect(_isIpv4(realIP as String), isTrue);
+      expect(metaData.options!.extra!['randomCNIP'], isTrue);
+    });
+
+    test('query randomCNIP false overrides SDK default', () {
+      NeteaseMusicApi.configureRuntimeOptions(
+        enableRandomCNIPByDefault: true,
+      );
+
+      final metaData = api.requestModuleDioMetaData('album', {
+        'id': '1',
+        'randomCNIP': false,
+      });
+
+      expect(metaData.options!.extra!['realIP'], isNull);
+      expect(metaData.options!.extra!['randomCNIP'], isFalse);
     });
 
     test('applies runtime headers to GET requests', () async {

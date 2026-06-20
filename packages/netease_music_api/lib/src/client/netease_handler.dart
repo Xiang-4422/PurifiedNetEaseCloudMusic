@@ -447,24 +447,26 @@ Options joinOptions({
   String? rawUserAgent,
   String? domain,
   bool checkToken = false,
-  bool randomCNIP = false,
+  bool? randomCNIP,
   String? proxy,
   bool? encryptedResponse,
-}) =>
-    Options(contentType: ContentType.json.value, extra: {
-      'hookRequestData': hookRequestDate,
-      'encryptType': encryptType,
-      'userAgent': userAgent,
-      'cookies': cookies,
-      'eApiUrl': eApiUrl,
-      'realIP': _resolveRequestRealIp(realIP, randomCNIP: randomCNIP),
-      'rawUserAgent': rawUserAgent,
-      'domain': domain,
-      'checkToken': checkToken,
-      'randomCNIP': randomCNIP,
-      'proxy': proxy,
-      'e_r': encryptedResponse,
-    });
+}) {
+  final useRandomCNIP = randomCNIP ?? NeteaseMusicApi.enableRandomCNIPByDefault;
+  return Options(contentType: ContentType.json.value, extra: {
+    'hookRequestData': hookRequestDate,
+    'encryptType': encryptType,
+    'userAgent': userAgent,
+    'cookies': cookies,
+    'eApiUrl': eApiUrl,
+    'realIP': _resolveRequestRealIp(realIP, randomCNIP: useRandomCNIP),
+    'rawUserAgent': rawUserAgent,
+    'domain': domain,
+    'checkToken': checkToken,
+    'randomCNIP': useRandomCNIP,
+    'proxy': proxy,
+    'e_r': encryptedResponse,
+  });
+}
 
 /// 将相对路径拼成网易云主站 URI。
 Uri joinUri(String path) {

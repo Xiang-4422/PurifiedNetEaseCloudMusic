@@ -35,6 +35,20 @@ class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearc
   /// SDK 文件路径提供器。
   static late PathProvider pathProvider;
 
+  static bool _enableRandomCNIPByDefault = false;
+
+  /// 是否默认为 SDK 请求生成随机国内 IP。
+  static bool get enableRandomCNIPByDefault => _enableRandomCNIPByDefault;
+
+  /// 配置 SDK 级运行时选项。
+  static void configureRuntimeOptions({
+    bool? enableRandomCNIPByDefault,
+  }) {
+    if (enableRandomCNIPByDefault != null) {
+      _enableRandomCNIPByDefault = enableRandomCNIPByDefault;
+    }
+  }
+
   /// 登录状态控制器。
   UserLoginStateController usc = UserLoginStateController();
 
@@ -43,7 +57,11 @@ class NeteaseMusicApi with ApiPlay, ApiDj, ApiLogin, ApiUser, ApiEvent, ApiSearc
     PathProvider? provider,
     bool debug = false,
     bool logResponseBody = false,
+    bool enableRandomCNIPByDefault = false,
   }) async {
+    configureRuntimeOptions(
+      enableRandomCNIPByDefault: enableRandomCNIPByDefault,
+    );
     // 初始化 pathProvider
     pathProvider = provider ?? PathProvider();
     await pathProvider.init();

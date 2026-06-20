@@ -15,6 +15,20 @@ void main() {
       expect(lyricLineDisplayText(translatedLine), 'main lyric\ntranslated lyric');
     });
 
+    test('resolves seek position from lyric line start time', () {
+      final missingTime = LyricsLineModel()..mainText = 'no time';
+      final negativeTime = LyricsLineModel()
+        ..mainText = 'negative'
+        ..startTime = -120;
+      final normalTime = LyricsLineModel()
+        ..mainText = 'normal'
+        ..startTime = 1234;
+
+      expect(lyricLineSeekPosition(missingTime), isNull);
+      expect(lyricLineSeekPosition(negativeTime), Duration.zero);
+      expect(lyricLineSeekPosition(normalTime), const Duration(milliseconds: 1234));
+    });
+
     test('splits timed lyric spans by current playback position', () {
       final line = LyricsLineModel()
         ..mainText = '你好世界'

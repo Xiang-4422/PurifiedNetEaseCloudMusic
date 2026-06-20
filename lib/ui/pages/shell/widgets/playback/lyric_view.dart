@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/lyric_scroll_position.dart';
@@ -48,6 +50,7 @@ class LyricView extends GetView<ShellController> {
                   itemCount: lyricState.lines.length + 2,
                   itemBuilder: (BuildContext context, int index) {
                     Widget child;
+                    Duration? seekPosition;
                     // 首尾占位按歌词区域真实高度计算，保证滚动锚点稳定。
                     if (index == 0 || index == lyricState.lines.length + 1) {
                       child = SizedBox(
@@ -56,6 +59,7 @@ class LyricView extends GetView<ShellController> {
                     } else {
                       index -= LyricScrollPosition.lyricItemIndexOffset;
                       final line = lyricState.lines[index];
+                      seekPosition = lyricLineSeekPosition(line);
                       child = Obx(() {
                         final isActive = PlayerController.to.lyricState.value.currentIndex == index;
                         final currentPosition = isActive ? PlayerController.to.currentPositionState.value : Duration.zero;
@@ -77,8 +81,11 @@ class LyricView extends GetView<ShellController> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      onPressed: null,
-                      // 歌词逐行跳播和外层手势存在冲突，否则会同时触发面板滑动和歌词定位。
+                      onPressed: seekPosition == null
+                          ? null
+                          : () {
+                              unawaited(PlayerController.to.seekTo(seekPosition!));
+                            },
                       child: child,
                     );
                   },
@@ -230,6 +237,16 @@ String lyricLineDisplayText(LyricsLineModel line) {
     return primaryText;
   }
   return '$primaryText\n$extText';
+}
+
+/// 返回歌词行可跳播的播放位置。
+@visibleForTesting
+Duration? lyricLineSeekPosition(LyricsLineModel line) {
+  final startTime = line.startTime;
+  if (startTime == null) {
+    return null;
+  }
+  return Duration(milliseconds: startTime < 0 ? 0 : startTime);
 }
 
 /// 根据当前播放进度切分逐字歌词中已播放和未播放的片段。

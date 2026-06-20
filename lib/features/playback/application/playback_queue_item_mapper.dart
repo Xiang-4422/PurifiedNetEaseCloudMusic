@@ -5,6 +5,7 @@ import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
+import 'package:bujuan/features/playback/application/playback_queue_metadata_filter.dart';
 
 /// 播放队列项 mapper，负责从曲目领域实体构建播放队列模型。
 class PlaybackQueueItemMapper {
@@ -47,12 +48,6 @@ class PlaybackQueueItemMapper {
       final artworkUrl = localArtworkPath ?? _emptyToNull(ImageUrlNormalizer.normalize(track.artworkUrl));
       final albumId = _emptyToNull(track.albumId) ?? _emptyToNull(track.metadata['albumId']?.toString());
       final artistIds = track.artistIds.isNotEmpty ? track.artistIds : (track.metadata['artistIds'] as List? ?? const []).map((item) => '$item').toList();
-      final metadata = <String, dynamic>{...track.metadata}
-        ..remove('albumId')
-        ..remove('artistIds')
-        ..remove('sourceType')
-        ..remove('localLyricsPath')
-        ..remove('availability');
       return PlaybackQueueItem(
         id: track.id,
         sourceId: track.sourceId,
@@ -76,7 +71,7 @@ class PlaybackQueueItemMapper {
         availability: track.availability,
         isLiked: likedSongIds.contains(int.tryParse(track.sourceId)),
         isCached: localAudioPath != null,
-        metadata: metadata,
+        metadata: playbackQueueCustomMetadata(track.metadata),
       );
     }).toList();
   }

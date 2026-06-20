@@ -168,6 +168,32 @@ void main() {
       expect(item.metadata.containsKey('localLyricsPath'), isFalse);
       expect(item.metadata.containsKey('availability'), isFalse);
     });
+
+    test('drops known non-playback source metadata from queue item', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(
+              metadata: const {
+                'mv': 123,
+                'fee': 8,
+                'publishTime': 1700000000000,
+                'cloudSongId': 456,
+                'cloudFileName': 'cloud.mp3',
+                'cloudAddTime': 1700000001000,
+                'scanSource': 'directory',
+                'scannedAt': 1700000002000,
+                'custom': 'keep',
+              },
+            ),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.metadata, {'custom': 'keep'});
+    });
   });
 }
 

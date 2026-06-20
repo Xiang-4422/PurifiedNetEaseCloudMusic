@@ -4,6 +4,7 @@ import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart' show TrackAvailability;
+import 'package:bujuan/features/playback/application/playback_queue_metadata_filter.dart';
 
 /// 异步解码播放队列项缓存列表。
 Future<List<PlaybackQueueItem>> decodePlaybackQueueItemCacheList(
@@ -60,12 +61,7 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
     availability: _availabilityFrom(json['availability'] ?? metadata['availability']),
     isLiked: json['isLiked'] as bool? ?? false,
     isCached: json['isCached'] as bool? ?? false,
-    metadata: metadata
-      ..remove('albumId')
-      ..remove('artistIds')
-      ..remove('sourceType')
-      ..remove('localLyricsPath')
-      ..remove('availability'),
+    metadata: playbackQueueCustomMetadata(metadata),
   );
 }
 
@@ -94,12 +90,7 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
 }
 
 Map<String, dynamic> _customMetadata(Map<String, dynamic> metadata) {
-  return Map<String, dynamic>.from(metadata)
-    ..remove('albumId')
-    ..remove('artistIds')
-    ..remove('sourceType')
-    ..remove('localLyricsPath')
-    ..remove('availability');
+  return playbackQueueCustomMetadata(metadata);
 }
 
 SourceType _sourceTypeFrom(Object? value) {

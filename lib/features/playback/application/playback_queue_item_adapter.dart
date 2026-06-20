@@ -5,6 +5,7 @@ import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart' show TrackAvailability;
+import 'package:bujuan/features/playback/application/playback_queue_metadata_filter.dart';
 
 /// 播放队列项与 audio_service [MediaItem] 的边界适配器。
 class PlaybackQueueItemAdapter {
@@ -95,7 +96,7 @@ class PlaybackQueueItemAdapter {
 
   static Map<String, dynamic> _toMediaItemExtras(PlaybackQueueItem item) {
     return {
-      ...item.metadata,
+      ..._customMetadata(item.metadata),
       'sourceType': item.sourceType.name,
       'availability': item.availability.name,
       'type': item.mediaType.name,
@@ -134,10 +135,9 @@ class PlaybackQueueItemAdapter {
       'availability',
       'cache',
     };
-    final metadata = Map<String, dynamic>.from(extras);
-    for (final key in adapterKeys) {
-      metadata.remove(key);
-    }
-    return metadata;
+    return playbackQueueCustomMetadata(
+      extras,
+      additionalReservedKeys: adapterKeys,
+    );
   }
 }

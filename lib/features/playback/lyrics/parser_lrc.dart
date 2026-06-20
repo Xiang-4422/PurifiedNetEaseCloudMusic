@@ -4,10 +4,10 @@ import 'lyrics_reader_model.dart';
 /// 普通 LRC 歌词格式解析器。
 class ParserLrc extends LyricsParse {
   /// 匹配 LRC 行首时间标签的正则。
-  RegExp pattern = RegExp(r"\[\d{2}:\d{2}.\d{2,3}]");
+  RegExp pattern = RegExp(r"\[\d{2}:\d{2}\.\d{1,3}]");
 
   /// 提取 LRC 时间标签内容的正则，例如 `[00:03.47]`。
-  RegExp valuePattern = RegExp(r"\[(\d{2}:\d{2}.\d{2,3})\]");
+  RegExp valuePattern = RegExp(r"\[(\d{2}:\d{2}\.\d{1,3})\]");
 
   /// 创建 LRC 歌词解析器。
   ParserLrc(String lyric) : super(lyric);
@@ -23,30 +23,39 @@ class ParserLrc extends LyricsParse {
     List<LyricsLineModel> lineList = [];
     for (var line in lines) {
       //匹配time
-      var time = pattern.stringMatch(line);
-      if (time == null) {
+      final times = valuePattern.allMatches(line).toList(growable: false);
+      if (times.isEmpty) {
         //没有匹配到直接返回
         //TODO 歌曲相关信息暂不处理
         // LyricsLog.logD("忽略未匹配到Time：$line");
         continue;
       }
       //移除time，拿到真实歌词
-      var realLyrics = line.replaceFirst(pattern, "");
-      //转时间戳
-      var ts = timeTagToTS(time);
-      // LyricsLog.logD("匹配time:$time($ts) 真实歌词：$realLyrics");
-      var lineModel = LyricsLineModel()..startTime = ts;
+      var realLyrics = line.replaceAll(pattern, "");
       if (realLyrics == "//") {
         // LyricsLog.logD("移除无效字符：//");
         realLyrics = "";
       }
-      if (isMain) {
-        lineModel.mainText = realLyrics..replaceAll('\n', '');
-      } else {
-        lineModel.extText = realLyrics;
+      for (final time in times) {
+        final timeTag = time.group(0);
+        if (timeTag == null) {
+          continue;
+        }
+        //转时间戳
+        var ts = timeTagToTS(timeTag);
+        // LyricsLog.logD("匹配time:$timeTag($ts) 真实歌词：$realLyrics");
+        var lineModel = LyricsLineModel()..startTime = ts;
+        if (isMain) {
+          lineModel.mainText = realLyrics.replaceAll('\n', '');
+        } else {
+          lineModel.extText = realLyrics;
+        }
+        lineList.add(lineModel);
       }
-      lineList.add(lineModel);
     }
+    lineList.sort(
+      (left, right) => (left.startTime ?? 0).compareTo(right.startTime ?? 0),
+    );
     return lineList;
   }
 
@@ -62,8 +71,7 @@ class ParserLrc extends LyricsParse {
       return null;
     }
     var timeArray = value.split(".");
-    var padZero = 3 - timeArray.last.length;
-    var millisecond = timeArray.last.padRight(padZero, "0");
+    var millisecond = timeArray.last.padRight(3, "0");
     //避免出现奇葩
     if (millisecond.length > 3) {
       millisecond = millisecond.substring(0, 3);

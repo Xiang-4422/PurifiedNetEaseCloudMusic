@@ -1386,6 +1386,31 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'listen_data_realtime_report',
+    query: {
+      type: 'month',
+    },
+  },
+  {
+    module: 'listen_data_report',
+    query: {
+      type: 'year',
+      endTime: 1767110400000,
+    },
+  },
+  {
+    module: 'listen_data_today_song',
+    query: {},
+  },
+  {
+    module: 'listen_data_total',
+    query: {},
+  },
+  {
+    module: 'listen_data_year_report',
+    query: {},
+  },
+  {
     module: 'playlist_catlist',
     query: {},
   },

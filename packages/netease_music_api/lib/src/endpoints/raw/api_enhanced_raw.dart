@@ -1370,6 +1370,9 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'br': _jsParseIntOrDefault(query['br'], 999000),
       };
     case 'broadcast_category_region_get':
+    case 'listen_data_today_song':
+    case 'listen_data_total':
+    case 'listen_data_year_report':
     case 'sati_resource_sub_list':
     case 'sati_tag_list':
       return {};
@@ -1401,6 +1404,15 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
     case 'radio_sport_get':
       return {
         'bpm': _jsDefault(query['bpm'], 50),
+      };
+    case 'listen_data_realtime_report':
+      return {
+        'type': _jsDefault(query['type'], 'week'),
+      };
+    case 'listen_data_report':
+      return {
+        'type': _jsDefault(query['type'], 'week'),
+        if (query.containsKey('endTime')) 'endTime': query['endTime'],
       };
     case 'sati_resource_list':
       return {

@@ -689,6 +689,25 @@ void main() {
       });
     });
 
+    test('maps listen data request data like upstream', () {
+      expect(api.requestModuleDioMetaData('listen_data_realtime_report', {}).data, {
+        'type': 'week',
+      });
+      expect(api.requestModuleDioMetaData('listen_data_realtime_report', {'type': 'month'}).data, {
+        'type': 'month',
+      });
+      expect(api.requestModuleDioMetaData('listen_data_report', {}).data, {
+        'type': 'week',
+      });
+      expect(api.requestModuleDioMetaData('listen_data_report', {'type': 'year', 'endTime': 1767110400000}).data, {
+        'type': 'year',
+        'endTime': 1767110400000,
+      });
+      expect(api.requestModuleDioMetaData('listen_data_today_song', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('listen_data_total', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('listen_data_year_report', {}).data, isEmpty);
+    });
+
     test('maps user library request data like upstream', () {
       expect(api.requestModuleDioMetaData('user_account', {}).data, isEmpty);
       expect(api.requestModuleDioMetaData('user_subcount', {}).data, isEmpty);

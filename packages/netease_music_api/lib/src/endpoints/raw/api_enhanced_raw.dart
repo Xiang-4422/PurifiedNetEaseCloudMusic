@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -894,13 +895,24 @@ mixin ApiEnhancedRaw {
   /// Uploads a voice file using the same module name as upstream.
   Future<dynamic> voiceUpload(Map<String, dynamic> query) async {
     final filename = _filename(query);
+    if (filename.isEmpty || !_hasVoiceUploadData(query)) {
+      return {
+        'status': 500,
+        'body': {
+          'msg': '请上传音频文件',
+          'code': 500,
+        },
+      };
+    }
+    final ext = _fileExtension(filename, fallback: 'mp3');
+    final voiceName = query['songName']?.toString() ?? _voiceUploadName(filename, ext);
     final tokenRes = await Https.dioProxy.postUri(
       DioMetaData(
         joinUri('/api/nos/token/alloc'),
         data: {
           'bucket': 'ymusic',
-          'ext': filename.contains('.') ? filename.split('.').last : 'mp3',
-          'filename': query['songName'] ?? filename.replaceAll(RegExp(r'\.[^.]+$'), '').replaceAll(RegExp(r'\s'), '').replaceAll('.', '_'),
+          'ext': ext,
+          'filename': voiceName,
           'local': false,
           'nos_product': 0,
           'type': 'other',
@@ -909,35 +921,110 @@ mixin ApiEnhancedRaw {
       ),
     );
     final result = _asMap(_asMap(tokenRes.data)['result']);
-    final objectKey = result['objectKey'].toString().replaceAll('/', '%2F');
-    await _uploadBinary('https://ymusic.nos-hz.163yun.com/$objectKey?offset=0&complete=true&version=1.0', query, token: result['token']?.toString());
+    final token = result['token']?.toString();
+    await _uploadVoiceMultipart(
+      result['objectKey'].toString(),
+      query,
+      token: token,
+    );
+    final voiceData = _voiceUploadData(
+      query,
+      name: voiceName,
+      dfsId: result['docId'],
+    );
+    await Https.dioProxy.postUri(
+      DioMetaData(
+        joinUri('/api/voice/workbench/voice/batch/upload/preCheck'),
+        data: {
+          'dupkey': _createDupkey(),
+          'voiceData': jsonEncode([voiceData]),
+        },
+        options: _rawOptionsWithHeaders(
+          EncryptType.EApi,
+          '/api/voice/workbench/voice/batch/upload/preCheck',
+          query,
+          {
+            if (token != null) 'x-nos-token': token,
+          },
+        ),
+      ),
+    );
     final uploadRes = await Https.dioProxy.postUri(
       DioMetaData(
         joinUri('/api/voice/workbench/voice/batch/upload/v2'),
         data: {
-          'dupkey': DateTime.now().microsecondsSinceEpoch.toString(),
-          'voiceData': jsonEncode([
-            {
-              'name': query['songName'] ?? filename,
-              'autoPublish': query['autoPublish'] == 1,
-              'autoPublishText': query['autoPublishText'] ?? '',
-              'description': query['description'],
-              'voiceListId': query['voiceListId'],
-              'coverImgId': query['coverImgId'],
-              'dfsId': result['docId'],
-              'categoryId': query['categoryId'],
-              'secondCategoryId': query['secondCategoryId'],
-              'composedSongs': query['composedSongs']?.toString().split(',') ?? [],
-              'privacy': query['privacy'] == 1,
-              'publishTime': query['publishTime'] ?? 0,
-              'orderNo': query['orderNo'] ?? 1,
-            }
-          ]),
+          'dupkey': _createDupkey(),
+          'voiceData': jsonEncode([voiceData]),
         },
-        options: _rawOptions(EncryptType.EApi, '/api/voice/workbench/voice/batch/upload/v2', query),
+        options: _rawOptionsWithHeaders(
+          EncryptType.EApi,
+          '/api/voice/workbench/voice/batch/upload/v2',
+          query,
+          {
+            if (token != null) 'x-nos-token': token,
+          },
+        ),
       ),
     );
-    return {'code': 200, 'data': _asMap(_asMap(uploadRes.data)['data'])};
+    return {
+      'status': 200,
+      'body': {
+        'code': 200,
+        'data': _asMap(_asMap(uploadRes.data)['data']),
+      },
+    };
+  }
+
+  Future<void> _uploadVoiceMultipart(
+    String objectKey,
+    Map<String, dynamic> query, {
+    String? token,
+  }) async {
+    final encodedObjectKey = objectKey.replaceAll('/', '%2F');
+    final contentType = _uploadMimeType(query);
+    final initResponse = await Https.dio.post(
+      'https://ymusic.nos-hz.163yun.com/$encodedObjectKey?uploads',
+      options: Options(headers: {
+        if (token != null) 'x-nos-token': token,
+        'X-Nos-Meta-Content-Type': contentType,
+      }),
+    );
+    final uploadId = _xmlText(initResponse.data?.toString() ?? '', 'UploadId');
+    final bytes = await _uploadBytes(query);
+    const blockSize = 10 * 1024 * 1024;
+    final etags = <String>[];
+    var offset = 0;
+    var blockIndex = 1;
+    while (offset < bytes.length) {
+      final end = min(offset + blockSize, bytes.length);
+      final chunk = bytes.sublist(offset, end);
+      final partResponse = await Https.dio.put(
+        'https://ymusic.nos-hz.163yun.com/$encodedObjectKey?partNumber=$blockIndex&uploadId=$uploadId',
+        data: Stream<List<int>>.fromIterable([chunk]),
+        options: Options(headers: {
+          if (token != null) 'x-nos-token': token,
+          'Content-Type': contentType,
+        }),
+      );
+      etags.add(partResponse.headers.value('etag') ?? '');
+      offset = end;
+      blockIndex++;
+    }
+
+    final completeXml = StringBuffer('<CompleteMultipartUpload>');
+    for (var i = 0; i < etags.length; i++) {
+      completeXml.write('<Part><PartNumber>${i + 1}</PartNumber><ETag>${etags[i]}</ETag></Part>');
+    }
+    completeXml.write('</CompleteMultipartUpload>');
+    await Https.dio.post(
+      'https://ymusic.nos-hz.163yun.com/$encodedObjectKey?uploadId=$uploadId',
+      data: completeXml.toString(),
+      options: Options(headers: {
+        'Content-Type': 'text/plain;charset=UTF-8',
+        'X-Nos-Meta-Content-Type': contentType,
+        if (token != null) 'x-nos-token': token,
+      }),
+    );
   }
 
   Future<Map<String, dynamic>> _uploadImage(Map<String, dynamic> query) async {
@@ -1698,6 +1785,17 @@ Options _rawOptions(EncryptType crypto, String path, Map<String, dynamic> query)
   );
 }
 
+Options _rawOptionsWithHeaders(
+  EncryptType crypto,
+  String path,
+  Map<String, dynamic> query,
+  Map<String, String> headers,
+) {
+  final options = _rawOptions(crypto, path, query);
+  options.headers = {...?options.headers, ...headers};
+  return options;
+}
+
 bool _boolOption(dynamic value) {
   if (value is bool) {
     return value;
@@ -1781,9 +1879,17 @@ String _filename(Map<String, dynamic> query) {
   if (explicit != null) {
     return explicit.toString();
   }
+  final songFileName = _songFileMap(query)['name'];
+  if (songFileName != null) {
+    return songFileName.toString();
+  }
   final filePath = query['filePath']?.toString();
   if (filePath != null && filePath.isNotEmpty) {
     return filePath.split(Platform.pathSeparator).last;
+  }
+  final tempFilePath = _songFileMap(query)['tempFilePath']?.toString();
+  if (tempFilePath != null && tempFilePath.isNotEmpty) {
+    return tempFilePath.split(Platform.pathSeparator).last;
   }
   return '';
 }
@@ -1791,6 +1897,125 @@ String _filename(Map<String, dynamic> query) {
 bool _hasUploadData(Map<String, dynamic> query) {
   final filePath = query['filePath']?.toString();
   return query['bytes'] != null || query['data'] != null || query['imgFile'] != null || (filePath != null && filePath.isNotEmpty);
+}
+
+bool _hasVoiceUploadData(Map<String, dynamic> query) {
+  final songFile = _songFileMap(query);
+  final filePath = query['filePath']?.toString();
+  final tempFilePath = songFile['tempFilePath']?.toString();
+  return query['bytes'] != null || query['data'] != null || songFile['data'] != null || (filePath != null && filePath.isNotEmpty) || (tempFilePath != null && tempFilePath.isNotEmpty);
+}
+
+String _fileExtension(String filename, {String fallback = ''}) {
+  final basename = filename.split(Platform.pathSeparator).last;
+  final index = basename.lastIndexOf('.');
+  if (index < 0 || index == basename.length - 1) {
+    return fallback;
+  }
+  return basename.substring(index + 1);
+}
+
+String _voiceUploadName(String filename, String ext) {
+  final withoutExt = ext.isEmpty ? filename : filename.replaceFirst('.$ext', '');
+  return withoutExt.replaceAll(RegExp(r'\s'), '').replaceAll('.', '_');
+}
+
+Map<String, dynamic> _voiceUploadData(
+  Map<String, dynamic> query, {
+  required String name,
+  required dynamic dfsId,
+}) {
+  final data = <String, dynamic>{
+    'name': name,
+    'autoPublish': _looseEqualsOne(query['autoPublish']),
+    'autoPublishText': query['autoPublishText'] ?? '',
+    'dfsId': dfsId,
+    'composedSongs': _splitCommaValuesOrEmpty(query['composedSongs']),
+    'privacy': _looseEqualsOne(query['privacy']),
+    'publishTime': query['publishTime'] ?? 0,
+    'orderNo': query['orderNo'] ?? 1,
+  };
+  for (final key in ['description', 'voiceListId', 'coverImgId', 'categoryId', 'secondCategoryId']) {
+    if (query.containsKey(key) && query[key] != null) {
+      data[key] = query[key];
+    }
+  }
+  return data;
+}
+
+bool _looseEqualsOne(dynamic value) {
+  return value == true || value == 1 || value?.toString() == '1';
+}
+
+List<String> _splitCommaValuesOrEmpty(dynamic value) {
+  if (!_jsTruthy(value)) {
+    return const [];
+  }
+  return value.toString().split(',');
+}
+
+String _uploadMimeType(Map<String, dynamic> query) {
+  return query['mimetype']?.toString() ?? query['contentType']?.toString() ?? _songFileMap(query)['mimetype']?.toString() ?? 'audio/mpeg';
+}
+
+Future<Uint8List> _uploadBytes(Map<String, dynamic> query) async {
+  final songFile = _songFileMap(query);
+  final inMemory = _bytesFromUploadValue(query['bytes'] ?? query['data'] ?? songFile['data']);
+  if (inMemory != null) {
+    return inMemory;
+  }
+  final filePath = query['filePath']?.toString();
+  if (filePath != null && filePath.isNotEmpty) {
+    return File(filePath).readAsBytes();
+  }
+  final tempFilePath = songFile['tempFilePath']?.toString();
+  if (tempFilePath != null && tempFilePath.isNotEmpty) {
+    return File(tempFilePath).readAsBytes();
+  }
+  throw ArgumentError('filePath or bytes is required');
+}
+
+Uint8List? _bytesFromUploadValue(dynamic value) {
+  if (value is Uint8List) {
+    return value;
+  }
+  if (value is List<int>) {
+    return Uint8List.fromList(value);
+  }
+  if (value is List && value.every((item) => item is num)) {
+    return Uint8List.fromList(value.map((item) => (item as num).toInt()).toList(growable: false));
+  }
+  return null;
+}
+
+Map<String, dynamic> _songFileMap(Map<String, dynamic> query) {
+  final songFile = query['songFile'];
+  if (songFile is Map<String, dynamic>) {
+    return songFile;
+  }
+  if (songFile is Map) {
+    return Map<String, dynamic>.from(songFile);
+  }
+  return const {};
+}
+
+String _xmlText(String xml, String tag) {
+  final match = RegExp('<$tag>([\\s\\S]*?)</$tag>').firstMatch(xml);
+  final value = match?.group(1)?.trim() ?? '';
+  if (value.isEmpty) {
+    throw StateError('$tag is missing from XML response');
+  }
+  return value;
+}
+
+String _createDupkey() {
+  const hexDigits = '0123456789abcdef';
+  final random = Random();
+  final chars = List.generate(36, (_) => hexDigits[random.nextInt(16)]);
+  chars[14] = '4';
+  chars[19] = hexDigits[(int.parse(chars[19], radix: 16) & 0x3) | 0x8];
+  chars[8] = chars[13] = chars[18] = chars[23] = '-';
+  return chars.join();
 }
 
 Future<int?> _fileSize(Map<String, dynamic> query) async {

@@ -1021,6 +1021,103 @@ void main() {
       });
     });
 
+    test('voice upload special module mirrors upstream multipart flow and envelope', () async {
+      expect(await api.voiceUpload({}), {
+        'status': 500,
+        'body': {
+          'msg': '请上传音频文件',
+          'code': 500,
+        },
+      });
+
+      final proxy = _QueuedPostDioProxy([
+        {
+          'result': {
+            'objectKey': 'voice/object-key',
+            'token': 'voice-token',
+            'docId': 321,
+          },
+        },
+        {
+          'code': 200,
+          'preCheck': true,
+        },
+        {
+          'data': {
+            'voiceId': 999,
+          },
+        },
+      ]);
+      final adapter = _MultipartUploadAdapter();
+      Https.setDioProxyForTesting(proxy);
+      Https.setDioForTesting(Dio()..httpClientAdapter = adapter);
+
+      final result = await api.voiceUpload({
+        'filename': 'My Voice.mp3',
+        'bytes': [1, 2, 3],
+        'mimetype': 'audio/mpeg',
+        'autoPublish': '1',
+        'privacy': 1,
+        'composedSongs': '100,200',
+        'voiceListId': 'list-1',
+        'categoryId': 'cat-1',
+      });
+
+      expect(proxy.paths, [
+        '/api/nos/token/alloc',
+        '/api/voice/workbench/voice/batch/upload/preCheck',
+        '/api/voice/workbench/voice/batch/upload/v2',
+      ]);
+      expect(proxy.requests.first.data, {
+        'bucket': 'ymusic',
+        'ext': 'mp3',
+        'filename': 'MyVoice',
+        'local': false,
+        'nos_product': 0,
+        'type': 'other',
+      });
+      expect(adapter.requests.map((request) => request.method).toList(), ['POST', 'PUT', 'POST']);
+      expect(adapter.requests.first.uri.toString(), 'https://ymusic.nos-hz.163yun.com/voice%2Fobject-key?uploads');
+      expect(adapter.requests.first.headers['x-nos-token'], 'voice-token');
+      expect(adapter.requests.first.headers['X-Nos-Meta-Content-Type'], 'audio/mpeg');
+      expect(adapter.requests[1].uri.toString(), 'https://ymusic.nos-hz.163yun.com/voice%2Fobject-key?partNumber=1&uploadId=upload-id');
+      expect(adapter.requests[1].headers['Content-Type'], 'audio/mpeg');
+      expect(adapter.requests[1].bodyBytes, [1, 2, 3]);
+      expect(adapter.requests.last.uri.toString(), 'https://ymusic.nos-hz.163yun.com/voice%2Fobject-key?uploadId=upload-id');
+      expect(adapter.requests.last.bodyText, contains('<PartNumber>1</PartNumber><ETag>etag-1</ETag>'));
+
+      final preCheckData = proxy.requests[1].data as Map<String, dynamic>;
+      final uploadData = proxy.requests[2].data as Map<String, dynamic>;
+      expect(preCheckData['dupkey'], isA<String>());
+      expect(uploadData['dupkey'], isA<String>());
+      expect(proxy.requests[1].options!.headers!['x-nos-token'], 'voice-token');
+      expect(proxy.requests[2].options!.headers!['x-nos-token'], 'voice-token');
+      expect(jsonDecode(preCheckData['voiceData'] as String), [
+        {
+          'name': 'MyVoice',
+          'autoPublish': true,
+          'autoPublishText': '',
+          'dfsId': 321,
+          'composedSongs': ['100', '200'],
+          'privacy': true,
+          'publishTime': 0,
+          'orderNo': 1,
+          'voiceListId': 'list-1',
+          'categoryId': 'cat-1',
+        }
+      ]);
+      expect(uploadData['voiceData'], preCheckData['voiceData']);
+      expect(result, {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': {
+            'voiceId': 999,
+          },
+        },
+      });
+    });
+
     test('cloud import special module checks upload before import', () async {
       final proxy = _QueuedPostDioProxy([
         {
@@ -1387,6 +1484,45 @@ class _JsonResponseAdapter implements HttpClientAdapter {
 
   @override
   void close({bool force = false}) {}
+}
+
+class _MultipartUploadAdapter implements HttpClientAdapter {
+  final requests = <_CapturedHttpRequest>[];
+
+  @override
+  Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async {
+    final bodyBytes = <int>[];
+    if (requestStream != null) {
+      await for (final chunk in requestStream) {
+        bodyBytes.addAll(chunk);
+      }
+    }
+    requests.add(_CapturedHttpRequest(options.method, options.uri, Map<String, dynamic>.from(options.headers), bodyBytes));
+    final query = options.uri.query;
+    if (options.method == 'POST' && query == 'uploads') {
+      return ResponseBody.fromString('<InitiateMultipartUploadResult><UploadId>upload-id</UploadId></InitiateMultipartUploadResult>', 200);
+    }
+    if (options.method == 'PUT') {
+      return ResponseBody.fromString('', 200, headers: {
+        'etag': ['etag-1'],
+      });
+    }
+    return ResponseBody.fromString('', 200);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _CapturedHttpRequest {
+  _CapturedHttpRequest(this.method, this.uri, this.headers, this.bodyBytes);
+
+  final String method;
+  final Uri uri;
+  final Map<String, dynamic> headers;
+  final List<int> bodyBytes;
+
+  String get bodyText => utf8.decode(bodyBytes);
 }
 
 class _TextResponseAdapter implements HttpClientAdapter {

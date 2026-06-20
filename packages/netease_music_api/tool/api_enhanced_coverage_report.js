@@ -131,6 +131,8 @@ const report = {
 }
 
 const hasFailure =
+  !report.upstreamCommit ||
+  report.upstreamDirty ||
   report.manifestMissingUpstreamModules.length > 0 ||
   report.manifestUnknownUpstreamModules.length > 0 ||
   report.normalMissingOracle.length > 0 ||

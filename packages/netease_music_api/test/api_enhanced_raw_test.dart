@@ -119,7 +119,8 @@ void main() {
       expect(report['upstreamVersion'], packageJson['version']);
       expect(report['upstreamSubmodulePath'], 'third_party/api-enhanced');
       expect(report['upstreamCommit'], (commitResult.stdout as String).trim());
-      expect(report['upstreamDirty'], (statusResult.stdout as String).trim().isNotEmpty);
+      expect(report['upstreamDirty'], isFalse);
+      expect((statusResult.stdout as String).trim(), isEmpty);
       expect(report['upstreamModuleFileCount'], upstreamModuleCount);
       expect(report['moduleCount'], apiEnhancedModules.length);
       expect(report['manifestMissingUpstreamModules'], isEmpty);

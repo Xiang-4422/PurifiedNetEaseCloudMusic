@@ -357,6 +357,37 @@ void main() {
       expect(resolver.remoteForceRefreshValues, [true, true]);
     });
 
+    test('prefetches neighbors after confirmation without waiting for their source load', () async {
+      final playbackService = _FakePlaybackService();
+      final resolver = _ActiveImmediateNeighborPendingSourceResolver('2');
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+      );
+      final queue = [_item('1'), _item('2'), _item('3')];
+      await queueService.replaceQueue(queue, 1, playlistName: 'Queue');
+
+      final result = await coordinator.switchToSelection(
+        queue: queue,
+        item: queue[1],
+        activeIndex: 1,
+        selectionVersion: queueService.state.selectionVersion,
+        trigger: PlaybackSwitchTrigger.userSelect,
+        playNow: true,
+      );
+
+      expect(result.success, isTrue);
+      expect(queueService.state.confirmedItem.id, '2');
+      expect(coordinator.state.phase, PlaybackSwitchPhase.confirmed);
+      expect(playbackService.replaceCalls.single.source.url, 'url-2');
+      expect(resolver.resolveIds, ['2', '1', '3']);
+      expect(resolver.pendingIds, {'1', '3'});
+
+      resolver.completePending();
+    });
+
     test('falls back to normal quality when refreshed high quality remote replacement fails', () async {
       final playbackService = _FakePlaybackService(
         failReplaceCount: 2,
@@ -681,6 +712,47 @@ class _ImmediateSourceResolver implements PlaybackSourceResolver {
     bool forceRefresh = false,
   }) {
     return resolve(item, preferHighQuality: preferHighQuality);
+  }
+}
+
+class _ActiveImmediateNeighborPendingSourceResolver implements PlaybackSourceResolver {
+  _ActiveImmediateNeighborPendingSourceResolver(this.activeId);
+
+  final String activeId;
+  final List<String> resolveIds = <String>[];
+  final Map<String, Completer<PlaybackResolvedSource>> _pendingCompleters = <String, Completer<PlaybackResolvedSource>>{};
+
+  Set<String> get pendingIds => _pendingCompleters.keys.toSet();
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    resolveIds.add(item.id);
+    if (item.id == activeId) {
+      return Future.value(_urlSource(item.id));
+    }
+    final completer = Completer<PlaybackResolvedSource>();
+    _pendingCompleters[item.id] = completer;
+    return completer.future;
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
+  }
+
+  void completePending() {
+    for (final entry in _pendingCompleters.entries) {
+      if (!entry.value.isCompleted) {
+        entry.value.complete(_urlSource(entry.key));
+      }
+    }
   }
 }
 

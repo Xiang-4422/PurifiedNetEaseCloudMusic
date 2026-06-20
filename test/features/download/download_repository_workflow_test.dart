@@ -72,6 +72,29 @@ void main() {
       expect(resourceWriter.savedLocalPaths.single, endsWith('/audio/1.mp3'));
       expect(File(resourceWriter.savedLocalPaths.single).existsSync(), isFalse);
     });
+
+    test('removes playback cache files when cache audio cannot be indexed', () async {
+      final taskDataSource = _FakeDownloadTaskDataSource();
+      final resourceWriter = _FakeDownloadResourceWriter(
+        saveManagedResult: true,
+        savePlaybackCacheResult: false,
+      );
+      final repository = _buildRepository(
+        taskDataSource: taskDataSource,
+        fileStore: _FakeDownloadFileStore(tempDirectory),
+        resourceWriter: resourceWriter,
+      );
+
+      final track = await repository.performCacheTrackForPlayback(
+        '1',
+        preferHighQuality: true,
+      );
+
+      expect(track?.id, '1');
+      expect(await taskDataSource.getTask('1'), isNull);
+      expect(resourceWriter.savedPlaybackCacheAudioPaths.single, endsWith('/cache-audio/1.mp3'));
+      expect(File(resourceWriter.savedPlaybackCacheAudioPaths.single).existsSync(), isFalse);
+    });
   });
 }
 
@@ -143,6 +166,14 @@ class _FakeDownloadFileStore extends DownloadFileStore {
   }
 
   @override
+  Future<DownloadDirectories> ensureCacheDirectories() async {
+    final audio = await _ensureChildDirectory('cache-audio');
+    final artwork = await _ensureChildDirectory('cache-artwork');
+    final lyrics = await _ensureChildDirectory('cache-lyrics');
+    return DownloadDirectories(audio: audio, artwork: artwork, lyrics: lyrics);
+  }
+
+  @override
   String buildAudioPath(
     Track track,
     String playbackUrl,
@@ -189,10 +220,15 @@ class _FakeDownloadFileStore extends DownloadFileStore {
 }
 
 class _FakeDownloadResourceWriter extends DownloadResourceWriter {
-  _FakeDownloadResourceWriter({required this.saveManagedResult}) : super(resourceIndexRepository: _UnusedLocalResourceIndexRepository());
+  _FakeDownloadResourceWriter({
+    required this.saveManagedResult,
+    this.savePlaybackCacheResult = true,
+  }) : super(resourceIndexRepository: _UnusedLocalResourceIndexRepository());
 
   final bool saveManagedResult;
+  final bool savePlaybackCacheResult;
   final List<String> savedLocalPaths = [];
+  final List<String> savedPlaybackCacheAudioPaths = [];
 
   @override
   Future<bool> saveManagedDownloadResources(
@@ -203,6 +239,17 @@ class _FakeDownloadResourceWriter extends DownloadResourceWriter {
   }) async {
     savedLocalPaths.add(localPath);
     return saveManagedResult;
+  }
+
+  @override
+  Future<bool> savePlaybackCacheResources(
+    String trackId, {
+    required String audioPath,
+    String? artworkPath,
+    String? lyricsPath,
+  }) async {
+    savedPlaybackCacheAudioPaths.add(audioPath);
+    return savePlaybackCacheResult;
   }
 }
 

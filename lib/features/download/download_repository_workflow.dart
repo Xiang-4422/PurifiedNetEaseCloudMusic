@@ -161,12 +161,17 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
         directories.lyrics,
         await _musicDataRepository.getLyrics(trackId),
       );
-      await _resourceWriter.savePlaybackCacheResources(
+      final savedResources = await _resourceWriter.savePlaybackCacheResources(
         trackId,
         audioPath: audioPath,
         artworkPath: artworkPath,
         lyricsPath: lyricsPath,
       );
+      if (!savedResources) {
+        await _fileStore.deleteFileIfExists(audioPath);
+        await _fileStore.deleteFileIfExists(artworkPath);
+        await _fileStore.deleteFileIfExists(lyricsPath);
+      }
       return track;
     } catch (_) {
       return track;

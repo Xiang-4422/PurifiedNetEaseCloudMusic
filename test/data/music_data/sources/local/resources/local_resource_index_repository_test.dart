@@ -94,6 +94,79 @@ void main() {
       expect(resource?.path, cacheFile.path);
       expect(resource?.origin, TrackResourceOrigin.playbackCache);
     });
+
+    test('does not save resource indexes for missing files', () async {
+      final missingFile = File('${tempDirectory.path}/missing.mp3');
+
+      await repository.saveAudioResource(
+        'netease:1',
+        path: missingFile.path,
+        origin: TrackResourceOrigin.playbackCache,
+      );
+
+      expect(await repository.getPrimaryAudioResource('netease:1'), isNull);
+      expect(
+        await dataSource.getResource(
+          'netease:1',
+          LocalResourceKind.audio,
+        ),
+        isNull,
+      );
+    });
+
+    test('cleans missing resources when building track bundles', () async {
+      final missingAudio = File('${tempDirectory.path}/missing.mp3');
+      final lyricsFile = await _writeTempFile(tempDirectory, 'song.lrc');
+      await dataSource.saveResource(
+        _resource(
+          trackId: 'netease:1',
+          path: missingAudio.path,
+          origin: TrackResourceOrigin.playbackCache,
+        ),
+      );
+      await dataSource.saveResource(
+        _resource(
+          trackId: 'netease:1',
+          kind: LocalResourceKind.lyrics,
+          path: lyricsFile.path,
+          origin: TrackResourceOrigin.playbackCache,
+        ),
+      );
+
+      final bundle = await repository.getTrackResourceBundle('netease:1');
+
+      expect(bundle.audio, isNull);
+      expect(bundle.lyrics?.path, lyricsFile.path);
+      expect(
+        await dataSource.getResource(
+          'netease:1',
+          LocalResourceKind.audio,
+        ),
+        isNull,
+      );
+    });
+
+    test('skips local song entries whose audio file is missing', () async {
+      final missingAudio = File('${tempDirectory.path}/missing.mp3');
+      await dataSource.saveResource(
+        _resource(
+          trackId: 'netease:1',
+          path: missingAudio.path,
+          origin: TrackResourceOrigin.managedDownload,
+        ),
+      );
+
+      final songs = await repository.listLocalSongs();
+
+      expect(songs, isEmpty);
+      expect(
+        await dataSource.getResource(
+          'netease:1',
+          LocalResourceKind.audio,
+        ),
+        isNull,
+      );
+    });
   });
 }
 
@@ -105,13 +178,14 @@ Future<File> _writeTempFile(Directory directory, String name) async {
 
 LocalResourceEntry _resource({
   required String trackId,
+  LocalResourceKind kind = LocalResourceKind.audio,
   required String path,
   required TrackResourceOrigin origin,
 }) {
   final now = DateTime(2026);
   return LocalResourceEntry(
     trackId: trackId,
-    kind: LocalResourceKind.audio,
+    kind: kind,
     path: path,
     origin: origin,
     sizeBytes: 0,

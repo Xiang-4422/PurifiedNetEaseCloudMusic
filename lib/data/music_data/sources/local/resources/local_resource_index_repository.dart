@@ -21,27 +21,27 @@ class LocalResourceIndexRepository {
 
   /// 读取曲目的主音频资源。
   Future<LocalResourceEntry?> getPrimaryAudioResource(String trackId) {
-    return _dataSource.getResource(trackId, LocalResourceKind.audio);
+    return _loadUsableResource(trackId, LocalResourceKind.audio);
   }
 
   /// 读取曲目的封面资源。
   Future<LocalResourceEntry?> getArtworkResource(String trackId) {
-    return _dataSource.getResource(trackId, LocalResourceKind.artwork);
+    return _loadUsableResource(trackId, LocalResourceKind.artwork);
   }
 
   /// 读取曲目的歌词资源。
   Future<LocalResourceEntry?> getLyricsResource(String trackId) {
-    return _dataSource.getResource(trackId, LocalResourceKind.lyrics);
+    return _loadUsableResource(trackId, LocalResourceKind.lyrics);
   }
 
   /// 读取曲目的所有本地资源。
-  Future<List<LocalResourceEntry>> getTrackResources(String trackId) {
-    return _dataSource.getTrackResources(trackId);
+  Future<List<LocalResourceEntry>> getTrackResources(String trackId) async {
+    return _filterUsableResources(await _dataSource.getTrackResources(trackId));
   }
 
   /// 读取曲目的本地资源集合。
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) async {
-    final resources = await _dataSource.getTrackResources(trackId);
+    final resources = await getTrackResources(trackId);
     return _toBundle(resources);
   }
 
@@ -50,16 +50,22 @@ class LocalResourceIndexRepository {
     Iterable<String> trackIds,
   ) async {
     final resourcesByTrackId = await _dataSource.getTrackResourcesByIds(trackIds);
-    return resourcesByTrackId.map(
-      (trackId, resources) => MapEntry(trackId, _toBundle(resources)),
-    );
+    final result = <String, TrackResourceBundle>{};
+    for (final entry in resourcesByTrackId.entries) {
+      result[entry.key] = _toBundle(
+        await _filterUsableResources(entry.value),
+      );
+    }
+    return result;
   }
 
   /// 列出已登记音频资源的本地歌曲。
   Future<List<LocalSongEntry>> listLocalSongs({
     Set<TrackResourceOrigin>? origins,
   }) async {
-    final audioResources = await _dataSource.listAudioResources(origins: origins);
+    final audioResources = await _filterUsableResources(
+      await _dataSource.listAudioResources(origins: origins),
+    );
     if (audioResources.isEmpty) {
       return const [];
     }
@@ -181,13 +187,16 @@ class LocalResourceIndexRepository {
     required String path,
     required TrackResourceOrigin origin,
   }) async {
+    if (path.isEmpty || !File(path).existsSync()) {
+      return;
+    }
     final now = DateTime.now();
     final existing = await _dataSource.getResource(trackId, kind);
     if (_shouldKeepExistingResource(existing, origin)) {
       return;
     }
     final file = File(path);
-    final sizeBytes = file.existsSync() ? await file.length() : 0;
+    final sizeBytes = await file.length();
     await _dataSource.saveResource(
       LocalResourceEntry(
         trackId: trackId,
@@ -225,6 +234,39 @@ class LocalResourceIndexRepository {
       case TrackResourceOrigin.none:
         return 0;
     }
+  }
+
+  Future<LocalResourceEntry?> _loadUsableResource(
+    String trackId,
+    LocalResourceKind kind,
+  ) async {
+    final resource = await _dataSource.getResource(trackId, kind);
+    if (resource == null) {
+      return null;
+    }
+    if (_isUsableResource(resource)) {
+      return resource;
+    }
+    await _dataSource.removeResource(resource.trackId, resource.kind);
+    return null;
+  }
+
+  Future<List<LocalResourceEntry>> _filterUsableResources(
+    List<LocalResourceEntry> resources,
+  ) async {
+    final usable = <LocalResourceEntry>[];
+    for (final resource in resources) {
+      if (_isUsableResource(resource)) {
+        usable.add(resource);
+        continue;
+      }
+      await _dataSource.removeResource(resource.trackId, resource.kind);
+    }
+    return usable;
+  }
+
+  bool _isUsableResource(LocalResourceEntry resource) {
+    return resource.path.isNotEmpty && File(resource.path).existsSync();
   }
 
   TrackResourceBundle _toBundle(List<LocalResourceEntry> resources) {

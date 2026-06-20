@@ -26,9 +26,7 @@
     "vip_tasks_v1",
     "voice_upload"
   ],
-  "dartBehavior": [
-    "song_url_match"
-  ],
+  "dartBehavior": [],
   "limited": {
     "cloud": "Request sequence is covered; Dart does not parse audio metadata and uses query-provided song/album/artist or sanitized filename fallback.",
     "decrypt": "Does not support weapi and xeapi request decryption; response decryption is covered.",

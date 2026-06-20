@@ -129,6 +129,8 @@ void main() {
 
       expect(oracleModules.intersection(nodeOracleSpecialModules), nodeOracleSpecialModules);
       expect({...nodeOracleSpecialModules, ...dartBehaviorSpecialModules, ...limitedSpecialModules}, specialModules);
+      expect(dartBehaviorSpecialModules, isEmpty);
+      expect(specialModules.difference(limitedSpecialModules).difference(nodeOracleSpecialModules), isEmpty);
       expect(limitedSpecialModules.difference(specialModules), isEmpty);
     });
 

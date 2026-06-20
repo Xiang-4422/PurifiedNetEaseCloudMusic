@@ -40,8 +40,8 @@ The generator formats generated Dart files before writing them back. `--check`
 verifies generated files are up to date without writing them.
 
 The coverage report checks that normal upstream modules have Node oracle
-fixtures and that every special module is categorized as Node-oracle-covered,
-Dart-behavior-covered, or explicitly limited.
+fixtures and that every special module is Node-oracle-covered or explicitly
+limited.
 
 Upstream protocol reference is tracked in the repository submodule:
 

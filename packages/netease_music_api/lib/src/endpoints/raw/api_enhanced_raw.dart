@@ -22,6 +22,7 @@ const _apiDomain = 'https://interface.music.163.com';
 const _xeapiDomain = 'https://interface3.music.163.com';
 const _eapiKey = 'e82ckenh8dichen8';
 const _linuxapiKey = 'rFgB&h#%2?^eDg:Q';
+const _cloudMetadataProbeLimit = 256 * 1024;
 const _upstreamCheckToken = '9ca17ae2e6ffcda170e2e6ee8af14fbabdb988f225b3868eb2c15a879b9a83d274a790ac8ff54a97b889d5d42af0feaec3b92af58cff99c470a7eafd88f75e839a9ea7c14e909da883e83fb692a3abdb6b92adee9e';
 const _resourceTypePrefixes = {
   '0': 'R_SO_4_',
@@ -3854,10 +3855,45 @@ class _CloudAudioMetadata {
 
 Future<_CloudAudioMetadata> _cloudAudioMetadata(Map<String, dynamic> query) async {
   try {
-    final bytes = await _uploadBytes(query);
+    final bytes = await _cloudMetadataBytes(query);
+    if (bytes == null || bytes.isEmpty) {
+      return const _CloudAudioMetadata();
+    }
     return _parseCloudAudioMetadata(bytes) ?? const _CloudAudioMetadata();
   } catch (_) {
     return const _CloudAudioMetadata();
+  }
+}
+
+Future<Uint8List?> _cloudMetadataBytes(Map<String, dynamic> query) async {
+  final songFile = _songFileMap(query);
+  final inMemory = _bytesFromUploadValue(query['bytes'] ?? query['data'] ?? songFile['data']);
+  if (inMemory != null) {
+    return inMemory;
+  }
+  final filePath = query['filePath']?.toString();
+  if (filePath != null && filePath.isNotEmpty) {
+    return _readFilePrefix(filePath, _cloudMetadataProbeLimit);
+  }
+  final tempFilePath = songFile['tempFilePath']?.toString();
+  if (tempFilePath != null && tempFilePath.isNotEmpty) {
+    return _readFilePrefix(tempFilePath, _cloudMetadataProbeLimit);
+  }
+  return null;
+}
+
+Future<Uint8List> _readFilePrefix(String path, int limit) async {
+  final file = File(path);
+  final length = await file.length();
+  if (length <= 0 || limit <= 0) {
+    return Uint8List(0);
+  }
+  final count = min(length, limit);
+  final handle = await file.open();
+  try {
+    return await handle.read(count);
+  } finally {
+    await handle.close();
   }
 }
 

@@ -3033,6 +3033,56 @@ void main() {
       expect(proxy.requests[2].data, containsPair('artist', 'Tagged Artist'));
     });
 
+    test('cloud special module probes file path tags without requiring upload bytes', () async {
+      final directory = await Directory.systemTemp.createTemp('netease-cloud-tags-');
+      try {
+        final audioFile = File('${directory.path}/Tagged Source.mp3');
+        await audioFile.writeAsBytes([
+          ..._id3v23Tag(
+            title: 'Path Title',
+            album: 'Path Album',
+            artist: 'Path Artist',
+          ),
+          ...List.filled(512 * 1024, 0),
+        ]);
+        final proxy = _QueuedPostDioProxy([
+          {
+            'needUpload': false,
+            'songId': 456,
+          },
+          {
+            'result': {
+              'objectKey': 'cloud/object-key',
+              'token': 'cloud-token',
+              'resourceId': 'resource-1',
+            },
+          },
+          {
+            'code': 200,
+            'songId': 789,
+          },
+          {
+            'code': 200,
+            'published': true,
+          },
+        ]);
+        Https.setDioProxyForTesting(proxy);
+
+        await api.cloud({
+          'filename': 'Fallback.mp3',
+          'filePath': audioFile.path,
+          'fileSize': await audioFile.length(),
+          'md5': 'abc',
+        });
+
+        expect(proxy.requests[2].data, containsPair('song', 'Path Title'));
+        expect(proxy.requests[2].data, containsPair('album', 'Path Album'));
+        expect(proxy.requests[2].data, containsPair('artist', 'Path Artist'));
+      } finally {
+        await directory.delete(recursive: true);
+      }
+    });
+
     test('cloud special module reads FLAC Vorbis comments before filename fallback', () async {
       final proxy = _QueuedPostDioProxy([
         {

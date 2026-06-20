@@ -219,7 +219,7 @@ class PlaybackSourcePrefetcher {
     PlaybackQueueItem item, {
     required bool preferHighQuality,
   }) {
-    return '${item.id}|${item.playbackUrl ?? ''}|$preferHighQuality';
+    return '${item.id}|${item.sourceType.name}|${item.mediaType.name}|${item.playbackUrl ?? ''}|$preferHighQuality';
   }
 }
 

@@ -175,6 +175,41 @@ void main() {
       expect(resolver.resolveCallCount, 1);
     });
 
+    test('keeps cache entries separate when media type changes for the same path', () async {
+      final directory = await Directory.systemTemp.createTemp('source-prefetch-file-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final audioFile = File('${directory.path}/song.mp3.uc!');
+      await audioFile.writeAsString('encrypted audio');
+      final resolver = _MediaTypeAwareSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+
+      final localSource = await prefetcher.resolve(
+        _item(
+          '1',
+          mediaType: MediaType.local,
+          playbackUrl: audioFile.path,
+        ),
+        preferHighQuality: false,
+      );
+      final cacheSource = await prefetcher.resolve(
+        _item(
+          '1',
+          mediaType: MediaType.neteaseCache,
+          playbackUrl: audioFile.path,
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(localSource.kind, PlaybackResolvedSourceKind.filePath);
+      expect(cacheSource.kind, PlaybackResolvedSourceKind.neteaseCacheStream);
+      expect(cacheSource.fileType, 'mp3');
+      expect(resolver.resolveCallCount, 2);
+    });
+
     test('force refresh keeps newer in-flight remote source active', () async {
       final resolver = _ControllableRemoteSourceResolver();
       final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
@@ -351,6 +386,38 @@ class _ControllableRemoteSourceResolver implements PlaybackSourceResolver {
     final completer = Completer<PlaybackResolvedSource>();
     _remoteCompleters.add(completer);
     return completer.future;
+  }
+}
+
+class _MediaTypeAwareSourceResolver implements PlaybackSourceResolver {
+  int resolveCallCount = 0;
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    resolveCallCount++;
+    if (item.mediaType == MediaType.neteaseCache) {
+      return PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.neteaseCacheStream,
+        url: item.playbackUrl ?? '',
+        fileType: 'mp3',
+      );
+    }
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.filePath,
+      url: item.playbackUrl ?? '',
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
   }
 }
 

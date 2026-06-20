@@ -1342,6 +1342,49 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         hasCaptcha ? 'captcha' : 'password': hasCaptcha ? captcha : _loginPassword(query),
         'remember': 'true',
       };
+    case 'login_qr_key':
+      return {
+        'type': 3,
+      };
+    case 'login_qr_check':
+      return {
+        'key': query['key'],
+        'type': 3,
+      };
+    case 'captcha_sent':
+      return {
+        'ctcode': _jsDefault(query['ctcode'], '86'),
+        'secrete': 'music_middleuser_pclogin',
+        'cellphone': query['phone'],
+      };
+    case 'captcha_verify':
+      return {
+        'ctcode': _jsDefault(query['ctcode'], '86'),
+        'cellphone': query['phone'],
+        'captcha': query['captcha'],
+      };
+    case 'cellphone_existence_check':
+      return {
+        'cellphone': query['phone'],
+        'countrycode': query['countrycode'],
+      };
+    case 'countries_code_list':
+      return {};
+    case 'verify_getQr':
+      return {
+        'verifyConfigId': query['vid'],
+        'verifyType': query['type'],
+        'token': query['token'],
+        'params': jsonEncode({
+          'event_id': query['evid'],
+          'sign': query['sign'],
+        }),
+        'size': 150,
+      };
+    case 'verify_qrcodestatus':
+      return {
+        'qrCode': query['qr'],
+      };
     case 'login_status':
     case 'login_refresh':
     case 'logout':

@@ -592,6 +592,44 @@ void main() {
         'captcha': '1234',
         'remember': 'true',
       });
+      expect(api.requestModuleDioMetaData('login_qr_key', {}).data, {
+        'type': 3,
+      });
+      expect(api.requestModuleDioMetaData('login_qr_check', {'key': 'qr-key'}).data, {
+        'key': 'qr-key',
+        'type': 3,
+      });
+      expect(api.requestModuleDioMetaData('captcha_sent', {'phone': '13000000000'}).data, {
+        'ctcode': '86',
+        'secrete': 'music_middleuser_pclogin',
+        'cellphone': '13000000000',
+      });
+      expect(api.requestModuleDioMetaData('captcha_verify', {'phone': '13000000000', 'ctcode': '1', 'captcha': '1234'}).data, {
+        'ctcode': '1',
+        'cellphone': '13000000000',
+        'captcha': '1234',
+      });
+      expect(api.requestModuleDioMetaData('cellphone_existence_check', {'phone': '13000000000', 'countrycode': '86'}).data, {
+        'cellphone': '13000000000',
+        'countrycode': '86',
+      });
+      expect(api.requestModuleDioMetaData('countries_code_list', {}).data, isEmpty);
+      expect(
+        api.requestModuleDioMetaData(
+          'verify_getQr',
+          {'vid': 'verify-id', 'type': 'login', 'token': 'token-1', 'evid': 'event-1', 'sign': 'sign-1'},
+        ).data,
+        {
+          'verifyConfigId': 'verify-id',
+          'verifyType': 'login',
+          'token': 'token-1',
+          'params': '{"event_id":"event-1","sign":"sign-1"}',
+          'size': 150,
+        },
+      );
+      expect(api.requestModuleDioMetaData('verify_qrcodestatus', {'qr': 'qr-code'}).data, {
+        'qrCode': 'qr-code',
+      });
     });
 
     test('maps account and library request data like upstream', () {

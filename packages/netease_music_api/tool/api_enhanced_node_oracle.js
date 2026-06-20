@@ -17,6 +17,13 @@ Module.prototype.require = function patchedRequire(request) {
       },
     }
   }
+  if (request === 'qrcode') {
+    return {
+      async toDataURL(value) {
+        return `data:image/png;base64,${Buffer.from(String(value)).toString('base64')}`
+      },
+    }
+  }
   if (request === '@neteasecloudmusicapienhanced/unblockmusic-utils') {
     return {
       async matchID() {
@@ -366,6 +373,58 @@ const fixtures = [
     query: {
       phone: '13800000000',
       captcha: '1234',
+    },
+  },
+  {
+    module: 'login_qr_key',
+    query: {},
+  },
+  {
+    module: 'login_qr_check',
+    query: {
+      key: 'qr-key',
+    },
+  },
+  {
+    module: 'captcha_sent',
+    query: {
+      phone: '13800000000',
+    },
+  },
+  {
+    module: 'captcha_verify',
+    query: {
+      phone: '13800000000',
+      ctcode: '1',
+      captcha: '1234',
+    },
+  },
+  {
+    module: 'cellphone_existence_check',
+    query: {
+      phone: '13800000000',
+      countrycode: '86',
+    },
+  },
+  {
+    module: 'countries_code_list',
+    query: {},
+  },
+  {
+    module: 'verify_getQr',
+    query: {
+      vid: 'verify-id',
+      type: 'login',
+      token: 'token-1',
+      evid: 'event-1',
+      sign: 'sign-1',
+    },
+    responses: [{ status: 200, body: { code: 200, data: { qrCode: 'qr-code' } }, cookie: [] }],
+  },
+  {
+    module: 'verify_qrcodestatus',
+    query: {
+      qr: 'qr-code',
     },
   },
   {

@@ -82,6 +82,9 @@ class RecommendationController extends GetxController {
   Timer? _homeImageColorPrewarmTimer;
   String _activeLocalDataUserId = '';
   int _localDataGeneration = 0;
+  int _recoPlaylistGeneration = 0;
+  int? _recoPlaylistRefreshGeneration;
+  int? _recoPlaylistLoadMoreGeneration;
   bool _hasLocalData = false;
 
   /// 当前账号是否已有本地首页数据。
@@ -208,18 +211,41 @@ class RecommendationController extends GetxController {
     if (userId.isEmpty || userId == '-1') {
       return;
     }
-    final data = await _repository.fetchRecommendedPlaylists(
-      userId: userId,
-      offset: getMore ? recoPlayLists.length : 0,
-    );
-    if (!_isActiveSession(userId)) {
+
+    if (getMore && (_recoPlaylistRefreshGeneration != null || _recoPlaylistLoadMoreGeneration != null)) {
+      refreshController.loadComplete();
       return;
     }
-    if (!getMore) {
-      recoPlayLists.clear();
+
+    final generation = getMore ? _recoPlaylistGeneration : ++_recoPlaylistGeneration;
+    if (getMore) {
+      _recoPlaylistLoadMoreGeneration = generation;
+    } else {
+      _recoPlaylistRefreshGeneration = generation;
     }
-    recoPlayLists.addAll(data);
-    refreshController.loadComplete();
+
+    try {
+      final data = await _repository.fetchRecommendedPlaylists(
+        userId: userId,
+        offset: getMore ? recoPlayLists.length : 0,
+      );
+      if (!_isCurrentRecoPlaylistLoad(userId, generation)) {
+        return;
+      }
+      if (!getMore) {
+        recoPlayLists.clear();
+      }
+      recoPlayLists.addAll(data);
+      refreshController.loadComplete();
+    } finally {
+      if (getMore) {
+        if (_recoPlaylistLoadMoreGeneration == generation) {
+          _recoPlaylistLoadMoreGeneration = null;
+        }
+      } else if (_recoPlaylistRefreshGeneration == generation) {
+        _recoPlaylistRefreshGeneration = null;
+      }
+    }
   }
 
   /// 拉取每日推荐歌曲队列。
@@ -358,6 +384,10 @@ class RecommendationController extends GetxController {
 
   bool _isCurrentLocalDataLoad(String userId, int generation) {
     return generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionController.userInfo.value.userId == userId;
+  }
+
+  bool _isCurrentRecoPlaylistLoad(String userId, int generation) {
+    return generation == _recoPlaylistGeneration && _isActiveSession(userId);
   }
 
   bool _isActiveSession(String userId) {

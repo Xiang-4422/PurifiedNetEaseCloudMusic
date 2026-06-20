@@ -141,10 +141,22 @@ class PlaybackSourcePrefetcher {
   }
 
   String _localPathCandidate(String url) {
-    if (url.startsWith('http://') || url.startsWith('https://')) {
+    final trimmedUrl = url.trim();
+    if (trimmedUrl.isEmpty) {
       return '';
     }
-    return url.split('?').first;
+    final uri = Uri.tryParse(trimmedUrl);
+    if (uri != null && uri.scheme == 'file') {
+      return Uri(
+        scheme: uri.scheme,
+        host: uri.host.isEmpty ? null : uri.host,
+        path: uri.path,
+      ).toFilePath(windows: Platform.isWindows);
+    }
+    if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+      return '';
+    }
+    return trimmedUrl.split('?').first;
   }
 
   Future<PlaybackResolvedSource> _resolveAndCache(

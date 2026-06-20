@@ -98,6 +98,33 @@ void main() {
       expect(resolver.resolveCallCount, 2);
     });
 
+    test('re-resolves cached remote source when item local file uri becomes available', () async {
+      final directory = await Directory.systemTemp.createTemp('source-prefetch-file-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final audioFile = File('${directory.path}/song with space.mp3');
+      final resolver = _LocalFileThenRemoteSourceResolver(audioFile);
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final item = _item(
+        '1',
+        mediaType: MediaType.local,
+        playbackUrl: audioFile.uri.replace(queryParameters: {'token': 'local'}).toString(),
+      );
+
+      final cachedRemote = await prefetcher.resolve(item, preferHighQuality: false);
+      await audioFile.writeAsString('audio');
+      final refreshed = await prefetcher.resolve(item, preferHighQuality: false);
+
+      expect(cachedRemote.kind, PlaybackResolvedSourceKind.url);
+      expect(cachedRemote.url, 'remote-url-1');
+      expect(refreshed.kind, PlaybackResolvedSourceKind.filePath);
+      expect(refreshed.url, audioFile.path);
+      expect(resolver.resolveCallCount, 2);
+    });
+
     test('force refresh keeps newer in-flight remote source active', () async {
       final resolver = _ControllableRemoteSourceResolver();
       final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);

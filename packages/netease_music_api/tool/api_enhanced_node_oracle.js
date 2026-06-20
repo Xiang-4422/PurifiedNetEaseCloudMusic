@@ -1894,6 +1894,89 @@ const fixtures = [
     },
   },
   {
+    module: 'djRadio_top',
+    query: {
+      djRadioId: '336355127',
+      sortIndex: 2,
+      dataGapDays: 30,
+      dataType: 3,
+    },
+  },
+  {
+    module: 'dj_banner',
+    query: {},
+  },
+  {
+    module: 'dj_category_excludehot',
+    query: {},
+  },
+  {
+    module: 'dj_category_recommend',
+    query: {},
+  },
+  {
+    module: 'dj_catelist',
+    query: {},
+  },
+  {
+    module: 'dj_detail',
+    query: {
+      rid: '336355127',
+    },
+  },
+  {
+    module: 'dj_difm_all_style_channel',
+    query: {
+      sources: '[0,1]',
+    },
+  },
+  {
+    module: 'dj_difm_channel_subscribe',
+    query: {
+      id: 'channel-1',
+    },
+  },
+  {
+    module: 'dj_difm_channel_unsubscribe',
+    query: {
+      id: 'channel-1',
+    },
+  },
+  {
+    module: 'dj_difm_playing_tracks_list',
+    query: {
+      channelId: 'channel-1',
+      limit: 8,
+      source: 1,
+    },
+  },
+  {
+    module: 'dj_difm_subscribe_channels_get',
+    query: {
+      sources: '[0,1]',
+    },
+  },
+  {
+    module: 'dj_hot',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'dj_paygift',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'dj_personalize_recommend',
+    query: {
+      limit: 4,
+    },
+  },
+  {
     module: 'dj_program',
     query: {
       rid: '336355127',
@@ -1906,6 +1989,65 @@ const fixtures = [
     module: 'dj_program_detail',
     query: {
       id: '2069983500',
+    },
+  },
+  {
+    module: 'dj_program_toplist',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'dj_program_toplist_hours',
+    query: {
+      limit: 10,
+    },
+  },
+  {
+    module: 'dj_radio_hot',
+    query: {
+      cateId: 10001,
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'dj_recommend',
+    query: {},
+  },
+  {
+    module: 'dj_recommend_type',
+    query: {
+      type: 10001,
+    },
+  },
+  {
+    module: 'dj_sub',
+    query: {
+      rid: '336355127',
+      t: 1,
+    },
+  },
+  {
+    module: 'dj_sublist',
+    query: {
+      limit: 10,
+      offset: 20,
+    },
+  },
+  {
+    module: 'dj_subscriber',
+    query: {
+      id: '336355127',
+      time: 123456,
+      limit: 10,
+    },
+  },
+  {
+    module: 'dj_today_perfered',
+    query: {
+      page: 2,
     },
   },
   {
@@ -1927,6 +2069,12 @@ const fixtures = [
     query: {
       limit: 10,
       offset: 20,
+    },
+  },
+  {
+    module: 'dj_toplist_pay',
+    query: {
+      limit: 10,
     },
   },
   {

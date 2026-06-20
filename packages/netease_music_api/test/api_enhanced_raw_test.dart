@@ -790,6 +790,90 @@ void main() {
       });
     });
 
+    test('maps dj radio request data like upstream', () {
+      expect(api.requestModuleDioMetaData('djRadio_top', {}).data, {
+        'djRadioId': null,
+        'sortIndex': 1,
+        'dataGapDays': 7,
+        'dataType': 3,
+      });
+      expect(api.requestModuleDioMetaData('dj_banner', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('dj_category_excludehot', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('dj_category_recommend', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('dj_catelist', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('dj_detail', {'rid': '336355127'}).data, {
+        'id': '336355127',
+      });
+      expect(api.requestModuleDioMetaData('dj_difm_all_style_channel', {}).data, {
+        'sources': '[0]',
+      });
+      expect(api.requestModuleDioMetaData('dj_difm_channel_subscribe', {'id': 'channel-1'}).data, {
+        'id': 'channel-1',
+      });
+      expect(api.requestModuleDioMetaData('dj_difm_channel_unsubscribe', {'id': 'channel-1'}).data, {
+        'id': 'channel-1',
+      });
+      expect(api.requestModuleDioMetaData('dj_difm_playing_tracks_list', {'channelId': 'channel-1'}).data, {
+        'limit': 5,
+        'source': 0,
+        'channelId': 'channel-1',
+      });
+      expect(api.requestModuleDioMetaData('dj_difm_subscribe_channels_get', {}).data, {
+        'sources': '[0]',
+      });
+      expect(api.requestModuleDioMetaData('dj_hot', {}).data, {
+        'limit': 30,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('dj_paygift', {}).data, {
+        'limit': 30,
+        'offset': 0,
+        '_nmclfl': 1,
+      });
+      expect(api.requestModuleDioMetaData('dj_personalize_recommend', {}).data, {
+        'limit': 6,
+      });
+      expect(api.requestModuleDioMetaData('dj_program_toplist', {}).data, {
+        'limit': 100,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('dj_program_toplist_hours', {}).data, {
+        'limit': 100,
+      });
+      expect(api.requestModuleDioMetaData('dj_radio_hot', {'cateId': 10001}).data, {
+        'cateId': 10001,
+        'limit': 30,
+        'offset': 0,
+      });
+      expect(api.requestModuleDioMetaData('dj_recommend', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('dj_recommend_type', {'type': 10001}).data, {
+        'cateId': 10001,
+      });
+      final subMetaData = api.requestModuleDioMetaData('dj_sub', {'rid': '336355127', 't': 1});
+      expect(subMetaData.uri.path, '/api/djradio/sub');
+      expect(subMetaData.data, {
+        'id': '336355127',
+      });
+      expect(api.requestModuleDioMetaData('dj_sub', {'rid': '336355127', 't': 0}).uri.path, '/api/djradio/unsub');
+      expect(api.requestModuleDioMetaData('dj_sublist', {}).data, {
+        'limit': 30,
+        'offset': 0,
+        'total': true,
+      });
+      expect(api.requestModuleDioMetaData('dj_subscriber', {'id': '336355127'}).data, {
+        'time': '-1',
+        'id': '336355127',
+        'limit': '20',
+        'total': 'true',
+      });
+      expect(api.requestModuleDioMetaData('dj_today_perfered', {}).data, {
+        'page': 0,
+      });
+      expect(api.requestModuleDioMetaData('dj_toplist_pay', {}).data, {
+        'limit': 100,
+      });
+    });
+
     test('maps listen data request data like upstream', () {
       expect(api.requestModuleDioMetaData('listen_data_realtime_report', {}).data, {
         'type': 'week',

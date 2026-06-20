@@ -2277,6 +2277,54 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], 0),
         'total': true,
       };
+    case 'djRadio_top':
+      return {
+        'djRadioId': _jsDefault(query['djRadioId'], null),
+        'sortIndex': _jsDefault(query['sortIndex'], 1),
+        'dataGapDays': _jsDefault(query['dataGapDays'], 7),
+        'dataType': _jsDefault(query['dataType'], 3),
+      };
+    case 'dj_banner':
+    case 'dj_category_excludehot':
+    case 'dj_category_recommend':
+    case 'dj_catelist':
+    case 'dj_recommend':
+      return {};
+    case 'dj_detail':
+      return {
+        'id': query['rid'],
+      };
+    case 'dj_difm_all_style_channel':
+    case 'dj_difm_subscribe_channels_get':
+      return {
+        'sources': _jsDefault(query['sources'], '[0]'),
+      };
+    case 'dj_difm_channel_subscribe':
+    case 'dj_difm_channel_unsubscribe':
+      return {
+        'id': query['id'],
+      };
+    case 'dj_difm_playing_tracks_list':
+      return {
+        'limit': _jsDefault(query['limit'], 5),
+        'source': _jsDefault(query['source'], 0),
+        'channelId': query['channelId'],
+      };
+    case 'dj_hot':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'dj_paygift':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+        '_nmclfl': 1,
+      };
+    case 'dj_personalize_recommend':
+      return {
+        'limit': _jsDefault(query['limit'], 6),
+      };
     case 'dj_program':
       return {
         'radioId': query['rid'],
@@ -2294,10 +2342,48 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'offset': _jsDefault(query['offset'], 0),
         'type': _djToplistType(query['type']),
       };
+    case 'dj_program_toplist':
+      return {
+        'limit': _jsDefault(query['limit'], 100),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'dj_program_toplist_hours':
+    case 'dj_toplist_pay':
     case 'dj_toplist_hours':
     case 'dj_toplist_popular':
       return {
         'limit': _jsDefault(query['limit'], 100),
+      };
+    case 'dj_radio_hot':
+      return {
+        'cateId': query['cateId'],
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+      };
+    case 'dj_recommend_type':
+      return {
+        'cateId': query['type'],
+      };
+    case 'dj_sub':
+      return {
+        'id': query['rid'],
+      };
+    case 'dj_sublist':
+      return {
+        'limit': _jsDefault(query['limit'], 30),
+        'offset': _jsDefault(query['offset'], 0),
+        'total': true,
+      };
+    case 'dj_subscriber':
+      return {
+        'time': _jsDefault(query['time'], '-1'),
+        'id': query['id'],
+        'limit': _jsDefault(query['limit'], '20'),
+        'total': 'true',
+      };
+    case 'dj_today_perfered':
+      return {
+        'page': _jsDefault(query['page'], 0),
       };
     case 'dj_toplist_newcomer':
       return {
@@ -2538,6 +2624,8 @@ String _requestPath(ApiEnhancedModule metadata, Map<String, dynamic> query) {
       return '/api/v1/resource/hotcomments/${_resourceTypePrefix(query['type'])}${query['id']}';
     case 'comment_like':
       return '/api/v1/comment/${query['t']?.toString() == '1' ? 'like' : 'unlike'}';
+    case 'dj_sub':
+      return '/api/djradio/${query['t']?.toString() == '1' ? 'sub' : 'unsub'}';
     case 'mv_sub':
       return '/api/mv/${query['t']?.toString() == '1' ? 'sub' : 'unsub'}';
     case 'playlist_subscribe':

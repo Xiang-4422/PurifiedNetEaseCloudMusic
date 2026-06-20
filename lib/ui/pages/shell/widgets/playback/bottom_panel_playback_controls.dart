@@ -13,6 +13,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
+const double _secondaryControlIconSize = AppDimensions.iconSizeMedium;
+const double _primaryControlIconSize = 56;
+const double _controlButtonPadding = 8;
+
 /// 底部播放面板进度条。
 class BottomPanelProgressBar extends StatelessWidget {
   /// 创建底部播放面板进度条。
@@ -57,12 +61,13 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
+      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingMedium),
       child: Obx(() {
         final currentSong = PlayerController.to.currentSongState.value;
         final currentSongId = int.tryParse(currentSong.sourceId);
         final isLiked = UserLibraryController.to.likedSongIds.contains(currentSongId);
         final isPlaying = PlayerController.to.isPlaying.value;
+        final preferHighQuality = SettingsController.to.isHighSoundQualityOpen.value;
         final panelColor = SettingsController.to.panelWidgetColor.value;
         final repeatIcon = PlayerController.to.getRepeatIcon();
         final playbackMode = PlayerController.to.playbackMode.value;
@@ -85,7 +90,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               child: _ButtonBackground(
                 child: Icon(
                   isLiked ? TablerIcons.heart_filled : TablerIcons.heart,
-                  size: 30,
+                  size: _secondaryControlIconSize,
                   color: isLiked ? Colors.red : panelColor,
                 ),
               ),
@@ -96,7 +101,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               child: _ButtonBackground(
                 child: Icon(
                   TablerIcons.player_skip_back_filled,
-                  size: 30,
+                  size: _secondaryControlIconSize,
                   color: panelColor,
                 ),
               ),
@@ -109,7 +114,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               child: _ButtonBackground(
                 child: Icon(
                   isPlaying ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
-                  size: 60,
+                  size: _primaryControlIconSize,
                   color: panelColor,
                 ),
               ),
@@ -120,7 +125,22 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               child: _ButtonBackground(
                 child: Icon(
                   TablerIcons.player_skip_forward_filled,
-                  size: 30,
+                  size: _secondaryControlIconSize,
+                  color: panelColor,
+                ),
+              ),
+            ),
+            _PlaybackControlButton(
+              semanticsLabel: playbackQualityControlLabel(
+                preferHighQuality: preferHighQuality,
+              ),
+              onTap: () async {
+                await SettingsController.to.toggleHighSoundQualityOpen();
+              },
+              child: _ButtonBackground(
+                child: Icon(
+                  preferHighQuality ? TablerIcons.diamond : TablerIcons.wave_sine,
+                  size: _secondaryControlIconSize,
                   color: panelColor,
                 ),
               ),
@@ -135,7 +155,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               child: _ButtonBackground(
                 child: Icon(
                   repeatIcon,
-                  size: 30,
+                  size: _secondaryControlIconSize,
                   color: panelColor,
                 ),
               ),
@@ -164,10 +184,13 @@ class _PlaybackControlButton extends StatelessWidget {
       button: true,
       excludeSemantics: true,
       label: semanticsLabel,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: child,
+      child: Tooltip(
+        message: semanticsLabel,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: child,
+        ),
       ),
     );
   }
@@ -183,6 +206,12 @@ String playbackLikeControlLabel({required bool isLiked}) {
 @visibleForTesting
 String playbackPlayPauseControlLabel({required bool isPlaying}) {
   return isPlaying ? '暂停' : '播放';
+}
+
+/// 生成音质按钮的辅助语义标签。
+@visibleForTesting
+String playbackQualityControlLabel({required bool preferHighQuality}) {
+  return preferHighQuality ? '音质：高音质优先' : '音质：标准音质';
 }
 
 /// 生成播放模式按钮的辅助语义标签。
@@ -219,7 +248,7 @@ class _ButtonBackground extends GetView<ShellController> {
     return Obx(
       () => BlurryContainer(
         blur: controller.isBigAlbum.isTrue ? 0 : 5,
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.all(_controlButtonPadding),
         borderRadius: BorderRadius.circular(100),
         color: SettingsController.to.panelWidgetColor.value.withValues(
           alpha: controller.isBigAlbum.isTrue ? 0 : 0.05,

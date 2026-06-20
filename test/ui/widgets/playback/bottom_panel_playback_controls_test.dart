@@ -16,6 +16,17 @@ void main() {
       expect(playbackPlayPauseControlLabel(isPlaying: true), '暂停');
     });
 
+    test('builds quality button semantics label', () {
+      expect(
+        playbackQualityControlLabel(preferHighQuality: false),
+        '音质：标准音质',
+      );
+      expect(
+        playbackQualityControlLabel(preferHighQuality: true),
+        '音质：高音质优先',
+      );
+    });
+
     test('builds playback mode button semantics label', () {
       expect(
         playbackModeControlLabel(

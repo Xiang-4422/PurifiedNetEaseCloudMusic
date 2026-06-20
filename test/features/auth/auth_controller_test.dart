@@ -5,6 +5,7 @@ import 'package:bujuan/data/app_storage/app_key_value_store.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/auth/auth_ui_effect.dart';
+import 'package:bujuan/features/auth/qr_login_data.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/features/user/user_session_store.dart';
@@ -159,6 +160,27 @@ void main() {
       expect(sessionController.userInfo.value.userId, 'user-1');
       expect(sessionController.userInfo.value.nickname, 'User');
     });
+
+    test('cached login bootstrap falls back to qr when account fetch fails', () async {
+      final authRepository = _FakeAuthRepository(hasCachedLogin: true);
+      final sessionController = _putSessionController();
+      final controller = AuthController(repository: authRepository);
+
+      final bootstrap = controller.bootstrap();
+      expect(controller.isLoading.value, isTrue);
+
+      authRepository.failNextFetch(StateError('network failed'));
+      await bootstrap;
+
+      expect(controller.isLoading.value, isFalse);
+      expect(controller.loginCompleted.value, isFalse);
+      expect(sessionController.userInfo.value.isLoggedIn, isFalse);
+      expect(controller.qrCodeUrl.value, 'qr://qr-key-1');
+      expect(controller.qrCodeNeedRefresh.value, isFalse);
+      expect(controller.uiEffect.value?.type, AuthUiEffectType.message);
+      expect(authRepository.createdQrKeys, ['qr-key-1']);
+      expect(authRepository.savedLoginFlags, isEmpty);
+    });
   });
 }
 
@@ -179,6 +201,7 @@ class _FakeAuthRepository implements AuthRepository {
 
   final List<bool> savedLoginFlags = [];
   final List<Completer<UserSessionData>> _fetches = [];
+  final List<String> createdQrKeys = [];
 
   @override
   Future<UserSessionData> fetchLoginAccountInfo() {
@@ -198,6 +221,18 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   Future<void> setLoginFlag(bool value) async {
     savedLoginFlags.add(value);
+  }
+
+  @override
+  Future<QrCodeCreationResult> createQrCodeKey() async {
+    final key = 'qr-key-${createdQrKeys.length + 1}';
+    createdQrKeys.add(key);
+    return QrCodeCreationResult(success: true, unikey: key);
+  }
+
+  @override
+  String buildQrCodeUrl(String unikey) {
+    return 'qr://$unikey';
   }
 
   @override

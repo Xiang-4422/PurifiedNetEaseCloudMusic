@@ -71,7 +71,10 @@ class AuthController extends GetxController {
       }
 
       isLoading.value = true;
-      await _loadUserData();
+      final loaded = await _loadUserData();
+      if (!loaded) {
+        await refreshQrCode();
+      }
       return;
     }
     await refreshQrCode();
@@ -113,7 +116,7 @@ class AuthController extends GetxController {
     super.onClose();
   }
 
-  Future<void> _loadUserData() async {
+  Future<bool> _loadUserData() async {
     try {
       final accountInfo = await _repository.fetchLoginAccountInfo();
       final isLoginStateActive = accountInfo.isLoggedIn;
@@ -122,15 +125,26 @@ class AuthController extends GetxController {
         await _repository.setLoginFlag(false);
         await UserSessionController.to.expireLoginSession();
         uiEffect.value = const AuthUiEffect.loginExpired('登录失效,请重新登录');
-        return;
+        _prepareQrRetry();
+        return false;
       }
 
       final sessionController = UserSessionController.to;
       sessionController.userInfo.value = accountInfo;
       loginCompleted.value = true;
+      return true;
+    } catch (_) {
+      uiEffect.value = const AuthUiEffect.message('登录状态校验失败，请重新登录');
+      _prepareQrRetry();
+      return false;
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _prepareQrRetry() {
+    qrCodeNeedRefresh.value = true;
+    hintText.value = '扫描二维码登录';
   }
 
   Future<void> _validateLoginStateInBackground() async {
@@ -178,7 +192,10 @@ class AuthController extends GetxController {
           _qrPollingTimer = null;
           await _repository.setLoginFlag(true);
           isLoading.value = true;
-          await _loadUserData();
+          final loaded = await _loadUserData();
+          if (!loaded) {
+            await refreshQrCode();
+          }
           break;
         default:
           break;

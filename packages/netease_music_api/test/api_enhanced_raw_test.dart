@@ -1037,6 +1037,38 @@ void main() {
       expect(api.requestModuleDioMetaData('musician_vip_tasks', {}).options!.extra!['encryptType'], EncryptType.EApi);
     });
 
+    test('maps style tag request data like upstream', () {
+      expect(api.requestModuleDioMetaData('style_album', {'tagId': '1000', 'cursor': 20, 'size': 10, 'sort': 1}).data, {
+        'cursor': 20,
+        'size': 10,
+        'tagId': '1000',
+        'sort': 1,
+      });
+      expect(api.requestModuleDioMetaData('style_artist', {'tagId': '1000', 'cursor': 20, 'size': 10, 'sort': 1}).data, {
+        'cursor': 20,
+        'size': 10,
+        'tagId': '1000',
+        'sort': 0,
+      });
+      expect(api.requestModuleDioMetaData('style_detail', {'tagId': '1000'}).data, {
+        'tagId': '1000',
+      });
+      expect(api.requestModuleDioMetaData('style_list', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('style_playlist', {'tagId': '1000', 'cursor': 0, 'size': 0, 'sort': 1}).data, {
+        'cursor': 0,
+        'size': 20,
+        'tagId': '1000',
+        'sort': 0,
+      });
+      expect(api.requestModuleDioMetaData('style_preference', {}).data, isEmpty);
+      expect(api.requestModuleDioMetaData('style_song', {'tagId': '1000'}).data, {
+        'cursor': 0,
+        'size': 20,
+        'tagId': '1000',
+        'sort': 0,
+      });
+    });
+
     test('maps mv request data like upstream', () {
       expect(api.requestModuleDioMetaData('mv_all', {}).data, {
         'tags': '{"地区":"全部","类型":"全部","排序":"上升最快"}',

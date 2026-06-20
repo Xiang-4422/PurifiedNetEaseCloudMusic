@@ -2193,6 +2193,29 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'startTime': query['startTime'],
         'endTime': query['endTime'],
       };
+    case 'style_album':
+    case 'style_song':
+      return {
+        'cursor': _jsDefault(query['cursor'], 0),
+        'size': _jsDefault(query['size'], 20),
+        'tagId': query['tagId'],
+        'sort': _jsDefault(query['sort'], 0),
+      };
+    case 'style_artist':
+    case 'style_playlist':
+      return {
+        'cursor': _jsDefault(query['cursor'], 0),
+        'size': _jsDefault(query['size'], 20),
+        'tagId': query['tagId'],
+        'sort': 0,
+      };
+    case 'style_detail':
+      return {
+        'tagId': query['tagId'],
+      };
+    case 'style_list':
+    case 'style_preference':
+      return {};
     case 'mv_all':
       return {
         'tags': jsonEncode({

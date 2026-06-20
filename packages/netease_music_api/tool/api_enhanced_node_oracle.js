@@ -1481,6 +1481,56 @@ const fixtures = [
     query: {},
   },
   {
+    module: 'style_album',
+    query: {
+      tagId: '1000',
+      cursor: 20,
+      size: 10,
+      sort: 1,
+    },
+  },
+  {
+    module: 'style_artist',
+    query: {
+      tagId: '1000',
+      cursor: 20,
+      size: 10,
+      sort: 1,
+    },
+  },
+  {
+    module: 'style_detail',
+    query: {
+      tagId: '1000',
+    },
+  },
+  {
+    module: 'style_list',
+    query: {},
+  },
+  {
+    module: 'style_playlist',
+    query: {
+      tagId: '1000',
+      cursor: 20,
+      size: 10,
+      sort: 1,
+    },
+  },
+  {
+    module: 'style_preference',
+    query: {},
+  },
+  {
+    module: 'style_song',
+    query: {
+      tagId: '1000',
+      cursor: 20,
+      size: 10,
+      sort: 1,
+    },
+  },
+  {
     module: 'mv_all',
     query: {
       area: '内地',

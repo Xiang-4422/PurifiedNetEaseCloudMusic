@@ -2,6 +2,7 @@ import 'package:bujuan/data/music_data/sources/local/database/data_sources/app_c
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_library_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart';
+import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
@@ -230,6 +231,82 @@ void main() {
       expect(localDetail?.songs, hasLength(30));
     });
 
+    test('fetches playlist songs with saved local audio resources', () async {
+      final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 3);
+      final tracks = <String, Track>{};
+      final musicDataRepository = _FakeMusicDataRepository(
+        tracks,
+        resourcesByTrackId: {
+          'netease:1': TrackResourceBundle(
+            audio: _audioResource(
+              trackId: 'netease:1',
+              path: '/cache/audio/playlist-1.mp3',
+            ),
+          ),
+        },
+      );
+      final repository = PlaylistRepository(
+        appCacheDataSource: _InMemoryAppCacheDataSource(),
+        musicDataRepository: musicDataRepository,
+        localLibraryDataSource: _FakeLocalLibraryDataSource(tracks),
+        remoteDataSource: remoteDataSource,
+        playlistSubscriptionDataSource: _FakePlaylistSubscriptionDataSource(),
+      );
+
+      final songs = await repository.fetchPlaylistSongs(
+        playlistId: '1',
+        likedSongIds: const [1],
+        offset: 1,
+        limit: 1,
+      );
+
+      expect(musicDataRepository.requestedResourceIds, contains('netease:1'));
+      expect(songs, hasLength(1));
+      expect(songs.single.id, 'netease:1');
+      expect(songs.single.mediaType, MediaType.local);
+      expect(songs.single.playbackUrl, '/cache/audio/playlist-1.mp3');
+      expect(songs.single.isCached, isTrue);
+      expect(songs.single.isLiked, isTrue);
+    });
+
+    test('first page preview keeps remote metadata while using local audio resources', () async {
+      final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 3);
+      final repository = _playlistRepository(
+        remoteDataSource: remoteDataSource,
+        resourcesByTrackId: {
+          'netease:0': TrackResourceBundle(
+            audio: _audioResource(
+              trackId: 'netease:0',
+              path: '/cache/audio/playlist-0.mp3',
+            ),
+          ),
+        },
+      );
+
+      await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+        offset: 0,
+        limit: -1,
+      );
+      remoteDataSource.titleVersion = 1;
+
+      final preview = await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: null,
+        offset: 0,
+        limit: 1,
+      );
+
+      expect(preview.songs, hasLength(1));
+      expect(preview.songs.single.title, 'Song v1 0');
+      expect(preview.songs.single.mediaType, MediaType.local);
+      expect(preview.songs.single.playbackUrl, '/cache/audio/playlist-0.mp3');
+      expect(preview.songs.single.isCached, isTrue);
+    });
+
     test('first page preview does not overwrite complete cached songs', () async {
       final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 250);
       final repository = _playlistRepository(remoteDataSource: remoteDataSource);
@@ -394,11 +471,15 @@ PlaylistRepository _playlistRepository({
   int totalTracks = 100,
   _FakePlaylistRemoteDataSource? remoteDataSource,
   AppCacheDataSource? cacheDataSource,
+  Map<String, TrackResourceBundle> resourcesByTrackId = const {},
 }) {
   final tracks = <String, Track>{};
   return PlaylistRepository(
     appCacheDataSource: cacheDataSource ?? _InMemoryAppCacheDataSource(),
-    musicDataRepository: _FakeMusicDataRepository(tracks),
+    musicDataRepository: _FakeMusicDataRepository(
+      tracks,
+      resourcesByTrackId: resourcesByTrackId,
+    ),
     localLibraryDataSource: _FakeLocalLibraryDataSource(tracks),
     remoteDataSource: remoteDataSource ?? _FakePlaylistRemoteDataSource(totalTracks: totalTracks),
     playlistSubscriptionDataSource: _FakePlaylistSubscriptionDataSource(),
@@ -486,9 +567,14 @@ class _FakePlaylistRemoteDataSource implements NeteasePlaylistRemoteDataSource {
 }
 
 class _FakeMusicDataRepository implements MusicDataRepository {
-  _FakeMusicDataRepository(this._tracks);
+  _FakeMusicDataRepository(
+    this._tracks, {
+    this.resourcesByTrackId = const {},
+  });
 
   final Map<String, Track> _tracks;
+  final Map<String, TrackResourceBundle> resourcesByTrackId;
+  final List<String> requestedResourceIds = [];
 
   @override
   Future<void> saveTracks(
@@ -512,13 +598,14 @@ class _FakeMusicDataRepository implements MusicDataRepository {
   Future<List<TrackWithResources>> getTracksWithResources(
     Iterable<String> trackIds,
   ) async {
+    requestedResourceIds.addAll(trackIds);
     return trackIds
         .map((trackId) => _tracks[trackId])
         .whereType<Track>()
         .map(
           (track) => TrackWithResources(
             track: track,
-            resources: const TrackResourceBundle(),
+            resources: resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
           ),
         )
         .toList();
@@ -649,5 +736,21 @@ Track _track(int index, {int titleVersion = 0}) {
       'albumId': 'album',
       'artistIds': ['artist'],
     },
+  );
+}
+
+LocalResourceEntry _audioResource({
+  required String trackId,
+  required String path,
+}) {
+  final now = DateTime(2026);
+  return LocalResourceEntry(
+    trackId: trackId,
+    kind: LocalResourceKind.audio,
+    path: path,
+    origin: TrackResourceOrigin.managedDownload,
+    sizeBytes: 1,
+    createdAt: now,
+    lastAccessedAt: now,
   );
 }

@@ -10,6 +10,8 @@ import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/playlist_track_ref.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 
@@ -271,7 +273,7 @@ class PlaylistRepository {
         tracks: tracks,
       );
     }
-    final items = PlaybackQueueItemMapper.fromTrackList(
+    final items = await _queueItemsFromRemoteTracks(
       tracks,
       likedSongIds: likedSongIds,
     );
@@ -484,7 +486,7 @@ class PlaylistRepository {
       offset: 0,
       limit: limit,
     );
-    final detail = _buildDetailFromRemoteTracks(
+    final detail = await _buildDetailFromRemoteTracks(
       index,
       tracks,
       likedSongIds: likedSongIds,
@@ -612,19 +614,20 @@ class PlaylistRepository {
     return detail;
   }
 
-  PlaylistDetailData _buildDetailFromRemoteTracks(
+  Future<PlaylistDetailData> _buildDetailFromRemoteTracks(
     PlaylistIndexData index,
     List<Track> tracks, {
     required List<int> likedSongIds,
     required String? currentUserId,
     required int? expectedTrackCount,
     required int? trackCount,
-  }) {
+  }) async {
+    final songs = await _queueItemsFromRemoteTracks(
+      tracks,
+      likedSongIds: likedSongIds,
+    );
     return PlaylistDetailData(
-      songs: PlaybackQueueItemMapper.fromTrackList(
-        tracks,
-        likedSongIds: likedSongIds,
-      ),
+      songs: songs,
       isSubscribed: index.isSubscribed,
       isMyPlayList: index.creatorUserId != null && index.creatorUserId == currentUserId,
       expectedTrackCount: expectedTrackCount,
@@ -633,6 +636,44 @@ class PlaylistRepository {
       trackCount: trackCount,
       source: PlaylistDetailSource.remote,
     );
+  }
+
+  Future<List<PlaybackQueueItem>> _queueItemsFromRemoteTracks(
+    List<Track> tracks, {
+    required List<int> likedSongIds,
+  }) async {
+    if (tracks.isEmpty) {
+      return const [];
+    }
+    final loadStopwatch = PlaylistPerformanceLogger.start();
+    final tracksWithResources = await _musicDataRepository.getTracksWithResources(
+      tracks.map((track) => track.id),
+    );
+    PlaylistPerformanceLogger.elapsed(
+      'repo.remoteTracks.getTracksWithResources',
+      loadStopwatch,
+      details: 'tracks=${tracks.length} resources=${tracksWithResources.length}',
+    );
+    final resourcesByTrackId = {
+      for (final item in tracksWithResources) item.track.id: item.resources,
+    };
+    final mapStopwatch = PlaylistPerformanceLogger.start();
+    final items = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+      [
+        for (final track in tracks)
+          TrackWithResources(
+            track: track,
+            resources: resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
+          ),
+      ],
+      likedSongIds: likedSongIds,
+    );
+    PlaylistPerformanceLogger.elapsed(
+      'repo.remoteTracks.map',
+      mapStopwatch,
+      details: 'tracks=${tracks.length} items=${items.length}',
+    );
+    return items;
   }
 
   Future<List<Track>> _fetchRemotePlaylistTracks({

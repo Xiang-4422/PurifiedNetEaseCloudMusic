@@ -30,6 +30,20 @@ void main() {
       expect(events.toSet(), hasLength(events.length));
     });
 
+    test('formats elapsed details with target budget status', () {
+      expect(
+        AppPerformanceMetrics.trackSwitch.elapsedDetails(
+          elapsedMs: 240,
+          details: 'source=local',
+        ),
+        'metric=track_switch target=300ms status=ok remaining=60ms source=local',
+      );
+      expect(
+        AppPerformanceMetrics.trackSwitch.elapsedDetails(elapsedMs: 360),
+        'metric=track_switch target=300ms status=slow over=60ms',
+      );
+    });
+
     test('documents every core metric in the refactor route', () {
       final doc = File('docs/重构路线.md').readAsStringSync();
 

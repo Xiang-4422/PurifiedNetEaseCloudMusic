@@ -23,6 +23,20 @@ class AppPerformanceMetric {
 
   /// 指标说明。
   final String description;
+
+  /// 构建指标耗时日志详情。
+  String elapsedDetails({
+    required int elapsedMs,
+    String details = '',
+  }) {
+    final budgetMs = targetMs - elapsedMs;
+    final budgetDetails = budgetMs >= 0 ? 'status=ok remaining=${budgetMs}ms' : 'status=slow over=${-budgetMs}ms';
+    final metricDetails = 'metric=$key target=${targetMs}ms $budgetDetails';
+    if (details.isEmpty) {
+      return metricDetails;
+    }
+    return '$metricDetails $details';
+  }
 }
 
 /// 应用必须长期跟踪的关键性能指标。

@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 
+import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:flutter/foundation.dart';
 
@@ -51,10 +52,11 @@ class PlaylistPerformanceLogger {
     String details = '',
     int warnAfterMs = 0,
   }) {
-    elapsed(
-      metric.eventName,
+    PerformanceLogger.elapsedMetric(
+      metric,
       stopwatch,
       details: details,
+      name: _name,
       warnAfterMs: warnAfterMs,
     );
   }

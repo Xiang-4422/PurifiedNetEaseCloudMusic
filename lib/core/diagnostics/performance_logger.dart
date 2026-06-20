@@ -50,12 +50,19 @@ class PerformanceLogger {
     String name = 'Perf',
     int warnAfterMs = 0,
   }) {
-    elapsed(
-      metric.eventName,
-      stopwatch,
+    if (!kDebugMode) {
+      return;
+    }
+    stopwatch.stop();
+    final elapsedMs = stopwatch.elapsedMilliseconds;
+    if (warnAfterMs > 0 && elapsedMs < warnAfterMs) {
+      return;
+    }
+    final suffix = metric.elapsedDetails(
+      elapsedMs: elapsedMs,
       details: details,
-      name: name,
-      warnAfterMs: warnAfterMs,
     );
+    developer.log('${metric.eventName} ${elapsedMs}ms $suffix', name: name);
+    debugPrint('[$name] ${metric.eventName} ${elapsedMs}ms $suffix');
   }
 }

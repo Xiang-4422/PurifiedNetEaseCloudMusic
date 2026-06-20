@@ -141,6 +141,16 @@ Module.prototype.require = function patchedRequire(request) {
       },
     }
   }
+  if (request === 'music-metadata') {
+    return {
+      async parseBuffer() {
+        return { common: {} }
+      },
+      async parseFile() {
+        return { common: {} }
+      },
+    }
+  }
   if (request === 'node-forge') {
     return {
       pki: {
@@ -3086,6 +3096,32 @@ const fixtures = [
     responses: [
       { status: 200, body: { data: [{ songId: 456 }] }, cookie: [] },
       { status: 200, body: { code: 200, imported: true }, cookie: [] },
+    ],
+  },
+  {
+    module: 'cloud',
+    query: {
+      songFile: {
+        name: 'My Song.flac',
+        mimetype: 'audio/flac',
+        size: 12345,
+        md5: 'abc',
+      },
+    },
+    captureRequests: true,
+    responses: [
+      { status: 200, body: { needUpload: false, songId: 456 }, cookie: [] },
+      {
+        status: 200,
+        body: {
+          result: {
+            resourceId: 'resource-1',
+          },
+        },
+        cookie: [],
+      },
+      { status: 200, body: { code: 200, songId: 789 }, cookie: [] },
+      { status: 200, body: { code: 200, published: true }, cookie: [] },
     ],
   },
   {

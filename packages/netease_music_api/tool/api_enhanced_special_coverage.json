@@ -3,6 +3,7 @@
     "api",
     "audio_match",
     "avatar_upload",
+    "cloud",
     "cloud_import",
     "cloud_upload_complete",
     "cloud_upload_token",
@@ -26,10 +27,10 @@
     "voice_upload"
   ],
   "dartBehavior": [
-    "cloud",
     "song_url_match"
   ],
   "limited": {
+    "cloud": "Request sequence is covered; Dart does not parse audio metadata and uses query-provided song/album/artist or sanitized filename fallback.",
     "decrypt": "Does not support weapi and xeapi request decryption; response decryption is covered.",
     "song_url_match": "Depends on upstream unblockmusic-utils and returns an explicit limitation envelope in Dart.",
     "song_url_v1": "Base xeapi and 302 fallback are covered; unblock/source order depends on upstream unblockmusic-utils."

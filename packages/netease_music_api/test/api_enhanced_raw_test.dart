@@ -2697,7 +2697,7 @@ void main() {
       });
     });
 
-    test('cloud special module consumes upload token envelope before completion', () async {
+    test('cloud special module mirrors upstream songFile flow', () async {
       final proxy = _QueuedPostDioProxy([
         {
           'needUpload': false,
@@ -2720,29 +2720,45 @@ void main() {
         },
       ]);
       Https.setDioProxyForTesting(proxy);
-      Https.setDioForTesting(Dio()
-        ..httpClientAdapter = _JsonResponseAdapter({
-          'upload': ['https://upload.test'],
-        }));
 
       final result = await api.cloud({
-        'md5': 'abc',
-        'fileSize': 12345,
-        'filename': 'My Song.flac',
+        'songFile': {
+          'name': 'My Song.flac',
+          'mimetype': 'audio/flac',
+          'size': 12345,
+          'md5': 'abc',
+        },
       });
 
       expect(proxy.paths, ['/api/cloud/upload/check', '/api/nos/token/alloc', '/api/upload/cloud/info/v2', '/api/cloud/pub/v2']);
+      expect(proxy.requests[1].data, {
+        'bucket': '',
+        'ext': 'flac',
+        'filename': 'MySong',
+        'local': false,
+        'nos_product': 3,
+        'type': 'audio',
+        'md5': 'abc',
+      });
+      expect(proxy.requests[2].data, {
+        'md5': 'abc',
+        'songid': 456,
+        'filename': 'My Song.flac',
+        'song': 'MySong',
+        'album': '未知专辑',
+        'artist': '未知艺术家',
+        'bitrate': '999000',
+        'resourceId': 'resource-1',
+      });
       expect(result, {
         'status': 200,
         'body': {
           'code': 200,
-          'data': {
-            'songId': 789,
-            'code': 200,
-            'published': true,
-          },
+          'needUpload': false,
+          'songId': 456,
+          'published': true,
         },
-        'cookie': 'cookie-3=value',
+        'cookie': 'cookie-1=value',
       });
     });
 
@@ -3022,6 +3038,29 @@ Future<List<DioMetaData>> _dartRequestSequenceForOracleFixture(
         {
           'code': 200,
           'imported': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+      await api.requestModule(module, query);
+      return proxy.requests;
+    case 'cloud':
+      final proxy = _QueuedPostDioProxy([
+        {
+          'needUpload': false,
+          'songId': 456,
+        },
+        {
+          'result': {
+            'resourceId': 'resource-1',
+          },
+        },
+        {
+          'code': 200,
+          'songId': 789,
+        },
+        {
+          'code': 200,
+          'published': true,
         },
       ]);
       Https.setDioProxyForTesting(proxy);

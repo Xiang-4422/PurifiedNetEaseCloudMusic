@@ -762,22 +762,165 @@ mixin ApiEnhancedRaw {
 
   /// Cloud upload full flow.
   Future<dynamic> cloud(Map<String, dynamic> query) async {
-    final token = await cloudUploadToken(query);
-    final tokenBody = _asMap(token['body']);
-    if (token['status'] != 200) {
-      return token;
+    final filename = _filename(query);
+    if (filename.isEmpty) {
+      return {
+        'status': 500,
+        'body': {
+          'msg': '请上传音乐文件',
+          'code': 500,
+        },
+      };
     }
-    final data = _asMap(tokenBody['data']);
-    if (data['needUpload'] == true && data['uploadUrl'] != null) {
-      await _uploadBinary(data['uploadUrl'].toString(), query, token: data['uploadToken']?.toString(), contentMd5: data['md5']?.toString());
+    final fileSize = query['fileSize'] ?? await _fileSize(query);
+    final fileMd5 = query['md5']?.toString() ?? _songFileMap(query)['md5']?.toString() ?? await _fileMd5(query);
+    if (fileSize == null || fileMd5 == null || fileMd5.isEmpty) {
+      return {
+        'status': 500,
+        'body': {
+          'msg': '请上传音乐文件',
+          'code': 500,
+        },
+      };
     }
-    return cloudUploadComplete({
-      ...query,
-      'songId': data['songId'],
-      'resourceId': data['resourceId'],
-      'md5': data['md5'],
-      'filename': data['filename'],
-    });
+
+    const bitrate = 999000;
+    final checkRes = await Https.dioProxy.postUri(
+      DioMetaData(
+        joinUri('/api/cloud/upload/check'),
+        data: {
+          'bitrate': '$bitrate',
+          'ext': '',
+          'length': fileSize,
+          'md5': fileMd5,
+          'songId': '0',
+          'version': 1,
+        },
+        options: _rawOptions(EncryptType.EApi, '/api/cloud/upload/check', query),
+      ),
+    );
+
+    final tokenRes = await Https.dioProxy.postUri(
+      DioMetaData(
+        joinUri('/api/nos/token/alloc'),
+        data: {
+          'bucket': '',
+          'ext': _fileExtension(filename, fallback: 'mp3'),
+          'filename': _cloudSanitizedFilename(filename),
+          'local': false,
+          'nos_product': 3,
+          'type': 'audio',
+          'md5': fileMd5,
+        },
+        options: _rawOptions(EncryptType.EApi, '/api/nos/token/alloc', query),
+      ),
+    );
+    final tokenResult = _asMap(_asMap(tokenRes.data)['result']);
+    if (tokenResult['resourceId'] == null) {
+      return {
+        'status': 500,
+        'body': {
+          'code': 500,
+          'msg': '获取上传token失败',
+          'detail': tokenRes.data,
+        },
+      };
+    }
+
+    final checkBody = _asMap(checkRes.data);
+    if (checkBody['needUpload'] == true) {
+      await _uploadCloudSongBinary(query, filename: filename, md5: fileMd5, fileSize: fileSize);
+    }
+
+    final infoRes = await Https.dioProxy.postUri(
+      DioMetaData(
+        joinUri('/api/upload/cloud/info/v2'),
+        data: {
+          'md5': fileMd5,
+          'songid': checkBody['songId'],
+          'filename': filename,
+          'song': _cloudSongName(query, filename),
+          'album': query['album'] ?? '未知专辑',
+          'artist': query['artist'] ?? '未知艺术家',
+          'bitrate': '$bitrate',
+          'resourceId': tokenResult['resourceId'],
+        },
+        options: _rawOptions(EncryptType.EApi, '/api/upload/cloud/info/v2', query),
+      ),
+    );
+    final infoBody = _asMap(infoRes.data);
+    if (infoBody['code'] != 200) {
+      return {
+        'status': infoRes.statusCode ?? 500,
+        'body': {
+          'code': infoBody['code'] ?? 500,
+          'msg': infoBody['msg'] ?? '上传云盘信息失败',
+          'detail': infoBody,
+        },
+      };
+    }
+
+    final publishRes = await Https.dioProxy.postUri(
+      DioMetaData(
+        joinUri('/api/cloud/pub/v2'),
+        data: {'songid': infoBody['songId']},
+        options: _rawOptions(EncryptType.EApi, '/api/cloud/pub/v2', query),
+      ),
+    );
+    return {
+      'status': 200,
+      'body': {
+        ...checkBody,
+        ..._asMap(publishRes.data),
+      },
+      'cookie': checkRes.headers[HttpHeaders.setCookieHeader]?.join(';') ?? '',
+    };
+  }
+
+  Future<void> _uploadCloudSongBinary(
+    Map<String, dynamic> query, {
+    required String filename,
+    required String md5,
+    required dynamic fileSize,
+  }) async {
+    const bucket = 'jd-musicrep-privatecloud-audio-public';
+    final tokenRes = await Https.dioProxy.postUri(
+      DioMetaData(
+        joinUri('/api/nos/token/alloc'),
+        data: {
+          'bucket': bucket,
+          'ext': _fileExtension(filename, fallback: 'mp3'),
+          'filename': _cloudSanitizedFilename(filename),
+          'local': false,
+          'nos_product': 3,
+          'type': 'audio',
+          'md5': md5,
+        },
+        options: _rawOptions(EncryptType.WeApi, '/api/nos/token/alloc', query),
+      ),
+    );
+    final result = _asMap(_asMap(tokenRes.data)['result']);
+    if (result['objectKey'] == null) {
+      throw StateError('获取上传token失败');
+    }
+    dynamic lbs;
+    try {
+      lbs = (await Https.dio.get('https://wanproxy.127.net/lbs', queryParameters: {'version': '1.0', 'bucketname': bucket})).data;
+    } catch (error) {
+      throw StateError('获取上传服务器地址失败: $error');
+    }
+    final uploadHosts = _asMap(lbs)['upload'];
+    if (uploadHosts is! List || uploadHosts.isEmpty) {
+      throw StateError('获取上传服务器地址无效');
+    }
+    final uploadUrl = '${uploadHosts.first}/$bucket/${result['objectKey'].toString().replaceAll('/', '%2F')}?offset=0&complete=true&version=1.0';
+    await _uploadBinary(
+      uploadUrl,
+      query,
+      token: result['token']?.toString(),
+      contentMd5: md5,
+      contentLength: fileSize?.toString(),
+    );
   }
 
   /// Imports a cloud song through upstream check and import requests.
@@ -1129,22 +1272,17 @@ mixin ApiEnhancedRaw {
     };
   }
 
-  Future<void> _uploadBinary(String url, Map<String, dynamic> query, {String? token, String? contentMd5}) async {
-    final data = query['bytes'] ?? query['data'] ?? (query['filePath'] != null ? await File(query['filePath'].toString()).readAsBytes() : null);
-    if (data == null) {
-      throw ArgumentError('filePath or bytes is required');
-    }
+  Future<void> _uploadBinary(String url, Map<String, dynamic> query, {String? token, String? contentMd5, String? contentLength}) async {
+    final data = await _uploadBytes(query);
+    final contentType = contentMd5 != null ? _uploadMimeType(query) : query['mimetype']?.toString();
     await Https.dio.post(
       url,
-      data: data is Uint8List
-          ? Stream<List<int>>.fromIterable([data])
-          : data is List<int>
-              ? Stream<List<int>>.fromIterable([data])
-              : data,
+      data: Stream<List<int>>.fromIterable([data]),
       options: Options(headers: {
         if (token != null) 'x-nos-token': token,
         if (contentMd5 != null) 'Content-MD5': contentMd5,
-        if (query['mimetype'] != null) 'Content-Type': query['mimetype'],
+        if (contentLength != null) 'Content-Length': contentLength,
+        if (contentType != null) 'Content-Type': contentType,
       }),
     );
   }
@@ -3536,6 +3674,18 @@ String _voiceUploadName(String filename, String ext) {
   return withoutExt.replaceAll(RegExp(r'\s'), '').replaceAll('.', '_');
 }
 
+String _cloudSanitizedFilename(String filename) {
+  return filename.replaceAll(RegExp(r'\.[^.]+$'), '').replaceAll(RegExp(r'\s'), '').replaceAll('.', '_');
+}
+
+String _cloudSongName(Map<String, dynamic> query, String filename) {
+  final song = query['song'];
+  if (_jsTruthy(song)) {
+    return song.toString();
+  }
+  return _cloudSanitizedFilename(filename);
+}
+
 Map<String, dynamic> _voiceUploadData(
   Map<String, dynamic> query, {
   required String name,
@@ -3641,13 +3791,37 @@ String _createDupkey() {
 }
 
 Future<int?> _fileSize(Map<String, dynamic> query) async {
-  final bytes = query['bytes'];
-  if (bytes is List<int>) {
+  final explicit = query['fileSize'] ?? _songFileMap(query)['size'];
+  if (explicit is num) {
+    return explicit.toInt();
+  }
+  if (explicit != null) {
+    return int.tryParse(explicit.toString());
+  }
+  final bytes = _bytesFromUploadValue(query['bytes'] ?? query['data'] ?? _songFileMap(query)['data']);
+  if (bytes != null) {
     return bytes.length;
   }
   final filePath = query['filePath']?.toString();
   if (filePath != null && filePath.isNotEmpty) {
     return File(filePath).length();
   }
+  final tempFilePath = _songFileMap(query)['tempFilePath']?.toString();
+  if (tempFilePath != null && tempFilePath.isNotEmpty) {
+    return File(tempFilePath).length();
+  }
   return null;
+}
+
+Future<String?> _fileMd5(Map<String, dynamic> query) async {
+  final explicit = query['md5'] ?? _songFileMap(query)['md5'];
+  if (explicit != null && explicit.toString().isNotEmpty) {
+    return explicit.toString();
+  }
+  try {
+    final bytes = await _uploadBytes(query);
+    return Encrypted(MD5Digest().process(bytes)).base16.toLowerCase();
+  } catch (_) {
+    return null;
+  }
 }

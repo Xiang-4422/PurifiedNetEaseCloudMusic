@@ -380,6 +380,26 @@ void main() {
       });
     });
 
+    test('maps sheet request data like upstream', () {
+      final listMetaData = api.requestModuleDioMetaData('sheet_list', {
+        'id': 'song-1',
+      });
+
+      expect(listMetaData.uri.path, '/api/music/sheet/list/v1');
+      expect(listMetaData.data, {
+        'id': 'song-1',
+        'abTest': 'b',
+      });
+      expect(listMetaData.options!.extra!['encryptType'], EncryptType.EApi);
+      expect(api.requestModuleDioMetaData('sheet_list', {'id': 'song-1', 'ab': 'a'}).data, {
+        'id': 'song-1',
+        'abTest': 'a',
+      });
+      expect(api.requestModuleDioMetaData('sheet_preview', {'id': 'sheet-1'}).data, {
+        'id': 'sheet-1',
+      });
+    });
+
     test('maps similar recommendation request data like upstream', () {
       expect(api.requestModuleDioMetaData('simi_artist', {'id': '6452'}).data, {
         'artistid': '6452',

@@ -1070,6 +1070,25 @@ const fixtures = [
     },
   },
   {
+    module: 'sheet_list',
+    query: {
+      id: 'song-1',
+    },
+  },
+  {
+    module: 'sheet_list',
+    query: {
+      id: 'song-1',
+      ab: 'a',
+    },
+  },
+  {
+    module: 'sheet_preview',
+    query: {
+      id: 'sheet-1',
+    },
+  },
+  {
     module: 'voice_delete',
     query: {
       ids: '101,202',

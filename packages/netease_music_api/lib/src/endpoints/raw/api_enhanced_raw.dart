@@ -1926,6 +1926,15 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
       return {
         'keyword': _jsDefault(query['keyword'], ''),
       };
+    case 'sheet_list':
+      return {
+        'id': query['id'],
+        'abTest': _jsDefault(query['ab'], 'b'),
+      };
+    case 'sheet_preview':
+      return {
+        'id': query['id'],
+      };
     case 'user_playlist':
       return {
         'uid': query['uid'],

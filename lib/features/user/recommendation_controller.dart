@@ -167,29 +167,39 @@ class RecommendationController extends GetxController {
       return;
     }
 
-    await _libraryController.refreshUserLibrary();
-    if (!_isActiveSession(userId)) {
-      return;
+    try {
+      await _libraryController.refreshUserLibrary();
+      if (!_isActiveSession(userId)) {
+        return;
+      }
+      await Future.wait([
+        _updateQuickStartCardData(userId),
+        updateRecoPlayLists(),
+      ]);
+      if (!_isActiveSession(userId)) {
+        return;
+      }
+      _hasLocalData = true;
+      await _repository.markSyncMarkerUpdated(
+        userId: userId,
+        markerKey: _startupSyncMarker,
+      );
+      if (!_isActiveSession(userId)) {
+        return;
+      }
+      dateLoaded.value = true;
+      scheduleHomeImageColorPrewarm();
+      refreshController.refreshCompleted();
+      refreshController.resetNoData();
+    } catch (_) {
+      if (!_isActiveSession(userId)) {
+        return;
+      }
+      _hasLocalData = _hasLocalData || _hasVisibleHomeData;
+      dateLoaded.value = true;
+      refreshController.refreshFailed();
+      refreshController.resetNoData();
     }
-    await Future.wait([
-      _updateQuickStartCardData(userId),
-      updateRecoPlayLists(),
-    ]);
-    if (!_isActiveSession(userId)) {
-      return;
-    }
-    _hasLocalData = true;
-    await _repository.markSyncMarkerUpdated(
-      userId: userId,
-      markerKey: _startupSyncMarker,
-    );
-    if (!_isActiveSession(userId)) {
-      return;
-    }
-    dateLoaded.value = true;
-    scheduleHomeImageColorPrewarm();
-    refreshController.refreshCompleted();
-    refreshController.resetNoData();
   }
 
   /// 刷新推荐歌单，`getMore` 为 true 时追加下一页。
@@ -352,6 +362,10 @@ class RecommendationController extends GetxController {
 
   bool _isActiveSession(String userId) {
     return _sessionController.userInfo.value.userId == userId;
+  }
+
+  bool get _hasVisibleHomeData {
+    return recoPlayLists.isNotEmpty || todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
   }
 
   @override

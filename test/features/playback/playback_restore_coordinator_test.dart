@@ -27,8 +27,8 @@ void main() {
       expect(restoreData.queue, isEmpty);
       expect(restoreData.index, -1);
       expect(restoreData.position, Duration.zero);
-      expect(restoreData.playlistName, 'Restored');
-      expect(restoreData.playlistHeader, 'Header');
+      expect(restoreData.playlistName, isEmpty);
+      expect(restoreData.playlistHeader, isEmpty);
     });
 
     test('filters empty restored queue items and clamps missing current song', () async {

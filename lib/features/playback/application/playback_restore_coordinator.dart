@@ -66,8 +66,8 @@ class PlaybackRestoreCoordinator {
       repeatMode: restoreState.repeatMode,
       queue: playlist,
       index: index,
-      playlistName: restoreState.playlistName,
-      playlistHeader: restoreState.playlistHeader,
+      playlistName: playlist.isEmpty ? '' : restoreState.playlistName,
+      playlistHeader: playlist.isEmpty ? '' : restoreState.playlistHeader,
       position: playlist.isEmpty ? Duration.zero : restoreState.position,
     );
   }

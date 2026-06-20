@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/app/routing/router.dart';
 import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
 import 'package:bujuan/ui/services/dialog_service.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
@@ -158,51 +160,57 @@ class _SettingPageViewState extends State<SettingPageView> {
         right: AppDimensions.paddingSmall,
       ),
       children: [
-        _buildUiSetting(context),
-        _buildAppSetting(context),
+        _buildAccountSetting(context),
+        _buildPlaybackSetting(context),
+        _buildCacheSetting(context),
+        _buildDownloadSetting(context),
+        _buildAppearanceSetting(context),
+        _buildDebugSetting(context),
       ],
     );
   }
 
-  Widget _buildUiSetting(BuildContext context) {
+  Widget _buildAccountSetting(BuildContext context) {
     return Column(
       children: [
-        const Header('UI设置'),
-        _buildToggleTile(
+        const Header('账号'),
+        _buildNavigationTile(
           context,
-          title: '渐变播放背景(需开启智能取色)',
-          isEnabled: () => SettingsController.to.isGradientBackground.value,
-          onTap: () {
-            SettingsController.to.toggleGradientBackground();
-          },
-        ),
-        _buildToggleTile(
-          context,
-          title: '圆形专辑',
-          isEnabled: () => SettingsController.to.isRoundAlbumOpen.value,
-          onTap: () {
-            SettingsController.to.toggleRoundAlbumOpen();
-          },
+          icon: TablerIcons.user_circle,
+          title: '账号资料',
+          subtitle: '查看当前账号资料和注销登录',
+          onTap: () => context.router.pushNamed(Routes.userProfile),
         ),
       ],
     );
   }
 
-  Widget _buildAppSetting(BuildContext context) {
+  Widget _buildPlaybackSetting(BuildContext context) {
     return Column(
       children: [
-        const Header('App设置'),
+        const Header('音质'),
         _buildToggleTile(
           context,
-          title: '开启高音质(与会员有关)',
+          icon: TablerIcons.music_up,
+          title: '高音质优先',
+          subtitle: '播放源解析时优先请求高音质地址',
           isEnabled: () => SettingsController.to.isHighSoundQualityOpen.value,
           onTap: () {
             SettingsController.to.toggleHighSoundQualityOpen();
           },
         ),
+      ],
+    );
+  }
+
+  Widget _buildDownloadSetting(BuildContext context) {
+    return Column(
+      children: [
+        const Header('下载'),
         _buildNavigationTile(
           context,
-          title: '本地歌曲',
+          icon: TablerIcons.download,
+          title: '本地歌曲与下载',
           subtitle: '查看下载任务、失败重试和本地清理',
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(
@@ -212,12 +220,22 @@ class _SettingPageViewState extends State<SettingPageView> {
         ),
         _buildNavigationTile(
           context,
+          icon: TablerIcons.folder_search,
           title: '扫描本地音乐',
           subtitle: '导入常见音乐目录中的音频、封面和歌词',
           onTap: _scanLocalMedia,
         ),
+      ],
+    );
+  }
+
+  Widget _buildCacheSetting(BuildContext context) {
+    return Column(
+      children: [
+        const Header('缓存'),
         _buildNavigationTile(
           context,
+          icon: TablerIcons.database_search,
           title: '缓存分析',
           subtitle: '分析图片、封面、播放缓存和临时文件',
           onTap: () => Navigator.of(context).push(
@@ -226,8 +244,45 @@ class _SettingPageViewState extends State<SettingPageView> {
             ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildAppearanceSetting(BuildContext context) {
+    return Column(
+      children: [
+        const Header('外观'),
+        _buildToggleTile(
+          context,
+          icon: TablerIcons.gradienter,
+          title: '渐变播放背景',
+          subtitle: '根据封面主色调整播放页背景',
+          isEnabled: () => SettingsController.to.isGradientBackground.value,
+          onTap: () {
+            SettingsController.to.toggleGradientBackground();
+          },
+        ),
+        _buildToggleTile(
+          context,
+          icon: TablerIcons.circle,
+          title: '圆形专辑',
+          subtitle: '播放页使用圆形专辑封面',
+          isEnabled: () => SettingsController.to.isRoundAlbumOpen.value,
+          onTap: () {
+            SettingsController.to.toggleRoundAlbumOpen();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDebugSetting(BuildContext context) {
+    return Column(
+      children: [
+        const Header('调试'),
         _buildNavigationTile(
           context,
+          icon: TablerIcons.live_photo,
           title: 'Lottie 动画预览',
           subtitle: '自动读取 assets/lottie 下的动画资源',
           onTap: () => Navigator.of(context).push(
@@ -238,6 +293,7 @@ class _SettingPageViewState extends State<SettingPageView> {
         ),
         _buildNavigationTile(
           context,
+          icon: TablerIcons.stack_2,
           title: 'CoverFlow Demo',
           subtitle: '使用当前播放列表的封面验证 CoverFlow 交互',
           onTap: () => Navigator.of(context, rootNavigator: true).push(
@@ -253,6 +309,7 @@ class _SettingPageViewState extends State<SettingPageView> {
 
   Widget _buildToggleTile(
     BuildContext context, {
+    required IconData icon,
     required String title,
     String? subtitle,
     required bool Function() isEnabled,
@@ -264,6 +321,11 @@ class _SettingPageViewState extends State<SettingPageView> {
       constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
       child: ListTile(
         contentPadding: EdgeInsets.zero,
+        leading: Icon(
+          icon,
+          size: AppDimensions.iconSizeMedium,
+          color: Theme.of(context).cardColor.withValues(alpha: .65),
+        ),
         title: Text(
           title,
           maxLines: 2,
@@ -297,6 +359,7 @@ class _SettingPageViewState extends State<SettingPageView> {
 
   Widget _buildNavigationTile(
     BuildContext context, {
+    required IconData icon,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
@@ -306,6 +369,11 @@ class _SettingPageViewState extends State<SettingPageView> {
       constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
       child: ListTile(
         contentPadding: EdgeInsets.zero,
+        leading: Icon(
+          icon,
+          size: AppDimensions.iconSizeMedium,
+          color: Theme.of(context).cardColor.withValues(alpha: .65),
+        ),
         title: Text(
           title,
           maxLines: 2,

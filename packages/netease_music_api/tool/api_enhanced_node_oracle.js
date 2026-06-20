@@ -34,6 +34,9 @@ Module.prototype.require = function patchedRequire(request) {
   if (request === 'axios') {
     return {
       default: async (config) => {
+        if (config.url && config.url.includes('/api/music/audio/match')) {
+          return { data: { data: { songId: 123, name: 'Matched' } }, headers: {} }
+        }
         if (config.url && config.url.includes('wanproxy.127.net/lbs')) {
           return { data: { upload: ['https://upload.test'] } }
         }
@@ -2749,6 +2752,14 @@ const fixtures = [
     module: 'login_qr_create',
     query: {
       key: 'abc',
+    },
+    allowNoRequest: true,
+  },
+  {
+    module: 'audio_match',
+    query: {
+      duration: 12,
+      audioFP: 'finger print +/=?',
     },
     allowNoRequest: true,
   },

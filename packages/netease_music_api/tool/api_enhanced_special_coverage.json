@@ -1,5 +1,6 @@
 {
   "nodeOracle": [
+    "audio_match",
     "avatar_upload",
     "cloud_import",
     "cloud_upload_complete",
@@ -20,7 +21,6 @@
   ],
   "dartBehavior": [
     "api",
-    "audio_match",
     "cloud",
     "decrypt",
     "eapi_decrypt",

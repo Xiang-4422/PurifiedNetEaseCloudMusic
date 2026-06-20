@@ -3056,8 +3056,12 @@ Future<dynamic> _dartResultForNoRequestOracleFixture(
   Map<String, dynamic> query,
 ) {
   switch (module) {
+    case 'audio_match':
+      Https.setDioForTesting(Dio()..httpClientAdapter = _TextResponseAdapter('{"data":{"songId":123,"name":"Matched"}}'));
+      return api.requestModule(module, query);
     case 'inner_version':
     case 'login_qr_create':
+      return api.requestModule(module, query);
     case 'song_url_ncmget':
       return api.requestModule(module, query);
     default:

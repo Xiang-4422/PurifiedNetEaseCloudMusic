@@ -98,6 +98,32 @@ void main() {
       });
     });
 
+    test('documented upstream baseline matches submodule and generated manifest', () async {
+      final repoRoot = _findRepoRoot();
+      final packageJson = _jsonMap(jsonDecode(File('${repoRoot.path}/third_party/api-enhanced/package.json').readAsStringSync()));
+      final docs = File('${repoRoot.path}/docs/网易云接口开发包.md').readAsStringSync();
+      final commitResult = await Process.run(
+        'git',
+        [
+          '-C',
+          '${repoRoot.path}/third_party/api-enhanced',
+          'rev-parse',
+          'HEAD',
+        ],
+      );
+
+      expect(
+        commitResult.exitCode,
+        0,
+        reason: '${commitResult.stdout}\n${commitResult.stderr}',
+      );
+      final upstreamCommit = (commitResult.stdout as String).trim();
+
+      expect(docs, contains('版本：v${packageJson['version']}'));
+      expect(docs, contains('commit：$upstreamCommit'));
+      expect(docs, contains('module 数量：${apiEnhancedModules.length}'));
+    });
+
     test('normal modules build request metadata', () {
       final normalModules = apiEnhancedModules.where((module) => !module.special);
 

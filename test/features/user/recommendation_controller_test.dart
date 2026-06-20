@@ -115,6 +115,50 @@ void main() {
 
       expect(controller.recoPlayLists.map((playlist) => playlist.id), ['fresh-first']);
     });
+
+    test('ignores stale quick start data after newer refresh completes', () async {
+      final sessionController = _buildSessionController('user-1');
+      final libraryController = _FakeUserLibraryController();
+      final oldToday = Completer<List<PlaybackQueueItem>>();
+      final oldFm = Completer<List<PlaybackQueueItem>>();
+      final newToday = Completer<List<PlaybackQueueItem>>();
+      final newFm = Completer<List<PlaybackQueueItem>>();
+      final todayFetches = [oldToday, newToday];
+      final fmFetches = [oldFm, newFm];
+      final repository = _FakeUserRepository(
+        fetchTodayRecommendSongsWithArgs: ({required userId, required likedSongIds}) {
+          return todayFetches.removeAt(0).future;
+        },
+        fetchFmSongsWithArgs: ({required userId, required likedSongIds}) {
+          return fmFetches.removeAt(0).future;
+        },
+      );
+      final controller = RecommendationController(
+        repository: repository,
+        sessionController: sessionController,
+        libraryController: libraryController,
+      );
+      addTearDown(controller.onClose);
+
+      final oldRefresh = controller.updateData();
+      await Future<void>.delayed(Duration.zero);
+      final newRefresh = controller.updateData();
+      await Future<void>.delayed(Duration.zero);
+
+      newToday.complete([_song('new-today')]);
+      newFm.complete([_song('new-fm')]);
+      await newRefresh;
+
+      expect(controller.todayRecommendSongs.map((song) => song.id), ['new-today']);
+      expect(controller.fmSongs.map((song) => song.id), ['new-fm']);
+
+      oldToday.complete([_song('old-today')]);
+      oldFm.complete([_song('old-fm')]);
+      await oldRefresh;
+
+      expect(controller.todayRecommendSongs.map((song) => song.id), ['new-today']);
+      expect(controller.fmSongs.map((song) => song.id), ['new-fm']);
+    });
   });
 }
 
@@ -172,6 +216,8 @@ class _FakeUserLibraryController extends UserLibraryController {
 class _FakeUserRepository implements UserRepository {
   _FakeUserRepository({
     this.fetchRecommendedPlaylistsWithArgs,
+    this.fetchTodayRecommendSongsWithArgs,
+    this.fetchFmSongsWithArgs,
   });
 
   final Future<List<PlaylistSummaryData>> Function({
@@ -179,6 +225,14 @@ class _FakeUserRepository implements UserRepository {
     required int offset,
     required int limit,
   })? fetchRecommendedPlaylistsWithArgs;
+  final Future<List<PlaybackQueueItem>> Function({
+    required String userId,
+    required List<int> likedSongIds,
+  })? fetchTodayRecommendSongsWithArgs;
+  final Future<List<PlaybackQueueItem>> Function({
+    required String userId,
+    required List<int> likedSongIds,
+  })? fetchFmSongsWithArgs;
 
   @override
   Future<List<PlaylistSummaryData>> fetchRecommendedPlaylists({
@@ -196,6 +250,42 @@ class _FakeUserRepository implements UserRepository {
     }
     return Future.value(const []);
   }
+
+  @override
+  Future<List<PlaybackQueueItem>> fetchTodayRecommendSongs({
+    required String userId,
+    required List<int> likedSongIds,
+  }) {
+    final fetchWithArgs = fetchTodayRecommendSongsWithArgs;
+    if (fetchWithArgs != null) {
+      return fetchWithArgs(
+        userId: userId,
+        likedSongIds: likedSongIds,
+      );
+    }
+    return Future.value(const []);
+  }
+
+  @override
+  Future<List<PlaybackQueueItem>> fetchFmSongs({
+    required String userId,
+    required List<int> likedSongIds,
+  }) {
+    final fetchWithArgs = fetchFmSongsWithArgs;
+    if (fetchWithArgs != null) {
+      return fetchWithArgs(
+        userId: userId,
+        likedSongIds: likedSongIds,
+      );
+    }
+    return Future.value(const []);
+  }
+
+  @override
+  Future<void> markSyncMarkerUpdated({
+    required String userId,
+    required String markerKey,
+  }) async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) {

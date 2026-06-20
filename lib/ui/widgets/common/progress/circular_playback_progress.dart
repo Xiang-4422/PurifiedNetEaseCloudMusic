@@ -50,11 +50,30 @@ class CircularPlaybackProgress extends StatelessWidget {
   }
 
   double get _normalizedProgress {
-    if (!progress.isFinite) {
-      return 0;
-    }
-    return progress.clamp(0.0, 1.0).toDouble();
+    return normalizePlaybackProgress(progress);
   }
+}
+
+/// 将任意进度值钳制到播放器 UI 可消费的 0 到 1 区间。
+double normalizePlaybackProgress(double progress) {
+  if (!progress.isFinite) {
+    return 0;
+  }
+  return progress.clamp(0.0, 1.0).toDouble();
+}
+
+/// 根据播放位置和总时长计算安全进度比例。
+double playbackProgressFraction({
+  required Duration position,
+  required Duration? total,
+}) {
+  final totalMilliseconds = total?.inMilliseconds ?? 0;
+  if (totalMilliseconds <= 0) {
+    return 0;
+  }
+  return normalizePlaybackProgress(
+    position.inMilliseconds / totalMilliseconds,
+  );
 }
 
 class _CircularProgressPainter extends CustomPainter {

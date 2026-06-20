@@ -1215,6 +1215,37 @@ void main() {
       );
     });
 
+    test('maps mlog request data like upstream', () {
+      final musicRcmdMetaData = api.requestModuleDioMetaData('mlog_music_rcmd', {
+        'mvid': 0,
+        'limit': 0,
+        'songid': '101',
+      });
+      expect(musicRcmdMetaData.uri.path, '/api/mlog/rcmd/feed/list');
+      expect(musicRcmdMetaData.data, {
+        'id': 0,
+        'type': 2,
+        'rcmdType': 20,
+        'limit': 10,
+        'extInfo': '{"songId":"101"}',
+      });
+      expect(musicRcmdMetaData.options!.extra!['encryptType'], EncryptType.EApi);
+
+      final toVideoMetaData = api.requestModuleDioMetaData('mlog_to_video', {'id': 'mlog-1'});
+      expect(toVideoMetaData.data, {
+        'mlogId': 'mlog-1',
+      });
+      expect(toVideoMetaData.options!.extra!['encryptType'], EncryptType.WeApi);
+
+      final urlMetaData = api.requestModuleDioMetaData('mlog_url', {'id': 'mlog-1', 'res': 0});
+      expect(urlMetaData.data, {
+        'id': 'mlog-1',
+        'resolution': 1080,
+        'type': 1,
+      });
+      expect(urlMetaData.options!.extra!['encryptType'], EncryptType.WeApi);
+    });
+
     test('maps mv request data like upstream', () {
       expect(api.requestModuleDioMetaData('mv_all', {}).data, {
         'tags': '{"地区":"全部","类型":"全部","排序":"上升最快"}',

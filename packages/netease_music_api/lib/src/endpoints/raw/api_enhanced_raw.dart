@@ -2330,6 +2330,26 @@ Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {
         'endTime': _jsDefault(query['endTime'], now),
         'type': _jsDefault(query['type'], 0),
       };
+    case 'mlog_music_rcmd':
+      return {
+        'id': _jsDefault(query['mvid'], 0),
+        'type': 2,
+        'rcmdType': 20,
+        'limit': _jsDefault(query['limit'], 10),
+        'extInfo': jsonEncode({
+          if (query.containsKey('songid')) 'songId': query['songid'],
+        }),
+      };
+    case 'mlog_to_video':
+      return {
+        'mlogId': query['id'],
+      };
+    case 'mlog_url':
+      return {
+        'id': query['id'],
+        'resolution': _jsDefault(query['res'], 1080),
+        'type': 1,
+      };
     case 'mv_all':
       return {
         'tags': jsonEncode({

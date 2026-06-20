@@ -1679,6 +1679,27 @@ const fixtures = [
     },
   },
   {
+    module: 'mlog_music_rcmd',
+    query: {
+      mvid: 0,
+      limit: 0,
+      songid: '101',
+    },
+  },
+  {
+    module: 'mlog_to_video',
+    query: {
+      id: 'mlog-1',
+    },
+  },
+  {
+    module: 'mlog_url',
+    query: {
+      id: 'mlog-1',
+      res: 0,
+    },
+  },
+  {
     module: 'mv_all',
     query: {
       area: '内地',

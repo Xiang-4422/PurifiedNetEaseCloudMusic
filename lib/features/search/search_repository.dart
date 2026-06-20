@@ -55,9 +55,12 @@ class SearchRepository {
     required List<int> likedSongIds,
   }) async {
     final localTracks = await _musicDataRepository.searchLocalTracks(keyword);
-    final remoteTracks = await _musicDataRepository.searchTracks(
-      sourceKey: 'netease',
-      keyword: keyword,
+    final remoteTracks = await _loadRemoteResults(
+      fallbackItems: localTracks,
+      load: () => _musicDataRepository.searchTracks(
+        sourceKey: 'netease',
+        keyword: keyword,
+      ),
     );
     final tracks = _mergeById(localTracks, remoteTracks, (track) => track.id);
     final trackItems = await _musicDataRepository.getTracksWithResources(
@@ -88,9 +91,12 @@ class SearchRepository {
       userPlaylists,
       (playlist) => playlist.id,
     );
-    final remotePlaylists = await _musicDataRepository.searchPlaylists(
-      sourceKey: 'netease',
-      keyword: keyword,
+    final remotePlaylists = await _loadRemoteResults(
+      fallbackItems: mergedLocalPlaylists,
+      load: () => _musicDataRepository.searchPlaylists(
+        sourceKey: 'netease',
+        keyword: keyword,
+      ),
     );
     return _mergeById(
       mergedLocalPlaylists,
@@ -102,9 +108,12 @@ class SearchRepository {
   /// 搜索专辑。
   Future<List<AlbumEntity>> searchAlbums(String keyword) async {
     final localAlbums = await _musicDataRepository.searchLocalAlbums(keyword);
-    final remoteAlbums = await _musicDataRepository.searchAlbums(
-      sourceKey: 'netease',
-      keyword: keyword,
+    final remoteAlbums = await _loadRemoteResults(
+      fallbackItems: localAlbums,
+      load: () => _musicDataRepository.searchAlbums(
+        sourceKey: 'netease',
+        keyword: keyword,
+      ),
     );
     return _mergeById(localAlbums, remoteAlbums, (album) => album.id);
   }
@@ -112,11 +121,28 @@ class SearchRepository {
   /// 搜索歌手。
   Future<List<ArtistEntity>> searchArtists(String keyword) async {
     final localArtists = await _musicDataRepository.searchLocalArtists(keyword);
-    final remoteArtists = await _musicDataRepository.searchArtists(
-      sourceKey: 'netease',
-      keyword: keyword,
+    final remoteArtists = await _loadRemoteResults(
+      fallbackItems: localArtists,
+      load: () => _musicDataRepository.searchArtists(
+        sourceKey: 'netease',
+        keyword: keyword,
+      ),
     );
     return _mergeById(localArtists, remoteArtists, (artist) => artist.id);
+  }
+
+  Future<List<T>> _loadRemoteResults<T>({
+    required List<T> fallbackItems,
+    required Future<List<T>> Function() load,
+  }) async {
+    try {
+      return await load();
+    } catch (_) {
+      if (fallbackItems.isNotEmpty) {
+        return <T>[];
+      }
+      rethrow;
+    }
   }
 
   List<T> _mergeById<T>(

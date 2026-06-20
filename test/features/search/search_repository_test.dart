@@ -1,3 +1,6 @@
+import 'package:bujuan/core/entities/album_entity.dart';
+import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
@@ -47,6 +50,129 @@ void main() {
       ]);
       expect(items.map((item) => item.isLiked), [false, true, false]);
     });
+
+    test('keeps local track results when remote track search fails', () async {
+      final musicDataRepository = _FakeMusicDataRepository(
+        localTracks: [
+          _track('local:1', sourceType: SourceType.local),
+        ],
+        remoteTrackError: Exception('offline'),
+      );
+      final repository = SearchRepository(
+        musicDataRepository: musicDataRepository,
+        remoteDataSource: _FakeNeteaseSearchRemoteDataSource(),
+        cacheStore: _FakeSearchCacheStore(),
+        userPlaylistListDataSource: _FakeUserPlaylistListDataSource(),
+      );
+
+      final items = await repository.searchTrackQueueItems(
+        'keyword',
+        likedSongIds: const [],
+      );
+
+      expect(musicDataRepository.loadedTrackIds, ['local:1']);
+      expect(items.map((item) => item.id), ['local:1']);
+    });
+
+    test('propagates remote track failure when no local result exists', () async {
+      final repository = SearchRepository(
+        musicDataRepository: _FakeMusicDataRepository(
+          remoteTrackError: Exception('offline'),
+        ),
+        remoteDataSource: _FakeNeteaseSearchRemoteDataSource(),
+        cacheStore: _FakeSearchCacheStore(),
+        userPlaylistListDataSource: _FakeUserPlaylistListDataSource(),
+      );
+
+      await expectLater(
+        repository.searchTrackQueueItems(
+          'keyword',
+          likedSongIds: const [],
+        ),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('keeps local non-track results first and appends unique remote results', () async {
+      final repository = SearchRepository(
+        musicDataRepository: _FakeMusicDataRepository(
+          localPlaylists: [_playlist('netease:playlist-1')],
+          remotePlaylists: [
+            _playlist('netease:playlist-1'),
+            _playlist('netease:playlist-2'),
+          ],
+          localAlbums: [_album('netease:album-1')],
+          remoteAlbums: [
+            _album('netease:album-1'),
+            _album('netease:album-2'),
+          ],
+          localArtists: [_artist('netease:artist-1')],
+          remoteArtists: [
+            _artist('netease:artist-1'),
+            _artist('netease:artist-2'),
+          ],
+        ),
+        remoteDataSource: _FakeNeteaseSearchRemoteDataSource(),
+        cacheStore: _FakeSearchCacheStore(),
+        userPlaylistListDataSource: _FakeUserPlaylistListDataSource(),
+      );
+
+      final playlists = await repository.searchPlaylists(
+        'keyword',
+        currentUserId: '',
+      );
+      final albums = await repository.searchAlbums('keyword');
+      final artists = await repository.searchArtists('keyword');
+
+      expect(playlists.map((playlist) => playlist.id), [
+        'netease:playlist-1',
+        'netease:playlist-2',
+      ]);
+      expect(albums.map((album) => album.id), [
+        'netease:album-1',
+        'netease:album-2',
+      ]);
+      expect(artists.map((artist) => artist.id), [
+        'netease:artist-1',
+        'netease:artist-2',
+      ]);
+    });
+
+    test('keeps local non-track category results when remote search fails', () async {
+      final repository = SearchRepository(
+        musicDataRepository: _FakeMusicDataRepository(
+          localPlaylists: [
+            _playlist('local:playlist', sourceType: SourceType.local),
+          ],
+          localAlbums: [_album('netease:album')],
+          localArtists: [_artist('netease:artist')],
+          remotePlaylistError: Exception('offline'),
+          remoteAlbumError: Exception('offline'),
+          remoteArtistError: Exception('offline'),
+        ),
+        remoteDataSource: _FakeNeteaseSearchRemoteDataSource(),
+        cacheStore: _FakeSearchCacheStore(),
+        userPlaylistListDataSource: _FakeUserPlaylistListDataSource(
+          userPlaylists: const [
+            PlaylistSummaryData(id: 'user-playlist', title: 'User Playlist'),
+          ],
+        ),
+      );
+
+      final playlists = await repository.searchPlaylists(
+        'keyword',
+        currentUserId: '42',
+      );
+      final albums = await repository.searchAlbums('keyword');
+      final artists = await repository.searchArtists('keyword');
+
+      expect(playlists.map((playlist) => playlist.id), [
+        'local:playlist',
+        'netease:user-playlist',
+      ]);
+      expect(albums.map((album) => album.id), ['netease:album']);
+      expect(artists.map((artist) => artist.id), ['netease:artist']);
+    });
   });
 }
 
@@ -60,14 +186,64 @@ Track _track(String id, {SourceType sourceType = SourceType.netease}) {
   );
 }
 
+PlaylistEntity _playlist(String id, {SourceType sourceType = SourceType.netease}) {
+  final sourceId = id.contains(':') ? id.split(':').last : id;
+  return PlaylistEntity(
+    id: id,
+    sourceType: sourceType,
+    sourceId: sourceId,
+    title: 'Playlist $sourceId',
+  );
+}
+
+AlbumEntity _album(String id, {SourceType sourceType = SourceType.netease}) {
+  final sourceId = id.contains(':') ? id.split(':').last : id;
+  return AlbumEntity(
+    id: id,
+    sourceType: sourceType,
+    sourceId: sourceId,
+    title: 'Album $sourceId',
+  );
+}
+
+ArtistEntity _artist(String id, {SourceType sourceType = SourceType.netease}) {
+  final sourceId = id.contains(':') ? id.split(':').last : id;
+  return ArtistEntity(
+    id: id,
+    sourceType: sourceType,
+    sourceId: sourceId,
+    name: 'Artist $sourceId',
+  );
+}
+
 class _FakeMusicDataRepository implements MusicDataRepository {
   _FakeMusicDataRepository({
-    required this.localTracks,
-    required this.remoteTracks,
+    this.localTracks = const [],
+    this.remoteTracks = const [],
+    this.localPlaylists = const [],
+    this.remotePlaylists = const [],
+    this.localAlbums = const [],
+    this.remoteAlbums = const [],
+    this.localArtists = const [],
+    this.remoteArtists = const [],
+    this.remoteTrackError,
+    this.remotePlaylistError,
+    this.remoteAlbumError,
+    this.remoteArtistError,
   });
 
   final List<Track> localTracks;
   final List<Track> remoteTracks;
+  final List<PlaylistEntity> localPlaylists;
+  final List<PlaylistEntity> remotePlaylists;
+  final List<AlbumEntity> localAlbums;
+  final List<AlbumEntity> remoteAlbums;
+  final List<ArtistEntity> localArtists;
+  final List<ArtistEntity> remoteArtists;
+  final Object? remoteTrackError;
+  final Object? remotePlaylistError;
+  final Object? remoteAlbumError;
+  final Object? remoteArtistError;
   List<String> loadedTrackIds = const [];
 
   @override
@@ -77,8 +253,54 @@ class _FakeMusicDataRepository implements MusicDataRepository {
   Future<List<Track>> searchTracks({
     required String sourceKey,
     required String keyword,
-  }) async =>
-      remoteTracks;
+  }) async {
+    if (remoteTrackError != null) {
+      throw remoteTrackError!;
+    }
+    return remoteTracks;
+  }
+
+  @override
+  Future<List<PlaylistEntity>> searchLocalPlaylists(String keyword) async => localPlaylists;
+
+  @override
+  Future<List<PlaylistEntity>> searchPlaylists({
+    required String sourceKey,
+    required String keyword,
+  }) async {
+    if (remotePlaylistError != null) {
+      throw remotePlaylistError!;
+    }
+    return remotePlaylists;
+  }
+
+  @override
+  Future<List<AlbumEntity>> searchLocalAlbums(String keyword) async => localAlbums;
+
+  @override
+  Future<List<AlbumEntity>> searchAlbums({
+    required String sourceKey,
+    required String keyword,
+  }) async {
+    if (remoteAlbumError != null) {
+      throw remoteAlbumError!;
+    }
+    return remoteAlbums;
+  }
+
+  @override
+  Future<List<ArtistEntity>> searchLocalArtists(String keyword) async => localArtists;
+
+  @override
+  Future<List<ArtistEntity>> searchArtists({
+    required String sourceKey,
+    required String keyword,
+  }) async {
+    if (remoteArtistError != null) {
+      throw remoteArtistError!;
+    }
+    return remoteArtists;
+  }
 
   @override
   Future<List<TrackWithResources>> getTracksWithResources(
@@ -127,12 +349,18 @@ class _FakeSearchCacheStore implements SearchCacheStore {
 }
 
 class _FakeUserPlaylistListDataSource implements UserPlaylistListDataSource {
+  _FakeUserPlaylistListDataSource({
+    this.userPlaylists = const [],
+  });
+
+  final List<PlaylistSummaryData> userPlaylists;
+
   @override
   Future<List<PlaylistSummaryData>> searchPlaylistItems(
     String userId,
     String keyword,
   ) async =>
-      const [];
+      userPlaylists;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

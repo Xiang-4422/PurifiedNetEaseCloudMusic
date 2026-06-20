@@ -32,10 +32,12 @@ class FloorCommentController {
 
   int _time = -1;
   bool _loadedOnce = false;
+  int _requestGeneration = 0;
+  bool _disposed = false;
 
   /// 首次加载楼层回复，可通过 `force` 强制重新加载。
   Future<void> loadInitial({bool force = false}) async {
-    if (_loadedOnce && !force) {
+    if (_disposed || (_loadedOnce && !force)) {
       return;
     }
     state.value = PagedState.initialLoading();
@@ -44,6 +46,9 @@ class FloorCommentController {
 
   /// 刷新楼层回复第一页。
   Future<bool> refresh() async {
+    if (_disposed) {
+      return true;
+    }
     state.value = state.value.copyWith(
       refreshing: true,
       error: null,
@@ -53,10 +58,14 @@ class FloorCommentController {
 
   /// 加载下一页楼层回复。
   Future<bool> loadMore() async {
-    final currentState = state.value;
-    if (currentState.loadingMore || !currentState.hasMore) {
+    if (_disposed) {
       return true;
     }
+    final currentState = state.value;
+    if (currentState.initialLoading || currentState.refreshing || currentState.loadingMore || !currentState.hasMore) {
+      return true;
+    }
+    final generation = _requestGeneration;
     state.value = currentState.copyWith(
       loadingMore: true,
       error: null,
@@ -69,6 +78,9 @@ class FloorCommentController {
         time: _time,
         limit: pageSize,
       );
+      if (!_isCurrentRequest(generation)) {
+        return true;
+      }
       _time = page.nextTime;
       state.value = PagedState(
         items: [...currentState.items, ...page.items],
@@ -77,6 +89,9 @@ class FloorCommentController {
       _loadedOnce = true;
       return true;
     } catch (error, stackTrace) {
+      if (!_isCurrentRequest(generation)) {
+        return true;
+      }
       state.value = currentState.copyWith(
         loadingMore: false,
         error: error,
@@ -87,6 +102,10 @@ class FloorCommentController {
   }
 
   Future<bool> _reload() async {
+    if (_disposed) {
+      return true;
+    }
+    final generation = ++_requestGeneration;
     final previousState = state.value;
     try {
       final page = await _repository.fetchFloorComments(
@@ -95,8 +114,11 @@ class FloorCommentController {
         parentCommentId,
         time: -1,
         limit: pageSize,
-        forceRefresh: state.value.refreshing,
+        forceRefresh: previousState.refreshing,
       );
+      if (!_isCurrentRequest(generation)) {
+        return true;
+      }
       _time = page.nextTime;
       state.value = PagedState.data(
         page.items,
@@ -105,6 +127,9 @@ class FloorCommentController {
       _loadedOnce = true;
       return true;
     } catch (error, stackTrace) {
+      if (!_isCurrentRequest(generation)) {
+        return true;
+      }
       state.value = previousState.items.isEmpty
           ? PagedState.error(
               error,
@@ -150,6 +175,15 @@ class FloorCommentController {
 
   /// 释放楼层回复状态监听器。
   void dispose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    _requestGeneration++;
     state.dispose();
+  }
+
+  bool _isCurrentRequest(int generation) {
+    return !_disposed && generation == _requestGeneration;
   }
 }

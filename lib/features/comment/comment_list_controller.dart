@@ -32,15 +32,23 @@ class CommentListController {
 
   int _pageNo = 1;
   String? _cursor;
+  int _requestGeneration = 0;
+  bool _disposed = false;
 
   /// 首次加载评论列表。
   Future<void> loadInitial() async {
+    if (_disposed) {
+      return;
+    }
     state.value = PagedState.initialLoading();
     await _reload();
   }
 
   /// 刷新评论第一页。
   Future<bool> refresh() async {
+    if (_disposed) {
+      return true;
+    }
     state.value = state.value.copyWith(
       refreshing: true,
       error: null,
@@ -50,10 +58,14 @@ class CommentListController {
 
   /// 加载下一页评论。
   Future<bool> loadMore() async {
-    final currentState = state.value;
-    if (currentState.loadingMore || !currentState.hasMore) {
+    if (_disposed) {
       return true;
     }
+    final currentState = state.value;
+    if (currentState.initialLoading || currentState.refreshing || currentState.loadingMore || !currentState.hasMore) {
+      return true;
+    }
+    final generation = _requestGeneration;
     state.value = currentState.copyWith(
       loadingMore: true,
       error: null,
@@ -67,6 +79,9 @@ class CommentListController {
         sortType: sortType,
         cursor: _cursor,
       );
+      if (!_isCurrentRequest(generation)) {
+        return true;
+      }
       _pageNo += 1;
       _cursor = page.nextCursor;
       state.value = PagedState(
@@ -75,6 +90,9 @@ class CommentListController {
       );
       return true;
     } catch (error, stackTrace) {
+      if (!_isCurrentRequest(generation)) {
+        return true;
+      }
       state.value = currentState.copyWith(
         loadingMore: false,
         error: error,
@@ -85,6 +103,10 @@ class CommentListController {
   }
 
   Future<bool> _reload() async {
+    if (_disposed) {
+      return true;
+    }
+    final generation = ++_requestGeneration;
     final previousState = state.value;
     try {
       final page = await _repository.fetchComments(
@@ -93,8 +115,11 @@ class CommentListController {
         pageNo: 1,
         pageSize: pageSize,
         sortType: sortType,
-        forceRefresh: state.value.refreshing,
+        forceRefresh: previousState.refreshing,
       );
+      if (!_isCurrentRequest(generation)) {
+        return true;
+      }
       _pageNo = 1;
       _cursor = page.nextCursor;
       state.value = PagedState.data(
@@ -103,6 +128,9 @@ class CommentListController {
       );
       return true;
     } catch (error, stackTrace) {
+      if (!_isCurrentRequest(generation)) {
+        return true;
+      }
       state.value = previousState.items.isEmpty
           ? PagedState.error(
               error,
@@ -119,6 +147,15 @@ class CommentListController {
 
   /// 释放评论列表状态监听器。
   void dispose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    _requestGeneration++;
     state.dispose();
+  }
+
+  bool _isCurrentRequest(int generation) {
+    return !_disposed && generation == _requestGeneration;
   }
 }

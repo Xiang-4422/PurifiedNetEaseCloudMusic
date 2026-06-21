@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +14,35 @@ void main() {
       expect(
         await ImageColorService.dominantColor(
           'HTTPS://img.test/cover.jpg',
+          getLightColor: true,
+        ),
+        Colors.white,
+      );
+      expect(
+        ImageColorService.peekCachedColor('HTTPS://img.test/cover.jpg'),
+        isNull,
+      );
+    });
+
+    test('falls back when local image is unavailable', () async {
+      final cacheDirectory = await Directory.systemTemp.createTemp(
+        'image-color-service-test-',
+      );
+      addTearDown(() async {
+        if (cacheDirectory.existsSync()) {
+          await cacheDirectory.delete(recursive: true);
+        }
+      });
+      final missingImagePath = '${cacheDirectory.path}/missing.jpg';
+
+      expect(ImageColorService.peekCachedColor(missingImagePath), isNull);
+      expect(
+        await ImageColorService.dominantColor(missingImagePath),
+        Colors.black,
+      );
+      expect(
+        await ImageColorService.dominantColor(
+          missingImagePath,
           getLightColor: true,
         ),
         Colors.white,

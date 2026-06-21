@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:bujuan/data/app_storage/app_cache_keys.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart';
 
 /// 搜索缓存存储。
@@ -14,7 +13,7 @@ class SearchCacheStore {
 
   /// 加载热搜关键词缓存。
   Future<List<String>?> loadHotKeywords() async {
-    final payloadJson = await _cacheDataSource.loadPayloadJson(searchHotKeywordsSp);
+    final payloadJson = await _cacheDataSource.loadPayloadJson(appCacheSearchHotKeywordsKey);
     if (payloadJson == null) {
       return null;
     }
@@ -28,7 +27,7 @@ class SearchCacheStore {
   /// 保存热搜关键词缓存。
   Future<void> saveHotKeywords(List<String> keywords) async {
     await _cacheDataSource.save(
-      cacheKey: searchHotKeywordsSp,
+      cacheKey: appCacheSearchHotKeywordsKey,
       payloadJson: jsonEncode(keywords),
     );
   }
@@ -38,7 +37,7 @@ class SearchCacheStore {
     required Duration ttl,
   }) {
     return _cacheDataSource.isFresh(
-      searchHotKeywordsSp,
+      appCacheSearchHotKeywordsKey,
       ttl: ttl,
     );
   }

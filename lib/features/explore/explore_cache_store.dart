@@ -1,9 +1,8 @@
 import 'dart:convert';
 
-import 'package:bujuan/data/app_storage/app_cache_keys.dart';
+import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
-import 'package:bujuan/core/entities/playlist_summary_data.dart';
 
 /// 保存探索页歌单分类与分类歌单缓存。
 class ExploreCacheStore {
@@ -16,7 +15,7 @@ class ExploreCacheStore {
 
   /// 读取缓存的歌单分类目录。
   Future<ExplorePlaylistCatalogueData?> loadPlaylistCatalogue() async {
-    final payloadJson = await _cacheDataSource.loadPayloadJson(explorePlaylistCatalogueSp);
+    final payloadJson = await _cacheDataSource.loadPayloadJson(appCacheExplorePlaylistCatalogueKey);
     if (payloadJson == null) {
       return null;
     }
@@ -47,7 +46,7 @@ class ExploreCacheStore {
     ExplorePlaylistCatalogueData data,
   ) async {
     await _cacheDataSource.save(
-      cacheKey: explorePlaylistCatalogueSp,
+      cacheKey: appCacheExplorePlaylistCatalogueKey,
       payloadJson: jsonEncode(
         {
           'categoryNames': data.categoryNames,
@@ -62,7 +61,7 @@ class ExploreCacheStore {
     required Duration ttl,
   }) {
     return _cacheDataSource.isFresh(
-      explorePlaylistCatalogueSp,
+      appCacheExplorePlaylistCatalogueKey,
       ttl: ttl,
     );
   }

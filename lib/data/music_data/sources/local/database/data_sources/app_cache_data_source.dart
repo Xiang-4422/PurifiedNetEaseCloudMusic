@@ -1,3 +1,15 @@
+/// 搜索热词短期缓存键。
+const String appCacheSearchHotKeywordsKey = 'SEARCH_HOT_KEYWORDS';
+
+/// 探索页歌单分类目录短期缓存键。
+const String appCacheExplorePlaylistCatalogueKey = 'EXPLORE_PLAYLIST_CATALOGUE';
+
+/// 评论列表短期缓存键前缀。
+const String appCacheCommentListPrefix = 'COMMENT_LIST';
+
+/// 楼层评论短期缓存键前缀。
+const String appCacheFloorCommentPrefix = 'FLOOR_COMMENT';
+
 /// 应用通用缓存记录。
 class AppCacheRecord {
   /// 创建应用缓存记录。

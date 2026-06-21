@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:bujuan/core/entities/comment_data.dart';
-import 'package:bujuan/data/app_storage/app_cache_keys.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart';
 
 /// 评论短期缓存存储。
@@ -109,7 +108,7 @@ class CommentCacheStore {
 
   String _commentListKey(CommentListCacheKey key) {
     return [
-      commentListCacheSp,
+      appCacheCommentListPrefix,
       key.id,
       key.type,
       key.pageNo,
@@ -122,7 +121,7 @@ class CommentCacheStore {
 
   String _floorCommentKey(FloorCommentCacheKey key) {
     return [
-      floorCommentCacheSp,
+      appCacheFloorCommentPrefix,
       key.id,
       key.type,
       key.parentCommentId,

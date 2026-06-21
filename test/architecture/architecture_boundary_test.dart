@@ -984,6 +984,40 @@ void main() {
       );
     });
 
+    test('short app cache keys stay with AppCacheDataSource boundary', () {
+      const cacheStorePaths = [
+        'lib/features/search/search_cache_store.dart',
+        'lib/features/explore/explore_cache_store.dart',
+        'lib/features/comment/comment_cache_store.dart',
+      ];
+      final appStorageKeys = File('${projectRoot.path}/lib/data/app_storage/app_cache_keys.dart').readAsStringSync();
+      final appCacheDataSource = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart',
+      ).readAsStringSync();
+      final violations = <String>[
+        if (appStorageKeys.contains('SEARCH_HOT_KEYWORDS')) 'search hot keywords key stays in app_storage',
+        if (appStorageKeys.contains('EXPLORE_PLAYLIST_CATALOGUE')) 'explore catalogue key stays in app_storage',
+        if (appStorageKeys.contains('COMMENT_LIST')) 'comment list key stays in app_storage',
+        if (appStorageKeys.contains('FLOOR_COMMENT')) 'floor comment key stays in app_storage',
+        if (!appCacheDataSource.contains('appCacheSearchHotKeywordsKey')) 'missing search app cache key',
+        if (!appCacheDataSource.contains('appCacheExplorePlaylistCatalogueKey')) 'missing explore app cache key',
+        if (!appCacheDataSource.contains('appCacheCommentListPrefix')) 'missing comment app cache prefix',
+        if (!appCacheDataSource.contains('appCacheFloorCommentPrefix')) 'missing floor comment app cache prefix',
+      ];
+      for (final path in cacheStorePaths) {
+        final content = File('${projectRoot.path}/$path').readAsStringSync();
+        if (content.contains("data/app_storage/app_cache_keys.dart")) {
+          violations.add('$path imports app_storage cache keys');
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '搜索、探索和评论短期缓存使用 Drift app_cache_entries，缓存 key 应归属 AppCacheDataSource 边界，不能继续混在 Hive/app_storage key 里。',
+      );
+    });
+
     test('legacy business fact keys stay out of Hive app cache keys', () {
       final keysFile = File('${projectRoot.path}/lib/data/app_storage/app_cache_keys.dart');
       final content = keysFile.readAsStringSync();

@@ -512,6 +512,8 @@ mixin ApiEnhancedRaw {
       'body': {
         'code': 500,
         'msg': 'song_url_match depends on upstream unblockmusic-utils and is not available in the Dart client',
+        'module': 'song_url_match',
+        'unsupportedFeature': 'unblockmusic-utils',
         'data': [],
       },
     };

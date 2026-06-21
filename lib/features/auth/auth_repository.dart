@@ -16,8 +16,8 @@ class AuthRepository {
   final AuthStateStore _stateStore;
   final NeteaseAuthRemoteDataSource _remoteDataSource;
 
-  /// 是否存在本地缓存登录标记。
-  bool get hasCachedLogin => _stateStore.hasCachedLogin;
+  /// 是否存在 App 可恢复的本地登录 session。
+  bool get hasCachedSession => _stateStore.hasCachedSession;
 
   /// 创建二维码登录 key。
   Future<QrCodeCreationResult> createQrCodeKey() async {

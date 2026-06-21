@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/data/app_storage/app_cache_keys.dart';
 import 'package:bujuan/data/app_storage/app_key_value_store.dart';
 import 'package:bujuan/data/app_storage/hive_key_value_store.dart';
@@ -13,12 +14,11 @@ class AuthStateStore {
 
   final AppKeyValueStore _keyValueStore;
 
-  /// 是否存在本地登录标记。
-  bool get hasCachedLogin => _keyValueStore.get(isLoginSP) == true;
+  bool get _hasLoginFlag => _keyValueStore.get(isLoginSP) == true;
 
   /// 是否存在可用的本地 session。
   bool get hasCachedSession {
-    if (!hasCachedLogin) {
+    if (!_hasLoginFlag) {
       return false;
     }
     final raw = _keyValueStore.get(userInfoSp);
@@ -27,7 +27,11 @@ class AuthStateStore {
     }
     try {
       final decoded = jsonDecode(raw);
-      return decoded is Map && (decoded['userId']?.toString().isNotEmpty ?? false);
+      if (decoded is! Map) {
+        return false;
+      }
+      final session = UserSessionData.fromJson(Map<String, dynamic>.from(decoded));
+      return session.isLoggedIn;
     } catch (_) {
       return false;
     }

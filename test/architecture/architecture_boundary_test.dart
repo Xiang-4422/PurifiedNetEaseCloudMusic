@@ -1055,6 +1055,23 @@ void main() {
       );
     });
 
+    test('auth flow branches on cached session instead of login flag', () {
+      final repository = File('${projectRoot.path}/lib/features/auth/auth_repository.dart').readAsStringSync();
+      final controller = File('${projectRoot.path}/lib/features/auth/auth_controller.dart').readAsStringSync();
+      final violations = <String>[
+        if (repository.contains('hasCachedLogin')) 'auth repository exposes login flag as cached login',
+        if (!repository.contains('hasCachedSession => _stateStore.hasCachedSession')) 'auth repository does not expose cached session',
+        if (controller.contains('hasCachedLogin')) 'auth controller branches on login flag',
+        if (!controller.contains('hasCachedSession')) 'auth controller does not branch on cached session',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'App 当前用户必须由可解析 session 驱动，不能只凭 SDK cookie 或孤立登录标记恢复账号状态。',
+      );
+    });
+
     test('feature repositories use narrow user scoped data capabilities', () {
       final violations = _repositoryFiles(libDirectory).where((file) => _contains(file, 'UserScopedDataSource')).map(_relativePath).toList();
 

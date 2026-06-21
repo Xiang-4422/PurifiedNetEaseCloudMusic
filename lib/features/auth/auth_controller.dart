@@ -57,7 +57,7 @@ class AuthController extends GetxController {
 
   /// 在后台校验已缓存登录态是否仍然有效。
   Future<void> validateLoginStateInBackgroundIfNeeded() async {
-    if (!_repository.hasCachedLogin) {
+    if (!_repository.hasCachedSession) {
       return;
     }
     final sessionController = UserSessionController.to;
@@ -68,7 +68,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> _runBootstrap() async {
-    if (_repository.hasCachedLogin) {
+    if (_repository.hasCachedSession) {
       final sessionController = UserSessionController.to;
       if (sessionController.userInfo.value.isLoggedIn) {
         loginCompleted.value = true;

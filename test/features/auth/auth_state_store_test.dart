@@ -9,13 +9,11 @@ void main() {
       final keyValueStore = _MemoryKeyValueStore();
       final store = AuthStateStore(keyValueStore: keyValueStore);
 
-      expect(store.hasCachedLogin, isFalse);
       expect(store.hasCachedSession, isFalse);
 
       await store.saveLoginFlag(true);
       keyValueStore.values[userInfoSp] = '{"userId":"1"}';
 
-      expect(store.hasCachedLogin, isTrue);
       expect(store.hasCachedSession, isTrue);
       expect(keyValueStore.values[isLoginSP], isTrue);
     });

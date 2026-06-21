@@ -61,6 +61,7 @@ class LocalArtworkCacheRepository {
     if (artworkUrl.isEmpty || !ImageUrlNormalizer.isRemoteHttpUrl(artworkUrl)) {
       return track;
     }
+    final normalizedArtworkUrl = ImageUrlNormalizer.normalize(artworkUrl);
 
     if (!_pendingTrackIds.add(track.id)) {
       return track;
@@ -68,9 +69,9 @@ class LocalArtworkCacheRepository {
 
     try {
       final artworkDirectory = await _ensureArtworkCacheDirectory();
-      final artworkPath = _buildArtworkPath(track, artworkUrl, artworkDirectory);
+      final artworkPath = _buildArtworkPath(track, normalizedArtworkUrl, artworkDirectory);
       if (!File(artworkPath).existsSync()) {
-        await _downloadArtwork(artworkUrl, artworkPath);
+        await _downloadArtwork(normalizedArtworkUrl, artworkPath);
       }
       await _resourceIndexRepository.saveArtworkResource(
         track.id,

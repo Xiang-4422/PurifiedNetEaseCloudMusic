@@ -39,13 +39,15 @@ class UserSessionController extends GetxController {
     ever<UserSessionData>(userInfo, _persistSession);
   }
 
-  /// 远程登出成功后清空本地 session。
+  /// 主动登出时清空本地 session，远程登出只作为 SDK 会话清理尝试。
   Future<void> clearUser() async {
-    final value = await _repository.logout();
-    if (value.success) {
-      await _clearLocalSession();
-      await _saveLoginFlag(false);
+    try {
+      await _repository.logout();
+    } catch (_) {
+      // 远程 logout 只清理 SDK 请求会话；本地账号归属必须跟随用户的注销动作。
     }
+    await _clearLocalSession();
+    await _saveLoginFlag(false);
   }
 
   /// 标记登录已过期，并直接清空本地 session。

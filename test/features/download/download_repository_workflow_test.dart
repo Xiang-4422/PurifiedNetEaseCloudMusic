@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bujuan/core/entities/download_task.dart';
+import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
@@ -97,6 +98,39 @@ void main() {
       expect(File(resourceWriter.savedPlaybackCacheAudioPaths.single).existsSync(), isFalse);
     });
 
+    test('promotes existing playback cache instead of downloading again', () async {
+      final cachedAudio = File('${tempDirectory.path}/cached.mp3');
+      await cachedAudio.writeAsBytes([1, 2, 3]);
+      final taskDataSource = _FakeDownloadTaskDataSource();
+      final resourceWriter = _FakeDownloadResourceWriter(saveManagedResult: true);
+      final musicDataRepository = _FakeMusicDataRepository(
+        resources: TrackResourceBundle(
+          audio: _resource(
+            trackId: '1',
+            path: cachedAudio.path,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+        ),
+      );
+      final repository = _buildRepository(
+        taskDataSource: taskDataSource,
+        fileStore: _FailingDownloadFileStore(tempDirectory),
+        resourceWriter: resourceWriter,
+        musicDataRepository: musicDataRepository,
+      );
+
+      final track = await repository.performDownloadTrack(
+        '1',
+        preferHighQuality: true,
+      );
+
+      expect(track?.id, '1');
+      expect(await taskDataSource.getTask('1'), isNull);
+      expect(resourceWriter.promotedTrackIds, ['1']);
+      expect(resourceWriter.savedLocalPaths, isEmpty);
+      expect(musicDataRepository.playbackUrlCallCount, 0);
+    });
+
     test('cancelled download does not save resource facts after file write completes', () async {
       final taskDataSource = _FakeDownloadTaskDataSource();
       final resourceWriter = _FakeDownloadResourceWriter(saveManagedResult: true);
@@ -127,9 +161,10 @@ DownloadRepository _buildRepository({
   required _FakeDownloadTaskDataSource taskDataSource,
   required DownloadFileStore fileStore,
   required DownloadResourceWriter resourceWriter,
+  _FakeMusicDataRepository? musicDataRepository,
 }) {
   return DownloadRepository(
-    musicDataRepository: _FakeMusicDataRepository(),
+    musicDataRepository: musicDataRepository ?? _FakeMusicDataRepository(),
     taskDataSource: taskDataSource,
     resourceIndexRepository: _UnusedLocalResourceIndexRepository(),
     fileStore: fileStore,
@@ -138,6 +173,12 @@ DownloadRepository _buildRepository({
 }
 
 class _FakeMusicDataRepository implements MusicDataRepository {
+  _FakeMusicDataRepository({
+    this.resources = const TrackResourceBundle(),
+  });
+
+  final TrackResourceBundle resources;
+  int playbackUrlCallCount = 0;
   final Track _track = const Track(
     id: '1',
     sourceType: SourceType.netease,
@@ -157,7 +198,7 @@ class _FakeMusicDataRepository implements MusicDataRepository {
     }
     return TrackWithResources(
       track: _track,
-      resources: const TrackResourceBundle(),
+      resources: resources,
     );
   }
 
@@ -167,6 +208,7 @@ class _FakeMusicDataRepository implements MusicDataRepository {
     String? qualityLevel,
     bool forceRefresh = false,
   }) async {
+    playbackUrlCallCount++;
     return 'https://audio.test/$trackId.mp3';
   }
 
@@ -244,6 +286,20 @@ class _FakeDownloadFileStore extends DownloadFileStore {
   }
 }
 
+class _FailingDownloadFileStore extends _FakeDownloadFileStore {
+  _FailingDownloadFileStore(super.rootDirectory);
+
+  @override
+  Future<void> downloadBinaryFile(
+    String url,
+    String outputPath, {
+    required Future<void> Function(double progress) onProgress,
+    CancelToken? cancelToken,
+  }) {
+    throw StateError('download should not be called');
+  }
+}
+
 class _BlockingDownloadFileStore extends _FakeDownloadFileStore {
   _BlockingDownloadFileStore(super.rootDirectory);
 
@@ -282,6 +338,7 @@ class _FakeDownloadResourceWriter extends DownloadResourceWriter {
   final bool savePlaybackCacheResult;
   final List<String> savedLocalPaths = [];
   final List<String> savedPlaybackCacheAudioPaths = [];
+  final List<String> promotedTrackIds = [];
 
   @override
   Future<bool> saveManagedDownloadResources(
@@ -303,6 +360,15 @@ class _FakeDownloadResourceWriter extends DownloadResourceWriter {
   }) async {
     savedPlaybackCacheAudioPaths.add(audioPath);
     return savePlaybackCacheResult;
+  }
+
+  @override
+  Future<bool> promoteResourcesToManagedDownload(
+    String trackId,
+    TrackResourceBundle bundle,
+  ) async {
+    promotedTrackIds.add(trackId);
+    return saveManagedResult;
   }
 }
 
@@ -348,4 +414,21 @@ class _FakeDownloadTaskDataSource implements DownloadTaskDataSource {
 class _UnusedLocalResourceIndexRepository implements LocalResourceIndexRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+LocalResourceEntry _resource({
+  required String trackId,
+  required String path,
+  required TrackResourceOrigin origin,
+}) {
+  final now = DateTime(2026);
+  return LocalResourceEntry(
+    trackId: trackId,
+    kind: LocalResourceKind.audio,
+    path: path,
+    origin: origin,
+    sizeBytes: 3,
+    createdAt: now,
+    lastAccessedAt: now,
+  );
 }

@@ -1,4 +1,5 @@
 import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 
 /// 封面展示路径选择工具。
 ///
@@ -71,11 +72,9 @@ class ArtworkPathResolver {
 
   /// 判断路径是否已经是本地资源。
   ///
-  /// `file://` 和普通文件路径都视为本地；HTTP(S) URL 交给本地图片缓存处理。
+  /// 普通文件路径、合法 `file://` 和 Windows 盘符路径视为本地。
+  /// HTTP(S) URL 交给本地图片缓存处理，其它 URI 不参与本地优先。
   static bool _isLocalPath(String? artworkPath) {
-    if (artworkPath == null || artworkPath.isEmpty) {
-      return false;
-    }
-    return !artworkPath.startsWith('http://') && !artworkPath.startsWith('https://');
+    return LocalFilePathNormalizer.normalize(artworkPath).isNotEmpty;
   }
 }

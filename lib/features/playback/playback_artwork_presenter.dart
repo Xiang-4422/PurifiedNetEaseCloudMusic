@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -179,8 +180,12 @@ class PlaybackArtworkPresenter {
       final imagePath = queue[index].artworkUrl ?? queue[index].localArtworkPath;
       if (imagePath != null && imagePath.isNotEmpty && !imagePath.startsWith('http://') && !imagePath.startsWith('https://')) {
         try {
+          final localImagePath = _normalizeLocalArtworkPath(imagePath);
+          if (localImagePath.isEmpty) {
+            continue;
+          }
           precacheImage(
-            FileImage(File(imagePath.split('?').first)),
+            FileImage(File(localImagePath)),
             context,
           );
         } catch (_) {
@@ -290,11 +295,7 @@ class PlaybackArtworkPresenter {
   }
 
   String _normalizeLocalArtworkPath(String value) {
-    final uri = Uri.tryParse(value);
-    if (uri != null && uri.scheme == 'file') {
-      return uri.toFilePath();
-    }
-    return value.split('?').first;
+    return LocalFilePathNormalizer.normalize(value);
   }
 
   void _rememberResolvedArtworkPath(String imageSource, String imagePath) {

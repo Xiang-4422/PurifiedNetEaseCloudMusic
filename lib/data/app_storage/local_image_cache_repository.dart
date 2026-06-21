@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -192,14 +193,7 @@ class LocalImageCacheRepository {
   }
 
   String _resolveLocalPath(String rawPath) {
-    if (rawPath.isEmpty) {
-      return '';
-    }
-    final uri = Uri.tryParse(rawPath);
-    if (uri != null && uri.scheme == 'file') {
-      return uri.toFilePath();
-    }
-    return rawPath.split('?').first;
+    return LocalFilePathNormalizer.normalize(rawPath);
   }
 
   String _resolveExtension(String url) {

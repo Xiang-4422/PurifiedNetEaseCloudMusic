@@ -268,6 +268,34 @@ void main() {
       expect(cached, _hasUrl('fresh-url'));
       expect(resolver.remoteCallCount, 2);
     });
+
+    test('force refresh clears stale remote cache before coalescing followers', () async {
+      final resolver = _ControllableRemoteSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final item = _item('1');
+
+      final initial = prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+      );
+      resolver.complete(0, 'stale-url');
+      expect(await initial, _hasUrl('stale-url'));
+
+      final refreshed = prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+        forceRefresh: true,
+      );
+      final follower = prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+      );
+
+      expect(resolver.remoteCallCount, 2);
+      resolver.complete(1, 'fresh-url');
+      expect(await refreshed, _hasUrl('fresh-url'));
+      expect(await follower, _hasUrl('fresh-url'));
+    });
   });
 }
 

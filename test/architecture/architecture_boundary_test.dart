@@ -984,6 +984,35 @@ void main() {
       );
     });
 
+    test('legacy business fact keys stay out of Hive app cache keys', () {
+      final keysFile = File('${projectRoot.path}/lib/data/app_storage/app_cache_keys.dart');
+      final content = keysFile.readAsStringSync();
+      const forbiddenKeys = {
+        'recoPlayListsSp': 'RECO_PLAY_LISTS',
+        'userPlayListsSp': 'USER_PLAY_LISTS',
+        'likedSongIdsSp': 'LIKED_SONG_IDS',
+        'todayRecommendSongsSp': 'TODAY_RECO_SONGS',
+        'fmSongsSp': 'FM_SONGS',
+        'randomLikedSongAlbumUrlSp': 'RANDOM_LIKED_ALBUM_URL',
+        'randomLikedSongIdSp': 'RANDOM_LIKED_SONG_ID',
+        'userLikedSongPlayListSp': 'USER_LIKED_SONG_PL',
+        'userStartupLastRefreshSp': 'USER_STARTUP_LAST_REFRESH',
+        'downloadTasksSp': 'DOWNLOAD_TASKS',
+        'localResourceIndexSp': 'LOCAL_RESOURCE_INDEX',
+        'playbackRestoreStateSp': 'PLAYBACK_RESTORE_STATE',
+      };
+      final violations = <String>[
+        for (final entry in forbiddenKeys.entries)
+          if (content.contains(entry.key) || content.contains(entry.value)) '${entry.key}/${entry.value}',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '喜欢歌曲、用户歌单、推荐歌曲、下载任务、本地资源索引和播放恢复等业务事实必须留在 Drift/资源索引，不能以遗留 Hive key 回流。',
+      );
+    });
+
     test('CacheBox direct access stays inside key-value adapter', () {
       const allowedFiles = {
         'lib/data/app_storage/hive_key_value_store.dart',

@@ -25,35 +25,8 @@ String unblockSp = 'UNBLOCK';
 /// VIP 音源解锁开关的本地存储键。
 String unblockVipSp = 'UNBLOCK_VIP';
 
-/// 推荐歌单快照的本地存储键。
-String recoPlayListsSp = 'RECO_PLAY_LISTS';
-
-/// 用户歌单快照的本地存储键。
-String userPlayListsSp = 'USER_PLAY_LISTS';
-
 /// 用户资料快照的本地存储键。
 String userInfoSp = 'USER_INFO';
-
-/// 喜欢歌曲 id 列表的本地存储键。
-String likedSongIdsSp = 'LIKED_SONG_IDS';
-
-/// 每日推荐歌曲快照的本地存储键。
-String todayRecommendSongsSp = 'TODAY_RECO_SONGS';
-
-/// 私人 FM 候选歌曲快照的本地存储键。
-String fmSongsSp = 'FM_SONGS';
-
-/// 随机喜欢歌曲专辑封面缓存键。
-String randomLikedSongAlbumUrlSp = 'RANDOM_LIKED_ALBUM_URL';
-
-/// 随机喜欢歌曲 id 缓存键。
-String randomLikedSongIdSp = 'RANDOM_LIKED_SONG_ID';
-
-/// 用户喜欢歌曲歌单 id 的本地存储键。
-String userLikedSongPlayListSp = 'USER_LIKED_SONG_PL';
-
-/// 用户首页启动刷新时间戳的本地存储键。
-String userStartupLastRefreshSp = 'USER_STARTUP_LAST_REFRESH';
 
 /// 搜索热词快照的本地存储键。
 String searchHotKeywordsSp = 'SEARCH_HOT_KEYWORDS';
@@ -72,12 +45,3 @@ String commentListCacheSp = 'COMMENT_LIST';
 
 /// 楼层评论短期缓存键前缀。
 String floorCommentCacheSp = 'FLOOR_COMMENT';
-
-/// 下载任务快照的本地存储键。
-String downloadTasksSp = 'DOWNLOAD_TASKS';
-
-/// 本地资源索引快照的本地存储键。
-String localResourceIndexSp = 'LOCAL_RESOURCE_INDEX';
-
-/// 播放恢复状态的本地存储键。
-String playbackRestoreStateSp = 'PLAYBACK_RESTORE_STATE';

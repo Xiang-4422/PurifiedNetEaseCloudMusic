@@ -601,14 +601,23 @@ void main() {
       );
     });
 
-    test('playback UI reads explicit queue item fields instead of metadata keys', () {
-      final playbackUiFiles = _dartFiles(Directory('${projectRoot.path}/lib/ui')).where((file) => _relativePath(file).contains('/playback/'));
-      final violations = playbackUiFiles.where((file) => _contains(file, '.metadata[')).map(_relativePath).toList();
+    test('UI reads explicit queue item fields instead of metadata keys', () {
+      final uiFiles = _dartFiles(Directory('${projectRoot.path}/lib/ui'));
+      final violations = uiFiles
+          .where(
+            (file) => _containsAny(file, const [
+              '.metadata[',
+              "metadata['",
+              'metadata["',
+            ]),
+          )
+          .map(_relativePath)
+          .toList();
 
       expect(
         violations,
         isEmpty,
-        reason: '播放 UI 只能读取 PlaybackQueueItem 的显式字段，不能依赖 metadata 动态键。',
+        reason: 'UI 只能读取 PlaybackQueueItem 的显式字段，不能依赖 metadata 动态键。',
       );
     });
 

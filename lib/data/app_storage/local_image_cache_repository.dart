@@ -86,7 +86,7 @@ class LocalImageCacheRepository {
     final temporaryFile = File(temporaryPath);
     final uniqueTemporaryFile = File(uniqueTemporaryPath);
     if (temporaryFile.existsSync()) {
-      await temporaryFile.delete();
+      await _deleteFileIfExists(temporaryPath);
     }
 
     final options = Options(
@@ -94,13 +94,18 @@ class LocalImageCacheRepository {
       followRedirects: true,
       headers: _imageHttpHeaders,
     );
-    await _withRemoteDownloadPermit(() async {
-      if (_downloader == null) {
-        await _dio.download(imageUrl, uniqueTemporaryPath, options: options);
-      } else {
-        await _downloader!(imageUrl, uniqueTemporaryPath, options);
-      }
-    });
+    try {
+      await _withRemoteDownloadPermit(() async {
+        if (_downloader == null) {
+          await _dio.download(imageUrl, uniqueTemporaryPath, options: options);
+        } else {
+          await _downloader!(imageUrl, uniqueTemporaryPath, options);
+        }
+      });
+    } catch (_) {
+      await _deleteFileIfExists(uniqueTemporaryPath);
+      rethrow;
+    }
 
     final outputFile = File(outputPath);
     if (outputFile.existsSync()) {
@@ -113,6 +118,16 @@ class LocalImageCacheRepository {
     }
     _rememberResolvedPath(imageUrl, outputPath);
     return outputPath;
+  }
+
+  Future<void> _deleteFileIfExists(String path) async {
+    if (path.isEmpty) {
+      return;
+    }
+    final file = File(path);
+    if (file.existsSync()) {
+      await file.delete();
+    }
   }
 
   String? _cachedResolvedPath(String imageUrl) {

@@ -111,18 +111,64 @@ void main() {
       expect(downloader.downloadCount, 9);
       expect(downloader.maxActiveDownloads, lessThanOrEqualTo(4));
     });
+
+    test('removes temporary remote image file when download fails', () async {
+      final cacheDirectory = await Directory.systemTemp.createTemp(
+        'local-image-cache-test-',
+      );
+      final failingDownloader = _FakeImageDownloader(failAfterWrite: true);
+      final repository = LocalImageCacheRepository(
+        downloader: failingDownloader.download,
+        cacheDirectoryProvider: () async => cacheDirectory,
+      );
+      addTearDown(() async {
+        if (cacheDirectory.existsSync()) {
+          await cacheDirectory.delete(recursive: true);
+        }
+      });
+
+      await expectLater(
+        repository.resolveImagePath('https://example.com/failing.jpg'),
+        throwsA(isA<StateError>()),
+      );
+
+      final failedTemporaryPath = failingDownloader.lastSavePath;
+      expect(failedTemporaryPath, isNotNull);
+      expect(File(failedTemporaryPath!).existsSync(), isFalse);
+      expect(
+        _temporaryDownloadFiles(cacheDirectory),
+        isEmpty,
+        reason: '失败的远程图片下载不能留下 .download 临时文件。',
+      );
+
+      final retryDownloader = _FakeImageDownloader();
+      final retryRepository = LocalImageCacheRepository(
+        downloader: retryDownloader.download,
+        cacheDirectoryProvider: () async => cacheDirectory,
+      );
+
+      final retryPath = await retryRepository.resolveImagePath(
+        'https://example.com/failing.jpg',
+      );
+
+      expect(File(retryPath).existsSync(), isTrue);
+      expect(retryDownloader.downloadCount, 1);
+    });
   });
 }
 
 class _FakeImageDownloader {
   _FakeImageDownloader({
     this.delay = const Duration(milliseconds: 20),
+    this.failAfterWrite = false,
   });
 
   final Duration delay;
+  final bool failAfterWrite;
   int downloadCount = 0;
   int activeDownloads = 0;
   int maxActiveDownloads = 0;
+  String? lastSavePath;
 
   Future<void> download(
     String urlPath,
@@ -136,13 +182,24 @@ class _FakeImageDownloader {
     }
     try {
       await Future<void>.delayed(delay);
+      lastSavePath = savePath;
       final file = File(savePath);
       if (!file.parent.existsSync()) {
         await file.parent.create(recursive: true);
       }
       await file.writeAsBytes(<int>[1, 2, 3]);
+      if (failAfterWrite) {
+        throw StateError('image download interrupted');
+      }
     } finally {
       activeDownloads--;
     }
   }
+}
+
+List<File> _temporaryDownloadFiles(Directory directory) {
+  if (!directory.existsSync()) {
+    return const [];
+  }
+  return directory.listSync(recursive: true).whereType<File>().where((file) => file.path.contains('.download')).toList();
 }

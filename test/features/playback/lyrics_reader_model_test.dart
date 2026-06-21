@@ -24,6 +24,35 @@ void main() {
       expect(model.getCurrentLine(12000), 2);
     });
   });
+
+  group('LyricsLineModel.defaultSpanList', () {
+    test('does not create negative default span duration', () {
+      final missingEnd = LyricsLineModel()
+        ..mainText = 'missing'
+        ..startTime = 1000;
+      final reversedEnd = LyricsLineModel()
+        ..mainText = 'reversed'
+        ..startTime = 2000
+        ..endTime = 1000;
+
+      expect(missingEnd.defaultSpanList.single.duration, 0);
+      expect(reversedEnd.defaultSpanList.single.duration, 0);
+    });
+
+    test('uses positive line duration when start and end are available', () {
+      final line = LyricsLineModel()
+        ..mainText = 'line'
+        ..startTime = 1000
+        ..endTime = 2500;
+
+      final span = line.defaultSpanList.single;
+
+      expect(span.start, 1000);
+      expect(span.duration, 1500);
+      expect(span.raw, 'line');
+      expect(span.length, 4);
+    });
+  });
 }
 
 List<LyricsLineModel> _lines() {

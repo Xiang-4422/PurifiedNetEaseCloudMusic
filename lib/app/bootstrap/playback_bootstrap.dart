@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/playback/application/confirmed_playback_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
@@ -128,11 +130,15 @@ void registerPlaybackDependencies() {
     permanent: true,
   );
   Get.put<CurrentTrackSideEffectCoordinator>(
-    CurrentTrackSideEffectCoordinator(),
+    CurrentTrackSideEffectCoordinator(
+      onError: _reportPlaybackSideEffectError,
+    ),
     permanent: true,
   );
   Get.put<ConfirmedPlaybackEffectCoordinator>(
-    ConfirmedPlaybackEffectCoordinator(),
+    ConfirmedPlaybackEffectCoordinator(
+      onError: _reportPlaybackSideEffectError,
+    ),
     permanent: true,
   );
   Get.put<PlaybackLyricsPresenter>(
@@ -146,5 +152,19 @@ void registerPlaybackDependencies() {
       userContentPort: Get.find<PlaybackUserContentPort>(),
     ),
     permanent: true,
+  );
+}
+
+void _reportPlaybackSideEffectError(
+  String channel,
+  String trackId,
+  Object error,
+  StackTrace stackTrace,
+) {
+  developer.log(
+    'playback.sideEffect.failed channel=$channel trackId=$trackId',
+    name: 'Playback',
+    error: error,
+    stackTrace: stackTrace,
   );
 }

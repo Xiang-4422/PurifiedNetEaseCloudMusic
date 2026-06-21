@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
@@ -28,7 +26,6 @@ class PlaybackSelectionUiEffectCoordinator {
   final PlaybackArtworkPresenter _artworkPresenter;
   final void Function(Color color) _applyDominantColor;
   String? _lastSelectionUiSideEffectKey;
-  Timer? _colorPrewarmTimer;
 
   /// 按当前 selection 调度 UI 展示副作用。
   void schedule({
@@ -140,12 +137,15 @@ class PlaybackSelectionUiEffectCoordinator {
     PlaybackSelectionState Function() latestSelection, {
     required bool resolveCurrentColor,
   }) {
-    _colorPrewarmTimer?.cancel();
     final queue = selection.queue;
     final currentIndex = selection.selectedIndex;
     final selectedItem = selection.selectedItem;
-    _colorPrewarmTimer = Timer(const Duration(milliseconds: 350), () {
-      unawaited(() async {
+    _sideEffectCoordinator.schedule(
+      channel: 'playback-ui-color-prewarm',
+      delay: const Duration(milliseconds: 350),
+      trackId: selectedItem.id,
+      isStillCurrent: (trackId) => latestSelection().selectedItem.id == trackId,
+      run: () async {
         if (resolveCurrentColor) {
           final resolvedColor = await _artworkPresenter.resolveDominantColor(selectedItem);
           if (resolvedColor != null && latestSelection().selectedItem.id == selectedItem.id) {
@@ -161,14 +161,13 @@ class PlaybackSelectionUiEffectCoordinator {
           includeCurrent: false,
           remoteResolveRadius: 1,
         );
-      }());
-    });
+      },
+    );
   }
 
   /// 取消挂起的 selection UI 副作用。
   void cancel() {
-    _colorPrewarmTimer?.cancel();
-    _colorPrewarmTimer = null;
     _sideEffectCoordinator.cancel('playback-ui-lyric-artwork');
+    _sideEffectCoordinator.cancel('playback-ui-color-prewarm');
   }
 }

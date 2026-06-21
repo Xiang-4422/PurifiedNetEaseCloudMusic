@@ -57,11 +57,16 @@ class LyricsLineModel {
   /// 无逐字歌词时根据整行文本生成的默认片段。
   get defaultSpanList => _defaultSpanList ??= [
         LyricSpanInfo()
-          ..duration = (endTime ?? 0) - (startTime ?? 0)
+          ..duration = _defaultSpanDuration
           ..start = startTime ?? 0
           ..length = mainText?.length ?? 0
           ..raw = mainText ?? ""
       ];
+
+  int get _defaultSpanDuration {
+    final duration = (endTime ?? startTime ?? 0) - (startTime ?? 0);
+    return duration < 0 ? 0 : duration;
+  }
 }
 
 /// 单行歌词在不同播放状态下的布局尺寸缓存。

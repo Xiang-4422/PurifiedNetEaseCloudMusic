@@ -46,4 +46,43 @@ void main() {
     expect(miniPlayerSource, contains('miniPlayerExpandControlLabel'));
     expect(miniPlayerSource, contains('miniPlayerPlayPauseControlLabel'));
   });
+
+  test('bottom panel delegates expanded pages to local widgets', () {
+    final panelSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+    ).readAsStringSync();
+    final nowPlayingSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_page.dart',
+    ).readAsStringSync();
+    final metadataSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_metadata.dart',
+    ).readAsStringSync();
+    final indicatorSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_page_indicator.dart',
+    ).readAsStringSync();
+
+    expect(panelSource, contains('BottomPanelNowPlayingPage()'));
+    expect(panelSource, contains('BottomPanelPageIndicator()'));
+    expect(panelSource, isNot(contains('_buildCurPlayingPage')));
+    expect(panelSource, isNot(contains('_artistEntries')));
+    expect(panelSource, isNot(contains('MyTabBar(')));
+    expect(panelSource, isNot(contains('LyricView(')));
+
+    expect(nowPlayingSource, contains('class BottomPanelNowPlayingPage'));
+    expect(nowPlayingSource, contains('BottomPanelNowPlayingMetadata()'));
+    expect(nowPlayingSource, contains('BottomPanelPlaybackControls()'));
+    expect(nowPlayingSource, contains('LyricView('));
+
+    expect(metadataSource, contains('class BottomPanelNowPlayingMetadata'));
+    expect(metadataSource, contains('BottomPanelProgressBar()'));
+    expect(metadataSource, contains('AlbumRouteView'));
+    expect(metadataSource, contains('ArtistRouteView'));
+    expect(metadataSource, contains('_artistEntries'));
+
+    expect(indicatorSource, contains('class BottomPanelPageIndicator'));
+    expect(indicatorSource, contains("'播放列表'"));
+    expect(indicatorSource, contains("'正在播放'"));
+    expect(indicatorSource, contains("'歌曲评论'"));
+    expect(indicatorSource, contains('bottomPanelCommentTabController'));
+  });
 }

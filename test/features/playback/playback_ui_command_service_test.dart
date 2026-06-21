@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:bujuan/core/entities/playback_media_type.dart';
+import 'package:bujuan/core/entities/playback_mode.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_mode_switch_context.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';
@@ -95,6 +97,79 @@ void main() {
 
       playbackService.completePause();
       await retry;
+    });
+
+    test('starts heartbeat mode with typed switch context', () async {
+      final commandService = _commandService();
+      final syncedModes = <PlaybackMode>[];
+      final startedSongIds = <String>[];
+      var startedFromPlayAll = true;
+
+      await commandService.switchMode(
+        currentMode: PlaybackMode.playlist,
+        newMode: PlaybackMode.heartbeat,
+        isPlaying: true,
+        syncMode: (mode) async => syncedModes.add(mode),
+        playOrPauseWhenPaused: () async {},
+        startRoaming: () async => false,
+        startHeartBeat: (startSongId, fromPlayAll) async {
+          startedSongIds.add(startSongId);
+          startedFromPlayAll = fromPlayAll;
+          return true;
+        },
+        heartBeatModeContext: const PlaybackHeartBeatModeContext(
+          startSongId: '42',
+          fromPlayAll: false,
+        ),
+      );
+
+      expect(syncedModes, [PlaybackMode.heartbeat]);
+      expect(startedSongIds, ['42']);
+      expect(startedFromPlayAll, isFalse);
+    });
+
+    test('rolls back heartbeat mode when switch context is missing', () async {
+      final commandService = _commandService();
+      final syncedModes = <PlaybackMode>[];
+      var startHeartBeatCount = 0;
+
+      await commandService.switchMode(
+        currentMode: PlaybackMode.playlist,
+        newMode: PlaybackMode.heartbeat,
+        isPlaying: true,
+        syncMode: (mode) async => syncedModes.add(mode),
+        playOrPauseWhenPaused: () async {},
+        startRoaming: () async => false,
+        startHeartBeat: (startSongId, fromPlayAll) async {
+          startHeartBeatCount++;
+          return true;
+        },
+        heartBeatModeContext: null,
+      );
+
+      expect(syncedModes, [PlaybackMode.heartbeat, PlaybackMode.playlist]);
+      expect(startHeartBeatCount, 0);
+    });
+
+    test('rolls back heartbeat mode when startup fails', () async {
+      final commandService = _commandService();
+      final syncedModes = <PlaybackMode>[];
+
+      await commandService.switchMode(
+        currentMode: PlaybackMode.playlist,
+        newMode: PlaybackMode.heartbeat,
+        isPlaying: true,
+        syncMode: (mode) async => syncedModes.add(mode),
+        playOrPauseWhenPaused: () async {},
+        startRoaming: () async => false,
+        startHeartBeat: (startSongId, fromPlayAll) async => false,
+        heartBeatModeContext: const PlaybackHeartBeatModeContext(
+          startSongId: '42',
+          fromPlayAll: true,
+        ),
+      );
+
+      expect(syncedModes, [PlaybackMode.heartbeat, PlaybackMode.playlist]);
     });
   });
 }

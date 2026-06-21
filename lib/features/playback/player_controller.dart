@@ -11,6 +11,7 @@ import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
+import 'package:bujuan/features/playback/application/playback_mode_switch_context.dart';
 import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
@@ -288,10 +289,10 @@ class PlayerController extends GetxController {
     if (startSongId.isEmpty) return;
     await switchMode(
       PlaybackMode.heartbeat,
-      contextData: {
-        'startSongId': startSongId,
-        'fromPlayAll': fromPlayAll,
-      },
+      heartBeatModeContext: PlaybackHeartBeatModeContext(
+        startSongId: startSongId,
+        fromPlayAll: fromPlayAll,
+      ),
     );
   }
 
@@ -326,7 +327,10 @@ class PlayerController extends GetxController {
   }
 
   /// 切换播放模式。
-  Future<void> switchMode(PlaybackMode newMode, {dynamic contextData}) async {
+  Future<void> switchMode(
+    PlaybackMode newMode, {
+    PlaybackHeartBeatModeContext? heartBeatModeContext,
+  }) async {
     await _modeCommandService.switchMode(
       currentMode: playbackMode.value,
       newMode: newMode,
@@ -334,7 +338,7 @@ class PlayerController extends GetxController {
       currentRepeatMode: sessionState.value.repeatMode,
       syncMode: (mode) async => syncSessionState(playbackMode: mode),
       playOrPauseWhenPaused: playOrPause,
-      contextData: contextData,
+      heartBeatModeContext: heartBeatModeContext,
     );
   }
 

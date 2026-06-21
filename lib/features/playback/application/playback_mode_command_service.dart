@@ -1,6 +1,7 @@
 import 'package:bujuan/core/entities/playback_mode.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
+import 'package:bujuan/features/playback/application/playback_mode_switch_context.dart';
 import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_ui_command_service.dart';
 import 'package:bujuan/features/playback/playback_session_state.dart';
@@ -78,7 +79,7 @@ class PlaybackModeCommandService {
     required PlaybackRepeatMode currentRepeatMode,
     required Future<void> Function(PlaybackMode mode) syncMode,
     required Future<void> Function() playOrPauseWhenPaused,
-    dynamic contextData,
+    PlaybackHeartBeatModeContext? heartBeatModeContext,
   }) {
     return _commandService.switchMode(
       currentMode: currentMode,
@@ -94,7 +95,7 @@ class PlaybackModeCommandService {
         fromPlayAll: fromPlayAll,
         currentRepeatMode: currentRepeatMode,
       ),
-      contextData: contextData,
+      heartBeatModeContext: heartBeatModeContext,
     );
   }
 }

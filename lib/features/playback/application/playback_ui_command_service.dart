@@ -3,6 +3,7 @@ import 'package:bujuan/core/entities/playback_order_mode.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_mode_coordinator.dart';
+import 'package:bujuan/features/playback/application/playback_mode_switch_context.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';
@@ -176,7 +177,7 @@ class PlaybackUiCommandService {
     required Future<void> Function() playOrPauseWhenPaused,
     required Future<bool> Function() startRoaming,
     required Future<bool> Function(String startSongId, bool fromPlayAll) startHeartBeat,
-    dynamic contextData,
+    PlaybackHeartBeatModeContext? heartBeatModeContext,
   }) async {
     if (currentMode == newMode && newMode != PlaybackMode.playlist) {
       if (!isPlaying) {
@@ -194,14 +195,17 @@ class PlaybackUiCommandService {
         }
         break;
       case PlaybackMode.heartbeat:
-        if (contextData is Map && contextData.containsKey('startSongId')) {
-          final started = await startHeartBeat(
-            contextData['startSongId'] as String,
-            contextData['fromPlayAll'] as bool? ?? true,
-          );
-          if (!started) {
-            await syncMode(PlaybackMode.playlist);
-          }
+        final context = heartBeatModeContext;
+        if (context == null || context.startSongId.isEmpty) {
+          await syncMode(PlaybackMode.playlist);
+          break;
+        }
+        final started = await startHeartBeat(
+          context.startSongId,
+          context.fromPlayAll,
+        );
+        if (!started) {
+          await syncMode(PlaybackMode.playlist);
         }
         break;
       case PlaybackMode.playlist:

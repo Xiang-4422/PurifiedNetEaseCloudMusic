@@ -5,17 +5,30 @@ import 'package:bujuan/data/music_data/sources/local/resources/local_resource_in
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// 封面下载函数，用于生产环境 Dio 下载和测试替身。
+typedef ArtworkCacheDownloader = Future<void> Function(
+  String artworkUrl,
+  String savePath,
+  Options options,
+);
+
 /// 下载并登记曲目封面的本地缓存仓库。
 class LocalArtworkCacheRepository {
   /// 创建本地封面缓存仓库。
   LocalArtworkCacheRepository({
     Dio? dio,
     required LocalResourceIndexRepository resourceIndexRepository,
+    Future<Directory> Function()? artworkDirectoryProvider,
+    ArtworkCacheDownloader? downloader,
   })  : _dio = dio ?? Dio(),
-        _resourceIndexRepository = resourceIndexRepository;
+        _resourceIndexRepository = resourceIndexRepository,
+        _artworkDirectoryProvider = artworkDirectoryProvider,
+        _downloader = downloader;
 
   final Dio _dio;
   final LocalResourceIndexRepository _resourceIndexRepository;
+  final Future<Directory> Function()? _artworkDirectoryProvider;
+  final ArtworkCacheDownloader? _downloader;
   final Set<String> _pendingTrackIds = <String>{};
 
   /// 批量缓存曲目封面，内部限制并发避免瞬时请求过多。
@@ -72,8 +85,14 @@ class LocalArtworkCacheRepository {
   }
 
   Future<Directory> _ensureArtworkCacheDirectory() async {
-    final supportDirectory = await getApplicationSupportDirectory();
-    final artworkDirectory = Directory('${supportDirectory.path}/zmusic/artwork-cache');
+    final provider = _artworkDirectoryProvider;
+    final Directory artworkDirectory;
+    if (provider == null) {
+      final supportDirectory = await getApplicationSupportDirectory();
+      artworkDirectory = Directory('${supportDirectory.path}/zmusic/artwork-cache');
+    } else {
+      artworkDirectory = await provider();
+    }
     if (!artworkDirectory.existsSync()) {
       await artworkDirectory.create(recursive: true);
     }
@@ -96,15 +115,23 @@ class LocalArtworkCacheRepository {
       await temporaryFile.delete();
     }
 
-    await _dio.download(
-      artworkUrl,
-      temporaryPath,
-      options: Options(
-        responseType: ResponseType.bytes,
-        followRedirects: true,
-        headers: _imageHttpHeaders,
-      ),
+    final options = Options(
+      responseType: ResponseType.bytes,
+      followRedirects: true,
+      headers: _imageHttpHeaders,
     );
+    try {
+      if (_downloader == null) {
+        await _dio.download(artworkUrl, temporaryPath, options: options);
+      } else {
+        await _downloader!(artworkUrl, temporaryPath, options);
+      }
+    } catch (_) {
+      if (temporaryFile.existsSync()) {
+        await temporaryFile.delete();
+      }
+      rethrow;
+    }
 
     final outputFile = File(outputPath);
     if (outputFile.existsSync()) {

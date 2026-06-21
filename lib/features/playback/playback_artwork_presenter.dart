@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
@@ -178,7 +179,7 @@ class PlaybackArtworkPresenter {
 
     for (final index in indicesToPreload) {
       final imagePath = queue[index].artworkUrl ?? queue[index].localArtworkPath;
-      if (imagePath != null && imagePath.isNotEmpty && !imagePath.startsWith('http://') && !imagePath.startsWith('https://')) {
+      if (imagePath != null && imagePath.isNotEmpty && !_isRemoteArtworkSource(imagePath)) {
         try {
           final localImagePath = _normalizeLocalArtworkPath(imagePath);
           if (localImagePath.isEmpty) {
@@ -291,7 +292,7 @@ class PlaybackArtworkPresenter {
   }
 
   bool _isRemoteArtworkSource(String value) {
-    return value.startsWith('http://') || value.startsWith('https://');
+    return ImageUrlNormalizer.isRemoteHttpUrl(value);
   }
 
   String _normalizeLocalArtworkPath(String value) {

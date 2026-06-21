@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/ui/assets/app_assets.dart';
 import 'package:bujuan/ui/services/local_image_cache_service.dart';
@@ -167,7 +168,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
     PerformanceLogger.elapsed(
       'image.resolvePath',
       stopwatch,
-      details: 'remote=${rawPath.startsWith('http://') || rawPath.startsWith('https://')} resolved=${resolvedPath.isNotEmpty}',
+      details: 'remote=${ImageUrlNormalizer.isRemoteHttpUrl(rawPath)} resolved=${resolvedPath.isNotEmpty}',
       warnAfterMs: 8,
     );
   }

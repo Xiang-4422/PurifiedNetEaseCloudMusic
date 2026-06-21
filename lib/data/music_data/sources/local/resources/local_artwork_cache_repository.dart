@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -56,8 +57,8 @@ class LocalArtworkCacheRepository {
       return track;
     }
 
-    final artworkUrl = track.artworkUrl ?? '';
-    if (artworkUrl.isEmpty || !artworkUrl.startsWith('http://') && !artworkUrl.startsWith('https://')) {
+    final artworkUrl = track.artworkUrl?.trim() ?? '';
+    if (artworkUrl.isEmpty || !ImageUrlNormalizer.isRemoteHttpUrl(artworkUrl)) {
       return track;
     }
 

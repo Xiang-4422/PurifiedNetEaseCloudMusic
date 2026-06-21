@@ -1,3 +1,4 @@
+import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
 
 /// 解析歌单封面取色使用的本地图片路径。
@@ -32,6 +33,6 @@ class PlaylistArtworkColorService {
   }
 
   bool _isRemoteArtwork(String artworkPath) {
-    return artworkPath.startsWith('http://') || artworkPath.startsWith('https://');
+    return ImageUrlNormalizer.isRemoteHttpUrl(artworkPath);
   }
 }

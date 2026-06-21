@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -220,7 +221,7 @@ class LocalImageCacheRepository {
   }
 
   bool _isRemoteUrl(String value) {
-    return value.startsWith('http://') || value.startsWith('https://');
+    return ImageUrlNormalizer.isRemoteHttpUrl(value);
   }
 
   static const Map<String, String> _imageHttpHeaders = {

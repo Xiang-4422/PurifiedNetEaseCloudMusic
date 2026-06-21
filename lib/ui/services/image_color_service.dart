@@ -131,7 +131,7 @@ class ImageColorService {
   }
 
   static bool _isRemoteImageUrl(String url) {
-    return url.startsWith('http://') || url.startsWith('https://');
+    return ImageUrlNormalizer.isRemoteHttpUrl(url);
   }
 }
 

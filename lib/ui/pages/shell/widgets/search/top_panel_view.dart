@@ -1,4 +1,3 @@
-import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
@@ -10,9 +9,9 @@ import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
+import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_chrome_widgets.dart';
 import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_search_results.dart';
 import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_search_widgets.dart';
-import 'package:bujuan/ui/widgets/common/layout/my_tab_bar.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -72,22 +71,7 @@ class _TopPanelViewState extends State<TopPanelView> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        AnimatedBuilder(
-          animation: ShellController.to.topPanelAnimationController,
-          builder: (BuildContext context, Widget? child) {
-            return Stack(
-              children: [
-                BlurryContainer(
-                  blur: 15 * ShellController.to.topPanelAnimationController.value,
-                  padding: EdgeInsets.zero,
-                  borderRadius: BorderRadius.zero,
-                  color: context.theme.colorScheme.primary.withValues(alpha: ShellController.to.topPanelAnimationController.value),
-                  child: Container(),
-                )
-              ],
-            );
-          },
-        ),
+        TopPanelBackgroundLayer(controller: controller),
         DefaultTabController(
           length: 4,
           child: Column(
@@ -135,44 +119,8 @@ class _TopPanelViewState extends State<TopPanelView> {
                       ).marginOnly(top: AppDimensions.paddingSmall),
                     )),
               ),
-              Container(
-                color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
-                child: Column(
-                  children: [
-                    Obx(() => Offstage(
-                          offstage: controller.searchContent.value.isEmpty,
-                          child: MyTabBar(
-                            height: AppDimensions.appBarHeight / 3,
-                            tabs: [
-                              Text(
-                                "单曲",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
-                              ),
-                              Text(
-                                "歌单",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
-                              ),
-                              Text(
-                                "专辑",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
-                              ),
-                              Text(
-                                "歌手",
-                                style: context.textTheme.titleMedium?.copyWith(color: context.theme.colorScheme.onPrimary.withValues(alpha: 0.5)),
-                              ),
-                            ],
-                          ),
-                        )),
-                    TopPanelSearchBar(
-                      controller: controller,
-                      height: AppDimensions.appBarHeight * 2 / 3,
-                    ),
-                  ],
-                ),
-              ),
-              Obx(() => Container(
-                    height: ShellController.to.topPanelFullyClosed.isTrue ? AppDimensions.appBarHeight + context.mediaQueryPadding.top : ShellController.to.keyBoardHeight.value,
-                  ))
+              TopPanelBottomControls(controller: controller),
+              TopPanelKeyboardSpacer(controller: controller),
             ],
           ),
         ),

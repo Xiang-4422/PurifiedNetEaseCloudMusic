@@ -7,12 +7,19 @@ void main() {
     final panelSource = File(
       'lib/ui/pages/shell/widgets/search/top_panel_view.dart',
     ).readAsStringSync();
+    final chromeSource = File(
+      'lib/ui/pages/shell/widgets/search/top_panel_chrome_widgets.dart',
+    ).readAsStringSync();
     final widgetsSource = File(
       'lib/ui/pages/shell/widgets/search/top_panel_search_widgets.dart',
     ).readAsStringSync();
 
-    expect(panelSource, contains('TopPanelSearchBar('));
+    expect(panelSource, contains('TopPanelBackgroundLayer('));
+    expect(panelSource, contains('TopPanelBottomControls('));
+    expect(panelSource, contains('TopPanelKeyboardSpacer('));
     expect(panelSource, contains('TopPanelCard('));
+    expect(panelSource, isNot(contains('BlurryContainer(')));
+    expect(panelSource, isNot(contains('MyTabBar(')));
     expect(panelSource, isNot(contains('_buildSearchBar')));
     expect(panelSource, isNot(contains('_buildTopPanelCard')));
     expect(panelSource, isNot(contains('class _PlaylistSearchItem')));
@@ -24,6 +31,15 @@ void main() {
     expect(widgetsSource, contains('class PlaylistSearchItem'));
     expect(widgetsSource, contains('class AlbumSearchItem'));
     expect(widgetsSource, contains('class ArtistSearchItem'));
+
+    expect(chromeSource, contains('class TopPanelBackgroundLayer'));
+    expect(chromeSource, contains('class TopPanelBottomControls'));
+    expect(chromeSource, contains('class TopPanelKeyboardSpacer'));
+    expect(chromeSource, contains('BlurryContainer('));
+    expect(chromeSource, contains('MyTabBar('));
+    expect(chromeSource, contains('TopPanelSearchBar('));
+    expect(chromeSource, contains("'单曲'"));
+    expect(chromeSource, contains("'歌手'"));
   });
 
   test('top panel delegates search result states to local widgets', () {

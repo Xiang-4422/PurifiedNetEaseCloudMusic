@@ -86,6 +86,55 @@ void main() {
 
       expect(resolvedColorPaths, isEmpty);
     });
+
+    test('normalizes local file uri artwork before reading cached color', () {
+      final cachedColorPaths = <String>[];
+      final presenter = PlaybackArtworkPresenter(
+        repository: _FakePlaybackRepository(),
+        imageCacheRepository: _FakeLocalImageCacheRepository(const {}),
+        cachedColorReader: (imagePath) {
+          cachedColorPaths.add(imagePath);
+          return Colors.green;
+        },
+      );
+      final fileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/art with space.jpg',
+        queryParameters: {'token': 'local'},
+      ).toString();
+
+      final color = presenter.peekCachedDominantColor(
+        _itemWithLocalArtwork('local', fileUri),
+      );
+
+      expect(color, Colors.green);
+      expect(cachedColorPaths, ['/cache/art with space.jpg']);
+    });
+
+    test('ignores unsafe file uri artwork while reading cached color', () {
+      final cachedColorPaths = <String>[];
+      final presenter = PlaybackArtworkPresenter(
+        repository: _FakePlaybackRepository(),
+        imageCacheRepository: _FakeLocalImageCacheRepository(const {}),
+        cachedColorReader: (imagePath) {
+          cachedColorPaths.add(imagePath);
+          return Colors.green;
+        },
+      );
+      final fileUri = Uri(
+        scheme: 'file',
+        host: 'media-server',
+        path: '/cache/art.jpg',
+      ).toString();
+
+      final color = presenter.peekCachedDominantColor(
+        _itemWithLocalArtwork('unsafe', fileUri),
+      );
+
+      expect(color, isNull);
+      expect(cachedColorPaths, isEmpty);
+    });
   });
 }
 
@@ -120,6 +169,25 @@ PlaybackQueueItem _item(String id, String artworkUrl) {
     duration: null,
     artworkUrl: artworkUrl,
     localArtworkPath: null,
+    mediaType: MediaType.playlist,
+    playbackUrl: null,
+    lyricKey: null,
+    isLiked: false,
+    isCached: false,
+  );
+}
+
+PlaybackQueueItem _itemWithLocalArtwork(String id, String localArtworkPath) {
+  return PlaybackQueueItem(
+    id: id,
+    sourceId: id,
+    title: 'Track $id',
+    albumTitle: null,
+    artistNames: const [],
+    artistIds: const [],
+    duration: null,
+    artworkUrl: null,
+    localArtworkPath: localArtworkPath,
     mediaType: MediaType.playlist,
     playbackUrl: null,
     lyricKey: null,

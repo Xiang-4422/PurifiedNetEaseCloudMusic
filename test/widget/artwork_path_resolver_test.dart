@@ -56,5 +56,36 @@ void main() {
 
       expect(artwork, '/local/song.jpg');
     });
+
+    test('does not prefer unsafe uri artwork as local fallback', () {
+      final unsafeUri = Uri(
+        scheme: 'file',
+        host: 'media-server',
+        path: '/local/song.jpg',
+      ).toString();
+      final artwork = ArtworkPathResolver.resolvePreferredArtwork(
+        'https://example.com/playlist.jpg',
+        fallbackItems: [
+          PlaybackQueueItem(
+            id: '1',
+            sourceId: '1',
+            title: 'Song',
+            albumTitle: null,
+            artistNames: const [],
+            artistIds: const [],
+            duration: null,
+            artworkUrl: 'ftp://example.com/song.jpg',
+            localArtworkPath: unsafeUri,
+            mediaType: MediaType.playlist,
+            playbackUrl: null,
+            lyricKey: null,
+            isLiked: false,
+            isCached: false,
+          ),
+        ],
+      );
+
+      expect(artwork, 'https://example.com/playlist.jpg');
+    });
   });
 }

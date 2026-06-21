@@ -480,6 +480,27 @@ void main() {
       );
     });
 
+    test('local file uri parsing stays in shared path normalizer', () {
+      const allowedPath = 'lib/core/util/local_file_path_normalizer.dart';
+      final violations = <String>[];
+      for (final file in _dartFiles(libDirectory)) {
+        final path = _relativePath(file);
+        if (path == allowedPath || _isGeneratedDartFile(path)) {
+          continue;
+        }
+        final content = file.readAsStringSync();
+        if (content.contains('.toFilePath(') || content.contains("scheme == 'file'") || content.contains("uri.scheme == 'file'") || content.contains('_looksLikeWindowsDrivePath')) {
+          violations.add(path);
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '本地路径、合法 file:// 和 Windows 盘符路径的判定必须收口到 LocalFilePathNormalizer，避免导入、播放、封面和缓存清理入口语义漂移。',
+      );
+    });
+
     test('netease remote data sources depend on api facade only', () {
       final remoteFiles = _dartFiles(Directory('${projectRoot.path}/lib/data/music_data/sources/netease/remote'));
       final violations = remoteFiles

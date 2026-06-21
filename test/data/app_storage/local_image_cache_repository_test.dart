@@ -19,6 +19,32 @@ void main() {
       );
     });
 
+    test('normalizes local file uri image paths and rejects unsafe authorities', () async {
+      final repository = LocalImageCacheRepository();
+      final localFileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/tmp/cover with space.jpg',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final unsafeFileUri = Uri(
+        scheme: 'file',
+        host: 'media-server',
+        path: '/tmp/cover.jpg',
+      ).toString();
+
+      expect(
+        repository.peekResolvedImagePath(localFileUri),
+        '/tmp/cover with space.jpg',
+      );
+      expect(
+        await repository.resolveImagePath(localFileUri),
+        '/tmp/cover with space.jpg',
+      );
+      expect(repository.peekResolvedImagePath(unsafeFileUri), isEmpty);
+      expect(await repository.resolveImagePath(unsafeFileUri), isEmpty);
+    });
+
     test('coalesces same url downloads across repository instances', () async {
       final cacheDirectory = await Directory.systemTemp.createTemp(
         'local-image-cache-test-',

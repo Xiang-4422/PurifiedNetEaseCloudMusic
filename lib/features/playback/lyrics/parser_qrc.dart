@@ -53,6 +53,9 @@ class ParserQrc extends LyricsParse {
       }
       lineList.add(lineModel);
     }
+    lineList.sort(
+      (left, right) => (left.startTime ?? 0).compareTo(right.startTime ?? 0),
+    );
     return lineList;
   }
 

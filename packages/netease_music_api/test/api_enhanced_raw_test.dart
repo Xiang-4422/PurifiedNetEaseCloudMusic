@@ -274,11 +274,12 @@ void main() {
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
       final documentedDifferences = _documentedSdkDifferences(docs);
 
-      expect(documentedDifferences, sdkDifferences.map((difference) => difference['module']).toSet());
+      expect(documentedDifferences.keys.toSet(), sdkDifferences.map((difference) => difference['module']).toSet());
       for (final difference in sdkDifferences) {
         expect(difference['status'], 'limited', reason: difference['module'].toString());
         expect(difference['reason'], isA<String>(), reason: difference['module'].toString());
         expect((difference['reason'] as String).trim(), isNotEmpty, reason: difference['module'].toString());
+        expect(documentedDifferences[difference['module']], difference['reason'], reason: difference['module'].toString());
       }
     });
 
@@ -4372,14 +4373,18 @@ Set<String> _stringSet(dynamic value) {
   return value.map((item) => item.toString()).toSet();
 }
 
-Set<String> _documentedSdkDifferences(String docs) {
+Map<String, String> _documentedSdkDifferences(String docs) {
   final start = docs.indexOf('当前 SDK 差异清单：');
   final end = docs.indexOf('当前 `sdkDifferences`', start);
   if (start == -1 || end == -1 || end <= start) {
     return {};
   }
   final section = docs.substring(start, end);
-  return RegExp(r'^- `([^`]+)`$', multiLine: true).allMatches(section).map((match) => match.group(1)!).toSet();
+  return Map.fromEntries(
+    RegExp(r'^- `([^`]+)`：(.+)$', multiLine: true).allMatches(section).map(
+          (match) => MapEntry(match.group(1)!, match.group(2)!.trim()),
+        ),
+  );
 }
 
 File _findSpecialCoverageStatusFile() {

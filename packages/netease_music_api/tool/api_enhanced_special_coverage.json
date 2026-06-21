@@ -28,8 +28,8 @@
   ],
   "dartBehavior": [],
   "limited": {
-    "cloud": "Request sequence is covered; Dart parses common ID3v2/ID3v1/FLAC/MP4 tags with bounded file-path probing but does not include a full music-metadata equivalent and falls back to query or sanitized filename.",
-    "song_url_match": "Depends on upstream unblockmusic-utils and returns an explicit limitation envelope in Dart.",
-    "song_url_v1": "Base xeapi and 302 fallback are covered; unblock=true degrades to the normal xeapi player URL, while actual unblock/source order depends on upstream unblockmusic-utils."
+    "cloud": "四步请求序列已覆盖；Dart 解析常见 ID3v2、ID3v1、FLAC 和 MP4/M4A ilst 标签，但没有完整 music-metadata 等价能力，解析失败时使用 query 显式值或文件名 fallback。",
+    "song_url_match": "依赖上游 unblockmusic-utils，Dart SDK 固定返回显式限制 envelope。",
+    "song_url_v1": "基础 xeapi 和 302 fallback 已覆盖；unblock=true 会降级到普通 xeapi 播放 URL，实际解灰和 source order 仍依赖上游 unblockmusic-utils。"
   }
 }

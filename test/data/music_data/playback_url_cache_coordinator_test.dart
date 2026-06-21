@@ -59,6 +59,46 @@ void main() {
       expect(loadCount, 2);
     });
 
+    test('normalizes remote url before returning and caching it', () async {
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        return '  HTTPS://audio.test/1.mp3?token=abc  ';
+      }
+
+      final initial = await coordinator.resolve('1', qualityLevel: 'lossless', forceRefresh: false, load: load);
+      final cached = await coordinator.resolve('1', qualityLevel: 'lossless', forceRefresh: false, load: load);
+
+      expect(initial, 'HTTPS://audio.test/1.mp3?token=abc');
+      expect(cached, initial);
+      expect(loadCount, 1);
+    });
+
+    test('does not cache empty playback url results', () async {
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        return loadCount == 1 ? '' : 'https://audio.test/1.mp3';
+      }
+
+      final empty = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+      final remote = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+      final cached = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+
+      expect(empty, '');
+      expect(remote, 'https://audio.test/1.mp3');
+      expect(cached, remote);
+      expect(loadCount, 2);
+    });
+
     test('prefers local resource over cached and in-flight remote url', () async {
       String? localUrl;
       var loadCount = 0;

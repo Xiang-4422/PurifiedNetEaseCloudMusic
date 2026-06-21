@@ -52,10 +52,11 @@ class PlaybackUrlCacheCoordinator {
     }
     late final Future<String?> loadFuture;
     loadFuture = load().then((url) {
+      final normalizedUrl = _normalizeRemoteUrl(url);
       if (identical(_loads[cacheKey], loadFuture)) {
-        _cacheRemoteUrl(cacheKey, url);
+        _cacheRemoteUrl(cacheKey, normalizedUrl);
       }
-      return url;
+      return normalizedUrl;
     }).whenComplete(() {
       if (identical(_loads[cacheKey], loadFuture)) {
         _loads.remove(cacheKey);
@@ -92,8 +93,20 @@ class PlaybackUrlCacheCoordinator {
     return '$trackId|${qualityLevel ?? ''}';
   }
 
+  static String? _normalizeRemoteUrl(String? url) {
+    if (url == null) {
+      return null;
+    }
+    final trimmedUrl = url.trim();
+    if (_isRemoteUrl(trimmedUrl)) {
+      return trimmedUrl;
+    }
+    return url;
+  }
+
   static bool _isRemoteUrl(String url) {
-    return url.startsWith('http://') || url.startsWith('https://');
+    final normalizedScheme = url.toLowerCase();
+    return normalizedScheme.startsWith('http://') || normalizedScheme.startsWith('https://');
   }
 }
 

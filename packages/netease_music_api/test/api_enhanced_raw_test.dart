@@ -587,7 +587,7 @@ void main() {
       }
     });
 
-    test('injects checkToken into encrypted eapi header', () async {
+    test('injects checkToken and query cookies into encrypted eapi header', () async {
       final directory = await Directory.systemTemp.createTemp('netease-api-eapi-');
       final adapter = _JsonResponseAdapter({'code': 200});
       final dio = Dio()..httpClientAdapter = adapter;
@@ -603,6 +603,10 @@ void main() {
               encryptType: EncryptType.EApi,
               eApiUrl: '/api/playlist/subscribe',
               checkToken: true,
+              cookies: {
+                'buildver': '1700000000',
+                'mobilename': 'Unit Phone',
+              },
             ),
           ),
         );
@@ -616,6 +620,8 @@ void main() {
 
         expect(decrypted['url'], '/api/playlist/subscribe');
         expect(header['X-antiCheatToken'], _upstreamCheckTokenFixture);
+        expect(header['buildver'], '1700000000');
+        expect(header['mobilename'], 'Unit Phone');
       } finally {
         if (directory.existsSync()) {
           await directory.delete(recursive: true);

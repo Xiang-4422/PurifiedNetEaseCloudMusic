@@ -256,12 +256,18 @@ void _handleEApi(RequestOptions option, List<Cookie> cookies) {
     map[element.name] = element.value;
     return map;
   });
+  final extraCookies = option.extra['cookies'];
+  if (extraCookies is Map) {
+    extraCookies.forEach((key, value) {
+      cookiesMap[key.toString()] = value.toString();
+    });
+  }
   header['osver'] = cookiesMap['osver'];
   header['deviceId'] = cookiesMap['deviceId'];
   header['appver'] = cookiesMap['appver'] ?? '8.0.00';
   header['versioncode'] = cookiesMap['versioncode'] ?? '140';
   header['mobilename'] = cookiesMap['mobilename'];
-  header['buildver'] = cookiesMap['mobilename'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  header['buildver'] = cookiesMap['buildver'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
   header['resolution'] = cookiesMap['resolution'] ?? '1920x1080';
   header['os'] = cookiesMap['os'] ?? 'android';
   header['channel'] = cookiesMap['channel'];

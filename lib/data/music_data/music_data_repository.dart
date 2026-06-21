@@ -303,7 +303,7 @@ class MusicDataRepository {
     final lyricsResource = (await _resourceIndexRepository.getTrackResourceBundle(trackId)).lyrics;
     if (lyricsResource != null && await _touchIfLocalFileExists(lyricsResource)) {
       return TrackLyrics(
-        main: await File(lyricsResource.path).readAsString(),
+        main: await File(_resourceFilePath(lyricsResource)).readAsString(),
       );
     }
     final localLyrics = await _localDataSource.getLyrics(trackId);

@@ -412,6 +412,10 @@ const specialSet = new Set(specialModules)
 const nodeOracleSpecial = stringSetFrom(specialCoverage.nodeOracle)
 const dartBehaviorSpecial = stringSetFrom(specialCoverage.dartBehavior)
 const specialLimitedReasons = sortedObject(specialCoverage.limited)
+const runtimeLimitedReasons = sortedObject({
+  'runtime:proxy.pac':
+    'proxy 支持 HTTP/HTTPS 代理 URL 和基础认证；PAC proxy 暂不支持，Dart client 会显式抛 UnsupportedError。',
+})
 const limitedSpecial = new Set(Object.keys(specialLimitedReasons))
 const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial, ...limitedSpecial])
 const upstreamCommit = gitOutput(['-C', upstreamRepoPath, 'rev-parse', 'HEAD'])
@@ -472,6 +476,14 @@ function buildSdkDifferences() {
       module,
       status: 'limited',
       reason,
+    })
+  }
+  for (const [module, reason] of Object.entries(runtimeLimitedReasons)) {
+    differences.push({
+      module,
+      status: 'limited',
+      reason,
+      scope: 'runtime_option',
     })
   }
   for (const module of normalMissingOracle) {
@@ -615,8 +627,10 @@ const report = {
   specialNodeOracle: sorted(nodeOracleSpecial),
   specialDartBehavior: sorted(dartBehaviorSpecial),
   specialLimited: sorted(limitedSpecial),
+  runtimeLimited: sorted(Object.keys(runtimeLimitedReasons)),
   specialCoverageStatusByModule: buildSpecialCoverageStatusByModule(),
   specialLimitedReasons,
+  runtimeLimitedReasons,
   sdkDifferences: buildSdkDifferences(),
 }
 
@@ -674,10 +688,15 @@ if (jsonOutput) {
   console.log(`special node oracle: ${report.specialNodeOracle.join(', ')}`)
   console.log(`special dart behavior: ${report.specialDartBehavior.join(', ')}`)
   console.log(`special limited: ${report.specialLimited.join(', ')}`)
+  console.log(`runtime limited: ${report.runtimeLimited.join(', ')}`)
   console.log(`special coverage status entries: ${Object.keys(report.specialCoverageStatusByModule).length}`)
   console.log(`SDK differences: ${report.sdkDifferences.length}`)
   console.log('special limited reasons:')
   for (const [module, reason] of Object.entries(report.specialLimitedReasons)) {
+    console.log(`- ${module}: ${reason}`)
+  }
+  console.log('runtime limited reasons:')
+  for (const [module, reason] of Object.entries(report.runtimeLimitedReasons)) {
     console.log(`- ${module}: ${reason}`)
   }
 

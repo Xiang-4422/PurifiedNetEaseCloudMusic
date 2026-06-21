@@ -178,15 +178,11 @@ class PlaybackArtworkPresenter {
     }
 
     for (final index in indicesToPreload) {
-      final imagePath = queue[index].artworkUrl ?? queue[index].localArtworkPath;
-      if (imagePath != null && imagePath.isNotEmpty && !_isRemoteArtworkSource(imagePath)) {
+      final imagePath = _localArtworkPath(queue[index]);
+      if (imagePath.isNotEmpty) {
         try {
-          final localImagePath = _normalizeLocalArtworkPath(imagePath);
-          if (localImagePath.isEmpty) {
-            continue;
-          }
           precacheImage(
-            FileImage(File(localImagePath)),
+            FileImage(File(imagePath)),
             context,
           );
         } catch (_) {
@@ -288,7 +284,15 @@ class PlaybackArtworkPresenter {
   }
 
   String? _artworkSource(PlaybackQueueItem item) {
-    return item.artworkUrl ?? item.localArtworkPath;
+    final localArtworkPath = _localArtworkPath(item);
+    if (localArtworkPath.isNotEmpty) {
+      return localArtworkPath;
+    }
+    final artworkUrl = item.artworkUrl;
+    if (artworkUrl?.isNotEmpty == true) {
+      return artworkUrl;
+    }
+    return item.localArtworkPath;
   }
 
   bool _isRemoteArtworkSource(String value) {
@@ -297,6 +301,18 @@ class PlaybackArtworkPresenter {
 
   String _normalizeLocalArtworkPath(String value) {
     return LocalFilePathNormalizer.normalize(value);
+  }
+
+  String _localArtworkPath(PlaybackQueueItem item) {
+    final localArtworkPath = _normalizeLocalArtworkPath(item.localArtworkPath ?? '');
+    if (localArtworkPath.isNotEmpty) {
+      return localArtworkPath;
+    }
+    final artworkUrl = item.artworkUrl ?? '';
+    if (_isRemoteArtworkSource(artworkUrl)) {
+      return '';
+    }
+    return _normalizeLocalArtworkPath(artworkUrl);
   }
 
   void _rememberResolvedArtworkPath(String imageSource, String imagePath) {

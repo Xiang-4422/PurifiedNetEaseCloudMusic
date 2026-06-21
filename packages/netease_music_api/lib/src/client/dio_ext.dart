@@ -161,11 +161,10 @@ NeteaseProxySettings? neteaseProxySettings(String? proxy) {
   if (trimmed == null || trimmed.isEmpty) {
     return null;
   }
-  final lower = trimmed.toLowerCase();
-  if (lower.contains('pac')) {
+  if (_isPacProxy(trimmed)) {
     throw UnsupportedError('PAC proxy is not supported by the Dart client.');
   }
-  final value = lower.contains('://') ? trimmed : 'http://$trimmed';
+  final value = trimmed.toLowerCase().contains('://') ? trimmed : 'http://$trimmed';
   final uri = Uri.tryParse(value);
   if (uri == null || uri.host.isEmpty) {
     throw ArgumentError.value(proxy, 'proxy', 'Invalid proxy URL.');
@@ -185,6 +184,18 @@ NeteaseProxySettings? neteaseProxySettings(String? proxy) {
     port: port,
     credentials: _proxyCredentials(uri.userInfo),
   );
+}
+
+bool _isPacProxy(String proxy) {
+  final lower = proxy.toLowerCase();
+  final value = lower.contains('://') ? proxy : 'http://$proxy';
+  final uri = Uri.tryParse(value);
+  final scheme = uri?.scheme.toLowerCase();
+  if (scheme == 'pac' || scheme == 'pac+http' || scheme == 'pac+https') {
+    return true;
+  }
+  final path = uri?.path.toLowerCase() ?? lower.split('?').first;
+  return path.endsWith('.pac');
 }
 
 NeteaseProxyCredentials? _proxyCredentials(String userInfo) {

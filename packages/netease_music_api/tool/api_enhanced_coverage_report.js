@@ -414,7 +414,7 @@ const dartBehaviorSpecial = stringSetFrom(specialCoverage.dartBehavior)
 const specialLimitedReasons = sortedObject(specialCoverage.limited)
 const runtimeLimitedReasons = sortedObject({
   'runtime:proxy.pac':
-    'proxy 支持 HTTP/HTTPS 代理 URL 和基础认证；PAC proxy 暂不支持，Dart client 会显式抛 UnsupportedError。',
+    'proxy 支持 HTTP/HTTPS 代理 URL 和基础认证；明确的 PAC 文件或 PAC scheme 暂不支持，Dart client 会显式抛 UnsupportedError。',
 })
 const limitedSpecial = new Set(Object.keys(specialLimitedReasons))
 const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial, ...limitedSpecial])

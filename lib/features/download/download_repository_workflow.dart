@@ -25,7 +25,7 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
       return track;
     }
     final audioResource = trackWithResources.resources.audio;
-    if (audioResource != null && File(audioResource.path).existsSync()) {
+    if (audioResource != null && _resourceFileExists(audioResource)) {
       if (audioResource.origin != TrackResourceOrigin.managedDownload && track.sourceType != SourceType.local) {
         final promoted = await _resourceWriter.promoteResourcesToManagedDownload(
           track.id,
@@ -135,7 +135,7 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
       return track;
     }
     final audioResource = trackWithResources?.resources.audio;
-    if (audioResource != null && File(audioResource.path).existsSync()) {
+    if (audioResource != null && _resourceFileExists(audioResource)) {
       return track;
     }
     try {
@@ -183,5 +183,10 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
   Future<void> clearCancelledTask(String trackId) async {
     await _taskStateStore.clearTask(trackId);
     _taskQueue.clearCancelled(trackId);
+  }
+
+  bool _resourceFileExists(LocalResourceEntry? resource) {
+    final path = LocalFilePathNormalizer.normalize(resource?.path);
+    return path.isNotEmpty && File(path).existsSync();
   }
 }

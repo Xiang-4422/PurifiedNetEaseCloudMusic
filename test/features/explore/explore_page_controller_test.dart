@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
@@ -43,6 +45,74 @@ void main() {
       expect(controller.loading.value, isFalse);
       expect(controller.playLists.map((playlist) => playlist.id), ['playlist-1']);
     });
+
+    test('ignores stale category playlist responses after tag changes', () async {
+      final categoryRequests = <String, Completer<List<PlaylistSummaryData>>>{};
+      final controller = _buildController(
+        exploreRepository: _FakeExploreRepository(
+          fetchCategoryPlaylistsHandler: (category) {
+            final completer = Completer<List<PlaylistSummaryData>>();
+            categoryRequests[category] = completer;
+            return completer.future;
+          },
+        ),
+      );
+      addTearDown(controller.onClose);
+
+      controller.curTag.value = '华语';
+      final oldLoad = controller.updatePlayLists(force: true);
+      controller.curTag.value = '摇滚';
+      final currentLoad = controller.updatePlayLists(force: true);
+
+      categoryRequests['摇滚']!.complete(
+        const [PlaylistSummaryData(id: 'rock-playlist', title: 'Rock')],
+      );
+      await currentLoad;
+      expect(controller.playLists.map((playlist) => playlist.id), ['rock-playlist']);
+
+      categoryRequests['华语']!.complete(
+        const [PlaylistSummaryData(id: 'old-playlist', title: 'Old')],
+      );
+      await oldLoad;
+
+      expect(controller.curTag.value, '摇滚');
+      expect(controller.playLists.map((playlist) => playlist.id), ['rock-playlist']);
+    });
+
+    test('ignores stale ranking load more responses after playlist changes', () async {
+      final songRequests = <String, Completer<List<PlaybackQueueItem>>>{};
+      final controller = _buildController(
+        playlistRepository: _FakePlaylistRepository(
+          fetchSongsHandler: ({
+            required String playlistId,
+            required List<int> likedSongIds,
+            required int offset,
+            required int limit,
+          }) {
+            final completer = Completer<List<PlaybackQueueItem>>();
+            songRequests['$playlistId:$offset'] = completer;
+            return completer.future;
+          },
+        ),
+      );
+      addTearDown(controller.onClose);
+      controller.curTopPlayListId.value = 'ranking-a';
+      controller.curTopPlayListSongs.add(_song('a-1'));
+
+      final oldLoadMore = controller.updateRankingPlayListSongs(offset: 1);
+      controller.curTopPlayListId.value = 'ranking-b';
+      final currentLoad = controller.updateRankingPlayListSongs(force: true);
+
+      songRequests['ranking-b:0']!.complete([_song('b-1')]);
+      await currentLoad;
+      expect(controller.curTopPlayListSongs.map((song) => song.id), ['b-1']);
+
+      songRequests['ranking-a:1']!.complete([_song('a-2')]);
+      await oldLoadMore;
+
+      expect(controller.curTopPlayListId.value, 'ranking-b');
+      expect(controller.curTopPlayListSongs.map((song) => song.id), ['b-1']);
+    });
   });
 }
 
@@ -78,9 +148,13 @@ PlaybackQueueItem _song(String id) {
 }
 
 class _FakeExploreRepository implements ExploreRepository {
-  _FakeExploreRepository({this.fetchPlaylistCatalogueError});
+  _FakeExploreRepository({
+    this.fetchPlaylistCatalogueError,
+    this.fetchCategoryPlaylistsHandler,
+  });
 
   final Object? fetchPlaylistCatalogueError;
+  final Future<List<PlaylistSummaryData>> Function(String category)? fetchCategoryPlaylistsHandler;
 
   @override
   Future<ExplorePlaylistCatalogueData?> loadCachedPlaylistCatalogue() async {
@@ -123,14 +197,27 @@ class _FakeExploreRepository implements ExploreRepository {
 
   @override
   Future<List<PlaylistSummaryData>> fetchCategoryPlaylists(String category) async {
+    final handler = fetchCategoryPlaylistsHandler;
+    if (handler != null) {
+      return handler(category);
+    }
     return const [];
   }
 }
 
 class _FakePlaylistRepository implements PlaylistRepository {
-  _FakePlaylistRepository({this.fetchSongsError});
+  _FakePlaylistRepository({
+    this.fetchSongsError,
+    this.fetchSongsHandler,
+  });
 
   final Object? fetchSongsError;
+  final Future<List<PlaybackQueueItem>> Function({
+    required String playlistId,
+    required List<int> likedSongIds,
+    required int offset,
+    required int limit,
+  })? fetchSongsHandler;
 
   @override
   Future<List<PlaybackQueueItem>> fetchPlaylistSongs({
@@ -141,6 +228,15 @@ class _FakePlaylistRepository implements PlaylistRepository {
     PlaylistIndexData? playlistIndex,
     bool persist = true,
   }) async {
+    final handler = fetchSongsHandler;
+    if (handler != null) {
+      return handler(
+        playlistId: playlistId,
+        likedSongIds: likedSongIds,
+        offset: offset,
+        limit: limit,
+      );
+    }
     final error = fetchSongsError;
     if (error != null) {
       throw error;

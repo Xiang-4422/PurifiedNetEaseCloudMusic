@@ -63,6 +63,26 @@ class ArtworkPathResolver {
     );
   }
 
+  /// 播放队列项或轻量展示项的封面路径选择。
+  ///
+  /// 当远程封面 URL 和本地封面路径同时存在时，优先返回已经落盘的本地封面。
+  /// 本地路径无效时才回退到远程 URL。
+  static String? resolvePlaybackArtwork({
+    required String? artworkUrl,
+    required String? localArtworkPath,
+  }) {
+    if (_isLocalPath(localArtworkPath)) {
+      return localArtworkPath;
+    }
+    if (_isLocalPath(artworkUrl)) {
+      return artworkUrl;
+    }
+    if (artworkUrl?.isNotEmpty == true) {
+      return artworkUrl;
+    }
+    return localArtworkPath?.isNotEmpty == true ? localArtworkPath : null;
+  }
+
   /// 把 nullable 封面路径收敛成图片组件可直接接收的字符串。
   ///
   /// 这里故意不丢弃远程 URL，因为远程 URL 仍需要进入本地图片缓存后展示。

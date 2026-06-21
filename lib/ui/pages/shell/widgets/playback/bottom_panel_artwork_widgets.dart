@@ -27,7 +27,10 @@ class BottomPanelCurrentArtworkImage extends StatelessWidget {
       () {
         final currentSong = PlayerController.to.currentSongState.value;
         final artworkPath = ArtworkPathResolver.resolveDisplayPath(
-          currentSong.artworkUrl ?? currentSong.localArtworkPath,
+          ArtworkPathResolver.resolvePlaybackArtwork(
+            artworkUrl: currentSong.artworkUrl,
+            localArtworkPath: currentSong.localArtworkPath,
+          ),
         );
         return SimpleExtendedImage(
           artworkPath,
@@ -121,7 +124,10 @@ class BottomPanelArtworkPageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final artworkPath = ArtworkPathResolver.resolveDisplayPath(
-      item.artworkUrl ?? item.localArtworkPath,
+      ArtworkPathResolver.resolvePlaybackArtwork(
+        artworkUrl: item.artworkUrl,
+        localArtworkPath: item.localArtworkPath,
+      ),
     );
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),

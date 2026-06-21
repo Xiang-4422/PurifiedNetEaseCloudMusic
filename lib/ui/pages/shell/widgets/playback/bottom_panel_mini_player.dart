@@ -120,7 +120,10 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                               clipBehavior: Clip.hardEdge,
                               child: SimpleExtendedImage(
                                 ArtworkPathResolver.resolveDisplayPath(
-                                  currentSong.artworkUrl ?? currentSong.localArtworkPath,
+                                  ArtworkPathResolver.resolvePlaybackArtwork(
+                                    artworkUrl: currentSong.artworkUrl,
+                                    localArtworkPath: currentSong.localArtworkPath,
+                                  ),
                                 ),
                                 width: realTimeAlbumWidth,
                                 height: realTimeAlbumWidth,
@@ -143,7 +146,10 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                             ),
                             child: SimpleExtendedImage(
                               ArtworkPathResolver.resolveDisplayPath(
-                                currentSong.artworkUrl ?? currentSong.localArtworkPath,
+                                ArtworkPathResolver.resolvePlaybackArtwork(
+                                  artworkUrl: currentSong.artworkUrl,
+                                  localArtworkPath: currentSong.localArtworkPath,
+                                ),
                               ),
                               width: AppDimensions.albumMinSize,
                               height: AppDimensions.albumMinSize,

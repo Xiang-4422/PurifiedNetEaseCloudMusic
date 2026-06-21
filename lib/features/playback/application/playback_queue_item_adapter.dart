@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart' show TrackAvailability;
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/features/playback/application/playback_queue_metadata_filter.dart';
 
 /// 播放队列项与 audio_service [MediaItem] 的边界适配器。
@@ -67,10 +66,11 @@ class PlaybackQueueItemAdapter {
   }
 
   static Uri? _toArtUri(String? localArtworkPath) {
-    if (localArtworkPath == null || localArtworkPath.isEmpty) {
+    final normalizedPath = LocalFilePathNormalizer.normalize(localArtworkPath);
+    if (normalizedPath.isEmpty) {
       return null;
     }
-    return Uri.file(File(localArtworkPath).path);
+    return Uri.file(normalizedPath);
   }
 
   static String? _stringOrNull(Object? value) {

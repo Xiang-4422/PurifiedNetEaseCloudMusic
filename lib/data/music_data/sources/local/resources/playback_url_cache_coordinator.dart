@@ -98,15 +98,24 @@ class PlaybackUrlCacheCoordinator {
       return null;
     }
     final trimmedUrl = url.trim();
-    if (_isRemoteUrl(trimmedUrl)) {
+    if (_hasHttpScheme(trimmedUrl)) {
       return trimmedUrl;
     }
     return url;
   }
 
   static bool _isRemoteUrl(String url) {
-    final normalizedScheme = url.toLowerCase();
-    return normalizedScheme.startsWith('http://') || normalizedScheme.startsWith('https://');
+    final uri = Uri.tryParse(url.trim());
+    return _isHttpUri(uri) && uri?.host.isNotEmpty == true;
+  }
+
+  static bool _hasHttpScheme(String url) {
+    return _isHttpUri(Uri.tryParse(url));
+  }
+
+  static bool _isHttpUri(Uri? uri) {
+    final scheme = uri?.scheme.toLowerCase();
+    return scheme == 'http' || scheme == 'https';
   }
 }
 

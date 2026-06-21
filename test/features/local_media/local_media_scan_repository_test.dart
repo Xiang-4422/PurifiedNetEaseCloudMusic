@@ -52,6 +52,18 @@ void main() {
       expect(imports.single.filePath, audioFile.path);
     });
 
+    test('scanFiles finds same-name sidecar resources with upper-case extensions', () async {
+      final audioFile = await _writeFile(directory, 'Upper Sidecar.flac');
+      final artworkFile = await _writeFile(directory, 'Upper Sidecar.JPG');
+      final lyricsFile = await _writeFile(directory, 'Upper Sidecar.LRC');
+
+      final imports = await scanRepository.scanFiles([audioFile.path]);
+
+      expect(imports, hasLength(1));
+      expect(imports.single.localArtworkPath, artworkFile.path);
+      expect(imports.single.localLyricsPath, lyricsFile.path);
+    });
+
     test('importFiles passes normalized paths to local media repository', () async {
       final audioFile = await _writeFile(directory, 'Imported Song.flac');
 

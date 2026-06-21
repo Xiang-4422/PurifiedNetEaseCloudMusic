@@ -46,7 +46,7 @@ class LocalMediaScanRepository {
       if (!directory.existsSync()) {
         continue;
       }
-      final entities = directory.listSync(recursive: recursive);
+      final entities = _safeListDirectory(directory, recursive: recursive);
       for (final entity in entities) {
         if (entity is! File) {
           continue;
@@ -157,17 +157,17 @@ class LocalMediaScanRepository {
   /// 但导入后还要重新走一次手工补全。
   String? _findArtworkPath(String audioPath) {
     final audioFile = File(audioPath);
-    final basePath = _filePathWithoutExtension(audioFile.path);
-    for (final extension in _supportedArtworkExtensions) {
-      final artworkFile = File('$basePath$extension');
-      if (artworkFile.existsSync()) {
-        return artworkFile.path;
-      }
+    final sidecarArtworkPath = _findSidecarPath(
+      audioFile,
+      extensions: _supportedArtworkExtensions,
+    );
+    if (sidecarArtworkPath != null) {
+      return sidecarArtworkPath;
     }
 
     final directory = audioFile.parent;
     const fallbackNames = {'cover', 'folder', 'front', 'album'};
-    for (final entity in directory.listSync()) {
+    for (final entity in _safeListDirectory(directory)) {
       if (entity is! File) {
         continue;
       }
@@ -182,14 +182,53 @@ class LocalMediaScanRepository {
   }
 
   String? _findLyricsPath(String audioPath) {
-    final basePath = _filePathWithoutExtension(audioPath);
-    for (final extension in _supportedLyricsExtensions) {
-      final lyricsFile = File('$basePath$extension');
-      if (lyricsFile.existsSync()) {
-        return lyricsFile.path;
+    return _findSidecarPath(
+      File(audioPath),
+      extensions: _supportedLyricsExtensions,
+    );
+  }
+
+  String? _findSidecarPath(
+    File sourceFile, {
+    required Set<String> extensions,
+  }) {
+    final sourceName = _fileNameWithoutExtension(_fileNameOf(sourceFile.path)).toLowerCase();
+    for (final entity in _safeListDirectory(sourceFile.parent)) {
+      if (entity is! File) {
+        continue;
+      }
+      final fileName = _fileNameOf(entity.path);
+      final extension = _extensionOf(fileName).toLowerCase();
+      if (!extensions.contains(extension)) {
+        continue;
+      }
+      if (_fileNameWithoutExtension(fileName).toLowerCase() == sourceName) {
+        return entity.path;
+      }
+    }
+
+    final basePath = _filePathWithoutExtension(sourceFile.path);
+    for (final extension in extensions) {
+      final sidecarFile = File('$basePath$extension');
+      if (sidecarFile.existsSync()) {
+        return sidecarFile.path;
       }
     }
     return null;
+  }
+
+  List<FileSystemEntity> _safeListDirectory(
+    Directory directory, {
+    bool recursive = false,
+  }) {
+    try {
+      return directory.listSync(
+        recursive: recursive,
+        followLinks: false,
+      );
+    } on FileSystemException {
+      return const <FileSystemEntity>[];
+    }
   }
 
   String _filePathWithoutExtension(String path) {
@@ -214,5 +253,9 @@ class LocalMediaScanRepository {
       return '';
     }
     return fileName.substring(dotIndex);
+  }
+
+  String _fileNameOf(String path) {
+    return path.replaceAll('\\', '/').split('/').last;
   }
 }

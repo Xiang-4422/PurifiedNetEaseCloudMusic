@@ -32,6 +32,7 @@ void main() {
 
       expect(source.kind, PlaybackResolvedSourceKind.filePath);
       expect(source.url, audioFile.path);
+      expect(source.markAsCached, isTrue);
     });
 
     test('keeps uc cache path on decrypted stream source', () async {
@@ -70,7 +71,7 @@ void main() {
 
       expect(source.kind, PlaybackResolvedSourceKind.filePath);
       expect(source.url, audioFile.path);
-      expect(source.markAsCached, isTrue);
+      expect(source.markAsCached, isFalse);
     });
 
     test('accepts localhost file uri authority as file source', () async {

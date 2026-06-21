@@ -19,7 +19,7 @@ class PlaybackSourceResolver {
     required bool preferHighQuality,
   }) async {
     if (item.mediaType == MediaType.local) {
-      final source = _resolveLocalFileSource(item.playbackUrl ?? '');
+      final source = _resolveLocalFileSource(item);
       if (!source.isEmpty || item.sourceType == SourceType.local) {
         return source;
       }
@@ -73,8 +73,8 @@ class PlaybackSourceResolver {
     return url.endsWith('.uc!');
   }
 
-  PlaybackResolvedSource _resolveLocalFileSource(String url) {
-    final localPath = _localPathCandidate(url);
+  PlaybackResolvedSource _resolveLocalFileSource(PlaybackQueueItem item) {
+    final localPath = _localPathCandidate(item.playbackUrl ?? '');
     if (localPath.isEmpty || !File(localPath).existsSync()) {
       return const PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.empty,
@@ -83,7 +83,7 @@ class PlaybackSourceResolver {
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.filePath,
       url: localPath,
-      markAsCached: true,
+      markAsCached: item.sourceType != SourceType.local,
     );
   }
 

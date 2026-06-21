@@ -732,6 +732,41 @@ void main() {
       );
     });
 
+    test('playback mode switch context stays typed', () {
+      final contextFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_mode_switch_context.dart',
+      );
+      final commandFiles = [
+        File('${projectRoot.path}/lib/features/playback/player_controller.dart'),
+        File(
+          '${projectRoot.path}/lib/features/playback/application/playback_mode_command_service.dart',
+        ),
+        File(
+          '${projectRoot.path}/lib/features/playback/application/playback_ui_command_service.dart',
+        ),
+      ];
+      final violations = <String>[
+        if (!contextFile.existsSync()) 'playback mode switch context file is missing',
+        if (contextFile.existsSync() && !contextFile.readAsStringSync().contains('class PlaybackHeartBeatModeContext')) 'heartbeat switch context type is missing',
+        for (final file in commandFiles)
+          if (_containsAny(file, const [
+            'contextData',
+            'dynamic context',
+            "['startSongId']",
+            '["startSongId"]',
+            "['fromPlayAll']",
+            '["fromPlayAll"]',
+          ]))
+            _relativePath(file),
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放模式切换必须用显式心动模式上下文传递启动歌曲和入口来源，不能靠 dynamic Map 或字符串键穿透 UI 命令层。',
+      );
+    });
+
     test('playback selection layer stays independent from audio service', () {
       final selectionFiles = _dartFiles(
         Directory('${projectRoot.path}/lib/features/playback'),

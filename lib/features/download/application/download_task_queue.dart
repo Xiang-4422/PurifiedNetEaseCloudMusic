@@ -54,9 +54,11 @@ class DownloadTaskQueue {
   ) {
     final taskFuture = _enqueueDownload(operation);
     _scheduledDownloads[trackId] = taskFuture;
-    taskFuture.whenComplete(() {
-      _scheduledDownloads.remove(trackId);
-    });
+    _removeScheduledTaskWhenComplete(
+      trackId,
+      taskFuture,
+      _scheduledDownloads,
+    );
     return taskFuture;
   }
 
@@ -67,10 +69,33 @@ class DownloadTaskQueue {
   ) {
     final taskFuture = operation();
     _scheduledPlaybackCaches[trackId] = taskFuture;
-    taskFuture.whenComplete(() {
-      _scheduledPlaybackCaches.remove(trackId);
-    });
+    _removeScheduledTaskWhenComplete(
+      trackId,
+      taskFuture,
+      _scheduledPlaybackCaches,
+    );
     return taskFuture;
+  }
+
+  void _removeScheduledTaskWhenComplete(
+    String trackId,
+    Future<Track?> taskFuture,
+    Map<String, Future<Track?>> scheduledTasks,
+  ) {
+    unawaited(
+      taskFuture.then<void>(
+        (_) {
+          if (identical(scheduledTasks[trackId], taskFuture)) {
+            scheduledTasks.remove(trackId);
+          }
+        },
+        onError: (Object _, StackTrace __) {
+          if (identical(scheduledTasks[trackId], taskFuture)) {
+            scheduledTasks.remove(trackId);
+          }
+        },
+      ),
+    );
   }
 
   Future<T> _enqueueDownload<T>(Future<T> Function() operation) {

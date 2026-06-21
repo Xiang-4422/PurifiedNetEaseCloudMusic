@@ -3346,6 +3346,49 @@ void main() {
       }
     });
 
+    test('cloud special module falls back to ID3v2 album artist', () async {
+      final proxy = _QueuedPostDioProxy([
+        {
+          'needUpload': false,
+          'songId': 456,
+        },
+        {
+          'result': {
+            'objectKey': 'cloud/object-key',
+            'token': 'cloud-token',
+            'resourceId': 'resource-1',
+          },
+        },
+        {
+          'code': 200,
+          'songId': 789,
+        },
+        {
+          'code': 200,
+          'published': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      await api.cloud({
+        'songFile': {
+          'name': 'Fallback.mp3',
+          'mimetype': 'audio/mpeg',
+          'size': 12345,
+          'md5': 'abc',
+          'data': _id3v23Tag(
+            title: 'ID3 Title',
+            album: 'ID3 Album',
+            albumArtist: 'ID3 Album Artist',
+          ),
+        },
+      });
+
+      expect(proxy.requests[2].data, containsPair('song', 'ID3 Title'));
+      expect(proxy.requests[2].data, containsPair('album', 'ID3 Album'));
+      expect(proxy.requests[2].data, containsPair('artist', 'ID3 Album Artist'));
+    });
+
     test('cloud special module reads FLAC Vorbis comments before filename fallback', () async {
       final proxy = _QueuedPostDioProxy([
         {
@@ -3387,6 +3430,49 @@ void main() {
       expect(proxy.requests[2].data, containsPair('song', 'FLAC Title'));
       expect(proxy.requests[2].data, containsPair('album', 'FLAC Album'));
       expect(proxy.requests[2].data, containsPair('artist', 'FLAC Artist'));
+    });
+
+    test('cloud special module falls back to FLAC album artist comment', () async {
+      final proxy = _QueuedPostDioProxy([
+        {
+          'needUpload': false,
+          'songId': 456,
+        },
+        {
+          'result': {
+            'objectKey': 'cloud/object-key',
+            'token': 'cloud-token',
+            'resourceId': 'resource-1',
+          },
+        },
+        {
+          'code': 200,
+          'songId': 789,
+        },
+        {
+          'code': 200,
+          'published': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      await api.cloud({
+        'songFile': {
+          'name': 'Fallback.flac',
+          'mimetype': 'audio/flac',
+          'size': 12345,
+          'md5': 'abc',
+          'data': _flacVorbisComment(
+            title: 'FLAC Title',
+            album: 'FLAC Album',
+            albumArtist: 'FLAC Album Artist',
+          ),
+        },
+      });
+
+      expect(proxy.requests[2].data, containsPair('song', 'FLAC Title'));
+      expect(proxy.requests[2].data, containsPair('album', 'FLAC Album'));
+      expect(proxy.requests[2].data, containsPair('artist', 'FLAC Album Artist'));
     });
 
     test('cloud special module reads MP4 ilst tags before filename fallback', () async {
@@ -4199,12 +4285,14 @@ String _encryptAesEcbText(String text, String key) {
 Uint8List _id3v23Tag({
   required String title,
   required String album,
-  required String artist,
+  String? artist,
+  String? albumArtist,
 }) {
   final frames = <int>[
     ..._id3v23TextFrame('TIT2', title),
     ..._id3v23TextFrame('TALB', album),
-    ..._id3v23TextFrame('TPE1', artist),
+    if (artist != null) ..._id3v23TextFrame('TPE1', artist),
+    if (albumArtist != null) ..._id3v23TextFrame('TPE2', albumArtist),
   ];
   return Uint8List.fromList([
     ...'ID3'.codeUnits,
@@ -4222,13 +4310,15 @@ Uint8List _id3v23Tag({
 Uint8List _flacVorbisComment({
   required String title,
   required String album,
-  required String artist,
+  String? artist,
+  String? albumArtist,
 }) {
   final vendor = utf8.encode('test');
   final comments = [
     'TITLE=$title',
     'ALBUM=$album',
-    'ARTIST=$artist',
+    if (artist != null) 'ARTIST=$artist',
+    if (albumArtist != null) 'ALBUMARTIST=$albumArtist',
   ].map(utf8.encode).toList();
   final block = <int>[
     ..._uint32LEBytes(vendor.length),

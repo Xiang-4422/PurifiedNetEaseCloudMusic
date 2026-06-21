@@ -122,6 +122,34 @@ void main() {
       }
     });
 
+    testWidgets('SongItem prefers local artwork path for thumbnails', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          SongItem(
+            playlist: [
+              _song(
+                artworkUrl: 'https://example.com/remote.jpg',
+                localArtworkPath: '/cache/local.jpg',
+              ),
+            ],
+            index: 0,
+            playListName: 'list',
+            onPlay: (
+              playlist,
+              index, {
+              String playListName = '',
+              String playListNameHeader = '',
+            }) async {},
+          ),
+        ),
+      );
+
+      final image = tester.widget<SimpleExtendedImage>(
+        find.byType(SimpleExtendedImage),
+      );
+      expect(image.url, '/cache/local.jpg');
+    });
+
     testWidgets('PlayListWidget keeps artwork square and honors height override', (tester) async {
       await tester.pumpWidget(
         _wrap(
@@ -168,8 +196,11 @@ Widget _wrap(
   );
 }
 
-PlaybackQueueItem _song() {
-  return const PlaybackQueueItem(
+PlaybackQueueItem _song({
+  String? artworkUrl,
+  String? localArtworkPath,
+}) {
+  return PlaybackQueueItem(
     id: '1',
     sourceId: '1',
     title: 'Track',
@@ -177,8 +208,8 @@ PlaybackQueueItem _song() {
     artistNames: ['Artist'],
     artistIds: [],
     duration: null,
-    artworkUrl: null,
-    localArtworkPath: null,
+    artworkUrl: artworkUrl,
+    localArtworkPath: localArtworkPath,
     mediaType: MediaType.playlist,
     playbackUrl: null,
     lyricKey: null,

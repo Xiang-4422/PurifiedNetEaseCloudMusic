@@ -4,20 +4,24 @@ class LyricsReaderModel {
   List<LyricsLineModel> lyrics = [];
 
   /// 根据播放进度查找当前命中的歌词行索引。
-  getCurrentLine(int progress) {
-    var lastEndTime = 0;
-    for (var i = 0; i < lyrics.length; i++) {
-      var element = lyrics[i];
-      if (progress >= (element.startTime ?? 0) && progress < (element.endTime ?? 0)) {
-        return i;
+  int getCurrentLine(int progress) {
+    if (lyrics.isEmpty) {
+      return -1;
+    }
+    var low = 0;
+    var high = lyrics.length - 1;
+    var result = -1;
+    while (low <= high) {
+      final middle = low + ((high - low) >> 1);
+      final startTime = lyrics[middle].startTime ?? 0;
+      if (startTime <= progress) {
+        result = middle;
+        low = middle + 1;
+      } else {
+        high = middle - 1;
       }
-      lastEndTime = element.endTime ?? 0;
     }
-    if (progress > lastEndTime) {
-      return lyrics.length - 1;
-    } else {
-      return 0;
-    }
+    return result;
   }
 }
 

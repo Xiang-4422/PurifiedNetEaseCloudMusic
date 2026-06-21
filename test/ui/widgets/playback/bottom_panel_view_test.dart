@@ -85,4 +85,25 @@ void main() {
     expect(indicatorSource, contains("'歌曲评论'"));
     expect(indicatorSource, contains('bottomPanelCommentTabController'));
   });
+
+  test('bottom panel delegates background and fade mask to local widgets', () {
+    final panelSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+    ).readAsStringSync();
+    final backgroundSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_background_layers.dart',
+    ).readAsStringSync();
+
+    expect(panelSource, contains('BottomPanelBackgroundLayer('));
+    expect(panelSource, contains('BottomPanelContentFadeMask()'));
+    expect(panelSource, isNot(contains('BlurryContainer(')));
+    expect(panelSource, isNot(contains('LinearGradient(')));
+    expect(panelSource, isNot(contains('bottomPanelAnimationController.value')));
+
+    expect(backgroundSource, contains('class BottomPanelBackgroundLayer'));
+    expect(backgroundSource, contains('class BottomPanelContentFadeMask'));
+    expect(backgroundSource, contains('BlurryContainer('));
+    expect(backgroundSource, contains('LinearGradient('));
+    expect(backgroundSource, contains('bottomPanelAnimationController.value'));
+  });
 }

@@ -39,7 +39,7 @@ class LocalImageCacheRepository {
   ///
   /// 本地路径会直接解析；远程 URL 只在内存路径缓存已命中且文件仍存在时返回。
   String? peekResolvedImagePath(String imageUrl) {
-    final normalizedUrl = imageUrl.trim();
+    final normalizedUrl = _normalizeImageSource(imageUrl);
     if (normalizedUrl.isEmpty) {
       return '';
     }
@@ -51,7 +51,7 @@ class LocalImageCacheRepository {
 
   /// 解析可供本地读取的图片路径。
   Future<String> resolveImagePath(String imageUrl) {
-    final normalizedUrl = imageUrl.trim();
+    final normalizedUrl = _normalizeImageSource(imageUrl);
     if (!_isRemoteUrl(normalizedUrl)) {
       final resolvedPath = _resolveLocalPath(normalizedUrl);
       _rememberResolvedPath(normalizedUrl, resolvedPath);
@@ -222,6 +222,17 @@ class LocalImageCacheRepository {
 
   bool _isRemoteUrl(String value) {
     return ImageUrlNormalizer.isRemoteHttpUrl(value);
+  }
+
+  String _normalizeImageSource(String imageUrl) {
+    final trimmedUrl = imageUrl.trim();
+    if (trimmedUrl.isEmpty) {
+      return '';
+    }
+    if (_isRemoteUrl(trimmedUrl)) {
+      return ImageUrlNormalizer.normalize(trimmedUrl);
+    }
+    return trimmedUrl;
   }
 
   static const Map<String, String> _imageHttpHeaders = {

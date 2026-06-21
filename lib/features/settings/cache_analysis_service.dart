@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 import 'package:path_provider/path_provider.dart';
@@ -175,7 +176,8 @@ class CacheAnalysisService {
     var sizeBytes = 0;
     var fileCount = 0;
     for (final resource in cacheResources) {
-      if (retainedPaths.contains(resource.path) || !countedPaths.add(resource.path)) {
+      final path = _resourceFilePath(resource);
+      if (path.isEmpty || retainedPaths.contains(path) || !countedPaths.add(path)) {
         continue;
       }
       sizeBytes += resource.sizeBytes;
@@ -226,7 +228,8 @@ class CacheAnalysisService {
       if (entity is! File) {
         continue;
       }
-      if (retainedPaths.contains(entity.path) || !countedPaths.add(entity.path)) {
+      final path = LocalFilePathNormalizer.normalize(entity.path);
+      if (path.isEmpty || retainedPaths.contains(path) || !countedPaths.add(path)) {
         continue;
       }
       fileCount++;
@@ -272,20 +275,28 @@ class CacheAnalysisService {
     List<LocalResourceEntry> indexedResources, {
     required bool Function(LocalResourceEntry resource) shouldRemove,
   }) {
-    return {
-      for (final resource in indexedResources)
-        if (!shouldRemove(resource)) resource.path,
-    };
+    final retainedPaths = <String>{};
+    for (final resource in indexedResources) {
+      if (shouldRemove(resource)) {
+        continue;
+      }
+      final path = _resourceFilePath(resource);
+      if (path.isNotEmpty) {
+        retainedPaths.add(path);
+      }
+    }
+    return retainedPaths;
   }
 
   Future<void> _deleteFileUnlessRetained(
     String path,
     Set<String> retainedPaths,
   ) async {
-    if (path.isEmpty || retainedPaths.contains(path)) {
+    final localPath = LocalFilePathNormalizer.normalize(path);
+    if (localPath.isEmpty || retainedPaths.contains(localPath)) {
       return;
     }
-    final file = File(path);
+    final file = File(localPath);
     if (!file.existsSync()) {
       return;
     }
@@ -317,6 +328,10 @@ class CacheAnalysisService {
         await childDirectory.delete();
       } catch (_) {}
     }
+  }
+
+  String _resourceFilePath(LocalResourceEntry resource) {
+    return LocalFilePathNormalizer.normalize(resource.path);
   }
 
   String _titleFor(CacheCategory category) {

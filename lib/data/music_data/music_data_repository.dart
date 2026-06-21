@@ -13,6 +13,7 @@ import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 
 import 'sources/local/resources/local_artwork_cache_repository.dart';
 import 'sources/local/resources/local_resource_index_repository.dart';
@@ -458,10 +459,17 @@ class MusicDataRepository {
     List<LocalResourceEntry> indexedResources, {
     required bool Function(LocalResourceEntry resource) shouldRemove,
   }) {
-    return {
-      for (final resource in indexedResources)
-        if (!shouldRemove(resource)) resource.path,
-    };
+    final retainedPaths = <String>{};
+    for (final resource in indexedResources) {
+      if (shouldRemove(resource)) {
+        continue;
+      }
+      final path = _resourceFilePath(resource);
+      if (path.isNotEmpty) {
+        retainedPaths.add(path);
+      }
+    }
+    return retainedPaths;
   }
 
   bool _shouldDeleteResourceFile(
@@ -472,7 +480,8 @@ class MusicDataRepository {
     if (!deleteSourceFiles || resource == null) {
       return false;
     }
-    return !retainedPaths.contains(resource.path);
+    final path = _resourceFilePath(resource);
+    return path.isNotEmpty && !retainedPaths.contains(path);
   }
 
   Future<void> _deleteResourceFile(
@@ -482,20 +491,29 @@ class MusicDataRepository {
     if (!deleteFile || resource == null) {
       return;
     }
-    final file = File(resource.path);
+    final path = _resourceFilePath(resource);
+    if (path.isEmpty) {
+      return;
+    }
+    final file = File(path);
     if (file.existsSync()) {
       await file.delete();
     }
   }
 
   Future<bool> _touchIfLocalFileExists(LocalResourceEntry resource) async {
-    final file = File(resource.path);
-    if (!file.existsSync()) {
+    final path = _resourceFilePath(resource);
+    final file = path.isEmpty ? null : File(path);
+    if (file == null || !file.existsSync()) {
       await _resourceIndexRepository.removeResource(resource.trackId, resource.kind);
       return false;
     }
     await _resourceIndexRepository.touchResource(resource.trackId, resource.kind);
     return true;
+  }
+
+  String _resourceFilePath(LocalResourceEntry resource) {
+    return LocalFilePathNormalizer.normalize(resource.path);
   }
 
   bool _isLocalTrackId(String trackId) {

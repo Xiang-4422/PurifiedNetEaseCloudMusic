@@ -1440,6 +1440,7 @@ void main() {
       final routeBootstrap = File('${projectRoot.path}/lib/app/bootstrap/route_bootstrap.dart').readAsStringSync();
       final repositoryBootstrap = File('${projectRoot.path}/lib/app/bootstrap/repository_bootstrap.dart').readAsStringSync();
       final sdkBootstrap = File('${projectRoot.path}/lib/app/bootstrap/sdk_bootstrap.dart').readAsStringSync();
+      final dataNeteaseBootstrap = File('${projectRoot.path}/lib/data/music_data/sources/netease/netease_remote_bootstrap.dart');
       final routeOwnershipViolations = <String>[
         if (!appRoot.contains('static final AppRouteBootstrapResult _routes = initializeRouteInfrastructure();')) 'app root does not initialize route bootstrap result',
         if (!appRoot.contains('routeInformationParser: _routes.router.defaultRouteParser()')) 'app root does not delegate route parser to route bootstrap',
@@ -1456,7 +1457,10 @@ void main() {
         if (!appBootstrap.contains('initializeDataInfrastructure(neteaseApi: neteaseApi)')) 'app_bootstrap does not pass SDK instance into data bootstrap',
         if (appBootstrap.contains('package:netease_music_api/')) 'app_bootstrap imports SDK package directly',
         if (appBootstrap.contains('NeteaseMusicApi')) 'app_bootstrap names SDK facade type directly',
+        if (!sdkBootstrap.contains('await NeteaseMusicApi.init(debug: debug);')) 'sdk_bootstrap does not initialize SDK session directly',
         if (!sdkBootstrap.contains('return NeteaseMusicApi();')) 'sdk_bootstrap does not create SDK instance',
+        if (sdkBootstrap.contains('netease_remote_bootstrap')) 'sdk_bootstrap initializes SDK through data source boundary',
+        if (dataNeteaseBootstrap.existsSync()) 'data netease source still owns SDK initialization bootstrap',
         if (dataBootstrap.contains('NeteaseMusicApi()')) 'data_bootstrap creates SDK instance directly',
       ];
       final storageOwnershipViolations = <String>[

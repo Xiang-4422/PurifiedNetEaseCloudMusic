@@ -87,6 +87,40 @@ void main() {
       expect(resolvedColorPaths, isEmpty);
     });
 
+    test('keeps mixed-case remote artwork inside remote resolve radius', () async {
+      final imageCacheRepository = _FakeLocalImageCacheRepository({
+        'HTTPS://img.test/current.jpg': '/cache/current.jpg',
+        'HTTPS://img.test/next-1.jpg': '/cache/next-1.jpg',
+        'HTTPS://img.test/prev-1.jpg': '/cache/prev-1.jpg',
+        'HTTPS://img.test/next-2.jpg': '/cache/next-2.jpg',
+        'HTTPS://img.test/prev-2.jpg': '/cache/prev-2.jpg',
+      });
+      final presenter = PlaybackArtworkPresenter(
+        repository: _FakePlaybackRepository(),
+        imageCacheRepository: imageCacheRepository,
+        cachedColorReader: (_) => Colors.red,
+      );
+
+      await presenter.prewarmQueueDominantColors(
+        queue: [
+          _item('prev-2', 'HTTPS://img.test/prev-2.jpg'),
+          _item('prev-1', 'HTTPS://img.test/prev-1.jpg'),
+          _item('current', 'HTTPS://img.test/current.jpg'),
+          _item('next-1', 'HTTPS://img.test/next-1.jpg'),
+          _item('next-2', 'HTTPS://img.test/next-2.jpg'),
+        ],
+        currentIndex: 2,
+        radius: 2,
+        remoteResolveRadius: 1,
+      );
+
+      expect(imageCacheRepository.resolvedSources, [
+        'HTTPS://img.test/current.jpg',
+        'HTTPS://img.test/next-1.jpg',
+        'HTTPS://img.test/prev-1.jpg',
+      ]);
+    });
+
     test('normalizes local file uri artwork before reading cached color', () {
       final cachedColorPaths = <String>[];
       final presenter = PlaybackArtworkPresenter(

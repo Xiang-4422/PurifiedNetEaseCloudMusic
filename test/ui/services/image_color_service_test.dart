@@ -3,6 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('ImageColorService', () {
+    test('treats uppercase http image url as remote fallback color', () async {
+      expect(
+        await ImageColorService.dominantColor('HTTPS://img.test/cover.jpg'),
+        Colors.black,
+      );
+      expect(
+        await ImageColorService.dominantColor(
+          'HTTPS://img.test/cover.jpg',
+          getLightColor: true,
+        ),
+        Colors.white,
+      );
+    });
+  });
+
   group('ImageColorMemoryCache', () {
     test('limits entries and evicts least recently used colors', () {
       final cache = ImageColorMemoryCache(maxEntries: 3);

@@ -108,6 +108,29 @@ void main() {
       expect(downloader.downloadCount, 1);
     });
 
+    test('downloads remote images with uppercase http scheme', () async {
+      final cacheDirectory = await Directory.systemTemp.createTemp(
+        'local-image-cache-test-',
+      );
+      final downloader = _FakeImageDownloader();
+      final repository = LocalImageCacheRepository(
+        downloader: downloader.download,
+        cacheDirectoryProvider: () async => cacheDirectory,
+      );
+      addTearDown(() async {
+        if (cacheDirectory.existsSync()) {
+          await cacheDirectory.delete(recursive: true);
+        }
+      });
+
+      final resolvedPath = await repository.resolveImagePath(
+        'HTTPS://example.com/case.jpg',
+      );
+
+      expect(File(resolvedPath).existsSync(), isTrue);
+      expect(downloader.downloadCount, 1);
+    });
+
     test('limits concurrent remote downloads', () async {
       final cacheDirectory = await Directory.systemTemp.createTemp(
         'local-image-cache-test-',

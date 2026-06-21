@@ -59,6 +59,37 @@ void main() {
       expect(savedResource.origin, TrackResourceOrigin.artworkCache);
       expect(File(savedResource.path).existsSync(), isTrue);
     });
+
+    test('caches artwork with uppercase http scheme', () async {
+      final cacheDirectory = await Directory.systemTemp.createTemp(
+        'local-artwork-cache-test-',
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository();
+      final downloader = _FakeArtworkDownloader();
+      final repository = LocalArtworkCacheRepository(
+        resourceIndexRepository: resourceIndexRepository,
+        artworkDirectoryProvider: () async => cacheDirectory,
+        downloader: downloader.download,
+      );
+      addTearDown(() async {
+        if (cacheDirectory.existsSync()) {
+          await cacheDirectory.delete(recursive: true);
+        }
+      });
+
+      final track = _track(
+        id: 'netease:uppercase/artwork',
+        artworkUrl: 'HTTPS://example.com/cover.jpg',
+      );
+
+      await repository.cacheSingleTrackArtwork(track);
+
+      final savedResource = resourceIndexRepository.savedArtworkResource;
+      expect(downloader.downloadCount, 1);
+      expect(savedResource, isNotNull);
+      expect(savedResource!.trackId, track.id);
+      expect(File(savedResource.path).existsSync(), isTrue);
+    });
   });
 }
 

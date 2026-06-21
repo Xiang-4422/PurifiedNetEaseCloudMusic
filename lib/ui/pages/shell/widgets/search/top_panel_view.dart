@@ -11,12 +11,12 @@ import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
+import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_search_widgets.dart';
 import 'package:bujuan/ui/widgets/common/feedback/load_state_view.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
 import 'package:bujuan/ui/widgets/common/layout/my_tab_bar.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 /// 顶部搜索面板，展示搜索入口、历史建议和搜索结果。
@@ -102,35 +102,30 @@ class _TopPanelViewState extends State<TopPanelView> {
                       visible: controller.searchContent.value.isEmpty,
                       replacement: Obx(() => TabBarView(
                             children: [
-                              _buildTopPanelCard(
-                                context,
-                                _buildSongSearchResult(
+                              TopPanelCard(
+                                child: _buildSongSearchResult(
                                   controller.searchContent.value,
                                 ),
                               ),
-                              _buildTopPanelCard(
-                                context,
-                                _buildPlaylistSearchResult(
+                              TopPanelCard(
+                                child: _buildPlaylistSearchResult(
                                   controller.searchContent.value,
                                 ),
                               ),
-                              _buildTopPanelCard(
-                                context,
-                                _buildAlbumSearchResult(
+                              TopPanelCard(
+                                child: _buildAlbumSearchResult(
                                   controller.searchContent.value,
                                 ),
                               ),
-                              _buildTopPanelCard(
-                                context,
-                                _buildArtistSearchResult(
+                              TopPanelCard(
+                                child: _buildArtistSearchResult(
                                   controller.searchContent.value,
                                 ),
                               ),
                             ],
                           )),
-                      child: _buildTopPanelCard(
-                        context,
-                        _buildHotKeywordList(),
+                      child: TopPanelCard(
+                        child: _buildHotKeywordList(),
                       ).marginOnly(top: AppDimensions.paddingSmall),
                     )),
               ),
@@ -162,7 +157,10 @@ class _TopPanelViewState extends State<TopPanelView> {
                             ],
                           ),
                         )),
-                    _buildSearchBar(context, AppDimensions.appBarHeight * 2 / 3),
+                    TopPanelSearchBar(
+                      controller: controller,
+                      height: AppDimensions.appBarHeight * 2 / 3,
+                    ),
                   ],
                 ),
               ),
@@ -173,77 +171,6 @@ class _TopPanelViewState extends State<TopPanelView> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSearchBar(BuildContext context, double searchBarHeight) {
-    double iconSize = searchBarHeight / 2;
-    double iconPadding = searchBarHeight / 8;
-    return SizedBox(
-        height: searchBarHeight,
-        child: Row(
-          children: [
-            IconButton(
-              iconSize: iconSize,
-              padding: EdgeInsets.all(iconPadding),
-              icon: const Icon(
-                TablerIcons.search,
-              ),
-              onPressed: () {},
-            ).marginAll(iconPadding),
-            Expanded(
-              child: TextField(
-                controller: controller.searchTextEditingController,
-                focusNode: controller.searchFocusNode,
-                cursorColor: Theme.of(context).primaryColor.withValues(alpha: .4),
-                style: context.textTheme.titleMedium,
-                decoration: InputDecoration(
-                    hintText: '输入歌曲、歌手、歌单...',
-                    hintStyle: context.textTheme.titleMedium!.copyWith(
-                      color: context.textTheme.titleMedium!.color!.withValues(alpha: 0.2),
-                    ),
-                    border: const UnderlineInputBorder(borderSide: BorderSide.none),
-                    isDense: true),
-              ),
-            ),
-            Obx(() => Visibility(
-                  visible: controller.searchContent.isNotEmpty,
-                  replacement: IconButton(
-                    iconSize: iconSize,
-                    padding: EdgeInsets.all(iconPadding),
-                    style: IconButton.styleFrom(
-                      backgroundColor: context.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
-                    ),
-                    icon: const Icon(
-                      TablerIcons.arrow_up,
-                    ),
-                    onPressed: () {
-                      controller.closeTopPanel();
-                    },
-                  ).marginAll(iconPadding),
-                  child: IconButton(
-                    iconSize: iconSize,
-                    padding: EdgeInsets.all(iconPadding),
-                    style: IconButton.styleFrom(
-                      backgroundColor: context.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
-                    ),
-                    icon: const Icon(
-                      TablerIcons.x,
-                    ),
-                    onPressed: () {
-                      controller.searchTextEditingController.clear();
-                      controller.searchFocusNode.requestFocus();
-                    },
-                  ).marginAll(iconPadding),
-                ))
-          ],
-        ));
-  }
-
-  Widget _buildTopPanelCard(BuildContext context, Widget child) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-      child: child,
     );
   }
 
@@ -300,7 +227,7 @@ class _TopPanelViewState extends State<TopPanelView> {
           state: state,
           builder: (playlists) => ListView.builder(
             itemCount: playlists.length,
-            itemBuilder: (context, index) => _PlaylistSearchItem(
+            itemBuilder: (context, index) => PlaylistSearchItem(
               playlist: playlists[index],
               onTap: () => _openPlaylist(context, playlists[index]),
             ),
@@ -318,7 +245,7 @@ class _TopPanelViewState extends State<TopPanelView> {
           state: state,
           builder: (albums) => ListView.builder(
             itemCount: albums.length,
-            itemBuilder: (context, index) => _AlbumSearchItem(
+            itemBuilder: (context, index) => AlbumSearchItem(
               album: albums[index],
               onTap: () => _openAlbum(context, albums[index]),
             ),
@@ -336,7 +263,7 @@ class _TopPanelViewState extends State<TopPanelView> {
           state: state,
           builder: (artists) => ListView.builder(
             itemCount: artists.length,
-            itemBuilder: (context, index) => _ArtistSearchItem(
+            itemBuilder: (context, index) => ArtistSearchItem(
               artist: artists[index],
               onTap: () => _openArtist(context, artists[index]),
             ),
@@ -385,66 +312,6 @@ class _TopPanelViewState extends State<TopPanelView> {
       const gr.ArtistRouteView().copyWith(
         queryParams: {'artistId': artist.sourceId},
       ),
-    );
-  }
-}
-
-class _PlaylistSearchItem extends StatelessWidget {
-  const _PlaylistSearchItem({
-    required this.playlist,
-    required this.onTap,
-  });
-
-  final PlaylistEntity playlist;
-  final Future<void> Function() onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return UniversalListTile(
-      picUrl: playlist.coverUrl,
-      titleString: playlist.title,
-      subTitleString: playlist.trackCount == null ? null : '${playlist.trackCount}首',
-      onTap: onTap,
-    );
-  }
-}
-
-class _AlbumSearchItem extends StatelessWidget {
-  const _AlbumSearchItem({
-    required this.album,
-    required this.onTap,
-  });
-
-  final AlbumEntity album;
-  final Future<void> Function() onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return UniversalListTile(
-      picUrl: album.artworkUrl ?? '',
-      titleString: album.title,
-      subTitleString: album.trackCount == null ? null : '${album.trackCount} 首',
-      onTap: onTap,
-    );
-  }
-}
-
-class _ArtistSearchItem extends StatelessWidget {
-  const _ArtistSearchItem({
-    required this.artist,
-    required this.onTap,
-  });
-
-  final ArtistEntity artist;
-  final Future<void> Function() onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return UniversalListTile(
-      picUrl: artist.artworkUrl ?? '',
-      titleString: artist.name,
-      subTitleString: artist.description,
-      onTap: onTap,
     );
   }
 }

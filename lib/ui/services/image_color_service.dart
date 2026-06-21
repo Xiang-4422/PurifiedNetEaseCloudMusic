@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:bujuan/data/app_storage/image_color_cache_store.dart';
 import 'package:bujuan/core/util/image_url_normalizer.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/ui/assets/app_assets.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +23,12 @@ class ImageColorService {
     if (url == null || url.isEmpty || _isRemoteImageUrl(url)) {
       imageProvider = const ExtendedAssetImageProvider(AppAssets.imagesPlaceholder);
     } else {
-      final normalizedUrl = ImageUrlNormalizer.normalize(url);
-      imageProvider = ExtendedFileImageProvider(File(normalizedUrl.split('?').first));
+      final normalizedUrl = LocalFilePathNormalizer.normalize(url);
+      if (normalizedUrl.isEmpty || !File(normalizedUrl).existsSync()) {
+        imageProvider = const ExtendedAssetImageProvider(AppAssets.imagesPlaceholder);
+      } else {
+        imageProvider = ExtendedFileImageProvider(File(normalizedUrl));
+      }
     }
     return PaletteGenerator.fromImageProvider(
       imageProvider,
@@ -40,6 +45,9 @@ class ImageColorService {
     if (_isRemoteImageUrl(normalizedUrl)) {
       return getLightColor ? Colors.white : Colors.black;
     }
+    if (_isUnavailableLocalImage(normalizedUrl)) {
+      return _fallbackColor(getLightColor);
+    }
     final cacheKey = '$normalizedUrl|${getLightColor ? 'light' : 'dark'}';
 
     final memoryCached = _memoryCache.read(cacheKey);
@@ -47,7 +55,7 @@ class ImageColorService {
       return memoryCached;
     }
 
-    final diskCached = _cacheStore.load(
+    final diskCached = _loadDiskCachedColor(
       imageUrl: normalizedUrl,
       getLightColor: getLightColor,
     );
@@ -62,20 +70,11 @@ class ImageColorService {
       return pending;
     }
 
-    final future = palette(normalizedUrl).then((paletteGenerator) async {
-      final color = getLightColor
-          ? paletteGenerator.lightMutedColor?.color ?? paletteGenerator.lightVibrantColor?.color ?? paletteGenerator.dominantColor?.color ?? Colors.white
-          : paletteGenerator.darkMutedColor?.color ?? paletteGenerator.darkVibrantColor?.color ?? paletteGenerator.dominantColor?.color ?? Colors.black;
-      _remember(cacheKey, color);
-      if (normalizedUrl.isNotEmpty) {
-        await _cacheStore.save(
-          imageUrl: normalizedUrl,
-          getLightColor: getLightColor,
-          argb32: color.toARGB32(),
-        );
-      }
-      return color;
-    }).whenComplete(() {
+    final future = _loadDominantColor(
+      normalizedUrl,
+      cacheKey: cacheKey,
+      getLightColor: getLightColor,
+    ).whenComplete(() {
       _pendingLoads.remove(cacheKey);
     });
     _pendingLoads[cacheKey] = future;
@@ -88,6 +87,15 @@ class ImageColorService {
     bool getLightColor = false,
   }) {
     final normalizedUrl = ImageUrlNormalizer.normalize(url);
+    if (normalizedUrl.isEmpty) {
+      return null;
+    }
+    if (_isRemoteImageUrl(normalizedUrl)) {
+      return null;
+    }
+    if (_isUnavailableLocalImage(normalizedUrl)) {
+      return null;
+    }
     final cacheKey = '$normalizedUrl|${getLightColor ? 'light' : 'dark'}';
 
     final memoryCached = _memoryCache.read(cacheKey);
@@ -95,7 +103,7 @@ class ImageColorService {
       return memoryCached;
     }
 
-    final diskCached = _cacheStore.load(
+    final diskCached = _loadDiskCachedColor(
       imageUrl: normalizedUrl,
       getLightColor: getLightColor,
     );
@@ -130,8 +138,93 @@ class ImageColorService {
     _memoryCache.remember(cacheKey, color);
   }
 
+  static int? _loadDiskCachedColor({
+    required String imageUrl,
+    required bool getLightColor,
+  }) {
+    try {
+      return _cacheStore.load(
+        imageUrl: imageUrl,
+        getLightColor: getLightColor,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<Color> _loadDominantColor(
+    String normalizedUrl, {
+    required String cacheKey,
+    required bool getLightColor,
+  }) async {
+    final PaletteGenerator paletteGenerator;
+    try {
+      paletteGenerator = await palette(normalizedUrl);
+    } catch (_) {
+      return _fallbackColor(getLightColor);
+    }
+
+    final color = _selectPaletteColor(
+      paletteGenerator,
+      getLightColor: getLightColor,
+    );
+    _remember(cacheKey, color);
+    if (normalizedUrl.isNotEmpty) {
+      try {
+        await _cacheStore.save(
+          imageUrl: normalizedUrl,
+          getLightColor: getLightColor,
+          argb32: color.toARGB32(),
+        );
+      } catch (_) {
+        // 写入视觉缓存失败不能影响页面背景取色结果。
+      }
+    }
+    return color;
+  }
+
+  static Color _selectPaletteColor(
+    PaletteGenerator paletteGenerator, {
+    required bool getLightColor,
+  }) {
+    if (getLightColor) {
+      final lightMutedColor = paletteGenerator.lightMutedColor?.color;
+      if (lightMutedColor != null) {
+        return lightMutedColor;
+      }
+      final lightVibrantColor = paletteGenerator.lightVibrantColor?.color;
+      if (lightVibrantColor != null) {
+        return lightVibrantColor;
+      }
+      final dominantColor = paletteGenerator.dominantColor?.color;
+      return dominantColor ?? _fallbackColor(getLightColor);
+    }
+    final darkMutedColor = paletteGenerator.darkMutedColor?.color;
+    if (darkMutedColor != null) {
+      return darkMutedColor;
+    }
+    final darkVibrantColor = paletteGenerator.darkVibrantColor?.color;
+    if (darkVibrantColor != null) {
+      return darkVibrantColor;
+    }
+    final dominantColor = paletteGenerator.dominantColor?.color;
+    return dominantColor ?? _fallbackColor(getLightColor);
+  }
+
+  static Color _fallbackColor(bool getLightColor) {
+    return getLightColor ? Colors.white : Colors.black;
+  }
+
   static bool _isRemoteImageUrl(String url) {
     return ImageUrlNormalizer.isRemoteHttpUrl(url);
+  }
+
+  static bool _isUnavailableLocalImage(String url) {
+    if (url.isEmpty) {
+      return true;
+    }
+    final localPath = LocalFilePathNormalizer.normalize(url);
+    return localPath.isEmpty || !File(localPath).existsSync();
   }
 }
 

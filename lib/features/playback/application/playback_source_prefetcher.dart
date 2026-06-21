@@ -57,6 +57,9 @@ class PlaybackSourcePrefetcher {
     bool forceRefresh = false,
   }) {
     final key = '${_cacheKey(item, preferHighQuality: preferHighQuality)}|remote';
+    if (forceRefresh) {
+      _cache.remove(key);
+    }
     if (!forceRefresh) {
       final cached = _freshCachedSource(
         key,

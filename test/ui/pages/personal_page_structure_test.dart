@@ -20,6 +20,9 @@ void main() {
 
   test('personal page exposes focused library shortcuts before recommendations', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final shortcutSource = File(
+      'lib/ui/pages/user/widgets/library_shortcut_bar.dart',
+    ).readAsStringSync();
     final libraryIndex = source.indexOf("'资料库'");
     final squareLibraryIndex = source.indexOf("'资料库'", libraryIndex + 1);
     final recommendedIndex = source.indexOf("'推荐歌单'");
@@ -28,20 +31,24 @@ void main() {
     expect(squareLibraryIndex, isNonNegative);
     expect(recommendedIndex, isNonNegative);
     expect(libraryIndex, lessThan(recommendedIndex));
-    expect(source, contains("label: '本地音乐'"));
-    expect(source, contains("label: '已下载'"));
-    expect(source, contains("label: '云盘'"));
-    expect(source, contains('DownloadTaskPageView.tabLocalImport'));
-    expect(source, contains('DownloadTaskPageView.tabDownloaded'));
-    expect(source, contains('context.router.push(const gr.CloudDriveView())'));
+    expect(source, contains('child: LibraryShortcutBar()'));
+    expect(shortcutSource, contains("label: '本地音乐'"));
+    expect(shortcutSource, contains("label: '已下载'"));
+    expect(shortcutSource, contains("label: '云盘'"));
+    expect(shortcutSource, contains('DownloadTaskPageView.tabLocalImport'));
+    expect(shortcutSource, contains('DownloadTaskPageView.tabDownloaded'));
+    expect(shortcutSource, contains('context.router.push(const gr.CloudDriveView())'));
   });
 
   test('personal page shows recent playback before frequent playlists and library sections', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final recentPlaybackSource = File(
+      'lib/ui/pages/user/widgets/recent_playback_strip.dart',
+    ).readAsStringSync();
     final recentControllerIndex = source.indexOf('final recentPlaybackController = RecentPlaybackController.to;');
-    final recentStripIndex = source.indexOf('child: _RecentPlaybackStrip(');
-    final squareRecentStripIndex = source.indexOf('child: _RecentPlaybackStrip(', recentStripIndex + 1);
-    final recentHeaderIndex = source.indexOf("'最近播放'");
+    final recentStripIndex = source.indexOf('child: RecentPlaybackStrip(');
+    final squareRecentStripIndex = source.indexOf('child: RecentPlaybackStrip(', recentStripIndex + 1);
+    final recentHeaderIndex = recentPlaybackSource.indexOf("'最近播放'");
     final playlistHeaderIndex = source.indexOf("'常用歌单'");
     final squarePlaylistHeaderIndex = source.indexOf("'常用歌单'", playlistHeaderIndex + 1);
     final libraryHeaderIndex = source.indexOf("'资料库'");
@@ -56,7 +63,7 @@ void main() {
     expect(recentStripIndex, lessThan(playlistHeaderIndex));
     expect(squareRecentStripIndex, lessThan(squarePlaylistHeaderIndex));
     expect(playlistHeaderIndex, lessThan(libraryHeaderIndex));
-    expect(source, contains("playListName: '最近播放'"));
+    expect(recentPlaybackSource, contains("playListName: '最近播放'"));
     expect(source, contains('homeFrequentPlaylists'));
     expect(source, isNot(contains('watchCurrentSong')));
   });

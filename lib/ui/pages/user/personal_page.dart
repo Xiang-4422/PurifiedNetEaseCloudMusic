@@ -2,12 +2,12 @@ import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
-import 'package:bujuan/ui/pages/download/download_task_page_view.dart';
+import 'package:bujuan/ui/pages/user/widgets/library_shortcut_bar.dart';
+import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
 import 'package:bujuan/ui/widgets/playlist/playlist_widgets.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
@@ -53,14 +53,6 @@ Future<void> _playPlaylistSummary(PlaylistSummaryData playlist) async {
     0,
     playListName: index.name,
     playListNameHeader: '歌单',
-  );
-}
-
-void _openDownloadTaskPage(BuildContext context, int initialTabIndex) {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (_) => DownloadTaskPageView(initialTabIndex: initialTabIndex),
-    ),
   );
 }
 
@@ -233,7 +225,7 @@ class PersonalPageView extends GetView<ShellController> {
           ),
 
           SliverToBoxAdapter(
-            child: _RecentPlaybackStrip(
+            child: RecentPlaybackStrip(
               controller: recentPlaybackController,
               playbackAction: playbackAction,
             ),
@@ -264,7 +256,7 @@ class PersonalPageView extends GetView<ShellController> {
             child: const Header('资料库', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
           ),
           const SliverToBoxAdapter(
-            child: _LibraryShortcutBar(),
+            child: LibraryShortcutBar(),
           ),
 
           // 推荐歌单 Header
@@ -393,7 +385,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
         physics: const ClampingScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
-            child: _RecentPlaybackStrip(
+            child: RecentPlaybackStrip(
               controller: widget.recentPlaybackController,
               playbackAction: widget.playbackAction,
             ),
@@ -432,7 +424,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
             ),
           ),
           const SliverToBoxAdapter(
-            child: _LibraryShortcutBar(),
+            child: LibraryShortcutBar(),
           ),
           const SliverToBoxAdapter(
             child: SizedBox(height: AppDimensions.paddingSmall),
@@ -625,275 +617,6 @@ class _ContinuePlaybackQuickStartCard extends StatelessWidget {
         ],
       );
     });
-  }
-}
-
-class _RecentPlaybackStrip extends StatelessWidget {
-  const _RecentPlaybackStrip({
-    required this.controller,
-    required this.playbackAction,
-  });
-
-  final RecentPlaybackController controller;
-  final PlayerController playbackAction;
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      final recentTracks = controller.recentTracks.toList(growable: false);
-      if (recentTracks.isEmpty) {
-        return const SizedBox.shrink();
-      }
-      final currentSongId = playbackAction.currentSongState.value.id;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Header(
-            '最近播放',
-            padding: AppDimensions.paddingSmall,
-          ).marginOnly(top: AppDimensions.paddingSmall),
-          SizedBox(
-            height: 76,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              physics: const ClampingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-              itemCount: recentTracks.length,
-              separatorBuilder: (_, __) => const SizedBox(width: AppDimensions.paddingSmall),
-              itemBuilder: (context, index) {
-                final song = recentTracks[index];
-                return _RecentPlaybackTile(
-                  song: song,
-                  isCurrent: song.id == currentSongId,
-                  onTap: () => playbackAction.playPlaylist(
-                    recentTracks,
-                    index,
-                    playListName: '最近播放',
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      );
-    });
-  }
-}
-
-class _RecentPlaybackTile extends StatelessWidget {
-  const _RecentPlaybackTile({
-    required this.song,
-    required this.isCurrent,
-    required this.onTap,
-  });
-
-  final PlaybackQueueItem song;
-  final bool isCurrent;
-  final Future<void> Function() onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final artworkPath = ArtworkPathResolver.resolveDisplayPath(
-      song.artworkUrl ?? song.localArtworkPath ?? '',
-    );
-    final backgroundColor = Color.alphaBlend(
-      (isCurrent ? colorScheme.primary : colorScheme.onSurface).withValues(alpha: isCurrent ? 0.12 : 0.06),
-      colorScheme.surface,
-    );
-
-    return SizedBox(
-      width: 220,
-      child: Material(
-        color: backgroundColor,
-        borderRadius: AppDimensions.borderRadiusMedium,
-        child: InkWell(
-          borderRadius: AppDimensions.borderRadiusMedium,
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimensions.paddingSmall / 2),
-            child: Row(
-              children: [
-                SizedBox.square(
-                  dimension: 52,
-                  child: artworkPath.isEmpty
-                      ? DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.08),
-                            borderRadius: AppDimensions.borderRadiusMedium,
-                          ),
-                          child: Icon(
-                            TablerIcons.music,
-                            color: colorScheme.primary,
-                          ),
-                        )
-                      : SimpleExtendedImage(
-                          artworkPath,
-                          width: 52,
-                          height: 52,
-                          cacheWidth: 120,
-                          borderRadius: AppDimensions.borderRadiusMedium,
-                        ),
-                ),
-                const SizedBox(width: AppDimensions.paddingSmall),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        song.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        song.artist ?? '未知艺人',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.58),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isCurrent)
-                  Icon(
-                    TablerIcons.player_play_filled,
-                    size: AppDimensions.iconSizeSmall,
-                    color: colorScheme.primary,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LibraryShortcutBar extends StatelessWidget {
-  const _LibraryShortcutBar();
-
-  @override
-  Widget build(BuildContext context) {
-    final shortcuts = [
-      _LibraryShortcutAction(
-        label: '本地音乐',
-        icon: TablerIcons.music,
-        onTap: () => _openDownloadTaskPage(
-          context,
-          DownloadTaskPageView.tabLocalImport,
-        ),
-      ),
-      _LibraryShortcutAction(
-        label: '已下载',
-        icon: TablerIcons.download,
-        onTap: () => _openDownloadTaskPage(
-          context,
-          DownloadTaskPageView.tabDownloaded,
-        ),
-      ),
-      _LibraryShortcutAction(
-        label: '云盘',
-        icon: TablerIcons.cloud,
-        onTap: () => context.router.push(const gr.CloudDriveView()),
-      ),
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-      child: SizedBox(
-        height: 72,
-        child: Row(
-          children: [
-            for (var index = 0; index < shortcuts.length; index++) ...[
-              if (index > 0) const SizedBox(width: AppDimensions.paddingSmall),
-              Expanded(
-                child: _LibraryShortcutButton(action: shortcuts[index]),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LibraryShortcutAction {
-  const _LibraryShortcutAction({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-}
-
-class _LibraryShortcutButton extends StatelessWidget {
-  const _LibraryShortcutButton({required this.action});
-
-  final _LibraryShortcutAction action;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final backgroundColor = Color.alphaBlend(
-      colorScheme.primary.withValues(alpha: 0.08),
-      colorScheme.surface,
-    );
-
-    return Tooltip(
-      message: action.label,
-      child: Semantics(
-        button: true,
-        label: action.label,
-        child: Material(
-          color: backgroundColor,
-          borderRadius: AppDimensions.borderRadiusMedium,
-          child: InkWell(
-            borderRadius: AppDimensions.borderRadiusMedium,
-            onTap: action.onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.paddingSmall / 2,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    action.icon,
-                    size: AppDimensions.iconSizeMedium,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    action.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
 

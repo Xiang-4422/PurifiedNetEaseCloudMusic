@@ -164,6 +164,51 @@ void main() {
       expect(orphanArtwork.existsSync(), isTrue);
     });
 
+    test('normalizes retained legacy file uri paths while counting artwork cache', () async {
+      final artworkDirectory = Directory('${supportDirectory.path}/zmusic/artwork-cache')..createSync(recursive: true);
+      final sharedArtwork = await _writeFile(
+        artworkDirectory,
+        'shared with uri.jpg',
+        size: 20,
+      );
+      final orphanArtwork = await _writeFile(
+        artworkDirectory,
+        'orphan.jpg',
+        size: 40,
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: 'netease:1',
+            kind: LocalResourceKind.artwork,
+            path: sharedArtwork.path,
+            sizeBytes: 20,
+            origin: TrackResourceOrigin.artworkCache,
+          ),
+          _resource(
+            trackId: 'netease:2',
+            kind: LocalResourceKind.artwork,
+            path: sharedArtwork.uri.replace(queryParameters: {'token': 'legacy'}).toString(),
+            sizeBytes: 20,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final service = CacheAnalysisService(
+        musicDataRepository: _ThrowingMusicDataRepository(),
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final result = await service.analyze();
+      final artwork = result.categories.singleWhere(
+        (category) => category.category == CacheCategory.artwork,
+      );
+
+      expect(artwork.sizeBytes, 40);
+      expect(artwork.fileCount, 1);
+      expect(orphanArtwork.existsSync(), isTrue);
+    });
+
     test('clears artwork cache without deleting retained resource files', () async {
       final artworkDirectory = Directory('${supportDirectory.path}/zmusic/artwork-cache')..createSync(recursive: true);
       final clearableArtwork = await _writeFile(
@@ -229,6 +274,51 @@ void main() {
       expect(orphanArtwork.existsSync(), isFalse);
       expect(sharedArtwork.existsSync(), isTrue);
       expect(retainedArtwork.existsSync(), isTrue);
+      expect(
+        resourceIndexRepository.resources.map((resource) => resource.origin).toSet(),
+        {TrackResourceOrigin.managedDownload},
+      );
+    });
+
+    test('normalizes retained legacy file uri paths while clearing artwork cache', () async {
+      final artworkDirectory = Directory('${supportDirectory.path}/zmusic/artwork-cache')..createSync(recursive: true);
+      final sharedArtwork = await _writeFile(
+        artworkDirectory,
+        'shared with uri.jpg',
+        size: 20,
+      );
+      final orphanArtwork = await _writeFile(
+        artworkDirectory,
+        'orphan.jpg',
+        size: 40,
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: 'netease:1',
+            kind: LocalResourceKind.artwork,
+            path: sharedArtwork.path,
+            sizeBytes: 20,
+            origin: TrackResourceOrigin.artworkCache,
+          ),
+          _resource(
+            trackId: 'netease:2',
+            kind: LocalResourceKind.artwork,
+            path: sharedArtwork.uri.replace(queryParameters: {'token': 'legacy'}).toString(),
+            sizeBytes: 20,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final service = CacheAnalysisService(
+        musicDataRepository: _ThrowingMusicDataRepository(),
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      await service.clear(CacheCategory.artwork);
+
+      expect(sharedArtwork.existsSync(), isTrue);
+      expect(orphanArtwork.existsSync(), isFalse);
       expect(
         resourceIndexRepository.resources.map((resource) => resource.origin).toSet(),
         {TrackResourceOrigin.managedDownload},

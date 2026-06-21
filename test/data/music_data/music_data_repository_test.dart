@@ -466,6 +466,43 @@ void main() {
       expect(resourceIndexRepository.remainingResourceKinds('3'), isEmpty);
     });
 
+    test('keeps playback cache files referenced by retained legacy file uri indexes', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-cache-legacy-shared-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final sharedAudio = await _writeFile(directory, 'shared with uri.mp3');
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.audio,
+            path: sharedAudio.path,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          _resource(
+            trackId: '2',
+            kind: LocalResourceKind.audio,
+            path: sharedAudio.uri.replace(queryParameters: {'token': 'legacy'}).toString(),
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final repository = _buildRepository(
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      await repository.removePlaybackCache();
+
+      expect(sharedAudio.existsSync(), isTrue);
+      expect(resourceIndexRepository.remainingResourceKinds('1'), isEmpty);
+      expect(resourceIndexRepository.remainingResourceKinds('2'), {
+        LocalResourceKind.audio,
+      });
+    });
+
     test('keeps local resource files referenced by retained indexes', () async {
       final directory = await Directory.systemTemp.createTemp('music-data-resource-shared-');
       addTearDown(() async {

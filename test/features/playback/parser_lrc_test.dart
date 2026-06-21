@@ -6,10 +6,19 @@ void main() {
     test('converts centisecond and millisecond time tags to milliseconds', () {
       final parser = ParserLrc('');
 
+      expect(parser.timeTagToTS('[00:03]'), 3000);
+      expect(parser.timeTagToTS('[1:02]'), 62000);
       expect(parser.timeTagToTS('[00:03.47]'), 3470);
       expect(parser.timeTagToTS('[00:03.470]'), 3470);
       expect(parser.timeTagToTS('[00:03.4]'), 3400);
       expect(parser.timeTagToTS('[01:02.345]'), 62345);
+    });
+
+    test('parses lines without millisecond time tags', () {
+      final lines = ParserLrc('[00:03]No fraction\n[1:02]One digit minute').parseLines();
+
+      expect(lines.map((line) => line.startTime), [3000, 62000]);
+      expect(lines.map((line) => line.mainText), ['No fraction', 'One digit minute']);
     });
 
     test('expands multiple time tags on the same lyric line and sorts them', () {

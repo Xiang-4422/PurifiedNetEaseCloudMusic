@@ -1,5 +1,6 @@
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/util/image_url_normalizer.dart';
+import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
@@ -44,7 +45,6 @@ class PlaybackQueueItemMapper {
       final resources = item.resources;
       final localArtworkPath = _emptyToNull(resources.artwork?.path);
       final localLyricsPath = _emptyToNull(resources.lyrics?.path);
-      final localAudioPath = _emptyToNull(resources.audio?.path);
       final artworkUrl = localArtworkPath ?? _emptyToNull(ImageUrlNormalizer.normalize(track.artworkUrl));
       final albumId = _emptyToNull(track.albumId) ?? _emptyToNull(track.metadata['albumId']?.toString());
       final artistIds = track.artistIds.isNotEmpty ? track.artistIds : (track.metadata['artistIds'] as List? ?? const []).map((item) => '$item').toList();
@@ -70,7 +70,7 @@ class PlaybackQueueItemMapper {
         localLyricsPath: localLyricsPath,
         availability: track.availability,
         isLiked: likedSongIds.contains(int.tryParse(track.sourceId)),
-        isCached: localAudioPath != null,
+        isCached: _isCachedAudioResource(resources.audio),
         metadata: playbackQueueCustomMetadata(track.metadata),
       );
     }).toList();
@@ -105,6 +105,19 @@ class PlaybackQueueItemMapper {
       return fallback;
     }
     return MediaType.playlist;
+  }
+
+  static bool _isCachedAudioResource(LocalResourceEntry? audio) {
+    switch (audio?.origin) {
+      case TrackResourceOrigin.managedDownload:
+      case TrackResourceOrigin.playbackCache:
+        return true;
+      case TrackResourceOrigin.localImport:
+      case TrackResourceOrigin.artworkCache:
+      case TrackResourceOrigin.none:
+      case null:
+        return false;
+    }
   }
 
   static String? _emptyToNull(String? value) {

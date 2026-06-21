@@ -62,6 +62,27 @@ void main() {
       expect(item.isCached, isTrue);
     });
 
+    test('keeps local import playable without cached display marker', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(sourceType: SourceType.local),
+            resources: TrackResourceBundle(
+              audio: _audioResource(
+                '/Music/imported/song.mp3',
+                origin: TrackResourceOrigin.localImport,
+              ),
+            ),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.mediaType, MediaType.local);
+      expect(item.playbackUrl, '/Music/imported/song.mp3');
+      expect(item.isCached, isFalse);
+    });
+
     test('maps album id as explicit queue item field instead of metadata key', () {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [
@@ -216,13 +237,16 @@ Track _track({
   );
 }
 
-LocalResourceEntry _audioResource(String path) {
+LocalResourceEntry _audioResource(
+  String path, {
+  TrackResourceOrigin origin = TrackResourceOrigin.playbackCache,
+}) {
   final now = DateTime(2026);
   return LocalResourceEntry(
     trackId: 'netease:1',
     kind: LocalResourceKind.audio,
     path: path,
-    origin: TrackResourceOrigin.playbackCache,
+    origin: origin,
     sizeBytes: 10,
     createdAt: now,
     lastAccessedAt: now,

@@ -76,6 +76,7 @@ void main() {
       expect(mediaItem.album, 'Album');
       expect(mediaItem.artist, 'Artist');
       expect(mediaItem.artUri?.toFilePath(), '/cache/art.jpg');
+      expect(mediaItem.extras?['image'], '/cache/art.jpg');
       expect(mediaItem.extras?['albumId'], '20');
       expect(mediaItem.extras?['sourceType'], 'netease');
       expect(mediaItem.extras?['localLyricsPath'], '/cache/lyrics.lrc');
@@ -97,6 +98,7 @@ void main() {
       );
 
       expect(mediaItem.artUri?.toFilePath(), '/cache/art with space.jpg');
+      expect(mediaItem.extras?['image'], '/cache/art with space.jpg');
     });
 
     test('adapter does not expose remote artwork url as local MediaItem artUri', () {
@@ -105,6 +107,7 @@ void main() {
       );
 
       expect(mediaItem.artUri, isNull);
+      expect(mediaItem.extras?['image'], 'https://example.com/art.jpg');
       expect(mediaItem.extras?['localArtworkPath'], 'https://image.test/art.jpg');
     });
 

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/routing/router.dart';
 import 'package:bujuan/ui/services/dialog_service.dart';
@@ -7,9 +5,7 @@ import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/pages/debug/coverflow_demo_page_view.dart';
 import 'package:bujuan/ui/pages/download/download_task_page_view.dart';
-import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
-import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
 import 'package:bujuan/ui/pages/settings/cache_analysis_page.dart';
 import 'package:bujuan/ui/pages/settings/lottie_preview_page.dart';
 import 'package:bujuan/ui/pages/settings/widgets/setting_section_widgets.dart';
@@ -18,8 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 /// 设置页，承接主题、缓存、本地扫描和调试入口。
 class SettingPageView extends StatefulWidget {
@@ -31,11 +25,7 @@ class SettingPageView extends StatefulWidget {
 }
 
 class _SettingPageViewState extends State<SettingPageView> {
-  late final LocalMediaScanController _localMediaScanController = LocalMediaScanController(
-    scanRepository: LocalMediaScanRepository(
-      localMediaRepository: Get.find<LocalMediaRepository>(),
-    ),
-  );
+  late final LocalMediaScanController _localMediaScanController = Get.find<LocalMediaScanController>();
 
   String version = '1.0.0';
 
@@ -53,25 +43,28 @@ class _SettingPageViewState extends State<SettingPageView> {
   }
 
   Future<void> _scanLocalMedia() async {
-    final permissionGranted = await _requestLocalMediaPermission();
-    if (!permissionGranted) {
+    final preparation = await _localMediaScanController.prepareDefaultDirectoryImport();
+    if (!mounted) {
+      return;
+    }
+
+    if (preparation.status == LocalMediaDefaultScanPreparationStatus.permissionDenied) {
       ToastService.show('未获得本地音频读取权限');
       return;
     }
 
-    final directoryPaths = await _resolveDefaultScanDirectories();
-    if (directoryPaths.isEmpty) {
+    if (preparation.status == LocalMediaDefaultScanPreparationStatus.noDirectories) {
       ToastService.show('未找到可扫描的本地目录');
       return;
     }
 
-    if (!mounted) {
+    if (!preparation.isReady) {
       return;
     }
     DialogService.showLoading(context);
     try {
       final importedCount = await _localMediaScanController.importDirectories(
-        directoryPaths,
+        preparation.directoryPaths,
       );
       if (!mounted) {
         return;
@@ -89,64 +82,6 @@ class _SettingPageViewState extends State<SettingPageView> {
       Navigator.of(context).pop();
       ToastService.show('扫描本地音乐失败');
     }
-  }
-
-  Future<bool> _requestLocalMediaPermission() async {
-    if (!(Platform.isAndroid || Platform.isIOS)) {
-      return true;
-    }
-
-    final permissions = <Permission>[];
-    if (Platform.isAndroid) {
-      permissions.add(Permission.audio);
-      permissions.add(Permission.storage);
-    } else {
-      permissions.add(Permission.mediaLibrary);
-    }
-
-    for (final permission in permissions) {
-      final status = await permission.request();
-      if (status.isGranted || status.isLimited) {
-        return true;
-      }
-      if (status.isPermanentlyDenied) {
-        await openAppSettings();
-      }
-    }
-    return false;
-  }
-
-  Future<List<String>> _resolveDefaultScanDirectories() async {
-    final directories = <String>{};
-
-    void addPath(String? path) {
-      if (path == null || path.isEmpty) {
-        return;
-      }
-      final directory = Directory(path);
-      if (directory.existsSync()) {
-        directories.add(directory.path);
-      }
-    }
-
-    // 本地扫描先走用户最常见的音乐和下载目录，避免默认扫全盘。
-    final downloadsDirectory = await getDownloadsDirectory();
-    addPath(downloadsDirectory?.path);
-
-    if (Platform.isAndroid) {
-      addPath('/storage/emulated/0/Music');
-      addPath('/storage/emulated/0/Download');
-      addPath('/sdcard/Music');
-      addPath('/sdcard/Download');
-    } else {
-      final homeDirectoryPath = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
-      addPath(homeDirectoryPath == null ? null : '$homeDirectoryPath/Music');
-      addPath(
-        homeDirectoryPath == null ? null : '$homeDirectoryPath/Downloads',
-      );
-    }
-
-    return directories.toList();
   }
 
   @override

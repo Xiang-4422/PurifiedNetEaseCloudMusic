@@ -4,6 +4,9 @@ import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
+import 'package:bujuan/features/local_media/local_media_repository.dart';
+import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
+import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
 import 'package:bujuan/features/playback/application/confirmed_playback_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
@@ -104,6 +107,18 @@ void registerFeatureApplications() {
     CacheAnalysisService(
       musicDataRepository: Get.find<MusicDataRepository>(),
       resourceIndexRepository: Get.find<LocalResourceIndexRepository>(),
+    ),
+    permanent: true,
+  );
+  Get.put<LocalMediaScanRepository>(
+    LocalMediaScanRepository(
+      localMediaRepository: Get.find<LocalMediaRepository>(),
+    ),
+    permanent: true,
+  );
+  Get.put<LocalMediaScanController>(
+    LocalMediaScanController(
+      scanRepository: Get.find<LocalMediaScanRepository>(),
     ),
     permanent: true,
   );

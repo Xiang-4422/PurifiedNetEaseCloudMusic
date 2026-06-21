@@ -84,4 +84,29 @@ void main() {
     expect(widgetsSource, contains('AdaptiveLayoutMetrics.of(context)'));
     expect(widgetsSource, contains('TablerIcons.chevron_right'));
   });
+
+  test('setting page delegates local media scan side effects to controller', () {
+    final source = File('lib/ui/pages/settings/setting_page.dart').readAsStringSync();
+    final controllerSource = File(
+      'lib/features/local_media/local_media_scan_controller.dart',
+    ).readAsStringSync();
+    final bootstrapSource = File(
+      'lib/app/bootstrap/feature_bootstrap.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('Get.find<LocalMediaScanController>()'));
+    expect(source, contains('prepareDefaultDirectoryImport()'));
+    expect(source, isNot(contains('LocalMediaScanRepository(')));
+    expect(source, isNot(contains("import 'dart:io'")));
+    expect(source, isNot(contains('getDownloadsDirectory()')));
+    expect(source, isNot(contains('Permission.')));
+    expect(source, isNot(contains('openAppSettings()')));
+
+    expect(controllerSource, contains('class LocalMediaDefaultScanPreparation'));
+    expect(controllerSource, contains('getDownloadsDirectory()'));
+    expect(controllerSource, contains('openAppSettings()'));
+
+    expect(bootstrapSource, contains('Get.put<LocalMediaScanRepository>'));
+    expect(bootstrapSource, contains('Get.put<LocalMediaScanController>'));
+  });
 }

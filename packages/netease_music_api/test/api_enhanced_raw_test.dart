@@ -154,6 +154,10 @@ void main() {
       final limitedReasons = _jsonMap(report['specialLimitedReasons']);
       expect(limitedReasons.keys.toSet(), _stringSet(report['specialLimited']));
       expect(limitedReasons['song_url_match'], contains('unblockmusic-utils'));
+      final runtimeLimitedReasons = _jsonMap(report['runtimeLimitedReasons']);
+      expect(_stringSet(report['runtimeLimited']), {'runtime:proxy.pac'});
+      expect(runtimeLimitedReasons.keys.toSet(), _stringSet(report['runtimeLimited']));
+      expect(runtimeLimitedReasons['runtime:proxy.pac'], contains('PAC proxy'));
       final oracleModules = _nodeOracleFixtureModules();
       final specialStatusByModule = _jsonMap(report['specialCoverageStatusByModule']);
       expect(specialStatusByModule, hasLength(report['specialModuleCount']));
@@ -176,11 +180,15 @@ void main() {
       expect(songUrlMatchStatus['hasNodeOracleFixture'], isFalse);
       expect(songUrlMatchStatus['limitedReason'], contains('unblockmusic-utils'));
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
-      expect(sdkDifferences.map((item) => item['module']).toSet(), _stringSet(report['specialLimited']));
+      final differenceReasons = {
+        ...limitedReasons,
+        ...runtimeLimitedReasons,
+      };
+      expect(sdkDifferences.map((item) => item['module']).toSet(), differenceReasons.keys.toSet());
       expect(sdkDifferences.map((item) => item['status']).toSet(), {'limited'});
       for (final difference in sdkDifferences) {
         expect(difference['module'], isA<String>());
-        expect(difference['reason'], limitedReasons[difference['module']], reason: difference['module'].toString());
+        expect(difference['reason'], differenceReasons[difference['module']], reason: difference['module'].toString());
       }
     });
 

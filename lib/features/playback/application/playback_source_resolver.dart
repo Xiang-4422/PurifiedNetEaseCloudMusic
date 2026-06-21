@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
@@ -55,8 +56,8 @@ class PlaybackSourceResolver {
       );
     }
 
-    final localPath = _localPathCandidate(url);
-    if (File(localPath).existsSync()) {
+    final localPath = LocalFilePathNormalizer.normalize(url);
+    if (localPath.isNotEmpty && File(localPath).existsSync()) {
       return PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.filePath,
         url: localPath,
@@ -74,7 +75,7 @@ class PlaybackSourceResolver {
   }
 
   PlaybackResolvedSource _resolveLocalFileSource(PlaybackQueueItem item) {
-    final localPath = _localPathCandidate(item.playbackUrl ?? '');
+    final localPath = LocalFilePathNormalizer.normalize(item.playbackUrl);
     if (localPath.isEmpty || !File(localPath).existsSync()) {
       return const PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.empty,
@@ -88,7 +89,7 @@ class PlaybackSourceResolver {
   }
 
   PlaybackResolvedSource _resolveNeteaseCacheSource(String url) {
-    final localPath = _localPathCandidate(url);
+    final localPath = LocalFilePathNormalizer.normalize(url);
     if (localPath.isEmpty || !File(localPath).existsSync()) {
       return const PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.empty,
@@ -101,29 +102,5 @@ class PlaybackSourceResolver {
       fileType: isEncryptedCache ? localPath.replaceAll('.uc!', '').split('.').last : '',
       markAsCached: true,
     );
-  }
-
-  String _localPathCandidate(String url) {
-    final trimmedUrl = url.trim();
-    if (trimmedUrl.isEmpty) {
-      return '';
-    }
-    final uri = Uri.tryParse(trimmedUrl);
-    final scheme = uri?.scheme.toLowerCase();
-    if (uri != null && scheme == 'file') {
-      final host = uri.host.toLowerCase();
-      if (!Platform.isWindows && host.isNotEmpty && host != 'localhost') {
-        return '';
-      }
-      return Uri(
-        scheme: 'file',
-        host: Platform.isWindows && host.isNotEmpty && host != 'localhost' ? uri.host : null,
-        path: uri.path,
-      ).toFilePath(windows: Platform.isWindows);
-    }
-    if (scheme == 'http' || scheme == 'https') {
-      return '';
-    }
-    return trimmedUrl.split('?').first;
   }
 }

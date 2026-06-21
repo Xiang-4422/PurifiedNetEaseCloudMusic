@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+
 import 'local_media_repository.dart';
 
 /// 本地媒体扫描仓库，负责从文件系统发现可导入的音频资源。
@@ -130,27 +132,8 @@ class LocalMediaScanRepository {
   }
 
   String _localFilePath(String rawPath) {
-    final trimmedPath = rawPath.trim();
-    if (trimmedPath.isEmpty) {
-      return '';
-    }
-    final uri = Uri.tryParse(trimmedPath);
-    final scheme = uri?.scheme.toLowerCase();
-    if (uri != null && scheme == 'file') {
-      final host = uri.host.toLowerCase();
-      if (!Platform.isWindows && host.isNotEmpty && host != 'localhost') {
-        return '';
-      }
-      return Uri(
-        scheme: 'file',
-        host: Platform.isWindows && host.isNotEmpty && host != 'localhost' ? uri.host : null,
-        path: uri.path,
-      ).toFilePath(windows: Platform.isWindows);
-    }
-    if (scheme == 'http' || scheme == 'https') {
-      return '';
-    }
-    return File(trimmedPath.split('?').first).path;
+    final normalized = LocalFilePathNormalizer.normalize(rawPath);
+    return normalized.isEmpty ? '' : File(normalized).path;
   }
 
   /// 本地导入时优先猜测同目录同名资源，避免用户明明已经整理好封面和歌词，

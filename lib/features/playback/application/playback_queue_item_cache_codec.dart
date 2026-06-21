@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart' show TrackAvailability;
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/features/playback/application/playback_queue_metadata_filter.dart';
 
 /// 异步解码播放队列项缓存列表。
@@ -136,33 +136,6 @@ String? _stringOrNull(Object? value) {
 }
 
 String? _restorablePlaybackUrl(Object? value) {
-  final url = _stringOrNull(value)?.trim();
-  if (url == null || url.isEmpty) {
-    return null;
-  }
-  final pathCandidate = url.split('?').first;
-  if (_looksLikeWindowsDrivePath(pathCandidate)) {
-    return pathCandidate;
-  }
-  final uri = Uri.tryParse(url);
-  final scheme = uri?.scheme.toLowerCase();
-  if (uri != null && scheme == 'file') {
-    final host = uri.host.toLowerCase();
-    if (!Platform.isWindows && host.isNotEmpty && host != 'localhost') {
-      return null;
-    }
-    return Uri(
-      scheme: 'file',
-      host: Platform.isWindows && host.isNotEmpty && host != 'localhost' ? uri.host : null,
-      path: uri.path,
-    ).toFilePath(windows: Platform.isWindows);
-  }
-  if (scheme != null && scheme.isNotEmpty) {
-    return null;
-  }
-  return pathCandidate;
-}
-
-bool _looksLikeWindowsDrivePath(String value) {
-  return RegExp(r'^[A-Za-z]:[\\/]').hasMatch(value);
+  final normalized = LocalFilePathNormalizer.normalize(_stringOrNull(value));
+  return normalized.isEmpty ? null : normalized;
 }

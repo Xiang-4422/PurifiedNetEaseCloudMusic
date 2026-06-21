@@ -6,6 +6,7 @@ import 'package:bujuan/core/entities/local_song_entry.dart';
 import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 
 /// 管理曲目本地音频、封面和歌词资源索引。
 class LocalResourceIndexRepository {
@@ -292,27 +293,7 @@ class LocalResourceIndexRepository {
   }
 
   String _resourceFilePath(String rawPath) {
-    final trimmedPath = rawPath.trim();
-    if (trimmedPath.isEmpty) {
-      return '';
-    }
-    final uri = Uri.tryParse(trimmedPath);
-    final scheme = uri?.scheme.toLowerCase();
-    if (uri != null && scheme == 'file') {
-      final host = uri.host.toLowerCase();
-      if (!Platform.isWindows && host.isNotEmpty && host != 'localhost') {
-        return '';
-      }
-      return Uri(
-        scheme: 'file',
-        host: Platform.isWindows && host.isNotEmpty && host != 'localhost' ? uri.host : null,
-        path: uri.path,
-      ).toFilePath(windows: Platform.isWindows);
-    }
-    if (scheme == 'http' || scheme == 'https') {
-      return '';
-    }
-    return trimmedPath.split('?').first;
+    return LocalFilePathNormalizer.normalize(rawPath);
   }
 
   TrackResourceBundle _toBundle(List<LocalResourceEntry> resources) {

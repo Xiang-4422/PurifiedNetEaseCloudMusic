@@ -1,4 +1,6 @@
-import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_view.dart';
+import 'dart:io';
+
+import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -28,5 +30,20 @@ void main() {
       expect(miniPlayerPlayPauseControlLabel(isPlaying: false), '播放');
       expect(miniPlayerPlayPauseControlLabel(isPlaying: true), '暂停');
     });
+  });
+
+  test('bottom panel keeps mini player in a dedicated local widget file', () {
+    final panelSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+    ).readAsStringSync();
+    final miniPlayerSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart',
+    ).readAsStringSync();
+
+    expect(panelSource, isNot(contains('class BottomPanelHeaderView')));
+    expect(panelSource, isNot(contains('miniPlayerExpandControlLabel')));
+    expect(miniPlayerSource, contains('class BottomPanelHeaderView'));
+    expect(miniPlayerSource, contains('miniPlayerExpandControlLabel'));
+    expect(miniPlayerSource, contains('miniPlayerPlayPauseControlLabel'));
   });
 }

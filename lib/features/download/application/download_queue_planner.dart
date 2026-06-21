@@ -5,6 +5,7 @@ import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
+import 'package:bujuan/features/download/application/download_background_error_handler.dart';
 
 /// 下载队列规划器，负责过滤无需下载或已在下载中的曲目。
 class DownloadQueuePlanner {
@@ -12,11 +13,14 @@ class DownloadQueuePlanner {
   DownloadQueuePlanner({
     required MusicDataRepository musicDataRepository,
     required DownloadTaskDataSource taskDataSource,
+    DownloadBackgroundErrorHandler? onQueuedDownloadError,
   })  : _musicDataRepository = musicDataRepository,
-        _taskDataSource = taskDataSource;
+        _taskDataSource = taskDataSource,
+        _onQueuedDownloadError = onQueuedDownloadError;
 
   final MusicDataRepository _musicDataRepository;
   final DownloadTaskDataSource _taskDataSource;
+  final DownloadBackgroundErrorHandler? _onQueuedDownloadError;
 
   /// 将候选曲目加入下载队列。
   Future<void> queueTracks(
@@ -56,8 +60,32 @@ class DownloadQueuePlanner {
         continue;
       }
       unawaited(
-        downloadTrack(trackId, preferHighQuality: preferHighQuality),
+        _startQueuedDownload(
+          trackId,
+          downloadTrack,
+          preferHighQuality: preferHighQuality,
+        ),
       );
+    }
+  }
+
+  Future<void> _startQueuedDownload(
+    String trackId,
+    Future<Track?> Function(
+      String trackId, {
+      bool preferHighQuality,
+    }) downloadTrack, {
+    required bool preferHighQuality,
+  }) async {
+    try {
+      await downloadTrack(
+        trackId,
+        preferHighQuality: preferHighQuality,
+      );
+    } catch (error, stackTrace) {
+      try {
+        _onQueuedDownloadError?.call(trackId, error, stackTrace);
+      } catch (_) {}
     }
   }
 }

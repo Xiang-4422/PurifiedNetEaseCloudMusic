@@ -3,14 +3,8 @@ import 'dart:async';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/download_task_data_source.dart';
 import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/features/download/application/download_background_error_handler.dart';
 import 'package:bujuan/features/download/application/download_file_store.dart';
-
-/// queued 任务恢复重启失败时的诊断回调。
-typedef QueuedDownloadRestartErrorHandler = void Function(
-  String trackId,
-  Object error,
-  StackTrace stackTrace,
-);
 
 /// 启动恢复服务，负责把中断中的下载任务转成可重试状态并恢复 queued 任务。
 class DownloadRecoveryService {
@@ -18,14 +12,14 @@ class DownloadRecoveryService {
   DownloadRecoveryService({
     required DownloadTaskDataSource taskDataSource,
     required DownloadFileStore fileStore,
-    QueuedDownloadRestartErrorHandler? onQueuedRestartError,
+    DownloadBackgroundErrorHandler? onQueuedRestartError,
   })  : _taskDataSource = taskDataSource,
         _fileStore = fileStore,
         _onQueuedRestartError = onQueuedRestartError;
 
   final DownloadTaskDataSource _taskDataSource;
   final DownloadFileStore _fileStore;
-  final QueuedDownloadRestartErrorHandler? _onQueuedRestartError;
+  final DownloadBackgroundErrorHandler? _onQueuedRestartError;
 
   /// 恢复中断下载任务。
   Future<List<DownloadTask>> recoverInterruptedTasks({

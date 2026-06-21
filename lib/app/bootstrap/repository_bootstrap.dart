@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:bujuan/app/bootstrap/data_source_bootstrap.dart';
 import 'package:bujuan/data/app_storage/app_preferences.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
@@ -135,6 +137,7 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
     taskDataSource: dataSources.downloadTaskDataSource,
     resourceIndexRepository: localResourceIndexRepository,
     dio: sharedDio,
+    onBackgroundError: _reportDownloadBackgroundError,
   );
   final playbackRepository = PlaybackRepository(
     musicDataRepository: musicDataRepository,
@@ -214,6 +217,19 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
       remoteDataSource: exploreRemoteDataSource,
       cacheStore: dataSources.exploreCacheStore,
     ),
+  );
+}
+
+void _reportDownloadBackgroundError(
+  String trackId,
+  Object error,
+  StackTrace stackTrace,
+) {
+  developer.log(
+    'download.background.failed trackId=$trackId',
+    name: 'Download',
+    error: error,
+    stackTrace: stackTrace,
   );
 }
 

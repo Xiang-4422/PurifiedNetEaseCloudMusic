@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:bujuan/app/bootstrap/data_source_bootstrap.dart';
 import 'package:bujuan/app/bootstrap/repository_bootstrap.dart';
@@ -29,7 +30,19 @@ Future<void> initializeDataInfrastructure({
   );
   registerRepositoryInfrastructure(repositories);
 
-  unawaited(repositories.downloadRepository.recoverInterruptedTasks());
+  unawaited(
+    repositories.downloadRepository.recoverInterruptedTasks().then<void>(
+      (_) {},
+      onError: (Object error, StackTrace stackTrace) {
+        developer.log(
+          'download.recovery.failed',
+          name: 'Download',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      },
+    ),
+  );
 }
 
 void _registerInfrastructure({

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/source_type.dart';
@@ -51,6 +53,47 @@ void main() {
         DownloadTaskStatus.downloading,
       });
       expect(downloadedTrackIds, ['failed', 'new']);
+    });
+
+    test('reports background download failure without leaking it', () async {
+      final downloadError = StateError('download failed');
+      final reported = Completer<void>();
+      final reportedTrackIds = <String>[];
+      final reportedErrors = <Object>[];
+      final unhandledErrors = <Object>[];
+      final planner = DownloadQueuePlanner(
+        musicDataRepository: _FakeMusicDataRepository({
+          'failed': _trackWithResources('failed'),
+        }),
+        taskDataSource: _FakeDownloadTaskDataSource(tasks: const []),
+        onQueuedDownloadError: (trackId, error, stackTrace) {
+          reportedTrackIds.add(trackId);
+          reportedErrors.add(error);
+          reported.complete();
+          throw StateError('diagnostic callback failed');
+        },
+      );
+
+      await runZonedGuarded(
+        () async {
+          await planner.queueTracks(
+            ['failed'],
+            downloadTrack: (
+              trackId, {
+              bool preferHighQuality = true,
+            }) {
+              return Future<Track?>.error(downloadError);
+            },
+          );
+          await reported.future;
+          await Future<void>.delayed(Duration.zero);
+        },
+        (error, stackTrace) => unhandledErrors.add(error),
+      );
+
+      expect(reportedTrackIds, ['failed']);
+      expect(reportedErrors.single, same(downloadError));
+      expect(unhandledErrors, isEmpty);
     });
   });
 }

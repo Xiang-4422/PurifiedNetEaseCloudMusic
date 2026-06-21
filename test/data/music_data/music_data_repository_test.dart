@@ -330,6 +330,41 @@ void main() {
       expect(localDataSource.savedLyrics.length, 1);
     });
 
+    test('reads lyrics from legacy file uri resource index', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-lyrics-file-uri-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final lyricsFile = await _writeFile(
+        directory,
+        'lyrics with space.lrc',
+        contents: '[00:01]local lyric',
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.lyrics,
+            path: lyricsFile.uri.replace(queryParameters: {'token': 'local'}).toString(),
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final neteaseSource = _FakeNeteaseMusicSource();
+      final repository = _buildRepository(
+        neteaseSource: neteaseSource,
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final lyrics = await repository.getLyrics('1');
+
+      expect(lyrics?.main, '[00:01]local lyric');
+      expect(neteaseSource.lyricsCallCount, 0);
+      expect(resourceIndexRepository.touchedResources, ['1|lyrics']);
+    });
+
     test('keeps first requested order when loading tracks with resources', () async {
       final localDataSource = _FakeLocalLibraryDataSource(
         tracks: {
@@ -583,9 +618,13 @@ Track _track(String id) {
   );
 }
 
-Future<File> _writeFile(Directory directory, String name) async {
+Future<File> _writeFile(
+  Directory directory,
+  String name, {
+  String? contents,
+}) async {
   final file = File('${directory.path}/$name');
-  await file.writeAsString(name);
+  await file.writeAsString(contents ?? name);
   return file;
 }
 
@@ -769,6 +808,7 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
         };
 
   final Map<String, LocalResourceEntry> _resources;
+  final List<String> touchedResources = <String>[];
 
   @override
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) async {
@@ -815,6 +855,7 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
     final key = _key(trackId, kind);
     final resource = _resources[key];
     if (resource != null) {
+      touchedResources.add(key);
       _resources[key] = resource.copyWith(lastAccessedAt: DateTime.now());
     }
   }

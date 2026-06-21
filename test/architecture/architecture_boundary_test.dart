@@ -538,6 +538,36 @@ void main() {
       );
     });
 
+    test('netease SDK facade stays in bootstrap handoff files', () {
+      final violations = <String>[];
+      for (final file in _dartFiles(Directory('${projectRoot.path}/lib/app/bootstrap'))) {
+        final path = _relativePath(file);
+        final content = file.readAsStringSync();
+        final touchesSdk = [
+          'package:netease_music_api/',
+          'NeteaseMusicApi',
+          'ApiEnhancedRaw',
+          'requestModule(',
+        ].any(content.contains);
+
+        if (!touchesSdk) {
+          continue;
+        }
+        if (!_allowedNeteaseSdkBootstrapFiles.contains(path)) {
+          violations.add(path);
+        }
+        if (path != 'lib/app/bootstrap/sdk_bootstrap.dart' && content.contains('NeteaseMusicApi()')) {
+          violations.add('$path creates SDK instance');
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '启动层只有 sdk_bootstrap、data_bootstrap、repository_bootstrap 能携带网易云 SDK 门面；其他 bootstrap 文件只能处理自己的装配职责。',
+      );
+    });
+
     test('netease SDK access stays inside bootstrap and source boundary', () {
       final violations = _dartFiles(libDirectory)
           .where(
@@ -1934,8 +1964,14 @@ bool _isAllowedMediaItemFile(String path) {
 }
 
 bool _isAllowedNeteaseSdkBoundary(String path) {
-  return path.startsWith('lib/app/bootstrap/') || path.startsWith('lib/data/music_data/sources/netease/');
+  return _allowedNeteaseSdkBootstrapFiles.contains(path) || path.startsWith('lib/data/music_data/sources/netease/');
 }
+
+const _allowedNeteaseSdkBootstrapFiles = {
+  'lib/app/bootstrap/sdk_bootstrap.dart',
+  'lib/app/bootstrap/data_bootstrap.dart',
+  'lib/app/bootstrap/repository_bootstrap.dart',
+};
 
 String _featureName(String path) {
   final parts = path.split('/');

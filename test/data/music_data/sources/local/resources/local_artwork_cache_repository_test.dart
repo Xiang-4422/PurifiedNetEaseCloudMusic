@@ -90,6 +90,36 @@ void main() {
       expect(savedResource!.trackId, track.id);
       expect(File(savedResource.path).existsSync(), isTrue);
     });
+
+    test('normalizes remote artwork size param before download', () async {
+      final cacheDirectory = await Directory.systemTemp.createTemp(
+        'local-artwork-cache-test-',
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository();
+      final downloader = _FakeArtworkDownloader();
+      final repository = LocalArtworkCacheRepository(
+        resourceIndexRepository: resourceIndexRepository,
+        artworkDirectoryProvider: () async => cacheDirectory,
+        downloader: downloader.download,
+      );
+      addTearDown(() async {
+        if (cacheDirectory.existsSync()) {
+          await cacheDirectory.delete(recursive: true);
+        }
+      });
+
+      final track = _track(
+        id: 'netease:param/artwork',
+        artworkUrl: 'https://p.music.126.net/cover.jpg?param=120y120&token=keep',
+      );
+
+      await repository.cacheSingleTrackArtwork(track);
+
+      expect(downloader.downloadCount, 1);
+      expect(downloader.lastArtworkUrl, contains('token=keep'));
+      expect(downloader.lastArtworkUrl, isNot(contains('param=')));
+      expect(resourceIndexRepository.savedArtworkResource, isNotNull);
+    });
   });
 }
 
@@ -118,6 +148,7 @@ class _FakeArtworkDownloader {
 
   final bool failAfterWrite;
   int downloadCount = 0;
+  String? lastArtworkUrl;
 
   Future<void> download(
     String artworkUrl,
@@ -125,6 +156,7 @@ class _FakeArtworkDownloader {
     Options options,
   ) async {
     downloadCount++;
+    lastArtworkUrl = artworkUrl;
     final file = File(savePath);
     if (!file.parent.existsSync()) {
       await file.parent.create(recursive: true);

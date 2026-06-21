@@ -1,11 +1,6 @@
-import 'dart:async';
-
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/core/diagnostics/performance_logger.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
-import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';
+import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_artwork_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -49,18 +44,7 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
                 clipBehavior: Clip.hardEdge,
                 width: size,
                 height: size,
-                child: Obx(() {
-                  final currentSong = PlayerController.to.currentSongState.value;
-                  final artworkPath = ArtworkPathResolver.resolveDisplayPath(
-                    currentSong.artworkUrl ?? currentSong.localArtworkPath,
-                  );
-                  return SimpleExtendedImage(
-                    artworkPath,
-                    key: ValueKey(artworkPath),
-                    width: size,
-                    height: size,
-                  );
-                }),
+                child: BottomPanelCurrentArtworkImage(size: size),
                 onEnd: () {
                   controller.isAlbumScaleEnded.value = true;
                   if (controller.isBigAlbum.isTrue) {
@@ -115,78 +99,8 @@ class _BottomPanelArtworkPageLayerState extends State<BottomPanelArtworkPageLaye
               top: context.mediaQueryPadding.top + AppDimensions.appBarHeight,
             ),
             height: context.width,
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (notification) {
-                if (notification is ScrollStartNotification) {
-                  if (notification.dragDetails != null) {
-                    widget.controller.beginAlbumPageUserScroll();
-                  }
-                } else if (notification is ScrollEndNotification) {
-                  unawaited(widget.controller.endAlbumPageUserScroll());
-                }
-                return false;
-              },
-              child: Obx(
-                () {
-                  final stopwatch = PerformanceLogger.start();
-                  final queue = PlayerController.to.artworkPageItems.toList();
-                  final pageView = PageView.builder(
-                    controller: widget.controller.albumPageController,
-                    itemCount: queue.length,
-                    allowImplicitScrolling: true,
-                    onPageChanged: widget.controller.onAlbumPageChanged,
-                    itemBuilder: (BuildContext context, int index) {
-                      final item = queue[index];
-                      final artworkPath = ArtworkPathResolver.resolveDisplayPath(
-                        item.artworkUrl ?? item.localArtworkPath,
-                      );
-                      return AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 220),
-                        transitionBuilder: (child, animation) {
-                          return FadeTransition(opacity: animation, child: child);
-                        },
-                        child: Container(
-                          key: ValueKey(item.id),
-                          clipBehavior: Clip.hardEdge,
-                          margin: const EdgeInsets.all(AppDimensions.paddingLarge),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(
-                              AppDimensions.paddingLarge / 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.4),
-                                blurRadius: 12,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: GestureDetector(
-                            onTap: () {
-                              widget.controller.isAlbumScaleEnded.value = false;
-                              widget.controller.isBigAlbum.value = false;
-                              if (widget.controller.curPanelPageIndex.value == 1) {
-                                PlayerController.to.updateFullScreenLyricTimerCounter();
-                              }
-                            },
-                            child: SimpleExtendedImage(
-                              artworkPath,
-                              key: ValueKey(artworkPath),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                  PerformanceLogger.elapsed(
-                    'artworkPageLayer.buildPageView',
-                    stopwatch,
-                    details: 'queue=${queue.length}',
-                    warnAfterMs: 2,
-                  );
-                  return pageView;
-                },
-              ),
+            child: BottomPanelArtworkPageViewport(
+              controller: widget.controller,
             ),
           ),
         );

@@ -106,4 +106,34 @@ void main() {
     expect(backgroundSource, contains('LinearGradient('));
     expect(backgroundSource, contains('bottomPanelAnimationController.value'));
   });
+
+  test('bottom panel delegates artwork layer details to local widgets', () {
+    final panelSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+    ).readAsStringSync();
+    final artworkLayerSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_artwork_layer.dart',
+    ).readAsStringSync();
+    final artworkWidgetsSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_artwork_widgets.dart',
+    ).readAsStringSync();
+
+    expect(panelSource, contains('BottomPanelArtworkTransitionLayer('));
+    expect(panelSource, contains('BottomPanelArtworkPageLayer('));
+
+    expect(artworkLayerSource, contains('BottomPanelCurrentArtworkImage('));
+    expect(artworkLayerSource, contains('BottomPanelArtworkPageViewport('));
+    expect(artworkLayerSource, isNot(contains('SimpleExtendedImage(')));
+    expect(artworkLayerSource, isNot(contains('PageView.builder(')));
+    expect(artworkLayerSource, isNot(contains('PerformanceLogger.elapsed')));
+    expect(artworkLayerSource, isNot(contains('ArtworkPathResolver.resolveDisplayPath')));
+
+    expect(artworkWidgetsSource, contains('class BottomPanelCurrentArtworkImage'));
+    expect(artworkWidgetsSource, contains('class BottomPanelArtworkPageViewport'));
+    expect(artworkWidgetsSource, contains('class BottomPanelArtworkPageCard'));
+    expect(artworkWidgetsSource, contains('SimpleExtendedImage('));
+    expect(artworkWidgetsSource, contains('PageView.builder('));
+    expect(artworkWidgetsSource, contains('PerformanceLogger.elapsed'));
+    expect(artworkWidgetsSource, contains('ArtworkPathResolver.resolveDisplayPath'));
+  });
 }

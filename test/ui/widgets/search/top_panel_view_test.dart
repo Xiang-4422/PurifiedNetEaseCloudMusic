@@ -10,14 +10,19 @@ void main() {
     final chromeSource = File(
       'lib/ui/pages/shell/widgets/search/top_panel_chrome_widgets.dart',
     ).readAsStringSync();
+    final contentSource = File(
+      'lib/ui/pages/shell/widgets/search/top_panel_content_widgets.dart',
+    ).readAsStringSync();
     final widgetsSource = File(
       'lib/ui/pages/shell/widgets/search/top_panel_search_widgets.dart',
     ).readAsStringSync();
 
     expect(panelSource, contains('TopPanelBackgroundLayer('));
+    expect(panelSource, contains('TopPanelContentArea('));
     expect(panelSource, contains('TopPanelBottomControls('));
     expect(panelSource, contains('TopPanelKeyboardSpacer('));
-    expect(panelSource, contains('TopPanelCard('));
+    expect(panelSource, isNot(contains('TopPanelCard(')));
+    expect(panelSource, isNot(contains('TabBarView(')));
     expect(panelSource, isNot(contains('BlurryContainer(')));
     expect(panelSource, isNot(contains('MyTabBar(')));
     expect(panelSource, isNot(contains('_buildSearchBar')));
@@ -40,6 +45,10 @@ void main() {
     expect(chromeSource, contains('TopPanelSearchBar('));
     expect(chromeSource, contains("'单曲'"));
     expect(chromeSource, contains("'歌手'"));
+
+    expect(contentSource, contains('class TopPanelContentArea'));
+    expect(contentSource, contains('TabBarView('));
+    expect(contentSource, contains('TopPanelCard('));
   });
 
   test('top panel delegates search result states to local widgets', () {
@@ -50,11 +59,15 @@ void main() {
       'lib/ui/pages/shell/widgets/search/top_panel_search_results.dart',
     ).readAsStringSync();
 
-    expect(panelSource, contains('TopPanelHotKeywordList('));
-    expect(panelSource, contains('TopPanelSongSearchResult('));
-    expect(panelSource, contains('TopPanelPlaylistSearchResult('));
-    expect(panelSource, contains('TopPanelAlbumSearchResult('));
-    expect(panelSource, contains('TopPanelArtistSearchResult('));
+    final contentSource = File(
+      'lib/ui/pages/shell/widgets/search/top_panel_content_widgets.dart',
+    ).readAsStringSync();
+
+    expect(panelSource, isNot(contains('TopPanelHotKeywordList(')));
+    expect(panelSource, isNot(contains('TopPanelSongSearchResult(')));
+    expect(panelSource, isNot(contains('TopPanelPlaylistSearchResult(')));
+    expect(panelSource, isNot(contains('TopPanelAlbumSearchResult(')));
+    expect(panelSource, isNot(contains('TopPanelArtistSearchResult(')));
     expect(panelSource, isNot(contains('_buildHotKeywordList')));
     expect(panelSource, isNot(contains('_buildSongSearchResult')));
     expect(panelSource, isNot(contains('_buildPlaylistSearchResult')));
@@ -62,6 +75,12 @@ void main() {
     expect(panelSource, isNot(contains('_buildArtistSearchResult')));
     expect(panelSource, isNot(contains('ValueListenableBuilder')));
     expect(panelSource, isNot(contains('LoadStateView')));
+
+    expect(contentSource, contains('TopPanelHotKeywordList('));
+    expect(contentSource, contains('TopPanelSongSearchResult('));
+    expect(contentSource, contains('TopPanelPlaylistSearchResult('));
+    expect(contentSource, contains('TopPanelAlbumSearchResult('));
+    expect(contentSource, contains('TopPanelArtistSearchResult('));
 
     expect(resultsSource, contains('class TopPanelHotKeywordList'));
     expect(resultsSource, contains('class TopPanelSongSearchResult'));

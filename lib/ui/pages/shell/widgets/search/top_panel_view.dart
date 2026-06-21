@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
@@ -10,8 +9,7 @@ import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_chrome_widgets.dart';
-import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_search_results.dart';
-import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_search_widgets.dart';
+import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_content_widgets.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -79,45 +77,13 @@ class _TopPanelViewState extends State<TopPanelView> {
               Container(
                 height: context.mediaQueryPadding.top,
               ),
-              Expanded(
-                child: Obx(() => Visibility(
-                      visible: controller.searchContent.value.isEmpty,
-                      replacement: Obx(() => TabBarView(
-                            children: [
-                              TopPanelCard(
-                                child: TopPanelSongSearchResult(
-                                  searchController: TopPanelView._searchPanelController,
-                                  keyword: controller.searchContent.value,
-                                  playerController: _playerController,
-                                ),
-                              ),
-                              TopPanelCard(
-                                child: TopPanelPlaylistSearchResult(
-                                  searchController: TopPanelView._searchPanelController,
-                                  onOpenPlaylist: _openPlaylist,
-                                ),
-                              ),
-                              TopPanelCard(
-                                child: TopPanelAlbumSearchResult(
-                                  searchController: TopPanelView._searchPanelController,
-                                  onOpenAlbum: _openAlbum,
-                                ),
-                              ),
-                              TopPanelCard(
-                                child: TopPanelArtistSearchResult(
-                                  searchController: TopPanelView._searchPanelController,
-                                  onOpenArtist: _openArtist,
-                                ),
-                              ),
-                            ],
-                          )),
-                      child: TopPanelCard(
-                        child: TopPanelHotKeywordList(
-                          searchController: TopPanelView._searchPanelController,
-                          shellController: controller,
-                        ),
-                      ).marginOnly(top: AppDimensions.paddingSmall),
-                    )),
+              TopPanelContentArea(
+                shellController: controller,
+                searchController: TopPanelView._searchPanelController,
+                playerController: _playerController,
+                onOpenPlaylist: _openPlaylist,
+                onOpenAlbum: _openAlbum,
+                onOpenArtist: _openArtist,
               ),
               TopPanelBottomControls(controller: controller),
               TopPanelKeyboardSpacer(controller: controller),

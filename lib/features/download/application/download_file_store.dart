@@ -167,7 +167,12 @@ class DownloadFileStore {
 
   /// 清理残留临时下载文件。
   Future<void> cleanupOrphanTemporaryFiles() async {
-    final rootDirectory = await _ensureRootDirectory('downloads');
+    await _cleanupOrphanTemporaryFilesInRoot('downloads');
+    await _cleanupOrphanTemporaryFilesInRoot('cache');
+  }
+
+  Future<void> _cleanupOrphanTemporaryFilesInRoot(String childName) async {
+    final rootDirectory = await _rootDirectory(childName);
     if (!rootDirectory.existsSync()) {
       return;
     }
@@ -183,12 +188,16 @@ class DownloadFileStore {
   }
 
   Future<Directory> _ensureRootDirectory(String childName) async {
-    final supportDirectory = await getApplicationSupportDirectory();
-    final rootDirectory = Directory('${supportDirectory.path}/zmusic/$childName');
+    final rootDirectory = await _rootDirectory(childName);
     if (!rootDirectory.existsSync()) {
       await rootDirectory.create(recursive: true);
     }
     return rootDirectory;
+  }
+
+  Future<Directory> _rootDirectory(String childName) async {
+    final supportDirectory = await getApplicationSupportDirectory();
+    return Directory('${supportDirectory.path}/zmusic/$childName');
   }
 
   Future<Directory> _ensureChildDirectory(

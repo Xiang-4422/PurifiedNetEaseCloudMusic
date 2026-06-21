@@ -95,6 +95,41 @@ void main() {
       expect(restartedTrackIds, ['queued']);
       expect(failedTasks.map((task) => task.trackId), ['failed']);
     });
+
+    test('reports queued restart failure without failing recovery', () async {
+      final taskDataSource = _FakeDownloadTaskDataSource(
+        tasks: [
+          _task('queued', DownloadTaskStatus.queued),
+          _task('failed', DownloadTaskStatus.failed),
+        ],
+      );
+      final restartError = StateError('restart failed');
+      final reportedError = Completer<_QueuedRestartError>();
+      final service = DownloadRecoveryService(
+        taskDataSource: taskDataSource,
+        fileStore: _FakeDownloadFileStore(),
+        onQueuedRestartError: (trackId, error, stackTrace) {
+          reportedError.complete(
+            _QueuedRestartError(
+              trackId: trackId,
+              error: error,
+              stackTrace: stackTrace,
+            ),
+          );
+        },
+      );
+
+      final failedTasks = await service.recoverInterruptedTasks(
+        markInterruptedFailed: (_) async => null,
+        restartQueuedTask: (_) => Future<Track?>.error(restartError),
+      );
+
+      expect(failedTasks.map((task) => task.trackId), ['failed']);
+      final error = await reportedError.future;
+      expect(error.trackId, 'queued');
+      expect(error.error, same(restartError));
+      expect(error.stackTrace, isNotNull);
+    });
   });
 }
 
@@ -178,4 +213,16 @@ class _FakeDownloadFileStore extends DownloadFileStore {
   Future<void> deleteTemporaryDownloadIfExists(String? temporaryPath) async {
     deletedTemporaryPaths.add(temporaryPath);
   }
+}
+
+class _QueuedRestartError {
+  const _QueuedRestartError({
+    required this.trackId,
+    required this.error,
+    required this.stackTrace,
+  });
+
+  final String trackId;
+  final Object error;
+  final StackTrace stackTrace;
 }

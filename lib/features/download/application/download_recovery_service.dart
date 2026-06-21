@@ -5,17 +5,27 @@ import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/application/download_file_store.dart';
 
+/// queued 任务恢复重启失败时的诊断回调。
+typedef QueuedDownloadRestartErrorHandler = void Function(
+  String trackId,
+  Object error,
+  StackTrace stackTrace,
+);
+
 /// 启动恢复服务，负责把中断中的下载任务转成可重试状态并恢复 queued 任务。
 class DownloadRecoveryService {
   /// 创建下载恢复服务。
   DownloadRecoveryService({
     required DownloadTaskDataSource taskDataSource,
     required DownloadFileStore fileStore,
+    QueuedDownloadRestartErrorHandler? onQueuedRestartError,
   })  : _taskDataSource = taskDataSource,
-        _fileStore = fileStore;
+        _fileStore = fileStore,
+        _onQueuedRestartError = onQueuedRestartError;
 
   final DownloadTaskDataSource _taskDataSource;
   final DownloadFileStore _fileStore;
+  final QueuedDownloadRestartErrorHandler? _onQueuedRestartError;
 
   /// 恢复中断下载任务。
   Future<List<DownloadTask>> recoverInterruptedTasks({
@@ -37,12 +47,25 @@ class DownloadRecoveryService {
       await markInterruptedFailed(task.trackId);
     }
     for (final task in queuedTasks) {
-      unawaited(restartQueuedTask(task.trackId));
+      unawaited(_restartQueuedTask(task.trackId, restartQueuedTask));
     }
     return _taskDataSource.getTasks(
       statuses: const {
         DownloadTaskStatus.failed,
       },
     );
+  }
+
+  Future<void> _restartQueuedTask(
+    String trackId,
+    Future<Track?> Function(String trackId) restartQueuedTask,
+  ) async {
+    try {
+      await restartQueuedTask(trackId);
+    } catch (error, stackTrace) {
+      try {
+        _onQueuedRestartError?.call(trackId, error, stackTrace);
+      } catch (_) {}
+    }
   }
 }

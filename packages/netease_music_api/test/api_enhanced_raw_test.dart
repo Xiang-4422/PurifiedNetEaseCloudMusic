@@ -157,7 +157,8 @@ void main() {
       final runtimeLimitedReasons = _jsonMap(report['runtimeLimitedReasons']);
       expect(_stringSet(report['runtimeLimited']), {'runtime:proxy.pac'});
       expect(runtimeLimitedReasons.keys.toSet(), _stringSet(report['runtimeLimited']));
-      expect(runtimeLimitedReasons['runtime:proxy.pac'], contains('PAC proxy'));
+      expect(runtimeLimitedReasons['runtime:proxy.pac'], contains('PAC 文件'));
+      expect(runtimeLimitedReasons['runtime:proxy.pac'], contains('PAC scheme'));
       final oracleModules = _nodeOracleFixtureModules();
       final specialStatusByModule = _jsonMap(report['specialCoverageStatusByModule']);
       expect(specialStatusByModule, hasLength(report['specialModuleCount']));
@@ -473,6 +474,8 @@ void main() {
       expect(neteaseProxyRule('http://127.0.0.1:8080'), 'PROXY 127.0.0.1:8080');
       expect(neteaseProxyRule('https://proxy.example.test'), 'PROXY proxy.example.test:443');
       expect(neteaseProxyRule('127.0.0.1:8080'), 'PROXY 127.0.0.1:8080');
+      expect(neteaseProxyRule('https://pacific-proxy.example.test:8443'), 'PROXY pacific-proxy.example.test:8443');
+      expect(neteaseProxyRule('http://example.test/pacemaker'), 'PROXY example.test:80');
       expect(neteaseProxyRule(''), isNull);
     });
 
@@ -489,6 +492,8 @@ void main() {
 
     test('reports unsupported proxy forms explicitly', () {
       expect(() => neteaseProxyRule('http://example.test/proxy.pac'), throwsUnsupportedError);
+      expect(() => neteaseProxyRule('http://example.test/proxy.pac?token=1'), throwsUnsupportedError);
+      expect(() => neteaseProxyRule('pac+http://example.test/proxy.pac'), throwsUnsupportedError);
       expect(() => neteaseProxyRule('socks5://127.0.0.1:1080'), throwsUnsupportedError);
     });
 

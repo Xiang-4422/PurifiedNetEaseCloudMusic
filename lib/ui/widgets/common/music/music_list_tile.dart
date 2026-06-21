@@ -263,6 +263,10 @@ class SongItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentItem = item ?? playlist[index];
+    final artworkPath = ArtworkPathResolver.resolvePlaybackArtwork(
+      artworkUrl: currentItem.artworkUrl,
+      localArtworkPath: currentItem.localArtworkPath,
+    );
     return UniversalListTile(
       leading: showIndex
           ? _SongIndexLeading(
@@ -270,7 +274,7 @@ class SongItem extends StatelessWidget {
               color: stringColor,
             )
           : null,
-      picUrl: showPic ? currentItem.artworkUrl : null,
+      picUrl: showPic ? artworkPath : null,
       titleString: currentItem.title,
       subTitleString: currentItem.artist,
       stringColor: stringColor,

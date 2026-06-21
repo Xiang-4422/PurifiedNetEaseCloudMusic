@@ -19,13 +19,13 @@ import 'package:bujuan/features/playlist/playlist_artwork_color_service.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
+import 'package:bujuan/ui/pages/playlist/widgets/playlist_header_sliver.dart';
+import 'package:bujuan/ui/pages/playlist/widgets/playlist_status_slivers.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
-import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 enum _PlaylistPageLoadState {
@@ -140,9 +140,23 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          _buildPlaylistAppBar(context, layoutMetrics),
+          PlaylistHeaderSliver(
+            playlistName: playlistName,
+            coverUrl: _resolvedCoverUrl,
+            trackCount: trackCount,
+            loadedTrackCount: songs.length,
+            heroExtent: layoutMetrics.heroExtent,
+            albumColor: albumColor,
+            widgetColor: widgetColor,
+            isSubscribed: isSubscribed,
+            isMyPlaylist: isMyPlayList,
+            canPlayLoadedPlaylist: _canPlayLoadedPlaylist,
+            onPlaySequential: () => _playLoadedPlaylist(shuffle: false),
+            onPlayShuffle: () => _playLoadedPlaylist(shuffle: true),
+            onToggleSubscribe: _subscribePlayList,
+          ),
           if (_isShowingPlaylistSkeleton)
-            _buildPlaylistSkeletonSliver(context)
+            PlaylistSkeletonSliver(foregroundColor: widgetColor)
           else
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
@@ -172,221 +186,17 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                 ),
               ),
             ),
-          if (_isShowingStatusFooter) _buildCompletionFooter(context),
+          if (_isShowingStatusFooter)
+            PlaylistStatusFooterSliver(
+              message: _completionMessage,
+              foregroundColor: widgetColor,
+            ),
           const SliverToBoxAdapter(
             child: SizedBox(
               height: AppDimensions.bottomPanelHeaderHeight,
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  SliverAppBar _buildPlaylistAppBar(
-    BuildContext context,
-    AdaptiveLayoutMetrics layoutMetrics,
-  ) {
-    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-    return SliverAppBar(
-      toolbarHeight: AppDimensions.appBarHeight,
-      expandedHeight: layoutMetrics.heroExtent,
-      pinned: true,
-      stretch: true,
-      automaticallyImplyLeading: true,
-      foregroundColor: widgetColor,
-      surfaceTintColor: Colors.transparent,
-      backgroundColor: albumColor,
-      flexibleSpace: FlexibleSpaceBar(
-        stretchModes: const <StretchMode>[
-          StretchMode.zoomBackground,
-        ],
-        collapseMode: CollapseMode.pin,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              playlistName,
-              style: context.textTheme.titleLarge?.copyWith(
-                color: widgetColor,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              "歌单·${trackCount ?? songs.length}首",
-              style: context.textTheme.titleSmall?.copyWith(
-                color: widgetColor.withValues(alpha: 0.8),
-              ),
-            ),
-          ],
-        ),
-        expandedTitleScale: 1.5,
-        titlePadding: EdgeInsets.only(bottom: 60 + AppDimensions.paddingSmall, top: context.mediaQueryPadding.top, left: AppDimensions.paddingSmall, right: AppDimensions.paddingSmall),
-        background: SimpleExtendedImage(
-          width: context.width,
-          height: layoutMetrics.heroExtent,
-          cacheWidth: _resolveImageCacheDimension(context.width, devicePixelRatio),
-          cacheHeight: _resolveImageCacheDimension(layoutMetrics.heroExtent, devicePixelRatio),
-          _resolvedCoverUrl ?? '',
-        ),
-      ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(60),
-        child: Row(
-          spacing: AppDimensions.paddingSmall,
-          children: [
-            Flexible(
-              child: _buildPlaylistActionButton(
-                context,
-                icon: TablerIcons.repeat,
-                label: '顺序播放',
-                shuffle: false,
-              ),
-            ),
-            if (!isMyPlayList) _buildSubscribeButton(),
-            Flexible(
-              child: _buildPlaylistActionButton(
-                context,
-                icon: TablerIcons.arrows_shuffle,
-                label: '随机播放',
-                shuffle: true,
-              ),
-            ),
-          ],
-        ).paddingAll(AppDimensions.paddingSmall),
-      ),
-    );
-  }
-
-  Widget _buildPlaylistActionButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required bool shuffle,
-  }) {
-    return _PlaylistActionButtonSurface(
-      color: widgetColor.withValues(alpha: 0.05),
-      child: IconButton(
-        onPressed: _canPlayLoadedPlaylist
-            ? () async {
-                await _playLoadedPlaylist(shuffle: shuffle);
-              }
-            : null,
-        icon: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Icon(
-              icon,
-              color: _playlistActionColor,
-            ),
-            Text(
-              label,
-              style: context.textTheme.titleMedium?.copyWith(color: _playlistActionColor),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSubscribeButton() {
-    return _PlaylistActionButtonSurface(
-      color: widgetColor.withValues(alpha: 0.05),
-      child: IconButton(
-        color: Colors.red,
-        padding: EdgeInsets.zero,
-        onPressed: () => _subscribePlayList(),
-        icon: Icon(
-          isSubscribed ? TablerIcons.heart_filled : TablerIcons.heart,
-          color: isSubscribed ? Colors.red : widgetColor,
-        ),
-      ),
-    );
-  }
-
-  SliverToBoxAdapter _buildCompletionFooter(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: AppDimensions.paddingMedium,
-        ),
-        child: Center(
-          child: Text(
-            _completionMessage,
-            style: context.textTheme.titleSmall?.copyWith(
-              color: widgetColor.withValues(alpha: 0.7),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  SliverPadding _buildPlaylistSkeletonSliver(BuildContext context) {
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final color = widgetColor.withValues(alpha: 0.12);
-            final textScale = MediaQuery.textScalerOf(context).scale(1);
-            final thumbnailSize = (44 * textScale).clamp(40.0, 52.0);
-            final verticalPadding = (6 * textScale).clamp(6.0, 10.0);
-            return ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 52),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: verticalPadding),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox.square(
-                      dimension: thumbnailSize,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppDimensions.paddingSmall),
-                    Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            height: 16,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: color,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          FractionallySizedBox(
-                            widthFactor: 0.55,
-                            child: Container(
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.75),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-          childCount: 8,
-        ),
       ),
     );
   }
@@ -663,17 +473,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   bool get _canPlayLoadedPlaylist => songs.isNotEmpty && loadState != _PlaylistPageLoadState.loadingInitial && loadState != _PlaylistPageLoadState.loadFailedEmpty && _fetchKind == _PlaylistFetchKind.none;
 
-  Color get _playlistActionColor => _canPlayLoadedPlaylist ? widgetColor : widgetColor.withValues(alpha: 0.35);
-
   bool get _hasPlaylistMetadata => playlistName.trim().isNotEmpty || coverUrl?.isNotEmpty == true || trackCount != null;
 
   bool get _isShowingPlaylistSkeleton => songs.isEmpty && _fetchKind == _PlaylistFetchKind.loadingFirstPage && _hasPlaylistMetadata;
 
   bool get _isShowingStatusFooter => loadState == _PlaylistPageLoadState.loadFailedWithPartial || (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) || _fetchKind == _PlaylistFetchKind.loadingRemaining;
-
-  int _resolveImageCacheDimension(double logicalSize, double devicePixelRatio) {
-    return (logicalSize * devicePixelRatio).round().clamp(1, 1080).toInt();
-  }
 
   String get _completionMessage {
     if (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) {
@@ -767,25 +571,5 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         isSubscribed = !isSubscribed;
       });
     }
-  }
-}
-
-class _PlaylistActionButtonSurface extends StatelessWidget {
-  const _PlaylistActionButtonSurface({
-    required this.color,
-    required this.child,
-  });
-
-  final Color color;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: color,
-      borderRadius: BorderRadius.circular(60),
-      clipBehavior: Clip.antiAlias,
-      child: child,
-    );
   }
 }

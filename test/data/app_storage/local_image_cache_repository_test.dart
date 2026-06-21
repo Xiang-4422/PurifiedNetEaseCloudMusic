@@ -108,6 +108,38 @@ void main() {
       expect(downloader.downloadCount, 1);
     });
 
+    test('normalizes remote image size param before caching', () async {
+      final cacheDirectory = await Directory.systemTemp.createTemp(
+        'local-image-cache-test-',
+      );
+      final downloader = _FakeImageDownloader();
+      final repository = LocalImageCacheRepository(
+        downloader: downloader.download,
+        cacheDirectoryProvider: () async => cacheDirectory,
+      );
+      addTearDown(() async {
+        if (cacheDirectory.existsSync()) {
+          await cacheDirectory.delete(recursive: true);
+        }
+      });
+
+      final firstPath = await repository.resolveImagePath(
+        'https://p.music.126.net/cover.jpg?param=120y120&token=keep',
+      );
+      final secondPath = await repository.resolveImagePath(
+        'https://p.music.126.net/cover.jpg?param=512y512&token=keep',
+      );
+      final peekedPath = repository.peekResolvedImagePath(
+        'https://p.music.126.net/cover.jpg?param=1024y1024&token=keep',
+      );
+
+      expect(secondPath, firstPath);
+      expect(peekedPath, firstPath);
+      expect(downloader.downloadCount, 1);
+      expect(downloader.lastUrlPath, contains('token=keep'));
+      expect(downloader.lastUrlPath, isNot(contains('param=')));
+    });
+
     test('downloads remote images with uppercase http scheme', () async {
       final cacheDirectory = await Directory.systemTemp.createTemp(
         'local-image-cache-test-',
@@ -218,6 +250,7 @@ class _FakeImageDownloader {
   int activeDownloads = 0;
   int maxActiveDownloads = 0;
   String? lastSavePath;
+  String? lastUrlPath;
 
   Future<void> download(
     String urlPath,
@@ -226,6 +259,7 @@ class _FakeImageDownloader {
   ) async {
     downloadCount++;
     activeDownloads++;
+    lastUrlPath = urlPath;
     if (activeDownloads > maxActiveDownloads) {
       maxActiveDownloads = activeDownloads;
     }

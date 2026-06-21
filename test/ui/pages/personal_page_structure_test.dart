@@ -68,6 +68,25 @@ void main() {
     expect(source, isNot(contains('watchCurrentSong')));
   });
 
+  test('personal page artwork entries use playback artwork resolver', () {
+    final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final recentPlaybackSource = File(
+      'lib/ui/pages/user/widgets/recent_playback_strip.dart',
+    ).readAsStringSync();
+    final todayPageSource = File('lib/ui/pages/user/today_page_view.dart').readAsStringSync();
+
+    expect(source, contains('String _playbackArtworkPath(PlaybackQueueItem item)'));
+    expect(source, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
+    expect(recentPlaybackSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
+    expect(todayPageSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
+
+    expect(source, isNot(contains('currentSong.artworkUrl ??')));
+    expect(source, isNot(contains('todayRecommendSongs[0].artworkUrl')));
+    expect(source, isNot(contains('fmSongs[0].artworkUrl')));
+    expect(recentPlaybackSource, isNot(contains('song.artworkUrl ?? song.localArtworkPath')));
+    expect(todayPageSource, isNot(contains("songs.first.artworkUrl ?? ''")));
+  });
+
   test('download task page can open a focused local library tab', () {
     final source = File('lib/ui/pages/download/download_task_page_view.dart').readAsStringSync();
 

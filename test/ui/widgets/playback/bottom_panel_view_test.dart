@@ -136,4 +136,13 @@ void main() {
     expect(artworkWidgetsSource, contains('PerformanceLogger.elapsed'));
     expect(artworkWidgetsSource, contains('ArtworkPathResolver.resolveDisplayPath'));
   });
+
+  test('bottom panel header uses playback artwork resolver', () {
+    final headerSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_header.dart',
+    ).readAsStringSync();
+
+    expect(headerSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
+    expect(headerSource, contains('localArtworkPath: currentSong.localArtworkPath'));
+  });
 }

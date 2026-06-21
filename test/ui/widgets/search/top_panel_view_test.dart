@@ -13,9 +13,6 @@ void main() {
 
     expect(panelSource, contains('TopPanelSearchBar('));
     expect(panelSource, contains('TopPanelCard('));
-    expect(panelSource, contains('PlaylistSearchItem('));
-    expect(panelSource, contains('AlbumSearchItem('));
-    expect(panelSource, contains('ArtistSearchItem('));
     expect(panelSource, isNot(contains('_buildSearchBar')));
     expect(panelSource, isNot(contains('_buildTopPanelCard')));
     expect(panelSource, isNot(contains('class _PlaylistSearchItem')));
@@ -27,5 +24,38 @@ void main() {
     expect(widgetsSource, contains('class PlaylistSearchItem'));
     expect(widgetsSource, contains('class AlbumSearchItem'));
     expect(widgetsSource, contains('class ArtistSearchItem'));
+  });
+
+  test('top panel delegates search result states to local widgets', () {
+    final panelSource = File(
+      'lib/ui/pages/shell/widgets/search/top_panel_view.dart',
+    ).readAsStringSync();
+    final resultsSource = File(
+      'lib/ui/pages/shell/widgets/search/top_panel_search_results.dart',
+    ).readAsStringSync();
+
+    expect(panelSource, contains('TopPanelHotKeywordList('));
+    expect(panelSource, contains('TopPanelSongSearchResult('));
+    expect(panelSource, contains('TopPanelPlaylistSearchResult('));
+    expect(panelSource, contains('TopPanelAlbumSearchResult('));
+    expect(panelSource, contains('TopPanelArtistSearchResult('));
+    expect(panelSource, isNot(contains('_buildHotKeywordList')));
+    expect(panelSource, isNot(contains('_buildSongSearchResult')));
+    expect(panelSource, isNot(contains('_buildPlaylistSearchResult')));
+    expect(panelSource, isNot(contains('_buildAlbumSearchResult')));
+    expect(panelSource, isNot(contains('_buildArtistSearchResult')));
+    expect(panelSource, isNot(contains('ValueListenableBuilder')));
+    expect(panelSource, isNot(contains('LoadStateView')));
+
+    expect(resultsSource, contains('class TopPanelHotKeywordList'));
+    expect(resultsSource, contains('class TopPanelSongSearchResult'));
+    expect(resultsSource, contains('class TopPanelPlaylistSearchResult'));
+    expect(resultsSource, contains('class TopPanelAlbumSearchResult'));
+    expect(resultsSource, contains('class TopPanelArtistSearchResult'));
+    expect(resultsSource, contains('ValueListenableBuilder'));
+    expect(resultsSource, contains('LoadStateView'));
+    expect(resultsSource, contains('PlaylistSearchItem('));
+    expect(resultsSource, contains('AlbumSearchItem('));
+    expect(resultsSource, contains('ArtistSearchItem('));
   });
 }

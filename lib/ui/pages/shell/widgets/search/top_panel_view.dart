@@ -3,7 +3,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
-import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
@@ -11,9 +10,8 @@ import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
+import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_search_results.dart';
 import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_search_widgets.dart';
-import 'package:bujuan/ui/widgets/common/feedback/load_state_view.dart';
-import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
 import 'package:bujuan/ui/widgets/common/layout/my_tab_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -103,29 +101,37 @@ class _TopPanelViewState extends State<TopPanelView> {
                       replacement: Obx(() => TabBarView(
                             children: [
                               TopPanelCard(
-                                child: _buildSongSearchResult(
-                                  controller.searchContent.value,
+                                child: TopPanelSongSearchResult(
+                                  searchController: TopPanelView._searchPanelController,
+                                  keyword: controller.searchContent.value,
+                                  playerController: _playerController,
                                 ),
                               ),
                               TopPanelCard(
-                                child: _buildPlaylistSearchResult(
-                                  controller.searchContent.value,
+                                child: TopPanelPlaylistSearchResult(
+                                  searchController: TopPanelView._searchPanelController,
+                                  onOpenPlaylist: _openPlaylist,
                                 ),
                               ),
                               TopPanelCard(
-                                child: _buildAlbumSearchResult(
-                                  controller.searchContent.value,
+                                child: TopPanelAlbumSearchResult(
+                                  searchController: TopPanelView._searchPanelController,
+                                  onOpenAlbum: _openAlbum,
                                 ),
                               ),
                               TopPanelCard(
-                                child: _buildArtistSearchResult(
-                                  controller.searchContent.value,
+                                child: TopPanelArtistSearchResult(
+                                  searchController: TopPanelView._searchPanelController,
+                                  onOpenArtist: _openArtist,
                                 ),
                               ),
                             ],
                           )),
                       child: TopPanelCard(
-                        child: _buildHotKeywordList(),
+                        child: TopPanelHotKeywordList(
+                          searchController: TopPanelView._searchPanelController,
+                          shellController: controller,
+                        ),
                       ).marginOnly(top: AppDimensions.paddingSmall),
                     )),
               ),
@@ -171,105 +177,6 @@ class _TopPanelViewState extends State<TopPanelView> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHotKeywordList() {
-    return ValueListenableBuilder(
-      valueListenable: TopPanelView._searchPanelController.hotKeywordState,
-      builder: (context, state, child) {
-        return LoadStateView<List<String>>(
-          state: state,
-          builder: (keywords) => ListView(
-            padding: EdgeInsets.zero,
-            children: keywords
-                .map(
-                  (keyword) => UniversalListTile(
-                    titleString: keyword,
-                    onTap: () {
-                      controller.searchFocusNode.unfocus();
-                      controller.searchTextEditingController.text = keyword;
-                    },
-                  ),
-                )
-                .toList(),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSongSearchResult(String keyword) {
-    return ValueListenableBuilder(
-      valueListenable: TopPanelView._searchPanelController.songState,
-      builder: (context, state, child) {
-        return LoadStateView<List<PlaybackQueueItem>>(
-          state: state,
-          builder: (list) => ListView.builder(
-            itemBuilder: (context, index) => SongItem(
-              index: index,
-              playlist: list,
-              playListName: "搜索结果：$keyword",
-              onPlay: _playerController.playPlaylist,
-            ),
-            itemCount: list.length,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildPlaylistSearchResult(String keyword) {
-    return ValueListenableBuilder(
-      valueListenable: TopPanelView._searchPanelController.playlistState,
-      builder: (context, state, child) {
-        return LoadStateView<List<PlaylistEntity>>(
-          state: state,
-          builder: (playlists) => ListView.builder(
-            itemCount: playlists.length,
-            itemBuilder: (context, index) => PlaylistSearchItem(
-              playlist: playlists[index],
-              onTap: () => _openPlaylist(context, playlists[index]),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAlbumSearchResult(String keyword) {
-    return ValueListenableBuilder(
-      valueListenable: TopPanelView._searchPanelController.albumState,
-      builder: (context, state, child) {
-        return LoadStateView<List<AlbumEntity>>(
-          state: state,
-          builder: (albums) => ListView.builder(
-            itemCount: albums.length,
-            itemBuilder: (context, index) => AlbumSearchItem(
-              album: albums[index],
-              onTap: () => _openAlbum(context, albums[index]),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildArtistSearchResult(String keyword) {
-    return ValueListenableBuilder(
-      valueListenable: TopPanelView._searchPanelController.artistState,
-      builder: (context, state, child) {
-        return LoadStateView<List<ArtistEntity>>(
-          state: state,
-          builder: (artists) => ListView.builder(
-            itemCount: artists.length,
-            itemBuilder: (context, index) => ArtistSearchItem(
-              artist: artists[index],
-              onTap: () => _openArtist(context, artists[index]),
-            ),
-          ),
-        );
-      },
     );
   }
 

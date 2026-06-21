@@ -84,6 +84,30 @@ void main() {
       expect(mediaItem.extras?['url'], 'https://example.com/song.mp3');
     });
 
+    test('adapter normalizes local artwork file uri before building MediaItem artUri', () {
+      final localArtworkUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/art with space.jpg',
+        queryParameters: {'token': 'local'},
+      ).toString();
+
+      final mediaItem = PlaybackQueueItemAdapter.toMediaItem(
+        _queueItem(localArtworkPath: localArtworkUri),
+      );
+
+      expect(mediaItem.artUri?.toFilePath(), '/cache/art with space.jpg');
+    });
+
+    test('adapter does not expose remote artwork url as local MediaItem artUri', () {
+      final mediaItem = PlaybackQueueItemAdapter.toMediaItem(
+        _queueItem(localArtworkPath: 'https://image.test/art.jpg'),
+      );
+
+      expect(mediaItem.artUri, isNull);
+      expect(mediaItem.extras?['localArtworkPath'], 'https://image.test/art.jpg');
+    });
+
     test('adapter writes explicit fields only and does not promote legacy metadata', () {
       final mediaItem = PlaybackQueueItemAdapter.toMediaItem(
         _queueItem(
@@ -284,6 +308,7 @@ PlaybackQueueItem _queueItem({
   SourceType sourceType = SourceType.netease,
   MediaType mediaType = MediaType.playlist,
   String? playbackUrl = 'https://example.com/song.mp3',
+  String? localArtworkPath = '/cache/art.jpg',
   String? localLyricsPath,
   TrackAvailability availability = TrackAvailability.unknown,
   Map<String, dynamic> metadata = const {},
@@ -299,7 +324,7 @@ PlaybackQueueItem _queueItem({
     artistIds: const ['10'],
     duration: const Duration(seconds: 3),
     artworkUrl: 'https://example.com/art.jpg',
-    localArtworkPath: '/cache/art.jpg',
+    localArtworkPath: localArtworkPath,
     mediaType: mediaType,
     playbackUrl: playbackUrl,
     lyricKey: 'netease:1',

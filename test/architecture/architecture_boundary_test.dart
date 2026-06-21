@@ -85,23 +85,37 @@ void main() {
       );
     });
 
-    test('refactor route documents Android build and adb install gate', () {
+    test('refactor route documents local verification gate without Android build', () {
       final doc = File('${projectRoot.path}/docs/重构路线.md').readAsStringSync();
+      final acceptanceSection = _markdownSection(doc, '## 10. 验收命令');
 
       expect(
         doc,
-        contains('flutter build apk --debug'),
-        reason: '每次修改后必须保留 Android 编译验证门槛。',
+        isNot(contains('flutter build apk --debug')),
+        reason: '这台开发机后续不默认执行 Android APK 构建，文档不能把它写回每次修改门槛。',
       );
       expect(
         doc,
-        contains('adb -s <deviceId> install -r build/app/outputs/flutter-apk/app-debug.apk'),
-        reason: '每次修改后必须保留通过 adb 安装到真机或模拟器的验证门槛。',
+        isNot(contains('adb -s <deviceId> install -r build/app/outputs/flutter-apk/app-debug.apk')),
+        reason: '这台开发机后续不默认执行 adb 安装，文档不能把它写回每次修改门槛。',
       );
       expect(
         doc,
-        contains('不能视为完整验证通过'),
-        reason: '没有可用 adb 设备时不能把修改标记为完整验证通过。',
+        contains('后续默认不执行 Android APK 构建和 adb 安装'),
+        reason: '路线文档必须记录当前机器不再把编译安装作为默认验证。',
+      );
+      expect(
+        acceptanceSection,
+        allOf(
+          contains('flutter analyze'),
+          contains('flutter test'),
+          contains('git diff --check'),
+          contains('flutter test test/architecture'),
+          contains('架构测试不能替代本机验证门槛'),
+          isNot(contains('flutter build apk --debug')),
+          isNot(contains('adb -s <deviceId> install -r build/app/outputs/flutter-apk/app-debug.apk')),
+        ),
+        reason: '验收命令章节必须反映当前本机验证门槛，不能重新要求每次 Android 构建和 adb 安装。',
       );
     });
 
@@ -1940,4 +1954,14 @@ bool _isAllowedRepositoryFeatureImport({
 String _relativePath(File file) {
   final root = Directory.current.path;
   return file.path.replaceFirst('$root/', '').replaceAll(Platform.pathSeparator, '/');
+}
+
+String _markdownSection(String content, String header) {
+  final start = content.indexOf(header);
+  if (start < 0) {
+    return '';
+  }
+  final rest = content.substring(start);
+  final next = rest.indexOf('\n## ', header.length);
+  return next < 0 ? rest : rest.substring(0, next);
 }

@@ -99,6 +99,27 @@ void main() {
       expect(loadCount, 2);
     });
 
+    test('does not cache malformed remote playback url results', () async {
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        return loadCount == 1 ? '  HTTPS:///missing-host.mp3  ' : 'https://audio.test/1.mp3';
+      }
+
+      final malformed = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+      final remote = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+      final cached = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+
+      expect(malformed, 'HTTPS:///missing-host.mp3');
+      expect(remote, 'https://audio.test/1.mp3');
+      expect(cached, remote);
+      expect(loadCount, 2);
+    });
+
     test('prefers local resource over cached and in-flight remote url', () async {
       String? localUrl;
       var loadCount = 0;

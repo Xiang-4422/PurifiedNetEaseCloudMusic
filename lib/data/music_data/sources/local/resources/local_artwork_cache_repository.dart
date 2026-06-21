@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/util/image_url_normalizer.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -52,7 +53,7 @@ class LocalArtworkCacheRepository {
   /// 缓存单首曲目的封面；已有可用本地资源时直接返回原曲目。
   Future<Track> cacheSingleTrackArtwork(Track track) async {
     final indexedResource = await _resourceIndexRepository.getArtworkResource(track.id);
-    final indexedPath = indexedResource?.path ?? '';
+    final indexedPath = LocalFilePathNormalizer.normalize(indexedResource?.path);
     if (indexedPath.isNotEmpty && File(indexedPath).existsSync()) {
       return track;
     }

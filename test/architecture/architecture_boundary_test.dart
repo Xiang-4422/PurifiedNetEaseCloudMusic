@@ -85,6 +85,26 @@ void main() {
       );
     });
 
+    test('refactor route documents Android build and adb install gate', () {
+      final doc = File('${projectRoot.path}/docs/重构路线.md').readAsStringSync();
+
+      expect(
+        doc,
+        contains('flutter build apk --debug'),
+        reason: '每次修改后必须保留 Android 编译验证门槛。',
+      );
+      expect(
+        doc,
+        contains('adb -s <deviceId> install -r build/app/outputs/flutter-apk/app-debug.apk'),
+        reason: '每次修改后必须保留通过 adb 安装到真机或模拟器的验证门槛。',
+      );
+      expect(
+        doc,
+        contains('不能视为完整验证通过'),
+        reason: '没有可用 adb 设备时不能把修改标记为完整验证通过。',
+      );
+    });
+
     test('app directory only keeps composition and routing', () {
       const expectedAppDirectories = [
         'lib/app/bootstrap',

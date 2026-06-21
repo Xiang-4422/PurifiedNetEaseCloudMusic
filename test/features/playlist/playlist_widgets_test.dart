@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsAction;
+
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
@@ -71,6 +73,53 @@ void main() {
       await tester.tap(find.text('Track'));
       await tester.pump();
       expect(playCallCount, 1);
+    });
+
+    test('UniversalListTile semantic label uses title and subtitle', () {
+      expect(
+        universalListTileSemanticLabel(
+          title: ' Track ',
+          subtitle: ' Artist ',
+        ),
+        'Track，Artist',
+      );
+      expect(
+        universalListTileSemanticLabel(
+          title: ' ',
+          subtitle: ' ',
+        ),
+        '未命名内容',
+      );
+    });
+
+    testWidgets('SongItem exposes a stable playback semantic label', (tester) async {
+      final semantics = tester.ensureSemantics();
+      try {
+        await tester.pumpWidget(
+          _wrap(
+            SongItem(
+              playlist: [_song()],
+              index: 0,
+              playListName: 'list',
+              showPic: false,
+              onPlay: (
+                playlist,
+                index, {
+                String playListName = '',
+                String playListNameHeader = '',
+              }) async {},
+            ),
+          ),
+        );
+
+        expect(find.bySemanticsLabel('Track，Artist'), findsOneWidget);
+        final node = tester.getSemantics(find.bySemanticsLabel('Track，Artist'));
+        final data = node.getSemanticsData();
+        expect(data.flagsCollection.isButton, isTrue);
+        expect(data.hasAction(SemanticsAction.tap), isTrue);
+      } finally {
+        semantics.dispose();
+      }
     });
 
     testWidgets('PlayListWidget keeps artwork square and honors height override', (tester) async {

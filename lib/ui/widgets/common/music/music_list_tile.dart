@@ -37,6 +37,7 @@ class UniversalListTile extends StatelessWidget {
     super.key,
     required this.titleString,
     this.subTitleString,
+    this.semanticLabel,
     this.picUrl,
     this.stringColor,
     this.leading,
@@ -50,6 +51,9 @@ class UniversalListTile extends StatelessWidget {
 
   /// 副标题文本。
   final String? subTitleString;
+
+  /// 辅助功能语义标签；为空时按标题和副标题自动生成。
+  final String? semanticLabel;
 
   /// 左侧图片地址。
   final String? picUrl;
@@ -74,80 +78,105 @@ class UniversalListTile extends StatelessWidget {
     final metrics = _MusicListTileMetrics(context);
     final localPicPath = ArtworkPathResolver.resolveDisplayPath(picUrl);
     final colorScheme = Theme.of(context).colorScheme;
-    return InkWell(
+    final interactive = onTap != null || onLongPress != null;
+    return Semantics(
+      container: true,
+      button: interactive,
+      enabled: interactive ? true : null,
+      label: semanticLabel ?? universalListTileSemanticLabel(title: titleString, subtitle: subTitleString),
       onTap: onTap,
       onLongPress: onLongPress,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: metrics.tileMinHeight),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: metrics.tileVerticalPadding),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (leading != null) ...[
-                ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: metrics.indexWidth),
-                  child: leading!,
-                ),
-                SizedBox(width: metrics.tileGap),
-              ],
-              if (localPicPath.isNotEmpty) ...[
-                SizedBox.square(
-                  dimension: metrics.thumbnailSize,
-                  child: SimpleExtendedImage(
-                    localPicPath,
-                    width: metrics.thumbnailSize,
-                    height: metrics.thumbnailSize,
-                    cacheWidth: 120,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                SizedBox(width: metrics.tileGap),
-              ],
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      titleString,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: stringColor ?? colorScheme.onPrimary,
-                            height: 1.15,
-                          ),
+      child: ExcludeSemantics(
+        child: InkWell(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: metrics.tileMinHeight),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: metrics.tileVerticalPadding),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (leading != null) ...[
+                    ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: metrics.indexWidth),
+                      child: leading!,
                     ),
-                    if (subTitleString != null)
-                      Text(
-                        subTitleString!,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: (stringColor ?? colorScheme.onPrimary).withValues(alpha: 0.5),
-                              height: 1.15,
-                            ),
-                      ),
+                    SizedBox(width: metrics.tileGap),
                   ],
-                ),
-              ),
-              if (trailing != null)
-                Padding(
-                  padding: EdgeInsets.only(left: metrics.tileGap),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: metrics.trailingMaxWidth,
+                  if (localPicPath.isNotEmpty) ...[
+                    SizedBox.square(
+                      dimension: metrics.thumbnailSize,
+                      child: SimpleExtendedImage(
+                        localPicPath,
+                        width: metrics.thumbnailSize,
+                        height: metrics.thumbnailSize,
+                        cacheWidth: 120,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                    child: trailing!,
+                    SizedBox(width: metrics.tileGap),
+                  ],
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          titleString,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: stringColor ?? colorScheme.onPrimary,
+                                height: 1.15,
+                              ),
+                        ),
+                        if (subTitleString != null)
+                          Text(
+                            subTitleString!,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  color: (stringColor ?? colorScheme.onPrimary).withValues(alpha: 0.5),
+                                  height: 1.15,
+                                ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-            ],
+                  if (trailing != null)
+                    Padding(
+                      padding: EdgeInsets.only(left: metrics.tileGap),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: metrics.trailingMaxWidth,
+                        ),
+                        child: trailing!,
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+/// 生成通用列表项的辅助语义标签。
+@visibleForTesting
+String universalListTileSemanticLabel({
+  required String title,
+  String? subtitle,
+}) {
+  final resolvedTitle = title.trim().isEmpty ? '未命名内容' : title.trim();
+  final resolvedSubtitle = subtitle?.trim() ?? '';
+  if (resolvedSubtitle.isEmpty) {
+    return resolvedTitle;
+  }
+  return '$resolvedTitle，$resolvedSubtitle';
 }
 
 class _SongIndexLeading extends StatelessWidget {

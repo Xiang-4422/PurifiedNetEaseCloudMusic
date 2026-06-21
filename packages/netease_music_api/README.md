@@ -45,6 +45,8 @@ fixtures and that every special module is Node-oracle-covered or explicitly
 limited. It also reports the tracked submodule commit, dirty state, upstream
 module file count, generated manifest upstream version/commit, and generated
 manifest differences so upstream refreshes are auditable from one command.
+Runtime option limitations, such as unsupported PAC proxy URLs, are also
+included in `sdkDifferences`.
 
 Upstream protocol reference is tracked in the repository submodule:
 

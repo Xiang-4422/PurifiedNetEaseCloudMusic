@@ -146,6 +146,38 @@ void main() {
       expect(cachedColorPaths, ['/cache/art with space.jpg']);
     });
 
+    test('prefers local artwork over remote while resolving dominant color', () async {
+      final imageCacheRepository = _FakeLocalImageCacheRepository(const {});
+      final resolvedColorPaths = <String>[];
+      final presenter = PlaybackArtworkPresenter(
+        repository: _FakePlaybackRepository(),
+        imageCacheRepository: imageCacheRepository,
+        dominantColorResolver: (imagePath) async {
+          resolvedColorPaths.add(imagePath);
+          return Colors.blue;
+        },
+        cachedColorReader: (_) => null,
+      );
+      final fileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/local-art.jpg',
+        queryParameters: {'token': 'local'},
+      ).toString();
+
+      final color = await presenter.resolveDominantColor(
+        _itemWithArtworkPaths(
+          'mixed',
+          artworkUrl: 'https://img.test/remote-art.jpg',
+          localArtworkPath: fileUri,
+        ),
+      );
+
+      expect(color, Colors.blue);
+      expect(imageCacheRepository.resolvedSources, ['/cache/local-art.jpg']);
+      expect(resolvedColorPaths, ['/cache/local-art.jpg']);
+    });
+
     test('ignores unsafe file uri artwork while reading cached color', () {
       final cachedColorPaths = <String>[];
       final presenter = PlaybackArtworkPresenter(
@@ -193,6 +225,24 @@ class _FakePlaybackRepository implements PlaybackRepository {
 }
 
 PlaybackQueueItem _item(String id, String artworkUrl) {
+  return _itemWithArtworkPaths(
+    id,
+    artworkUrl: artworkUrl,
+  );
+}
+
+PlaybackQueueItem _itemWithLocalArtwork(String id, String localArtworkPath) {
+  return _itemWithArtworkPaths(
+    id,
+    localArtworkPath: localArtworkPath,
+  );
+}
+
+PlaybackQueueItem _itemWithArtworkPaths(
+  String id, {
+  String? artworkUrl,
+  String? localArtworkPath,
+}) {
   return PlaybackQueueItem(
     id: id,
     sourceId: id,
@@ -202,25 +252,6 @@ PlaybackQueueItem _item(String id, String artworkUrl) {
     artistIds: const [],
     duration: null,
     artworkUrl: artworkUrl,
-    localArtworkPath: null,
-    mediaType: MediaType.playlist,
-    playbackUrl: null,
-    lyricKey: null,
-    isLiked: false,
-    isCached: false,
-  );
-}
-
-PlaybackQueueItem _itemWithLocalArtwork(String id, String localArtworkPath) {
-  return PlaybackQueueItem(
-    id: id,
-    sourceId: id,
-    title: 'Track $id',
-    albumTitle: null,
-    artistNames: const [],
-    artistIds: const [],
-    duration: null,
-    artworkUrl: null,
     localArtworkPath: localArtworkPath,
     mediaType: MediaType.playlist,
     playbackUrl: null,

@@ -36,8 +36,7 @@ lib/data/music_data/sources/netease/
 │   ├── netease_radio_remote_data_source.dart
 │   ├── netease_search_remote_data_source.dart
 │   └── netease_user_remote_data_source.dart
-├── netease_music_source.dart
-└── netease_remote_bootstrap.dart
+└── netease_music_source.dart
 ```
 
 ## 分层职责
@@ -96,9 +95,7 @@ remote data source 可以知道网易云接口和 mapper，但不负责页面流
 
 它提供搜索、获取曲目、获取播放地址、获取歌词、获取歌单等能力，并把网易云 id 规范化为项目内部的 source id 形式。
 
-### `netease_remote_bootstrap.dart`
-
-`NeteaseRemoteBootstrap` 是远程能力初始化入口，屏蔽底层 SDK 初始化细节。应用启动只应通过它初始化网易云远程能力，而不是直接关心 SDK 的文件路径、Cookie 和 Dio 组合方式。
+SDK 初始化和 `NeteaseMusicApi` 实例创建只属于 `lib/app/bootstrap/sdk_bootstrap.dart`。本目录只接收已经创建好的 SDK 门面并执行远程数据访问，不再提供启动入口。
 
 ## 依赖方向
 

@@ -93,4 +93,18 @@ void main() {
     expect(resultsSource, contains('AlbumSearchItem('));
     expect(resultsSource, contains('ArtistSearchItem('));
   });
+
+  test('top panel cancels stale search requests across widget lifecycle', () {
+    final panelSource = File(
+      'lib/ui/pages/shell/widgets/search/top_panel_view.dart',
+    ).readAsStringSync();
+
+    expect(panelSource, contains('void _searchCurrentKeyword(String keyword)'));
+    expect(panelSource, contains('debounce<String>('));
+    expect(panelSource, contains('_searchCurrentKeyword,'));
+    expect(panelSource, contains('controller.searchContent.value.trim().isNotEmpty'));
+    expect(panelSource, contains('_searchCurrentKeyword(controller.searchContent.value)'));
+    expect(panelSource, contains('TopPanelView._searchPanelController.cancelPendingRequests();'));
+    expect(panelSource, isNot(contains('TopPanelView._searchPanelController.dispose();')));
+  });
 }

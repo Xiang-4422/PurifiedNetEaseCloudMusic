@@ -214,6 +214,42 @@ void main() {
       await expectLater(search, completes);
     });
 
+    test('cancels pending search and allows same keyword to rerun', () async {
+      final repository = _FakeSearchRepository();
+      final controller = SearchPanelController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final pendingSearch = controller.search(
+        'keyword',
+        likedSongIds: const [101],
+        currentUserId: 'user-1',
+      );
+      await _flushAsync();
+
+      controller.cancelPendingRequests();
+      repository.complete('keyword', _resultFor('late'));
+      await pendingSearch;
+
+      expect(controller.songState.value.status, LoadStatus.loading);
+      expect(controller.songState.value.data, isNull);
+
+      final rerun = controller.search(
+        'keyword',
+        likedSongIds: const [101],
+        currentUserId: 'user-1',
+      );
+      await _flushAsync();
+      repository.complete('keyword', _resultFor('fresh'));
+      await rerun;
+
+      expect(repository.requestedLikedSongIds, [
+        [101],
+        [101],
+      ]);
+      expect(controller.songState.value.status, LoadStatus.data);
+      expect(controller.songState.value.data?.single.title, 'fresh');
+    });
+
     test('keeps current results while force refreshing same keyword fails', () async {
       final repository = _FakeSearchRepository();
       final controller = SearchPanelController(repository: repository);

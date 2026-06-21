@@ -47,19 +47,17 @@ class _TopPanelViewState extends State<TopPanelView> {
     });
     _searchWorker = debounce<String>(
       controller.searchContent,
-      (keyword) {
-        TopPanelView._searchPanelController.search(
-          keyword,
-          likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-          currentUserId: UserSessionController.to.userInfo.value.userId,
-        );
-      },
+      _searchCurrentKeyword,
       time: const Duration(milliseconds: 350),
     );
+    if (controller.searchContent.value.trim().isNotEmpty) {
+      _searchCurrentKeyword(controller.searchContent.value);
+    }
   }
 
   @override
   void dispose() {
+    TopPanelView._searchPanelController.cancelPendingRequests();
     _panelOpenWorker.dispose();
     _searchWorker.dispose();
     super.dispose();
@@ -133,6 +131,14 @@ class _TopPanelViewState extends State<TopPanelView> {
       const gr.ArtistRouteView().copyWith(
         queryParams: {'artistId': artist.sourceId},
       ),
+    );
+  }
+
+  void _searchCurrentKeyword(String keyword) {
+    TopPanelView._searchPanelController.search(
+      keyword,
+      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
+      currentUserId: UserSessionController.to.userInfo.value.userId,
     );
   }
 }

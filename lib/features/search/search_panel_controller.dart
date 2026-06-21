@@ -334,6 +334,18 @@ class SearchPanelController {
     artistState.value = state.artists;
   }
 
+  /// 取消当前面板生命周期内仍在等待的热词和搜索请求。
+  void cancelPendingRequests() {
+    if (_disposed) {
+      return;
+    }
+    _hotKeywordGeneration++;
+    _searchGeneration++;
+    _currentKeyword = '';
+    _currentUserId = '';
+    _currentLikedSongIdsSignature = '';
+  }
+
   /// 释放搜索面板状态监听器。
   void dispose() {
     if (_disposed) {

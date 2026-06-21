@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -139,9 +140,29 @@ String? _restorablePlaybackUrl(Object? value) {
   if (url == null || url.isEmpty) {
     return null;
   }
-  final scheme = Uri.tryParse(url)?.scheme.toLowerCase();
-  if (scheme == 'http' || scheme == 'https') {
+  final pathCandidate = url.split('?').first;
+  if (_looksLikeWindowsDrivePath(pathCandidate)) {
+    return pathCandidate;
+  }
+  final uri = Uri.tryParse(url);
+  final scheme = uri?.scheme.toLowerCase();
+  if (uri != null && scheme == 'file') {
+    final host = uri.host.toLowerCase();
+    if (!Platform.isWindows && host.isNotEmpty && host != 'localhost') {
+      return null;
+    }
+    return Uri(
+      scheme: 'file',
+      host: Platform.isWindows && host.isNotEmpty && host != 'localhost' ? uri.host : null,
+      path: uri.path,
+    ).toFilePath(windows: Platform.isWindows);
+  }
+  if (scheme != null && scheme.isNotEmpty) {
     return null;
   }
-  return url;
+  return pathCandidate;
+}
+
+bool _looksLikeWindowsDrivePath(String value) {
+  return RegExp(r'^[A-Za-z]:[\\/]').hasMatch(value);
 }

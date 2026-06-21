@@ -176,6 +176,17 @@ void main() {
       final decodedLegacy = await decodePlaybackQueueItemCacheList([legacy]);
 
       expect(decodedLegacy.single.playbackUrl, isNull);
+
+      final ftpLegacy = jsonEncode({
+        'id': 'netease:1',
+        'sourceId': '1',
+        'title': 'Remote',
+        'mediaType': 'playlist',
+        'playbackUrl': 'ftp://example.com/song.mp3',
+      });
+      final decodedFtpLegacy = await decodePlaybackQueueItemCacheList([ftpLegacy]);
+
+      expect(decodedFtpLegacy.single.playbackUrl, isNull);
     });
 
     test('cache codec preserves local playback urls for restore cache', () async {
@@ -191,6 +202,27 @@ void main() {
 
       final decoded = await decodePlaybackQueueItemCacheList(encoded);
       expect(decoded.single.playbackUrl, '/cache/audio/song.mp3');
+    });
+
+    test('cache codec normalizes local file uri playback urls for restore cache', () async {
+      final fileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/audio/song with space.mp3',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final encoded = await encodePlaybackQueueItemCacheList([
+        _queueItem(
+          mediaType: MediaType.local,
+          playbackUrl: fileUri,
+        ),
+      ]);
+      final raw = jsonDecode(encoded.single) as Map<String, dynamic>;
+
+      expect(raw['playbackUrl'], '/cache/audio/song with space.mp3');
+
+      final decoded = await decodePlaybackQueueItemCacheList(encoded);
+      expect(decoded.single.playbackUrl, '/cache/audio/song with space.mp3');
     });
 
     test('cache codec migrates legacy metadata source type into explicit field', () async {

@@ -87,5 +87,29 @@ void main() {
 
       expect(artwork, 'https://example.com/playlist.jpg');
     });
+
+    test('prefers local playback artwork over remote artwork url', () {
+      final artwork = ArtworkPathResolver.resolvePlaybackArtwork(
+        artworkUrl: 'https://example.com/song.jpg',
+        localArtworkPath: '/local/song.jpg',
+      );
+
+      expect(artwork, '/local/song.jpg');
+    });
+
+    test('falls back to remote playback artwork when local path is unsafe', () {
+      final unsafeUri = Uri(
+        scheme: 'file',
+        host: 'media-server',
+        path: '/local/song.jpg',
+      ).toString();
+
+      final artwork = ArtworkPathResolver.resolvePlaybackArtwork(
+        artworkUrl: 'https://example.com/song.jpg',
+        localArtworkPath: unsafeUri,
+      );
+
+      expect(artwork, 'https://example.com/song.jpg');
+    });
   });
 }

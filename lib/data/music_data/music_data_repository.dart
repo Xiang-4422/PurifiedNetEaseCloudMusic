@@ -491,6 +491,7 @@ class MusicDataRepository {
   Future<bool> _touchIfLocalFileExists(LocalResourceEntry resource) async {
     final file = File(resource.path);
     if (!file.existsSync()) {
+      await _resourceIndexRepository.removeResource(resource.trackId, resource.kind);
       return false;
     }
     await _resourceIndexRepository.touchResource(resource.trackId, resource.kind);

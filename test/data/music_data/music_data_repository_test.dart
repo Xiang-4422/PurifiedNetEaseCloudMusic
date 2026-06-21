@@ -198,6 +198,40 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 1);
     });
 
+    test('removes missing indexed audio before falling back to remote playback url', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-missing-audio-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final missingAudio = File('${directory.path}/missing.mp3');
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.audio,
+            path: missingAudio.path,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final neteaseSource = _FakeNeteaseMusicSource();
+      final repository = _buildRepository(
+        neteaseSource: neteaseSource,
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final url = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+
+      expect(url, 'https://audio.test/1.mp3');
+      expect(resourceIndexRepository.remainingResourceKinds('1'), isEmpty);
+      expect(neteaseSource.playbackUrlCallCount, 1);
+    });
+
     test('prefers newly available local audio over in-flight remote playback url load', () async {
       final directory = await Directory.systemTemp.createTemp('music-data-local-priority-');
       addTearDown(() async {

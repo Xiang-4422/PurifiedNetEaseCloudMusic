@@ -4,10 +4,10 @@ import 'lyrics_reader_model.dart';
 /// 普通 LRC 歌词格式解析器。
 class ParserLrc extends LyricsParse {
   /// 匹配 LRC 行首时间标签的正则。
-  RegExp pattern = RegExp(r"\[\d{2}:\d{2}\.\d{1,3}]");
+  RegExp pattern = RegExp(r"\[\d{1,3}:\d{2}(?:\.\d{1,3})?\]");
 
   /// 提取 LRC 时间标签内容的正则，例如 `[00:03.47]`。
-  RegExp valuePattern = RegExp(r"\[(\d{2}:\d{2}\.\d{1,3})\]");
+  RegExp valuePattern = RegExp(r"\[(\d{1,3}:\d{2}(?:\.\d{1,3})?)\]");
 
   /// 创建 LRC 歌词解析器。
   ParserLrc(String lyric) : super(lyric);
@@ -70,13 +70,16 @@ class ParserLrc extends LyricsParse {
       // LyricsLog.logW("未拿到时间值：$timeTag");
       return null;
     }
-    var timeArray = value.split(".");
-    var millisecond = timeArray.last.padRight(3, "0");
+    var minAndSecArray = value.split(":");
+    if (minAndSecArray.length != 2) {
+      return null;
+    }
+    final secondArray = minAndSecArray.last.split(".");
+    var millisecond = secondArray.length > 1 ? secondArray.last.padRight(3, "0") : "0";
     //避免出现奇葩
     if (millisecond.length > 3) {
       millisecond = millisecond.substring(0, 3);
     }
-    var minAndSecArray = timeArray.first.split(":");
-    return Duration(minutes: int.parse(minAndSecArray.first), seconds: int.parse(minAndSecArray.last), milliseconds: int.parse(millisecond)).inMilliseconds;
+    return Duration(minutes: int.parse(minAndSecArray.first), seconds: int.parse(secondArray.first), milliseconds: int.parse(millisecond)).inMilliseconds;
   }
 }

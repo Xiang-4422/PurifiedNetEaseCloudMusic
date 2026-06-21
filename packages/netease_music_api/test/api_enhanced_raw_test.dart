@@ -195,7 +195,7 @@ void main() {
       final coverageFile = File('${tempDir.path}/special_coverage.json');
       coverageFile.writeAsStringSync(
         jsonEncode({
-          'nodeOracle': ['api', 'api', 7, ' cloud '],
+          'nodeOracle': ['api', 'api', 7, ' cloud ', 'not_a_special_module'],
           'dartBehavior': 'bad',
           'limited': {'song_url_match': ''},
           'unexpected': true,
@@ -216,11 +216,13 @@ void main() {
       final report = _jsonMap(jsonDecode(result.stdout as String));
       expect(_jsonMapList(report['specialCoverageInvalidEntries']), isNotEmpty);
       expect(_jsonMapList(report['specialCoverageDuplicateEntries']), isNotEmpty);
+      expect(report['specialUnknownStatus'], contains('not_a_special_module'));
       expect(
         _jsonMapList(report['sdkDifferences']).map((item) => item['status']).toSet(),
         containsAll({
           'invalid_special_coverage',
           'duplicate_special_coverage_entry',
+          'unknown_special_status',
         }),
       );
     });

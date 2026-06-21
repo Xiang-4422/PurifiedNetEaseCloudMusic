@@ -509,6 +509,13 @@ function buildSdkDifferences() {
       reason: 'Special module is not categorized as Node oracle, Dart behavior, or limited.',
     })
   }
+  for (const module of specialUnknownStatus) {
+    differences.push({
+      module,
+      status: 'unknown_special_status',
+      reason: 'Special coverage config references a module that is not marked as special in the generated manifest.',
+    })
+  }
   for (const module of specialNodeOracleMissingFixture) {
     differences.push({
       module,

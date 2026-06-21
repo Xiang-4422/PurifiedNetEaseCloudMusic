@@ -85,7 +85,10 @@ class _RecentPlaybackTile extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final artworkPath = ArtworkPathResolver.resolveDisplayPath(
-      song.artworkUrl ?? song.localArtworkPath ?? '',
+      ArtworkPathResolver.resolvePlaybackArtwork(
+        artworkUrl: song.artworkUrl,
+        localArtworkPath: song.localArtworkPath,
+      ),
     );
     final backgroundColor = Color.alphaBlend(
       (isCurrent ? colorScheme.primary : colorScheme.onSurface).withValues(

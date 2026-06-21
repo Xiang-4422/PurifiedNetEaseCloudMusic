@@ -77,7 +77,10 @@ class BottomPanelHeader extends StatelessWidget {
                           height: AppDimensions.albumMinSize,
                           shape: BoxShape.circle,
                           ArtworkPathResolver.resolveDisplayPath(
-                            currentSong.artworkUrl,
+                            ArtworkPathResolver.resolvePlaybackArtwork(
+                              artworkUrl: currentSong.artworkUrl,
+                              localArtworkPath: currentSong.localArtworkPath,
+                            ),
                           ),
                         ),
                       ),

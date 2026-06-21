@@ -20,7 +20,13 @@ class TodayPageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final playerController = Get.find<PlayerController>();
     final songs = RecommendationController.to.todayRecommendSongs;
-    final albumUrl = songs.isEmpty ? '' : songs.first.artworkUrl ?? '';
+    final albumUrl = songs.isEmpty
+        ? ''
+        : ArtworkPathResolver.resolvePlaybackArtwork(
+              artworkUrl: songs.first.artworkUrl,
+              localArtworkPath: songs.first.localArtworkPath,
+            ) ??
+            '';
     final localAlbumPath = ArtworkPathResolver.resolveDisplayPath(albumUrl);
     final layoutMetrics = AdaptiveLayoutMetrics.of(context);
 

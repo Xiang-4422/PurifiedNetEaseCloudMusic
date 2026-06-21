@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
@@ -54,6 +55,21 @@ Future<void> _playPlaylistSummary(PlaylistSummaryData playlist) async {
     playListName: index.name,
     playListNameHeader: '歌单',
   );
+}
+
+String _playbackArtworkPath(PlaybackQueueItem item) {
+  return ArtworkPathResolver.resolvePlaybackArtwork(
+        artworkUrl: item.artworkUrl,
+        localArtworkPath: item.localArtworkPath,
+      ) ??
+      '';
+}
+
+String _firstPlaybackArtworkPath(List<PlaybackQueueItem> songs) {
+  if (songs.isEmpty) {
+    return '';
+  }
+  return _playbackArtworkPath(songs.first);
 }
 
 /// 个人首页，展示快速播放、推荐歌单和用户歌单入口。
@@ -131,7 +147,9 @@ class PersonalPageView extends GetView<ShellController> {
                               child: QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: recommendationController.todayRecommendSongs.isNotEmpty ? (recommendationController.todayRecommendSongs[0].artworkUrl ?? '') : '',
+                                albumUrl: _firstPlaybackArtworkPath(
+                                  recommendationController.todayRecommendSongs,
+                                ),
                                 icon: TablerIcons.calendar,
                                 title: "每日推荐",
                                 onTap: () => context.router.push(const gr.TodayRouteView()),
@@ -181,7 +199,11 @@ class PersonalPageView extends GetView<ShellController> {
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: playbackAction.isFmModeValue ? (currentSong.artworkUrl ?? '') : (recommendationController.fmSongs.isNotEmpty ? (recommendationController.fmSongs[0].artworkUrl ?? '') : ''),
+                                albumUrl: playbackAction.isFmModeValue
+                                    ? _playbackArtworkPath(currentSong)
+                                    : _firstPlaybackArtworkPath(
+                                        recommendationController.fmSongs,
+                                      ),
                                 icon: TablerIcons.infinity,
                                 title: "漫游模式",
                                 onTap: () {
@@ -202,7 +224,7 @@ class PersonalPageView extends GetView<ShellController> {
                               return QuickStartCard(
                                 width: userItemWidth,
                                 height: userItemWidth * 1.3,
-                                albumUrl: playbackAction.isHeartBeatModeValue ? (currentSong.artworkUrl ?? '') : libraryController.randomLikedSongAlbumUrl.value,
+                                albumUrl: playbackAction.isHeartBeatModeValue ? _playbackArtworkPath(currentSong) : libraryController.randomLikedSongAlbumUrl.value,
                                 icon: TablerIcons.heartbeat,
                                 title: "心动模式",
                                 onTap: () {
@@ -461,7 +483,9 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 child: QuickStartCard(
                   width: cardSize.width,
                   height: cardSize.height,
-                  albumUrl: recommendationController.todayRecommendSongs.isNotEmpty ? (recommendationController.todayRecommendSongs[0].artworkUrl ?? '') : '',
+                  albumUrl: _firstPlaybackArtworkPath(
+                    recommendationController.todayRecommendSongs,
+                  ),
                   icon: TablerIcons.calendar,
                   title: '每日推荐',
                   onTap: () => context.router.push(const gr.TodayRouteView()),
@@ -515,7 +539,11 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 return QuickStartCard(
                   width: cardSize.width,
                   height: cardSize.height,
-                  albumUrl: playbackAction.isFmModeValue ? (currentSong.artworkUrl ?? '') : (recommendationController.fmSongs.isNotEmpty ? (recommendationController.fmSongs[0].artworkUrl ?? '') : ''),
+                  albumUrl: playbackAction.isFmModeValue
+                      ? _playbackArtworkPath(currentSong)
+                      : _firstPlaybackArtworkPath(
+                          recommendationController.fmSongs,
+                        ),
                   icon: TablerIcons.infinity,
                   title: '漫游模式',
                   onTap: () {
@@ -542,7 +570,7 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 return QuickStartCard(
                   width: cardSize.width,
                   height: cardSize.height,
-                  albumUrl: playbackAction.isHeartBeatModeValue ? (currentSong.artworkUrl ?? '') : libraryController.randomLikedSongAlbumUrl.value,
+                  albumUrl: playbackAction.isHeartBeatModeValue ? _playbackArtworkPath(currentSong) : libraryController.randomLikedSongAlbumUrl.value,
                   icon: TablerIcons.heartbeat,
                   title: '心动模式',
                   onTap: () {
@@ -594,7 +622,7 @@ class _ContinuePlaybackQuickStartCard extends StatelessWidget {
           QuickStartCard(
             width: width,
             height: height,
-            albumUrl: currentSong.artworkUrl ?? '',
+            albumUrl: _playbackArtworkPath(currentSong),
             icon: TablerIcons.player_play,
             title: '继续播放',
             onTap: hasCurrentSong

@@ -1,4 +1,4 @@
-import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/user/user_profile_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
@@ -149,9 +149,8 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                                     style: TextStyle(fontSize: 18, color: Colors.white),
                                   ),
                                 ),
-                                onTap: () {
-                                  UserSessionController.to.clearUser();
-                                  AutoRouter.of(context).pop();
+                                onTap: () async {
+                                  await Get.find<AuthController>().logoutCurrentUser();
                                 },
                               )
                             ],

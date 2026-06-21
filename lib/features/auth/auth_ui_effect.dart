@@ -3,7 +3,7 @@ enum AuthUiEffectType {
   /// 展示普通提示消息。
   message,
 
-  /// 登录状态已失效，需要回到登录页。
+  /// 登录状态已失效或用户已退出，需要回到登录页。
   loginExpired,
 }
 
@@ -22,7 +22,7 @@ class AuthUiEffect {
           message: message,
         );
 
-  /// 展示登录过期提示并返回登录页。
+  /// 展示登录结束提示并返回登录页。
   const AuthUiEffect.loginExpired(String message)
       : this(
           type: AuthUiEffectType.loginExpired,

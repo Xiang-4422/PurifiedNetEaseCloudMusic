@@ -123,6 +123,12 @@ class AuthController extends GetxController {
     }
   }
 
+  /// 主动退出当前账号，并交给根部展示副作用回到登录页。
+  Future<void> logoutCurrentUser() async {
+    await UserSessionController.to.clearUser();
+    uiEffect.value = const AuthUiEffect.loginExpired('已退出登录');
+  }
+
   @override
   void onClose() {
     _qrPollingTimer?.cancel();

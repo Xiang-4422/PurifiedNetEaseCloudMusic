@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bujuan/core/entities/user_session_data.dart';
+import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/data/app_storage/app_key_value_store.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
@@ -211,6 +212,26 @@ void main() {
       expect(authRepository.createdQrKeys, ['qr-key-1']);
     });
 
+    test('logout clears local account and emits login page effect', () async {
+      final authRepository = _FakeAuthRepository(hasCachedSession: true);
+      final sessionController = _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
+      final controller = AuthController(repository: authRepository);
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+
+      await controller.logoutCurrentUser();
+
+      expect(sessionController.userInfo.value.isLoggedIn, isFalse);
+      expect(authRepository.savedLoginFlags, [false]);
+      expect(controller.uiEffect.value?.type, AuthUiEffectType.loginExpired);
+      expect(controller.uiEffect.value?.message, '已退出登录');
+    });
+
     test('qr refresh failure exposes retry state without throwing', () async {
       final authRepository = _FakeAuthRepository(hasCachedSession: false)..failNextQrCreation(StateError('network failed'));
       _putSessionController(
@@ -361,6 +382,11 @@ class _FakeAuthRepository implements AuthRepository {
 }
 
 class _FakeUserRepository implements UserRepository {
+  @override
+  Future<OperationResult> logout() async {
+    return const OperationResult(success: true);
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);

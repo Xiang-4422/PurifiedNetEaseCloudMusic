@@ -1072,6 +1072,24 @@ void main() {
       );
     });
 
+    test('manual logout routes through auth effect boundary', () {
+      final authController = File('${projectRoot.path}/lib/features/auth/auth_controller.dart').readAsStringSync();
+      final userProfilePage = File('${projectRoot.path}/lib/ui/pages/user/user_setting_view.dart').readAsStringSync();
+      final violations = <String>[
+        if (!authController.contains('Future<void> logoutCurrentUser()')) 'auth controller does not own manual logout flow',
+        if (!authController.contains("AuthUiEffect.loginExpired('已退出登录')")) 'manual logout does not emit login-page effect',
+        if (!userProfilePage.contains('logoutCurrentUser()')) 'user profile page does not use auth logout flow',
+        if (userProfilePage.contains('AutoRouter.of(context)')) 'user profile page manipulates router after logout',
+        if (userProfilePage.contains('UserSessionController.to.clearUser()')) 'user profile page clears session directly',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '主动注销需要复用 AuthController 的登录页副作用，避免 UI 绕过路由边界或只清 session 后留在已登录壳层。',
+      );
+    });
+
     test('feature repositories use narrow user scoped data capabilities', () {
       final violations = _repositoryFiles(libDirectory).where((file) => _contains(file, 'UserScopedDataSource')).map(_relativePath).toList();
 

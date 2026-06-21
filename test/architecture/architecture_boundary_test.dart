@@ -798,6 +798,48 @@ void main() {
       );
     });
 
+    test('recent playback stays backed by confirmed history', () {
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/playback/recent_playback_controller.dart',
+      );
+      final queueStoreFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_queue_store.dart',
+      );
+      final stripFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/widgets/recent_playback_strip.dart',
+      );
+      final controller = controllerFile.readAsStringSync();
+      final queueStore = queueStoreFile.readAsStringSync();
+      final strip = stripFile.readAsStringSync();
+      final violations = <String>[
+        if (!controller.contains('loadRecentPlayedTracks(limit: limit)')) 'recent controller does not read playback history',
+        if (!controller.contains('recentPlaybackUpdates.listen')) 'recent controller does not listen to history update notifications',
+        if (_containsAny(controllerFile, const [
+          'PlayerController',
+          'PlaybackQueueService',
+          'activeQueue',
+          'confirmedItem',
+          'currentSongState',
+        ]))
+          '${_relativePath(controllerFile)} derives history from current playback state',
+        if (!queueStore.contains('await _repository.recordPlayedTrack(currentSongId);')) 'queue store does not record confirmed current song',
+        if (!strip.contains('final recentTracks = controller.recentTracks.toList')) 'recent playback strip does not render controller history',
+        if (_containsAny(stripFile, const [
+          'activeQueue',
+          'confirmedItem',
+          'runtimeState.value.queue',
+          'selectionState',
+        ]))
+          '${_relativePath(stripFile)} derives recent list from current playback queue',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '最近播放只能由底层确认播放写入的本地历史驱动；UI 当前歌曲状态只允许用于高亮，不能冒充历史数据源。',
+      );
+    });
+
     test('audio service handler stays playback adapter only', () {
       final handlerFile = File(
         '${projectRoot.path}/lib/features/playback/application/audio_service_handler.dart',

@@ -91,6 +91,39 @@ void main() {
       expect(File(savedResource.path).existsSync(), isTrue);
     });
 
+    test('reuses existing legacy file uri artwork resource', () async {
+      final cacheDirectory = await Directory.systemTemp.createTemp(
+        'local-artwork-cache-test-',
+      );
+      final artworkFile = File('${cacheDirectory.path}/existing cover.jpg');
+      await artworkFile.writeAsBytes(<int>[1, 2, 3]);
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository();
+      final downloader = _FakeArtworkDownloader();
+      final repository = LocalArtworkCacheRepository(
+        resourceIndexRepository: resourceIndexRepository,
+        artworkDirectoryProvider: () async => cacheDirectory,
+        downloader: downloader.download,
+      );
+      addTearDown(() async {
+        if (cacheDirectory.existsSync()) {
+          await cacheDirectory.delete(recursive: true);
+        }
+      });
+      final track = _track(
+        id: 'netease:legacy-file-uri',
+        artworkUrl: 'https://example.com/cover.jpg',
+      );
+      resourceIndexRepository.savedArtworkResource = _artworkResource(
+        track.id,
+        artworkFile.uri.replace(queryParameters: {'token': 'local'}).toString(),
+      );
+
+      await repository.cacheSingleTrackArtwork(track);
+
+      expect(downloader.downloadCount, 0);
+      expect(resourceIndexRepository.saveCount, 0);
+    });
+
     test('normalizes remote artwork size param before download', () async {
       final cacheDirectory = await Directory.systemTemp.createTemp(
         'local-artwork-cache-test-',
@@ -133,6 +166,19 @@ Track _track({
     sourceId: id,
     title: 'Test Track',
     artworkUrl: artworkUrl,
+  );
+}
+
+LocalResourceEntry _artworkResource(String trackId, String path) {
+  final now = DateTime(2026);
+  return LocalResourceEntry(
+    trackId: trackId,
+    kind: LocalResourceKind.artwork,
+    path: path,
+    origin: TrackResourceOrigin.artworkCache,
+    sizeBytes: 3,
+    createdAt: now,
+    lastAccessedAt: now,
   );
 }
 
@@ -188,16 +234,7 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
     required TrackResourceOrigin origin,
   }) async {
     saveCount++;
-    final now = DateTime(2026);
-    savedArtworkResource = LocalResourceEntry(
-      trackId: trackId,
-      kind: LocalResourceKind.artwork,
-      path: path,
-      origin: origin,
-      sizeBytes: await File(path).length(),
-      createdAt: now,
-      lastAccessedAt: now,
-    );
+    savedArtworkResource = _artworkResource(trackId, path);
   }
 
   @override

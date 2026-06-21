@@ -83,9 +83,6 @@ class PlaybackQueueItemMapper {
     if (resources.audio?.path.isNotEmpty == true) {
       return resources.audio!.path;
     }
-    if (track.sourceType == SourceType.local) {
-      return track.sourceId;
-    }
     return track.remoteUrl ?? '';
   }
 

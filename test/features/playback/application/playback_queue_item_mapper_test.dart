@@ -66,7 +66,11 @@ void main() {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [
           TrackWithResources(
-            track: _track(sourceType: SourceType.local),
+            track: _track(
+              id: 'local:/Music/imported/song.mp3',
+              sourceType: SourceType.local,
+              sourceId: '/Music/imported/song.mp3',
+            ),
             resources: TrackResourceBundle(
               audio: _audioResource(
                 '/Music/imported/song.mp3',
@@ -80,6 +84,26 @@ void main() {
 
       expect(item.mediaType, MediaType.local);
       expect(item.playbackUrl, '/Music/imported/song.mp3');
+      expect(item.isCached, isFalse);
+    });
+
+    test('does not use local track source id without indexed audio', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(
+              id: 'local:/Music/imported/song.mp3',
+              sourceType: SourceType.local,
+              sourceId: '/Music/imported/song.mp3',
+            ),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.mediaType, MediaType.local);
+      expect(item.playbackUrl, isNull);
       expect(item.isCached, isFalse);
     });
 
@@ -219,16 +243,18 @@ void main() {
 }
 
 Track _track({
+  String id = 'netease:1',
   SourceType sourceType = SourceType.netease,
+  String sourceId = '1',
   String? albumId,
   List<String> artistIds = const [],
   TrackAvailability availability = TrackAvailability.unknown,
   Map<String, Object?> metadata = const {},
 }) {
   return Track(
-    id: 'netease:1',
+    id: id,
     sourceType: sourceType,
-    sourceId: '1',
+    sourceId: sourceId,
     title: 'Track',
     albumId: albumId,
     artistIds: artistIds,

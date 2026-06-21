@@ -40,15 +40,6 @@ class LocalMusicSource {
     return _localDataSource.getTrack(trackId);
   }
 
-  /// 获取本地播放地址。
-  Future<String?> getPlaybackUrl(
-    String trackId, {
-    String? qualityLevel,
-  }) async {
-    final track = await _localDataSource.getTrack(trackId);
-    return track?.sourceId;
-  }
-
   /// 获取本地歌词。
   Future<TrackLyrics?> getLyrics(String trackId) {
     return _localDataSource.getLyrics(trackId);

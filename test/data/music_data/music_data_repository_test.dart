@@ -240,7 +240,7 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 1);
     });
 
-    test('normalizes local track file uri source id before fallback', () async {
+    test('does not use local track source id as playback fallback', () async {
       final directory = await Directory.systemTemp.createTemp('music-data-local-source-uri-');
       addTearDown(() async {
         if (directory.existsSync()) {
@@ -260,14 +260,19 @@ void main() {
           ),
         },
       );
-      final repository = _buildRepository(localDataSource: localDataSource);
+      final neteaseSource = _FakeNeteaseMusicSource();
+      final repository = _buildRepository(
+        localDataSource: localDataSource,
+        neteaseSource: neteaseSource,
+      );
 
       final url = await repository.getPlaybackUrlWithQuality(
         trackId,
         qualityLevel: 'lossless',
       );
 
-      expect(url, localAudio.path);
+      expect(url, isNull);
+      expect(neteaseSource.playbackUrlCallCount, 0);
     });
 
     test('coalesces concurrent lyric loads', () async {

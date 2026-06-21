@@ -5,12 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('setting page exposes focused player settings sections in order', () {
     final source = File('lib/ui/pages/settings/setting_page.dart').readAsStringSync();
-    final accountIndex = source.indexOf("Header('账号')");
-    final qualityIndex = source.indexOf("Header('音质')");
-    final downloadIndex = source.indexOf("Header('下载')");
-    final cacheIndex = source.indexOf("Header('缓存')");
-    final appearanceIndex = source.indexOf("Header('外观')");
-    final debugIndex = source.indexOf("Header('调试')");
+    final accountIndex = source.indexOf("title: '账号',");
+    final qualityIndex = source.indexOf("title: '音质',");
+    final downloadIndex = source.indexOf("title: '下载',");
+    final cacheIndex = source.indexOf("title: '缓存',");
+    final appearanceIndex = source.indexOf("title: '外观',");
+    final debugIndex = source.indexOf("title: '调试',");
     final accountBuildIndex = source.indexOf('_buildAccountSetting(context)');
     final qualityBuildIndex = source.indexOf('_buildPlaybackSetting(context)');
     final cacheBuildIndex = source.indexOf('_buildCacheSetting(context)');
@@ -56,12 +56,32 @@ void main() {
 
   test('setting page uses icons for all visible settings entries', () {
     final source = File('lib/ui/pages/settings/setting_page.dart').readAsStringSync();
-    final toggleCallCount = RegExp(r'_buildToggleTile\(').allMatches(source).length - 1;
-    final navigationCallCount = RegExp(r'_buildNavigationTile\(').allMatches(source).length - 1;
+    final toggleCallCount = RegExp(r'SettingToggleTile\(').allMatches(source).length;
+    final navigationCallCount = RegExp(r'SettingNavigationTile\(').allMatches(source).length;
     final iconArgumentCount = RegExp(r'icon: TablerIcons\.').allMatches(source).length;
 
     expect(toggleCallCount, 3);
     expect(navigationCallCount, 6);
     expect(iconArgumentCount, greaterThanOrEqualTo(toggleCallCount + navigationCallCount));
+  });
+
+  test('setting page delegates section and tile chrome to local widgets', () {
+    final source = File('lib/ui/pages/settings/setting_page.dart').readAsStringSync();
+    final widgetsSource = File(
+      'lib/ui/pages/settings/widgets/setting_section_widgets.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('SettingSection('));
+    expect(source, contains('SettingNavigationTile('));
+    expect(source, contains('SettingToggleTile('));
+    expect(source, isNot(contains('_buildNavigationTile')));
+    expect(source, isNot(contains('_buildToggleTile')));
+    expect(source, isNot(contains("Header('账号')")));
+
+    expect(widgetsSource, contains('class SettingSection'));
+    expect(widgetsSource, contains('class SettingNavigationTile'));
+    expect(widgetsSource, contains('class SettingToggleTile'));
+    expect(widgetsSource, contains('AdaptiveLayoutMetrics.of(context)'));
+    expect(widgetsSource, contains('TablerIcons.chevron_right'));
   });
 }

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/routing/router.dart';
-import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
 import 'package:bujuan/ui/services/dialog_service.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
@@ -13,8 +12,8 @@ import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
 import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
 import 'package:bujuan/ui/pages/settings/cache_analysis_page.dart';
 import 'package:bujuan/ui/pages/settings/lottie_preview_page.dart';
+import 'package:bujuan/ui/pages/settings/widgets/setting_section_widgets.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
-import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
@@ -171,11 +170,10 @@ class _SettingPageViewState extends State<SettingPageView> {
   }
 
   Widget _buildAccountSetting(BuildContext context) {
-    return Column(
+    return SettingSection(
+      title: '账号',
       children: [
-        const Header('账号'),
-        _buildNavigationTile(
-          context,
+        SettingNavigationTile(
           icon: TablerIcons.user_circle,
           title: '账号资料',
           subtitle: '查看当前账号资料和注销登录',
@@ -186,11 +184,10 @@ class _SettingPageViewState extends State<SettingPageView> {
   }
 
   Widget _buildPlaybackSetting(BuildContext context) {
-    return Column(
+    return SettingSection(
+      title: '音质',
       children: [
-        const Header('音质'),
-        _buildToggleTile(
-          context,
+        SettingToggleTile(
           icon: TablerIcons.music_up,
           title: '高音质优先',
           subtitle: '播放源解析时优先请求高音质地址',
@@ -204,11 +201,10 @@ class _SettingPageViewState extends State<SettingPageView> {
   }
 
   Widget _buildDownloadSetting(BuildContext context) {
-    return Column(
+    return SettingSection(
+      title: '下载',
       children: [
-        const Header('下载'),
-        _buildNavigationTile(
-          context,
+        SettingNavigationTile(
           icon: TablerIcons.download,
           title: '本地歌曲与下载',
           subtitle: '查看下载任务、失败重试和本地清理',
@@ -218,8 +214,7 @@ class _SettingPageViewState extends State<SettingPageView> {
             ),
           ),
         ),
-        _buildNavigationTile(
-          context,
+        SettingNavigationTile(
           icon: TablerIcons.folder_search,
           title: '扫描本地音乐',
           subtitle: '导入常见音乐目录中的音频、封面和歌词',
@@ -230,11 +225,10 @@ class _SettingPageViewState extends State<SettingPageView> {
   }
 
   Widget _buildCacheSetting(BuildContext context) {
-    return Column(
+    return SettingSection(
+      title: '缓存',
       children: [
-        const Header('缓存'),
-        _buildNavigationTile(
-          context,
+        SettingNavigationTile(
           icon: TablerIcons.database_search,
           title: '缓存分析',
           subtitle: '分析图片、封面、播放缓存和临时文件',
@@ -249,11 +243,10 @@ class _SettingPageViewState extends State<SettingPageView> {
   }
 
   Widget _buildAppearanceSetting(BuildContext context) {
-    return Column(
+    return SettingSection(
+      title: '外观',
       children: [
-        const Header('外观'),
-        _buildToggleTile(
-          context,
+        SettingToggleTile(
           icon: TablerIcons.gradienter,
           title: '渐变播放背景',
           subtitle: '根据封面主色调整播放页背景',
@@ -262,8 +255,7 @@ class _SettingPageViewState extends State<SettingPageView> {
             SettingsController.to.toggleGradientBackground();
           },
         ),
-        _buildToggleTile(
-          context,
+        SettingToggleTile(
           icon: TablerIcons.circle,
           title: '圆形专辑',
           subtitle: '播放页使用圆形专辑封面',
@@ -277,11 +269,10 @@ class _SettingPageViewState extends State<SettingPageView> {
   }
 
   Widget _buildDebugSetting(BuildContext context) {
-    return Column(
+    return SettingSection(
+      title: '调试',
       children: [
-        const Header('调试'),
-        _buildNavigationTile(
-          context,
+        SettingNavigationTile(
           icon: TablerIcons.live_photo,
           title: 'Lottie 动画预览',
           subtitle: '自动读取 assets/lottie 下的动画资源',
@@ -291,8 +282,7 @@ class _SettingPageViewState extends State<SettingPageView> {
             ),
           ),
         ),
-        _buildNavigationTile(
-          context,
+        SettingNavigationTile(
           icon: TablerIcons.stack_2,
           title: 'CoverFlow Demo',
           subtitle: '使用当前播放列表的封面验证 CoverFlow 交互',
@@ -304,97 +294,6 @@ class _SettingPageViewState extends State<SettingPageView> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildToggleTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    String? subtitle,
-    required bool Function() isEnabled,
-    required VoidCallback onTap,
-  }) {
-    final metrics = AdaptiveLayoutMetrics.of(context);
-    final iconSize = (AppDimensions.iconSizeLarge * metrics.textScale).clamp(34.0, 46.0).toDouble();
-    return ConstrainedBox(
-      constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: Icon(
-          icon,
-          size: AppDimensions.iconSizeMedium,
-          color: Theme.of(context).cardColor.withValues(alpha: .65),
-        ),
-        title: Text(
-          title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: context.textTheme.titleLarge,
-        ),
-        subtitle: subtitle == null
-            ? null
-            : Text(
-                subtitle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: context.textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).cardColor.withValues(alpha: .5),
-                ),
-              ),
-        trailing: Obx(() {
-          final enabled = isEnabled();
-          return Icon(
-            enabled ? TablerIcons.toggle_right : TablerIcons.toggle_left,
-            size: iconSize,
-            color: Theme.of(context).cardColor.withValues(
-                  alpha: enabled ? 0.7 : .4,
-                ),
-          );
-        }),
-        onTap: onTap,
-      ),
-    );
-  }
-
-  Widget _buildNavigationTile(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    final metrics = AdaptiveLayoutMetrics.of(context);
-    return ConstrainedBox(
-      constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
-      child: ListTile(
-        contentPadding: EdgeInsets.zero,
-        leading: Icon(
-          icon,
-          size: AppDimensions.iconSizeMedium,
-          color: Theme.of(context).cardColor.withValues(alpha: .65),
-        ),
-        title: Text(
-          title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: context.textTheme.titleLarge,
-        ),
-        subtitle: Text(
-          subtitle,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: context.textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).cardColor.withValues(alpha: .5),
-          ),
-        ),
-        trailing: Icon(
-          TablerIcons.chevron_right,
-          size: AppDimensions.iconSizeLarge,
-          color: Theme.of(context).cardColor.withValues(alpha: .5),
-        ),
-        onTap: onTap,
-      ),
     );
   }
 }

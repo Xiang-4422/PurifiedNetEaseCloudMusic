@@ -3918,6 +3918,7 @@ _CloudAudioMetadata? _parseId3v2Metadata(Uint8List bytes) {
   String? title;
   String? album;
   String? artist;
+  String? albumArtist;
 
   if (version == 2) {
     while (offset + 6 <= tagEnd) {
@@ -3938,6 +3939,8 @@ _CloudAudioMetadata? _parseId3v2Metadata(Uint8List bytes) {
           album ??= value;
         case 'TP1':
           artist ??= value;
+        case 'TP2':
+          albumArtist ??= value;
       }
       offset += frameSize;
     }
@@ -3961,11 +3964,14 @@ _CloudAudioMetadata? _parseId3v2Metadata(Uint8List bytes) {
           album ??= value;
         case 'TPE1':
           artist ??= value;
+        case 'TPE2':
+          albumArtist ??= value;
       }
       offset += frameSize;
     }
   }
 
+  artist ??= albumArtist;
   if (title == null && album == null && artist == null) {
     return null;
   }
@@ -4063,6 +4069,7 @@ _CloudAudioMetadata? _parseVorbisComment(Uint8List bytes) {
   String? title;
   String? album;
   String? artist;
+  String? albumArtist;
   for (var i = 0; i < commentCount && offset + 4 <= bytes.length; i++) {
     final commentLength = _uint32LE(bytes, offset);
     offset += 4;
@@ -4084,8 +4091,13 @@ _CloudAudioMetadata? _parseVorbisComment(Uint8List bytes) {
         album ??= value;
       case 'ARTIST':
         artist ??= value;
+      case 'ALBUMARTIST':
+      case 'ALBUM_ARTIST':
+      case 'ENSEMBLE':
+        albumArtist ??= value;
     }
   }
+  artist ??= albumArtist;
   if (title == null && album == null && artist == null) {
     return null;
   }

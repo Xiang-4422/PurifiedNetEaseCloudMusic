@@ -29,7 +29,10 @@ class LocalMediaRepository {
     String? localLyricsPath,
     Map<String, Object?> metadata = const {},
   }) async {
-    final localFilePath = _normalizeLocalFilePath(filePath);
+    final localFilePath = _normalizeRequiredLocalFilePath(
+      filePath,
+      argumentName: 'filePath',
+    );
     final artworkPath = _normalizeOptionalLocalFilePath(localArtworkPath);
     final lyricsPath = _normalizeOptionalLocalFilePath(localLyricsPath);
     final track = Track(
@@ -69,19 +72,27 @@ class LocalMediaRepository {
 
   /// 批量导入本地音频文件，并保持输入顺序写入资源索引。
   Future<List<Track>> importLocalTracks(List<LocalTrackImport> tracks) async {
-    final normalizedTracks = tracks
-        .map(
-          (track) => track.copyWith(
-            filePath: _normalizeLocalFilePath(track.filePath),
-            localArtworkPath: _normalizeOptionalLocalFilePath(
-              track.localArtworkPath,
-            ),
-            localLyricsPath: _normalizeOptionalLocalFilePath(
-              track.localLyricsPath,
-            ),
+    final normalizedTracks = <LocalTrackImport>[];
+    for (final track in tracks) {
+      final localFilePath = _normalizeExistingLocalFilePath(track.filePath);
+      if (localFilePath == null) {
+        continue;
+      }
+      normalizedTracks.add(
+        track.copyWith(
+          filePath: localFilePath,
+          localArtworkPath: _normalizeOptionalLocalFilePath(
+            track.localArtworkPath,
           ),
-        )
-        .toList();
+          localLyricsPath: _normalizeOptionalLocalFilePath(
+            track.localLyricsPath,
+          ),
+        ),
+      );
+    }
+    if (normalizedTracks.isEmpty) {
+      return const <Track>[];
+    }
     final importedTracks = normalizedTracks.map((track) {
       return Track(
         id: _buildLocalTrackId(track.filePath),
@@ -143,16 +154,35 @@ class LocalMediaRepository {
     return 'local:$filePath';
   }
 
-  String _normalizeLocalFilePath(String path) {
+  String _normalizeRequiredLocalFilePath(
+    String path, {
+    required String argumentName,
+  }) {
+    final normalized = _normalizeExistingLocalFilePath(path);
+    if (normalized == null) {
+      throw ArgumentError.value(
+        path,
+        argumentName,
+        'Expected an existing local file path.',
+      );
+    }
+    return normalized;
+  }
+
+  String? _normalizeExistingLocalFilePath(String path) {
     final normalized = _localFilePath(path);
-    return normalized.isEmpty ? path.trim() : normalized;
+    if (normalized.isEmpty) {
+      return null;
+    }
+    final file = File(normalized);
+    return file.existsSync() ? file.path : null;
   }
 
   String? _normalizeOptionalLocalFilePath(String? path) {
     if (path == null || path.trim().isEmpty) {
       return null;
     }
-    return _normalizeLocalFilePath(path);
+    return _normalizeExistingLocalFilePath(path);
   }
 
   String _localFilePath(String rawPath) {
@@ -174,6 +204,9 @@ class LocalMediaRepository {
       ).toFilePath(windows: Platform.isWindows);
     }
     if (scheme == 'http' || scheme == 'https') {
+      return '';
+    }
+    if (scheme != null && scheme.isNotEmpty && !(Platform.isWindows && scheme.length == 1)) {
       return '';
     }
     return File(trimmedPath.split('?').first).path;

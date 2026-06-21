@@ -209,6 +209,7 @@ UserSessionController _buildSessionController(String userId) {
     repository: _FakeUserRepository(),
     sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
     saveLoginFlag: (_) async {},
+    canRestoreCachedSession: () => true,
   );
   controller.userInfo.value = UserSessionData(
     userId: userId,

@@ -15,13 +15,16 @@ class UserSessionController extends GetxController {
     required UserRepository repository,
     required UserSessionStore sessionStore,
     required Future<void> Function(bool value) saveLoginFlag,
+    required bool Function() canRestoreCachedSession,
   })  : _repository = repository,
         _sessionStore = sessionStore,
-        _saveLoginFlag = saveLoginFlag;
+        _saveLoginFlag = saveLoginFlag,
+        _canRestoreCachedSession = canRestoreCachedSession;
 
   final UserRepository _repository;
   final UserSessionStore _sessionStore;
   final Future<void> Function(bool value) _saveLoginFlag;
+  final bool Function() _canRestoreCachedSession;
   Future<void>? _cacheBootstrapFuture;
 
   /// 当前登录用户快照。
@@ -57,6 +60,11 @@ class UserSessionController extends GetxController {
   }
 
   Future<void> _loadCache() async {
+    if (!_canRestoreCachedSession()) {
+      await _clearLocalSession();
+      await _saveLoginFlag(false);
+      return;
+    }
     final cachedSession = _sessionStore.loadSession();
     if (cachedSession != null) {
       userInfo.value = cachedSession;

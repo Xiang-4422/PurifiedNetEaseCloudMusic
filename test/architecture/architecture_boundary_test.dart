@@ -1206,17 +1206,22 @@ void main() {
     test('auth flow branches on cached session instead of login flag', () {
       final repository = File('${projectRoot.path}/lib/features/auth/auth_repository.dart').readAsStringSync();
       final controller = File('${projectRoot.path}/lib/features/auth/auth_controller.dart').readAsStringSync();
+      final sessionController = File('${projectRoot.path}/lib/features/user/user_session_controller.dart').readAsStringSync();
+      final featureBootstrap = File('${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart').readAsStringSync();
       final violations = <String>[
         if (repository.contains('hasCachedLogin')) 'auth repository exposes login flag as cached login',
         if (!repository.contains('hasCachedSession => _stateStore.hasCachedSession')) 'auth repository does not expose cached session',
         if (controller.contains('hasCachedLogin')) 'auth controller branches on login flag',
         if (!controller.contains('hasCachedSession')) 'auth controller does not branch on cached session',
+        if (!sessionController.contains('required bool Function() canRestoreCachedSession')) 'user session controller does not require cached-session restore guard',
+        if (!sessionController.contains('if (!_canRestoreCachedSession())')) 'user session controller restores cache without guard',
+        if (!featureBootstrap.contains('canRestoreCachedSession: () => Get.find<AuthRepository>().hasCachedSession')) 'feature bootstrap does not inject auth cached-session guard',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: 'App 当前用户必须由可解析 session 驱动，不能只凭 SDK cookie 或孤立登录标记恢复账号状态。',
+        reason: 'App 当前用户必须由可解析 session 和登录标记共同驱动，不能只凭 SDK cookie、孤立登录标记或孤立 session 恢复账号状态。',
       );
     });
 

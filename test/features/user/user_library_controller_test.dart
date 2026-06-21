@@ -20,6 +20,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       final controller = UserLibraryController(
         repository: repository,
@@ -82,6 +83,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',
@@ -109,6 +111,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       final controller = UserLibraryController(
         repository: repository,
@@ -137,6 +140,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',
@@ -168,6 +172,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',
@@ -193,6 +198,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',
@@ -230,6 +236,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',
@@ -260,6 +267,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',
@@ -297,6 +305,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',
@@ -331,6 +340,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'old-user',
@@ -370,6 +380,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',
@@ -397,6 +408,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',
@@ -441,6 +453,7 @@ void main() {
         repository: repository,
         sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
         saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
       );
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',

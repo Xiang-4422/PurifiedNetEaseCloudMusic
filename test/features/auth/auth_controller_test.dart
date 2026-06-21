@@ -290,6 +290,7 @@ UserSessionController _putSessionController({
     repository: _FakeUserRepository(),
     sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
     saveLoginFlag: saveLoginFlag ?? (_) async {},
+    canRestoreCachedSession: () => true,
   );
   return Get.put<UserSessionController>(controller);
 }

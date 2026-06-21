@@ -21,6 +21,7 @@ void main() {
         ),
         sessionStore: sessionStore,
         saveLoginFlag: (value) async => savedLoginFlags.add(value),
+        canRestoreCachedSession: () => true,
       );
       await _seedSession(controller, sessionStore);
 
@@ -39,10 +40,37 @@ void main() {
         repository: _FakeUserRepository(logoutError: StateError('network failed')),
         sessionStore: sessionStore,
         saveLoginFlag: (value) async => savedLoginFlags.add(value),
+        canRestoreCachedSession: () => true,
       );
       await _seedSession(controller, sessionStore);
 
       await expectLater(controller.clearUser(), completes);
+
+      expect(controller.userInfo.value.isLoggedIn, isFalse);
+      expect(sessionStore.loadSession(), isNull);
+      expect(savedLoginFlags, [false]);
+    });
+
+    test('does not restore cached session when app login state is not recoverable', () async {
+      final keyValueStore = _MemoryKeyValueStore();
+      final sessionStore = UserSessionStore(keyValueStore: keyValueStore);
+      final savedLoginFlags = <bool>[];
+      await sessionStore.saveSession(
+        const UserSessionData(
+          userId: 'user-1',
+          nickname: 'User',
+          avatarUrl: '',
+        ),
+      );
+      final controller = UserSessionController(
+        repository: _FakeUserRepository(),
+        sessionStore: sessionStore,
+        saveLoginFlag: (value) async => savedLoginFlags.add(value),
+        canRestoreCachedSession: () => false,
+      );
+
+      controller.onInit();
+      await controller.ensureCacheLoaded();
 
       expect(controller.userInfo.value.isLoggedIn, isFalse);
       expect(sessionStore.loadSession(), isNull);

@@ -53,6 +53,7 @@ void registerUserControllers() {
       repository: Get.find<UserRepository>(),
       sessionStore: const UserSessionStore(),
       saveLoginFlag: Get.find<AuthRepository>().setLoginFlag,
+      canRestoreCachedSession: () => Get.find<AuthRepository>().hasCachedSession,
     ),
     fenix: true,
   );

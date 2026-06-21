@@ -100,7 +100,7 @@ class PlaybackQueueItemAdapter {
       'sourceType': item.sourceType.name,
       'availability': item.availability.name,
       'type': item.mediaType.name,
-      'image': item.artworkUrl ?? item.localArtworkPath ?? '',
+      'image': _toArtworkImage(item),
       'url': item.playbackUrl ?? '',
       'liked': item.isLiked,
       'artist': item.artist ?? '',
@@ -114,6 +114,14 @@ class PlaybackQueueItemAdapter {
       'localLyricsPath': item.localLyricsPath ?? '',
       'cache': item.isCached,
     };
+  }
+
+  static String _toArtworkImage(PlaybackQueueItem item) {
+    final localArtworkPath = LocalFilePathNormalizer.normalize(item.localArtworkPath);
+    if (localArtworkPath.isNotEmpty) {
+      return localArtworkPath;
+    }
+    return item.artworkUrl ?? item.localArtworkPath ?? '';
   }
 
   static Map<String, dynamic> _customMetadata(Map<String, dynamic> extras) {

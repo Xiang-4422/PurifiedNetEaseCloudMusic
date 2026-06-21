@@ -71,28 +71,33 @@ class DownloadFileStore {
     final temporaryPath = '$outputPath.download';
     await deleteFileIfExists(temporaryPath);
 
-    var lastProgressPercent = -1;
-    await _dio.download(
-      url,
-      temporaryPath,
-      onReceiveProgress: (received, total) async {
-        if (total <= 0) {
-          return;
-        }
-        final progress = (received / total).clamp(0, 1).toDouble();
-        final progressPercent = (progress * 100).floor();
-        if (progressPercent == lastProgressPercent) {
-          return;
-        }
-        lastProgressPercent = progressPercent;
-        await onProgress(progress);
-      },
-      options: Options(
-        responseType: ResponseType.bytes,
-        followRedirects: true,
-      ),
-      cancelToken: cancelToken,
-    );
+    try {
+      var lastProgressPercent = -1;
+      await _dio.download(
+        url,
+        temporaryPath,
+        onReceiveProgress: (received, total) async {
+          if (total <= 0) {
+            return;
+          }
+          final progress = (received / total).clamp(0, 1).toDouble();
+          final progressPercent = (progress * 100).floor();
+          if (progressPercent == lastProgressPercent) {
+            return;
+          }
+          lastProgressPercent = progressPercent;
+          await onProgress(progress);
+        },
+        options: Options(
+          responseType: ResponseType.bytes,
+          followRedirects: true,
+        ),
+        cancelToken: cancelToken,
+      );
+    } catch (_) {
+      await deleteFileIfExists(temporaryPath);
+      rethrow;
+    }
 
     final targetFile = File(outputPath);
     if (targetFile.existsSync()) {

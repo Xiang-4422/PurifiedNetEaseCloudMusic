@@ -5,9 +5,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -25,6 +27,7 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 **/ios/flutter/*.plist
+!ios/Flutter/AppFrameworkInfo.plist
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
@@ -47,3 +50,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Unsupported Flutter platform directories
+/linux/
+/macos/
+/windows/
+/web/
+
+# FVM Version Cache
+.fvm/

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/source_type.dart';

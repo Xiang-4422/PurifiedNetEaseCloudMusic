@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:developer' as developer;
+
 import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/lyric_scroll_position.dart';
 import 'package:bujuan/features/shell/album_page_change_coordinator.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
+import 'package:bujuan/features/shell/shell_background_task_runner.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,6 +65,9 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   int? _ignoredProgrammaticAlbumPageIndex;
   bool _playlistScrollInFlight = false;
   bool _playlistScrollPending = false;
+  final ShellBackgroundTaskRunner _backgroundTasks = const ShellBackgroundTaskRunner(
+    onError: _reportShellBackgroundError,
+  );
   static const int _albumAnimatedSyncMaxDistance = 3;
   static const double _playlistAnimatedScrollMaxDistance = 55.0 * 12;
 
@@ -233,7 +239,10 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
       if (currentIndex < 0) {
         return;
       }
-      unawaited(_animatePlayListToCurSong());
+      _backgroundTasks.run(
+        taskName: 'shell.playlistScroll.currentQueueIndex',
+        task: _animatePlayListToCurSong,
+      );
       _animateAlbumPageViewToCurSong();
     });
     ever(_userSessionController.userInfo, (info) {
@@ -249,13 +258,16 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   }
 
   /// 标记封面页用户手势结束。
-  Future<void> endAlbumPageUserScroll() async {
+  void endAlbumPageUserScroll() {
     isAlbumScrollingManully = false;
   }
 
   /// 专辑页跨过 50% 阈值时立即提交切歌。
   void onAlbumPageChanged(int index) {
-    unawaited(_commitAlbumPageChange(index));
+    _backgroundTasks.run(
+      taskName: 'shell.albumPageChange.commit',
+      task: () => _commitAlbumPageChange(index),
+    );
   }
 
   /// 提交封面页切换索引到播放队列。
@@ -293,8 +305,9 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
     _bottomPanelTabController = TabController(length: 3, initialIndex: 1, vsync: this)
       ..addListener(() {
         if (bottomPanelTabController.indexIsChanging) {
-          unawaited(
-            animateBottomPanelToPage(
+          _backgroundTasks.run(
+            taskName: 'shell.bottomPanel.animateTab',
+            task: () => animateBottomPanelToPage(
               bottomPanelTabController.index,
               duration: const Duration(milliseconds: 500),
             ),
@@ -308,37 +321,43 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
     _bottomPanelCommentTabController = TabController(length: 2, vsync: this)
       ..addListener(() {
         if (bottomPanelCommentTabController.indexIsChanging) {
-          unawaited(
-            animateBottomPanelToPage(
+          _backgroundTasks.run(
+            taskName: 'shell.bottomPanel.animateCommentTab',
+            task: () => animateBottomPanelToPage(
               bottomPanelCommentTabController.index + 2,
             ),
           );
         }
       });
     _bottomPanelPageController = PageController(initialPage: 1)
-      ..addListener(() async {
-        int newPanelPageIndex = (bottomPanelPageController.page! + 0.5).toInt();
+      ..addListener(() {
+        _backgroundTasks.run(
+          taskName: 'shell.bottomPanel.pageChanged',
+          task: () async {
+            int newPanelPageIndex = (bottomPanelPageController.page! + 0.5).toInt();
 
-        if (curPanelPageIndex.value != newPanelPageIndex) {
-          curPanelPageIndex.value = newPanelPageIndex;
-          // 切换到正在播放列表页，滚动到当前播放
-          if (newPanelPageIndex == 0) await _animatePlayListToCurSong();
-          if (!_playerController.isFullScreenLyricOpen.value) {
-            _playerController.updateFullScreenLyricTimerCounter(cancelTimer: newPanelPageIndex != 1 && !_playerController.isFullScreenLyricOpen.value);
-          }
-        }
-        // 避免循环监听
-        if (bottomPanelTabController.indexIsChanging || bottomPanelCommentTabController.indexIsChanging) {
-          return;
-        }
-        // 控制tab显示
-        if (bottomPanelPageController.page! <= 2) {
-          bottomPanelTabController.index = newPanelPageIndex;
-          bottomPanelTabController.offset = bottomPanelPageController.page! - newPanelPageIndex;
-        } else {
-          bottomPanelCommentTabController.index = newPanelPageIndex - 2;
-          bottomPanelCommentTabController.offset = bottomPanelPageController.page! - newPanelPageIndex;
-        }
+            if (curPanelPageIndex.value != newPanelPageIndex) {
+              curPanelPageIndex.value = newPanelPageIndex;
+              // 切换到正在播放列表页，滚动到当前播放
+              if (newPanelPageIndex == 0) await _animatePlayListToCurSong();
+              if (!_playerController.isFullScreenLyricOpen.value) {
+                _playerController.updateFullScreenLyricTimerCounter(cancelTimer: newPanelPageIndex != 1 && !_playerController.isFullScreenLyricOpen.value);
+              }
+            }
+            // 避免循环监听
+            if (bottomPanelTabController.indexIsChanging || bottomPanelCommentTabController.indexIsChanging) {
+              return;
+            }
+            // 控制tab显示
+            if (bottomPanelPageController.page! <= 2) {
+              bottomPanelTabController.index = newPanelPageIndex;
+              bottomPanelTabController.offset = bottomPanelPageController.page! - newPanelPageIndex;
+            } else {
+              bottomPanelCommentTabController.index = newPanelPageIndex - 2;
+              bottomPanelCommentTabController.offset = bottomPanelPageController.page! - newPanelPageIndex;
+            }
+          },
+        );
       });
     _albumPageController = PageController();
   }
@@ -403,11 +422,17 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
     if (bottomPanelFullyOpened.value != (openDegree == 1.0)) {
       bottomPanelFullyOpened.value = (openDegree == 1.0);
       if (curPanelPageIndex.value == 0) {
-        unawaited(_animatePlayListToCurSong());
+        _backgroundTasks.run(
+          taskName: 'shell.playlistScroll.bottomPanelOpened',
+          task: _animatePlayListToCurSong,
+        );
       }
       if (bottomPanelFullyOpened.isTrue && isBigAlbum.isTrue && isAlbumScaleEnded.isTrue) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          syncAlbumPage(jump: true);
+          _backgroundTasks.run(
+            taskName: 'shell.albumSync.postFrame',
+            task: () => syncAlbumPage(jump: true),
+          );
         });
       }
     }
@@ -473,7 +498,10 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
         _playlistScrollInFlight = false;
         if (_playlistScrollPending) {
           _playlistScrollPending = false;
-          unawaited(_animatePlayListToCurSong());
+          _backgroundTasks.run(
+            taskName: 'shell.playlistScroll.pending',
+            task: _animatePlayListToCurSong,
+          );
         }
       }
     }
@@ -522,25 +550,70 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
       PerformanceLogger.log(
         'shell.albumSync.start currentPage=${currentPage.toStringAsFixed(2)} target=$currentIndex jump=$shouldJump distance=${pageDistance.toStringAsFixed(2)}',
       );
-      final syncFuture = shouldJump ? Future<void>(() => albumPageController.jumpToPage(currentIndex)) : albumPageController.animateToPage(currentIndex, duration: const Duration(milliseconds: 500), curve: Curves.ease);
-      syncFuture.whenComplete(() {
-        PerformanceLogger.elapsed(
-          'shell.albumSync.complete',
-          stopwatch,
-          details: 'target=$currentIndex jump=$shouldJump',
+      _backgroundTasks.run(
+        taskName: 'shell.albumSync.run',
+        task: () => _runAlbumPageSync(
+          targetIndex: currentIndex,
+          shouldJump: shouldJump,
+          stopwatch: stopwatch,
+        ),
+      );
+    }
+  }
+
+  Future<void> _runAlbumPageSync({
+    required int targetIndex,
+    required bool shouldJump,
+    required Stopwatch stopwatch,
+  }) async {
+    var succeeded = false;
+    try {
+      if (shouldJump) {
+        albumPageController.jumpToPage(targetIndex);
+      } else {
+        await albumPageController.animateToPage(
+          targetIndex,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.ease,
         );
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          isAlbumScrollingProgrammatic = false;
-          final pendingIndex = _pendingAlbumSyncIndex;
-          final pendingShouldJump = _pendingAlbumSyncShouldJump;
-          _pendingAlbumSyncIndex = null;
-          _pendingAlbumSyncShouldJump = false;
-          _pendingAlbumSyncCount = 0;
-          if (pendingIndex != null && pendingIndex != currentIndex && !isAlbumScrollingManully) {
-            _animateAlbumPageViewToCurSong(jump: pendingShouldJump);
-          }
-        });
+      }
+      succeeded = true;
+    } finally {
+      PerformanceLogger.elapsed(
+        'shell.albumSync.complete',
+        stopwatch,
+        details: 'target=$targetIndex jump=$shouldJump result=${succeeded ? 'success' : 'failed'}',
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        isAlbumScrollingProgrammatic = false;
+        if (_ignoredProgrammaticAlbumPageIndex == targetIndex) {
+          _ignoredProgrammaticAlbumPageIndex = null;
+        }
+        final pendingIndex = _pendingAlbumSyncIndex;
+        final pendingShouldJump = _pendingAlbumSyncShouldJump;
+        _pendingAlbumSyncIndex = null;
+        _pendingAlbumSyncShouldJump = false;
+        _pendingAlbumSyncCount = 0;
+        if (pendingIndex != null && pendingIndex != targetIndex && !isAlbumScrollingManully) {
+          _backgroundTasks.run(
+            taskName: 'shell.albumSync.pending',
+            task: () => _animateAlbumPageViewToCurSong(jump: pendingShouldJump),
+          );
+        }
       });
     }
   }
+}
+
+void _reportShellBackgroundError(
+  String taskName,
+  Object error,
+  StackTrace stackTrace,
+) {
+  developer.log(
+    'shell.backgroundTask.failed task=$taskName',
+    name: 'Shell',
+    error: error,
+    stackTrace: stackTrace,
+  );
 }

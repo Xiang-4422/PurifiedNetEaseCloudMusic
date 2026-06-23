@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/features/playback/playback_artwork_page_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
@@ -92,7 +90,7 @@ class BottomPanelArtworkPageViewport extends StatelessWidget {
         controller.beginAlbumPageUserScroll();
       }
     } else if (notification is ScrollEndNotification) {
-      unawaited(controller.endAlbumPageUserScroll());
+      controller.endAlbumPageUserScroll();
     }
     return false;
   }

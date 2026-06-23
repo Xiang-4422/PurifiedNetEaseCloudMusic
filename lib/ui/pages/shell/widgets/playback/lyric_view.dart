@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
@@ -84,7 +85,19 @@ class LyricView extends GetView<ShellController> {
                       onPressed: seekPosition == null
                           ? null
                           : () {
-                              unawaited(PlayerController.to.seekTo(seekPosition!));
+                              final targetPosition = seekPosition!;
+                              unawaited(
+                                PlayerController.to.seekTo(targetPosition).catchError(
+                                  (Object error, StackTrace stackTrace) {
+                                    developer.log(
+                                      'lyric.seek.failed position=${targetPosition.inMilliseconds}',
+                                      name: 'Shell',
+                                      error: error,
+                                      stackTrace: stackTrace,
+                                    );
+                                  },
+                                ),
+                              );
                             },
                       child: child,
                     );

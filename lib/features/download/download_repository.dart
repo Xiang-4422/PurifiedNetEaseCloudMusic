@@ -35,7 +35,6 @@ class DownloadRepository {
     DownloadTaskStateStore? taskStateStore,
     DownloadBackgroundErrorHandler? onBackgroundError,
   })  : _musicDataRepository = musicDataRepository,
-        _taskDataSource = taskDataSource,
         _taskQueue = taskQueue ?? DownloadTaskQueue(),
         _fileStore = fileStore ?? DownloadFileStore(dio: dio),
         _resourceWriter = resourceWriter ??
@@ -61,7 +60,6 @@ class DownloadRepository {
             );
 
   final MusicDataRepository _musicDataRepository;
-  final DownloadTaskDataSource _taskDataSource;
   final DownloadTaskQueue _taskQueue;
   final DownloadFileStore _fileStore;
   final DownloadResourceWriter _resourceWriter;
@@ -85,20 +83,21 @@ class DownloadRepository {
     String trackId, {
     bool preferHighQuality = true,
   }) async {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return null;
     }
-    _taskQueue.clearCancelled(trackId);
-    final existingTask = _taskQueue.existingDownload(trackId);
+    _taskQueue.clearCancelled(normalizedTrackId);
+    final existingTask = _taskQueue.existingDownload(normalizedTrackId);
     if (existingTask != null) {
       return existingTask;
     }
     await _taskStateStore.markQueued(trackId);
 
     return _taskQueue.scheduleDownload(
-      trackId,
+      normalizedTrackId,
       () => performDownloadTrack(
-        trackId,
+        normalizedTrackId,
         preferHighQuality: preferHighQuality,
       ),
     );
@@ -121,17 +120,18 @@ class DownloadRepository {
     String trackId, {
     bool preferHighQuality = true,
   }) async {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return null;
     }
-    final existingTask = _taskQueue.existingPlaybackCache(trackId);
+    final existingTask = _taskQueue.existingPlaybackCache(normalizedTrackId);
     if (existingTask != null) {
       return existingTask;
     }
     return _taskQueue.schedulePlaybackCache(
-      trackId,
+      normalizedTrackId,
       () => performCacheTrackForPlayback(
-        trackId,
+        normalizedTrackId,
         preferHighQuality: preferHighQuality,
       ),
     );
@@ -139,16 +139,17 @@ class DownloadRepository {
 
   /// 删除已下载曲目的本地资源。
   Future<void> removeDownloadedTrack(String trackId) async {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return;
     }
     await _taskStateStore.clearTask(trackId);
     final trackWithResources = await _musicDataRepository.getTrackWithResources(
-      trackId,
+      normalizedTrackId,
     );
     final audioOrigin = trackWithResources?.resources.audio?.origin;
     await _musicDataRepository.removeLocalTrackResources(
-      trackId,
+      normalizedTrackId,
       deleteSourceFiles: audioOrigin != TrackResourceOrigin.localImport,
     );
   }
@@ -160,22 +161,24 @@ class DownloadRepository {
 
   /// 取消指定下载任务并清理临时文件。
   Future<void> cancelTask(String trackId) async {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return;
     }
-    final scheduledTask = _taskQueue.existingDownload(trackId);
-    _taskQueue.markCancelled(trackId);
-    final currentTask = await _taskDataSource.getTask(trackId);
+    final scheduledTask = _taskQueue.existingDownload(normalizedTrackId);
+    _taskQueue.markCancelled(normalizedTrackId);
+    final currentTask = await _taskStateStore.getTask(trackId);
     await _fileStore.deleteTemporaryDownloadIfExists(currentTask?.temporaryPath);
     await _taskStateStore.clearTask(trackId);
     if (scheduledTask == null) {
-      _taskQueue.clearCancelled(trackId);
+      _taskQueue.clearCancelled(normalizedTrackId);
     }
   }
 
   /// 读取指定曲目的下载任务。
   Future<DownloadTask?> getTask(String trackId) {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return Future<DownloadTask?>.value();
     }
     return _taskStateStore.getTask(trackId);
@@ -186,10 +189,11 @@ class DownloadRepository {
     String trackId, {
     bool preferHighQuality = true,
   }) async {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return null;
     }
-    final currentTask = await _taskDataSource.getTask(trackId);
+    final currentTask = await _taskStateStore.getTask(trackId);
     await _fileStore.deleteTemporaryDownloadIfExists(currentTask?.temporaryPath);
     return downloadTrack(
       trackId,
@@ -223,7 +227,8 @@ class DownloadRepository {
 
   /// 清除指定曲目的下载任务状态。
   Future<void> clearTask(String trackId) {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return Future<void>.value();
     }
     return _taskStateStore.clearTask(trackId);
@@ -235,6 +240,10 @@ class DownloadRepository {
   }
 
   bool _isBlankTrackId(String trackId) {
-    return trackId.trim().isEmpty;
+    return _normalizedTrackId(trackId).isEmpty;
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
   }
 }

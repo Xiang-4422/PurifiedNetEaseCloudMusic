@@ -40,6 +40,62 @@ void main() {
       expect(taskDataSource.getTasksCallCount, 0);
     });
 
+    test('normalizes candidate ids before resource lookup and download', () async {
+      final musicDataRepository = _FakeMusicDataRepository({
+        '1': _trackWithResources('1'),
+      });
+      final planner = DownloadQueuePlanner(
+        musicDataRepository: musicDataRepository,
+        taskDataSource: _FakeDownloadTaskDataSource(tasks: const []),
+      );
+      final downloadedTrackIds = <String>[];
+
+      await planner.queueTracks(
+        const [' 1 ', '1', '   '],
+        downloadTrack: (
+          trackId, {
+          bool preferHighQuality = true,
+        }) async {
+          downloadedTrackIds.add(trackId);
+          return null;
+        },
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(musicDataRepository.requestedTrackIds, ['1']);
+      expect(downloadedTrackIds, ['1']);
+    });
+
+    test('matches active tasks with normalized candidate ids', () async {
+      final musicDataRepository = _FakeMusicDataRepository({
+        '1': _trackWithResources('1'),
+      });
+      final planner = DownloadQueuePlanner(
+        musicDataRepository: musicDataRepository,
+        taskDataSource: _FakeDownloadTaskDataSource(
+          tasks: [
+            _task('1', DownloadTaskStatus.queued),
+          ],
+        ),
+      );
+      final downloadedTrackIds = <String>[];
+
+      await planner.queueTracks(
+        const [' 1 '],
+        downloadTrack: (
+          trackId, {
+          bool preferHighQuality = true,
+        }) async {
+          downloadedTrackIds.add(trackId);
+          return null;
+        },
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(musicDataRepository.requestedTrackIds, ['1']);
+      expect(downloadedTrackIds, isEmpty);
+    });
+
     test('loads active tasks once and filters queued downloads in memory', () async {
       final tempDirectory = Directory.systemTemp.createTempSync(
         'download-queue-planner-',

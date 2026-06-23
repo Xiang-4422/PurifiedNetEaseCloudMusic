@@ -34,7 +34,7 @@ class DownloadQueuePlanner {
     }) downloadTrack,
     bool preferHighQuality = true,
   }) async {
-    final candidateIds = trackIds.where((trackId) => trackId.trim().isNotEmpty).toSet().toList();
+    final candidateIds = _candidateTrackIds(trackIds);
     if (candidateIds.isEmpty) {
       return;
     }
@@ -48,7 +48,7 @@ class DownloadQueuePlanner {
         DownloadTaskStatus.downloading,
       },
     );
-    final activeTaskIds = activeTasks.map((task) => task.trackId).toSet();
+    final activeTaskIds = activeTasks.map((task) => _normalizedTrackId(task.trackId)).where((trackId) => trackId.isNotEmpty).toSet();
     for (final trackId in candidateIds) {
       final trackWithResources = tracksById[trackId];
       if (activeTaskIds.contains(trackId)) {
@@ -70,6 +70,19 @@ class DownloadQueuePlanner {
         ),
       );
     }
+  }
+
+  List<String> _candidateTrackIds(Iterable<String> trackIds) {
+    final seen = <String>{};
+    final candidateIds = <String>[];
+    for (final trackId in trackIds) {
+      final normalizedTrackId = _normalizedTrackId(trackId);
+      if (normalizedTrackId.isEmpty || !seen.add(normalizedTrackId)) {
+        continue;
+      }
+      candidateIds.add(normalizedTrackId);
+    }
+    return candidateIds;
   }
 
   Future<void> _startQueuedDownload(
@@ -102,5 +115,9 @@ class DownloadQueuePlanner {
     }
     final path = LocalFilePathNormalizer.normalize(resource.path);
     return path.isNotEmpty && File(path).existsSync();
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
   }
 }

@@ -32,7 +32,11 @@ void main() {
     });
 
     test('ignores blank track ids before task state or resource lookup', () async {
-      final taskDataSource = _FakeDownloadTaskDataSource();
+      final taskDataSource = _FakeDownloadTaskDataSource(
+        tasks: [
+          _task(' 1 ', DownloadTaskStatus.queued),
+        ],
+      );
       final musicDataRepository = _FakeMusicDataRepository();
       final repository = _buildRepository(
         taskDataSource: taskDataSource,
@@ -54,6 +58,54 @@ void main() {
       expect(taskDataSource.removedTrackIds, isEmpty);
       expect(musicDataRepository.trackWithResourcesCallCount, 0);
       expect(musicDataRepository.playbackUrlCallCount, 0);
+    });
+
+    test('normalizes track ids before task state and resource lookup', () async {
+      final taskDataSource = _FakeDownloadTaskDataSource();
+      final resourceWriter = _FakeDownloadResourceWriter(saveManagedResult: true);
+      final musicDataRepository = _FakeMusicDataRepository();
+      final repository = _buildRepository(
+        taskDataSource: taskDataSource,
+        fileStore: _FakeDownloadFileStore(tempDirectory),
+        resourceWriter: resourceWriter,
+        musicDataRepository: musicDataRepository,
+      );
+
+      final track = await repository.downloadTrack(' 1 ');
+
+      expect(track?.id, '1');
+      expect(taskDataSource.getTaskTrackIds, containsAll(['1', ' 1 ']));
+      expect(taskDataSource.savedTrackIds, everyElement('1'));
+      expect(taskDataSource.removedTrackIds, containsAll([' 1 ', '1']));
+      expect(musicDataRepository.trackRequestIds, everyElement('1'));
+      expect(musicDataRepository.trackWithResourcesRequestIds, ['1']);
+      expect(musicDataRepository.playbackUrlTrackIds, ['1']);
+      expect(resourceWriter.savedManagedTrackIds, ['1']);
+      expect(resourceWriter.savedLocalPaths.single, endsWith('/audio/1.mp3'));
+
+      final cacheTaskDataSource = _FakeDownloadTaskDataSource();
+      final cacheResourceWriter = _FakeDownloadResourceWriter(
+        saveManagedResult: true,
+      );
+      final cacheMusicDataRepository = _FakeMusicDataRepository();
+      final cacheRepository = _buildRepository(
+        taskDataSource: cacheTaskDataSource,
+        fileStore: _FakeDownloadFileStore(tempDirectory),
+        resourceWriter: cacheResourceWriter,
+        musicDataRepository: cacheMusicDataRepository,
+      );
+
+      final cachedTrack = await cacheRepository.cacheTrackForPlayback(' 1 ');
+
+      expect(cachedTrack?.id, '1');
+      expect(cacheTaskDataSource.savedTrackIds, isEmpty);
+      expect(cacheMusicDataRepository.trackWithResourcesRequestIds, ['1']);
+      expect(cacheMusicDataRepository.playbackUrlTrackIds, ['1']);
+      expect(cacheResourceWriter.savedPlaybackCacheTrackIds, ['1']);
+      expect(
+        cacheResourceWriter.savedPlaybackCacheAudioPaths.single,
+        endsWith('/cache-audio/1.mp3'),
+      );
     });
 
     test('clears task only after downloaded audio is indexed', () async {
@@ -369,15 +421,20 @@ class _FakeMusicDataRepository implements MusicDataRepository {
     title: 'Track 1',
   );
   int trackWithResourcesCallCount = 0;
+  final List<String> playbackUrlTrackIds = [];
+  final List<String> trackRequestIds = [];
+  final List<String> trackWithResourcesRequestIds = [];
 
   @override
   Future<Track?> getTrack(String trackId) async {
+    trackRequestIds.add(trackId);
     return trackId == _track.id ? _track : null;
   }
 
   @override
   Future<TrackWithResources?> getTrackWithResources(String trackId) async {
     trackWithResourcesCallCount++;
+    trackWithResourcesRequestIds.add(trackId);
     if (trackId != _track.id) {
       return null;
     }
@@ -394,6 +451,7 @@ class _FakeMusicDataRepository implements MusicDataRepository {
     bool forceRefresh = false,
   }) async {
     playbackUrlCallCount++;
+    playbackUrlTrackIds.add(trackId);
     return 'https://audio.test/$trackId.mp3';
   }
 
@@ -562,7 +620,9 @@ class _FakeDownloadResourceWriter extends DownloadResourceWriter {
   final bool saveManagedResult;
   final bool savePlaybackCacheResult;
   final List<String> savedLocalPaths = [];
+  final List<String> savedManagedTrackIds = [];
   final List<String> savedPlaybackCacheAudioPaths = [];
+  final List<String> savedPlaybackCacheTrackIds = [];
   final List<String> promotedTrackIds = [];
 
   @override
@@ -572,6 +632,7 @@ class _FakeDownloadResourceWriter extends DownloadResourceWriter {
     String? artworkPath,
     String? lyricsPath,
   }) async {
+    savedManagedTrackIds.add(trackId);
     savedLocalPaths.add(localPath);
     return saveManagedResult;
   }
@@ -583,6 +644,7 @@ class _FakeDownloadResourceWriter extends DownloadResourceWriter {
     String? artworkPath,
     String? lyricsPath,
   }) async {
+    savedPlaybackCacheTrackIds.add(trackId);
     savedPlaybackCacheAudioPaths.add(audioPath);
     return savePlaybackCacheResult;
   }

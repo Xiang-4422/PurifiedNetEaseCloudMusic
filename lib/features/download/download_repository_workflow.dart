@@ -7,6 +7,20 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
     String trackId, {
     required bool preferHighQuality,
   }) async {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return null;
+    }
+    return _performDownloadTrack(
+      normalizedTrackId,
+      preferHighQuality: preferHighQuality,
+    );
+  }
+
+  Future<Track?> _performDownloadTrack(
+    String trackId, {
+    required bool preferHighQuality,
+  }) async {
     if (_taskQueue.isCancelled(trackId)) {
       await clearCancelledTask(trackId);
       return null;
@@ -141,6 +155,20 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
     String trackId, {
     required bool preferHighQuality,
   }) async {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return null;
+    }
+    return _performCacheTrackForPlayback(
+      normalizedTrackId,
+      preferHighQuality: preferHighQuality,
+    );
+  }
+
+  Future<Track?> _performCacheTrackForPlayback(
+    String trackId, {
+    required bool preferHighQuality,
+  }) async {
     final trackWithResources = await _musicDataRepository.getTrackWithResources(
       trackId,
     );
@@ -195,8 +223,12 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
 
   /// 清理取消任务状态。
   Future<void> clearCancelledTask(String trackId) async {
-    await _taskStateStore.clearTask(trackId);
-    _taskQueue.clearCancelled(trackId);
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return;
+    }
+    await _taskStateStore.clearTask(normalizedTrackId);
+    _taskQueue.clearCancelled(normalizedTrackId);
   }
 
   bool _resourceFileExists(LocalResourceEntry? resource) {

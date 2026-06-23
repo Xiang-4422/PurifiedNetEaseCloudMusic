@@ -1687,22 +1687,29 @@ void main() {
       final repositoryFile = File(
         '${projectRoot.path}/lib/features/download/download_repository.dart',
       );
+      final taskStoreFile = File(
+        '${projectRoot.path}/lib/features/download/application/download_task_state_store.dart',
+      );
       final plannerFile = File(
         '${projectRoot.path}/lib/features/download/application/download_queue_planner.dart',
       );
       final repository = repositoryFile.readAsStringSync();
+      final taskStore = taskStoreFile.readAsStringSync();
       final planner = plannerFile.readAsStringSync();
-      final blankGuardCount = '_isBlankTrackId(trackId)'.allMatches(repository).length;
+      final normalizedEntryCount = 'final normalizedTrackId = _normalizedTrackId(trackId);'.allMatches(repository).length;
       final violations = <String>[
         if (!repository.contains('bool _isBlankTrackId(String trackId)')) '${_relativePath(repositoryFile)} does not define a blank track guard',
-        if (blankGuardCount < 6) '${_relativePath(repositoryFile)} does not guard all public task entry points',
-        if (!planner.contains('.where((trackId) => trackId.trim().isNotEmpty)')) '${_relativePath(plannerFile)} does not filter blank batch candidates before lookup',
+        if (!repository.contains('String _normalizedTrackId(String trackId)')) '${_relativePath(repositoryFile)} does not define a normalized track id helper',
+        if (normalizedEntryCount < 6) '${_relativePath(repositoryFile)} does not normalize all public task entry points',
+        if (!taskStore.contains('trackId: normalizedTrackId')) '${_relativePath(taskStoreFile)} can still write raw track ids into download_tasks',
+        if (!planner.contains('final candidateIds = _candidateTrackIds(trackIds);')) '${_relativePath(plannerFile)} does not normalize batch candidates before lookup',
+        if (!planner.contains('_normalizedTrackId(task.trackId)')) '${_relativePath(plannerFile)} does not normalize active task ids before matching',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '下载任务入口不能接受空白曲目 id；空白 id 不能创建 download_tasks，也不能进入批量资源查询。',
+        reason: '下载任务入口必须先规范化曲目 id，再拒绝空白曲目 id；异常 id 不能创建重复 download_tasks，也不能绕过批量资源或 active task 查询。',
       );
     });
 

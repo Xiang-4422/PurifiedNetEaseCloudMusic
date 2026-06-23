@@ -406,6 +406,66 @@ void main() {
       expect(decoded.single.playbackUrl, '/cache/audio/song with space.mp3');
     });
 
+    test('cache codec normalizes local artwork and lyrics paths for restore cache', () async {
+      final artworkUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/artwork/cover with space.jpg',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final lyricsUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/lyrics/song with space.lrc',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final encoded = await encodePlaybackQueueItemCacheList([
+        _queueItem(
+          localArtworkPath: artworkUri,
+          localLyricsPath: lyricsUri,
+        ),
+      ]);
+      final raw = jsonDecode(encoded.single) as Map<String, dynamic>;
+
+      expect(raw['localArtworkPath'], '/cache/artwork/cover with space.jpg');
+      expect(raw['localLyricsPath'], '/cache/lyrics/song with space.lrc');
+
+      final decoded = await decodePlaybackQueueItemCacheList(encoded);
+      expect(decoded.single.localArtworkPath, '/cache/artwork/cover with space.jpg');
+      expect(decoded.single.localLyricsPath, '/cache/lyrics/song with space.lrc');
+    });
+
+    test('cache codec drops remote artwork and lyrics paths from restore cache', () async {
+      final encoded = await encodePlaybackQueueItemCacheList([
+        _queueItem(
+          localArtworkPath: 'https://image.test/cover.jpg',
+          localLyricsPath: 'https://lyrics.test/song.lrc',
+        ),
+      ]);
+      final raw = jsonDecode(encoded.single) as Map<String, dynamic>;
+
+      expect(raw['localArtworkPath'], isNull);
+      expect(raw['localLyricsPath'], isNull);
+
+      final decoded = await decodePlaybackQueueItemCacheList(encoded);
+      expect(decoded.single.localArtworkPath, isNull);
+      expect(decoded.single.localLyricsPath, isNull);
+
+      final legacy = jsonEncode({
+        'id': 'netease:1',
+        'sourceId': '1',
+        'title': 'Legacy',
+        'localArtworkPath': 'https://image.test/legacy.jpg',
+        'metadata': {
+          'localLyricsPath': 'https://lyrics.test/legacy.lrc',
+        },
+      });
+      final decodedLegacy = await decodePlaybackQueueItemCacheList([legacy]);
+
+      expect(decodedLegacy.single.localArtworkPath, isNull);
+      expect(decodedLegacy.single.localLyricsPath, isNull);
+    });
+
     test('cache codec migrates legacy metadata source type into explicit field', () async {
       final encoded = jsonEncode({
         'id': 'local:/music/a.mp3',

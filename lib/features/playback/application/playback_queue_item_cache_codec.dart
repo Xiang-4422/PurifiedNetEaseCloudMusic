@@ -62,11 +62,11 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
     artistIds: _stringList(json['artistIds'] ?? metadata['artistIds']),
     duration: json['duration'] is int ? Duration(milliseconds: json['duration'] as int) : null,
     artworkUrl: json['artworkUrl'] as String?,
-    localArtworkPath: json['localArtworkPath'] as String?,
+    localArtworkPath: _restorableLocalPath(json['localArtworkPath']),
     mediaType: mediaType,
     playbackUrl: playbackUrl,
     lyricKey: json['lyricKey'] as String?,
-    localLyricsPath: _stringOrNull(json['localLyricsPath']) ?? _stringOrNull(metadata['localLyricsPath']),
+    localLyricsPath: _restorableLocalPath(json['localLyricsPath']) ?? _restorableLocalPath(metadata['localLyricsPath']),
     availability: _availabilityFrom(json['availability'] ?? metadata['availability']),
     isLiked: json['isLiked'] as bool? ?? false,
     isCached: hasUsableCachedAudio(
@@ -91,11 +91,11 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
     'artistIds': item.artistIds,
     'duration': item.duration?.inMilliseconds,
     'artworkUrl': item.artworkUrl,
-    'localArtworkPath': item.localArtworkPath,
+    'localArtworkPath': _restorableLocalPath(item.localArtworkPath),
     'mediaType': item.mediaType.name,
     'playbackUrl': _restorablePlaybackUrl(item.playbackUrl),
     'lyricKey': item.lyricKey,
-    'localLyricsPath': item.localLyricsPath,
+    'localLyricsPath': _restorableLocalPath(item.localLyricsPath),
     'availability': item.availability.name,
     'isLiked': item.isLiked,
     'isCached': hasUsableCachedAudio(
@@ -150,6 +150,11 @@ String? _stringOrNull(Object? value) {
 }
 
 String? _restorablePlaybackUrl(Object? value) {
+  final normalized = LocalFilePathNormalizer.normalize(_stringOrNull(value));
+  return normalized.isEmpty ? null : normalized;
+}
+
+String? _restorableLocalPath(Object? value) {
   final normalized = LocalFilePathNormalizer.normalize(_stringOrNull(value));
   return normalized.isEmpty ? null : normalized;
 }

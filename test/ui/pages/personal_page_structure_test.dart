@@ -5,23 +5,33 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('personal page keeps continue playback as the first quick start action', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final standardSource = File(
+      'lib/ui/pages/user/widgets/standard_personal_home_page.dart',
+    ).readAsStringSync();
+    final squareHomeSource = File(
+      'lib/ui/pages/user/widgets/square_personal_home_page.dart',
+    ).readAsStringSync();
     final quickStartSource = File(
       'lib/ui/pages/user/widgets/quick_start_card_rail.dart',
     ).readAsStringSync();
     final quickStartSectionSource = File(
       'lib/ui/pages/user/widgets/quick_start_section.dart',
     ).readAsStringSync();
-    final firstRailIndex = source.indexOf('QuickStartSection(');
-    final squareRailIndex = source.indexOf('SquareQuickStartPage(');
+    final firstRailIndex = standardSource.indexOf('QuickStartSection(');
+    final squareRailIndex = squareHomeSource.indexOf('SquareQuickStartPage(');
     final continueIndex = quickStartSource.indexOf('_ContinuePlaybackQuickStartCard(');
     final dailyIndex = quickStartSource.indexOf('_DailyRecommendQuickStartCard(');
 
     expect(firstRailIndex, isNonNegative);
     expect(squareRailIndex, isNonNegative);
     expect(continueIndex, lessThan(dailyIndex));
-    expect(source, contains('quick_start_section.dart'));
+    expect(source, contains('standard_personal_home_page.dart'));
+    expect(source, contains('square_personal_home_page.dart'));
+    expect(source, isNot(contains('quick_start_section.dart')));
     expect(source, isNot(contains('QuickStartCardRail(')));
     expect(source, isNot(contains('squareQuickCardSize(')));
+    expect(standardSource, contains('quick_start_section.dart'));
+    expect(squareHomeSource, contains('quick_start_section.dart'));
     expect(quickStartSectionSource, contains('class QuickStartSection'));
     expect(quickStartSectionSource, contains('class SquareQuickStartPage'));
     expect(quickStartSectionSource, contains('QuickStartCardRail('));
@@ -34,27 +44,37 @@ void main() {
 
   test('personal page exposes focused library shortcuts before recommendations', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final standardSource = File(
+      'lib/ui/pages/user/widgets/standard_personal_home_page.dart',
+    ).readAsStringSync();
+    final squareHomeSource = File(
+      'lib/ui/pages/user/widgets/square_personal_home_page.dart',
+    ).readAsStringSync();
     final sectionSource = File(
       'lib/ui/pages/user/widgets/library_shortcut_section.dart',
     ).readAsStringSync();
     final shortcutSource = File(
       'lib/ui/pages/user/widgets/library_shortcut_bar.dart',
     ).readAsStringSync();
-    final libraryIndex = source.indexOf('LibraryShortcutSection(');
-    final squareLibraryIndex = source.indexOf('SquareLibraryPage(');
-    final recommendedIndex = source.indexOf('RecommendedPlaylistPinnedHeaderSliver(');
+    final libraryIndex = standardSource.indexOf('LibraryShortcutSection(');
+    final squareLibraryIndex = squareHomeSource.indexOf('SquareLibraryPage(');
+    final recommendedIndex = standardSource.indexOf('RecommendedPlaylistPinnedHeaderSliver(');
 
     expect(libraryIndex, isNonNegative);
     expect(squareLibraryIndex, isNonNegative);
     expect(recommendedIndex, isNonNegative);
     expect(libraryIndex, lessThan(recommendedIndex));
-    expect(source, contains('library_shortcut_section.dart'));
-    expect(source, contains('square_library_page.dart'));
+    expect(source, contains('standard_personal_home_page.dart'));
+    expect(source, contains('square_personal_home_page.dart'));
+    expect(source, isNot(contains('library_shortcut_section.dart')));
+    expect(source, isNot(contains('square_library_page.dart')));
+    expect(standardSource, contains('library_shortcut_section.dart'));
+    expect(squareHomeSource, contains('square_library_page.dart'));
     expect(source, isNot(contains("Header('资料库'")));
     expect(source, isNot(contains('child: LibraryShortcutBar()')));
     expect(sectionSource, contains("Header(\n      '资料库'"));
     expect(sectionSource, contains('LibraryShortcutBar()'));
-    expect(source, contains('recommended_playlist_slivers.dart'));
+    expect(standardSource, contains('recommended_playlist_slivers.dart'));
     expect(shortcutSource, contains("label: '我喜欢'"));
     expect(shortcutSource, contains("label: '我的歌单'"));
     expect(shortcutSource, contains("label: '本地音乐'"));
@@ -74,6 +94,9 @@ void main() {
 
   test('recommended playlists rendering stays in local user widgets', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final standardSource = File(
+      'lib/ui/pages/user/widgets/standard_personal_home_page.dart',
+    ).readAsStringSync();
     final sliverSource = File(
       'lib/ui/pages/user/widgets/recommended_playlist_slivers.dart',
     ).readAsStringSync();
@@ -82,8 +105,10 @@ void main() {
     ).readAsStringSync();
     final appBodySource = File('lib/ui/pages/shell/app_body_page_view.dart').readAsStringSync();
 
-    expect(source, contains('RecommendedPlaylistPinnedHeaderSliver('));
-    expect(source, contains('RecommendedPlaylistListSliver(controller: recommendationController)'));
+    expect(source, contains('StandardPersonalHomePage('));
+    expect(source, isNot(contains('RecommendedPlaylistPinnedHeaderSliver(')));
+    expect(standardSource, contains('RecommendedPlaylistPinnedHeaderSliver('));
+    expect(standardSource, contains('RecommendedPlaylistListSliver(controller: recommendationController)'));
     expect(source, isNot(contains('class RecommendedPlaylistsPageView')));
     expect(source, isNot(contains('SliverList.builder(')));
     expect(source, isNot(contains('PlayListItem(recommendationController.recoPlayLists')));
@@ -112,6 +137,9 @@ void main() {
 
   test('personal page shows recent playback before frequent playlists and library sections', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final standardSource = File(
+      'lib/ui/pages/user/widgets/standard_personal_home_page.dart',
+    ).readAsStringSync();
     final recentPlaybackSource = File(
       'lib/ui/pages/user/widgets/recent_playback_strip.dart',
     ).readAsStringSync();
@@ -122,12 +150,12 @@ void main() {
       'lib/ui/pages/user/widgets/square_library_page.dart',
     ).readAsStringSync();
     final recentControllerIndex = source.indexOf('final recentPlaybackController = RecentPlaybackController.to;');
-    final recentStripIndex = source.indexOf('child: RecentPlaybackStrip(');
-    final squareRecentStripIndex = source.indexOf('SquareLibraryPage(');
+    final recentStripIndex = standardSource.indexOf('RecentPlaybackStrip(');
+    final squareRecentStripIndex = squareLibrarySource.indexOf('RecentPlaybackStrip(');
     final recentHeaderIndex = recentPlaybackSource.indexOf("'最近播放'");
-    final playlistHeaderIndex = source.indexOf('FrequentPlaylistSection(');
+    final playlistHeaderIndex = standardSource.indexOf('FrequentPlaylistSection(');
     final squarePlaylistHeaderIndex = squareLibrarySource.indexOf('FrequentPlaylistSection(');
-    final libraryHeaderIndex = source.indexOf('LibraryShortcutSection(');
+    final libraryHeaderIndex = standardSource.indexOf('LibraryShortcutSection(');
 
     expect(recentControllerIndex, isNonNegative);
     expect(recentStripIndex, isNonNegative);
@@ -136,12 +164,16 @@ void main() {
     expect(playlistHeaderIndex, isNonNegative);
     expect(squarePlaylistHeaderIndex, isNonNegative);
     expect(libraryHeaderIndex, isNonNegative);
+    expect(source, contains('SquarePersonalHomePage('));
     expect(recentStripIndex, lessThan(playlistHeaderIndex));
     expect(squareRecentStripIndex, lessThan(squarePlaylistHeaderIndex));
     expect(playlistHeaderIndex, lessThan(libraryHeaderIndex));
     expect(recentPlaybackSource, contains("playListName: '最近播放'"));
-    expect(source, contains('frequent_playlist_section.dart'));
-    expect(source, contains('square_library_page.dart'));
+    expect(source, contains('standard_personal_home_page.dart'));
+    expect(source, contains('square_personal_home_page.dart'));
+    expect(source, isNot(contains('frequent_playlist_section.dart')));
+    expect(source, isNot(contains('square_library_page.dart')));
+    expect(standardSource, contains('frequent_playlist_section.dart'));
     expect(source, isNot(contains('homeFrequentPlaylists')));
     expect(source, isNot(contains('PlaylistRepository')));
     expect(frequentPlaylistSource, contains("'常用歌单'"));
@@ -155,6 +187,9 @@ void main() {
 
   test('personal page artwork entries use playback artwork resolver', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final standardSource = File(
+      'lib/ui/pages/user/widgets/standard_personal_home_page.dart',
+    ).readAsStringSync();
     final quickStartSource = File(
       'lib/ui/pages/user/widgets/quick_start_card_rail.dart',
     ).readAsStringSync();
@@ -166,8 +201,9 @@ void main() {
     ).readAsStringSync();
     final todayPageSource = File('lib/ui/pages/user/today_page_view.dart').readAsStringSync();
 
-    expect(source, contains('quick_start_section.dart'));
+    expect(source, contains('standard_personal_home_page.dart'));
     expect(source, isNot(contains('quick_start_card_rail.dart')));
+    expect(standardSource, isNot(contains('quick_start_card_rail.dart')));
     expect(quickStartSectionSource, contains('quick_start_card_rail.dart'));
     expect(source, isNot(contains('String _playbackArtworkPath(PlaybackQueueItem item)')));
     expect(quickStartSource, contains('String _playbackArtworkPath(PlaybackQueueItem item)'));
@@ -185,6 +221,12 @@ void main() {
 
   test('personal page keeps quick start card details in local widget file', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final standardSource = File(
+      'lib/ui/pages/user/widgets/standard_personal_home_page.dart',
+    ).readAsStringSync();
+    final squareHomeSource = File(
+      'lib/ui/pages/user/widgets/square_personal_home_page.dart',
+    ).readAsStringSync();
     final quickStartSource = File(
       'lib/ui/pages/user/widgets/quick_start_card_rail.dart',
     ).readAsStringSync();
@@ -192,8 +234,12 @@ void main() {
       'lib/ui/pages/user/widgets/quick_start_section.dart',
     ).readAsStringSync();
 
-    expect(source, contains('QuickStartSection('));
-    expect(source, contains('SquareQuickStartPage('));
+    expect(source, contains('StandardPersonalHomePage('));
+    expect(source, contains('SquarePersonalHomePage('));
+    expect(source, isNot(contains('QuickStartSection(')));
+    expect(source, isNot(contains('SquareQuickStartPage(')));
+    expect(standardSource, contains('QuickStartSection('));
+    expect(squareHomeSource, contains('SquareQuickStartPage('));
     expect(source, isNot(contains('QuickStartCardRail(')));
     expect(source, isNot(contains('class QuickStartCard')));
     expect(source, isNot(contains('LongPressOverlayTransition(')));

@@ -140,6 +140,12 @@ void main() {
       expect(report['oracleInvalidFixtures'], isEmpty);
       expect(report['oracleDuplicateFixtures'], isEmpty);
       expect(report['oracleUnknownModules'], isEmpty);
+      expect(report['rawConvenienceMethodCount'], apiEnhancedModules.length);
+      expect(report['rawConvenienceMissingModules'], isEmpty);
+      expect(report['rawConvenienceUnknownModules'], isEmpty);
+      expect(report['rawConvenienceDuplicateModules'], isEmpty);
+      expect(report['rawConvenienceDuplicateMethodNames'], isEmpty);
+      expect(report['rawConvenienceMethodNameMismatches'], isEmpty);
       expect(report['normalMissingOracle'], isEmpty);
       expect(report['specialMissingStatus'], isEmpty);
       expect(report['specialNodeOracleMissingFixture'], isEmpty);
@@ -386,6 +392,74 @@ void main() {
       expect(
         sdkDifferences.where((item) => item['status'].toString().endsWith('_special_dispatcher')).map((item) => item['scope']).toSet(),
         {'raw_dispatcher'},
+      );
+    });
+
+    test('coverage report rejects stale raw convenience methods', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_raw_methods_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final rawMethods = File(
+        '${repoRoot.path}/packages/netease_music_api/lib/src/endpoints/raw/api_enhanced_raw_methods.g.dart',
+      ).readAsStringSync();
+      final withoutAlbum = rawMethods.replaceFirst(
+        """
+  /// Raw api-enhanced module `album`.
+  Future<dynamic> album(Map<String, dynamic> query) =>
+      requestModule('album', query);
+
+""",
+        '',
+      );
+      final withMethodNameMismatch = withoutAlbum.replaceFirst(
+        "  Future<dynamic> albumSub(Map<String, dynamic> query) =>\n      requestModule('album_sub', query);",
+        "  Future<dynamic> codexAlbumSub(Map<String, dynamic> query) =>\n      requestModule('album_sub', query);",
+      );
+      final withUnknownAndDuplicate = withMethodNameMismatch.replaceFirst(
+        '\n}\n',
+        "\n  Future<dynamic> codexUnknownModule(Map<String, dynamic> query) =>\n      requestModule('codex_unknown_module', query);\n\n  Future<dynamic> api(Map<String, dynamic> query) =>\n      requestModule('api', query);\n}\n",
+      );
+      expect(withUnknownAndDuplicate, isNot(rawMethods));
+      final rawMethodsFile = File('${tempDir.path}/api_enhanced_raw_methods.g.dart')..writeAsStringSync(withUnknownAndDuplicate);
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--raw-methods=${rawMethodsFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(report['rawConvenienceMissingModules'], contains('album'));
+      expect(report['rawConvenienceUnknownModules'], contains('codex_unknown_module'));
+      expect(report['rawConvenienceDuplicateModules'], contains('api'));
+      expect(report['rawConvenienceDuplicateMethodNames'], contains('api'));
+      expect(
+        _jsonMapList(report['rawConvenienceMethodNameMismatches']).map((item) => item['module']),
+        contains('album_sub'),
+      );
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      expect(
+        sdkDifferences.map((item) => item['status']).toSet(),
+        containsAll({
+          'missing_raw_convenience_method',
+          'unknown_raw_convenience_method',
+          'duplicate_raw_convenience_module',
+          'duplicate_raw_convenience_method_name',
+          'raw_convenience_method_name_mismatch',
+        }),
+      );
+      expect(
+        sdkDifferences.where((item) => item['status'].toString().contains('raw_convenience')).map((item) => item['scope']).toSet(),
+        {'raw_convenience_methods'},
       );
     });
 

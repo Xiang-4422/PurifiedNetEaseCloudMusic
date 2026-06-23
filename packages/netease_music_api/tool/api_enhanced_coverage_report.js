@@ -14,6 +14,10 @@ const generatedManifestPath = generatedManifestArg
   ? path.resolve(repoRoot, generatedManifestArg.slice('--generated-manifest='.length))
   : path.join(repoRoot, 'packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart')
 const oracleScriptPath = path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_node_oracle.js')
+const rawMethodsArg = process.argv.find((arg) => arg.startsWith('--raw-methods='))
+const rawMethodsPath = rawMethodsArg
+  ? path.resolve(repoRoot, rawMethodsArg.slice('--raw-methods='.length))
+  : path.join(repoRoot, 'packages/netease_music_api/lib/src/endpoints/raw/api_enhanced_raw_methods.g.dart')
 const rawDispatcherArg = process.argv.find((arg) => arg.startsWith('--raw-dispatcher='))
 const rawDispatcherPath = rawDispatcherArg
   ? path.resolve(repoRoot, rawDispatcherArg.slice('--raw-dispatcher='.length))
@@ -106,6 +110,18 @@ function loadRawDispatcherModules() {
   }
   const switchSource = source.slice(switchStart, fallbackStart)
   return [...switchSource.matchAll(/case\s+'([^']+)'\s*:/g)].map((match) => match[1]).sort()
+}
+
+function loadRawConvenienceMethods() {
+  const source = fs.readFileSync(rawMethodsPath, 'utf8')
+  return [
+    ...source.matchAll(
+      /Future<dynamic>\s+([A-Za-z0-9_]+)\(Map<String,\s*dynamic>\s+query\)\s*=>\s*requestModule\('([^']+)'\s*,\s*query\);/g,
+    ),
+  ].map((match) => ({
+    methodName: match[1],
+    module: match[2],
+  }))
 }
 
 function gitOutput(args) {
@@ -415,6 +431,7 @@ const upstreamModules = loadUpstreamModules()
 const manifest = loadManifest()
 const entries = manifest.entries
 const oracleFixtures = loadOracleFixtures()
+const rawConvenienceMethods = loadRawConvenienceMethods()
 const rawDispatcherModules = loadRawDispatcherModules()
 const oracleFixtureList = Array.isArray(oracleFixtures) ? oracleFixtures : []
 const oracleModuleList = oracleFixtureList
@@ -424,8 +441,12 @@ const oracleModuleList = oracleFixtureList
 const oracleModules = new Set(oracleModuleList)
 const manifestModules = entries.map((entry) => entry.module)
 const manifestMethodNames = entries.map((entry) => entry.methodName)
+const manifestMethodNameByModule = new Map(entries.map((entry) => [entry.module, entry.methodName]))
+const rawConvenienceModules = rawConvenienceMethods.map((entry) => entry.module)
+const rawConvenienceMethodNames = rawConvenienceMethods.map((entry) => entry.methodName)
 const upstreamModuleSet = new Set(upstreamModules)
 const manifestModuleSet = new Set(manifestModules)
+const rawConvenienceModuleSet = new Set(rawConvenienceModules)
 const normalModules = entries.filter((entry) => !entry.special).map((entry) => entry.module)
 const specialModules = entries.filter((entry) => entry.special).map((entry) => entry.module)
 const specialSet = new Set(specialModules)
@@ -464,6 +485,18 @@ const specialCoverageDuplicateEntries = duplicateSpecialCoverageEntries(coverage
 const oracleInvalidFixtures = validateOracleFixtures(oracleFixtures)
 const oracleDuplicateFixtures = duplicateFixtures(oracleFixtureList)
 const oracleUnknownModules = sorted([...oracleModules].filter((module) => !manifestModuleSet.has(module)))
+const rawConvenienceMissingModules = sorted(manifestModules.filter((module) => !rawConvenienceModuleSet.has(module)))
+const rawConvenienceUnknownModules = sorted(rawConvenienceModules.filter((module) => !manifestModuleSet.has(module)))
+const rawConvenienceDuplicateModules = duplicateValues(rawConvenienceModules)
+const rawConvenienceDuplicateMethodNames = duplicateValues(rawConvenienceMethodNames)
+const rawConvenienceMethodNameMismatches = rawConvenienceMethods
+  .filter((entry) => manifestMethodNameByModule.has(entry.module) && manifestMethodNameByModule.get(entry.module) !== entry.methodName)
+  .map((entry) => ({
+    module: entry.module,
+    manifestMethodName: manifestMethodNameByModule.get(entry.module),
+    rawMethodName: entry.methodName,
+  }))
+  .sort((left, right) => left.module.localeCompare(right.module))
 const normalMissingOracle = sorted(normalModules.filter((module) => !oracleModules.has(module)))
 const specialMissingStatus = sorted(specialModules.filter((module) => !categorizedSpecial.has(module)))
 const specialUnknownStatus = sorted([...categorizedSpecial].filter((module) => !specialSet.has(module)))
@@ -559,6 +592,46 @@ function buildSdkDifferences() {
       status: 'unknown_node_oracle_fixture',
       reason: 'Node oracle fixture references a module that is not in the generated manifest.',
       scope: 'node_oracle',
+    })
+  }
+  for (const module of rawConvenienceMissingModules) {
+    differences.push({
+      module,
+      status: 'missing_raw_convenience_method',
+      reason: 'Generated raw convenience methods do not include this manifest module.',
+      scope: 'raw_convenience_methods',
+    })
+  }
+  for (const module of rawConvenienceUnknownModules) {
+    differences.push({
+      module,
+      status: 'unknown_raw_convenience_method',
+      reason: 'Generated raw convenience methods reference a module that is not in the manifest.',
+      scope: 'raw_convenience_methods',
+    })
+  }
+  for (const module of rawConvenienceDuplicateModules) {
+    differences.push({
+      module,
+      status: 'duplicate_raw_convenience_module',
+      reason: 'Generated raw convenience methods reference this module more than once.',
+      scope: 'raw_convenience_methods',
+    })
+  }
+  for (const methodName of rawConvenienceDuplicateMethodNames) {
+    differences.push({
+      module: '<raw_convenience_methods>',
+      status: 'duplicate_raw_convenience_method_name',
+      reason: `Generated raw convenience method name ${methodName} appears more than once.`,
+      scope: 'raw_convenience_methods',
+    })
+  }
+  for (const mismatch of rawConvenienceMethodNameMismatches) {
+    differences.push({
+      module: mismatch.module,
+      status: 'raw_convenience_method_name_mismatch',
+      reason: `Generated raw convenience method name ${mismatch.rawMethodName} does not match manifest method name ${mismatch.manifestMethodName}.`,
+      scope: 'raw_convenience_methods',
     })
   }
   for (const module of oracleDuplicateFixtures) {
@@ -746,6 +819,12 @@ const report = {
   oracleInvalidFixtures,
   oracleDuplicateFixtures,
   oracleUnknownModules,
+  rawConvenienceMethodCount: rawConvenienceMethods.length,
+  rawConvenienceMissingModules,
+  rawConvenienceUnknownModules,
+  rawConvenienceDuplicateModules,
+  rawConvenienceDuplicateMethodNames,
+  rawConvenienceMethodNameMismatches,
   normalMissingOracle,
   specialMissingStatus,
   specialUnknownStatus,
@@ -781,6 +860,11 @@ const hasFailure =
   report.oracleInvalidFixtures.length > 0 ||
   report.oracleDuplicateFixtures.length > 0 ||
   report.oracleUnknownModules.length > 0 ||
+  report.rawConvenienceMissingModules.length > 0 ||
+  report.rawConvenienceUnknownModules.length > 0 ||
+  report.rawConvenienceDuplicateModules.length > 0 ||
+  report.rawConvenienceDuplicateMethodNames.length > 0 ||
+  report.rawConvenienceMethodNameMismatches.length > 0 ||
   report.normalMissingOracle.length > 0 ||
   report.specialMissingStatus.length > 0 ||
   report.specialUnknownStatus.length > 0 ||
@@ -816,6 +900,12 @@ if (jsonOutput) {
   console.log(`node oracle invalid fixtures: ${report.oracleInvalidFixtures.length}`)
   console.log(`node oracle duplicate fixtures: ${report.oracleDuplicateFixtures.length}`)
   console.log(`node oracle unknown modules: ${report.oracleUnknownModules.length}`)
+  console.log(`raw convenience methods: ${report.rawConvenienceMethodCount}`)
+  console.log(`raw convenience missing modules: ${report.rawConvenienceMissingModules.length}`)
+  console.log(`raw convenience unknown modules: ${report.rawConvenienceUnknownModules.length}`)
+  console.log(`raw convenience duplicate modules: ${report.rawConvenienceDuplicateModules.length}`)
+  console.log(`raw convenience duplicate method names: ${report.rawConvenienceDuplicateMethodNames.length}`)
+  console.log(`raw convenience method name mismatches: ${report.rawConvenienceMethodNameMismatches.length}`)
   console.log(`normal modules missing oracle: ${report.normalMissingOracle.length}`)
   console.log(`special modules missing status: ${report.specialMissingStatus.length}`)
   console.log(`special node-oracle modules missing fixture: ${report.specialNodeOracleMissingFixture.length}`)

@@ -173,6 +173,29 @@ void main() {
       );
     });
 
+    test('rejects remote urls when saving resource indexes', () async {
+      await repository.saveAudioResource(
+        'netease:1',
+        path: 'https://music.example/audio.mp3',
+        origin: TrackResourceOrigin.playbackCache,
+      );
+      await repository.saveArtworkResource(
+        'netease:1',
+        path: 'https://music.example/artwork.jpg',
+        origin: TrackResourceOrigin.artworkCache,
+      );
+      await repository.saveLyricsResource(
+        'netease:1',
+        path: 'https://music.example/lyric.lrc',
+        origin: TrackResourceOrigin.managedDownload,
+      );
+
+      expect(await repository.getTrackResources('netease:1'), isEmpty);
+      expect(await repository.getPrimaryAudioResource('netease:1'), isNull);
+      expect(await repository.getArtworkResource('netease:1'), isNull);
+      expect(await repository.getLyricsResource('netease:1'), isNull);
+    });
+
     test('cleans missing resources when building track bundles', () async {
       final missingAudio = File('${tempDirectory.path}/missing.mp3');
       final lyricsFile = await _writeTempFile(tempDirectory, 'song.lrc');

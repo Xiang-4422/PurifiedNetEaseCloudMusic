@@ -38,6 +38,28 @@ function parseConstString(source, name) {
   return new RegExp(`const\\s+String\\s+${name}\\s*=\\s*'([^']*)';`).exec(source)?.[1] || null
 }
 
+function parseManifestEntry(block, context) {
+  const module = block.match(/module: '([^']+)'/)?.[1]
+  const methodName = block.match(/methodName: '([^']+)'/)?.[1]
+  const pathTemplate = block.match(/pathTemplate: '((?:\\'|[^'])*)'/)?.[1]
+  const crypto = block.match(/crypto: '([^']*)'/)?.[1]
+  const httpMethod = block.match(/httpMethod: '([^']+)'/)?.[1]
+  if (!module) {
+    throw new Error(`Cannot parse module entry from ${context}: ${block}`)
+  }
+  if (!methodName) {
+    throw new Error(`Cannot parse methodName entry from ${context}: ${block}`)
+  }
+  return {
+    module,
+    methodName,
+    pathTemplate,
+    crypto,
+    httpMethod,
+    special: /special: true/.test(block),
+  }
+}
+
 function loadManifest() {
   const source = fs.readFileSync(generatedManifestPath, 'utf8')
   const listStart = source.indexOf('const List<ApiEnhancedModule> apiEnhancedModules')
@@ -47,31 +69,15 @@ function loadManifest() {
   }
 
   const listSource = source.slice(listStart, mapStart)
+  const mapSource = source.slice(mapStart)
   return {
     upstreamVersion: parseConstString(source, 'apiEnhancedUpstreamVersion'),
     upstreamCommit: parseConstString(source, 'apiEnhancedUpstreamCommit'),
-    entries: [...listSource.matchAll(/ApiEnhancedModule\(([\s\S]*?)\),/g)].map((match) => {
-      const block = match[1]
-      const module = block.match(/module: '([^']+)'/)?.[1]
-      const methodName = block.match(/methodName: '([^']+)'/)?.[1]
-      const pathTemplate = block.match(/pathTemplate: '((?:\\'|[^'])*)'/)?.[1]
-      const crypto = block.match(/crypto: '([^']*)'/)?.[1]
-      const httpMethod = block.match(/httpMethod: '([^']+)'/)?.[1]
-      if (!module) {
-        throw new Error(`Cannot parse module entry: ${block}`)
-      }
-      if (!methodName) {
-        throw new Error(`Cannot parse methodName entry: ${block}`)
-      }
-      return {
-        module,
-        methodName,
-        pathTemplate,
-        crypto,
-        httpMethod,
-        special: /special: true/.test(block),
-      }
-    }),
+    entries: [...listSource.matchAll(/ApiEnhancedModule\(([\s\S]*?)\),/g)].map((match) => parseManifestEntry(match[1], 'list')),
+    mapEntries: [...mapSource.matchAll(/'([^']+)':\s*ApiEnhancedModule\(([\s\S]*?)\),/g)].map((match) => ({
+      key: match[1],
+      ...parseManifestEntry(match[2], `map.${match[1]}`),
+    })),
   }
 }
 
@@ -436,6 +442,43 @@ function validateManifestEntries(entries) {
   return invalid.sort((left, right) => `${left.module}:${left.field}`.localeCompare(`${right.module}:${right.field}`))
 }
 
+function manifestEntriesDiffer(left, right) {
+  for (const field of ['module', 'methodName', 'pathTemplate', 'crypto', 'httpMethod', 'special']) {
+    if (left[field] !== right[field]) {
+      return field
+    }
+  }
+  return null
+}
+
+function validateManifestMapEntries(entries, mapEntries) {
+  const byModule = new Map(entries.map((entry) => [entry.module, entry]))
+  const mismatches = []
+  for (const mapEntry of mapEntries) {
+    if (mapEntry.key !== mapEntry.module) {
+      mismatches.push({
+        module: mapEntry.key,
+        field: 'module',
+        reason: `Manifest map key ${mapEntry.key} points to module ${mapEntry.module}.`,
+      })
+      continue
+    }
+    const listEntry = byModule.get(mapEntry.key)
+    if (!listEntry) {
+      continue
+    }
+    const mismatchField = manifestEntriesDiffer(listEntry, mapEntry)
+    if (mismatchField) {
+      mismatches.push({
+        module: mapEntry.key,
+        field: mismatchField,
+        reason: `Manifest map entry for ${mapEntry.key} does not match list entry field ${mismatchField}.`,
+      })
+    }
+  }
+  return mismatches.sort((left, right) => `${left.module}:${left.field}`.localeCompare(`${right.module}:${right.field}`))
+}
+
 function duplicateSpecialCoverageEntries(coverage) {
   if (!isRecord(coverage)) {
     return []
@@ -478,6 +521,8 @@ const oracleModules = new Set(oracleModuleList)
 const manifestModules = entries.map((entry) => entry.module)
 const manifestMethodNames = entries.map((entry) => entry.methodName)
 const manifestMethodNameByModule = new Map(entries.map((entry) => [entry.module, entry.methodName]))
+const manifestMapEntries = manifest.mapEntries
+const manifestMapKeys = manifestMapEntries.map((entry) => entry.key)
 const rawConvenienceModules = rawConvenienceMethods.map((entry) => entry.module)
 const rawConvenienceMethodNames = rawConvenienceMethods.map((entry) => entry.methodName)
 const upstreamModuleSet = new Set(upstreamModules)
@@ -503,6 +548,10 @@ const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelai
 const manifestDuplicateModules = duplicateValues(manifestModules)
 const manifestDuplicateMethodNames = duplicateValues(manifestMethodNames)
 const manifestInvalidEntries = validateManifestEntries(entries)
+const manifestMapDuplicateKeys = duplicateValues(manifestMapKeys)
+const manifestMapMissingModules = sorted(manifestModules.filter((module) => !new Set(manifestMapKeys).has(module)))
+const manifestMapUnknownModules = sorted(manifestMapKeys.filter((module) => !manifestModuleSet.has(module)))
+const manifestMapEntryMismatches = validateManifestMapEntries(entries, manifestMapEntries)
 const manifestMissingUpstreamModules = sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module)))
 const manifestUnknownUpstreamModules = sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module)))
 const manifestUpstreamMismatches = [
@@ -620,6 +669,38 @@ function buildSdkDifferences() {
       module: entry.module,
       status: 'invalid_manifest_entry',
       reason: `${entry.field}: ${entry.reason}`,
+      scope: 'generated_manifest',
+    })
+  }
+  for (const module of manifestMapMissingModules) {
+    differences.push({
+      module,
+      status: 'missing_manifest_map_entry',
+      reason: 'Generated manifest map does not include this list module.',
+      scope: 'generated_manifest',
+    })
+  }
+  for (const module of manifestMapUnknownModules) {
+    differences.push({
+      module,
+      status: 'unknown_manifest_map_entry',
+      reason: 'Generated manifest map includes a module that is not present in the manifest list.',
+      scope: 'generated_manifest',
+    })
+  }
+  for (const module of manifestMapDuplicateKeys) {
+    differences.push({
+      module,
+      status: 'duplicate_manifest_map_key',
+      reason: 'Generated manifest map defines this module key more than once.',
+      scope: 'generated_manifest',
+    })
+  }
+  for (const mismatch of manifestMapEntryMismatches) {
+    differences.push({
+      module: mismatch.module,
+      status: 'manifest_map_entry_mismatch',
+      reason: `${mismatch.field}: ${mismatch.reason}`,
       scope: 'generated_manifest',
     })
   }
@@ -852,6 +933,11 @@ const report = {
   manifestDuplicateModules,
   manifestDuplicateMethodNames,
   manifestInvalidEntries,
+  manifestMapEntryCount: manifestMapEntries.length,
+  manifestMapDuplicateKeys,
+  manifestMapMissingModules,
+  manifestMapUnknownModules,
+  manifestMapEntryMismatches,
   specialCoverageInvalidEntries,
   specialCoverageDuplicateEntries,
   upstreamModuleFileCount: upstreamModules.length,
@@ -900,6 +986,10 @@ const hasFailure =
   report.manifestDuplicateModules.length > 0 ||
   report.manifestDuplicateMethodNames.length > 0 ||
   report.manifestInvalidEntries.length > 0 ||
+  report.manifestMapDuplicateKeys.length > 0 ||
+  report.manifestMapMissingModules.length > 0 ||
+  report.manifestMapUnknownModules.length > 0 ||
+  report.manifestMapEntryMismatches.length > 0 ||
   report.specialCoverageInvalidEntries.length > 0 ||
   report.specialCoverageDuplicateEntries.length > 0 ||
   report.manifestMissingUpstreamModules.length > 0 ||
@@ -936,6 +1026,11 @@ if (jsonOutput) {
   console.log(`manifest duplicate modules: ${report.manifestDuplicateModules.length}`)
   console.log(`manifest duplicate method names: ${report.manifestDuplicateMethodNames.length}`)
   console.log(`manifest invalid entries: ${report.manifestInvalidEntries.length}`)
+  console.log(`manifest map entries: ${report.manifestMapEntryCount}`)
+  console.log(`manifest map duplicate keys: ${report.manifestMapDuplicateKeys.length}`)
+  console.log(`manifest map missing modules: ${report.manifestMapMissingModules.length}`)
+  console.log(`manifest map unknown modules: ${report.manifestMapUnknownModules.length}`)
+  console.log(`manifest map entry mismatches: ${report.manifestMapEntryMismatches.length}`)
   console.log(`special coverage invalid entries: ${report.specialCoverageInvalidEntries.length}`)
   console.log(`special coverage duplicate entries: ${report.specialCoverageDuplicateEntries.length}`)
   console.log(

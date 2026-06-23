@@ -130,6 +130,11 @@ void main() {
       expect(report['manifestDuplicateModules'], isEmpty);
       expect(report['manifestDuplicateMethodNames'], isEmpty);
       expect(report['manifestInvalidEntries'], isEmpty);
+      expect(report['manifestMapEntryCount'], apiEnhancedModules.length);
+      expect(report['manifestMapDuplicateKeys'], isEmpty);
+      expect(report['manifestMapMissingModules'], isEmpty);
+      expect(report['manifestMapUnknownModules'], isEmpty);
+      expect(report['manifestMapEntryMismatches'], isEmpty);
       expect(report['specialCoverageInvalidEntries'], isEmpty);
       expect(report['specialCoverageDuplicateEntries'], isEmpty);
       expect((statusResult.stdout as String).trim(), isEmpty);
@@ -595,6 +600,112 @@ void main() {
       );
       expect(
         sdkDifferences.where((item) => item['status'] == 'invalid_manifest_entry').map((item) => item['scope']).toSet(),
+        {'generated_manifest'},
+      );
+    });
+
+    test('coverage report includes manifest map mismatches in SDK differences', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_manifest_map_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final generatedManifest = File(
+        '${repoRoot.path}/packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
+      ).readAsStringSync();
+      final withoutAlbumMapEntry = generatedManifest.replaceFirst(
+        """
+  'album': ApiEnhancedModule(
+    module: 'album',
+    methodName: 'album',
+    pathTemplate: '/api/v1/album/\\\${query.id}',
+    crypto: 'weapi',
+    httpMethod: 'POST',
+    special: false,
+  ),
+""",
+        '',
+      );
+      final withMapMismatch = withoutAlbumMapEntry.replaceFirst(
+        """
+  'album_sub': ApiEnhancedModule(
+    module: 'album_sub',
+    methodName: 'albumSub',
+    pathTemplate: '/api/album/\\\${query.t}',
+    crypto: 'weapi',
+    httpMethod: 'POST',
+    special: false,
+  ),
+""",
+        """
+  'album_sub': ApiEnhancedModule(
+    module: 'album_sub',
+    methodName: 'codexAlbumSub',
+    pathTemplate: '/api/album/\\\${query.t}',
+    crypto: 'weapi',
+    httpMethod: 'POST',
+    special: false,
+  ),
+""",
+      );
+      final invalidManifest = withMapMismatch.replaceFirst(
+        '\n};\n',
+        """
+  'codex_fake_manifest_map_module': ApiEnhancedModule(
+    module: 'codex_fake_manifest_map_module',
+    methodName: 'codexFakeManifestMapModule',
+    pathTemplate: '/api/codex/fake-map',
+    crypto: 'api',
+    httpMethod: 'POST',
+    special: false,
+  ),
+  'api': ApiEnhancedModule(
+    module: 'api',
+    methodName: 'api',
+    pathTemplate: '',
+    crypto: 'query',
+    httpMethod: 'POST',
+    special: true,
+  ),
+};
+""",
+      );
+      expect(invalidManifest, isNot(generatedManifest));
+      final manifestFile = File('${tempDir.path}/api_enhanced_modules.g.dart')..writeAsStringSync(invalidManifest);
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--generated-manifest=${manifestFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(report['manifestMapMissingModules'], contains('album'));
+      expect(report['manifestMapUnknownModules'], contains('codex_fake_manifest_map_module'));
+      expect(report['manifestMapDuplicateKeys'], contains('api'));
+      expect(
+        _jsonMapList(report['manifestMapEntryMismatches']).map((item) => item['module']),
+        contains('album_sub'),
+      );
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      expect(
+        sdkDifferences.map((item) => item['status']).toSet(),
+        containsAll({
+          'missing_manifest_map_entry',
+          'unknown_manifest_map_entry',
+          'duplicate_manifest_map_key',
+          'manifest_map_entry_mismatch',
+        }),
+      );
+      expect(
+        sdkDifferences.where((item) => item['status'].toString().contains('manifest_map')).map((item) => item['scope']).toSet(),
         {'generated_manifest'},
       );
     });

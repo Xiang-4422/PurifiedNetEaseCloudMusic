@@ -518,6 +518,41 @@ function duplicateSpecialCoverageEntries(coverage) {
   return duplicates.sort((left, right) => `${left.field}:${left.module}`.localeCompare(`${right.field}:${right.module}`))
 }
 
+function validateSpecialCoverageOrder(coverage) {
+  if (!isRecord(coverage)) {
+    return []
+  }
+
+  const mismatches = []
+  for (const field of ['nodeOracle', 'dartBehavior']) {
+    if (!Array.isArray(coverage[field])) {
+      continue
+    }
+    const entries = coverage[field]
+      .filter((item) => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0)
+    for (const mismatch of orderMismatches(entries, sorted(entries))) {
+      mismatches.push({
+        field,
+        ...mismatch,
+      })
+    }
+  }
+
+  if (isRecord(coverage.limited)) {
+    const entries = Object.keys(coverage.limited)
+    for (const mismatch of orderMismatches(entries, sorted(entries))) {
+      mismatches.push({
+        field: 'limited',
+        ...mismatch,
+      })
+    }
+  }
+
+  return mismatches.sort((left, right) => `${left.field}:${left.index}`.localeCompare(`${right.field}:${right.index}`))
+}
+
 const upstreamPackage = readJson(upstreamPackagePath)
 const coverage = readJson(specialCoveragePath)
 const specialCoverage = isRecord(coverage) ? coverage : {}
@@ -585,6 +620,7 @@ const manifestUpstreamMismatches = [
 ].filter((item) => item.manifest !== item.upstream)
 const specialCoverageInvalidEntries = validateSpecialCoverage(coverage)
 const specialCoverageDuplicateEntries = duplicateSpecialCoverageEntries(coverage)
+const specialCoverageOrderMismatches = validateSpecialCoverageOrder(coverage)
 const oracleInvalidFixtures = validateOracleFixtures(oracleFixtures)
 const oracleDuplicateFixtures = duplicateFixtures(oracleFixtureList)
 const oracleUnknownModules = sorted([...oracleModules].filter((module) => !manifestModuleSet.has(module)))
@@ -663,6 +699,14 @@ function buildSdkDifferences() {
       module: entry.module,
       status: 'duplicate_special_coverage_entry',
       reason: `Special coverage ${entry.field} lists this module more than once.`,
+      scope: 'special_coverage_config',
+    })
+  }
+  for (const mismatch of specialCoverageOrderMismatches) {
+    differences.push({
+      module: mismatch.expected || mismatch.actual || '<special_coverage>',
+      status: 'special_coverage_order_mismatch',
+      reason: `Special coverage ${mismatch.field} index ${mismatch.index} has ${mismatch.actual || '<missing>'}, expected ${mismatch.expected || '<missing>'}.`,
       scope: 'special_coverage_config',
     })
   }
@@ -984,6 +1028,7 @@ const report = {
   manifestMapOrderMismatches,
   specialCoverageInvalidEntries,
   specialCoverageDuplicateEntries,
+  specialCoverageOrderMismatches,
   upstreamModuleFileCount: upstreamModules.length,
   moduleCount: entries.length,
   normalModuleCount: normalModules.length,
@@ -1039,6 +1084,7 @@ const hasFailure =
   report.manifestMapOrderMismatches.length > 0 ||
   report.specialCoverageInvalidEntries.length > 0 ||
   report.specialCoverageDuplicateEntries.length > 0 ||
+  report.specialCoverageOrderMismatches.length > 0 ||
   report.manifestMissingUpstreamModules.length > 0 ||
   report.manifestUnknownUpstreamModules.length > 0 ||
   report.oracleInvalidFixtures.length > 0 ||
@@ -1083,6 +1129,7 @@ if (jsonOutput) {
   console.log(`manifest map order mismatches: ${report.manifestMapOrderMismatches.length}`)
   console.log(`special coverage invalid entries: ${report.specialCoverageInvalidEntries.length}`)
   console.log(`special coverage duplicate entries: ${report.specialCoverageDuplicateEntries.length}`)
+  console.log(`special coverage order mismatches: ${report.specialCoverageOrderMismatches.length}`)
   console.log(
     `modules: ${report.moduleCount} (upstream files ${report.upstreamModuleFileCount}, normal ${report.normalModuleCount}, special ${report.specialModuleCount})`,
   )
@@ -1135,4 +1182,4 @@ if (jsonOutput) {
   }
 }
 
-process.exit(hasFailure ? 1 : 0)
+process.exitCode = hasFailure ? 1 : 0

@@ -139,6 +139,7 @@ void main() {
       expect(report['manifestMapOrderMismatches'], isEmpty);
       expect(report['specialCoverageInvalidEntries'], isEmpty);
       expect(report['specialCoverageDuplicateEntries'], isEmpty);
+      expect(report['specialCoverageOrderMismatches'], isEmpty);
       expect((statusResult.stdout as String).trim(), isEmpty);
       expect(report['upstreamModuleFileCount'], upstreamModuleCount);
       expect(report['moduleCount'], apiEnhancedModules.length);
@@ -292,6 +293,58 @@ void main() {
       expect(
         _jsonMapList(report['sdkDifferences']).map((item) => item['scope']).toSet(),
         contains('special_coverage_config'),
+      );
+    });
+
+    test('coverage report rejects unordered special coverage config', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_special_coverage_order_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final sourceCoverage = _jsonMap(
+        jsonDecode(
+          File('${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_special_coverage.json').readAsStringSync(),
+        ),
+      );
+      final nodeOracle = List<Object?>.from(sourceCoverage['nodeOracle'] as List);
+      final firstNodeOracle = nodeOracle[0];
+      nodeOracle[0] = nodeOracle[1];
+      nodeOracle[1] = firstNodeOracle;
+      final limited = _jsonMap(sourceCoverage['limited']);
+      final unorderedCoverage = <String, Object?>{
+        'nodeOracle': nodeOracle,
+        'dartBehavior': sourceCoverage['dartBehavior'],
+        'limited': Map<String, Object?>.fromEntries(limited.entries.toList().reversed),
+      };
+      final coverageFile = File('${tempDir.path}/special_coverage.json')..writeAsStringSync(jsonEncode(unorderedCoverage));
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--special-coverage=${coverageFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(report['specialCoverageInvalidEntries'], isEmpty);
+      expect(report['specialCoverageDuplicateEntries'], isEmpty);
+      final orderMismatches = _jsonMapList(report['specialCoverageOrderMismatches']);
+      expect(orderMismatches.map((item) => item['field']).toSet(), containsAll({'nodeOracle', 'limited'}));
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      expect(
+        sdkDifferences.map((item) => item['status']).toSet(),
+        contains('special_coverage_order_mismatch'),
+      );
+      expect(
+        sdkDifferences.where((item) => item['status'] == 'special_coverage_order_mismatch').map((item) => item['scope']).toSet(),
+        {'special_coverage_config'},
       );
     });
 

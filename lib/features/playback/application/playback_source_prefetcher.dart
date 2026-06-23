@@ -34,7 +34,15 @@ class PlaybackSourcePrefetcher {
     PlaybackQueueItem item, {
     required bool preferHighQuality,
   }) {
-    final key = _cacheKey(item, preferHighQuality: preferHighQuality);
+    final normalizedItemId = _normalizedItemId(item);
+    if (normalizedItemId.isEmpty) {
+      return Future.value(const PlaybackResolvedSource(kind: PlaybackResolvedSourceKind.empty));
+    }
+    final key = _cacheKey(
+      item,
+      normalizedItemId: normalizedItemId,
+      preferHighQuality: preferHighQuality,
+    );
     final cached = _freshCachedSource(
       key,
       item: item,
@@ -58,7 +66,15 @@ class PlaybackSourcePrefetcher {
     required bool preferHighQuality,
     bool forceRefresh = false,
   }) {
-    final key = '${_cacheKey(item, preferHighQuality: preferHighQuality)}|remote';
+    final normalizedItemId = _normalizedItemId(item);
+    if (normalizedItemId.isEmpty) {
+      return Future.value(const PlaybackResolvedSource(kind: PlaybackResolvedSourceKind.empty));
+    }
+    final key = '${_cacheKey(
+      item,
+      normalizedItemId: normalizedItemId,
+      preferHighQuality: preferHighQuality,
+    )}|remote';
     if (forceRefresh) {
       _cache.remove(key);
     }
@@ -89,7 +105,7 @@ class PlaybackSourcePrefetcher {
     PlaybackQueueItem item, {
     required bool preferHighQuality,
   }) {
-    if (item.id.isEmpty) {
+    if (_normalizedItemId(item).isEmpty) {
       return;
     }
     unawaited(
@@ -203,9 +219,14 @@ class PlaybackSourcePrefetcher {
 
   String _cacheKey(
     PlaybackQueueItem item, {
+    required String normalizedItemId,
     required bool preferHighQuality,
   }) {
-    return '${item.id}|${item.sourceType.name}|${item.mediaType.name}|${item.playbackUrl ?? ''}|$preferHighQuality';
+    return '$normalizedItemId|${item.sourceType.name}|${item.mediaType.name}|${item.playbackUrl ?? ''}|$preferHighQuality';
+  }
+
+  String _normalizedItemId(PlaybackQueueItem item) {
+    return item.id.trim();
   }
 }
 

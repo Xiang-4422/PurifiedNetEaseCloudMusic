@@ -47,6 +47,30 @@ void main() {
       expect(resolver.preferences, [false, true]);
     });
 
+    test('normalizes item id before reading source cache', () async {
+      final resolver = _CountingSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+
+      final first = await prefetcher.resolve(_item(' 1 '), preferHighQuality: false);
+      final cached = await prefetcher.resolve(_item('1'), preferHighQuality: false);
+
+      expect(first.url, 'normal-url-1');
+      expect(cached.url, 'normal-url-1');
+      expect(resolver.resolveCallCount, 1);
+    });
+
+    test('does not resolve blank item ids', () async {
+      final resolver = _CountingSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+
+      final source = await prefetcher.resolve(_item('   '), preferHighQuality: false);
+      prefetcher.prefetch(_item('   '), preferHighQuality: false);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(source.isEmpty, isTrue);
+      expect(resolver.resolveCallCount, 0);
+    });
+
     test('limits cache and evicts least recently used sources', () async {
       final resolver = _CountingSourceResolver();
       final prefetcher = PlaybackSourcePrefetcher(

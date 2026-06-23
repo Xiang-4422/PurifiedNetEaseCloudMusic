@@ -218,6 +218,16 @@ extension PlayerStateSync on PlayerController {
     return _userContentPort.likedSongIds().contains(numericSongId);
   }
 
+  /// 当前是否优先使用高音质播放源。
+  bool isHighQualityPlaybackPreferred() {
+    return _preferencePort.isHighQualityEnabled();
+  }
+
+  /// 切换高音质播放源偏好。
+  Future<void> toggleHighQualityPlaybackPreference() {
+    return _preferencePort.toggleHighQuality();
+  }
+
   /// 从播放边界切换喜欢状态后同步队列项。
   Future<void> toggleLikeFromPlayback(PlaybackQueueItem item) {
     final itemKey = item.id.isNotEmpty ? item.id : item.sourceId;

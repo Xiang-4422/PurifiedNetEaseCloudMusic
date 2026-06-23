@@ -16,6 +16,7 @@ import 'package:bujuan/features/playback/application/playback_background_task_ru
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_mode_switch_context.dart';
+import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
@@ -56,6 +57,7 @@ class PlayerController extends GetxController {
     required PlaybackStateSynchronizer stateSynchronizer,
     required PlaybackSelectionService selectionService,
     required PlaybackLyricUiStateController lyricUiStateController,
+    required PlaybackPreferencePort preferencePort,
     required PlaybackUserContentPort userContentPort,
     required PlaybackArtworkPresenter artworkPresenter,
     required PlaybackSelectionUiEffectCoordinator selectionUiEffectCoordinator,
@@ -68,6 +70,7 @@ class PlayerController extends GetxController {
         _stateSynchronizer = stateSynchronizer,
         _selectionService = selectionService,
         _lyricUiStateController = lyricUiStateController,
+        _preferencePort = preferencePort,
         _userContentPort = userContentPort,
         _artworkPresenter = artworkPresenter,
         _selectionUiEffectCoordinator = selectionUiEffectCoordinator,
@@ -81,6 +84,7 @@ class PlayerController extends GetxController {
   final PlaybackStateSynchronizer _stateSynchronizer;
   final PlaybackSelectionService _selectionService;
   final PlaybackLyricUiStateController _lyricUiStateController;
+  final PlaybackPreferencePort _preferencePort;
   final PlaybackUserContentPort _userContentPort;
   final PlaybackArtworkPresenter _artworkPresenter;
   final PlaybackSelectionUiEffectCoordinator _selectionUiEffectCoordinator;

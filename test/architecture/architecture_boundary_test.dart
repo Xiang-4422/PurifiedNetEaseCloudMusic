@@ -896,6 +896,36 @@ void main() {
       );
     });
 
+    test('playback quality control stays behind player controller boundary', () {
+      final controlsFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart',
+      );
+      final stateSyncFile = File(
+        '${projectRoot.path}/lib/features/playback/player_state_sync.dart',
+      );
+      final preferencePortFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_preference_port.dart',
+      );
+      final controls = controlsFile.readAsStringSync();
+      final stateSync = stateSyncFile.readAsStringSync();
+      final preferencePort = preferencePortFile.readAsStringSync();
+      final violations = <String>[
+        if (!controls.contains('PlayerController.to.isHighQualityPlaybackPreferred()')) 'playback controls do not read quality preference from player boundary',
+        if (!controls.contains('PlayerController.to.toggleHighQualityPlaybackPreference')) 'playback controls do not toggle quality preference through player boundary',
+        if (controls.contains('SettingsController.to.isHighSoundQualityOpen')) '${_relativePath(controlsFile)} reads high quality setting directly',
+        if (controls.contains('SettingsController.to.toggleHighSoundQualityOpen')) '${_relativePath(controlsFile)} toggles high quality setting directly',
+        if (!stateSync.contains('bool isHighQualityPlaybackPreferred()')) 'player state sync does not expose quality preference read boundary',
+        if (!stateSync.contains('Future<void> toggleHighQualityPlaybackPreference()')) 'player state sync does not expose quality preference toggle boundary',
+        if (!preferencePort.contains('toggleHighQuality')) 'playback preference port cannot toggle high quality preference',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放页音质按钮必须经 PlayerController 播放边界读取和切换播放源偏好，不能在 Widget 内直接读写 SettingsController 的高音质设置。',
+      );
+    });
+
     test('recent playback stays backed by confirmed history', () {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/playback/recent_playback_controller.dart',

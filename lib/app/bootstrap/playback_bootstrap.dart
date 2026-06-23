@@ -126,6 +126,7 @@ void registerPlaybackDependencies() {
   Get.put<PlaybackPreferencePort>(
     PlaybackPreferencePort(
       isHighQualityEnabled: () => Get.find<SettingsController>().isHighSoundQualityOpen.value,
+      toggleHighQuality: () => Get.find<SettingsController>().toggleHighSoundQualityOpen(),
     ),
     permanent: true,
   );

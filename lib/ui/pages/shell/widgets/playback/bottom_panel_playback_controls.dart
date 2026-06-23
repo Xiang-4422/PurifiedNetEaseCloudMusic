@@ -65,7 +65,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
         final currentSong = PlayerController.to.currentSongState.value;
         final isLiked = PlayerController.to.isPlaybackItemLiked(currentSong);
         final isPlaying = PlayerController.to.isPlaying.value;
-        final preferHighQuality = SettingsController.to.isHighSoundQualityOpen.value;
+        final preferHighQuality = PlayerController.to.isHighQualityPlaybackPreferred();
         final panelColor = SettingsController.to.panelWidgetColor.value;
         final repeatIcon = PlayerController.to.getRepeatIcon();
         final playbackMode = PlayerController.to.playbackMode.value;
@@ -125,9 +125,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               semanticsLabel: playbackQualityControlLabel(
                 preferHighQuality: preferHighQuality,
               ),
-              onTap: () async {
-                await SettingsController.to.toggleHighSoundQualityOpen();
-              },
+              onTap: PlayerController.to.toggleHighQualityPlaybackPreference,
               child: _ButtonBackground(
                 child: Icon(
                   preferHighQuality ? TablerIcons.diamond : TablerIcons.wave_sine,

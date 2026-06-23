@@ -139,6 +139,7 @@ void registerFeatureControllers() {
       stateSynchronizer: Get.find<PlaybackStateSynchronizer>(),
       selectionService: Get.find<PlaybackSelectionService>(),
       lyricUiStateController: Get.find<PlaybackLyricUiStateController>(),
+      preferencePort: Get.find<PlaybackPreferencePort>(),
       userContentPort: Get.find<PlaybackUserContentPort>(),
       artworkPresenter: Get.find<PlaybackArtworkPresenter>(),
       selectionUiEffectCoordinator: Get.find<PlaybackSelectionUiEffectCoordinator>(),

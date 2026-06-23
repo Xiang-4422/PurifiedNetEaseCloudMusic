@@ -5,6 +5,7 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
+import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_state_synchronizer.dart';
@@ -21,6 +22,27 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PlayerController helpers', () {
+    test('reads and toggles high quality playback preference through playback boundary', () async {
+      var highQualityEnabled = false;
+      var toggleCount = 0;
+      final controller = _playerController(
+        preferencePort: _preferencePort(
+          isHighQualityEnabled: () => highQualityEnabled,
+          toggleHighQuality: () async {
+            toggleCount++;
+            highQualityEnabled = !highQualityEnabled;
+          },
+        ),
+      );
+
+      expect(controller.isHighQualityPlaybackPreferred(), isFalse);
+
+      await controller.toggleHighQualityPlaybackPreference();
+
+      expect(toggleCount, 1);
+      expect(controller.isHighQualityPlaybackPreferred(), isTrue);
+    });
+
     test('resolves playback item liked state through playback boundary', () {
       final controller = _playerController(
         userContentPort: _userContentPort(
@@ -124,6 +146,7 @@ void main() {
 PlayerController _playerController({
   _FakePlaybackService? playbackService,
   _FakePlaybackQueueService? queueService,
+  PlaybackPreferencePort? preferencePort,
   PlaybackUserContentPort? userContentPort,
 }) {
   return PlayerController(
@@ -134,11 +157,22 @@ PlayerController _playerController({
     stateSynchronizer: _FakePlaybackStateSynchronizer(),
     selectionService: _FakePlaybackSelectionService(),
     lyricUiStateController: _FakePlaybackLyricUiStateController(),
+    preferencePort: preferencePort ?? _preferencePort(),
     userContentPort: userContentPort ?? _userContentPort(),
     artworkPresenter: _FakePlaybackArtworkPresenter(),
     selectionUiEffectCoordinator: _FakePlaybackSelectionUiEffectCoordinator(),
     downloadUseCase: _FakeCurrentTrackDownloadUseCase(),
     toastPort: _FakePlaybackToastPort(),
+  );
+}
+
+PlaybackPreferencePort _preferencePort({
+  bool Function()? isHighQualityEnabled,
+  Future<void> Function()? toggleHighQuality,
+}) {
+  return PlaybackPreferencePort(
+    isHighQualityEnabled: isHighQualityEnabled ?? () => false,
+    toggleHighQuality: toggleHighQuality ?? () async {},
   );
 }
 

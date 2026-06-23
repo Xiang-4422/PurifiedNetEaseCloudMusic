@@ -250,6 +250,9 @@ void main() {
     expect(quickStartSource, contains('String _playbackArtworkPath(PlaybackQueueItem item)'));
     expect(quickStartSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
     expect(recentPlaybackSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
+    expect(recentPlaybackSource, contains('SimpleExtendedImage('));
+    expect(recentPlaybackSource, contains('SimpleExtendedImage(\n                    artworkPath,'));
+    expect(recentPlaybackSource, isNot(contains('artworkPath.isEmpty')));
     expect(todayPageSource, contains('class TodayPageView extends GetView<RecommendationController>'));
     expect(todayPageSource, contains('final songs = controller.todayRecommendSongs'));
     expect(todayPageSource, isNot(contains('RecommendationController.to')));

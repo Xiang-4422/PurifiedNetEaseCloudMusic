@@ -111,24 +111,13 @@ class _RecentPlaybackTile extends StatelessWidget {
               children: [
                 SizedBox.square(
                   dimension: 52,
-                  child: artworkPath.isEmpty
-                      ? DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withValues(alpha: 0.08),
-                            borderRadius: AppDimensions.borderRadiusMedium,
-                          ),
-                          child: Icon(
-                            TablerIcons.music,
-                            color: colorScheme.primary,
-                          ),
-                        )
-                      : SimpleExtendedImage(
-                          artworkPath,
-                          width: 52,
-                          height: 52,
-                          cacheWidth: 120,
-                          borderRadius: AppDimensions.borderRadiusMedium,
-                        ),
+                  child: SimpleExtendedImage(
+                    artworkPath,
+                    width: 52,
+                    height: 52,
+                    cacheWidth: 120,
+                    borderRadius: AppDimensions.borderRadiusMedium,
+                  ),
                 ),
                 const SizedBox(width: AppDimensions.paddingSmall),
                 Expanded(

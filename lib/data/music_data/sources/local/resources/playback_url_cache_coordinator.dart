@@ -28,6 +28,9 @@ class PlaybackUrlCacheCoordinator {
     required bool forceRefresh,
     required Future<String?> Function() load,
   }) async {
+    if (trackId.trim().isEmpty) {
+      return null;
+    }
     final cacheKey = _cacheKey(trackId, qualityLevel);
     final localUrl = await _resolveLocalResourceUrlOrNull(trackId);
     if (localUrl != null) {
@@ -98,7 +101,8 @@ class PlaybackUrlCacheCoordinator {
   }
 
   static String _cacheKey(String trackId, String? qualityLevel) {
-    return '$trackId|${qualityLevel ?? ''}';
+    final normalizedQualityLevel = qualityLevel?.trim() ?? '';
+    return '$trackId|$normalizedQualityLevel';
   }
 
   static String? _normalizeRemoteUrl(String? url) {

@@ -33,6 +33,60 @@ void main() {
       expect(loadCount, 1);
     });
 
+    test('ignores blank track ids before local or remote lookup', () async {
+      var localLookupCount = 0;
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async {
+          localLookupCount++;
+          return '/music/downloaded.mp3';
+        },
+      );
+
+      final url = await coordinator.resolve(
+        '   ',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async {
+          loadCount++;
+          return 'https://audio.test/blank.mp3';
+        },
+      );
+
+      expect(url, isNull);
+      expect(localLookupCount, 0);
+      expect(loadCount, 0);
+    });
+
+    test('treats blank quality level as default cache key', () async {
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        return 'https://audio.test/1-$loadCount.mp3';
+      }
+
+      final defaultQuality = await coordinator.resolve(
+        '1',
+        qualityLevel: null,
+        forceRefresh: false,
+        load: load,
+      );
+      final blankQuality = await coordinator.resolve(
+        '1',
+        qualityLevel: '   ',
+        forceRefresh: false,
+        load: load,
+      );
+
+      expect(defaultQuality, 'https://audio.test/1-1.mp3');
+      expect(blankQuality, defaultQuality);
+      expect(loadCount, 1);
+    });
+
     test('expires remote cache by ttl', () async {
       var now = DateTime(2026);
       var loadCount = 0;

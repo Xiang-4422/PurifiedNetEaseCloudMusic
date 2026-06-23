@@ -1060,6 +1060,40 @@ void main() {
       );
     });
 
+    test('playlist page creates controller through feature factory', () {
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/playlist/playlist_page_view.dart',
+      );
+      final factoryFile = File(
+        '${projectRoot.path}/lib/features/playlist/playlist_page_controller_factory.dart',
+      );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
+      final page = pageFile.readAsStringSync();
+      final factory = factoryFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
+      final violations = <String>[
+        if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} names playlist repository directly',
+        if (page.contains('UserLibraryController')) '${_relativePath(pageFile)} reads user library directly',
+        if (page.contains('UserSessionController')) '${_relativePath(pageFile)} reads current user directly',
+        if (page.contains('likedSongIds:')) '${_relativePath(pageFile)} passes liked ids from UI',
+        if (page.contains('currentUserId:')) '${_relativePath(pageFile)} passes current user from UI',
+        if (!page.contains('Get.find<PlaylistPageControllerFactory>().create()')) '${_relativePath(pageFile)} does not create playlist controller through feature factory',
+        if (!factory.contains('PlaylistPageController create()')) 'playlist page controller factory does not create page controllers',
+        if (!factory.contains('likedSongIds: _likedSongIds')) 'playlist page controller factory does not inject liked ids provider',
+        if (!factory.contains('currentUserId: _currentUserId')) 'playlist page controller factory does not inject current user provider',
+        if (!factory.contains('repository: _repository')) 'playlist page controller factory does not inject playlist repository',
+        if (!bootstrap.contains('PlaylistPageControllerFactory(')) 'feature bootstrap does not register playlist page controller factory',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '歌单页可以拥有加载和播放 UI 状态，但不能在 Widget 内直接拼装 PlaylistRepository、喜欢列表或当前账号上下文。',
+      );
+    });
+
     test('top search panel keeps search context behind controller boundary', () {
       final topPanelFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/search/top_panel_view.dart',

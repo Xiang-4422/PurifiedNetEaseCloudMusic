@@ -5,6 +5,7 @@ import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/explore/ranking_playlist_data.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
+import 'package:bujuan/features/playlist/playlist_detail_data.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:get/get.dart';

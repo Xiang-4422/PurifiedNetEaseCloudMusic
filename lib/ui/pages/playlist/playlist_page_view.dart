@@ -11,12 +11,11 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playlist/playlist_detail_data.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
-import 'package:bujuan/features/playlist/playlist_repository.dart';
+import 'package:bujuan/features/playlist/playlist_page_controller_factory.dart';
 import 'package:bujuan/features/playlist/playlist_artwork_color_service.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/ui/pages/playlist/playlist_page_state.dart';
 import 'package:bujuan/ui/pages/playlist/widgets/playlist_content_scroll_view.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
@@ -53,11 +52,7 @@ class PlayListPageView extends StatefulWidget {
 }
 
 class _PlayListPageViewState extends State<PlayListPageView> {
-  final PlaylistPageController _controller = PlaylistPageController(
-    repository: Get.find<PlaylistRepository>(),
-    likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
-    currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
-  );
+  late final PlaylistPageController _controller;
   final PlayerController _playerController = Get.find<PlayerController>();
   final Random _random = Random();
 
@@ -81,6 +76,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   @override
   void initState() {
     super.initState();
+    _controller = Get.find<PlaylistPageControllerFactory>().create();
     playlistName = widget.playlistName;
     coverUrl = widget.coverUrl;
     trackCount = widget.trackCount;

@@ -1,5 +1,6 @@
 import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
+import 'package:bujuan/features/playlist/playlist_detail_data.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 
 /// 本地歌单详情可用于首屏展示的完整性状态。

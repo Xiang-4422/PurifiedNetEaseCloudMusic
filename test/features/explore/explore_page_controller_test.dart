@@ -6,6 +6,7 @@ import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
+import 'package:bujuan/features/playlist/playlist_detail_data.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 

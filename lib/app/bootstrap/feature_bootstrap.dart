@@ -36,6 +36,7 @@ import 'package:bujuan/features/playback/playback_selection_ui_effect_coordinato
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
+import 'package:bujuan/features/playlist/playlist_page_controller_factory.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_controller_factory.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
@@ -214,6 +215,14 @@ void registerFeatureControllers() {
     () => LocalSongListControllerFactory(
       musicDataRepository: Get.find<MusicDataRepository>(),
       downloadRepository: Get.find<DownloadRepository>(),
+    ),
+    fenix: true,
+  );
+  Get.lazyPut(
+    () => PlaylistPageControllerFactory(
+      repository: Get.find<PlaylistRepository>(),
+      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
     ),
     fenix: true,
   );

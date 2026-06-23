@@ -14,6 +14,7 @@ class CommentItemWidget extends StatefulWidget {
   /// 创建单条评论展示组件。
   const CommentItemWidget({
     super.key,
+    required this.controllerFactory,
     required this.comment,
     required this.stringColor,
     this.id = '',
@@ -23,6 +24,9 @@ class CommentItemWidget extends StatefulWidget {
 
   /// 当前资源 id，例如歌曲 id 或歌单 id。
   final String id;
+
+  /// 评论控制器工厂。
+  final CommentControllerFactory controllerFactory;
 
   /// 当前资源类型，沿用评论接口类型约定。
   final String idType;
@@ -50,14 +54,13 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
   void initState() {
     super.initState();
     stringColor = widget.stringColor;
-    final controllerFactory = Get.find<CommentControllerFactory>();
-    _floorController = controllerFactory.createFloor(
+    _floorController = widget.controllerFactory.createFloor(
       id: widget.id,
       type: widget.idType,
       parentCommentId: widget.comment.commentId,
       pageSize: 5,
     );
-    _controller = controllerFactory.createItem(
+    _controller = widget.controllerFactory.createItem(
       comment: widget.comment,
       isReply: widget.isReply,
       floorController: _floorController,
@@ -193,6 +196,7 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
                           children: state.items
                               .map(
                                 (item) => CommentItemWidget(
+                                  controllerFactory: widget.controllerFactory,
                                   comment: item,
                                   id: widget.id,
                                   idType: widget.idType,

@@ -21,6 +21,7 @@ class FoolTalk extends StatefulWidget {
   /// 创建楼层回复弹层。
   const FoolTalk({
     super.key,
+    required this.controllerFactory,
     required this.commentItem,
     required this.id,
     required this.type,
@@ -29,6 +30,9 @@ class FoolTalk extends StatefulWidget {
 
   /// 父评论数据。
   final CommentData commentItem;
+
+  /// 评论控制器工厂。
+  final CommentControllerFactory controllerFactory;
 
   /// 评论资源 id。
   final String id;
@@ -51,14 +55,13 @@ class _FoolTalkState extends State<FoolTalk> {
   @override
   void initState() {
     super.initState();
-    final controllerFactory = Get.find<CommentControllerFactory>();
-    _controller = controllerFactory.createFloor(
+    _controller = widget.controllerFactory.createFloor(
       id: widget.id,
       type: widget.type,
       parentCommentId: widget.commentItem.commentId,
       pageSize: 20,
     )..loadInitial();
-    _replySheetController = controllerFactory.createReplySheet(
+    _replySheetController = widget.controllerFactory.createReplySheet(
       floorController: _controller,
     );
   }
@@ -253,6 +256,7 @@ class _FoolTalkState extends State<FoolTalk> {
                   isScrollControlled: true,
                   context: context,
                   builder: (context) => FoolTalk(
+                    controllerFactory: widget.controllerFactory,
                     commentItem: comment,
                     id: context.routeData.queryParams.getString('id'),
                     type: context.routeData.queryParams.getString('type'),

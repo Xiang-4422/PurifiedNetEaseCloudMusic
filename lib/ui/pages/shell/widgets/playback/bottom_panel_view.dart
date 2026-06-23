@@ -1,4 +1,5 @@
 import 'package:bujuan/ui/theme/app_constants.dart';
+import 'package:bujuan/features/comment/comment_controller_factory.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_artwork_layer.dart';
@@ -21,6 +22,7 @@ class BottomPanelView extends GetView<ShellController> {
   @override
   Widget build(BuildContext context) {
     const albumPadding = AppDimensions.paddingLarge;
+    final commentControllerFactory = Get.find<CommentControllerFactory>();
     final playerController = PlayerController.to;
     final settingsController = SettingsController.to;
     return Stack(
@@ -67,11 +69,13 @@ class BottomPanelView extends GetView<ShellController> {
                       ),
                       BottomPanelCommentPage(
                         commentType: 2,
+                        commentControllerFactory: commentControllerFactory,
                         playerController: playerController,
                         settingsController: settingsController,
                       ),
                       BottomPanelCommentPage(
                         commentType: 3,
+                        commentControllerFactory: commentControllerFactory,
                         playerController: playerController,
                         settingsController: settingsController,
                       ),

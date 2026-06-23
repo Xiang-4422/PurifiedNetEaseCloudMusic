@@ -1,5 +1,6 @@
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/pages/shell/widgets/comment/comment_widget.dart';
+import 'package:bujuan/features/comment/comment_controller_factory.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/ui/widgets/common/layout/keep_alive_wrapper.dart';
@@ -12,12 +13,16 @@ class BottomPanelCommentPage extends StatelessWidget {
   const BottomPanelCommentPage({
     super.key,
     required this.commentType,
+    required this.commentControllerFactory,
     required this.playerController,
     required this.settingsController,
   });
 
   /// 评论类型，沿用网易云接口中的歌曲评论分类。
   final int commentType;
+
+  /// 评论控制器工厂。
+  final CommentControllerFactory commentControllerFactory;
 
   /// 播放控制器。
   final PlayerController playerController;
@@ -36,6 +41,7 @@ class BottomPanelCommentPage extends StatelessWidget {
           final currentSong = playerController.currentSongState.value;
           return CommentWidget(
             key: ValueKey(currentSong.id),
+            controllerFactory: commentControllerFactory,
             context: context,
             id: currentSong.id,
             idType: 'song',

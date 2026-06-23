@@ -14,6 +14,7 @@ class CommentWidget extends StatefulWidget {
   /// 创建评论列表组件。
   const CommentWidget({
     super.key,
+    required this.controllerFactory,
     required this.context,
     required this.id,
     required this.idType,
@@ -25,6 +26,9 @@ class CommentWidget extends StatefulWidget {
 
   /// 父级页面上下文。
   final BuildContext context;
+
+  /// 评论控制器工厂。
+  final CommentControllerFactory controllerFactory;
 
   /// 评论排序类型。
   final int commentType;
@@ -55,7 +59,7 @@ class _CommentWidgetState extends State<CommentWidget> {
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<CommentControllerFactory>().createList(
+    _controller = widget.controllerFactory.createList(
       id: widget.id,
       type: widget.idType,
       sortType: widget.commentType,
@@ -108,6 +112,7 @@ class _CommentWidgetState extends State<CommentWidget> {
             padding: EdgeInsets.fromLTRB(0, widget.listPaddingTop, 0, 0),
             itemBuilder: (BuildContext context, int index) {
               return CommentItemWidget(
+                controllerFactory: widget.controllerFactory,
                 id: widget.id,
                 idType: widget.idType,
                 comment: state.items[index],

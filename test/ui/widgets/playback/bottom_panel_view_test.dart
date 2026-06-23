@@ -82,6 +82,8 @@ void main() {
     expect(panelSource, contains('playerController: playerController'));
     expect(panelSource, contains('settingsController: settingsController'));
     expect(panelSource, contains('BottomPanelCommentPage('));
+    expect(panelSource, contains('final commentControllerFactory = Get.find<CommentControllerFactory>()'));
+    expect(panelSource, contains('commentControllerFactory: commentControllerFactory'));
     expect(panelSource, contains('BottomPanelNowPlayingPage('));
     expect(panelSource, contains('BottomPanelPageIndicator('));
     expect(panelSource, isNot(contains('_buildCurPlayingPage')));

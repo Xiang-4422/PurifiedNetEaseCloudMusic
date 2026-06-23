@@ -1,6 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/pages/download/download_task_page_view.dart';
+import 'package:bujuan/ui/pages/user/user_playlist_library_page.dart';
+import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -13,6 +16,16 @@ class LibraryShortcutBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shortcuts = [
+      _LibraryShortcutAction(
+        label: '我喜欢',
+        icon: TablerIcons.heart,
+        onTap: () => _openLikedPlaylist(context),
+      ),
+      _LibraryShortcutAction(
+        label: '我的歌单',
+        icon: TablerIcons.playlist,
+        onTap: () => _openUserPlaylists(context),
+      ),
       _LibraryShortcutAction(
         label: '本地音乐',
         icon: TablerIcons.music,
@@ -42,16 +55,41 @@ class LibraryShortcutBar extends StatelessWidget {
       ),
       child: SizedBox(
         height: 72,
-        child: Row(
-          children: [
-            for (var index = 0; index < shortcuts.length; index++) ...[
-              if (index > 0) const SizedBox(width: AppDimensions.paddingSmall),
-              Expanded(
-                child: _LibraryShortcutButton(action: shortcuts[index]),
-              ),
-            ],
-          ],
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: shortcuts.length,
+          separatorBuilder: (_, __) => const SizedBox(width: AppDimensions.paddingSmall),
+          itemBuilder: (context, index) {
+            return SizedBox(
+              width: 84,
+              child: _LibraryShortcutButton(action: shortcuts[index]),
+            );
+          },
         ),
+      ),
+    );
+  }
+
+  void _openLikedPlaylist(BuildContext context) {
+    final playlist = UserLibraryController.to.userLikedSongPlayList.value;
+    if (playlist.id.isEmpty) {
+      ToastService.show('暂无我喜欢歌单');
+      return;
+    }
+    context.router.push(
+      gr.PlayListRouteView(
+        playlistId: playlist.id,
+        playlistName: playlist.title,
+        coverUrl: playlist.coverUrl,
+        trackCount: playlist.trackCount,
+      ),
+    );
+  }
+
+  void _openUserPlaylists(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const UserPlaylistLibraryPageView(),
       ),
     );
   }

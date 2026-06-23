@@ -36,12 +36,31 @@ void main() {
     expect(recommendedIndex, isNonNegative);
     expect(libraryIndex, lessThan(recommendedIndex));
     expect(source, contains('child: LibraryShortcutBar()'));
+    expect(shortcutSource, contains("label: '我喜欢'"));
+    expect(shortcutSource, contains("label: '我的歌单'"));
     expect(shortcutSource, contains("label: '本地音乐'"));
     expect(shortcutSource, contains("label: '已下载'"));
     expect(shortcutSource, contains("label: '云盘'"));
+    expect(shortcutSource.indexOf("label: '我喜欢'"), lessThan(shortcutSource.indexOf("label: '我的歌单'")));
+    expect(shortcutSource.indexOf("label: '我的歌单'"), lessThan(shortcutSource.indexOf("label: '本地音乐'")));
+    expect(shortcutSource, contains('UserLibraryController.to.userLikedSongPlayList.value'));
+    expect(shortcutSource, contains('UserPlaylistLibraryPageView'));
+    expect(shortcutSource, contains('gr.PlayListRouteView('));
     expect(shortcutSource, contains('DownloadTaskPageView.tabLocalImport'));
     expect(shortcutSource, contains('DownloadTaskPageView.tabDownloaded'));
     expect(shortcutSource, contains('context.router.push(const gr.CloudDriveView())'));
+  });
+
+  test('user playlist library page lists account playlists without data source access', () {
+    final source = File('lib/ui/pages/user/user_playlist_library_page.dart').readAsStringSync();
+
+    expect(source, contains("title: const Text('我的歌单')"));
+    expect(source, contains('UserLibraryController.to'));
+    expect(source, contains('controller.userPlayLists'));
+    expect(source, contains('PlayListItem(playlists[index])'));
+    expect(source, contains("Text('暂无歌单')"));
+    expect(source, isNot(contains('package:bujuan/data/')));
+    expect(source, isNot(contains('_data_source.dart')));
   });
 
   test('personal page shows recent playback before frequent playlists and library sections', () {

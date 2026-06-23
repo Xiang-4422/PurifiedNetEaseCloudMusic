@@ -4,6 +4,7 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart' show TrackAvailability;
 import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/features/playback/application/playback_queue_cached_audio_guard.dart';
 import 'package:bujuan/features/playback/application/playback_queue_metadata_filter.dart';
 
 /// 播放队列项与 audio_service [MediaItem] 的边界适配器。
@@ -34,10 +35,16 @@ class PlaybackQueueItemAdapter {
     final extras = item.extras ?? const <String, dynamic>{};
     final localArtworkPath = _stringOrNull(extras['localArtworkPath']);
     final image = _stringOrNull(extras['image']);
+    final sourceType = _sourceTypeFrom(extras['sourceType']);
+    final mediaType = MediaType.values.firstWhere(
+      (type) => type.name == extras['type'],
+      orElse: () => MediaType.playlist,
+    );
+    final playbackUrl = _stringOrNull(extras['url']);
     return PlaybackQueueItem(
       id: item.id,
       sourceId: _stringOrNull(extras['sourceId']) ?? item.id,
-      sourceType: _sourceTypeFrom(extras['sourceType']),
+      sourceType: sourceType,
       title: item.title,
       albumTitle: item.album ?? _stringOrNull(extras['albumTitle']),
       albumId: _stringOrNull(extras['albumId']),
@@ -46,16 +53,18 @@ class PlaybackQueueItemAdapter {
       duration: item.duration,
       artworkUrl: image,
       localArtworkPath: localArtworkPath,
-      mediaType: MediaType.values.firstWhere(
-        (type) => type.name == extras['type'],
-        orElse: () => MediaType.playlist,
-      ),
-      playbackUrl: _stringOrNull(extras['url']),
+      mediaType: mediaType,
+      playbackUrl: playbackUrl,
       lyricKey: _stringOrNull(extras['lyricKey']),
       localLyricsPath: _stringOrNull(extras['localLyricsPath']),
       availability: _availabilityFrom(extras['availability']),
       isLiked: extras['liked'] == true,
-      isCached: extras['cache'] == true,
+      isCached: hasUsableCachedAudio(
+        isCached: extras['cache'] == true,
+        sourceType: sourceType,
+        mediaType: mediaType,
+        playbackUrl: playbackUrl,
+      ),
       metadata: _customMetadata(extras),
     );
   }

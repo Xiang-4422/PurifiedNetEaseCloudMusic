@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
@@ -55,7 +56,49 @@ void main() {
       expect(item.sourceType, SourceType.netease);
       expect(item.localLyricsPath, '/cache/lyrics.lrc');
       expect(item.availability, TrackAvailability.playable);
+      expect(item.isCached, isFalse);
       expect(item.metadata, isEmpty);
+    });
+
+    test('adapter restores cache flag only for existing non-local audio', () {
+      final tempDirectory = Directory.systemTemp.createTempSync(
+        'playback-media-cache-',
+      );
+      addTearDown(() {
+        if (tempDirectory.existsSync()) {
+          tempDirectory.deleteSync(recursive: true);
+        }
+      });
+      final audioFile = File('${tempDirectory.path}/song.mp3')..writeAsBytesSync([1, 2, 3]);
+      final mediaItem = MediaItem(
+        id: 'netease:1',
+        title: 'Track',
+        extras: {
+          'type': 'local',
+          'url': audioFile.path,
+          'cache': true,
+          'sourceType': 'netease',
+        },
+      );
+
+      final item = PlaybackQueueItemAdapter.fromMediaItem(mediaItem);
+
+      expect(item.isCached, isTrue);
+
+      final localItem = PlaybackQueueItemAdapter.fromMediaItem(
+        MediaItem(
+          id: 'local:${audioFile.path}',
+          title: 'Local',
+          extras: {
+            'type': 'local',
+            'url': audioFile.path,
+            'cache': true,
+            'sourceType': 'local',
+          },
+        ),
+      );
+
+      expect(localItem.isCached, isFalse);
     });
 
     test('adapter owns MediaItem extras without requiring queue item extras getter', () {
@@ -179,7 +222,48 @@ void main() {
       expect(raw['albumId'], isNull);
       expect(raw['localLyricsPath'], isNull);
       expect(raw['availability'], 'unknown');
+      expect(raw['isCached'], isFalse);
       expect(raw['metadata'], {'custom': 'keep'});
+    });
+
+    test('cache codec restores cache flag only when local audio still exists', () async {
+      final tempDirectory = Directory.systemTemp.createTempSync(
+        'playback-cache-codec-',
+      );
+      addTearDown(() {
+        if (tempDirectory.existsSync()) {
+          tempDirectory.deleteSync(recursive: true);
+        }
+      });
+      final audioFile = File('${tempDirectory.path}/song.mp3')..writeAsBytesSync([1, 2, 3]);
+      final encoded = await encodePlaybackQueueItemCacheList([
+        _queueItem(
+          mediaType: MediaType.local,
+          playbackUrl: audioFile.path,
+        ),
+      ]);
+      final raw = jsonDecode(encoded.single) as Map<String, dynamic>;
+
+      expect(raw['isCached'], isTrue);
+
+      final decoded = await decodePlaybackQueueItemCacheList(encoded);
+
+      expect(decoded.single.isCached, isTrue);
+
+      final missingLegacy = jsonEncode({
+        'id': 'netease:1',
+        'sourceId': '1',
+        'title': 'Missing',
+        'mediaType': 'local',
+        'playbackUrl': '${tempDirectory.path}/missing.mp3',
+        'sourceType': 'netease',
+        'isCached': true,
+      });
+      final decodedMissing = await decodePlaybackQueueItemCacheList([
+        missingLegacy,
+      ]);
+
+      expect(decodedMissing.single.isCached, isFalse);
     });
 
     test('cache codec drops remote playback urls from restore cache', () async {

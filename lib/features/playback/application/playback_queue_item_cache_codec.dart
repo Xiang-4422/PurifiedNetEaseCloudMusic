@@ -5,6 +5,7 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart' show TrackAvailability;
 import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/features/playback/application/playback_queue_cached_audio_guard.dart';
 import 'package:bujuan/features/playback/application/playback_queue_metadata_filter.dart';
 
 /// 异步解码播放队列项缓存列表。
@@ -44,10 +45,16 @@ List<String> _encodePlaybackQueueItemCacheList(List<PlaybackQueueItem> items) {
 
 PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
   final metadata = Map<String, dynamic>.from(json['metadata'] as Map? ?? const {});
+  final sourceType = _sourceTypeFrom(json['sourceType'] ?? metadata['sourceType']);
+  final mediaType = MediaType.values.firstWhere(
+    (item) => item.name == json['mediaType'],
+    orElse: () => MediaType.playlist,
+  );
+  final playbackUrl = _restorablePlaybackUrl(json['playbackUrl']);
   return PlaybackQueueItem(
     id: json['id'] as String? ?? '',
     sourceId: json['sourceId'] as String? ?? '',
-    sourceType: _sourceTypeFrom(json['sourceType'] ?? metadata['sourceType']),
+    sourceType: sourceType,
     title: json['title'] as String? ?? '',
     albumTitle: json['albumTitle'] as String?,
     albumId: _stringOrNull(json['albumId']) ?? _stringOrNull(metadata['albumId']),
@@ -56,16 +63,18 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
     duration: json['duration'] is int ? Duration(milliseconds: json['duration'] as int) : null,
     artworkUrl: json['artworkUrl'] as String?,
     localArtworkPath: json['localArtworkPath'] as String?,
-    mediaType: MediaType.values.firstWhere(
-      (item) => item.name == json['mediaType'],
-      orElse: () => MediaType.playlist,
-    ),
-    playbackUrl: _restorablePlaybackUrl(json['playbackUrl']),
+    mediaType: mediaType,
+    playbackUrl: playbackUrl,
     lyricKey: json['lyricKey'] as String?,
     localLyricsPath: _stringOrNull(json['localLyricsPath']) ?? _stringOrNull(metadata['localLyricsPath']),
     availability: _availabilityFrom(json['availability'] ?? metadata['availability']),
     isLiked: json['isLiked'] as bool? ?? false,
-    isCached: json['isCached'] as bool? ?? false,
+    isCached: hasUsableCachedAudio(
+      isCached: json['isCached'] as bool? ?? false,
+      sourceType: sourceType,
+      mediaType: mediaType,
+      playbackUrl: playbackUrl,
+    ),
     metadata: playbackQueueCustomMetadata(metadata),
   );
 }
@@ -89,7 +98,12 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
     'localLyricsPath': item.localLyricsPath,
     'availability': item.availability.name,
     'isLiked': item.isLiked,
-    'isCached': item.isCached,
+    'isCached': hasUsableCachedAudio(
+      isCached: item.isCached,
+      sourceType: item.sourceType,
+      mediaType: item.mediaType,
+      playbackUrl: item.playbackUrl,
+    ),
     'metadata': _customMetadata(item.metadata),
   };
 }

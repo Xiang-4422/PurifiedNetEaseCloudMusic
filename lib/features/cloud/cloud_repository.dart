@@ -28,6 +28,9 @@ class CloudRepository {
     required String userId,
     required List<int> likedSongIds,
   }) async {
+    if (_isBlankUserId(userId)) {
+      return const [];
+    }
     final trackIds = await _userTrackListDataSource.loadTrackIds(
       userId,
       UserTrackListKind.cloud,
@@ -52,6 +55,13 @@ class CloudRepository {
     required int limit,
     required List<int> likedSongIds,
   }) async {
+    if (_isBlankUserId(userId)) {
+      return const CloudSongPage(
+        items: [],
+        hasMore: false,
+        nextOffset: 0,
+      );
+    }
     final result = await _remoteDataSource.fetchCloudSongs(
       offset: offset,
       limit: limit,
@@ -110,6 +120,10 @@ class CloudRepository {
       ],
       likedSongIds: likedSongIds,
     );
+  }
+
+  bool _isBlankUserId(String userId) {
+    return userId.trim().isEmpty;
   }
 }
 

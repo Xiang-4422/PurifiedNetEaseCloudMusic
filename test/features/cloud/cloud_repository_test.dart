@@ -13,6 +13,42 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('CloudRepository', () {
+    test('ignores blank user id before cache or remote access', () async {
+      final remoteDataSource = _FakeNeteaseCloudRemoteDataSource(
+        tracks: [_track('netease:1')],
+      );
+      final musicDataRepository = _FakeMusicDataRepository(
+        resourcesByTrackId: const {},
+      );
+      final trackListDataSource = _FakeUserTrackListDataSource();
+      final repository = CloudRepository(
+        musicDataRepository: musicDataRepository,
+        userTrackListDataSource: trackListDataSource,
+        remoteDataSource: remoteDataSource,
+      );
+
+      final cachedSongs = await repository.loadCachedSongs(
+        userId: '   ',
+        likedSongIds: const [1],
+      );
+      final page = await repository.fetchCloudSongs(
+        userId: '   ',
+        offset: 0,
+        limit: 30,
+        likedSongIds: const [1],
+      );
+
+      expect(cachedSongs, isEmpty);
+      expect(page.items, isEmpty);
+      expect(page.hasMore, isFalse);
+      expect(page.nextOffset, 0);
+      expect(remoteDataSource.fetchCallCount, 0);
+      expect(musicDataRepository.savedTrackIds, isEmpty);
+      expect(musicDataRepository.requestedResourceIds, isEmpty);
+      expect(trackListDataSource.loadedUserIds, isEmpty);
+      expect(trackListDataSource.replacedUserIds, isEmpty);
+    });
+
     test('builds fetched cloud songs from saved track resources', () async {
       final remoteDataSource = _FakeNeteaseCloudRemoteDataSource(
         tracks: [_track('netease:1')],
@@ -120,12 +156,14 @@ class _FakeNeteaseCloudRemoteDataSource implements NeteaseCloudRemoteDataSource 
   _FakeNeteaseCloudRemoteDataSource({required this.tracks});
 
   final List<Track> tracks;
+  int fetchCallCount = 0;
 
   @override
   Future<({int itemCount, List<Track> tracks})> fetchCloudSongs({
     required int offset,
     required int limit,
   }) async {
+    fetchCallCount++;
     return (tracks: tracks, itemCount: tracks.length);
   }
 
@@ -136,6 +174,8 @@ class _FakeNeteaseCloudRemoteDataSource implements NeteaseCloudRemoteDataSource 
 }
 
 class _FakeUserTrackListDataSource implements UserTrackListDataSource {
+  final List<String> loadedUserIds = [];
+  final List<String> replacedUserIds = [];
   List<String> replacedTrackIds = [];
   UserTrackListKind? replacedKind;
 
@@ -144,6 +184,7 @@ class _FakeUserTrackListDataSource implements UserTrackListDataSource {
     String userId,
     UserTrackListKind kind,
   ) async {
+    loadedUserIds.add(userId);
     return const [];
   }
 
@@ -153,6 +194,7 @@ class _FakeUserTrackListDataSource implements UserTrackListDataSource {
     UserTrackListKind kind,
     List<String> trackIds,
   ) async {
+    replacedUserIds.add(userId);
     replacedKind = kind;
     replacedTrackIds = trackIds;
   }

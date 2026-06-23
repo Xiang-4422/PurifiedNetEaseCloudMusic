@@ -1466,6 +1466,7 @@ void main() {
         if (cloudController.contains('UserLibraryController')) '${_relativePath(cloudControllerFile)} reads user library directly',
         if (!cloudController.contains('required List<int> Function() likedSongIds')) 'cloud controller does not require a lazy liked ids provider',
         if (!cloudController.contains('likedSongIds: _likedSongIds()')) 'cloud controller does not read liked ids at request time',
+        if (!cloudController.contains('bool get _hasUserId => _userId.trim().isNotEmpty')) 'cloud controller does not trim-check current user before repository access',
         if (!cloudFactory.contains('CloudPageController create({int pageSize = 30})')) 'cloud controller factory does not create page-local controllers',
         if (!cloudFactory.contains('userId: _currentUserId()')) 'cloud controller factory does not snapshot current user at controller creation',
         if (!cloudFactory.contains('likedSongIds: _likedSongIds')) 'cloud controller factory does not inject liked ids provider',
@@ -1494,6 +1495,24 @@ void main() {
         violations,
         isEmpty,
         reason: '云盘页和播客页不能在 Widget 内直接拼账号、repository 或喜欢列表；页面本地 controller 应由 feature factory 注入当前账号和喜欢列表 provider。',
+      );
+    });
+
+    test('cloud repository rejects blank account scope', () {
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/features/cloud/cloud_repository.dart',
+      );
+      final repository = repositoryFile.readAsStringSync();
+      final violations = <String>[
+        if (!repository.contains('bool _isBlankUserId(String userId)')) '${_relativePath(repositoryFile)} does not define a blank user guard',
+        if (!repository.contains('if (_isBlankUserId(userId))')) '${_relativePath(repositoryFile)} does not guard user-scoped cloud entry points',
+        if (!repository.contains('return const CloudSongPage(')) '${_relativePath(repositoryFile)} does not return an empty cloud page for blank users',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '云盘仓库是账号作用域缓存边界，空账号不能读取或写入用户云盘缓存，也不能触发远程云盘请求。',
       );
     });
 

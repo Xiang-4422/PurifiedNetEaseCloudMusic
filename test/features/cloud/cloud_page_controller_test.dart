@@ -11,6 +11,35 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('CloudPageController', () {
+    test('ignores blank user id before repository access', () async {
+      final repository = _FakeCloudRepository(
+        cachedSongs: [_song('cached')],
+        fetchCloudSongs: () => Future.value(
+          CloudSongPage(
+            items: [_song('remote')],
+            hasMore: true,
+            nextOffset: 1,
+          ),
+        ),
+      );
+      final controller = CloudPageController(
+        repository: repository,
+        userId: '   ',
+        likedSongIds: () => const [1],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      await controller.refresh();
+      await controller.loadMore();
+
+      expect(controller.state.value.items, isEmpty);
+      expect(controller.state.value.hasMore, isFalse);
+      expect(repository.cachedLikedSongRequests, isEmpty);
+      expect(repository.fetchLikedSongRequests, isEmpty);
+      expect(repository.requestedOffsets, isEmpty);
+    });
+
     test('keeps cached songs when background refresh fails', () async {
       final refresh = Completer<CloudSongPage>();
       final error = Exception('offline');

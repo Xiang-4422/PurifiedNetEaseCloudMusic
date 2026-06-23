@@ -374,6 +374,45 @@ void main() {
       await controller.loadInitial();
       expect(repository.hotKeywordRequestCount, 1);
     });
+
+    test('falls back to remote hot keywords when cache load fails', () async {
+      final repository = _FakeSearchRepository(
+        cachedHotKeywordsError: StateError('cache failed'),
+      );
+      final controller = SearchPanelController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final load = controller.loadInitial();
+      await _flushAsync();
+
+      expect(controller.hotKeywordState.value.status, LoadStatus.loading);
+      expect(repository.hotKeywordRequestCount, 1);
+
+      repository.completeHotKeywords(0, const ['remote']);
+      await load;
+
+      expect(controller.hotKeywordState.value.data, const ['remote']);
+    });
+
+    test('refreshes hot keywords when cache freshness check fails', () async {
+      final repository = _FakeSearchRepository(
+        cachedHotKeywords: const ['cached'],
+        hotKeywordCacheFreshError: StateError('freshness failed'),
+      );
+      final controller = SearchPanelController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final load = controller.loadInitial();
+      await _flushAsync();
+
+      expect(controller.hotKeywordState.value.data, const ['cached']);
+      expect(repository.hotKeywordRequestCount, 1);
+
+      repository.completeHotKeywords(0, const ['remote']);
+      await load;
+
+      expect(controller.hotKeywordState.value.data, const ['remote']);
+    });
   });
 }
 
@@ -381,6 +420,8 @@ class _FakeSearchRepository implements SearchRepository {
   _FakeSearchRepository({
     this.cachedHotKeywords = const <String>[],
     this.hotKeywordCacheFresh = true,
+    this.cachedHotKeywordsError,
+    this.hotKeywordCacheFreshError,
   });
 
   final Map<String, List<_PendingSearchResult>> _pending = <String, List<_PendingSearchResult>>{};
@@ -388,6 +429,8 @@ class _FakeSearchRepository implements SearchRepository {
   final List<Completer<List<String>>> _hotKeywordRequests = <Completer<List<String>>>[];
   final List<String>? cachedHotKeywords;
   final bool hotKeywordCacheFresh;
+  final Object? cachedHotKeywordsError;
+  final Object? hotKeywordCacheFreshError;
   final List<List<int>> requestedLikedSongIds = <List<int>>[];
   final List<String> requestedPlaylistUserIds = <String>[];
 
@@ -432,10 +475,22 @@ class _FakeSearchRepository implements SearchRepository {
   }
 
   @override
-  Future<List<String>?> loadCachedHotKeywords() => Future<List<String>?>.value(cachedHotKeywords);
+  Future<List<String>?> loadCachedHotKeywords() {
+    final error = cachedHotKeywordsError;
+    if (error != null) {
+      return Future<List<String>?>.error(error);
+    }
+    return Future<List<String>?>.value(cachedHotKeywords);
+  }
 
   @override
-  Future<bool> isHotKeywordCacheFresh({required Duration ttl}) => Future<bool>.value(hotKeywordCacheFresh);
+  Future<bool> isHotKeywordCacheFresh({required Duration ttl}) {
+    final error = hotKeywordCacheFreshError;
+    if (error != null) {
+      return Future<bool>.error(error);
+    }
+    return Future<bool>.value(hotKeywordCacheFresh);
+  }
 
   @override
   Future<List<String>> fetchHotKeywords() {

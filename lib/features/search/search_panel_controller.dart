@@ -71,7 +71,7 @@ class SearchPanelController {
       return;
     }
     final generation = ++_hotKeywordGeneration;
-    final cachedKeywords = await _repository.loadCachedHotKeywords();
+    final cachedKeywords = await _loadCachedHotKeywords();
     if (!_isCurrentHotKeywordLoad(generation)) {
       return;
     }
@@ -82,7 +82,7 @@ class SearchPanelController {
     } else {
       hotKeywordState.value = const LoadState.loading();
     }
-    final cacheFresh = hasCachedKeywords && await _repository.isHotKeywordCacheFresh(ttl: hotKeywordTtl);
+    final cacheFresh = hasCachedKeywords && await _isHotKeywordCacheFresh();
     if (!_isCurrentHotKeywordLoad(generation)) {
       return;
     }
@@ -237,6 +237,22 @@ class SearchPanelController {
         return LoadState.data(cachedKeywords);
       }
       return LoadState.error(error, stackTrace: stackTrace);
+    }
+  }
+
+  Future<List<String>?> _loadCachedHotKeywords() async {
+    try {
+      return await _repository.loadCachedHotKeywords();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<bool> _isHotKeywordCacheFresh() async {
+    try {
+      return await _repository.isHotKeywordCacheFresh(ttl: hotKeywordTtl);
+    } catch (_) {
+      return false;
     }
   }
 

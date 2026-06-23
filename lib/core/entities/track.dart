@@ -97,6 +97,18 @@ class Track {
   /// 扩展元数据。
   final Map<String, Object?> metadata;
 
+  /// 专辑 id，兼容迁移旧 metadata 中的 `albumId`。
+  String? get resolvedAlbumId => _stringOrNull(albumId) ?? _stringOrNull(metadata['albumId']);
+
+  /// 歌手 id 列表，兼容迁移旧 metadata 中的 `artistIds`。
+  List<String> get resolvedArtistIds {
+    final explicitArtistIds = artistIds.where((item) => item.isNotEmpty).toList(growable: false);
+    if (explicitArtistIds.isNotEmpty) {
+      return explicitArtistIds;
+    }
+    return _stringList(metadata['artistIds']);
+  }
+
   /// 复制曲目实体并替换指定字段。
   Track copyWith({
     String? id,
@@ -130,5 +142,16 @@ class Track {
       availability: availability ?? this.availability,
       metadata: metadata ?? this.metadata,
     );
+  }
+
+  static String? _stringOrNull(Object? value) {
+    if (value == null || '$value'.isEmpty) {
+      return null;
+    }
+    return '$value';
+  }
+
+  static List<String> _stringList(Object? value) {
+    return (value as List? ?? const []).map((item) => '$item').where((item) => item.isNotEmpty).toList(growable: false);
   }
 }

@@ -243,14 +243,11 @@ class TrackDao {
   }
 
   String? _albumSourceId(Track track) {
-    return _stringOrNull(track.albumId) ?? _stringOrNull(track.metadata['albumId']);
+    return track.resolvedAlbumId;
   }
 
   List<String> _artistSourceIdsForSave(Track track) {
-    if (track.artistIds.isNotEmpty) {
-      return track.artistIds.where((item) => item.isNotEmpty).toList(growable: false);
-    }
-    return _metadataArtistSourceIds(track.metadata);
+    return track.resolvedArtistIds;
   }
 
   Iterable<List<T>> _chunks<T>(List<T> items, int size) sync* {

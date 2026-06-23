@@ -710,7 +710,6 @@ void main() {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',
         'lib/features/playback/application/playback_queue_item_cache_codec.dart',
-        'lib/features/playback/application/playback_queue_item_mapper.dart',
       };
       final playbackFiles = _dartFiles(Directory('${projectRoot.path}/lib/features/playback'));
       final violations = playbackFiles
@@ -728,7 +727,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: 'PlaybackQueueItem.metadata 动态键只能在 mapper/adapter/cache codec 边界做兼容迁移，播放服务和 controller 必须使用显式字段。',
+        reason: 'PlaybackQueueItem.metadata 动态键只能在 adapter/cache codec 边界做兼容迁移，播放 mapper、service 和 controller 必须使用显式字段。',
       );
     });
 

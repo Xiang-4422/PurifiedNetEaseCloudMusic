@@ -27,6 +27,7 @@ const specialCoveragePath = specialCoverageArg
   ? path.resolve(repoRoot, specialCoverageArg.slice('--special-coverage='.length))
   : path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_special_coverage.json')
 const jsonOutput = process.argv.includes('--json')
+const markdownOutput = process.argv.includes('--markdown')
 const generatedManifestSupportedCrypto = new Set(['weapi', 'eapi', 'linuxapi', 'api', 'xeapi'])
 const generatedManifestSupportedHttpMethods = new Set(['GET', 'POST'])
 
@@ -338,6 +339,10 @@ function sortedObject(value) {
     return {}
   }
   return Object.fromEntries(Object.keys(value).sort().map((key) => [key, value[key]]))
+}
+
+function escapeMarkdownTableCell(value) {
+  return `${value ?? ''}`.replace(/\|/g, '\\|').replace(/\n/g, ' ')
 }
 
 function validateSpecialCoverageStringArray(coverage, key) {
@@ -1106,8 +1111,63 @@ const hasFailure =
   report.specialDispatcherMissing.length > 0 ||
   report.specialDispatcherUnknown.length > 0
 
+function renderMarkdownReport(report) {
+  const lines = [
+    '# api-enhanced coverage report',
+    '',
+    '## Upstream',
+    '',
+    `- version: ${report.upstreamVersion}`,
+    `- submodule: ${report.upstreamSubmodulePath}`,
+    `- commit: ${report.upstreamCommit || 'unknown'}`,
+    `- dirty: ${report.upstreamDirty}`,
+    `- manifest version: ${report.manifestUpstreamVersion || 'unknown'}`,
+    `- manifest commit: ${report.manifestUpstreamCommit || 'unknown'}`,
+    '',
+    '## Coverage',
+    '',
+    `- modules: ${report.moduleCount}`,
+    `- upstream module files: ${report.upstreamModuleFileCount}`,
+    `- normal modules: ${report.normalModuleCount}`,
+    `- special modules: ${report.specialModuleCount}`,
+    `- node oracle scenarios: ${report.nodeOracleScenarioCount}`,
+    `- node oracle fixtures: ${report.nodeOracleFixtureCount}`,
+    `- raw convenience methods: ${report.rawConvenienceMethodCount}`,
+    '',
+    '## Special Modules',
+    '',
+    `- node oracle: ${report.specialNodeOracle.join(', ') || 'none'}`,
+    `- Dart behavior: ${report.specialDartBehavior.join(', ') || 'none'}`,
+    `- limited: ${report.specialLimited.join(', ') || 'none'}`,
+    '',
+    '## Runtime Options',
+    '',
+    `- supported: ${report.runtimeSupported.join(', ') || 'none'}`,
+    `- limited: ${report.runtimeLimited.join(', ') || 'none'}`,
+    '',
+    '## SDK Differences',
+    '',
+  ]
+
+  if (report.sdkDifferences.length === 0) {
+    lines.push('- none')
+  } else {
+    lines.push('| scope | module | status | reason |')
+    lines.push('| --- | --- | --- | --- |')
+    for (const difference of report.sdkDifferences) {
+      lines.push(
+        `| ${escapeMarkdownTableCell(difference.scope)} | ${escapeMarkdownTableCell(difference.module)} | ${escapeMarkdownTableCell(difference.status)} | ${escapeMarkdownTableCell(difference.reason)} |`,
+      )
+    }
+  }
+  lines.push('')
+  return lines.join('\n')
+}
+
 if (jsonOutput) {
   console.log(JSON.stringify(report, null, 2))
+} else if (markdownOutput) {
+  console.log(renderMarkdownReport(report))
 } else {
   console.log('api-enhanced coverage report')
   console.log(`upstream version: ${report.upstreamVersion}`)

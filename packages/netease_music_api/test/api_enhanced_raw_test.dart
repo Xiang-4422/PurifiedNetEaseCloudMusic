@@ -249,6 +249,39 @@ void main() {
       }
     });
 
+    test('coverage report renders markdown summary for manual review', () async {
+      final repoRoot = _findRepoRoot();
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--markdown',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(
+        result.exitCode,
+        0,
+        reason: '${result.stdout}\n${result.stderr}',
+      );
+      final markdown = result.stdout as String;
+
+      expect(markdown, contains('# api-enhanced coverage report'));
+      expect(markdown, contains('## Upstream'));
+      expect(markdown, contains('- version: $apiEnhancedUpstreamVersion'));
+      expect(markdown, contains('- commit: $apiEnhancedUpstreamCommit'));
+      expect(markdown, contains('- modules: ${apiEnhancedModules.length}'));
+      expect(markdown, contains('## SDK Differences'));
+      expect(markdown, contains('| scope | module | status | reason |'));
+      expect(markdown, contains('| special_module | cloud | limited |'));
+      expect(markdown, contains('| special_module | song_url_match | limited |'));
+      expect(markdown, contains('| special_module | song_url_v1 | limited |'));
+      expect(markdown, contains('| runtime_option | runtime:proxy.pac | limited |'));
+      expect(markdown, contains('| runtime_option | runtime:source_order | limited |'));
+      expect(markdown, contains('unblockmusic-utils'));
+    });
+
     test('coverage report rejects malformed special coverage config', () async {
       final repoRoot = _findRepoRoot();
       final tempDir = Directory.systemTemp.createTempSync('api_enhanced_special_coverage_');

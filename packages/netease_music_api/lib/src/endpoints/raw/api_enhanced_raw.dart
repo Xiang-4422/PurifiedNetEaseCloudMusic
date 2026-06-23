@@ -460,16 +460,30 @@ mixin ApiEnhancedRaw {
   /// Song URL v1 xeapi module.
   Future<dynamic> songUrlV1Raw(Map<String, dynamic> query) async {
     final level = query['level'] ?? 'standard';
-    return _xeapiPost(
-      '/api/song/enhance/player/url/v1',
-      {
-        'ids': '[${query['id']}]',
-        'level': level,
-        'encodeType': 'flac',
-        if (level == 'sky') 'immerseType': 'c51',
-      },
-      query,
+    const path = '/api/song/enhance/player/url/v1';
+    final options = _rawOptions(EncryptType.XeApi, path, query);
+    final unsupportedRuntimeOptions = <String>[
+      if (_hasQueryValue(query['source'])) 'runtime:source_order',
+    ];
+    if (unsupportedRuntimeOptions.isNotEmpty) {
+      options.extra!['unsupportedRuntimeOptions'] = unsupportedRuntimeOptions;
+    }
+    if (_boolOption(query['unblock'])) {
+      options.extra!['unsupportedFeature'] = 'unblockmusic-utils';
+    }
+    final response = await Https.dioProxy.postUri(
+      DioMetaData(
+        _rawUri(path, EncryptType.XeApi, query['domain']?.toString()),
+        data: {
+          'ids': '[${query['id']}]',
+          'level': level,
+          'encodeType': 'flac',
+          if (level == 'sky') 'immerseType': 'c51',
+        },
+        options: options,
+      ),
     );
+    return response.data;
   }
 
   /// Song URL v1 302 module, including upstream download-url fallback behavior.
@@ -3565,6 +3579,16 @@ bool _boolOption(dynamic value) {
   }
   final text = value?.toString().toLowerCase();
   return text == 'true' || text == '1';
+}
+
+bool _hasQueryValue(dynamic value) {
+  if (value == null) {
+    return false;
+  }
+  if (value is String) {
+    return value.trim().isNotEmpty;
+  }
+  return true;
 }
 
 Map<String, String> _stringMap(dynamic value) {

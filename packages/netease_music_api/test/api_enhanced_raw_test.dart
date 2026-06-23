@@ -3479,6 +3479,9 @@ void main() {
 
       expect(proxy.metaData!.data, isNot(contains('source')));
       expect(proxy.metaData!.data, containsPair('encodeType', 'flac'));
+      expect(proxy.metaData!.options!.extra!['unsupportedRuntimeOptions'], [
+        'runtime:source_order',
+      ]);
     });
 
     test('song url v1 falls back to base xeapi request when unblock is requested', () async {
@@ -3499,6 +3502,10 @@ void main() {
         'level': 'lossless',
         'encodeType': 'flac',
       });
+      expect(proxy.metaData!.options!.extra!['unsupportedFeature'], 'unblockmusic-utils');
+      expect(proxy.metaData!.options!.extra!['unsupportedRuntimeOptions'], [
+        'runtime:source_order',
+      ]);
     });
 
     test('song url v1 302 special module returns redirect from download url', () async {

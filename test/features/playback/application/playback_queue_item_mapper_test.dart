@@ -87,6 +87,23 @@ void main() {
       expect(item.isCached, isFalse);
     });
 
+    test('keeps remote artwork separate from indexed local artwork', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(artworkUrl: 'https://p1.music.126.net/cover.jpg?param=64y64'),
+            resources: TrackResourceBundle(
+              artwork: _artworkResource('/cache/artwork/cover.jpg'),
+            ),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.artworkUrl, 'https://p1.music.126.net/cover.jpg');
+      expect(item.localArtworkPath, '/cache/artwork/cover.jpg');
+    });
+
     test('does not use local track source id without indexed audio', () {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [
@@ -246,6 +263,7 @@ Track _track({
   String id = 'netease:1',
   SourceType sourceType = SourceType.netease,
   String sourceId = '1',
+  String? artworkUrl,
   String? albumId,
   List<String> artistIds = const [],
   TrackAvailability availability = TrackAvailability.unknown,
@@ -256,10 +274,24 @@ Track _track({
     sourceType: sourceType,
     sourceId: sourceId,
     title: 'Track',
+    artworkUrl: artworkUrl,
     albumId: albumId,
     artistIds: artistIds,
     availability: availability,
     metadata: metadata,
+  );
+}
+
+LocalResourceEntry _artworkResource(String path) {
+  final now = DateTime(2026);
+  return LocalResourceEntry(
+    trackId: 'netease:1',
+    kind: LocalResourceKind.artwork,
+    path: path,
+    origin: TrackResourceOrigin.artworkCache,
+    sizeBytes: 10,
+    createdAt: now,
+    lastAccessedAt: now,
   );
 }
 

@@ -166,6 +166,21 @@ function duplicateValues(values) {
   return sorted(duplicate)
 }
 
+function orderMismatches(actual, expected) {
+  const mismatches = []
+  const length = Math.max(actual.length, expected.length)
+  for (let index = 0; index < length; index += 1) {
+    if (actual[index] !== expected[index]) {
+      mismatches.push({
+        index,
+        actual: actual[index] || null,
+        expected: expected[index] || null,
+      })
+    }
+  }
+  return mismatches
+}
+
 function isRecord(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
@@ -548,10 +563,12 @@ const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelai
 const manifestDuplicateModules = duplicateValues(manifestModules)
 const manifestDuplicateMethodNames = duplicateValues(manifestMethodNames)
 const manifestInvalidEntries = validateManifestEntries(entries)
+const manifestModuleOrderMismatches = orderMismatches(manifestModules, upstreamModules)
 const manifestMapDuplicateKeys = duplicateValues(manifestMapKeys)
 const manifestMapMissingModules = sorted(manifestModules.filter((module) => !new Set(manifestMapKeys).has(module)))
 const manifestMapUnknownModules = sorted(manifestMapKeys.filter((module) => !manifestModuleSet.has(module)))
 const manifestMapEntryMismatches = validateManifestMapEntries(entries, manifestMapEntries)
+const manifestMapOrderMismatches = orderMismatches(manifestMapKeys, manifestModules)
 const manifestMissingUpstreamModules = sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module)))
 const manifestUnknownUpstreamModules = sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module)))
 const manifestUpstreamMismatches = [
@@ -575,6 +592,7 @@ const rawConvenienceMissingModules = sorted(manifestModules.filter((module) => !
 const rawConvenienceUnknownModules = sorted(rawConvenienceModules.filter((module) => !manifestModuleSet.has(module)))
 const rawConvenienceDuplicateModules = duplicateValues(rawConvenienceModules)
 const rawConvenienceDuplicateMethodNames = duplicateValues(rawConvenienceMethodNames)
+const rawConvenienceOrderMismatches = orderMismatches(rawConvenienceModules, manifestModules)
 const rawConvenienceMethodNameMismatches = rawConvenienceMethods
   .filter((entry) => manifestMethodNameByModule.has(entry.module) && manifestMethodNameByModule.get(entry.module) !== entry.methodName)
   .map((entry) => ({
@@ -680,6 +698,14 @@ function buildSdkDifferences() {
       scope: 'generated_manifest',
     })
   }
+  for (const mismatch of manifestModuleOrderMismatches) {
+    differences.push({
+      module: mismatch.expected || mismatch.actual || '<generated_manifest>',
+      status: 'manifest_module_order_mismatch',
+      reason: `Generated manifest list index ${mismatch.index} has ${mismatch.actual || '<missing>'}, expected ${mismatch.expected || '<missing>'}.`,
+      scope: 'generated_manifest',
+    })
+  }
   for (const module of manifestMapUnknownModules) {
     differences.push({
       module,
@@ -701,6 +727,14 @@ function buildSdkDifferences() {
       module: mismatch.module,
       status: 'manifest_map_entry_mismatch',
       reason: `${mismatch.field}: ${mismatch.reason}`,
+      scope: 'generated_manifest',
+    })
+  }
+  for (const mismatch of manifestMapOrderMismatches) {
+    differences.push({
+      module: mismatch.expected || mismatch.actual || '<generated_manifest>',
+      status: 'manifest_map_order_mismatch',
+      reason: `Generated manifest map index ${mismatch.index} has ${mismatch.actual || '<missing>'}, expected ${mismatch.expected || '<missing>'}.`,
       scope: 'generated_manifest',
     })
   }
@@ -741,6 +775,14 @@ function buildSdkDifferences() {
       module,
       status: 'duplicate_raw_convenience_module',
       reason: 'Generated raw convenience methods reference this module more than once.',
+      scope: 'raw_convenience_methods',
+    })
+  }
+  for (const mismatch of rawConvenienceOrderMismatches) {
+    differences.push({
+      module: mismatch.expected || mismatch.actual || '<raw_convenience_methods>',
+      status: 'raw_convenience_order_mismatch',
+      reason: `Generated raw convenience method index ${mismatch.index} has ${mismatch.actual || '<missing>'}, expected ${mismatch.expected || '<missing>'}.`,
       scope: 'raw_convenience_methods',
     })
   }
@@ -933,11 +975,13 @@ const report = {
   manifestDuplicateModules,
   manifestDuplicateMethodNames,
   manifestInvalidEntries,
+  manifestModuleOrderMismatches,
   manifestMapEntryCount: manifestMapEntries.length,
   manifestMapDuplicateKeys,
   manifestMapMissingModules,
   manifestMapUnknownModules,
   manifestMapEntryMismatches,
+  manifestMapOrderMismatches,
   specialCoverageInvalidEntries,
   specialCoverageDuplicateEntries,
   upstreamModuleFileCount: upstreamModules.length,
@@ -956,6 +1000,7 @@ const report = {
   rawConvenienceUnknownModules,
   rawConvenienceDuplicateModules,
   rawConvenienceDuplicateMethodNames,
+  rawConvenienceOrderMismatches,
   rawConvenienceMethodNameMismatches,
   normalMissingOracle,
   specialMissingStatus,
@@ -986,10 +1031,12 @@ const hasFailure =
   report.manifestDuplicateModules.length > 0 ||
   report.manifestDuplicateMethodNames.length > 0 ||
   report.manifestInvalidEntries.length > 0 ||
+  report.manifestModuleOrderMismatches.length > 0 ||
   report.manifestMapDuplicateKeys.length > 0 ||
   report.manifestMapMissingModules.length > 0 ||
   report.manifestMapUnknownModules.length > 0 ||
   report.manifestMapEntryMismatches.length > 0 ||
+  report.manifestMapOrderMismatches.length > 0 ||
   report.specialCoverageInvalidEntries.length > 0 ||
   report.specialCoverageDuplicateEntries.length > 0 ||
   report.manifestMissingUpstreamModules.length > 0 ||
@@ -1001,6 +1048,7 @@ const hasFailure =
   report.rawConvenienceUnknownModules.length > 0 ||
   report.rawConvenienceDuplicateModules.length > 0 ||
   report.rawConvenienceDuplicateMethodNames.length > 0 ||
+  report.rawConvenienceOrderMismatches.length > 0 ||
   report.rawConvenienceMethodNameMismatches.length > 0 ||
   report.normalMissingOracle.length > 0 ||
   report.specialMissingStatus.length > 0 ||
@@ -1026,11 +1074,13 @@ if (jsonOutput) {
   console.log(`manifest duplicate modules: ${report.manifestDuplicateModules.length}`)
   console.log(`manifest duplicate method names: ${report.manifestDuplicateMethodNames.length}`)
   console.log(`manifest invalid entries: ${report.manifestInvalidEntries.length}`)
+  console.log(`manifest module order mismatches: ${report.manifestModuleOrderMismatches.length}`)
   console.log(`manifest map entries: ${report.manifestMapEntryCount}`)
   console.log(`manifest map duplicate keys: ${report.manifestMapDuplicateKeys.length}`)
   console.log(`manifest map missing modules: ${report.manifestMapMissingModules.length}`)
   console.log(`manifest map unknown modules: ${report.manifestMapUnknownModules.length}`)
   console.log(`manifest map entry mismatches: ${report.manifestMapEntryMismatches.length}`)
+  console.log(`manifest map order mismatches: ${report.manifestMapOrderMismatches.length}`)
   console.log(`special coverage invalid entries: ${report.specialCoverageInvalidEntries.length}`)
   console.log(`special coverage duplicate entries: ${report.specialCoverageDuplicateEntries.length}`)
   console.log(
@@ -1048,6 +1098,7 @@ if (jsonOutput) {
   console.log(`raw convenience unknown modules: ${report.rawConvenienceUnknownModules.length}`)
   console.log(`raw convenience duplicate modules: ${report.rawConvenienceDuplicateModules.length}`)
   console.log(`raw convenience duplicate method names: ${report.rawConvenienceDuplicateMethodNames.length}`)
+  console.log(`raw convenience order mismatches: ${report.rawConvenienceOrderMismatches.length}`)
   console.log(`raw convenience method name mismatches: ${report.rawConvenienceMethodNameMismatches.length}`)
   console.log(`normal modules missing oracle: ${report.normalMissingOracle.length}`)
   console.log(`special modules missing status: ${report.specialMissingStatus.length}`)

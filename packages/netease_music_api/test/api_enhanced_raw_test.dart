@@ -130,11 +130,13 @@ void main() {
       expect(report['manifestDuplicateModules'], isEmpty);
       expect(report['manifestDuplicateMethodNames'], isEmpty);
       expect(report['manifestInvalidEntries'], isEmpty);
+      expect(report['manifestModuleOrderMismatches'], isEmpty);
       expect(report['manifestMapEntryCount'], apiEnhancedModules.length);
       expect(report['manifestMapDuplicateKeys'], isEmpty);
       expect(report['manifestMapMissingModules'], isEmpty);
       expect(report['manifestMapUnknownModules'], isEmpty);
       expect(report['manifestMapEntryMismatches'], isEmpty);
+      expect(report['manifestMapOrderMismatches'], isEmpty);
       expect(report['specialCoverageInvalidEntries'], isEmpty);
       expect(report['specialCoverageDuplicateEntries'], isEmpty);
       expect((statusResult.stdout as String).trim(), isEmpty);
@@ -151,6 +153,7 @@ void main() {
       expect(report['rawConvenienceUnknownModules'], isEmpty);
       expect(report['rawConvenienceDuplicateModules'], isEmpty);
       expect(report['rawConvenienceDuplicateMethodNames'], isEmpty);
+      expect(report['rawConvenienceOrderMismatches'], isEmpty);
       expect(report['rawConvenienceMethodNameMismatches'], isEmpty);
       expect(report['normalMissingOracle'], isEmpty);
       expect(report['specialMissingStatus'], isEmpty);
@@ -707,6 +710,70 @@ void main() {
       expect(
         sdkDifferences.where((item) => item['status'].toString().contains('manifest_map')).map((item) => item['scope']).toSet(),
         {'generated_manifest'},
+      );
+    });
+
+    test('coverage report includes generated output order drift in SDK differences', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_order_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final generatedManifest = File(
+        '${repoRoot.path}/packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
+      ).readAsStringSync();
+      const listAlbum = """
+  ApiEnhancedModule(
+    module: 'album',
+    methodName: 'album',
+    pathTemplate: '/api/v1/album/\\\${query.id}',
+    crypto: 'weapi',
+    httpMethod: 'POST',
+    special: false,
+  ),
+""";
+      const listAlbumDetail = """
+  ApiEnhancedModule(
+    module: 'album_detail',
+    methodName: 'albumDetail',
+    pathTemplate: '/api/vipmall/albumproduct/detail',
+    crypto: 'weapi',
+    httpMethod: 'POST',
+    special: false,
+  ),
+""";
+      final reorderedManifest = generatedManifest.replaceFirst(
+        '$listAlbum$listAlbumDetail',
+        '$listAlbumDetail$listAlbum',
+      );
+      expect(reorderedManifest, isNot(generatedManifest));
+      final manifestFile = File('${tempDir.path}/api_enhanced_modules.g.dart')..writeAsStringSync(reorderedManifest);
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--generated-manifest=${manifestFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(_jsonMapList(report['manifestModuleOrderMismatches']), isNotEmpty);
+      expect(_jsonMapList(report['manifestMapOrderMismatches']), isNotEmpty);
+      expect(_jsonMapList(report['rawConvenienceOrderMismatches']), isNotEmpty);
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      expect(
+        sdkDifferences.map((item) => item['status']).toSet(),
+        containsAll({
+          'manifest_module_order_mismatch',
+          'manifest_map_order_mismatch',
+          'raw_convenience_order_mismatch',
+        }),
       );
     });
 

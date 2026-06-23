@@ -112,6 +112,22 @@ void main() {
     expect(resultsSource, contains('ArtistSearchItem('));
   });
 
+  test('top panel search lists stay builder based with bounded cache extent', () {
+    final resultsSource = File(
+      'lib/ui/pages/shell/widgets/search/top_panel_search_results.dart',
+    ).readAsStringSync();
+
+    expect(resultsSource, contains('const double _topPanelSearchCacheExtent = 320;'));
+    expect(resultsSource, contains('itemCount: keywords.length'));
+    expect(resultsSource, contains('final keyword = keywords[index];'));
+    expect(resultsSource, isNot(contains('children: keywords')));
+    expect(resultsSource, isNot(contains('.toList()')));
+    expect(
+      'cacheExtent: _topPanelSearchCacheExtent'.allMatches(resultsSource),
+      hasLength(5),
+    );
+  });
+
   test('top panel cancels stale search requests across widget lifecycle', () {
     final panelSource = File(
       'lib/ui/pages/shell/widgets/search/top_panel_view.dart',

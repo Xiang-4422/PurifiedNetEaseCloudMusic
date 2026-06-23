@@ -10,6 +10,8 @@ import 'package:bujuan/ui/widgets/common/feedback/load_state_view.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
 import 'package:flutter/material.dart';
 
+const double _topPanelSearchCacheExtent = 320;
+
 /// 顶部搜索面板热词列表。
 class TopPanelHotKeywordList extends StatelessWidget {
   /// 创建热词列表。
@@ -32,19 +34,20 @@ class TopPanelHotKeywordList extends StatelessWidget {
       builder: (context, state, child) {
         return LoadStateView<List<String>>(
           state: state,
-          builder: (keywords) => ListView(
+          builder: (keywords) => ListView.builder(
+            cacheExtent: _topPanelSearchCacheExtent,
+            itemCount: keywords.length,
             padding: EdgeInsets.zero,
-            children: keywords
-                .map(
-                  (keyword) => UniversalListTile(
-                    titleString: keyword,
-                    onTap: () {
-                      shellController.searchFocusNode.unfocus();
-                      shellController.searchTextEditingController.text = keyword;
-                    },
-                  ),
-                )
-                .toList(),
+            itemBuilder: (context, index) {
+              final keyword = keywords[index];
+              return UniversalListTile(
+                titleString: keyword,
+                onTap: () {
+                  shellController.searchFocusNode.unfocus();
+                  shellController.searchTextEditingController.text = keyword;
+                },
+              );
+            },
           ),
         );
       },
@@ -79,6 +82,7 @@ class TopPanelSongSearchResult extends StatelessWidget {
         return LoadStateView<List<PlaybackQueueItem>>(
           state: state,
           builder: (list) => ListView.builder(
+            cacheExtent: _topPanelSearchCacheExtent,
             itemBuilder: (context, index) => SongItem(
               index: index,
               playlist: list,
@@ -116,6 +120,7 @@ class TopPanelPlaylistSearchResult extends StatelessWidget {
         return LoadStateView<List<PlaylistEntity>>(
           state: state,
           builder: (playlists) => ListView.builder(
+            cacheExtent: _topPanelSearchCacheExtent,
             itemCount: playlists.length,
             itemBuilder: (context, index) => PlaylistSearchItem(
               playlist: playlists[index],
@@ -151,6 +156,7 @@ class TopPanelAlbumSearchResult extends StatelessWidget {
         return LoadStateView<List<AlbumEntity>>(
           state: state,
           builder: (albums) => ListView.builder(
+            cacheExtent: _topPanelSearchCacheExtent,
             itemCount: albums.length,
             itemBuilder: (context, index) => AlbumSearchItem(
               album: albums[index],
@@ -186,6 +192,7 @@ class TopPanelArtistSearchResult extends StatelessWidget {
         return LoadStateView<List<ArtistEntity>>(
           state: state,
           builder: (artists) => ListView.builder(
+            cacheExtent: _topPanelSearchCacheExtent,
             itemCount: artists.length,
             itemBuilder: (context, index) => ArtistSearchItem(
               artist: artists[index],

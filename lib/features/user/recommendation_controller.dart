@@ -5,6 +5,7 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_session_data.dart';
+import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
@@ -39,6 +40,21 @@ class UserHomeLocalData {
   bool get hasData => recommendedPlaylists.isNotEmpty || todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
 }
 
+/// 首页歌单播放前解析出的队列计划。
+class UserHomePlaylistPlaybackPlan {
+  /// 创建首页歌单播放计划。
+  const UserHomePlaylistPlaybackPlan({
+    required this.songs,
+    required this.playlistName,
+  });
+
+  /// 可播放歌曲队列。
+  final List<PlaybackQueueItem> songs;
+
+  /// 播放队列名称。
+  final String playlistName;
+}
+
 /// 持有首页推荐、日推和 FM 候选歌曲状态。
 class RecommendationController extends GetxController {
   static const Duration _startupDataTtl = Duration(minutes: 10);
@@ -50,15 +66,18 @@ class RecommendationController extends GetxController {
   /// 创建推荐控制器。
   RecommendationController({
     required UserRepository repository,
+    required PlaylistRepository playlistRepository,
     required UserSessionController sessionController,
     required UserLibraryController libraryController,
     Future<void> Function()? validateLoginStateInBackground,
   })  : _repository = repository,
+        _playlistRepository = playlistRepository,
         _sessionController = sessionController,
         _libraryController = libraryController,
         _validateLoginStateInBackground = validateLoginStateInBackground;
 
   final UserRepository _repository;
+  final PlaylistRepository _playlistRepository;
   final UserSessionController _sessionController;
   final UserLibraryController _libraryController;
   final Future<void> Function()? _validateLoginStateInBackground;
@@ -285,6 +304,28 @@ class RecommendationController extends GetxController {
     return _repository.fetchFmSongs(
       userId: userId,
       likedSongIds: _libraryController.likedSongIds.toList(),
+    );
+  }
+
+  /// 将首页常用歌单摘要解析为播放队列计划。
+  Future<UserHomePlaylistPlaybackPlan> resolveFrequentPlaylistPlayback(
+    PlaylistSummaryData playlist,
+  ) async {
+    final likedSongIds = _libraryController.likedSongIds.toList();
+    final userId = _sessionController.userInfo.value.userId;
+    final index = await _playlistRepository.fetchPlaylistIndex(
+      playlist.id,
+      currentUserId: userId,
+      likedSongIds: likedSongIds,
+    );
+    final songs = await _playlistRepository.fetchPlaylistSongs(
+      playlistId: playlist.id,
+      likedSongIds: likedSongIds,
+      playlistIndex: index,
+    );
+    return UserHomePlaylistPlaybackPlan(
+      songs: songs,
+      playlistName: index.name,
     );
   }
 

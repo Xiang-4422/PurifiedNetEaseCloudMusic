@@ -69,6 +69,7 @@ void registerUserControllers() {
   Get.lazyPut(
     () => RecommendationController(
       repository: Get.find<UserRepository>(),
+      playlistRepository: Get.find<PlaylistRepository>(),
       sessionController: Get.find<UserSessionController>(),
       libraryController: Get.find<UserLibraryController>(),
       validateLoginStateInBackground: () => Get.find<AuthController>().validateLoginStateInBackgroundIfNeeded(),

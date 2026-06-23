@@ -1023,6 +1023,34 @@ void main() {
       );
     });
 
+    test('frequent playlist section keeps playback resolution behind home controller', () {
+      final sectionFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/widgets/frequent_playlist_section.dart',
+      );
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/user/recommendation_controller.dart',
+      );
+      final section = sectionFile.readAsStringSync();
+      final controller = controllerFile.readAsStringSync();
+      final violations = <String>[
+        if (section.contains('PlaylistRepository')) '${_relativePath(sectionFile)} resolves playlist data directly',
+        if (section.contains('likedSongIds.toList')) '${_relativePath(sectionFile)} reads liked ids directly',
+        if (section.contains('fetchPlaylistIndex(')) '${_relativePath(sectionFile)} fetches playlist index directly',
+        if (section.contains('fetchPlaylistSongs(')) '${_relativePath(sectionFile)} fetches playlist songs directly',
+        if (!section.contains('recommendationController.resolveFrequentPlaylistPlayback')) '${_relativePath(sectionFile)} does not resolve playlist playback through home controller',
+        if (!controller.contains('Future<UserHomePlaylistPlaybackPlan> resolveFrequentPlaylistPlayback')) 'recommendation controller does not expose frequent playlist playback resolution',
+        if (!controller.contains('required PlaylistRepository playlistRepository')) 'recommendation controller does not receive playlist repository explicitly',
+        if (!controller.contains('currentUserId: userId')) 'recommendation controller does not pass current user when resolving frequent playlist',
+        if (!controller.contains('playlistIndex: index')) 'recommendation controller does not reuse fetched playlist index for playback songs',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '常用歌单 Widget 只发起播放意图，歌单摘要到播放队列的解析必须留在 RecommendationController，避免 UI 直接读喜欢列表和 PlaylistRepository。',
+      );
+    });
+
     test('recent playback stays backed by confirmed history', () {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/playback/recent_playback_controller.dart',

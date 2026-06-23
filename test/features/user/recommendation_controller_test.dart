@@ -6,6 +6,7 @@ import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/data/app_storage/app_key_value_store.dart';
+import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
@@ -24,6 +25,7 @@ void main() {
       );
       final controller = RecommendationController(
         repository: _FakeUserRepository(),
+        playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
         libraryController: libraryController,
       );
@@ -55,6 +57,7 @@ void main() {
       );
       final controller = RecommendationController(
         repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
         libraryController: libraryController,
       );
@@ -80,6 +83,7 @@ void main() {
       );
       final controller = RecommendationController(
         repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
         libraryController: libraryController,
       );
@@ -107,6 +111,7 @@ void main() {
       );
       final controller = RecommendationController(
         repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
         libraryController: libraryController,
       );
@@ -146,6 +151,7 @@ void main() {
       );
       final controller = RecommendationController(
         repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
         libraryController: libraryController,
       );
@@ -185,6 +191,7 @@ void main() {
       );
       final controller = RecommendationController(
         repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
         libraryController: libraryController,
       );
@@ -229,6 +236,7 @@ void main() {
       );
       final controller = RecommendationController(
         repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
         libraryController: libraryController,
       );
@@ -250,6 +258,63 @@ void main() {
       expect(controller.recoPlayLists.map((playlist) => playlist.id), ['visible-playlist']);
       expect(controller.todayRecommendSongs.map((song) => song.id), ['visible-today']);
       expect(controller.fmSongs.map((song) => song.id), ['visible-fm']);
+    });
+
+    test('resolves frequent playlist playback plan with latest liked ids', () async {
+      final sessionController = _buildSessionController('user-1');
+      final libraryController = _FakeUserLibraryController();
+      libraryController.likedSongIds.addAll([101]);
+      final playlistRepository = _FakePlaylistRepository(
+        playlistIndex: const PlaylistIndexData(
+          id: 'playlist-1',
+          name: 'Frequent Playlist',
+          trackIds: ['netease:101'],
+          isSubscribed: false,
+          isLikedSongs: false,
+        ),
+        fetchSongsHandler: ({
+          required String playlistId,
+          required List<int> likedSongIds,
+          required int offset,
+          required int limit,
+        }) {
+          return Future.value([_song('song-${likedSongIds.join('-')}')]);
+        },
+      );
+      final controller = RecommendationController(
+        repository: _FakeUserRepository(),
+        playlistRepository: playlistRepository,
+        sessionController: sessionController,
+        libraryController: libraryController,
+      );
+      addTearDown(controller.onClose);
+
+      final firstPlan = await controller.resolveFrequentPlaylistPlayback(
+        const PlaylistSummaryData(id: 'playlist-1', title: 'Playlist 1'),
+      );
+      libraryController.likedSongIds
+        ..clear()
+        ..addAll([202, 303]);
+      final secondPlan = await controller.resolveFrequentPlaylistPlayback(
+        const PlaylistSummaryData(id: 'playlist-1', title: 'Playlist 1'),
+      );
+
+      expect(firstPlan.playlistName, 'Frequent Playlist');
+      expect(firstPlan.songs.single.id, 'song-101');
+      expect(secondPlan.songs.single.id, 'song-202-303');
+      expect(playlistRepository.indexUserIds, ['user-1', 'user-1']);
+      expect(playlistRepository.indexLikedSongRequests, [
+        [101],
+        [202, 303],
+      ]);
+      expect(playlistRepository.fetchLikedSongRequests, [
+        [101],
+        [202, 303],
+      ]);
+      expect(playlistRepository.fetchPlaylistIndexNames, [
+        'Frequent Playlist',
+        'Frequent Playlist',
+      ]);
     });
   });
 }
@@ -438,6 +503,70 @@ class _FakeUserRepository implements UserRepository {
     required String userId,
     required String markerKey,
   }) async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+}
+
+class _FakePlaylistRepository implements PlaylistRepository {
+  _FakePlaylistRepository({
+    this.playlistIndex = const PlaylistIndexData(
+      id: 'playlist',
+      name: 'Playlist',
+      trackIds: [],
+      isSubscribed: false,
+      isLikedSongs: false,
+    ),
+    this.fetchSongsHandler,
+  });
+
+  final PlaylistIndexData playlistIndex;
+  final Future<List<PlaybackQueueItem>> Function({
+    required String playlistId,
+    required List<int> likedSongIds,
+    required int offset,
+    required int limit,
+  })? fetchSongsHandler;
+  final List<String?> indexUserIds = <String?>[];
+  final List<List<int>> indexLikedSongRequests = <List<int>>[];
+  final List<List<int>> fetchLikedSongRequests = <List<int>>[];
+  final List<String> fetchPlaylistIndexNames = <String>[];
+
+  @override
+  Future<PlaylistIndexData> fetchPlaylistIndex(
+    String playlistId, {
+    String? currentUserId,
+    List<int> likedSongIds = const [],
+  }) async {
+    indexUserIds.add(currentUserId);
+    indexLikedSongRequests.add(List<int>.from(likedSongIds));
+    return playlistIndex;
+  }
+
+  @override
+  Future<List<PlaybackQueueItem>> fetchPlaylistSongs({
+    required String playlistId,
+    required List<int> likedSongIds,
+    int offset = 0,
+    int limit = -1,
+    PlaylistIndexData? playlistIndex,
+    bool persist = true,
+  }) async {
+    fetchLikedSongRequests.add(List<int>.from(likedSongIds));
+    fetchPlaylistIndexNames.add(playlistIndex?.name ?? '');
+    final handler = fetchSongsHandler;
+    if (handler != null) {
+      return handler(
+        playlistId: playlistId,
+        likedSongIds: likedSongIds,
+        offset: offset,
+        limit: limit,
+      );
+    }
+    return const [];
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) {

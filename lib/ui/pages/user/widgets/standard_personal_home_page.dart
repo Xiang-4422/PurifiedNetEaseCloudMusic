@@ -80,6 +80,7 @@ class StandardPersonalHomePage extends StatelessWidget {
           SliverToBoxAdapter(
             child: FrequentPlaylistSection(
               libraryController: libraryController,
+              recommendationController: recommendationController,
               playbackAction: playbackAction,
               albumCountInWidget: albumCountInScreen,
               headerTopMargin: AppDimensions.paddingSmall,

@@ -1,5 +1,6 @@
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
+import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/pages/user/widgets/frequent_playlist_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/library_shortcut_section.dart';
@@ -14,6 +15,7 @@ class SquareLibraryPage extends StatelessWidget {
   const SquareLibraryPage({
     super.key,
     required this.metrics,
+    required this.recommendationController,
     required this.libraryController,
     required this.playbackAction,
     required this.recentPlaybackController,
@@ -21,6 +23,9 @@ class SquareLibraryPage extends StatelessWidget {
 
   /// 方屏布局尺寸参数。
   final PersonalHomeLayoutMetrics metrics;
+
+  /// 首页推荐控制器。
+  final RecommendationController recommendationController;
 
   /// 用户资料库控制器。
   final UserLibraryController libraryController;
@@ -48,6 +53,7 @@ class SquareLibraryPage extends StatelessWidget {
           SliverToBoxAdapter(
             child: FrequentPlaylistSection(
               libraryController: libraryController,
+              recommendationController: recommendationController,
               playbackAction: playbackAction,
               albumCountInWidget: metrics.squarePlaylistCardCount,
               headerHeight: metrics.squareHeaderHeight,

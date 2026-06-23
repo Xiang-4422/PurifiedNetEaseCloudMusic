@@ -3025,6 +3025,9 @@ void main() {
         if (controller.contains('UserSessionController')) 'user library controller names user session controller directly',
         if (!controller.contains('required UserLibrarySessionAccess sessionAccess')) 'user library controller does not receive session access boundary',
         if (!controller.contains('required this.watchSession')) 'user library session boundary does not expose session watcher',
+        if (!controller.contains('String _normalizedUserId(String userId)')) 'user library controller does not normalize session user ids',
+        if (!controller.contains('bool _isSignedInUserId(String userId)')) 'user library controller does not centralize signed-in account checks',
+        if (!controller.contains('_currentUserId() == userId')) 'user library controller does not compare scoped loads against normalized current user',
         if (!bootstrap.contains('sessionAccess: UserLibrarySessionAccess(')) 'feature bootstrap does not inject user library session access boundary',
         if (!bootstrap.contains('watchSession: (onChanged)')) 'feature bootstrap does not bind user library session watcher',
       ];

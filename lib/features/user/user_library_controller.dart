@@ -90,9 +90,10 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return Future<void>.value();
     }
-    _activeLocalDataUserId = userId;
+    final normalizedUserId = _normalizedUserId(userId);
+    _activeLocalDataUserId = normalizedUserId;
     final generation = ++_localDataGeneration;
-    return _loadScopedLocalData(userId, generation);
+    return _loadScopedLocalData(normalizedUserId, generation);
   }
 
   @override
@@ -100,10 +101,11 @@ class UserLibraryController extends GetxController {
     super.onInit();
     _cacheBootstrapFuture = _loadCache();
     _cancelSessionWatch = _sessionAccess.watchSession((info) {
-      if (_activeLocalDataUserId == info.userId) {
+      final nextUserId = _normalizedUserId(info.userId);
+      if (_activeLocalDataUserId == nextUserId) {
         return;
       }
-      unawaited(loadScopedLocalData(info.userId));
+      unawaited(loadScopedLocalData(nextUserId));
     });
   }
 
@@ -112,8 +114,8 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionAccess.currentSession().userId;
-    if (userId.isEmpty || userId == '-1') {
+    final userId = _currentUserId();
+    if (!_isSignedInUserId(userId)) {
       _clearScopedState();
       _hasLocalData = false;
       return;
@@ -150,9 +152,9 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionAccess.currentSession().userId;
-    if (userId.isEmpty || userId == '-1') {
-      likedSongIds.clear();
+    final userId = _currentUserId();
+    if (!_isSignedInUserId(userId)) {
+      _applyLikedSongIds(const <int>[]);
       return;
     }
     final nextLikedSongIds = await _repository.fetchLikedSongIds(userId);
@@ -167,8 +169,8 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionAccess.currentSession().userId;
-    if (userId.isEmpty || userId == '-1') {
+    final userId = _currentUserId();
+    if (!_isSignedInUserId(userId)) {
       userPlayLists.clear();
       userLikedSongPlayList.value = const PlaylistSummaryData(id: '', title: '');
       return;
@@ -187,10 +189,10 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return null;
     }
-    final userId = _sessionAccess.currentSession().userId;
+    final userId = _currentUserId();
     final songId = _resolveSongSourceId(currentSong);
     final numericSongId = int.tryParse(songId);
-    if (userId.isEmpty || numericSongId == null) {
+    if (!_isSignedInUserId(userId) || numericSongId == null) {
       return null;
     }
 
@@ -224,10 +226,10 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionAccess.currentSession().userId;
+    final userId = _currentUserId();
     final requestedLikedSongIds = likedSongIds.toList();
     final generation = ++_likedSongsLoadGeneration;
-    if (userId.isEmpty || userId == '-1' || requestedLikedSongIds.isEmpty) {
+    if (!_isSignedInUserId(userId) || requestedLikedSongIds.isEmpty) {
       likedSongs.clear();
       return;
     }
@@ -295,7 +297,12 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionAccess.currentSession().userId;
+    final userId = _currentUserId();
+    if (!_isSignedInUserId(userId)) {
+      randomLikedSongId.value = '';
+      randomLikedSongAlbumUrl.value = '';
+      return;
+    }
     final nextRandomLikedSong = await _resolveRandomLikedSong(likedSongIds);
     if (!_isActiveSession(userId)) {
       return;
@@ -328,7 +335,7 @@ class UserLibraryController extends GetxController {
       return;
     }
     _clearScopedState();
-    if (userId.isEmpty) {
+    if (!_isSignedInUserId(userId)) {
       _hasLocalData = false;
       return;
     }
@@ -425,7 +432,7 @@ class UserLibraryController extends GetxController {
   }
 
   bool _isCurrentLocalDataLoad(String userId, int generation) {
-    return !_disposed && generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionAccess.currentSession().userId == userId;
+    return !_disposed && generation == _localDataGeneration && _activeLocalDataUserId == userId && _currentUserId() == userId;
   }
 
   bool _isCurrentLikedSongsLoad(
@@ -437,7 +444,20 @@ class UserLibraryController extends GetxController {
   }
 
   bool _isActiveSession(String userId) {
-    return !_disposed && _sessionAccess.currentSession().userId == userId;
+    return !_disposed && _currentUserId() == _normalizedUserId(userId);
+  }
+
+  String _currentUserId() {
+    return _normalizedUserId(_sessionAccess.currentSession().userId);
+  }
+
+  String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
+
+  bool _isSignedInUserId(String userId) {
+    final normalizedUserId = _normalizedUserId(userId);
+    return normalizedUserId.isNotEmpty && normalizedUserId != '-1';
   }
 
   bool get _hasVisibleLibraryData {

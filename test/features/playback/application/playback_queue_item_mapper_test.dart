@@ -104,6 +104,46 @@ void main() {
       expect(item.localArtworkPath, '/cache/artwork/cover.jpg');
     });
 
+    test('normalizes indexed local resource file uris before building queue item', () {
+      final audioUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/audio/song with space.mp3',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final artworkUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/artwork/cover with space.jpg',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final lyricsUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/lyrics/song with space.lrc',
+        queryParameters: {'token': 'local'},
+      ).toString();
+
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(artworkUrl: 'https://p1.music.126.net/cover.jpg?param=64y64'),
+            resources: TrackResourceBundle(
+              audio: _audioResource(audioUri),
+              artwork: _artworkResource(artworkUri),
+              lyrics: _lyricsResource(lyricsUri),
+            ),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.playbackUrl, '/cache/audio/song with space.mp3');
+      expect(item.localArtworkPath, '/cache/artwork/cover with space.jpg');
+      expect(item.localLyricsPath, '/cache/lyrics/song with space.lrc');
+      expect(item.artworkUrl, 'https://p1.music.126.net/cover.jpg');
+    });
+
     test('does not use local track source id without indexed audio', () {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [

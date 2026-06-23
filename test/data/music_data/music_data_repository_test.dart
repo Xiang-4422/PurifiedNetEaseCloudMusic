@@ -232,6 +232,38 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 1);
     });
 
+    test('normalizes indexed local audio file uri before returning playback url', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-audio-uri-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final localAudio = await _writeFile(directory, 'downloaded.mp3');
+      final localAudioUri = localAudio.uri.replace(queryParameters: {'token': 'local'}).toString();
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.audio,
+            path: localAudioUri,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final repository = _buildRepository(
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final url = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+
+      expect(url, localAudio.path);
+      expect(resourceIndexRepository.touchedResources, ['1|audio']);
+    });
+
     test('prefers existing indexed artwork source over remote artwork url', () async {
       final directory = await Directory.systemTemp.createTemp('music-data-local-artwork-');
       addTearDown(() async {
@@ -246,6 +278,40 @@ void main() {
             trackId: '1',
             kind: LocalResourceKind.artwork,
             path: localArtwork.path,
+            origin: TrackResourceOrigin.artworkCache,
+          ),
+        ],
+      );
+      final repository = _buildRepository(
+        localDataSource: _FakeLocalLibraryDataSource(
+          tracks: {
+            '1': _track('1', artworkUrl: 'https://img.test/cover.jpg'),
+          },
+        ),
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final artwork = await repository.getArtworkSource('1');
+
+      expect(artwork, localArtwork.path);
+      expect(resourceIndexRepository.touchedResources, ['1|artwork']);
+    });
+
+    test('normalizes indexed local artwork file uri before returning artwork source', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-artwork-uri-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final localArtwork = await _writeFile(directory, 'cover.jpg');
+      final localArtworkUri = localArtwork.uri.replace(queryParameters: {'token': 'local'}).toString();
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.artwork,
+            path: localArtworkUri,
             origin: TrackResourceOrigin.artworkCache,
           ),
         ],

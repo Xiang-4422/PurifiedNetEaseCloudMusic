@@ -6,6 +6,7 @@ import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/features/playback/application/playback_queue_metadata_filter.dart';
 
 /// 播放队列项 mapper，负责从曲目领域实体构建播放队列模型。
@@ -43,8 +44,8 @@ class PlaybackQueueItemMapper {
     return tracks.where((item) => item.track.id.isNotEmpty).map((item) {
       final track = item.track;
       final resources = item.resources;
-      final localArtworkPath = _emptyToNull(resources.artwork?.path);
-      final localLyricsPath = _emptyToNull(resources.lyrics?.path);
+      final localArtworkPath = _localResourcePath(resources.artwork);
+      final localLyricsPath = _localResourcePath(resources.lyrics);
       final artworkUrl = _emptyToNull(ImageUrlNormalizer.normalize(track.artworkUrl));
       final albumId = _emptyToNull(track.albumId) ?? _emptyToNull(track.metadata['albumId']?.toString());
       final artistIds = track.artistIds.isNotEmpty ? track.artistIds : (track.metadata['artistIds'] as List? ?? const []).map((item) => '$item').toList();
@@ -80,8 +81,9 @@ class PlaybackQueueItemMapper {
     Track track,
     TrackResourceBundle resources,
   ) {
-    if (resources.audio?.path.isNotEmpty == true) {
-      return resources.audio!.path;
+    final audioPath = _localResourcePath(resources.audio);
+    if (audioPath != null) {
+      return audioPath;
     }
     return track.remoteUrl ?? '';
   }
@@ -91,9 +93,9 @@ class PlaybackQueueItemMapper {
     TrackResourceBundle resources, {
     MediaType? fallback,
   }) {
-    final audioPath = resources.audio?.path;
-    if (audioPath?.isNotEmpty == true) {
-      return audioPath!.endsWith('.uc!') ? MediaType.neteaseCache : MediaType.local;
+    final audioPath = _localResourcePath(resources.audio);
+    if (audioPath != null) {
+      return audioPath.endsWith('.uc!') ? MediaType.neteaseCache : MediaType.local;
     }
     if (track.sourceType == SourceType.local) {
       return MediaType.local;
@@ -122,5 +124,9 @@ class PlaybackQueueItemMapper {
       return null;
     }
     return value;
+  }
+
+  static String? _localResourcePath(LocalResourceEntry? resource) {
+    return _emptyToNull(LocalFilePathNormalizer.normalize(resource?.path));
   }
 }

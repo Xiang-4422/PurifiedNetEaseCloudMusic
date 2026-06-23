@@ -228,8 +228,9 @@ class MusicDataRepository {
   Future<String?> _resolvePlaybackUrl(String trackId) async {
     final trackWithResources = await getTrackWithResources(trackId);
     final localAudio = trackWithResources?.resources.audio;
-    if (localAudio != null && await _touchIfLocalFileExists(localAudio)) {
-      return localAudio.path;
+    final localAudioPath = localAudio == null ? null : await _localResourcePathIfExists(localAudio);
+    if (localAudioPath != null) {
+      return localAudioPath;
     }
     final isLocalTrack = _isLocalTrackId(trackId);
     if (isLocalTrack) {
@@ -261,8 +262,9 @@ class MusicDataRepository {
   }) async {
     final trackWithResources = await getTrackWithResources(trackId);
     final localAudio = trackWithResources?.resources.audio;
-    if (localAudio != null && await _touchIfLocalFileExists(localAudio)) {
-      return localAudio.path;
+    final localAudioPath = localAudio == null ? null : await _localResourcePathIfExists(localAudio);
+    if (localAudioPath != null) {
+      return localAudioPath;
     }
     final isLocalTrack = _isLocalTrackId(trackId);
     if (isLocalTrack) {
@@ -278,8 +280,9 @@ class MusicDataRepository {
       return '';
     }
     final localArtwork = trackWithResources.resources.artwork;
-    if (localArtwork != null && await _touchIfLocalFileExists(localArtwork)) {
-      return localArtwork.path;
+    final localArtworkPath = localArtwork == null ? null : await _localResourcePathIfExists(localArtwork);
+    if (localArtworkPath != null) {
+      return localArtworkPath;
     }
     return trackWithResources.track.artworkUrl ?? '';
   }
@@ -333,10 +336,7 @@ class MusicDataRepository {
 
   Future<String?> _resolveIndexedAudioResourceUrl(String trackId) async {
     final localAudio = (await _resourceIndexRepository.getTrackResourceBundle(trackId)).audio;
-    if (localAudio != null && await _touchIfLocalFileExists(localAudio)) {
-      return localAudio.path;
-    }
-    return null;
+    return localAudio == null ? null : _localResourcePathIfExists(localAudio);
   }
 
   /// 保存曲目歌词缓存。
@@ -502,14 +502,18 @@ class MusicDataRepository {
   }
 
   Future<bool> _touchIfLocalFileExists(LocalResourceEntry resource) async {
+    return await _localResourcePathIfExists(resource) != null;
+  }
+
+  Future<String?> _localResourcePathIfExists(LocalResourceEntry resource) async {
     final path = _resourceFilePath(resource);
     final file = path.isEmpty ? null : File(path);
     if (file == null || !file.existsSync()) {
       await _resourceIndexRepository.removeResource(resource.trackId, resource.kind);
-      return false;
+      return null;
     }
     await _resourceIndexRepository.touchResource(resource.trackId, resource.kind);
-    return true;
+    return path;
   }
 
   String _resourceFilePath(LocalResourceEntry resource) {

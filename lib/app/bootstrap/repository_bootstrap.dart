@@ -5,17 +5,6 @@ import 'package:bujuan/data/app_storage/app_preferences.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_artwork_cache_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
-import 'package:bujuan/data/music_data/sources/netease/netease_music_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_album_remote_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_artist_remote_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_auth_remote_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_cloud_remote_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_comment_remote_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_explore_remote_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_radio_remote_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_search_remote_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_user_remote_data_source.dart';
 import 'package:bujuan/features/album/album_repository.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
@@ -33,7 +22,6 @@ import 'package:bujuan/features/settings/settings_repository.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import 'package:netease_music_api/netease_music_api.dart';
 
 /// 应用启动阶段创建并注册的 repository 集合。
 class AppRepositoryBootstrapResult {
@@ -114,7 +102,6 @@ class AppRepositoryBootstrapResult {
 AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
   required AppPreferences appPreferences,
   required AppDataSourceBootstrapResult dataSources,
-  required NeteaseMusicApi neteaseApi,
 }) {
   final localResourceIndexRepository = LocalResourceIndexRepository(
     dataSource: dataSources.localResourceIndexDataSource,
@@ -128,7 +115,7 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
   final musicDataRepository = MusicDataRepository(
     localDataSource: dataSources.localLibraryDataSource,
     localMusicSource: dataSources.localMusicSource,
-    neteaseSource: NeteaseMusicSource(api: neteaseApi),
+    neteaseSource: dataSources.neteaseMusicSource,
     resourceIndexRepository: localResourceIndexRepository,
     artworkCacheRepository: localArtworkCacheRepository,
   );
@@ -145,29 +132,18 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
     playbackHistoryDataSource: dataSources.playbackHistoryDataSource,
   );
 
-  final authRemoteDataSource = NeteaseAuthRemoteDataSource(api: neteaseApi);
-  final userRemoteDataSource = NeteaseUserRemoteDataSource(api: neteaseApi);
-  final playlistRemoteDataSource = NeteasePlaylistRemoteDataSource(api: neteaseApi);
-  final albumRemoteDataSource = NeteaseAlbumRemoteDataSource(api: neteaseApi);
-  final artistRemoteDataSource = NeteaseArtistRemoteDataSource(api: neteaseApi);
-  final cloudRemoteDataSource = NeteaseCloudRemoteDataSource(api: neteaseApi);
-  final radioRemoteDataSource = NeteaseRadioRemoteDataSource(api: neteaseApi);
-  final searchRemoteDataSource = NeteaseSearchRemoteDataSource(api: neteaseApi);
-  final commentRemoteDataSource = NeteaseCommentRemoteDataSource(api: neteaseApi);
-  final exploreRemoteDataSource = NeteaseExploreRemoteDataSource(api: neteaseApi);
-
   return AppRepositoryBootstrapResult(
     localResourceIndexRepository: localResourceIndexRepository,
     localArtworkCacheRepository: localArtworkCacheRepository,
     musicDataRepository: musicDataRepository,
     authRepository: AuthRepository(
       stateStore: const AuthStateStore(),
-      remoteDataSource: authRemoteDataSource,
+      remoteDataSource: dataSources.authRemoteDataSource,
     ),
     settingsRepository: SettingsRepository(preferences: appPreferences),
     userRepository: UserRepository(
       musicDataRepository: musicDataRepository,
-      remoteDataSource: userRemoteDataSource,
+      remoteDataSource: dataSources.userRemoteDataSource,
       userProfileDataSource: dataSources.userProfileDataSource,
       userTrackListDataSource: dataSources.userTrackListDataSource,
       userPlaylistListDataSource: dataSources.userPlaylistListDataSource,
@@ -177,29 +153,29 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
       appCacheDataSource: dataSources.appCacheDataSource,
       musicDataRepository: musicDataRepository,
       localLibraryDataSource: dataSources.localLibraryDataSource,
-      remoteDataSource: playlistRemoteDataSource,
+      remoteDataSource: dataSources.playlistRemoteDataSource,
       playlistSubscriptionDataSource: dataSources.playlistSubscriptionDataSource,
     ),
     albumRepository: AlbumRepository(
       musicDataRepository: musicDataRepository,
-      remoteDataSource: albumRemoteDataSource,
+      remoteDataSource: dataSources.albumRemoteDataSource,
     ),
     artistRepository: ArtistRepository(
       musicDataRepository: musicDataRepository,
-      remoteDataSource: artistRemoteDataSource,
+      remoteDataSource: dataSources.artistRemoteDataSource,
     ),
     cloudRepository: CloudRepository(
       musicDataRepository: musicDataRepository,
       userTrackListDataSource: dataSources.userTrackListDataSource,
-      remoteDataSource: cloudRemoteDataSource,
+      remoteDataSource: dataSources.cloudRemoteDataSource,
     ),
     radioRepository: RadioRepository(
       userRadioDataSource: dataSources.userRadioDataSource,
-      remoteDataSource: radioRemoteDataSource,
+      remoteDataSource: dataSources.radioRemoteDataSource,
     ),
     searchRepository: SearchRepository(
       musicDataRepository: musicDataRepository,
-      remoteDataSource: searchRemoteDataSource,
+      remoteDataSource: dataSources.searchRemoteDataSource,
       cacheStore: dataSources.searchCacheStore,
       userPlaylistListDataSource: dataSources.userPlaylistListDataSource,
     ),
@@ -210,11 +186,11 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
     downloadRepository: downloadRepository,
     playbackRepository: playbackRepository,
     commentRepository: CommentRepository(
-      remoteDataSource: commentRemoteDataSource,
+      remoteDataSource: dataSources.commentRemoteDataSource,
       cacheStore: dataSources.commentCacheStore,
     ),
     exploreRepository: ExploreRepository(
-      remoteDataSource: exploreRemoteDataSource,
+      remoteDataSource: dataSources.exploreRemoteDataSource,
       cacheStore: dataSources.exploreCacheStore,
     ),
   );

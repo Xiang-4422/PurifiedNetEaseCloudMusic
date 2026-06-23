@@ -16,11 +16,13 @@ Future<void> initializeDataInfrastructure({
   final storage = await initializeStorageInfrastructure();
   final appDatabase = storage.appDatabase;
   final appPreferences = storage.appPreferences;
-  final dataSources = initializeDataSourceInfrastructure(appDatabase: appDatabase);
+  final dataSources = initializeDataSourceInfrastructure(
+    appDatabase: appDatabase,
+    neteaseApi: neteaseApi,
+  );
   final repositories = initializeRepositoryInfrastructure(
     appPreferences: appPreferences,
     dataSources: dataSources,
-    neteaseApi: neteaseApi,
   );
 
   _registerInfrastructure(

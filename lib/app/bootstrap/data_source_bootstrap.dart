@@ -1,8 +1,20 @@
 import 'package:bujuan/data/music_data/sources/local/database/app_database.dart';
 import 'package:bujuan/data/music_data/sources/local/local_music_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/netease_music_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_album_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_artist_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_auth_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_cloud_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_comment_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_explore_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_radio_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_search_remote_data_source.dart';
+import 'package:bujuan/data/music_data/sources/netease/remote/netease_user_remote_data_source.dart';
 import 'package:bujuan/features/comment/comment_cache_store.dart';
 import 'package:bujuan/features/explore/explore_cache_store.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
+import 'package:netease_music_api/netease_music_api.dart';
 
 /// 已从本地存储门面拆出的数据源和轻量 cache store。
 class AppDataSourceBootstrapResult {
@@ -24,6 +36,17 @@ class AppDataSourceBootstrapResult {
     required this.searchCacheStore,
     required this.exploreCacheStore,
     required this.localMusicSource,
+    required this.neteaseMusicSource,
+    required this.authRemoteDataSource,
+    required this.userRemoteDataSource,
+    required this.playlistRemoteDataSource,
+    required this.albumRemoteDataSource,
+    required this.artistRemoteDataSource,
+    required this.cloudRemoteDataSource,
+    required this.radioRemoteDataSource,
+    required this.searchRemoteDataSource,
+    required this.commentRemoteDataSource,
+    required this.exploreRemoteDataSource,
   });
 
   /// 本地曲库数据源。
@@ -73,11 +96,45 @@ class AppDataSourceBootstrapResult {
 
   /// 本地音乐来源门面。
   final LocalMusicSource localMusicSource;
+
+  /// 网易云音乐来源门面。
+  final NeteaseMusicSource neteaseMusicSource;
+
+  /// 网易云登录远程数据源。
+  final NeteaseAuthRemoteDataSource authRemoteDataSource;
+
+  /// 网易云用户远程数据源。
+  final NeteaseUserRemoteDataSource userRemoteDataSource;
+
+  /// 网易云歌单远程数据源。
+  final NeteasePlaylistRemoteDataSource playlistRemoteDataSource;
+
+  /// 网易云专辑远程数据源。
+  final NeteaseAlbumRemoteDataSource albumRemoteDataSource;
+
+  /// 网易云歌手远程数据源。
+  final NeteaseArtistRemoteDataSource artistRemoteDataSource;
+
+  /// 网易云云盘远程数据源。
+  final NeteaseCloudRemoteDataSource cloudRemoteDataSource;
+
+  /// 网易云电台远程数据源。
+  final NeteaseRadioRemoteDataSource radioRemoteDataSource;
+
+  /// 网易云搜索远程数据源。
+  final NeteaseSearchRemoteDataSource searchRemoteDataSource;
+
+  /// 网易云评论远程数据源。
+  final NeteaseCommentRemoteDataSource commentRemoteDataSource;
+
+  /// 网易云探索页远程数据源。
+  final NeteaseExploreRemoteDataSource exploreRemoteDataSource;
 }
 
 /// 从已初始化的数据库门面创建数据源和轻量 cache store。
 AppDataSourceBootstrapResult initializeDataSourceInfrastructure({
   required AppDatabase appDatabase,
+  required NeteaseMusicApi neteaseApi,
 }) {
   final appCacheDataSource = appDatabase.appCacheDataSource;
   final localLibraryDataSource = appDatabase.localLibraryDataSource;
@@ -98,5 +155,16 @@ AppDataSourceBootstrapResult initializeDataSourceInfrastructure({
     searchCacheStore: SearchCacheStore(cacheDataSource: appCacheDataSource),
     exploreCacheStore: ExploreCacheStore(cacheDataSource: appCacheDataSource),
     localMusicSource: LocalMusicSource(localDataSource: localLibraryDataSource),
+    neteaseMusicSource: NeteaseMusicSource(api: neteaseApi),
+    authRemoteDataSource: NeteaseAuthRemoteDataSource(api: neteaseApi),
+    userRemoteDataSource: NeteaseUserRemoteDataSource(api: neteaseApi),
+    playlistRemoteDataSource: NeteasePlaylistRemoteDataSource(api: neteaseApi),
+    albumRemoteDataSource: NeteaseAlbumRemoteDataSource(api: neteaseApi),
+    artistRemoteDataSource: NeteaseArtistRemoteDataSource(api: neteaseApi),
+    cloudRemoteDataSource: NeteaseCloudRemoteDataSource(api: neteaseApi),
+    radioRemoteDataSource: NeteaseRadioRemoteDataSource(api: neteaseApi),
+    searchRemoteDataSource: NeteaseSearchRemoteDataSource(api: neteaseApi),
+    commentRemoteDataSource: NeteaseCommentRemoteDataSource(api: neteaseApi),
+    exploreRemoteDataSource: NeteaseExploreRemoteDataSource(api: neteaseApi),
   );
 }

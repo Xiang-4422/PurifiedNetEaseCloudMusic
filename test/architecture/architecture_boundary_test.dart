@@ -564,7 +564,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: '启动层只有 sdk_bootstrap、data_bootstrap、repository_bootstrap 能携带网易云 SDK 门面；其他 bootstrap 文件只能处理自己的装配职责。',
+        reason: '启动层只有 sdk_bootstrap、data_bootstrap、data_source_bootstrap 能携带网易云 SDK 门面；其他 bootstrap 文件只能处理自己的装配职责。',
       );
     });
 
@@ -2066,6 +2066,7 @@ void main() {
         'lib/app/bootstrap/data_source_bootstrap.dart': [
           'class AppDataSourceBootstrapResult',
           'AppDataSourceBootstrapResult initializeDataSourceInfrastructure({',
+          'required NeteaseMusicApi neteaseApi,',
         ],
         'lib/app/bootstrap/repository_bootstrap.dart': [
           'class AppRepositoryBootstrapResult',
@@ -2100,6 +2101,7 @@ void main() {
       final appRoot = File('${projectRoot.path}/lib/app.dart').readAsStringSync();
       final appBootstrap = File('${projectRoot.path}/lib/app/bootstrap/app_bootstrap.dart').readAsStringSync();
       final dataBootstrap = File('${projectRoot.path}/lib/app/bootstrap/data_bootstrap.dart').readAsStringSync();
+      final dataSourceBootstrap = File('${projectRoot.path}/lib/app/bootstrap/data_source_bootstrap.dart').readAsStringSync();
       final routeBootstrap = File('${projectRoot.path}/lib/app/bootstrap/route_bootstrap.dart').readAsStringSync();
       final repositoryBootstrap = File('${projectRoot.path}/lib/app/bootstrap/repository_bootstrap.dart').readAsStringSync();
       final sdkBootstrap = File('${projectRoot.path}/lib/app/bootstrap/sdk_bootstrap.dart').readAsStringSync();
@@ -2125,6 +2127,7 @@ void main() {
         if (sdkBootstrap.contains('netease_remote_bootstrap')) 'sdk_bootstrap initializes SDK through data source boundary',
         if (dataNeteaseBootstrap.existsSync()) 'data netease source still owns SDK initialization bootstrap',
         if (dataBootstrap.contains('NeteaseMusicApi()')) 'data_bootstrap creates SDK instance directly',
+        if (!dataBootstrap.contains('neteaseApi: neteaseApi')) 'data_bootstrap does not pass SDK facade into data source bootstrap',
       ];
       final storageOwnershipViolations = <String>[
         if (!dataBootstrap.contains('final storage = await initializeStorageInfrastructure();')) 'data_bootstrap does not receive storage resources from storage_bootstrap',
@@ -2133,21 +2136,24 @@ void main() {
         if (dataBootstrap.contains('DriftAppDatabase(')) 'data_bootstrap creates Drift database directly',
       ];
       final dataSourceOwnershipViolations = <String>[
-        if (!dataBootstrap.contains('final dataSources = initializeDataSourceInfrastructure(appDatabase: appDatabase);')) 'data_bootstrap does not receive data sources from data_source_bootstrap',
+        if (!dataBootstrap.contains('final dataSources = initializeDataSourceInfrastructure(')) 'data_bootstrap does not receive data sources from data_source_bootstrap',
         if (dataBootstrap.contains('appDatabase.local')) 'data_bootstrap reads local data sources directly',
         if (dataBootstrap.contains('appDatabase.user')) 'data_bootstrap reads user scoped data sources directly',
         if (dataBootstrap.contains('appDatabase.appCacheDataSource')) 'data_bootstrap reads cache data source directly',
         if (dataBootstrap.contains('SearchCacheStore(')) 'data_bootstrap creates search cache store directly',
         if (dataBootstrap.contains('ExploreCacheStore(')) 'data_bootstrap creates explore cache store directly',
         if (dataBootstrap.contains('LocalMusicSource(')) 'data_bootstrap creates local music source directly',
+        if (!dataSourceBootstrap.contains('NeteaseMusicSource(api: neteaseApi)')) 'data_source_bootstrap does not create netease music source with injected SDK',
+        if (!dataSourceBootstrap.contains('NeteaseAuthRemoteDataSource(api: neteaseApi)')) 'data_source_bootstrap does not create netease remote data sources',
       ];
       final repositoryOwnershipViolations = <String>[
         if (!dataBootstrap.contains('final repositories = initializeRepositoryInfrastructure(')) 'data_bootstrap does not receive repositories from repository_bootstrap',
         if (!dataBootstrap.contains('registerRepositoryInfrastructure(repositories);')) 'data_bootstrap does not delegate repository registration',
-        if (!repositoryBootstrap.contains('NeteaseMusicSource(api: neteaseApi)')) 'repository_bootstrap does not construct netease music source with injected SDK',
         if (dataBootstrap.contains('Get.put<MusicDataRepository>')) 'data_bootstrap registers music data repository directly',
         if (dataBootstrap.contains('NeteaseAuthRemoteDataSource(')) 'data_bootstrap creates auth remote data source directly',
         if (dataBootstrap.contains('NeteaseMusicSource(api:')) 'data_bootstrap creates netease music source directly',
+        if (repositoryBootstrap.contains('NeteaseMusicSource(api:')) 'repository_bootstrap creates netease music source directly',
+        if (repositoryBootstrap.contains('NeteaseAuthRemoteDataSource(')) 'repository_bootstrap creates netease remote data source directly',
         if (dataBootstrap.contains('LocalResourceIndexRepository(')) 'data_bootstrap creates local resource repository directly',
         if (dataBootstrap.contains('LocalArtworkCacheRepository(')) 'data_bootstrap creates artwork cache repository directly',
         if (dataBootstrap.contains('DownloadRepository(')) 'data_bootstrap creates download repository directly',
@@ -2186,12 +2192,12 @@ void main() {
       expect(
         dataSourceOwnershipViolations,
         isEmpty,
-        reason: 'data source bootstrap 必须收口本地数据源和轻量 cache store 构建，data_bootstrap 只消费结果对象。',
+        reason: 'data source bootstrap 必须收口本地和网易云数据源、音乐来源门面、轻量 cache store 构建，data_bootstrap 只消费结果对象。',
       );
       expect(
         repositoryOwnershipViolations,
         isEmpty,
-        reason: 'repository bootstrap 必须收口核心 repository、feature repository 和远程 data source 构建，data_bootstrap 只保留启动顺序。',
+        reason: 'repository bootstrap 必须只收口核心 repository 和 feature repository 构建，data_bootstrap 只保留启动顺序。',
       );
     });
 
@@ -2548,7 +2554,7 @@ bool _isAllowedNeteaseSdkBoundary(String path) {
 const _allowedNeteaseSdkBootstrapFiles = {
   'lib/app/bootstrap/sdk_bootstrap.dart',
   'lib/app/bootstrap/data_bootstrap.dart',
-  'lib/app/bootstrap/repository_bootstrap.dart',
+  'lib/app/bootstrap/data_source_bootstrap.dart',
 };
 
 String _featureName(String path) {

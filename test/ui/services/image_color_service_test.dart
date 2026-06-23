@@ -6,6 +6,41 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ImageColorService', () {
+    test('normalizes local image sources before building color cache keys', () {
+      final localFileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/tmp/cover with space.jpg',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final unsafeFileUri = Uri(
+        scheme: 'file',
+        host: 'media-server',
+        path: '/tmp/cover.jpg',
+      ).toString();
+
+      expect(
+        ImageColorService.normalizeColorCacheSource(
+          '/tmp/cover.jpg?param=120y120',
+        ),
+        '/tmp/cover.jpg',
+      );
+      expect(
+        ImageColorService.normalizeColorCacheSource(localFileUri),
+        '/tmp/cover with space.jpg',
+      );
+      expect(
+        ImageColorService.normalizeColorCacheSource(unsafeFileUri),
+        isEmpty,
+      );
+      expect(
+        ImageColorService.normalizeColorCacheSource(
+          'https://p.music.126.net/cover.jpg?param=120y120&token=keep',
+        ),
+        'https://p.music.126.net/cover.jpg?token=keep',
+      );
+    });
+
     test('treats uppercase http image url as remote fallback color', () async {
       expect(
         await ImageColorService.dominantColor('HTTPS://img.test/cover.jpg'),

@@ -41,14 +41,14 @@ class ImageColorService {
     String? url, {
     bool getLightColor = false,
   }) async {
-    final normalizedUrl = ImageUrlNormalizer.normalize(url);
-    if (_isRemoteImageUrl(normalizedUrl)) {
+    final normalizedSource = normalizeColorCacheSource(url);
+    if (_isRemoteImageUrl(normalizedSource)) {
       return getLightColor ? Colors.white : Colors.black;
     }
-    if (_isUnavailableLocalImage(normalizedUrl)) {
+    if (_isUnavailableLocalImage(normalizedSource)) {
       return _fallbackColor(getLightColor);
     }
-    final cacheKey = '$normalizedUrl|${getLightColor ? 'light' : 'dark'}';
+    final cacheKey = '$normalizedSource|${getLightColor ? 'light' : 'dark'}';
 
     final memoryCached = _memoryCache.read(cacheKey);
     if (memoryCached != null) {
@@ -56,7 +56,7 @@ class ImageColorService {
     }
 
     final diskCached = _loadDiskCachedColor(
-      imageUrl: normalizedUrl,
+      imageUrl: normalizedSource,
       getLightColor: getLightColor,
     );
     if (diskCached != null) {
@@ -71,7 +71,7 @@ class ImageColorService {
     }
 
     final future = _loadDominantColor(
-      normalizedUrl,
+      normalizedSource,
       cacheKey: cacheKey,
       getLightColor: getLightColor,
     ).whenComplete(() {
@@ -86,17 +86,17 @@ class ImageColorService {
     String? url, {
     bool getLightColor = false,
   }) {
-    final normalizedUrl = ImageUrlNormalizer.normalize(url);
-    if (normalizedUrl.isEmpty) {
+    final normalizedSource = normalizeColorCacheSource(url);
+    if (normalizedSource.isEmpty) {
       return null;
     }
-    if (_isRemoteImageUrl(normalizedUrl)) {
+    if (_isRemoteImageUrl(normalizedSource)) {
       return null;
     }
-    if (_isUnavailableLocalImage(normalizedUrl)) {
+    if (_isUnavailableLocalImage(normalizedSource)) {
       return null;
     }
-    final cacheKey = '$normalizedUrl|${getLightColor ? 'light' : 'dark'}';
+    final cacheKey = '$normalizedSource|${getLightColor ? 'light' : 'dark'}';
 
     final memoryCached = _memoryCache.read(cacheKey);
     if (memoryCached != null) {
@@ -104,7 +104,7 @@ class ImageColorService {
     }
 
     final diskCached = _loadDiskCachedColor(
-      imageUrl: normalizedUrl,
+      imageUrl: normalizedSource,
       getLightColor: getLightColor,
     );
     if (diskCached != null) {
@@ -120,7 +120,7 @@ class ImageColorService {
     Iterable<String?> urls, {
     bool getLightColor = false,
   }) async {
-    final normalizedUrls = urls.map(ImageUrlNormalizer.normalize).where((url) => url.isNotEmpty && !_isRemoteImageUrl(url)).toSet().toList();
+    final normalizedUrls = urls.map(normalizeColorCacheSource).where((url) => url.isNotEmpty && !_isRemoteImageUrl(url)).toSet().toList();
     if (normalizedUrls.isEmpty) {
       return;
     }
@@ -136,6 +136,19 @@ class ImageColorService {
 
   static void _remember(String cacheKey, Color color) {
     _memoryCache.remember(cacheKey, color);
+  }
+
+  /// 归一图片取色缓存来源。
+  @visibleForTesting
+  static String normalizeColorCacheSource(String? url) {
+    final trimmedUrl = url?.trim() ?? '';
+    if (trimmedUrl.isEmpty) {
+      return '';
+    }
+    if (_isRemoteImageUrl(trimmedUrl)) {
+      return ImageUrlNormalizer.normalize(trimmedUrl);
+    }
+    return LocalFilePathNormalizer.normalize(trimmedUrl);
   }
 
   static int? _loadDiskCachedColor({

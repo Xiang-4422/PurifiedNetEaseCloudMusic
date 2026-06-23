@@ -144,6 +144,37 @@ void main() {
       expect(resolver.resolveCallCount, 2);
     });
 
+    test('bypasses in-flight remote prefetch when item local file becomes available', () async {
+      final directory = await Directory.systemTemp.createTemp('source-prefetch-file-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final audioFile = File('${directory.path}/song.mp3');
+      final resolver = _ControllableLocalFileThenRemoteSourceResolver(audioFile);
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final item = _item(
+        '1',
+        mediaType: MediaType.local,
+        playbackUrl: audioFile.path,
+      );
+
+      final staleRemote = prefetcher.resolve(item, preferHighQuality: false);
+      await _waitUntil(() => resolver.pendingRemoteCount == 1);
+      await audioFile.writeAsString('audio');
+      final local = await prefetcher.resolve(item, preferHighQuality: false);
+      resolver.complete(0, 'remote-url-1');
+      final cachedLocal = await prefetcher.resolve(item, preferHighQuality: false);
+
+      expect(local.kind, PlaybackResolvedSourceKind.filePath);
+      expect(local.url, audioFile.path);
+      expect(await staleRemote, _hasUrl('remote-url-1'));
+      expect(cachedLocal.kind, PlaybackResolvedSourceKind.filePath);
+      expect(cachedLocal.url, audioFile.path);
+      expect(resolver.resolveCallCount, 2);
+    });
+
     test('keeps cached remote source for non-localhost file uri authority', () async {
       final directory = await Directory.systemTemp.createTemp('source-prefetch-file-');
       addTearDown(() async {
@@ -322,6 +353,19 @@ PlaybackQueueItem _item(
   );
 }
 
+Future<void> _waitUntil(
+  bool Function() condition, {
+  Duration timeout = const Duration(seconds: 1),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('Timed out waiting for condition');
+    }
+    await Future<void>.delayed(Duration.zero);
+  }
+}
+
 class _CountingSourceResolver implements PlaybackSourceResolver {
   int resolveCallCount = 0;
   final List<bool> preferences = [];
@@ -414,6 +458,53 @@ class _ControllableRemoteSourceResolver implements PlaybackSourceResolver {
     final completer = Completer<PlaybackResolvedSource>();
     _remoteCompleters.add(completer);
     return completer.future;
+  }
+}
+
+class _ControllableLocalFileThenRemoteSourceResolver implements PlaybackSourceResolver {
+  _ControllableLocalFileThenRemoteSourceResolver(this.audioFile);
+
+  final File audioFile;
+  final List<Completer<PlaybackResolvedSource>> _remoteCompleters = [];
+  int resolveCallCount = 0;
+
+  int get pendingRemoteCount => _remoteCompleters.length;
+
+  void complete(int index, String url) {
+    _remoteCompleters[index].complete(
+      PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.url,
+        url: url,
+      ),
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    resolveCallCount++;
+    if (audioFile.existsSync()) {
+      return Future.value(
+        PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.filePath,
+          url: audioFile.path,
+        ),
+      );
+    }
+    final completer = Completer<PlaybackResolvedSource>();
+    _remoteCompleters.add(completer);
+    return completer.future;
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
   }
 }
 

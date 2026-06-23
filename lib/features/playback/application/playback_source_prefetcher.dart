@@ -44,9 +44,11 @@ class PlaybackSourcePrefetcher {
     if (cached != null) {
       return Future.value(cached);
     }
+    final shouldBypassInFlight = _inFlight.containsKey(key) && _itemHasUsableLocalSource(item);
     return _resolveAndCache(
       key,
       () => _resolver.resolve(item, preferHighQuality: preferHighQuality),
+      forceRefresh: shouldBypassInFlight,
     );
   }
 
@@ -136,6 +138,14 @@ class PlaybackSourcePrefetcher {
     }
   }
 
+  bool _itemHasUsableLocalSource(PlaybackQueueItem item) {
+    if (item.mediaType != MediaType.local && item.mediaType != MediaType.neteaseCache) {
+      return false;
+    }
+    final localPath = LocalFilePathNormalizer.normalize(item.playbackUrl);
+    return localPath.isNotEmpty && File(localPath).existsSync();
+  }
+
   bool _itemLocalSourceRecovered(
     PlaybackQueueItem item,
     PlaybackResolvedSource cachedSource,
@@ -143,11 +153,7 @@ class PlaybackSourcePrefetcher {
     if (cachedSource.kind != PlaybackResolvedSourceKind.url) {
       return false;
     }
-    if (item.mediaType != MediaType.local && item.mediaType != MediaType.neteaseCache) {
-      return false;
-    }
-    final localPath = LocalFilePathNormalizer.normalize(item.playbackUrl);
-    return localPath.isNotEmpty && File(localPath).existsSync();
+    return _itemHasUsableLocalSource(item);
   }
 
   Future<PlaybackResolvedSource> _resolveAndCache(

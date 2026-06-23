@@ -663,6 +663,23 @@ void main() {
       );
     });
 
+    test('media item adapter does not persist remote playback urls', () {
+      final adapterFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_queue_item_adapter.dart',
+      );
+      final content = adapterFile.readAsStringSync();
+      final violations = <String>[
+        if (content.contains("'url': item.playbackUrl") || content.contains('"url": item.playbackUrl')) 'writes raw playbackUrl into MediaItem extras',
+        if (!content.contains("'url': _restorablePlaybackUrl(item.playbackUrl) ?? ''")) 'does not sanitize MediaItem playback url extras',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '远程播放 URL 是短效资源，MediaItem extras 只允许保存可恢复的本地路径，不能把远程 URL 带回通知栏或恢复边界。',
+      );
+    });
+
     test('music data repository delegates playback url cache coordination', () {
       final repositoryFile = File(
         '${projectRoot.path}/lib/data/music_data/music_data_repository.dart',

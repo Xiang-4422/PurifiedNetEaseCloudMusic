@@ -249,7 +249,31 @@ void main() {
       expect(mediaItem.extras?['localLyricsPath'], '/cache/lyrics.lrc');
       expect(mediaItem.extras?['availability'], 'playable');
       expect(mediaItem.extras?['type'], 'playlist');
-      expect(mediaItem.extras?['url'], 'https://example.com/song.mp3');
+      expect(mediaItem.extras?['url'], '');
+    });
+
+    test('adapter writes only local playback url into MediaItem extras', () {
+      final localFileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/audio/song with space.mp3',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final localMediaItem = PlaybackQueueItemAdapter.toMediaItem(
+        _queueItem(
+          mediaType: MediaType.local,
+          playbackUrl: localFileUri,
+        ),
+      );
+      final remoteMediaItem = PlaybackQueueItemAdapter.toMediaItem(
+        _queueItem(
+          mediaType: MediaType.playlist,
+          playbackUrl: 'https://example.com/song.mp3?expires=1',
+        ),
+      );
+
+      expect(localMediaItem.extras?['url'], '/cache/audio/song with space.mp3');
+      expect(remoteMediaItem.extras?['url'], '');
     });
 
     test('adapter normalizes local artwork file uri before building MediaItem artUri', () {

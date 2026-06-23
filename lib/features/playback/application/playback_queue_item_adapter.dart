@@ -128,7 +128,7 @@ class PlaybackQueueItemAdapter {
       'availability': item.availability.name,
       'type': item.mediaType.name,
       'image': _toArtworkImage(item),
-      'url': item.playbackUrl ?? '',
+      'url': _restorablePlaybackUrl(item.playbackUrl) ?? '',
       'liked': item.isLiked,
       'artist': item.artist ?? '',
       'artistNames': item.artistNames,

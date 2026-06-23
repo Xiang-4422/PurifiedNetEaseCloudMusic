@@ -2,17 +2,17 @@ import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
 import 'package:bujuan/ui/pages/user/widgets/frequent_playlist_section.dart';
-import 'package:bujuan/ui/pages/user/widgets/library_shortcut_bar.dart';
+import 'package:bujuan/ui/pages/user/widgets/library_shortcut_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
 import 'package:bujuan/ui/pages/user/widgets/recommended_playlist_slivers.dart';
+import 'package:bujuan/ui/pages/user/widgets/square_library_page.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
-import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -84,11 +84,10 @@ class PersonalPageView extends GetView<ShellController> {
               headerTopMargin: AppDimensions.paddingSmall,
             ),
           ),
-          SliverToBoxAdapter(
-            child: const Header('资料库', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
-          ),
           const SliverToBoxAdapter(
-            child: LibraryShortcutBar(),
+            child: LibraryShortcutSection(
+              headerTopMargin: AppDimensions.paddingSmall,
+            ),
           ),
           const RecommendedPlaylistPinnedHeaderSliver(),
           RecommendedPlaylistListSliver(controller: recommendationController),
@@ -148,54 +147,17 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
                 playbackAction: widget.playbackAction,
                 shellController: widget.shellController,
               ),
-              _buildLibraryPage(context),
+              SquareLibraryPage(
+                metrics: widget.metrics,
+                libraryController: widget.libraryController,
+                playbackAction: widget.playbackAction,
+                recentPlaybackController: widget.recentPlaybackController,
+              ),
             ],
           ),
         ),
         const SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
       ],
-    );
-  }
-
-  Widget _buildLibraryPage(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child: CustomScrollView(
-        cacheExtent: 120,
-        physics: const ClampingScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(
-            child: RecentPlaybackStrip(
-              controller: widget.recentPlaybackController,
-              playbackAction: widget.playbackAction,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: FrequentPlaylistSection(
-              libraryController: widget.libraryController,
-              playbackAction: widget.playbackAction,
-              albumCountInWidget: widget.metrics.squarePlaylistCardCount,
-              headerHeight: widget.metrics.squareHeaderHeight,
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: SizedBox(height: AppDimensions.paddingSmall),
-          ),
-          SliverToBoxAdapter(
-            child: Header(
-              '资料库',
-              padding: AppDimensions.paddingSmall,
-              height: widget.metrics.squareHeaderHeight,
-            ),
-          ),
-          const SliverToBoxAdapter(
-            child: LibraryShortcutBar(),
-          ),
-          const SliverToBoxAdapter(
-            child: SizedBox(height: AppDimensions.paddingSmall),
-          ),
-        ],
-      ),
     );
   }
 }

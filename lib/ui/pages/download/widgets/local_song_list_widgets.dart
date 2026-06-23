@@ -8,6 +8,8 @@ import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
+const double _localSongListCacheExtent = 360;
+
 /// 本地歌曲 tab 内容。
 class LocalSongTabView extends StatelessWidget {
   /// 创建本地歌曲 tab 内容。
@@ -44,6 +46,7 @@ class LocalSongTabView extends StatelessWidget {
             return RefreshIndicator(
               onRefresh: controller.refresh,
               child: ListView.separated(
+                cacheExtent: _localSongListCacheExtent,
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppDimensions.paddingSmall,
                   vertical: AppDimensions.paddingSmall,

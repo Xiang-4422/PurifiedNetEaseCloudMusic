@@ -336,6 +336,9 @@ void main() {
     expect(bulkActionSource, contains('删除所有缓存'));
     expect(listWidgetSource, contains('class LocalSongTabView'));
     expect(listWidgetSource, contains('LoadStateView<List<LocalSongEntry>>'));
+    expect(listWidgetSource, contains('const double _localSongListCacheExtent = 360;'));
+    expect(listWidgetSource, contains('cacheExtent: _localSongListCacheExtent'));
+    expect(listWidgetSource, contains('ListView.separated('));
     expect(listWidgetSource, contains('ListTile('));
     expect(listWidgetSource, contains('TablerIcons.trash'));
     expect(listWidgetSource, contains('TrackResourceOrigin.playbackCache'));

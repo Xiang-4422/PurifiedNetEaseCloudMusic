@@ -84,8 +84,11 @@ void main() {
     expect(shortcutSource.indexOf("label: '我喜欢'"), lessThan(shortcutSource.indexOf("label: '我的歌单'")));
     expect(shortcutSource.indexOf("label: '我的歌单'"), lessThan(shortcutSource.indexOf("label: '本地音乐'")));
     expect(shortcutSource, contains('final PlaylistSummaryData Function() likedPlaylist'));
+    expect(shortcutSource, contains('final WidgetBuilder userPlaylistsPageBuilder'));
     expect(shortcutSource, contains('final playlist = likedPlaylist();'));
-    expect(shortcutSource, contains('UserPlaylistLibraryPageView'));
+    expect(shortcutSource, contains('builder: userPlaylistsPageBuilder'));
+    expect(sectionSource, contains('UserPlaylistLibraryPageView('));
+    expect(sectionSource, contains('controller: libraryController'));
     expect(shortcutSource, contains('gr.PlayListRouteView('));
     expect(shortcutSource, contains('DownloadTaskPageView.tabLocalImport'));
     expect(shortcutSource, contains('DownloadTaskPageView.tabDownloaded'));
@@ -129,7 +132,8 @@ void main() {
     final source = File('lib/ui/pages/user/user_playlist_library_page.dart').readAsStringSync();
 
     expect(source, contains("title: const Text('我的歌单')"));
-    expect(source, contains('UserLibraryController.to'));
+    expect(source, contains('required this.controller'));
+    expect(source, isNot(contains('UserLibraryController.to')));
     expect(source, contains('controller.userPlayLists'));
     expect(source, contains('PlayListItem(playlists[index])'));
     expect(source, contains("Text('暂无歌单')"));
@@ -180,7 +184,8 @@ void main() {
     expect(source, isNot(contains('PlaylistRepository')));
     expect(frequentPlaylistSource, contains("'常用歌单'"));
     expect(frequentPlaylistSource, contains('homeFrequentPlaylists'));
-    expect(frequentPlaylistSource, contains('onPlayPlaylist: _playPlaylistSummary'));
+    expect(frequentPlaylistSource, contains('onPlayPlaylist:'));
+    expect(frequentPlaylistSource, contains('_playPlaylistSummary('));
     expect(squareLibrarySource, contains('RecentPlaybackStrip('));
     expect(squareLibrarySource, contains('FrequentPlaylistSection('));
     expect(squareLibrarySource, contains('LibraryShortcutSection('));

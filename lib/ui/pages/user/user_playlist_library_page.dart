@@ -7,11 +7,16 @@ import 'package:get/get.dart';
 /// 当前账号的普通歌单列表页。
 class UserPlaylistLibraryPageView extends StatelessWidget {
   /// 创建普通歌单列表页。
-  const UserPlaylistLibraryPageView({super.key});
+  const UserPlaylistLibraryPageView({
+    super.key,
+    required this.controller,
+  });
+
+  /// 用户资料库控制器。
+  final UserLibraryController controller;
 
   @override
   Widget build(BuildContext context) {
-    final controller = UserLibraryController.to;
     return Scaffold(
       appBar: AppBar(
         title: const Text('我的歌单'),

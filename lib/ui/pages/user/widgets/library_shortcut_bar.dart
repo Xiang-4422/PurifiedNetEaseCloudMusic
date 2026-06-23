@@ -2,7 +2,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/ui/pages/download/download_task_page_view.dart';
-import 'package:bujuan/ui/pages/user/user_playlist_library_page.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:flutter/material.dart';
@@ -14,10 +13,14 @@ class LibraryShortcutBar extends StatelessWidget {
   const LibraryShortcutBar({
     super.key,
     required this.likedPlaylist,
+    required this.userPlaylistsPageBuilder,
   });
 
   /// 当前“我喜欢的音乐”歌单入口。
   final PlaylistSummaryData Function() likedPlaylist;
+
+  /// 当前账号普通歌单列表页构建器。
+  final WidgetBuilder userPlaylistsPageBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +98,7 @@ class LibraryShortcutBar extends StatelessWidget {
   void _openUserPlaylists(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const UserPlaylistLibraryPageView(),
+        builder: userPlaylistsPageBuilder,
       ),
     );
   }

@@ -1297,9 +1297,11 @@ void main() {
       final violations = <String>[
         if (shortcut.contains('UserLibraryController')) '${_relativePath(shortcutFile)} reads user library directly',
         if (!shortcut.contains('final PlaylistSummaryData Function() likedPlaylist')) '${_relativePath(shortcutFile)} does not receive liked playlist provider',
+        if (!shortcut.contains('final WidgetBuilder userPlaylistsPageBuilder')) '${_relativePath(shortcutFile)} does not receive user playlist page builder',
         if (!shortcut.contains('final playlist = likedPlaylist();')) '${_relativePath(shortcutFile)} does not read liked playlist from provider',
         if (!section.contains('required this.libraryController')) '${_relativePath(sectionFile)} does not receive library controller from parent',
         if (!section.contains('likedPlaylist: () => libraryController.userLikedSongPlayList.value')) '${_relativePath(sectionFile)} does not inject liked playlist provider',
+        if (!section.contains('userPlaylistsPageBuilder:')) '${_relativePath(sectionFile)} does not inject user playlist page builder',
       ];
 
       expect(

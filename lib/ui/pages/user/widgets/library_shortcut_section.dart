@@ -1,4 +1,5 @@
 import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/ui/pages/user/user_playlist_library_page.dart';
 import 'package:bujuan/ui/pages/user/widgets/library_shortcut_bar.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
@@ -42,6 +43,9 @@ class LibraryShortcutSection extends StatelessWidget {
           header,
         LibraryShortcutBar(
           likedPlaylist: () => libraryController.userLikedSongPlayList.value,
+          userPlaylistsPageBuilder: (_) => UserPlaylistLibraryPageView(
+            controller: libraryController,
+          ),
         ),
       ],
     );

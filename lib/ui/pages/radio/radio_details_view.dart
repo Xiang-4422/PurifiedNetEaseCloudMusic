@@ -3,9 +3,7 @@ import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
-import 'package:bujuan/features/radio/radio_playback_queue_item_mapper.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
@@ -69,10 +67,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
           if (state.isEmpty) {
             return const EmptyView();
           }
-          final queueItems = RadioPlaybackQueueItemMapper.fromPrograms(
-            state.items,
-            likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-          );
+          final queueItems = _controller.queueItems;
           return AppSmartRefresher(
             controller: _refreshController,
             enablePullUp: state.hasMore,

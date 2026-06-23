@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:flutter/foundation.dart';
 
 /// 云盘歌曲分页页面控制器。
@@ -11,15 +12,15 @@ class CloudPageController {
   CloudPageController({
     required CloudRepository repository,
     required String userId,
-    required List<int> likedSongIds,
+    List<int> Function()? likedSongIds,
     this.pageSize = 30,
   })  : _repository = repository,
         _userId = userId,
-        _likedSongIds = likedSongIds;
+        _likedSongIds = likedSongIds ?? _currentLikedSongIds;
 
   final CloudRepository _repository;
   final String _userId;
-  final List<int> _likedSongIds;
+  final List<int> Function() _likedSongIds;
 
   /// 每次请求的云盘歌曲数量。
   final int pageSize;
@@ -45,7 +46,7 @@ class CloudPageController {
     try {
       cachedSongs = await _repository.loadCachedSongs(
         userId: _userId,
-        likedSongIds: _likedSongIds,
+        likedSongIds: _likedSongIds(),
       );
     } catch (_) {
       if (!_isCurrentRequest(generation)) {
@@ -112,7 +113,7 @@ class CloudPageController {
         userId: _userId,
         offset: _offset,
         limit: pageSize,
-        likedSongIds: _likedSongIds,
+        likedSongIds: _likedSongIds(),
       );
       if (!_isCurrentRequest(generation)) {
         return true;
@@ -149,7 +150,7 @@ class CloudPageController {
         userId: _userId,
         offset: 0,
         limit: pageSize,
-        likedSongIds: _likedSongIds,
+        likedSongIds: _likedSongIds(),
       );
       if (!_isCurrentRequest(generation)) {
         return true;
@@ -209,5 +210,9 @@ class CloudPageController {
     if (_isCurrentRequest(generation)) {
       state.value = nextState;
     }
+  }
+
+  static List<int> _currentLikedSongIds() {
+    return UserLibraryController.to.likedSongIds.toList();
   }
 }

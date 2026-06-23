@@ -4,7 +4,6 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
@@ -33,7 +32,6 @@ class _CloudDriveViewState extends State<CloudDriveView> {
     _controller = CloudPageController(
       repository: Get.find<CloudRepository>(),
       userId: Get.find<UserSessionController>().userInfo.value.userId,
-      likedSongIds: Get.find<UserLibraryController>().likedSongIds.toList(),
     )..loadInitial();
   }
 

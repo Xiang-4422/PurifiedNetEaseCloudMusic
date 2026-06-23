@@ -70,6 +70,37 @@ void main() {
       expect(controller.state.value.error, isNull);
     });
 
+    test('uses latest liked song ids for each cache and remote request', () async {
+      var likedSongIds = <int>[1];
+      final repository = _FakeCloudRepository(
+        fetchCloudSongs: () => Future.value(
+          CloudSongPage(
+            items: [_song('remote')],
+            hasMore: false,
+            nextOffset: 1,
+          ),
+        ),
+      );
+      final controller = CloudPageController(
+        repository: repository,
+        userId: 'user-1',
+        likedSongIds: () => likedSongIds,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      likedSongIds = <int>[2, 3];
+      await controller.refresh();
+
+      expect(repository.cachedLikedSongRequests, [
+        [1],
+      ]);
+      expect(repository.fetchLikedSongRequests, [
+        [1],
+        [2, 3],
+      ]);
+    });
+
     test('ignores stale load more result after refresh completes', () async {
       final loadMore = Completer<CloudSongPage>();
       final refresh = Completer<CloudSongPage>();
@@ -211,7 +242,7 @@ CloudPageController _buildController(_FakeCloudRepository repository) {
   return CloudPageController(
     repository: repository,
     userId: 'user-1',
-    likedSongIds: const [],
+    likedSongIds: () => const [],
   );
 }
 
@@ -263,12 +294,15 @@ class _FakeCloudRepository extends CloudRepository {
     required List<int> likedSongIds,
   })? _fetchCloudSongsWithArgs;
   final List<int> requestedOffsets = <int>[];
+  final List<List<int>> cachedLikedSongRequests = <List<int>>[];
+  final List<List<int>> fetchLikedSongRequests = <List<int>>[];
 
   @override
   Future<List<PlaybackQueueItem>> loadCachedSongs({
     required String userId,
     required List<int> likedSongIds,
   }) async {
+    cachedLikedSongRequests.add(List<int>.from(likedSongIds));
     final future = cachedSongsFuture;
     if (future != null) {
       return future;
@@ -284,6 +318,7 @@ class _FakeCloudRepository extends CloudRepository {
     required List<int> likedSongIds,
   }) {
     requestedOffsets.add(offset);
+    fetchLikedSongRequests.add(List<int>.from(likedSongIds));
     final fetchWithArgs = _fetchCloudSongsWithArgs;
     if (fetchWithArgs != null) {
       return fetchWithArgs(

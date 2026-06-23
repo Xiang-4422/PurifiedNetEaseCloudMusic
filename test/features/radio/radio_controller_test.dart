@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
 import 'package:bujuan/features/radio/radio_list_controller.dart';
@@ -275,6 +276,27 @@ void main() {
       expect(controller.state.value.error, isNull);
     });
 
+    test('builds playback queue items with latest liked song ids', () {
+      var likedSongIds = <int>[101];
+      final controller = RadioDetailController(
+        radioId: 'radio-1',
+        userId: 'user-1',
+        repository: _FakeRadioRepository(),
+        likedSongIds: () => likedSongIds,
+      );
+      addTearDown(controller.dispose);
+      controller.state.value = PagedState.data(
+        [_program('program-1', mainTrackId: '101')],
+        hasMore: false,
+      );
+
+      expect(controller.queueItems.single.isLiked, isTrue);
+
+      likedSongIds = <int>[];
+
+      expect(controller.queueItems.single.isLiked, isFalse);
+    });
+
     test('ignores stale load more result after refresh completes', () async {
       final loadMore = Completer<DjProgramPage>();
       final refresh = Completer<DjProgramPage>();
@@ -413,10 +435,10 @@ RadioSummaryData _radio(String id) {
   );
 }
 
-RadioProgramData _program(String id) {
+RadioProgramData _program(String id, {String? mainTrackId}) {
   return RadioProgramData(
     id: id,
-    mainTrackId: 'track-$id',
+    mainTrackId: mainTrackId ?? 'track-$id',
     title: 'Program $id',
     coverUrl: 'https://cover.test/$id.jpg',
     artistName: 'Artist',

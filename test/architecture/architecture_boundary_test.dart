@@ -926,6 +926,42 @@ void main() {
       );
     });
 
+    test('cloud and radio pages keep liked ids behind page controllers', () {
+      final cloudViewFile = File(
+        '${projectRoot.path}/lib/ui/pages/cloud/cloud_drive_view.dart',
+      );
+      final cloudControllerFile = File(
+        '${projectRoot.path}/lib/features/cloud/cloud_page_controller.dart',
+      );
+      final radioViewFile = File(
+        '${projectRoot.path}/lib/ui/pages/radio/radio_details_view.dart',
+      );
+      final radioControllerFile = File(
+        '${projectRoot.path}/lib/features/radio/radio_detail_controller.dart',
+      );
+      final cloudView = cloudViewFile.readAsStringSync();
+      final cloudController = cloudControllerFile.readAsStringSync();
+      final radioView = radioViewFile.readAsStringSync();
+      final radioController = radioControllerFile.readAsStringSync();
+      final violations = <String>[
+        if (cloudView.contains('UserLibraryController')) '${_relativePath(cloudViewFile)} reads user library directly',
+        if (cloudView.contains('likedSongIds:')) '${_relativePath(cloudViewFile)} passes liked ids from UI',
+        if (!cloudController.contains('List<int> Function()? likedSongIds')) 'cloud controller does not accept a lazy liked ids provider',
+        if (!cloudController.contains('likedSongIds: _likedSongIds()')) 'cloud controller does not read liked ids at request time',
+        if (radioView.contains('UserLibraryController')) '${_relativePath(radioViewFile)} reads user library directly',
+        if (radioView.contains('RadioPlaybackQueueItemMapper.fromPrograms')) '${_relativePath(radioViewFile)} maps radio queue items in UI',
+        if (!radioView.contains('final queueItems = _controller.queueItems')) '${_relativePath(radioViewFile)} does not read queue items from controller',
+        if (!radioController.contains('List<PlaybackQueueItem> get queueItems')) 'radio detail controller does not expose queue items',
+        if (!radioController.contains('likedSongIds: _likedSongIds()')) 'radio detail controller does not derive liked state from lazy provider',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '云盘页和播客详情页不能在 Widget 内直接读取用户喜欢歌曲 id；喜欢态应由页面控制器按当前用户库状态派生。',
+      );
+    });
+
     test('recent playback stays backed by confirmed history', () {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/playback/recent_playback_controller.dart',

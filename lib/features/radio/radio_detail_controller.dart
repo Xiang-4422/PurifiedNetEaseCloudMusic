@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
+import 'package:bujuan/features/radio/radio_playback_queue_item_mapper.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:flutter/foundation.dart';
 
 /// 电台节目分页控制器。
@@ -12,15 +15,18 @@ class RadioDetailController {
     required this.radioId,
     required String userId,
     required RadioRepository repository,
+    List<int> Function()? likedSongIds,
     this.pageSize = 30,
     this.asc = true,
   })  : _userId = userId,
-        _repository = repository;
+        _repository = repository,
+        _likedSongIds = likedSongIds ?? _currentLikedSongIds;
 
   /// 电台 id。
   final String radioId;
   final String _userId;
   final RadioRepository _repository;
+  final List<int> Function() _likedSongIds;
 
   /// 每页节目数量。
   final int pageSize;
@@ -30,6 +36,14 @@ class RadioDetailController {
 
   /// 电台节目分页状态。
   final ValueNotifier<PagedState<RadioProgramData>> state = ValueNotifier(PagedState.initialLoading());
+
+  /// 当前节目列表对应的播放队列项。
+  List<PlaybackQueueItem> get queueItems {
+    return RadioPlaybackQueueItemMapper.fromPrograms(
+      state.value.items,
+      likedSongIds: _likedSongIds(),
+    );
+  }
 
   int _offset = 0;
   int _requestGeneration = 0;
@@ -189,5 +203,9 @@ class RadioDetailController {
 
   bool _isCurrentRequest(int generation) {
     return !_disposed && generation == _requestGeneration;
+  }
+
+  static List<int> _currentLikedSongIds() {
+    return UserLibraryController.to.likedSongIds.toList();
   }
 }

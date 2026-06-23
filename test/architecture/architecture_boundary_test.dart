@@ -1541,6 +1541,26 @@ void main() {
       );
     });
 
+    test('playlist page opens playback panel through shell boundary', () {
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/playlist/playlist_page_view.dart',
+      );
+      final page = pageFile.readAsStringSync();
+      final violations = <String>[
+        if (!page.contains('final ShellController _shellController = Get.find<ShellController>()')) '${_relativePath(pageFile)} does not resolve shell controller at page boundary',
+        if (!page.contains('void _openPlaybackPanel()')) '${_relativePath(pageFile)} does not centralize playback panel opening',
+        if (!page.contains('_shellController.jumpBottomPanelToPage(0)')) '${_relativePath(pageFile)} does not jump bottom panel through injected shell controller',
+        if (!page.contains('_shellController.openBottomPanel()')) '${_relativePath(pageFile)} does not open bottom panel through injected shell controller',
+        if (page.contains('ShellController.to')) '${_relativePath(pageFile)} reads shell controller globally',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '歌单页可以在播放歌曲时打开底部播放面板，但 shell 面板操作必须从页面边界注入，不能在播放动作里读取全局 shell。',
+      );
+    });
+
     test('comment widgets create controllers through feature factory', () {
       final commentWidgetFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/comment/comment_widget.dart',

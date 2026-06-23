@@ -54,6 +54,7 @@ class PlayListPageView extends StatefulWidget {
 class _PlayListPageViewState extends State<PlayListPageView> {
   late final PlaylistPageController _controller;
   final PlayerController _playerController = Get.find<PlayerController>();
+  final ShellController _shellController = Get.find<ShellController>();
   final Random _random = Random();
 
   String playlistName = '';
@@ -461,8 +462,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (!_canPlayLoadedPlaylist) {
       return;
     }
-    ShellController.to.jumpBottomPanelToPage(0);
-    ShellController.to.openBottomPanel();
+    _openPlaybackPanel();
     if (shuffle) {
       await _playerController.setOrderMode(PlaybackOrderMode.shuffle);
       await _playerController.setRepeatMode(PlaybackRepeatMode.all);
@@ -485,14 +485,18 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _playSongAt(int index) async {
-    ShellController.to.jumpBottomPanelToPage(0);
-    ShellController.to.openBottomPanel();
+    _openPlaybackPanel();
     await _playerController.playPlaylist(
       songs,
       index,
       playListName: playlistName,
       playListNameHeader: '歌单',
     );
+  }
+
+  void _openPlaybackPanel() {
+    _shellController.jumpBottomPanelToPage(0);
+    _shellController.openBottomPanel();
   }
 
   Future<void> _subscribePlayList() async {

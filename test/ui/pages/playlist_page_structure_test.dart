@@ -38,6 +38,17 @@ void main() {
     expect(stateSource, contains('completionMessage'));
   });
 
+  test('playlist page opens playback panel through page shell boundary', () {
+    final pageSource = File('lib/ui/pages/playlist/playlist_page_view.dart').readAsStringSync();
+
+    expect(pageSource, contains('final ShellController _shellController = Get.find<ShellController>()'));
+    expect(pageSource, contains('void _openPlaybackPanel()'));
+    expect(pageSource, contains('_shellController.jumpBottomPanelToPage(0)'));
+    expect(pageSource, contains('_shellController.openBottomPanel()'));
+    expect(pageSource, contains('_openPlaybackPanel();'));
+    expect(pageSource, isNot(contains('ShellController.to')));
+  });
+
   test('playlist header keeps focused playback and subscription actions', () {
     final source = File(
       'lib/ui/pages/playlist/widgets/playlist_header_sliver.dart',

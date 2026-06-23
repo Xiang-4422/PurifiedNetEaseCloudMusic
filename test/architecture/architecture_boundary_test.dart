@@ -1255,8 +1255,10 @@ void main() {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/user/recommendation_controller.dart',
       );
+      final bootstrapFile = File('${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart');
       final section = sectionFile.readAsStringSync();
       final controller = controllerFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
         if (section.contains('PlaylistRepository')) '${_relativePath(sectionFile)} resolves playlist data directly',
         if (section.contains('likedSongIds.toList')) '${_relativePath(sectionFile)} reads liked ids directly',
@@ -1264,9 +1266,14 @@ void main() {
         if (section.contains('fetchPlaylistSongs(')) '${_relativePath(sectionFile)} fetches playlist songs directly',
         if (!section.contains('recommendationController.resolveFrequentPlaylistPlayback')) '${_relativePath(sectionFile)} does not resolve playlist playback through home controller',
         if (controller.contains('UserLibraryController')) 'recommendation controller reads user library controller directly',
+        if (controller.contains("package:bujuan/features/user/user_session_controller.dart")) 'recommendation controller imports user session controller',
+        if (controller.contains('UserSessionController')) 'recommendation controller names user session controller directly',
         if (!controller.contains('Future<UserHomePlaylistPlaybackPlan> resolveFrequentPlaylistPlayback')) 'recommendation controller does not expose frequent playlist playback resolution',
         if (!controller.contains('required PlaylistRepository playlistRepository')) 'recommendation controller does not receive playlist repository explicitly',
         if (!controller.contains('required RecommendationLibraryAccess libraryAccess')) 'recommendation controller does not receive library access boundary',
+        if (!controller.contains('required RecommendationSessionAccess sessionAccess')) 'recommendation controller does not receive session access boundary',
+        if (!bootstrap.contains('sessionAccess: RecommendationSessionAccess(')) 'feature bootstrap does not inject recommendation session access boundary',
+        if (!bootstrap.contains('watchSession: (onChanged)')) 'feature bootstrap does not bind recommendation session watcher',
         if (!controller.contains('currentUserId: userId')) 'recommendation controller does not pass current user when resolving frequent playlist',
         if (!controller.contains('playlistIndex: index')) 'recommendation controller does not reuse fetched playlist index for playback songs',
       ];

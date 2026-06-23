@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 
+import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 import 'package:bujuan/features/album/album_page_controller.dart';
@@ -84,7 +85,17 @@ void registerUserControllers() {
     () => RecommendationController(
       repository: Get.find<UserRepository>(),
       playlistRepository: Get.find<PlaylistRepository>(),
-      sessionController: Get.find<UserSessionController>(),
+      sessionAccess: RecommendationSessionAccess(
+        ensureCacheLoaded: () => Get.find<UserSessionController>().ensureCacheLoaded(),
+        currentSession: () => Get.find<UserSessionController>().userInfo.value,
+        watchSession: (onChanged) {
+          final worker = ever<UserSessionData>(
+            Get.find<UserSessionController>().userInfo,
+            onChanged,
+          );
+          return worker.dispose;
+        },
+      ),
       libraryAccess: RecommendationLibraryAccess(
         ensureCacheLoaded: () => Get.find<UserLibraryController>().ensureCacheLoaded(),
         loadScopedLocalData: (userId) => Get.find<UserLibraryController>().loadScopedLocalData(userId),

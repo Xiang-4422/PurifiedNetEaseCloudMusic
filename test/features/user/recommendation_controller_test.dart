@@ -26,7 +26,7 @@ void main() {
       final controller = RecommendationController(
         repository: _FakeUserRepository(),
         playlistRepository: _FakePlaylistRepository(),
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
         libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
@@ -58,7 +58,7 @@ void main() {
       final controller = RecommendationController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
         libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
@@ -84,7 +84,7 @@ void main() {
       final controller = RecommendationController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
         libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
@@ -94,6 +94,31 @@ void main() {
 
       expect(controller.hasLocalData, isTrue);
       await expectLater(controller.shouldRefreshStartupData(), completion(isTrue));
+    });
+
+    test('reloads scoped local data through session access when account changes', () async {
+      final sessionController = _buildSessionController('user-1');
+      final libraryController = _FakeUserLibraryController();
+      final controller = RecommendationController(
+        repository: _FakeUserRepository(),
+        playlistRepository: _FakePlaylistRepository(),
+        sessionAccess: _sessionAccess(sessionController),
+        libraryAccess: _libraryAccess(libraryController),
+      );
+      addTearDown(controller.onClose);
+
+      controller.onInit();
+      await controller.ensureCacheLoaded();
+
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-2',
+        nickname: 'User user-2',
+        avatarUrl: '',
+      );
+
+      await _waitUntil(() => libraryController.scopedLocalDataLoads.contains('user-2'));
+
+      expect(libraryController.scopedLocalDataLoads, ['user-2']);
     });
 
     test('ignores stale recommended playlist load more after refresh completes', () async {
@@ -112,7 +137,7 @@ void main() {
       final controller = RecommendationController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
         libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
@@ -152,7 +177,7 @@ void main() {
       final controller = RecommendationController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
         libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
@@ -192,7 +217,7 @@ void main() {
       final controller = RecommendationController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
         libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
@@ -237,7 +262,7 @@ void main() {
       final controller = RecommendationController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
         libraryAccess: _libraryAccess(libraryController),
       );
       controller.recoPlayLists.add(const PlaylistSummaryData(id: 'visible-playlist', title: 'Visible'));
@@ -284,7 +309,7 @@ void main() {
       final controller = RecommendationController(
         repository: _FakeUserRepository(),
         playlistRepository: playlistRepository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
         libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
@@ -330,6 +355,17 @@ RecommendationLibraryAccess _libraryAccess(_FakeUserLibraryController controller
   );
 }
 
+RecommendationSessionAccess _sessionAccess(UserSessionController controller) {
+  return RecommendationSessionAccess(
+    ensureCacheLoaded: controller.ensureCacheLoaded,
+    currentSession: () => controller.userInfo.value,
+    watchSession: (onChanged) {
+      final subscription = controller.userInfo.listen(onChanged);
+      return subscription.cancel;
+    },
+  );
+}
+
 UserSessionController _buildSessionController(String userId) {
   final controller = UserSessionController(
     repository: _FakeUserRepository(),
@@ -370,6 +406,16 @@ Future<void> _flushAsync() async {
   }
 }
 
+Future<void> _waitUntil(bool Function() condition) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 1));
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('condition was not met before timeout');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+}
+
 class _FakeUserLibraryController extends UserLibraryController {
   _FakeUserLibraryController({this.refreshError})
       : super(
@@ -378,6 +424,12 @@ class _FakeUserLibraryController extends UserLibraryController {
         );
 
   final Object? refreshError;
+  final List<String> scopedLocalDataLoads = <String>[];
+
+  @override
+  Future<void> loadScopedLocalData(String userId) async {
+    scopedLocalDataLoads.add(userId);
+  }
 
   @override
   Future<void> refreshUserLibrary() async {

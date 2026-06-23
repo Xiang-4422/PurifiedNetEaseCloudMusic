@@ -64,7 +64,8 @@ class PlaybackUrlCacheCoordinator {
 
   Future<String?> _resolveLocalResourceUrlOrNull(String trackId) async {
     try {
-      return await _resolveLocalResourceUrl(trackId);
+      final url = await _resolveLocalResourceUrl(trackId);
+      return url?.isEmpty == true ? null : url;
     } catch (_) {
       return null;
     }

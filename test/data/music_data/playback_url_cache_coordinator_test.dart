@@ -184,6 +184,26 @@ void main() {
       expect(loadCount, 0);
     });
 
+    test('ignores empty local resource result and resolves remote url', () async {
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => '',
+      );
+
+      final url = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async {
+          loadCount++;
+          return 'https://audio.test/1.mp3';
+        },
+      );
+
+      expect(url, 'https://audio.test/1.mp3');
+      expect(loadCount, 1);
+    });
+
     test('keeps cached remote url when local resource lookup fails', () async {
       var shouldFailLocalLookup = false;
       var loadCount = 0;
@@ -253,6 +273,65 @@ void main() {
       expect(await inFlight, 'https://audio.test/1.mp3');
       expect(await joined, 'https://audio.test/1.mp3');
       expect(loadCount, 1);
+    });
+
+    test('evicts least recently used remote url cache entries', () async {
+      final loadCounts = <String, int>{};
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+        maxEntries: 2,
+      );
+
+      Future<String?> load(String trackId) async {
+        final count = (loadCounts[trackId] ?? 0) + 1;
+        loadCounts[trackId] = count;
+        return 'https://audio.test/$trackId-$count.mp3';
+      }
+
+      final first = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () => load('1'),
+      );
+      final second = await coordinator.resolve(
+        '2',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () => load('2'),
+      );
+      final touchedFirst = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () => load('1'),
+      );
+      final third = await coordinator.resolve(
+        '3',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () => load('3'),
+      );
+      final cachedFirst = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () => load('1'),
+      );
+      final reloadedSecond = await coordinator.resolve(
+        '2',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () => load('2'),
+      );
+
+      expect(first, 'https://audio.test/1-1.mp3');
+      expect(second, 'https://audio.test/2-1.mp3');
+      expect(touchedFirst, first);
+      expect(third, 'https://audio.test/3-1.mp3');
+      expect(cachedFirst, first);
+      expect(reloadedSecond, 'https://audio.test/2-2.mp3');
+      expect(loadCounts, {'1': 1, '2': 2, '3': 1});
     });
 
     test('late stale load does not overwrite force refreshed cache', () async {

@@ -291,9 +291,9 @@ class UserLibraryController extends GetxController {
     if (sourceLikedSongIds.isNotEmpty) {
       final randomIndex = Random().nextInt(sourceLikedSongIds.length);
       nextRandomLikedSongId = sourceLikedSongIds[randomIndex].toString();
-      nextRandomLikedSongAlbumUrl = await _repository.loadCachedSongAlbumUrl(nextRandomLikedSongId);
+      nextRandomLikedSongAlbumUrl = await _loadCachedSongAlbumUrl(nextRandomLikedSongId);
       if (nextRandomLikedSongAlbumUrl.isEmpty) {
-        nextRandomLikedSongAlbumUrl = await _repository.fetchSongAlbumUrl(nextRandomLikedSongId);
+        nextRandomLikedSongAlbumUrl = await _fetchSongAlbumUrl(nextRandomLikedSongId);
       }
     }
     return (songId: nextRandomLikedSongId, albumUrl: nextRandomLikedSongAlbumUrl);
@@ -315,7 +315,7 @@ class UserLibraryController extends GetxController {
     }
 
     var hasCachedData = false;
-    final cachedLikedIds = await _repository.loadCachedLikedSongIds(userId);
+    final cachedLikedIds = await _loadCachedLikedSongIds(userId);
     if (!_isCurrentLocalDataLoad(userId, generation)) {
       return;
     }
@@ -324,7 +324,7 @@ class UserLibraryController extends GetxController {
       ..addAll(cachedLikedIds);
     hasCachedData = hasCachedData || cachedLikedIds.isNotEmpty;
 
-    final cachedUserPlayLists = await _repository.loadCachedPlaylistList(
+    final cachedUserPlayLists = await _loadCachedPlaylistList(
       userId,
       UserPlaylistListKind.userPlaylists,
     );
@@ -336,7 +336,7 @@ class UserLibraryController extends GetxController {
       ..addAll(cachedUserPlayLists);
     hasCachedData = hasCachedData || cachedUserPlayLists.isNotEmpty;
 
-    final cachedLikedPlaylist = await _repository.loadCachedPlaylistList(
+    final cachedLikedPlaylist = await _loadCachedPlaylistList(
       userId,
       UserPlaylistListKind.likedCollection,
     );
@@ -354,6 +354,41 @@ class UserLibraryController extends GetxController {
     randomLikedSongAlbumUrl.value = nextRandomLikedSong.albumUrl;
     hasCachedData = hasCachedData || nextRandomLikedSong.albumUrl.isNotEmpty;
     _hasLocalData = hasCachedData;
+  }
+
+  Future<List<int>> _loadCachedLikedSongIds(String userId) async {
+    try {
+      return await _repository.loadCachedLikedSongIds(userId);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<List<PlaylistSummaryData>> _loadCachedPlaylistList(
+    String userId,
+    UserPlaylistListKind kind,
+  ) async {
+    try {
+      return await _repository.loadCachedPlaylistList(userId, kind);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<String> _loadCachedSongAlbumUrl(String songId) async {
+    try {
+      return await _repository.loadCachedSongAlbumUrl(songId);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  Future<String> _fetchSongAlbumUrl(String songId) async {
+    try {
+      return await _repository.fetchSongAlbumUrl(songId);
+    } catch (_) {
+      return '';
+    }
   }
 
   bool _isCurrentLocalDataLoad(String userId, int generation) {

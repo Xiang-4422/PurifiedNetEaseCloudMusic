@@ -537,6 +537,26 @@ mixin ApiEnhancedRaw {
 
   /// NCBL listening report depends on upstream direct multipart upload helpers.
   dynamic scrobbleV1Raw(Map<String, dynamic> query) {
+    final songId = _scrobbleV1Number(query['id']);
+    if (songId == null || songId == 0) {
+      return {
+        'status': 400,
+        'body': {'code': 400, 'msg': '缺少有效的 id (歌曲ID)'},
+      };
+    }
+    final playTime = _scrobbleV1Number(query['time']);
+    if (playTime == null || playTime <= 0) {
+      return {
+        'status': 400,
+        'body': {'code': 400, 'msg': '缺少有效的 time (播放时长)'},
+      };
+    }
+    if (_cookieValue(query['cookie'], 'MUSIC_U') == null) {
+      return {
+        'status': 401,
+        'body': {'code': 401, 'msg': '缺少 MUSIC_U 鉴权令牌'},
+      };
+    }
     return {
       'status': 500,
       'body': {
@@ -3180,6 +3200,23 @@ dynamic _commentNewCursor(
     default:
       return '';
   }
+}
+
+num? _scrobbleV1Number(dynamic value) {
+  if (value is bool) {
+    return value ? 1 : 0;
+  }
+  if (value == null) {
+    return 0;
+  }
+  if (value is num) {
+    return value;
+  }
+  final text = value.toString().trim();
+  if (text.isEmpty) {
+    return 0;
+  }
+  return num.tryParse(text);
 }
 
 String _loginPassword(Map<String, dynamic> query) {

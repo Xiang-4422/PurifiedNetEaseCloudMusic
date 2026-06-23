@@ -3746,7 +3746,19 @@ void main() {
     });
 
     test('scrobble v1 special module exposes explicit limited Dart behavior', () async {
+      expect(await api.requestModule('scrobble_v1', {'time': 30, 'cookie': 'MUSIC_U=token'}), {
+        'status': 400,
+        'body': {'code': 400, 'msg': '缺少有效的 id (歌曲ID)'},
+      });
+      expect(await api.requestModule('scrobble_v1', {'id': '123', 'time': 0, 'cookie': 'MUSIC_U=token'}), {
+        'status': 400,
+        'body': {'code': 400, 'msg': '缺少有效的 time (播放时长)'},
+      });
       expect(await api.requestModule('scrobble_v1', {'id': '123', 'time': 30}), {
+        'status': 401,
+        'body': {'code': 401, 'msg': '缺少 MUSIC_U 鉴权令牌'},
+      });
+      expect(await api.requestModule('scrobble_v1', {'id': '123', 'time': 30, 'cookie': 'MUSIC_U=token'}), {
         'status': 500,
         'body': {
           'code': 500,

@@ -2870,6 +2870,13 @@ void main() {
       final repositoryBootstrap = File('${projectRoot.path}/lib/app/bootstrap/repository_bootstrap.dart').readAsStringSync();
       final sdkBootstrap = File('${projectRoot.path}/lib/app/bootstrap/sdk_bootstrap.dart').readAsStringSync();
       final dataNeteaseBootstrap = File('${projectRoot.path}/lib/data/music_data/sources/netease/netease_remote_bootstrap.dart');
+      final appBootstrapImportViolations = RegExp(r"^import '([^']+)';", multiLine: true)
+          .allMatches(appBootstrap)
+          .map((match) => match.group(1)!)
+          .where(
+            (uri) => !uri.startsWith('package:bujuan/app/bootstrap/') && uri != 'package:flutter/foundation.dart' && uri != 'package:flutter/widgets.dart' && uri != 'package:get/get.dart',
+          )
+          .toList();
       final routeOwnershipViolations = <String>[
         if (!appRoot.contains('static final AppRouteBootstrapResult _routes = initializeRouteInfrastructure();')) 'app root does not initialize route bootstrap result',
         if (!appRoot.contains('routeInformationParser: _routes.router.defaultRouteParser()')) 'app root does not delegate route parser to route bootstrap',
@@ -2937,6 +2944,11 @@ void main() {
         missingEntrypoints,
         isEmpty,
         reason: '每个 bootstrap 文件必须保留清晰入口，避免装配职责重新混到单个大文件。',
+      );
+      expect(
+        appBootstrapImportViolations,
+        isEmpty,
+        reason: 'app_bootstrap 只能导入子 bootstrap、Flutter binding 和 GetX，不能直接导入 data、features、ui 或 SDK 业务文件。',
       );
       expect(
         routeOwnershipViolations,

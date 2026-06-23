@@ -12,10 +12,18 @@ class BottomPanelCommentPage extends StatelessWidget {
   const BottomPanelCommentPage({
     super.key,
     required this.commentType,
+    required this.playerController,
+    required this.settingsController,
   });
 
   /// 评论类型，沿用网易云接口中的歌曲评论分类。
   final int commentType;
+
+  /// 播放控制器。
+  final PlayerController playerController;
+
+  /// 设置控制器。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +33,7 @@ class BottomPanelCommentPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: albumPadding),
         child: Obx(() {
-          final currentSong = PlayerController.to.currentSongState.value;
+          final currentSong = playerController.currentSongState.value;
           return CommentWidget(
             key: ValueKey(currentSong.id),
             context: context,
@@ -34,7 +42,7 @@ class BottomPanelCommentPage extends StatelessWidget {
             commentType: commentType,
             listPaddingTop: albumPadding,
             listPaddingBottom: albumPadding,
-            stringColor: SettingsController.to.panelWidgetColor.value,
+            stringColor: settingsController.panelWidgetColor.value,
           );
         }),
       ),

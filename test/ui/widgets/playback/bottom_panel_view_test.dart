@@ -64,6 +64,7 @@ void main() {
     expect(panelSource, contains('BottomPanelQueueView('));
     expect(panelSource, contains('playerController: playerController'));
     expect(panelSource, contains('settingsController: settingsController'));
+    expect(panelSource, contains('BottomPanelCommentPage('));
     expect(panelSource, contains('BottomPanelNowPlayingPage()'));
     expect(panelSource, contains('BottomPanelPageIndicator()'));
     expect(panelSource, isNot(contains('_buildCurPlayingPage')));

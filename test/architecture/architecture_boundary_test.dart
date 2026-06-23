@@ -734,6 +734,32 @@ void main() {
       );
     });
 
+    test('bottom panel comment page receives playback state boundaries', () {
+      final commentFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_comment_page.dart',
+      );
+      final panelFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+      );
+      final comment = commentFile.readAsStringSync();
+      final panel = panelFile.readAsStringSync();
+      final violations = <String>[
+        if (comment.contains('PlayerController.to')) '${_relativePath(commentFile)} reads player controller globally',
+        if (comment.contains('SettingsController.to')) '${_relativePath(commentFile)} reads settings controller globally',
+        if (!comment.contains('required this.playerController')) '${_relativePath(commentFile)} does not receive player controller',
+        if (!comment.contains('required this.settingsController')) '${_relativePath(commentFile)} does not receive settings controller',
+        if (!panel.contains('BottomPanelCommentPage(')) '${_relativePath(panelFile)} does not compose comment pages',
+        if (!panel.contains('playerController: playerController')) '${_relativePath(panelFile)} does not inject player controller',
+        if (!panel.contains('settingsController: settingsController')) '${_relativePath(panelFile)} does not inject settings controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '底部评论页只能根据当前歌曲展示评论，当前歌曲和面板颜色必须由底部播放面板组合层注入。',
+      );
+    });
+
     test('playback metadata key access stays in queue boundary codecs', () {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',

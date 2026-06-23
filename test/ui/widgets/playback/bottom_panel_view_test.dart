@@ -77,7 +77,7 @@ void main() {
     expect(panelSource, contains('settingsController: settingsController'));
     expect(panelSource, contains('BottomPanelCommentPage('));
     expect(panelSource, contains('BottomPanelNowPlayingPage()'));
-    expect(panelSource, contains('BottomPanelPageIndicator()'));
+    expect(panelSource, contains('BottomPanelPageIndicator('));
     expect(panelSource, isNot(contains('_buildCurPlayingPage')));
     expect(panelSource, isNot(contains('_artistEntries')));
     expect(panelSource, isNot(contains('MyTabBar(')));
@@ -95,10 +95,14 @@ void main() {
     expect(metadataSource, contains('_artistEntries'));
 
     expect(indicatorSource, contains('class BottomPanelPageIndicator'));
+    expect(indicatorSource, contains('required this.playerController'));
+    expect(indicatorSource, contains('required this.settingsController'));
     expect(indicatorSource, contains("'播放列表'"));
     expect(indicatorSource, contains("'正在播放'"));
     expect(indicatorSource, contains("'歌曲评论'"));
     expect(indicatorSource, contains('bottomPanelCommentTabController'));
+    expect(indicatorSource, isNot(contains('PlayerController.to')));
+    expect(indicatorSource, isNot(contains('SettingsController.to')));
   });
 
   test('bottom panel delegates background and fade mask to local widgets', () {

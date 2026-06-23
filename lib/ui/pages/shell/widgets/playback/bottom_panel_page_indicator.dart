@@ -9,7 +9,17 @@ import 'package:get/get.dart';
 /// 底部播放面板页面指示器，展示队列、正在播放和评论分页。
 class BottomPanelPageIndicator extends GetView<ShellController> {
   /// 创建页面指示器。
-  const BottomPanelPageIndicator({super.key});
+  const BottomPanelPageIndicator({
+    required this.playerController,
+    required this.settingsController,
+    super.key,
+  });
+
+  /// 播放控制器，提供当前播放会话标题。
+  final PlayerController playerController;
+
+  /// 设置控制器，提供播放面板取色。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +28,9 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
       alignment: Alignment.bottomCenter,
       child: Obx(
         () => Container(
-          color: SettingsController.to.albumColor.value,
+          color: settingsController.albumColor.value,
           child: Obx(() {
-            final sessionState = PlayerController.to.sessionState.value;
+            final sessionState = playerController.sessionState.value;
             return Container(
               height: albumPadding,
               margin: const EdgeInsets.symmetric(
@@ -28,7 +38,7 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
               ),
               clipBehavior: Clip.hardEdge,
               decoration: BoxDecoration(
-                color: controller.isBigAlbum.isTrue ? SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.05) : Colors.transparent,
+                color: controller.isBigAlbum.isTrue ? settingsController.panelWidgetColor.value.withValues(alpha: 0.05) : Colors.transparent,
                 borderRadius: BorderRadius.circular(albumPadding),
               ),
               child: MyTabBarItemAnimatedSwitcher(
@@ -42,13 +52,13 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
                           horizontal: albumPadding / 2,
                         ),
                         decoration: BoxDecoration(
-                          color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.05),
+                          color: settingsController.panelWidgetColor.value.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(albumPadding),
                         ),
                         child: Text(
                           sessionState.playlistHeader,
                           style: context.textTheme.titleMedium?.copyWith(
-                            color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
+                            color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
                           ),
                         ),
                       ),
@@ -61,7 +71,7 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
                           child: Text(
                             sessionState.playlistName,
                             style: context.textTheme.titleMedium?.copyWith(
-                              color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
+                              color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
                             ),
                           ),
                         ),
@@ -71,19 +81,19 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
                 ),
                 tabItem: MyTabBar(
                   height: albumPadding,
-                  color: SettingsController.to.panelWidgetColor.value,
+                  color: settingsController.panelWidgetColor.value,
                   controller: controller.bottomPanelTabController,
                   tabs: [
                     Text(
                       '播放列表',
                       style: context.textTheme.titleMedium?.copyWith(
-                        color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
+                        color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
                       ),
                     ),
                     Text(
                       '正在播放',
                       style: context.textTheme.titleMedium?.copyWith(
-                        color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
+                        color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
                       ),
                     ),
                     Obx(
@@ -92,24 +102,24 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
                         tabItem: Text(
                           '歌曲评论',
                           style: context.textTheme.titleMedium?.copyWith(
-                            color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
+                            color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
                           ),
                         ),
                         replaceItem: MyTabBar(
                           height: albumPadding,
                           controller: controller.bottomPanelCommentTabController,
-                          color: SettingsController.to.panelWidgetColor.value,
+                          color: settingsController.panelWidgetColor.value,
                           tabs: [
                             Text(
                               '热',
                               style: context.textTheme.titleMedium?.copyWith(
-                                color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
+                                color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
                               ),
                             ),
                             Text(
                               '新',
                               style: context.textTheme.titleMedium?.copyWith(
-                                color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
+                                color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
                               ),
                             ),
                           ],

@@ -836,6 +836,32 @@ void main() {
       );
     });
 
+    test('bottom panel page indicator receives playback state boundaries', () {
+      final indicatorFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_page_indicator.dart',
+      );
+      final panelFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+      );
+      final indicator = indicatorFile.readAsStringSync();
+      final panel = panelFile.readAsStringSync();
+      final violations = <String>[
+        if (indicator.contains('PlayerController.to')) '${_relativePath(indicatorFile)} reads player controller globally',
+        if (indicator.contains('SettingsController.to')) '${_relativePath(indicatorFile)} reads settings controller globally',
+        if (!indicator.contains('required this.playerController')) '${_relativePath(indicatorFile)} does not receive player controller',
+        if (!indicator.contains('required this.settingsController')) '${_relativePath(indicatorFile)} does not receive settings controller',
+        if (!panel.contains('BottomPanelPageIndicator(')) '${_relativePath(panelFile)} does not compose page indicator',
+        if (!panel.contains('playerController: playerController')) '${_relativePath(panelFile)} does not inject player controller',
+        if (!panel.contains('settingsController: settingsController')) '${_relativePath(panelFile)} does not inject settings controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '底部页面指示器只能展示播放会话标题和 tab 状态，播放会话和面板颜色必须由底部播放面板组合层注入。',
+      );
+    });
+
     test('playback metadata key access stays in queue boundary codecs', () {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',

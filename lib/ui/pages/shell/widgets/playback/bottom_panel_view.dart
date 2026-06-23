@@ -90,7 +90,10 @@ class BottomPanelView extends GetView<ShellController> {
         BottomPanelArtworkPageLayer(controller: controller),
 
         // 页面指示TabBar
-        const BottomPanelPageIndicator(),
+        BottomPanelPageIndicator(
+          playerController: playerController,
+          settingsController: settingsController,
+        ),
       ],
     );
   }

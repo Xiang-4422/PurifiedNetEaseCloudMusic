@@ -783,6 +783,28 @@ void main() {
       );
     });
 
+    test('local resource index repository rejects blank track ids', () {
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/resources/local_resource_index_repository.dart',
+      );
+      final content = repositoryFile.readAsStringSync();
+      final blankTrackGuardCount = '_isBlankTrackId'.allMatches(content).length;
+      final violations = <String>[
+        if (!content.contains('String _normalizedTrackId(String trackId)')) 'local resource index repository does not normalize track ids',
+        if (!content.contains('bool _isBlankTrackId(String trackId)')) 'local resource index repository does not define a blank track id guard',
+        if (!content.contains('List<String> _candidateTrackIds(Iterable<String> trackIds)')) 'local resource index repository does not filter batch track ids',
+        if (!content.contains('final candidateTrackIds = _candidateTrackIds(trackIds);')) 'batch resource lookup does not use filtered track ids',
+        if (!content.contains('if (_isBlankTrackId(normalizedTrackId))')) 'single-track resource index entry points do not reject blank ids',
+        if (blankTrackGuardCount < 7) 'blank track id guard does not cover resource reads, writes, touch and deletion paths',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'local_resource_entries 是本地资源事实表，资源索引仓库自身也必须拒绝空白曲目 id，不能只依赖上层下载或播放入口。',
+      );
+    });
+
     test('UI reads explicit queue item fields instead of metadata keys', () {
       final uiFiles = _dartFiles(Directory('${projectRoot.path}/lib/ui'));
       final violations = uiFiles

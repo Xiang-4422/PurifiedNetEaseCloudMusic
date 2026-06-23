@@ -22,22 +22,26 @@ class LocalResourceIndexRepository {
 
   /// 读取曲目的主音频资源。
   Future<LocalResourceEntry?> getPrimaryAudioResource(String trackId) {
-    return _loadUsableResource(trackId, LocalResourceKind.audio);
+    return _loadUsableResource(_normalizedTrackId(trackId), LocalResourceKind.audio);
   }
 
   /// 读取曲目的封面资源。
   Future<LocalResourceEntry?> getArtworkResource(String trackId) {
-    return _loadUsableResource(trackId, LocalResourceKind.artwork);
+    return _loadUsableResource(_normalizedTrackId(trackId), LocalResourceKind.artwork);
   }
 
   /// 读取曲目的歌词资源。
   Future<LocalResourceEntry?> getLyricsResource(String trackId) {
-    return _loadUsableResource(trackId, LocalResourceKind.lyrics);
+    return _loadUsableResource(_normalizedTrackId(trackId), LocalResourceKind.lyrics);
   }
 
   /// 读取曲目的所有本地资源。
   Future<List<LocalResourceEntry>> getTrackResources(String trackId) async {
-    return _filterUsableResources(await _dataSource.getTrackResources(trackId));
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return const [];
+    }
+    return _filterUsableResources(await _dataSource.getTrackResources(normalizedTrackId));
   }
 
   /// 读取曲目的本地资源集合。
@@ -50,7 +54,11 @@ class LocalResourceIndexRepository {
   Future<Map<String, TrackResourceBundle>> getTrackResourceBundles(
     Iterable<String> trackIds,
   ) async {
-    final resourcesByTrackId = await _dataSource.getTrackResourcesByIds(trackIds);
+    final candidateTrackIds = _candidateTrackIds(trackIds);
+    if (candidateTrackIds.isEmpty) {
+      return const {};
+    }
+    final resourcesByTrackId = await _dataSource.getTrackResourcesByIds(candidateTrackIds);
     final result = <String, TrackResourceBundle>{};
     for (final entry in resourcesByTrackId.entries) {
       result[entry.key] = _toBundle(
@@ -167,8 +175,12 @@ class LocalResourceIndexRepository {
 
   /// 刷新资源的最近访问时间。
   Future<void> touchResource(String trackId, LocalResourceKind kind) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return Future<void>.value();
+    }
     return _dataSource.touchResource(
-      trackId,
+      normalizedTrackId,
       kind,
       accessedAt: DateTime.now(),
     );
@@ -176,12 +188,20 @@ class LocalResourceIndexRepository {
 
   /// 删除指定曲目的全部资源索引。
   Future<void> removeTrackResources(String trackId) {
-    return _dataSource.removeTrackResources(trackId);
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return Future<void>.value();
+    }
+    return _dataSource.removeTrackResources(normalizedTrackId);
   }
 
   /// 删除指定曲目的指定资源索引。
   Future<void> removeResource(String trackId, LocalResourceKind kind) {
-    return _dataSource.removeResource(trackId, kind);
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return Future<void>.value();
+    }
+    return _dataSource.removeResource(normalizedTrackId, kind);
   }
 
   /// 删除指定来源的全部资源索引。
@@ -195,19 +215,23 @@ class LocalResourceIndexRepository {
     required String path,
     required TrackResourceOrigin origin,
   }) async {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return;
+    }
     final file = _resourceFile(path);
     if (file == null || !file.existsSync()) {
       return;
     }
     final now = DateTime.now();
-    final existing = await _dataSource.getResource(trackId, kind);
+    final existing = await _dataSource.getResource(normalizedTrackId, kind);
     if (_shouldKeepExistingResource(existing, origin)) {
       return;
     }
     final sizeBytes = await file.length();
     await _dataSource.saveResource(
       LocalResourceEntry(
-        trackId: trackId,
+        trackId: normalizedTrackId,
         kind: kind,
         path: file.path,
         origin: origin,
@@ -249,6 +273,9 @@ class LocalResourceIndexRepository {
     String trackId,
     LocalResourceKind kind,
   ) async {
+    if (_isBlankTrackId(trackId)) {
+      return null;
+    }
     final resource = await _dataSource.getResource(trackId, kind);
     if (resource == null) {
       return null;
@@ -277,6 +304,9 @@ class LocalResourceIndexRepository {
   }
 
   Future<LocalResourceEntry?> _usableResource(LocalResourceEntry resource) async {
+    if (_isBlankTrackId(resource.trackId)) {
+      return null;
+    }
     final file = _resourceFile(resource.path);
     if (file == null || !file.existsSync()) {
       return null;
@@ -299,6 +329,27 @@ class LocalResourceIndexRepository {
 
   String _resourceFilePath(String rawPath) {
     return LocalFilePathNormalizer.normalize(rawPath);
+  }
+
+  List<String> _candidateTrackIds(Iterable<String> trackIds) {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final trackId in trackIds) {
+      final normalizedTrackId = _normalizedTrackId(trackId);
+      if (_isBlankTrackId(normalizedTrackId) || !seen.add(normalizedTrackId)) {
+        continue;
+      }
+      result.add(normalizedTrackId);
+    }
+    return result;
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
+  }
+
+  bool _isBlankTrackId(String trackId) {
+    return trackId.trim().isEmpty;
   }
 
   TrackResourceBundle _toBundle(List<LocalResourceEntry> resources) {

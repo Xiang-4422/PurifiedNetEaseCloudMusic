@@ -173,6 +173,76 @@ void main() {
       );
     });
 
+    test('ignores blank track ids before touching resource index data source', () async {
+      final existingAudio = await _writeTempFile(tempDirectory, 'blank-id.mp3');
+
+      await repository.saveAudioResource(
+        '   ',
+        path: existingAudio.path,
+        origin: TrackResourceOrigin.managedDownload,
+      );
+      expect(await repository.getPrimaryAudioResource('   '), isNull);
+      expect(await repository.getArtworkResource('   '), isNull);
+      expect(await repository.getLyricsResource('   '), isNull);
+      expect(await repository.getTrackResources('   '), isEmpty);
+      expect((await repository.getTrackResourceBundle('   ')).hasAnyResource, isFalse);
+      expect(await repository.getTrackResourceBundles(['   ', '\t']), isEmpty);
+      await repository.touchResource('   ', LocalResourceKind.audio);
+      await repository.removeResource('   ', LocalResourceKind.audio);
+      await repository.removeTrackResources('   ');
+
+      expect(dataSource.resources, isEmpty);
+      expect(dataSource.getResourceTrackIds, isEmpty);
+      expect(dataSource.getTrackResourcesTrackIds, isEmpty);
+      expect(dataSource.getTrackResourcesByIdsRequests, isEmpty);
+      expect(dataSource.touchedTrackIds, isEmpty);
+      expect(dataSource.removedResourceTrackIds, isEmpty);
+      expect(dataSource.removedTrackResourceTrackIds, isEmpty);
+    });
+
+    test('normalizes track ids before saving and reading resources', () async {
+      final existingAudio = await _writeTempFile(tempDirectory, 'normalized-id.mp3');
+
+      await repository.saveAudioResource(
+        ' netease:1 ',
+        path: existingAudio.path,
+        origin: TrackResourceOrigin.managedDownload,
+      );
+      final resource = await repository.getPrimaryAudioResource(' netease:1 ');
+      await repository.touchResource(' netease:1 ', LocalResourceKind.audio);
+      await repository.removeResource(' netease:1 ', LocalResourceKind.audio);
+
+      expect(resource?.trackId, 'netease:1');
+      expect(dataSource.savedResourceTrackIds, ['netease:1']);
+      expect(dataSource.getResourceTrackIds, ['netease:1', 'netease:1']);
+      expect(dataSource.touchedTrackIds, ['netease:1']);
+      expect(dataSource.removedResourceTrackIds, ['netease:1']);
+      expect(dataSource.resources, isEmpty);
+    });
+
+    test('filters blank and duplicate ids before batch resource reads', () async {
+      final existingAudio = await _writeTempFile(tempDirectory, 'batch-id.mp3');
+      await repository.saveAudioResource(
+        'netease:1',
+        path: existingAudio.path,
+        origin: TrackResourceOrigin.managedDownload,
+      );
+      dataSource.getTrackResourcesByIdsRequests.clear();
+
+      final bundles = await repository.getTrackResourceBundles([
+        '   ',
+        ' netease:1 ',
+        'netease:1',
+        '\t',
+      ]);
+
+      expect(bundles.keys, ['netease:1']);
+      expect(bundles['netease:1']?.audio?.trackId, 'netease:1');
+      expect(dataSource.getTrackResourcesByIdsRequests, [
+        ['netease:1'],
+      ]);
+    });
+
     test('rejects remote urls when saving resource indexes', () async {
       await repository.saveAudioResource(
         'netease:1',
@@ -410,19 +480,31 @@ LocalResourceEntry _resource({
 
 class _InMemoryResourceIndexDataSource implements LocalResourceIndexDataSource {
   final Map<String, LocalResourceEntry> _resources = {};
+  final List<String> getResourceTrackIds = <String>[];
+  final List<String> getTrackResourcesTrackIds = <String>[];
+  final List<List<String>> getTrackResourcesByIdsRequests = <List<String>>[];
+  final List<String> savedResourceTrackIds = <String>[];
+  final List<String> touchedTrackIds = <String>[];
+  final List<String> removedResourceTrackIds = <String>[];
+  final List<String> removedTrackResourceTrackIds = <String>[];
+
+  List<LocalResourceEntry> get resources => _resources.values.toList(growable: false);
 
   @override
   Future<LocalResourceEntry?> getResource(String trackId, LocalResourceKind kind) async {
+    getResourceTrackIds.add(trackId);
     return _resources[_key(trackId, kind)];
   }
 
   @override
   Future<List<LocalResourceEntry>> getTrackResources(String trackId) async {
+    getTrackResourcesTrackIds.add(trackId);
     return _resources.values.where((resource) => resource.trackId == trackId).toList();
   }
 
   @override
   Future<Map<String, List<LocalResourceEntry>>> getTrackResourcesByIds(Iterable<String> trackIds) async {
+    getTrackResourcesByIdsRequests.add(trackIds.toList(growable: false));
     final ids = trackIds.toSet();
     final result = <String, List<LocalResourceEntry>>{};
     for (final resource in _resources.values.where((resource) => ids.contains(resource.trackId))) {
@@ -454,11 +536,13 @@ class _InMemoryResourceIndexDataSource implements LocalResourceIndexDataSource {
 
   @override
   Future<void> saveResource(LocalResourceEntry entry) async {
+    savedResourceTrackIds.add(entry.trackId);
     _resources[_key(entry.trackId, entry.kind)] = entry;
   }
 
   @override
   Future<void> touchResource(String trackId, LocalResourceKind kind, {required DateTime accessedAt}) async {
+    touchedTrackIds.add(trackId);
     final key = _key(trackId, kind);
     final existing = _resources[key];
     if (existing != null) {
@@ -468,11 +552,13 @@ class _InMemoryResourceIndexDataSource implements LocalResourceIndexDataSource {
 
   @override
   Future<void> removeResource(String trackId, LocalResourceKind kind) async {
+    removedResourceTrackIds.add(trackId);
     _resources.remove(_key(trackId, kind));
   }
 
   @override
   Future<void> removeTrackResources(String trackId) async {
+    removedTrackResourceTrackIds.add(trackId);
     _resources.removeWhere((_, resource) => resource.trackId == trackId);
   }
 

@@ -218,6 +218,52 @@ void main() {
       expect(updateCount, 1);
     });
 
+    test('does not throw or notify when recent playback record fails', () async {
+      final historyDataSource = _FakePlaybackHistoryDataSource(
+        failRecordCount: 1,
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: _FakePlaybackRestoreDataSource(),
+        playbackHistoryDataSource: historyDataSource,
+      );
+      var updateCount = 0;
+      final subscription = repository.recentPlaybackUpdates.listen((_) {
+        updateCount++;
+      });
+      addTearDown(subscription.cancel);
+
+      await repository.recordPlayedTrack('netease:1');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(historyDataSource.recordedTrackIds, isEmpty);
+      expect(historyDataSource.pruneMaxEntries, isEmpty);
+      expect(updateCount, 0);
+    });
+
+    test('notifies after recent playback prune fails', () async {
+      final historyDataSource = _FakePlaybackHistoryDataSource(
+        failPruneCount: 1,
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: _FakePlaybackRestoreDataSource(),
+        playbackHistoryDataSource: historyDataSource,
+      );
+      var updateCount = 0;
+      final subscription = repository.recentPlaybackUpdates.listen((_) {
+        updateCount++;
+      });
+      addTearDown(subscription.cancel);
+
+      await repository.recordPlayedTrack('netease:1');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(historyDataSource.recordedTrackIds, ['netease:1']);
+      expect(historyDataSource.pruneMaxEntries, [100]);
+      expect(updateCount, 1);
+    });
+
     test('loads recently played tracks through music data repository', () async {
       final historyDataSource = _FakePlaybackHistoryDataSource(
         recentTrackIds: const ['netease:3', 'netease:1'],
@@ -241,6 +287,50 @@ void main() {
         ['netease:3', 'netease:1'],
       ]);
       expect(recentTracks.map((item) => item.track.id), ['netease:3', 'netease:1']);
+    });
+
+    test('returns empty recent tracks when history load fails', () async {
+      final historyDataSource = _FakePlaybackHistoryDataSource(
+        failLoadCount: 1,
+      );
+      final musicDataRepository = _FakeMusicDataRepository(
+        trackResources: {
+          'netease:1': _trackWithResources('netease:1'),
+        },
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: musicDataRepository,
+        playbackRestoreDataSource: _FakePlaybackRestoreDataSource(),
+        playbackHistoryDataSource: historyDataSource,
+      );
+
+      final recentTracks = await repository.loadRecentPlayedTracks(limit: 2);
+
+      expect(recentTracks, isEmpty);
+      expect(historyDataSource.requestedLimits, [2]);
+      expect(musicDataRepository.requestedTrackResourceIds, isEmpty);
+    });
+
+    test('returns empty recent tracks when resource lookup fails', () async {
+      final historyDataSource = _FakePlaybackHistoryDataSource(
+        recentTrackIds: const ['netease:1'],
+      );
+      final musicDataRepository = _FakeMusicDataRepository(
+        failTrackResourceLookupCount: 1,
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: musicDataRepository,
+        playbackRestoreDataSource: _FakePlaybackRestoreDataSource(),
+        playbackHistoryDataSource: historyDataSource,
+      );
+
+      final recentTracks = await repository.loadRecentPlayedTracks(limit: 2);
+
+      expect(recentTracks, isEmpty);
+      expect(historyDataSource.requestedLimits, [2]);
+      expect(musicDataRepository.requestedTrackResourceIds, [
+        ['netease:1'],
+      ]);
     });
   });
 }
@@ -306,9 +396,15 @@ class _FakePlaybackRestoreDataSource implements PlaybackRestoreDataSource {
 class _FakePlaybackHistoryDataSource implements PlaybackHistoryDataSource {
   _FakePlaybackHistoryDataSource({
     this.recentTrackIds = const <String>[],
+    this.failLoadCount = 0,
+    this.failRecordCount = 0,
+    this.failPruneCount = 0,
   });
 
   final List<String> recentTrackIds;
+  int failLoadCount;
+  int failRecordCount;
+  int failPruneCount;
   final List<String> recordedTrackIds = <String>[];
   final List<DateTime?> recordedPlayedAt = <DateTime?>[];
   final List<int> requestedLimits = <int>[];
@@ -317,12 +413,20 @@ class _FakePlaybackHistoryDataSource implements PlaybackHistoryDataSource {
   @override
   Future<List<String>> loadRecentTrackIds({int limit = 20}) async {
     requestedLimits.add(limit);
+    if (failLoadCount > 0) {
+      failLoadCount--;
+      throw StateError('recent playback load failed');
+    }
     return recentTrackIds.take(limit).toList(growable: false);
   }
 
   @override
   Future<void> prune({int maxEntries = 100}) async {
     pruneMaxEntries.add(maxEntries);
+    if (failPruneCount > 0) {
+      failPruneCount--;
+      throw StateError('recent playback prune failed');
+    }
   }
 
   @override
@@ -330,6 +434,10 @@ class _FakePlaybackHistoryDataSource implements PlaybackHistoryDataSource {
     String trackId, {
     DateTime? playedAt,
   }) async {
+    if (failRecordCount > 0) {
+      failRecordCount--;
+      throw StateError('recent playback record failed');
+    }
     recordedTrackIds.add(trackId);
     recordedPlayedAt.add(playedAt);
   }
@@ -338,9 +446,11 @@ class _FakePlaybackHistoryDataSource implements PlaybackHistoryDataSource {
 class _FakeMusicDataRepository implements MusicDataRepository {
   _FakeMusicDataRepository({
     this.trackResources = const <String, TrackWithResources>{},
+    this.failTrackResourceLookupCount = 0,
   });
 
   final Map<String, TrackWithResources> trackResources;
+  int failTrackResourceLookupCount;
   final List<String> requestedTrackIds = <String>[];
   final List<String?> requestedQualityLevels = <String?>[];
   final List<bool> forceRefreshValues = <bool>[];
@@ -379,6 +489,10 @@ class _FakeMusicDataRepository implements MusicDataRepository {
   ) async {
     final ids = trackIds.toList(growable: false);
     requestedTrackResourceIds.add(ids);
+    if (failTrackResourceLookupCount > 0) {
+      failTrackResourceLookupCount--;
+      throw StateError('track resource lookup failed');
+    }
     return ids.map((trackId) => trackResources[trackId]).whereType<TrackWithResources>().toList(growable: false);
   }
 

@@ -53,10 +53,14 @@ class PlaybackRepository {
 
   /// 读取最近播放的本地曲目及资源索引。
   Future<List<TrackWithResources>> loadRecentPlayedTracks({int limit = 20}) async {
-    final trackIds = await _playbackHistoryDataSource.loadRecentTrackIds(
-      limit: limit,
-    );
-    return _musicDataRepository.getTracksWithResources(trackIds);
+    try {
+      final trackIds = await _playbackHistoryDataSource.loadRecentTrackIds(
+        limit: limit,
+      );
+      return await _musicDataRepository.getTracksWithResources(trackIds);
+    } catch (_) {
+      return const <TrackWithResources>[];
+    }
   }
 
   /// 记录底层播放器已经确认播放的曲目。
@@ -67,13 +71,21 @@ class PlaybackRepository {
     if (trackId.isEmpty) {
       return;
     }
-    await _playbackHistoryDataSource.recordPlayedTrack(
-      trackId,
-      playedAt: playedAt,
-    );
-    await _playbackHistoryDataSource.prune(
-      maxEntries: _maxRecentPlaybackEntries,
-    );
+    try {
+      await _playbackHistoryDataSource.recordPlayedTrack(
+        trackId,
+        playedAt: playedAt,
+      );
+    } catch (_) {
+      return;
+    }
+    try {
+      await _playbackHistoryDataSource.prune(
+        maxEntries: _maxRecentPlaybackEntries,
+      );
+    } catch (_) {
+      // 修剪是附带清理，不能反向影响已确认的播放历史刷新。
+    }
     _recentPlaybackUpdates.notify();
   }
 

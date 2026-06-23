@@ -396,6 +396,36 @@ void main() {
       );
     });
 
+    test('coverage report includes dirty upstream submodule in SDK differences', () async {
+      final repoRoot = _findRepoRoot();
+      final dirtyMarker = File('${repoRoot.path}/third_party/api-enhanced/.codex-dirty-marker');
+      addTearDown(() {
+        if (dirtyMarker.existsSync()) {
+          dirtyMarker.deleteSync();
+        }
+      });
+      dirtyMarker.writeAsStringSync('temporary dirty marker for coverage report test');
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(report['upstreamDirty'], isTrue);
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      final dirtyDifference = sdkDifferences.singleWhere(
+        (item) => item['status'] == 'dirty_upstream_submodule',
+      );
+      expect(dirtyDifference['module'], '<upstream_submodule>');
+      expect(dirtyDifference['scope'], 'upstream_submodule');
+    });
+
     test('documented upstream baseline matches submodule and generated manifest', () async {
       final repoRoot = _findRepoRoot();
       final packageJson = _jsonMap(jsonDecode(File('${repoRoot.path}/third_party/api-enhanced/package.json').readAsStringSync()));

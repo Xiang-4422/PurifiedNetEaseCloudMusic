@@ -473,6 +473,22 @@ const runtimeLimited = new Set(Object.keys(runtimeLimitedReasons))
 
 function buildSdkDifferences() {
   const differences = []
+  if (!upstreamCommit) {
+    differences.push({
+      module: '<upstream_submodule>',
+      status: 'missing_upstream_commit',
+      reason: 'Cannot read upstream submodule commit.',
+      scope: 'upstream_submodule',
+    })
+  }
+  if (submoduleStatus.length > 0) {
+    differences.push({
+      module: '<upstream_submodule>',
+      status: 'dirty_upstream_submodule',
+      reason: 'Upstream submodule has uncommitted changes.',
+      scope: 'upstream_submodule',
+    })
+  }
   for (const entry of specialCoverageInvalidEntries) {
     differences.push({
       module: '<special_coverage>',

@@ -14,7 +14,10 @@ const generatedManifestPath = generatedManifestArg
   ? path.resolve(repoRoot, generatedManifestArg.slice('--generated-manifest='.length))
   : path.join(repoRoot, 'packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart')
 const oracleScriptPath = path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_node_oracle.js')
-const rawDispatcherPath = path.join(repoRoot, 'packages/netease_music_api/lib/src/endpoints/raw/api_enhanced_raw.dart')
+const rawDispatcherArg = process.argv.find((arg) => arg.startsWith('--raw-dispatcher='))
+const rawDispatcherPath = rawDispatcherArg
+  ? path.resolve(repoRoot, rawDispatcherArg.slice('--raw-dispatcher='.length))
+  : path.join(repoRoot, 'packages/netease_music_api/lib/src/endpoints/raw/api_enhanced_raw.dart')
 const specialCoverageArg = process.argv.find((arg) => arg.startsWith('--special-coverage='))
 const specialCoveragePath = specialCoverageArg
   ? path.resolve(repoRoot, specialCoverageArg.slice('--special-coverage='.length))
@@ -474,6 +477,7 @@ const specialLimitedMissingReason = sorted(
     return typeof reason !== 'string' || reason.trim().length === 0
   }),
 )
+const specialDispatcherDuplicateCases = duplicateValues(rawDispatcherModules)
 const specialDispatcherMissing = sorted(specialModules.filter((module) => !rawDispatcherModuleSet.has(module)))
 const specialDispatcherUnknown = sorted(rawDispatcherModules.filter((module) => !specialSet.has(module)))
 const runtimeSupportedReasons = sortedObject({
@@ -621,6 +625,14 @@ function buildSdkDifferences() {
       scope: 'raw_dispatcher',
     })
   }
+  for (const module of specialDispatcherDuplicateCases) {
+    differences.push({
+      module,
+      status: 'duplicate_special_dispatcher',
+      reason: 'requestModule dispatcher defines this special module case more than once.',
+      scope: 'raw_dispatcher',
+    })
+  }
   for (const module of specialDispatcherUnknown) {
     differences.push({
       module,
@@ -740,6 +752,7 @@ const report = {
   specialNodeOracleMissingFixture,
   specialNonLimitedMissingOracle,
   specialLimitedMissingReason,
+  specialDispatcherDuplicateCases,
   specialDispatcherMissing,
   specialDispatcherUnknown,
   specialNodeOracle: sorted(nodeOracleSpecial),
@@ -774,6 +787,7 @@ const hasFailure =
   report.specialNodeOracleMissingFixture.length > 0 ||
   report.specialNonLimitedMissingOracle.length > 0 ||
   report.specialLimitedMissingReason.length > 0 ||
+  report.specialDispatcherDuplicateCases.length > 0 ||
   report.specialDispatcherMissing.length > 0 ||
   report.specialDispatcherUnknown.length > 0
 
@@ -807,6 +821,7 @@ if (jsonOutput) {
   console.log(`special node-oracle modules missing fixture: ${report.specialNodeOracleMissingFixture.length}`)
   console.log(`special non-limited modules missing oracle: ${report.specialNonLimitedMissingOracle.length}`)
   console.log(`special limited modules missing reason: ${report.specialLimitedMissingReason.length}`)
+  console.log(`special dispatcher duplicate cases: ${report.specialDispatcherDuplicateCases.length}`)
   console.log(`special dispatcher missing cases: ${report.specialDispatcherMissing.length}`)
   console.log(`special dispatcher unknown cases: ${report.specialDispatcherUnknown.length}`)
   console.log(`special status unknown modules: ${report.specialUnknownStatus.length}`)

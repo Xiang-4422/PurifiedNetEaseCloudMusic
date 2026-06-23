@@ -146,6 +146,7 @@ void main() {
       expect(report['specialNonLimitedMissingOracle'], isEmpty);
       expect(report['specialLimitedMissingReason'], isEmpty);
       expect(report['specialUnknownStatus'], isEmpty);
+      expect(report['specialDispatcherDuplicateCases'], isEmpty);
       expect(report['specialDispatcherMissing'], isEmpty);
       expect(report['specialDispatcherUnknown'], isEmpty);
       expect(_stringSet(report['specialLimited']), {
@@ -338,6 +339,53 @@ void main() {
           (item) => item['module'] == 'album' && item['status'] == 'missing_special_dispatcher',
         )['scope'],
         'raw_dispatcher',
+      );
+    });
+
+    test('coverage report rejects duplicate and unknown dispatcher cases', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_dispatcher_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final rawDispatcher = File(
+        '${repoRoot.path}/packages/netease_music_api/lib/src/endpoints/raw/api_enhanced_raw.dart',
+      ).readAsStringSync();
+      final dispatcherWithInvalidCases = rawDispatcher.replaceFirst(
+        "      case 'api':\n        return enhancedApi(query);",
+        "      case 'api':\n        return enhancedApi(query);\n      case 'api':\n        return enhancedApi(query);\n      case 'album':\n        return enhancedApi(query);",
+      );
+      expect(dispatcherWithInvalidCases, isNot(rawDispatcher));
+      final dispatcherFile = File('${tempDir.path}/api_enhanced_raw.dart')..writeAsStringSync(dispatcherWithInvalidCases);
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--raw-dispatcher=${dispatcherFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(report['specialDispatcherDuplicateCases'], contains('api'));
+      expect(report['specialDispatcherUnknown'], contains('album'));
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      expect(
+        sdkDifferences.where((item) => item['module'] == 'api').map((item) => item['status']),
+        contains('duplicate_special_dispatcher'),
+      );
+      expect(
+        sdkDifferences.where((item) => item['module'] == 'album').map((item) => item['status']),
+        contains('unknown_special_dispatcher'),
+      );
+      expect(
+        sdkDifferences.where((item) => item['status'].toString().endsWith('_special_dispatcher')).map((item) => item['scope']).toSet(),
+        {'raw_dispatcher'},
       );
     });
 

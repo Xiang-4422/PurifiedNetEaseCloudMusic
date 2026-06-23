@@ -31,6 +31,9 @@ class BottomPanelQueueView extends GetView<ShellController> {
   @override
   Widget build(BuildContext context) {
     const albumPadding = AppDimensions.paddingLarge;
+    final itemExtent = bottomPanelQueueItemExtent(
+      AdaptiveLayoutMetrics.of(context),
+    );
     return KeepAliveWrapper(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: albumPadding),
@@ -40,6 +43,7 @@ class BottomPanelQueueView extends GetView<ShellController> {
             () => ListView.builder(
               controller: controller.playListScrollController,
               cacheExtent: _bottomPanelQueueCacheExtent,
+              itemExtent: itemExtent,
               physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.symmetric(vertical: albumPadding),
               itemCount: playerController.queueState.length,
@@ -47,6 +51,7 @@ class BottomPanelQueueView extends GetView<ShellController> {
                 return _BottomPanelQueueItem(
                   item: playerController.queueState[index],
                   index: index,
+                  itemExtent: itemExtent,
                   playerController: playerController,
                   settingsController: settingsController,
                 );
@@ -63,19 +68,20 @@ class _BottomPanelQueueItem extends StatelessWidget {
   const _BottomPanelQueueItem({
     required this.item,
     required this.index,
+    required this.itemExtent,
     required this.playerController,
     required this.settingsController,
   });
 
   final PlaybackQueueItem item;
   final int index;
+  final double itemExtent;
   final PlayerController playerController;
   final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final metrics = AdaptiveLayoutMetrics.of(context);
       final isCurrent = playerController.currentQueueIndex.value == index;
       final panelColor = settingsController.panelWidgetColor.value;
       final artistText = playbackQueueArtistDisplayText(item);
@@ -87,7 +93,7 @@ class _BottomPanelQueueItem extends StatelessWidget {
         child: GestureDetector(
           onTap: () => playerController.playQueueIndex(index),
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
+            constraints: BoxConstraints(minHeight: itemExtent),
             child: Container(
               color: Colors.transparent,
               alignment: AlignmentDirectional.centerStart,
@@ -134,6 +140,12 @@ String playbackQueueArtistDisplayText(PlaybackQueueItem item) {
     return _unknownQueueArtistText;
   }
   return artist;
+}
+
+/// 生成底部播放队列条目的固定高度。
+@visibleForTesting
+double bottomPanelQueueItemExtent(AdaptiveLayoutMetrics metrics) {
+  return metrics.listTileMinHeight;
 }
 
 /// 生成播放队列条目的标题颜色。

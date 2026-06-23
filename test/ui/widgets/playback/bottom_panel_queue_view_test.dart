@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_queue_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +20,8 @@ void main() {
       expect(source, isNot(contains('SettingsController.to')));
       expect(source, contains('const double _bottomPanelQueueCacheExtent = 480;'));
       expect(source, contains('cacheExtent: _bottomPanelQueueCacheExtent'));
+      expect(source, contains('itemExtent: itemExtent'));
+      expect(source, contains('bottomPanelQueueItemExtent('));
       expect(source, contains('ListView.builder('));
     });
 
@@ -51,6 +54,17 @@ void main() {
         playbackQueueTitleColor(isCurrent: true, panelColor: panelColor),
         Colors.red,
       );
+    });
+
+    test('builds queue item extent from adaptive list tile height', () {
+      const normal = AdaptiveLayoutMetrics(size: Size(390, 844));
+      const largeText = AdaptiveLayoutMetrics(
+        size: Size(390, 844),
+        textScale: 1.8,
+      );
+
+      expect(bottomPanelQueueItemExtent(normal), 52);
+      expect(bottomPanelQueueItemExtent(largeText), 76);
     });
   });
 }

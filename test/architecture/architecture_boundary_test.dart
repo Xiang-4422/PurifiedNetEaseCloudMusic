@@ -969,6 +969,8 @@ void main() {
         if (!queue.contains('required this.settingsController')) '${_relativePath(queueFile)} does not receive settings controller',
         if (!panel.contains('playerController: playerController')) '${_relativePath(panelFile)} does not inject player controller',
         if (!panel.contains('settingsController: settingsController')) '${_relativePath(panelFile)} does not inject settings controller',
+        if (!queue.contains('itemExtent: itemExtent')) '${_relativePath(queueFile)} does not fix queue list item extent',
+        if (!queue.contains('bottomPanelQueueItemExtent(')) '${_relativePath(queueFile)} does not centralize queue item extent calculation',
       ];
 
       expect(

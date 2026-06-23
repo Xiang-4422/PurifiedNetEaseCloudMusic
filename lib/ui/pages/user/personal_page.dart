@@ -12,9 +12,31 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// 个人首页，展示快速播放、推荐歌单和用户歌单入口。
-class PersonalPageView extends GetView<ShellController> {
+class PersonalPageView extends StatelessWidget {
   /// 创建个人首页。
-  const PersonalPageView({Key? key}) : super(key: key);
+  const PersonalPageView({
+    required this.playerController,
+    required this.recentPlaybackController,
+    required this.recommendationController,
+    required this.userLibraryController,
+    required this.shellController,
+    Key? key,
+  }) : super(key: key);
+
+  /// 播放控制器。
+  final PlayerController playerController;
+
+  /// 最近播放控制器。
+  final RecentPlaybackController recentPlaybackController;
+
+  /// 首页推荐控制器。
+  final RecommendationController recommendationController;
+
+  /// 用户资料库控制器。
+  final UserLibraryController userLibraryController;
+
+  /// Shell 控制器。
+  final ShellController shellController;
 
   /// 横向区域中一屏展示的歌单卡片数量。
   final double albumCountInScreen = 3.2;
@@ -24,10 +46,6 @@ class PersonalPageView extends GetView<ShellController> {
 
   @override
   Widget build(BuildContext context) {
-    final recommendationController = RecommendationController.to;
-    final libraryController = UserLibraryController.to;
-    final playbackAction = Get.find<PlayerController>();
-    final recentPlaybackController = RecentPlaybackController.to;
     return Obx(() {
       if (recommendationController.dateLoaded.isFalse) {
         return const LoadingView();
@@ -39,20 +57,20 @@ class PersonalPageView extends GetView<ShellController> {
         return SquarePersonalHomePage(
           metrics: layoutMetrics,
           recommendationController: recommendationController,
-          libraryController: libraryController,
-          playbackAction: playbackAction,
+          libraryController: userLibraryController,
+          playbackAction: playerController,
           recentPlaybackController: recentPlaybackController,
-          shellController: controller,
+          shellController: shellController,
         );
       }
       return StandardPersonalHomePage(
         albumCountInScreen: albumCountInScreen,
         userItemCountInScreen: userItemCountInScreen,
         recommendationController: recommendationController,
-        libraryController: libraryController,
-        playbackAction: playbackAction,
+        libraryController: userLibraryController,
+        playbackAction: playerController,
         recentPlaybackController: recentPlaybackController,
-        shellController: controller,
+        shellController: shellController,
       );
     });
   }

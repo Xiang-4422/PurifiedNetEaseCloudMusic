@@ -1669,7 +1669,8 @@ void main() {
         if (!home.contains('HomeShellScope(')) '${_relativePath(homeFile)} does not provide home shell scope',
         if (!home.contains('homeShellController: homeShellController')) '${_relativePath(homeFile)} does not inject home shell into scope',
         if (!body.contains('MenuView(homeShellController: homeShellController)')) '${_relativePath(bodyFile)} does not inject home shell into menu',
-        if (!body.contains('DrawerMainScreenView(homeShellController: homeShellController)')) '${_relativePath(bodyFile)} does not inject home shell into main screen',
+        if (!body.contains('DrawerMainScreenView(')) '${_relativePath(bodyFile)} does not compose drawer main screen',
+        if (!body.contains('homeShellController: homeShellController')) '${_relativePath(bodyFile)} does not inject home shell into main screen',
         if (!drawerSection.contains('required this.homeShellController')) '${_relativePath(bodyFile)} drawer main screen does not receive home shell controller',
         if (!menuSection.contains('required this.homeShellController')) '${_relativePath(bodyFile)} menu view does not receive home shell controller',
       ];
@@ -1678,6 +1679,43 @@ void main() {
         violations,
         isEmpty,
         reason: '首页壳层负责读取 HomeShellController 并通过局部 scope 传给路由子树，主体页、抽屉主屏幕和菜单不能各自读取全局容器。',
+      );
+    });
+
+    test('personal page receives home controllers from shell body', () {
+      final bodyFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/app_body_page_view.dart',
+      );
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/personal_page.dart',
+      );
+      final body = bodyFile.readAsStringSync();
+      final page = pageFile.readAsStringSync();
+      final violations = <String>[
+        if (page.contains('RecommendationController.to')) '${_relativePath(pageFile)} reads recommendation controller globally',
+        if (page.contains('UserLibraryController.to')) '${_relativePath(pageFile)} reads user library controller globally',
+        if (page.contains('RecentPlaybackController.to')) '${_relativePath(pageFile)} reads recent playback controller globally',
+        if (page.contains('Get.find<PlayerController>')) '${_relativePath(pageFile)} reads player controller globally',
+        if (!page.contains('required this.recommendationController')) '${_relativePath(pageFile)} does not receive recommendation controller',
+        if (!page.contains('required this.userLibraryController')) '${_relativePath(pageFile)} does not receive user library controller',
+        if (!page.contains('required this.recentPlaybackController')) '${_relativePath(pageFile)} does not receive recent playback controller',
+        if (!page.contains('required this.playerController')) '${_relativePath(pageFile)} does not receive player controller',
+        if (!page.contains('required this.shellController')) '${_relativePath(pageFile)} does not receive shell controller',
+        if (!body.contains('final recommendationController = Get.find<RecommendationController>()')) '${_relativePath(bodyFile)} does not resolve recommendation controller at shell body boundary',
+        if (!body.contains('final userLibraryController = Get.find<UserLibraryController>()')) '${_relativePath(bodyFile)} does not resolve user library controller at shell body boundary',
+        if (!body.contains('final recentPlaybackController = Get.find<RecentPlaybackController>()')) '${_relativePath(bodyFile)} does not resolve recent playback controller at shell body boundary',
+        if (!body.contains('final playerController = Get.find<PlayerController>()')) '${_relativePath(bodyFile)} does not resolve player controller at shell body boundary',
+        if (!body.contains('PersonalPageView(')) '${_relativePath(bodyFile)} does not compose personal page',
+        if (!body.contains('recommendationController: recommendationController')) '${_relativePath(bodyFile)} does not inject recommendation controller',
+        if (!body.contains('userLibraryController: userLibraryController')) '${_relativePath(bodyFile)} does not inject user library controller',
+        if (!body.contains('recentPlaybackController: recentPlaybackController')) '${_relativePath(bodyFile)} does not inject recent playback controller',
+        if (!body.contains('playerController: playerController')) '${_relativePath(bodyFile)} does not inject player controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '个人首页主文件只负责布局模式分发，推荐、资料库、播放和最近播放控制器必须由首页主体组合层注入。',
       );
     });
 

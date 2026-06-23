@@ -128,7 +128,12 @@ void main() {
     expect(pageSource, isNot(contains('PlayListItem(')));
     expect(appBodySource, contains('recommended_playlists_page.dart'));
     expect(appBodySource, contains('final homeShellController = HomeShellScope.of(context)'));
-    expect(appBodySource, contains('DrawerMainScreenView(homeShellController: homeShellController)'));
+    expect(appBodySource, contains('DrawerMainScreenView('));
+    expect(appBodySource, contains('homeShellController: homeShellController'));
+    expect(appBodySource, contains('recommendationController: recommendationController'));
+    expect(appBodySource, contains('userLibraryController: userLibraryController'));
+    expect(appBodySource, contains('playerController: playerController'));
+    expect(appBodySource, contains('recentPlaybackController: recentPlaybackController'));
     expect(appBodySource, contains('MenuView(homeShellController: homeShellController)'));
   });
 
@@ -159,7 +164,6 @@ void main() {
     final squareLibrarySource = File(
       'lib/ui/pages/user/widgets/square_library_page.dart',
     ).readAsStringSync();
-    final recentControllerIndex = source.indexOf('final recentPlaybackController = RecentPlaybackController.to;');
     final recentStripIndex = standardSource.indexOf('RecentPlaybackStrip(');
     final squareRecentStripIndex = squareLibrarySource.indexOf('RecentPlaybackStrip(');
     final recentHeaderIndex = recentPlaybackSource.indexOf("'最近播放'");
@@ -167,7 +171,15 @@ void main() {
     final squarePlaylistHeaderIndex = squareLibrarySource.indexOf('FrequentPlaylistSection(');
     final libraryHeaderIndex = standardSource.indexOf('LibraryShortcutSection(');
 
-    expect(recentControllerIndex, isNonNegative);
+    expect(source, contains('required this.recentPlaybackController'));
+    expect(source, contains('required this.recommendationController'));
+    expect(source, contains('required this.userLibraryController'));
+    expect(source, contains('required this.playerController'));
+    expect(source, contains('required this.shellController'));
+    expect(source, isNot(contains('RecommendationController.to')));
+    expect(source, isNot(contains('UserLibraryController.to')));
+    expect(source, isNot(contains('RecentPlaybackController.to')));
+    expect(source, isNot(contains('Get.find<PlayerController>')));
     expect(recentStripIndex, isNonNegative);
     expect(squareRecentStripIndex, isNonNegative);
     expect(recentHeaderIndex, isNonNegative);

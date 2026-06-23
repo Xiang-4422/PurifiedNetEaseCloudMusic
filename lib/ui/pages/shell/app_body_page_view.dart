@@ -1,9 +1,13 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/recent_playback_controller.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/pages/explore/explore_page.dart';
 import 'package:bujuan/ui/pages/settings/setting_page.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/pages/shell/coffee_page.dart';
 import 'package:bujuan/ui/pages/shell/home_shell_scope.dart';
 import 'package:bujuan/ui/pages/user/personal_page.dart';
@@ -24,6 +28,10 @@ class AppBodyPageView extends GetView<ShellController> {
   @override
   Widget build(BuildContext context) {
     final homeShellController = HomeShellScope.of(context);
+    final playerController = Get.find<PlayerController>();
+    final recentPlaybackController = Get.find<RecentPlaybackController>();
+    final recommendationController = Get.find<RecommendationController>();
+    final userLibraryController = Get.find<UserLibraryController>();
     final isSquareLike = PersonalHomeLayoutMetrics(
       MediaQuery.sizeOf(context),
     ).isSquareLike;
@@ -61,7 +69,13 @@ class AppBodyPageView extends GetView<ShellController> {
             dragOffset: context.width,
 
             menuScreen: MenuView(homeShellController: homeShellController),
-            mainScreen: DrawerMainScreenView(homeShellController: homeShellController),
+            mainScreen: DrawerMainScreenView(
+              homeShellController: homeShellController,
+              playerController: playerController,
+              recentPlaybackController: recentPlaybackController,
+              recommendationController: recommendationController,
+              userLibraryController: userLibraryController,
+            ),
           ),
         ),
       ],
@@ -74,16 +88,40 @@ class DrawerMainScreenView extends GetView<ShellController> {
   /// 创建侧边抽屉主屏幕。
   const DrawerMainScreenView({
     required this.homeShellController,
+    required this.playerController,
+    required this.recentPlaybackController,
+    required this.recommendationController,
+    required this.userLibraryController,
     Key? key,
   }) : super(key: key);
 
   /// 首页壳层控制器，提供页面定义和抽屉状态。
   final HomeShellController homeShellController;
 
+  /// 播放控制器。
+  final PlayerController playerController;
+
+  /// 最近播放控制器。
+  final RecentPlaybackController recentPlaybackController;
+
+  /// 首页推荐控制器。
+  final RecommendationController recommendationController;
+
+  /// 用户资料库控制器。
+  final UserLibraryController userLibraryController;
+
   Widget _buildPage(int index) {
     switch (homeShellController.pageKindAt(index)) {
       case HomeShellPageKind.personal:
-        return _absorbed(const PersonalPageView());
+        return _absorbed(
+          PersonalPageView(
+            playerController: playerController,
+            recentPlaybackController: recentPlaybackController,
+            recommendationController: recommendationController,
+            userLibraryController: userLibraryController,
+            shellController: controller,
+          ),
+        );
       case HomeShellPageKind.recommendedPlaylists:
         return _absorbed(const RecommendedPlaylistsPageView());
       case HomeShellPageKind.explore:

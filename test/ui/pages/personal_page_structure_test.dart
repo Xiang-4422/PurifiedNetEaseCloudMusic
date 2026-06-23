@@ -254,10 +254,23 @@ void main() {
 
   test('download task page can open a focused local library tab', () {
     final source = File('lib/ui/pages/download/download_task_page_view.dart').readAsStringSync();
+    final listWidgetSource = File(
+      'lib/ui/pages/download/widgets/local_song_list_widgets.dart',
+    ).readAsStringSync();
 
     expect(source, contains('static const int tabDownloaded = 2;'));
     expect(source, contains('static const int tabLocalImport = 3;'));
     expect(source, contains('final int initialTabIndex;'));
     expect(source, contains('initialIndex: widget.initialTabIndex'));
+    expect(source, contains('local_song_list_widgets.dart'));
+    expect(source, contains('LocalSongTabView('));
+    expect(source, isNot(contains('LoadStateView<List<LocalSongEntry>>')));
+    expect(source, isNot(contains('ListTile(')));
+    expect(source, isNot(contains('TablerIcons.trash')));
+    expect(listWidgetSource, contains('class LocalSongTabView'));
+    expect(listWidgetSource, contains('LoadStateView<List<LocalSongEntry>>'));
+    expect(listWidgetSource, contains('ListTile('));
+    expect(listWidgetSource, contains('TablerIcons.trash'));
+    expect(listWidgetSource, contains('TrackResourceOrigin.playbackCache'));
   });
 }

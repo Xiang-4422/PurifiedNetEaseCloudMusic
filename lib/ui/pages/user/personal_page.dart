@@ -141,9 +141,6 @@ class PersonalPageView extends GetView<ShellController> {
               ),
             ),
           ),
-          // 我的喜欢
-          SliverToBoxAdapter(child: PlayListItem(libraryController.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall)),
-
           SliverToBoxAdapter(
             child: const Header('资料库', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
           ),
@@ -304,9 +301,6 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
           ),
           const SliverToBoxAdapter(
             child: SizedBox(height: AppDimensions.paddingSmall),
-          ),
-          SliverToBoxAdapter(
-            child: PlayListItem(widget.libraryController.userLikedSongPlayList.value).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
           ),
           SliverToBoxAdapter(
             child: Header(

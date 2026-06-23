@@ -49,6 +49,8 @@ void main() {
     expect(shortcutSource, contains('DownloadTaskPageView.tabLocalImport'));
     expect(shortcutSource, contains('DownloadTaskPageView.tabDownloaded'));
     expect(shortcutSource, contains('context.router.push(const gr.CloudDriveView())'));
+    expect(source, isNot(contains('PlayListItem(libraryController.userLikedSongPlayList.value)')));
+    expect(source, isNot(contains('PlayListItem(widget.libraryController.userLikedSongPlayList.value)')));
   });
 
   test('user playlist library page lists account playlists without data source access', () {

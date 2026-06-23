@@ -709,6 +709,27 @@ void main() {
       );
     });
 
+    test('media item adapter normalizes queue item ids', () {
+      final adapterFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_queue_item_adapter.dart',
+      );
+      final content = adapterFile.readAsStringSync();
+      final violations = <String>[
+        if (!content.contains('String _normalizedQueueItemId(String id)')) 'media item adapter does not define id normalization',
+        if (!content.contains('id: _normalizedQueueItemId(item.id)')) 'media item adapter can still write raw queue ids to MediaItem',
+        if (!content.contains('final itemId = _normalizedQueueItemId(item.id);')) 'media item adapter does not normalize MediaItem ids before mapping back',
+        if (!content.contains('sourceId: _stringOrNull(extras[\'sourceId\']) ?? itemId')) 'media item adapter does not fall back to normalized id for missing source id',
+        if (!content.contains('.where((item) => _normalizedQueueItemId(item.id).isNotEmpty)')) 'media item adapter can still export blank item ids in batch',
+        if (!content.contains('.where((item) => item.id.isNotEmpty)')) 'media item adapter can still import blank item ids in batch',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'MediaItem adapter 是 audio_service 和应用播放队列之间的边界，进出都必须规范化队列项 id，并过滤空白批量项。',
+      );
+    });
+
     test('media item adapter does not persist remote playback urls', () {
       final adapterFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_queue_item_adapter.dart',

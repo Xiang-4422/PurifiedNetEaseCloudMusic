@@ -15,7 +15,7 @@ class PlaybackQueueItemAdapter {
   /// 将领域播放队列项转换为通知栏和底层播放器使用的 [MediaItem]。
   static MediaItem toMediaItem(PlaybackQueueItem item) {
     return MediaItem(
-      id: item.id,
+      id: _normalizedQueueItemId(item.id),
       title: item.title,
       album: item.albumTitle,
       artist: item.artist,
@@ -27,11 +27,12 @@ class PlaybackQueueItemAdapter {
 
   /// 批量将领域播放队列项转换为 [MediaItem]。
   static List<MediaItem> toMediaItems(List<PlaybackQueueItem> items) {
-    return items.map(toMediaItem).toList();
+    return items.where((item) => _normalizedQueueItemId(item.id).isNotEmpty).map(toMediaItem).toList();
   }
 
   /// 将 [MediaItem] 转回应用层播放队列项。
   static PlaybackQueueItem fromMediaItem(MediaItem item) {
+    final itemId = _normalizedQueueItemId(item.id);
     final extras = item.extras ?? const <String, dynamic>{};
     final image = _stringOrNull(extras['image']);
     final imageLocalPath = _restorableLocalPath(image);
@@ -44,8 +45,8 @@ class PlaybackQueueItemAdapter {
     );
     final playbackUrl = _restorablePlaybackUrl(extras['url']);
     return PlaybackQueueItem(
-      id: item.id,
-      sourceId: _stringOrNull(extras['sourceId']) ?? item.id,
+      id: itemId,
+      sourceId: _stringOrNull(extras['sourceId']) ?? itemId,
       sourceType: sourceType,
       title: item.title,
       albumTitle: item.album ?? _stringOrNull(extras['albumTitle']),
@@ -73,7 +74,11 @@ class PlaybackQueueItemAdapter {
 
   /// 批量将 [MediaItem] 转回应用层播放队列项。
   static List<PlaybackQueueItem> fromMediaItems(List<MediaItem> items) {
-    return items.map(fromMediaItem).toList();
+    return items.map(fromMediaItem).where((item) => item.id.isNotEmpty).toList();
+  }
+
+  static String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 
   static Uri? _toArtUri(String? localArtworkPath) {

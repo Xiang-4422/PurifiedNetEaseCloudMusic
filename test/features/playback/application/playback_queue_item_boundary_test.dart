@@ -12,6 +12,38 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PlaybackQueueItem boundary', () {
+    test('adapter normalizes queue item ids across MediaItem boundary', () {
+      final mediaItem = PlaybackQueueItemAdapter.toMediaItem(
+        _queueItem(id: '  netease:1  '),
+      );
+      final item = PlaybackQueueItemAdapter.fromMediaItem(
+        const MediaItem(
+          id: '  netease:2  ',
+          title: 'Track',
+        ),
+      );
+
+      expect(mediaItem.id, 'netease:1');
+      expect(item.id, 'netease:2');
+      expect(item.sourceId, 'netease:2');
+    });
+
+    test('adapter skips blank queue item ids in batch conversions', () {
+      final mediaItems = PlaybackQueueItemAdapter.toMediaItems([
+        _queueItem(id: '   '),
+        _queueItem(id: '  netease:1  '),
+      ]);
+      final items = PlaybackQueueItemAdapter.fromMediaItems(
+        const [
+          MediaItem(id: '   ', title: 'Blank'),
+          MediaItem(id: '  netease:2  ', title: 'Track'),
+        ],
+      );
+
+      expect(mediaItems.map((item) => item.id), ['netease:1']);
+      expect(items.map((item) => item.id), ['netease:2']);
+    });
+
     test('adapter strips MediaItem-only keys when mapping back to queue item metadata', () {
       const mediaItem = MediaItem(
         id: 'netease:1',

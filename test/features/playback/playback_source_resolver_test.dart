@@ -346,6 +346,11 @@ class _FakePlaybackRepository implements PlaybackRepository {
   }
 
   @override
+  Future<String> getArtworkSource(String trackId) async {
+    return '';
+  }
+
+  @override
   Future<List<TrackWithResources>> loadRecentPlayedTracks({int limit = 20}) async {
     return const [];
   }

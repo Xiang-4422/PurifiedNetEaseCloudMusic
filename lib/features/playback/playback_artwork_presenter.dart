@@ -5,7 +5,6 @@ import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
-import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:flutter/material.dart';
@@ -144,19 +143,13 @@ class PlaybackArtworkPresenter {
       return null;
     }
 
-    final trackWithResources = await _repository.getTrackWithResources(currentItem.id);
-    if (trackWithResources == null) {
+    final artworkSource = await _repository.getArtworkSource(currentItem.id);
+    if (artworkSource.isEmpty) {
       return null;
     }
-
-    final imageUrl = _resolveArtworkSource(trackWithResources);
-    if (imageUrl.isEmpty) {
-      return null;
-    }
-
-    final localArtworkPath = trackWithResources.resources.artwork?.path ?? '';
+    final localArtworkPath = _normalizeLocalArtworkPath(artworkSource);
     return currentItem.copyWith(
-      artworkUrl: imageUrl,
+      artworkUrl: localArtworkPath.isEmpty ? artworkSource : null,
       localArtworkPath: localArtworkPath.isEmpty ? null : localArtworkPath,
     );
   }
@@ -327,13 +320,5 @@ class PlaybackArtworkPresenter {
       _albumColorCache.remove(_albumColorCache.keys.first);
     }
     _albumColorCache[imagePath] = color;
-  }
-
-  String _resolveArtworkSource(TrackWithResources trackWithResources) {
-    final localArtworkPath = trackWithResources.resources.artwork?.path ?? '';
-    if (localArtworkPath.isNotEmpty) {
-      return localArtworkPath;
-    }
-    return trackWithResources.track.artworkUrl ?? '';
   }
 }

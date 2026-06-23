@@ -201,6 +201,48 @@ void main() {
       expect(color, isNull);
       expect(cachedColorPaths, isEmpty);
     });
+
+    test('resolves missing artwork through repository remote source', () async {
+      final presenter = PlaybackArtworkPresenter(
+        repository: _FakePlaybackRepository(
+          artworkSources: const {
+            'remote': 'https://img.test/remote.jpg',
+          },
+        ),
+        imageCacheRepository: _FakeLocalImageCacheRepository(const {}),
+      );
+
+      final item = await presenter.resolveMissingArtwork(
+        _itemWithArtworkPaths('remote'),
+      );
+
+      expect(item?.artworkUrl, 'https://img.test/remote.jpg');
+      expect(item?.localArtworkPath, isNull);
+    });
+
+    test('resolves missing artwork through repository local source', () async {
+      final localArtworkUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/art with space.jpg',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final presenter = PlaybackArtworkPresenter(
+        repository: _FakePlaybackRepository(
+          artworkSources: {
+            'local': localArtworkUri,
+          },
+        ),
+        imageCacheRepository: _FakeLocalImageCacheRepository(const {}),
+      );
+
+      final item = await presenter.resolveMissingArtwork(
+        _itemWithArtworkPaths('local'),
+      );
+
+      expect(item?.artworkUrl, isNull);
+      expect(item?.localArtworkPath, '/cache/art with space.jpg');
+    });
   });
 }
 
@@ -218,6 +260,17 @@ class _FakeLocalImageCacheRepository extends LocalImageCacheRepository {
 }
 
 class _FakePlaybackRepository implements PlaybackRepository {
+  _FakePlaybackRepository({
+    this.artworkSources = const {},
+  });
+
+  final Map<String, String> artworkSources;
+
+  @override
+  Future<String> getArtworkSource(String trackId) async {
+    return artworkSources[trackId] ?? '';
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);

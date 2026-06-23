@@ -232,6 +232,73 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 1);
     });
 
+    test('prefers existing indexed artwork source over remote artwork url', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-local-artwork-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final localArtwork = await _writeFile(directory, 'cover.jpg');
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.artwork,
+            path: localArtwork.path,
+            origin: TrackResourceOrigin.artworkCache,
+          ),
+        ],
+      );
+      final repository = _buildRepository(
+        localDataSource: _FakeLocalLibraryDataSource(
+          tracks: {
+            '1': _track('1', artworkUrl: 'https://img.test/cover.jpg'),
+          },
+        ),
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final artwork = await repository.getArtworkSource('1');
+
+      expect(artwork, localArtwork.path);
+      expect(resourceIndexRepository.touchedResources, ['1|artwork']);
+    });
+
+    test('removes missing indexed artwork before falling back to remote artwork url', () async {
+      final directory = await Directory.systemTemp.createTemp('music-data-missing-artwork-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final missingArtwork = File('${directory.path}/missing.jpg');
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.artwork,
+            path: missingArtwork.path,
+            origin: TrackResourceOrigin.artworkCache,
+          ),
+        ],
+      );
+      final repository = _buildRepository(
+        localDataSource: _FakeLocalLibraryDataSource(
+          tracks: {
+            '1': _track('1', artworkUrl: 'https://img.test/cover.jpg'),
+          },
+        ),
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final artwork = await repository.getArtworkSource('1');
+
+      expect(artwork, 'https://img.test/cover.jpg');
+      expect(resourceIndexRepository.remainingResourceKinds('1'), isEmpty);
+      expect(resourceIndexRepository.touchedResources, isEmpty);
+    });
+
     test('prefers newly available local audio over in-flight remote playback url load', () async {
       final directory = await Directory.systemTemp.createTemp('music-data-local-priority-');
       addTearDown(() async {
@@ -609,12 +676,16 @@ MusicDataRepository _buildRepository({
   );
 }
 
-Track _track(String id) {
+Track _track(
+  String id, {
+  String? artworkUrl,
+}) {
   return Track(
     id: id,
     sourceType: SourceType.netease,
     sourceId: id,
     title: 'Track $id',
+    artworkUrl: artworkUrl,
   );
 }
 

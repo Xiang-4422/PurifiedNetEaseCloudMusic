@@ -51,6 +51,11 @@ class PlaybackRepository {
     return _musicDataRepository.getTrackWithResources(trackId);
   }
 
+  /// 读取播放展示可用的封面来源。
+  Future<String> getArtworkSource(String trackId) {
+    return _musicDataRepository.getArtworkSource(trackId);
+  }
+
   /// 读取最近播放的本地曲目及资源索引。
   Future<List<TrackWithResources>> loadRecentPlayedTracks({int limit = 20}) async {
     try {

@@ -594,7 +594,7 @@ const runtimeLimitedReasons = sortedObject({
   'runtime:proxy.pac':
     'proxy 支持 HTTP/HTTPS 代理 URL 和基础认证；明确的 PAC 文件或 PAC scheme 暂不支持，Dart client 会显式抛 UnsupportedError。',
   'runtime:source_order':
-    'source order 只属于 song_url_v1 的 unblock 解灰路径；Dart SDK 当前未实现 unblockmusic-utils，普通 xeapi 播放 URL 请求会忽略 source。',
+    'source order 只属于 song_url_v1 的 unblock 解灰路径；Dart SDK 当前未实现 unblockmusic-utils，普通 xeapi 播放 URL 请求会忽略 source，并在 request options.extra.unsupportedRuntimeOptions 标记 runtime:source_order。',
 })
 const limitedSpecial = new Set(Object.keys(specialLimitedReasons))
 const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial, ...limitedSpecial])

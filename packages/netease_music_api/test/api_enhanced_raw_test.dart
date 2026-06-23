@@ -230,6 +230,8 @@ void main() {
       expect(limitedReasons.keys.toSet(), _stringSet(report['specialLimited']));
       expect(limitedReasons['song_url_match'], contains('unblockmusic-utils'));
       expect(limitedReasons['scrobble_v1'], contains('NCBL'));
+      expect(limitedReasons['song_url_v1'], contains('unsupportedFeature'));
+      expect(limitedReasons['song_url_v1'], contains('unsupportedRuntimeOptions'));
       final runtimeSupportedReasons = _jsonMap(report['runtimeSupportedReasons']);
       expect(_stringSet(report['runtimeSupported']), {
         'runtime:FLAC',
@@ -257,6 +259,7 @@ void main() {
       expect(runtimeLimitedReasons['runtime:proxy.pac'], contains('PAC scheme'));
       expect(runtimeLimitedReasons['runtime:source_order'], contains('unblockmusic-utils'));
       expect(runtimeLimitedReasons['runtime:source_order'], contains('忽略 source'));
+      expect(runtimeLimitedReasons['runtime:source_order'], contains('unsupportedRuntimeOptions'));
       final runtimeOptionStatusByName = _jsonMap(report['runtimeOptionStatusByName']);
       expect(
         runtimeOptionStatusByName.keys.toSet(),

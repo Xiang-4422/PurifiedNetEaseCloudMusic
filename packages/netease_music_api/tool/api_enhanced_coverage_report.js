@@ -1158,6 +1158,19 @@ function renderMarkdownReport(report) {
     `- supported: ${report.runtimeSupported.join(', ') || 'none'}`,
     `- limited: ${report.runtimeLimited.join(', ') || 'none'}`,
     '',
+    '| option | status | reason |',
+    '| --- | --- | --- |',
+  )
+
+  for (const option of Object.keys(report.runtimeOptionStatusByName).sort()) {
+    const status = report.runtimeOptionStatusByName[option]
+    lines.push(
+      `| ${escapeMarkdownTableCell(option)} | ${escapeMarkdownTableCell(status.status)} | ${escapeMarkdownTableCell(status.reason)} |`,
+    )
+  }
+
+  lines.push(
+    '',
     '## SDK Differences',
     '',
   )

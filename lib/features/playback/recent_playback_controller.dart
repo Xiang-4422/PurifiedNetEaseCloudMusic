@@ -34,15 +34,27 @@ class RecentPlaybackController extends GetxController {
   StreamSubscription<void>? _recentPlaybackUpdates;
   int _requestGeneration = 0;
   int _lastLimit = _defaultLimit;
+  bool _pendingHistoryRefresh = false;
   bool _disposed = false;
 
   @override
   void onInit() {
     super.onInit();
     _recentPlaybackUpdates = _repository.recentPlaybackUpdates.listen((_) {
-      unawaited(loadRecent(limit: _lastLimit));
+      _reloadAfterHistoryUpdate();
     });
     unawaited(loadRecent());
+  }
+
+  void _reloadAfterHistoryUpdate() {
+    if (_disposed) {
+      return;
+    }
+    if (isLoading.value) {
+      _pendingHistoryRefresh = true;
+      return;
+    }
+    unawaited(loadRecent(limit: _lastLimit));
   }
 
   /// 从本地播放历史读取最近播放曲目。
@@ -71,7 +83,12 @@ class RecentPlaybackController extends GetxController {
       errorMessage.value = error.toString();
     } finally {
       if (!_disposed && generation == _requestGeneration) {
+        final shouldReload = _pendingHistoryRefresh;
+        _pendingHistoryRefresh = false;
         isLoading.value = false;
+        if (shouldReload) {
+          unawaited(loadRecent(limit: _lastLimit));
+        }
       }
     }
   }
@@ -80,6 +97,7 @@ class RecentPlaybackController extends GetxController {
   void onClose() {
     _disposed = true;
     _requestGeneration++;
+    _pendingHistoryRefresh = false;
     unawaited(_recentPlaybackUpdates?.cancel());
     super.onClose();
   }

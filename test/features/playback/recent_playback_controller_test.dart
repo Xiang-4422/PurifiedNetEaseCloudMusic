@@ -107,6 +107,48 @@ void main() {
 
       expect(controller.recentTracks.map((item) => item.id), ['netease:new']);
     });
+
+    test('coalesces history update notifications while recent history is loading', () async {
+      final updates = StreamController<void>();
+      final initialLoad = Completer<List<TrackWithResources>>();
+      final queuedRefresh = Completer<List<TrackWithResources>>();
+      final repository = _FakePlaybackRepository(
+        results: [initialLoad.future, queuedRefresh.future],
+        recentPlaybackUpdates: updates.stream,
+      );
+      final controller = RecentPlaybackController(
+        repository: repository,
+        likedSongIds: () => const [],
+      );
+      addTearDown(() async {
+        controller.onClose();
+        await updates.close();
+      });
+
+      controller.onInit();
+      await Future<void>.delayed(Duration.zero);
+      expect(repository.requestedLimits, [8]);
+
+      updates
+        ..add(null)
+        ..add(null)
+        ..add(null);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.requestedLimits, [8]);
+
+      initialLoad.complete([_track('netease:old')]);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repository.requestedLimits, [8, 8]);
+
+      queuedRefresh.complete([_track('netease:new')]);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.recentTracks.map((item) => item.id), ['netease:new']);
+      expect(repository.requestedLimits, [8, 8]);
+    });
   });
 }
 

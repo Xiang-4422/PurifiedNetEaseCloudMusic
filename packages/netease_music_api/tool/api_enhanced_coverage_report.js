@@ -14,6 +14,7 @@ const generatedManifestPath = generatedManifestArg
   ? path.resolve(repoRoot, generatedManifestArg.slice('--generated-manifest='.length))
   : path.join(repoRoot, 'packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart')
 const oracleScriptPath = path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_node_oracle.js')
+const rawDispatcherPath = path.join(repoRoot, 'packages/netease_music_api/lib/src/endpoints/raw/api_enhanced_raw.dart')
 const specialCoverageArg = process.argv.find((arg) => arg.startsWith('--special-coverage='))
 const specialCoveragePath = specialCoverageArg
   ? path.resolve(repoRoot, specialCoverageArg.slice('--special-coverage='.length))
@@ -87,6 +88,21 @@ function loadOracleFixtures() {
     __dirname: path.dirname(oracleScriptPath),
     require,
   })
+}
+
+function loadRawDispatcherModules() {
+  const source = fs.readFileSync(rawDispatcherPath, 'utf8')
+  const methodStart = source.indexOf('Future<dynamic> requestModule(')
+  if (methodStart === -1) {
+    throw new Error(`Cannot find requestModule dispatcher: ${rawDispatcherPath}`)
+  }
+  const switchStart = source.indexOf('switch (module)', methodStart)
+  const fallbackStart = source.indexOf('\n    final response =', switchStart)
+  if (switchStart === -1 || fallbackStart === -1 || fallbackStart <= switchStart) {
+    throw new Error(`Cannot parse requestModule dispatcher: ${rawDispatcherPath}`)
+  }
+  const switchSource = source.slice(switchStart, fallbackStart)
+  return [...switchSource.matchAll(/case\s+'([^']+)'\s*:/g)].map((match) => match[1]).sort()
 }
 
 function gitOutput(args) {
@@ -396,6 +412,7 @@ const upstreamModules = loadUpstreamModules()
 const manifest = loadManifest()
 const entries = manifest.entries
 const oracleFixtures = loadOracleFixtures()
+const rawDispatcherModules = loadRawDispatcherModules()
 const oracleFixtureList = Array.isArray(oracleFixtures) ? oracleFixtures : []
 const oracleModuleList = oracleFixtureList
   .filter((fixture) => isRecord(fixture))
@@ -409,6 +426,7 @@ const manifestModuleSet = new Set(manifestModules)
 const normalModules = entries.filter((entry) => !entry.special).map((entry) => entry.module)
 const specialModules = entries.filter((entry) => entry.special).map((entry) => entry.module)
 const specialSet = new Set(specialModules)
+const rawDispatcherModuleSet = new Set(rawDispatcherModules)
 const nodeOracleSpecial = stringSetFrom(specialCoverage.nodeOracle)
 const dartBehaviorSpecial = stringSetFrom(specialCoverage.dartBehavior)
 const specialLimitedReasons = sortedObject(specialCoverage.limited)
@@ -456,6 +474,8 @@ const specialLimitedMissingReason = sorted(
     return typeof reason !== 'string' || reason.trim().length === 0
   }),
 )
+const specialDispatcherMissing = sorted(specialModules.filter((module) => !rawDispatcherModuleSet.has(module)))
+const specialDispatcherUnknown = sorted(rawDispatcherModules.filter((module) => !specialSet.has(module)))
 const runtimeSupportedReasons = sortedObject({
   'runtime:FLAC': 'song_url_v1 和下载 URL 请求固定使用 encodeType=flac。',
   'runtime:checkToken': 'checkToken 写入 eapi header 的 X-antiCheatToken。',
@@ -593,6 +613,22 @@ function buildSdkDifferences() {
       scope: 'special_module',
     })
   }
+  for (const module of specialDispatcherMissing) {
+    differences.push({
+      module,
+      status: 'missing_special_dispatcher',
+      reason: 'Special module has no requestModule dispatcher case.',
+      scope: 'raw_dispatcher',
+    })
+  }
+  for (const module of specialDispatcherUnknown) {
+    differences.push({
+      module,
+      status: 'unknown_special_dispatcher',
+      reason: 'requestModule dispatcher handles a module that is not marked as special in the generated manifest.',
+      scope: 'raw_dispatcher',
+    })
+  }
   for (const mismatch of manifestUpstreamMismatches) {
     differences.push({
       module: '<generated_manifest>',
@@ -704,6 +740,8 @@ const report = {
   specialNodeOracleMissingFixture,
   specialNonLimitedMissingOracle,
   specialLimitedMissingReason,
+  specialDispatcherMissing,
+  specialDispatcherUnknown,
   specialNodeOracle: sorted(nodeOracleSpecial),
   specialDartBehavior: sorted(dartBehaviorSpecial),
   specialLimited: sorted(limitedSpecial),
@@ -735,7 +773,9 @@ const hasFailure =
   report.specialUnknownStatus.length > 0 ||
   report.specialNodeOracleMissingFixture.length > 0 ||
   report.specialNonLimitedMissingOracle.length > 0 ||
-  report.specialLimitedMissingReason.length > 0
+  report.specialLimitedMissingReason.length > 0 ||
+  report.specialDispatcherMissing.length > 0 ||
+  report.specialDispatcherUnknown.length > 0
 
 if (jsonOutput) {
   console.log(JSON.stringify(report, null, 2))
@@ -767,6 +807,8 @@ if (jsonOutput) {
   console.log(`special node-oracle modules missing fixture: ${report.specialNodeOracleMissingFixture.length}`)
   console.log(`special non-limited modules missing oracle: ${report.specialNonLimitedMissingOracle.length}`)
   console.log(`special limited modules missing reason: ${report.specialLimitedMissingReason.length}`)
+  console.log(`special dispatcher missing cases: ${report.specialDispatcherMissing.length}`)
+  console.log(`special dispatcher unknown cases: ${report.specialDispatcherUnknown.length}`)
   console.log(`special status unknown modules: ${report.specialUnknownStatus.length}`)
   console.log(`special node oracle: ${report.specialNodeOracle.join(', ')}`)
   console.log(`special dart behavior: ${report.specialDartBehavior.join(', ')}`)

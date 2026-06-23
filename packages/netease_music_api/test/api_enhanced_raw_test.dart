@@ -146,6 +146,8 @@ void main() {
       expect(report['specialNonLimitedMissingOracle'], isEmpty);
       expect(report['specialLimitedMissingReason'], isEmpty);
       expect(report['specialUnknownStatus'], isEmpty);
+      expect(report['specialDispatcherMissing'], isEmpty);
+      expect(report['specialDispatcherUnknown'], isEmpty);
       expect(_stringSet(report['specialLimited']), {
         'cloud',
         'song_url_match',
@@ -274,6 +276,68 @@ void main() {
       expect(
         _jsonMapList(report['sdkDifferences']).map((item) => item['scope']).toSet(),
         contains('special_coverage_config'),
+      );
+    });
+
+    test('coverage report rejects special modules without dispatcher cases', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_manifest_dispatcher_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final generatedManifest = File(
+        '${repoRoot.path}/packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
+      ).readAsStringSync();
+      final manifestWithUndispatchedSpecial = generatedManifest.replaceFirst(
+        """
+  ApiEnhancedModule(
+    module: 'album',
+    methodName: 'album',
+    pathTemplate: '/api/v1/album/\\\${query.id}',
+    crypto: 'weapi',
+    httpMethod: 'POST',
+    special: false,
+  ),
+""",
+        """
+  ApiEnhancedModule(
+    module: 'album',
+    methodName: 'album',
+    pathTemplate: '/api/v1/album/\\\${query.id}',
+    crypto: 'weapi',
+    httpMethod: 'POST',
+    special: true,
+  ),
+""",
+      );
+      expect(manifestWithUndispatchedSpecial, isNot(generatedManifest));
+      final manifestFile = File('${tempDir.path}/api_enhanced_modules.g.dart')..writeAsStringSync(manifestWithUndispatchedSpecial);
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--generated-manifest=${manifestFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(report['specialDispatcherMissing'], contains('album'));
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      expect(
+        sdkDifferences.where((item) => item['module'] == 'album').map((item) => item['status']),
+        contains('missing_special_dispatcher'),
+      );
+      expect(
+        sdkDifferences.singleWhere(
+          (item) => item['module'] == 'album' && item['status'] == 'missing_special_dispatcher',
+        )['scope'],
+        'raw_dispatcher',
       );
     });
 

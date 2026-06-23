@@ -9,10 +9,11 @@ import 'package:flutter/foundation.dart';
 class UserProfileController {
   /// 创建用户资料控制器。
   UserProfileController({
-    required this.userId,
+    required String userId,
     required UserRepository repository,
     required Future<void> Function() logoutCurrentUser,
-  })  : _repository = repository,
+  })  : userId = _normalizedUserId(userId),
+        _repository = repository,
         _logoutCurrentUser = logoutCurrentUser;
 
   /// 当前资料页对应的用户 id。
@@ -28,7 +29,7 @@ class UserProfileController {
   /// 首次加载用户资料，优先展示缓存并后台刷新。
   Future<void> loadInitial() async {
     final generation = ++_loadGeneration;
-    if (userId.isEmpty || userId == '-1') {
+    if (!_isSignedInUserId(userId)) {
       _setStateIfCurrent(generation, const LoadState.empty());
       return;
     }
@@ -56,7 +57,7 @@ class UserProfileController {
   }
 
   Future<void> _refresh(int generation) async {
-    if (userId.isEmpty || userId == '-1') {
+    if (!_isSignedInUserId(userId)) {
       _setStateIfCurrent(generation, const LoadState.empty());
       return;
     }
@@ -103,6 +104,15 @@ class UserProfileController {
 
   bool _isCurrentLoad(int generation) {
     return !_disposed && generation == _loadGeneration;
+  }
+
+  static String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
+
+  static bool _isSignedInUserId(String userId) {
+    final normalizedUserId = _normalizedUserId(userId);
+    return normalizedUserId.isNotEmpty && normalizedUserId != '-1';
   }
 
   void _setStateIfCurrent(

@@ -47,6 +47,46 @@ void main() {
       expect(controller.state.value.error, isNull);
     });
 
+    test('does not read cached or remote profile for blank user id', () async {
+      final repository = _FakeUserRepository(
+        cachedProfile: _profile('42', nickname: 'cached'),
+      );
+      final controller = UserProfileController(
+        userId: '   ',
+        repository: repository,
+        logoutCurrentUser: () async {},
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      await controller.refresh();
+
+      expect(controller.userId, isEmpty);
+      expect(controller.state.value.status, LoadStatus.empty);
+      expect(repository.loadCachedUserDetailUserIds, isEmpty);
+      expect(repository.fetchUserDetailUserIds, isEmpty);
+    });
+
+    test('normalizes user id before reading profile data', () async {
+      final repository = _FakeUserRepository(
+        cachedProfile: _profile('42', nickname: 'cached'),
+      );
+      final controller = UserProfileController(
+        userId: ' 42 ',
+        repository: repository,
+        logoutCurrentUser: () async {},
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      await _flushAsync();
+
+      expect(controller.userId, '42');
+      expect(repository.loadCachedUserDetailUserIds, ['42']);
+      expect(repository.fetchUserDetailUserIds, ['42']);
+      expect(controller.state.value.data?.userId, '42');
+    });
+
     test('uses remote error when cached profile read and refresh both fail', () async {
       final remoteError = StateError('offline');
       final repository = _FakeUserRepository(
@@ -169,9 +209,12 @@ class _FakeUserRepository implements UserRepository {
   final Object? fetchError;
   final bool delayFetches;
   final List<Completer<UserProfileData>> _pendingFetches = [];
+  final List<String> loadCachedUserDetailUserIds = <String>[];
+  final List<String> fetchUserDetailUserIds = <String>[];
 
   @override
   Future<UserProfileData?> loadCachedUserDetail(String userId) async {
+    loadCachedUserDetailUserIds.add(userId);
     final error = cacheError;
     if (error != null) {
       throw error;
@@ -181,6 +224,7 @@ class _FakeUserRepository implements UserRepository {
 
   @override
   Future<UserProfileData> fetchUserDetail(String userId) async {
+    fetchUserDetailUserIds.add(userId);
     if (delayFetches) {
       final completer = Completer<UserProfileData>();
       _pendingFetches.add(completer);

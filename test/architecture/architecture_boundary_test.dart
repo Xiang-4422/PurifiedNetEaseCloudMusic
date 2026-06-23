@@ -1794,11 +1794,15 @@ void main() {
       final factoryFile = File(
         '${projectRoot.path}/lib/features/user/user_profile_controller_factory.dart',
       );
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/user/user_profile_controller.dart',
+      );
       final bootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
       final page = pageFile.readAsStringSync();
       final factory = factoryFile.readAsStringSync();
+      final controller = controllerFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
         if (page.contains('UserRepository')) '${_relativePath(pageFile)} names user repository directly',
@@ -1811,6 +1815,8 @@ void main() {
         if (!factory.contains('repository: _repository')) 'user profile controller factory does not inject user repository',
         if (!factory.contains('required Future<void> Function() logoutCurrentUser')) 'user profile controller factory does not receive logout boundary',
         if (!factory.contains('logoutCurrentUser: _logoutCurrentUser')) 'user profile controller factory does not inject logout boundary',
+        if (!controller.contains('userId = _normalizedUserId(userId)')) 'user profile controller does not normalize the injected user id',
+        if (!controller.contains('static bool _isSignedInUserId(String userId)')) 'user profile controller does not centralize signed-in account checks',
         if (!bootstrap.contains('UserProfileControllerFactory(')) 'feature bootstrap does not register user profile controller factory',
         if (!bootstrap.contains('currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId')) 'feature bootstrap does not inject current user provider',
         if (!bootstrap.contains('logoutCurrentUser: () => Get.find<AuthController>().logoutCurrentUser()')) 'feature bootstrap does not inject auth logout boundary',

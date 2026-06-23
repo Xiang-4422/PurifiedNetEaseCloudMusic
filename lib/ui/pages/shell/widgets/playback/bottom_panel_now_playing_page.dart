@@ -1,4 +1,5 @@
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_now_playing_metadata.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart';
@@ -13,11 +14,15 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
   /// 创建正在播放页。
   const BottomPanelNowPlayingPage({
     required this.playerController,
+    required this.settingsController,
     super.key,
   });
 
   /// 播放控制器，处理歌词全屏和封面切换交互。
   final PlayerController playerController;
+
+  /// 设置控制器，提供播放面板取色。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +61,11 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
                     padding: const EdgeInsets.symmetric(
                       horizontal: albumPadding,
                     ),
-                    child: const LyricView(EdgeInsets.symmetric(vertical: 10)),
+                    child: LyricView(
+                      const EdgeInsets.symmetric(vertical: 10),
+                      playerController: playerController,
+                      settingsController: settingsController,
+                    ),
                   ),
                 ),
               ),

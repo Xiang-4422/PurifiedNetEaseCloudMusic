@@ -874,14 +874,42 @@ void main() {
       final violations = <String>[
         if (nowPlaying.contains('PlayerController.to')) '${_relativePath(nowPlayingFile)} reads player controller globally',
         if (!nowPlaying.contains('required this.playerController')) '${_relativePath(nowPlayingFile)} does not receive player controller',
+        if (!nowPlaying.contains('required this.settingsController')) '${_relativePath(nowPlayingFile)} does not receive settings controller',
         if (!panel.contains('BottomPanelNowPlayingPage(')) '${_relativePath(panelFile)} does not compose now playing page',
         if (!panel.contains('playerController: playerController')) '${_relativePath(panelFile)} does not inject player controller',
+        if (!panel.contains('settingsController: settingsController')) '${_relativePath(panelFile)} does not inject settings controller',
       ];
 
       expect(
         violations,
         isEmpty,
         reason: '正在播放页只能处理歌词全屏和封面切换交互，播放交互边界必须由底部播放面板组合层注入。',
+      );
+    });
+
+    test('bottom panel lyric view receives playback state boundaries', () {
+      final lyricFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/lyric_view.dart',
+      );
+      final nowPlayingFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_page.dart',
+      );
+      final lyric = lyricFile.readAsStringSync();
+      final nowPlaying = nowPlayingFile.readAsStringSync();
+      final violations = <String>[
+        if (lyric.contains('PlayerController.to')) '${_relativePath(lyricFile)} reads player controller globally',
+        if (lyric.contains('SettingsController.to')) '${_relativePath(lyricFile)} reads settings controller globally',
+        if (!lyric.contains('required this.playerController')) '${_relativePath(lyricFile)} does not receive player controller',
+        if (!lyric.contains('required this.settingsController')) '${_relativePath(lyricFile)} does not receive settings controller',
+        if (!nowPlaying.contains('LyricView(')) '${_relativePath(nowPlayingFile)} does not compose lyric view',
+        if (!nowPlaying.contains('playerController: playerController')) '${_relativePath(nowPlayingFile)} does not inject player controller',
+        if (!nowPlaying.contains('settingsController: settingsController')) '${_relativePath(nowPlayingFile)} does not inject settings controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '歌词视图只能展示歌词并提交 seek 意图，歌词状态、播放进度和颜色必须由正在播放页注入。',
       );
     });
 

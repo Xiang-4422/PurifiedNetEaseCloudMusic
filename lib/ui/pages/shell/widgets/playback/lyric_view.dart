@@ -14,11 +14,22 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 底部播放面板中的歌词列表视图。
 class LyricView extends GetView<ShellController> {
+  /// 创建歌词列表视图。
+  const LyricView(
+    this.lyricPadding, {
+    required this.playerController,
+    required this.settingsController,
+    super.key,
+  });
+
   /// 歌词行按钮的内边距。
   final EdgeInsetsGeometry lyricPadding;
 
-  /// 创建歌词列表视图。
-  const LyricView(this.lyricPadding, {super.key});
+  /// 播放控制器，提供歌词状态、进度和 seek 操作。
+  final PlayerController playerController;
+
+  /// 设置控制器，提供歌词颜色。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +53,7 @@ class LyricView extends GetView<ShellController> {
         behavior: const NoGlowScrollBehavior(),
         child: Obx(
           () {
-            final lyricState = PlayerController.to.lyricState.value;
+            final lyricState = playerController.lyricState.value;
             return LayoutBuilder(
               builder: (context, constraints) {
                 final viewportHeight = constraints.maxHeight.isFinite ? constraints.maxHeight : MediaQuery.sizeOf(context).height;
@@ -62,13 +73,13 @@ class LyricView extends GetView<ShellController> {
                       final line = lyricState.lines[index];
                       seekPosition = lyricLineSeekPosition(line);
                       child = Obx(() {
-                        final isActive = PlayerController.to.lyricState.value.currentIndex == index;
-                        final currentPosition = isActive ? PlayerController.to.currentPositionState.value : Duration.zero;
+                        final isActive = playerController.lyricState.value.currentIndex == index;
+                        final currentPosition = isActive ? playerController.currentPositionState.value : Duration.zero;
                         return LyricLineText(
                           line: line,
                           isActive: isActive,
                           currentPosition: currentPosition,
-                          color: SettingsController.to.panelWidgetColor.value,
+                          color: settingsController.panelWidgetColor.value,
                           baseStyle: context.theme.textTheme.titleLarge,
                         );
                       });
@@ -87,7 +98,7 @@ class LyricView extends GetView<ShellController> {
                           : () {
                               final targetPosition = seekPosition!;
                               unawaited(
-                                PlayerController.to.seekTo(targetPosition).catchError(
+                                playerController.seekTo(targetPosition).catchError(
                                   (Object error, StackTrace stackTrace) {
                                     developer.log(
                                       'lyric.seek.failed position=${targetPosition.inMilliseconds}',

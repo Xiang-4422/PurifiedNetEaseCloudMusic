@@ -70,6 +70,9 @@ void main() {
     final indicatorSource = File(
       'lib/ui/pages/shell/widgets/playback/bottom_panel_page_indicator.dart',
     ).readAsStringSync();
+    final lyricSource = File(
+      'lib/ui/pages/shell/widgets/playback/lyric_view.dart',
+    ).readAsStringSync();
 
     expect(panelSource, contains('BottomPanelQueueView('));
     expect(panelSource, contains('BottomPanelHeader('));
@@ -87,6 +90,8 @@ void main() {
     expect(nowPlayingSource, contains('BottomPanelNowPlayingMetadata()'));
     expect(nowPlayingSource, contains('BottomPanelPlaybackControls()'));
     expect(nowPlayingSource, contains('LyricView('));
+    expect(nowPlayingSource, contains('required this.playerController'));
+    expect(nowPlayingSource, contains('required this.settingsController'));
 
     expect(metadataSource, contains('class BottomPanelNowPlayingMetadata'));
     expect(metadataSource, contains('BottomPanelProgressBar()'));
@@ -104,8 +109,12 @@ void main() {
     expect(indicatorSource, isNot(contains('PlayerController.to')));
     expect(indicatorSource, isNot(contains('SettingsController.to')));
 
-    expect(nowPlayingSource, contains('required this.playerController'));
     expect(nowPlayingSource, isNot(contains('PlayerController.to')));
+
+    expect(lyricSource, contains('required this.playerController'));
+    expect(lyricSource, contains('required this.settingsController'));
+    expect(lyricSource, isNot(contains('PlayerController.to')));
+    expect(lyricSource, isNot(contains('SettingsController.to')));
   });
 
   test('bottom panel delegates background and fade mask to local widgets', () {

@@ -63,6 +63,7 @@ class BottomPanelView extends GetView<ShellController> {
                       ),
                       BottomPanelNowPlayingPage(
                         playerController: playerController,
+                        settingsController: settingsController,
                       ),
                       BottomPanelCommentPage(
                         commentType: 2,

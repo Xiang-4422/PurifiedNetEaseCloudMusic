@@ -98,6 +98,31 @@ void main() {
       expect(File(resourceWriter.savedPlaybackCacheAudioPaths.single).existsSync(), isFalse);
     });
 
+    test('redownloads when only a completed task remains without resource index', () async {
+      final taskDataSource = _FakeDownloadTaskDataSource(
+        tasks: [
+          _task('1', DownloadTaskStatus.completed),
+        ],
+      );
+      final resourceWriter = _FakeDownloadResourceWriter(saveManagedResult: true);
+      final repository = _buildRepository(
+        taskDataSource: taskDataSource,
+        fileStore: _FakeDownloadFileStore(tempDirectory),
+        resourceWriter: resourceWriter,
+      );
+
+      final track = await repository.downloadTrack(
+        '1',
+        preferHighQuality: true,
+      );
+
+      expect(track?.id, '1');
+      expect(resourceWriter.savedLocalPaths.single, endsWith('/audio/1.mp3'));
+      expect(File(resourceWriter.savedLocalPaths.single).existsSync(), isTrue);
+      expect(await taskDataSource.getTask('1'), isNull);
+      expect(taskDataSource.removedTrackIds, contains('1'));
+    });
+
     test('promotes existing playback cache instead of downloading again', () async {
       final cachedAudio = File('${tempDirectory.path}/cached.mp3');
       await cachedAudio.writeAsBytes([1, 2, 3]);
@@ -233,6 +258,14 @@ DownloadRepository _buildRepository({
     resourceIndexRepository: _UnusedLocalResourceIndexRepository(),
     fileStore: fileStore,
     resourceWriter: resourceWriter,
+  );
+}
+
+DownloadTask _task(String trackId, DownloadTaskStatus status) {
+  return DownloadTask(
+    trackId: trackId,
+    status: status,
+    updatedAt: DateTime(2026),
   );
 }
 
@@ -437,6 +470,14 @@ class _FakeDownloadResourceWriter extends DownloadResourceWriter {
 }
 
 class _FakeDownloadTaskDataSource implements DownloadTaskDataSource {
+  _FakeDownloadTaskDataSource({
+    List<DownloadTask> tasks = const [],
+  }) {
+    for (final task in tasks) {
+      _tasks[task.trackId] = task;
+    }
+  }
+
   final Map<String, DownloadTask> _tasks = {};
   final List<String> removedTrackIds = [];
 

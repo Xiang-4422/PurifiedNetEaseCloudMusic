@@ -78,7 +78,6 @@ class _CloudDriveViewState extends State<CloudDriveView> {
                 },
                 child: ListView.builder(
                   itemCount: state.items.length,
-                  shrinkWrap: true,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   physics: const ClampingScrollPhysics(),
                   itemBuilder: (context, index) {

@@ -170,11 +170,12 @@ class RecommendationController extends GetxController {
     super.onInit();
     _cacheBootstrapFuture = _loadCache();
     _cancelSessionWatch = _sessionAccess.watchSession((info) {
-      if (_activeLocalDataUserId == info.userId) {
+      final nextUserId = _normalizedUserId(info.userId);
+      if (_activeLocalDataUserId == nextUserId) {
         return;
       }
       dateLoaded.value = false;
-      unawaited(_reloadScopedLocalDataAndBootstrap(info.userId));
+      unawaited(_reloadScopedLocalDataAndBootstrap(nextUserId));
     });
   }
 
@@ -190,6 +191,12 @@ class RecommendationController extends GetxController {
     if (_disposed) {
       return;
     }
+    if (!_isSignedInUserId(_currentUserId())) {
+      _clearHomeState();
+      _hasLocalData = false;
+      dateLoaded.value = true;
+      return;
+    }
     if (_hasLocalData) {
       dateLoaded.value = true;
       scheduleHomeImageColorPrewarm();
@@ -203,14 +210,15 @@ class RecommendationController extends GetxController {
   }
 
   Future<void> _reloadScopedLocalDataAndBootstrap(String userId) async {
-    _activeLocalDataUserId = userId;
+    final normalizedUserId = _normalizedUserId(userId);
+    _activeLocalDataUserId = normalizedUserId;
     final generation = ++_localDataGeneration;
-    await _libraryAccess.loadScopedLocalData(userId);
-    if (!_isCurrentLocalDataLoad(userId, generation)) {
+    await _libraryAccess.loadScopedLocalData(normalizedUserId);
+    if (!_isCurrentLocalDataLoad(normalizedUserId, generation)) {
       return;
     }
-    await _loadScopedLocalData(userId, generation);
-    if (!_isCurrentLocalDataLoad(userId, generation)) {
+    await _loadScopedLocalData(normalizedUserId, generation);
+    if (!_isCurrentLocalDataLoad(normalizedUserId, generation)) {
       return;
     }
     await startHomeBootstrap();
@@ -222,8 +230,8 @@ class RecommendationController extends GetxController {
     if (!_hasLocalData) {
       return true;
     }
-    final userId = _sessionAccess.currentSession().userId;
-    if (userId.isEmpty) {
+    final userId = _currentUserId();
+    if (!_isSignedInUserId(userId)) {
       return true;
     }
     try {
@@ -242,9 +250,11 @@ class RecommendationController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionAccess.currentSession().userId;
+    final userId = _currentUserId();
     final generation = ++_homeRefreshGeneration;
-    if (userId.isEmpty) {
+    if (!_isSignedInUserId(userId)) {
+      _clearHomeState();
+      _hasLocalData = false;
       dateLoaded.value = true;
       refreshController.refreshCompleted();
       refreshController.resetNoData();
@@ -291,8 +301,12 @@ class RecommendationController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionAccess.currentSession().userId;
-    if (userId.isEmpty || userId == '-1') {
+    final userId = _currentUserId();
+    if (!_isSignedInUserId(userId)) {
+      if (!getMore) {
+        recoPlayLists.clear();
+      }
+      refreshController.loadComplete();
       return;
     }
 
@@ -334,8 +348,8 @@ class RecommendationController extends GetxController {
 
   /// 拉取每日推荐歌曲队列。
   Future<List<PlaybackQueueItem>> getTodayRecommendSongs() async {
-    final userId = _sessionAccess.currentSession().userId;
-    if (userId.isEmpty || userId == '-1') {
+    final userId = _currentUserId();
+    if (!_isSignedInUserId(userId)) {
       return const [];
     }
     return _repository.fetchTodayRecommendSongs(
@@ -346,8 +360,8 @@ class RecommendationController extends GetxController {
 
   /// 拉取私人 FM 候选歌曲队列。
   Future<List<PlaybackQueueItem>> getFmSongs() async {
-    final userId = _sessionAccess.currentSession().userId;
-    if (userId.isEmpty || userId == '-1') {
+    final userId = _currentUserId();
+    if (!_isSignedInUserId(userId)) {
       return const [];
     }
     return _repository.fetchFmSongs(
@@ -361,7 +375,7 @@ class RecommendationController extends GetxController {
     PlaylistSummaryData playlist,
   ) async {
     final likedSongIds = _libraryAccess.likedSongIds();
-    final userId = _sessionAccess.currentSession().userId;
+    final userId = _currentUserId();
     final index = await _playlistRepository.fetchPlaylistIndex(
       playlist.id,
       currentUserId: userId,
@@ -403,7 +417,7 @@ class RecommendationController extends GetxController {
   Future<void> _loadCache() async {
     await _sessionAccess.ensureCacheLoaded();
     await _libraryAccess.ensureCacheLoaded();
-    _activeLocalDataUserId = _sessionAccess.currentSession().userId;
+    _activeLocalDataUserId = _currentUserId();
     final generation = ++_localDataGeneration;
     await _loadScopedLocalData(_activeLocalDataUserId, generation);
   }
@@ -412,10 +426,8 @@ class RecommendationController extends GetxController {
     if (!_isCurrentLocalDataLoad(userId, generation)) {
       return;
     }
-    recoPlayLists.clear();
-    todayRecommendSongs.clear();
-    fmSongs.clear();
-    if (userId.isEmpty) {
+    _clearHomeState();
+    if (!_isSignedInUserId(userId)) {
       _hasLocalData = false;
       return;
     }
@@ -445,7 +457,7 @@ class RecommendationController extends GetxController {
   }
 
   Future<UserHomeLocalData> _loadLocalData(String userId) async {
-    if (userId.isEmpty) {
+    if (!_isSignedInUserId(userId)) {
       return const UserHomeLocalData.empty();
     }
     final likedSongIds = _libraryAccess.likedSongIds();
@@ -473,7 +485,7 @@ class RecommendationController extends GetxController {
   }
 
   Future<UserHomeLocalData> _refreshQuickStartData(String userId) async {
-    if (userId.isEmpty || userId == '-1') {
+    if (!_isSignedInUserId(userId)) {
       return const UserHomeLocalData.empty();
     }
     final likedSongIds = _libraryAccess.likedSongIds();
@@ -522,7 +534,7 @@ class RecommendationController extends GetxController {
   }
 
   bool _isCurrentLocalDataLoad(String userId, int generation) {
-    return !_disposed && generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionAccess.currentSession().userId == userId;
+    return !_disposed && generation == _localDataGeneration && _activeLocalDataUserId == userId && _currentUserId() == userId;
   }
 
   bool _isCurrentRecoPlaylistLoad(String userId, int generation) {
@@ -534,11 +546,30 @@ class RecommendationController extends GetxController {
   }
 
   bool _isActiveSession(String userId) {
-    return !_disposed && _sessionAccess.currentSession().userId == userId;
+    return !_disposed && _currentUserId() == _normalizedUserId(userId);
+  }
+
+  String _currentUserId() {
+    return _normalizedUserId(_sessionAccess.currentSession().userId);
+  }
+
+  String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
+
+  bool _isSignedInUserId(String userId) {
+    final normalizedUserId = _normalizedUserId(userId);
+    return normalizedUserId.isNotEmpty && normalizedUserId != '-1';
   }
 
   bool get _hasVisibleHomeData {
     return recoPlayLists.isNotEmpty || todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
+  }
+
+  void _clearHomeState() {
+    recoPlayLists.clear();
+    todayRecommendSongs.clear();
+    fmSongs.clear();
   }
 
   @override

@@ -72,6 +72,34 @@ void main() {
       expect(controller.hasLocalData, isTrue);
     });
 
+    test('does not read local home cache for blank user id', () async {
+      final sessionController = _buildSessionController('   ');
+      final libraryController = _FakeUserLibraryController();
+      final repository = _FakeUserRepository(
+        cachedRecommendedPlaylists: const [
+          PlaylistSummaryData(id: 'cached-playlist', title: 'Cached Playlist'),
+        ],
+        cachedFmSongs: [_song('cached-fm')],
+      );
+      final controller = RecommendationController(
+        repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
+        sessionAccess: _sessionAccess(sessionController),
+        libraryAccess: _libraryAccess(libraryController),
+      );
+      addTearDown(controller.onClose);
+
+      controller.onInit();
+      await controller.ensureCacheLoaded();
+
+      expect(controller.recoPlayLists, isEmpty);
+      expect(controller.todayRecommendSongs, isEmpty);
+      expect(controller.fmSongs, isEmpty);
+      expect(controller.hasLocalData, isFalse);
+      expect(repository.loadCachedPlaylistListUserIds, isEmpty);
+      expect(repository.loadCachedTrackListUserIds, isEmpty);
+    });
+
     test('treats startup marker cache failure as stale data', () async {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
@@ -111,7 +139,7 @@ void main() {
       await controller.ensureCacheLoaded();
 
       sessionController.userInfo.value = const UserSessionData(
-        userId: 'user-2',
+        userId: ' user-2 ',
         nickname: 'User user-2',
         avatarUrl: '',
       );
@@ -240,6 +268,60 @@ void main() {
 
       expect(controller.todayRecommendSongs.map((song) => song.id), ['new-today']);
       expect(controller.fmSongs.map((song) => song.id), ['new-fm']);
+    });
+
+    test('clears home data and skips refresh for blank user id', () async {
+      final sessionController = _buildSessionController('   ');
+      final libraryController = _FakeUserLibraryController();
+      final repository = _FakeUserRepository();
+      final controller = RecommendationController(
+        repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
+        sessionAccess: _sessionAccess(sessionController),
+        libraryAccess: _libraryAccess(libraryController),
+      );
+      addTearDown(controller.onClose);
+      controller.recoPlayLists.add(
+        const PlaylistSummaryData(id: 'old-playlist', title: 'Old Playlist'),
+      );
+      controller.todayRecommendSongs.add(_song('old-today'));
+      controller.fmSongs.add(_song('old-fm'));
+
+      await controller.updateData();
+
+      expect(controller.dateLoaded.value, isTrue);
+      expect(controller.hasLocalData, isFalse);
+      expect(controller.recoPlayLists, isEmpty);
+      expect(controller.todayRecommendSongs, isEmpty);
+      expect(controller.fmSongs, isEmpty);
+      expect(libraryController.refreshCalls, 0);
+      expect(repository.fetchRecommendedPlaylistsUserIds, isEmpty);
+      expect(repository.fetchTodayRecommendSongsUserIds, isEmpty);
+      expect(repository.fetchFmSongsUserIds, isEmpty);
+      expect(repository.markSyncMarkerUpdatedUserIds, isEmpty);
+    });
+
+    test('normalizes session user id before refreshing home data', () async {
+      final sessionController = _buildSessionController(' user-1 ');
+      final libraryController = _FakeUserLibraryController();
+      final repository = _FakeUserRepository();
+      final controller = RecommendationController(
+        repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
+        sessionAccess: _sessionAccess(sessionController),
+        libraryAccess: _libraryAccess(libraryController),
+      );
+      addTearDown(controller.onClose);
+
+      await controller.updateData();
+
+      expect(libraryController.refreshCalls, 1);
+      expect(repository.fetchRecommendedPlaylistsUserIds, ['user-1']);
+      expect(repository.fetchTodayRecommendSongsUserIds, ['user-1']);
+      expect(repository.fetchFmSongsUserIds, ['user-1']);
+      expect(repository.markSyncMarkerUpdatedUserIds, ['user-1']);
+      expect(controller.dateLoaded.value, isTrue);
+      expect(controller.hasLocalData, isTrue);
     });
 
     test('ignores home refresh completion after close', () async {
@@ -425,6 +507,7 @@ class _FakeUserLibraryController extends UserLibraryController {
 
   final Object? refreshError;
   final List<String> scopedLocalDataLoads = <String>[];
+  int refreshCalls = 0;
 
   @override
   Future<void> loadScopedLocalData(String userId) async {
@@ -433,6 +516,7 @@ class _FakeUserLibraryController extends UserLibraryController {
 
   @override
   Future<void> refreshUserLibrary() async {
+    refreshCalls++;
     final error = refreshError;
     if (error != null) {
       throw error;
@@ -479,12 +563,20 @@ class _FakeUserRepository implements UserRepository {
     required String userId,
     required List<int> likedSongIds,
   })? fetchFmSongsWithArgs;
+  final List<String> loadCachedPlaylistListUserIds = <String>[];
+  final List<String> loadCachedTrackListUserIds = <String>[];
+  final List<String> isSyncMarkerFreshUserIds = <String>[];
+  final List<String> fetchRecommendedPlaylistsUserIds = <String>[];
+  final List<String> fetchTodayRecommendSongsUserIds = <String>[];
+  final List<String> fetchFmSongsUserIds = <String>[];
+  final List<String> markSyncMarkerUpdatedUserIds = <String>[];
 
   @override
   Future<List<PlaylistSummaryData>> loadCachedPlaylistList(
     String userId,
     UserPlaylistListKind kind,
   ) async {
+    loadCachedPlaylistListUserIds.add(userId);
     if (kind != UserPlaylistListKind.recommended) {
       return const [];
     }
@@ -497,6 +589,7 @@ class _FakeUserRepository implements UserRepository {
     required UserTrackListKind kind,
     required List<int> likedSongIds,
   }) async {
+    loadCachedTrackListUserIds.add(userId);
     switch (kind) {
       case UserTrackListKind.dailyRecommend:
         final error = loadCachedDailyRecommendSongsError;
@@ -518,6 +611,7 @@ class _FakeUserRepository implements UserRepository {
     required String markerKey,
     required Duration ttl,
   }) async {
+    isSyncMarkerFreshUserIds.add(userId);
     final error = isSyncMarkerFreshError;
     if (error != null) {
       throw error;
@@ -531,6 +625,7 @@ class _FakeUserRepository implements UserRepository {
     required int offset,
     int limit = 10,
   }) {
+    fetchRecommendedPlaylistsUserIds.add(userId);
     final fetchWithArgs = fetchRecommendedPlaylistsWithArgs;
     if (fetchWithArgs != null) {
       return fetchWithArgs(
@@ -547,6 +642,7 @@ class _FakeUserRepository implements UserRepository {
     required String userId,
     required List<int> likedSongIds,
   }) {
+    fetchTodayRecommendSongsUserIds.add(userId);
     final fetchWithArgs = fetchTodayRecommendSongsWithArgs;
     if (fetchWithArgs != null) {
       return fetchWithArgs(
@@ -562,6 +658,7 @@ class _FakeUserRepository implements UserRepository {
     required String userId,
     required List<int> likedSongIds,
   }) {
+    fetchFmSongsUserIds.add(userId);
     final fetchWithArgs = fetchFmSongsWithArgs;
     if (fetchWithArgs != null) {
       return fetchWithArgs(
@@ -576,7 +673,9 @@ class _FakeUserRepository implements UserRepository {
   Future<void> markSyncMarkerUpdated({
     required String userId,
     required String markerKey,
-  }) async {}
+  }) async {
+    markSyncMarkerUpdatedUserIds.add(userId);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) {

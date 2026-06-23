@@ -349,8 +349,21 @@ void main() {
       expect(markdown, contains('- version: $apiEnhancedUpstreamVersion'));
       expect(markdown, contains('- commit: $apiEnhancedUpstreamCommit'));
       expect(markdown, contains('- modules: ${apiEnhancedModules.length}'));
+      expect(markdown, contains('| module | coverage | oracle fixture | limited reason |'));
       expect(markdown, contains('## SDK Differences'));
       expect(markdown, contains('| scope | module | status | reason |'));
+      final specialStatusByModule = _jsonMap(report['specialCoverageStatusByModule']);
+      final cloudStatus = _jsonMap(specialStatusByModule['cloud']);
+      expect(
+        markdown,
+        contains('| cloud | nodeOracle, limited | yes | ${cloudStatus['limitedReason']} |'),
+      );
+      final songUrlMatchStatus = _jsonMap(specialStatusByModule['song_url_match']);
+      expect(
+        markdown,
+        contains('| song_url_match | limited | no | ${songUrlMatchStatus['limitedReason']} |'),
+      );
+      expect(markdown, contains('| api | nodeOracle | yes |  |'));
       for (final difference in sdkDifferences) {
         final tableRow = '| ${difference['scope']} | ${difference['module']} | ${difference['status']} | ${difference['reason']} |';
         expect(markdown, contains(tableRow), reason: difference['module'].toString());

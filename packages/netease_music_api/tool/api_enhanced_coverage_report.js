@@ -1140,6 +1140,19 @@ function renderMarkdownReport(report) {
     `- Dart behavior: ${report.specialDartBehavior.join(', ') || 'none'}`,
     `- limited: ${report.specialLimited.join(', ') || 'none'}`,
     '',
+    '| module | coverage | oracle fixture | limited reason |',
+    '| --- | --- | --- | --- |',
+  ]
+
+  for (const module of Object.keys(report.specialCoverageStatusByModule).sort()) {
+    const status = report.specialCoverageStatusByModule[module]
+    lines.push(
+      `| ${escapeMarkdownTableCell(module)} | ${escapeMarkdownTableCell(status.coverage.join(', ') || 'none')} | ${status.hasNodeOracleFixture ? 'yes' : 'no'} | ${escapeMarkdownTableCell(status.limitedReason || '')} |`,
+    )
+  }
+
+  lines.push(
+    '',
     '## Runtime Options',
     '',
     `- supported: ${report.runtimeSupported.join(', ') || 'none'}`,
@@ -1147,7 +1160,7 @@ function renderMarkdownReport(report) {
     '',
     '## SDK Differences',
     '',
-  ]
+  )
 
   if (report.sdkDifferences.length === 0) {
     lines.push('- none')

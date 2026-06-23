@@ -50,7 +50,8 @@ manifest differences so upstream refreshes are auditable from one command.
 Runtime option limitations, such as unsupported PAC proxy URLs, are also
 included in `sdkDifferences`. Use `--json` when an automation or follow-up
 goal needs the full machine-readable report, and `--markdown` when reviewing
-the current baseline and SDK differences by hand.
+the current baseline, per-special-module coverage status, and SDK differences
+by hand.
 
 Upstream protocol reference is tracked in the repository submodule:
 

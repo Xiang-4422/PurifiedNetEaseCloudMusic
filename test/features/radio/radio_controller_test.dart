@@ -140,6 +140,42 @@ void main() {
       expect(controller.state.value.refreshing, isFalse);
     });
 
+    test('ignores stale cached radios after newer refresh completes', () async {
+      final cachedLoad = Completer<List<RadioSummaryData>>();
+      final refresh = Completer<DjRadioPage>();
+      final repository = _FakeRadioRepository(
+        cachedRadiosFuture: cachedLoad.future,
+        fetchSubscribedRadios: () => refresh.future,
+      );
+      final controller = RadioListController(
+        userId: 'user-1',
+        repository: repository,
+      );
+      addTearDown(controller.dispose);
+
+      final initialLoad = controller.loadInitial();
+      await _flushAsync();
+
+      final refreshFuture = controller.refresh();
+      await _flushAsync();
+      refresh.complete(
+        DjRadioPage(
+          items: [_radio('fresh-radio')],
+          hasMore: true,
+          nextOffset: 1,
+        ),
+      );
+      await refreshFuture;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-radio']);
+
+      cachedLoad.complete([_radio('stale-cached-radio')]);
+      await initialLoad;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-radio']);
+      expect(controller.state.value.refreshing, isFalse);
+    });
+
     test('ignores refresh completion after dispose', () async {
       final refresh = Completer<DjRadioPage>();
       final repository = _FakeRadioRepository(
@@ -361,6 +397,44 @@ void main() {
 
       expect(controller.state.value.items.map((item) => item.id), ['fresh-program']);
       expect(controller.state.value.loadingMore, isFalse);
+      expect(controller.state.value.refreshing, isFalse);
+    });
+
+    test('ignores stale cached programs after newer refresh completes', () async {
+      final cachedLoad = Completer<List<RadioProgramData>>();
+      final refresh = Completer<DjProgramPage>();
+      final repository = _FakeRadioRepository(
+        cachedProgramsFuture: cachedLoad.future,
+        fetchPrograms: () => refresh.future,
+      );
+      final controller = RadioDetailController(
+        radioId: 'radio-1',
+        userId: 'user-1',
+        repository: repository,
+        likedSongIds: () => const [],
+      );
+      addTearDown(controller.dispose);
+
+      final initialLoad = controller.loadInitial();
+      await _flushAsync();
+
+      final refreshFuture = controller.refresh();
+      await _flushAsync();
+      refresh.complete(
+        DjProgramPage(
+          items: [_program('fresh-program')],
+          hasMore: true,
+          nextOffset: 1,
+        ),
+      );
+      await refreshFuture;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-program']);
+
+      cachedLoad.complete([_program('stale-cached-program')]);
+      await initialLoad;
+
+      expect(controller.state.value.items.map((item) => item.id), ['fresh-program']);
       expect(controller.state.value.refreshing, isFalse);
     });
 

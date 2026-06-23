@@ -1455,6 +1455,26 @@ void main() {
       );
     });
 
+    test('download workflow preserves local import resource priority', () {
+      final workflowFile = File(
+        '${projectRoot.path}/lib/features/download/download_repository_workflow.dart',
+      );
+      final workflow = workflowFile.readAsStringSync();
+      final localImportBranch = workflow.indexOf('audioResource.origin == TrackResourceOrigin.localImport');
+      final promotion = workflow.indexOf('_resourceWriter.promoteResourcesToManagedDownload');
+      final violations = <String>[
+        if (localImportBranch < 0) '${_relativePath(workflowFile)} does not branch on local import resources before download promotion',
+        if (promotion < 0) '${_relativePath(workflowFile)} does not promote playback cache resources to managed download',
+        if (localImportBranch > promotion) '${_relativePath(workflowFile)} can promote local import resources before preserving their origin',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '本地导入资源优先级高于正式下载，下载流程不能把 localImport 资源归属覆盖成 managedDownload。',
+      );
+    });
+
     test('setting sections receive settings controller boundary', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

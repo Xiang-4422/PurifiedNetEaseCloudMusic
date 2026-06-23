@@ -26,6 +26,10 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
     }
     final audioResource = trackWithResources.resources.audio;
     if (audioResource != null && _resourceFileExists(audioResource)) {
+      if (audioResource.origin == TrackResourceOrigin.localImport) {
+        await _taskStateStore.clearTask(trackId);
+        return track;
+      }
       if (audioResource.origin != TrackResourceOrigin.managedDownload && track.sourceType != SourceType.local) {
         final promoted = await _resourceWriter.promoteResourcesToManagedDownload(
           track.id,

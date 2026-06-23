@@ -156,6 +156,39 @@ void main() {
       expect(musicDataRepository.playbackUrlCallCount, 0);
     });
 
+    test('keeps existing local import resource instead of promoting it to download', () async {
+      final localAudio = File('${tempDirectory.path}/local import.mp3');
+      await localAudio.writeAsBytes([1, 2, 3]);
+      final taskDataSource = _FakeDownloadTaskDataSource();
+      final resourceWriter = _FakeDownloadResourceWriter(saveManagedResult: true);
+      final musicDataRepository = _FakeMusicDataRepository(
+        resources: TrackResourceBundle(
+          audio: _resource(
+            trackId: '1',
+            path: localAudio.path,
+            origin: TrackResourceOrigin.localImport,
+          ),
+        ),
+      );
+      final repository = _buildRepository(
+        taskDataSource: taskDataSource,
+        fileStore: _FailingDownloadFileStore(tempDirectory),
+        resourceWriter: resourceWriter,
+        musicDataRepository: musicDataRepository,
+      );
+
+      final track = await repository.performDownloadTrack(
+        '1',
+        preferHighQuality: true,
+      );
+
+      expect(track?.id, '1');
+      expect(await taskDataSource.getTask('1'), isNull);
+      expect(resourceWriter.promotedTrackIds, isEmpty);
+      expect(resourceWriter.savedLocalPaths, isEmpty);
+      expect(musicDataRepository.playbackUrlCallCount, 0);
+    });
+
     test('promotes existing legacy file uri playback cache instead of downloading again', () async {
       final cachedAudio = File('${tempDirectory.path}/cached legacy.mp3');
       await cachedAudio.writeAsBytes([1, 2, 3]);

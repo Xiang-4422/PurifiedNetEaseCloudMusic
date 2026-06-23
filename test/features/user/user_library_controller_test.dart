@@ -24,7 +24,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
 
       sessionController.userInfo.value = const UserSessionData(
@@ -92,7 +92,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
 
       final load = controller.loadScopedLocalData('user-1');
@@ -134,7 +134,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
 
       final load = controller.loadScopedLocalData('user-1');
@@ -169,7 +169,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
 
       final load = controller.loadScopedLocalData('user-1');
@@ -205,7 +205,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.likedSongIds.addAll([101]);
       controller.likedSongs.add(_song('101', title: 'Cached liked song'));
@@ -235,7 +235,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.likedSongIds.add(101);
 
@@ -254,7 +254,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.userPlayLists.addAll(
         List.generate(
@@ -288,7 +288,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.likedSongIds.addAll([101, 202, 303]);
       controller.likedSongs.addAll([
@@ -320,7 +320,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.likedSongIds.add(101);
       controller.likedSongs.add(_song('101', title: 'Old liked song'));
@@ -346,7 +346,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.likedSongIds.addAll([101]);
       controller.userLikedSongPlayList.value = const PlaylistSummaryData(
@@ -384,7 +384,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
 
       await expectLater(
@@ -415,7 +415,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.likedSongIds.add(101);
       controller.userLikedSongPlayList.value = const PlaylistSummaryData(
@@ -453,7 +453,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.userLikedSongPlayList.value = const PlaylistSummaryData(
         id: 'old-liked',
@@ -488,7 +488,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.likedSongIds.add(101);
 
@@ -528,7 +528,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.likedSongIds.add(101);
       controller.likedSongs.add(_song('101', title: 'Old liked song'));
@@ -556,7 +556,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
 
       final load = controller.loadScopedLocalData('user-1');
@@ -601,7 +601,7 @@ void main() {
       );
       final controller = UserLibraryController(
         repository: repository,
-        sessionController: sessionController,
+        sessionAccess: _sessionAccess(sessionController),
       );
       controller.likedSongIds.add(101);
       controller.likedSongs.add(_song('101', title: 'Visible liked song'));
@@ -752,6 +752,17 @@ Future<void> _flushAsync() async {
   for (var i = 0; i < 4; i++) {
     await Future<void>.delayed(Duration.zero);
   }
+}
+
+UserLibrarySessionAccess _sessionAccess(UserSessionController controller) {
+  return UserLibrarySessionAccess(
+    ensureCacheLoaded: controller.ensureCacheLoaded,
+    currentSession: () => controller.userInfo.value,
+    watchSession: (onChanged) {
+      final subscription = controller.userInfo.listen(onChanged);
+      return subscription.cancel;
+    },
+  );
 }
 
 class _PendingUserCache {

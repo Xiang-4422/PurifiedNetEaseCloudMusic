@@ -6,8 +6,26 @@ import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/features/user/user_repository.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:get/get.dart';
+
+/// 用户资料库需要的当前账号 session 能力。
+class UserLibrarySessionAccess {
+  /// 创建用户资料库 session 访问边界。
+  const UserLibrarySessionAccess({
+    required this.ensureCacheLoaded,
+    required this.currentSession,
+    required this.watchSession,
+  });
+
+  /// 等待当前账号 session 缓存完成启动读取。
+  final Future<void> Function() ensureCacheLoaded;
+
+  /// 当前 App 用户 session 快照。
+  final UserSessionData Function() currentSession;
+
+  /// 监听当前 App 用户 session 变化，返回取消监听函数。
+  final void Function() Function(void Function(UserSessionData info) onChanged) watchSession;
+}
 
 /// 持有账号作用域下的资料库状态。
 class UserLibraryController extends GetxController {
@@ -19,13 +37,14 @@ class UserLibraryController extends GetxController {
   /// 创建用户资料库控制器。
   UserLibraryController({
     required UserRepository repository,
-    required UserSessionController sessionController,
+    required UserLibrarySessionAccess sessionAccess,
   })  : _repository = repository,
-        _sessionController = sessionController;
+        _sessionAccess = sessionAccess;
 
   final UserRepository _repository;
-  final UserSessionController _sessionController;
+  final UserLibrarySessionAccess _sessionAccess;
   Future<void>? _cacheBootstrapFuture;
+  void Function()? _cancelSessionWatch;
   String _activeLocalDataUserId = '';
   int _localDataGeneration = 0;
   int _likedSongsLoadGeneration = 0;
@@ -80,7 +99,7 @@ class UserLibraryController extends GetxController {
   void onInit() {
     super.onInit();
     _cacheBootstrapFuture = _loadCache();
-    ever<UserSessionData>(_sessionController.userInfo, (info) {
+    _cancelSessionWatch = _sessionAccess.watchSession((info) {
       if (_activeLocalDataUserId == info.userId) {
         return;
       }
@@ -93,7 +112,7 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionController.userInfo.value.userId;
+    final userId = _sessionAccess.currentSession().userId;
     if (userId.isEmpty || userId == '-1') {
       _clearScopedState();
       _hasLocalData = false;
@@ -131,7 +150,7 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionController.userInfo.value.userId;
+    final userId = _sessionAccess.currentSession().userId;
     if (userId.isEmpty || userId == '-1') {
       likedSongIds.clear();
       return;
@@ -148,7 +167,7 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionController.userInfo.value.userId;
+    final userId = _sessionAccess.currentSession().userId;
     if (userId.isEmpty || userId == '-1') {
       userPlayLists.clear();
       userLikedSongPlayList.value = const PlaylistSummaryData(id: '', title: '');
@@ -168,7 +187,7 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return null;
     }
-    final userId = _sessionController.userInfo.value.userId;
+    final userId = _sessionAccess.currentSession().userId;
     final songId = _resolveSongSourceId(currentSong);
     final numericSongId = int.tryParse(songId);
     if (userId.isEmpty || numericSongId == null) {
@@ -205,7 +224,7 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionController.userInfo.value.userId;
+    final userId = _sessionAccess.currentSession().userId;
     final requestedLikedSongIds = likedSongIds.toList();
     final generation = ++_likedSongsLoadGeneration;
     if (userId.isEmpty || userId == '-1' || requestedLikedSongIds.isEmpty) {
@@ -276,7 +295,7 @@ class UserLibraryController extends GetxController {
     if (_disposed) {
       return;
     }
-    final userId = _sessionController.userInfo.value.userId;
+    final userId = _sessionAccess.currentSession().userId;
     final nextRandomLikedSong = await _resolveRandomLikedSong(likedSongIds);
     if (!_isActiveSession(userId)) {
       return;
@@ -300,8 +319,8 @@ class UserLibraryController extends GetxController {
   }
 
   Future<void> _loadCache() async {
-    await _sessionController.ensureCacheLoaded();
-    await loadScopedLocalData(_sessionController.userInfo.value.userId);
+    await _sessionAccess.ensureCacheLoaded();
+    await loadScopedLocalData(_sessionAccess.currentSession().userId);
   }
 
   Future<void> _loadScopedLocalData(String userId, int generation) async {
@@ -406,7 +425,7 @@ class UserLibraryController extends GetxController {
   }
 
   bool _isCurrentLocalDataLoad(String userId, int generation) {
-    return !_disposed && generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionController.userInfo.value.userId == userId;
+    return !_disposed && generation == _localDataGeneration && _activeLocalDataUserId == userId && _sessionAccess.currentSession().userId == userId;
   }
 
   bool _isCurrentLikedSongsLoad(
@@ -418,7 +437,7 @@ class UserLibraryController extends GetxController {
   }
 
   bool _isActiveSession(String userId) {
-    return !_disposed && _sessionController.userInfo.value.userId == userId;
+    return !_disposed && _sessionAccess.currentSession().userId == userId;
   }
 
   bool get _hasVisibleLibraryData {
@@ -515,6 +534,8 @@ class UserLibraryController extends GetxController {
     _disposed = true;
     _localDataGeneration++;
     _likedSongsLoadGeneration++;
+    _cancelSessionWatch?.call();
+    _cancelSessionWatch = null;
     super.onClose();
   }
 }

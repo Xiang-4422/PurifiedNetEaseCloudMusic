@@ -1925,6 +1925,27 @@ void main() {
       );
     });
 
+    test('user library reads session through narrow access boundary', () {
+      final controllerFile = File('${projectRoot.path}/lib/features/user/user_library_controller.dart');
+      final bootstrapFile = File('${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart');
+      final controller = controllerFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
+      final violations = <String>[
+        if (controller.contains("package:bujuan/features/user/user_session_controller.dart")) 'user library controller imports user session controller',
+        if (controller.contains('UserSessionController')) 'user library controller names user session controller directly',
+        if (!controller.contains('required UserLibrarySessionAccess sessionAccess')) 'user library controller does not receive session access boundary',
+        if (!controller.contains('required this.watchSession')) 'user library session boundary does not expose session watcher',
+        if (!bootstrap.contains('sessionAccess: UserLibrarySessionAccess(')) 'feature bootstrap does not inject user library session access boundary',
+        if (!bootstrap.contains('watchSession: (onChanged)')) 'feature bootstrap does not bind user library session watcher',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '用户资料库可以按账号作用域刷新本地数据，但只能通过窄 session 边界读取和监听当前用户，不能直接依赖全局用户 session 控制器。',
+      );
+    });
+
     test('feature repositories use narrow user scoped data capabilities', () {
       final violations = _repositoryFiles(libDirectory).where((file) => _contains(file, 'UserScopedDataSource')).map(_relativePath).toList();
 

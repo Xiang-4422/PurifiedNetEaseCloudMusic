@@ -420,7 +420,7 @@ class _FakeUserLibraryController extends UserLibraryController {
   _FakeUserLibraryController({this.refreshError})
       : super(
           repository: _FakeUserRepository(),
-          sessionController: _buildSessionController('user-1'),
+          sessionAccess: _userLibrarySessionAccess(_buildSessionController('user-1')),
         );
 
   final Object? refreshError;
@@ -438,6 +438,17 @@ class _FakeUserLibraryController extends UserLibraryController {
       throw error;
     }
   }
+}
+
+UserLibrarySessionAccess _userLibrarySessionAccess(UserSessionController controller) {
+  return UserLibrarySessionAccess(
+    ensureCacheLoaded: controller.ensureCacheLoaded,
+    currentSession: () => controller.userInfo.value,
+    watchSession: (onChanged) {
+      final subscription = controller.userInfo.listen(onChanged);
+      return subscription.cancel;
+    },
+  );
 }
 
 class _FakeUserRepository implements UserRepository {

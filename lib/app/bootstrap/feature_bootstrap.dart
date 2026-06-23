@@ -77,7 +77,17 @@ void registerUserControllers() {
   Get.lazyPut(
     () => UserLibraryController(
       repository: Get.find<UserRepository>(),
-      sessionController: Get.find<UserSessionController>(),
+      sessionAccess: UserLibrarySessionAccess(
+        ensureCacheLoaded: () => Get.find<UserSessionController>().ensureCacheLoaded(),
+        currentSession: () => Get.find<UserSessionController>().userInfo.value,
+        watchSession: (onChanged) {
+          final worker = ever<UserSessionData>(
+            Get.find<UserSessionController>().userInfo,
+            onChanged,
+          );
+          return worker.dispose;
+        },
+      ),
     ),
     fenix: true,
   );

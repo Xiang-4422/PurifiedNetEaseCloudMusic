@@ -6,7 +6,6 @@ import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:get/get.dart';
@@ -55,6 +54,37 @@ class UserHomePlaylistPlaybackPlan {
   final String playlistName;
 }
 
+/// 首页推荐需要的资料库能力，避免推荐控制器直接依赖全局资料库控制器。
+class RecommendationLibraryAccess {
+  /// 创建首页推荐资料库访问边界。
+  const RecommendationLibraryAccess({
+    required this.ensureCacheLoaded,
+    required this.loadScopedLocalData,
+    required this.refreshUserLibrary,
+    required this.hasPlaylistData,
+    required this.likedSongIds,
+    required this.randomLikedSongAlbumUrl,
+  });
+
+  /// 等待资料库缓存完成启动读取。
+  final Future<void> Function() ensureCacheLoaded;
+
+  /// 加载指定账号作用域下的资料库本地数据。
+  final Future<void> Function(String userId) loadScopedLocalData;
+
+  /// 远程刷新用户资料库快照。
+  final Future<void> Function() refreshUserLibrary;
+
+  /// 当前资料库是否已有歌单数据。
+  final bool Function() hasPlaylistData;
+
+  /// 当前喜欢歌曲 id 快照。
+  final List<int> Function() likedSongIds;
+
+  /// 当前随机我喜欢歌曲封面。
+  final String Function() randomLikedSongAlbumUrl;
+}
+
 /// 持有首页推荐、日推和 FM 候选歌曲状态。
 class RecommendationController extends GetxController {
   static const Duration _startupDataTtl = Duration(minutes: 10);
@@ -68,18 +98,18 @@ class RecommendationController extends GetxController {
     required UserRepository repository,
     required PlaylistRepository playlistRepository,
     required UserSessionController sessionController,
-    required UserLibraryController libraryController,
+    required RecommendationLibraryAccess libraryAccess,
     Future<void> Function()? validateLoginStateInBackground,
   })  : _repository = repository,
         _playlistRepository = playlistRepository,
         _sessionController = sessionController,
-        _libraryController = libraryController,
+        _libraryAccess = libraryAccess,
         _validateLoginStateInBackground = validateLoginStateInBackground;
 
   final UserRepository _repository;
   final PlaylistRepository _playlistRepository;
   final UserSessionController _sessionController;
-  final UserLibraryController _libraryController;
+  final RecommendationLibraryAccess _libraryAccess;
   final Future<void> Function()? _validateLoginStateInBackground;
 
   /// 首页下拉刷新控制器。
@@ -145,7 +175,7 @@ class RecommendationController extends GetxController {
       dateLoaded.value = true;
       scheduleHomeImageColorPrewarm();
       unawaited(_validateLoginStateInBackground?.call());
-      if (!_libraryController.hasPlaylistData || await shouldRefreshStartupData()) {
+      if (!_libraryAccess.hasPlaylistData() || await shouldRefreshStartupData()) {
         unawaited(updateData());
       }
       return;
@@ -156,7 +186,7 @@ class RecommendationController extends GetxController {
   Future<void> _reloadScopedLocalDataAndBootstrap(String userId) async {
     _activeLocalDataUserId = userId;
     final generation = ++_localDataGeneration;
-    await _libraryController.loadScopedLocalData(userId);
+    await _libraryAccess.loadScopedLocalData(userId);
     if (!_isCurrentLocalDataLoad(userId, generation)) {
       return;
     }
@@ -203,7 +233,7 @@ class RecommendationController extends GetxController {
     }
 
     try {
-      await _libraryController.refreshUserLibrary();
+      await _libraryAccess.refreshUserLibrary();
       if (!_isCurrentHomeRefresh(userId, generation)) {
         return;
       }
@@ -291,7 +321,7 @@ class RecommendationController extends GetxController {
     }
     return _repository.fetchTodayRecommendSongs(
       userId: userId,
-      likedSongIds: _libraryController.likedSongIds.toList(),
+      likedSongIds: _libraryAccess.likedSongIds(),
     );
   }
 
@@ -303,7 +333,7 @@ class RecommendationController extends GetxController {
     }
     return _repository.fetchFmSongs(
       userId: userId,
-      likedSongIds: _libraryController.likedSongIds.toList(),
+      likedSongIds: _libraryAccess.likedSongIds(),
     );
   }
 
@@ -311,7 +341,7 @@ class RecommendationController extends GetxController {
   Future<UserHomePlaylistPlaybackPlan> resolveFrequentPlaylistPlayback(
     PlaylistSummaryData playlist,
   ) async {
-    final likedSongIds = _libraryController.likedSongIds.toList();
+    final likedSongIds = _libraryAccess.likedSongIds();
     final userId = _sessionController.userInfo.value.userId;
     final index = await _playlistRepository.fetchPlaylistIndex(
       playlist.id,
@@ -344,7 +374,7 @@ class RecommendationController extends GetxController {
           [
             todayRecommendSongs.isNotEmpty ? todayRecommendSongs.first.artworkUrl : null,
             fmSongs.isNotEmpty ? fmSongs.first.artworkUrl : null,
-            _libraryController.randomLikedSongAlbumUrl.value,
+            _libraryAccess.randomLikedSongAlbumUrl(),
           ],
         ),
       );
@@ -353,7 +383,7 @@ class RecommendationController extends GetxController {
 
   Future<void> _loadCache() async {
     await _sessionController.ensureCacheLoaded();
-    await _libraryController.ensureCacheLoaded();
+    await _libraryAccess.ensureCacheLoaded();
     _activeLocalDataUserId = _sessionController.userInfo.value.userId;
     final generation = ++_localDataGeneration;
     await _loadScopedLocalData(_activeLocalDataUserId, generation);
@@ -399,7 +429,7 @@ class RecommendationController extends GetxController {
     if (userId.isEmpty) {
       return const UserHomeLocalData.empty();
     }
-    final likedSongIds = _libraryController.likedSongIds.toList();
+    final likedSongIds = _libraryAccess.likedSongIds();
     final results = await Future.wait<Object>([
       _loadCachedPlaylistList(
         userId,
@@ -427,7 +457,7 @@ class RecommendationController extends GetxController {
     if (userId.isEmpty || userId == '-1') {
       return const UserHomeLocalData.empty();
     }
-    final likedSongIds = _libraryController.likedSongIds.toList();
+    final likedSongIds = _libraryAccess.likedSongIds();
     final results = await Future.wait<Object>([
       _repository.fetchTodayRecommendSongs(
         userId: userId,

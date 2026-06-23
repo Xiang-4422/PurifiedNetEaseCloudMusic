@@ -27,7 +27,7 @@ void main() {
         repository: _FakeUserRepository(),
         playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
-        libraryController: libraryController,
+        libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
       controller.recoPlayLists.add(
@@ -59,7 +59,7 @@ void main() {
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
-        libraryController: libraryController,
+        libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
 
@@ -85,7 +85,7 @@ void main() {
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
-        libraryController: libraryController,
+        libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
 
@@ -113,7 +113,7 @@ void main() {
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
-        libraryController: libraryController,
+        libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
       controller.recoPlayLists.add(const PlaylistSummaryData(id: 'old-first', title: 'Old first'));
@@ -153,7 +153,7 @@ void main() {
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
-        libraryController: libraryController,
+        libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
       controller.recoPlayLists.add(const PlaylistSummaryData(id: 'old-first', title: 'Old first'));
@@ -193,7 +193,7 @@ void main() {
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
-        libraryController: libraryController,
+        libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
 
@@ -238,7 +238,7 @@ void main() {
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionController: sessionController,
-        libraryController: libraryController,
+        libraryAccess: _libraryAccess(libraryController),
       );
       controller.recoPlayLists.add(const PlaylistSummaryData(id: 'visible-playlist', title: 'Visible'));
       controller.todayRecommendSongs.add(_song('visible-today'));
@@ -285,7 +285,7 @@ void main() {
         repository: _FakeUserRepository(),
         playlistRepository: playlistRepository,
         sessionController: sessionController,
-        libraryController: libraryController,
+        libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
 
@@ -317,6 +317,17 @@ void main() {
       ]);
     });
   });
+}
+
+RecommendationLibraryAccess _libraryAccess(_FakeUserLibraryController controller) {
+  return RecommendationLibraryAccess(
+    ensureCacheLoaded: controller.ensureCacheLoaded,
+    loadScopedLocalData: controller.loadScopedLocalData,
+    refreshUserLibrary: controller.refreshUserLibrary,
+    hasPlaylistData: () => controller.hasPlaylistData,
+    likedSongIds: () => controller.likedSongIds.toList(),
+    randomLikedSongAlbumUrl: () => controller.randomLikedSongAlbumUrl.value,
+  );
 }
 
 UserSessionController _buildSessionController(String userId) {

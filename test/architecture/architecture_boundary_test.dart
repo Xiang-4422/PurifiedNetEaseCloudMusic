@@ -1254,8 +1254,10 @@ void main() {
         if (section.contains('fetchPlaylistIndex(')) '${_relativePath(sectionFile)} fetches playlist index directly',
         if (section.contains('fetchPlaylistSongs(')) '${_relativePath(sectionFile)} fetches playlist songs directly',
         if (!section.contains('recommendationController.resolveFrequentPlaylistPlayback')) '${_relativePath(sectionFile)} does not resolve playlist playback through home controller',
+        if (controller.contains('UserLibraryController')) 'recommendation controller reads user library controller directly',
         if (!controller.contains('Future<UserHomePlaylistPlaybackPlan> resolveFrequentPlaylistPlayback')) 'recommendation controller does not expose frequent playlist playback resolution',
         if (!controller.contains('required PlaylistRepository playlistRepository')) 'recommendation controller does not receive playlist repository explicitly',
+        if (!controller.contains('required RecommendationLibraryAccess libraryAccess')) 'recommendation controller does not receive library access boundary',
         if (!controller.contains('currentUserId: userId')) 'recommendation controller does not pass current user when resolving frequent playlist',
         if (!controller.contains('playlistIndex: index')) 'recommendation controller does not reuse fetched playlist index for playback songs',
       ];

@@ -228,24 +228,22 @@ class ExplorePageController extends GetxController {
   }
 
   Future<bool> _shouldRefreshInitialData() async {
-    return !(await _exploreRepository.isPlaylistCatalogueFresh(
-          ttl: _playlistCatalogueTtl,
-        )) ||
-        !(await _exploreRepository.isCategoryPlaylistsFresh(
-          curTag.value,
-          ttl: _categoryPlaylistsTtl,
-        )) ||
-        !(await _playlistRepository.isCacheFresh(
-          curTopPlayListId.value,
-          ttl: _rankingPlaylistTtl,
-        )) ||
-        tagCategorys.isEmpty ||
-        playLists.isEmpty ||
-        curTopPlayListSongs.isEmpty;
+    final playlistCatalogueFresh = await _isPlaylistCatalogueFresh();
+    final categoryPlaylistsFresh = await _isCategoryPlaylistsFresh(curTag.value);
+    final rankingPlaylistFresh = await _isRankingPlaylistFresh(curTopPlayListId.value);
+    if (!playlistCatalogueFresh || !categoryPlaylistsFresh || !rankingPlaylistFresh) {
+      return true;
+    }
+    return tagCategorys.isEmpty || playLists.isEmpty || curTopPlayListSongs.isEmpty;
   }
 
   Future<bool> _loadCachedPlaylistCatalogue() async {
-    final cachedCatalogue = await _exploreRepository.loadCachedPlaylistCatalogue();
+    final ExplorePlaylistCatalogueData? cachedCatalogue;
+    try {
+      cachedCatalogue = await _exploreRepository.loadCachedPlaylistCatalogue();
+    } catch (_) {
+      return false;
+    }
     if (cachedCatalogue == null) {
       return false;
     }
@@ -297,11 +295,7 @@ class ExplorePageController extends GetxController {
     if (_disposed) {
       return;
     }
-    if (!force &&
-        tagCategorys.isNotEmpty &&
-        await _exploreRepository.isPlaylistCatalogueFresh(
-          ttl: _playlistCatalogueTtl,
-        )) {
+    if (!force && tagCategorys.isNotEmpty && await _isPlaylistCatalogueFresh()) {
       return;
     }
     final catalogue = await _exploreRepository.fetchPlaylistCatalogue();
@@ -325,11 +319,7 @@ class ExplorePageController extends GetxController {
       if (!_isCurrentPlaylistRequest(category, generation)) {
         return;
       }
-      if (hasCachedPlayLists &&
-          await _exploreRepository.isCategoryPlaylistsFresh(
-            category,
-            ttl: _categoryPlaylistsTtl,
-          )) {
+      if (hasCachedPlayLists && await _isCategoryPlaylistsFresh(category)) {
         return;
       }
       if (!_isCurrentPlaylistRequest(category, generation)) {
@@ -384,11 +374,7 @@ class ExplorePageController extends GetxController {
       )) {
         return;
       }
-      if (hasCachedSongs &&
-          await _playlistRepository.isCacheFresh(
-            playlistId,
-            ttl: _rankingPlaylistTtl,
-          )) {
+      if (hasCachedSongs && await _isRankingPlaylistFresh(playlistId)) {
         return;
       }
       if (!_isCurrentRankingRequest(
@@ -478,7 +464,12 @@ class ExplorePageController extends GetxController {
     required String category,
     required bool Function() canApply,
   }) async {
-    final cachedPlayLists = await _exploreRepository.loadCachedCategoryPlaylists(category);
+    final List<PlaylistSummaryData>? cachedPlayLists;
+    try {
+      cachedPlayLists = await _exploreRepository.loadCachedCategoryPlaylists(category);
+    } catch (_) {
+      return false;
+    }
     if (cachedPlayLists == null || cachedPlayLists.isEmpty) {
       return false;
     }
@@ -497,11 +488,16 @@ class ExplorePageController extends GetxController {
     required String currentUserId,
     required bool Function() canApply,
   }) async {
-    final cachedDetail = await _playlistRepository.loadLocalPlaylistDetail(
-      playlistId: playlistId,
-      likedSongIds: likedSongIds,
-      currentUserId: currentUserId,
-    );
+    final PlaylistDetailData? cachedDetail;
+    try {
+      cachedDetail = await _playlistRepository.loadLocalPlaylistDetail(
+        playlistId: playlistId,
+        likedSongIds: likedSongIds,
+        currentUserId: currentUserId,
+      );
+    } catch (_) {
+      return false;
+    }
     final cachedSongs = cachedDetail?.songs ?? const <PlaybackQueueItem>[];
     if (cachedSongs.isEmpty) {
       return false;
@@ -514,6 +510,38 @@ class ExplorePageController extends GetxController {
       ..addAll(cachedSongs);
     _updateLoadMoreState(cachedSongs.length);
     return true;
+  }
+
+  Future<bool> _isPlaylistCatalogueFresh() async {
+    try {
+      return await _exploreRepository.isPlaylistCatalogueFresh(
+        ttl: _playlistCatalogueTtl,
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> _isCategoryPlaylistsFresh(String category) async {
+    try {
+      return await _exploreRepository.isCategoryPlaylistsFresh(
+        category,
+        ttl: _categoryPlaylistsTtl,
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> _isRankingPlaylistFresh(String playlistId) async {
+    try {
+      return await _playlistRepository.isCacheFresh(
+        playlistId,
+        ttl: _rankingPlaylistTtl,
+      );
+    } catch (_) {
+      return false;
+    }
   }
 
   bool _isCurrentPlaylistRequest(String category, int generation) {

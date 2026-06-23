@@ -79,6 +79,41 @@ void main() {
       expect(controller.playLists.map((playlist) => playlist.id), ['rock-playlist']);
     });
 
+    test('falls back to remote category playlists when cached playlists load fails', () async {
+      final controller = _buildController(
+        exploreRepository: _FakeExploreRepository(
+          cachedCategoryPlaylistsError: StateError('cache failed'),
+          fetchCategoryPlaylistsHandler: (_) => Future.value(
+            const [PlaylistSummaryData(id: 'remote-playlist', title: 'Remote')],
+          ),
+        ),
+      );
+      addTearDown(controller.onClose);
+      controller.curTag.value = '全部';
+
+      await controller.updatePlayLists();
+
+      expect(controller.playLists.map((playlist) => playlist.id), ['remote-playlist']);
+    });
+
+    test('refreshes category playlists when cache freshness check fails', () async {
+      final controller = _buildController(
+        exploreRepository: _FakeExploreRepository(
+          cachedCategoryPlaylists: const [PlaylistSummaryData(id: 'cached-playlist', title: 'Cached')],
+          categoryPlaylistsFreshError: StateError('freshness failed'),
+          fetchCategoryPlaylistsHandler: (_) => Future.value(
+            const [PlaylistSummaryData(id: 'remote-playlist', title: 'Remote')],
+          ),
+        ),
+      );
+      addTearDown(controller.onClose);
+      controller.curTag.value = '全部';
+
+      await controller.updatePlayLists();
+
+      expect(controller.playLists.map((playlist) => playlist.id), ['remote-playlist']);
+    });
+
     test('ignores stale ranking load more responses after playlist changes', () async {
       final songRequests = <String, Completer<List<PlaybackQueueItem>>>{};
       final controller = _buildController(
@@ -112,6 +147,28 @@ void main() {
 
       expect(controller.curTopPlayListId.value, 'ranking-b');
       expect(controller.curTopPlayListSongs.map((song) => song.id), ['b-1']);
+    });
+
+    test('falls back to remote ranking songs when cached detail load fails', () async {
+      final controller = _buildController(
+        playlistRepository: _FakePlaylistRepository(
+          cachedDetailError: StateError('cache failed'),
+          fetchSongsHandler: ({
+            required String playlistId,
+            required List<int> likedSongIds,
+            required int offset,
+            required int limit,
+          }) {
+            return Future.value([_song('remote-song')]);
+          },
+        ),
+      );
+      addTearDown(controller.onClose);
+      controller.curTopPlayListId.value = 'ranking-1';
+
+      await controller.updateRankingPlayListSongs();
+
+      expect(controller.curTopPlayListSongs.map((song) => song.id), ['remote-song']);
     });
   });
 }
@@ -149,10 +206,16 @@ PlaybackQueueItem _song(String id) {
 
 class _FakeExploreRepository implements ExploreRepository {
   _FakeExploreRepository({
+    this.cachedCategoryPlaylists,
+    this.cachedCategoryPlaylistsError,
+    this.categoryPlaylistsFreshError,
     this.fetchPlaylistCatalogueError,
     this.fetchCategoryPlaylistsHandler,
   });
 
+  final List<PlaylistSummaryData>? cachedCategoryPlaylists;
+  final Object? cachedCategoryPlaylistsError;
+  final Object? categoryPlaylistsFreshError;
   final Object? fetchPlaylistCatalogueError;
   final Future<List<PlaylistSummaryData>> Function(String category)? fetchCategoryPlaylistsHandler;
 
@@ -184,7 +247,11 @@ class _FakeExploreRepository implements ExploreRepository {
   Future<List<PlaylistSummaryData>?> loadCachedCategoryPlaylists(
     String category,
   ) async {
-    return null;
+    final error = cachedCategoryPlaylistsError;
+    if (error != null) {
+      throw error;
+    }
+    return cachedCategoryPlaylists;
   }
 
   @override
@@ -192,6 +259,10 @@ class _FakeExploreRepository implements ExploreRepository {
     String category, {
     required Duration ttl,
   }) async {
+    final error = categoryPlaylistsFreshError;
+    if (error != null) {
+      throw error;
+    }
     return false;
   }
 
@@ -207,10 +278,12 @@ class _FakeExploreRepository implements ExploreRepository {
 
 class _FakePlaylistRepository implements PlaylistRepository {
   _FakePlaylistRepository({
+    this.cachedDetailError,
     this.fetchSongsError,
     this.fetchSongsHandler,
   });
 
+  final Object? cachedDetailError;
   final Object? fetchSongsError;
   final Future<List<PlaybackQueueItem>> Function({
     required String playlistId,
@@ -258,6 +331,10 @@ class _FakePlaylistRepository implements PlaylistRepository {
     required List<int> likedSongIds,
     required String? currentUserId,
   }) async {
+    final error = cachedDetailError;
+    if (error != null) {
+      throw error;
+    }
     return null;
   }
 

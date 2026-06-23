@@ -1,10 +1,9 @@
-import 'package:bujuan/core/state/load_state.dart';
-import 'package:bujuan/core/entities/local_song_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/download/local_song_list_controller.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/ui/pages/download/widgets/local_song_list_widgets.dart';
+import 'package:bujuan/ui/pages/download/widgets/local_song_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -108,38 +107,9 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> with Single
               ],
             ),
           ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(kTextTabBarHeight),
-            child: ValueListenableBuilder<LoadState<List<LocalSongEntry>>>(
-              valueListenable: _allController.state,
-              builder: (context, state, child) {
-                final items = state.data ?? const <LocalSongEntry>[];
-                final cacheCount = items
-                    .where(
-                      (item) => item.origin == TrackResourceOrigin.playbackCache,
-                    )
-                    .length;
-                final downloadCount = items
-                    .where(
-                      (item) => item.origin == TrackResourceOrigin.managedDownload,
-                    )
-                    .length;
-                final importCount = items
-                    .where(
-                      (item) => item.origin == TrackResourceOrigin.localImport,
-                    )
-                    .length;
-                return TabBar(
-                  controller: _tabController,
-                  tabs: [
-                    Tab(text: '全部 ${items.length}'),
-                    Tab(text: '缓存 $cacheCount'),
-                    Tab(text: '已下载 $downloadCount'),
-                    Tab(text: '本地导入 $importCount'),
-                  ],
-                );
-              },
-            ),
+          bottom: LocalSongTabBar(
+            controller: _allController,
+            tabController: _tabController,
           ),
         ),
         body: TabBarView(

@@ -257,20 +257,32 @@ void main() {
     final listWidgetSource = File(
       'lib/ui/pages/download/widgets/local_song_list_widgets.dart',
     ).readAsStringSync();
+    final tabBarSource = File(
+      'lib/ui/pages/download/widgets/local_song_tab_bar.dart',
+    ).readAsStringSync();
 
     expect(source, contains('static const int tabDownloaded = 2;'));
     expect(source, contains('static const int tabLocalImport = 3;'));
     expect(source, contains('final int initialTabIndex;'));
     expect(source, contains('initialIndex: widget.initialTabIndex'));
     expect(source, contains('local_song_list_widgets.dart'));
+    expect(source, contains('local_song_tab_bar.dart'));
     expect(source, contains('LocalSongTabView('));
+    expect(source, contains('LocalSongTabBar('));
     expect(source, isNot(contains('LoadStateView<List<LocalSongEntry>>')));
+    expect(source, isNot(contains('ValueListenableBuilder<LoadState<List<LocalSongEntry>>>')));
     expect(source, isNot(contains('ListTile(')));
     expect(source, isNot(contains('TablerIcons.trash')));
+    expect(source, isNot(contains("Tab(text: '全部")));
     expect(listWidgetSource, contains('class LocalSongTabView'));
     expect(listWidgetSource, contains('LoadStateView<List<LocalSongEntry>>'));
     expect(listWidgetSource, contains('ListTile('));
     expect(listWidgetSource, contains('TablerIcons.trash'));
     expect(listWidgetSource, contains('TrackResourceOrigin.playbackCache'));
+    expect(tabBarSource, contains('class LocalSongTabBar'));
+    expect(tabBarSource, contains('ValueListenableBuilder<LoadState<List<LocalSongEntry>>>'));
+    expect(tabBarSource, contains("Tab(text: '全部 "));
+    expect(tabBarSource, contains('TrackResourceOrigin.managedDownload'));
+    expect(tabBarSource, contains('TrackResourceOrigin.localImport'));
   });
 }

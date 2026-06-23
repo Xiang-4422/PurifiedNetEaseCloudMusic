@@ -7,9 +7,11 @@ void main() {
     final source = File('lib/ui/pages/playlist/playlist_page_view.dart').readAsStringSync();
 
     expect(source, contains('PlaylistHeaderSliver('));
+    expect(source, contains('PlaylistSongListSliver('));
     expect(source, contains('PlaylistSkeletonSliver('));
     expect(source, contains('PlaylistStatusFooterSliver('));
     expect(source, isNot(contains('SliverAppBar(')));
+    expect(source, isNot(contains('SongItem(')));
     expect(source, isNot(contains('class _PlaylistActionButtonSurface')));
   });
 
@@ -37,5 +39,21 @@ void main() {
     expect(source, contains('class PlaylistStatusFooterSliver'));
     expect(source, contains('childCount: 8'));
     expect(source, contains('message'));
+  });
+
+  test('playlist song list keeps row presentation outside page state', () {
+    final pageSource = File('lib/ui/pages/playlist/playlist_page_view.dart').readAsStringSync();
+    final listSource = File(
+      'lib/ui/pages/playlist/widgets/playlist_song_list_sliver.dart',
+    ).readAsStringSync();
+
+    expect(pageSource, contains('onTapSong: _playSongAt'));
+    expect(pageSource, contains("playListNameHeader: '歌单'"));
+    expect(pageSource, isNot(contains('SliverChildBuilderDelegate(')));
+    expect(listSource, contains('class PlaylistSongListSliver'));
+    expect(listSource, contains('SliverChildBuilderDelegate('));
+    expect(listSource, contains('SongItem('));
+    expect(listSource, contains("playListHeader: '歌单'"));
+    expect(listSource, contains('foregroundColor'));
   });
 }

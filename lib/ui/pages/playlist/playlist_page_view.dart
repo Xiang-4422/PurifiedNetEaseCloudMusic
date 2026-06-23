@@ -20,10 +20,10 @@ import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/ui/pages/playlist/widgets/playlist_header_sliver.dart';
+import 'package:bujuan/ui/pages/playlist/widgets/playlist_song_list_sliver.dart';
 import 'package:bujuan/ui/pages/playlist/widgets/playlist_status_slivers.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
-import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -158,33 +158,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
           if (_isShowingPlaylistSkeleton)
             PlaylistSkeletonSliver(foregroundColor: widgetColor)
           else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (BuildContext context, int index) {
-                    final song = songs[index];
-                    return SongItem(
-                      item: song,
-                      index: index,
-                      playListName: playlistName,
-                      playListHeader: "歌单",
-                      stringColor: widgetColor,
-                      beforeOnTap: () {
-                        ShellController.to.jumpBottomPanelToPage(0);
-                        ShellController.to.openBottomPanel();
-                      },
-                      onTap: () => _playerController.playPlaylist(
-                        songs,
-                        index,
-                        playListName: playlistName,
-                        playListNameHeader: "歌单",
-                      ),
-                    );
-                  },
-                  childCount: songs.length,
-                ),
-              ),
+            PlaylistSongListSliver(
+              songs: songs,
+              playlistName: playlistName,
+              foregroundColor: widgetColor,
+              onTapSong: _playSongAt,
             ),
           if (_isShowingStatusFooter)
             PlaylistStatusFooterSliver(
@@ -558,6 +536,17 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       0,
       playListName: playlistName,
       playListNameHeader: "歌单",
+    );
+  }
+
+  Future<void> _playSongAt(int index) async {
+    ShellController.to.jumpBottomPanelToPage(0);
+    ShellController.to.openBottomPanel();
+    await _playerController.playPlaylist(
+      songs,
+      index,
+      playListName: playlistName,
+      playListNameHeader: '歌单',
     );
   }
 

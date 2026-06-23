@@ -76,6 +76,7 @@ class UniversalListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metrics = _MusicListTileMetrics(context);
+    final shouldShowThumbnail = picUrl != null;
     final localPicPath = ArtworkPathResolver.resolveDisplayPath(picUrl);
     final colorScheme = Theme.of(context).colorScheme;
     final interactive = onTap != null || onLongPress != null;
@@ -104,7 +105,7 @@ class UniversalListTile extends StatelessWidget {
                     ),
                     SizedBox(width: metrics.tileGap),
                   ],
-                  if (localPicPath.isNotEmpty) ...[
+                  if (shouldShowThumbnail) ...[
                     SizedBox.square(
                       dimension: metrics.thumbnailSize,
                       child: SimpleExtendedImage(
@@ -274,7 +275,7 @@ class SongItem extends StatelessWidget {
               color: stringColor,
             )
           : null,
-      picUrl: showPic ? artworkPath : null,
+      picUrl: showPic ? ArtworkPathResolver.resolveDisplayPath(artworkPath) : null,
       titleString: currentItem.title,
       subTitleString: currentItem.artist,
       stringColor: stringColor,

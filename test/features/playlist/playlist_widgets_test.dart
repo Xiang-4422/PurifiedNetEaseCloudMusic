@@ -55,6 +55,24 @@ void main() {
       expect(tester.getSize(find.byKey(tileKey)).height, greaterThan(52));
     });
 
+    testWidgets('UniversalListTile keeps thumbnail placeholder for empty image paths', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          const UniversalListTile(
+            titleString: 'Track',
+            subTitleString: 'Artist',
+            picUrl: '',
+          ),
+        ),
+      );
+
+      final image = tester.widget<SimpleExtendedImage>(
+        find.byType(SimpleExtendedImage),
+      );
+      expect(image.url, isEmpty);
+      expect(find.byIcon(Icons.music_note_rounded), findsOneWidget);
+    });
+
     testWidgets('SongItem shows index and still triggers playback callback', (tester) async {
       var playCallCount = 0;
       await tester.pumpWidget(
@@ -78,9 +96,34 @@ void main() {
       );
 
       expect(find.text('1'), findsOneWidget);
+      expect(find.byType(SimpleExtendedImage), findsNothing);
       await tester.tap(find.text('Track'));
       await tester.pump();
       expect(playCallCount, 1);
+    });
+
+    testWidgets('SongItem keeps thumbnail placeholder when artwork is missing', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          SongItem(
+            playlist: [_song()],
+            index: 0,
+            playListName: 'list',
+            onPlay: (
+              playlist,
+              index, {
+              String playListName = '',
+              String playListNameHeader = '',
+            }) async {},
+          ),
+        ),
+      );
+
+      final image = tester.widget<SimpleExtendedImage>(
+        find.byType(SimpleExtendedImage),
+      );
+      expect(image.url, isEmpty);
+      expect(find.byIcon(Icons.music_note_rounded), findsOneWidget);
     });
 
     test('UniversalListTile semantic label uses title and subtitle', () {

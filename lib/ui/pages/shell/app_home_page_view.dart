@@ -1,9 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/features/comment/comment_controller_factory.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/search/search_panel_controller.dart';
-import 'package:bujuan/features/shell/home_shell_controller.dart';
-import 'package:bujuan/features/settings/settings_controller.dart';
+import 'package:bujuan/features/shell/app_home_controller_bundle.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/pages/shell/home_shell_scope.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart';
@@ -25,11 +21,12 @@ class AppHomePageView extends GetView<ShellController> {
   @override
   Widget build(BuildContext context) {
     controller.buildContext = context;
-    final commentControllerFactory = Get.find<CommentControllerFactory>();
-    final homeShellController = Get.find<HomeShellController>();
-    final playerController = Get.find<PlayerController>();
-    final searchController = Get.find<SearchPanelController>();
-    final settingsController = Get.find<SettingsController>();
+    final appHomeControllers = Get.find<AppHomeControllerBundle>();
+    final commentControllerFactory = appHomeControllers.commentControllerFactory;
+    final homeShellController = appHomeControllers.homeShellController;
+    final playerController = appHomeControllers.playerController;
+    final searchController = appHomeControllers.searchController;
+    final settingsController = appHomeControllers.settingsController;
     return HomeShellScope(
       homeShellController: homeShellController,
       child: Material(

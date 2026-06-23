@@ -738,10 +738,14 @@ void main() {
       final homeFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/app_home_page_view.dart',
       );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
       final panelFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
       );
       final home = homeFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
       final panel = panelFile.readAsStringSync();
       final violations = <String>[
         if (panel.contains('PlayerController.to')) '${_relativePath(panelFile)} reads player controller globally',
@@ -750,9 +754,17 @@ void main() {
         if (!panel.contains('required this.playerController')) '${_relativePath(panelFile)} does not receive player controller',
         if (!panel.contains('required this.settingsController')) '${_relativePath(panelFile)} does not receive settings controller',
         if (!panel.contains('required this.commentControllerFactory')) '${_relativePath(panelFile)} does not receive comment controller factory',
-        if (!home.contains('final playerController = Get.find<PlayerController>()')) '${_relativePath(homeFile)} does not resolve player controller at shell boundary',
-        if (!home.contains('final settingsController = Get.find<SettingsController>()')) '${_relativePath(homeFile)} does not resolve settings controller at shell boundary',
-        if (!home.contains('final commentControllerFactory = Get.find<CommentControllerFactory>()')) '${_relativePath(homeFile)} does not resolve comment controller factory at shell boundary',
+        if (!home.contains('final appHomeControllers = Get.find<AppHomeControllerBundle>()')) '${_relativePath(homeFile)} does not resolve app home controller bundle at shell boundary',
+        if (home.contains('Get.find<PlayerController>')) '${_relativePath(homeFile)} reads player controller globally',
+        if (home.contains('Get.find<SettingsController>')) '${_relativePath(homeFile)} reads settings controller globally',
+        if (home.contains('Get.find<CommentControllerFactory>')) '${_relativePath(homeFile)} reads comment controller factory globally',
+        if (!home.contains('final playerController = appHomeControllers.playerController')) '${_relativePath(homeFile)} does not receive player controller from app home bundle',
+        if (!home.contains('final settingsController = appHomeControllers.settingsController')) '${_relativePath(homeFile)} does not receive settings controller from app home bundle',
+        if (!home.contains('final commentControllerFactory = appHomeControllers.commentControllerFactory')) '${_relativePath(homeFile)} does not receive comment controller factory from app home bundle',
+        if (!bootstrap.contains('Get.put<AppHomeControllerBundle>')) 'feature bootstrap does not register app home controller bundle',
+        if (!bootstrap.contains('commentControllerFactory: Get.find<CommentControllerFactory>()')) 'feature bootstrap does not inject comment factory into app home bundle',
+        if (!bootstrap.contains('playerController: Get.find<PlayerController>()')) 'feature bootstrap does not inject player controller into app home bundle',
+        if (!bootstrap.contains('settingsController: Get.find<SettingsController>()')) 'feature bootstrap does not inject settings controller into app home bundle',
         if (!home.contains('panel: BottomPanelView(')) '${_relativePath(homeFile)} does not compose bottom panel',
         if (!home.contains('playerController: playerController')) '${_relativePath(homeFile)} does not inject player controller into bottom panel',
         if (!home.contains('settingsController: settingsController')) '${_relativePath(homeFile)} does not inject settings controller into bottom panel',
@@ -776,9 +788,13 @@ void main() {
       final homeFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/app_home_page_view.dart',
       );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
       final comment = commentFile.readAsStringSync();
       final panel = panelFile.readAsStringSync();
       final home = homeFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
         if (comment.contains('PlayerController.to')) '${_relativePath(commentFile)} reads player controller globally',
         if (comment.contains('SettingsController.to')) '${_relativePath(commentFile)} reads settings controller globally',
@@ -790,7 +806,10 @@ void main() {
         if (panel.contains('Get.find<CommentControllerFactory>')) '${_relativePath(panelFile)} reads comment controller factory globally',
         if (!panel.contains('required this.commentControllerFactory')) '${_relativePath(panelFile)} does not receive comment controller factory',
         if (!panel.contains('commentControllerFactory: commentControllerFactory')) '${_relativePath(panelFile)} does not inject comment controller factory',
-        if (!home.contains('final commentControllerFactory = Get.find<CommentControllerFactory>()')) '${_relativePath(homeFile)} does not resolve comment factory at shell boundary',
+        if (!home.contains('final appHomeControllers = Get.find<AppHomeControllerBundle>()')) '${_relativePath(homeFile)} does not resolve app home controller bundle at shell boundary',
+        if (home.contains('Get.find<CommentControllerFactory>')) '${_relativePath(homeFile)} reads comment factory globally',
+        if (!home.contains('final commentControllerFactory = appHomeControllers.commentControllerFactory')) '${_relativePath(homeFile)} does not receive comment factory from app home bundle',
+        if (!bootstrap.contains('commentControllerFactory: Get.find<CommentControllerFactory>()')) 'feature bootstrap does not inject comment factory into app home bundle',
         if (!home.contains('commentControllerFactory: commentControllerFactory')) '${_relativePath(homeFile)} does not inject comment controller factory into bottom panel',
         if (!panel.contains('playerController: playerController')) '${_relativePath(panelFile)} does not inject player controller',
         if (!panel.contains('settingsController: settingsController')) '${_relativePath(panelFile)} does not inject settings controller',
@@ -1782,10 +1801,14 @@ void main() {
       final homeFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/app_home_page_view.dart',
       );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
       final bodyFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/app_body_page_view.dart',
       );
       final home = homeFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
       final body = bodyFile.readAsStringSync();
       final drawerStart = body.indexOf('class DrawerMainScreenView');
       final menuStart = body.indexOf('class MenuView');
@@ -1797,7 +1820,10 @@ void main() {
         if (drawerSection.contains('HomeShellController.to')) '${_relativePath(bodyFile)} drawer main screen reads home shell globally',
         if (menuSection.contains('HomeShellController.to')) '${_relativePath(bodyFile)} menu view reads home shell globally',
         if (!body.contains('final homeShellController = HomeShellScope.of(context)')) '${_relativePath(bodyFile)} does not read home shell from local scope',
-        if (!home.contains('final homeShellController = Get.find<HomeShellController>()')) '${_relativePath(homeFile)} does not resolve home shell controller at shell boundary',
+        if (!home.contains('final appHomeControllers = Get.find<AppHomeControllerBundle>()')) '${_relativePath(homeFile)} does not resolve app home controller bundle at shell boundary',
+        if (home.contains('Get.find<HomeShellController>')) '${_relativePath(homeFile)} reads home shell controller globally',
+        if (!home.contains('final homeShellController = appHomeControllers.homeShellController')) '${_relativePath(homeFile)} does not receive home shell controller from app home bundle',
+        if (!bootstrap.contains('homeShellController: Get.find<HomeShellController>()')) 'feature bootstrap does not inject home shell controller into app home bundle',
         if (!home.contains('HomeShellScope(')) '${_relativePath(homeFile)} does not provide home shell scope',
         if (!home.contains('homeShellController: homeShellController')) '${_relativePath(homeFile)} does not inject home shell into scope',
         if (!body.contains('MenuView(homeShellController: homeShellController)')) '${_relativePath(bodyFile)} does not inject home shell into menu',

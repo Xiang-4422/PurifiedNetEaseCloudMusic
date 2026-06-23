@@ -90,7 +90,9 @@ void main() {
     expect(panelSource, isNot(contains('Get.find<CommentControllerFactory>')));
     expect(panelSource, isNot(contains('PlayerController.to')));
     expect(panelSource, isNot(contains('SettingsController.to')));
-    expect(homeSource, contains('final commentControllerFactory = Get.find<CommentControllerFactory>()'));
+    expect(homeSource, contains('final appHomeControllers = Get.find<AppHomeControllerBundle>()'));
+    expect(homeSource, contains('final commentControllerFactory = appHomeControllers.commentControllerFactory'));
+    expect(homeSource, isNot(contains('Get.find<CommentControllerFactory>')));
     expect(homeSource, contains('panel: BottomPanelView('));
     expect(homeSource, contains('commentControllerFactory: commentControllerFactory'));
     expect(homeSource, contains('playerController: playerController'));

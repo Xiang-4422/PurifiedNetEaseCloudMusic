@@ -51,6 +51,7 @@ import 'package:bujuan/features/settings/cache_analysis_controller.dart';
 import 'package:bujuan/features/settings/cache_analysis_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/settings/settings_repository.dart';
+import 'package:bujuan/features/shell/app_home_controller_bundle.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/personal_home_controller_bundle.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
@@ -328,6 +329,16 @@ void registerFeatureControllers() {
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
     ),
     fenix: true,
+  );
+  Get.put<AppHomeControllerBundle>(
+    AppHomeControllerBundle(
+      commentControllerFactory: Get.find<CommentControllerFactory>(),
+      homeShellController: Get.find<HomeShellController>(),
+      playerController: Get.find<PlayerController>(),
+      searchController: Get.find<SearchPanelController>(),
+      settingsController: Get.find<SettingsController>(),
+    ),
+    permanent: true,
   );
   Get.lazyPut(() => ShellController(), fenix: true);
 }

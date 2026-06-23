@@ -30,6 +30,11 @@ void main() {
     expect(panelSource, isNot(contains('ShellController.to')));
     expect(panelSource, isNot(contains('Get.find<SearchPanelController>')));
     expect(panelSource, isNot(contains('Get.find<PlayerController>')));
+    expect(homeSource, contains('final appHomeControllers = Get.find<AppHomeControllerBundle>()'));
+    expect(homeSource, contains('final searchController = appHomeControllers.searchController'));
+    expect(homeSource, contains('final playerController = appHomeControllers.playerController'));
+    expect(homeSource, isNot(contains('Get.find<SearchPanelController>')));
+    expect(homeSource, isNot(contains('Get.find<PlayerController>')));
     expect(homeSource, contains('TopPanelView('));
     expect(homeSource, contains('shellController: controller'));
     expect(homeSource, contains('searchController: searchController'));

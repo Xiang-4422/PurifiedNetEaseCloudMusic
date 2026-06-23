@@ -1440,6 +1440,9 @@ void main() {
       final radioViewFile = File(
         '${projectRoot.path}/lib/ui/pages/radio/radio_details_view.dart',
       );
+      final radioListControllerFile = File(
+        '${projectRoot.path}/lib/features/radio/radio_list_controller.dart',
+      );
       final radioControllerFile = File(
         '${projectRoot.path}/lib/features/radio/radio_detail_controller.dart',
       );
@@ -1454,6 +1457,7 @@ void main() {
       final cloudFactory = cloudFactoryFile.readAsStringSync();
       final radioListView = radioListViewFile.readAsStringSync();
       final radioView = radioViewFile.readAsStringSync();
+      final radioListController = radioListControllerFile.readAsStringSync();
       final radioController = radioControllerFile.readAsStringSync();
       final radioFactory = radioFactoryFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
@@ -1473,6 +1477,7 @@ void main() {
         if (radioListView.contains('RadioRepository')) '${_relativePath(radioListViewFile)} names radio repository directly',
         if (radioListView.contains('UserSessionController')) '${_relativePath(radioListViewFile)} reads current user directly',
         if (!radioListView.contains('Get.find<RadioControllerFactory>().createList()')) '${_relativePath(radioListViewFile)} does not create list controller through feature factory',
+        if (!radioListController.contains('bool get _hasUserId => _userId.trim().isNotEmpty')) 'radio list controller does not trim-check current user before repository access',
         if (radioView.contains('UserLibraryController')) '${_relativePath(radioViewFile)} reads user library directly',
         if (radioView.contains('RadioRepository')) '${_relativePath(radioViewFile)} names radio repository directly',
         if (radioView.contains('UserSessionController')) '${_relativePath(radioViewFile)} reads current user directly',
@@ -1483,6 +1488,7 @@ void main() {
         if (!radioController.contains('List<PlaybackQueueItem> get queueItems')) 'radio detail controller does not expose queue items',
         if (!radioController.contains('required List<int> Function() likedSongIds')) 'radio detail controller does not require a lazy liked ids provider',
         if (!radioController.contains('likedSongIds: _likedSongIds()')) 'radio detail controller does not derive liked state from lazy provider',
+        if (!radioController.contains('bool get _hasUserId => _userId.trim().isNotEmpty')) 'radio detail controller does not trim-check current user before repository access',
         if (!radioFactory.contains('RadioListController createList({int pageSize = 30})')) 'radio controller factory does not create list controllers',
         if (!radioFactory.contains('RadioDetailController createDetail({')) 'radio controller factory does not create detail controllers',
         if (!radioFactory.contains('userId: _currentUserId()')) 'radio controller factory does not snapshot current user at controller creation',
@@ -1495,6 +1501,25 @@ void main() {
         violations,
         isEmpty,
         reason: '云盘页和播客页不能在 Widget 内直接拼账号、repository 或喜欢列表；页面本地 controller 应由 feature factory 注入当前账号和喜欢列表 provider。',
+      );
+    });
+
+    test('radio repository rejects blank account scope', () {
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/features/radio/radio_repository.dart',
+      );
+      final repository = repositoryFile.readAsStringSync();
+      final violations = <String>[
+        if (!repository.contains('bool _isBlankUserId(String userId)')) '${_relativePath(repositoryFile)} does not define a blank user guard',
+        if (!repository.contains('if (_isBlankUserId(userId))')) '${_relativePath(repositoryFile)} does not guard user-scoped radio entry points',
+        if (!repository.contains('return const DjRadioPage(')) '${_relativePath(repositoryFile)} does not return an empty radio page for blank users',
+        if (!repository.contains('return const DjProgramPage(')) '${_relativePath(repositoryFile)} does not return an empty radio program page for blank users',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '电台仓库是账号作用域缓存边界，空账号不能读取或写入用户电台缓存，也不能触发远程电台请求。',
       );
     });
 

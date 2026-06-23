@@ -54,7 +54,8 @@ class RadioDetailController {
       return;
     }
     final generation = ++_requestGeneration;
-    if (_userId.isEmpty) {
+    if (!_hasUserId) {
+      _offset = 0;
       state.value = const PagedState(items: [], hasMore: false);
       return;
     }
@@ -94,6 +95,12 @@ class RadioDetailController {
     if (_disposed) {
       return true;
     }
+    if (!_hasUserId) {
+      _requestGeneration++;
+      _offset = 0;
+      state.value = const PagedState(items: [], hasMore: false);
+      return true;
+    }
     state.value = state.value.copyWith(
       refreshing: true,
       error: null,
@@ -104,6 +111,9 @@ class RadioDetailController {
   /// 加载下一页节目。
   Future<bool> loadMore() async {
     if (_disposed) {
+      return true;
+    }
+    if (!_hasUserId) {
       return true;
     }
     final currentState = state.value;
@@ -203,4 +213,6 @@ class RadioDetailController {
   bool _isCurrentRequest(int generation) {
     return !_disposed && generation == _requestGeneration;
   }
+
+  bool get _hasUserId => _userId.trim().isNotEmpty;
 }

@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
+import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
 import 'package:bujuan/features/radio/radio_list_controller.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
@@ -9,6 +11,30 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('RadioListController', () {
+    test('skips repository access for blank user id', () async {
+      final repository = _FakeRadioRepository();
+      final controller = RadioListController(
+        userId: '   ',
+        repository: repository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+
+      expect(controller.state.value.items, isEmpty);
+      expect(controller.state.value.hasMore, isFalse);
+      expect(repository.requestedCachedRadioUserIds, isEmpty);
+      expect(repository.requestedRadioOffsets, isEmpty);
+
+      expect(await controller.refresh(), isTrue);
+      expect(await controller.loadMore(), isTrue);
+
+      expect(controller.state.value.items, isEmpty);
+      expect(controller.state.value.hasMore, isFalse);
+      expect(repository.requestedCachedRadioUserIds, isEmpty);
+      expect(repository.requestedRadioOffsets, isEmpty);
+    });
+
     test('keeps cached radios when background refresh fails', () async {
       final refresh = Completer<DjRadioPage>();
       final error = Exception('offline');
@@ -240,6 +266,32 @@ void main() {
   });
 
   group('RadioDetailController', () {
+    test('skips repository access for blank user id', () async {
+      final repository = _FakeRadioRepository();
+      final controller = RadioDetailController(
+        radioId: 'radio-1',
+        userId: '   ',
+        repository: repository,
+        likedSongIds: () => const [],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+
+      expect(controller.state.value.items, isEmpty);
+      expect(controller.state.value.hasMore, isFalse);
+      expect(repository.requestedCachedProgramUserIds, isEmpty);
+      expect(repository.requestedProgramOffsets, isEmpty);
+
+      expect(await controller.refresh(), isTrue);
+      expect(await controller.loadMore(), isTrue);
+
+      expect(controller.state.value.items, isEmpty);
+      expect(controller.state.value.hasMore, isFalse);
+      expect(repository.requestedCachedProgramUserIds, isEmpty);
+      expect(repository.requestedProgramOffsets, isEmpty);
+    });
+
     test('keeps cached programs when background refresh fails', () async {
       final refresh = Completer<DjProgramPage>();
       final error = Exception('offline');
@@ -504,6 +556,45 @@ void main() {
       await expectLater(loadMoreFuture, completes);
     });
   });
+
+  group('RadioRepository', () {
+    test('returns empty data without touching data sources for blank user id', () async {
+      final repository = RadioRepository(
+        userRadioDataSource: _FailingUserRadioDataSource(),
+        remoteDataSource: _FailingRadioRemoteDataSource(),
+      );
+
+      expect(await repository.loadCachedSubscribedRadios('   '), isEmpty);
+      expect(
+        await repository.loadCachedPrograms(
+          '   ',
+          'radio-1',
+          asc: true,
+        ),
+        isEmpty,
+      );
+
+      final radios = await repository.fetchSubscribedRadios(
+        userId: '   ',
+        offset: 0,
+        limit: 30,
+      );
+      expect(radios.items, isEmpty);
+      expect(radios.hasMore, isFalse);
+      expect(radios.nextOffset, 0);
+
+      final programs = await repository.fetchPrograms(
+        '   ',
+        'radio-1',
+        offset: 0,
+        limit: 30,
+        asc: true,
+      );
+      expect(programs.items, isEmpty);
+      expect(programs.hasMore, isFalse);
+      expect(programs.nextOffset, 0);
+    });
+  });
 }
 
 RadioSummaryData _radio(String id) {
@@ -578,9 +669,12 @@ class _FakeRadioRepository implements RadioRepository {
   })? _fetchProgramsWithArgs;
   final List<int> requestedRadioOffsets = <int>[];
   final List<int> requestedProgramOffsets = <int>[];
+  final List<String> requestedCachedRadioUserIds = <String>[];
+  final List<String> requestedCachedProgramUserIds = <String>[];
 
   @override
   Future<List<RadioSummaryData>> loadCachedSubscribedRadios(String userId) async {
+    requestedCachedRadioUserIds.add(userId);
     final future = cachedRadiosFuture;
     if (future != null) {
       return future;
@@ -594,6 +688,7 @@ class _FakeRadioRepository implements RadioRepository {
     String radioId, {
     required bool asc,
   }) async {
+    requestedCachedProgramUserIds.add(userId);
     final future = cachedProgramsFuture;
     if (future != null) {
       return future;
@@ -655,4 +750,74 @@ class _FakeRadioRepository implements RadioRepository {
           ),
         );
   }
+}
+
+class _FailingUserRadioDataSource implements UserRadioDataSource {
+  Never _fail() => throw StateError('blank user id should not touch user radio data source');
+
+  @override
+  Future<List<RadioSummaryData>> loadSubscribedRadios(String userId) => _fail();
+
+  @override
+  Future<void> replaceSubscribedRadios(
+    String userId,
+    List<RadioSummaryData> items,
+  ) =>
+      _fail();
+
+  @override
+  Future<void> appendSubscribedRadios(
+    String userId,
+    List<RadioSummaryData> items, {
+    required int startOrder,
+  }) =>
+      _fail();
+
+  @override
+  Future<List<RadioProgramData>> loadPrograms(
+    String userId,
+    String radioId, {
+    required bool asc,
+  }) =>
+      _fail();
+
+  @override
+  Future<void> replacePrograms(
+    String userId,
+    String radioId, {
+    required bool asc,
+    required List<RadioProgramData> items,
+  }) =>
+      _fail();
+
+  @override
+  Future<void> appendPrograms(
+    String userId,
+    String radioId, {
+    required bool asc,
+    required List<RadioProgramData> items,
+    required int startOrder,
+  }) =>
+      _fail();
+}
+
+class _FailingRadioRemoteDataSource implements RadioRemoteDataSource {
+  Never _fail() => throw StateError('blank user id should not touch radio remote data source');
+
+  @override
+  Future<RadioSummaryRemotePage> fetchSubscribedRadios({
+    bool total = true,
+    required int offset,
+    required int limit,
+  }) =>
+      _fail();
+
+  @override
+  Future<RadioProgramRemotePage> fetchPrograms(
+    String radioId, {
+    required int offset,
+    required int limit,
+    required bool asc,
+  }) =>
+      _fail();
 }

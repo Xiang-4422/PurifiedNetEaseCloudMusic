@@ -16,6 +16,9 @@ class RadioRepository {
 
   /// 加载缓存的已订阅电台。
   Future<List<RadioSummaryData>> loadCachedSubscribedRadios(String userId) {
+    if (_isBlankUserId(userId)) {
+      return Future.value(const <RadioSummaryData>[]);
+    }
     return _userRadioDataSource.loadSubscribedRadios(userId);
   }
 
@@ -25,6 +28,9 @@ class RadioRepository {
     String radioId, {
     required bool asc,
   }) {
+    if (_isBlankUserId(userId)) {
+      return Future.value(const <RadioProgramData>[]);
+    }
     return _userRadioDataSource.loadPrograms(
       userId,
       radioId,
@@ -39,6 +45,13 @@ class RadioRepository {
     required int offset,
     required int limit,
   }) async {
+    if (_isBlankUserId(userId)) {
+      return const DjRadioPage(
+        items: [],
+        hasMore: false,
+        nextOffset: 0,
+      );
+    }
     final result = await _remoteDataSource.fetchSubscribedRadios(
       total: total,
       offset: offset,
@@ -68,6 +81,13 @@ class RadioRepository {
     required int limit,
     required bool asc,
   }) async {
+    if (_isBlankUserId(userId)) {
+      return const DjProgramPage(
+        items: [],
+        hasMore: false,
+        nextOffset: 0,
+      );
+    }
     final result = await _remoteDataSource.fetchPrograms(
       radioId,
       offset: offset,
@@ -95,6 +115,10 @@ class RadioRepository {
       hasMore: result.itemCount >= limit,
       nextOffset: offset + result.itemCount,
     );
+  }
+
+  bool _isBlankUserId(String userId) {
+    return userId.trim().isEmpty;
   }
 }
 

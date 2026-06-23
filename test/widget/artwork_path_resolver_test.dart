@@ -57,6 +57,58 @@ void main() {
       expect(artwork, '/local/song.jpg');
     });
 
+    test('uses remote fallback artwork when page artwork is missing', () {
+      final artwork = ArtworkPathResolver.resolvePreferredArtwork(
+        null,
+        fallbackItems: const [
+          PlaybackQueueItem(
+            id: '1',
+            sourceId: '1',
+            title: 'Song',
+            albumTitle: null,
+            artistNames: [],
+            artistIds: [],
+            duration: null,
+            artworkUrl: 'https://example.com/song.jpg',
+            localArtworkPath: null,
+            mediaType: MediaType.playlist,
+            playbackUrl: null,
+            lyricKey: null,
+            isLiked: false,
+            isCached: false,
+          ),
+        ],
+      );
+
+      expect(artwork, 'https://example.com/song.jpg');
+    });
+
+    test('ignores non-http fallback artwork when page artwork is missing', () {
+      final artwork = ArtworkPathResolver.resolvePreferredArtwork(
+        null,
+        fallbackItems: const [
+          PlaybackQueueItem(
+            id: '1',
+            sourceId: '1',
+            title: 'Song',
+            albumTitle: null,
+            artistNames: [],
+            artistIds: [],
+            duration: null,
+            artworkUrl: 'ftp://example.com/song.jpg',
+            localArtworkPath: null,
+            mediaType: MediaType.playlist,
+            playbackUrl: null,
+            lyricKey: null,
+            isLiked: false,
+            isCached: false,
+          ),
+        ],
+      );
+
+      expect(artwork, isNull);
+    });
+
     test('does not prefer unsafe uri artwork as local fallback', () {
       final unsafeUri = Uri(
         scheme: 'file',

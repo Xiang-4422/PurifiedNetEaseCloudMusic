@@ -1,4 +1,5 @@
 import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 
 /// 封面展示路径选择工具。
@@ -13,10 +14,10 @@ class ArtworkPathResolver {
   /// 页面级封面展示优先返回已经存在于本地的封面路径。
   ///
   /// 优先级：
-  /// 1. `fallbackItems` 中的 `extras['localArtworkPath']`
-  /// 2. `fallbackItems` 中已经是本地路径的 `extras['image']`
+  /// 1. `fallbackItems` 中已经落盘的 `localArtworkPath`
+  /// 2. `fallbackItems` 中误落在 `artworkUrl` 字段的本地路径
   /// 3. 调用方传入的 [artworkUrl]
-  /// 4. `fallbackItems` 中其他可用本地 `extras['image']`
+  /// 4. `fallbackItems` 中可交给统一图片缓存处理的远程 HTTP(S) 封面
   ///
   /// 第 3 步可能是远程 URL；图片组件会先把远程 URL 写入应用本地图片缓存，再从
   /// 本地文件渲染。
@@ -39,7 +40,7 @@ class ArtworkPathResolver {
     }
     for (final item in fallbackItems) {
       final image = item.artworkUrl ?? '';
-      if (_isLocalPath(image)) {
+      if (_isRemoteHttpArtwork(image)) {
         return image;
       }
     }
@@ -96,5 +97,9 @@ class ArtworkPathResolver {
   /// HTTP(S) URL 交给本地图片缓存处理，其它 URI 不参与本地优先。
   static bool _isLocalPath(String? artworkPath) {
     return LocalFilePathNormalizer.normalize(artworkPath).isNotEmpty;
+  }
+
+  static bool _isRemoteHttpArtwork(String? artworkPath) {
+    return ImageUrlNormalizer.isRemoteHttpUrl(artworkPath);
   }
 }

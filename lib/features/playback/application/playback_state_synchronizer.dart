@@ -7,6 +7,7 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/confirmed_playback_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
+import 'package:bujuan/features/playback/application/playback_background_task_runner.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_preference_port.dart';
 import 'package:bujuan/features/playback/application/playback_queue_coordinator.dart';
@@ -53,6 +54,7 @@ class PlaybackStateSynchronizer {
     required PlaybackLyricUiStateController lyricUiStateController,
     required PlaybackSelectionService selectionService,
     required ConfirmedPlaybackEffectCoordinator sideEffectCoordinator,
+    PlaybackBackgroundErrorHandler? onBackgroundError,
   })  : _playbackService = playbackService,
         _queueStore = queueStore,
         _queueService = queueService,
@@ -63,7 +65,10 @@ class PlaybackStateSynchronizer {
         _toastPort = toastPort,
         _lyricUiStateController = lyricUiStateController,
         _selectionService = selectionService,
-        _sideEffectCoordinator = sideEffectCoordinator;
+        _sideEffectCoordinator = sideEffectCoordinator,
+        _backgroundTasks = PlaybackBackgroundTaskRunner(
+          onError: onBackgroundError,
+        );
 
   final PlaybackService _playbackService;
   final PlaybackQueueStore _queueStore;
@@ -76,6 +81,7 @@ class PlaybackStateSynchronizer {
   final PlaybackLyricUiStateController _lyricUiStateController;
   final PlaybackSelectionService _selectionService;
   final ConfirmedPlaybackEffectCoordinator _sideEffectCoordinator;
+  final PlaybackBackgroundTaskRunner _backgroundTasks;
 
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   Duration _latestPosition = Duration.zero;
@@ -144,71 +150,96 @@ class PlaybackStateSynchronizer {
     );
 
     _subscriptions.add(
-      _playbackService.queueStream.listen((queueItems) async {
-        syncRuntimeState(queue: queueItems);
-        await updateCurrentPlayIndex(currentItemUpdated: false);
+      _playbackService.queueStream.listen((queueItems) {
+        _backgroundTasks.run(
+          taskName: 'playback.queueStream.sync',
+          task: () async {
+            syncRuntimeState(queue: queueItems);
+            await updateCurrentPlayIndex(currentItemUpdated: false);
+          },
+        );
       }),
     );
 
     _subscriptions.add(
-      _playbackService.mediaItemStream.listen((queueItem) async {
+      _playbackService.mediaItemStream.listen((queueItem) {
         if (queueItem == null) return;
-        if (_lastPositionTrackId.isNotEmpty && _lastPositionTrackId != queueItem.id) {
-          unawaited(_savePlaybackPosition(force: true));
-        }
-        _lastPositionTrackId = queueItem.id;
-        final queueState = _queueService.state;
-        final confirmedIndex = queueState.confirmedIndex >= 0
-            ? queueState.confirmedIndex
-            : queueState.activeQueue.indexWhere(
-                (item) => item.id == queueItem.id,
+        _backgroundTasks.run(
+          taskName: 'playback.mediaItem.sync',
+          trackId: queueItem.id,
+          task: () async {
+            if (_lastPositionTrackId.isNotEmpty && _lastPositionTrackId != queueItem.id) {
+              final previousTrackId = _lastPositionTrackId;
+              _backgroundTasks.run(
+                taskName: 'playback.position.saveOnTrackChange',
+                trackId: previousTrackId,
+                task: () => _savePlaybackPosition(force: true),
               );
-        syncRuntimeState(
-          currentSong: queueItem,
-          currentIndex: confirmedIndex,
-        );
-        unawaited(_queueStore.saveCurrentSong(queueItem.id));
-        await updateCurrentPlayIndex(currentItemUpdated: false);
-        await _appendRoamingSongsIfNeeded(
-          playbackMode: playbackMode,
-          runtimeState: runtimeState,
+            }
+            _lastPositionTrackId = queueItem.id;
+            final queueState = _queueService.state;
+            final confirmedIndex = queueState.confirmedIndex >= 0
+                ? queueState.confirmedIndex
+                : queueState.activeQueue.indexWhere(
+                    (item) => item.id == queueItem.id,
+                  );
+            syncRuntimeState(
+              currentSong: queueItem,
+              currentIndex: confirmedIndex,
+            );
+            _backgroundTasks.run(
+              taskName: 'playback.currentSong.save',
+              trackId: queueItem.id,
+              task: () => _queueStore.saveCurrentSong(queueItem.id),
+            );
+            await updateCurrentPlayIndex(currentItemUpdated: false);
+            await _appendRoamingSongsIfNeeded(
+              playbackMode: playbackMode,
+              runtimeState: runtimeState,
+            );
+          },
         );
       }),
     );
 
     _subscriptions.add(
       _playbackService.playbackStateStream.listen((playbackState) {
-        _scheduleConfirmedCurrentTrackSideEffects(
-          playbackState: playbackState,
-          runtimeState: runtimeState,
-          syncCurrentQueueItem: syncCurrentQueueItem,
-          ensureCurrentTrackArtwork: ensureCurrentTrackArtwork,
-          updateCurrentPlayIndex: updateCurrentPlayIndex,
+        _backgroundTasks.run(
+          taskName: 'playback.state.sync',
+          task: () {
+            final trackId = runtimeState().currentSong.id;
+            _scheduleConfirmedCurrentTrackSideEffects(
+              playbackState: playbackState,
+              runtimeState: runtimeState,
+              syncCurrentQueueItem: syncCurrentQueueItem,
+              ensureCurrentTrackArtwork: ensureCurrentTrackArtwork,
+              updateCurrentPlayIndex: updateCurrentPlayIndex,
+            );
+            setIsPlaying(playbackState.playing);
+            _lyricUiStateController.updateFullScreenLyricTimerCounter(
+              isPlaying: isPlaying(),
+              setFullScreenLyricOpen: setFullScreenLyricOpen,
+              cancelTimer: !isPlaying(),
+            );
+            if (!playbackState.playing || playbackState.processingState == AudioProcessingState.completed) {
+              _backgroundTasks.run(
+                taskName: 'playback.position.saveOnStateChange',
+                trackId: trackId.isEmpty ? null : trackId,
+                task: () => _savePlaybackPosition(force: true),
+              );
+            }
+            if (playbackState.processingState != AudioProcessingState.completed) {
+              _completionAdvanceInFlight = false;
+            } else if (!_completionAdvanceInFlight) {
+              _advanceAfterQueueCompletion(trackId: trackId);
+            }
+            if (_hasConfirmedPlaybackSource(playbackState.processingState)) {
+              _lastSourceErrorRecoveryKey = null;
+            } else if (playbackState.processingState == AudioProcessingState.error) {
+              _recoverCurrentSourceAfterPlaybackError(runtimeState);
+            }
+          },
         );
-        setIsPlaying(playbackState.playing);
-        _lyricUiStateController.updateFullScreenLyricTimerCounter(
-          isPlaying: isPlaying(),
-          setFullScreenLyricOpen: setFullScreenLyricOpen,
-          cancelTimer: !isPlaying(),
-        );
-        if (!playbackState.playing || playbackState.processingState == AudioProcessingState.completed) {
-          unawaited(_savePlaybackPosition(force: true));
-        }
-        if (playbackState.processingState != AudioProcessingState.completed) {
-          _completionAdvanceInFlight = false;
-        } else if (!_completionAdvanceInFlight) {
-          _completionAdvanceInFlight = true;
-          unawaited(
-            _selectionService.selectNext(
-              trigger: PlaybackSwitchTrigger.queueCompletion,
-            ),
-          );
-        }
-        if (_hasConfirmedPlaybackSource(playbackState.processingState)) {
-          _lastSourceErrorRecoveryKey = null;
-        } else if (playbackState.processingState == AudioProcessingState.error) {
-          _recoverCurrentSourceAfterPlaybackError(runtimeState);
-        }
       }),
     );
 
@@ -216,23 +247,33 @@ class PlaybackStateSynchronizer {
       AudioService.createPositionStream(
         minPeriod: const Duration(milliseconds: 200),
         steps: 1000,
-      ).listen((newCurPlayingDuration) async {
-        _latestPosition = newCurPlayingDuration;
-        syncRuntimeState(currentPosition: newCurPlayingDuration);
-        unawaited(_savePlaybackPosition());
-        if (_selectionService.state.selectedItem.id != runtimeState().currentSong.id) {
-          if (lyricState().currentIndex != -1) {
-            syncLyricState(currentIndex: -1);
-          }
-          return;
-        }
-        final newLyricIndex = _lyricUiStateController.resolveCurrentLyricIndex(
-          lines: lyricState().lines,
-          position: newCurPlayingDuration,
+      ).listen((newCurPlayingDuration) {
+        _backgroundTasks.run(
+          taskName: 'playback.positionStream.sync',
+          task: () {
+            final trackId = runtimeState().currentSong.id;
+            _latestPosition = newCurPlayingDuration;
+            syncRuntimeState(currentPosition: newCurPlayingDuration);
+            _backgroundTasks.run(
+              taskName: 'playback.position.savePeriodic',
+              trackId: trackId.isEmpty ? null : trackId,
+              task: () => _savePlaybackPosition(),
+            );
+            if (_selectionService.state.selectedItem.id != runtimeState().currentSong.id) {
+              if (lyricState().currentIndex != -1) {
+                syncLyricState(currentIndex: -1);
+              }
+              return;
+            }
+            final newLyricIndex = _lyricUiStateController.resolveCurrentLyricIndex(
+              lines: lyricState().lines,
+              position: newCurPlayingDuration,
+            );
+            if (newLyricIndex != lyricState().currentIndex) {
+              syncLyricState(currentIndex: newLyricIndex);
+            }
+          },
         );
-        if (newLyricIndex != lyricState().currentIndex) {
-          syncLyricState(currentIndex: newLyricIndex);
-        }
       }),
     );
 
@@ -354,7 +395,11 @@ class PlaybackStateSynchronizer {
       return;
     }
     _lastConfirmedSideEffectKey = sideEffectKey;
-    unawaited(updateCurrentPlayIndex(currentItemUpdated: true));
+    _backgroundTasks.run(
+      taskName: 'playback.currentIndex.updateConfirmed',
+      trackId: item.id,
+      task: () => updateCurrentPlayIndex(currentItemUpdated: true),
+    );
     _scheduleCurrentTrackSideEffects(
       item: item,
       runtimeState: runtimeState,
@@ -390,7 +435,11 @@ class PlaybackStateSynchronizer {
     }
     _lastSourceErrorRecoveryKey = recoveryKey;
     _sourceErrorRecoveryInFlight = true;
-    unawaited(_submitCurrentAfterPlaybackSourceError());
+    _backgroundTasks.run(
+      taskName: 'playback.sourceError.recover',
+      trackId: item.id,
+      task: _submitCurrentAfterPlaybackSourceError,
+    );
   }
 
   Future<void> _submitCurrentAfterPlaybackSourceError() async {
@@ -399,11 +448,27 @@ class PlaybackStateSynchronizer {
         trigger: PlaybackSwitchTrigger.sourceError,
         playNow: true,
       );
-    } catch (_) {
-      // SelectionService will surface retry failures through sourceStatus/sourceError.
     } finally {
       _sourceErrorRecoveryInFlight = false;
     }
+  }
+
+  void _advanceAfterQueueCompletion({required String trackId}) {
+    _completionAdvanceInFlight = true;
+    _backgroundTasks.run(
+      taskName: 'playback.completion.selectNext',
+      trackId: trackId.isEmpty ? null : trackId,
+      task: () async {
+        try {
+          await _selectionService.selectNext(
+            trigger: PlaybackSwitchTrigger.queueCompletion,
+          );
+        } catch (_) {
+          _completionAdvanceInFlight = false;
+          rethrow;
+        }
+      },
+    );
   }
 
   bool _isStillCurrentTrack(

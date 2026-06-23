@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
@@ -101,6 +103,7 @@ void registerFeatureApplications() {
       lyricUiStateController: Get.find<PlaybackLyricUiStateController>(),
       selectionService: Get.find<PlaybackSelectionService>(),
       sideEffectCoordinator: Get.find<ConfirmedPlaybackEffectCoordinator>(),
+      onBackgroundError: _reportPlaybackBackgroundError,
     ),
     permanent: true,
   );
@@ -170,4 +173,18 @@ void registerFeatureControllers() {
     fenix: true,
   );
   Get.lazyPut(() => ShellController(), fenix: true);
+}
+
+void _reportPlaybackBackgroundError(
+  String taskName,
+  String? trackId,
+  Object error,
+  StackTrace stackTrace,
+) {
+  developer.log(
+    'playback.backgroundTask.failed task=$taskName trackId=${trackId ?? ''}',
+    name: 'Playback',
+    error: error,
+    stackTrace: stackTrace,
+  );
 }

@@ -7,6 +7,10 @@ import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
+const double _libraryShortcutBarHeight = 72;
+const double _libraryShortcutItemWidth = 84;
+const double _libraryShortcutCacheExtent = 240;
+
 /// 个人页资料库区域的轻量快捷入口。
 class LibraryShortcutBar extends StatelessWidget {
   /// 创建资料库快捷入口栏。
@@ -63,14 +67,15 @@ class LibraryShortcutBar extends StatelessWidget {
         horizontal: AppDimensions.paddingSmall,
       ),
       child: SizedBox(
-        height: 72,
+        height: _libraryShortcutBarHeight,
         child: ListView.separated(
+          cacheExtent: _libraryShortcutCacheExtent,
           scrollDirection: Axis.horizontal,
           itemCount: shortcuts.length,
           separatorBuilder: (_, __) => const SizedBox(width: AppDimensions.paddingSmall),
           itemBuilder: (context, index) {
             return SizedBox(
-              width: 84,
+              width: _libraryShortcutItemWidth,
               child: _LibraryShortcutButton(action: shortcuts[index]),
             );
           },

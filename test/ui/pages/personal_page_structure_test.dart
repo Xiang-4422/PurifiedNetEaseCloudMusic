@@ -81,6 +81,12 @@ void main() {
     expect(shortcutSource, contains("label: '本地音乐'"));
     expect(shortcutSource, contains("label: '已下载'"));
     expect(shortcutSource, contains("label: '云盘'"));
+    expect(shortcutSource, contains('const double _libraryShortcutBarHeight = 72;'));
+    expect(shortcutSource, contains('const double _libraryShortcutItemWidth = 84;'));
+    expect(shortcutSource, contains('const double _libraryShortcutCacheExtent = 240;'));
+    expect(shortcutSource, contains('height: _libraryShortcutBarHeight'));
+    expect(shortcutSource, contains('width: _libraryShortcutItemWidth'));
+    expect(shortcutSource, contains('cacheExtent: _libraryShortcutCacheExtent'));
     expect(shortcutSource.indexOf("label: '我喜欢'"), lessThan(shortcutSource.indexOf("label: '我的歌单'")));
     expect(shortcutSource.indexOf("label: '我的歌单'"), lessThan(shortcutSource.indexOf("label: '本地音乐'")));
     expect(shortcutSource, contains('final PlaylistSummaryData Function() likedPlaylist'));

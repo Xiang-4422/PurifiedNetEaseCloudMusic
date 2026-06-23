@@ -71,6 +71,61 @@ void main() {
       expect(result.stdout, contains('Generated api-enhanced files are up to date'));
     });
 
+    test('generator check mode reports stale isolated outputs without rewriting', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = await Directory.systemTemp.createTemp('api-enhanced-generator-');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final generatedDir = Directory('${tempDir.path}/generated');
+      final rawDir = Directory('${tempDir.path}/raw');
+      final scriptPath = '${repoRoot.path}/packages/netease_music_api/tool/generate_api_enhanced_modules.js';
+
+      final generateResult = await Process.run(
+        'node',
+        [
+          scriptPath,
+          '--generated-dir=${generatedDir.path}',
+          '--raw-dir=${rawDir.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+      expect(
+        generateResult.exitCode,
+        0,
+        reason: '${generateResult.stdout}\n${generateResult.stderr}',
+      );
+
+      final manifestFile = File('${generatedDir.path}/api_enhanced_modules.g.dart');
+      final staleContent = manifestFile.readAsStringSync().replaceFirst(
+            'apiEnhancedUpstreamVersion',
+            'apiEnhancedUpstreamVersionStale',
+          );
+      manifestFile.writeAsStringSync(staleContent);
+
+      final checkResult = await Process.run(
+        'node',
+        [
+          scriptPath,
+          '--check',
+          '--generated-dir=${generatedDir.path}',
+          '--raw-dir=${rawDir.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(checkResult.exitCode, isNot(0), reason: '${checkResult.stdout}\n${checkResult.stderr}');
+      expect(checkResult.stderr, contains('Generated api-enhanced files are stale'));
+      expect(checkResult.stderr, contains('api_enhanced_modules.g.dart'));
+      expect(
+        manifestFile.readAsStringSync(),
+        staleContent,
+        reason: '--check must not rewrite stale generated files.',
+      );
+    });
+
     test('coverage report keeps upstream module and special status complete', () async {
       final repoRoot = _findRepoRoot();
       final packageJson = _jsonMap(jsonDecode(File('${repoRoot.path}/third_party/api-enhanced/package.json').readAsStringSync()));

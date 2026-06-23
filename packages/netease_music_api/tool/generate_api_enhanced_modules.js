@@ -10,8 +10,14 @@ const upstreamRepoPath = path.join(repoRoot, 'third_party/api-enhanced')
 const upstreamDir = path.join(upstreamRepoPath, 'module')
 const upstreamPackagePath = path.join(upstreamRepoPath, 'package.json')
 const packageDir = path.resolve(__dirname, '..')
-const generatedDir = path.join(packageDir, 'lib/src/generated')
-const rawDir = path.join(packageDir, 'lib/src/endpoints/raw')
+const generatedDir = resolvePathArg(
+  '--generated-dir=',
+  path.join(packageDir, 'lib/src/generated'),
+)
+const rawDir = resolvePathArg(
+  '--raw-dir=',
+  path.join(packageDir, 'lib/src/endpoints/raw'),
+)
 const checkMode = process.argv.includes('--check')
 const staleGeneratedFiles = []
 
@@ -45,6 +51,14 @@ const specialModules = new Set([
 ])
 
 const supportedCrypto = new Set(['', 'weapi', 'eapi', 'linuxapi', 'api', 'query', 'xeapi'])
+
+function resolvePathArg(prefix, fallback) {
+  const arg = process.argv.find((value) => value.startsWith(prefix))
+  if (!arg) {
+    return fallback
+  }
+  return path.resolve(repoRoot, arg.slice(prefix.length))
+}
 
 function camel(name) {
   return name.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase())

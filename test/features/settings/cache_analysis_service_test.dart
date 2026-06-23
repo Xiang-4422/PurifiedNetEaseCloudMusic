@@ -95,6 +95,47 @@ void main() {
       );
     });
 
+    test('keeps indexed resources in image directory while analyzing and clearing image cache', () async {
+      final imageDirectory = Directory('${supportDirectory.path}/zmusic/image-cache')..createSync(recursive: true);
+      final retainedImage = await _writeFile(
+        imageDirectory,
+        'downloaded.jpg',
+        size: 10,
+      );
+      final orphanImage = await _writeFile(
+        imageDirectory,
+        'orphan.jpg',
+        size: 20,
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: 'netease:1',
+            kind: LocalResourceKind.artwork,
+            path: retainedImage.path,
+            sizeBytes: 10,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final service = CacheAnalysisService(
+        musicDataRepository: _ThrowingMusicDataRepository(),
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final result = await service.analyze();
+      final image = result.categories.singleWhere(
+        (category) => category.category == CacheCategory.image,
+      );
+      await service.clear(CacheCategory.image);
+
+      expect(image.sizeBytes, 20);
+      expect(image.fileCount, 1);
+      expect(retainedImage.existsSync(), isTrue);
+      expect(orphanImage.existsSync(), isFalse);
+      expect(imageDirectory.existsSync(), isTrue);
+    });
+
     test('counts only clearable artwork cache files', () async {
       final artworkDirectory = Directory('${supportDirectory.path}/zmusic/artwork-cache')..createSync(recursive: true);
       final clearableArtwork = await _writeFile(
@@ -323,6 +364,49 @@ void main() {
         resourceIndexRepository.resources.map((resource) => resource.origin).toSet(),
         {TrackResourceOrigin.managedDownload},
       );
+    });
+
+    test('keeps indexed resources in temporary directory while analyzing and clearing temporary cache', () async {
+      final retainedDirectory = Directory('${temporaryDirectory.path}/retained')..createSync(recursive: true);
+      final orphanDirectory = Directory('${temporaryDirectory.path}/orphan')..createSync(recursive: true);
+      final retainedAudio = await _writeFile(
+        retainedDirectory,
+        'downloaded.mp3',
+        size: 10,
+      );
+      final orphanTemporary = await _writeFile(
+        orphanDirectory,
+        'orphan.tmp',
+        size: 20,
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: 'netease:1',
+            kind: LocalResourceKind.audio,
+            path: retainedAudio.path,
+            sizeBytes: 10,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final service = CacheAnalysisService(
+        musicDataRepository: _ThrowingMusicDataRepository(),
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final result = await service.analyze();
+      final temporary = result.categories.singleWhere(
+        (category) => category.category == CacheCategory.temporary,
+      );
+      await service.clear(CacheCategory.temporary);
+
+      expect(temporary.sizeBytes, 20);
+      expect(temporary.fileCount, 1);
+      expect(retainedAudio.existsSync(), isTrue);
+      expect(orphanTemporary.existsSync(), isFalse);
+      expect(retainedDirectory.existsSync(), isTrue);
+      expect(orphanDirectory.existsSync(), isFalse);
     });
   });
 }

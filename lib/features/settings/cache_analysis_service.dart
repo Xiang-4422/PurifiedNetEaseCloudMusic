@@ -86,6 +86,9 @@ class CacheAnalysisService {
   Future<CacheAnalysisResult> analyze() async {
     final supportDirectory = await getApplicationSupportDirectory();
     final temporaryDirectory = await getTemporaryDirectory();
+    final retainedResourcePaths = _retainedResourcePaths(
+      await _resourceIndexRepository.listResources(),
+    );
     final playbackResources = await _resourceIndexRepository.listResources(
       origins: const {TrackResourceOrigin.playbackCache},
     );
@@ -93,6 +96,7 @@ class CacheAnalysisService {
       await _analyzeDirectory(
         CacheCategory.image,
         Directory('${supportDirectory.path}/zmusic/image-cache'),
+        retainedPaths: retainedResourcePaths,
       ),
       await _analyzeIndexedResourceCacheDirectory(
         CacheCategory.artwork,
@@ -112,6 +116,7 @@ class CacheAnalysisService {
       await _analyzeDirectory(
         CacheCategory.temporary,
         temporaryDirectory,
+        retainedPaths: retainedResourcePaths,
       ),
     ];
     return CacheAnalysisResult(categories: categories);
@@ -122,7 +127,10 @@ class CacheAnalysisService {
     final supportDirectory = await getApplicationSupportDirectory();
     switch (category) {
       case CacheCategory.image:
-        await _clearDirectory(Directory('${supportDirectory.path}/zmusic/image-cache'));
+        await _clearDirectory(
+          Directory('${supportDirectory.path}/zmusic/image-cache'),
+          retainedPaths: await _indexedResourcePaths(),
+        );
         return;
       case CacheCategory.artwork:
         await _clearIndexedResourceCacheDirectory(
@@ -134,7 +142,10 @@ class CacheAnalysisService {
         await _musicDataRepository.removePlaybackCache();
         return;
       case CacheCategory.temporary:
-        await _clearDirectory(await getTemporaryDirectory());
+        await _clearDirectory(
+          await getTemporaryDirectory(),
+          retainedPaths: await _indexedResourcePaths(),
+        );
         return;
     }
   }
@@ -148,9 +159,13 @@ class CacheAnalysisService {
 
   Future<CacheCategoryAnalysis> _analyzeDirectory(
     CacheCategory category,
-    Directory directory,
-  ) async {
-    final stats = await _directoryStats(directory);
+    Directory directory, {
+    Set<String> retainedPaths = const {},
+  }) async {
+    final stats = await _directoryStats(
+      directory,
+      retainedPaths: retainedPaths,
+    );
     return CacheCategoryAnalysis(
       category: category,
       title: _titleFor(category),
@@ -198,8 +213,9 @@ class CacheAnalysisService {
   }
 
   Future<({int sizeBytes, int fileCount})> _directoryStats(
-    Directory directory,
-  ) async {
+    Directory directory, {
+    Set<String> retainedPaths = const {},
+  }) async {
     if (!directory.existsSync()) {
       return (sizeBytes: 0, fileCount: 0);
     }
@@ -207,6 +223,10 @@ class CacheAnalysisService {
     var fileCount = 0;
     await for (final entity in directory.list(recursive: true, followLinks: false)) {
       if (entity is File) {
+        final path = LocalFilePathNormalizer.normalize(entity.path);
+        if (path.isEmpty || retainedPaths.contains(path)) {
+          continue;
+        }
         fileCount++;
         sizeBytes += await entity.length().catchError((_) => 0);
       }
@@ -238,13 +258,15 @@ class CacheAnalysisService {
     return (sizeBytes: sizeBytes, fileCount: fileCount);
   }
 
-  Future<void> _clearDirectory(Directory directory) async {
+  Future<void> _clearDirectory(
+    Directory directory, {
+    Set<String> retainedPaths = const {},
+  }) async {
     if (directory.existsSync()) {
-      await for (final entity in directory.list(followLinks: false)) {
-        try {
-          await entity.delete(recursive: true);
-        } catch (_) {}
-      }
+      await _deleteUnretainedDirectoryFiles(
+        directory,
+        retainedPaths: retainedPaths,
+      );
     }
     await directory.create(recursive: true);
   }
@@ -286,6 +308,17 @@ class CacheAnalysisService {
       }
     }
     return retainedPaths;
+  }
+
+  Set<String> _retainedResourcePaths(List<LocalResourceEntry> indexedResources) {
+    return _retainedResourcePathsAfterRemoving(
+      indexedResources,
+      shouldRemove: (_) => false,
+    );
+  }
+
+  Future<Set<String>> _indexedResourcePaths() async {
+    return _retainedResourcePaths(await _resourceIndexRepository.listResources());
   }
 
   Future<void> _deleteFileUnlessRetained(

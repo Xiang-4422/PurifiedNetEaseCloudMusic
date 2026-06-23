@@ -164,6 +164,26 @@ void main() {
       expect(loadCount, 2);
     });
 
+    test('prefers local resource even when remote url is force refreshed', () async {
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => '/music/downloaded.mp3',
+      );
+
+      final url = await coordinator.resolve(
+        '1',
+        qualityLevel: 'lossless',
+        forceRefresh: true,
+        load: () async {
+          loadCount++;
+          return 'https://audio.test/1-refreshed.mp3';
+        },
+      );
+
+      expect(url, '/music/downloaded.mp3');
+      expect(loadCount, 0);
+    });
+
     test('keeps cached remote url when local resource lookup fails', () async {
       var shouldFailLocalLookup = false;
       var loadCount = 0;

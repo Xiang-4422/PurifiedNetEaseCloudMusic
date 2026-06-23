@@ -29,14 +29,14 @@ class PlaybackUrlCacheCoordinator {
     required Future<String?> Function() load,
   }) async {
     final cacheKey = _cacheKey(trackId, qualityLevel);
+    final localUrl = await _resolveLocalResourceUrlOrNull(trackId);
+    if (localUrl != null) {
+      return localUrl;
+    }
     final cachedUrl = _cache[cacheKey];
     final now = _now();
     if (!forceRefresh && cachedUrl != null) {
       if (now.difference(cachedUrl.createdAt) < _ttl) {
-        final localUrl = await _resolveLocalResourceUrlOrNull(trackId);
-        if (localUrl != null) {
-          return localUrl;
-        }
         _touch(cacheKey, cachedUrl);
         return cachedUrl.url;
       }
@@ -44,10 +44,6 @@ class PlaybackUrlCacheCoordinator {
     }
     final loadingUrl = _loads[cacheKey];
     if (!forceRefresh && loadingUrl != null) {
-      final localUrl = await _resolveLocalResourceUrlOrNull(trackId);
-      if (localUrl != null) {
-        return localUrl;
-      }
       return loadingUrl;
     }
     late final Future<String?> loadFuture;

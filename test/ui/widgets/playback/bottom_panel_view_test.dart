@@ -73,6 +73,9 @@ void main() {
     final lyricSource = File(
       'lib/ui/pages/shell/widgets/playback/lyric_view.dart',
     ).readAsStringSync();
+    final controlsSource = File(
+      'lib/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart',
+    ).readAsStringSync();
 
     expect(panelSource, contains('BottomPanelQueueView('));
     expect(panelSource, contains('BottomPanelHeader('));
@@ -88,7 +91,7 @@ void main() {
 
     expect(nowPlayingSource, contains('class BottomPanelNowPlayingPage'));
     expect(nowPlayingSource, contains('BottomPanelNowPlayingMetadata()'));
-    expect(nowPlayingSource, contains('BottomPanelPlaybackControls()'));
+    expect(nowPlayingSource, contains('BottomPanelPlaybackControls('));
     expect(nowPlayingSource, contains('LyricView('));
     expect(nowPlayingSource, contains('required this.playerController'));
     expect(nowPlayingSource, contains('required this.settingsController'));
@@ -115,6 +118,18 @@ void main() {
     expect(lyricSource, contains('required this.settingsController'));
     expect(lyricSource, isNot(contains('PlayerController.to')));
     expect(lyricSource, isNot(contains('SettingsController.to')));
+
+    final controlsStart = controlsSource.indexOf('class BottomPanelPlaybackControls');
+    final controlButtonStart = controlsSource.indexOf('class _PlaybackControlButton');
+    final backgroundStart = controlsSource.indexOf('class _ButtonBackground');
+    final playbackControlsSource = controlsSource.substring(controlsStart, controlButtonStart);
+    final controlButtonBackgroundSource = controlsSource.substring(backgroundStart);
+    expect(playbackControlsSource, contains('required this.playerController'));
+    expect(playbackControlsSource, contains('required this.settingsController'));
+    expect(playbackControlsSource, isNot(contains('PlayerController.to')));
+    expect(playbackControlsSource, isNot(contains('SettingsController.to')));
+    expect(controlButtonBackgroundSource, contains('required this.settingsController'));
+    expect(controlButtonBackgroundSource, isNot(contains('SettingsController.to')));
   });
 
   test('bottom panel delegates background and fade mask to local widgets', () {

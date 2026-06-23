@@ -55,30 +55,41 @@ class BottomPanelProgressBar extends StatelessWidget {
 /// 底部播放面板播放控制按钮组。
 class BottomPanelPlaybackControls extends GetView<ShellController> {
   /// 创建播放控制按钮组。
-  const BottomPanelPlaybackControls({super.key});
+  const BottomPanelPlaybackControls({
+    required this.playerController,
+    required this.settingsController,
+    super.key,
+  });
+
+  /// 播放控制器，提供播放状态和控制意图。
+  final PlayerController playerController;
+
+  /// 设置控制器，提供按钮颜色。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingMedium),
       child: Obx(() {
-        final currentSong = PlayerController.to.currentSongState.value;
-        final isLiked = PlayerController.to.isPlaybackItemLiked(currentSong);
-        final isPlaying = PlayerController.to.isPlaying.value;
-        final preferHighQuality = PlayerController.to.isHighQualityPlaybackPreferred();
-        final panelColor = SettingsController.to.panelWidgetColor.value;
-        final repeatIcon = PlayerController.to.getRepeatIcon();
-        final playbackMode = PlayerController.to.playbackMode.value;
-        final orderMode = PlayerController.to.curOrderMode.value;
-        final repeatMode = PlayerController.to.curRepeatMode.value;
+        final currentSong = playerController.currentSongState.value;
+        final isLiked = playerController.isPlaybackItemLiked(currentSong);
+        final isPlaying = playerController.isPlaying.value;
+        final preferHighQuality = playerController.isHighQualityPlaybackPreferred();
+        final panelColor = settingsController.panelWidgetColor.value;
+        final repeatIcon = playerController.getRepeatIcon();
+        final playbackMode = playerController.playbackMode.value;
+        final orderMode = playerController.curOrderMode.value;
+        final repeatMode = playerController.curRepeatMode.value;
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _PlaybackControlButton(
               semanticsLabel: playbackLikeControlLabel(isLiked: isLiked),
-              onTap: () => PlayerController.to.toggleLikeFromPlayback(currentSong),
+              onTap: () => playerController.toggleLikeFromPlayback(currentSong),
               child: _ButtonBackground(
+                settingsController: settingsController,
                 child: Icon(
                   isLiked ? TablerIcons.heart_filled : TablerIcons.heart,
                   size: _secondaryControlIconSize,
@@ -88,8 +99,9 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
             ),
             _PlaybackControlButton(
               semanticsLabel: '上一首',
-              onTap: PlayerController.to.skipToPreviousTrack,
+              onTap: playerController.skipToPreviousTrack,
               child: _ButtonBackground(
+                settingsController: settingsController,
                 child: Icon(
                   TablerIcons.player_skip_back_filled,
                   size: _secondaryControlIconSize,
@@ -101,8 +113,9 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               semanticsLabel: playbackPlayPauseControlLabel(
                 isPlaying: isPlaying,
               ),
-              onTap: PlayerController.to.playOrPause,
+              onTap: playerController.playOrPause,
               child: _ButtonBackground(
+                settingsController: settingsController,
                 child: Icon(
                   isPlaying ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
                   size: _primaryControlIconSize,
@@ -112,8 +125,9 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
             ),
             _PlaybackControlButton(
               semanticsLabel: '下一首',
-              onTap: PlayerController.to.skipToNextTrack,
+              onTap: playerController.skipToNextTrack,
               child: _ButtonBackground(
+                settingsController: settingsController,
                 child: Icon(
                   TablerIcons.player_skip_forward_filled,
                   size: _secondaryControlIconSize,
@@ -125,8 +139,9 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               semanticsLabel: playbackQualityControlLabel(
                 preferHighQuality: preferHighQuality,
               ),
-              onTap: PlayerController.to.toggleHighQualityPlaybackPreference,
+              onTap: playerController.toggleHighQualityPlaybackPreference,
               child: _ButtonBackground(
+                settingsController: settingsController,
                 child: Icon(
                   preferHighQuality ? TablerIcons.diamond : TablerIcons.wave_sine,
                   size: _secondaryControlIconSize,
@@ -140,8 +155,9 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
                 orderMode: orderMode,
                 repeatMode: repeatMode,
               ),
-              onTap: PlayerController.to.handleRepeatModeTap,
+              onTap: playerController.handleRepeatModeTap,
               child: _ButtonBackground(
+                settingsController: settingsController,
                 child: Icon(
                   repeatIcon,
                   size: _secondaryControlIconSize,
@@ -228,7 +244,12 @@ String playbackModeControlLabel({
 }
 
 class _ButtonBackground extends GetView<ShellController> {
-  const _ButtonBackground({required this.child});
+  const _ButtonBackground({
+    required this.settingsController,
+    required this.child,
+  });
+
+  final SettingsController settingsController;
 
   final Widget child;
 
@@ -239,7 +260,7 @@ class _ButtonBackground extends GetView<ShellController> {
         blur: controller.isBigAlbum.isTrue ? 0 : 5,
         padding: const EdgeInsets.all(_controlButtonPadding),
         borderRadius: BorderRadius.circular(100),
-        color: SettingsController.to.panelWidgetColor.value.withValues(
+        color: settingsController.panelWidgetColor.value.withValues(
           alpha: controller.isBigAlbum.isTrue ? 0 : 0.05,
         ),
         child: child,

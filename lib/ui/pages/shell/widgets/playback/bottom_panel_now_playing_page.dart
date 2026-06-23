@@ -82,7 +82,12 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
                       ),
                     ),
                     const BottomPanelNowPlayingMetadata(),
-                    const Expanded(child: BottomPanelPlaybackControls()),
+                    Expanded(
+                      child: BottomPanelPlaybackControls(
+                        playerController: playerController,
+                        settingsController: settingsController,
+                      ),
+                    ),
                   ],
                 ),
               ),

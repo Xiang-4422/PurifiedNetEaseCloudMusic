@@ -913,6 +913,40 @@ void main() {
       );
     });
 
+    test('bottom panel playback controls receive playback state boundaries', () {
+      final controlsFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart',
+      );
+      final nowPlayingFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_page.dart',
+      );
+      final controls = controlsFile.readAsStringSync();
+      final nowPlaying = nowPlayingFile.readAsStringSync();
+      final controlsStart = controls.indexOf('class BottomPanelPlaybackControls');
+      final controlButtonStart = controls.indexOf('class _PlaybackControlButton');
+      final backgroundStart = controls.indexOf('class _ButtonBackground');
+      final controlsSection = controlsStart >= 0 && controlButtonStart > controlsStart ? controls.substring(controlsStart, controlButtonStart) : '';
+      final backgroundSection = backgroundStart >= 0 ? controls.substring(backgroundStart) : '';
+      final violations = <String>[
+        if (controlsSection.isEmpty) '${_relativePath(controlsFile)} playback controls section is missing',
+        if (controlsSection.contains('PlayerController.to')) '${_relativePath(controlsFile)} playback controls read player controller globally',
+        if (controlsSection.contains('SettingsController.to')) '${_relativePath(controlsFile)} playback controls read settings controller globally',
+        if (backgroundSection.contains('SettingsController.to')) '${_relativePath(controlsFile)} button background reads settings controller globally',
+        if (!controlsSection.contains('required this.playerController')) '${_relativePath(controlsFile)} playback controls do not receive player controller',
+        if (!controlsSection.contains('required this.settingsController')) '${_relativePath(controlsFile)} playback controls do not receive settings controller',
+        if (!backgroundSection.contains('required this.settingsController')) '${_relativePath(controlsFile)} button background does not receive settings controller',
+        if (!nowPlaying.contains('BottomPanelPlaybackControls(')) '${_relativePath(nowPlayingFile)} does not compose playback controls',
+        if (!nowPlaying.contains('playerController: playerController')) '${_relativePath(nowPlayingFile)} does not inject player controller',
+        if (!nowPlaying.contains('settingsController: settingsController')) '${_relativePath(nowPlayingFile)} does not inject settings controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放控制按钮组只能展示播放状态并提交播放意图，播放状态和按钮颜色必须由正在播放页注入。',
+      );
+    });
+
     test('playback metadata key access stays in queue boundary codecs', () {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',

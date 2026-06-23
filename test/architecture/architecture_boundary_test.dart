@@ -947,6 +947,43 @@ void main() {
       );
     });
 
+    test('bottom panel progress bar receives playback state boundaries', () {
+      final controlsFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart',
+      );
+      final metadataFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_metadata.dart',
+      );
+      final nowPlayingFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_page.dart',
+      );
+      final controls = controlsFile.readAsStringSync();
+      final metadata = metadataFile.readAsStringSync();
+      final nowPlaying = nowPlayingFile.readAsStringSync();
+      final progressStart = controls.indexOf('class BottomPanelProgressBar');
+      final playbackControlsStart = controls.indexOf('class BottomPanelPlaybackControls');
+      final progressSection = progressStart >= 0 && playbackControlsStart > progressStart ? controls.substring(progressStart, playbackControlsStart) : '';
+      final violations = <String>[
+        if (progressSection.isEmpty) '${_relativePath(controlsFile)} progress bar section is missing',
+        if (progressSection.contains('PlayerController.to')) '${_relativePath(controlsFile)} progress bar reads player controller globally',
+        if (progressSection.contains('SettingsController.to')) '${_relativePath(controlsFile)} progress bar reads settings controller globally',
+        if (!progressSection.contains('required this.playerController')) '${_relativePath(controlsFile)} progress bar does not receive player controller',
+        if (!progressSection.contains('required this.settingsController')) '${_relativePath(controlsFile)} progress bar does not receive settings controller',
+        if (!metadata.contains('BottomPanelProgressBar(')) '${_relativePath(metadataFile)} does not compose progress bar',
+        if (!metadata.contains('playerController: playerController')) '${_relativePath(metadataFile)} does not inject player controller',
+        if (!metadata.contains('settingsController: settingsController')) '${_relativePath(metadataFile)} does not inject settings controller',
+        if (!nowPlaying.contains('BottomPanelNowPlayingMetadata(')) '${_relativePath(nowPlayingFile)} does not compose metadata area',
+        if (!nowPlaying.contains('playerController: playerController')) '${_relativePath(nowPlayingFile)} does not inject player controller',
+        if (!nowPlaying.contains('settingsController: settingsController')) '${_relativePath(nowPlayingFile)} does not inject settings controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '大封面进度条只展示播放进度并提交 seek 意图，当前歌曲、进度和颜色必须由正在播放页元信息区注入。',
+      );
+    });
+
     test('playback metadata key access stays in queue boundary codecs', () {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',

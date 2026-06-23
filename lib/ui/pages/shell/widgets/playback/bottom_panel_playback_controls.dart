@@ -19,13 +19,23 @@ const double _controlButtonPadding = 8;
 /// 底部播放面板进度条。
 class BottomPanelProgressBar extends StatelessWidget {
   /// 创建底部播放面板进度条。
-  const BottomPanelProgressBar({super.key});
+  const BottomPanelProgressBar({
+    required this.playerController,
+    required this.settingsController,
+    super.key,
+  });
+
+  /// 播放控制器，提供当前歌曲、播放进度和 seek 操作。
+  final PlayerController playerController;
+
+  /// 设置控制器，提供进度条颜色。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final currentSong = PlayerController.to.currentSongState.value;
-      final currentPosition = PlayerController.to.currentPositionState.value;
+      final currentSong = playerController.currentSongState.value;
+      final currentPosition = playerController.currentPositionState.value;
       final total = safePlaybackProgressTotal(currentSong.duration);
       final safePosition = clampPlaybackProgressPosition(
         position: currentPosition,
@@ -37,16 +47,16 @@ class BottomPanelProgressBar extends StatelessWidget {
         total: total,
         barHeight: AppDimensions.paddingLarge,
         barCapShape: BarCapShape.round,
-        progressBarColor: SettingsController.to.panelWidgetColor.value.withValues(alpha: .1),
-        baseBarColor: SettingsController.to.panelWidgetColor.value.withValues(alpha: .05),
+        progressBarColor: settingsController.panelWidgetColor.value.withValues(alpha: .1),
+        baseBarColor: settingsController.panelWidgetColor.value.withValues(alpha: .05),
         bufferedBarColor: Colors.transparent,
-        thumbColor: SettingsController.to.panelWidgetColor.value.withValues(alpha: .05),
+        thumbColor: settingsController.panelWidgetColor.value.withValues(alpha: .05),
         thumbRadius: AppDimensions.paddingLarge / 2,
         thumbGlowRadius: AppDimensions.paddingLarge * 2 / 3,
         thumbCanPaintOutsideBar: false,
         timeLabelLocation: TimeLabelLocation.below,
         timeLabelTextStyle: const TextStyle(fontSize: 0),
-        onSeek: (duration) => PlayerController.to.seekTo(duration),
+        onSeek: (duration) => playerController.seekTo(duration),
       );
     });
   }

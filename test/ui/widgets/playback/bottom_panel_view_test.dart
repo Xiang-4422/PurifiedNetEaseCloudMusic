@@ -90,14 +90,16 @@ void main() {
     expect(panelSource, isNot(contains('LyricView(')));
 
     expect(nowPlayingSource, contains('class BottomPanelNowPlayingPage'));
-    expect(nowPlayingSource, contains('BottomPanelNowPlayingMetadata()'));
+    expect(nowPlayingSource, contains('BottomPanelNowPlayingMetadata('));
     expect(nowPlayingSource, contains('BottomPanelPlaybackControls('));
     expect(nowPlayingSource, contains('LyricView('));
     expect(nowPlayingSource, contains('required this.playerController'));
     expect(nowPlayingSource, contains('required this.settingsController'));
 
     expect(metadataSource, contains('class BottomPanelNowPlayingMetadata'));
-    expect(metadataSource, contains('BottomPanelProgressBar()'));
+    expect(metadataSource, contains('required this.playerController'));
+    expect(metadataSource, contains('required this.settingsController'));
+    expect(metadataSource, contains('BottomPanelProgressBar('));
     expect(metadataSource, contains('AlbumRouteView'));
     expect(metadataSource, contains('ArtistRouteView'));
     expect(metadataSource, contains('_artistEntries'));
@@ -122,8 +124,14 @@ void main() {
     final controlsStart = controlsSource.indexOf('class BottomPanelPlaybackControls');
     final controlButtonStart = controlsSource.indexOf('class _PlaybackControlButton');
     final backgroundStart = controlsSource.indexOf('class _ButtonBackground');
+    final progressStart = controlsSource.indexOf('class BottomPanelProgressBar');
     final playbackControlsSource = controlsSource.substring(controlsStart, controlButtonStart);
     final controlButtonBackgroundSource = controlsSource.substring(backgroundStart);
+    final progressSource = controlsSource.substring(progressStart, controlsStart);
+    expect(progressSource, contains('required this.playerController'));
+    expect(progressSource, contains('required this.settingsController'));
+    expect(progressSource, isNot(contains('PlayerController.to')));
+    expect(progressSource, isNot(contains('SettingsController.to')));
     expect(playbackControlsSource, contains('required this.playerController'));
     expect(playbackControlsSource, contains('required this.settingsController'));
     expect(playbackControlsSource, isNot(contains('PlayerController.to')));

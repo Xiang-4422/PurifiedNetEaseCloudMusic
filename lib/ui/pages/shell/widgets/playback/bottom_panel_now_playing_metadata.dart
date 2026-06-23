@@ -12,7 +12,17 @@ import 'package:get/get.dart';
 /// 正在播放页的大封面态元信息区，展示专辑、歌手和播放进度。
 class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
   /// 创建正在播放页元信息区。
-  const BottomPanelNowPlayingMetadata({super.key});
+  const BottomPanelNowPlayingMetadata({
+    required this.playerController,
+    required this.settingsController,
+    super.key,
+  });
+
+  /// 播放控制器，向子组件提供播放状态。
+  final PlayerController playerController;
+
+  /// 设置控制器，向子组件提供播放面板取色。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +55,10 @@ class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
                 remainWidth: remainWidth,
                 textWidth: textWidth,
               ).marginOnly(top: albumPadding),
-              const BottomPanelProgressBar().marginOnly(
+              BottomPanelProgressBar(
+                playerController: playerController,
+                settingsController: settingsController,
+              ).marginOnly(
                 top: albumPadding,
               ),
             ],

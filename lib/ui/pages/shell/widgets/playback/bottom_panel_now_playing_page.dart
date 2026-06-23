@@ -81,7 +81,10 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
                         height: controller.isBigAlbum.isTrue ? 0 : context.width - albumPadding,
                       ),
                     ),
-                    const BottomPanelNowPlayingMetadata(),
+                    BottomPanelNowPlayingMetadata(
+                      playerController: playerController,
+                      settingsController: settingsController,
+                    ),
                     Expanded(
                       child: BottomPanelPlaybackControls(
                         playerController: playerController,

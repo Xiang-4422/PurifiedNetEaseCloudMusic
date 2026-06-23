@@ -10,6 +10,8 @@ import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller_factory.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
+import 'package:bujuan/features/comment/comment_controller_factory.dart';
+import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/download/local_song_list_controller_factory.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
@@ -223,6 +225,12 @@ void registerFeatureControllers() {
       repository: Get.find<PlaylistRepository>(),
       likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
+    ),
+    fenix: true,
+  );
+  Get.lazyPut(
+    () => CommentControllerFactory(
+      repository: Get.find<CommentRepository>(),
     ),
     fenix: true,
   );

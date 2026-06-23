@@ -3,7 +3,7 @@ import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/time/date_time_formatter.dart';
 import 'package:bujuan/core/entities/comment_data.dart';
-import 'package:bujuan/features/comment/comment_repository.dart';
+import 'package:bujuan/features/comment/comment_controller_factory.dart';
 import 'package:bujuan/features/comment/floor_comment_controller.dart';
 import 'package:bujuan/ui/pages/shell/widgets/comment/custom_field.dart';
 import 'package:bujuan/features/comment/reply_sheet_controller.dart';
@@ -51,14 +51,16 @@ class _FoolTalkState extends State<FoolTalk> {
   @override
   void initState() {
     super.initState();
-    _controller = FloorCommentController(
+    final controllerFactory = Get.find<CommentControllerFactory>();
+    _controller = controllerFactory.createFloor(
       id: widget.id,
       type: widget.type,
       parentCommentId: widget.commentItem.commentId,
-      repository: Get.find<CommentRepository>(),
       pageSize: 20,
     )..loadInitial();
-    _replySheetController = ReplySheetController(floorController: _controller);
+    _replySheetController = controllerFactory.createReplySheet(
+      floorController: _controller,
+    );
   }
 
   @override

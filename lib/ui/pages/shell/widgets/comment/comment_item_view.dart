@@ -1,8 +1,8 @@
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/time/date_time_formatter.dart';
 import 'package:bujuan/core/entities/comment_data.dart';
+import 'package:bujuan/features/comment/comment_controller_factory.dart';
 import 'package:bujuan/features/comment/comment_item_controller.dart';
-import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/comment/floor_comment_controller.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';
@@ -50,14 +50,14 @@ class _CommentItemWidgetState extends State<CommentItemWidget> {
   void initState() {
     super.initState();
     stringColor = widget.stringColor;
-    _floorController = FloorCommentController(
+    final controllerFactory = Get.find<CommentControllerFactory>();
+    _floorController = controllerFactory.createFloor(
       id: widget.id,
       type: widget.idType,
       parentCommentId: widget.comment.commentId,
-      repository: Get.find<CommentRepository>(),
       pageSize: 5,
     );
-    _controller = CommentItemController(
+    _controller = controllerFactory.createItem(
       comment: widget.comment,
       isReply: widget.isReply,
       floorController: _floorController,

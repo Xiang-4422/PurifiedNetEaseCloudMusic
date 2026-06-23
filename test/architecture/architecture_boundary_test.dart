@@ -1094,6 +1094,53 @@ void main() {
       );
     });
 
+    test('comment widgets create controllers through feature factory', () {
+      final commentWidgetFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/comment/comment_widget.dart',
+      );
+      final commentItemFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/comment/comment_item_view.dart',
+      );
+      final floorSheetFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/comment/floor_comment_sheet.dart',
+      );
+      final factoryFile = File(
+        '${projectRoot.path}/lib/features/comment/comment_controller_factory.dart',
+      );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
+      final commentWidget = commentWidgetFile.readAsStringSync();
+      final commentItem = commentItemFile.readAsStringSync();
+      final floorSheet = floorSheetFile.readAsStringSync();
+      final factory = factoryFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
+      final violations = <String>[
+        if (commentWidget.contains('CommentRepository')) '${_relativePath(commentWidgetFile)} names comment repository directly',
+        if (commentItem.contains('CommentRepository')) '${_relativePath(commentItemFile)} names comment repository directly',
+        if (floorSheet.contains('CommentRepository')) '${_relativePath(floorSheetFile)} names comment repository directly',
+        if (!commentWidget.contains('Get.find<CommentControllerFactory>().createList(')) '${_relativePath(commentWidgetFile)} does not create list controller through feature factory',
+        if (!commentItem.contains('Get.find<CommentControllerFactory>()')) '${_relativePath(commentItemFile)} does not read comment controller factory',
+        if (!commentItem.contains('controllerFactory.createFloor(')) '${_relativePath(commentItemFile)} does not create floor controller through feature factory',
+        if (!commentItem.contains('controllerFactory.createItem(')) '${_relativePath(commentItemFile)} does not create item controller through feature factory',
+        if (!floorSheet.contains('Get.find<CommentControllerFactory>()')) '${_relativePath(floorSheetFile)} does not read comment controller factory',
+        if (!floorSheet.contains('controllerFactory.createFloor(')) '${_relativePath(floorSheetFile)} does not create floor controller through feature factory',
+        if (!floorSheet.contains('controllerFactory.createReplySheet(')) '${_relativePath(floorSheetFile)} does not create reply sheet controller through feature factory',
+        if (!factory.contains('CommentListController createList({')) 'comment controller factory does not create list controllers',
+        if (!factory.contains('FloorCommentController createFloor({')) 'comment controller factory does not create floor controllers',
+        if (!factory.contains('CommentItemController createItem({')) 'comment controller factory does not create item controllers',
+        if (!factory.contains('ReplySheetController createReplySheet({')) 'comment controller factory does not create reply sheet controllers',
+        if (!factory.contains('repository: _repository')) 'comment controller factory does not inject comment repository',
+        if (!bootstrap.contains('CommentControllerFactory(')) 'feature bootstrap does not register comment controller factory',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '评论列表、评论项和楼层回复组件可以拥有页面 controller 生命周期，但不能在 Widget 内直接拼装 CommentRepository。',
+      );
+    });
+
     test('top search panel keeps search context behind controller boundary', () {
       final topPanelFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/search/top_panel_view.dart',

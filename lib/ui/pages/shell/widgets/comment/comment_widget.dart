@@ -1,7 +1,7 @@
 import 'package:bujuan/core/state/load_state.dart' show PagedState;
 import 'package:bujuan/core/entities/comment_data.dart';
+import 'package:bujuan/features/comment/comment_controller_factory.dart';
 import 'package:bujuan/features/comment/comment_list_controller.dart';
-import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/ui/pages/shell/widgets/comment/comment_item_view.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
@@ -55,11 +55,10 @@ class _CommentWidgetState extends State<CommentWidget> {
   @override
   void initState() {
     super.initState();
-    _controller = CommentListController(
+    _controller = Get.find<CommentControllerFactory>().createList(
       id: widget.id,
       type: widget.idType,
       sortType: widget.commentType,
-      repository: Get.find<CommentRepository>(),
     )..loadInitial();
   }
 

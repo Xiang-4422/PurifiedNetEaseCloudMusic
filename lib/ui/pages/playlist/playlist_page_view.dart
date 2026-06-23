@@ -17,28 +17,13 @@ import 'package:bujuan/features/playlist/playlist_artwork_color_service.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
+import 'package:bujuan/ui/pages/playlist/playlist_page_state.dart';
 import 'package:bujuan/ui/pages/playlist/widgets/playlist_content_scroll_view.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
-
-enum _PlaylistPageLoadState {
-  loadingInitial,
-  showingMetadataOnly,
-  showingPartial,
-  showingFull,
-  loadFailedWithPartial,
-  loadFailedEmpty,
-}
-
-enum _PlaylistFetchKind {
-  none,
-  loadingFirstPage,
-  loadingRemaining,
-  refreshingFull,
-}
 
 /// 歌单详情页面，展示歌单元信息和歌曲列表。
 class PlayListPageView extends StatefulWidget {
@@ -83,11 +68,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   bool isSubscribed = false;
   bool isMyPlayList = false;
-  _PlaylistFetchKind _fetchKind = _PlaylistFetchKind.none;
+  PlaylistFetchKind _fetchKind = PlaylistFetchKind.none;
   int _artworkColorRequestId = 0;
   bool _animateArtworkColor = true;
 
-  _PlaylistPageLoadState loadState = _PlaylistPageLoadState.loadingInitial;
+  PlaylistPageLoadState loadState = PlaylistPageLoadState.loadingInitial;
   final PlaylistArtworkColorService _artworkColorService = PlaylistArtworkColorService();
 
   Color albumColor = Colors.black;
@@ -103,7 +88,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     PlaylistPerformanceLogger.log(
       'page.init playlistId=${widget.playlistId} routeName=${widget.playlistName.isNotEmpty} routeCover=${widget.coverUrl?.isNotEmpty == true} routeTrackCount=${widget.trackCount}',
     );
-    loadState = _hasPlaylistMetadata ? _PlaylistPageLoadState.showingMetadataOnly : _PlaylistPageLoadState.loadingInitial;
+    loadState = _hasPlaylistMetadata ? PlaylistPageLoadState.showingMetadataOnly : PlaylistPageLoadState.loadingInitial;
     unawaited(_updateArtworkColors(_resolvedCoverUrl));
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadPlaylistData();
@@ -112,12 +97,13 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   @override
   Widget build(BuildContext context) {
+    final presentation = _presentation;
     return AnimatedContainer(
       duration: _animateArtworkColor ? const Duration(milliseconds: 300) : Duration.zero,
       color: albumColor,
-      child: loadState == _PlaylistPageLoadState.loadingInitial && !_hasPlaylistMetadata
+      child: presentation.showInitialLoading
           ? const LoadingView()
-          : loadState == _PlaylistPageLoadState.loadFailedEmpty && !_hasPlaylistMetadata
+          : presentation.showEmptyError
               ? GestureDetector(
                   onTap: () => _loadFirstPageAndRemaining(showLoadingState: true),
                   child: const ErrorView(),
@@ -132,10 +118,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                   foregroundColor: widgetColor,
                   isSubscribed: isSubscribed,
                   isMyPlaylist: isMyPlayList,
-                  canPlayLoadedPlaylist: _canPlayLoadedPlaylist,
-                  isShowingPlaylistSkeleton: _isShowingPlaylistSkeleton,
-                  isShowingStatusFooter: _isShowingStatusFooter,
-                  completionMessage: _completionMessage,
+                  canPlayLoadedPlaylist: presentation.canPlayLoadedPlaylist,
+                  isShowingPlaylistSkeleton: presentation.isShowingPlaylistSkeleton,
+                  isShowingStatusFooter: presentation.isShowingStatusFooter,
+                  completionMessage: presentation.completionMessage,
                   onRefresh: _refreshFullPlaylist,
                   onPlaySequential: () => _playLoadedPlaylist(shuffle: false),
                   onPlayShuffle: () => _playLoadedPlaylist(shuffle: true),
@@ -164,7 +150,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (initialDetail.localState != PlaylistLocalDetailState.empty && initialDetail.localDetail != null) {
       await _applyPlaylistDetail(
         initialDetail.localDetail!,
-        nextState: initialDetail.localState == PlaylistLocalDetailState.complete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
+        nextState: initialDetail.localState == PlaylistLocalDetailState.complete ? PlaylistPageLoadState.showingFull : PlaylistPageLoadState.showingPartial,
       );
       if (initialDetail.localState == PlaylistLocalDetailState.partial) {
         PlaylistPerformanceLogger.log(
@@ -188,7 +174,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _loadFirstPageAndRemaining({required bool showLoadingState}) async {
-    if (_fetchKind != _PlaylistFetchKind.none) {
+    if (_fetchKind != PlaylistFetchKind.none) {
       PlaylistPerformanceLogger.log('page.firstPage.skip fetchKind=${_fetchKind.name}');
       return;
     }
@@ -196,11 +182,11 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     PlaylistPerformanceLogger.log('page.firstPage.start playlistId=${widget.playlistId} showLoading=$showLoadingState');
     if (mounted) {
       setState(() {
-        _fetchKind = _PlaylistFetchKind.loadingFirstPage;
+        _fetchKind = PlaylistFetchKind.loadingFirstPage;
         if (showLoadingState && songs.isEmpty && !_hasPlaylistMetadata) {
-          loadState = _PlaylistPageLoadState.loadingInitial;
+          loadState = PlaylistPageLoadState.loadingInitial;
         } else if (songs.isEmpty && _hasPlaylistMetadata) {
-          loadState = _PlaylistPageLoadState.showingMetadataOnly;
+          loadState = PlaylistPageLoadState.showingMetadataOnly;
         }
       });
     }
@@ -217,7 +203,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       }
       await _applyPlaylistDetail(
         data,
-        nextState: data.isComplete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
+        nextState: data.isComplete ? PlaylistPageLoadState.showingFull : PlaylistPageLoadState.showingPartial,
       );
       if (!data.isComplete) {
         await _loadRemainingPlaylistSongs(offset: data.songs.length);
@@ -231,12 +217,12 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         return;
       }
       setState(() {
-        loadState = _PlaylistPageLoadState.loadFailedEmpty;
+        loadState = PlaylistPageLoadState.loadFailedEmpty;
       });
     } finally {
       if (mounted) {
         setState(() {
-          _fetchKind = _PlaylistFetchKind.none;
+          _fetchKind = PlaylistFetchKind.none;
         });
       }
       PlaylistPerformanceLogger.elapsed(
@@ -248,7 +234,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   }
 
   Future<void> _refreshFullPlaylist() async {
-    if (_fetchKind != _PlaylistFetchKind.none) {
+    if (_fetchKind != PlaylistFetchKind.none) {
       PlaylistPerformanceLogger.log('page.refreshFull.skip fetchKind=${_fetchKind.name}');
       ToastService.show('歌单正在加载中');
       return;
@@ -256,7 +242,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     final stopwatch = PlaylistPerformanceLogger.start();
     PlaylistPerformanceLogger.log('page.refreshFull.start playlistId=${widget.playlistId}');
     setState(() {
-      _fetchKind = _PlaylistFetchKind.refreshingFull;
+      _fetchKind = PlaylistFetchKind.refreshingFull;
     });
     try {
       final fetchStopwatch = PlaylistPerformanceLogger.start();
@@ -271,7 +257,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       }
       await _applyPlaylistDetail(
         data,
-        nextState: data.isComplete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
+        nextState: data.isComplete ? PlaylistPageLoadState.showingFull : PlaylistPageLoadState.showingPartial,
       );
     } catch (_) {
       if (!mounted) {
@@ -282,12 +268,12 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         return;
       }
       setState(() {
-        loadState = _PlaylistPageLoadState.loadFailedEmpty;
+        loadState = PlaylistPageLoadState.loadFailedEmpty;
       });
     } finally {
       if (mounted) {
         setState(() {
-          _fetchKind = _PlaylistFetchKind.none;
+          _fetchKind = PlaylistFetchKind.none;
         });
       }
       PlaylistPerformanceLogger.elapsed(
@@ -307,8 +293,8 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       playlistName = playlist.title;
       coverUrl = playlist.coverUrl ?? coverUrl;
       trackCount = playlist.trackCount ?? trackCount;
-      if (songs.isEmpty && loadState == _PlaylistPageLoadState.loadingInitial && _hasPlaylistMetadata) {
-        loadState = _PlaylistPageLoadState.showingMetadataOnly;
+      if (songs.isEmpty && loadState == PlaylistPageLoadState.loadingInitial && _hasPlaylistMetadata) {
+        loadState = PlaylistPageLoadState.showingMetadataOnly;
       }
     });
     if (coverUrl != previousCoverUrl) {
@@ -318,7 +304,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   Future<void> _applyPlaylistDetail(
     PlaylistDetailData data, {
-    required _PlaylistPageLoadState nextState,
+    required PlaylistPageLoadState nextState,
   }) async {
     if (!mounted) {
       return;
@@ -415,23 +401,20 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         fallbackItems: songs,
       );
 
-  bool get _canPlayLoadedPlaylist => songs.isNotEmpty && loadState != _PlaylistPageLoadState.loadingInitial && loadState != _PlaylistPageLoadState.loadFailedEmpty && _fetchKind == _PlaylistFetchKind.none;
+  PlaylistPagePresentation get _presentation => PlaylistPagePresentation(
+        loadState: loadState,
+        fetchKind: _fetchKind,
+        hasPlaylistMetadata: _hasPlaylistMetadata,
+        songCount: songs.length,
+      );
 
-  bool get _hasPlaylistMetadata => playlistName.trim().isNotEmpty || coverUrl?.isNotEmpty == true || trackCount != null;
+  bool get _canPlayLoadedPlaylist => _presentation.canPlayLoadedPlaylist;
 
-  bool get _isShowingPlaylistSkeleton => songs.isEmpty && _fetchKind == _PlaylistFetchKind.loadingFirstPage && _hasPlaylistMetadata;
-
-  bool get _isShowingStatusFooter => loadState == _PlaylistPageLoadState.loadFailedWithPartial || (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) || _fetchKind == _PlaylistFetchKind.loadingRemaining;
-
-  String get _completionMessage {
-    if (loadState == _PlaylistPageLoadState.loadFailedEmpty && _hasPlaylistMetadata) {
-      return '歌曲加载失败，下拉可重试';
-    }
-    if (loadState == _PlaylistPageLoadState.loadFailedWithPartial) {
-      return '剩余歌曲加载失败，下拉可重试';
-    }
-    return '正在加载剩余歌曲...';
-  }
+  bool get _hasPlaylistMetadata => PlaylistPagePresentation.hasMetadata(
+        playlistName: playlistName,
+        coverUrl: coverUrl,
+        trackCount: trackCount,
+      );
 
   Future<void> _loadRemainingPlaylistSongs({required int offset}) async {
     if (!mounted || offset <= 0) {
@@ -440,7 +423,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     final stopwatch = PlaylistPerformanceLogger.start();
     PlaylistPerformanceLogger.log('page.remaining.start playlistId=${widget.playlistId} offset=$offset currentSongs=${songs.length}');
     setState(() {
-      _fetchKind = _PlaylistFetchKind.loadingRemaining;
+      _fetchKind = PlaylistFetchKind.loadingRemaining;
     });
     try {
       final fetchStopwatch = PlaylistPerformanceLogger.start();
@@ -455,19 +438,19 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       );
       await _applyPlaylistDetail(
         data,
-        nextState: data.isComplete ? _PlaylistPageLoadState.showingFull : _PlaylistPageLoadState.showingPartial,
+        nextState: data.isComplete ? PlaylistPageLoadState.showingFull : PlaylistPageLoadState.showingPartial,
       );
     } catch (_) {
       if (mounted) {
         ToastService.show('剩余歌曲加载失败');
         setState(() {
-          loadState = songs.isEmpty ? _PlaylistPageLoadState.loadFailedEmpty : _PlaylistPageLoadState.loadFailedWithPartial;
+          loadState = songs.isEmpty ? PlaylistPageLoadState.loadFailedEmpty : PlaylistPageLoadState.loadFailedWithPartial;
         });
       }
     } finally {
       if (mounted) {
         setState(() {
-          _fetchKind = _PlaylistFetchKind.none;
+          _fetchKind = PlaylistFetchKind.none;
         });
       }
       PlaylistPerformanceLogger.elapsed(

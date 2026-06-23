@@ -22,6 +22,22 @@ void main() {
     expect(source, isNot(contains('class _PlaylistActionButtonSurface')));
   });
 
+  test('playlist page keeps display state rules in a local state model', () {
+    final pageSource = File('lib/ui/pages/playlist/playlist_page_view.dart').readAsStringSync();
+    final stateSource = File(
+      'lib/ui/pages/playlist/playlist_page_state.dart',
+    ).readAsStringSync();
+
+    expect(pageSource, contains('PlaylistPagePresentation('));
+    expect(pageSource, isNot(contains('enum _PlaylistPageLoadState')));
+    expect(pageSource, isNot(contains('enum _PlaylistFetchKind')));
+    expect(stateSource, contains('enum PlaylistPageLoadState'));
+    expect(stateSource, contains('enum PlaylistFetchKind'));
+    expect(stateSource, contains('class PlaylistPagePresentation'));
+    expect(stateSource, contains('canPlayLoadedPlaylist'));
+    expect(stateSource, contains('completionMessage'));
+  });
+
   test('playlist header keeps focused playback and subscription actions', () {
     final source = File(
       'lib/ui/pages/playlist/widgets/playlist_header_sliver.dart',

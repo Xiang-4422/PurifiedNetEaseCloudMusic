@@ -33,7 +33,7 @@ class PlaybackUrlCacheCoordinator {
     final now = _now();
     if (!forceRefresh && cachedUrl != null) {
       if (now.difference(cachedUrl.createdAt) < _ttl) {
-        final localUrl = await _resolveLocalResourceUrl(trackId);
+        final localUrl = await _resolveLocalResourceUrlOrNull(trackId);
         if (localUrl != null) {
           return localUrl;
         }
@@ -44,7 +44,7 @@ class PlaybackUrlCacheCoordinator {
     }
     final loadingUrl = _loads[cacheKey];
     if (!forceRefresh && loadingUrl != null) {
-      final localUrl = await _resolveLocalResourceUrl(trackId);
+      final localUrl = await _resolveLocalResourceUrlOrNull(trackId);
       if (localUrl != null) {
         return localUrl;
       }
@@ -64,6 +64,14 @@ class PlaybackUrlCacheCoordinator {
     });
     _loads[cacheKey] = loadFuture;
     return loadFuture;
+  }
+
+  Future<String?> _resolveLocalResourceUrlOrNull(String trackId) async {
+    try {
+      return await _resolveLocalResourceUrl(trackId);
+    } catch (_) {
+      return null;
+    }
   }
 
   void _cacheRemoteUrl(String cacheKey, String? url) {

@@ -164,6 +164,77 @@ void main() {
       expect(loadCount, 2);
     });
 
+    test('keeps cached remote url when local resource lookup fails', () async {
+      var shouldFailLocalLookup = false;
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async {
+          if (shouldFailLocalLookup) {
+            throw StateError('local index failed');
+          }
+          return null;
+        },
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        return 'https://audio.test/1.mp3';
+      }
+
+      final remote = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+      shouldFailLocalLookup = true;
+      final cached = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+
+      expect(remote, 'https://audio.test/1.mp3');
+      expect(cached, remote);
+      expect(loadCount, 1);
+    });
+
+    test('keeps in-flight remote url when local resource lookup fails', () async {
+      final completer = Completer<String?>();
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async {
+          throw StateError('local index failed');
+        },
+      );
+
+      final inFlight = coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () {
+          loadCount++;
+          return completer.future;
+        },
+      );
+      await _waitUntil(() => loadCount == 1);
+      final joined = coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async {
+          loadCount++;
+          return 'https://audio.test/1-reloaded.mp3';
+        },
+      );
+      completer.complete('https://audio.test/1.mp3');
+
+      expect(await inFlight, 'https://audio.test/1.mp3');
+      expect(await joined, 'https://audio.test/1.mp3');
+      expect(loadCount, 1);
+    });
+
     test('late stale load does not overwrite force refreshed cache', () async {
       final completers = <Completer<String?>>[];
       final coordinator = PlaybackUrlCacheCoordinator(

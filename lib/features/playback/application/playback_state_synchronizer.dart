@@ -168,13 +168,10 @@ class PlaybackStateSynchronizer {
           taskName: 'playback.mediaItem.sync',
           trackId: queueItem.id,
           task: () async {
-            if (_lastPositionTrackId.isNotEmpty && _lastPositionTrackId != queueItem.id) {
-              final previousTrackId = _lastPositionTrackId;
-              _backgroundTasks.run(
-                taskName: 'playback.position.saveOnTrackChange',
-                trackId: previousTrackId,
-                task: () => _savePlaybackPosition(force: true),
-              );
+            final trackChanged = _lastPositionTrackId.isNotEmpty && _lastPositionTrackId != queueItem.id;
+            if (trackChanged) {
+              _latestPosition = Duration.zero;
+              _lastStoredPosition = Duration.zero;
             }
             _lastPositionTrackId = queueItem.id;
             final queueState = _queueService.state;
@@ -186,11 +183,15 @@ class PlaybackStateSynchronizer {
             syncRuntimeState(
               currentSong: queueItem,
               currentIndex: confirmedIndex,
+              currentPosition: trackChanged ? Duration.zero : null,
             );
             _backgroundTasks.run(
               taskName: 'playback.currentSong.save',
               trackId: queueItem.id,
-              task: () => _queueStore.saveCurrentSong(queueItem.id),
+              task: () => _queueStore.saveCurrentSong(
+                queueItem.id,
+                position: trackChanged ? Duration.zero : null,
+              ),
             );
             await updateCurrentPlayIndex(currentItemUpdated: false);
             await _appendRoamingSongsIfNeeded(

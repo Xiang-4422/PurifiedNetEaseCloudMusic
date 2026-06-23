@@ -53,8 +53,14 @@ class PlaybackQueueStore {
   }
 
   /// 保存当前歌曲 id。
-  Future<void> saveCurrentSong(String currentSongId) async {
-    await _repository.updateRestoreState(currentSongId: currentSongId);
+  Future<void> saveCurrentSong(
+    String currentSongId, {
+    Duration? position,
+  }) async {
+    await _repository.updateRestoreState(
+      currentSongId: currentSongId,
+      position: position,
+    );
     await _repository.recordPlayedTrack(currentSongId);
   }
 

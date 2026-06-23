@@ -15,11 +15,26 @@ void main() {
       expect(repository.savedCurrentSongIds, ['netease:1']);
       expect(repository.recordedTrackIds, ['netease:1']);
     });
+
+    test('saveCurrentSong can reset restore position atomically with current song', () async {
+      final repository = _FakePlaybackRepository();
+      final store = PlaybackQueueStore(repository: repository);
+
+      await store.saveCurrentSong(
+        'netease:2',
+        position: Duration.zero,
+      );
+
+      expect(repository.savedCurrentSongIds, ['netease:2']);
+      expect(repository.savedPositions, [Duration.zero]);
+      expect(repository.recordedTrackIds, ['netease:2']);
+    });
   });
 }
 
 class _FakePlaybackRepository implements PlaybackRepository {
   final List<String> savedCurrentSongIds = <String>[];
+  final List<Duration?> savedPositions = <Duration?>[];
   final List<String> recordedTrackIds = <String>[];
 
   @override
@@ -34,6 +49,7 @@ class _FakePlaybackRepository implements PlaybackRepository {
   }) async {
     if (currentSongId != null) {
       savedCurrentSongIds.add(currentSongId);
+      savedPositions.add(position);
     }
   }
 

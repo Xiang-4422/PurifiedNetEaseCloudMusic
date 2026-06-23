@@ -698,6 +698,26 @@ void main() {
       );
     });
 
+    test('playback state synchronizer resets position when confirmed media item changes', () {
+      final synchronizerFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_state_synchronizer.dart',
+      );
+      final content = synchronizerFile.readAsStringSync();
+      final violations = <String>[
+        if (content.contains('playback.position.saveOnTrackChange')) 'saves previous track position as a separate background task',
+        if (!content.contains('final trackChanged = _lastPositionTrackId.isNotEmpty && _lastPositionTrackId != queueItem.id')) 'does not detect media item track changes',
+        if (!content.contains('_latestPosition = Duration.zero')) 'does not reset latest position on media item change',
+        if (!content.contains('currentPosition: trackChanged ? Duration.zero : null')) 'does not reset runtime position on media item change',
+        if (!content.contains('position: trackChanged ? Duration.zero : null')) 'does not reset restore position with current song save',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '切歌时当前歌曲和恢复进度必须作为同一语义更新；不能把上一首的进度通过独立后台任务写到新歌恢复状态上。',
+      );
+    });
+
     test('music data repository delegates playback url cache coordination', () {
       final repositoryFile = File(
         '${projectRoot.path}/lib/data/music_data/music_data_repository.dart',

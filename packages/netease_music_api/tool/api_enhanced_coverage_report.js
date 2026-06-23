@@ -415,6 +415,8 @@ const specialLimitedReasons = sortedObject(specialCoverage.limited)
 const runtimeLimitedReasons = sortedObject({
   'runtime:proxy.pac':
     'proxy 支持 HTTP/HTTPS 代理 URL 和基础认证；明确的 PAC 文件或 PAC scheme 暂不支持，Dart client 会显式抛 UnsupportedError。',
+  'runtime:source_order':
+    'source order 只属于 song_url_v1 的 unblock 解灰路径；Dart SDK 当前未实现 unblockmusic-utils，普通 xeapi 播放 URL 请求会忽略 source。',
 })
 const limitedSpecial = new Set(Object.keys(specialLimitedReasons))
 const categorizedSpecial = new Set([...nodeOracleSpecial, ...dartBehaviorSpecial, ...limitedSpecial])
@@ -454,6 +456,20 @@ const specialLimitedMissingReason = sorted(
     return typeof reason !== 'string' || reason.trim().length === 0
   }),
 )
+const runtimeSupportedReasons = sortedObject({
+  'runtime:FLAC': 'song_url_v1 和下载 URL 请求固定使用 encodeType=flac。',
+  'runtime:checkToken': 'checkToken 写入 eapi header 的 X-antiCheatToken。',
+  'runtime:cookie': 'cookie 进入 request options，并参与加密请求 header。',
+  'runtime:domain': 'domain 覆盖 raw request host。',
+  'runtime:e_r': 'e_r 进入 raw request options，并启用加密响应解密。',
+  'runtime:proxy.auth': '代理 URL user info 会转为基础认证代理凭据。',
+  'runtime:proxy.http': 'HTTP/HTTPS 代理 URL 会映射为 Dart native proxy rule。',
+  'runtime:randomCNIP': 'randomCNIP 生成可用国内 IPv4，且 query 显式值优先于 SDK 默认值。',
+  'runtime:realIP': 'realIP 写入 X-Real-IP 和 X-Forwarded-For。',
+  'runtime:ua': 'ua 映射为原始 User-Agent。',
+})
+const runtimeSupported = new Set(Object.keys(runtimeSupportedReasons))
+const runtimeLimited = new Set(Object.keys(runtimeLimitedReasons))
 
 function buildSdkDifferences() {
   const differences = []
@@ -595,6 +611,23 @@ function buildSpecialCoverageStatusByModule() {
   return statusByModule
 }
 
+function buildRuntimeOptionStatusByName() {
+  const statusByName = {}
+  for (const [name, reason] of Object.entries(runtimeSupportedReasons)) {
+    statusByName[name] = {
+      status: 'supported',
+      reason,
+    }
+  }
+  for (const [name, reason] of Object.entries(runtimeLimitedReasons)) {
+    statusByName[name] = {
+      status: 'limited',
+      reason,
+    }
+  }
+  return sortedObject(statusByName)
+}
+
 const report = {
   upstreamVersion: upstreamPackage.version,
   upstreamSubmodulePath: path.relative(repoRoot, upstreamRepoPath).replace(/\\/g, '/'),
@@ -627,9 +660,12 @@ const report = {
   specialNodeOracle: sorted(nodeOracleSpecial),
   specialDartBehavior: sorted(dartBehaviorSpecial),
   specialLimited: sorted(limitedSpecial),
-  runtimeLimited: sorted(Object.keys(runtimeLimitedReasons)),
+  runtimeSupported: sorted(runtimeSupported),
+  runtimeLimited: sorted(runtimeLimited),
   specialCoverageStatusByModule: buildSpecialCoverageStatusByModule(),
+  runtimeOptionStatusByName: buildRuntimeOptionStatusByName(),
   specialLimitedReasons,
+  runtimeSupportedReasons,
   runtimeLimitedReasons,
   sdkDifferences: buildSdkDifferences(),
 }
@@ -688,11 +724,17 @@ if (jsonOutput) {
   console.log(`special node oracle: ${report.specialNodeOracle.join(', ')}`)
   console.log(`special dart behavior: ${report.specialDartBehavior.join(', ')}`)
   console.log(`special limited: ${report.specialLimited.join(', ')}`)
+  console.log(`runtime supported: ${report.runtimeSupported.join(', ')}`)
   console.log(`runtime limited: ${report.runtimeLimited.join(', ')}`)
   console.log(`special coverage status entries: ${Object.keys(report.specialCoverageStatusByModule).length}`)
+  console.log(`runtime option status entries: ${Object.keys(report.runtimeOptionStatusByName).length}`)
   console.log(`SDK differences: ${report.sdkDifferences.length}`)
   console.log('special limited reasons:')
   for (const [module, reason] of Object.entries(report.specialLimitedReasons)) {
+    console.log(`- ${module}: ${reason}`)
+  }
+  console.log('runtime supported reasons:')
+  for (const [module, reason] of Object.entries(report.runtimeSupportedReasons)) {
     console.log(`- ${module}: ${reason}`)
   }
   console.log('runtime limited reasons:')

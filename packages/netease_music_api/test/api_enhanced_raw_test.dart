@@ -154,11 +154,43 @@ void main() {
       final limitedReasons = _jsonMap(report['specialLimitedReasons']);
       expect(limitedReasons.keys.toSet(), _stringSet(report['specialLimited']));
       expect(limitedReasons['song_url_match'], contains('unblockmusic-utils'));
+      final runtimeSupportedReasons = _jsonMap(report['runtimeSupportedReasons']);
+      expect(_stringSet(report['runtimeSupported']), {
+        'runtime:FLAC',
+        'runtime:checkToken',
+        'runtime:cookie',
+        'runtime:domain',
+        'runtime:e_r',
+        'runtime:proxy.auth',
+        'runtime:proxy.http',
+        'runtime:randomCNIP',
+        'runtime:realIP',
+        'runtime:ua',
+      });
+      expect(runtimeSupportedReasons.keys.toSet(), _stringSet(report['runtimeSupported']));
+      expect(runtimeSupportedReasons['runtime:FLAC'], contains('encodeType=flac'));
+      expect(runtimeSupportedReasons['runtime:randomCNIP'], contains('SDK 默认值'));
+      expect(runtimeSupportedReasons['runtime:proxy.auth'], contains('基础认证'));
       final runtimeLimitedReasons = _jsonMap(report['runtimeLimitedReasons']);
-      expect(_stringSet(report['runtimeLimited']), {'runtime:proxy.pac'});
+      expect(_stringSet(report['runtimeLimited']), {
+        'runtime:proxy.pac',
+        'runtime:source_order',
+      });
       expect(runtimeLimitedReasons.keys.toSet(), _stringSet(report['runtimeLimited']));
       expect(runtimeLimitedReasons['runtime:proxy.pac'], contains('PAC 文件'));
       expect(runtimeLimitedReasons['runtime:proxy.pac'], contains('PAC scheme'));
+      expect(runtimeLimitedReasons['runtime:source_order'], contains('unblockmusic-utils'));
+      expect(runtimeLimitedReasons['runtime:source_order'], contains('忽略 source'));
+      final runtimeOptionStatusByName = _jsonMap(report['runtimeOptionStatusByName']);
+      expect(
+        runtimeOptionStatusByName.keys.toSet(),
+        {
+          ..._stringSet(report['runtimeSupported']),
+          ..._stringSet(report['runtimeLimited']),
+        },
+      );
+      expect(_jsonMap(runtimeOptionStatusByName['runtime:FLAC'])['status'], 'supported');
+      expect(_jsonMap(runtimeOptionStatusByName['runtime:source_order'])['status'], 'limited');
       final oracleModules = _nodeOracleFixtureModules();
       final specialStatusByModule = _jsonMap(report['specialCoverageStatusByModule']);
       expect(specialStatusByModule, hasLength(report['specialModuleCount']));

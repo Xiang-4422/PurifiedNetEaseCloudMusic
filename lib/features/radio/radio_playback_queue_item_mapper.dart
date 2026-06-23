@@ -30,7 +30,6 @@ class RadioPlaybackQueueItemMapper {
           lyricKey: trackId,
           isLiked: likedSongIds.contains(int.tryParse(trackId)),
           isCached: false,
-          metadata: const {'mv': 0},
         );
       },
     ).toList();

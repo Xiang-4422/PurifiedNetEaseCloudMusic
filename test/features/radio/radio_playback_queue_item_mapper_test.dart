@@ -34,6 +34,7 @@ void main() {
       expect(items.single.sourceId, '123');
       expect(items.single.lyricKey, '123');
       expect(items.single.isLiked, isTrue);
+      expect(items.single.metadata, isEmpty);
     });
   });
 }

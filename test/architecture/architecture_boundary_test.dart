@@ -1594,6 +1594,9 @@ void main() {
       final radioControllerFile = File(
         '${projectRoot.path}/lib/features/radio/radio_detail_controller.dart',
       );
+      final radioMapperFile = File(
+        '${projectRoot.path}/lib/features/radio/radio_playback_queue_item_mapper.dart',
+      );
       final radioFactoryFile = File(
         '${projectRoot.path}/lib/features/radio/radio_controller_factory.dart',
       );
@@ -1607,6 +1610,7 @@ void main() {
       final radioView = radioViewFile.readAsStringSync();
       final radioListController = radioListControllerFile.readAsStringSync();
       final radioController = radioControllerFile.readAsStringSync();
+      final radioMapper = radioMapperFile.readAsStringSync();
       final radioFactory = radioFactoryFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
@@ -1640,6 +1644,7 @@ void main() {
         if (!radioController.contains('required List<int> Function() likedSongIds')) 'radio detail controller does not require a lazy liked ids provider',
         if (!radioController.contains('likedSongIds: _likedSongIds()')) 'radio detail controller does not derive liked state from lazy provider',
         if (!radioController.contains('bool get _hasUserId => _userId.trim().isNotEmpty')) 'radio detail controller does not trim-check current user before repository access',
+        if (radioMapper.contains('metadata:')) 'radio playback queue mapper writes legacy dynamic metadata',
         if (!radioFactory.contains('RadioListController createList({int pageSize = 30})')) 'radio controller factory does not create list controllers',
         if (!radioFactory.contains('RadioDetailController createDetail({')) 'radio controller factory does not create detail controllers',
         if (!radioFactory.contains('userId: _currentUserId()')) 'radio controller factory does not snapshot current user at controller creation',

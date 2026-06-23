@@ -22,7 +22,7 @@ void main() {
 
       expect(loaded?.userId, '1');
       expect(loaded?.nickname, 'User');
-      expect(keyValueStore.values[userSessionSp], isA<String>());
+      expect(keyValueStore.values[userSessionKey], isA<String>());
     });
 
     test('clears session payload through key-value boundary', () async {
@@ -39,23 +39,23 @@ void main() {
       await store.clearSession();
 
       expect(store.loadSession(), isNull);
-      expect(keyValueStore.values.containsKey(userSessionSp), isFalse);
+      expect(keyValueStore.values.containsKey(userSessionKey), isFalse);
     });
 
     test('ignores corrupt or anonymous cached session payloads', () {
       final keyValueStore = _MemoryKeyValueStore();
       final store = UserSessionStore(keyValueStore: keyValueStore);
 
-      keyValueStore.values[userSessionSp] = 'not-json';
+      keyValueStore.values[userSessionKey] = 'not-json';
       expect(store.loadSession(), isNull);
 
-      keyValueStore.values[userSessionSp] = '[]';
+      keyValueStore.values[userSessionKey] = '[]';
       expect(store.loadSession(), isNull);
 
-      keyValueStore.values[userSessionSp] = '{"nickname":"User"}';
+      keyValueStore.values[userSessionKey] = '{"nickname":"User"}';
       expect(store.loadSession(), isNull);
 
-      keyValueStore.values[userSessionSp] = 1;
+      keyValueStore.values[userSessionKey] = 1;
       expect(store.loadSession(), isNull);
     });
   });

@@ -12,21 +12,21 @@ void main() {
       expect(store.hasCachedSession, isFalse);
 
       await store.saveLoginFlag(true);
-      keyValueStore.values[userSessionSp] = '{"userId":"1"}';
+      keyValueStore.values[userSessionKey] = '{"userId":"1"}';
 
       expect(store.hasCachedSession, isTrue);
-      expect(keyValueStore.values[isLoginSP], isTrue);
+      expect(keyValueStore.values[loginFlagKey], isTrue);
     });
 
     test('requires both login flag and non-empty session payload', () async {
       final keyValueStore = _MemoryKeyValueStore();
       final store = AuthStateStore(keyValueStore: keyValueStore);
 
-      keyValueStore.values[userSessionSp] = '{"userId":"1"}';
+      keyValueStore.values[userSessionKey] = '{"userId":"1"}';
       expect(store.hasCachedSession, isFalse);
 
       await store.saveLoginFlag(true);
-      keyValueStore.values[userSessionSp] = '';
+      keyValueStore.values[userSessionKey] = '';
       expect(store.hasCachedSession, isFalse);
     });
 
@@ -35,16 +35,16 @@ void main() {
       final store = AuthStateStore(keyValueStore: keyValueStore);
       await store.saveLoginFlag(true);
 
-      keyValueStore.values[userSessionSp] = 'not-json';
+      keyValueStore.values[userSessionKey] = 'not-json';
       expect(store.hasCachedSession, isFalse);
 
-      keyValueStore.values[userSessionSp] = '[]';
+      keyValueStore.values[userSessionKey] = '[]';
       expect(store.hasCachedSession, isFalse);
 
-      keyValueStore.values[userSessionSp] = '{"nickname":"User"}';
+      keyValueStore.values[userSessionKey] = '{"nickname":"User"}';
       expect(store.hasCachedSession, isFalse);
 
-      keyValueStore.values[userSessionSp] = 1;
+      keyValueStore.values[userSessionKey] = 1;
       expect(store.hasCachedSession, isFalse);
     });
   });

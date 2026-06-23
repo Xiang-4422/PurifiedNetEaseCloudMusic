@@ -1735,6 +1735,11 @@ void main() {
       final keysFile = File('${projectRoot.path}/lib/data/app_storage/app_cache_keys.dart');
       final content = keysFile.readAsStringSync();
       const forbiddenKeys = {
+        'gradientBackgroundSp': '<legacy_storage_variable>',
+        'highSong': '<legacy_storage_variable>',
+        'isLoginSP': '<legacy_storage_variable>',
+        'roundAlbumSp': '<legacy_storage_variable>',
+        'userSessionSp': '<legacy_storage_variable>',
         'leftImageSp': 'LEFT_IMAGE',
         'topLyricSp': 'TOP_LYRIC',
         'noFirstOpen': 'NO_FIRST_OPEN',
@@ -1763,6 +1768,27 @@ void main() {
         violations,
         isEmpty,
         reason: '喜欢歌曲、用户歌单、推荐歌曲、下载任务、本地资源索引和播放恢复等业务事实必须留在 Drift/资源索引，不能以遗留 Hive key 回流。',
+      );
+    });
+
+    test('Hive app storage keys keep semantic names and bounded scope', () {
+      final keysFile = File('${projectRoot.path}/lib/data/app_storage/app_cache_keys.dart');
+      final content = keysFile.readAsStringSync();
+      final declarations = RegExp(
+        r"const String (\w+) = '([^']+)';",
+      ).allMatches(content).map((match) => MapEntry(match.group(1)!, match.group(2)!)).toList();
+      const expectedKeys = {
+        'gradientBackgroundKey': 'SOLID_BACK_GROUND',
+        'highSoundQualityKey': 'HIGH_SONG',
+        'loginFlagKey': 'IS_LOGIN',
+        'roundAlbumKey': 'ROUND_ALBUM',
+        'userSessionKey': 'USER_INFO',
+      };
+
+      expect(
+        Map.fromEntries(declarations),
+        expectedKeys,
+        reason: 'Hive app_storage 只能保留登录态、用户 session、设置项和轻量视觉缓存；常量名必须表达语义，不能恢复 Sp 或业务事实缓存命名。',
       );
     });
 

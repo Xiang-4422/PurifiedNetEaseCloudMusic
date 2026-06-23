@@ -14,14 +14,14 @@ class AuthStateStore {
 
   final AppKeyValueStore _keyValueStore;
 
-  bool get _hasLoginFlag => _keyValueStore.get(isLoginSP) == true;
+  bool get _hasLoginFlag => _keyValueStore.get(loginFlagKey) == true;
 
   /// 是否存在可用的本地 session。
   bool get hasCachedSession {
     if (!_hasLoginFlag) {
       return false;
     }
-    final raw = _keyValueStore.get(userSessionSp);
+    final raw = _keyValueStore.get(userSessionKey);
     if (raw is! String || raw.isEmpty) {
       return false;
     }
@@ -39,6 +39,6 @@ class AuthStateStore {
 
   /// 保存本地登录标记。
   Future<void> saveLoginFlag(bool value) {
-    return _keyValueStore.put(isLoginSP, value);
+    return _keyValueStore.put(loginFlagKey, value);
   }
 }

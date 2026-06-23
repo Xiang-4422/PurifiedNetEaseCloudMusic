@@ -52,6 +52,31 @@ void main() {
       expect(controller.state.value.hasInitialError, isTrue);
     });
 
+    test('falls back to remote radios when cached radios load fails', () async {
+      final repository = _FakeRadioRepository(
+        cachedRadiosFuture: Future<List<RadioSummaryData>>.error(Exception('cache failed')),
+        fetchSubscribedRadios: () => Future.value(
+          DjRadioPage(
+            items: [_radio('remote-radio')],
+            hasMore: false,
+            nextOffset: 1,
+          ),
+        ),
+      );
+      final controller = RadioListController(
+        userId: 'user-1',
+        repository: repository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+
+      expect(repository.requestedRadioOffsets, [0]);
+      expect(controller.state.value.items.map((item) => item.id), ['remote-radio']);
+      expect(controller.state.value.initialLoading, isFalse);
+      expect(controller.state.value.error, isNull);
+    });
+
     test('ignores stale load more result after refresh completes', () async {
       final loadMore = Completer<DjRadioPage>();
       final refresh = Completer<DjRadioPage>();
@@ -224,6 +249,32 @@ void main() {
       expect(controller.state.value.hasInitialError, isTrue);
     });
 
+    test('falls back to remote programs when cached programs load fails', () async {
+      final repository = _FakeRadioRepository(
+        cachedProgramsFuture: Future<List<RadioProgramData>>.error(Exception('cache failed')),
+        fetchPrograms: () => Future.value(
+          DjProgramPage(
+            items: [_program('remote-program')],
+            hasMore: false,
+            nextOffset: 1,
+          ),
+        ),
+      );
+      final controller = RadioDetailController(
+        radioId: 'radio-1',
+        userId: 'user-1',
+        repository: repository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+
+      expect(repository.requestedProgramOffsets, [0]);
+      expect(controller.state.value.items.map((item) => item.id), ['remote-program']);
+      expect(controller.state.value.initialLoading, isFalse);
+      expect(controller.state.value.error, isNull);
+    });
+
     test('ignores stale load more result after refresh completes', () async {
       final loadMore = Completer<DjProgramPage>();
       final refresh = Completer<DjProgramPage>();
@@ -384,6 +435,8 @@ class _FakeRadioRepository implements RadioRepository {
   _FakeRadioRepository({
     this.cachedRadios = const [],
     this.cachedPrograms = const [],
+    this.cachedRadiosFuture,
+    this.cachedProgramsFuture,
     Future<DjRadioPage> Function()? fetchSubscribedRadios,
     Future<DjProgramPage> Function()? fetchPrograms,
     Future<DjRadioPage> Function({
@@ -405,6 +458,8 @@ class _FakeRadioRepository implements RadioRepository {
 
   final List<RadioSummaryData> cachedRadios;
   final List<RadioProgramData> cachedPrograms;
+  final Future<List<RadioSummaryData>>? cachedRadiosFuture;
+  final Future<List<RadioProgramData>>? cachedProgramsFuture;
   final Future<DjRadioPage> Function()? _fetchSubscribedRadios;
   final Future<DjProgramPage> Function()? _fetchPrograms;
   final Future<DjRadioPage> Function({
@@ -419,9 +474,15 @@ class _FakeRadioRepository implements RadioRepository {
     required int limit,
     required bool asc,
   })? _fetchProgramsWithArgs;
+  final List<int> requestedRadioOffsets = <int>[];
+  final List<int> requestedProgramOffsets = <int>[];
 
   @override
   Future<List<RadioSummaryData>> loadCachedSubscribedRadios(String userId) async {
+    final future = cachedRadiosFuture;
+    if (future != null) {
+      return future;
+    }
     return cachedRadios;
   }
 
@@ -431,6 +492,10 @@ class _FakeRadioRepository implements RadioRepository {
     String radioId, {
     required bool asc,
   }) async {
+    final future = cachedProgramsFuture;
+    if (future != null) {
+      return future;
+    }
     return cachedPrograms;
   }
 
@@ -441,6 +506,7 @@ class _FakeRadioRepository implements RadioRepository {
     required int offset,
     required int limit,
   }) {
+    requestedRadioOffsets.add(offset);
     final fetchWithArgs = _fetchSubscribedRadiosWithArgs;
     if (fetchWithArgs != null) {
       return fetchWithArgs(
@@ -467,6 +533,7 @@ class _FakeRadioRepository implements RadioRepository {
     required int limit,
     required bool asc,
   }) {
+    requestedProgramOffsets.add(offset);
     final fetchWithArgs = _fetchProgramsWithArgs;
     if (fetchWithArgs != null) {
       return fetchWithArgs(

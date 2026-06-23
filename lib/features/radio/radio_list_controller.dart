@@ -38,7 +38,17 @@ class RadioListController {
       state.value = const PagedState(items: [], hasMore: false);
       return;
     }
-    final cachedItems = await _repository.loadCachedSubscribedRadios(_userId);
+    final List<RadioSummaryData> cachedItems;
+    try {
+      cachedItems = await _repository.loadCachedSubscribedRadios(_userId);
+    } catch (_) {
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+      state.value = PagedState.initialLoading();
+      await _reload();
+      return;
+    }
     if (!_isCurrentRequest(generation)) {
       return;
     }

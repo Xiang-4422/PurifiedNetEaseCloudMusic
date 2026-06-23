@@ -45,11 +45,21 @@ class RadioDetailController {
       state.value = const PagedState(items: [], hasMore: false);
       return;
     }
-    final cachedItems = await _repository.loadCachedPrograms(
-      _userId,
-      radioId,
-      asc: asc,
-    );
+    final List<RadioProgramData> cachedItems;
+    try {
+      cachedItems = await _repository.loadCachedPrograms(
+        _userId,
+        radioId,
+        asc: asc,
+      );
+    } catch (_) {
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+      state.value = PagedState.initialLoading();
+      await _reload();
+      return;
+    }
     if (!_isCurrentRequest(generation)) {
       return;
     }

@@ -50,6 +50,7 @@ import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/features/settings/cache_analysis_controller.dart';
 import 'package:bujuan/features/settings/cache_analysis_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
+import 'package:bujuan/features/settings/settings_page_controller_bundle.dart';
 import 'package:bujuan/features/settings/settings_repository.dart';
 import 'package:bujuan/features/shell/app_home_controller_bundle.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
@@ -329,6 +330,14 @@ void registerFeatureControllers() {
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
     ),
     fenix: true,
+  );
+  Get.put<SettingsPageControllerBundle>(
+    SettingsPageControllerBundle(
+      localMediaScanController: Get.find<LocalMediaScanController>(),
+      playerController: Get.find<PlayerController>(),
+      settingsController: Get.find<SettingsController>(),
+    ),
+    permanent: true,
   );
   Get.put<AppHomeControllerBundle>(
     AppHomeControllerBundle(

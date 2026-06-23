@@ -42,8 +42,9 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('SettingsSectionsList('));
-    expect(source, contains('Get.find<SettingsController>()'));
-    expect(source, contains('Get.find<PlayerController>()'));
+    expect(source, contains('Get.find<SettingsPageControllerBundle>()'));
+    expect(source, isNot(contains('Get.find<SettingsController>()')));
+    expect(source, isNot(contains('Get.find<PlayerController>()')));
     expect(source, contains('settingsController: _settingsController'));
     expect(source, contains('playerController: _playerController'));
     expect(sectionsSource, contains('required this.settingsController'));
@@ -77,7 +78,8 @@ void main() {
       'lib/ui/pages/debug/coverflow_demo_page_view.dart',
     ).readAsStringSync();
 
-    expect(source, contains('Get.find<PlayerController>()'));
+    expect(source, contains('Get.find<SettingsPageControllerBundle>()'));
+    expect(source, isNot(contains('Get.find<PlayerController>()')));
     expect(source, contains('playerController: _playerController'));
     expect(sectionsSource, contains('required this.playerController'));
     expect(sectionsSource, contains('CoverFlowDemoPageView('));
@@ -136,7 +138,8 @@ void main() {
       'lib/app/bootstrap/feature_bootstrap.dart',
     ).readAsStringSync();
 
-    expect(source, contains('Get.find<LocalMediaScanController>()'));
+    expect(source, contains('Get.find<SettingsPageControllerBundle>()'));
+    expect(source, isNot(contains('Get.find<LocalMediaScanController>()')));
     expect(source, contains('SettingsSectionsList('));
     expect(source, contains('onScanLocalMedia: _scanLocalMedia'));
     expect(source, contains('prepareDefaultDirectoryImport()'));
@@ -152,5 +155,7 @@ void main() {
 
     expect(bootstrapSource, contains('Get.put<LocalMediaScanRepository>'));
     expect(bootstrapSource, contains('Get.put<LocalMediaScanController>'));
+    expect(bootstrapSource, contains('Get.put<SettingsPageControllerBundle>'));
+    expect(bootstrapSource, contains('localMediaScanController: Get.find<LocalMediaScanController>()'));
   });
 }

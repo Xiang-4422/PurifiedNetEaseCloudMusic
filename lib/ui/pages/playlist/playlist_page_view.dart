@@ -4,8 +4,6 @@ import 'dart:math';
 import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/services/image_color_service.dart';
-import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
-import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/util/extensions.dart';
 import 'package:bujuan/features/playlist/playlist_performance_logger.dart';
 import 'package:bujuan/core/entities/playback_order_mode.dart';
@@ -19,9 +17,7 @@ import 'package:bujuan/features/playlist/playlist_artwork_color_service.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
-import 'package:bujuan/ui/pages/playlist/widgets/playlist_header_sliver.dart';
-import 'package:bujuan/ui/pages/playlist/widgets/playlist_song_list_sliver.dart';
-import 'package:bujuan/ui/pages/playlist/widgets/playlist_status_slivers.dart';
+import 'package:bujuan/ui/pages/playlist/widgets/playlist_content_scroll_view.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:flutter/material.dart';
@@ -116,7 +112,6 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   @override
   Widget build(BuildContext context) {
-    final layoutMetrics = AdaptiveLayoutMetrics.of(context);
     return AnimatedContainer(
       duration: _animateArtworkColor ? const Duration(milliseconds: 300) : Duration.zero,
       color: albumColor,
@@ -127,55 +122,26 @@ class _PlayListPageViewState extends State<PlayListPageView> {
                   onTap: () => _loadFirstPageAndRemaining(showLoadingState: true),
                   child: const ErrorView(),
                 )
-              : _buildPlaylistContent(context, layoutMetrics),
-    );
-  }
-
-  Widget _buildPlaylistContent(
-    BuildContext context,
-    AdaptiveLayoutMetrics layoutMetrics,
-  ) {
-    return RefreshIndicator(
-      onRefresh: _refreshFullPlaylist,
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          PlaylistHeaderSliver(
-            playlistName: playlistName,
-            coverUrl: _resolvedCoverUrl,
-            trackCount: trackCount,
-            loadedTrackCount: songs.length,
-            heroExtent: layoutMetrics.heroExtent,
-            albumColor: albumColor,
-            widgetColor: widgetColor,
-            isSubscribed: isSubscribed,
-            isMyPlaylist: isMyPlayList,
-            canPlayLoadedPlaylist: _canPlayLoadedPlaylist,
-            onPlaySequential: () => _playLoadedPlaylist(shuffle: false),
-            onPlayShuffle: () => _playLoadedPlaylist(shuffle: true),
-            onToggleSubscribe: _subscribePlayList,
-          ),
-          if (_isShowingPlaylistSkeleton)
-            PlaylistSkeletonSliver(foregroundColor: widgetColor)
-          else
-            PlaylistSongListSliver(
-              songs: songs,
-              playlistName: playlistName,
-              foregroundColor: widgetColor,
-              onTapSong: _playSongAt,
-            ),
-          if (_isShowingStatusFooter)
-            PlaylistStatusFooterSliver(
-              message: _completionMessage,
-              foregroundColor: widgetColor,
-            ),
-          const SliverToBoxAdapter(
-            child: SizedBox(
-              height: AppDimensions.bottomPanelHeaderHeight,
-            ),
-          ),
-        ],
-      ),
+              : PlaylistContentScrollView(
+                  playlistName: playlistName,
+                  coverUrl: _resolvedCoverUrl,
+                  trackCount: trackCount,
+                  loadedTrackCount: songs.length,
+                  songs: songs,
+                  albumColor: albumColor,
+                  foregroundColor: widgetColor,
+                  isSubscribed: isSubscribed,
+                  isMyPlaylist: isMyPlayList,
+                  canPlayLoadedPlaylist: _canPlayLoadedPlaylist,
+                  isShowingPlaylistSkeleton: _isShowingPlaylistSkeleton,
+                  isShowingStatusFooter: _isShowingStatusFooter,
+                  completionMessage: _completionMessage,
+                  onRefresh: _refreshFullPlaylist,
+                  onPlaySequential: () => _playLoadedPlaylist(shuffle: false),
+                  onPlayShuffle: () => _playLoadedPlaylist(shuffle: true),
+                  onToggleSubscribe: _subscribePlayList,
+                  onTapSong: _playSongAt,
+                ),
     );
   }
 

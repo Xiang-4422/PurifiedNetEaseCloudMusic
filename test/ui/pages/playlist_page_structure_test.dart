@@ -5,11 +5,18 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('playlist page delegates header and status presentation to local widgets', () {
     final source = File('lib/ui/pages/playlist/playlist_page_view.dart').readAsStringSync();
+    final contentSource = File(
+      'lib/ui/pages/playlist/widgets/playlist_content_scroll_view.dart',
+    ).readAsStringSync();
 
-    expect(source, contains('PlaylistHeaderSliver('));
-    expect(source, contains('PlaylistSongListSliver('));
-    expect(source, contains('PlaylistSkeletonSliver('));
-    expect(source, contains('PlaylistStatusFooterSliver('));
+    expect(source, contains('PlaylistContentScrollView('));
+    expect(source, isNot(contains('CustomScrollView(')));
+    expect(contentSource, contains('RefreshIndicator('));
+    expect(contentSource, contains('CustomScrollView('));
+    expect(contentSource, contains('PlaylistHeaderSliver('));
+    expect(contentSource, contains('PlaylistSongListSliver('));
+    expect(contentSource, contains('PlaylistSkeletonSliver('));
+    expect(contentSource, contains('PlaylistStatusFooterSliver('));
     expect(source, isNot(contains('SliverAppBar(')));
     expect(source, isNot(contains('SongItem(')));
     expect(source, isNot(contains('class _PlaylistActionButtonSurface')));

@@ -1475,6 +1475,26 @@ void main() {
       );
     });
 
+    test('download queue planner skips available local audio resources', () {
+      final plannerFile = File(
+        '${projectRoot.path}/lib/features/download/application/download_queue_planner.dart',
+      );
+      final planner = plannerFile.readAsStringSync();
+      final violations = <String>[
+        if (planner.contains('_isAvailableManagedDownload')) '${_relativePath(plannerFile)} only models managed download availability',
+        if (!planner.contains('TrackResourceOrigin.localImport')) '${_relativePath(plannerFile)} does not treat local import audio as already available',
+        if (!planner.contains('TrackResourceOrigin.managedDownload')) '${_relativePath(plannerFile)} does not treat managed download audio as already available',
+        if (!planner.contains('File(path).existsSync()')) '${_relativePath(plannerFile)} skips indexed resources without checking the file exists',
+        if (!planner.contains('track.sourceType == SourceType.local || _isAvailableLocalAudioResource(audioResource)')) '${_relativePath(plannerFile)} does not skip available local audio before queueing',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '批量下载规划必须先尊重本地音频事实；已有本地导入或正式下载文件时不应产生无意义排队。',
+      );
+    });
+
     test('setting sections receive settings controller boundary', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

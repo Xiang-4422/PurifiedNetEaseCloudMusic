@@ -24,6 +24,7 @@ void main() {
         }
       });
       final managedAudio = File('${tempDirectory.path}/managed.mp3')..writeAsBytesSync([1, 2, 3]);
+      final localImportAudio = File('${tempDirectory.path}/local import.mp3')..writeAsBytesSync([1, 2, 3]);
       final taskDataSource = _FakeDownloadTaskDataSource(
         tasks: [
           _task('queued', DownloadTaskStatus.queued),
@@ -38,7 +39,13 @@ void main() {
           'failed': _trackWithResources('failed'),
           'managed': _trackWithResources(
             'managed',
-            managedDownloadPath: managedAudio.path,
+            audioPath: managedAudio.path,
+            audioOrigin: TrackResourceOrigin.managedDownload,
+          ),
+          'local-import': _trackWithResources(
+            'local-import',
+            audioPath: localImportAudio.path,
+            audioOrigin: TrackResourceOrigin.localImport,
           ),
           'local': _trackWithResources('local', sourceType: SourceType.local),
           'new': _trackWithResources('new'),
@@ -48,7 +55,16 @@ void main() {
       final downloadedTrackIds = <String>[];
 
       await planner.queueTracks(
-        ['queued', 'downloading', 'failed', 'managed', 'local', 'missing', 'new'],
+        [
+          'queued',
+          'downloading',
+          'failed',
+          'managed',
+          'local-import',
+          'local',
+          'missing',
+          'new',
+        ],
         downloadTrack: (
           trackId, {
           bool preferHighQuality = true,
@@ -82,7 +98,8 @@ void main() {
         musicDataRepository: _FakeMusicDataRepository({
           'managed': _trackWithResources(
             'managed',
-            managedDownloadPath: missingAudio,
+            audioPath: missingAudio,
+            audioOrigin: TrackResourceOrigin.managedDownload,
           ),
         }),
         taskDataSource: _FakeDownloadTaskDataSource(tasks: const []),
@@ -102,6 +119,43 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(downloadedTrackIds, ['managed']);
+    });
+
+    test('queues local import resource again when indexed file is missing', () async {
+      final tempDirectory = Directory.systemTemp.createTempSync(
+        'download-queue-planner-missing-local-import-',
+      );
+      addTearDown(() {
+        if (tempDirectory.existsSync()) {
+          tempDirectory.deleteSync(recursive: true);
+        }
+      });
+      final missingAudio = '${tempDirectory.path}/missing-local-import.mp3';
+      final planner = DownloadQueuePlanner(
+        musicDataRepository: _FakeMusicDataRepository({
+          'local-import': _trackWithResources(
+            'local-import',
+            audioPath: missingAudio,
+            audioOrigin: TrackResourceOrigin.localImport,
+          ),
+        }),
+        taskDataSource: _FakeDownloadTaskDataSource(tasks: const []),
+      );
+      final downloadedTrackIds = <String>[];
+
+      await planner.queueTracks(
+        ['local-import'],
+        downloadTrack: (
+          trackId, {
+          bool preferHighQuality = true,
+        }) async {
+          downloadedTrackIds.add(trackId);
+          return null;
+        },
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(downloadedTrackIds, ['local-import']);
     });
 
     test('queues completed task again when resource index is missing', () async {
@@ -192,7 +246,8 @@ DownloadTask _task(String trackId, DownloadTaskStatus status) {
 TrackWithResources _trackWithResources(
   String id, {
   SourceType sourceType = SourceType.netease,
-  String? managedDownloadPath,
+  String? audioPath,
+  TrackResourceOrigin audioOrigin = TrackResourceOrigin.managedDownload,
 }) {
   return TrackWithResources(
     track: Track(
@@ -202,12 +257,12 @@ TrackWithResources _trackWithResources(
       title: 'Track $id',
     ),
     resources: TrackResourceBundle(
-      audio: managedDownloadPath != null
+      audio: audioPath != null
           ? LocalResourceEntry(
               trackId: id,
               kind: LocalResourceKind.audio,
-              path: managedDownloadPath,
-              origin: TrackResourceOrigin.managedDownload,
+              path: audioPath,
+              origin: audioOrigin,
               sizeBytes: 1,
               createdAt: DateTime(2026),
               lastAccessedAt: DateTime(2026),

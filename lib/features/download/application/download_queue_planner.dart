@@ -59,7 +59,7 @@ class DownloadQueuePlanner {
       }
       final track = trackWithResources.track;
       final audioResource = trackWithResources.resources.audio;
-      if (track.sourceType == SourceType.local || _isAvailableManagedDownload(audioResource)) {
+      if (track.sourceType == SourceType.local || _isAvailableLocalAudioResource(audioResource)) {
         continue;
       }
       unawaited(
@@ -92,11 +92,15 @@ class DownloadQueuePlanner {
     }
   }
 
-  bool _isAvailableManagedDownload(LocalResourceEntry? resource) {
-    if (resource?.origin != TrackResourceOrigin.managedDownload) {
+  bool _isAvailableLocalAudioResource(LocalResourceEntry? resource) {
+    if (resource == null ||
+        !const {
+          TrackResourceOrigin.localImport,
+          TrackResourceOrigin.managedDownload,
+        }.contains(resource.origin)) {
       return false;
     }
-    final path = LocalFilePathNormalizer.normalize(resource?.path);
+    final path = LocalFilePathNormalizer.normalize(resource.path);
     return path.isNotEmpty && File(path).existsSync();
   }
 }

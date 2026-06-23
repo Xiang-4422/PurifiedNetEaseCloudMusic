@@ -15,9 +15,9 @@ import 'package:bujuan/features/explore/explore_page_controller.dart';
 
 Future<void> _playPlaylistSummary(
   ExplorePageController controller,
+  PlayerController playerController,
   PlaylistSummaryData playlist,
 ) async {
-  final playerController = Get.find<PlayerController>();
   if (playerController.sessionState.value.playlistName == playlist.title) {
     await playerController.playOrPause();
     return;
@@ -38,7 +38,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
 
   @override
   Widget build(BuildContext context) {
-    final playbackAction = Get.find<PlayerController>();
+    final playerController = Get.find<PlayerController>();
     final layoutMetrics = AdaptiveLayoutMetrics.of(context);
     final tagStripHeight = (34 * layoutMetrics.textScale).clamp(34.0, 44.0).toDouble();
     return Obx(() {
@@ -117,10 +117,11 @@ class ExplorePageView extends GetView<ExplorePageController> {
                     albumCountInWidget: 3.2,
                     albumMargin: AppDimensions.paddingSmall,
                     showSongCount: false,
-                    isPlaying: playbackAction.isPlaying.value,
-                    playingPlaylistName: playbackAction.sessionState.value.playlistName,
+                    isPlaying: playerController.isPlaying.value,
+                    playingPlaylistName: playerController.sessionState.value.playlistName,
                     onPlayPlaylist: (playlist) => _playPlaylistSummary(
                       controller,
+                      playerController,
                       playlist,
                     ),
                   )),
@@ -162,7 +163,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
             ExploreRankingSongListSliver(
               songs: controller.curTopPlayListSongs,
               playlistName: controller.curTopPlayListName.value,
-              onPlay: playbackAction.playPlaylist,
+              onPlay: playerController.playPlaylist,
             ),
             const SliverToBoxAdapter(
               child: SizedBox(height: AppDimensions.bottomPanelHeaderHeight),

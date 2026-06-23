@@ -8,6 +8,11 @@ void main() {
 
     expect(source, contains('ExploreFilterStrip<String>('));
     expect(source, contains('ExploreRankingSongListSliver('));
+    expect(source, contains('final playerController = Get.find<PlayerController>()'));
+    expect(source, contains('PlayerController playerController'));
+    expect(source, contains('_playPlaylistSummary('));
+    expect(source, contains('playerController,'));
+    expect(source, isNot(contains('final playbackAction = Get.find<PlayerController>()')));
     expect(source, isNot(contains('SongItem(')));
     expect(source, isNot(contains('SliverChildBuilderDelegate(')));
     expect(source, isNot(contains('AutoSizeSliverPersistentHeader')));

@@ -1694,11 +1694,21 @@ void main() {
       final page = pageFile.readAsStringSync();
       final controller = controllerFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
+      final helperStart = page.indexOf('Future<void> _playPlaylistSummary');
+      final pageClassStart = page.indexOf('class ExplorePageView');
+      final helperSection = helperStart >= 0 && pageClassStart > helperStart ? page.substring(helperStart, pageClassStart) : '';
+      final playerLookupCount = 'Get.find<PlayerController>'.allMatches(page).length;
       final violations = <String>[
         if (page.contains('UserLibraryController')) '${_relativePath(pageFile)} reads liked ids directly',
         if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} resolves playlist data directly',
         if (page.contains('fetchPlaylistIndex(')) '${_relativePath(pageFile)} fetches playlist index directly',
         if (page.contains('fetchPlaylistSongs(')) '${_relativePath(pageFile)} fetches playlist songs directly',
+        if (helperSection.isEmpty) '${_relativePath(pageFile)} playlist playback helper is missing',
+        if (helperSection.contains('Get.find<PlayerController>')) '${_relativePath(pageFile)} playlist playback helper reads player controller globally',
+        if (playerLookupCount != 1) '${_relativePath(pageFile)} should resolve player controller once at page boundary, found $playerLookupCount',
+        if (!helperSection.contains('PlayerController playerController')) '${_relativePath(pageFile)} playlist playback helper does not receive player controller',
+        if (!page.contains('final playerController = Get.find<PlayerController>()')) '${_relativePath(pageFile)} does not resolve player controller at page boundary',
+        if (!page.contains('onPlay: playerController.playPlaylist')) '${_relativePath(pageFile)} does not pass player controller boundary to ranking list',
         if (controller.contains("package:bujuan/features/shell/home_shell_controller.dart")) 'explore controller imports shell controller',
         if (controller.contains('HomeShellController.to')) 'explore controller reads global shell controller',
         if (!controller.contains('required ExplorePageVisibility pageVisibility')) 'explore controller does not accept visibility boundary',

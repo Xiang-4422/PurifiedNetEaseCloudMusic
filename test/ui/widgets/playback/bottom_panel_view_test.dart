@@ -61,6 +61,9 @@ void main() {
     final panelSource = File(
       'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
     ).readAsStringSync();
+    final homeSource = File(
+      'lib/ui/pages/shell/app_home_page_view.dart',
+    ).readAsStringSync();
     final nowPlayingSource = File(
       'lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_page.dart',
     ).readAsStringSync();
@@ -82,8 +85,16 @@ void main() {
     expect(panelSource, contains('playerController: playerController'));
     expect(panelSource, contains('settingsController: settingsController'));
     expect(panelSource, contains('BottomPanelCommentPage('));
-    expect(panelSource, contains('final commentControllerFactory = Get.find<CommentControllerFactory>()'));
+    expect(panelSource, contains('required this.commentControllerFactory'));
     expect(panelSource, contains('commentControllerFactory: commentControllerFactory'));
+    expect(panelSource, isNot(contains('Get.find<CommentControllerFactory>')));
+    expect(panelSource, isNot(contains('PlayerController.to')));
+    expect(panelSource, isNot(contains('SettingsController.to')));
+    expect(homeSource, contains('final commentControllerFactory = Get.find<CommentControllerFactory>()'));
+    expect(homeSource, contains('panel: BottomPanelView('));
+    expect(homeSource, contains('commentControllerFactory: commentControllerFactory'));
+    expect(homeSource, contains('playerController: playerController'));
+    expect(homeSource, contains('settingsController: settingsController'));
     expect(panelSource, contains('BottomPanelNowPlayingPage('));
     expect(panelSource, contains('BottomPanelPageIndicator('));
     expect(panelSource, isNot(contains('_buildCurPlayingPage')));

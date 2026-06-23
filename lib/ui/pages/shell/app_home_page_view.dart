@@ -1,4 +1,5 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/features/comment/comment_controller_factory.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
@@ -22,6 +23,7 @@ class AppHomePageView extends GetView<ShellController> {
   @override
   Widget build(BuildContext context) {
     controller.buildContext = context;
+    final commentControllerFactory = Get.find<CommentControllerFactory>();
     final playerController = Get.find<PlayerController>();
     final searchController = Get.find<SearchPanelController>();
     final settingsController = Get.find<SettingsController>();
@@ -67,7 +69,11 @@ class AppHomePageView extends GetView<ShellController> {
                 playerController: playerController,
                 settingsController: settingsController,
               ),
-              panel: const BottomPanelView(),
+              panel: BottomPanelView(
+                commentControllerFactory: commentControllerFactory,
+                playerController: playerController,
+                settingsController: settingsController,
+              ),
               body: const AutoRouter(),
             );
           }),

@@ -17,14 +17,25 @@ import 'package:get/get.dart';
 /// 底部播放面板主视图，组合队列、歌词、评论和播放控制区域。
 class BottomPanelView extends GetView<ShellController> {
   /// 创建底部播放面板主视图。
-  const BottomPanelView({Key? key}) : super(key: key);
+  const BottomPanelView({
+    required this.commentControllerFactory,
+    required this.playerController,
+    required this.settingsController,
+    Key? key,
+  }) : super(key: key);
+
+  /// 评论控制器工厂。
+  final CommentControllerFactory commentControllerFactory;
+
+  /// 播放控制器。
+  final PlayerController playerController;
+
+  /// 设置控制器。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
     const albumPadding = AppDimensions.paddingLarge;
-    final commentControllerFactory = Get.find<CommentControllerFactory>();
-    final playerController = PlayerController.to;
-    final settingsController = SettingsController.to;
     return Stack(
       alignment: Alignment.topCenter,
       children: [

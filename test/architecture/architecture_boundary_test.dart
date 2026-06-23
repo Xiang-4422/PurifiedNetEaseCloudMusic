@@ -734,6 +734,38 @@ void main() {
       );
     });
 
+    test('bottom panel main view receives shell injected boundaries', () {
+      final homeFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/app_home_page_view.dart',
+      );
+      final panelFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+      );
+      final home = homeFile.readAsStringSync();
+      final panel = panelFile.readAsStringSync();
+      final violations = <String>[
+        if (panel.contains('PlayerController.to')) '${_relativePath(panelFile)} reads player controller globally',
+        if (panel.contains('SettingsController.to')) '${_relativePath(panelFile)} reads settings controller globally',
+        if (panel.contains('Get.find<CommentControllerFactory>')) '${_relativePath(panelFile)} reads comment controller factory globally',
+        if (!panel.contains('required this.playerController')) '${_relativePath(panelFile)} does not receive player controller',
+        if (!panel.contains('required this.settingsController')) '${_relativePath(panelFile)} does not receive settings controller',
+        if (!panel.contains('required this.commentControllerFactory')) '${_relativePath(panelFile)} does not receive comment controller factory',
+        if (!home.contains('final playerController = Get.find<PlayerController>()')) '${_relativePath(homeFile)} does not resolve player controller at shell boundary',
+        if (!home.contains('final settingsController = Get.find<SettingsController>()')) '${_relativePath(homeFile)} does not resolve settings controller at shell boundary',
+        if (!home.contains('final commentControllerFactory = Get.find<CommentControllerFactory>()')) '${_relativePath(homeFile)} does not resolve comment controller factory at shell boundary',
+        if (!home.contains('panel: BottomPanelView(')) '${_relativePath(homeFile)} does not compose bottom panel',
+        if (!home.contains('playerController: playerController')) '${_relativePath(homeFile)} does not inject player controller into bottom panel',
+        if (!home.contains('settingsController: settingsController')) '${_relativePath(homeFile)} does not inject settings controller into bottom panel',
+        if (!home.contains('commentControllerFactory: commentControllerFactory')) '${_relativePath(homeFile)} does not inject comment controller factory into bottom panel',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '底部播放主面板只能组合播放页局部 widgets，播放、设置和评论工厂必须由首页壳层组合边界注入。',
+      );
+    });
+
     test('bottom panel comment page receives playback state boundaries', () {
       final commentFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_comment_page.dart',
@@ -741,8 +773,12 @@ void main() {
       final panelFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
       );
+      final homeFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/app_home_page_view.dart',
+      );
       final comment = commentFile.readAsStringSync();
       final panel = panelFile.readAsStringSync();
+      final home = homeFile.readAsStringSync();
       final violations = <String>[
         if (comment.contains('PlayerController.to')) '${_relativePath(commentFile)} reads player controller globally',
         if (comment.contains('SettingsController.to')) '${_relativePath(commentFile)} reads settings controller globally',
@@ -751,8 +787,11 @@ void main() {
         if (!comment.contains('required this.settingsController')) '${_relativePath(commentFile)} does not receive settings controller',
         if (!comment.contains('required this.commentControllerFactory')) '${_relativePath(commentFile)} does not receive comment controller factory',
         if (!panel.contains('BottomPanelCommentPage(')) '${_relativePath(panelFile)} does not compose comment pages',
-        if (!panel.contains('final commentControllerFactory = Get.find<CommentControllerFactory>()')) '${_relativePath(panelFile)} does not keep comment factory lookup in panel composition root',
+        if (panel.contains('Get.find<CommentControllerFactory>')) '${_relativePath(panelFile)} reads comment controller factory globally',
+        if (!panel.contains('required this.commentControllerFactory')) '${_relativePath(panelFile)} does not receive comment controller factory',
         if (!panel.contains('commentControllerFactory: commentControllerFactory')) '${_relativePath(panelFile)} does not inject comment controller factory',
+        if (!home.contains('final commentControllerFactory = Get.find<CommentControllerFactory>()')) '${_relativePath(homeFile)} does not resolve comment factory at shell boundary',
+        if (!home.contains('commentControllerFactory: commentControllerFactory')) '${_relativePath(homeFile)} does not inject comment controller factory into bottom panel',
         if (!panel.contains('playerController: playerController')) '${_relativePath(panelFile)} does not inject player controller',
         if (!panel.contains('settingsController: settingsController')) '${_relativePath(panelFile)} does not inject settings controller',
       ];

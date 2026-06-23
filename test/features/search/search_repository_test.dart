@@ -138,6 +138,52 @@ void main() {
       ]);
     });
 
+    test('skips user playlist cache for blank current user id', () async {
+      final userPlaylistListDataSource = _FakeUserPlaylistListDataSource(
+        userPlaylists: const [
+          PlaylistSummaryData(id: 'user-playlist', title: 'User Playlist'),
+        ],
+      );
+      final repository = SearchRepository(
+        musicDataRepository: _FakeMusicDataRepository(
+          localPlaylists: [_playlist('local:playlist', sourceType: SourceType.local)],
+        ),
+        remoteDataSource: _FakeNeteaseSearchRemoteDataSource(),
+        cacheStore: _FakeSearchCacheStore(),
+        userPlaylistListDataSource: userPlaylistListDataSource,
+      );
+
+      final playlists = await repository.searchPlaylists(
+        'keyword',
+        currentUserId: '   ',
+      );
+
+      expect(userPlaylistListDataSource.requestedUserIds, isEmpty);
+      expect(playlists.map((playlist) => playlist.id), ['local:playlist']);
+    });
+
+    test('trims current user id before searching user playlist cache', () async {
+      final userPlaylistListDataSource = _FakeUserPlaylistListDataSource(
+        userPlaylists: const [
+          PlaylistSummaryData(id: 'user-playlist', title: 'User Playlist'),
+        ],
+      );
+      final repository = SearchRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        remoteDataSource: _FakeNeteaseSearchRemoteDataSource(),
+        cacheStore: _FakeSearchCacheStore(),
+        userPlaylistListDataSource: userPlaylistListDataSource,
+      );
+
+      final playlists = await repository.searchPlaylists(
+        'keyword',
+        currentUserId: ' 42 ',
+      );
+
+      expect(userPlaylistListDataSource.requestedUserIds, ['42']);
+      expect(playlists.map((playlist) => playlist.id), ['netease:user-playlist']);
+    });
+
     test('keeps local non-track category results when remote search fails', () async {
       final repository = SearchRepository(
         musicDataRepository: _FakeMusicDataRepository(
@@ -354,13 +400,16 @@ class _FakeUserPlaylistListDataSource implements UserPlaylistListDataSource {
   });
 
   final List<PlaylistSummaryData> userPlaylists;
+  final List<String> requestedUserIds = <String>[];
 
   @override
   Future<List<PlaylistSummaryData>> searchPlaylistItems(
     String userId,
     String keyword,
-  ) async =>
-      userPlaylists;
+  ) async {
+    requestedUserIds.add(userId);
+    return userPlaylists;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

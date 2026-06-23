@@ -89,6 +89,28 @@ void main() {
       expect(controller.playlistState.value.data?.single.title, 'playlist-user-2');
     });
 
+    test('trims current user id before comparing search context', () async {
+      final repository = _FakeSearchRepository();
+      var currentUserId = ' user-1 ';
+      final controller = _buildController(
+        repository: repository,
+        currentUserId: () => currentUserId,
+      );
+      addTearDown(controller.dispose);
+
+      final firstSearch = controller.search('keyword');
+      await _flushAsync();
+      expect(repository.requestedPlaylistUserIds, ['user-1']);
+      repository.complete('keyword', _resultFor('first'));
+      await firstSearch;
+
+      currentUserId = 'user-1';
+      await controller.search('keyword');
+
+      expect(repository.requestedPlaylistUserIds, ['user-1']);
+      expect(controller.songState.value.data?.single.title, 'first');
+    });
+
     test('reruns same keyword when liked song ids change', () async {
       final repository = _FakeSearchRepository();
       var likedSongIds = <int>[101];

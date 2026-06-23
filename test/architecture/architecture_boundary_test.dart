@@ -2043,12 +2043,16 @@ void main() {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/search/search_panel_controller.dart',
       );
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/features/search/search_repository.dart',
+      );
       final bootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
       final topPanel = topPanelFile.readAsStringSync();
       final home = homeFile.readAsStringSync();
       final controller = controllerFile.readAsStringSync();
+      final repository = repositoryFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
         if (topPanel.contains('UserLibraryController')) '${_relativePath(topPanelFile)} reads user library directly',
@@ -2074,6 +2078,10 @@ void main() {
         if (controller.contains('_emptyCurrentUserId')) 'search controller keeps an empty current user fallback',
         if (controller.contains('required List<int> likedSongIds')) 'search method still requires liked ids per call',
         if (controller.contains('required String currentUserId')) 'search method still requires current user per call',
+        if (!controller.contains('_normalizedCurrentUserId(_currentUserIdProvider())')) 'search controller does not normalize injected current user before building search context',
+        if (!repository.contains('String? _normalizedCurrentUserId(String currentUserId)')) 'search repository does not define a current user normalizer',
+        if (!repository.contains('final scopedUserId = _normalizedCurrentUserId(currentUserId)')) 'search repository does not normalize current user before user playlist cache access',
+        if (repository.contains('currentUserId.isEmpty')) 'search repository still checks raw current user emptiness',
         if (!bootstrap.contains('likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList()')) 'feature bootstrap does not inject liked ids provider',
         if (!bootstrap.contains('currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId')) 'feature bootstrap does not inject current user provider',
       ];

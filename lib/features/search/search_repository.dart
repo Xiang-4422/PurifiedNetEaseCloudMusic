@@ -78,10 +78,11 @@ class SearchRepository {
     required String currentUserId,
   }) async {
     final localPlaylists = await _musicDataRepository.searchLocalPlaylists(keyword);
-    final userPlaylists = currentUserId.isEmpty
+    final scopedUserId = _normalizedCurrentUserId(currentUserId);
+    final userPlaylists = scopedUserId == null
         ? const <PlaylistEntity>[]
         : (await _userPlaylistListDataSource.searchPlaylistItems(
-            currentUserId,
+            scopedUserId,
             keyword,
           ))
             .map(_playlistSummaryToEntity)
@@ -170,5 +171,10 @@ class SearchRepository {
       coverUrl: playlist.coverUrl,
       trackCount: playlist.trackCount,
     );
+  }
+
+  String? _normalizedCurrentUserId(String currentUserId) {
+    final userId = currentUserId.trim();
+    return userId.isEmpty ? null : userId;
   }
 }

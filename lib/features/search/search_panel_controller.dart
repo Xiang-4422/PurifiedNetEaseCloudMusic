@@ -116,7 +116,7 @@ class SearchPanelController {
     }
     final normalizedKeyword = keyword.trim();
     final likedSongIds = List<int>.of(_likedSongIds());
-    final currentUserId = _currentUserIdProvider();
+    final currentUserId = _normalizedCurrentUserId(_currentUserIdProvider());
     final likedSongIdsSignature = _likedSongIdsSignature(likedSongIds);
     if (normalizedKeyword.isEmpty) {
       _currentKeyword = '';
@@ -389,4 +389,8 @@ class SearchPanelController {
 String _likedSongIdsSignature(List<int> likedSongIds) {
   final normalizedIds = likedSongIds.toSet().toList()..sort();
   return normalizedIds.join(',');
+}
+
+String _normalizedCurrentUserId(String userId) {
+  return userId.trim();
 }

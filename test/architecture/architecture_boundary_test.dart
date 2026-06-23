@@ -1157,7 +1157,7 @@ void main() {
         if (repositoryLookupPattern.hasMatch(content)) {
           violations.add('$path looks up a repository from UI');
         }
-        if (content.contains('Get.find<UserSessionController>')) {
+        if (content.contains('UserSessionController')) {
           violations.add('$path reads current user from UI');
         }
         if (content.contains('Get.find<UserLibraryController>')) {

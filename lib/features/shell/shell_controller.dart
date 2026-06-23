@@ -41,6 +41,9 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   /// 当前首页标题。
   RxString get curHomePageTitle => _homeShellController.curHomePageTitle;
 
+  /// 当前抽屉菜单展示的用户头像 URL。
+  String get menuAvatarUrl => _userSessionController.userInfo.value.avatarUrl;
+
   bool _uiControllersInitialized = false;
   PageController? _albumPageController;
   final AlbumPageChangeCoordinator _albumPageChangeCoordinator = AlbumPageChangeCoordinator();

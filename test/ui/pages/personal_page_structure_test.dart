@@ -8,14 +8,24 @@ void main() {
     final quickStartSource = File(
       'lib/ui/pages/user/widgets/quick_start_card_rail.dart',
     ).readAsStringSync();
-    final firstRailIndex = source.indexOf('child: QuickStartCardRail(');
-    final squareRailIndex = source.indexOf('return QuickStartCardRail(');
+    final quickStartSectionSource = File(
+      'lib/ui/pages/user/widgets/quick_start_section.dart',
+    ).readAsStringSync();
+    final firstRailIndex = source.indexOf('QuickStartSection(');
+    final squareRailIndex = source.indexOf('SquareQuickStartPage(');
     final continueIndex = quickStartSource.indexOf('_ContinuePlaybackQuickStartCard(');
     final dailyIndex = quickStartSource.indexOf('_DailyRecommendQuickStartCard(');
 
     expect(firstRailIndex, isNonNegative);
     expect(squareRailIndex, isNonNegative);
     expect(continueIndex, lessThan(dailyIndex));
+    expect(source, contains('quick_start_section.dart'));
+    expect(source, isNot(contains('QuickStartCardRail(')));
+    expect(source, isNot(contains('squareQuickCardSize(')));
+    expect(quickStartSectionSource, contains('class QuickStartSection'));
+    expect(quickStartSectionSource, contains('class SquareQuickStartPage'));
+    expect(quickStartSectionSource, contains('QuickStartCardRail('));
+    expect(quickStartSectionSource, contains('squareQuickCardSize('));
     expect(quickStartSource, contains("title: '继续播放'"));
     expect(quickStartSource, contains("title: '每日推荐'"));
     expect(quickStartSource, contains("title: '漫游模式'"));
@@ -158,11 +168,17 @@ void main() {
     final quickStartSource = File(
       'lib/ui/pages/user/widgets/quick_start_card_rail.dart',
     ).readAsStringSync();
+    final quickStartSectionSource = File(
+      'lib/ui/pages/user/widgets/quick_start_section.dart',
+    ).readAsStringSync();
 
-    expect(source, contains('QuickStartCardRail('));
+    expect(source, contains('QuickStartSection('));
+    expect(source, contains('SquareQuickStartPage('));
+    expect(source, isNot(contains('QuickStartCardRail(')));
     expect(source, isNot(contains('class QuickStartCard')));
     expect(source, isNot(contains('LongPressOverlayTransition(')));
     expect(source, isNot(contains('AppAssets.lottieMusicPlaying')));
+    expect(quickStartSectionSource, contains('QuickStartCardRail('));
     expect(quickStartSource, contains('class QuickStartCardRail'));
     expect(quickStartSource, contains('class QuickStartCard'));
     expect(quickStartSource, contains('LongPressOverlayTransition('));

@@ -3,7 +3,7 @@ import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
 import 'package:bujuan/ui/pages/user/widgets/frequent_playlist_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/library_shortcut_bar.dart';
-import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
+import 'package:bujuan/ui/pages/user/widgets/quick_start_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
 import 'package:bujuan/ui/pages/user/widgets/recommended_playlist_slivers.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
@@ -61,41 +61,21 @@ class PersonalPageView extends GetView<ShellController> {
               height: context.mediaQueryPadding.top,
             ),
           ),
-
-          // 马上开始 Header
           SliverToBoxAdapter(
-            child: const Header('马上开始', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
-          ),
-
-          // 快速播放卡片
-          SliverToBoxAdapter(
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                double userItemWidth = (constraints.maxWidth - AppDimensions.paddingSmall * userItemCountInScreen.ceil()) / userItemCountInScreen;
-                final cardHeight = userItemWidth * 1.3;
-                return Container(
-                  margin: const EdgeInsets.only(bottom: AppDimensions.paddingSmall),
-                  height: cardHeight,
-                  child: QuickStartCardRail(
-                    width: userItemWidth,
-                    height: cardHeight,
-                    recommendationController: recommendationController,
-                    libraryController: libraryController,
-                    playbackAction: playbackAction,
-                    shellController: controller,
-                  ),
-                );
-              },
+            child: QuickStartSection(
+              itemCountInScreen: userItemCountInScreen,
+              recommendationController: recommendationController,
+              libraryController: libraryController,
+              playbackAction: playbackAction,
+              shellController: controller,
             ),
           ),
-
           SliverToBoxAdapter(
             child: RecentPlaybackStrip(
               controller: recentPlaybackController,
               playbackAction: playbackAction,
             ),
           ),
-
           SliverToBoxAdapter(
             child: FrequentPlaylistSection(
               libraryController: libraryController,
@@ -110,7 +90,6 @@ class PersonalPageView extends GetView<ShellController> {
           const SliverToBoxAdapter(
             child: LibraryShortcutBar(),
           ),
-
           const RecommendedPlaylistPinnedHeaderSliver(),
           RecommendedPlaylistListSliver(controller: recommendationController),
           const SliverToBoxAdapter(
@@ -162,49 +141,19 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
             scrollDirection: Axis.vertical,
             physics: const PageScrollPhysics(),
             children: [
-              _buildQuickStartPage(context),
+              SquareQuickStartPage(
+                metrics: widget.metrics,
+                recommendationController: widget.recommendationController,
+                libraryController: widget.libraryController,
+                playbackAction: widget.playbackAction,
+                shellController: widget.shellController,
+              ),
               _buildLibraryPage(context),
             ],
           ),
         ),
         const SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
       ],
-    );
-  }
-
-  Widget _buildQuickStartPage(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final contentHeight = constraints.maxHeight - widget.metrics.squareHeaderHeight - AppDimensions.paddingSmall * 2;
-          final cardSize = widget.metrics.squareQuickCardSize(
-            maxWidth: constraints.maxWidth,
-            maxHeight: contentHeight,
-          );
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Header(
-                '马上开始',
-                padding: AppDimensions.paddingSmall,
-                height: widget.metrics.squareHeaderHeight,
-              ),
-              Expanded(
-                child: Center(
-                  child: SizedBox(
-                    height: cardSize.height,
-                    child: _buildQuickStartCards(
-                      context,
-                      cardSize: cardSize,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
     );
   }
 
@@ -247,20 +196,6 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildQuickStartCards(
-    BuildContext context, {
-    required Size cardSize,
-  }) {
-    return QuickStartCardRail(
-      width: cardSize.width,
-      height: cardSize.height,
-      recommendationController: widget.recommendationController,
-      libraryController: widget.libraryController,
-      playbackAction: widget.playbackAction,
-      shellController: widget.shellController,
     );
   }
 }

@@ -4,9 +4,9 @@
 
 import 'api_enhanced_module.dart';
 
-const String apiEnhancedUpstreamVersion = '4.35.2';
+const String apiEnhancedUpstreamVersion = '4.36.1';
 const String apiEnhancedUpstreamCommit =
-    '60ee927e3224ab675679d023065225af11bdc693';
+    '1454ee216ce9bb4133879bad333e4d2aed21c80b';
 
 const List<ApiEnhancedModule> apiEnhancedModules = [
   ApiEnhancedModule(
@@ -1957,6 +1957,14 @@ const List<ApiEnhancedModule> apiEnhancedModules = [
     module: 'scrobble',
     methodName: 'scrobble',
     pathTemplate: '/api/feedback/weblog',
+    crypto: 'eapi',
+    httpMethod: 'POST',
+    special: true,
+  ),
+  ApiEnhancedModule(
+    module: 'scrobble_v1',
+    methodName: 'scrobbleV1',
+    pathTemplate: '',
     crypto: 'eapi',
     httpMethod: 'POST',
     special: true,
@@ -5152,6 +5160,14 @@ const Map<String, ApiEnhancedModule> apiEnhancedModuleByName = {
     module: 'scrobble',
     methodName: 'scrobble',
     pathTemplate: '/api/feedback/weblog',
+    crypto: 'eapi',
+    httpMethod: 'POST',
+    special: true,
+  ),
+  'scrobble_v1': ApiEnhancedModule(
+    module: 'scrobble_v1',
+    methodName: 'scrobbleV1',
+    pathTemplate: '',
     crypto: 'eapi',
     httpMethod: 'POST',
     special: true,

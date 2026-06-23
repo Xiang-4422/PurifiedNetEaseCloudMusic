@@ -48,6 +48,7 @@ const specialModules = new Set([
   'vip_sign_history',
   'vip_tasks_v1',
   'top_list',
+  'scrobble_v1',
 ])
 
 const supportedCrypto = new Set(['', 'weapi', 'eapi', 'linuxapi', 'api', 'query', 'xeapi'])

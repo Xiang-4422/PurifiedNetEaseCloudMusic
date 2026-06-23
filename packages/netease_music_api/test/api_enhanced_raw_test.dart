@@ -222,12 +222,14 @@ void main() {
       expect(report['specialDispatcherUnknown'], isEmpty);
       expect(_stringSet(report['specialLimited']), {
         'cloud',
+        'scrobble_v1',
         'song_url_match',
         'song_url_v1',
       });
       final limitedReasons = _jsonMap(report['specialLimitedReasons']);
       expect(limitedReasons.keys.toSet(), _stringSet(report['specialLimited']));
       expect(limitedReasons['song_url_match'], contains('unblockmusic-utils'));
+      expect(limitedReasons['scrobble_v1'], contains('NCBL'));
       final runtimeSupportedReasons = _jsonMap(report['runtimeSupportedReasons']);
       expect(_stringSet(report['runtimeSupported']), {
         'runtime:FLAC',
@@ -286,6 +288,10 @@ void main() {
       expect(_stringSet(songUrlMatchStatus['coverage']), {'limited'});
       expect(songUrlMatchStatus['hasNodeOracleFixture'], isFalse);
       expect(songUrlMatchStatus['limitedReason'], contains('unblockmusic-utils'));
+      final scrobbleV1Status = _jsonMap(specialStatusByModule['scrobble_v1']);
+      expect(_stringSet(scrobbleV1Status['coverage']), {'limited'});
+      expect(scrobbleV1Status['hasNodeOracleFixture'], isFalse);
+      expect(scrobbleV1Status['limitedReason'], contains('NCBL'));
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
       final differenceReasons = {
         ...limitedReasons,
@@ -1122,6 +1128,7 @@ void main() {
         'register_xeapikey',
         'related_playlist',
         'scrobble',
+        'scrobble_v1',
         'song_url_match',
         'song_url_ncmget',
         'song_url_v1',
@@ -3705,6 +3712,18 @@ void main() {
       expect(await api.requestModule('song_url_ncmget', {'id': '123'}), {
         'status': 200,
         'body': {'code': 200, 'data': []},
+      });
+    });
+
+    test('scrobble v1 special module exposes explicit limited Dart behavior', () async {
+      expect(await api.requestModule('scrobble_v1', {'id': '123', 'time': 30}), {
+        'status': 500,
+        'body': {
+          'code': 500,
+          'msg': 'scrobble_v1 depends on upstream NCBL encrypted multipart upload and is not available in the Dart client',
+          'module': 'scrobble_v1',
+          'unsupportedFeature': 'ncbl-encrypted-upload',
+        },
       });
     });
 

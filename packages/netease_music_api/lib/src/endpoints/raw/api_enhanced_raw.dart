@@ -122,6 +122,8 @@ mixin ApiEnhancedRaw {
         return registerAnonimousRaw(query);
       case 'scrobble':
         return scrobbleRaw(query);
+      case 'scrobble_v1':
+        return scrobbleV1Raw(query);
       case 'song_url_v1':
         return songUrlV1Raw(query);
       case 'song_url_v1_302':
@@ -515,6 +517,19 @@ mixin ApiEnhancedRaw {
         'module': 'song_url_match',
         'unsupportedFeature': 'unblockmusic-utils',
         'data': [],
+      },
+    };
+  }
+
+  /// NCBL listening report depends on upstream direct multipart upload helpers.
+  dynamic scrobbleV1Raw(Map<String, dynamic> query) {
+    return {
+      'status': 500,
+      'body': {
+        'code': 500,
+        'msg': 'scrobble_v1 depends on upstream NCBL encrypted multipart upload and is not available in the Dart client',
+        'module': 'scrobble_v1',
+        'unsupportedFeature': 'ncbl-encrypted-upload',
       },
     };
   }

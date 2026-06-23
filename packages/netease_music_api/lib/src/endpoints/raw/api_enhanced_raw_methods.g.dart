@@ -982,6 +982,10 @@ extension ApiEnhancedRawConvenience on ApiEnhancedRaw {
   Future<dynamic> scrobble(Map<String, dynamic> query) =>
       requestModule('scrobble', query);
 
+  /// Raw api-enhanced module `scrobble_v1`.
+  Future<dynamic> scrobbleV1(Map<String, dynamic> query) =>
+      requestModule('scrobble_v1', query);
+
   /// Raw api-enhanced module `search`.
   Future<dynamic> search(Map<String, dynamic> query) =>
       requestModule('search', query);

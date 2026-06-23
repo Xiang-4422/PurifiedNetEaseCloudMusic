@@ -128,12 +128,28 @@ void main() {
     expect(pageSource, isNot(contains('PlayListItem(')));
     expect(appBodySource, contains('recommended_playlists_page.dart'));
     expect(appBodySource, contains('final homeShellController = HomeShellScope.of(context)'));
+    expect(
+      appBodySource,
+      contains('final personalHomeControllers = Get.find<PersonalHomeControllerBundle>()'),
+    );
     expect(appBodySource, contains('DrawerMainScreenView('));
     expect(appBodySource, contains('homeShellController: homeShellController'));
-    expect(appBodySource, contains('recommendationController: recommendationController'));
-    expect(appBodySource, contains('userLibraryController: userLibraryController'));
-    expect(appBodySource, contains('playerController: playerController'));
-    expect(appBodySource, contains('recentPlaybackController: recentPlaybackController'));
+    expect(
+      appBodySource,
+      contains('recommendationController: personalHomeControllers.recommendationController'),
+    );
+    expect(
+      appBodySource,
+      contains('userLibraryController: personalHomeControllers.userLibraryController'),
+    );
+    expect(
+      appBodySource,
+      contains('playerController: personalHomeControllers.playerController'),
+    );
+    expect(
+      appBodySource,
+      contains('recentPlaybackController: personalHomeControllers.recentPlaybackController'),
+    );
     expect(appBodySource, contains('MenuView(homeShellController: homeShellController)'));
   });
 

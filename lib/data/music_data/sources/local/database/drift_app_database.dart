@@ -8,7 +8,10 @@ import 'package:bujuan/data/music_data/sources/local/database/dao/playlist_dao.d
 import 'package:bujuan/data/music_data/sources/local/database/dao/radio_dao.dart';
 import 'package:bujuan/data/music_data/sources/local/database/dao/resource_dao.dart';
 import 'package:bujuan/data/music_data/sources/local/database/dao/track_dao.dart';
-import 'package:bujuan/data/music_data/sources/local/database/dao/user_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/user_playlist_subscription_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/user_profile_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/user_sync_marker_dao.dart';
+import 'package:bujuan/data/music_data/sources/local/database/dao/user_track_list_dao.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_app_cache_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_download_task_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/drift_local_library_data_source.dart';
@@ -64,19 +67,24 @@ class DriftAppDatabase implements AppDatabase {
     _appCacheDataSource = DriftAppCacheDataSource(
       dao: CacheDao(database: _database),
     );
-    final userDao = UserDao(database: _database);
-    _userProfileDataSource = DriftUserProfileDataSource(userDao: userDao);
-    _userTrackListDataSource = DriftUserTrackListDataSource(userDao: userDao);
+    _userProfileDataSource = DriftUserProfileDataSource(
+      dao: UserProfileDao(database: _database),
+    );
+    _userTrackListDataSource = DriftUserTrackListDataSource(
+      dao: UserTrackListDao(database: _database),
+    );
     _userPlaylistListDataSource = DriftUserPlaylistListDataSource(
       dao: playlistDao,
     );
     _playlistSubscriptionDataSource = DriftPlaylistSubscriptionDataSource(
-      userDao: userDao,
+      dao: UserPlaylistSubscriptionDao(database: _database),
     );
     _userRadioDataSource = DriftUserRadioDataSource(
       dao: RadioDao(database: _database),
     );
-    _userSyncMarkerDataSource = DriftUserSyncMarkerDataSource(userDao: userDao);
+    _userSyncMarkerDataSource = DriftUserSyncMarkerDataSource(
+      dao: UserSyncMarkerDao(database: _database),
+    );
     _userScopedDataSource = DriftUserScopedDataSource(
       userProfileDataSource: _userProfileDataSource,
       userTrackListDataSource: _userTrackListDataSource,

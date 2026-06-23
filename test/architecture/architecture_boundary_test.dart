@@ -2683,7 +2683,6 @@ void main() {
       );
       final violations = _containsAny(aggregateFile, const [
         'BujuanDriftDatabase',
-        'UserDao',
         '.select(',
         '.delete(',
         '.batch(',
@@ -2718,6 +2717,7 @@ void main() {
               '.batch(',
               '.transaction(',
               'drift_database.dart',
+              'user_dao.dart',
             ]),
           )
           .map(_relativePath)
@@ -3146,7 +3146,10 @@ void main() {
       const expectedFiles = [
         'lib/data/music_data/sources/local/database/dao/track_dao.dart',
         'lib/data/music_data/sources/local/database/dao/playlist_dao.dart',
-        'lib/data/music_data/sources/local/database/dao/user_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/user_profile_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/user_track_list_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/user_playlist_subscription_dao.dart',
+        'lib/data/music_data/sources/local/database/dao/user_sync_marker_dao.dart',
         'lib/data/music_data/sources/local/database/dao/radio_dao.dart',
         'lib/data/music_data/sources/local/database/dao/download_task_dao.dart',
         'lib/data/music_data/sources/local/database/dao/resource_dao.dart',
@@ -3232,13 +3235,22 @@ void main() {
           'savePlaylists(',
           'loadTrackRefsByPlaylistIds(',
         ],
-        'lib/data/music_data/sources/local/database/dao/user_dao.dart': [
+        'lib/data/music_data/sources/local/database/dao/user_profile_dao.dart': [
           'loadProfile(',
           'saveProfile(',
+        ],
+        'lib/data/music_data/sources/local/database/dao/user_track_list_dao.dart': [
           'loadTrackIds(',
           'replaceTrackList(',
+          'appendTrackList(',
+        ],
+        'lib/data/music_data/sources/local/database/dao/user_playlist_subscription_dao.dart': [
           'loadPlaylistSubscriptionState(',
+          'savePlaylistSubscriptionState(',
+        ],
+        'lib/data/music_data/sources/local/database/dao/user_sync_marker_dao.dart': [
           'loadSyncMarker(',
+          'markSyncMarkerUpdated(',
         ],
         'lib/data/music_data/sources/local/database/dao/radio_dao.dart': [
           'loadSubscribedRadios(',

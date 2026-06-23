@@ -1,19 +1,19 @@
-import '../dao/user_dao.dart';
+import '../dao/user_playlist_subscription_dao.dart';
 import 'user_scoped_data_source.dart';
 
 /// Drift 实现的歌单订阅状态数据源。
 class DriftPlaylistSubscriptionDataSource implements PlaylistSubscriptionDataSource {
   /// 创建 Drift 歌单订阅状态数据源。
-  const DriftPlaylistSubscriptionDataSource({required UserDao userDao}) : _userDao = userDao;
+  const DriftPlaylistSubscriptionDataSource({required UserPlaylistSubscriptionDao dao}) : _dao = dao;
 
-  final UserDao _userDao;
+  final UserPlaylistSubscriptionDao _dao;
 
   @override
   Future<bool?> loadPlaylistSubscriptionState(
     String userId,
     String playlistId,
   ) {
-    return _userDao.loadPlaylistSubscriptionState(userId, playlistId);
+    return _dao.loadPlaylistSubscriptionState(userId, playlistId);
   }
 
   @override
@@ -22,7 +22,7 @@ class DriftPlaylistSubscriptionDataSource implements PlaylistSubscriptionDataSou
     String playlistId,
     bool isSubscribed,
   ) {
-    return _userDao.savePlaylistSubscriptionState(
+    return _dao.savePlaylistSubscriptionState(
       userId,
       playlistId,
       isSubscribed,

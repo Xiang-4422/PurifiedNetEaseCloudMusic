@@ -1,18 +1,18 @@
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 
-import '../dao/user_dao.dart';
+import '../dao/user_track_list_dao.dart';
 import 'user_scoped_data_source.dart';
 
 /// Drift 实现的用户曲目列表数据源。
 class DriftUserTrackListDataSource implements UserTrackListDataSource {
   /// 创建 Drift 用户曲目列表数据源。
-  const DriftUserTrackListDataSource({required UserDao userDao}) : _userDao = userDao;
+  const DriftUserTrackListDataSource({required UserTrackListDao dao}) : _dao = dao;
 
-  final UserDao _userDao;
+  final UserTrackListDao _dao;
 
   @override
   Future<List<String>> loadTrackIds(String userId, UserTrackListKind kind) {
-    return _userDao.loadTrackIds(userId, kind);
+    return _dao.loadTrackIds(userId, kind);
   }
 
   @override
@@ -21,7 +21,7 @@ class DriftUserTrackListDataSource implements UserTrackListDataSource {
     UserTrackListKind kind,
     List<String> trackIds,
   ) {
-    return _userDao.replaceTrackList(userId, kind, trackIds);
+    return _dao.replaceTrackList(userId, kind, trackIds);
   }
 
   @override
@@ -31,7 +31,7 @@ class DriftUserTrackListDataSource implements UserTrackListDataSource {
     List<String> trackIds, {
     required int startOrder,
   }) {
-    return _userDao.appendTrackList(
+    return _dao.appendTrackList(
       userId,
       kind,
       trackIds,
@@ -46,7 +46,7 @@ class DriftUserTrackListDataSource implements UserTrackListDataSource {
     String trackId, {
     int? sortOrder,
   }) {
-    return _userDao.upsertTrackRef(
+    return _dao.upsertTrackRef(
       userId,
       kind,
       trackId,
@@ -60,11 +60,11 @@ class DriftUserTrackListDataSource implements UserTrackListDataSource {
     UserTrackListKind kind,
     String trackId,
   ) {
-    return _userDao.deleteTrackRef(userId, kind, trackId);
+    return _dao.deleteTrackRef(userId, kind, trackId);
   }
 
   @override
   Future<int> nextTrackSortOrder(String userId, UserTrackListKind kind) {
-    return _userDao.nextTrackSortOrder(userId, kind);
+    return _dao.nextTrackSortOrder(userId, kind);
   }
 }

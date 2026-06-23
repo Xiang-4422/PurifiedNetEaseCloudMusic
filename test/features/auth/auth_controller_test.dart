@@ -26,7 +26,7 @@ void main() {
       final sessionController = _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
 
       sessionController.userInfo.value = const UserSessionData(
         userId: 'old-user',
@@ -59,7 +59,7 @@ void main() {
       final sessionController = _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
 
       sessionController.userInfo.value = const UserSessionData(
         userId: 'old-user',
@@ -86,7 +86,7 @@ void main() {
       final sessionController = _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
 
       sessionController.userInfo.value = const UserSessionData(
         userId: 'cached-user',
@@ -109,7 +109,7 @@ void main() {
       final sessionController = _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
 
       sessionController.userInfo.value = const UserSessionData(
         userId: 'cached-user',
@@ -132,7 +132,7 @@ void main() {
       final sessionController = _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
 
       sessionController.userInfo.value = const UserSessionData(
         userId: 'cached-user',
@@ -154,7 +154,7 @@ void main() {
       final sessionController = _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
 
       final bootstrap = controller.bootstrap();
       expect(controller.isLoading.value, isTrue);
@@ -179,7 +179,7 @@ void main() {
       final sessionController = _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
 
       final bootstrap = controller.bootstrap();
       expect(controller.isLoading.value, isTrue);
@@ -209,7 +209,7 @@ void main() {
       final sessionController = _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
 
       final bootstrap = controller.bootstrap();
       expect(controller.isLoading.value, isTrue);
@@ -232,7 +232,7 @@ void main() {
       _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
 
       await controller.bootstrap();
 
@@ -247,7 +247,7 @@ void main() {
       final sessionController = _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
       sessionController.userInfo.value = const UserSessionData(
         userId: 'user-1',
         nickname: 'User',
@@ -267,8 +267,8 @@ void main() {
       final sessionController = _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(
-        repository: authRepository,
+      final controller = _createAuthController(
+        authRepository,
         qrPollingInterval: const Duration(milliseconds: 10),
       );
 
@@ -299,7 +299,7 @@ void main() {
       _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(repository: authRepository);
+      final controller = _createAuthController(authRepository);
 
       await controller.refreshQrCode();
 
@@ -317,8 +317,8 @@ void main() {
       _putSessionController(
         saveLoginFlag: authRepository.setLoginFlag,
       );
-      final controller = AuthController(
-        repository: authRepository,
+      final controller = _createAuthController(
+        authRepository,
         qrPollingInterval: const Duration(milliseconds: 100),
       );
 
@@ -353,6 +353,25 @@ Future<void> _waitUntil(bool Function() condition) async {
     }
     await Future<void>.delayed(const Duration(milliseconds: 10));
   }
+}
+
+AuthController _createAuthController(
+  _FakeAuthRepository repository, {
+  Duration qrPollingInterval = const Duration(seconds: 3),
+}) {
+  final sessionController = Get.find<UserSessionController>();
+  return AuthController(
+    repository: repository,
+    sessionAccess: AuthSessionAccess(
+      currentSession: () => sessionController.userInfo.value,
+      saveCurrentSession: (session) {
+        sessionController.userInfo.value = session;
+      },
+      clearCurrentUser: sessionController.clearUser,
+      expireCurrentSession: sessionController.expireLoginSession,
+    ),
+    qrPollingInterval: qrPollingInterval,
+  );
 }
 
 UserSessionController _putSessionController({

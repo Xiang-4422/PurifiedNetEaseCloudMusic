@@ -1875,9 +1875,13 @@ void main() {
         if (!repository.contains('hasCachedSession => _stateStore.hasCachedSession')) 'auth repository does not expose cached session',
         if (controller.contains('hasCachedLogin')) 'auth controller branches on login flag',
         if (!controller.contains('hasCachedSession')) 'auth controller does not branch on cached session',
+        if (controller.contains("package:bujuan/features/user/user_session_controller.dart")) 'auth controller imports user session controller',
+        if (controller.contains('UserSessionController.to')) 'auth controller reads global user session controller',
+        if (!controller.contains('required AuthSessionAccess sessionAccess')) 'auth controller does not use narrow session access',
         if (!sessionController.contains('required bool Function() canRestoreCachedSession')) 'user session controller does not require cached-session restore guard',
         if (!sessionController.contains('if (!_canRestoreCachedSession())')) 'user session controller restores cache without guard',
         if (!featureBootstrap.contains('canRestoreCachedSession: () => Get.find<AuthRepository>().hasCachedSession')) 'feature bootstrap does not inject auth cached-session guard',
+        if (!featureBootstrap.contains('AuthSessionAccess(')) 'feature bootstrap does not bind auth session access',
       ];
 
       expect(

@@ -1,21 +1,47 @@
 import 'dart:async';
 
+import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/auth/auth_ui_effect.dart';
 import 'package:bujuan/features/auth/qr_login_data.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:get/get.dart';
+
+/// 登录流程读写当前 App 用户 session 的窄边界。
+class AuthSessionAccess {
+  /// 创建登录会话访问边界。
+  const AuthSessionAccess({
+    required this.currentSession,
+    required this.saveCurrentSession,
+    required this.clearCurrentUser,
+    required this.expireCurrentSession,
+  });
+
+  /// 读取当前 App 用户 session。
+  final UserSessionData Function() currentSession;
+
+  /// 写入当前 App 用户 session。
+  final void Function(UserSessionData session) saveCurrentSession;
+
+  /// 主动注销当前 App 用户。
+  final Future<void> Function() clearCurrentUser;
+
+  /// 标记当前 App 用户登录已失效。
+  final Future<void> Function() expireCurrentSession;
+}
 
 /// 承接二维码登录流程的瞬时状态，避免登录页继续持有轮询与鉴权副作用。
 class AuthController extends GetxController {
   /// 创建二维码登录控制器。
   AuthController({
     required AuthRepository repository,
+    required AuthSessionAccess sessionAccess,
     Duration qrPollingInterval = const Duration(seconds: 3),
   })  : _repository = repository,
+        _sessionAccess = sessionAccess,
         _qrPollingInterval = qrPollingInterval;
 
   final AuthRepository _repository;
+  final AuthSessionAccess _sessionAccess;
   final Duration _qrPollingInterval;
 
   /// 当前二维码图片地址。
@@ -62,8 +88,7 @@ class AuthController extends GetxController {
     if (!_repository.hasCachedSession) {
       return;
     }
-    final sessionController = UserSessionController.to;
-    if (!sessionController.userInfo.value.isLoggedIn) {
+    if (!_sessionAccess.currentSession().isLoggedIn) {
       return;
     }
     await _validateLoginStateInBackgroundSafely();
@@ -71,8 +96,7 @@ class AuthController extends GetxController {
 
   Future<void> _runBootstrap() async {
     if (_repository.hasCachedSession) {
-      final sessionController = UserSessionController.to;
-      if (sessionController.userInfo.value.isLoggedIn) {
+      if (_sessionAccess.currentSession().isLoggedIn) {
         loginCompleted.value = true;
         unawaited(_validateLoginStateInBackgroundSafely());
         return;
@@ -145,7 +169,7 @@ class AuthController extends GetxController {
     loginCompleted.value = false;
     isLoading.value = false;
     qrCodeNeedRefresh.value = true;
-    await UserSessionController.to.clearUser();
+    await _sessionAccess.clearCurrentUser();
     uiEffect.value = const AuthUiEffect.loginExpired('已退出登录');
   }
 
@@ -171,15 +195,14 @@ class AuthController extends GetxController {
         return false;
       }
 
-      final sessionController = UserSessionController.to;
-      sessionController.userInfo.value = accountInfo;
+      _sessionAccess.saveCurrentSession(accountInfo);
       loginCompleted.value = true;
       return true;
     } catch (_) {
       if (!_isCurrentAccountLoad(accountLoadGeneration)) {
         return false;
       }
-      if (!UserSessionController.to.userInfo.value.isLoggedIn) {
+      if (!_sessionAccess.currentSession().isLoggedIn) {
         await _expireLocalLoginSession();
       }
       uiEffect.value = const AuthUiEffect.message('登录状态校验失败，请重新登录');
@@ -204,17 +227,16 @@ class AuthController extends GetxController {
   }
 
   Future<void> _validateLoginStateInBackground() async {
-    final sessionController = UserSessionController.to;
-    final validatingUserId = sessionController.userInfo.value.userId;
+    final validatingUserId = _sessionAccess.currentSession().userId;
     if (validatingUserId.isEmpty) {
       return;
     }
     final accountInfo = await _repository.fetchLoginAccountInfo();
-    if (sessionController.userInfo.value.userId != validatingUserId) {
+    if (_sessionAccess.currentSession().userId != validatingUserId) {
       return;
     }
     if (accountInfo.isLoggedIn) {
-      sessionController.userInfo.value = accountInfo;
+      _sessionAccess.saveCurrentSession(accountInfo);
       return;
     }
 
@@ -223,7 +245,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> _expireLocalLoginSession() {
-    return UserSessionController.to.expireLoginSession();
+    return _sessionAccess.expireCurrentSession();
   }
 
   Future<void> _validateLoginStateInBackgroundSafely() async {

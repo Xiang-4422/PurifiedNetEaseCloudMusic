@@ -178,7 +178,17 @@ void registerFeatureControllers() {
     fenix: true,
   );
   Get.lazyPut(
-    () => AuthController(repository: Get.find<AuthRepository>()),
+    () => AuthController(
+      repository: Get.find<AuthRepository>(),
+      sessionAccess: AuthSessionAccess(
+        currentSession: () => Get.find<UserSessionController>().userInfo.value,
+        saveCurrentSession: (session) {
+          Get.find<UserSessionController>().userInfo.value = session;
+        },
+        clearCurrentUser: () => Get.find<UserSessionController>().clearUser(),
+        expireCurrentSession: () => Get.find<UserSessionController>().expireLoginSession(),
+      ),
+    ),
     fenix: true,
   );
   Get.lazyPut(

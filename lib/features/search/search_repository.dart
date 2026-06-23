@@ -1,5 +1,5 @@
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_search_remote_data_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -15,7 +15,7 @@ class SearchRepository {
   /// 创建搜索仓库。
   SearchRepository({
     required MusicDataRepository musicDataRepository,
-    required NeteaseSearchRemoteDataSource remoteDataSource,
+    required SearchRemoteDataSource remoteDataSource,
     required SearchCacheStore cacheStore,
     required UserPlaylistListDataSource userPlaylistListDataSource,
   })  : _musicDataRepository = musicDataRepository,
@@ -24,7 +24,7 @@ class SearchRepository {
         _userPlaylistListDataSource = userPlaylistListDataSource;
 
   final MusicDataRepository _musicDataRepository;
-  final NeteaseSearchRemoteDataSource _remoteDataSource;
+  final SearchRemoteDataSource _remoteDataSource;
   final SearchCacheStore _cacheStore;
   final UserPlaylistListDataSource _userPlaylistListDataSource;
 

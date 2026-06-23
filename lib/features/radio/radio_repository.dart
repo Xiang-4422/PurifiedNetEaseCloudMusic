@@ -1,5 +1,5 @@
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_radio_remote_data_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
 
 /// 电台仓库，聚合用户电台缓存和网易云远程电台数据。
@@ -7,11 +7,11 @@ class RadioRepository {
   /// 创建电台仓库。
   RadioRepository({
     required UserRadioDataSource userRadioDataSource,
-    required NeteaseRadioRemoteDataSource remoteDataSource,
+    required RadioRemoteDataSource remoteDataSource,
   })  : _remoteDataSource = remoteDataSource,
         _userRadioDataSource = userRadioDataSource;
 
-  final NeteaseRadioRemoteDataSource _remoteDataSource;
+  final RadioRemoteDataSource _remoteDataSource;
   final UserRadioDataSource _userRadioDataSource;
 
   /// 加载缓存的已订阅电台。

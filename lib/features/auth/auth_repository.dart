@@ -1,4 +1,4 @@
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_auth_remote_data_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/features/auth/qr_login_data.dart';
 import 'package:bujuan/core/entities/user_session_data.dart';
 
@@ -9,12 +9,12 @@ class AuthRepository {
   /// 创建登录仓库。
   AuthRepository({
     required AuthStateStore stateStore,
-    required NeteaseAuthRemoteDataSource remoteDataSource,
+    required AuthRemoteDataSource remoteDataSource,
   })  : _stateStore = stateStore,
         _remoteDataSource = remoteDataSource;
 
   final AuthStateStore _stateStore;
-  final NeteaseAuthRemoteDataSource _remoteDataSource;
+  final AuthRemoteDataSource _remoteDataSource;
 
   /// 是否存在 App 可恢复的本地登录 session。
   bool get hasCachedSession => _stateStore.hasCachedSession;

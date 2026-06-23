@@ -1,15 +1,17 @@
 import 'package:netease_music_api/netease_music_api.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_comment_mapper.dart';
 import 'package:bujuan/core/entities/comment_data.dart';
 
 /// 网易云评论远程数据源。
-class NeteaseCommentRemoteDataSource {
+class NeteaseCommentRemoteDataSource implements CommentRemoteDataSource {
   /// 创建网易云评论远程数据源。
   NeteaseCommentRemoteDataSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 
   /// 分页获取资源评论。
+  @override
   Future<({List<CommentData> items, bool hasMore, String? nextCursor})> fetchComments(
     String id,
     String type, {
@@ -38,6 +40,7 @@ class NeteaseCommentRemoteDataSource {
   }
 
   /// 分页获取楼层评论。
+  @override
   Future<({List<CommentData> items, bool hasMore, int nextTime})> fetchFloorComments(
     String id,
     String type,
@@ -62,6 +65,7 @@ class NeteaseCommentRemoteDataSource {
   }
 
   /// 发送、回复或删除评论。
+  @override
   Future<({bool success, String? message})> sendComment(
     String id,
     String type,
@@ -84,6 +88,7 @@ class NeteaseCommentRemoteDataSource {
   }
 
   /// 切换评论点赞状态。
+  @override
   Future<({bool success, String? message})> toggleCommentLike(
     String id,
     String type,

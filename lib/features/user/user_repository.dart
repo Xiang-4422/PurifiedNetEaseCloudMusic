@@ -5,7 +5,7 @@ import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_user_remote_data_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
@@ -20,7 +20,7 @@ class UserRepository {
   /// 创建用户仓库。
   UserRepository({
     required MusicDataRepository musicDataRepository,
-    required NeteaseUserRemoteDataSource remoteDataSource,
+    required UserRemoteDataSource remoteDataSource,
     required UserProfileDataSource userProfileDataSource,
     required UserTrackListDataSource userTrackListDataSource,
     required UserPlaylistListDataSource userPlaylistListDataSource,
@@ -33,7 +33,7 @@ class UserRepository {
         _userSyncMarkerDataSource = userSyncMarkerDataSource;
 
   final MusicDataRepository _musicDataRepository;
-  final NeteaseUserRemoteDataSource _remoteDataSource;
+  final UserRemoteDataSource _remoteDataSource;
   final UserProfileDataSource _userProfileDataSource;
   final UserTrackListDataSource _userTrackListDataSource;
   final UserPlaylistListDataSource _userPlaylistListDataSource;

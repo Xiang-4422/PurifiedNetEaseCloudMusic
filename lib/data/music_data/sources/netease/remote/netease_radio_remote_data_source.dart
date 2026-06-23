@@ -1,15 +1,17 @@
 import 'package:netease_music_api/netease_music_api.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_radio_mapper.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
 
 /// 播客相关远程访问统一放在 data/music_data/sources/netease，避免 feature 继续直连平台 API。
-class NeteaseRadioRemoteDataSource {
+class NeteaseRadioRemoteDataSource implements RadioRemoteDataSource {
   /// 创建网易云电台远程数据源。
   NeteaseRadioRemoteDataSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 
   /// 分页获取已订阅电台。
+  @override
   Future<({List<RadioSummaryData> items, int itemCount})> fetchSubscribedRadios({
     bool total = true,
     required int offset,
@@ -28,6 +30,7 @@ class NeteaseRadioRemoteDataSource {
   }
 
   /// 分页获取电台节目。
+  @override
   Future<({List<RadioProgramData> items, int itemCount})> fetchPrograms(
     String radioId, {
     required int offset,

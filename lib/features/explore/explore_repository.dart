@@ -1,4 +1,4 @@
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_explore_remote_data_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/features/explore/explore_cache_store.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
@@ -7,12 +7,12 @@ import 'package:bujuan/core/entities/playlist_summary_data.dart';
 class ExploreRepository {
   /// 创建探索仓库。
   ExploreRepository({
-    required NeteaseExploreRemoteDataSource remoteDataSource,
+    required ExploreRemoteDataSource remoteDataSource,
     required ExploreCacheStore cacheStore,
   })  : _remoteDataSource = remoteDataSource,
         _cacheStore = cacheStore;
 
-  final NeteaseExploreRemoteDataSource _remoteDataSource;
+  final ExploreRemoteDataSource _remoteDataSource;
   final ExploreCacheStore _cacheStore;
 
   /// 加载缓存的歌单分类目录。

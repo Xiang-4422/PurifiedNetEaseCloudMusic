@@ -1,6 +1,6 @@
 import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_cloud_remote_data_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
@@ -14,12 +14,12 @@ class CloudRepository {
   CloudRepository({
     required MusicDataRepository musicDataRepository,
     required UserTrackListDataSource userTrackListDataSource,
-    required NeteaseCloudRemoteDataSource remoteDataSource,
+    required CloudRemoteDataSource remoteDataSource,
   })  : _remoteDataSource = remoteDataSource,
         _musicDataRepository = musicDataRepository,
         _userTrackListDataSource = userTrackListDataSource;
 
-  final NeteaseCloudRemoteDataSource _remoteDataSource;
+  final CloudRemoteDataSource _remoteDataSource;
   final MusicDataRepository _musicDataRepository;
   final UserTrackListDataSource _userTrackListDataSource;
 

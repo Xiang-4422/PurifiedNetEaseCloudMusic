@@ -1436,6 +1436,58 @@ void main() {
       );
     });
 
+    test('feature repositories use neutral remote data source contracts', () {
+      final repositoryViolations = _repositoryFiles(
+        Directory('${projectRoot.path}/lib/features'),
+      )
+          .where(
+            (file) => _contains(
+              file,
+              'package:bujuan/data/music_data/sources/netease/remote/',
+            ),
+          )
+          .map(_relativePath)
+          .toList();
+      final contractFile = File(
+        '${projectRoot.path}/lib/data/music_data/music_remote_data_sources.dart',
+      );
+      final contractContent = contractFile.existsSync() ? contractFile.readAsStringSync() : '';
+      final missingContracts = <String>[
+        for (final name in const [
+          'AuthRemoteDataSource',
+          'UserRemoteDataSource',
+          'PlaylistRemoteDataSource',
+          'AlbumRemoteDataSource',
+          'ArtistRemoteDataSource',
+          'CloudRemoteDataSource',
+          'RadioRemoteDataSource',
+          'SearchRemoteDataSource',
+          'CommentRemoteDataSource',
+          'ExploreRemoteDataSource',
+        ])
+          if (!contractContent.contains('abstract interface class $name')) name,
+      ];
+      final implementationViolations = _dartFiles(
+        Directory('${projectRoot.path}/lib/data/music_data/sources/netease/remote'),
+      ).where((file) => !_contains(file, ' implements ')).map(_relativePath).toList();
+
+      expect(
+        repositoryViolations,
+        isEmpty,
+        reason: 'feature repository 只能依赖 data/music_data 的中性远程数据契约，不能直接命名网易云 remote 实现。',
+      );
+      expect(
+        missingContracts,
+        isEmpty,
+        reason: '所有被 feature repository 使用的远程能力必须先在中性契约中声明。',
+      );
+      expect(
+        implementationViolations,
+        isEmpty,
+        reason: '网易云 remote 实现必须显式实现中性远程数据契约，避免 feature 层重新绑定具体平台类。',
+      );
+    });
+
     test('features do not keep presentation dart files', () {
       final violations = _dartFiles(Directory('${projectRoot.path}/lib/features')).where((file) => _relativePath(file).contains('/presentation/')).map(_relativePath).toList();
 

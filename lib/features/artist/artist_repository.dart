@@ -1,5 +1,5 @@
 import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_artist_remote_data_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -32,12 +32,12 @@ class ArtistRepository {
   /// 创建歌手仓库。
   ArtistRepository({
     required MusicDataRepository musicDataRepository,
-    required NeteaseArtistRemoteDataSource remoteDataSource,
+    required ArtistRemoteDataSource remoteDataSource,
   })  : _musicDataRepository = musicDataRepository,
         _remoteDataSource = remoteDataSource;
 
   final MusicDataRepository _musicDataRepository;
-  final NeteaseArtistRemoteDataSource _remoteDataSource;
+  final ArtistRemoteDataSource _remoteDataSource;
 
   /// 加载本地缓存的歌手详情。
   Future<ArtistDetailData?> loadLocalArtistDetail({

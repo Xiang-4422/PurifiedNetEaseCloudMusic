@@ -1,4 +1,5 @@
 import 'package:netease_music_api/netease_music_api.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_album_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_artist_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_track_mapper.dart';
@@ -7,13 +8,14 @@ import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/track.dart';
 
 /// 网易云歌手远程数据源。
-class NeteaseArtistRemoteDataSource {
+class NeteaseArtistRemoteDataSource implements ArtistRemoteDataSource {
   /// 创建网易云歌手远程数据源。
   NeteaseArtistRemoteDataSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 
   /// 获取歌手资料、热门歌曲和热门专辑。
+  @override
   Future<
       ({
         ArtistEntity? artist,

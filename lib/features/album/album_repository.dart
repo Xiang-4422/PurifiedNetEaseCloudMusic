@@ -1,5 +1,5 @@
 import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_album_remote_data_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
@@ -27,12 +27,12 @@ class AlbumRepository {
   /// 创建专辑仓库。
   AlbumRepository({
     required MusicDataRepository musicDataRepository,
-    required NeteaseAlbumRemoteDataSource remoteDataSource,
+    required AlbumRemoteDataSource remoteDataSource,
   })  : _musicDataRepository = musicDataRepository,
         _remoteDataSource = remoteDataSource;
 
   final MusicDataRepository _musicDataRepository;
-  final NeteaseAlbumRemoteDataSource _remoteDataSource;
+  final AlbumRemoteDataSource _remoteDataSource;
 
   /// 加载本地缓存的专辑详情。
   Future<AlbumDetailData?> loadLocalAlbumDetail({

@@ -1,5 +1,5 @@
 import 'package:bujuan/core/state/operation_result.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_comment_remote_data_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_cache_store.dart';
 
@@ -7,14 +7,14 @@ import 'package:bujuan/features/comment/comment_cache_store.dart';
 class CommentRepository {
   /// 创建评论仓库。
   CommentRepository({
-    required NeteaseCommentRemoteDataSource remoteDataSource,
+    required CommentRemoteDataSource remoteDataSource,
     required CommentCacheStore cacheStore,
     Duration cacheTtl = const Duration(minutes: 10),
   })  : _remoteDataSource = remoteDataSource,
         _cacheStore = cacheStore,
         _cacheTtl = cacheTtl;
 
-  final NeteaseCommentRemoteDataSource _remoteDataSource;
+  final CommentRemoteDataSource _remoteDataSource;
   final CommentCacheStore _cacheStore;
   final Duration _cacheTtl;
 

@@ -1,19 +1,21 @@
 import 'dart:math';
 
 import 'package:netease_music_api/netease_music_api.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/track.dart';
 
 /// 网易云歌单远程数据源。
-class NeteasePlaylistRemoteDataSource {
+class NeteasePlaylistRemoteDataSource implements PlaylistRemoteDataSource {
   /// 创建网易云歌单远程数据源。
   NeteasePlaylistRemoteDataSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 
   /// 获取歌单索引，包括歌单摘要、曲目 id 和订阅状态。
+  @override
   Future<
       ({
         PlaylistEntity? playlist,
@@ -37,6 +39,7 @@ class NeteasePlaylistRemoteDataSource {
   }
 
   /// 分页获取歌单歌曲详情。
+  @override
   Future<List<Track>> fetchPlaylistSongs({
     required List<String> songIds,
     required int offset,
@@ -69,6 +72,7 @@ class NeteasePlaylistRemoteDataSource {
   }
 
   /// 切换歌单订阅状态。
+  @override
   Future<({bool success, String? message})> toggleSubscription(
     String playlistId, {
     required bool subscribe,
@@ -81,6 +85,7 @@ class NeteasePlaylistRemoteDataSource {
   }
 
   /// 添加或移除歌单中的歌曲。
+  @override
   Future<({bool success, String? message})> manipulateTracks(
     String playlistId,
     String songId, {

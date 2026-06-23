@@ -1,17 +1,19 @@
 import 'package:netease_music_api/netease_music_api.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_album_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_track_mapper.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/track.dart';
 
 /// 网易云专辑远程数据源。
-class NeteaseAlbumRemoteDataSource {
+class NeteaseAlbumRemoteDataSource implements AlbumRemoteDataSource {
   /// 创建网易云专辑远程数据源。
   NeteaseAlbumRemoteDataSource({required NeteaseMusicApi api}) : _api = api;
 
   final NeteaseMusicApi _api;
 
   /// 获取专辑详情和专辑曲目。
+  @override
   Future<
       ({
         AlbumEntity? album,

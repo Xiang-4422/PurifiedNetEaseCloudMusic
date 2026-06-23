@@ -1,5 +1,6 @@
 import 'package:bujuan/data/music_data/sources/local/database/app_database.dart';
 import 'package:bujuan/data/music_data/sources/local/local_music_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/netease_music_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_album_remote_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_artist_remote_data_source.dart';
@@ -101,34 +102,34 @@ class AppDataSourceBootstrapResult {
   final NeteaseMusicSource neteaseMusicSource;
 
   /// 网易云登录远程数据源。
-  final NeteaseAuthRemoteDataSource authRemoteDataSource;
+  final AuthRemoteDataSource authRemoteDataSource;
 
   /// 网易云用户远程数据源。
-  final NeteaseUserRemoteDataSource userRemoteDataSource;
+  final UserRemoteDataSource userRemoteDataSource;
 
   /// 网易云歌单远程数据源。
-  final NeteasePlaylistRemoteDataSource playlistRemoteDataSource;
+  final PlaylistRemoteDataSource playlistRemoteDataSource;
 
   /// 网易云专辑远程数据源。
-  final NeteaseAlbumRemoteDataSource albumRemoteDataSource;
+  final AlbumRemoteDataSource albumRemoteDataSource;
 
   /// 网易云歌手远程数据源。
-  final NeteaseArtistRemoteDataSource artistRemoteDataSource;
+  final ArtistRemoteDataSource artistRemoteDataSource;
 
   /// 网易云云盘远程数据源。
-  final NeteaseCloudRemoteDataSource cloudRemoteDataSource;
+  final CloudRemoteDataSource cloudRemoteDataSource;
 
   /// 网易云电台远程数据源。
-  final NeteaseRadioRemoteDataSource radioRemoteDataSource;
+  final RadioRemoteDataSource radioRemoteDataSource;
 
   /// 网易云搜索远程数据源。
-  final NeteaseSearchRemoteDataSource searchRemoteDataSource;
+  final SearchRemoteDataSource searchRemoteDataSource;
 
   /// 网易云评论远程数据源。
-  final NeteaseCommentRemoteDataSource commentRemoteDataSource;
+  final CommentRemoteDataSource commentRemoteDataSource;
 
   /// 网易云探索页远程数据源。
-  final NeteaseExploreRemoteDataSource exploreRemoteDataSource;
+  final ExploreRemoteDataSource exploreRemoteDataSource;
 }
 
 /// 从已初始化的数据库门面创建数据源和轻量 cache store。

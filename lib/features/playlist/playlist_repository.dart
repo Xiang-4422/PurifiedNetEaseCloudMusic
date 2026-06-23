@@ -5,7 +5,7 @@ import 'package:bujuan/features/playlist/playlist_performance_logger.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_library_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart';
+import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/playlist_track_ref.dart';
@@ -83,7 +83,7 @@ class PlaylistRepository {
     required AppCacheDataSource appCacheDataSource,
     required MusicDataRepository musicDataRepository,
     required LocalLibraryDataSource localLibraryDataSource,
-    required NeteasePlaylistRemoteDataSource remoteDataSource,
+    required PlaylistRemoteDataSource remoteDataSource,
     required PlaylistSubscriptionDataSource playlistSubscriptionDataSource,
   })  : _appCacheDataSource = appCacheDataSource,
         _musicDataRepository = musicDataRepository,
@@ -94,7 +94,7 @@ class PlaylistRepository {
   final AppCacheDataSource _appCacheDataSource;
   final MusicDataRepository _musicDataRepository;
   final LocalLibraryDataSource _localLibraryDataSource;
-  final NeteasePlaylistRemoteDataSource _remoteDataSource;
+  final PlaylistRemoteDataSource _remoteDataSource;
   final PlaylistSubscriptionDataSource _playlistSubscriptionDataSource;
 
   /// 拉取歌单索引，并同步歌单基础信息、曲目顺序和订阅状态到本地数据库。

@@ -72,7 +72,7 @@ class PlaybackUrlCacheCoordinator {
   Future<String?> _resolveLocalResourceUrlOrNull(String trackId) async {
     try {
       final url = await _resolveLocalResourceUrl(trackId);
-      return url?.isEmpty == true ? null : url;
+      return url == null || url.trim().isEmpty ? null : url;
     } catch (_) {
       return null;
     }
@@ -111,6 +111,9 @@ class PlaybackUrlCacheCoordinator {
       return null;
     }
     final trimmedUrl = url.trim();
+    if (trimmedUrl.isEmpty) {
+      return null;
+    }
     if (_hasHttpScheme(trimmedUrl)) {
       return trimmedUrl;
     }

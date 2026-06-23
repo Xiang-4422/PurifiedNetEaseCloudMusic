@@ -217,7 +217,7 @@ class UserLibraryController extends GetxController {
     }
     try {
       if (!force) {
-        final cachedLikedSongs = await _repository.loadCachedSongsByIds(
+        final cachedLikedSongs = await _loadCachedSongsByIds(
           ids: requestedLikedSongIds.map((e) => e.toString()).toList(),
           likedSongIds: requestedLikedSongIds,
         );
@@ -388,6 +388,20 @@ class UserLibraryController extends GetxController {
       return await _repository.fetchSongAlbumUrl(songId);
     } catch (_) {
       return '';
+    }
+  }
+
+  Future<List<PlaybackQueueItem>> _loadCachedSongsByIds({
+    required List<String> ids,
+    required List<int> likedSongIds,
+  }) async {
+    try {
+      return await _repository.loadCachedSongsByIds(
+        ids: ids,
+        likedSongIds: likedSongIds,
+      );
+    } catch (_) {
+      return const [];
     }
   }
 

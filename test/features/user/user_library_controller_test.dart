@@ -218,6 +218,32 @@ void main() {
       expect(controller.likedSongs.map((song) => song.title), ['Cached liked song']);
     });
 
+    test('falls back to remote liked songs when cached song read fails', () async {
+      final repository = _FakeUserRepository()
+        ..loadCachedSongsByIdsError = StateError('broken liked songs cache')
+        ..remoteSongsByIds = [_song('101', title: 'Remote liked song')];
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionController: sessionController,
+      );
+      controller.likedSongIds.add(101);
+
+      await controller.ensureLikedSongsLoaded();
+
+      expect(controller.likedSongs.map((song) => song.title), ['Remote liked song']);
+    });
+
     test('limits home frequent playlists without trimming library playlists', () {
       final repository = _FakeUserRepository();
       final sessionController = UserSessionController(
@@ -599,6 +625,7 @@ class _FakeUserRepository implements UserRepository {
   List<PlaylistSummaryData> remoteUserPlaylists = const [];
   Object? loadCachedSongAlbumUrlError;
   Object? fetchSongAlbumUrlError;
+  Object? loadCachedSongsByIdsError;
   Object? fetchSongsByIdsError;
   List<PlaybackQueueItem> remoteSongsByIds = const [];
   Future<List<PlaybackQueueItem>> Function({
@@ -670,6 +697,10 @@ class _FakeUserRepository implements UserRepository {
     required List<String> ids,
     required List<int> likedSongIds,
   }) async {
+    final error = loadCachedSongsByIdsError;
+    if (error != null) {
+      throw error;
+    }
     return const [];
   }
 

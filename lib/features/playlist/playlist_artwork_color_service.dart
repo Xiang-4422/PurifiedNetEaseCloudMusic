@@ -5,8 +5,8 @@ import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
 class PlaylistArtworkColorService {
   /// 创建歌单封面取色服务。
   PlaylistArtworkColorService({
-    LocalImageCacheRepository? imageCacheRepository,
-  }) : _imageCacheRepository = imageCacheRepository ?? LocalImageCacheRepository();
+    required LocalImageCacheRepository imageCacheRepository,
+  }) : _imageCacheRepository = imageCacheRepository;
 
   final LocalImageCacheRepository _imageCacheRepository;
 

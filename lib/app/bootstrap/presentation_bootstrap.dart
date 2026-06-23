@@ -5,6 +5,8 @@ import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
+import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
+import 'package:bujuan/ui/services/local_image_cache_service.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,8 +17,14 @@ void registerPresentationAdapters() {
     const PlaybackToastPort(show: ToastService.show),
     permanent: true,
   );
+  LocalImageCacheService.configure(
+    repository: Get.find<LocalImageCacheRepository>(),
+  );
   Get.put<PlaybackArtworkPresenter>(
-    PlaybackArtworkPresenter(repository: Get.find<PlaybackRepository>()),
+    PlaybackArtworkPresenter(
+      repository: Get.find<PlaybackRepository>(),
+      imageCacheRepository: Get.find<LocalImageCacheRepository>(),
+    ),
     permanent: true,
   );
   Get.put<PlaybackSelectionUiEffectCoordinator>(

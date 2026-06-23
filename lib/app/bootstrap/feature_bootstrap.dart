@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 
 import 'package:bujuan/core/entities/user_session_data.dart';
+import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 import 'package:bujuan/features/album/album_page_controller_factory.dart';
@@ -166,7 +167,9 @@ void registerFeatureApplications() {
     permanent: true,
   );
   Get.put<PlaylistArtworkColorService>(
-    PlaylistArtworkColorService(),
+    PlaylistArtworkColorService(
+      imageCacheRepository: Get.find<LocalImageCacheRepository>(),
+    ),
     permanent: true,
   );
   Get.put<LocalMediaScanRepository>(

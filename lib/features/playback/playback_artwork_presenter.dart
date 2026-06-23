@@ -22,11 +22,11 @@ class PlaybackArtworkPresenter {
   /// 创建播放封面展示策略实例。
   PlaybackArtworkPresenter({
     required PlaybackRepository repository,
-    LocalImageCacheRepository? imageCacheRepository,
+    required LocalImageCacheRepository imageCacheRepository,
     PlaybackDominantColorResolver? dominantColorResolver,
     PlaybackCachedColorReader? cachedColorReader,
   })  : _repository = repository,
-        _imageCacheRepository = imageCacheRepository ?? LocalImageCacheRepository(),
+        _imageCacheRepository = imageCacheRepository,
         _dominantColorResolver = dominantColorResolver ?? ImageColorService.dominantColor,
         _cachedColorReader = cachedColorReader ?? ImageColorService.peekCachedColor;
 

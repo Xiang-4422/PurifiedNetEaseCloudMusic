@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:bujuan/app/bootstrap/data_source_bootstrap.dart';
 import 'package:bujuan/data/app_storage/app_preferences.dart';
+import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_artwork_cache_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
@@ -29,6 +30,7 @@ class AppRepositoryBootstrapResult {
   const AppRepositoryBootstrapResult({
     required this.localResourceIndexRepository,
     required this.localArtworkCacheRepository,
+    required this.localImageCacheRepository,
     required this.musicDataRepository,
     required this.authRepository,
     required this.settingsRepository,
@@ -51,6 +53,9 @@ class AppRepositoryBootstrapResult {
 
   /// 本地封面缓存 repository。
   final LocalArtworkCacheRepository localArtworkCacheRepository;
+
+  /// 本地图片展示缓存 repository。
+  final LocalImageCacheRepository localImageCacheRepository;
 
   /// 音乐数据聚合 repository。
   final MusicDataRepository musicDataRepository;
@@ -108,6 +113,7 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
     localLibraryDataSource: dataSources.localLibraryDataSource,
   );
   final sharedDio = Dio();
+  final localImageCacheRepository = LocalImageCacheRepository(dio: sharedDio);
   final localArtworkCacheRepository = LocalArtworkCacheRepository(
     dio: sharedDio,
     resourceIndexRepository: localResourceIndexRepository,
@@ -135,6 +141,7 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
   return AppRepositoryBootstrapResult(
     localResourceIndexRepository: localResourceIndexRepository,
     localArtworkCacheRepository: localArtworkCacheRepository,
+    localImageCacheRepository: localImageCacheRepository,
     musicDataRepository: musicDataRepository,
     authRepository: AuthRepository(
       stateStore: const AuthStateStore(),
@@ -217,6 +224,10 @@ void registerRepositoryInfrastructure(AppRepositoryBootstrapResult repositories)
   );
   Get.put<LocalArtworkCacheRepository>(
     repositories.localArtworkCacheRepository,
+    permanent: true,
+  );
+  Get.put<LocalImageCacheRepository>(
+    repositories.localImageCacheRepository,
     permanent: true,
   );
   Get.put<MusicDataRepository>(repositories.musicDataRepository, permanent: true);

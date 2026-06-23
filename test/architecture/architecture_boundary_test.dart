@@ -1576,6 +1576,51 @@ void main() {
       );
     });
 
+    test('image cache repository is injected through bootstrap boundaries', () {
+      final repositoryBootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/repository_bootstrap.dart',
+      );
+      final presentationBootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/presentation_bootstrap.dart',
+      );
+      final featureBootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
+      final localImageCacheServiceFile = File(
+        '${projectRoot.path}/lib/ui/services/local_image_cache_service.dart',
+      );
+      final playbackArtworkPresenterFile = File(
+        '${projectRoot.path}/lib/features/playback/playback_artwork_presenter.dart',
+      );
+      final playlistArtworkColorServiceFile = File(
+        '${projectRoot.path}/lib/features/playlist/playlist_artwork_color_service.dart',
+      );
+      final repositoryBootstrap = repositoryBootstrapFile.readAsStringSync();
+      final presentationBootstrap = presentationBootstrapFile.readAsStringSync();
+      final featureBootstrap = featureBootstrapFile.readAsStringSync();
+      final localImageCacheService = localImageCacheServiceFile.readAsStringSync();
+      final playbackArtworkPresenter = playbackArtworkPresenterFile.readAsStringSync();
+      final playlistArtworkColorService = playlistArtworkColorServiceFile.readAsStringSync();
+      final violations = <String>[
+        if (!repositoryBootstrap.contains('final localImageCacheRepository = LocalImageCacheRepository(dio: sharedDio)')) 'repository bootstrap does not create local image cache repository with shared Dio',
+        if (!repositoryBootstrap.contains('Get.put<LocalImageCacheRepository>')) 'repository bootstrap does not register local image cache repository',
+        if (!presentationBootstrap.contains('LocalImageCacheService.configure(')) 'presentation bootstrap does not configure UI image cache service',
+        if (!presentationBootstrap.contains('imageCacheRepository: Get.find<LocalImageCacheRepository>()')) 'presentation bootstrap does not inject image cache repository into playback artwork presenter',
+        if (!featureBootstrap.contains('imageCacheRepository: Get.find<LocalImageCacheRepository>()')) 'feature bootstrap does not inject image cache repository into playlist artwork color service',
+        if (localImageCacheService.contains('LocalImageCacheRepository()')) '${_relativePath(localImageCacheServiceFile)} creates image cache repository directly',
+        if (playbackArtworkPresenter.contains('LocalImageCacheRepository()')) '${_relativePath(playbackArtworkPresenterFile)} creates image cache repository directly',
+        if (playlistArtworkColorService.contains('LocalImageCacheRepository()')) '${_relativePath(playlistArtworkColorServiceFile)} creates image cache repository directly',
+        if (!playbackArtworkPresenter.contains('required LocalImageCacheRepository imageCacheRepository')) 'playback artwork presenter does not require injected image cache repository',
+        if (!playlistArtworkColorService.contains('required LocalImageCacheRepository imageCacheRepository')) 'playlist artwork color service does not require injected image cache repository',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '本地图片展示缓存属于 AppStorage 视觉缓存边界，仓库生命周期必须由 repository bootstrap 收口，播放和歌单展示服务只能接收注入实例。',
+      );
+    });
+
     test('playlist page opens playback panel through shell boundary', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/playlist/playlist_page_view.dart',

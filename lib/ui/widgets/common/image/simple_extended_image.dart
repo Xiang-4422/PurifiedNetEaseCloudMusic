@@ -73,7 +73,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   @override
   void initState() {
     super.initState();
-    _resolvedPath = LocalImageCacheService.peekResolvedImagePath(widget.url.trim()) ?? '';
+    _resolvedPath = _peekResolvedImagePath(widget.url);
     _resolveImagePath();
   }
 
@@ -81,7 +81,7 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
   void didUpdateWidget(covariant SimpleExtendedImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
-      _resolvedPath = LocalImageCacheService.peekResolvedImagePath(widget.url.trim()) ?? '';
+      _resolvedPath = _peekResolvedImagePath(widget.url);
       _resolveImagePath();
     }
   }
@@ -171,6 +171,14 @@ class SimpleExtendedImageState extends State<SimpleExtendedImage> {
       details: 'remote=${ImageUrlNormalizer.isRemoteHttpUrl(rawPath)} resolved=${resolvedPath.isNotEmpty}',
       warnAfterMs: 8,
     );
+  }
+
+  String _peekResolvedImagePath(String rawPath) {
+    final trimmedPath = rawPath.trim();
+    if (trimmedPath.isEmpty) {
+      return '';
+    }
+    return LocalImageCacheService.peekResolvedImagePath(trimmedPath) ?? '';
   }
 
   Widget _clip(Widget child) {

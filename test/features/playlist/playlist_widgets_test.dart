@@ -3,6 +3,8 @@ import 'dart:ui' show SemanticsAction;
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
+import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
+import 'package:bujuan/ui/services/local_image_cache_service.dart';
 import 'package:bujuan/ui/widgets/playlist/playlist_widgets.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
@@ -11,6 +13,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  setUpAll(() {
+    LocalImageCacheService.configure(
+      repository: LocalImageCacheRepository(),
+    );
+  });
+
   group('playlist widgets', () {
     testWidgets('Header grows from padding instead of forcing fixed height', (tester) async {
       const headerKey = Key('header');

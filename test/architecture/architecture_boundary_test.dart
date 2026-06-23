@@ -2670,6 +2670,24 @@ void main() {
       );
     });
 
+    test('user session persistence stays serialized and generation guarded', () {
+      final sessionController = File('${projectRoot.path}/lib/features/user/user_session_controller.dart').readAsStringSync();
+      final violations = <String>[
+        if (!sessionController.contains('Future<void> _sessionPersistenceQueue')) 'user session controller does not serialize session persistence',
+        if (!sessionController.contains('int _sessionPersistenceGeneration')) 'user session controller does not track session persistence generation',
+        if (!sessionController.contains('final generation = ++_sessionPersistenceGeneration')) 'user session persistence does not create a generation per write',
+        if (!sessionController.contains('_sessionPersistenceQueue = operation.catchError')) 'session persistence failures can break the write queue',
+        if (!sessionController.contains('generation != _sessionPersistenceGeneration')) 'stale session persistence writes are not ignored',
+        if (!sessionController.contains('await _queueSessionPersistence(const UserSessionData.empty())')) 'session clearing does not wait for the serialized persistence queue',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '用户 session 保存、注销清理和新账号写入必须串行且带代次保护，旧异步写入不能覆盖当前账号归属。',
+      );
+    });
+
     test('manual logout routes through auth effect boundary', () {
       final authController = File('${projectRoot.path}/lib/features/auth/auth_controller.dart').readAsStringSync();
       final profileController = File('${projectRoot.path}/lib/features/user/user_profile_controller.dart').readAsStringSync();

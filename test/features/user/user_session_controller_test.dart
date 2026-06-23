@@ -115,6 +115,51 @@ void main() {
       expect(savedLoginFlags, [false]);
     });
 
+    test('skips stale queued session save when newer account is pending', () async {
+      final keyValueStore = _DelayedPutKeyValueStore();
+      final sessionStore = UserSessionStore(keyValueStore: keyValueStore);
+      final controller = UserSessionController(
+        repository: _FakeUserRepository(),
+        sessionStore: sessionStore,
+        saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
+      )..onInit();
+
+      controller.userInfo.value = const UserSessionData(
+        userId: 'first-user',
+        nickname: 'First',
+        avatarUrl: '',
+      );
+      await _flushAsyncWork();
+      expect(keyValueStore.pendingPutCount, 1);
+
+      controller.userInfo.value = const UserSessionData(
+        userId: 'stale-user',
+        nickname: 'Stale',
+        avatarUrl: '',
+      );
+      controller.userInfo.value = const UserSessionData(
+        userId: 'fresh-user',
+        nickname: 'Fresh',
+        avatarUrl: '',
+      );
+      await _flushAsyncWork();
+      expect(keyValueStore.pendingPutCount, 1);
+
+      keyValueStore.completeNextPut();
+      await _flushAsyncWork();
+
+      expect(keyValueStore.pendingPutCount, 1);
+      expect(keyValueStore.nextPendingValue, contains('fresh-user'));
+      expect(keyValueStore.nextPendingValue, isNot(contains('stale-user')));
+
+      keyValueStore.completeNextPut();
+      await _flushAsyncWork();
+
+      expect(sessionStore.loadSession()?.userId, 'fresh-user');
+      expect(sessionStore.loadSession()?.nickname, 'Fresh');
+    });
+
     test('background session persistence failure is consumed', () async {
       final keyValueStore = _FailingPutKeyValueStore();
       final sessionStore = UserSessionStore(keyValueStore: keyValueStore);
@@ -156,6 +201,11 @@ Future<void> _seedSession(
   );
   controller.userInfo.value = session;
   await sessionStore.saveSession(session);
+}
+
+Future<void> _flushAsyncWork() async {
+  await Future<void>.delayed(Duration.zero);
+  await Future<void>.delayed(Duration.zero);
 }
 
 class _FakeUserRepository implements UserRepository {
@@ -205,6 +255,8 @@ class _DelayedPutKeyValueStore extends _MemoryKeyValueStore {
   final List<_PendingPut> _pendingPuts = <_PendingPut>[];
 
   int get pendingPutCount => _pendingPuts.length;
+
+  Object? get nextPendingValue => _pendingPuts.isEmpty ? null : _pendingPuts.first.value;
 
   @override
   Future<void> put(String key, Object? value) async {

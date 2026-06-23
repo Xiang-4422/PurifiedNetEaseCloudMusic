@@ -5,17 +5,21 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('personal page keeps continue playback as the first quick start action', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
-    final continueIndex = source.indexOf('_ContinuePlaybackQuickStartCard(');
-    final squareContinueIndex = source.indexOf('_ContinuePlaybackQuickStartCard(', continueIndex + 1);
-    final dailyIndex = source.indexOf('title: "每日推荐"');
-    final squareDailyIndex = source.indexOf("title: '每日推荐'");
+    final quickStartSource = File(
+      'lib/ui/pages/user/widgets/quick_start_card_rail.dart',
+    ).readAsStringSync();
+    final firstRailIndex = source.indexOf('child: QuickStartCardRail(');
+    final squareRailIndex = source.indexOf('return QuickStartCardRail(');
+    final continueIndex = quickStartSource.indexOf('_ContinuePlaybackQuickStartCard(');
+    final dailyIndex = quickStartSource.indexOf('_DailyRecommendQuickStartCard(');
 
-    expect(continueIndex, isNonNegative);
-    expect(squareContinueIndex, isNonNegative);
-    expect(dailyIndex, isNonNegative);
-    expect(squareDailyIndex, isNonNegative);
+    expect(firstRailIndex, isNonNegative);
+    expect(squareRailIndex, isNonNegative);
     expect(continueIndex, lessThan(dailyIndex));
-    expect(squareContinueIndex, lessThan(squareDailyIndex));
+    expect(quickStartSource, contains("title: '继续播放'"));
+    expect(quickStartSource, contains("title: '每日推荐'"));
+    expect(quickStartSource, contains("title: '漫游模式'"));
+    expect(quickStartSource, contains("title: '心动模式'"));
   });
 
   test('personal page exposes focused library shortcuts before recommendations', () {
@@ -70,21 +74,44 @@ void main() {
 
   test('personal page artwork entries use playback artwork resolver', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final quickStartSource = File(
+      'lib/ui/pages/user/widgets/quick_start_card_rail.dart',
+    ).readAsStringSync();
     final recentPlaybackSource = File(
       'lib/ui/pages/user/widgets/recent_playback_strip.dart',
     ).readAsStringSync();
     final todayPageSource = File('lib/ui/pages/user/today_page_view.dart').readAsStringSync();
 
-    expect(source, contains('String _playbackArtworkPath(PlaybackQueueItem item)'));
-    expect(source, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
+    expect(source, contains('quick_start_card_rail.dart'));
+    expect(source, isNot(contains('String _playbackArtworkPath(PlaybackQueueItem item)')));
+    expect(quickStartSource, contains('String _playbackArtworkPath(PlaybackQueueItem item)'));
+    expect(quickStartSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
     expect(recentPlaybackSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
     expect(todayPageSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
 
     expect(source, isNot(contains('currentSong.artworkUrl ??')));
+    expect(quickStartSource, isNot(contains('currentSong.artworkUrl ??')));
     expect(source, isNot(contains('todayRecommendSongs[0].artworkUrl')));
     expect(source, isNot(contains('fmSongs[0].artworkUrl')));
     expect(recentPlaybackSource, isNot(contains('song.artworkUrl ?? song.localArtworkPath')));
     expect(todayPageSource, isNot(contains("songs.first.artworkUrl ?? ''")));
+  });
+
+  test('personal page keeps quick start card details in local widget file', () {
+    final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final quickStartSource = File(
+      'lib/ui/pages/user/widgets/quick_start_card_rail.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('QuickStartCardRail('));
+    expect(source, isNot(contains('class QuickStartCard')));
+    expect(source, isNot(contains('LongPressOverlayTransition(')));
+    expect(source, isNot(contains('AppAssets.lottieMusicPlaying')));
+    expect(quickStartSource, contains('class QuickStartCardRail'));
+    expect(quickStartSource, contains('class QuickStartCard'));
+    expect(quickStartSource, contains('LongPressOverlayTransition('));
+    expect(quickStartSource, contains('Lottie.asset('));
+    expect(quickStartSource, contains('AppAssets.lottieMusicPlaying'));
   });
 
   test('download task page can open a focused local library tab', () {

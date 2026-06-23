@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart';
@@ -22,6 +23,7 @@ class AppHomePageView extends GetView<ShellController> {
   Widget build(BuildContext context) {
     controller.buildContext = context;
     final playerController = Get.find<PlayerController>();
+    final searchController = Get.find<SearchPanelController>();
     final settingsController = Get.find<SettingsController>();
     return Material(
       child: PopScope(
@@ -43,7 +45,11 @@ class AppHomePageView extends GetView<ShellController> {
             if (!shouldBuildTopPanel) {
               return const SizedBox.shrink();
             }
-            return const TopPanelView();
+            return TopPanelView(
+              shellController: controller,
+              searchController: searchController,
+              playerController: playerController,
+            );
           }),
           body: Obx(() {
             final hasCurrentSong = playerController.currentSongState.value.id.isNotEmpty;

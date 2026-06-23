@@ -1519,6 +1519,9 @@ void main() {
       final topPanelFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/search/top_panel_view.dart',
       );
+      final homeFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/app_home_page_view.dart',
+      );
       final controllerFile = File(
         '${projectRoot.path}/lib/features/search/search_panel_controller.dart',
       );
@@ -1526,6 +1529,7 @@ void main() {
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
       final topPanel = topPanelFile.readAsStringSync();
+      final home = homeFile.readAsStringSync();
       final controller = controllerFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
@@ -1533,7 +1537,17 @@ void main() {
         if (topPanel.contains('UserSessionController')) '${_relativePath(topPanelFile)} reads user session directly',
         if (topPanel.contains('likedSongIds:')) '${_relativePath(topPanelFile)} passes liked ids from UI',
         if (topPanel.contains('currentUserId:')) '${_relativePath(topPanelFile)} passes current user from UI',
-        if (!topPanel.contains('TopPanelView._searchPanelController.search(keyword)')) '${_relativePath(topPanelFile)} does not search through controller keyword boundary',
+        if (topPanel.contains('ShellController.to')) '${_relativePath(topPanelFile)} reads shell controller globally',
+        if (topPanel.contains('Get.find<SearchPanelController>')) '${_relativePath(topPanelFile)} reads search controller globally',
+        if (topPanel.contains('Get.find<PlayerController>')) '${_relativePath(topPanelFile)} reads player controller globally',
+        if (!topPanel.contains('required this.shellController')) '${_relativePath(topPanelFile)} does not receive shell controller',
+        if (!topPanel.contains('required this.searchController')) '${_relativePath(topPanelFile)} does not receive search controller',
+        if (!topPanel.contains('required this.playerController')) '${_relativePath(topPanelFile)} does not receive player controller',
+        if (!topPanel.contains('widget.searchController.search(keyword)')) '${_relativePath(topPanelFile)} does not search through controller keyword boundary',
+        if (!home.contains('TopPanelView(')) '${_relativePath(homeFile)} does not compose top panel',
+        if (!home.contains('shellController: controller')) '${_relativePath(homeFile)} does not inject shell controller',
+        if (!home.contains('searchController: searchController')) '${_relativePath(homeFile)} does not inject search controller',
+        if (!home.contains('playerController: playerController')) '${_relativePath(homeFile)} does not inject player controller',
         if (!controller.contains('List<int> Function()? likedSongIds')) 'search controller does not accept liked ids provider',
         if (!controller.contains('String Function()? currentUserId')) 'search controller does not accept current user provider',
         if (controller.contains('required List<int> likedSongIds')) 'search method still requires liked ids per call',

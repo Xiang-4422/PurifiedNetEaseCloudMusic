@@ -15,10 +15,21 @@ import 'package:get/get.dart';
 /// 顶部搜索面板，展示搜索入口、历史建议和搜索结果。
 class TopPanelView extends StatefulWidget {
   /// 创建顶部搜索面板。
-  const TopPanelView({Key? key}) : super(key: key);
+  const TopPanelView({
+    required this.shellController,
+    required this.searchController,
+    required this.playerController,
+    Key? key,
+  }) : super(key: key);
 
-  /// 搜索面板控制器，随顶部面板生命周期复用。
-  static final SearchPanelController _searchPanelController = Get.find<SearchPanelController>();
+  /// 壳层控制器，提供顶部面板状态和关闭动作。
+  final ShellController shellController;
+
+  /// 搜索面板控制器，提供搜索状态和请求生命周期。
+  final SearchPanelController searchController;
+
+  /// 播放控制器，用于搜索结果里的播放意图。
+  final PlayerController playerController;
 
   @override
   State<TopPanelView> createState() => _TopPanelViewState();
@@ -27,35 +38,32 @@ class TopPanelView extends StatefulWidget {
 class _TopPanelViewState extends State<TopPanelView> {
   late final Worker _searchWorker;
   late final Worker _panelOpenWorker;
-  final PlayerController _playerController = Get.find<PlayerController>();
-
-  ShellController get controller => ShellController.to;
 
   @override
   void initState() {
     super.initState();
-    if (controller.topPanelFullyClosed.isFalse) {
-      TopPanelView._searchPanelController.loadInitial();
+    if (widget.shellController.topPanelFullyClosed.isFalse) {
+      widget.searchController.loadInitial();
     }
-    _panelOpenWorker = ever<bool>(controller.topPanelFullyClosed, (closed) {
+    _panelOpenWorker = ever<bool>(widget.shellController.topPanelFullyClosed, (closed) {
       if (closed) {
         return;
       }
-      TopPanelView._searchPanelController.loadInitial();
+      widget.searchController.loadInitial();
     });
     _searchWorker = debounce<String>(
-      controller.searchContent,
+      widget.shellController.searchContent,
       _searchCurrentKeyword,
       time: const Duration(milliseconds: 350),
     );
-    if (controller.searchContent.value.trim().isNotEmpty) {
-      _searchCurrentKeyword(controller.searchContent.value);
+    if (widget.shellController.searchContent.value.trim().isNotEmpty) {
+      _searchCurrentKeyword(widget.shellController.searchContent.value);
     }
   }
 
   @override
   void dispose() {
-    TopPanelView._searchPanelController.cancelPendingRequests();
+    widget.searchController.cancelPendingRequests();
     _panelOpenWorker.dispose();
     _searchWorker.dispose();
     super.dispose();
@@ -65,7 +73,7 @@ class _TopPanelViewState extends State<TopPanelView> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        TopPanelBackgroundLayer(controller: controller),
+        TopPanelBackgroundLayer(controller: widget.shellController),
         DefaultTabController(
           length: 4,
           child: Column(
@@ -74,15 +82,15 @@ class _TopPanelViewState extends State<TopPanelView> {
                 height: context.mediaQueryPadding.top,
               ),
               TopPanelContentArea(
-                shellController: controller,
-                searchController: TopPanelView._searchPanelController,
-                playerController: _playerController,
+                shellController: widget.shellController,
+                searchController: widget.searchController,
+                playerController: widget.playerController,
                 onOpenPlaylist: _openPlaylist,
                 onOpenAlbum: _openAlbum,
                 onOpenArtist: _openArtist,
               ),
-              TopPanelBottomControls(controller: controller),
-              TopPanelKeyboardSpacer(controller: controller),
+              TopPanelBottomControls(controller: widget.shellController),
+              TopPanelKeyboardSpacer(controller: widget.shellController),
             ],
           ),
         ),
@@ -91,8 +99,8 @@ class _TopPanelViewState extends State<TopPanelView> {
   }
 
   Future<void> _openPlaylist(BuildContext context, PlaylistEntity playlist) async {
-    await ShellController.to.closeBottomPanel();
-    await ShellController.to.closeTopPanel();
+    await widget.shellController.closeBottomPanel();
+    await widget.shellController.closeTopPanel();
     if (!context.mounted) {
       return;
     }
@@ -107,8 +115,8 @@ class _TopPanelViewState extends State<TopPanelView> {
   }
 
   Future<void> _openAlbum(BuildContext context, AlbumEntity album) async {
-    await ShellController.to.closeBottomPanel();
-    await ShellController.to.closeTopPanel();
+    await widget.shellController.closeBottomPanel();
+    await widget.shellController.closeTopPanel();
     if (!context.mounted) {
       return;
     }
@@ -120,8 +128,8 @@ class _TopPanelViewState extends State<TopPanelView> {
   }
 
   Future<void> _openArtist(BuildContext context, ArtistEntity artist) async {
-    await ShellController.to.closeBottomPanel();
-    await ShellController.to.closeTopPanel();
+    await widget.shellController.closeBottomPanel();
+    await widget.shellController.closeTopPanel();
     if (!context.mounted) {
       return;
     }
@@ -133,6 +141,6 @@ class _TopPanelViewState extends State<TopPanelView> {
   }
 
   void _searchCurrentKeyword(String keyword) {
-    TopPanelView._searchPanelController.search(keyword);
+    widget.searchController.search(keyword);
   }
 }

@@ -7,6 +7,9 @@ void main() {
     final panelSource = File(
       'lib/ui/pages/shell/widgets/search/top_panel_view.dart',
     ).readAsStringSync();
+    final homeSource = File(
+      'lib/ui/pages/shell/app_home_page_view.dart',
+    ).readAsStringSync();
     final chromeSource = File(
       'lib/ui/pages/shell/widgets/search/top_panel_chrome_widgets.dart',
     ).readAsStringSync();
@@ -21,6 +24,16 @@ void main() {
     expect(panelSource, contains('TopPanelContentArea('));
     expect(panelSource, contains('TopPanelBottomControls('));
     expect(panelSource, contains('TopPanelKeyboardSpacer('));
+    expect(panelSource, contains('required this.shellController'));
+    expect(panelSource, contains('required this.searchController'));
+    expect(panelSource, contains('required this.playerController'));
+    expect(panelSource, isNot(contains('ShellController.to')));
+    expect(panelSource, isNot(contains('Get.find<SearchPanelController>')));
+    expect(panelSource, isNot(contains('Get.find<PlayerController>')));
+    expect(homeSource, contains('TopPanelView('));
+    expect(homeSource, contains('shellController: controller'));
+    expect(homeSource, contains('searchController: searchController'));
+    expect(homeSource, contains('playerController: playerController'));
     expect(panelSource, isNot(contains('TopPanelCard(')));
     expect(panelSource, isNot(contains('TabBarView(')));
     expect(panelSource, isNot(contains('BlurryContainer(')));
@@ -102,9 +115,9 @@ void main() {
     expect(panelSource, contains('void _searchCurrentKeyword(String keyword)'));
     expect(panelSource, contains('debounce<String>('));
     expect(panelSource, contains('_searchCurrentKeyword,'));
-    expect(panelSource, contains('controller.searchContent.value.trim().isNotEmpty'));
-    expect(panelSource, contains('_searchCurrentKeyword(controller.searchContent.value)'));
-    expect(panelSource, contains('TopPanelView._searchPanelController.cancelPendingRequests();'));
-    expect(panelSource, isNot(contains('TopPanelView._searchPanelController.dispose();')));
+    expect(panelSource, contains('widget.shellController.searchContent.value.trim().isNotEmpty'));
+    expect(panelSource, contains('_searchCurrentKeyword(widget.shellController.searchContent.value)'));
+    expect(panelSource, contains('widget.searchController.cancelPendingRequests();'));
+    expect(panelSource, isNot(contains('widget.searchController.dispose();')));
   });
 }

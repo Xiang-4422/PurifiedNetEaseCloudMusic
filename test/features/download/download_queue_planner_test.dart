@@ -14,6 +14,32 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('DownloadQueuePlanner', () {
+    test('ignores blank ids before resource and active task lookup', () async {
+      final musicDataRepository = _FakeMusicDataRepository({});
+      final taskDataSource = _FakeDownloadTaskDataSource(tasks: const []);
+      final planner = DownloadQueuePlanner(
+        musicDataRepository: musicDataRepository,
+        taskDataSource: taskDataSource,
+      );
+      final downloadedTrackIds = <String>[];
+
+      await planner.queueTracks(
+        const ['', '   '],
+        downloadTrack: (
+          trackId, {
+          bool preferHighQuality = true,
+        }) async {
+          downloadedTrackIds.add(trackId);
+          return null;
+        },
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(downloadedTrackIds, isEmpty);
+      expect(musicDataRepository.requestedTrackIds, isEmpty);
+      expect(taskDataSource.getTasksCallCount, 0);
+    });
+
     test('loads active tasks once and filters queued downloads in memory', () async {
       final tempDirectory = Directory.systemTemp.createTempSync(
         'download-queue-planner-',
@@ -273,14 +299,16 @@ TrackWithResources _trackWithResources(
 }
 
 class _FakeMusicDataRepository implements MusicDataRepository {
-  const _FakeMusicDataRepository(this.tracksById);
+  _FakeMusicDataRepository(this.tracksById);
 
   final Map<String, TrackWithResources> tracksById;
+  final List<String> requestedTrackIds = <String>[];
 
   @override
   Future<List<TrackWithResources>> getTracksWithResources(
     Iterable<String> trackIds,
   ) async {
+    requestedTrackIds.addAll(trackIds);
     return trackIds.map((trackId) => tracksById[trackId]).whereType<TrackWithResources>().toList();
   }
 

@@ -31,6 +31,31 @@ void main() {
       }
     });
 
+    test('ignores blank track ids before task state or resource lookup', () async {
+      final taskDataSource = _FakeDownloadTaskDataSource();
+      final musicDataRepository = _FakeMusicDataRepository();
+      final repository = _buildRepository(
+        taskDataSource: taskDataSource,
+        fileStore: _FailingDownloadFileStore(tempDirectory),
+        resourceWriter: _FakeDownloadResourceWriter(saveManagedResult: true),
+        musicDataRepository: musicDataRepository,
+      );
+
+      expect(await repository.downloadTrack('   '), isNull);
+      expect(await repository.cacheTrackForPlayback('   '), isNull);
+      expect(await repository.retryTask('   '), isNull);
+      await repository.removeDownloadedTrack('   ');
+      await repository.cancelTask('   ');
+      expect(await repository.getTask('   '), isNull);
+      await repository.clearTask('   ');
+
+      expect(taskDataSource.getTaskTrackIds, isEmpty);
+      expect(taskDataSource.savedTrackIds, isEmpty);
+      expect(taskDataSource.removedTrackIds, isEmpty);
+      expect(musicDataRepository.trackWithResourcesCallCount, 0);
+      expect(musicDataRepository.playbackUrlCallCount, 0);
+    });
+
     test('clears task only after downloaded audio is indexed', () async {
       final taskDataSource = _FakeDownloadTaskDataSource();
       final resourceWriter = _FakeDownloadResourceWriter(saveManagedResult: true);
@@ -343,6 +368,7 @@ class _FakeMusicDataRepository implements MusicDataRepository {
     sourceId: '1',
     title: 'Track 1',
   );
+  int trackWithResourcesCallCount = 0;
 
   @override
   Future<Track?> getTrack(String trackId) async {
@@ -351,6 +377,7 @@ class _FakeMusicDataRepository implements MusicDataRepository {
 
   @override
   Future<TrackWithResources?> getTrackWithResources(String trackId) async {
+    trackWithResourcesCallCount++;
     if (trackId != _track.id) {
       return null;
     }
@@ -580,10 +607,13 @@ class _FakeDownloadTaskDataSource implements DownloadTaskDataSource {
   }
 
   final Map<String, DownloadTask> _tasks = {};
+  final List<String> getTaskTrackIds = [];
+  final List<String> savedTrackIds = [];
   final List<String> removedTrackIds = [];
 
   @override
   Future<DownloadTask?> getTask(String trackId) async {
+    getTaskTrackIds.add(trackId);
     return _tasks[trackId];
   }
 
@@ -607,6 +637,7 @@ class _FakeDownloadTaskDataSource implements DownloadTaskDataSource {
 
   @override
   Future<void> saveTask(DownloadTask task) async {
+    savedTrackIds.add(task.trackId);
     _tasks[task.trackId] = task;
   }
 

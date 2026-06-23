@@ -1613,6 +1613,29 @@ void main() {
       );
     });
 
+    test('download entry points reject blank track ids', () {
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/features/download/download_repository.dart',
+      );
+      final plannerFile = File(
+        '${projectRoot.path}/lib/features/download/application/download_queue_planner.dart',
+      );
+      final repository = repositoryFile.readAsStringSync();
+      final planner = plannerFile.readAsStringSync();
+      final blankGuardCount = '_isBlankTrackId(trackId)'.allMatches(repository).length;
+      final violations = <String>[
+        if (!repository.contains('bool _isBlankTrackId(String trackId)')) '${_relativePath(repositoryFile)} does not define a blank track guard',
+        if (blankGuardCount < 6) '${_relativePath(repositoryFile)} does not guard all public task entry points',
+        if (!planner.contains('.where((trackId) => trackId.trim().isNotEmpty)')) '${_relativePath(plannerFile)} does not filter blank batch candidates before lookup',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '下载任务入口不能接受空白曲目 id；空白 id 不能创建 download_tasks，也不能进入批量资源查询。',
+      );
+    });
+
     test('setting sections receive settings controller boundary', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

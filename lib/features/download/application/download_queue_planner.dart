@@ -34,7 +34,7 @@ class DownloadQueuePlanner {
     }) downloadTrack,
     bool preferHighQuality = true,
   }) async {
-    final candidateIds = trackIds.toSet().toList();
+    final candidateIds = trackIds.where((trackId) => trackId.trim().isNotEmpty).toSet().toList();
     if (candidateIds.isEmpty) {
       return;
     }

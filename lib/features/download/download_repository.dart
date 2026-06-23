@@ -85,6 +85,9 @@ class DownloadRepository {
     String trackId, {
     bool preferHighQuality = true,
   }) async {
+    if (_isBlankTrackId(trackId)) {
+      return null;
+    }
     _taskQueue.clearCancelled(trackId);
     final existingTask = _taskQueue.existingDownload(trackId);
     if (existingTask != null) {
@@ -118,6 +121,9 @@ class DownloadRepository {
     String trackId, {
     bool preferHighQuality = true,
   }) async {
+    if (_isBlankTrackId(trackId)) {
+      return null;
+    }
     final existingTask = _taskQueue.existingPlaybackCache(trackId);
     if (existingTask != null) {
       return existingTask;
@@ -133,6 +139,9 @@ class DownloadRepository {
 
   /// 删除已下载曲目的本地资源。
   Future<void> removeDownloadedTrack(String trackId) async {
+    if (_isBlankTrackId(trackId)) {
+      return;
+    }
     await _taskStateStore.clearTask(trackId);
     final trackWithResources = await _musicDataRepository.getTrackWithResources(
       trackId,
@@ -151,6 +160,9 @@ class DownloadRepository {
 
   /// 取消指定下载任务并清理临时文件。
   Future<void> cancelTask(String trackId) async {
+    if (_isBlankTrackId(trackId)) {
+      return;
+    }
     final scheduledTask = _taskQueue.existingDownload(trackId);
     _taskQueue.markCancelled(trackId);
     final currentTask = await _taskDataSource.getTask(trackId);
@@ -163,6 +175,9 @@ class DownloadRepository {
 
   /// 读取指定曲目的下载任务。
   Future<DownloadTask?> getTask(String trackId) {
+    if (_isBlankTrackId(trackId)) {
+      return Future<DownloadTask?>.value();
+    }
     return _taskStateStore.getTask(trackId);
   }
 
@@ -171,6 +186,9 @@ class DownloadRepository {
     String trackId, {
     bool preferHighQuality = true,
   }) async {
+    if (_isBlankTrackId(trackId)) {
+      return null;
+    }
     final currentTask = await _taskDataSource.getTask(trackId);
     await _fileStore.deleteTemporaryDownloadIfExists(currentTask?.temporaryPath);
     return downloadTrack(
@@ -205,11 +223,18 @@ class DownloadRepository {
 
   /// 清除指定曲目的下载任务状态。
   Future<void> clearTask(String trackId) {
+    if (_isBlankTrackId(trackId)) {
+      return Future<void>.value();
+    }
     return _taskStateStore.clearTask(trackId);
   }
 
   /// 清理播放缓存资源。
   Future<void> clearPlaybackCache() {
     return _musicDataRepository.removePlaybackCache();
+  }
+
+  bool _isBlankTrackId(String trackId) {
+    return trackId.trim().isEmpty;
   }
 }

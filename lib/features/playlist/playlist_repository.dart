@@ -150,10 +150,11 @@ class PlaylistRepository {
         saveStopwatch,
         details: 'playlistId=$entityPlaylistId trackIds=${trackIds.length}',
       );
-      if (currentUserId?.isNotEmpty == true) {
+      final scopedUserId = _normalizedCurrentUserId(currentUserId);
+      if (scopedUserId != null) {
         final subscriptionStopwatch = PlaylistPerformanceLogger.start();
         await _playlistSubscriptionDataSource.savePlaylistSubscriptionState(
-          currentUserId!,
+          scopedUserId,
           entityPlaylistId,
           remoteIndex.isSubscribed,
         );
@@ -492,9 +493,10 @@ class PlaylistRepository {
       playlistId,
       subscribe: subscribe,
     );
-    if (result.success && currentUserId?.isNotEmpty == true) {
+    final scopedUserId = _normalizedCurrentUserId(currentUserId);
+    if (result.success && scopedUserId != null) {
       await _playlistSubscriptionDataSource.savePlaylistSubscriptionState(
-        currentUserId!,
+        scopedUserId,
         MusicResourceId.toNeteaseEntityId(playlistId),
         subscribe,
       );
@@ -538,7 +540,7 @@ class PlaylistRepository {
     final detail = PlaylistDetailData(
       songs: songs,
       isSubscribed: index.isSubscribed,
-      isMyPlayList: index.creatorUserId != null && index.creatorUserId == currentUserId,
+      isMyPlayList: _isCurrentUserPlaylist(index.creatorUserId, currentUserId),
       expectedTrackCount: index.expectedTrackCount,
       playlistName: index.name,
       coverUrl: index.coverUrl,
@@ -568,7 +570,7 @@ class PlaylistRepository {
     return PlaylistDetailData(
       songs: songs,
       isSubscribed: index.isSubscribed,
-      isMyPlayList: index.creatorUserId != null && index.creatorUserId == currentUserId,
+      isMyPlayList: _isCurrentUserPlaylist(index.creatorUserId, currentUserId),
       expectedTrackCount: expectedTrackCount,
       playlistName: index.name,
       coverUrl: index.coverUrl,
@@ -681,9 +683,10 @@ class PlaylistRepository {
       trackIds: savedTrackIds,
     );
     await _localLibraryDataSource.savePlaylists([playlist]);
-    if (currentUserId?.isNotEmpty == true) {
+    final scopedUserId = _normalizedCurrentUserId(currentUserId);
+    if (scopedUserId != null) {
       await _playlistSubscriptionDataSource.savePlaylistSubscriptionState(
-        currentUserId!,
+        scopedUserId,
         index.id,
         index.isSubscribed,
       );
@@ -859,13 +862,24 @@ class PlaylistRepository {
     String? currentUserId,
     String playlistId,
   ) async {
-    if (currentUserId?.isNotEmpty != true) {
+    final scopedUserId = _normalizedCurrentUserId(currentUserId);
+    if (scopedUserId == null) {
       return false;
     }
     return await _playlistSubscriptionDataSource.loadPlaylistSubscriptionState(
-          currentUserId!,
+          scopedUserId,
           playlistId,
         ) ??
         false;
+  }
+
+  String? _normalizedCurrentUserId(String? currentUserId) {
+    final userId = currentUserId?.trim();
+    return userId == null || userId.isEmpty ? null : userId;
+  }
+
+  bool _isCurrentUserPlaylist(String? creatorUserId, String? currentUserId) {
+    final scopedUserId = _normalizedCurrentUserId(currentUserId);
+    return scopedUserId != null && creatorUserId == scopedUserId;
   }
 }

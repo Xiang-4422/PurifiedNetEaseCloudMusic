@@ -179,6 +179,54 @@ void main() {
   });
 
   group('PlaylistRepository remote loading', () {
+    test('skips subscription cache for blank current user id', () async {
+      final subscriptionDataSource = _FakePlaylistSubscriptionDataSource()..cachedSubscriptionState = true;
+      final repository = _playlistRepository(
+        totalTracks: 3,
+        playlistSubscriptionDataSource: subscriptionDataSource,
+      );
+
+      await repository.fetchPlaylistIndex(
+        '1',
+        currentUserId: '   ',
+      );
+      await repository.fetchPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: '   ',
+        offset: 0,
+        limit: -1,
+      );
+      final localDetail = await repository.loadLocalPlaylistDetail(
+        playlistId: '1',
+        likedSongIds: const [],
+        currentUserId: '   ',
+      );
+
+      expect(subscriptionDataSource.savedUserIds, isEmpty);
+      expect(subscriptionDataSource.loadedUserIds, isEmpty);
+      expect(localDetail?.isSubscribed, isFalse);
+    });
+
+    test('trims current user id before writing subscription cache', () async {
+      final subscriptionDataSource = _FakePlaylistSubscriptionDataSource();
+      final repository = _playlistRepository(
+        playlistSubscriptionDataSource: subscriptionDataSource,
+      );
+
+      await repository.fetchPlaylistIndex(
+        '1',
+        currentUserId: ' user-1 ',
+      );
+      await repository.toggleSubscription(
+        '1',
+        subscribe: true,
+        currentUserId: ' user-2 ',
+      );
+
+      expect(subscriptionDataSource.savedUserIds, ['user-1', 'user-2']);
+    });
+
     test('previews first page in memory and then saves full remote result', () async {
       final remoteDataSource = _FakePlaylistRemoteDataSource(totalTracks: 250);
       final repository = _playlistRepository(remoteDataSource: remoteDataSource);
@@ -497,6 +545,7 @@ PlaylistRepository _playlistRepository({
   _FakePlaylistRemoteDataSource? remoteDataSource,
   AppCacheDataSource? cacheDataSource,
   Map<String, TrackResourceBundle> resourcesByTrackId = const {},
+  _FakePlaylistSubscriptionDataSource? playlistSubscriptionDataSource,
 }) {
   final tracks = <String, Track>{};
   return PlaylistRepository(
@@ -507,7 +556,7 @@ PlaylistRepository _playlistRepository({
     ),
     localLibraryDataSource: _FakeLocalLibraryDataSource(tracks),
     remoteDataSource: remoteDataSource ?? _FakePlaylistRemoteDataSource(totalTracks: totalTracks),
-    playlistSubscriptionDataSource: _FakePlaylistSubscriptionDataSource(),
+    playlistSubscriptionDataSource: playlistSubscriptionDataSource ?? _FakePlaylistSubscriptionDataSource(),
   );
 }
 
@@ -583,6 +632,14 @@ class _FakePlaylistRemoteDataSource implements NeteasePlaylistRemoteDataSource {
       ids = ids.take(maxReturnedTracks!);
     }
     return ids.map((id) => _track(int.parse(id), titleVersion: titleVersion)).toList();
+  }
+
+  @override
+  Future<({String? message, bool success})> toggleSubscription(
+    String playlistId, {
+    required bool subscribe,
+  }) async {
+    return (success: true, message: null);
   }
 
   @override
@@ -683,12 +740,17 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
 }
 
 class _FakePlaylistSubscriptionDataSource implements PlaylistSubscriptionDataSource {
+  bool? cachedSubscriptionState = false;
+  final List<String> loadedUserIds = <String>[];
+  final List<String> savedUserIds = <String>[];
+
   @override
   Future<bool?> loadPlaylistSubscriptionState(
     String userId,
     String playlistId,
   ) async {
-    return false;
+    loadedUserIds.add(userId);
+    return cachedSubscriptionState;
   }
 
   @override
@@ -696,7 +758,9 @@ class _FakePlaylistSubscriptionDataSource implements PlaylistSubscriptionDataSou
     String userId,
     String playlistId,
     bool isSubscribed,
-  ) async {}
+  ) async {
+    savedUserIds.add(userId);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) {

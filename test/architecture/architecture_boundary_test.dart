@@ -1863,6 +1863,24 @@ void main() {
       );
     });
 
+    test('playlist repository trims current user before subscription cache access', () {
+      final repositoryFile = File('${projectRoot.path}/lib/features/playlist/playlist_repository.dart');
+      final repository = repositoryFile.readAsStringSync();
+      final violations = <String>[
+        if (!repository.contains('String? _normalizedCurrentUserId(String? currentUserId)')) '${_relativePath(repositoryFile)} does not define a current user normalizer',
+        if (!repository.contains('currentUserId?.trim()')) '${_relativePath(repositoryFile)} does not trim current user ids',
+        if (!repository.contains('if (scopedUserId != null)')) '${_relativePath(repositoryFile)} does not guard subscription writes with normalized user ids',
+        if (!repository.contains('loadPlaylistSubscriptionState(')) '${_relativePath(repositoryFile)} does not load subscription state through the user scoped boundary',
+        if (!repository.contains('_isCurrentUserPlaylist(index.creatorUserId, currentUserId)')) '${_relativePath(repositoryFile)} does not use normalized current user for ownership checks',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '歌单订阅状态是账号作用域数据，PlaylistRepository 必须先 trim 当前账号，空白账号不能读写订阅缓存或被判断成“我的歌单”。',
+      );
+    });
+
     test('image cache repository is injected through bootstrap boundaries', () {
       final repositoryBootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/repository_bootstrap.dart',

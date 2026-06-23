@@ -76,7 +76,7 @@ void main() {
     expect(panelSource, contains('playerController: playerController'));
     expect(panelSource, contains('settingsController: settingsController'));
     expect(panelSource, contains('BottomPanelCommentPage('));
-    expect(panelSource, contains('BottomPanelNowPlayingPage()'));
+    expect(panelSource, contains('BottomPanelNowPlayingPage('));
     expect(panelSource, contains('BottomPanelPageIndicator('));
     expect(panelSource, isNot(contains('_buildCurPlayingPage')));
     expect(panelSource, isNot(contains('_artistEntries')));
@@ -103,6 +103,9 @@ void main() {
     expect(indicatorSource, contains('bottomPanelCommentTabController'));
     expect(indicatorSource, isNot(contains('PlayerController.to')));
     expect(indicatorSource, isNot(contains('SettingsController.to')));
+
+    expect(nowPlayingSource, contains('required this.playerController'));
+    expect(nowPlayingSource, isNot(contains('PlayerController.to')));
   });
 
   test('bottom panel delegates background and fade mask to local widgets', () {

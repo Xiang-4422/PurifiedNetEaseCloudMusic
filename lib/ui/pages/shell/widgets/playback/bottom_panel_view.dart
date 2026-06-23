@@ -61,7 +61,9 @@ class BottomPanelView extends GetView<ShellController> {
                         playerController: playerController,
                         settingsController: settingsController,
                       ),
-                      const BottomPanelNowPlayingPage(),
+                      BottomPanelNowPlayingPage(
+                        playerController: playerController,
+                      ),
                       BottomPanelCommentPage(
                         commentType: 2,
                         playerController: playerController,

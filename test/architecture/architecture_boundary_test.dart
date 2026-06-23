@@ -862,6 +862,29 @@ void main() {
       );
     });
 
+    test('bottom panel now playing page receives playback interaction boundary', () {
+      final nowPlayingFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_page.dart',
+      );
+      final panelFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+      );
+      final nowPlaying = nowPlayingFile.readAsStringSync();
+      final panel = panelFile.readAsStringSync();
+      final violations = <String>[
+        if (nowPlaying.contains('PlayerController.to')) '${_relativePath(nowPlayingFile)} reads player controller globally',
+        if (!nowPlaying.contains('required this.playerController')) '${_relativePath(nowPlayingFile)} does not receive player controller',
+        if (!panel.contains('BottomPanelNowPlayingPage(')) '${_relativePath(panelFile)} does not compose now playing page',
+        if (!panel.contains('playerController: playerController')) '${_relativePath(panelFile)} does not inject player controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '正在播放页只能处理歌词全屏和封面切换交互，播放交互边界必须由底部播放面板组合层注入。',
+      );
+    });
+
     test('playback metadata key access stays in queue boundary codecs', () {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',

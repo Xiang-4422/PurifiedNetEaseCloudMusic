@@ -11,7 +11,13 @@ import 'package:get/get.dart';
 /// 底部播放面板的正在播放页，组合歌词、专辑歌手信息和控制区。
 class BottomPanelNowPlayingPage extends GetView<ShellController> {
   /// 创建正在播放页。
-  const BottomPanelNowPlayingPage({super.key});
+  const BottomPanelNowPlayingPage({
+    required this.playerController,
+    super.key,
+  });
+
+  /// 播放控制器，处理歌词全屏和封面切换交互。
+  final PlayerController playerController;
 
   @override
   Widget build(BuildContext context) {
@@ -20,13 +26,13 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
       child: Listener(
         behavior: HitTestBehavior.translucent,
         onPointerDown: (event) {
-          PlayerController.to.updateFullScreenLyricTimerCounter();
+          playerController.updateFullScreenLyricTimerCounter();
         },
         onPointerMove: (event) {
-          PlayerController.to.updateFullScreenLyricTimerCounter();
+          playerController.updateFullScreenLyricTimerCounter();
         },
         onPointerUp: (event) {
-          PlayerController.to.updateFullScreenLyricTimerCounter();
+          playerController.updateFullScreenLyricTimerCounter();
         },
         child: Stack(
           children: [
@@ -36,12 +42,12 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: () {
-                    if (PlayerController.to.isFullScreenLyricOpen.isTrue) {
-                      PlayerController.to.isFullScreenLyricOpen.value = false;
+                    if (playerController.isFullScreenLyricOpen.isTrue) {
+                      playerController.isFullScreenLyricOpen.value = false;
                     } else {
                       controller.isAlbumScaleEnded.value = false;
                       controller.isBigAlbum.value = true;
-                      PlayerController.to.updateFullScreenLyricTimerCounter(
+                      playerController.updateFullScreenLyricTimerCounter(
                         cancelTimer: true,
                       );
                     }
@@ -57,7 +63,7 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
             ),
             Obx(
               () => Offstage(
-                offstage: PlayerController.to.isFullScreenLyricOpen.isTrue && controller.isBigAlbum.isFalse,
+                offstage: playerController.isFullScreenLyricOpen.isTrue && controller.isBigAlbum.isFalse,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [

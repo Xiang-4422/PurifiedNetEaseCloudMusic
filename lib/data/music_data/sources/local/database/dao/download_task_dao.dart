@@ -11,7 +11,11 @@ class DownloadTaskDao {
 
   /// 获取指定歌曲的下载任务。
   Future<domain.DownloadTask?> getTask(String trackId) async {
-    final row = await (_database.select(_database.downloadTasks)..where((tbl) => tbl.trackId.equals(trackId))).getSingleOrNull();
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return null;
+    }
+    final row = await (_database.select(_database.downloadTasks)..where((tbl) => tbl.trackId.equals(normalizedTrackId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -38,9 +42,13 @@ class DownloadTaskDao {
 
   /// 保存下载任务。
   Future<void> saveTask(domain.DownloadTask task) {
+    final normalizedTrackId = _normalizedTrackId(task.trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return Future<void>.value();
+    }
     return _database.into(_database.downloadTasks).insertOnConflictUpdate(
           DownloadTasksCompanion(
-            trackId: drift.Value(task.trackId),
+            trackId: drift.Value(normalizedTrackId),
             status: drift.Value(task.status.name),
             updatedAtMs: drift.Value(task.updatedAt.millisecondsSinceEpoch),
             progress: drift.Value(task.progress),
@@ -52,7 +60,11 @@ class DownloadTaskDao {
 
   /// 删除指定歌曲的下载任务。
   Future<void> removeTask(String trackId) {
-    return (_database.delete(_database.downloadTasks)..where((tbl) => tbl.trackId.equals(trackId))).go();
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return Future<void>.value();
+    }
+    return (_database.delete(_database.downloadTasks)..where((tbl) => tbl.trackId.equals(normalizedTrackId))).go();
   }
 
   domain.DownloadTask _mapRow(DownloadTask row) {
@@ -67,6 +79,14 @@ class DownloadTaskDao {
       temporaryPath: row.temporaryPath,
       failureReason: row.failureReason,
     );
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
+  }
+
+  bool _isBlankTrackId(String trackId) {
+    return _normalizedTrackId(trackId).isEmpty;
   }
 
   drift.Selectable<DownloadTask> _buildTaskQuery({

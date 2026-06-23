@@ -1839,6 +1839,27 @@ void main() {
       );
     });
 
+    test('download task dao normalizes persisted track ids', () {
+      final daoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/download_task_dao.dart',
+      );
+      final dao = daoFile.readAsStringSync();
+      final violations = <String>[
+        if (!dao.contains('String _normalizedTrackId(String trackId)')) '${_relativePath(daoFile)} does not define a normalized track id helper',
+        if (!dao.contains('bool _isBlankTrackId(String trackId)')) '${_relativePath(daoFile)} does not guard blank track ids',
+        if (!dao.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) '${_relativePath(daoFile)} does not normalize raw task lookup ids',
+        if (!dao.contains('final normalizedTrackId = _normalizedTrackId(task.trackId);')) '${_relativePath(daoFile)} does not normalize saved task ids',
+        if (!dao.contains('trackId: drift.Value(normalizedTrackId)')) '${_relativePath(daoFile)} can still write raw task ids into download_tasks',
+        if (!dao.contains('tbl.trackId.equals(normalizedTrackId)')) '${_relativePath(daoFile)} can still query or delete raw task ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'download_tasks 是下载过程事实表，DAO 持久化边界也必须规范化曲目 id 并拒绝空白 id，不能只依赖上层 store。',
+      );
+    });
+
     test('setting sections receive settings controller boundary', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

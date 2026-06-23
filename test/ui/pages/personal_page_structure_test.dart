@@ -254,6 +254,9 @@ void main() {
 
   test('download task page can open a focused local library tab', () {
     final source = File('lib/ui/pages/download/download_task_page_view.dart').readAsStringSync();
+    final bulkActionSource = File(
+      'lib/ui/pages/download/widgets/local_song_bulk_actions.dart',
+    ).readAsStringSync();
     final listWidgetSource = File(
       'lib/ui/pages/download/widgets/local_song_list_widgets.dart',
     ).readAsStringSync();
@@ -265,15 +268,25 @@ void main() {
     expect(source, contains('static const int tabLocalImport = 3;'));
     expect(source, contains('final int initialTabIndex;'));
     expect(source, contains('initialIndex: widget.initialTabIndex'));
+    expect(source, contains('local_song_bulk_actions.dart'));
     expect(source, contains('local_song_list_widgets.dart'));
     expect(source, contains('local_song_tab_bar.dart'));
+    expect(source, contains('LocalSongBulkActions('));
     expect(source, contains('LocalSongTabView('));
     expect(source, contains('LocalSongTabBar('));
+    expect(source, isNot(contains('PopupMenuButton<String>')));
+    expect(source, isNot(contains('AlertDialog(')));
+    expect(source, isNot(contains('删除所有缓存')));
     expect(source, isNot(contains('LoadStateView<List<LocalSongEntry>>')));
     expect(source, isNot(contains('ValueListenableBuilder<LoadState<List<LocalSongEntry>>>')));
     expect(source, isNot(contains('ListTile(')));
     expect(source, isNot(contains('TablerIcons.trash')));
     expect(source, isNot(contains("Tab(text: '全部")));
+    expect(bulkActionSource, contains('class LocalSongBulkActions'));
+    expect(bulkActionSource, contains('PopupMenuButton<String>'));
+    expect(bulkActionSource, contains('AlertDialog('));
+    expect(bulkActionSource, contains('onClearPlaybackCache'));
+    expect(bulkActionSource, contains('删除所有缓存'));
     expect(listWidgetSource, contains('class LocalSongTabView'));
     expect(listWidgetSource, contains('LoadStateView<List<LocalSongEntry>>'));
     expect(listWidgetSource, contains('ListTile('));

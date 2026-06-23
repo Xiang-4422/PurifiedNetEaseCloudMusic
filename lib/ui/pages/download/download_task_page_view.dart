@@ -2,6 +2,7 @@ import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/download/local_song_list_controller.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
+import 'package:bujuan/ui/pages/download/widgets/local_song_bulk_actions.dart';
 import 'package:bujuan/ui/pages/download/widgets/local_song_list_widgets.dart';
 import 'package:bujuan/ui/pages/download/widgets/local_song_tab_bar.dart';
 import 'package:flutter/material.dart';
@@ -35,8 +36,6 @@ class DownloadTaskPageView extends StatefulWidget {
 }
 
 class _DownloadTaskPageViewState extends State<DownloadTaskPageView> with SingleTickerProviderStateMixin {
-  static const _clearPlaybackCacheAction = 'clear_playback_cache';
-
   late final TabController _tabController;
   late final LocalSongListController _allController;
   late final LocalSongListController _cacheController;
@@ -96,15 +95,8 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> with Single
         appBar: AppBar(
           title: const Text('本地歌曲'),
           actions: [
-            PopupMenuButton<String>(
-              tooltip: '批量操作',
-              onSelected: _handleBulkAction,
-              itemBuilder: (context) => const [
-                PopupMenuItem<String>(
-                  value: _clearPlaybackCacheAction,
-                  child: Text('删除所有缓存'),
-                ),
-              ],
+            LocalSongBulkActions(
+              onClearPlaybackCache: _clearPlaybackCache,
             ),
           ],
           bottom: LocalSongTabBar(
@@ -137,30 +129,7 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> with Single
     );
   }
 
-  Future<void> _handleBulkAction(String action) async {
-    if (action != _clearPlaybackCacheAction) {
-      return;
-    }
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('删除所有缓存'),
-        content: const Text('这会删除自动缓存的音频、封面和歌词，不会删除手动下载和本地导入。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('继续'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) {
-      return;
-    }
+  Future<void> _clearPlaybackCache() async {
     await _cacheController.clearPlaybackCache();
     await _refreshAllTabs();
   }

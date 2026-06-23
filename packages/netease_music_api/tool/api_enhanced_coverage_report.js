@@ -27,6 +27,8 @@ const specialCoveragePath = specialCoverageArg
   ? path.resolve(repoRoot, specialCoverageArg.slice('--special-coverage='.length))
   : path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_special_coverage.json')
 const jsonOutput = process.argv.includes('--json')
+const generatedManifestSupportedCrypto = new Set(['weapi', 'eapi', 'linuxapi', 'api', 'xeapi'])
+const generatedManifestSupportedHttpMethods = new Set(['GET', 'POST'])
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'))
@@ -52,6 +54,9 @@ function loadManifest() {
       const block = match[1]
       const module = block.match(/module: '([^']+)'/)?.[1]
       const methodName = block.match(/methodName: '([^']+)'/)?.[1]
+      const pathTemplate = block.match(/pathTemplate: '((?:\\'|[^'])*)'/)?.[1]
+      const crypto = block.match(/crypto: '([^']*)'/)?.[1]
+      const httpMethod = block.match(/httpMethod: '([^']+)'/)?.[1]
       if (!module) {
         throw new Error(`Cannot parse module entry: ${block}`)
       }
@@ -61,6 +66,9 @@ function loadManifest() {
       return {
         module,
         methodName,
+        pathTemplate,
+        crypto,
+        httpMethod,
         special: /special: true/.test(block),
       }
     }),
@@ -400,6 +408,34 @@ function validateSpecialCoverage(coverage) {
   return invalid
 }
 
+function validateManifestEntries(entries) {
+  const invalid = []
+  for (const entry of entries) {
+    if (!entry.special && (!entry.pathTemplate || entry.pathTemplate.length === 0)) {
+      invalid.push({
+        module: entry.module,
+        field: 'pathTemplate',
+        reason: 'Normal generated manifest modules must have a request path template.',
+      })
+    }
+    if (!entry.special && !generatedManifestSupportedCrypto.has(entry.crypto)) {
+      invalid.push({
+        module: entry.module,
+        field: 'crypto',
+        reason: `Normal generated manifest modules must use a supported crypto: ${entry.crypto || '<empty>'}.`,
+      })
+    }
+    if (!generatedManifestSupportedHttpMethods.has(entry.httpMethod)) {
+      invalid.push({
+        module: entry.module,
+        field: 'httpMethod',
+        reason: `Generated manifest httpMethod must be GET or POST: ${entry.httpMethod || '<empty>'}.`,
+      })
+    }
+  }
+  return invalid.sort((left, right) => `${left.module}:${left.field}`.localeCompare(`${right.module}:${right.field}`))
+}
+
 function duplicateSpecialCoverageEntries(coverage) {
   if (!isRecord(coverage)) {
     return []
@@ -466,6 +502,7 @@ const upstreamCommit = gitOutput(['-C', upstreamRepoPath, 'rev-parse', 'HEAD'])
 const submoduleStatus = gitOutput(['-C', upstreamRepoPath, 'status', '--porcelain']) || ''
 const manifestDuplicateModules = duplicateValues(manifestModules)
 const manifestDuplicateMethodNames = duplicateValues(manifestMethodNames)
+const manifestInvalidEntries = validateManifestEntries(entries)
 const manifestMissingUpstreamModules = sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module)))
 const manifestUnknownUpstreamModules = sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module)))
 const manifestUpstreamMismatches = [
@@ -576,6 +613,14 @@ function buildSdkDifferences() {
       status: 'limited',
       reason,
       scope: 'runtime_option',
+    })
+  }
+  for (const entry of manifestInvalidEntries) {
+    differences.push({
+      module: entry.module,
+      status: 'invalid_manifest_entry',
+      reason: `${entry.field}: ${entry.reason}`,
+      scope: 'generated_manifest',
     })
   }
   for (const module of normalMissingOracle) {
@@ -806,6 +851,7 @@ const report = {
   manifestUpstreamMismatches,
   manifestDuplicateModules,
   manifestDuplicateMethodNames,
+  manifestInvalidEntries,
   specialCoverageInvalidEntries,
   specialCoverageDuplicateEntries,
   upstreamModuleFileCount: upstreamModules.length,
@@ -853,6 +899,7 @@ const hasFailure =
   report.manifestUpstreamMismatches.length > 0 ||
   report.manifestDuplicateModules.length > 0 ||
   report.manifestDuplicateMethodNames.length > 0 ||
+  report.manifestInvalidEntries.length > 0 ||
   report.specialCoverageInvalidEntries.length > 0 ||
   report.specialCoverageDuplicateEntries.length > 0 ||
   report.manifestMissingUpstreamModules.length > 0 ||
@@ -888,6 +935,7 @@ if (jsonOutput) {
   console.log(`manifest upstream mismatches: ${report.manifestUpstreamMismatches.length}`)
   console.log(`manifest duplicate modules: ${report.manifestDuplicateModules.length}`)
   console.log(`manifest duplicate method names: ${report.manifestDuplicateMethodNames.length}`)
+  console.log(`manifest invalid entries: ${report.manifestInvalidEntries.length}`)
   console.log(`special coverage invalid entries: ${report.specialCoverageInvalidEntries.length}`)
   console.log(`special coverage duplicate entries: ${report.specialCoverageDuplicateEntries.length}`)
   console.log(

@@ -129,6 +129,7 @@ void main() {
       expect(report['manifestUpstreamMismatches'], isEmpty);
       expect(report['manifestDuplicateModules'], isEmpty);
       expect(report['manifestDuplicateMethodNames'], isEmpty);
+      expect(report['manifestInvalidEntries'], isEmpty);
       expect(report['specialCoverageInvalidEntries'], isEmpty);
       expect(report['specialCoverageDuplicateEntries'], isEmpty);
       expect((statusResult.stdout as String).trim(), isEmpty);
@@ -529,6 +530,72 @@ void main() {
           (item) => item['module'] == 'codex_fake_manifest_module' && item['status'] == 'unknown_upstream_module',
         )['scope'],
         'generated_manifest',
+      );
+    });
+
+    test('coverage report includes invalid manifest entries in SDK differences', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_manifest_invalid_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final generatedManifest = File(
+        '${repoRoot.path}/packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
+      ).readAsStringSync();
+      final invalidManifest = generatedManifest.replaceFirst(
+        """
+  ApiEnhancedModule(
+    module: 'album',
+    methodName: 'album',
+    pathTemplate: '/api/v1/album/\\\${query.id}',
+    crypto: 'weapi',
+    httpMethod: 'POST',
+    special: false,
+  ),
+""",
+        """
+  ApiEnhancedModule(
+    module: 'album',
+    methodName: 'album',
+    pathTemplate: '',
+    crypto: 'codex_unknown_crypto',
+    httpMethod: 'PATCH',
+    special: false,
+  ),
+""",
+      );
+      expect(invalidManifest, isNot(generatedManifest));
+      final manifestFile = File('${tempDir.path}/api_enhanced_modules.g.dart')..writeAsStringSync(invalidManifest);
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--generated-manifest=${manifestFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      final invalidEntries = _jsonMapList(report['manifestInvalidEntries']);
+      expect(invalidEntries.map((item) => item['module']).toSet(), {'album'});
+      expect(invalidEntries.map((item) => item['field']).toSet(), {
+        'crypto',
+        'httpMethod',
+        'pathTemplate',
+      });
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      expect(
+        sdkDifferences.where((item) => item['module'] == 'album').map((item) => item['status']).toSet(),
+        contains('invalid_manifest_entry'),
+      );
+      expect(
+        sdkDifferences.where((item) => item['status'] == 'invalid_manifest_entry').map((item) => item['scope']).toSet(),
+        {'generated_manifest'},
       );
     });
 

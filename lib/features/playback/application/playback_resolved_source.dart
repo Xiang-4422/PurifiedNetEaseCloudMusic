@@ -36,5 +36,5 @@ class PlaybackResolvedSource {
   final bool markAsCached;
 
   /// 当前播放源是否为空。
-  bool get isEmpty => kind == PlaybackResolvedSourceKind.empty || url.isEmpty;
+  bool get isEmpty => kind == PlaybackResolvedSourceKind.empty || url.trim().isEmpty;
 }

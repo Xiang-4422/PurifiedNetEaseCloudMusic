@@ -222,6 +222,43 @@ void main() {
       expect(source.markAsCached, isFalse);
     });
 
+    test('treats blank remote playback url as empty source', () async {
+      final repository = _FakePlaybackRepository(playbackUrl: '   ');
+      final resolver = PlaybackSourceResolver(repository: repository);
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: true,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.empty);
+      expect(source.isEmpty, isTrue);
+      expect(repository.preferHighQualityValues, [true]);
+      expect(repository.forceRefreshValues, [false]);
+    });
+
+    test('trims remote playback url before returning source', () async {
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(
+          playbackUrl: '  https://example.com/song.mp3?auth=temp  ',
+        ),
+      );
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.url);
+      expect(source.url, 'https://example.com/song.mp3?auth=temp');
+    });
+
     test('strips query only when resolving an existing local file path', () async {
       final directory = await Directory.systemTemp.createTemp('playback-source-resolver-');
       addTearDown(() async {

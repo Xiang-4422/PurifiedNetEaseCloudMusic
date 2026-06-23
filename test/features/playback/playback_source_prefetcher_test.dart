@@ -350,6 +350,19 @@ void main() {
       expect(cached, _hasUrl('recovered-url-2'));
       expect(resolver.remoteCallCount, 2);
     });
+
+    test('does not cache blank resolved sources', () async {
+      final resolver = _BlankThenRecoveredSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final item = _item('1');
+
+      final blank = await prefetcher.resolve(item, preferHighQuality: false);
+      final recovered = await prefetcher.resolve(item, preferHighQuality: false);
+
+      expect(blank.isEmpty, isTrue);
+      expect(recovered, _hasUrl('recovered-url-2'));
+      expect(resolver.resolveCallCount, 2);
+    });
   });
 }
 
@@ -509,6 +522,31 @@ class _FailingThenRecoveredRemoteSourceResolver implements PlaybackSourceResolve
       kind: PlaybackResolvedSourceKind.url,
       url: 'recovered-url-$remoteCallCount',
     );
+  }
+}
+
+class _BlankThenRecoveredSourceResolver implements PlaybackSourceResolver {
+  int resolveCallCount = 0;
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    resolveCallCount++;
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: resolveCallCount == 1 ? '   ' : 'recovered-url-$resolveCallCount',
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
   }
 }
 

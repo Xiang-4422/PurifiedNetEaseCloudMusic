@@ -1,10 +1,11 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_view.dart';
-import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart';
-import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_view.dart';
+import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart';
+import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_view.dart';
+import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_view.dart';
+import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -21,23 +22,11 @@ class AppHomePageView extends GetView<ShellController> {
   Widget build(BuildContext context) {
     controller.buildContext = context;
     final playerController = Get.find<PlayerController>();
+    final settingsController = Get.find<SettingsController>();
     return Material(
       child: PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, result) => controller.onWillPop(),
-        // child: SlidingUpPanel(
-        //   controller: controller.bottomPanelController,
-        //   onPanelSlide: (openDegree) => controller.onBottomPanelSlide(openDegree),
-        //   color: Colors.transparent,
-        //   boxShadow: null,
-        //   // parallaxEnabled: true,
-        //   // parallaxOffset: 1,
-        //   minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
-        //   maxHeight: context.height,
-        //   header: const BottomPanelHeaderView(),
-        //   panel: const BottomPanelView(),
-        //   body: const AutoRouter(),
-        // ),
         child: SlidingUpPanel(
           slideDirection: SlideDirection.DOWN,
           controller: controller.topPanelController,
@@ -68,7 +57,10 @@ class AppHomePageView extends GetView<ShellController> {
               boxShadow: null,
               minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
               maxHeight: context.height,
-              header: const BottomPanelHeaderView(),
+              header: BottomPanelHeaderView(
+                playerController: playerController,
+                settingsController: settingsController,
+              ),
               panel: const BottomPanelView(),
               body: const AutoRouter(),
             );

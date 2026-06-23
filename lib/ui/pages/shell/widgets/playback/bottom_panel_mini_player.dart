@@ -13,12 +13,22 @@ import 'package:get/get.dart';
 /// 底部播放面板收起态的迷你播放栏。
 class BottomPanelHeaderView extends GetView<ShellController> {
   /// 创建迷你播放栏。
-  const BottomPanelHeaderView({super.key});
+  const BottomPanelHeaderView({
+    required this.playerController,
+    required this.settingsController,
+    super.key,
+  });
+
+  /// 播放控制器。
+  final PlayerController playerController;
+
+  /// 设置控制器。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final currentSong = PlayerController.to.currentSongState.value;
+      final currentSong = playerController.currentSongState.value;
       if (currentSong.id.isEmpty) {
         return const SizedBox.shrink();
       }
@@ -72,8 +82,8 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                             height: AppDimensions.bottomPanelHeaderHeight,
                             child: Swipeable(
                               background: const SizedBox.shrink(),
-                              onSwipeLeft: () => PlayerController.to.skipToPreviousTrack(),
-                              onSwipeRight: () => PlayerController.to.skipToNextTrack(),
+                              onSwipeLeft: () => playerController.skipToPreviousTrack(),
+                              onSwipeRight: () => playerController.skipToNextTrack(),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +93,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                     style: context.textTheme.titleLarge?.copyWith(
-                                      color: SettingsController.to.panelWidgetColor.value,
+                                      color: settingsController.panelWidgetColor.value,
                                     ),
                                   ),
                                   Text(
@@ -92,7 +102,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                     maxLines: 1,
                                     style: context.textTheme.titleLarge?.copyWith(
                                       fontSize: context.textTheme.titleLarge!.fontSize! / 2,
-                                      color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
+                                      color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
                                     ),
                                   ),
                                 ],
@@ -171,7 +181,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                   // 播放进度
                                   if ((currentSong.duration?.inMilliseconds ?? 0) > 0)
                                     Obx(() {
-                                      final currentDuration = PlayerController.to.currentPositionState.value;
+                                      final currentDuration = playerController.currentPositionState.value;
                                       return CircularPlaybackProgress(
                                         progress: playbackProgressFraction(
                                           position: currentDuration,
@@ -179,24 +189,24 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                         ),
                                         size: AppDimensions.albumMinSize,
                                         strokeWidth: 2,
-                                        progressColor: SettingsController.to.panelWidgetColor.value,
-                                        backgroundColor: SettingsController.to.panelWidgetColor.value.withAlpha(50),
+                                        progressColor: settingsController.panelWidgetColor.value,
+                                        backgroundColor: settingsController.panelWidgetColor.value.withAlpha(50),
                                       );
                                     }),
                                   // 播放按钮
                                   Obx(() {
-                                    final isPlaying = PlayerController.to.isPlaying.value;
+                                    final isPlaying = playerController.isPlaying.value;
                                     return IconButton(
                                       tooltip: miniPlayerPlayPauseControlLabel(
                                         isPlaying: isPlaying,
                                       ),
-                                      onPressed: () => PlayerController.to.playOrPause(),
+                                      onPressed: () => playerController.playOrPause(),
                                       padding: const EdgeInsets.all(
                                         AppDimensions.albumMinSize * 1 / 3 / 2,
                                       ),
                                       icon: Icon(
                                         isPlaying ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
-                                        color: SettingsController.to.panelWidgetColor.value,
+                                        color: settingsController.panelWidgetColor.value,
                                         size: AppDimensions.albumMinSize * 2 / 3,
                                       ),
                                     );

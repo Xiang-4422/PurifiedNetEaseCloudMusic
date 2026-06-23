@@ -786,6 +786,32 @@ void main() {
       );
     });
 
+    test('bottom panel mini player receives playback state boundaries', () {
+      final miniPlayerFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart',
+      );
+      final homeFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/app_home_page_view.dart',
+      );
+      final miniPlayer = miniPlayerFile.readAsStringSync();
+      final home = homeFile.readAsStringSync();
+      final violations = <String>[
+        if (miniPlayer.contains('PlayerController.to')) '${_relativePath(miniPlayerFile)} reads player controller globally',
+        if (miniPlayer.contains('SettingsController.to')) '${_relativePath(miniPlayerFile)} reads settings controller globally',
+        if (!miniPlayer.contains('required this.playerController')) '${_relativePath(miniPlayerFile)} does not receive player controller',
+        if (!miniPlayer.contains('required this.settingsController')) '${_relativePath(miniPlayerFile)} does not receive settings controller',
+        if (!home.contains('BottomPanelHeaderView(')) '${_relativePath(homeFile)} does not compose mini player',
+        if (!home.contains('playerController: playerController')) '${_relativePath(homeFile)} does not inject player controller',
+        if (!home.contains('settingsController: settingsController')) '${_relativePath(homeFile)} does not inject settings controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '收起态 mini player 只能展示当前播放入口并提交播放意图，当前歌曲、进度和面板颜色必须由首页壳层注入。',
+      );
+    });
+
     test('playback metadata key access stays in queue boundary codecs', () {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',

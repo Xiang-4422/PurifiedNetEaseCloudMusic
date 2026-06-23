@@ -39,12 +39,22 @@ void main() {
     final miniPlayerSource = File(
       'lib/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart',
     ).readAsStringSync();
+    final homeSource = File(
+      'lib/ui/pages/shell/app_home_page_view.dart',
+    ).readAsStringSync();
 
     expect(panelSource, isNot(contains('class BottomPanelHeaderView')));
     expect(panelSource, isNot(contains('miniPlayerExpandControlLabel')));
     expect(miniPlayerSource, contains('class BottomPanelHeaderView'));
+    expect(miniPlayerSource, contains('required this.playerController'));
+    expect(miniPlayerSource, contains('required this.settingsController'));
     expect(miniPlayerSource, contains('miniPlayerExpandControlLabel'));
     expect(miniPlayerSource, contains('miniPlayerPlayPauseControlLabel'));
+    expect(miniPlayerSource, isNot(contains('PlayerController.to')));
+    expect(miniPlayerSource, isNot(contains('SettingsController.to')));
+    expect(homeSource, contains('BottomPanelHeaderView('));
+    expect(homeSource, contains('playerController: playerController'));
+    expect(homeSource, contains('settingsController: settingsController'));
   });
 
   test('bottom panel delegates expanded pages to local widgets', () {

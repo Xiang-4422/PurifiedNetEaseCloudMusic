@@ -7,7 +7,6 @@ import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/widgets/common/progress/circular_playback_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -64,8 +63,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingMedium),
       child: Obx(() {
         final currentSong = PlayerController.to.currentSongState.value;
-        final currentSongId = int.tryParse(currentSong.sourceId);
-        final isLiked = UserLibraryController.to.likedSongIds.contains(currentSongId);
+        final isLiked = PlayerController.to.isPlaybackItemLiked(currentSong);
         final isPlaying = PlayerController.to.isPlaying.value;
         final preferHighQuality = SettingsController.to.isHighSoundQualityOpen.value;
         final panelColor = SettingsController.to.panelWidgetColor.value;

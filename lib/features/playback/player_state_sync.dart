@@ -203,6 +203,21 @@ extension PlayerStateSync on PlayerController {
     _toastPort.show(errorMessage);
   }
 
+  /// 判断播放队列项是否处于当前用户喜欢状态。
+  bool isPlaybackItemLiked(PlaybackQueueItem item) {
+    if (item.isLiked) {
+      return true;
+    }
+    final sourceId = MusicResourceId.toNeteaseSourceId(
+      item.sourceId.isNotEmpty ? item.sourceId : item.id,
+    );
+    final numericSongId = int.tryParse(sourceId);
+    if (numericSongId == null) {
+      return false;
+    }
+    return _userContentPort.likedSongIds().contains(numericSongId);
+  }
+
   /// 从播放边界切换喜欢状态后同步队列项。
   Future<void> toggleLikeFromPlayback(PlaybackQueueItem item) {
     final itemKey = item.id.isNotEmpty ? item.id : item.sourceId;

@@ -21,6 +21,33 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PlayerController helpers', () {
+    test('resolves playback item liked state through playback boundary', () {
+      final controller = _playerController(
+        userContentPort: _userContentPort(
+          likedSongIds: () => const [1],
+        ),
+      );
+
+      expect(
+        controller.isPlaybackItemLiked(
+          _queueItem('netease:1', sourceId: '1'),
+        ),
+        isTrue,
+      );
+      expect(
+        controller.isPlaybackItemLiked(
+          _queueItem('netease:2', sourceId: '2', isLiked: true),
+        ),
+        isTrue,
+      );
+      expect(
+        controller.isPlaybackItemLiked(
+          _queueItem('local:/music/a.mp3', sourceId: 'local:/music/a.mp3'),
+        ),
+        isFalse,
+      );
+    });
+
     test('coalesces concurrent like toggles for the same playback item', () async {
       final item = _queueItem('netease:1', sourceId: '1');
       final updatedItem = item.copyWith(isLiked: true);
@@ -117,10 +144,11 @@ PlayerController _playerController({
 
 PlaybackUserContentPort _userContentPort({
   Future<PlaybackQueueItem?> Function(PlaybackQueueItem item)? toggleLikeStatus,
+  List<int> Function()? likedSongIds,
 }) {
   return PlaybackUserContentPort(
     toggleLikeStatus: toggleLikeStatus ?? (_) async => null,
-    likedSongIds: () => const <int>[],
+    likedSongIds: likedSongIds ?? () => const <int>[],
     ensureLikedSongsLoaded: () async {},
     likedSongs: () => const <PlaybackQueueItem>[],
     loadFmSongs: () async => const <PlaybackQueueItem>[],

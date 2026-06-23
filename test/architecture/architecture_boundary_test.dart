@@ -879,17 +879,20 @@ void main() {
       final controller = controllerFile.readAsStringSync();
       final stateSync = stateSyncFile.readAsStringSync();
       final violations = <String>[
+        if (!controls.contains('PlayerController.to.isPlaybackItemLiked(currentSong)')) 'playback controls do not read liked state from player boundary',
         if (!controls.contains('PlayerController.to.toggleLikeFromPlayback(currentSong)')) 'playback controls do not use player like boundary',
+        if (controls.contains('UserLibraryController.to.likedSongIds')) '${_relativePath(controlsFile)} reads user library liked ids directly',
         if (controls.contains('toggleLikeStatus(currentSong)')) '${_relativePath(controlsFile)} toggles user library directly',
         if (controls.contains('updatePlaybackQueueItem(')) '${_relativePath(controlsFile)} updates playback queue directly after like toggle',
         if (!controller.contains('_likeToggleInFlightByItem')) 'player controller does not coalesce like toggles',
+        if (!stateSync.contains('bool isPlaybackItemLiked(PlaybackQueueItem item)')) 'player state sync does not expose liked state boundary',
         if (!stateSync.contains('Future<void> toggleLikeFromPlayback(PlaybackQueueItem item)')) 'player state sync does not expose like toggle boundary',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '播放页喜欢按钮必须经 PlayerController 播放边界切换并同步队列，同一曲目的并发喜欢请求必须在控制器边界合并。',
+        reason: '播放页喜欢按钮必须经 PlayerController 播放边界读取状态、切换喜欢并同步队列，同一曲目的并发喜欢请求必须在控制器边界合并。',
       );
     });
 

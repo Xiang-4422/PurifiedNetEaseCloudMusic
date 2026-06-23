@@ -1785,6 +1785,27 @@ void main() {
       );
     });
 
+    test('recommended playlists page reads lists through page controller boundary', () {
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/recommended_playlists_page.dart',
+      );
+      final page = pageFile.readAsStringSync();
+      final violations = <String>[
+        if (page.contains('RecommendationController.to')) '${_relativePath(pageFile)} reads recommendation controller globally',
+        if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} names playlist repository directly',
+        if (page.contains('UserLibraryController')) '${_relativePath(pageFile)} reads user library directly',
+        if (!page.contains('class RecommendedPlaylistsPageView extends GetView<RecommendationController>')) '${_relativePath(pageFile)} does not use page controller boundary',
+        if (!page.contains('RecommendedPlaylistListSliver(controller: controller)')) '${_relativePath(pageFile)} does not pass page controller to playlist sliver',
+        if (!page.contains('controller.updateRecoPlayLists(getMore: true)')) '${_relativePath(pageFile)} does not load more through page controller boundary',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '推荐歌单页只能展示 RecommendationController 暴露的推荐歌单并提交加载意图，不能直接读取资料库或 repository。',
+      );
+    });
+
     test('library shortcut bar keeps liked playlist behind injected provider', () {
       final shortcutFile = File(
         '${projectRoot.path}/lib/ui/pages/user/widgets/library_shortcut_bar.dart',

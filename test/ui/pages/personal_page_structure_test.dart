@@ -121,9 +121,10 @@ void main() {
     expect(sliverSource, contains('Theme.of(context).colorScheme.surface'));
     expect(sliverSource, contains('controller.recoPlayLists'));
     expect(sliverSource, contains('PlayListItem('));
-    expect(pageSource, contains('class RecommendedPlaylistsPageView'));
+    expect(pageSource, contains('class RecommendedPlaylistsPageView extends GetView<RecommendationController>'));
     expect(pageSource, contains('RecommendedPlaylistHeaderSliver'));
-    expect(pageSource, contains('RecommendedPlaylistListSliver(controller: recommendationController)'));
+    expect(pageSource, contains('RecommendedPlaylistListSliver(controller: controller)'));
+    expect(pageSource, isNot(contains('RecommendationController.to')));
     expect(pageSource, isNot(contains('PlayListItem(')));
     expect(appBodySource, contains('recommended_playlists_page.dart'));
     expect(appBodySource, contains('final homeShellController = HomeShellScope.of(context)'));

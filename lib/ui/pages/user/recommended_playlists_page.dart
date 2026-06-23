@@ -7,21 +7,20 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// 方屏首页侧边菜单中的独立推荐歌单页。
-class RecommendedPlaylistsPageView extends StatelessWidget {
+class RecommendedPlaylistsPageView extends GetView<RecommendationController> {
   /// 创建独立推荐歌单页。
   const RecommendedPlaylistsPageView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final recommendationController = RecommendationController.to;
     return Obx(() {
-      if (recommendationController.dateLoaded.isFalse) {
+      if (controller.dateLoaded.isFalse) {
         return const LoadingView();
       }
       return AppSmartRefresher(
-        controller: recommendationController.refreshController,
+        controller: controller.refreshController,
         enablePullUp: true,
-        onLoading: () => recommendationController.updateRecoPlayLists(getMore: true),
+        onLoading: () => controller.updateRecoPlayLists(getMore: true),
         child: CustomScrollView(
           cacheExtent: 120,
           physics: const ClampingScrollPhysics(),
@@ -30,7 +29,7 @@ class RecommendedPlaylistsPageView extends StatelessWidget {
               child: SizedBox(height: MediaQuery.paddingOf(context).top),
             ),
             const RecommendedPlaylistHeaderSliver(),
-            RecommendedPlaylistListSliver(controller: recommendationController),
+            RecommendedPlaylistListSliver(controller: controller),
             const SliverToBoxAdapter(
               child: SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
             ),

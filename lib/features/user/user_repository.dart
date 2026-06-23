@@ -41,11 +41,17 @@ class UserRepository {
 
   /// 从本地用户作用域缓存读取用户资料。
   Future<UserProfileData?> loadCachedUserDetail(String userId) {
+    if (_isBlankUserId(userId)) {
+      return Future.value();
+    }
     return _userProfileDataSource.loadProfile(userId);
   }
 
   /// 从远程拉取用户资料并写入本地用户数据。
   Future<UserProfileData> fetchUserDetail(String userId) async {
+    if (_isBlankUserId(userId)) {
+      return _emptyUserProfile;
+    }
     final profile = await _remoteDataSource.fetchUserDetail(userId);
     await _userProfileDataSource.saveProfile(profile);
     return profile;
@@ -53,6 +59,9 @@ class UserRepository {
 
   /// 从本地用户作用域缓存读取喜欢歌曲的网易云数字 id。
   Future<List<int>> loadCachedLikedSongIds(String userId) async {
+    if (_isBlankUserId(userId)) {
+      return const [];
+    }
     final trackIds = await _userTrackListDataSource.loadTrackIds(
       userId,
       UserTrackListKind.liked,
@@ -65,6 +74,9 @@ class UserRepository {
     String userId,
     UserPlaylistListKind kind,
   ) {
+    if (_isBlankUserId(userId)) {
+      return Future.value(const <PlaylistSummaryData>[]);
+    }
     return _userPlaylistListDataSource.loadPlaylistItems(userId, kind);
   }
 
@@ -74,6 +86,9 @@ class UserRepository {
     required UserTrackListKind kind,
     required List<int> likedSongIds,
   }) async {
+    if (_isBlankUserId(userId)) {
+      return const [];
+    }
     final trackIds = await _userTrackListDataSource.loadTrackIds(userId, kind);
     return loadCachedSongsByIds(
       ids: trackIds,
@@ -87,6 +102,9 @@ class UserRepository {
     required String markerKey,
     required Duration ttl,
   }) async {
+    if (_isBlankUserId(userId)) {
+      return false;
+    }
     final updatedAt = await _userSyncMarkerDataSource.loadSyncMarker(
       userId,
       markerKey,
@@ -102,11 +120,17 @@ class UserRepository {
     required String userId,
     required String markerKey,
   }) {
+    if (_isBlankUserId(userId)) {
+      return Future<void>.value();
+    }
     return _userSyncMarkerDataSource.markSyncMarkerUpdated(userId, markerKey);
   }
 
   /// 拉取用户喜欢歌曲 id，并替换本地喜欢歌曲索引。
   Future<List<int>> fetchLikedSongIds(String userId) async {
+    if (_isBlankUserId(userId)) {
+      return const [];
+    }
     final likedSongIds = await _remoteDataSource.fetchLikedSongIds(userId);
     await _userTrackListDataSource.replaceTrackList(
       userId,
@@ -120,6 +144,12 @@ class UserRepository {
   Future<({List<int> likedSongIds, List<PlaylistSummaryData> playlists})> fetchUserLibrarySnapshot(
     String userId,
   ) async {
+    if (_isBlankUserId(userId)) {
+      return (
+        likedSongIds: const <int>[],
+        playlists: const <PlaylistSummaryData>[],
+      );
+    }
     final results = await Future.wait<Object>([
       _remoteDataSource.fetchLikedSongIds(userId),
       _remoteDataSource.fetchUserPlaylists(userId),
@@ -156,6 +186,9 @@ class UserRepository {
     required int offset,
     int limit = 10,
   }) async {
+    if (_isBlankUserId(userId)) {
+      return const [];
+    }
     final playlists = await _remoteDataSource.fetchRecommendedPlaylists(
       offset: offset,
       limit: limit,
@@ -180,6 +213,9 @@ class UserRepository {
 
   /// 拉取用户歌单，并拆分“我喜欢的音乐”和用户创建歌单数据。
   Future<List<PlaylistSummaryData>> fetchUserPlaylists(String userId) async {
+    if (_isBlankUserId(userId)) {
+      return const [];
+    }
     final playlists = await _remoteDataSource.fetchUserPlaylists(userId);
     final summaries = playlists.map(PlaylistSummaryData.fromEntity).toList();
     final likedCollection = summaries.take(1).toList();
@@ -202,6 +238,9 @@ class UserRepository {
     required String userId,
     required List<int> likedSongIds,
   }) async {
+    if (_isBlankUserId(userId)) {
+      return const [];
+    }
     final tracks = await _remoteDataSource.fetchTodayRecommendSongs();
     await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
     await _userTrackListDataSource.replaceTrackList(
@@ -217,6 +256,9 @@ class UserRepository {
     required String userId,
     required List<int> likedSongIds,
   }) async {
+    if (_isBlankUserId(userId)) {
+      return const [];
+    }
     final tracks = await _remoteDataSource.fetchFmSongs();
     await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
     await _userTrackListDataSource.replaceTrackList(
@@ -305,6 +347,9 @@ class UserRepository {
     String songId,
     bool like,
   ) async {
+    if (_isBlankUserId(userId)) {
+      return const OperationResult(success: false);
+    }
     final result = await _remoteDataSource.toggleLikeSong(songId, like);
     if (result.success) {
       final trackId = MusicResourceId.toNeteaseEntityId(songId);
@@ -367,4 +412,18 @@ class UserRepository {
   int? _toSongSourceId(String trackId) {
     return int.tryParse(MusicResourceId.toNeteaseSourceId(trackId));
   }
+
+  bool _isBlankUserId(String userId) {
+    return userId.trim().isEmpty;
+  }
+
+  static const UserProfileData _emptyUserProfile = UserProfileData(
+    userId: '',
+    nickname: '',
+    signature: '',
+    follows: 0,
+    followeds: 0,
+    playlistCount: 0,
+    avatarUrl: '',
+  );
 }

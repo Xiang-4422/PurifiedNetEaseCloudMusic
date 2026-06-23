@@ -3010,6 +3010,24 @@ void main() {
       );
     });
 
+    test('user repository rejects blank account scope', () {
+      final repositoryFile = File('${projectRoot.path}/lib/features/user/user_repository.dart');
+      final repository = repositoryFile.readAsStringSync();
+      final violations = <String>[
+        if (!repository.contains('bool _isBlankUserId(String userId)')) '${_relativePath(repositoryFile)} does not define a blank user guard',
+        if (!repository.contains('if (_isBlankUserId(userId))')) '${_relativePath(repositoryFile)} does not guard user-scoped repository entry points',
+        if (!repository.contains('return _emptyUserProfile')) '${_relativePath(repositoryFile)} does not return an empty profile for blank users',
+        if (!repository.contains('likedSongIds: const <int>[]')) '${_relativePath(repositoryFile)} does not return an empty library snapshot for blank users',
+        if (!repository.contains('return const OperationResult(success: false)')) '${_relativePath(repositoryFile)} does not reject like mutations for blank users',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '用户资料库仓库是账号作用域缓存边界，空账号不能读取或写入资料、喜欢歌曲、歌单、推荐或 FM 缓存，也不能触发对应远程请求。',
+      );
+    });
+
     test('feature repositories use narrow user scoped data capabilities', () {
       final violations = _repositoryFiles(libDirectory).where((file) => _contains(file, 'UserScopedDataSource')).map(_relativePath).toList();
 

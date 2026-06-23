@@ -178,7 +178,7 @@ void main() {
       expect(loadCount, 1);
     });
 
-    test('does not cache empty playback url results', () async {
+    test('does not return or cache empty playback url results', () async {
       var loadCount = 0;
       final coordinator = PlaybackUrlCacheCoordinator(
         resolveLocalResourceUrl: (_) async => null,
@@ -193,7 +193,7 @@ void main() {
       final remote = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
       final cached = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
 
-      expect(empty, '');
+      expect(empty, isNull);
       expect(remote, 'https://audio.test/1.mp3');
       expect(cached, remote);
       expect(loadCount, 2);

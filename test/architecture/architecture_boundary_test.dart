@@ -996,6 +996,33 @@ void main() {
       );
     });
 
+    test('explore page keeps playlist playback resolution behind controller', () {
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/explore/explore_page.dart',
+      );
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/explore/explore_page_controller.dart',
+      );
+      final page = pageFile.readAsStringSync();
+      final controller = controllerFile.readAsStringSync();
+      final violations = <String>[
+        if (page.contains('UserLibraryController')) '${_relativePath(pageFile)} reads liked ids directly',
+        if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} resolves playlist data directly',
+        if (page.contains('fetchPlaylistIndex(')) '${_relativePath(pageFile)} fetches playlist index directly',
+        if (page.contains('fetchPlaylistSongs(')) '${_relativePath(pageFile)} fetches playlist songs directly',
+        if (!page.contains('controller.resolvePlaylistPlayback(playlist)')) '${_relativePath(pageFile)} does not resolve playlist playback through controller',
+        if (!controller.contains('Future<ExplorePlaylistPlaybackPlan> resolvePlaylistPlayback')) 'explore controller does not expose playlist playback resolution',
+        if (!controller.contains('final likedSongIds = List<int>.of(_likedSongIds())')) 'explore controller does not resolve playback with liked ids provider',
+        if (!controller.contains('playlistIndex: index')) 'explore controller does not reuse fetched playlist index for playback songs',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '探索页 Widget 只发起播放意图，歌单摘要到播放队列的解析必须留在 ExplorePageController，避免 UI 直接读用户喜欢列表和 PlaylistRepository。',
+      );
+    });
+
     test('recent playback stays backed by confirmed history', () {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/playback/recent_playback_controller.dart',

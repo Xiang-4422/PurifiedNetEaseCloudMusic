@@ -10,6 +10,21 @@ import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// 探索页歌单播放前解析出的队列计划。
+class ExplorePlaylistPlaybackPlan {
+  /// 创建探索页歌单播放计划。
+  const ExplorePlaylistPlaybackPlan({
+    required this.songs,
+    required this.playlistName,
+  });
+
+  /// 可播放歌曲队列。
+  final List<PlaybackQueueItem> songs;
+
+  /// 播放队列名称。
+  final String playlistName;
+}
+
 /// 维护探索页榜单、分类歌单和加载状态。
 ///
 class ExplorePageController extends GetxController {
@@ -339,6 +354,26 @@ class ExplorePageController extends GetxController {
   void changeCurRankingPlayList(String rankingPlayListid) {
     curTopPlayListId.value = rankingPlayListid;
     unawaited(updateRankingPlayListSongs());
+  }
+
+  /// 将歌单摘要解析为播放队列计划。
+  Future<ExplorePlaylistPlaybackPlan> resolvePlaylistPlayback(
+    PlaylistSummaryData playlist,
+  ) async {
+    final likedSongIds = List<int>.of(_likedSongIds());
+    final index = await _playlistRepository.fetchPlaylistIndex(
+      playlist.id,
+      likedSongIds: likedSongIds,
+    );
+    final songs = await _playlistRepository.fetchPlaylistSongs(
+      playlistId: playlist.id,
+      likedSongIds: likedSongIds,
+      playlistIndex: index,
+    );
+    return ExplorePlaylistPlaybackPlan(
+      songs: songs,
+      playlistName: index.name,
+    );
   }
 
   /// 刷新或分页加载当前排行榜歌曲。

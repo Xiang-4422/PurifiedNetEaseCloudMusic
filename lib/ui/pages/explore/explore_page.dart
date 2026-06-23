@@ -3,11 +3,9 @@ import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/ui/pages/explore/widgets/explore_filter_strip.dart';
 import 'package:bujuan/ui/pages/explore/widgets/explore_ranking_song_list_sliver.dart';
 import 'package:bujuan/ui/widgets/playlist/playlist_widgets.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
@@ -15,27 +13,20 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 
-Future<void> _playPlaylistSummary(PlaylistSummaryData playlist) async {
+Future<void> _playPlaylistSummary(
+  ExplorePageController controller,
+  PlaylistSummaryData playlist,
+) async {
   final playerController = Get.find<PlayerController>();
   if (playerController.sessionState.value.playlistName == playlist.title) {
     await playerController.playOrPause();
     return;
   }
-  final likedSongIds = UserLibraryController.to.likedSongIds.toList();
-  final repository = Get.find<PlaylistRepository>();
-  final index = await repository.fetchPlaylistIndex(
-    playlist.id,
-    likedSongIds: likedSongIds,
-  );
-  final songs = await repository.fetchPlaylistSongs(
-    playlistId: playlist.id,
-    likedSongIds: likedSongIds,
-    playlistIndex: index,
-  );
+  final plan = await controller.resolvePlaylistPlayback(playlist);
   await playerController.playPlaylist(
-    songs,
+    plan.songs,
     0,
-    playListName: index.name,
+    playListName: plan.playlistName,
     playListNameHeader: '歌单',
   );
 }
@@ -128,7 +119,10 @@ class ExplorePageView extends GetView<ExplorePageController> {
                     showSongCount: false,
                     isPlaying: playbackAction.isPlaying.value,
                     playingPlaylistName: playbackAction.sessionState.value.playlistName,
-                    onPlayPlaylist: _playPlaylistSummary,
+                    onPlayPlaylist: (playlist) => _playPlaylistSummary(
+                      controller,
+                      playlist,
+                    ),
                   )),
             ),
             // 排行榜分类

@@ -170,17 +170,68 @@ void main() {
 
       expect(controller.curTopPlayListSongs.map((song) => song.id), ['remote-song']);
     });
+
+    test('resolves playlist playback plan with latest liked song ids', () async {
+      var likedSongIds = <int>[101];
+      final playlistRepository = _FakePlaylistRepository(
+        playlistIndex: const PlaylistIndexData(
+          id: 'playlist-1',
+          name: 'Remote Playlist',
+          trackIds: ['netease:101'],
+          isSubscribed: false,
+          isLikedSongs: false,
+        ),
+        fetchSongsHandler: ({
+          required String playlistId,
+          required List<int> likedSongIds,
+          required int offset,
+          required int limit,
+        }) {
+          return Future.value([_song('song-${likedSongIds.join('-')}')]);
+        },
+      );
+      final controller = _buildController(
+        playlistRepository: playlistRepository,
+        likedSongIds: () => likedSongIds,
+      );
+      addTearDown(controller.onClose);
+
+      final firstPlan = await controller.resolvePlaylistPlayback(
+        const PlaylistSummaryData(id: 'playlist-1', title: 'Playlist 1'),
+      );
+      likedSongIds = <int>[202, 303];
+      final secondPlan = await controller.resolvePlaylistPlayback(
+        const PlaylistSummaryData(id: 'playlist-1', title: 'Playlist 1'),
+      );
+
+      expect(firstPlan.playlistName, 'Remote Playlist');
+      expect(firstPlan.songs.single.id, 'song-101');
+      expect(secondPlan.songs.single.id, 'song-202-303');
+      expect(playlistRepository.indexLikedSongRequests, [
+        [101],
+        [202, 303],
+      ]);
+      expect(playlistRepository.fetchLikedSongRequests, [
+        [101],
+        [202, 303],
+      ]);
+      expect(playlistRepository.fetchPlaylistIndexNames, [
+        'Remote Playlist',
+        'Remote Playlist',
+      ]);
+    });
   });
 }
 
 ExplorePageController _buildController({
   _FakeExploreRepository? exploreRepository,
   _FakePlaylistRepository? playlistRepository,
+  List<int> Function()? likedSongIds,
 }) {
   return ExplorePageController(
     exploreRepository: exploreRepository ?? _FakeExploreRepository(),
     playlistRepository: playlistRepository ?? _FakePlaylistRepository(),
-    likedSongIds: () => const [],
+    likedSongIds: likedSongIds ?? () => const [],
     currentUserId: () => 'user-1',
   );
 }
@@ -281,16 +332,37 @@ class _FakePlaylistRepository implements PlaylistRepository {
     this.cachedDetailError,
     this.fetchSongsError,
     this.fetchSongsHandler,
+    this.playlistIndex = const PlaylistIndexData(
+      id: 'playlist',
+      name: 'Playlist',
+      trackIds: [],
+      isSubscribed: false,
+      isLikedSongs: false,
+    ),
   });
 
   final Object? cachedDetailError;
   final Object? fetchSongsError;
+  final PlaylistIndexData playlistIndex;
   final Future<List<PlaybackQueueItem>> Function({
     required String playlistId,
     required List<int> likedSongIds,
     required int offset,
     required int limit,
   })? fetchSongsHandler;
+  final List<List<int>> indexLikedSongRequests = <List<int>>[];
+  final List<List<int>> fetchLikedSongRequests = <List<int>>[];
+  final List<String> fetchPlaylistIndexNames = <String>[];
+
+  @override
+  Future<PlaylistIndexData> fetchPlaylistIndex(
+    String playlistId, {
+    List<int> likedSongIds = const [],
+    String? currentUserId,
+  }) async {
+    indexLikedSongRequests.add(List<int>.from(likedSongIds));
+    return playlistIndex;
+  }
 
   @override
   Future<List<PlaybackQueueItem>> fetchPlaylistSongs({
@@ -301,6 +373,8 @@ class _FakePlaylistRepository implements PlaylistRepository {
     PlaylistIndexData? playlistIndex,
     bool persist = true,
   }) async {
+    fetchLikedSongRequests.add(List<int>.from(likedSongIds));
+    fetchPlaylistIndexNames.add(playlistIndex?.name ?? '');
     final handler = fetchSongsHandler;
     if (handler != null) {
       return handler(

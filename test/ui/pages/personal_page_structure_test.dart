@@ -210,6 +210,12 @@ void main() {
     expect(squareRecentStripIndex, lessThan(squarePlaylistHeaderIndex));
     expect(playlistHeaderIndex, lessThan(libraryHeaderIndex));
     expect(recentPlaybackSource, contains("playListName: '最近播放'"));
+    expect(recentPlaybackSource, contains('const double _recentPlaybackStripHeight = 76;'));
+    expect(recentPlaybackSource, contains('const double _recentPlaybackTileWidth = 220;'));
+    expect(recentPlaybackSource, contains('const double _recentPlaybackCacheExtent = 360;'));
+    expect(recentPlaybackSource, contains('height: _recentPlaybackStripHeight'));
+    expect(recentPlaybackSource, contains('width: _recentPlaybackTileWidth'));
+    expect(recentPlaybackSource, contains('cacheExtent: _recentPlaybackCacheExtent'));
     expect(source, contains('standard_personal_home_page.dart'));
     expect(source, contains('square_personal_home_page.dart'));
     expect(source, isNot(contains('frequent_playlist_section.dart')));

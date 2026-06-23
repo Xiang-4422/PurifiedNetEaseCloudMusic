@@ -9,6 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
+const double _recentPlaybackStripHeight = 76;
+const double _recentPlaybackTileWidth = 220;
+const double _recentPlaybackCacheExtent = 360;
+
 /// 个人页中的最近播放横向列表。
 class RecentPlaybackStrip extends StatelessWidget {
   /// 创建最近播放横向列表。
@@ -40,8 +44,9 @@ class RecentPlaybackStrip extends StatelessWidget {
             padding: AppDimensions.paddingSmall,
           ).marginOnly(top: AppDimensions.paddingSmall),
           SizedBox(
-            height: 76,
+            height: _recentPlaybackStripHeight,
             child: ListView.separated(
+              cacheExtent: _recentPlaybackCacheExtent,
               scrollDirection: Axis.horizontal,
               physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.symmetric(
@@ -98,7 +103,7 @@ class _RecentPlaybackTile extends StatelessWidget {
     );
 
     return SizedBox(
-      width: 220,
+      width: _recentPlaybackTileWidth,
       child: Material(
         color: backgroundColor,
         borderRadius: AppDimensions.borderRadiusMedium,

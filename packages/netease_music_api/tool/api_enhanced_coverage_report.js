@@ -478,6 +478,7 @@ function buildSdkDifferences() {
       module: '<special_coverage>',
       status: 'invalid_special_coverage',
       reason: `${entry.field}: ${entry.reason}`,
+      scope: 'special_coverage_config',
     })
   }
   for (const entry of specialCoverageDuplicateEntries) {
@@ -485,6 +486,7 @@ function buildSdkDifferences() {
       module: entry.module,
       status: 'duplicate_special_coverage_entry',
       reason: `Special coverage ${entry.field} lists this module more than once.`,
+      scope: 'special_coverage_config',
     })
   }
   for (const [module, reason] of Object.entries(specialLimitedReasons)) {
@@ -492,6 +494,7 @@ function buildSdkDifferences() {
       module,
       status: 'limited',
       reason,
+      scope: 'special_module',
     })
   }
   for (const [module, reason] of Object.entries(runtimeLimitedReasons)) {
@@ -507,6 +510,7 @@ function buildSdkDifferences() {
       module,
       status: 'missing_node_oracle',
       reason: 'Normal module has no Node oracle fixture.',
+      scope: 'node_oracle',
     })
   }
   for (const module of oracleUnknownModules) {
@@ -514,6 +518,7 @@ function buildSdkDifferences() {
       module,
       status: 'unknown_node_oracle_fixture',
       reason: 'Node oracle fixture references a module that is not in the generated manifest.',
+      scope: 'node_oracle',
     })
   }
   for (const module of oracleDuplicateFixtures) {
@@ -521,6 +526,7 @@ function buildSdkDifferences() {
       module,
       status: 'duplicate_node_oracle_fixture',
       reason: 'Node oracle fixture defines the same scenario more than once.',
+      scope: 'node_oracle',
     })
   }
   for (const fixture of oracleInvalidFixtures) {
@@ -528,6 +534,7 @@ function buildSdkDifferences() {
       module: fixture.module,
       status: 'invalid_node_oracle_fixture',
       reason: fixture.reason,
+      scope: 'node_oracle',
     })
   }
   for (const module of specialMissingStatus) {
@@ -535,6 +542,7 @@ function buildSdkDifferences() {
       module,
       status: 'missing_special_status',
       reason: 'Special module is not categorized as Node oracle, Dart behavior, or limited.',
+      scope: 'special_module',
     })
   }
   for (const module of specialUnknownStatus) {
@@ -542,6 +550,7 @@ function buildSdkDifferences() {
       module,
       status: 'unknown_special_status',
       reason: 'Special coverage config references a module that is not marked as special in the generated manifest.',
+      scope: 'special_coverage_config',
     })
   }
   for (const module of specialNodeOracleMissingFixture) {
@@ -549,6 +558,7 @@ function buildSdkDifferences() {
       module,
       status: 'missing_special_oracle_fixture',
       reason: 'Special module is marked as Node oracle covered but has no fixture.',
+      scope: 'node_oracle',
     })
   }
   for (const module of specialNonLimitedMissingOracle) {
@@ -556,6 +566,7 @@ function buildSdkDifferences() {
       module,
       status: 'missing_special_oracle_or_limit',
       reason: 'Special module is not limited and has no Node oracle fixture.',
+      scope: 'special_module',
     })
   }
   for (const module of specialLimitedMissingReason) {
@@ -563,6 +574,7 @@ function buildSdkDifferences() {
       module,
       status: 'missing_limited_reason',
       reason: 'Limited special module must explain why it cannot be fully mirrored.',
+      scope: 'special_module',
     })
   }
   for (const mismatch of manifestUpstreamMismatches) {
@@ -570,6 +582,7 @@ function buildSdkDifferences() {
       module: '<generated_manifest>',
       status: `manifest_upstream_${mismatch.field}_mismatch`,
       reason: `Generated manifest ${mismatch.field} ${mismatch.manifest || '<missing>'} does not match upstream ${mismatch.upstream || '<unknown>'}.`,
+      scope: 'generated_manifest',
     })
   }
   for (const module of manifestDuplicateModules) {
@@ -577,6 +590,7 @@ function buildSdkDifferences() {
       module,
       status: 'duplicate_manifest_module',
       reason: 'Generated manifest defines the same module more than once.',
+      scope: 'generated_manifest',
     })
   }
   for (const methodName of manifestDuplicateMethodNames) {
@@ -584,6 +598,7 @@ function buildSdkDifferences() {
       module: '<generated_manifest>',
       status: 'duplicate_manifest_method_name',
       reason: `Generated manifest defines raw method name ${methodName} more than once.`,
+      scope: 'generated_manifest',
     })
   }
   return differences.sort((left, right) => `${left.module}:${left.status}`.localeCompare(`${right.module}:${right.status}`))

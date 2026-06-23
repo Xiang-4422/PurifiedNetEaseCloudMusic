@@ -222,6 +222,11 @@ void main() {
       for (final difference in sdkDifferences) {
         expect(difference['module'], isA<String>());
         expect(difference['reason'], differenceReasons[difference['module']], reason: difference['module'].toString());
+        if (_stringSet(report['specialLimited']).contains(difference['module'])) {
+          expect(difference['scope'], 'special_module', reason: difference['module'].toString());
+        } else {
+          expect(difference['scope'], 'runtime_option', reason: difference['module'].toString());
+        }
       }
     });
 
@@ -265,6 +270,10 @@ void main() {
           'duplicate_special_coverage_entry',
           'unknown_special_status',
         }),
+      );
+      expect(
+        _jsonMapList(report['sdkDifferences']).map((item) => item['scope']).toSet(),
+        contains('special_coverage_config'),
       );
     });
 
@@ -320,6 +329,8 @@ void main() {
       expect(documentedDifferences.keys.toSet(), sdkDifferences.map((difference) => difference['module']).toSet());
       for (final difference in sdkDifferences) {
         expect(difference['status'], 'limited', reason: difference['module'].toString());
+        expect(difference['scope'], isA<String>(), reason: difference['module'].toString());
+        expect((difference['scope'] as String).trim(), isNotEmpty, reason: difference['module'].toString());
         expect(difference['reason'], isA<String>(), reason: difference['module'].toString());
         expect((difference['reason'] as String).trim(), isNotEmpty, reason: difference['module'].toString());
         expect(documentedDifferences[difference['module']], difference['reason'], reason: difference['module'].toString());

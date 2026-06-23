@@ -10,7 +10,6 @@ import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/artist/artist_page_controller.dart';
-import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
@@ -34,9 +33,7 @@ class ArtistPageView extends StatefulWidget {
 }
 
 class _ArtistPageViewState extends State<ArtistPageView> {
-  final ArtistPageController _controller = ArtistPageController(
-    repository: Get.find<ArtistRepository>(),
-  );
+  final ArtistPageController _controller = Get.find<ArtistPageController>();
   final PlayerController _playerController = Get.find<PlayerController>();
   late String artistId;
   late ArtistEntity artist;

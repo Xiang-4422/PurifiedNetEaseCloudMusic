@@ -1051,6 +1051,47 @@ void main() {
       );
     });
 
+    test('album and artist detail pages use bootstrapped page controllers', () {
+      final albumPageFile = File(
+        '${projectRoot.path}/lib/ui/pages/album/album_page_view.dart',
+      );
+      final artistPageFile = File(
+        '${projectRoot.path}/lib/ui/pages/artist/artist_page_view.dart',
+      );
+      final albumControllerFile = File(
+        '${projectRoot.path}/lib/features/album/album_page_controller.dart',
+      );
+      final artistControllerFile = File(
+        '${projectRoot.path}/lib/features/artist/artist_page_controller.dart',
+      );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
+      final albumPage = albumPageFile.readAsStringSync();
+      final artistPage = artistPageFile.readAsStringSync();
+      final albumController = albumControllerFile.readAsStringSync();
+      final artistController = artistControllerFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
+      final violations = <String>[
+        if (albumPage.contains('AlbumRepository')) '${_relativePath(albumPageFile)} names album repository directly',
+        if (artistPage.contains('ArtistRepository')) '${_relativePath(artistPageFile)} names artist repository directly',
+        if (!albumPage.contains('Get.find<AlbumPageController>()')) '${_relativePath(albumPageFile)} does not use bootstrapped album page controller',
+        if (!artistPage.contains('Get.find<ArtistPageController>()')) '${_relativePath(artistPageFile)} does not use bootstrapped artist page controller',
+        if (albumController.contains('UserLibraryController')) '${_relativePath(albumControllerFile)} reads user library directly',
+        if (artistController.contains('UserLibraryController')) '${_relativePath(artistControllerFile)} reads user library directly',
+        if (!albumController.contains('required List<int> Function() likedSongIds')) 'album page controller does not require liked ids provider',
+        if (!artistController.contains('required List<int> Function() likedSongIds')) 'artist page controller does not require liked ids provider',
+        if (!bootstrap.contains('AlbumPageController(')) 'feature bootstrap does not register album page controller',
+        if (!bootstrap.contains('ArtistPageController(')) 'feature bootstrap does not register artist page controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '专辑页和歌手页只取已装配的页面控制器；repository 和喜欢歌曲上下文必须由 feature bootstrap 注入，避免 Widget 或控制器回到全局用户库读取。',
+      );
+    });
+
     test('recent playback stays backed by confirmed history', () {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/playback/recent_playback_controller.dart',

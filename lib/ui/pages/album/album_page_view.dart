@@ -9,7 +9,6 @@ import 'package:bujuan/core/util/extensions.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/album/album_page_controller.dart';
-import 'package:bujuan/features/album/album_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
@@ -29,9 +28,7 @@ class AlbumPageView extends StatefulWidget {
 }
 
 class _AlbumPageViewState extends State<AlbumPageView> {
-  final AlbumPageController _controller = AlbumPageController(
-    repository: Get.find<AlbumRepository>(),
-  );
+  final AlbumPageController _controller = Get.find<AlbumPageController>();
   final PlayerController _playerController = Get.find<PlayerController>();
   late String albumId;
   late AlbumEntity album;

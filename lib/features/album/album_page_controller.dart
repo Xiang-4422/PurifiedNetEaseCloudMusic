@@ -1,14 +1,13 @@
 import 'package:bujuan/features/album/album_repository.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 
 /// 专辑详情页的应用入口，页面只消费详情结果，不直接拼装 repository 参数。
 class AlbumPageController {
   /// 创建专辑详情页控制器。
   AlbumPageController({
     required AlbumRepository repository,
-    List<int> Function()? likedSongIds,
+    required List<int> Function() likedSongIds,
   })  : _repository = repository,
-        _likedSongIds = likedSongIds ?? _currentLikedSongIds;
+        _likedSongIds = likedSongIds;
 
   final AlbumRepository _repository;
   final List<int> Function() _likedSongIds;
@@ -31,9 +30,5 @@ class AlbumPageController {
       albumId: albumId,
       likedSongIds: _likedSongIds(),
     );
-  }
-
-  static List<int> _currentLikedSongIds() {
-    return UserLibraryController.to.likedSongIds.toList();
   }
 }

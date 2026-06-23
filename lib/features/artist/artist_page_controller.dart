@@ -1,14 +1,13 @@
 import 'package:bujuan/features/artist/artist_repository.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 
 /// 歌手详情页的应用入口，负责补齐当前用户相关的喜欢歌曲参数。
 class ArtistPageController {
   /// 创建歌手详情页控制器。
   ArtistPageController({
     required ArtistRepository repository,
-    List<int> Function()? likedSongIds,
+    required List<int> Function() likedSongIds,
   })  : _repository = repository,
-        _likedSongIds = likedSongIds ?? _currentLikedSongIds;
+        _likedSongIds = likedSongIds;
 
   final ArtistRepository _repository;
   final List<int> Function() _likedSongIds;
@@ -31,9 +30,5 @@ class ArtistPageController {
       artistId: artistId,
       likedSongIds: _likedSongIds(),
     );
-  }
-
-  static List<int> _currentLikedSongIds() {
-    return UserLibraryController.to.likedSongIds.toList();
   }
 }

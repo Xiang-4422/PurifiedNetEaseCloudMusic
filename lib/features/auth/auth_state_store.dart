@@ -21,7 +21,7 @@ class AuthStateStore {
     if (!_hasLoginFlag) {
       return false;
     }
-    final raw = _keyValueStore.get(userInfoSp);
+    final raw = _keyValueStore.get(userSessionSp);
     if (raw is! String || raw.isEmpty) {
       return false;
     }

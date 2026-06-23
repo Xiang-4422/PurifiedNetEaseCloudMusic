@@ -16,7 +16,7 @@ class UserSessionStore {
 
   /// 读取本地用户 session 快照。
   UserSessionData? loadSession() {
-    final raw = _keyValueStore.get(userInfoSp);
+    final raw = _keyValueStore.get(userSessionSp);
     if (raw is! String || raw.isEmpty) {
       return null;
     }
@@ -34,11 +34,11 @@ class UserSessionStore {
 
   /// 保存本地用户 session 快照。
   Future<void> saveSession(UserSessionData info) {
-    return _keyValueStore.put(userInfoSp, jsonEncode(info.toJson()));
+    return _keyValueStore.put(userSessionSp, jsonEncode(info.toJson()));
   }
 
   /// 清除本地用户 session 快照。
   Future<void> clearSession() {
-    return _keyValueStore.delete(userInfoSp);
+    return _keyValueStore.delete(userSessionSp);
   }
 }

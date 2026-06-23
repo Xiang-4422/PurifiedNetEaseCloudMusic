@@ -12,7 +12,7 @@ void main() {
       expect(store.hasCachedSession, isFalse);
 
       await store.saveLoginFlag(true);
-      keyValueStore.values[userInfoSp] = '{"userId":"1"}';
+      keyValueStore.values[userSessionSp] = '{"userId":"1"}';
 
       expect(store.hasCachedSession, isTrue);
       expect(keyValueStore.values[isLoginSP], isTrue);
@@ -22,11 +22,11 @@ void main() {
       final keyValueStore = _MemoryKeyValueStore();
       final store = AuthStateStore(keyValueStore: keyValueStore);
 
-      keyValueStore.values[userInfoSp] = '{"userId":"1"}';
+      keyValueStore.values[userSessionSp] = '{"userId":"1"}';
       expect(store.hasCachedSession, isFalse);
 
       await store.saveLoginFlag(true);
-      keyValueStore.values[userInfoSp] = '';
+      keyValueStore.values[userSessionSp] = '';
       expect(store.hasCachedSession, isFalse);
     });
 
@@ -35,16 +35,16 @@ void main() {
       final store = AuthStateStore(keyValueStore: keyValueStore);
       await store.saveLoginFlag(true);
 
-      keyValueStore.values[userInfoSp] = 'not-json';
+      keyValueStore.values[userSessionSp] = 'not-json';
       expect(store.hasCachedSession, isFalse);
 
-      keyValueStore.values[userInfoSp] = '[]';
+      keyValueStore.values[userSessionSp] = '[]';
       expect(store.hasCachedSession, isFalse);
 
-      keyValueStore.values[userInfoSp] = '{"nickname":"User"}';
+      keyValueStore.values[userSessionSp] = '{"nickname":"User"}';
       expect(store.hasCachedSession, isFalse);
 
-      keyValueStore.values[userInfoSp] = 1;
+      keyValueStore.values[userSessionSp] = 1;
       expect(store.hasCachedSession, isFalse);
     });
   });

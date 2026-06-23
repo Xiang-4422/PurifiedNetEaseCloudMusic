@@ -1735,6 +1735,12 @@ void main() {
       final keysFile = File('${projectRoot.path}/lib/data/app_storage/app_cache_keys.dart');
       final content = keysFile.readAsStringSync();
       const forbiddenKeys = {
+        'leftImageSp': 'LEFT_IMAGE',
+        'topLyricSp': 'TOP_LYRIC',
+        'noFirstOpen': 'NO_FIRST_OPEN',
+        'unblockSp': 'UNBLOCK',
+        'unblockVipSp': 'UNBLOCK_VIP',
+        'userInfoSp': '<legacy_user_info_variable>',
         'recoPlayListsSp': 'RECO_PLAY_LISTS',
         'userPlayListsSp': 'USER_PLAY_LISTS',
         'likedSongIdsSp': 'LIKED_SONG_IDS',

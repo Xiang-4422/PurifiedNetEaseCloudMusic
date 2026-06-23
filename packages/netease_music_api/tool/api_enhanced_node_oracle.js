@@ -3092,6 +3092,14 @@ const fixtures = [
     ],
   },
   {
+    module: 'scrobble_v1',
+    query: {
+      id: '100',
+      time: 30,
+    },
+    allowNoRequest: true,
+  },
+  {
     module: 'cloud_import',
     query: {
       md5: 'abc',

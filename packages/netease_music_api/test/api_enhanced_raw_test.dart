@@ -292,8 +292,8 @@ void main() {
       expect(songUrlMatchStatus['hasNodeOracleFixture'], isFalse);
       expect(songUrlMatchStatus['limitedReason'], contains('unblockmusic-utils'));
       final scrobbleV1Status = _jsonMap(specialStatusByModule['scrobble_v1']);
-      expect(_stringSet(scrobbleV1Status['coverage']), {'limited'});
-      expect(scrobbleV1Status['hasNodeOracleFixture'], isFalse);
+      expect(_stringSet(scrobbleV1Status['coverage']), containsAll({'nodeOracle', 'limited'}));
+      expect(scrobbleV1Status['hasNodeOracleFixture'], isTrue);
       expect(scrobbleV1Status['limitedReason'], contains('NCBL'));
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
       final differenceReasons = {
@@ -4796,6 +4796,7 @@ Future<dynamic> _dartResultForNoRequestOracleFixture(
       );
       return api.requestModule(module, query);
     case 'song_url_ncmget':
+    case 'scrobble_v1':
       return api.requestModule(module, query);
     default:
       fail('No no-request oracle result configured for $module');

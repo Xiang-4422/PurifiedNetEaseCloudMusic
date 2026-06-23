@@ -18,6 +18,7 @@
     "register_xeapikey",
     "related_playlist",
     "scrobble",
+    "scrobble_v1",
     "song_url_ncmget",
     "song_url_v1",
     "song_url_v1_302",

@@ -169,7 +169,11 @@ void registerFeatureControllers() {
     fenix: true,
   );
   Get.lazyPut(
-    () => SearchPanelController(repository: Get.find<SearchRepository>()),
+    () => SearchPanelController(
+      repository: Get.find<SearchRepository>(),
+      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
+    ),
     fenix: true,
   );
   Get.lazyPut(() => ShellController(), fenix: true);

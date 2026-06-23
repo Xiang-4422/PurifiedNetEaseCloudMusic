@@ -5,8 +5,6 @@ import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_chrome_widgets.dart';
 import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_content_widgets.dart';
@@ -135,10 +133,6 @@ class _TopPanelViewState extends State<TopPanelView> {
   }
 
   void _searchCurrentKeyword(String keyword) {
-    TopPanelView._searchPanelController.search(
-      keyword,
-      likedSongIds: UserLibraryController.to.likedSongIds.toList(),
-      currentUserId: UserSessionController.to.userInfo.value.userId,
-    );
+    TopPanelView._searchPanelController.search(keyword);
   }
 }

@@ -18,16 +18,8 @@ void main() {
       final controller = SearchPanelController(repository: repository);
       addTearDown(controller.dispose);
 
-      final firstSearch = controller.search(
-        'old',
-        likedSongIds: const [],
-        currentUserId: '',
-      );
-      final latestSearch = controller.search(
-        'latest',
-        likedSongIds: const [],
-        currentUserId: '',
-      );
+      final firstSearch = controller.search('old');
+      final latestSearch = controller.search('latest');
 
       repository.complete('latest', _resultFor('latest'));
       await latestSearch;
@@ -43,16 +35,8 @@ void main() {
       final controller = SearchPanelController(repository: repository);
       addTearDown(controller.dispose);
 
-      final firstSearch = controller.search(
-        'pending',
-        likedSongIds: const [],
-        currentUserId: '',
-      );
-      await controller.search(
-        '',
-        likedSongIds: const [],
-        currentUserId: '',
-      );
+      final firstSearch = controller.search('pending');
+      await controller.search('');
 
       repository.complete('pending', _resultFor('pending'));
       await firstSearch;
@@ -61,14 +45,14 @@ void main() {
 
     test('reruns same keyword when current user changes and drops scoped results', () async {
       final repository = _FakeSearchRepository();
-      final controller = SearchPanelController(repository: repository);
+      var currentUserId = 'user-1';
+      final controller = SearchPanelController(
+        repository: repository,
+        currentUserId: () => currentUserId,
+      );
       addTearDown(controller.dispose);
 
-      final firstSearch = controller.search(
-        'keyword',
-        likedSongIds: const [],
-        currentUserId: 'user-1',
-      );
+      final firstSearch = controller.search('keyword');
       await _flushAsync();
       repository.complete(
         'keyword',
@@ -83,11 +67,8 @@ void main() {
 
       expect(controller.playlistState.value.data?.single.title, 'playlist-user-1');
 
-      final secondSearch = controller.search(
-        'keyword',
-        likedSongIds: const [],
-        currentUserId: 'user-2',
-      );
+      currentUserId = 'user-2';
+      final secondSearch = controller.search('keyword');
       await _flushAsync();
 
       expect(repository.requestedPlaylistUserIds, ['user-1', 'user-2']);
@@ -110,23 +91,21 @@ void main() {
 
     test('reruns same keyword when liked song ids change', () async {
       final repository = _FakeSearchRepository();
-      final controller = SearchPanelController(repository: repository);
+      var likedSongIds = <int>[101];
+      final controller = SearchPanelController(
+        repository: repository,
+        likedSongIds: () => likedSongIds,
+        currentUserId: () => 'user-1',
+      );
       addTearDown(controller.dispose);
 
-      final firstSearch = controller.search(
-        'keyword',
-        likedSongIds: const [101],
-        currentUserId: 'user-1',
-      );
+      final firstSearch = controller.search('keyword');
       await _flushAsync();
       repository.complete('keyword', _resultFor('first'));
       await firstSearch;
 
-      final secondSearch = controller.search(
-        'keyword',
-        likedSongIds: const [202],
-        currentUserId: 'user-1',
-      );
+      likedSongIds = <int>[202];
+      final secondSearch = controller.search('keyword');
       await _flushAsync();
 
       expect(repository.requestedLikedSongIds, [
@@ -144,23 +123,21 @@ void main() {
 
     test('does not rerun same keyword when liked song ids only reorder', () async {
       final repository = _FakeSearchRepository();
-      final controller = SearchPanelController(repository: repository);
+      var likedSongIds = <int>[202, 101];
+      final controller = SearchPanelController(
+        repository: repository,
+        likedSongIds: () => likedSongIds,
+        currentUserId: () => 'user-1',
+      );
       addTearDown(controller.dispose);
 
-      final firstSearch = controller.search(
-        'keyword',
-        likedSongIds: const [202, 101],
-        currentUserId: 'user-1',
-      );
+      final firstSearch = controller.search('keyword');
       await _flushAsync();
       repository.complete('keyword', _resultFor('first'));
       await firstSearch;
 
-      await controller.search(
-        'keyword',
-        likedSongIds: const [101, 202],
-        currentUserId: 'user-1',
-      );
+      likedSongIds = <int>[101, 202];
+      await controller.search('keyword');
 
       expect(repository.requestedLikedSongIds, [
         [202, 101],
@@ -173,11 +150,7 @@ void main() {
       final controller = SearchPanelController(repository: repository);
       addTearDown(controller.dispose);
 
-      final search = controller.search(
-        'keyword',
-        likedSongIds: const [],
-        currentUserId: '42',
-      );
+      final search = controller.search('keyword');
 
       repository.completeSongs('keyword', [_queueItem('song')]);
       await Future<void>.delayed(Duration.zero);
@@ -201,11 +174,7 @@ void main() {
       final repository = _FakeSearchRepository();
       final controller = SearchPanelController(repository: repository);
 
-      final search = controller.search(
-        'keyword',
-        likedSongIds: const [],
-        currentUserId: '42',
-      );
+      final search = controller.search('keyword');
       await _flushAsync();
 
       controller.dispose();
@@ -216,14 +185,14 @@ void main() {
 
     test('cancels pending search and allows same keyword to rerun', () async {
       final repository = _FakeSearchRepository();
-      final controller = SearchPanelController(repository: repository);
+      final controller = SearchPanelController(
+        repository: repository,
+        likedSongIds: () => const [101],
+        currentUserId: () => 'user-1',
+      );
       addTearDown(controller.dispose);
 
-      final pendingSearch = controller.search(
-        'keyword',
-        likedSongIds: const [101],
-        currentUserId: 'user-1',
-      );
+      final pendingSearch = controller.search('keyword');
       await _flushAsync();
 
       controller.cancelPendingRequests();
@@ -233,11 +202,7 @@ void main() {
       expect(controller.songState.value.status, LoadStatus.loading);
       expect(controller.songState.value.data, isNull);
 
-      final rerun = controller.search(
-        'keyword',
-        likedSongIds: const [101],
-        currentUserId: 'user-1',
-      );
+      final rerun = controller.search('keyword');
       await _flushAsync();
       repository.complete('keyword', _resultFor('fresh'));
       await rerun;
@@ -255,11 +220,7 @@ void main() {
       final controller = SearchPanelController(repository: repository);
       addTearDown(controller.dispose);
 
-      final initialSearch = controller.search(
-        'keyword',
-        likedSongIds: const [],
-        currentUserId: '42',
-      );
+      final initialSearch = controller.search('keyword');
       repository.complete(
         'keyword',
         SearchResultState(
@@ -273,8 +234,6 @@ void main() {
 
       final refresh = controller.search(
         'keyword',
-        likedSongIds: const [],
-        currentUserId: '42',
         force: true,
       );
       await _flushAsync();

@@ -962,6 +962,40 @@ void main() {
       );
     });
 
+    test('top search panel keeps search context behind controller boundary', () {
+      final topPanelFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/search/top_panel_view.dart',
+      );
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/search/search_panel_controller.dart',
+      );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
+      final topPanel = topPanelFile.readAsStringSync();
+      final controller = controllerFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
+      final violations = <String>[
+        if (topPanel.contains('UserLibraryController')) '${_relativePath(topPanelFile)} reads user library directly',
+        if (topPanel.contains('UserSessionController')) '${_relativePath(topPanelFile)} reads user session directly',
+        if (topPanel.contains('likedSongIds:')) '${_relativePath(topPanelFile)} passes liked ids from UI',
+        if (topPanel.contains('currentUserId:')) '${_relativePath(topPanelFile)} passes current user from UI',
+        if (!topPanel.contains('TopPanelView._searchPanelController.search(keyword)')) '${_relativePath(topPanelFile)} does not search through controller keyword boundary',
+        if (!controller.contains('List<int> Function()? likedSongIds')) 'search controller does not accept liked ids provider',
+        if (!controller.contains('String Function()? currentUserId')) 'search controller does not accept current user provider',
+        if (controller.contains('required List<int> likedSongIds')) 'search method still requires liked ids per call',
+        if (controller.contains('required String currentUserId')) 'search method still requires current user per call',
+        if (!bootstrap.contains('likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList()')) 'feature bootstrap does not inject liked ids provider',
+        if (!bootstrap.contains('currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId')) 'feature bootstrap does not inject current user provider',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '顶部搜索 Widget 只提交关键词；账号和喜欢歌曲上下文必须由 SearchPanelController 的注入 provider 读取，避免 UI 拼搜索请求上下文。',
+      );
+    });
+
     test('recent playback stays backed by confirmed history', () {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/playback/recent_playback_controller.dart',

@@ -35,9 +35,17 @@ class SearchResultState {
 /// build 阶段继续构造请求描述，也能避免同一面板反复触发首屏请求。
 class SearchPanelController {
   /// 创建搜索面板控制器。
-  SearchPanelController({required SearchRepository repository}) : _repository = repository;
+  SearchPanelController({
+    required SearchRepository repository,
+    List<int> Function()? likedSongIds,
+    String Function()? currentUserId,
+  })  : _repository = repository,
+        _likedSongIds = likedSongIds ?? _emptyLikedSongIds,
+        _currentUserIdProvider = currentUserId ?? _emptyCurrentUserId;
 
   final SearchRepository _repository;
+  final List<int> Function() _likedSongIds;
+  final String Function() _currentUserIdProvider;
 
   /// 热搜关键词缓存 TTL。
   static const Duration hotKeywordTtl = Duration(minutes: 30);
@@ -101,14 +109,14 @@ class SearchPanelController {
   /// 搜索所有结果类型，空关键词会重置结果状态。
   Future<void> search(
     String keyword, {
-    required List<int> likedSongIds,
-    required String currentUserId,
     bool force = false,
   }) async {
     if (_disposed) {
       return;
     }
     final normalizedKeyword = keyword.trim();
+    final likedSongIds = List<int>.of(_likedSongIds());
+    final currentUserId = _currentUserIdProvider();
     final likedSongIdsSignature = _likedSongIdsSignature(likedSongIds);
     if (normalizedKeyword.isEmpty) {
       _currentKeyword = '';
@@ -381,4 +389,12 @@ class SearchPanelController {
 String _likedSongIdsSignature(List<int> likedSongIds) {
   final normalizedIds = likedSongIds.toSet().toList()..sort();
   return normalizedIds.join(',');
+}
+
+List<int> _emptyLikedSongIds() {
+  return const <int>[];
+}
+
+String _emptyCurrentUserId() {
+  return '';
 }

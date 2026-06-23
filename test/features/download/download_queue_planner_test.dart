@@ -104,6 +104,40 @@ void main() {
       expect(downloadedTrackIds, ['managed']);
     });
 
+    test('queues completed task again when resource index is missing', () async {
+      final taskDataSource = _FakeDownloadTaskDataSource(
+        tasks: [
+          _task('completed', DownloadTaskStatus.completed),
+        ],
+      );
+      final planner = DownloadQueuePlanner(
+        musicDataRepository: _FakeMusicDataRepository({
+          'completed': _trackWithResources('completed'),
+        }),
+        taskDataSource: taskDataSource,
+      );
+      final downloadedTrackIds = <String>[];
+
+      await planner.queueTracks(
+        ['completed'],
+        downloadTrack: (
+          trackId, {
+          bool preferHighQuality = true,
+        }) async {
+          downloadedTrackIds.add(trackId);
+          return null;
+        },
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(taskDataSource.getTasksCallCount, 1);
+      expect(taskDataSource.requestedStatuses, {
+        DownloadTaskStatus.queued,
+        DownloadTaskStatus.downloading,
+      });
+      expect(downloadedTrackIds, ['completed']);
+    });
+
     test('reports background download failure without leaking it', () async {
       final downloadError = StateError('download failed');
       final reported = Completer<void>();

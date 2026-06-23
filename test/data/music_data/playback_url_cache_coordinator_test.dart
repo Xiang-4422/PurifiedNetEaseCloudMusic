@@ -120,6 +120,47 @@ void main() {
       expect(loadCount, 2);
     });
 
+    test('does not cache failed remote loads and retries next resolve', () async {
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        if (loadCount == 1) {
+          throw StateError('remote expired');
+        }
+        return 'https://audio.test/1-recovered.mp3';
+      }
+
+      await expectLater(
+        coordinator.resolve(
+          '1',
+          qualityLevel: 'standard',
+          forceRefresh: false,
+          load: load,
+        ),
+        throwsA(isA<StateError>()),
+      );
+      final recovered = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+      final cached = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+
+      expect(recovered, 'https://audio.test/1-recovered.mp3');
+      expect(cached, recovered);
+      expect(loadCount, 2);
+    });
+
     test('prefers local resource over cached and in-flight remote url', () async {
       String? localUrl;
       var loadCount = 0;

@@ -123,8 +123,9 @@ void main() {
     });
 
     test('returns empty source when local import file no longer exists', () async {
+      final repository = _FakePlaybackRepository();
       final resolver = PlaybackSourceResolver(
-        repository: _FakePlaybackRepository(),
+        repository: repository,
       );
 
       final source = await resolver.resolve(
@@ -138,6 +139,7 @@ void main() {
 
       expect(source.kind, PlaybackResolvedSourceKind.empty);
       expect(source.isEmpty, isTrue);
+      expect(repository.trackResourceLookups, ['netease:1']);
     });
 
     test('falls back to remote url when downloaded audio file no longer exists', () async {
@@ -158,6 +160,7 @@ void main() {
       expect(source.url, 'https://example.com/fallback.mp3');
       expect(repository.preferHighQualityValues, [true]);
       expect(repository.forceRefreshValues, [false]);
+      expect(repository.trackResourceLookups, ['netease:1']);
     });
 
     test('falls back to remote url when netease cache file no longer exists', () async {
@@ -178,6 +181,7 @@ void main() {
       expect(source.url, 'https://example.com/cache-fallback.mp3');
       expect(repository.preferHighQualityValues, [false]);
       expect(repository.forceRefreshValues, [false]);
+      expect(repository.trackResourceLookups, ['netease:1']);
     });
 
     test('returns empty source when local import is marked as netease cache but file is missing', () async {
@@ -309,6 +313,7 @@ class _FakePlaybackRepository implements PlaybackRepository {
   final String playbackUrl;
   final List<bool> forceRefreshValues = <bool>[];
   final List<bool> preferHighQualityValues = <bool>[];
+  final List<String> trackResourceLookups = <String>[];
 
   @override
   Stream<void> get recentPlaybackUpdates => const Stream<void>.empty();
@@ -336,6 +341,7 @@ class _FakePlaybackRepository implements PlaybackRepository {
 
   @override
   Future<TrackWithResources?> getTrackWithResources(String trackId) async {
+    trackResourceLookups.add(trackId);
     return null;
   }
 

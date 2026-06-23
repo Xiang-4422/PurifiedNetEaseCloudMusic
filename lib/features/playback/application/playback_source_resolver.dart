@@ -21,7 +21,11 @@ class PlaybackSourceResolver {
   }) async {
     if (item.mediaType == MediaType.local) {
       final source = _resolveLocalFileSource(item);
-      if (!source.isEmpty || item.sourceType == SourceType.local) {
+      if (!source.isEmpty) {
+        return source;
+      }
+      await _pruneMissingIndexedAudioResource(item);
+      if (item.sourceType == SourceType.local) {
         return source;
       }
       return resolveRemote(item, preferHighQuality: preferHighQuality);
@@ -29,7 +33,11 @@ class PlaybackSourceResolver {
 
     if (item.mediaType == MediaType.neteaseCache) {
       final source = _resolveNeteaseCacheSource(item.playbackUrl ?? '');
-      if (!source.isEmpty || item.sourceType == SourceType.local) {
+      if (!source.isEmpty) {
+        return source;
+      }
+      await _pruneMissingIndexedAudioResource(item);
+      if (item.sourceType == SourceType.local) {
         return source;
       }
       return resolveRemote(item, preferHighQuality: preferHighQuality);
@@ -102,5 +110,14 @@ class PlaybackSourceResolver {
       fileType: isEncryptedCache ? localPath.replaceAll('.uc!', '').split('.').last : '',
       markAsCached: true,
     );
+  }
+
+  Future<void> _pruneMissingIndexedAudioResource(PlaybackQueueItem item) async {
+    if (item.id.isEmpty) {
+      return;
+    }
+    try {
+      await _repository.getTrackWithResources(item.id);
+    } catch (_) {}
   }
 }

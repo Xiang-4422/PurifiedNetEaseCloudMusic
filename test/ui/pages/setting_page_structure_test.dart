@@ -28,6 +28,7 @@ void main() {
     expect(appearanceIndex, lessThan(debugIndex));
     expect(source, contains('SettingsSectionsList('));
     expect(source, contains('settingsController: _settingsController'));
+    expect(source, contains('playerController: _playerController'));
     expect(source, contains('settings_sections.dart'));
     expect(source, isNot(contains("title: '账号',")));
     expect(source, isNot(contains("Header('UI设置')")));
@@ -42,8 +43,11 @@ void main() {
 
     expect(source, contains('SettingsSectionsList('));
     expect(source, contains('Get.find<SettingsController>()'));
+    expect(source, contains('Get.find<PlayerController>()'));
     expect(source, contains('settingsController: _settingsController'));
+    expect(source, contains('playerController: _playerController'));
     expect(sectionsSource, contains('required this.settingsController'));
+    expect(sectionsSource, contains('required this.playerController'));
     expect(sectionsSource, contains('settingsController.isHighSoundQualityOpen.value'));
     expect(sectionsSource, contains('settingsController.toggleHighSoundQualityOpen()'));
     expect(sectionsSource, contains('settingsController.isGradientBackground.value'));
@@ -61,6 +65,26 @@ void main() {
     expect(sectionsSource, contains("title: '圆形专辑'"));
     expect(sectionsSource, contains("title: 'Lottie 动画预览'"));
     expect(sectionsSource, contains("title: 'CoverFlow Demo'"));
+    expect(sectionsSource, contains('playerController: playerController'));
+  });
+
+  test('setting page injects playback boundary into coverflow debug demo', () {
+    final source = File('lib/ui/pages/settings/setting_page.dart').readAsStringSync();
+    final sectionsSource = File(
+      'lib/ui/pages/settings/widgets/settings_sections.dart',
+    ).readAsStringSync();
+    final demoSource = File(
+      'lib/ui/pages/debug/coverflow_demo_page_view.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('Get.find<PlayerController>()'));
+    expect(source, contains('playerController: _playerController'));
+    expect(sectionsSource, contains('required this.playerController'));
+    expect(sectionsSource, contains('CoverFlowDemoPageView('));
+    expect(sectionsSource, contains('playerController: playerController'));
+    expect(demoSource, contains('required this.playerController'));
+    expect(demoSource, contains('widget.playerController'));
+    expect(demoSource, isNot(contains('PlayerController.to')));
   });
 
   test('setting page uses icons for all visible settings entries', () {

@@ -2,6 +2,7 @@ import 'package:bujuan/ui/services/dialog_service.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/ui/pages/settings/widgets/settings_sections.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class SettingPageView extends StatefulWidget {
 
 class _SettingPageViewState extends State<SettingPageView> {
   late final LocalMediaScanController _localMediaScanController = Get.find<LocalMediaScanController>();
+  late final PlayerController _playerController = Get.find<PlayerController>();
   late final SettingsController _settingsController = Get.find<SettingsController>();
 
   String version = '1.0.0';
@@ -90,6 +92,7 @@ class _SettingPageViewState extends State<SettingPageView> {
       children: [
         SettingsSectionsList(
           settingsController: _settingsController,
+          playerController: _playerController,
           onScanLocalMedia: _scanLocalMedia,
         ),
       ],

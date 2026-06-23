@@ -1,5 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/routing/router.dart';
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/ui/pages/debug/coverflow_demo_page_view.dart';
 import 'package:bujuan/ui/pages/download/download_task_page_view.dart';
@@ -15,11 +16,15 @@ class SettingsSectionsList extends StatelessWidget {
   const SettingsSectionsList({
     super.key,
     required this.settingsController,
+    required this.playerController,
     required this.onScanLocalMedia,
   });
 
   /// 设置控制器，提供音质和外观开关状态。
   final SettingsController settingsController;
+
+  /// 播放控制器，提供调试预览所需的当前播放队列。
+  final PlayerController playerController;
 
   /// 扫描本地音乐动作。
   final VoidCallback onScanLocalMedia;
@@ -158,7 +163,9 @@ class SettingsSectionsList extends StatelessWidget {
           subtitle: '使用当前播放列表的封面验证 CoverFlow 交互',
           onTap: () => Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute(
-              builder: (_) => const CoverFlowDemoPageView(),
+              builder: (_) => CoverFlowDemoPageView(
+                playerController: playerController,
+              ),
               fullscreenDialog: true,
             ),
           ),

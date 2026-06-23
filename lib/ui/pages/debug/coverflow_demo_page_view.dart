@@ -17,7 +17,13 @@ import 'package:get/get.dart';
 /// 3. 后续如果把它重新接回播放页，不需要再临时造假数据。
 class CoverFlowDemoPageView extends StatefulWidget {
   /// 创建 CoverFlow 组件验证页面。
-  const CoverFlowDemoPageView({super.key});
+  const CoverFlowDemoPageView({
+    super.key,
+    required this.playerController,
+  });
+
+  /// 播放控制器，提供当前播放队列和歌曲状态。
+  final PlayerController playerController;
 
   @override
   State<CoverFlowDemoPageView> createState() => _CoverFlowDemoPageViewState();
@@ -297,7 +303,7 @@ class _CoverFlowDemoPageViewState extends State<CoverFlowDemoPageView> {
 
   @override
   Widget build(BuildContext context) {
-    final playerController = PlayerController.to;
+    final playerController = widget.playerController;
     final screenSize = MediaQuery.sizeOf(context);
     final isLandscape = screenSize.width > screenSize.height;
     return Scaffold(

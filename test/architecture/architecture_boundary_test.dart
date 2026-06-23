@@ -1441,6 +1441,36 @@ void main() {
       );
     });
 
+    test('coverflow debug page receives playback boundary from settings page', () {
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',
+      );
+      final sectionsFile = File(
+        '${projectRoot.path}/lib/ui/pages/settings/widgets/settings_sections.dart',
+      );
+      final demoFile = File(
+        '${projectRoot.path}/lib/ui/pages/debug/coverflow_demo_page_view.dart',
+      );
+      final page = pageFile.readAsStringSync();
+      final sections = sectionsFile.readAsStringSync();
+      final demo = demoFile.readAsStringSync();
+      final violations = <String>[
+        if (!page.contains('final PlayerController _playerController = Get.find<PlayerController>()')) '${_relativePath(pageFile)} does not resolve playback controller at page boundary',
+        if (!page.contains('playerController: _playerController')) '${_relativePath(pageFile)} does not inject playback controller into setting sections',
+        if (!sections.contains('required this.playerController')) '${_relativePath(sectionsFile)} does not receive playback controller',
+        if (!sections.contains('playerController: playerController')) '${_relativePath(sectionsFile)} does not pass playback controller into CoverFlow demo',
+        if (!demo.contains('required this.playerController')) '${_relativePath(demoFile)} does not receive playback controller',
+        if (!demo.contains('widget.playerController')) '${_relativePath(demoFile)} does not read playback controller from widget boundary',
+        if (demo.contains('PlayerController.to')) '${_relativePath(demoFile)} reads playback controller globally',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'CoverFlow 调试页只能消费设置页边界注入的播放队列，不能在实验性 UI 内部读取全局容器。',
+      );
+    });
+
     test('user profile page creates controller through feature factory', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/user/user_setting_view.dart',

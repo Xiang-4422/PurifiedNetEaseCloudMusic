@@ -40,7 +40,7 @@ Future<List<String>> encodePlaybackQueueItemCacheList(
 }
 
 List<String> _encodePlaybackQueueItemCacheList(List<PlaybackQueueItem> items) {
-  return items.map((item) => jsonEncode(_playbackQueueItemToCacheJson(item))).toList();
+  return items.where((item) => _normalizedQueueItemId(item.id).isNotEmpty).map((item) => jsonEncode(_playbackQueueItemToCacheJson(item))).toList();
 }
 
 PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
@@ -52,7 +52,7 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
   );
   final playbackUrl = _restorablePlaybackUrl(json['playbackUrl']);
   return PlaybackQueueItem(
-    id: json['id'] as String? ?? '',
+    id: _normalizedQueueItemId(json['id'] as String? ?? ''),
     sourceId: json['sourceId'] as String? ?? '',
     sourceType: sourceType,
     title: json['title'] as String? ?? '',
@@ -81,7 +81,7 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
   return {
-    'id': item.id,
+    'id': _normalizedQueueItemId(item.id),
     'sourceId': item.sourceId,
     'sourceType': item.sourceType.name,
     'title': item.title,
@@ -106,6 +106,10 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
     ),
     'metadata': _customMetadata(item.metadata),
   };
+}
+
+String _normalizedQueueItemId(String id) {
+  return id.trim();
 }
 
 Map<String, dynamic> _customMetadata(Map<String, dynamic> metadata) {

@@ -663,6 +663,25 @@ void main() {
       );
     });
 
+    test('playback queue cache normalizes queue item ids', () {
+      final codecFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_queue_item_cache_codec.dart',
+      );
+      final content = codecFile.readAsStringSync();
+      final violations = <String>[
+        if (!content.contains('String _normalizedQueueItemId(String id)')) 'queue item cache codec does not define id normalization',
+        if (!content.contains(".where((item) => _normalizedQueueItemId(item.id).isNotEmpty)")) 'queue item cache codec can still persist blank item ids',
+        if (!content.contains("id: _normalizedQueueItemId(json['id'] as String? ?? '')")) 'queue item cache codec can restore raw item ids',
+        if (!content.contains("'id': _normalizedQueueItemId(item.id)")) 'queue item cache codec can write raw item ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放恢复队列缓存必须在 codec 边界规范化队列项 id，并跳过空白 id；空白队列项不能被持久化为 session 事实。',
+      );
+    });
+
     test('media item adapter does not persist remote playback urls', () {
       final adapterFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_queue_item_adapter.dart',

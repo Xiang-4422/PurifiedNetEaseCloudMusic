@@ -352,6 +352,34 @@ void main() {
       expect(decoded.single.metadata, isEmpty);
     });
 
+    test('cache codec normalizes queue item ids and skips blank ids', () async {
+      final encoded = await encodePlaybackQueueItemCacheList([
+        _queueItem(id: '  netease:1  '),
+        _queueItem(id: '   ', sourceId: 'blank'),
+      ]);
+
+      expect(encoded, hasLength(1));
+      final raw = jsonDecode(encoded.single) as Map<String, dynamic>;
+      expect(raw['id'], 'netease:1');
+
+      final legacyBlank = jsonEncode({
+        'id': '   ',
+        'sourceId': 'blank',
+        'title': 'Blank',
+      });
+      final legacySpaced = jsonEncode({
+        'id': '  netease:2  ',
+        'sourceId': '2',
+        'title': 'Spaced',
+      });
+      final decoded = await decodePlaybackQueueItemCacheList([
+        legacyBlank,
+        legacySpaced,
+      ]);
+
+      expect(decoded.map((item) => item.id), ['netease:2']);
+    });
+
     test('cache codec writes explicit fields only and drops legacy metadata fields', () async {
       final encoded = await encodePlaybackQueueItemCacheList([
         _queueItem(
@@ -599,6 +627,8 @@ void main() {
 }
 
 PlaybackQueueItem _queueItem({
+  String id = 'netease:1',
+  String sourceId = '1',
   String? albumId,
   SourceType sourceType = SourceType.netease,
   MediaType mediaType = MediaType.playlist,
@@ -609,8 +639,8 @@ PlaybackQueueItem _queueItem({
   Map<String, dynamic> metadata = const {},
 }) {
   return PlaybackQueueItem(
-    id: 'netease:1',
-    sourceId: '1',
+    id: id,
+    sourceId: sourceId,
     sourceType: sourceType,
     title: 'Track',
     albumTitle: 'Album',

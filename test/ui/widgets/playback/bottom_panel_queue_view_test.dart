@@ -17,6 +17,9 @@ void main() {
       expect(source, contains('required this.settingsController'));
       expect(source, isNot(contains('PlayerController.to')));
       expect(source, isNot(contains('SettingsController.to')));
+      expect(source, contains('const double _bottomPanelQueueCacheExtent = 480;'));
+      expect(source, contains('cacheExtent: _bottomPanelQueueCacheExtent'));
+      expect(source, contains('ListView.builder('));
     });
 
     test('builds artist display text with fallback', () {

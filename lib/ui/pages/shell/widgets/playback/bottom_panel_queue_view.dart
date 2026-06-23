@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 
 const _unknownQueueArtistText = '未知歌手';
 const _currentQueueItemColor = Colors.red;
+const double _bottomPanelQueueCacheExtent = 480;
 
 /// 底部播放面板中的当前播放队列视图。
 class BottomPanelQueueView extends GetView<ShellController> {
@@ -38,6 +39,7 @@ class BottomPanelQueueView extends GetView<ShellController> {
           child: Obx(
             () => ListView.builder(
               controller: controller.playListScrollController,
+              cacheExtent: _bottomPanelQueueCacheExtent,
               physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.symmetric(vertical: albumPadding),
               itemCount: playerController.queueState.length,

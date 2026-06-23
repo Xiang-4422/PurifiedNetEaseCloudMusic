@@ -136,6 +136,46 @@ void main() {
       expect(imageDirectory.existsSync(), isTrue);
     });
 
+    test('normalizes retained legacy file uri paths while clearing image cache', () async {
+      final imageDirectory = Directory('${supportDirectory.path}/zmusic/image-cache')..createSync(recursive: true);
+      final retainedImage = await _writeFile(
+        imageDirectory,
+        'downloaded with uri.jpg',
+        size: 10,
+      );
+      final orphanImage = await _writeFile(
+        imageDirectory,
+        'orphan.jpg',
+        size: 20,
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: 'netease:1',
+            kind: LocalResourceKind.artwork,
+            path: retainedImage.uri.replace(queryParameters: {'token': 'legacy'}).toString(),
+            sizeBytes: 10,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final service = CacheAnalysisService(
+        musicDataRepository: _ThrowingMusicDataRepository(),
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final result = await service.analyze();
+      final image = result.categories.singleWhere(
+        (category) => category.category == CacheCategory.image,
+      );
+      await service.clear(CacheCategory.image);
+
+      expect(image.sizeBytes, 20);
+      expect(image.fileCount, 1);
+      expect(retainedImage.existsSync(), isTrue);
+      expect(orphanImage.existsSync(), isFalse);
+    });
+
     test('counts only clearable artwork cache files', () async {
       final artworkDirectory = Directory('${supportDirectory.path}/zmusic/artwork-cache')..createSync(recursive: true);
       final clearableArtwork = await _writeFile(
@@ -385,6 +425,49 @@ void main() {
             trackId: 'netease:1',
             kind: LocalResourceKind.audio,
             path: retainedAudio.path,
+            sizeBytes: 10,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final service = CacheAnalysisService(
+        musicDataRepository: _ThrowingMusicDataRepository(),
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final result = await service.analyze();
+      final temporary = result.categories.singleWhere(
+        (category) => category.category == CacheCategory.temporary,
+      );
+      await service.clear(CacheCategory.temporary);
+
+      expect(temporary.sizeBytes, 20);
+      expect(temporary.fileCount, 1);
+      expect(retainedAudio.existsSync(), isTrue);
+      expect(orphanTemporary.existsSync(), isFalse);
+      expect(retainedDirectory.existsSync(), isTrue);
+      expect(orphanDirectory.existsSync(), isFalse);
+    });
+
+    test('normalizes retained legacy file uri paths while clearing temporary cache', () async {
+      final retainedDirectory = Directory('${temporaryDirectory.path}/retained')..createSync(recursive: true);
+      final orphanDirectory = Directory('${temporaryDirectory.path}/orphan')..createSync(recursive: true);
+      final retainedAudio = await _writeFile(
+        retainedDirectory,
+        'downloaded with uri.mp3',
+        size: 10,
+      );
+      final orphanTemporary = await _writeFile(
+        orphanDirectory,
+        'orphan.tmp',
+        size: 20,
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: 'netease:1',
+            kind: LocalResourceKind.audio,
+            path: retainedAudio.uri.replace(queryParameters: {'token': 'legacy'}).toString(),
             sizeBytes: 10,
             origin: TrackResourceOrigin.managedDownload,
           ),

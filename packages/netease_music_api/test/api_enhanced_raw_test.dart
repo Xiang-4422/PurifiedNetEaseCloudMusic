@@ -959,8 +959,11 @@ void main() {
       final report = _jsonMap(jsonDecode(result.stdout as String));
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
       final documentedDifferences = _documentedSdkDifferences(docs);
+      final differenceModules = sdkDifferences.map((difference) => difference['module'] as String).toList();
+      final sortedDifferenceModules = [...differenceModules]..sort();
 
-      expect(documentedDifferences.keys.toSet(), sdkDifferences.map((difference) => difference['module']).toSet());
+      expect(differenceModules, sortedDifferenceModules);
+      expect(documentedDifferences.keys.toSet(), differenceModules.toSet());
       for (final difference in sdkDifferences) {
         expect(difference['status'], 'limited', reason: difference['module'].toString());
         expect(difference['scope'], isA<String>(), reason: difference['module'].toString());

@@ -1262,8 +1262,9 @@ void main() {
       final controller = controllerFile.readAsStringSync();
       final stateSync = stateSyncFile.readAsStringSync();
       final violations = <String>[
-        if (!controls.contains('PlayerController.to.isPlaybackItemLiked(currentSong)')) 'playback controls do not read liked state from player boundary',
-        if (!controls.contains('PlayerController.to.toggleLikeFromPlayback(currentSong)')) 'playback controls do not use player like boundary',
+        if (!controls.contains('playerController.isPlaybackItemLiked(currentSong)')) 'playback controls do not read liked state from injected player boundary',
+        if (!controls.contains('playerController.toggleLikeFromPlayback(currentSong)')) 'playback controls do not use injected player like boundary',
+        if (controls.contains('PlayerController.to')) '${_relativePath(controlsFile)} reads player controller globally',
         if (controls.contains('UserLibraryController.to.likedSongIds')) '${_relativePath(controlsFile)} reads user library liked ids directly',
         if (controls.contains('toggleLikeStatus(currentSong)')) '${_relativePath(controlsFile)} toggles user library directly',
         if (controls.contains('updatePlaybackQueueItem(')) '${_relativePath(controlsFile)} updates playback queue directly after like toggle',
@@ -1293,8 +1294,9 @@ void main() {
       final stateSync = stateSyncFile.readAsStringSync();
       final preferencePort = preferencePortFile.readAsStringSync();
       final violations = <String>[
-        if (!controls.contains('PlayerController.to.isHighQualityPlaybackPreferred()')) 'playback controls do not read quality preference from player boundary',
-        if (!controls.contains('PlayerController.to.toggleHighQualityPlaybackPreference')) 'playback controls do not toggle quality preference through player boundary',
+        if (!controls.contains('playerController.isHighQualityPlaybackPreferred()')) 'playback controls do not read quality preference from injected player boundary',
+        if (!controls.contains('playerController.toggleHighQualityPlaybackPreference')) 'playback controls do not toggle quality preference through injected player boundary',
+        if (controls.contains('PlayerController.to')) '${_relativePath(controlsFile)} reads player controller globally',
         if (controls.contains('SettingsController.to.isHighSoundQualityOpen')) '${_relativePath(controlsFile)} reads high quality setting directly',
         if (controls.contains('SettingsController.to.toggleHighSoundQualityOpen')) '${_relativePath(controlsFile)} toggles high quality setting directly',
         if (!stateSync.contains('bool isHighQualityPlaybackPreferred()')) 'player state sync does not expose quality preference read boundary',

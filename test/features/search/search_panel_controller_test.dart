@@ -9,6 +9,7 @@ import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/search/search_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -190,6 +191,44 @@ void main() {
       expect(controller.playlistState.value.data?.single.title, 'playlist');
       expect(controller.albumState.value.data?.single.title, 'album');
       expect(controller.artistState.value.data?.single.name, 'artist');
+    });
+
+    test('logs first completed category even when search result is empty', () async {
+      final debugLogs = <String>[];
+      final previousDebugPrint = debugPrint;
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) {
+          debugLogs.add(message);
+        }
+      };
+      addTearDown(() {
+        debugPrint = previousDebugPrint;
+      });
+
+      final repository = _FakeSearchRepository();
+      final controller = _buildController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final search = controller.search('keyword');
+      repository.completeSongs('keyword', const []);
+      await _flushAsync();
+
+      expect(controller.songState.value.status, LoadStatus.empty);
+      final metricLogs = debugLogs.where((log) => log.contains('search.firstResults.total')).toList();
+      expect(metricLogs, hasLength(1));
+      expect(
+        metricLogs.single,
+        allOf(
+          contains('category=songs'),
+          contains('result=empty'),
+          contains('count=0'),
+        ),
+      );
+
+      repository.completePlaylists('keyword', const []);
+      repository.completeAlbums('keyword', const []);
+      repository.completeArtists('keyword', const []);
+      await search;
     });
 
     test('ignores search results after dispose', () async {

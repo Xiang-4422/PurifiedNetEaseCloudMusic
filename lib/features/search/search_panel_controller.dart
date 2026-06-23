@@ -159,7 +159,7 @@ class SearchPanelController {
       required VoidCallback apply,
       required String category,
       required int count,
-      required bool logAsFirstResult,
+      required LoadStatus status,
     }) {
       if (!_isCurrentSearch(
         generation,
@@ -170,14 +170,14 @@ class SearchPanelController {
         return;
       }
       apply();
-      if (loggedFirstResult || !logAsFirstResult) {
+      if (loggedFirstResult) {
         return;
       }
       loggedFirstResult = true;
       PerformanceLogger.elapsedMetric(
         AppPerformanceMetrics.searchFirstResults,
         stopwatch,
-        details: 'category=$category keywordLength=${normalizedKeyword.length} count=$count',
+        details: 'category=$category result=${status.name} keywordLength=${normalizedKeyword.length} count=$count',
       );
     }
 
@@ -191,7 +191,7 @@ class SearchPanelController {
           apply: () => songState.value = state,
           category: 'songs',
           count: state.data?.length ?? 0,
-          logAsFirstResult: state.status == LoadStatus.data,
+          status: state.status,
         );
       }),
       _loadPlaylists(
@@ -203,7 +203,7 @@ class SearchPanelController {
           apply: () => playlistState.value = state,
           category: 'playlists',
           count: state.data?.length ?? 0,
-          logAsFirstResult: state.status == LoadStatus.data,
+          status: state.status,
         );
       }),
       _loadAlbums(
@@ -214,7 +214,7 @@ class SearchPanelController {
           apply: () => albumState.value = state,
           category: 'albums',
           count: state.data?.length ?? 0,
-          logAsFirstResult: state.status == LoadStatus.data,
+          status: state.status,
         );
       }),
       _loadArtists(
@@ -225,7 +225,7 @@ class SearchPanelController {
           apply: () => artistState.value = state,
           category: 'artists',
           count: state.data?.length ?? 0,
-          logAsFirstResult: state.status == LoadStatus.data,
+          status: state.status,
         );
       }),
     ]);

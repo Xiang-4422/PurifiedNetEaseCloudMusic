@@ -34,6 +34,7 @@ Regenerate the upstream module manifest after updating `third_party/api-enhanced
 node packages/netease_music_api/tool/generate_api_enhanced_modules.js
 node packages/netease_music_api/tool/generate_api_enhanced_modules.js --check
 node packages/netease_music_api/tool/api_enhanced_coverage_report.js
+node packages/netease_music_api/tool/api_enhanced_coverage_report.js --json
 ```
 
 The generator formats generated Dart files before writing them back and records
@@ -46,7 +47,8 @@ limited. It also reports the tracked submodule commit, dirty state, upstream
 module file count, generated manifest upstream version/commit, and generated
 manifest differences so upstream refreshes are auditable from one command.
 Runtime option limitations, such as unsupported PAC proxy URLs, are also
-included in `sdkDifferences`.
+included in `sdkDifferences`. Use `--json` when an automation or follow-up
+goal needs the full machine-readable report.
 
 Upstream protocol reference is tracked in the repository submodule:
 

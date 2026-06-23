@@ -30,6 +30,22 @@ void main() {
       expect(playbackService.sourceSwitches, isEmpty);
     });
 
+    test('normalizes queue item ids before replacing queue state', () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+
+      await queueService.replaceQueue(
+        [_item('   '), _item(' 1 '), _item('2')],
+        1,
+        playlistName: 'Queue',
+      );
+
+      expect(queueService.state.originalQueue.map((item) => item.id), ['1', '2']);
+      expect(queueService.state.activeQueue.map((item) => item.id), ['1', '2']);
+      expect(queueService.state.selectedItem.id, '1');
+      expect(playbackService.notificationQueue.map((item) => item.id), ['1', '2']);
+    });
+
     test('keeps selected item mapped after shuffle mode rebuilds active queue', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
@@ -71,6 +87,27 @@ void main() {
       expect(playbackService.sourceSwitches, isEmpty);
     });
 
+    test('normalizes restored queue item ids before rebuilding queue facts', () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+
+      await queueService.restoreFromData(
+        PlaybackRestoreData(
+          playbackMode: PlaybackMode.playlist,
+          repeatMode: PlaybackRepeatMode.all,
+          queue: [_item(' 1 '), _item('   '), _item(' 2 ')],
+          index: 2,
+          playlistName: 'Restored',
+          playlistHeader: 'Header',
+          position: const Duration(seconds: 42),
+        ),
+      );
+
+      expect(queueService.state.originalQueue.map((item) => item.id), ['1', '2']);
+      expect(queueService.state.selectedItem.id, '2');
+      expect(playbackService.pendingRestoreMediaItemId, '2');
+    });
+
     test('updates queue item in both original and active queues', () async {
       final playbackService = _FakePlaybackService();
       final queueService = _queueService(playbackService);
@@ -90,6 +127,42 @@ void main() {
         queueService.state.activeQueue.firstWhere((item) => item.id == '2').title,
         'Updated',
       );
+    });
+
+    test('normalizes appended queue item ids and ignores blank or duplicate ids', () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+      await queueService.replaceQueue(
+        [_item('1')],
+        0,
+        playlistName: 'Queue',
+      );
+
+      await queueService.appendQueueItems(
+        [_item(' 1 ', title: 'Duplicate'), _item('   '), _item(' 2 ')],
+        currentSongId: ' 1 ',
+      );
+
+      expect(queueService.state.originalQueue.map((item) => item.id), ['1', '2']);
+      expect(queueService.state.selectedItem.id, '1');
+      expect(playbackService.notificationQueue.map((item) => item.id), ['1', '2']);
+    });
+
+    test('normalizes update and confirmed queue item ids', () async {
+      final playbackService = _FakePlaybackService();
+      final queueService = _queueService(playbackService);
+      await queueService.replaceQueue(
+        [_item('1'), _item('2')],
+        0,
+        playlistName: 'Queue',
+      );
+
+      await queueService.updateQueueItem(_item(' 2 ', title: 'Updated'));
+      await queueService.markConfirmed(item: _item(' 2 '), index: 0);
+
+      expect(queueService.state.originalQueue.last.title, 'Updated');
+      expect(queueService.state.confirmedIndex, 1);
+      expect(queueService.state.confirmedItem.id, '2');
     });
 
     test('relocates confirmed item when caller passes stale index', () async {

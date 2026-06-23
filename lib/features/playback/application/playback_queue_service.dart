@@ -43,17 +43,19 @@ class PlaybackQueueService {
     String playlistHeader = '',
     bool needStore = true,
   }) async {
-    final selectedOriginalIndex = _clampIndex(index, queue.length);
-    final selectedItem = selectedOriginalIndex >= 0 ? queue[selectedOriginalIndex] : const PlaybackQueueItem.empty();
+    final normalizedQueue = _normalizedQueueItems(queue);
+    final requestedItemId = _requestedItemId(queue, index);
+    final selectedOriginalIndex = requestedItemId.isNotEmpty ? _indexOfItem(normalizedQueue, requestedItemId) : _clampIndex(index, normalizedQueue.length);
+    final selectedItem = selectedOriginalIndex >= 0 ? normalizedQueue[selectedOriginalIndex] : const PlaybackQueueItem.empty();
     final activeQueue = _buildActiveQueue(
-      originalQueue: queue,
+      originalQueue: normalizedQueue,
       repeatMode: _state.repeatMode,
       orderMode: _state.orderMode,
       playbackMode: _state.playbackMode,
     );
     final selectedIndex = _indexOfItem(activeQueue, selectedItem.id);
     final nextState = _state.copyWith(
-      originalQueue: List<PlaybackQueueItem>.unmodifiable(queue),
+      originalQueue: List<PlaybackQueueItem>.unmodifiable(normalizedQueue),
       activeQueue: List<PlaybackQueueItem>.unmodifiable(activeQueue),
       selectedIndex: selectedIndex,
       confirmedIndex: _confirmedIndexAfterQueueChange(
@@ -247,11 +249,12 @@ class PlaybackQueueService {
     int maxQueueLength = 200,
     int retainQueueLength = 150,
   }) async {
-    if (incomingSongs.isEmpty) {
+    final normalizedIncomingSongs = _normalizedQueueItems(incomingSongs);
+    if (normalizedIncomingSongs.isEmpty) {
       return _state;
     }
-    final existingIds = _state.originalQueue.map((item) => item.id).toSet();
-    final filteredSongs = incomingSongs.where((item) => !existingIds.contains(item.id)).toList(growable: false);
+    final existingIds = _state.originalQueue.map((item) => _normalizedQueueItemId(item.id)).toSet();
+    final filteredSongs = normalizedIncomingSongs.where((item) => !existingIds.contains(item.id)).toList(growable: false);
     if (filteredSongs.isEmpty) {
       return _state;
     }
@@ -260,7 +263,8 @@ class PlaybackQueueService {
     if (combined.length > maxQueueLength) {
       combined.removeRange(0, combined.length - retainQueueLength);
     }
-    final selectedId = _state.selectedItem.id.isNotEmpty ? _state.selectedItem.id : currentSongId;
+    final selectedItemId = _normalizedQueueItemId(_state.selectedItem.id);
+    final selectedId = selectedItemId.isNotEmpty ? selectedItemId : _normalizedQueueItemId(currentSongId);
     final activeQueue = _buildActiveQueue(
       originalQueue: combined,
       repeatMode: _state.repeatMode,
@@ -283,8 +287,12 @@ class PlaybackQueueService {
 
   /// 更新队列中的歌曲展示信息。
   Future<PlaybackQueueState> updateQueueItem(PlaybackQueueItem item) async {
-    final originalQueue = _replaceQueueItem(_state.originalQueue, item);
-    final activeQueue = _replaceQueueItem(_state.activeQueue, item);
+    final normalizedItem = _normalizedQueueItem(item);
+    if (normalizedItem.id.isEmpty) {
+      return _state;
+    }
+    final originalQueue = _replaceQueueItem(_state.originalQueue, normalizedItem);
+    final activeQueue = _replaceQueueItem(_state.activeQueue, normalizedItem);
     _emit(_state.copyWith(
       originalQueue: List<PlaybackQueueItem>.unmodifiable(originalQueue),
       activeQueue: List<PlaybackQueueItem>.unmodifiable(activeQueue),
@@ -299,7 +307,11 @@ class PlaybackQueueService {
     required PlaybackQueueItem item,
     int? index,
   }) async {
-    final confirmedIndex = _confirmedIndexForItem(item, index);
+    final normalizedItem = _normalizedQueueItem(item);
+    if (normalizedItem.id.isEmpty) {
+      return _state;
+    }
+    final confirmedIndex = _confirmedIndexForItem(normalizedItem, index);
     if (confirmedIndex < 0) {
       return _state;
     }
@@ -309,10 +321,11 @@ class PlaybackQueueService {
   }
 
   int _confirmedIndexForItem(PlaybackQueueItem item, int? index) {
-    if (index != null && index >= 0 && index < _state.activeQueue.length && _state.activeQueue[index].id == item.id) {
+    final normalizedItemId = _normalizedQueueItemId(item.id);
+    if (index != null && index >= 0 && index < _state.activeQueue.length && _normalizedQueueItemId(_state.activeQueue[index].id) == normalizedItemId) {
       return index;
     }
-    return _indexOfItem(_state.activeQueue, item.id);
+    return _indexOfItem(_state.activeQueue, normalizedItemId);
   }
 
   /// 从恢复数据重建队列事实。
@@ -328,16 +341,21 @@ class PlaybackQueueService {
     if (restoreData.queue.isEmpty) {
       return _state;
     }
-    final selectedIndex = _clampIndex(restoreData.index, restoreData.queue.length);
-    final selectedItem = restoreData.queue[selectedIndex];
+    final restoredQueue = _normalizedQueueItems(restoreData.queue);
+    if (restoredQueue.isEmpty) {
+      return _state;
+    }
+    final requestedItemId = _requestedItemId(restoreData.queue, restoreData.index);
+    final selectedIndex = requestedItemId.isNotEmpty ? _indexOfItem(restoredQueue, requestedItemId) : _clampIndex(restoreData.index, restoredQueue.length);
+    final selectedItem = selectedIndex >= 0 ? restoredQueue[selectedIndex] : const PlaybackQueueItem.empty();
     final activeQueue = _buildActiveQueue(
-      originalQueue: restoreData.queue,
+      originalQueue: restoredQueue,
       repeatMode: restoreData.repeatMode,
       orderMode: _state.orderMode,
       playbackMode: restoreData.playbackMode,
     );
     _emit(_state.copyWith(
-      originalQueue: List<PlaybackQueueItem>.unmodifiable(restoreData.queue),
+      originalQueue: List<PlaybackQueueItem>.unmodifiable(restoredQueue),
       activeQueue: List<PlaybackQueueItem>.unmodifiable(activeQueue),
       selectedIndex: _indexOfItem(activeQueue, selectedItem.id),
       confirmedIndex: -1,
@@ -434,24 +452,55 @@ class PlaybackQueueService {
     List<PlaybackQueueItem> activeQueue,
     String confirmedItemId,
   ) {
-    if (confirmedItemId.isEmpty) {
+    final normalizedItemId = _normalizedQueueItemId(confirmedItemId);
+    if (normalizedItemId.isEmpty) {
       return -1;
     }
-    return _indexOfItem(activeQueue, confirmedItemId);
+    return _indexOfItem(activeQueue, normalizedItemId);
   }
 
   List<PlaybackQueueItem> _replaceQueueItem(
     List<PlaybackQueueItem> queue,
     PlaybackQueueItem item,
   ) {
-    return queue.map((queueItem) => queueItem.id == item.id ? item : queueItem).toList(growable: false);
+    final normalizedItemId = _normalizedQueueItemId(item.id);
+    if (normalizedItemId.isEmpty) {
+      return queue;
+    }
+    return queue.map((queueItem) => _normalizedQueueItemId(queueItem.id) == normalizedItemId ? item : queueItem).toList(growable: false);
   }
 
   int _indexOfItem(List<PlaybackQueueItem> queue, String itemId) {
-    if (itemId.isEmpty) {
+    final normalizedItemId = _normalizedQueueItemId(itemId);
+    if (normalizedItemId.isEmpty) {
       return -1;
     }
-    return queue.indexWhere((item) => item.id == itemId);
+    return queue.indexWhere((item) => _normalizedQueueItemId(item.id) == normalizedItemId);
+  }
+
+  String _requestedItemId(List<PlaybackQueueItem> queue, int index) {
+    if (index < 0 || index >= queue.length) {
+      return '';
+    }
+    return _normalizedQueueItemId(queue[index].id);
+  }
+
+  List<PlaybackQueueItem> _normalizedQueueItems(
+    Iterable<PlaybackQueueItem> queue,
+  ) {
+    return queue.map(_normalizedQueueItem).where((item) => item.id.isNotEmpty).toList(growable: false);
+  }
+
+  PlaybackQueueItem _normalizedQueueItem(PlaybackQueueItem item) {
+    final normalizedItemId = _normalizedQueueItemId(item.id);
+    if (normalizedItemId == item.id) {
+      return item;
+    }
+    return item.copyWith(id: normalizedItemId);
+  }
+
+  String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 
   int _clampIndex(int index, int queueLength) {

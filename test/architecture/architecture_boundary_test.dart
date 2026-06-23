@@ -730,6 +730,27 @@ void main() {
       );
     });
 
+    test('playback queue service normalizes queue fact ids', () {
+      final serviceFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_queue_service.dart',
+      );
+      final content = serviceFile.readAsStringSync();
+      final violations = <String>[
+        if (!content.contains('String _normalizedQueueItemId(String id)')) 'playback queue service does not define id normalization',
+        if (!content.contains('final normalizedQueue = _normalizedQueueItems(queue);')) 'replaceQueue can still accept raw queue ids',
+        if (!content.contains('final normalizedIncomingSongs = _normalizedQueueItems(incomingSongs);')) 'appendQueueItems can still accept raw queue ids',
+        if (!content.contains('final restoredQueue = _normalizedQueueItems(restoreData.queue);')) 'restoreFromData can still restore raw queue ids',
+        if (!content.contains('PlaybackQueueItem _normalizedQueueItem(PlaybackQueueItem item)')) 'playback queue service does not normalize queue items',
+        if (!content.contains('return queue.map(_normalizedQueueItem).where((item) => item.id.isNotEmpty)')) 'playback queue service does not filter blank queue item ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'PlaybackQueueService 是 original queue、active queue 和 confirmed item 的事实源，写入和匹配前必须规范化队列项 id，并过滤空白 id。',
+      );
+    });
+
     test('media item adapter does not persist remote playback urls', () {
       final adapterFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_queue_item_adapter.dart',

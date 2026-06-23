@@ -3,9 +3,9 @@ import 'dart:developer' as developer;
 import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
-import 'package:bujuan/features/album/album_page_controller.dart';
+import 'package:bujuan/features/album/album_page_controller_factory.dart';
 import 'package:bujuan/features/album/album_repository.dart';
-import 'package:bujuan/features/artist/artist_page_controller.dart';
+import 'package:bujuan/features/artist/artist_page_controller_factory.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
@@ -237,14 +237,14 @@ void registerFeatureControllers() {
     fenix: true,
   );
   Get.lazyPut(
-    () => AlbumPageController(
+    () => AlbumPageControllerFactory(
       repository: Get.find<AlbumRepository>(),
       likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
     ),
     fenix: true,
   );
   Get.lazyPut(
-    () => ArtistPageController(
+    () => ArtistPageControllerFactory(
       repository: Get.find<ArtistRepository>(),
       likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
     ),

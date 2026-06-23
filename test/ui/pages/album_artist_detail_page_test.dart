@@ -5,7 +5,9 @@ import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/features/album/album_page_controller_factory.dart';
 import 'package:bujuan/features/album/album_repository.dart';
+import 'package:bujuan/features/artist/artist_page_controller_factory.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
@@ -34,6 +36,7 @@ void main() {
         fetchError: StateError('offline'),
       ),
     );
+    _putAlbumPageControllerFactory();
 
     await tester.pumpWidget(
       _routedPage(
@@ -56,6 +59,7 @@ void main() {
     Get.put<AlbumRepository>(
       _FakeAlbumRepository(fetchError: StateError('offline')),
     );
+    _putAlbumPageControllerFactory();
 
     await tester.pumpWidget(
       _routedPage(
@@ -84,6 +88,7 @@ void main() {
         fetchError: StateError('offline'),
       ),
     );
+    _putArtistPageControllerFactory();
 
     await tester.pumpWidget(
       _routedPage(
@@ -109,6 +114,7 @@ void main() {
     Get.put<ArtistRepository>(
       _FakeArtistRepository(fetchError: StateError('offline')),
     );
+    _putArtistPageControllerFactory();
 
     await tester.pumpWidget(
       _routedPage(
@@ -125,6 +131,24 @@ void main() {
     expect(find.text('重试'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+}
+
+void _putAlbumPageControllerFactory() {
+  Get.put<AlbumPageControllerFactory>(
+    AlbumPageControllerFactory(
+      repository: Get.find<AlbumRepository>(),
+      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+    ),
+  );
+}
+
+void _putArtistPageControllerFactory() {
+  Get.put<ArtistPageControllerFactory>(
+    ArtistPageControllerFactory(
+      repository: Get.find<ArtistRepository>(),
+      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+    ),
+  );
 }
 
 Widget _routedPage(

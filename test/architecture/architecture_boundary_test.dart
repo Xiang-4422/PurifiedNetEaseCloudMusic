@@ -1920,7 +1920,7 @@ void main() {
       );
     });
 
-    test('album and artist detail pages use bootstrapped page controllers', () {
+    test('album and artist detail pages create controllers through feature factories', () {
       final albumPageFile = File(
         '${projectRoot.path}/lib/ui/pages/album/album_page_view.dart',
       );
@@ -1930,8 +1930,14 @@ void main() {
       final albumControllerFile = File(
         '${projectRoot.path}/lib/features/album/album_page_controller.dart',
       );
+      final albumFactoryFile = File(
+        '${projectRoot.path}/lib/features/album/album_page_controller_factory.dart',
+      );
       final artistControllerFile = File(
         '${projectRoot.path}/lib/features/artist/artist_page_controller.dart',
+      );
+      final artistFactoryFile = File(
+        '${projectRoot.path}/lib/features/artist/artist_page_controller_factory.dart',
       );
       final bootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
@@ -1939,25 +1945,35 @@ void main() {
       final albumPage = albumPageFile.readAsStringSync();
       final artistPage = artistPageFile.readAsStringSync();
       final albumController = albumControllerFile.readAsStringSync();
+      final albumFactory = albumFactoryFile.readAsStringSync();
       final artistController = artistControllerFile.readAsStringSync();
+      final artistFactory = artistFactoryFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
         if (albumPage.contains('AlbumRepository')) '${_relativePath(albumPageFile)} names album repository directly',
         if (artistPage.contains('ArtistRepository')) '${_relativePath(artistPageFile)} names artist repository directly',
-        if (!albumPage.contains('Get.find<AlbumPageController>()')) '${_relativePath(albumPageFile)} does not use bootstrapped album page controller',
-        if (!artistPage.contains('Get.find<ArtistPageController>()')) '${_relativePath(artistPageFile)} does not use bootstrapped artist page controller',
+        if (albumPage.contains('Get.find<AlbumPageController>()')) '${_relativePath(albumPageFile)} reads album controller singleton directly',
+        if (artistPage.contains('Get.find<ArtistPageController>()')) '${_relativePath(artistPageFile)} reads artist controller singleton directly',
+        if (!albumPage.contains('Get.find<AlbumPageControllerFactory>().create()')) '${_relativePath(albumPageFile)} does not create album page controller through feature factory',
+        if (!artistPage.contains('Get.find<ArtistPageControllerFactory>().create()')) '${_relativePath(artistPageFile)} does not create artist page controller through feature factory',
         if (albumController.contains('UserLibraryController')) '${_relativePath(albumControllerFile)} reads user library directly',
         if (artistController.contains('UserLibraryController')) '${_relativePath(artistControllerFile)} reads user library directly',
         if (!albumController.contains('required List<int> Function() likedSongIds')) 'album page controller does not require liked ids provider',
         if (!artistController.contains('required List<int> Function() likedSongIds')) 'artist page controller does not require liked ids provider',
-        if (!bootstrap.contains('AlbumPageController(')) 'feature bootstrap does not register album page controller',
-        if (!bootstrap.contains('ArtistPageController(')) 'feature bootstrap does not register artist page controller',
+        if (!albumFactory.contains('AlbumPageController create()')) 'album page controller factory does not create page controllers',
+        if (!artistFactory.contains('ArtistPageController create()')) 'artist page controller factory does not create page controllers',
+        if (!albumFactory.contains('repository: _repository')) 'album page controller factory does not inject album repository',
+        if (!artistFactory.contains('repository: _repository')) 'artist page controller factory does not inject artist repository',
+        if (!albumFactory.contains('likedSongIds: _likedSongIds')) 'album page controller factory does not inject liked ids provider',
+        if (!artistFactory.contains('likedSongIds: _likedSongIds')) 'artist page controller factory does not inject liked ids provider',
+        if (!bootstrap.contains('AlbumPageControllerFactory(')) 'feature bootstrap does not register album page controller factory',
+        if (!bootstrap.contains('ArtistPageControllerFactory(')) 'feature bootstrap does not register artist page controller factory',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '专辑页和歌手页只取已装配的页面控制器；repository 和喜欢歌曲上下文必须由 feature bootstrap 注入，避免 Widget 或控制器回到全局用户库读取。',
+        reason: '专辑页和歌手页只能通过 feature factory 创建页面 controller；repository 和喜欢歌曲上下文必须由 feature bootstrap 注入，避免 Widget 或控制器回到全局用户库读取。',
       );
     });
 

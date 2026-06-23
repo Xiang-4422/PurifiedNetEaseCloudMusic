@@ -277,6 +277,75 @@ void main() {
       );
     });
 
+    test('coverage report includes manifest module mismatches in SDK differences', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_manifest_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final generatedManifest = File(
+        '${repoRoot.path}/packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
+      ).readAsStringSync();
+      final manifestWithoutAlbum = generatedManifest.replaceFirst(
+        RegExp(r"\n  ApiEnhancedModule\(\n    module: 'album',[\s\S]*?\n  \),"),
+        '',
+      );
+      expect(manifestWithoutAlbum, isNot(generatedManifest));
+      const fakeEntry = """
+  ApiEnhancedModule(
+    module: 'codex_fake_manifest_module',
+    methodName: 'codexFakeManifestModule',
+    pathTemplate: '/api/codex/fake',
+    crypto: 'api',
+    httpMethod: 'POST',
+    special: false,
+  ),
+""";
+      final mismatchedManifest = manifestWithoutAlbum.replaceFirst(
+        '\n];\n\nconst Map<String, ApiEnhancedModule> apiEnhancedModuleByName',
+        '\n$fakeEntry];\n\nconst Map<String, ApiEnhancedModule> apiEnhancedModuleByName',
+      );
+      final manifestFile = File('${tempDir.path}/api_enhanced_modules.g.dart')..writeAsStringSync(mismatchedManifest);
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--generated-manifest=${manifestFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(report['manifestMissingUpstreamModules'], contains('album'));
+      expect(report['manifestUnknownUpstreamModules'], contains('codex_fake_manifest_module'));
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      expect(
+        sdkDifferences.where((item) => item['module'] == 'album').map((item) => item['status']),
+        contains('missing_upstream_module'),
+      );
+      expect(
+        sdkDifferences.where((item) => item['module'] == 'codex_fake_manifest_module').map((item) => item['status']),
+        contains('unknown_upstream_module'),
+      );
+      expect(
+        sdkDifferences.singleWhere(
+          (item) => item['module'] == 'album' && item['status'] == 'missing_upstream_module',
+        )['scope'],
+        'generated_manifest',
+      );
+      expect(
+        sdkDifferences.singleWhere(
+          (item) => item['module'] == 'codex_fake_manifest_module' && item['status'] == 'unknown_upstream_module',
+        )['scope'],
+        'generated_manifest',
+      );
+    });
+
     test('documented upstream baseline matches submodule and generated manifest', () async {
       final repoRoot = _findRepoRoot();
       final packageJson = _jsonMap(jsonDecode(File('${repoRoot.path}/third_party/api-enhanced/package.json').readAsStringSync()));

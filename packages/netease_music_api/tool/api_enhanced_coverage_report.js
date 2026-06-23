@@ -9,10 +9,10 @@ const repoRoot = path.resolve(__dirname, '../../..')
 const upstreamRepoPath = path.join(repoRoot, 'third_party/api-enhanced')
 const upstreamPackagePath = path.join(upstreamRepoPath, 'package.json')
 const upstreamModuleDir = path.join(upstreamRepoPath, 'module')
-const generatedManifestPath = path.join(
-  repoRoot,
-  'packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
-)
+const generatedManifestArg = process.argv.find((arg) => arg.startsWith('--generated-manifest='))
+const generatedManifestPath = generatedManifestArg
+  ? path.resolve(repoRoot, generatedManifestArg.slice('--generated-manifest='.length))
+  : path.join(repoRoot, 'packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart')
 const oracleScriptPath = path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_node_oracle.js')
 const specialCoverageArg = process.argv.find((arg) => arg.startsWith('--special-coverage='))
 const specialCoveragePath = specialCoverageArg
@@ -582,6 +582,22 @@ function buildSdkDifferences() {
       module: '<generated_manifest>',
       status: `manifest_upstream_${mismatch.field}_mismatch`,
       reason: `Generated manifest ${mismatch.field} ${mismatch.manifest || '<missing>'} does not match upstream ${mismatch.upstream || '<unknown>'}.`,
+      scope: 'generated_manifest',
+    })
+  }
+  for (const module of manifestMissingUpstreamModules) {
+    differences.push({
+      module,
+      status: 'missing_upstream_module',
+      reason: 'Generated manifest does not include this upstream module.',
+      scope: 'generated_manifest',
+    })
+  }
+  for (const module of manifestUnknownUpstreamModules) {
+    differences.push({
+      module,
+      status: 'unknown_upstream_module',
+      reason: 'Generated manifest includes a module that is not present in upstream module/*.js.',
       scope: 'generated_manifest',
     })
   }

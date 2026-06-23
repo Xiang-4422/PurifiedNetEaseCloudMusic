@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
+import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/data/app_storage/app_key_value_store.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
@@ -40,6 +41,55 @@ void main() {
       expect(controller.recoPlayLists.map((playlist) => playlist.id), ['playlist-1']);
       expect(controller.todayRecommendSongs.map((song) => song.id), ['today-1']);
       expect(controller.fmSongs.map((song) => song.id), ['fm-1']);
+    });
+
+    test('continues local home data load when one cache read fails', () async {
+      final sessionController = _buildSessionController('user-1');
+      final libraryController = _FakeUserLibraryController();
+      final repository = _FakeUserRepository(
+        cachedRecommendedPlaylists: const [
+          PlaylistSummaryData(id: 'cached-playlist', title: 'Cached Playlist'),
+        ],
+        loadCachedDailyRecommendSongsError: StateError('broken daily cache'),
+        cachedFmSongs: [_song('cached-fm')],
+      );
+      final controller = RecommendationController(
+        repository: repository,
+        sessionController: sessionController,
+        libraryController: libraryController,
+      );
+      addTearDown(controller.onClose);
+
+      controller.onInit();
+      await controller.ensureCacheLoaded();
+
+      expect(controller.recoPlayLists.map((playlist) => playlist.id), ['cached-playlist']);
+      expect(controller.todayRecommendSongs, isEmpty);
+      expect(controller.fmSongs.map((song) => song.id), ['cached-fm']);
+      expect(controller.hasLocalData, isTrue);
+    });
+
+    test('treats startup marker cache failure as stale data', () async {
+      final sessionController = _buildSessionController('user-1');
+      final libraryController = _FakeUserLibraryController();
+      final repository = _FakeUserRepository(
+        cachedRecommendedPlaylists: const [
+          PlaylistSummaryData(id: 'cached-playlist', title: 'Cached Playlist'),
+        ],
+        isSyncMarkerFreshError: StateError('broken marker cache'),
+      );
+      final controller = RecommendationController(
+        repository: repository,
+        sessionController: sessionController,
+        libraryController: libraryController,
+      );
+      addTearDown(controller.onClose);
+
+      controller.onInit();
+      await controller.ensureCacheLoaded();
+
+      expect(controller.hasLocalData, isTrue);
+      await expectLater(controller.shouldRefreshStartupData(), completion(isTrue));
     });
 
     test('ignores stale recommended playlist load more after refresh completes', () async {
@@ -264,11 +314,19 @@ class _FakeUserLibraryController extends UserLibraryController {
 
 class _FakeUserRepository implements UserRepository {
   _FakeUserRepository({
+    this.cachedRecommendedPlaylists = const [],
+    this.cachedFmSongs = const [],
+    this.loadCachedDailyRecommendSongsError,
+    this.isSyncMarkerFreshError,
     this.fetchRecommendedPlaylistsWithArgs,
     this.fetchTodayRecommendSongsWithArgs,
     this.fetchFmSongsWithArgs,
   });
 
+  final List<PlaylistSummaryData> cachedRecommendedPlaylists;
+  final List<PlaybackQueueItem> cachedFmSongs;
+  final Object? loadCachedDailyRecommendSongsError;
+  final Object? isSyncMarkerFreshError;
   final Future<List<PlaylistSummaryData>> Function({
     required String userId,
     required int offset,
@@ -282,6 +340,51 @@ class _FakeUserRepository implements UserRepository {
     required String userId,
     required List<int> likedSongIds,
   })? fetchFmSongsWithArgs;
+
+  @override
+  Future<List<PlaylistSummaryData>> loadCachedPlaylistList(
+    String userId,
+    UserPlaylistListKind kind,
+  ) async {
+    if (kind != UserPlaylistListKind.recommended) {
+      return const [];
+    }
+    return cachedRecommendedPlaylists;
+  }
+
+  @override
+  Future<List<PlaybackQueueItem>> loadCachedTrackList({
+    required String userId,
+    required UserTrackListKind kind,
+    required List<int> likedSongIds,
+  }) async {
+    switch (kind) {
+      case UserTrackListKind.dailyRecommend:
+        final error = loadCachedDailyRecommendSongsError;
+        if (error != null) {
+          throw error;
+        }
+        return const [];
+      case UserTrackListKind.fm:
+        return cachedFmSongs;
+      case UserTrackListKind.liked:
+      case UserTrackListKind.cloud:
+        return const [];
+    }
+  }
+
+  @override
+  Future<bool> isSyncMarkerFresh({
+    required String userId,
+    required String markerKey,
+    required Duration ttl,
+  }) async {
+    final error = isSyncMarkerFreshError;
+    if (error != null) {
+      throw error;
+    }
+    return true;
+  }
 
   @override
   Future<List<PlaylistSummaryData>> fetchRecommendedPlaylists({

@@ -158,11 +158,15 @@ class RecommendationController extends GetxController {
     if (userId.isEmpty) {
       return true;
     }
-    return !(await _repository.isSyncMarkerFresh(
-      userId: userId,
-      markerKey: _startupSyncMarker,
-      ttl: _startupDataTtl,
-    ));
+    try {
+      return !(await _repository.isSyncMarkerFresh(
+        userId: userId,
+        markerKey: _startupSyncMarker,
+        ttl: _startupDataTtl,
+      ));
+    } catch (_) {
+      return true;
+    }
   }
 
   /// 刷新首页推荐、日推和 FM 候选数据。
@@ -356,16 +360,16 @@ class RecommendationController extends GetxController {
     }
     final likedSongIds = _libraryController.likedSongIds.toList();
     final results = await Future.wait<Object>([
-      _repository.loadCachedPlaylistList(
+      _loadCachedPlaylistList(
         userId,
         UserPlaylistListKind.recommended,
       ),
-      _repository.loadCachedTrackList(
+      _loadCachedTrackList(
         userId: userId,
         kind: UserTrackListKind.dailyRecommend,
         likedSongIds: likedSongIds,
       ),
-      _repository.loadCachedTrackList(
+      _loadCachedTrackList(
         userId: userId,
         kind: UserTrackListKind.fm,
         likedSongIds: likedSongIds,
@@ -398,6 +402,33 @@ class RecommendationController extends GetxController {
       todayRecommendSongs: results[0] as List<PlaybackQueueItem>,
       fmSongs: results[1] as List<PlaybackQueueItem>,
     );
+  }
+
+  Future<List<PlaylistSummaryData>> _loadCachedPlaylistList(
+    String userId,
+    UserPlaylistListKind kind,
+  ) async {
+    try {
+      return await _repository.loadCachedPlaylistList(userId, kind);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<List<PlaybackQueueItem>> _loadCachedTrackList({
+    required String userId,
+    required UserTrackListKind kind,
+    required List<int> likedSongIds,
+  }) async {
+    try {
+      return await _repository.loadCachedTrackList(
+        userId: userId,
+        kind: kind,
+        likedSongIds: likedSongIds,
+      );
+    } catch (_) {
+      return const [];
+    }
   }
 
   bool _isCurrentLocalDataLoad(String userId, int generation) {

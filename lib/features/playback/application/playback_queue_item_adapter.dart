@@ -40,7 +40,7 @@ class PlaybackQueueItemAdapter {
       (type) => type.name == extras['type'],
       orElse: () => MediaType.playlist,
     );
-    final playbackUrl = _stringOrNull(extras['url']);
+    final playbackUrl = _restorablePlaybackUrl(extras['url']);
     return PlaybackQueueItem(
       id: item.id,
       sourceId: _stringOrNull(extras['sourceId']) ?? item.id,
@@ -87,6 +87,14 @@ class PlaybackQueueItemAdapter {
       return null;
     }
     return '$value';
+  }
+
+  static String? _restorablePlaybackUrl(Object? value) {
+    final normalizedPath = LocalFilePathNormalizer.normalize(_stringOrNull(value));
+    if (normalizedPath.isEmpty) {
+      return null;
+    }
+    return normalizedPath;
   }
 
   static SourceType _sourceTypeFrom(Object? value) {

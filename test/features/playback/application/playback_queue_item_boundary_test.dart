@@ -51,7 +51,7 @@ void main() {
 
       expect(item.sourceId, '1');
       expect(item.artistNames, ['Artist']);
-      expect(item.playbackUrl, 'https://example.com/song.mp3');
+      expect(item.playbackUrl, isNull);
       expect(item.albumId, '20');
       expect(item.sourceType, SourceType.netease);
       expect(item.localLyricsPath, '/cache/lyrics.lrc');
@@ -99,6 +99,40 @@ void main() {
       );
 
       expect(localItem.isCached, isFalse);
+    });
+
+    test('adapter restores only local playback urls from MediaItem extras', () {
+      final fileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/audio/song with space.mp3',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final localItem = PlaybackQueueItemAdapter.fromMediaItem(
+        MediaItem(
+          id: 'netease:1',
+          title: 'Track',
+          extras: {
+            'type': 'local',
+            'url': fileUri,
+            'sourceType': 'netease',
+          },
+        ),
+      );
+      final remoteItem = PlaybackQueueItemAdapter.fromMediaItem(
+        const MediaItem(
+          id: 'netease:2',
+          title: 'Remote',
+          extras: {
+            'type': 'playlist',
+            'url': 'https://example.com/song.mp3?expires=1',
+            'sourceType': 'netease',
+          },
+        ),
+      );
+
+      expect(localItem.playbackUrl, '/cache/audio/song with space.mp3');
+      expect(remoteItem.playbackUrl, isNull);
     });
 
     test('adapter writes cache extra only for existing non-local audio', () {

@@ -107,6 +107,9 @@ class PlaybackQueueItemMapper {
   }
 
   static bool _isCachedAudioResource(LocalResourceEntry? audio) {
+    if (_localResourcePath(audio) == null) {
+      return false;
+    }
     switch (audio?.origin) {
       case TrackResourceOrigin.managedDownload:
       case TrackResourceOrigin.playbackCache:

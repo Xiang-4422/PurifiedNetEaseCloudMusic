@@ -164,6 +164,48 @@ void main() {
       expect(item.isCached, isFalse);
     });
 
+    test('does not mark cached when indexed audio path is not local', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(),
+            resources: TrackResourceBundle(
+              audio: _audioResource('https://audio.test/song.mp3'),
+            ),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.mediaType, MediaType.playlist);
+      expect(item.playbackUrl, isNull);
+      expect(item.isCached, isFalse);
+    });
+
+    test('does not mark cached for unsafe local file uri audio path', () {
+      final unsafeFileUri = Uri(
+        scheme: 'file',
+        host: 'media-server',
+        path: '/cache/audio/song.mp3',
+      ).toString();
+
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(),
+            resources: TrackResourceBundle(
+              audio: _audioResource(unsafeFileUri),
+            ),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.mediaType, MediaType.playlist);
+      expect(item.playbackUrl, isNull);
+      expect(item.isCached, isFalse);
+    });
+
     test('maps album id as explicit queue item field instead of metadata key', () {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [

@@ -31,5 +31,12 @@ void main() {
       expect(normalized, contains('token=keep'));
       expect(normalized, isNot(contains('param=')));
     });
+
+    test('removes size param when it is the only query parameter', () {
+      expect(
+        ImageUrlNormalizer.normalize('https://img.test/cover.jpg?param=200y200'),
+        'https://img.test/cover.jpg',
+      );
+    });
   });
 }

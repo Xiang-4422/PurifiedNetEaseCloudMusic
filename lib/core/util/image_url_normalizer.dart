@@ -13,11 +13,17 @@ class ImageUrlNormalizer {
       return url;
     }
     final nextQueryParameters = Map<String, String>.from(uri.queryParameters)..remove('param');
-    return uri
-        .replace(
-          queryParameters: nextQueryParameters.isEmpty ? null : nextQueryParameters,
-        )
-        .toString();
+    if (nextQueryParameters.isEmpty) {
+      return Uri(
+        scheme: uri.scheme,
+        userInfo: uri.userInfo,
+        host: uri.host,
+        port: uri.hasPort ? uri.port : null,
+        path: uri.path,
+        fragment: uri.hasFragment ? uri.fragment : null,
+      ).toString();
+    }
+    return uri.replace(queryParameters: nextQueryParameters).toString();
   }
 
   /// 判断地址是否为远程 HTTP(S) 图片地址。

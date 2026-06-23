@@ -168,7 +168,7 @@ class MusicDataRepository {
 
   /// 按曲目 id 批量读取本地曲目。
   Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
-    final ids = trackIds.toSet().toList();
+    final ids = _candidateTrackIds(trackIds);
     if (ids.isEmpty) {
       return const [];
     }
@@ -179,7 +179,7 @@ class MusicDataRepository {
   Future<List<TrackWithResources>> getTracksWithResources(
     Iterable<String> trackIds,
   ) async {
-    final ids = trackIds.toSet().toList();
+    final ids = _candidateTrackIds(trackIds);
     if (ids.isEmpty) {
       return const [];
     }
@@ -188,7 +188,7 @@ class MusicDataRepository {
       return const [];
     }
     final resourcesByTrackId = await _resourceIndexRepository.getTrackResourceBundles(
-      tracks.map((track) => track.id),
+      ids,
     );
     final tracksById = {
       for (final track in tracks) track.id: track,
@@ -544,6 +544,18 @@ class MusicDataRepository {
 
   bool _isBlankTrackId(String trackId) {
     return trackId.trim().isEmpty;
+  }
+
+  List<String> _candidateTrackIds(Iterable<String> trackIds) {
+    final ids = <String>[];
+    final seen = <String>{};
+    for (final trackId in trackIds) {
+      if (_isBlankTrackId(trackId) || !seen.add(trackId)) {
+        continue;
+      }
+      ids.add(trackId);
+    }
+    return ids;
   }
 
   bool _isLocalPlaylistId(String playlistId) {

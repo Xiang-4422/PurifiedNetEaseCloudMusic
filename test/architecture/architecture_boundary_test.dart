@@ -769,6 +769,10 @@ void main() {
       final blankTrackGuardCount = '_isBlankTrackId(trackId)'.allMatches(content).length;
       final violations = <String>[
         if (!content.contains('bool _isBlankTrackId(String trackId)')) 'blank track id helper is missing',
+        if (!content.contains('List<String> _candidateTrackIds(Iterable<String> trackIds)')) 'batch track id candidate helper is missing',
+        if (RegExp(r'Future<List<Track>> getTracksByIds[\s\S]*?final ids = _candidateTrackIds\(trackIds\);').firstMatch(content) == null) 'batch track loading does not filter blank ids before local lookup',
+        if (RegExp(r'Future<List<TrackWithResources>> getTracksWithResources[\s\S]*?final ids = _candidateTrackIds\(trackIds\);').firstMatch(content) == null) 'batch track resource loading does not filter blank ids before resource lookup',
+        if (!content.contains('getTrackResourceBundles(\n      ids,\n    )')) 'batch track resource lookup does not preserve candidate id order',
         if (blankTrackGuardCount < 5) 'blank track id guard does not cover track, playback URL, artwork, lyrics and resource bundle entry points',
       ];
 

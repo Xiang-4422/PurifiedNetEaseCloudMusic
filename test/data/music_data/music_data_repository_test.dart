@@ -556,11 +556,24 @@ void main() {
           ),
         },
       );
-      final repository = _buildRepository(localDataSource: localDataSource);
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository();
+      final repository = _buildRepository(
+        localDataSource: localDataSource,
+        resourceIndexRepository: resourceIndexRepository,
+      );
 
-      final tracks = await repository.getTracksWithResources(['3', '1', '3', '2']);
+      final tracks = await repository.getTracksWithResources([
+        '3',
+        '   ',
+        '1',
+        '3',
+        '',
+        '2',
+      ]);
 
       expect(tracks.map((item) => item.track.id), ['3', '1', '2']);
+      expect(localDataSource.requestedBatchTrackIds, ['3', '1', '2']);
+      expect(resourceIndexRepository.requestedBundleTrackIds, ['3', '1', '2']);
     });
 
     test('pre-caches artwork only when requested while saving tracks', () async {
@@ -825,6 +838,7 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
   final List<String> removedLyrics = [];
   final List<String> removedTracks = [];
   final List<String> requestedTrackIds = [];
+  final List<String> requestedBatchTrackIds = [];
   final List<String> requestedLyricsTrackIds = [];
   final Map<String, Track> _tracks;
 
@@ -854,6 +868,7 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
 
   @override
   Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
+    requestedBatchTrackIds.addAll(trackIds);
     return trackIds.map((trackId) => _tracks[trackId]).whereType<Track>().toList().reversed.toList();
   }
 

@@ -70,11 +70,11 @@ class PlaybackSourcePrefetcher {
     if (normalizedItemId.isEmpty) {
       return Future.value(const PlaybackResolvedSource(kind: PlaybackResolvedSourceKind.empty));
     }
-    final key = '${_cacheKey(
+    final key = _remoteCacheKey(
       item,
       normalizedItemId: normalizedItemId,
       preferHighQuality: preferHighQuality,
-    )}|remote';
+    );
     if (forceRefresh) {
       _cache.remove(key);
     }
@@ -223,6 +223,14 @@ class PlaybackSourcePrefetcher {
     required bool preferHighQuality,
   }) {
     return '$normalizedItemId|${item.sourceType.name}|${item.mediaType.name}|${item.playbackUrl ?? ''}|$preferHighQuality';
+  }
+
+  String _remoteCacheKey(
+    PlaybackQueueItem item, {
+    required String normalizedItemId,
+    required bool preferHighQuality,
+  }) {
+    return '$normalizedItemId|${item.sourceType.name}|remote|$preferHighQuality';
   }
 
   String _normalizedItemId(PlaybackQueueItem item) {

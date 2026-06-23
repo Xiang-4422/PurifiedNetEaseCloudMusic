@@ -352,6 +352,44 @@ void main() {
       expect(await follower, _hasUrl('fresh-url'));
     });
 
+    test('remote force refresh ignores transient playback url when clearing stale cache', () async {
+      final resolver = _ControllableRemoteSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final staleItem = _item(
+        '1',
+        mediaType: MediaType.neteaseCache,
+        playbackUrl: '/cache/old.mp3',
+      );
+      final refreshedItem = _item(
+        '1',
+        mediaType: MediaType.neteaseCache,
+        playbackUrl: '/cache/new.mp3',
+      );
+
+      final initial = prefetcher.resolveRemote(
+        staleItem,
+        preferHighQuality: false,
+      );
+      resolver.complete(0, 'stale-url');
+      expect(await initial, _hasUrl('stale-url'));
+
+      final refreshed = prefetcher.resolveRemote(
+        refreshedItem,
+        preferHighQuality: false,
+        forceRefresh: true,
+      );
+      resolver.complete(1, 'fresh-url');
+      expect(await refreshed, _hasUrl('fresh-url'));
+
+      final oldItemLookup = await prefetcher.resolveRemote(
+        staleItem,
+        preferHighQuality: false,
+      );
+
+      expect(oldItemLookup, _hasUrl('fresh-url'));
+      expect(resolver.remoteCallCount, 2);
+    });
+
     test('does not keep failed remote prefetch in flight and retries next resolve', () async {
       final resolver = _FailingThenRecoveredRemoteSourceResolver();
       final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);

@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:bujuan/app/bootstrap/app_bootstrap.dart';
 import 'package:bujuan/app/bootstrap/route_bootstrap.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_ui_effect.dart';
+import 'package:bujuan/features/auth/auth_ui_effect_dispatcher.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/theme/app_theme.dart';
 import 'package:bujuan/ui/widgets/common/layout/scroll_helpers.dart';
@@ -73,18 +75,29 @@ class _AuthUiEffectListenerState extends State<_AuthUiEffectListener> {
   }
 
   void _handleEffect(AuthUiEffect? effect) {
-    if (effect == null) {
-      return;
-    }
-    ToastService.show(effect.message);
-    if (effect.type == AuthUiEffectType.loginExpired) {
-      unawaited(Future<void>.sync(widget.onLoginExpired));
-    }
-    _controller.consumeUiEffect(effect);
+    AuthUiEffectDispatcher(
+      showMessage: ToastService.show,
+      onLoginExpired: widget.onLoginExpired,
+      consumeEffect: _controller.consumeUiEffect,
+      onError: _reportAuthUiEffectError,
+    ).dispatch(effect);
   }
 
   @override
   Widget build(BuildContext context) {
     return widget.child;
   }
+}
+
+void _reportAuthUiEffectError(
+  AuthUiEffect effect,
+  Object error,
+  StackTrace stackTrace,
+) {
+  developer.log(
+    'auth.uiEffect.failed type=${effect.type.name}',
+    name: 'Auth',
+    error: error,
+    stackTrace: stackTrace,
+  );
 }

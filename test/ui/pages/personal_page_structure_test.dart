@@ -221,6 +221,9 @@ void main() {
     expect(quickStartSource, contains('String _playbackArtworkPath(PlaybackQueueItem item)'));
     expect(quickStartSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
     expect(recentPlaybackSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
+    expect(todayPageSource, contains('class TodayPageView extends GetView<RecommendationController>'));
+    expect(todayPageSource, contains('final songs = controller.todayRecommendSongs'));
+    expect(todayPageSource, isNot(contains('RecommendationController.to')));
     expect(todayPageSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
 
     expect(source, isNot(contains('currentSong.artworkUrl ??')));

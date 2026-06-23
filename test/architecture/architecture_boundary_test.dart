@@ -1765,6 +1765,26 @@ void main() {
       );
     });
 
+    test('today recommendation page reads songs through page controller boundary', () {
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/today_page_view.dart',
+      );
+      final page = pageFile.readAsStringSync();
+      final violations = <String>[
+        if (page.contains('RecommendationController.to')) '${_relativePath(pageFile)} reads recommendation controller globally',
+        if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} names playlist repository directly',
+        if (page.contains('UserLibraryController')) '${_relativePath(pageFile)} reads user library directly',
+        if (!page.contains('class TodayPageView extends GetView<RecommendationController>')) '${_relativePath(pageFile)} does not use page controller boundary',
+        if (!page.contains('final songs = controller.todayRecommendSongs')) '${_relativePath(pageFile)} does not read songs through page controller boundary',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '今日推荐页只能展示 RecommendationController 暴露的推荐队列并提交播放意图，不能直接读取资料库或 repository。',
+      );
+    });
+
     test('library shortcut bar keeps liked playlist behind injected provider', () {
       final shortcutFile = File(
         '${projectRoot.path}/lib/ui/pages/user/widgets/library_shortcut_bar.dart',

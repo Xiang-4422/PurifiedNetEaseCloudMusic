@@ -61,6 +61,9 @@ void main() {
       'lib/ui/pages/shell/widgets/playback/bottom_panel_page_indicator.dart',
     ).readAsStringSync();
 
+    expect(panelSource, contains('BottomPanelQueueView('));
+    expect(panelSource, contains('playerController: playerController'));
+    expect(panelSource, contains('settingsController: settingsController'));
     expect(panelSource, contains('BottomPanelNowPlayingPage()'));
     expect(panelSource, contains('BottomPanelPageIndicator()'));
     expect(panelSource, isNot(contains('_buildCurPlayingPage')));

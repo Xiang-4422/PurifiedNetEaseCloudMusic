@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_queue_view.dart';
@@ -6,6 +8,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('bottom panel queue helpers', () {
+    test('queue view receives player and settings controllers from parent', () {
+      final source = File(
+        'lib/ui/pages/shell/widgets/playback/bottom_panel_queue_view.dart',
+      ).readAsStringSync();
+
+      expect(source, contains('required this.playerController'));
+      expect(source, contains('required this.settingsController'));
+      expect(source, isNot(contains('PlayerController.to')));
+      expect(source, isNot(contains('SettingsController.to')));
+    });
+
     test('builds artist display text with fallback', () {
       expect(
         playbackQueueArtistDisplayText(

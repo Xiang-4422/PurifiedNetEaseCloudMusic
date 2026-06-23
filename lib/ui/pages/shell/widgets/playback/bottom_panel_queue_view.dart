@@ -15,7 +15,17 @@ const _currentQueueItemColor = Colors.red;
 /// 底部播放面板中的当前播放队列视图。
 class BottomPanelQueueView extends GetView<ShellController> {
   /// 创建当前播放队列视图。
-  const BottomPanelQueueView({super.key});
+  const BottomPanelQueueView({
+    super.key,
+    required this.playerController,
+    required this.settingsController,
+  });
+
+  /// 播放控制器。
+  final PlayerController playerController;
+
+  /// 设置控制器。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -30,11 +40,13 @@ class BottomPanelQueueView extends GetView<ShellController> {
               controller: controller.playListScrollController,
               physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.symmetric(vertical: albumPadding),
-              itemCount: PlayerController.to.queueState.length,
+              itemCount: playerController.queueState.length,
               itemBuilder: (context, index) {
                 return _BottomPanelQueueItem(
-                  item: PlayerController.to.queueState[index],
+                  item: playerController.queueState[index],
                   index: index,
+                  playerController: playerController,
+                  settingsController: settingsController,
                 );
               },
             ),
@@ -49,17 +61,21 @@ class _BottomPanelQueueItem extends StatelessWidget {
   const _BottomPanelQueueItem({
     required this.item,
     required this.index,
+    required this.playerController,
+    required this.settingsController,
   });
 
   final PlaybackQueueItem item;
   final int index;
+  final PlayerController playerController;
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final metrics = AdaptiveLayoutMetrics.of(context);
-      final isCurrent = PlayerController.to.currentQueueIndex.value == index;
-      final panelColor = SettingsController.to.panelWidgetColor.value;
+      final isCurrent = playerController.currentQueueIndex.value == index;
+      final panelColor = settingsController.panelWidgetColor.value;
       final artistText = playbackQueueArtistDisplayText(item);
       return Semantics(
         button: true,
@@ -67,7 +83,7 @@ class _BottomPanelQueueItem extends StatelessWidget {
         selected: isCurrent,
         label: '${item.title}, $artistText',
         child: GestureDetector(
-          onTap: () => PlayerController.to.playQueueIndex(index),
+          onTap: () => playerController.playQueueIndex(index),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
             child: Container(

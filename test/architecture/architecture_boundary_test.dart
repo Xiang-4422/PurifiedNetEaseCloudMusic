@@ -761,6 +761,24 @@ void main() {
       );
     });
 
+    test('music data repository rejects blank track ids at data boundary', () {
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/data/music_data/music_data_repository.dart',
+      );
+      final content = repositoryFile.readAsStringSync();
+      final blankTrackGuardCount = '_isBlankTrackId(trackId)'.allMatches(content).length;
+      final violations = <String>[
+        if (!content.contains('bool _isBlankTrackId(String trackId)')) 'blank track id helper is missing',
+        if (blankTrackGuardCount < 5) 'blank track id guard does not cover track, playback URL, artwork, lyrics and resource bundle entry points',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'MusicDataRepository 是 App 统一数据入口，空白曲目 id 不能继续进入本地库、本地资源索引或网易云远程源。',
+      );
+    });
+
     test('UI reads explicit queue item fields instead of metadata keys', () {
       final uiFiles = _dartFiles(Directory('${projectRoot.path}/lib/ui'));
       final violations = uiFiles

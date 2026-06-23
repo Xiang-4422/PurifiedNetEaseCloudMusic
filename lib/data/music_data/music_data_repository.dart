@@ -140,6 +140,9 @@ class MusicDataRepository {
 
   /// 读取曲目；本地没有时回源远程或本地扫描来源。
   Future<Track?> getTrack(String trackId) async {
+    if (_isBlankTrackId(trackId)) {
+      return null;
+    }
     final localTrack = await _localDataSource.getTrack(trackId);
     if (localTrack != null) {
       return localTrack;
@@ -217,6 +220,9 @@ class MusicDataRepository {
     String trackId, {
     bool forceRefresh = false,
   }) async {
+    if (_isBlankTrackId(trackId)) {
+      return null;
+    }
     return _coalescePlaybackUrl(
       trackId,
       qualityLevel: null,
@@ -245,6 +251,9 @@ class MusicDataRepository {
     String? qualityLevel,
     bool forceRefresh = false,
   }) async {
+    if (_isBlankTrackId(trackId)) {
+      return null;
+    }
     return _coalescePlaybackUrl(
       trackId,
       qualityLevel: qualityLevel,
@@ -275,6 +284,9 @@ class MusicDataRepository {
 
   /// 解析封面来源，优先返回仍存在的本地封面资源。
   Future<String> getArtworkSource(String trackId) async {
+    if (_isBlankTrackId(trackId)) {
+      return '';
+    }
     final trackWithResources = await getTrackWithResources(trackId);
     if (trackWithResources == null) {
       return '';
@@ -289,6 +301,9 @@ class MusicDataRepository {
 
   /// 读取歌词，优先使用本地歌词资源和缓存。
   Future<TrackLyrics?> getLyrics(String trackId) async {
+    if (_isBlankTrackId(trackId)) {
+      return null;
+    }
     final loadingLyrics = _lyricsLoads[trackId];
     if (loadingLyrics != null) {
       return loadingLyrics;
@@ -379,6 +394,9 @@ class MusicDataRepository {
 
   /// 读取曲目的本地资源索引。
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) {
+    if (_isBlankTrackId(trackId)) {
+      return Future.value(const TrackResourceBundle());
+    }
     return _resourceIndexRepository.getTrackResourceBundle(trackId);
   }
 
@@ -522,6 +540,10 @@ class MusicDataRepository {
 
   bool _isLocalTrackId(String trackId) {
     return trackId.startsWith('${_localMusicSource.sourceKey}:');
+  }
+
+  bool _isBlankTrackId(String trackId) {
+    return trackId.trim().isEmpty;
   }
 
   bool _isLocalPlaylistId(String playlistId) {

@@ -16,6 +16,41 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('MusicDataRepository', () {
+    test('ignores blank track ids before local resources or remote lookup', () async {
+      final localDataSource = _FakeLocalLibraryDataSource();
+      final neteaseSource = _FakeNeteaseMusicSource();
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository();
+      final repository = _buildRepository(
+        localDataSource: localDataSource,
+        neteaseSource: neteaseSource,
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      expect(await repository.getTrack('   '), isNull);
+      expect(await repository.getTrackWithResources('   '), isNull);
+      expect(await repository.getPlaybackUrl('   '), isNull);
+      expect(
+        await repository.getPlaybackUrlWithQuality(
+          '   ',
+          qualityLevel: 'standard',
+        ),
+        isNull,
+      );
+      expect(await repository.getArtworkSource('   '), '');
+      expect(await repository.getLyrics('   '), isNull);
+      expect(
+        (await repository.getTrackResourceBundle('   ')).hasAnyResource,
+        isFalse,
+      );
+
+      expect(localDataSource.requestedTrackIds, isEmpty);
+      expect(localDataSource.requestedLyricsTrackIds, isEmpty);
+      expect(resourceIndexRepository.requestedBundleTrackIds, isEmpty);
+      expect(neteaseSource.trackCallCount, 0);
+      expect(neteaseSource.playbackUrlCallCount, 0);
+      expect(neteaseSource.lyricsCallCount, 0);
+    });
+
     test('coalesces concurrent playback url loads and reuses fresh remote url', () async {
       final neteaseSource = _FakeNeteaseMusicSource(
         playbackUrlDelay: const Duration(milliseconds: 20),
@@ -789,10 +824,13 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
   final Map<String, TrackLyrics> savedLyrics = {};
   final List<String> removedLyrics = [];
   final List<String> removedTracks = [];
+  final List<String> requestedTrackIds = [];
+  final List<String> requestedLyricsTrackIds = [];
   final Map<String, Track> _tracks;
 
   @override
   Future<Track?> getTrack(String trackId) async {
+    requestedTrackIds.add(trackId);
     final track = _tracks[trackId];
     if (track != null) {
       return track;
@@ -807,6 +845,7 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
 
   @override
   Future<TrackLyrics?> getLyrics(String trackId) async {
+    requestedLyricsTrackIds.add(trackId);
     return savedLyrics[trackId];
   }
 
@@ -853,8 +892,15 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
   final Duration lyricsDelay;
   final bool includeQualityInPlaybackUrl;
   final bool includeCallCountInPlaybackUrl;
+  int trackCallCount = 0;
   int playbackUrlCallCount = 0;
   int lyricsCallCount = 0;
+
+  @override
+  Future<Track?> getTrack(String trackId) async {
+    trackCallCount++;
+    return _track(trackId);
+  }
 
   @override
   Future<String?> getPlaybackUrl(
@@ -946,9 +992,11 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
 
   final Map<String, LocalResourceEntry> _resources;
   final List<String> touchedResources = <String>[];
+  final List<String> requestedBundleTrackIds = <String>[];
 
   @override
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) async {
+    requestedBundleTrackIds.add(trackId);
     return _toBundle(_resources.values.where((resource) => resource.trackId == trackId));
   }
 

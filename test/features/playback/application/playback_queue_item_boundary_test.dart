@@ -155,6 +155,40 @@ void main() {
       expect(remoteItem.playbackUrl, isNull);
     });
 
+    test('adapter restores only local lyrics paths from MediaItem extras', () {
+      final fileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/lyrics/song with space.lrc',
+        queryParameters: {'token': 'local'},
+      ).toString();
+      final localItem = PlaybackQueueItemAdapter.fromMediaItem(
+        MediaItem(
+          id: 'netease:1',
+          title: 'Track',
+          extras: {
+            'type': 'playlist',
+            'localLyricsPath': fileUri,
+            'sourceType': 'netease',
+          },
+        ),
+      );
+      final remoteItem = PlaybackQueueItemAdapter.fromMediaItem(
+        const MediaItem(
+          id: 'netease:2',
+          title: 'Remote',
+          extras: {
+            'type': 'playlist',
+            'localLyricsPath': 'https://lyrics.test/song.lrc',
+            'sourceType': 'netease',
+          },
+        ),
+      );
+
+      expect(localItem.localLyricsPath, '/cache/lyrics/song with space.lrc');
+      expect(remoteItem.localLyricsPath, isNull);
+    });
+
     test('adapter writes cache extra only for existing non-local audio', () {
       final tempDirectory = Directory.systemTemp.createTempSync(
         'playback-media-extra-cache-',

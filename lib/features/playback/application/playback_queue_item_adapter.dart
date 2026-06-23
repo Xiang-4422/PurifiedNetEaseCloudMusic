@@ -58,7 +58,7 @@ class PlaybackQueueItemAdapter {
       mediaType: mediaType,
       playbackUrl: playbackUrl,
       lyricKey: _stringOrNull(extras['lyricKey']),
-      localLyricsPath: _stringOrNull(extras['localLyricsPath']),
+      localLyricsPath: _restorableLocalPath(extras['localLyricsPath']),
       availability: _availabilityFrom(extras['availability']),
       isLiked: extras['liked'] == true,
       isCached: hasUsableCachedAudio(

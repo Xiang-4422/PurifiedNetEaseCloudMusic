@@ -999,6 +999,36 @@ void main() {
       );
     });
 
+    test('download page creates local song controllers through feature factory', () {
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/download/download_task_page_view.dart',
+      );
+      final factoryFile = File(
+        '${projectRoot.path}/lib/features/download/local_song_list_controller_factory.dart',
+      );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
+      final page = pageFile.readAsStringSync();
+      final factory = factoryFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
+      final violations = <String>[
+        if (page.contains('MusicDataRepository')) '${_relativePath(pageFile)} names music data repository directly',
+        if (page.contains('DownloadRepository')) '${_relativePath(pageFile)} names download repository directly',
+        if (!page.contains('Get.find<LocalSongListControllerFactory>().create(origins: origins)')) '${_relativePath(pageFile)} does not create local song controllers through feature factory',
+        if (!factory.contains('LocalSongListController create({')) 'local song controller factory does not create page-local controllers',
+        if (!factory.contains('musicDataRepository: _musicDataRepository')) 'local song controller factory does not inject music data repository',
+        if (!factory.contains('downloadRepository: _downloadRepository')) 'local song controller factory does not inject download repository',
+        if (!bootstrap.contains('LocalSongListControllerFactory(')) 'feature bootstrap does not register local song controller factory',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '下载页可以拥有 tab 和 controller 生命周期，但不能在 Widget 内直接拼装 MusicDataRepository 或 DownloadRepository。',
+      );
+    });
+
     test('top search panel keeps search context behind controller boundary', () {
       final topPanelFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/search/top_panel_view.dart',

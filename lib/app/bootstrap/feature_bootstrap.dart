@@ -10,6 +10,8 @@ import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller_factory.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
+import 'package:bujuan/features/download/download_repository.dart';
+import 'package:bujuan/features/download/local_song_list_controller_factory.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
@@ -204,6 +206,13 @@ void registerFeatureControllers() {
       repository: Get.find<RadioRepository>(),
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
       likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+    ),
+    fenix: true,
+  );
+  Get.lazyPut(
+    () => LocalSongListControllerFactory(
+      musicDataRepository: Get.find<MusicDataRepository>(),
+      downloadRepository: Get.find<DownloadRepository>(),
     ),
     fenix: true,
   );

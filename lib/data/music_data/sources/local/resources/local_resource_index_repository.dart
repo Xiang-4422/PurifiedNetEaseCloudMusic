@@ -72,13 +72,18 @@ class LocalResourceIndexRepository {
     }
     final trackIds = audioResources.map((item) => item.trackId).toList();
     final tracks = await _localLibraryDataSource.getTracksByIds(trackIds);
-    if (tracks.isEmpty) {
-      return const [];
-    }
     final tracksById = {
       for (final track in tracks) track.id: track,
     };
-    final resourcesByTrackId = await getTrackResourceBundles(trackIds);
+    final missingTrackIds = trackIds.where((trackId) => !tracksById.containsKey(trackId)).toSet();
+    for (final trackId in missingTrackIds) {
+      await _dataSource.removeTrackResources(trackId);
+    }
+    final existingTrackIds = trackIds.where((trackId) => tracksById.containsKey(trackId)).toList();
+    if (existingTrackIds.isEmpty) {
+      return const [];
+    }
+    final resourcesByTrackId = await getTrackResourceBundles(existingTrackIds);
     final entries = <LocalSongEntry>[];
     for (final audioResource in audioResources) {
       final track = tracksById[audioResource.trackId];

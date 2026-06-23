@@ -227,6 +227,50 @@ void main() {
       );
     });
 
+    test('prunes local song resources when track fact is missing', () async {
+      final orphanAudio = await _writeTempFile(tempDirectory, 'orphan.mp3');
+      final orphanArtwork = await _writeTempFile(tempDirectory, 'orphan.jpg');
+      repository = LocalResourceIndexRepository(
+        dataSource: dataSource,
+        localLibraryDataSource: _FakeLocalLibraryDataSource(
+          missingTrackIds: const {'netease:orphan'},
+        ),
+      );
+      await dataSource.saveResource(
+        _resource(
+          trackId: 'netease:orphan',
+          path: orphanAudio.path,
+          origin: TrackResourceOrigin.managedDownload,
+        ),
+      );
+      await dataSource.saveResource(
+        _resource(
+          trackId: 'netease:orphan',
+          kind: LocalResourceKind.artwork,
+          path: orphanArtwork.path,
+          origin: TrackResourceOrigin.managedDownload,
+        ),
+      );
+
+      final songs = await repository.listLocalSongs();
+
+      expect(songs, isEmpty);
+      expect(
+        await dataSource.getResource(
+          'netease:orphan',
+          LocalResourceKind.audio,
+        ),
+        isNull,
+      );
+      expect(
+        await dataSource.getResource(
+          'netease:orphan',
+          LocalResourceKind.artwork,
+        ),
+        isNull,
+      );
+    });
+
     test('lists only usable resources and prunes stale indexes', () async {
       final missingAudio = File('${tempDirectory.path}/missing.mp3');
       final existingAudio = await _writeTempFile(tempDirectory, 'cache.mp3');
@@ -418,9 +462,16 @@ class _InMemoryResourceIndexDataSource implements LocalResourceIndexDataSource {
 }
 
 class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
+  _FakeLocalLibraryDataSource({
+    this.missingTrackIds = const <String>{},
+  });
+
+  final Set<String> missingTrackIds;
+
   @override
   Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
     return trackIds
+        .where((trackId) => !missingTrackIds.contains(trackId))
         .map(
           (trackId) => Track(
             id: trackId,

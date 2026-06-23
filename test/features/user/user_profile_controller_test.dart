@@ -28,6 +28,42 @@ void main() {
       expect(controller.state.value.error, isA<StateError>());
     });
 
+    test('falls back to remote profile when cached profile read fails', () async {
+      final repository = _FakeUserRepository(
+        cacheError: StateError('broken profile cache'),
+      );
+      final controller = UserProfileController(
+        userId: '42',
+        repository: repository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+
+      expect(controller.state.value.status, LoadStatus.data);
+      expect(controller.state.value.data?.nickname, 'fresh');
+      expect(controller.state.value.error, isNull);
+    });
+
+    test('uses remote error when cached profile read and refresh both fail', () async {
+      final remoteError = StateError('offline');
+      final repository = _FakeUserRepository(
+        cacheError: StateError('broken profile cache'),
+        fetchError: remoteError,
+      );
+      final controller = UserProfileController(
+        userId: '42',
+        repository: repository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+
+      expect(controller.state.value.status, LoadStatus.error);
+      expect(controller.state.value.data, isNull);
+      expect(controller.state.value.error, same(remoteError));
+    });
+
     test('uses initial error when no cached profile exists', () async {
       final repository = _FakeUserRepository(
         fetchError: StateError('offline'),
@@ -101,17 +137,23 @@ void main() {
 class _FakeUserRepository implements UserRepository {
   _FakeUserRepository({
     this.cachedProfile,
+    this.cacheError,
     this.fetchError,
     this.delayFetches = false,
   });
 
   final UserProfileData? cachedProfile;
+  final Object? cacheError;
   final Object? fetchError;
   final bool delayFetches;
   final List<Completer<UserProfileData>> _pendingFetches = [];
 
   @override
   Future<UserProfileData?> loadCachedUserDetail(String userId) async {
+    final error = cacheError;
+    if (error != null) {
+      throw error;
+    }
     return cachedProfile;
   }
 

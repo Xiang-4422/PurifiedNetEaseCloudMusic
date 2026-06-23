@@ -29,7 +29,7 @@ class UserProfileController {
       _setStateIfCurrent(generation, const LoadState.empty());
       return;
     }
-    final cachedDetail = await _repository.loadCachedUserDetail(userId);
+    final cachedDetail = await _loadCachedUserDetail(userId);
     if (!_isCurrentLoad(generation)) {
       return;
     }
@@ -76,6 +76,14 @@ class UserProfileController {
                 data: previousDetail,
               ),
       );
+    }
+  }
+
+  Future<UserProfileData?> _loadCachedUserDetail(String userId) async {
+    try {
+      return await _repository.loadCachedUserDetail(userId);
+    } catch (_) {
+      return null;
     }
   }
 

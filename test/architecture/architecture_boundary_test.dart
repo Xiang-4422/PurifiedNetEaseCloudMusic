@@ -1613,9 +1613,13 @@ void main() {
     });
 
     test('shell body passes home shell boundary to local widgets', () {
+      final homeFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/app_home_page_view.dart',
+      );
       final bodyFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/app_body_page_view.dart',
       );
+      final home = homeFile.readAsStringSync();
       final body = bodyFile.readAsStringSync();
       final drawerStart = body.indexOf('class DrawerMainScreenView');
       final menuStart = body.indexOf('class MenuView');
@@ -1623,9 +1627,13 @@ void main() {
       final menuSection = menuStart >= 0 ? body.substring(menuStart) : '';
       final violations = <String>[
         if (drawerSection.isEmpty) '${_relativePath(bodyFile)} drawer main screen section is missing',
+        if (body.contains('HomeShellController.to')) '${_relativePath(bodyFile)} reads home shell globally',
         if (drawerSection.contains('HomeShellController.to')) '${_relativePath(bodyFile)} drawer main screen reads home shell globally',
         if (menuSection.contains('HomeShellController.to')) '${_relativePath(bodyFile)} menu view reads home shell globally',
-        if (!body.contains('final homeShellController = HomeShellController.to')) '${_relativePath(bodyFile)} does not keep home shell lookup in shell body root',
+        if (!body.contains('final homeShellController = HomeShellScope.of(context)')) '${_relativePath(bodyFile)} does not read home shell from local scope',
+        if (!home.contains('final homeShellController = Get.find<HomeShellController>()')) '${_relativePath(homeFile)} does not resolve home shell controller at shell boundary',
+        if (!home.contains('HomeShellScope(')) '${_relativePath(homeFile)} does not provide home shell scope',
+        if (!home.contains('homeShellController: homeShellController')) '${_relativePath(homeFile)} does not inject home shell into scope',
         if (!body.contains('MenuView(homeShellController: homeShellController)')) '${_relativePath(bodyFile)} does not inject home shell into menu',
         if (!body.contains('DrawerMainScreenView(homeShellController: homeShellController)')) '${_relativePath(bodyFile)} does not inject home shell into main screen',
         if (!drawerSection.contains('required this.homeShellController')) '${_relativePath(bodyFile)} drawer main screen does not receive home shell controller',
@@ -1635,7 +1643,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: '首页主体页可以作为组合层读取 HomeShellController，但抽屉主屏幕和菜单必须接收注入边界，不能各自读取全局容器。',
+        reason: '首页壳层负责读取 HomeShellController 并通过局部 scope 传给路由子树，主体页、抽屉主屏幕和菜单不能各自读取全局容器。',
       );
     });
 

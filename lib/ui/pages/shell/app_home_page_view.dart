@@ -2,8 +2,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/features/comment/comment_controller_factory.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
+import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/ui/pages/shell/home_shell_scope.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_view.dart';
 import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_view.dart';
@@ -24,59 +26,63 @@ class AppHomePageView extends GetView<ShellController> {
   Widget build(BuildContext context) {
     controller.buildContext = context;
     final commentControllerFactory = Get.find<CommentControllerFactory>();
+    final homeShellController = Get.find<HomeShellController>();
     final playerController = Get.find<PlayerController>();
     final searchController = Get.find<SearchPanelController>();
     final settingsController = Get.find<SettingsController>();
-    return Material(
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) => controller.onWillPop(),
-        child: SlidingUpPanel(
-          slideDirection: SlideDirection.DOWN,
-          controller: controller.topPanelController,
-          onPanelSlide: (openDegree) => controller.onTopPanelSlide(openDegree),
-          color: Colors.transparent,
-          // parallaxEnabled: true,
-          // parallaxOffset: 1,
-          maxHeight: context.height,
-          minHeight: 0,
-          boxShadow: null,
-          // collapsed: const TopPanelHeaderAppBar(),
-          panel: Obx(() {
-            final shouldBuildTopPanel = controller.topPanelFullyClosed.isFalse || controller.searchContent.value.isNotEmpty;
-            if (!shouldBuildTopPanel) {
-              return const SizedBox.shrink();
-            }
-            return TopPanelView(
-              shellController: controller,
-              searchController: searchController,
-              playerController: playerController,
-            );
-          }),
-          body: Obx(() {
-            final hasCurrentSong = playerController.currentSongState.value.id.isNotEmpty;
-            if (!hasCurrentSong) {
-              return const AutoRouter();
-            }
-            return SlidingUpPanel(
-              controller: controller.bottomPanelController,
-              onPanelSlide: (openDegree) => controller.onBottomPanelSlide(openDegree),
-              color: Colors.transparent,
-              boxShadow: null,
-              minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
-              maxHeight: context.height,
-              header: BottomPanelHeaderView(
+    return HomeShellScope(
+      homeShellController: homeShellController,
+      child: Material(
+        child: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) => controller.onWillPop(),
+          child: SlidingUpPanel(
+            slideDirection: SlideDirection.DOWN,
+            controller: controller.topPanelController,
+            onPanelSlide: (openDegree) => controller.onTopPanelSlide(openDegree),
+            color: Colors.transparent,
+            // parallaxEnabled: true,
+            // parallaxOffset: 1,
+            maxHeight: context.height,
+            minHeight: 0,
+            boxShadow: null,
+            // collapsed: const TopPanelHeaderAppBar(),
+            panel: Obx(() {
+              final shouldBuildTopPanel = controller.topPanelFullyClosed.isFalse || controller.searchContent.value.isNotEmpty;
+              if (!shouldBuildTopPanel) {
+                return const SizedBox.shrink();
+              }
+              return TopPanelView(
+                shellController: controller,
+                searchController: searchController,
                 playerController: playerController,
-                settingsController: settingsController,
-              ),
-              panel: BottomPanelView(
-                commentControllerFactory: commentControllerFactory,
-                playerController: playerController,
-                settingsController: settingsController,
-              ),
-              body: const AutoRouter(),
-            );
-          }),
+              );
+            }),
+            body: Obx(() {
+              final hasCurrentSong = playerController.currentSongState.value.id.isNotEmpty;
+              if (!hasCurrentSong) {
+                return const AutoRouter();
+              }
+              return SlidingUpPanel(
+                controller: controller.bottomPanelController,
+                onPanelSlide: (openDegree) => controller.onBottomPanelSlide(openDegree),
+                color: Colors.transparent,
+                boxShadow: null,
+                minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
+                maxHeight: context.height,
+                header: BottomPanelHeaderView(
+                  playerController: playerController,
+                  settingsController: settingsController,
+                ),
+                panel: BottomPanelView(
+                  commentControllerFactory: commentControllerFactory,
+                  playerController: playerController,
+                  settingsController: settingsController,
+                ),
+                body: const AutoRouter(),
+              );
+            }),
+          ),
         ),
       ),
     );

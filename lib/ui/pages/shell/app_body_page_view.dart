@@ -5,6 +5,7 @@ import 'package:bujuan/ui/pages/settings/setting_page.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/pages/shell/coffee_page.dart';
+import 'package:bujuan/ui/pages/shell/home_shell_scope.dart';
 import 'package:bujuan/ui/pages/user/personal_page.dart';
 import 'package:bujuan/ui/pages/user/recommended_playlists_page.dart';
 import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
@@ -22,7 +23,7 @@ class AppBodyPageView extends GetView<ShellController> {
 
   @override
   Widget build(BuildContext context) {
-    final homeShellController = HomeShellController.to;
+    final homeShellController = HomeShellScope.of(context);
     final isSquareLike = PersonalHomeLayoutMetrics(
       MediaQuery.sizeOf(context),
     ).isSquareLike;

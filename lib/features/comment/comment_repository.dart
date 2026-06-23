@@ -52,7 +52,7 @@ class CommentRepository {
         sortType: cacheKey.sortType,
         cursor: cacheKey.cursor,
       );
-      await _cacheStore.saveComments(
+      await _saveCommentsSafely(
         cacheKey,
         items: page.items,
         hasMore: page.hasMore,
@@ -73,14 +73,19 @@ class CommentRepository {
   }
 
   Future<CommentPage?> _loadFreshCommentPage(CommentListCacheKey cacheKey) async {
-    if (!await _cacheStore.isCommentsFresh(cacheKey, ttl: _cacheTtl)) {
+    if (!await _areCommentsFresh(cacheKey)) {
       return null;
     }
     return _loadCommentPage(cacheKey);
   }
 
   Future<CommentPage?> _loadCommentPage(CommentListCacheKey cacheKey) async {
-    final cachedPage = await _cacheStore.loadComments(cacheKey);
+    final ({bool hasMore, List<CommentData> items, String? nextCursor})? cachedPage;
+    try {
+      cachedPage = await _cacheStore.loadComments(cacheKey);
+    } catch (_) {
+      return null;
+    }
     if (cachedPage == null) {
       return null;
     }
@@ -119,7 +124,7 @@ class CommentRepository {
         time: cacheKey.time,
         limit: cacheKey.limit,
       );
-      await _cacheStore.saveFloorComments(
+      await _saveFloorCommentsSafely(
         cacheKey,
         items: page.items,
         hasMore: page.hasMore,
@@ -142,7 +147,7 @@ class CommentRepository {
   Future<FloorCommentPage?> _loadFreshFloorCommentPage(
     FloorCommentCacheKey cacheKey,
   ) async {
-    if (!await _cacheStore.isFloorCommentsFresh(cacheKey, ttl: _cacheTtl)) {
+    if (!await _areFloorCommentsFresh(cacheKey)) {
       return null;
     }
     return _loadFloorCommentPage(cacheKey);
@@ -151,7 +156,12 @@ class CommentRepository {
   Future<FloorCommentPage?> _loadFloorCommentPage(
     FloorCommentCacheKey cacheKey,
   ) async {
-    final cachedPage = await _cacheStore.loadFloorComments(cacheKey);
+    final ({bool hasMore, List<CommentData> items, int nextTime})? cachedPage;
+    try {
+      cachedPage = await _cacheStore.loadFloorComments(cacheKey);
+    } catch (_) {
+      return null;
+    }
     if (cachedPage == null) {
       return null;
     }
@@ -160,6 +170,54 @@ class CommentRepository {
       hasMore: cachedPage.hasMore,
       nextTime: cachedPage.nextTime,
     );
+  }
+
+  Future<bool> _areCommentsFresh(CommentListCacheKey cacheKey) async {
+    try {
+      return await _cacheStore.isCommentsFresh(cacheKey, ttl: _cacheTtl);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> _areFloorCommentsFresh(FloorCommentCacheKey cacheKey) async {
+    try {
+      return await _cacheStore.isFloorCommentsFresh(cacheKey, ttl: _cacheTtl);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _saveCommentsSafely(
+    CommentListCacheKey cacheKey, {
+    required List<CommentData> items,
+    required bool hasMore,
+    required String? nextCursor,
+  }) async {
+    try {
+      await _cacheStore.saveComments(
+        cacheKey,
+        items: items,
+        hasMore: hasMore,
+        nextCursor: nextCursor,
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _saveFloorCommentsSafely(
+    FloorCommentCacheKey cacheKey, {
+    required List<CommentData> items,
+    required bool hasMore,
+    required int nextTime,
+  }) async {
+    try {
+      await _cacheStore.saveFloorComments(
+        cacheKey,
+        items: items,
+        hasMore: hasMore,
+        nextTime: nextTime,
+      );
+    } catch (_) {}
   }
 
   /// 发送、回复或删除评论。

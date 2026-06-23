@@ -60,6 +60,54 @@ void main() {
       expect(remoteDataSource.fetchCommentsCallCount, 2);
     });
 
+    test('fetches remote comments when freshness check fails', () async {
+      final remoteDataSource = _FakeNeteaseCommentRemoteDataSource(
+        comments: [_comment('remote')],
+      );
+      final repository = _buildRepository(
+        remoteDataSource,
+        cacheDataSource: _FailingAppCacheDataSource(failIsFresh: true),
+      );
+
+      final page = await repository.fetchComments('netease:101', 'song');
+
+      expect(page.items.map((item) => item.commentId), ['remote']);
+      expect(remoteDataSource.fetchCommentsCallCount, 1);
+    });
+
+    test('fetches remote comments when fresh cached comments fail to load', () async {
+      final remoteDataSource = _FakeNeteaseCommentRemoteDataSource(
+        comments: [_comment('remote')],
+      );
+      final repository = _buildRepository(
+        remoteDataSource,
+        cacheDataSource: _FailingAppCacheDataSource(
+          failLoadPayloadJson: true,
+          freshResult: true,
+        ),
+      );
+
+      final page = await repository.fetchComments('netease:101', 'song');
+
+      expect(page.items.map((item) => item.commentId), ['remote']);
+      expect(remoteDataSource.fetchCommentsCallCount, 1);
+    });
+
+    test('returns remote comments when cache save fails', () async {
+      final remoteDataSource = _FakeNeteaseCommentRemoteDataSource(
+        comments: [_comment('remote')],
+      );
+      final repository = _buildRepository(
+        remoteDataSource,
+        cacheDataSource: _FailingAppCacheDataSource(failSave: true),
+      );
+
+      final page = await repository.fetchComments('netease:101', 'song');
+
+      expect(page.items.map((item) => item.commentId), ['remote']);
+      expect(remoteDataSource.fetchCommentsCallCount, 1);
+    });
+
     test('falls back to cached floor comments when remote refresh fails', () async {
       final remoteDataSource = _FakeNeteaseCommentRemoteDataSource(
         floorComments: [_comment('floor-1')],
@@ -80,16 +128,38 @@ void main() {
       expect(fallback.nextTime, 123);
       expect(remoteDataSource.fetchFloorCommentsCallCount, 2);
     });
+
+    test('returns remote floor comments when cache save fails', () async {
+      final remoteDataSource = _FakeNeteaseCommentRemoteDataSource(
+        floorComments: [_comment('floor-remote')],
+        floorNextTime: 456,
+      );
+      final repository = _buildRepository(
+        remoteDataSource,
+        cacheDataSource: _FailingAppCacheDataSource(failSave: true),
+      );
+
+      final page = await repository.fetchFloorComments(
+        'netease:101',
+        'song',
+        'parent-1',
+      );
+
+      expect(page.items.map((item) => item.commentId), ['floor-remote']);
+      expect(page.nextTime, 456);
+      expect(remoteDataSource.fetchFloorCommentsCallCount, 1);
+    });
   });
 }
 
 CommentRepository _buildRepository(
-  _FakeNeteaseCommentRemoteDataSource remoteDataSource,
-) {
+  _FakeNeteaseCommentRemoteDataSource remoteDataSource, {
+  AppCacheDataSource? cacheDataSource,
+}) {
   return CommentRepository(
     remoteDataSource: remoteDataSource,
     cacheStore: CommentCacheStore(
-      cacheDataSource: _InMemoryAppCacheDataSource(),
+      cacheDataSource: cacheDataSource ?? _InMemoryAppCacheDataSource(),
     ),
   );
 }
@@ -226,5 +296,50 @@ class _InMemoryAppCacheDataSource implements AppCacheDataSource {
   @override
   Future<void> deleteByPrefix(String cacheKeyPrefix) async {
     _records.removeWhere((key, _) => key.startsWith(cacheKeyPrefix));
+  }
+}
+
+class _FailingAppCacheDataSource extends _InMemoryAppCacheDataSource {
+  _FailingAppCacheDataSource({
+    this.failLoadPayloadJson = false,
+    this.failSave = false,
+    this.failIsFresh = false,
+    this.freshResult,
+  });
+
+  final bool failLoadPayloadJson;
+  final bool failSave;
+  final bool failIsFresh;
+  final bool? freshResult;
+
+  @override
+  Future<String?> loadPayloadJson(String cacheKey) {
+    if (failLoadPayloadJson) {
+      throw StateError('cache load failed');
+    }
+    return super.loadPayloadJson(cacheKey);
+  }
+
+  @override
+  Future<void> save({
+    required String cacheKey,
+    required String payloadJson,
+  }) {
+    if (failSave) {
+      throw StateError('cache save failed');
+    }
+    return super.save(cacheKey: cacheKey, payloadJson: payloadJson);
+  }
+
+  @override
+  Future<bool> isFresh(String cacheKey, {required Duration ttl}) {
+    if (failIsFresh) {
+      throw StateError('cache freshness failed');
+    }
+    final result = freshResult;
+    if (result != null) {
+      return Future<bool>.value(result);
+    }
+    return super.isFresh(cacheKey, ttl: ttl);
   }
 }

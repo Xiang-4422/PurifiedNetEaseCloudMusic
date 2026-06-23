@@ -22,18 +22,19 @@ class AppBodyPageView extends GetView<ShellController> {
 
   @override
   Widget build(BuildContext context) {
+    final homeShellController = HomeShellController.to;
     final isSquareLike = PersonalHomeLayoutMetrics(
       MediaQuery.sizeOf(context),
     ).isSquareLike;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      HomeShellController.to.updateHomeLayoutMode(isSquareLike: isSquareLike);
+      homeShellController.updateHomeLayoutMode(isSquareLike: isSquareLike);
     });
     return Stack(
       children: [
         Container(
           color: context.theme.colorScheme.primary,
           child: ZoomDrawer(
-            controller: HomeShellController.to.zoomDrawerController,
+            controller: homeShellController.zoomDrawerController,
 
             // 侧边抽屉配置
             // menuScreenTapClose: true,
@@ -58,8 +59,8 @@ class AppBodyPageView extends GetView<ShellController> {
             androidCloseOnBackTap: true,
             dragOffset: context.width,
 
-            menuScreen: const MenuView(),
-            mainScreen: const DrawerMainScreenView(),
+            menuScreen: MenuView(homeShellController: homeShellController),
+            mainScreen: DrawerMainScreenView(homeShellController: homeShellController),
           ),
         ),
       ],
@@ -70,10 +71,16 @@ class AppBodyPageView extends GetView<ShellController> {
 /// 侧边抽屉主屏幕，按首页 tab 组合各 feature 页面。
 class DrawerMainScreenView extends GetView<ShellController> {
   /// 创建侧边抽屉主屏幕。
-  const DrawerMainScreenView({Key? key}) : super(key: key);
+  const DrawerMainScreenView({
+    required this.homeShellController,
+    Key? key,
+  }) : super(key: key);
+
+  /// 首页壳层控制器，提供页面定义和抽屉状态。
+  final HomeShellController homeShellController;
 
   Widget _buildPage(int index) {
-    switch (HomeShellController.to.pageKindAt(index)) {
+    switch (homeShellController.pageKindAt(index)) {
       case HomeShellPageKind.personal:
         return _absorbed(const PersonalPageView());
       case HomeShellPageKind.recommendedPlaylists:
@@ -92,7 +99,7 @@ class DrawerMainScreenView extends GetView<ShellController> {
   Widget _absorbed(Widget child) {
     return Obx(
       () => AbsorbPointer(
-        absorbing: !HomeShellController.to.isDrawerClosed.value,
+        absorbing: !homeShellController.isDrawerClosed.value,
         child: child,
       ),
     );
@@ -105,10 +112,10 @@ class DrawerMainScreenView extends GetView<ShellController> {
       height: context.height,
       child: Obx(
         () => PageView.builder(
-          physics: HomeShellController.to.isDrawerClosed.value ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
+          physics: homeShellController.isDrawerClosed.value ? const NeverScrollableScrollPhysics() : const PageScrollPhysics(),
           scrollDirection: Axis.vertical,
-          controller: HomeShellController.to.homePageController,
-          itemCount: HomeShellController.to.homePageCount,
+          controller: homeShellController.homePageController,
+          itemCount: homeShellController.homePageCount,
           itemBuilder: (context, index) => _buildPage(index),
         ),
       ),
@@ -119,7 +126,13 @@ class DrawerMainScreenView extends GetView<ShellController> {
 /// 左侧竖向菜单视图，负责切换首页主屏幕页。
 class MenuView extends GetView<ShellController> {
   /// 创建左侧菜单视图。
-  const MenuView({super.key});
+  const MenuView({
+    required this.homeShellController,
+    super.key,
+  });
+
+  /// 首页壳层控制器，提供菜单状态和分页控制器。
+  final HomeShellController homeShellController;
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +160,7 @@ class MenuView extends GetView<ShellController> {
             ),
             onPressed: () {
               final router = context.router;
-              HomeShellController.to.zoomDrawerController.close?.call();
+              homeShellController.zoomDrawerController.close?.call();
               Future.delayed(const Duration(milliseconds: 200), () {
                 router.pushNamed(Routes.userProfile);
               });
@@ -160,7 +173,7 @@ class MenuView extends GetView<ShellController> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: HomeShellController.to.curHomePageTitle.value.split("").map((c) {
+                    children: homeShellController.curHomePageTitle.value.split("").map((c) {
                       return Text(
                         c,
                         style: context.textTheme.titleLarge,
@@ -176,19 +189,19 @@ class MenuView extends GetView<ShellController> {
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: Obx(
                 () {
-                  final menus = HomeShellController.to.leftMenus;
+                  final menus = homeShellController.leftMenus;
                   return SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(menus.length, (index) {
                         return IconButton(
                           onPressed: () {
-                            final pageController = HomeShellController.to.homePageController;
+                            final pageController = homeShellController.homePageController;
                             if (!pageController.hasClients) {
                               return;
                             }
                             const onePageAnimationTime = 200;
-                            final currentPage = pageController.page ?? HomeShellController.to.curHomePageIndex.value.toDouble();
+                            final currentPage = pageController.page ?? homeShellController.curHomePageIndex.value.toDouble();
                             final animationTime = Duration(
                               milliseconds: onePageAnimationTime * (currentPage - index).abs().toInt(),
                             );
@@ -201,7 +214,7 @@ class MenuView extends GetView<ShellController> {
                           icon: Icon(
                             menus[index].icon,
                             size: AppDimensions.albumMinSize * 2 / 3,
-                            color: HomeShellController.to.curHomePageIndex.value == index ? Theme.of(context).primaryColor : Theme.of(context).iconTheme.color,
+                            color: homeShellController.curHomePageIndex.value == index ? Theme.of(context).primaryColor : Theme.of(context).iconTheme.color,
                           ),
                         );
                       }),

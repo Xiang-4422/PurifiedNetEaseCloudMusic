@@ -126,6 +126,9 @@ void main() {
     expect(pageSource, contains('RecommendedPlaylistListSliver(controller: recommendationController)'));
     expect(pageSource, isNot(contains('PlayListItem(')));
     expect(appBodySource, contains('recommended_playlists_page.dart'));
+    expect(appBodySource, contains('final homeShellController = HomeShellController.to'));
+    expect(appBodySource, contains('DrawerMainScreenView(homeShellController: homeShellController)'));
+    expect(appBodySource, contains('MenuView(homeShellController: homeShellController)'));
   });
 
   test('user playlist library page lists account playlists without data source access', () {

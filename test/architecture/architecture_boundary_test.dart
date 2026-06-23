@@ -1563,6 +1563,33 @@ void main() {
       );
     });
 
+    test('shell body passes home shell boundary to local widgets', () {
+      final bodyFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/app_body_page_view.dart',
+      );
+      final body = bodyFile.readAsStringSync();
+      final drawerStart = body.indexOf('class DrawerMainScreenView');
+      final menuStart = body.indexOf('class MenuView');
+      final drawerSection = drawerStart >= 0 && menuStart > drawerStart ? body.substring(drawerStart, menuStart) : '';
+      final menuSection = menuStart >= 0 ? body.substring(menuStart) : '';
+      final violations = <String>[
+        if (drawerSection.isEmpty) '${_relativePath(bodyFile)} drawer main screen section is missing',
+        if (drawerSection.contains('HomeShellController.to')) '${_relativePath(bodyFile)} drawer main screen reads home shell globally',
+        if (menuSection.contains('HomeShellController.to')) '${_relativePath(bodyFile)} menu view reads home shell globally',
+        if (!body.contains('final homeShellController = HomeShellController.to')) '${_relativePath(bodyFile)} does not keep home shell lookup in shell body root',
+        if (!body.contains('MenuView(homeShellController: homeShellController)')) '${_relativePath(bodyFile)} does not inject home shell into menu',
+        if (!body.contains('DrawerMainScreenView(homeShellController: homeShellController)')) '${_relativePath(bodyFile)} does not inject home shell into main screen',
+        if (!drawerSection.contains('required this.homeShellController')) '${_relativePath(bodyFile)} drawer main screen does not receive home shell controller',
+        if (!menuSection.contains('required this.homeShellController')) '${_relativePath(bodyFile)} menu view does not receive home shell controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '首页主体页可以作为组合层读取 HomeShellController，但抽屉主屏幕和菜单必须接收注入边界，不能各自读取全局容器。',
+      );
+    });
+
     test('explore page keeps playlist playback resolution behind controller', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/explore/explore_page.dart',

@@ -15,7 +15,7 @@ void main() {
   group('SearchPanelController', () {
     test('only applies the latest keyword result', () async {
       final repository = _FakeSearchRepository();
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
       addTearDown(controller.dispose);
 
       final firstSearch = controller.search('old');
@@ -32,7 +32,7 @@ void main() {
 
     test('empty keyword clears state and prevents older result overwrite', () async {
       final repository = _FakeSearchRepository();
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
       addTearDown(controller.dispose);
 
       final firstSearch = controller.search('pending');
@@ -46,7 +46,7 @@ void main() {
     test('reruns same keyword when current user changes and drops scoped results', () async {
       final repository = _FakeSearchRepository();
       var currentUserId = 'user-1';
-      final controller = SearchPanelController(
+      final controller = _buildController(
         repository: repository,
         currentUserId: () => currentUserId,
       );
@@ -92,7 +92,7 @@ void main() {
     test('reruns same keyword when liked song ids change', () async {
       final repository = _FakeSearchRepository();
       var likedSongIds = <int>[101];
-      final controller = SearchPanelController(
+      final controller = _buildController(
         repository: repository,
         likedSongIds: () => likedSongIds,
         currentUserId: () => 'user-1',
@@ -124,7 +124,7 @@ void main() {
     test('does not rerun same keyword when liked song ids only reorder', () async {
       final repository = _FakeSearchRepository();
       var likedSongIds = <int>[202, 101];
-      final controller = SearchPanelController(
+      final controller = _buildController(
         repository: repository,
         likedSongIds: () => likedSongIds,
         currentUserId: () => 'user-1',
@@ -147,7 +147,7 @@ void main() {
 
     test('publishes first completed category before slower categories finish', () async {
       final repository = _FakeSearchRepository();
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
       addTearDown(controller.dispose);
 
       final search = controller.search('keyword');
@@ -172,7 +172,7 @@ void main() {
 
     test('ignores search results after dispose', () async {
       final repository = _FakeSearchRepository();
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
 
       final search = controller.search('keyword');
       await _flushAsync();
@@ -185,7 +185,7 @@ void main() {
 
     test('cancels pending search and allows same keyword to rerun', () async {
       final repository = _FakeSearchRepository();
-      final controller = SearchPanelController(
+      final controller = _buildController(
         repository: repository,
         likedSongIds: () => const [101],
         currentUserId: () => 'user-1',
@@ -217,7 +217,7 @@ void main() {
 
     test('keeps current results while force refreshing same keyword fails', () async {
       final repository = _FakeSearchRepository();
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
       addTearDown(controller.dispose);
 
       final initialSearch = controller.search('keyword');
@@ -258,7 +258,7 @@ void main() {
         cachedHotKeywords: null,
         hotKeywordCacheFresh: false,
       );
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
       addTearDown(controller.dispose);
 
       final firstLoad = controller.loadInitial(force: true);
@@ -283,7 +283,7 @@ void main() {
         cachedHotKeywords: const ['cached'],
         hotKeywordCacheFresh: false,
       );
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
       addTearDown(controller.dispose);
 
       final load = controller.loadInitial();
@@ -303,7 +303,7 @@ void main() {
         cachedHotKeywords: null,
         hotKeywordCacheFresh: false,
       );
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
 
       final load = controller.loadInitial(force: true);
       await _flushAsync();
@@ -320,7 +320,7 @@ void main() {
         cachedHotKeywords: const ['cached'],
         hotKeywordCacheFresh: false,
       );
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
       addTearDown(controller.dispose);
 
       final load = controller.loadInitial();
@@ -338,7 +338,7 @@ void main() {
       final repository = _FakeSearchRepository(
         cachedHotKeywordsError: StateError('cache failed'),
       );
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
       addTearDown(controller.dispose);
 
       final load = controller.loadInitial();
@@ -358,7 +358,7 @@ void main() {
         cachedHotKeywords: const ['cached'],
         hotKeywordCacheFreshError: StateError('freshness failed'),
       );
-      final controller = SearchPanelController(repository: repository);
+      final controller = _buildController(repository: repository);
       addTearDown(controller.dispose);
 
       final load = controller.loadInitial();
@@ -373,6 +373,18 @@ void main() {
       expect(controller.hotKeywordState.value.data, const ['remote']);
     });
   });
+}
+
+SearchPanelController _buildController({
+  required SearchRepository repository,
+  List<int> Function()? likedSongIds,
+  String Function()? currentUserId,
+}) {
+  return SearchPanelController(
+    repository: repository,
+    likedSongIds: likedSongIds ?? () => const <int>[],
+    currentUserId: currentUserId ?? () => '',
+  );
 }
 
 class _FakeSearchRepository implements SearchRepository {

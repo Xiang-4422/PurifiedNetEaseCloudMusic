@@ -37,11 +37,11 @@ class SearchPanelController {
   /// 创建搜索面板控制器。
   SearchPanelController({
     required SearchRepository repository,
-    List<int> Function()? likedSongIds,
-    String Function()? currentUserId,
+    required List<int> Function() likedSongIds,
+    required String Function() currentUserId,
   })  : _repository = repository,
-        _likedSongIds = likedSongIds ?? _emptyLikedSongIds,
-        _currentUserIdProvider = currentUserId ?? _emptyCurrentUserId;
+        _likedSongIds = likedSongIds,
+        _currentUserIdProvider = currentUserId;
 
   final SearchRepository _repository;
   final List<int> Function() _likedSongIds;
@@ -389,12 +389,4 @@ class SearchPanelController {
 String _likedSongIdsSignature(List<int> likedSongIds) {
   final normalizedIds = likedSongIds.toSet().toList()..sort();
   return normalizedIds.join(',');
-}
-
-List<int> _emptyLikedSongIds() {
-  return const <int>[];
-}
-
-String _emptyCurrentUserId() {
-  return '';
 }

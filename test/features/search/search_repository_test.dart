@@ -74,6 +74,33 @@ void main() {
       expect(items.map((item) => item.id), ['local:1']);
     });
 
+    test('skips blank track ids before loading track resources', () async {
+      final musicDataRepository = _FakeMusicDataRepository(
+        localTracks: [
+          _track('   ', sourceType: SourceType.local),
+          _track('local:1', sourceType: SourceType.local),
+        ],
+        remoteTracks: [
+          _track(''),
+          _track('netease:2'),
+        ],
+      );
+      final repository = SearchRepository(
+        musicDataRepository: musicDataRepository,
+        remoteDataSource: _FakeNeteaseSearchRemoteDataSource(),
+        cacheStore: _FakeSearchCacheStore(),
+        userPlaylistListDataSource: _FakeUserPlaylistListDataSource(),
+      );
+
+      final items = await repository.searchTrackQueueItems(
+        'keyword',
+        likedSongIds: const [],
+      );
+
+      expect(musicDataRepository.loadedTrackIds, ['local:1', 'netease:2']);
+      expect(items.map((item) => item.id), ['local:1', 'netease:2']);
+    });
+
     test('propagates remote track failure when no local result exists', () async {
       final repository = SearchRepository(
         musicDataRepository: _FakeMusicDataRepository(
@@ -136,6 +163,33 @@ void main() {
         'netease:artist-1',
         'netease:artist-2',
       ]);
+    });
+
+    test('skips blank ids while merging non-track search results', () async {
+      final repository = SearchRepository(
+        musicDataRepository: _FakeMusicDataRepository(
+          localPlaylists: [_playlist('   ', sourceType: SourceType.local)],
+          remotePlaylists: [_playlist('netease:playlist')],
+          localAlbums: [_album('')],
+          remoteAlbums: [_album('netease:album')],
+          localArtists: [_artist(' ')],
+          remoteArtists: [_artist('netease:artist')],
+        ),
+        remoteDataSource: _FakeNeteaseSearchRemoteDataSource(),
+        cacheStore: _FakeSearchCacheStore(),
+        userPlaylistListDataSource: _FakeUserPlaylistListDataSource(),
+      );
+
+      final playlists = await repository.searchPlaylists(
+        'keyword',
+        currentUserId: '',
+      );
+      final albums = await repository.searchAlbums('keyword');
+      final artists = await repository.searchArtists('keyword');
+
+      expect(playlists.map((playlist) => playlist.id), ['netease:playlist']);
+      expect(albums.map((album) => album.id), ['netease:album']);
+      expect(artists.map((artist) => artist.id), ['netease:artist']);
     });
 
     test('skips user playlist cache for blank current user id', () async {

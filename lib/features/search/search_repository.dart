@@ -154,7 +154,11 @@ class SearchRepository {
     final merged = <T>[];
     final seenIds = <String>{};
     for (final item in [...localItems, ...remoteItems]) {
-      if (seenIds.add(idOf(item))) {
+      final id = idOf(item).trim();
+      if (id.isEmpty) {
+        continue;
+      }
+      if (seenIds.add(id)) {
         merged.add(item);
       }
     }

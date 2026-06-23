@@ -266,6 +266,22 @@ void main() {
         reason: '${result.stdout}\n${result.stderr}',
       );
       final markdown = result.stdout as String;
+      final jsonResult = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(
+        jsonResult.exitCode,
+        0,
+        reason: '${jsonResult.stdout}\n${jsonResult.stderr}',
+      );
+      final report = _jsonMap(jsonDecode(jsonResult.stdout as String));
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
 
       expect(markdown, contains('# api-enhanced coverage report'));
       expect(markdown, contains('## Upstream'));
@@ -274,11 +290,10 @@ void main() {
       expect(markdown, contains('- modules: ${apiEnhancedModules.length}'));
       expect(markdown, contains('## SDK Differences'));
       expect(markdown, contains('| scope | module | status | reason |'));
-      expect(markdown, contains('| special_module | cloud | limited |'));
-      expect(markdown, contains('| special_module | song_url_match | limited |'));
-      expect(markdown, contains('| special_module | song_url_v1 | limited |'));
-      expect(markdown, contains('| runtime_option | runtime:proxy.pac | limited |'));
-      expect(markdown, contains('| runtime_option | runtime:source_order | limited |'));
+      for (final difference in sdkDifferences) {
+        final tableRow = '| ${difference['scope']} | ${difference['module']} | ${difference['status']} | ${difference['reason']} |';
+        expect(markdown, contains(tableRow), reason: difference['module'].toString());
+      }
       expect(markdown, contains('unblockmusic-utils'));
     });
 

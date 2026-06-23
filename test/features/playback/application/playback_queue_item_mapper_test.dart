@@ -9,6 +9,36 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PlaybackQueueItemMapper', () {
+    test('normalizes track ids and skips blank track ids', () {
+      final items = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(id: '  netease:1  '),
+            resources: const TrackResourceBundle(),
+          ),
+          TrackWithResources(
+            track: _track(id: '   '),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [],
+      );
+
+      expect(items.map((item) => item.id), ['netease:1']);
+    });
+
+    test('normalizes track ids from plain track list', () {
+      final items = PlaybackQueueItemMapper.fromTrackList(
+        [
+          _track(id: '  netease:1  '),
+          _track(id: '   '),
+        ],
+        likedSongIds: const [],
+      );
+
+      expect(items.map((item) => item.id), ['netease:1']);
+    });
+
     test('maps normal downloaded audio files as local file playback', () {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [

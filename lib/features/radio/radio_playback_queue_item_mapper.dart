@@ -12,26 +12,31 @@ class RadioPlaybackQueueItemMapper {
     List<RadioProgramData> programs, {
     required List<int> likedSongIds,
   }) {
-    return programs
-        .map(
-          (program) => PlaybackQueueItem(
-            id: program.mainTrackId,
-            sourceId: program.mainTrackId,
-            title: program.title,
-            albumTitle: program.albumTitle,
-            artistNames: program.artistName.isEmpty ? const [] : [program.artistName],
-            artistIds: const [],
-            duration: Duration(milliseconds: program.durationMs),
-            artworkUrl: null,
-            localArtworkPath: null,
-            mediaType: MediaType.playlist,
-            playbackUrl: null,
-            lyricKey: program.mainTrackId,
-            isLiked: likedSongIds.contains(int.tryParse(program.mainTrackId)),
-            isCached: false,
-            metadata: const {'mv': 0},
-          ),
-        )
-        .toList();
+    return programs.where((program) => _normalizedQueueItemId(program.mainTrackId).isNotEmpty).map(
+      (program) {
+        final trackId = _normalizedQueueItemId(program.mainTrackId);
+        return PlaybackQueueItem(
+          id: trackId,
+          sourceId: trackId,
+          title: program.title,
+          albumTitle: program.albumTitle,
+          artistNames: program.artistName.isEmpty ? const [] : [program.artistName],
+          artistIds: const [],
+          duration: Duration(milliseconds: program.durationMs),
+          artworkUrl: null,
+          localArtworkPath: null,
+          mediaType: MediaType.playlist,
+          playbackUrl: null,
+          lyricKey: trackId,
+          isLiked: likedSongIds.contains(int.tryParse(trackId)),
+          isCached: false,
+          metadata: const {'mv': 0},
+        );
+      },
+    ).toList();
+  }
+
+  static String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 }

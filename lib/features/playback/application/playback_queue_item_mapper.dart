@@ -22,7 +22,7 @@ class PlaybackQueueItemMapper {
   }) {
     return fromTrackWithResourcesList(
       tracks
-          .where((track) => track.id.isNotEmpty)
+          .where((track) => _normalizedQueueItemId(track.id).isNotEmpty)
           .map(
             (track) => TrackWithResources(
               track: track,
@@ -41,14 +41,15 @@ class PlaybackQueueItemMapper {
     required List<int> likedSongIds,
     MediaType? mediaType,
   }) {
-    return tracks.where((item) => item.track.id.isNotEmpty).map((item) {
+    return tracks.where((item) => _normalizedQueueItemId(item.track.id).isNotEmpty).map((item) {
       final track = item.track;
+      final trackId = _normalizedQueueItemId(track.id);
       final resources = item.resources;
       final localArtworkPath = _localResourcePath(resources.artwork);
       final localLyricsPath = _localResourcePath(resources.lyrics);
       final artworkUrl = _emptyToNull(ImageUrlNormalizer.normalize(track.artworkUrl));
       return PlaybackQueueItem(
-        id: track.id,
+        id: trackId,
         sourceId: track.sourceId,
         sourceType: track.sourceType,
         title: track.title,
@@ -129,5 +130,9 @@ class PlaybackQueueItemMapper {
 
   static String? _localResourcePath(LocalResourceEntry? resource) {
     return _emptyToNull(LocalFilePathNormalizer.normalize(resource?.path));
+  }
+
+  static String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 }

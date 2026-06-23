@@ -682,6 +682,33 @@ void main() {
       );
     });
 
+    test('playback queue mappers normalize queue item ids', () {
+      final mapperFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_queue_item_mapper.dart',
+      );
+      final radioMapperFile = File(
+        '${projectRoot.path}/lib/features/radio/radio_playback_queue_item_mapper.dart',
+      );
+      final mapper = mapperFile.readAsStringSync();
+      final radioMapper = radioMapperFile.readAsStringSync();
+      final violations = <String>[
+        if (!mapper.contains('String _normalizedQueueItemId(String id)')) 'playback queue item mapper does not define id normalization',
+        if (!mapper.contains('_normalizedQueueItemId(track.id).isNotEmpty')) 'playback queue item mapper does not filter blank track ids',
+        if (!mapper.contains('final trackId = _normalizedQueueItemId(track.id);')) 'playback queue item mapper does not normalize ids before mapping',
+        if (!mapper.contains('id: trackId')) 'playback queue item mapper can still write raw track ids',
+        if (!radioMapper.contains('String _normalizedQueueItemId(String id)')) 'radio queue item mapper does not define id normalization',
+        if (!radioMapper.contains('_normalizedQueueItemId(program.mainTrackId).isNotEmpty')) 'radio queue item mapper does not filter blank main track ids',
+        if (!radioMapper.contains('final trackId = _normalizedQueueItemId(program.mainTrackId);')) 'radio queue item mapper does not normalize main track ids before mapping',
+        if (!radioMapper.contains('id: trackId')) 'radio queue item mapper can still write raw main track ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放队列 mapper 是 UI、播放和恢复状态共用的入口，曲目 id 必须在进入 PlaybackQueueItem 前规范化并拒绝空白值。',
+      );
+    });
+
     test('media item adapter does not persist remote playback urls', () {
       final adapterFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_queue_item_adapter.dart',

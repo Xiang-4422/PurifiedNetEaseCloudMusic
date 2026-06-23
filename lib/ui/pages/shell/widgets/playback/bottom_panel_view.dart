@@ -31,7 +31,11 @@ class BottomPanelView extends GetView<ShellController> {
         // 内容
         Column(
           children: [
-            BottomPanelHeader(controller: controller),
+            BottomPanelHeader(
+              controller: controller,
+              playerController: playerController,
+              settingsController: settingsController,
+            ),
             // 专辑占位
             Obx(() => Offstage(
                   offstage: controller.isBigAlbum.isFalse,

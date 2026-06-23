@@ -62,6 +62,7 @@ void main() {
     ).readAsStringSync();
 
     expect(panelSource, contains('BottomPanelQueueView('));
+    expect(panelSource, contains('BottomPanelHeader('));
     expect(panelSource, contains('playerController: playerController'));
     expect(panelSource, contains('settingsController: settingsController'));
     expect(panelSource, contains('BottomPanelCommentPage('));
@@ -148,5 +149,9 @@ void main() {
 
     expect(headerSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
     expect(headerSource, contains('localArtworkPath: currentSong.localArtworkPath'));
+    expect(headerSource, contains('required this.playerController'));
+    expect(headerSource, contains('required this.settingsController'));
+    expect(headerSource, isNot(contains('PlayerController.to')));
+    expect(headerSource, isNot(contains('SettingsController.to')));
   });
 }

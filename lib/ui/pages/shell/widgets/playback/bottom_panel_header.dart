@@ -10,10 +10,21 @@ import 'package:get/get.dart';
 /// 底部播放面板展开态的顶部歌曲信息栏。
 class BottomPanelHeader extends StatelessWidget {
   /// 创建底部播放面板顶部信息栏。
-  const BottomPanelHeader({required this.controller, super.key});
+  const BottomPanelHeader({
+    required this.controller,
+    required this.playerController,
+    required this.settingsController,
+    super.key,
+  });
 
   /// 壳层控制器，提供面板展开和封面动画状态。
   final ShellController controller;
+
+  /// 播放控制器。
+  final PlayerController playerController;
+
+  /// 设置控制器。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +35,7 @@ class BottomPanelHeader extends StatelessWidget {
       width: context.width,
       child: Obx(
         () {
-          final currentSong = PlayerController.to.currentSongState.value;
+          final currentSong = playerController.currentSongState.value;
           return Visibility(
             visible: controller.bottomPanelFullyOpened.isTrue,
             child: Row(
@@ -40,7 +51,7 @@ class BottomPanelHeader extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: context.textTheme.titleLarge?.copyWith(
-                          color: SettingsController.to.panelWidgetColor.value,
+                          color: settingsController.panelWidgetColor.value,
                         ),
                       ),
                       Text(
@@ -49,7 +60,7 @@ class BottomPanelHeader extends StatelessWidget {
                         maxLines: 1,
                         style: context.textTheme.titleLarge?.copyWith(
                           fontSize: context.textTheme.titleLarge!.fontSize! / 2,
-                          color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.5),
+                          color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -62,12 +73,12 @@ class BottomPanelHeader extends StatelessWidget {
                       visible: controller.isAlbumScaleEnded.isTrue,
                       child: GestureDetector(
                         onTap: () {
-                          if (PlayerController.to.isFullScreenLyricOpen.isTrue) {
-                            PlayerController.to.isFullScreenLyricOpen.value = false;
+                          if (playerController.isFullScreenLyricOpen.isTrue) {
+                            playerController.isFullScreenLyricOpen.value = false;
                           } else {
                             controller.isAlbumScaleEnded.value = false;
                             controller.isBigAlbum.value = true;
-                            PlayerController.to.updateFullScreenLyricTimerCounter(
+                            playerController.updateFullScreenLyricTimerCounter(
                               cancelTimer: true,
                             );
                           }

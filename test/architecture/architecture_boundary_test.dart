@@ -760,6 +760,32 @@ void main() {
       );
     });
 
+    test('bottom panel header receives playback state boundaries', () {
+      final headerFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_header.dart',
+      );
+      final panelFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+      );
+      final header = headerFile.readAsStringSync();
+      final panel = panelFile.readAsStringSync();
+      final violations = <String>[
+        if (header.contains('PlayerController.to')) '${_relativePath(headerFile)} reads player controller globally',
+        if (header.contains('SettingsController.to')) '${_relativePath(headerFile)} reads settings controller globally',
+        if (!header.contains('required this.playerController')) '${_relativePath(headerFile)} does not receive player controller',
+        if (!header.contains('required this.settingsController')) '${_relativePath(headerFile)} does not receive settings controller',
+        if (!panel.contains('BottomPanelHeader(')) '${_relativePath(panelFile)} does not compose header',
+        if (!panel.contains('playerController: playerController')) '${_relativePath(panelFile)} does not inject player controller',
+        if (!panel.contains('settingsController: settingsController')) '${_relativePath(panelFile)} does not inject settings controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '底部 header 只展示当前歌曲并切换封面/歌词状态，当前歌曲和面板颜色必须由底部播放面板组合层注入。',
+      );
+    });
+
     test('playback metadata key access stays in queue boundary codecs', () {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',

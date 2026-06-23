@@ -5,7 +5,7 @@ import 'package:bujuan/ui/pages/user/widgets/frequent_playlist_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/library_shortcut_bar.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
 import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
-import 'package:bujuan/ui/widgets/playlist/playlist_widgets.dart';
+import 'package:bujuan/ui/pages/user/widgets/recommended_playlist_slivers.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
@@ -14,7 +14,6 @@ import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 import 'package:get/get.dart';
 
@@ -112,29 +111,8 @@ class PersonalPageView extends GetView<ShellController> {
             child: LibraryShortcutBar(),
           ),
 
-          // 推荐歌单 Header
-          SliverLayoutBuilder(
-            builder: (BuildContext context, SliverConstraints constraints) {
-              // 计算是否处于悬浮状态
-              // 当 scrollOffset > 0 时，说明 Header 已经触顶并开始“固定”了
-              final bool isPinned = constraints.scrollOffset > 0;
-              return PinnedHeaderSliver(
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  color: Colors.white,
-                  padding: isPinned ? EdgeInsets.only(top: context.mediaQueryPadding.top) : EdgeInsets.zero,
-                  child: const Header('推荐歌单', padding: AppDimensions.paddingSmall),
-                ),
-              );
-            },
-          ),
-          // 推荐歌单列表
-          SliverList.builder(
-            itemCount: recommendationController.recoPlayLists.length,
-            itemBuilder: (BuildContext context, int index) {
-              return PlayListItem(recommendationController.recoPlayLists[index]).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
-            },
-          ),
+          const RecommendedPlaylistPinnedHeaderSliver(),
+          RecommendedPlaylistListSliver(controller: recommendationController),
           const SliverToBoxAdapter(
             child: SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
           ),
@@ -284,50 +262,5 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
       playbackAction: widget.playbackAction,
       shellController: widget.shellController,
     );
-  }
-}
-
-/// 方屏首页侧边菜单中的独立推荐歌单页。
-class RecommendedPlaylistsPageView extends StatelessWidget {
-  /// 创建独立推荐歌单页。
-  const RecommendedPlaylistsPageView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final recommendationController = RecommendationController.to;
-    return Obx(() {
-      if (recommendationController.dateLoaded.isFalse) {
-        return const LoadingView();
-      }
-      return AppSmartRefresher(
-        controller: recommendationController.refreshController,
-        enablePullUp: true,
-        onLoading: () => recommendationController.updateRecoPlayLists(getMore: true),
-        child: CustomScrollView(
-          cacheExtent: 120,
-          physics: const ClampingScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: SizedBox(height: context.mediaQueryPadding.top),
-            ),
-            const SliverToBoxAdapter(
-              child: Header(
-                '推荐歌单',
-                padding: AppDimensions.paddingSmall,
-              ),
-            ),
-            SliverList.builder(
-              itemCount: recommendationController.recoPlayLists.length,
-              itemBuilder: (BuildContext context, int index) {
-                return PlayListItem(recommendationController.recoPlayLists[index]).paddingSymmetric(horizontal: AppDimensions.paddingSmall);
-              },
-            ),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
-            ),
-          ],
-        ),
-      );
-    });
   }
 }

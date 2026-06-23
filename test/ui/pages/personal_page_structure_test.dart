@@ -29,13 +29,14 @@ void main() {
     ).readAsStringSync();
     final libraryIndex = source.indexOf("'资料库'");
     final squareLibraryIndex = source.indexOf("'资料库'", libraryIndex + 1);
-    final recommendedIndex = source.indexOf("'推荐歌单'");
+    final recommendedIndex = source.indexOf('RecommendedPlaylistPinnedHeaderSliver(');
 
     expect(libraryIndex, isNonNegative);
     expect(squareLibraryIndex, isNonNegative);
     expect(recommendedIndex, isNonNegative);
     expect(libraryIndex, lessThan(recommendedIndex));
     expect(source, contains('child: LibraryShortcutBar()'));
+    expect(source, contains('recommended_playlist_slivers.dart'));
     expect(shortcutSource, contains("label: '我喜欢'"));
     expect(shortcutSource, contains("label: '我的歌单'"));
     expect(shortcutSource, contains("label: '本地音乐'"));
@@ -51,6 +52,32 @@ void main() {
     expect(shortcutSource, contains('context.router.push(const gr.CloudDriveView())'));
     expect(source, isNot(contains('PlayListItem(libraryController.userLikedSongPlayList.value)')));
     expect(source, isNot(contains('PlayListItem(widget.libraryController.userLikedSongPlayList.value)')));
+  });
+
+  test('recommended playlists rendering stays in local user widgets', () {
+    final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
+    final sliverSource = File(
+      'lib/ui/pages/user/widgets/recommended_playlist_slivers.dart',
+    ).readAsStringSync();
+    final pageSource = File(
+      'lib/ui/pages/user/recommended_playlists_page.dart',
+    ).readAsStringSync();
+    final appBodySource = File('lib/ui/pages/shell/app_body_page_view.dart').readAsStringSync();
+
+    expect(source, contains('RecommendedPlaylistPinnedHeaderSliver('));
+    expect(source, contains('RecommendedPlaylistListSliver(controller: recommendationController)'));
+    expect(source, isNot(contains('class RecommendedPlaylistsPageView')));
+    expect(source, isNot(contains('SliverList.builder(')));
+    expect(source, isNot(contains('PlayListItem(recommendationController.recoPlayLists')));
+    expect(sliverSource, contains('class RecommendedPlaylistPinnedHeaderSliver'));
+    expect(sliverSource, contains('Theme.of(context).colorScheme.surface'));
+    expect(sliverSource, contains('controller.recoPlayLists'));
+    expect(sliverSource, contains('PlayListItem('));
+    expect(pageSource, contains('class RecommendedPlaylistsPageView'));
+    expect(pageSource, contains('RecommendedPlaylistHeaderSliver'));
+    expect(pageSource, contains('RecommendedPlaylistListSliver(controller: recommendationController)'));
+    expect(pageSource, isNot(contains('PlayListItem(')));
+    expect(appBodySource, contains('recommended_playlists_page.dart'));
   });
 
   test('user playlist library page lists account playlists without data source access', () {

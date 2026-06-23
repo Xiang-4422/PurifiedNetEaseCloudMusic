@@ -6,6 +6,7 @@ import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/pages/shell/coffee_page.dart';
 import 'package:bujuan/ui/pages/user/personal_page.dart';
+import 'package:bujuan/ui/pages/user/recommended_playlists_page.dart';
 import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/app/routing/router.dart';

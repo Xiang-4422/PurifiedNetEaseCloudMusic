@@ -346,6 +346,56 @@ void main() {
       );
     });
 
+    test('coverage report includes manifest upstream baseline mismatches in SDK differences', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_manifest_baseline_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final generatedManifest = File(
+        '${repoRoot.path}/packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
+      ).readAsStringSync();
+      final mismatchedManifest = generatedManifest
+          .replaceFirst(
+            RegExp(r"const String apiEnhancedUpstreamVersion = '[^']*';"),
+            "const String apiEnhancedUpstreamVersion = '0.0.0-codex-mismatch';",
+          )
+          .replaceFirst(
+            RegExp(r"const String apiEnhancedUpstreamCommit\s*=\s*'[^']*';"),
+            "const String apiEnhancedUpstreamCommit = 'codex-mismatched-commit';",
+          );
+      expect(mismatchedManifest, isNot(generatedManifest));
+      final manifestFile = File('${tempDir.path}/api_enhanced_modules.g.dart')..writeAsStringSync(mismatchedManifest);
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--generated-manifest=${manifestFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(
+        _jsonMapList(report['manifestUpstreamMismatches']).map((item) => item['field']).toSet(),
+        containsAll({'version', 'commit'}),
+      );
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      expect(
+        sdkDifferences.where((item) => item['status'] == 'manifest_upstream_version_mismatch').map((item) => item['scope']),
+        contains('generated_manifest'),
+      );
+      expect(
+        sdkDifferences.where((item) => item['status'] == 'manifest_upstream_commit_mismatch').map((item) => item['scope']),
+        contains('generated_manifest'),
+      );
+    });
+
     test('documented upstream baseline matches submodule and generated manifest', () async {
       final repoRoot = _findRepoRoot();
       final packageJson = _jsonMap(jsonDecode(File('${repoRoot.path}/third_party/api-enhanced/package.json').readAsStringSync()));

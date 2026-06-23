@@ -58,9 +58,11 @@ class PlaybackRestoreCoordinator {
     var index = playlist.indexWhere(
       (element) => element.id == restoreState.currentSongId,
     );
+    final currentSongMatched = index >= 0;
     if (index < 0 && playlist.isNotEmpty) {
       index = 0;
     }
+    final position = currentSongMatched && restoreState.position > Duration.zero ? restoreState.position : Duration.zero;
     return PlaybackRestoreData(
       playbackMode: restoreState.playbackMode,
       repeatMode: restoreState.repeatMode,
@@ -68,7 +70,7 @@ class PlaybackRestoreCoordinator {
       index: index,
       playlistName: playlist.isEmpty ? '' : restoreState.playlistName,
       playlistHeader: playlist.isEmpty ? '' : restoreState.playlistHeader,
-      position: playlist.isEmpty ? Duration.zero : restoreState.position,
+      position: playlist.isEmpty ? Duration.zero : position,
     );
   }
 

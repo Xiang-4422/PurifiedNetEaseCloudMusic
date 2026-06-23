@@ -680,6 +680,24 @@ void main() {
       );
     });
 
+    test('playback restore position requires matched current song', () {
+      final coordinatorFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_restore_coordinator.dart',
+      );
+      final content = coordinatorFile.readAsStringSync();
+      final violations = <String>[
+        if (!content.contains('final currentSongMatched = index >= 0')) 'does not record whether restored current song matched queue',
+        if (!content.contains('currentSongMatched && restoreState.position > Duration.zero')) 'restores position without checking matched current song',
+        if (!content.contains('restoreState.position > Duration.zero')) 'does not sanitize non-positive restored position',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '恢复进度只属于持久化的当前歌曲；当前歌曲缺失或进度异常时只能恢复队列上下文，不能把旧进度 seek 到另一首歌。',
+      );
+    });
+
     test('music data repository delegates playback url cache coordination', () {
       final repositoryFile = File(
         '${projectRoot.path}/lib/data/music_data/music_data_repository.dart',

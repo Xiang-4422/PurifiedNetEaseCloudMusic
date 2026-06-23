@@ -31,7 +31,7 @@ void main() {
       expect(restoreData.playlistHeader, isEmpty);
     });
 
-    test('filters empty restored queue items and clamps missing current song', () async {
+    test('filters empty restored queue items and drops position when current song is missing', () async {
       final coordinator = PlaybackRestoreCoordinator(
         repository: _FakePlaybackRepository(
           const PlaybackRestoreState(
@@ -50,7 +50,49 @@ void main() {
 
       expect(restoreData.queue.map((item) => item.id), ['netease:1']);
       expect(restoreData.index, 0);
-      expect(restoreData.position, const Duration(seconds: 12));
+      expect(restoreData.position, Duration.zero);
+    });
+
+    test('keeps restored position only when current song is matched', () async {
+      final coordinator = PlaybackRestoreCoordinator(
+        repository: _FakePlaybackRepository(
+          const PlaybackRestoreState(
+            queue: ['cached-1', 'cached-2'],
+            currentSongId: 'netease:2',
+            position: Duration(seconds: 42),
+          ),
+        ),
+        queueStore: _FakePlaybackQueueStore([
+          _item('netease:1'),
+          _item('netease:2'),
+        ]),
+      );
+
+      final restoreData = await coordinator.loadRestoreData();
+
+      expect(restoreData.queue.map((item) => item.id), ['netease:1', 'netease:2']);
+      expect(restoreData.index, 1);
+      expect(restoreData.position, const Duration(seconds: 42));
+    });
+
+    test('drops negative restored position even when current song is matched', () async {
+      final coordinator = PlaybackRestoreCoordinator(
+        repository: _FakePlaybackRepository(
+          const PlaybackRestoreState(
+            queue: ['cached-1'],
+            currentSongId: 'netease:1',
+            position: Duration(seconds: -3),
+          ),
+        ),
+        queueStore: _FakePlaybackQueueStore([
+          _item('netease:1'),
+        ]),
+      );
+
+      final restoreData = await coordinator.loadRestoreData();
+
+      expect(restoreData.index, 0);
+      expect(restoreData.position, Duration.zero);
     });
   });
 }

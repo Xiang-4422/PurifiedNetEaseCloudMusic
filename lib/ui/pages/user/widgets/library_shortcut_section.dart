@@ -1,3 +1,4 @@
+import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/pages/user/widgets/library_shortcut_bar.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
@@ -8,9 +9,13 @@ class LibraryShortcutSection extends StatelessWidget {
   /// 创建资料库入口区域。
   const LibraryShortcutSection({
     super.key,
+    required this.libraryController,
     this.headerHeight = AppDimensions.headerHeight,
     this.headerTopMargin = 0,
   });
+
+  /// 用户资料库控制器。
+  final UserLibraryController libraryController;
 
   /// 标题高度。
   final double headerHeight;
@@ -35,7 +40,9 @@ class LibraryShortcutSection extends StatelessWidget {
           )
         else
           header,
-        const LibraryShortcutBar(),
+        LibraryShortcutBar(
+          likedPlaylist: () => libraryController.userLikedSongPlayList.value,
+        ),
       ],
     );
   }

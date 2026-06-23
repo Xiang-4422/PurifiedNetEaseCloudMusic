@@ -1051,6 +1051,30 @@ void main() {
       );
     });
 
+    test('library shortcut bar keeps liked playlist behind injected provider', () {
+      final shortcutFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/widgets/library_shortcut_bar.dart',
+      );
+      final sectionFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/widgets/library_shortcut_section.dart',
+      );
+      final shortcut = shortcutFile.readAsStringSync();
+      final section = sectionFile.readAsStringSync();
+      final violations = <String>[
+        if (shortcut.contains('UserLibraryController')) '${_relativePath(shortcutFile)} reads user library directly',
+        if (!shortcut.contains('final PlaylistSummaryData Function() likedPlaylist')) '${_relativePath(shortcutFile)} does not receive liked playlist provider',
+        if (!shortcut.contains('final playlist = likedPlaylist();')) '${_relativePath(shortcutFile)} does not read liked playlist from provider',
+        if (!section.contains('required this.libraryController')) '${_relativePath(sectionFile)} does not receive library controller from parent',
+        if (!section.contains('likedPlaylist: () => libraryController.userLikedSongPlayList.value')) '${_relativePath(sectionFile)} does not inject liked playlist provider',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '资料库快捷入口不能在按钮栏内部读取全局用户库；我喜欢歌单入口必须由资料库区通过 provider 注入。',
+      );
+    });
+
     test('album and artist detail pages use bootstrapped page controllers', () {
       final albumPageFile = File(
         '${projectRoot.path}/lib/ui/pages/album/album_page_view.dart',

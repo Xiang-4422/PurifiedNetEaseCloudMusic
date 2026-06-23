@@ -73,7 +73,8 @@ void main() {
     expect(source, isNot(contains("Header('资料库'")));
     expect(source, isNot(contains('child: LibraryShortcutBar()')));
     expect(sectionSource, contains("Header(\n      '资料库'"));
-    expect(sectionSource, contains('LibraryShortcutBar()'));
+    expect(sectionSource, contains('LibraryShortcutBar('));
+    expect(sectionSource, contains('likedPlaylist: () => libraryController.userLikedSongPlayList.value'));
     expect(standardSource, contains('recommended_playlist_slivers.dart'));
     expect(shortcutSource, contains("label: '我喜欢'"));
     expect(shortcutSource, contains("label: '我的歌单'"));
@@ -82,7 +83,8 @@ void main() {
     expect(shortcutSource, contains("label: '云盘'"));
     expect(shortcutSource.indexOf("label: '我喜欢'"), lessThan(shortcutSource.indexOf("label: '我的歌单'")));
     expect(shortcutSource.indexOf("label: '我的歌单'"), lessThan(shortcutSource.indexOf("label: '本地音乐'")));
-    expect(shortcutSource, contains('UserLibraryController.to.userLikedSongPlayList.value'));
+    expect(shortcutSource, contains('final PlaylistSummaryData Function() likedPlaylist'));
+    expect(shortcutSource, contains('final playlist = likedPlaylist();'));
     expect(shortcutSource, contains('UserPlaylistLibraryPageView'));
     expect(shortcutSource, contains('gr.PlayListRouteView('));
     expect(shortcutSource, contains('DownloadTaskPageView.tabLocalImport'));

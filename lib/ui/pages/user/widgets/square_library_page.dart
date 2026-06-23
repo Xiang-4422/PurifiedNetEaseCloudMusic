@@ -64,6 +64,7 @@ class SquareLibraryPage extends StatelessWidget {
           ),
           SliverToBoxAdapter(
             child: LibraryShortcutSection(
+              libraryController: libraryController,
               headerHeight: metrics.squareHeaderHeight,
             ),
           ),

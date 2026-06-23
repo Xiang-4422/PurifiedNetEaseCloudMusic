@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
-import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/ui/pages/download/download_task_page_view.dart';
 import 'package:bujuan/ui/pages/user/user_playlist_library_page.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
@@ -11,7 +11,13 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 /// 个人页资料库区域的轻量快捷入口。
 class LibraryShortcutBar extends StatelessWidget {
   /// 创建资料库快捷入口栏。
-  const LibraryShortcutBar({super.key});
+  const LibraryShortcutBar({
+    super.key,
+    required this.likedPlaylist,
+  });
+
+  /// 当前“我喜欢的音乐”歌单入口。
+  final PlaylistSummaryData Function() likedPlaylist;
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +77,7 @@ class LibraryShortcutBar extends StatelessWidget {
   }
 
   void _openLikedPlaylist(BuildContext context) {
-    final playlist = UserLibraryController.to.userLikedSongPlayList.value;
+    final playlist = likedPlaylist();
     if (playlist.id.isEmpty) {
       ToastService.show('暂无我喜欢歌单');
       return;

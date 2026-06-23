@@ -86,8 +86,9 @@ class StandardPersonalHomePage extends StatelessWidget {
               headerTopMargin: AppDimensions.paddingSmall,
             ),
           ),
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: LibraryShortcutSection(
+              libraryController: libraryController,
               headerTopMargin: AppDimensions.paddingSmall,
             ),
           ),

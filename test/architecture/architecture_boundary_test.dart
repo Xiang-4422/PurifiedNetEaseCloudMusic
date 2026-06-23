@@ -735,6 +735,36 @@ void main() {
       );
     });
 
+    test('playback restore state normalizes current song ids', () {
+      final stateFile = File(
+        '${projectRoot.path}/lib/core/entities/playback_restore_state.dart',
+      );
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/features/playback/playback_repository.dart',
+      );
+      final dataSourceFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/data_sources/drift_playback_restore_data_source.dart',
+      );
+      final state = stateFile.readAsStringSync();
+      final repository = repositoryFile.readAsStringSync();
+      final dataSource = dataSourceFile.readAsStringSync();
+      final violations = <String>[
+        if (!state.contains('currentSongId.trim().isNotEmpty')) 'restore state can treat blank current song ids as valid data',
+        if (!state.contains("currentSongId: (json['currentSongId'] as String? ?? '').trim()")) 'restore state json decode does not normalize current song ids',
+        if (!repository.contains('currentSongId: normalizedCurrentSongId')) 'playback repository can still save raw restore current song ids',
+        if (!repository.contains('final normalizedState = _normalizedRestoreState(localState);')) 'playback repository does not normalize restored current song ids before validation',
+        if (!repository.contains('String? _normalizedOptionalTrackId(String? trackId)')) 'playback repository does not normalize nullable restore track ids',
+        if (!dataSource.contains('currentSongId: row.currentSongId.trim()')) 'drift restore data source can return raw current song ids',
+        if (!dataSource.contains('currentSongId: drift.Value(state.currentSongId.trim())')) 'drift restore data source can persist raw current song ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放恢复 currentSongId 是 restore/session 边界字段，写入和读取都必须规范化；纯空白 id 不能让旧恢复状态被误判为有效。',
+      );
+    });
+
     test('music data repository delegates playback url cache coordination', () {
       final repositoryFile = File(
         '${projectRoot.path}/lib/data/music_data/music_data_repository.dart',

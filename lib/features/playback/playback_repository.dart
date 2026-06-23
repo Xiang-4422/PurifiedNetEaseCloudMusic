@@ -131,8 +131,9 @@ class PlaybackRepository {
 
   Future<PlaybackRestoreState> _loadRestoreState() async {
     final localState = await _playbackRestoreDataSource.getRestoreState();
-    if (localState != null && localState.hasRestoreData) {
-      return localState;
+    final normalizedState = _normalizedRestoreState(localState);
+    if (normalizedState != null && normalizedState.hasRestoreData) {
+      return normalizedState;
     }
     return const PlaybackRestoreState();
   }
@@ -147,11 +148,12 @@ class PlaybackRepository {
     String? playlistHeader,
     Duration? position,
   }) async {
+    final normalizedCurrentSongId = _normalizedOptionalTrackId(currentSongId);
     final nextState = (await getRestoreState()).copyWith(
       playbackMode: playbackMode,
       repeatMode: repeatMode,
       queue: queue,
-      currentSongId: currentSongId,
+      currentSongId: normalizedCurrentSongId,
       playlistName: playlistName,
       playlistHeader: playlistHeader,
       position: position,
@@ -253,5 +255,21 @@ class PlaybackRepository {
 
   String _normalizedTrackId(String trackId) {
     return trackId.trim();
+  }
+
+  String? _normalizedOptionalTrackId(String? trackId) {
+    if (trackId == null) {
+      return null;
+    }
+    return _normalizedTrackId(trackId);
+  }
+
+  PlaybackRestoreState? _normalizedRestoreState(PlaybackRestoreState? state) {
+    if (state == null) {
+      return null;
+    }
+    return state.copyWith(
+      currentSongId: _normalizedTrackId(state.currentSongId),
+    );
   }
 }

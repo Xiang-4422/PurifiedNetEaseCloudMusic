@@ -56,6 +56,26 @@ void main() {
       expect(dataSource.loadCount, 1);
     });
 
+    test('normalizes current song id before saving restore state', () async {
+      final dataSource = _FakePlaybackRestoreDataSource();
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: dataSource,
+        playbackHistoryDataSource: _FakePlaybackHistoryDataSource(),
+      );
+
+      await repository.updateRestoreState(
+        queue: const ['cached-1'],
+        currentSongId: '  netease:1  ',
+      );
+      await repository.updateRestoreState(currentSongId: '   ');
+
+      expect(
+        dataSource.savedStates.map((state) => state.currentSongId),
+        ['netease:1', ''],
+      );
+    });
+
     test('position update retries pending full restore state after write failure', () async {
       final dataSource = _FakePlaybackRestoreDataSource(
         failStateSaveCount: 1,
@@ -154,6 +174,42 @@ void main() {
       expect(retriedState.queue, ['netease:1']);
       expect(retriedState.currentSongId, 'netease:1');
       expect(dataSource.loadCount, 2);
+    });
+
+    test('normalizes restored current song id before caching restore state', () async {
+      final dataSource = _FakePlaybackRestoreDataSource(
+        restoreState: const PlaybackRestoreState(
+          queue: ['cached-1'],
+          currentSongId: '  netease:1  ',
+        ),
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: dataSource,
+        playbackHistoryDataSource: _FakePlaybackHistoryDataSource(),
+      );
+
+      final state = await repository.getRestoreState();
+
+      expect(state.queue, ['cached-1']);
+      expect(state.currentSongId, 'netease:1');
+      expect(state.hasRestoreData, isTrue);
+    });
+
+    test('drops blank restored current song id when no restore data remains', () async {
+      final dataSource = _FakePlaybackRestoreDataSource(
+        restoreState: const PlaybackRestoreState(currentSongId: '   '),
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: dataSource,
+        playbackHistoryDataSource: _FakePlaybackHistoryDataSource(),
+      );
+
+      final state = await repository.getRestoreState();
+
+      expect(state.currentSongId, isEmpty);
+      expect(state.hasRestoreData, isFalse);
     });
 
     test('coalesced restore state read failure falls back for all callers', () async {

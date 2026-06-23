@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/lyric_scroll_position.dart';
@@ -144,6 +145,33 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   Future<void> openBottomPanel() async {
     if (bottomPanelController.isAttached) {
       await bottomPanelController.open();
+    }
+  }
+
+  /// 从 mini player 打开底部播放面板，并记录高频控制反馈耗时。
+  Future<void> openBottomPanelFromMiniPlayer() async {
+    final stopwatch = PerformanceLogger.start();
+    final wasAttached = bottomPanelController.isAttached;
+    final wasOpened = bottomPanelFullyOpened.value;
+    Object? commandError;
+    var opened = false;
+    try {
+      await openBottomPanel();
+      opened = wasAttached;
+    } catch (error) {
+      commandError = error;
+      rethrow;
+    } finally {
+      PerformanceLogger.elapsedMetric(
+        AppPerformanceMetrics.miniPlayerFeedback,
+        stopwatch,
+        details: miniPlayerExpandFeedbackMetricDetails(
+          attached: wasAttached,
+          alreadyOpened: wasOpened,
+          opened: opened,
+          error: commandError,
+        ),
+      );
     }
   }
 
@@ -606,6 +634,28 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
       });
     }
   }
+}
+
+/// 生成 mini player 展开反馈指标的补充信息。
+@visibleForTesting
+String miniPlayerExpandFeedbackMetricDetails({
+  required bool attached,
+  required bool alreadyOpened,
+  required bool opened,
+  Object? error,
+}) {
+  final result = error != null
+      ? 'error'
+      : alreadyOpened
+          ? 'already_open'
+          : opened
+              ? 'success'
+              : 'skipped';
+  final details = 'action=expand result=$result attached=$attached alreadyOpened=$alreadyOpened';
+  if (error == null) {
+    return details;
+  }
+  return '$details error=${error.runtimeType}';
 }
 
 void _reportShellBackgroundError(

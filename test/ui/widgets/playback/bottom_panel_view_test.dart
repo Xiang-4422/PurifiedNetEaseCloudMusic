@@ -50,6 +50,7 @@ void main() {
     expect(miniPlayerSource, contains('required this.settingsController'));
     expect(miniPlayerSource, contains('miniPlayerExpandControlLabel'));
     expect(miniPlayerSource, contains('miniPlayerPlayPauseControlLabel'));
+    expect(miniPlayerSource, contains('openBottomPanelFromMiniPlayer'));
     expect(miniPlayerSource, isNot(contains('PlayerController.to')));
     expect(miniPlayerSource, isNot(contains('SettingsController.to')));
     expect(homeSource, contains('BottomPanelHeaderView('));

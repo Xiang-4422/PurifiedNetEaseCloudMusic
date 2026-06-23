@@ -44,7 +44,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
           child: Tooltip(
             message: expandLabel,
             child: GestureDetector(
-              onTap: () => controller.openBottomPanel(),
+              onTap: () => controller.openBottomPanelFromMiniPlayer(),
               child: AnimatedBuilder(
                 animation: controller.bottomPanelAnimationController,
                 builder: (context, child) {

@@ -33,8 +33,10 @@ class PlaybackQueueItemAdapter {
   /// 将 [MediaItem] 转回应用层播放队列项。
   static PlaybackQueueItem fromMediaItem(MediaItem item) {
     final extras = item.extras ?? const <String, dynamic>{};
-    final localArtworkPath = _stringOrNull(extras['localArtworkPath']);
     final image = _stringOrNull(extras['image']);
+    final imageLocalPath = _restorableLocalPath(image);
+    final localArtworkPath = _restorableLocalPath(extras['localArtworkPath']) ?? imageLocalPath;
+    final artworkUrl = imageLocalPath == null ? image : null;
     final sourceType = _sourceTypeFrom(extras['sourceType']);
     final mediaType = MediaType.values.firstWhere(
       (type) => type.name == extras['type'],
@@ -51,7 +53,7 @@ class PlaybackQueueItemAdapter {
       artistNames: (extras['artistNames'] as List? ?? const []).map((artist) => '$artist').toList(),
       artistIds: (extras['artistIds'] as List? ?? const []).map((artistId) => '$artistId').toList(),
       duration: item.duration,
-      artworkUrl: image,
+      artworkUrl: artworkUrl,
       localArtworkPath: localArtworkPath,
       mediaType: mediaType,
       playbackUrl: playbackUrl,
@@ -90,6 +92,14 @@ class PlaybackQueueItemAdapter {
   }
 
   static String? _restorablePlaybackUrl(Object? value) {
+    final normalizedPath = LocalFilePathNormalizer.normalize(_stringOrNull(value));
+    if (normalizedPath.isEmpty) {
+      return null;
+    }
+    return normalizedPath;
+  }
+
+  static String? _restorableLocalPath(Object? value) {
     final normalizedPath = LocalFilePathNormalizer.normalize(_stringOrNull(value));
     if (normalizedPath.isEmpty) {
       return null;

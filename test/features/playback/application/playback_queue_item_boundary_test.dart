@@ -54,10 +54,30 @@ void main() {
       expect(item.playbackUrl, isNull);
       expect(item.albumId, '20');
       expect(item.sourceType, SourceType.netease);
+      expect(item.artworkUrl, 'https://example.com/art.jpg');
+      expect(item.localArtworkPath, '/cache/art.jpg');
       expect(item.localLyricsPath, '/cache/lyrics.lrc');
       expect(item.availability, TrackAvailability.playable);
       expect(item.isCached, isFalse);
       expect(item.metadata, isEmpty);
+    });
+
+    test('adapter migrates local image extra into local artwork path', () {
+      const mediaItem = MediaItem(
+        id: 'netease:1',
+        title: 'Track',
+        extras: {
+          'type': 'playlist',
+          'image': '/cache/art.jpg',
+          'localArtworkPath': 'https://image.test/legacy-local-art.jpg',
+          'sourceType': 'netease',
+        },
+      );
+
+      final item = PlaybackQueueItemAdapter.fromMediaItem(mediaItem);
+
+      expect(item.artworkUrl, isNull);
+      expect(item.localArtworkPath, '/cache/art.jpg');
     });
 
     test('adapter restores cache flag only for existing non-local audio', () {

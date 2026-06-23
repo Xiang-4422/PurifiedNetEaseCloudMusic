@@ -173,8 +173,11 @@ void main() {
       final missingExpected = expectedDataDirectories.where((path) => !Directory('${projectRoot.path}/$path').existsSync()).toList();
       final existingRemoved = removedDataPaths.where((path) => Directory('${projectRoot.path}/$path').existsSync()).toList();
       final musicDataRoot = Directory('${projectRoot.path}/lib/data/music_data');
-      final unexpectedMusicDataRootEntries =
-          musicDataRoot.listSync().map((entity) => entity.uri.pathSegments.where((segment) => segment.isNotEmpty).last).where((name) => !const {'music_data_repository.dart', 'sources'}.contains(name)).toList();
+      final unexpectedMusicDataRootEntries = musicDataRoot
+          .listSync()
+          .map((entity) => entity.uri.pathSegments.where((segment) => segment.isNotEmpty).last)
+          .where((name) => !const {'music_data_repository.dart', 'music_remote_data_sources.dart', 'sources'}.contains(name))
+          .toList();
 
       expect(
         missingExpected,
@@ -189,7 +192,7 @@ void main() {
       expect(
         unexpectedMusicDataRootEntries,
         isEmpty,
-        reason: 'music_data 根目录只放统一入口 music_data_repository.dart 和 sources 目录。',
+        reason: 'music_data 根目录只放统一入口、远程中性契约和 sources 目录。',
       );
     });
 

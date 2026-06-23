@@ -145,12 +145,28 @@ void main() {
 
       expect(playbackService.notificationSyncCount, callsAfterReplace);
     });
+
+    test('setPlaybackMode owns restore mode persistence', () async {
+      final queueStore = _FakePlaybackQueueStore();
+      final queueService = _queueService(
+        _FakePlaybackService(),
+        queueStore: queueStore,
+      );
+
+      await queueService.setPlaybackMode(PlaybackMode.roaming);
+
+      expect(queueService.state.playbackMode, PlaybackMode.roaming);
+      expect(queueStore.savedPlaybackModes, [PlaybackMode.roaming]);
+    });
   });
 }
 
-PlaybackQueueService _queueService(_FakePlaybackService playbackService) {
+PlaybackQueueService _queueService(
+  _FakePlaybackService playbackService, {
+  _FakePlaybackQueueStore? queueStore,
+}) {
   return PlaybackQueueService(
-    queueStore: _FakePlaybackQueueStore(),
+    queueStore: queueStore ?? _FakePlaybackQueueStore(),
     playbackService: playbackService,
   );
 }
@@ -224,6 +240,8 @@ class _FakePlaybackService implements PlaybackService {
 }
 
 class _FakePlaybackQueueStore implements PlaybackQueueStore {
+  final List<PlaybackMode> savedPlaybackModes = <PlaybackMode>[];
+
   @override
   Future<void> saveQueueState({
     required List<PlaybackQueueItem> originalSongs,
@@ -239,6 +257,11 @@ class _FakePlaybackQueueStore implements PlaybackQueueStore {
 
   @override
   Future<void> saveRepeatMode(PlaybackRepeatMode repeatMode) async {}
+
+  @override
+  Future<void> savePlaybackMode(PlaybackMode playbackMode) async {
+    savedPlaybackModes.add(playbackMode);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

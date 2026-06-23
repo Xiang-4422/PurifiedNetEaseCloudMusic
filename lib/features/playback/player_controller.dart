@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:developer' as developer;
+
 import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/playback_selection_ui_effect_coordinator.dart';
@@ -9,12 +11,12 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
+import 'package:bujuan/features/playback/application/playback_background_task_runner.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
 import 'package:bujuan/features/playback/application/playback_mode_switch_context.dart';
 import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
-import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
 import 'package:bujuan/features/playback/application/playback_state_synchronizer.dart';
 import 'package:bujuan/features/playback/application/playback_toast_port.dart';
@@ -47,7 +49,6 @@ class PlayerController extends GetxController {
   /// 创建播放控制器。
   PlayerController({
     required PlaybackService playbackService,
-    required PlaybackQueueStore queueStore,
     required PlaybackQueueService queueService,
     required PlaybackUiCommandService commandService,
     required PlaybackModeCommandService modeCommandService,
@@ -60,7 +61,6 @@ class PlayerController extends GetxController {
     required CurrentTrackDownloadUseCase downloadUseCase,
     required PlaybackToastPort toastPort,
   })  : _playbackService = playbackService,
-        _queueStore = queueStore,
         _queueService = queueService,
         _commandService = commandService,
         _modeCommandService = modeCommandService,
@@ -74,7 +74,6 @@ class PlayerController extends GetxController {
         _toastPort = toastPort;
 
   final PlaybackService _playbackService;
-  final PlaybackQueueStore _queueStore;
   final PlaybackQueueService _queueService;
   final PlaybackUiCommandService _commandService;
   final PlaybackModeCommandService _modeCommandService;
@@ -86,6 +85,9 @@ class PlayerController extends GetxController {
   final PlaybackSelectionUiEffectCoordinator _selectionUiEffectCoordinator;
   final CurrentTrackDownloadUseCase _downloadUseCase;
   final PlaybackToastPort _toastPort;
+  final PlaybackBackgroundTaskRunner _backgroundTasks = const PlaybackBackgroundTaskRunner(
+    onError: _reportPlaybackControllerBackgroundError,
+  );
   StreamSubscription<PlaybackSelectionState>? _selectionSubscription;
   String? _lastSelectionErrorToastKey;
 
@@ -400,4 +402,18 @@ String miniPlayerFeedbackMetricDetails({
     return 'action=$action result=$result';
   }
   return 'action=$action result=$result error=${error.runtimeType}';
+}
+
+void _reportPlaybackControllerBackgroundError(
+  String taskName,
+  String? trackId,
+  Object error,
+  StackTrace stackTrace,
+) {
+  developer.log(
+    'playback.controller.backgroundTask.failed task=$taskName trackId=${trackId ?? ''}',
+    name: 'Playback',
+    error: error,
+    stackTrace: stackTrace,
+  );
 }

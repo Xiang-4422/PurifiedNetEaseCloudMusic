@@ -38,6 +38,7 @@ extension PlayerStateSync on PlayerController {
     String? playlistHeader,
     bool? isPlayingLikedSongs,
   }) {
+    final previousPlaybackMode = sessionState.value.playbackMode;
     final nextState = sessionState.value.copyWith(
       playbackMode: playbackMode,
       repeatMode: repeatMode,
@@ -48,8 +49,12 @@ extension PlayerStateSync on PlayerController {
     sessionState.value = nextState;
     this.playbackMode.value = nextState.playbackMode;
     curRepeatMode.value = nextState.repeatMode;
-    unawaited(_queueStore.savePlaybackMode(nextState.playbackMode));
-    unawaited(_queueService.setPlaybackMode(nextState.playbackMode));
+    if (playbackMode != null && nextState.playbackMode != previousPlaybackMode) {
+      _backgroundTasks.run(
+        taskName: 'playback.mode.syncQueueService',
+        task: () => _queueService.setPlaybackMode(nextState.playbackMode),
+      );
+    }
   }
 
   /// 同步播放器运行态。

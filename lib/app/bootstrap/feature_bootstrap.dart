@@ -133,7 +133,6 @@ void registerFeatureControllers() {
   Get.lazyPut(
     () => PlayerController(
       playbackService: Get.find<PlaybackService>(),
-      queueStore: Get.find<PlaybackQueueStore>(),
       queueService: Get.find<PlaybackQueueService>(),
       commandService: Get.find<PlaybackUiCommandService>(),
       modeCommandService: Get.find<PlaybackModeCommandService>(),

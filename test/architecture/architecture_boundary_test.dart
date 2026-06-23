@@ -833,6 +833,39 @@ void main() {
       );
     });
 
+    test('playback controller does not persist queue store directly', () {
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/playback/player_controller.dart',
+      );
+      final stateSyncFile = File(
+        '${projectRoot.path}/lib/features/playback/player_state_sync.dart',
+      );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
+      final bootstrapContent = bootstrapFile.readAsStringSync();
+      final violations = <String>[
+        if (_containsAny(controllerFile, const [
+          'PlaybackQueueStore',
+          '_queueStore',
+          'savePlaybackMode',
+        ]))
+          _relativePath(controllerFile),
+        if (_containsAny(stateSyncFile, const [
+          '_queueStore',
+          'savePlaybackMode',
+        ]))
+          _relativePath(stateSyncFile),
+        if (RegExp(r'PlayerController\([\s\S]*?queueStore:').hasMatch(bootstrapContent)) _relativePath(bootstrapFile),
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'PlayerController 只发布 UI 播放状态；播放模式持久化必须经 PlaybackQueueService/QueueStore 边界，避免 controller 重复写 restore state。',
+      );
+    });
+
     test('recent playback stays backed by confirmed history', () {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/playback/recent_playback_controller.dart',

@@ -16,6 +16,8 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+const double _floorCommentListCacheExtent = 520;
+
 /// 楼层回复弹层页面。
 class FoolTalk extends StatefulWidget {
   /// 创建楼层回复弹层。
@@ -167,6 +169,7 @@ class _FoolTalkState extends State<FoolTalk> {
                       }
                     },
                     child: ListView.builder(
+                      cacheExtent: _floorCommentListCacheExtent,
                       physics: const ClampingScrollPhysics(),
                       itemBuilder: (context, index) => _buildItem(state.items[index]),
                       itemCount: state.items.length,

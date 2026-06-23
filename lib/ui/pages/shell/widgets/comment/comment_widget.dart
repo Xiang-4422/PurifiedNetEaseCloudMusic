@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+const double _commentListCacheExtent = 520;
+
 /// 评论列表组件。
 class CommentWidget extends StatefulWidget {
   /// 创建评论列表组件。
@@ -109,6 +111,7 @@ class _CommentWidgetState extends State<CommentWidget> {
             }
           },
           child: ListView.builder(
+            cacheExtent: _commentListCacheExtent,
             padding: EdgeInsets.fromLTRB(0, widget.listPaddingTop, 0, 0),
             itemBuilder: (BuildContext context, int index) {
               return CommentItemWidget(

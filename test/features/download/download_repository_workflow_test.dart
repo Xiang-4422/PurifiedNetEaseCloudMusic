@@ -243,6 +243,34 @@ void main() {
       expect(fileStore.completedOutputPath, isNotNull);
       expect(File(fileStore.completedOutputPath!).existsSync(), isFalse);
     });
+
+    test('cancelled download does not save resource facts after artwork work starts', () async {
+      final taskDataSource = _FakeDownloadTaskDataSource();
+      final resourceWriter = _FakeDownloadResourceWriter(saveManagedResult: true);
+      final fileStore = _BlockingArtworkDownloadFileStore(tempDirectory);
+      final repository = _buildRepository(
+        taskDataSource: taskDataSource,
+        fileStore: fileStore,
+        resourceWriter: resourceWriter,
+      );
+
+      final downloadFuture = repository.downloadTrack('1');
+      await fileStore.artworkStarted.future;
+
+      expect(fileStore.audioOutputPath, isNotNull);
+      expect(File(fileStore.audioOutputPath!).existsSync(), isTrue);
+
+      await repository.cancelTask('1');
+      fileStore.finishArtwork.complete();
+      final track = await downloadFuture;
+
+      expect(track, isNull);
+      expect(await taskDataSource.getTask('1'), isNull);
+      expect(resourceWriter.savedLocalPaths, isEmpty);
+      expect(File(fileStore.audioOutputPath!).existsSync(), isFalse);
+      expect(fileStore.artworkOutputPath, isNotNull);
+      expect(File(fileStore.artworkOutputPath!).existsSync(), isFalse);
+    });
   });
 }
 
@@ -422,6 +450,46 @@ class _BlockingDownloadFileStore extends _FakeDownloadFileStore {
       await File(outputPath).delete();
     }
     completedOutputPath = (await File(temporaryPath).rename(outputPath)).path;
+  }
+}
+
+class _BlockingArtworkDownloadFileStore extends _FakeDownloadFileStore {
+  _BlockingArtworkDownloadFileStore(super.rootDirectory);
+
+  final Completer<void> artworkStarted = Completer<void>();
+  final Completer<void> finishArtwork = Completer<void>();
+  String? audioOutputPath;
+  String? artworkOutputPath;
+
+  @override
+  Future<void> downloadBinaryFile(
+    String url,
+    String outputPath, {
+    required Future<void> Function(double progress) onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    await super.downloadBinaryFile(
+      url,
+      outputPath,
+      onProgress: onProgress,
+      cancelToken: cancelToken,
+    );
+    audioOutputPath = outputPath;
+  }
+
+  @override
+  Future<String?> downloadArtworkFile(
+    Track track,
+    Directory artworkDirectory,
+  ) async {
+    if (!artworkStarted.isCompleted) {
+      artworkStarted.complete();
+    }
+    await finishArtwork.future;
+    final path = '${artworkDirectory.path}/${track.id}.jpg';
+    await File(path).writeAsBytes([4, 5, 6]);
+    artworkOutputPath = path;
+    return path;
   }
 }
 

@@ -76,10 +76,11 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
         cancelToken: cancelToken,
       );
       if (_taskQueue.isCancelled(trackId)) {
-        await _fileStore.deleteTemporaryDownloadIfExists(temporaryPath);
-        await _fileStore.deleteFileIfExists(audioPath);
-        await clearCancelledTask(trackId);
-        return null;
+        return _clearCancelledDownloadedFiles(
+          trackId,
+          temporaryPath: temporaryPath,
+          audioPath: audioPath,
+        );
       }
 
       final artworkPath = await _fileStore.downloadArtworkFile(
@@ -91,6 +92,15 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
         directories.lyrics,
         await _musicDataRepository.getLyrics(trackId),
       );
+      if (_taskQueue.isCancelled(trackId)) {
+        return _clearCancelledDownloadedFiles(
+          trackId,
+          temporaryPath: temporaryPath,
+          audioPath: audioPath,
+          artworkPath: artworkPath,
+          lyricsPath: lyricsPath,
+        );
+      }
 
       final savedResources = await _resourceWriter.saveManagedDownloadResources(
         trackId,
@@ -188,5 +198,20 @@ extension DownloadRepositoryWorkflow on DownloadRepository {
   bool _resourceFileExists(LocalResourceEntry? resource) {
     final path = LocalFilePathNormalizer.normalize(resource?.path);
     return path.isNotEmpty && File(path).existsSync();
+  }
+
+  Future<Track?> _clearCancelledDownloadedFiles(
+    String trackId, {
+    required String temporaryPath,
+    required String audioPath,
+    String? artworkPath,
+    String? lyricsPath,
+  }) async {
+    await _fileStore.deleteTemporaryDownloadIfExists(temporaryPath);
+    await _fileStore.deleteFileIfExists(audioPath);
+    await _fileStore.deleteFileIfExists(artworkPath);
+    await _fileStore.deleteFileIfExists(lyricsPath);
+    await clearCancelledTask(trackId);
+    return null;
   }
 }

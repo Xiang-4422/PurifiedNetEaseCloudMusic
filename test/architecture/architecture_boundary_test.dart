@@ -1433,6 +1433,28 @@ void main() {
       );
     });
 
+    test('download workflow rechecks cancellation before saving local resources', () {
+      final workflowFile = File(
+        '${projectRoot.path}/lib/features/download/download_repository_workflow.dart',
+      );
+      final workflow = workflowFile.readAsStringSync();
+      final finalCancelCheck = workflow.indexOf('artworkPath: artworkPath');
+      final saveResources = workflow.indexOf('final savedResources = await _resourceWriter.saveManagedDownloadResources');
+      final violations = <String>[
+        if (RegExp(r'return _clearCancelledDownloadedFiles\(').allMatches(workflow).length < 2) '${_relativePath(workflowFile)} does not recheck cancellation after side resource work',
+        if (!workflow.contains('Future<Track?> _clearCancelledDownloadedFiles')) '${_relativePath(workflowFile)} does not centralize cancelled file cleanup',
+        if (!workflow.contains('await _fileStore.deleteFileIfExists(artworkPath)')) '${_relativePath(workflowFile)} does not delete cancelled artwork file',
+        if (!workflow.contains('await _fileStore.deleteFileIfExists(lyricsPath)')) '${_relativePath(workflowFile)} does not delete cancelled lyrics file',
+        if (finalCancelCheck < 0 || saveResources < 0 || finalCancelCheck > saveResources) '${_relativePath(workflowFile)} saves resource facts before the final cancellation check',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '取消下载可能发生在音频落盘后、封面或歌词处理中；保存 local_resource_entries 前必须再次复核取消状态。',
+      );
+    });
+
     test('setting sections receive settings controller boundary', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

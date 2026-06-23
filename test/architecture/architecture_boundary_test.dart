@@ -1475,6 +1475,34 @@ void main() {
       );
     });
 
+    test('download resource writer does not promote local import resources', () {
+      final writerFile = File(
+        '${projectRoot.path}/lib/features/download/application/download_resource_writer.dart',
+      );
+      final writer = writerFile.readAsStringSync();
+      final promotionMethod = writer.indexOf('Future<bool> promoteResourcesToManagedDownload');
+      final localImportBranch = writer.indexOf(
+        'bundle.audio?.origin == TrackResourceOrigin.localImport',
+        promotionMethod,
+      );
+      final saveManagedAudio = writer.indexOf(
+        'origin: TrackResourceOrigin.managedDownload',
+        promotionMethod,
+      );
+      final violations = <String>[
+        if (promotionMethod < 0) '${_relativePath(writerFile)} does not expose managed download promotion',
+        if (localImportBranch < 0) '${_relativePath(writerFile)} does not guard local import bundle promotion',
+        if (saveManagedAudio < 0) '${_relativePath(writerFile)} no longer writes managed download resources',
+        if (localImportBranch > saveManagedAudio) '${_relativePath(writerFile)} can save local import audio as managed download before checking origin',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'DownloadResourceWriter 是资源归属写入边界，不能把 localImport bundle 提升成 managedDownload。',
+      );
+    });
+
     test('download queue planner skips available local audio resources', () {
       final plannerFile = File(
         '${projectRoot.path}/lib/features/download/application/download_queue_planner.dart',

@@ -57,6 +57,14 @@ class DownloadResourceWriter {
     String trackId,
     TrackResourceBundle bundle,
   ) async {
+    if (bundle.audio?.origin == TrackResourceOrigin.localImport) {
+      return _hasAvailableAudioResource(
+        trackId,
+        availableAudioOrigins: const {
+          TrackResourceOrigin.localImport,
+        },
+      );
+    }
     if (bundle.audio?.path.isNotEmpty == true) {
       await _resourceIndexRepository.saveAudioResource(
         trackId,

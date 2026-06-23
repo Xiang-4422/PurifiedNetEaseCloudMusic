@@ -186,6 +186,8 @@ void main() {
     expect(frequentPlaylistSource, contains('homeFrequentPlaylists'));
     expect(frequentPlaylistSource, contains('onPlayPlaylist:'));
     expect(frequentPlaylistSource, contains('_playPlaylistSummary('));
+    expect(frequentPlaylistSource, contains('playbackAction,'));
+    expect(frequentPlaylistSource, isNot(contains('Get.find<PlayerController>')));
     expect(squareLibrarySource, contains('RecentPlaybackStrip('));
     expect(squareLibrarySource, contains('FrequentPlaylistSection('));
     expect(squareLibrarySource, contains('LibraryShortcutSection('));

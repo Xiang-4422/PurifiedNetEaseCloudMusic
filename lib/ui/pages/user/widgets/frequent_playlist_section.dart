@@ -60,6 +60,7 @@ class FrequentPlaylistSection extends StatelessWidget {
             playingPlaylistName: playbackAction.sessionState.value.playlistName,
             onPlayPlaylist: (playlist) => _playPlaylistSummary(
               recommendationController,
+              playbackAction,
               playlist,
             ),
           ),
@@ -71,9 +72,9 @@ class FrequentPlaylistSection extends StatelessWidget {
 
 Future<void> _playPlaylistSummary(
   RecommendationController recommendationController,
+  PlayerController playerController,
   PlaylistSummaryData playlist,
 ) async {
-  final playerController = Get.find<PlayerController>();
   if (playerController.sessionState.value.playlistName == playlist.title) {
     await playerController.playOrPause();
     return;

@@ -1262,6 +1262,7 @@ void main() {
       final violations = <String>[
         if (section.contains('PlaylistRepository')) '${_relativePath(sectionFile)} resolves playlist data directly',
         if (section.contains('likedSongIds.toList')) '${_relativePath(sectionFile)} reads liked ids directly',
+        if (section.contains('Get.find<PlayerController>')) '${_relativePath(sectionFile)} reads player controller from container',
         if (section.contains('fetchPlaylistIndex(')) '${_relativePath(sectionFile)} fetches playlist index directly',
         if (section.contains('fetchPlaylistSongs(')) '${_relativePath(sectionFile)} fetches playlist songs directly',
         if (!section.contains('recommendationController.resolveFrequentPlaylistPlayback')) '${_relativePath(sectionFile)} does not resolve playlist playback through home controller',

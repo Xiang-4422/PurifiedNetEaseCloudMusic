@@ -51,6 +51,58 @@ void main() {
       expect(neteaseSource.lyricsCallCount, 0);
     });
 
+    test('normalizes playback url track ids before resources and remote cache', () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'music-data-playback-url-id-',
+      );
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final localAudio = await _writeFile(directory, 'local.mp3');
+      final localResourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.audio,
+            path: localAudio.path,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final localRepository = _buildRepository(
+        resourceIndexRepository: localResourceIndexRepository,
+      );
+
+      final localUrl = await localRepository.getPlaybackUrlWithQuality(
+        ' 1 ',
+        qualityLevel: 'lossless',
+      );
+
+      expect(localUrl, localAudio.path);
+      expect(localResourceIndexRepository.requestedBundleTrackIds, ['1']);
+      expect(localResourceIndexRepository.touchedResources, ['1|audio']);
+
+      final neteaseSource = _FakeNeteaseMusicSource(
+        includeCallCountInPlaybackUrl: true,
+      );
+      final remoteRepository = _buildRepository(neteaseSource: neteaseSource);
+
+      final spacedRemote = await remoteRepository.getPlaybackUrlWithQuality(
+        ' 1 ',
+        qualityLevel: 'lossless',
+      );
+      final normalizedRemote = await remoteRepository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+
+      expect(spacedRemote, 'https://audio.test/1-1.mp3');
+      expect(normalizedRemote, spacedRemote);
+      expect(neteaseSource.playbackUrlTrackIds, ['1']);
+    });
+
     test('coalesces concurrent playback url loads and reuses fresh remote url', () async {
       final neteaseSource = _FakeNeteaseMusicSource(
         playbackUrlDelay: const Duration(milliseconds: 20),
@@ -910,6 +962,7 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
   int trackCallCount = 0;
   int playbackUrlCallCount = 0;
   int lyricsCallCount = 0;
+  final List<String> playbackUrlTrackIds = [];
 
   @override
   Future<Track?> getTrack(String trackId) async {
@@ -923,6 +976,7 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
     String? qualityLevel,
   }) async {
     playbackUrlCallCount++;
+    playbackUrlTrackIds.add(trackId);
     if (playbackUrlDelay > Duration.zero) {
       await Future<void>.delayed(playbackUrlDelay);
     }

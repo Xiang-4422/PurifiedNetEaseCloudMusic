@@ -28,11 +28,12 @@ class PlaybackUrlCacheCoordinator {
     required bool forceRefresh,
     required Future<String?> Function() load,
   }) async {
-    if (trackId.trim().isEmpty) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (normalizedTrackId.isEmpty) {
       return null;
     }
-    final cacheKey = _cacheKey(trackId, qualityLevel);
-    final localUrl = await _resolveLocalResourceUrlOrNull(trackId);
+    final cacheKey = _cacheKey(normalizedTrackId, qualityLevel);
+    final localUrl = await _resolveLocalResourceUrlOrNull(normalizedTrackId);
     if (localUrl != null) {
       return localUrl;
     }
@@ -102,7 +103,7 @@ class PlaybackUrlCacheCoordinator {
 
   static String _cacheKey(String trackId, String? qualityLevel) {
     final normalizedQualityLevel = qualityLevel?.trim() ?? '';
-    return '$trackId|$normalizedQualityLevel';
+    return '${_normalizedTrackId(trackId)}|$normalizedQualityLevel';
   }
 
   static String? _normalizeRemoteUrl(String? url) {
@@ -128,6 +129,10 @@ class PlaybackUrlCacheCoordinator {
   static bool _isHttpUri(Uri? uri) {
     final scheme = uri?.scheme.toLowerCase();
     return scheme == 'http' || scheme == 'https';
+  }
+
+  static String _normalizedTrackId(String trackId) {
+    return trackId.trim();
   }
 }
 

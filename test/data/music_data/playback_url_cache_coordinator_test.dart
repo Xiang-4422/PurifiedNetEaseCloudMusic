@@ -58,6 +58,52 @@ void main() {
       expect(loadCount, 0);
     });
 
+    test('normalizes track ids before local lookup and cache key lookup', () async {
+      final localLookupTrackIds = <String>[];
+      final localCoordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (trackId) async {
+          localLookupTrackIds.add(trackId);
+          return '/music/$trackId.mp3';
+        },
+      );
+
+      final localUrl = await localCoordinator.resolve(
+        ' 1 ',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async => 'https://audio.test/raw-id.mp3',
+      );
+
+      var loadCount = 0;
+      final remoteCoordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+      final remoteFromSpacedId = await remoteCoordinator.resolve(
+        ' 1 ',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async {
+          loadCount++;
+          return 'https://audio.test/1-$loadCount.mp3';
+        },
+      );
+      final remoteFromNormalizedId = await remoteCoordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async {
+          loadCount++;
+          return 'https://audio.test/1-$loadCount.mp3';
+        },
+      );
+
+      expect(localUrl, '/music/1.mp3');
+      expect(localLookupTrackIds, ['1']);
+      expect(remoteFromSpacedId, 'https://audio.test/1-1.mp3');
+      expect(remoteFromNormalizedId, remoteFromSpacedId);
+      expect(loadCount, 1);
+    });
+
     test('treats blank quality level as default cache key', () async {
       var loadCount = 0;
       final coordinator = PlaybackUrlCacheCoordinator(

@@ -220,14 +220,15 @@ class MusicDataRepository {
     String trackId, {
     bool forceRefresh = false,
   }) async {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return null;
     }
     return _coalescePlaybackUrl(
-      trackId,
+      normalizedTrackId,
       qualityLevel: null,
       forceRefresh: forceRefresh,
-      load: () => _resolvePlaybackUrl(trackId),
+      load: () => _resolvePlaybackUrl(normalizedTrackId),
     );
   }
 
@@ -251,15 +252,16 @@ class MusicDataRepository {
     String? qualityLevel,
     bool forceRefresh = false,
   }) async {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return null;
     }
     return _coalescePlaybackUrl(
-      trackId,
+      normalizedTrackId,
       qualityLevel: qualityLevel,
       forceRefresh: forceRefresh,
       load: () => _resolvePlaybackUrlWithQuality(
-        trackId,
+        normalizedTrackId,
         qualityLevel: qualityLevel,
       ),
     );
@@ -543,7 +545,11 @@ class MusicDataRepository {
   }
 
   bool _isBlankTrackId(String trackId) {
-    return trackId.trim().isEmpty;
+    return _normalizedTrackId(trackId).isEmpty;
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
   }
 
   List<String> _candidateTrackIds(Iterable<String> trackIds) {

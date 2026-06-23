@@ -747,11 +747,16 @@ void main() {
       final violations = <String>[
         if (!coordinatorFile.existsSync()) 'playback url cache coordinator is missing',
         if (!repositoryContent.contains('PlaybackUrlCacheCoordinator')) 'repository does not delegate to PlaybackUrlCacheCoordinator',
+        if (!repositoryContent.contains('String _normalizedTrackId(String trackId)')) 'repository does not normalize playback URL track ids before delegation',
+        if (!repositoryContent.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) 'repository playback URL entry points do not normalize track ids',
         if (repositoryContent.contains('Map<String, Future<String?>> _playbackUrlLoads')) 'repository still owns playback URL in-flight loads',
         if (repositoryContent.contains('Map<String, _CachedPlaybackUrl> _playbackUrlCache')) 'repository still owns playback URL cache entries',
         if (repositoryContent.contains('class _CachedPlaybackUrl')) 'repository still owns cached playback URL model',
         if (!coordinatorContent.contains('final Map<String, Future<String?>> _loads')) 'coordinator does not own in-flight load state',
         if (!coordinatorContent.contains('final Map<String, _CachedPlaybackUrl> _cache')) 'coordinator does not own cache state',
+        if (!coordinatorContent.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) 'coordinator does not normalize track ids before lookup',
+        if (!coordinatorContent.contains('_cacheKey(normalizedTrackId, qualityLevel)')) 'coordinator cache key does not use normalized track id',
+        if (!coordinatorContent.contains('_resolveLocalResourceUrlOrNull(normalizedTrackId)')) 'coordinator local lookup does not use normalized track id',
       ];
 
       expect(
@@ -766,9 +771,10 @@ void main() {
         '${projectRoot.path}/lib/data/music_data/music_data_repository.dart',
       );
       final content = repositoryFile.readAsStringSync();
-      final blankTrackGuardCount = '_isBlankTrackId(trackId)'.allMatches(content).length;
+      final blankTrackGuardCount = '_isBlankTrackId'.allMatches(content).length;
       final violations = <String>[
         if (!content.contains('bool _isBlankTrackId(String trackId)')) 'blank track id helper is missing',
+        if (!content.contains('String _normalizedTrackId(String trackId)')) 'normalized track id helper is missing',
         if (!content.contains('List<String> _candidateTrackIds(Iterable<String> trackIds)')) 'batch track id candidate helper is missing',
         if (RegExp(r'Future<List<Track>> getTracksByIds[\s\S]*?final ids = _candidateTrackIds\(trackIds\);').firstMatch(content) == null) 'batch track loading does not filter blank ids before local lookup',
         if (RegExp(r'Future<List<TrackWithResources>> getTracksWithResources[\s\S]*?final ids = _candidateTrackIds\(trackIds\);').firstMatch(content) == null) 'batch track resource loading does not filter blank ids before resource lookup',

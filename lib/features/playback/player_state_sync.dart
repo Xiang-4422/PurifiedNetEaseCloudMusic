@@ -204,7 +204,26 @@ extension PlayerStateSync on PlayerController {
   }
 
   /// 从播放边界切换喜欢状态后同步队列项。
-  Future<void> toggleLikeFromPlayback(PlaybackQueueItem item) async {
+  Future<void> toggleLikeFromPlayback(PlaybackQueueItem item) {
+    final itemKey = item.id.isNotEmpty ? item.id : item.sourceId;
+    if (itemKey.isEmpty) {
+      return Future<void>.value();
+    }
+    final pending = _likeToggleInFlightByItem[itemKey];
+    if (pending != null) {
+      return pending;
+    }
+    late final Future<void> command;
+    command = _toggleLikeFromPlayback(item).whenComplete(() {
+      if (identical(_likeToggleInFlightByItem[itemKey], command)) {
+        _likeToggleInFlightByItem.remove(itemKey);
+      }
+    });
+    _likeToggleInFlightByItem[itemKey] = command;
+    return command;
+  }
+
+  Future<void> _toggleLikeFromPlayback(PlaybackQueueItem item) async {
     final updatedItem = await _userContentPort.toggleLikeStatus(item);
     if (updatedItem != null) {
       await updatePlaybackQueueItem(updatedItem);

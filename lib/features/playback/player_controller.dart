@@ -89,6 +89,7 @@ class PlayerController extends GetxController {
     onError: _reportPlaybackControllerBackgroundError,
   );
   StreamSubscription<PlaybackSelectionState>? _selectionSubscription;
+  final Map<String, Future<void>> _likeToggleInFlightByItem = <String, Future<void>>{};
   String? _lastSelectionErrorToastKey;
 
   /// 播放服务门面。

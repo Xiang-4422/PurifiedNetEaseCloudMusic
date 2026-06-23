@@ -79,14 +79,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
           children: [
             _PlaybackControlButton(
               semanticsLabel: playbackLikeControlLabel(isLiked: isLiked),
-              onTap: () async {
-                final updatedSong = await UserLibraryController.to.toggleLikeStatus(currentSong);
-                if (updatedSong != null) {
-                  await PlayerController.to.updatePlaybackQueueItem(
-                    updatedSong,
-                  );
-                }
-              },
+              onTap: () => PlayerController.to.toggleLikeFromPlayback(currentSong),
               child: _ButtonBackground(
                 child: Icon(
                   isLiked ? TablerIcons.heart_filled : TablerIcons.heart,

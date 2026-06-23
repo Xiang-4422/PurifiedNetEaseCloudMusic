@@ -865,6 +865,34 @@ void main() {
       );
     });
 
+    test('playback like control stays behind player controller boundary', () {
+      final controlsFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart',
+      );
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/playback/player_controller.dart',
+      );
+      final stateSyncFile = File(
+        '${projectRoot.path}/lib/features/playback/player_state_sync.dart',
+      );
+      final controls = controlsFile.readAsStringSync();
+      final controller = controllerFile.readAsStringSync();
+      final stateSync = stateSyncFile.readAsStringSync();
+      final violations = <String>[
+        if (!controls.contains('PlayerController.to.toggleLikeFromPlayback(currentSong)')) 'playback controls do not use player like boundary',
+        if (controls.contains('toggleLikeStatus(currentSong)')) '${_relativePath(controlsFile)} toggles user library directly',
+        if (controls.contains('updatePlaybackQueueItem(')) '${_relativePath(controlsFile)} updates playback queue directly after like toggle',
+        if (!controller.contains('_likeToggleInFlightByItem')) 'player controller does not coalesce like toggles',
+        if (!stateSync.contains('Future<void> toggleLikeFromPlayback(PlaybackQueueItem item)')) 'player state sync does not expose like toggle boundary',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放页喜欢按钮必须经 PlayerController 播放边界切换并同步队列，同一曲目的并发喜欢请求必须在控制器边界合并。',
+      );
+    });
+
     test('recent playback stays backed by confirmed history', () {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/playback/recent_playback_controller.dart',

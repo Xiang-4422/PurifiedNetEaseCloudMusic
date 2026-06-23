@@ -30,6 +30,76 @@ void main() {
       expect(miniPlayerPlayPauseControlLabel(isPlaying: false), '播放');
       expect(miniPlayerPlayPauseControlLabel(isPlaying: true), '暂停');
     });
+
+    test('calculates collapsed and expanded transition layout', () {
+      final collapsed = miniPlayerTransitionLayout(
+        panelOpenDegree: 0,
+        availableWidth: 360,
+        topPadding: 24,
+        albumMinSize: 60,
+        paddingSmall: 10,
+        paddingLarge: 30,
+        appBarHeight: 80,
+      );
+
+      expect(collapsed.panelOpenDegree, 0);
+      expect(collapsed.albumWidth, 60);
+      expect(collapsed.albumPadding, 10);
+      expect(collapsed.albumTopMargin, 0);
+      expect(collapsed.albumBorderRadius, 60);
+      expect(collapsed.textHorizontalMargin, 80);
+      expect(collapsed.textTopMargin, 0);
+      expect(collapsed.smallAlbumLeft, 10);
+
+      final expanded = miniPlayerTransitionLayout(
+        panelOpenDegree: 1,
+        availableWidth: 360,
+        topPadding: 24,
+        albumMinSize: 60,
+        paddingSmall: 10,
+        paddingLarge: 30,
+        appBarHeight: 80,
+      );
+
+      expect(expanded.panelOpenDegree, 1);
+      expect(expanded.albumWidth, 300);
+      expect(expanded.albumPadding, 30);
+      expect(expanded.albumTopMargin, 104);
+      expect(expanded.albumBorderRadius, 15);
+      expect(expanded.textHorizontalMargin, 30);
+      expect(expanded.textTopMargin, 24);
+      expect(expanded.smallAlbumLeft, 270);
+    });
+
+    test('clamps transition layout for overshoot and narrow widths', () {
+      final overshoot = miniPlayerTransitionLayout(
+        panelOpenDegree: 1.4,
+        availableWidth: 90,
+        topPadding: 12,
+        albumMinSize: 60,
+        paddingSmall: 10,
+        paddingLarge: 30,
+        appBarHeight: 80,
+      );
+
+      expect(overshoot.panelOpenDegree, 1);
+      expect(overshoot.albumWidth, 60);
+      expect(overshoot.smallAlbumLeft, 10);
+
+      final invalid = miniPlayerTransitionLayout(
+        panelOpenDegree: double.nan,
+        availableWidth: double.nan,
+        topPadding: 12,
+        albumMinSize: 60,
+        paddingSmall: 10,
+        paddingLarge: 30,
+        appBarHeight: 80,
+      );
+
+      expect(invalid.panelOpenDegree, 0);
+      expect(invalid.albumWidth, 60);
+      expect(invalid.textHorizontalMargin, 80);
+    });
   });
 
   test('bottom panel keeps mini player in a dedicated local widget file', () {

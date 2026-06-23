@@ -48,23 +48,11 @@ class BottomPanelHeaderView extends GetView<ShellController> {
               child: AnimatedBuilder(
                 animation: controller.bottomPanelAnimationController,
                 builder: (context, child) {
-                  // 完全展开专辑图片状态
-                  /// 完全展开，专辑图片Size
-                  double albumMaxSize = context.width - AppDimensions.paddingLarge * 2;
-
-                  /// 完全展开，专辑图片Margin
-                  double albumMaxPadding = AppDimensions.paddingLarge;
-
-                  /// 完全展开，专辑图片Radius
-                  double albumMinBorderRadius = AppDimensions.paddingLarge / 2;
-
-                  /// panel展开程度
-                  double panelOpenDegree = controller.bottomPanelAnimationController.value;
-                  // 实时Album宽度、margin
-                  double realTimeAlbumWidth = AppDimensions.albumMinSize + (albumMaxSize - AppDimensions.albumMinSize) * panelOpenDegree;
-                  double realTimeAlbumPadding = AppDimensions.paddingSmall + (albumMaxPadding - AppDimensions.paddingSmall) * panelOpenDegree;
-                  double realTimeAlbumTopMargin = (context.mediaQueryPadding.top + AppDimensions.appBarHeight) * panelOpenDegree;
-                  double realTimeAlbumBorderRadius = AppDimensions.albumMinSize + (albumMinBorderRadius - AppDimensions.albumMinSize) * panelOpenDegree;
+                  final layout = miniPlayerTransitionLayout(
+                    panelOpenDegree: controller.bottomPanelAnimationController.value,
+                    availableWidth: context.width,
+                    topPadding: context.mediaQueryPadding.top,
+                  );
 
                   return SizedBox(
                     width: context.width,
@@ -74,9 +62,9 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                         Container(
                           width: double.infinity,
                           margin: EdgeInsets.only(
-                            left: (AppDimensions.albumMinSize + AppDimensions.paddingSmall * 2 - albumMaxPadding) * (1 - panelOpenDegree) + albumMaxPadding,
-                            right: (AppDimensions.albumMinSize + AppDimensions.paddingSmall * 2 - albumMaxPadding) * (1 - panelOpenDegree) + albumMaxPadding,
-                            top: context.mediaQueryPadding.top * panelOpenDegree,
+                            left: layout.textHorizontalMargin,
+                            right: layout.textHorizontalMargin,
+                            top: layout.textTopMargin,
                           ),
                           child: SizedBox(
                             height: AppDimensions.bottomPanelHeaderHeight,
@@ -118,13 +106,13 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                           visible: controller.isBigAlbum.isTrue && controller.bottomPanelFullyOpened.isFalse,
                           child: Container(
                             margin: EdgeInsets.only(
-                              top: realTimeAlbumTopMargin,
+                              top: layout.albumTopMargin,
                             ),
-                            padding: EdgeInsets.all(realTimeAlbumPadding),
+                            padding: EdgeInsets.all(layout.albumPadding),
                             child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(
-                                  realTimeAlbumBorderRadius,
+                                  layout.albumBorderRadius,
                                 ),
                               ),
                               clipBehavior: Clip.hardEdge,
@@ -135,8 +123,8 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                     localArtworkPath: currentSong.localArtworkPath,
                                   ),
                                 ),
-                                width: realTimeAlbumWidth,
-                                height: realTimeAlbumWidth,
+                                width: layout.albumWidth,
+                                height: layout.albumWidth,
                               ),
                             ),
                           ),
@@ -151,8 +139,8 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                             height: AppDimensions.bottomPanelHeaderHeight,
                             alignment: Alignment.centerLeft,
                             margin: EdgeInsets.only(
-                              top: context.mediaQueryPadding.top * panelOpenDegree,
-                              left: AppDimensions.paddingSmall + panelOpenDegree * (context.width - AppDimensions.paddingLarge - AppDimensions.albumMinSize - AppDimensions.paddingSmall),
+                              top: layout.textTopMargin,
+                              left: layout.smallAlbumLeft,
                             ),
                             child: SimpleExtendedImage(
                               ArtworkPathResolver.resolveDisplayPath(
@@ -227,6 +215,92 @@ class BottomPanelHeaderView extends GetView<ShellController> {
       );
     });
   }
+}
+
+/// mini player 收起到展开过程中的稳定布局数值。
+class MiniPlayerTransitionLayout {
+  /// 创建 mini player 过渡布局。
+  const MiniPlayerTransitionLayout({
+    required this.panelOpenDegree,
+    required this.albumWidth,
+    required this.albumPadding,
+    required this.albumTopMargin,
+    required this.albumBorderRadius,
+    required this.textHorizontalMargin,
+    required this.textTopMargin,
+    required this.smallAlbumLeft,
+  });
+
+  /// 夹紧后的面板展开程度。
+  final double panelOpenDegree;
+
+  /// 当前封面尺寸。
+  final double albumWidth;
+
+  /// 当前封面外层内边距。
+  final double albumPadding;
+
+  /// 当前大封面顶部偏移。
+  final double albumTopMargin;
+
+  /// 当前封面圆角。
+  final double albumBorderRadius;
+
+  /// 歌名区左右边距。
+  final double textHorizontalMargin;
+
+  /// 歌名区顶部偏移。
+  final double textTopMargin;
+
+  /// 小封面左边距。
+  final double smallAlbumLeft;
+}
+
+/// 计算 mini player 到完整播放页之间的过渡布局。
+@visibleForTesting
+MiniPlayerTransitionLayout miniPlayerTransitionLayout({
+  required double panelOpenDegree,
+  required double availableWidth,
+  required double topPadding,
+  double albumMinSize = AppDimensions.albumMinSize,
+  double paddingSmall = AppDimensions.paddingSmall,
+  double paddingLarge = AppDimensions.paddingLarge,
+  double appBarHeight = AppDimensions.appBarHeight,
+}) {
+  final degree = _stableFraction(panelOpenDegree);
+  final width = _atLeast(availableWidth, albumMinSize + paddingSmall * 2);
+  final expandedAlbumWidth = _atLeast(width - paddingLarge * 2, albumMinSize);
+  final collapsedTextMargin = albumMinSize + paddingSmall * 2;
+  final expandedSmallAlbumLeft = _atLeast(width - paddingLarge - albumMinSize, paddingSmall);
+
+  return MiniPlayerTransitionLayout(
+    panelOpenDegree: degree,
+    albumWidth: _lerp(albumMinSize, expandedAlbumWidth, degree),
+    albumPadding: _lerp(paddingSmall, paddingLarge, degree),
+    albumTopMargin: (topPadding + appBarHeight) * degree,
+    albumBorderRadius: _lerp(albumMinSize, paddingLarge / 2, degree),
+    textHorizontalMargin: _lerp(collapsedTextMargin, paddingLarge, degree),
+    textTopMargin: topPadding * degree,
+    smallAlbumLeft: _lerp(paddingSmall, expandedSmallAlbumLeft, degree),
+  );
+}
+
+double _stableFraction(double value) {
+  if (!value.isFinite) {
+    return 0;
+  }
+  return value.clamp(0.0, 1.0).toDouble();
+}
+
+double _atLeast(double value, double minimum) {
+  if (!value.isFinite) {
+    return minimum;
+  }
+  return value < minimum ? minimum : value;
+}
+
+double _lerp(double start, double end, double fraction) {
+  return start + (end - start) * fraction;
 }
 
 /// 生成 mini player 展开入口的辅助语义标签。

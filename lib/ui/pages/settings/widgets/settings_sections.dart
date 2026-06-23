@@ -14,8 +14,12 @@ class SettingsSectionsList extends StatelessWidget {
   /// 创建设置页可见分组列表。
   const SettingsSectionsList({
     super.key,
+    required this.settingsController,
     required this.onScanLocalMedia,
   });
+
+  /// 设置控制器，提供音质和外观开关状态。
+  final SettingsController settingsController;
 
   /// 扫描本地音乐动作。
   final VoidCallback onScanLocalMedia;
@@ -57,10 +61,28 @@ class SettingsSectionsList extends StatelessWidget {
           icon: TablerIcons.music_up,
           title: '高音质优先',
           subtitle: '播放源解析时优先请求高音质地址',
-          isEnabled: () => SettingsController.to.isHighSoundQualityOpen.value,
+          isEnabled: () => settingsController.isHighSoundQualityOpen.value,
           onTap: () {
-            SettingsController.to.toggleHighSoundQualityOpen();
+            settingsController.toggleHighSoundQualityOpen();
           },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCacheSetting(BuildContext context) {
+    return SettingSection(
+      title: '缓存',
+      children: [
+        SettingNavigationTile(
+          icon: TablerIcons.database_search,
+          title: '缓存分析',
+          subtitle: '分析图片、封面、播放缓存和临时文件',
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const CacheAnalysisPageView(),
+            ),
+          ),
         ),
       ],
     );
@@ -90,24 +112,6 @@ class SettingsSectionsList extends StatelessWidget {
     );
   }
 
-  Widget _buildCacheSetting(BuildContext context) {
-    return SettingSection(
-      title: '缓存',
-      children: [
-        SettingNavigationTile(
-          icon: TablerIcons.database_search,
-          title: '缓存分析',
-          subtitle: '分析图片、封面、播放缓存和临时文件',
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const CacheAnalysisPageView(),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildAppearanceSetting() {
     return SettingSection(
       title: '外观',
@@ -116,18 +120,18 @@ class SettingsSectionsList extends StatelessWidget {
           icon: TablerIcons.gradienter,
           title: '渐变播放背景',
           subtitle: '根据封面主色调整播放页背景',
-          isEnabled: () => SettingsController.to.isGradientBackground.value,
+          isEnabled: () => settingsController.isGradientBackground.value,
           onTap: () {
-            SettingsController.to.toggleGradientBackground();
+            settingsController.toggleGradientBackground();
           },
         ),
         SettingToggleTile(
           icon: TablerIcons.circle,
           title: '圆形专辑',
           subtitle: '播放页使用圆形专辑封面',
-          isEnabled: () => SettingsController.to.isRoundAlbumOpen.value,
+          isEnabled: () => settingsController.isRoundAlbumOpen.value,
           onTap: () {
-            SettingsController.to.toggleRoundAlbumOpen();
+            settingsController.toggleRoundAlbumOpen();
           },
         ),
       ],

@@ -27,6 +27,7 @@ void main() {
     expect(downloadIndex, lessThan(appearanceIndex));
     expect(appearanceIndex, lessThan(debugIndex));
     expect(source, contains('SettingsSectionsList('));
+    expect(source, contains('settingsController: _settingsController'));
     expect(source, contains('settings_sections.dart'));
     expect(source, isNot(contains("title: '账号',")));
     expect(source, isNot(contains("Header('UI设置')")));
@@ -40,6 +41,16 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('SettingsSectionsList('));
+    expect(source, contains('Get.find<SettingsController>()'));
+    expect(source, contains('settingsController: _settingsController'));
+    expect(sectionsSource, contains('required this.settingsController'));
+    expect(sectionsSource, contains('settingsController.isHighSoundQualityOpen.value'));
+    expect(sectionsSource, contains('settingsController.toggleHighSoundQualityOpen()'));
+    expect(sectionsSource, contains('settingsController.isGradientBackground.value'));
+    expect(sectionsSource, contains('settingsController.toggleGradientBackground()'));
+    expect(sectionsSource, contains('settingsController.isRoundAlbumOpen.value'));
+    expect(sectionsSource, contains('settingsController.toggleRoundAlbumOpen()'));
+    expect(sectionsSource, isNot(contains('SettingsController.to')));
     expect(sectionsSource, contains('Routes.userProfile'));
     expect(sectionsSource, contains("title: '账号资料'"));
     expect(sectionsSource, contains("title: '高音质优先'"));

@@ -1412,6 +1412,35 @@ void main() {
       );
     });
 
+    test('setting sections receive settings controller boundary', () {
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',
+      );
+      final sectionsFile = File(
+        '${projectRoot.path}/lib/ui/pages/settings/widgets/settings_sections.dart',
+      );
+      final page = pageFile.readAsStringSync();
+      final sections = sectionsFile.readAsStringSync();
+      final violations = <String>[
+        if (!page.contains('final SettingsController _settingsController = Get.find<SettingsController>()')) '${_relativePath(pageFile)} does not resolve settings controller at page boundary',
+        if (!page.contains('settingsController: _settingsController')) '${_relativePath(pageFile)} does not inject settings controller into sections',
+        if (!sections.contains('required this.settingsController')) '${_relativePath(sectionsFile)} does not receive settings controller',
+        if (sections.contains('SettingsController.to')) '${_relativePath(sectionsFile)} reads settings controller globally',
+        if (!sections.contains('settingsController.isHighSoundQualityOpen.value')) '${_relativePath(sectionsFile)} does not read quality preference through injected controller',
+        if (!sections.contains('settingsController.toggleHighSoundQualityOpen()')) '${_relativePath(sectionsFile)} does not toggle quality preference through injected controller',
+        if (!sections.contains('settingsController.isGradientBackground.value')) '${_relativePath(sectionsFile)} does not read gradient preference through injected controller',
+        if (!sections.contains('settingsController.toggleGradientBackground()')) '${_relativePath(sectionsFile)} does not toggle gradient preference through injected controller',
+        if (!sections.contains('settingsController.isRoundAlbumOpen.value')) '${_relativePath(sectionsFile)} does not read round album preference through injected controller',
+        if (!sections.contains('settingsController.toggleRoundAlbumOpen()')) '${_relativePath(sectionsFile)} does not toggle round album preference through injected controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '设置页分组只能展示设置项并提交开关意图，设置状态边界必须由设置页主文件注入。',
+      );
+    });
+
     test('user profile page creates controller through feature factory', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/user/user_setting_view.dart',

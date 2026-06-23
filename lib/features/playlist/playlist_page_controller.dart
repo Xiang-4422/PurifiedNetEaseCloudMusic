@@ -51,26 +51,38 @@ class PlaylistPageController {
   static const int _firstPageSize = 30;
 
   /// 读取本地歌单详情。
-  Future<PlaylistDetailData?> loadLocalDetail(String playlistId) {
-    return _repository.loadLocalPlaylistDetail(
-      playlistId: playlistId,
-      likedSongIds: _likedSongIds(),
-      currentUserId: _currentUserId(),
-    );
+  Future<PlaylistDetailData?> loadLocalDetail(String playlistId) async {
+    try {
+      return await _repository.loadLocalPlaylistDetail(
+        playlistId: playlistId,
+        likedSongIds: _likedSongIds(),
+        currentUserId: _currentUserId(),
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   /// 读取歌单详情页初始化所需的本地数据。
   Future<PlaylistInitialDetailData> loadInitialDetail(String playlistId) async {
-    final initialData = await _repository.loadLocalInitialDetail(
-      playlistId: playlistId,
-      likedSongIds: _likedSongIds(),
-      currentUserId: _currentUserId(),
-    );
-    return PlaylistInitialDetailData(
-      localDetail: initialData.localDetail,
-      localPlaylist: initialData.localPlaylist,
-      localState: resolveLocalDetailState(initialData.localDetail),
-    );
+    try {
+      final initialData = await _repository.loadLocalInitialDetail(
+        playlistId: playlistId,
+        likedSongIds: _likedSongIds(),
+        currentUserId: _currentUserId(),
+      );
+      return PlaylistInitialDetailData(
+        localDetail: initialData.localDetail,
+        localPlaylist: initialData.localPlaylist,
+        localState: resolveLocalDetailState(initialData.localDetail),
+      );
+    } catch (_) {
+      return const PlaylistInitialDetailData(
+        localDetail: null,
+        localPlaylist: null,
+        localState: PlaylistLocalDetailState.empty,
+      );
+    }
   }
 
   /// 拉取远程歌单详情。

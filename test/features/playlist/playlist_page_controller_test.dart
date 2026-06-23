@@ -101,6 +101,30 @@ void main() {
       expect(data.localState, PlaylistLocalDetailState.empty);
     });
 
+    test('falls back to empty initial detail when local cache read fails', () async {
+      final controller = _playlistPageController(
+        repository: _FakePlaylistRepository(
+          loadLocalInitialDetailError: StateError('broken playlist cache'),
+        ),
+      );
+
+      final data = await controller.loadInitialDetail('1');
+
+      expect(data.localDetail, isNull);
+      expect(data.localPlaylist, isNull);
+      expect(data.localState, PlaylistLocalDetailState.empty);
+    });
+
+    test('falls back to null local detail when local cache read fails', () async {
+      final controller = _playlistPageController(
+        repository: _FakePlaylistRepository(
+          loadLocalPlaylistDetailError: StateError('broken playlist detail cache'),
+        ),
+      );
+
+      await expectLater(controller.loadLocalDetail('1'), completion(isNull));
+    });
+
     test('loads initial detail as partial when local database contains first page only', () async {
       final repository = _playlistRepository(totalTracks: 100);
       await repository.fetchPlaylistSongs(
@@ -672,6 +696,50 @@ class _FakePlaylistSubscriptionDataSource implements PlaylistSubscriptionDataSou
     String playlistId,
     bool isSubscribed,
   ) async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+}
+
+class _FakePlaylistRepository implements PlaylistRepository {
+  _FakePlaylistRepository({
+    this.loadLocalInitialDetailError,
+    this.loadLocalPlaylistDetailError,
+  });
+
+  final Object? loadLocalInitialDetailError;
+  final Object? loadLocalPlaylistDetailError;
+
+  @override
+  Future<PlaylistLocalInitialData> loadLocalInitialDetail({
+    required String playlistId,
+    required List<int> likedSongIds,
+    required String? currentUserId,
+  }) async {
+    final error = loadLocalInitialDetailError;
+    if (error != null) {
+      throw error;
+    }
+    return const PlaylistLocalInitialData(
+      localDetail: null,
+      localPlaylist: null,
+    );
+  }
+
+  @override
+  Future<PlaylistDetailData?> loadLocalPlaylistDetail({
+    required String playlistId,
+    required List<int> likedSongIds,
+    required String? currentUserId,
+  }) async {
+    final error = loadLocalPlaylistDetailError;
+    if (error != null) {
+      throw error;
+    }
+    return null;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) {

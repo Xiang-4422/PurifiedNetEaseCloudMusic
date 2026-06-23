@@ -4,6 +4,8 @@ import 'package:bujuan/ui/widgets/playlist/playlist_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+const double _userPlaylistLibraryCacheExtent = 360;
+
 /// 当前账号的普通歌单列表页。
 class UserPlaylistLibraryPageView extends StatelessWidget {
   /// 创建普通歌单列表页。
@@ -29,6 +31,7 @@ class UserPlaylistLibraryPageView extends StatelessWidget {
           );
         }
         return ListView.separated(
+          cacheExtent: _userPlaylistLibraryCacheExtent,
           padding: const EdgeInsets.fromLTRB(
             AppDimensions.paddingSmall,
             AppDimensions.paddingSmall,

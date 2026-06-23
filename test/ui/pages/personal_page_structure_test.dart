@@ -160,6 +160,9 @@ void main() {
     expect(source, contains('required this.controller'));
     expect(source, isNot(contains('UserLibraryController.to')));
     expect(source, contains('controller.userPlayLists'));
+    expect(source, contains('const double _userPlaylistLibraryCacheExtent = 360;'));
+    expect(source, contains('cacheExtent: _userPlaylistLibraryCacheExtent'));
+    expect(source, contains('ListView.separated('));
     expect(source, contains('PlayListItem(playlists[index])'));
     expect(source, contains("Text('暂无歌单')"));
     expect(source, isNot(contains('package:bujuan/data/')));

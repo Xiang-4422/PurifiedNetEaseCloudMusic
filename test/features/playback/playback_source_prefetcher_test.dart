@@ -327,6 +327,29 @@ void main() {
       expect(await refreshed, _hasUrl('fresh-url'));
       expect(await follower, _hasUrl('fresh-url'));
     });
+
+    test('does not keep failed remote prefetch in flight and retries next resolve', () async {
+      final resolver = _FailingThenRecoveredRemoteSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final item = _item('1');
+
+      await expectLater(
+        prefetcher.resolveRemote(item, preferHighQuality: false),
+        throwsA(isA<StateError>()),
+      );
+      final recovered = await prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+      );
+      final cached = await prefetcher.resolveRemote(
+        item,
+        preferHighQuality: false,
+      );
+
+      expect(recovered, _hasUrl('recovered-url-2'));
+      expect(cached, _hasUrl('recovered-url-2'));
+      expect(resolver.remoteCallCount, 2);
+    });
   });
 }
 
@@ -458,6 +481,34 @@ class _ControllableRemoteSourceResolver implements PlaybackSourceResolver {
     final completer = Completer<PlaybackResolvedSource>();
     _remoteCompleters.add(completer);
     return completer.future;
+  }
+}
+
+class _FailingThenRecoveredRemoteSourceResolver implements PlaybackSourceResolver {
+  int remoteCallCount = 0;
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) {
+    return resolveRemote(item, preferHighQuality: preferHighQuality);
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) async {
+    remoteCallCount++;
+    if (remoteCallCount == 1) {
+      throw StateError('remote prefetch failed');
+    }
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: 'recovered-url-$remoteCallCount',
+    );
   }
 }
 

@@ -1,3 +1,4 @@
+import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_artwork_widgets.dart';
@@ -9,11 +10,15 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
   /// 创建封面过渡层。
   const BottomPanelArtworkTransitionLayer({
     required this.controller,
+    required this.playerController,
     super.key,
   });
 
   /// 壳层控制器，提供封面展开动画状态。
   final ShellController controller;
+
+  /// 播放控制器，提供当前歌曲封面。
+  final PlayerController playerController;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +49,10 @@ class BottomPanelArtworkTransitionLayer extends StatelessWidget {
                 clipBehavior: Clip.hardEdge,
                 width: size,
                 height: size,
-                child: BottomPanelCurrentArtworkImage(size: size),
+                child: BottomPanelCurrentArtworkImage(
+                  size: size,
+                  playerController: playerController,
+                ),
                 onEnd: () {
                   controller.isAlbumScaleEnded.value = true;
                   if (controller.isBigAlbum.isTrue) {
@@ -65,11 +73,15 @@ class BottomPanelArtworkPageLayer extends StatefulWidget {
   /// 创建大封面分页展示层。
   const BottomPanelArtworkPageLayer({
     required this.controller,
+    required this.playerController,
     super.key,
   });
 
   /// 壳层控制器，提供专辑页控制器和面板状态。
   final ShellController controller;
+
+  /// 播放控制器，提供封面分页队列和歌词计时器操作。
+  final PlayerController playerController;
 
   @override
   State<BottomPanelArtworkPageLayer> createState() => _BottomPanelArtworkPageLayerState();
@@ -101,6 +113,7 @@ class _BottomPanelArtworkPageLayerState extends State<BottomPanelArtworkPageLaye
             height: context.width,
             child: BottomPanelArtworkPageViewport(
               controller: widget.controller,
+              playerController: widget.playerController,
             ),
           ),
         );

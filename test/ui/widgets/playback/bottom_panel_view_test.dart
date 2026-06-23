@@ -179,9 +179,11 @@ void main() {
 
     expect(panelSource, contains('BottomPanelArtworkTransitionLayer('));
     expect(panelSource, contains('BottomPanelArtworkPageLayer('));
+    expect(panelSource, contains('playerController: playerController'));
 
     expect(artworkLayerSource, contains('BottomPanelCurrentArtworkImage('));
     expect(artworkLayerSource, contains('BottomPanelArtworkPageViewport('));
+    expect(artworkLayerSource, contains('required this.playerController'));
     expect(artworkLayerSource, isNot(contains('SimpleExtendedImage(')));
     expect(artworkLayerSource, isNot(contains('PageView.builder(')));
     expect(artworkLayerSource, isNot(contains('PerformanceLogger.elapsed')));
@@ -190,10 +192,12 @@ void main() {
     expect(artworkWidgetsSource, contains('class BottomPanelCurrentArtworkImage'));
     expect(artworkWidgetsSource, contains('class BottomPanelArtworkPageViewport'));
     expect(artworkWidgetsSource, contains('class BottomPanelArtworkPageCard'));
+    expect(artworkWidgetsSource, contains('required this.playerController'));
     expect(artworkWidgetsSource, contains('SimpleExtendedImage('));
     expect(artworkWidgetsSource, contains('PageView.builder('));
     expect(artworkWidgetsSource, contains('PerformanceLogger.elapsed'));
     expect(artworkWidgetsSource, contains('ArtworkPathResolver.resolveDisplayPath'));
+    expect(artworkWidgetsSource, isNot(contains('PlayerController.to')));
   });
 
   test('bottom panel header uses playback artwork resolver', () {

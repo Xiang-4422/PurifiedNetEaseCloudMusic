@@ -1015,6 +1015,37 @@ void main() {
       );
     });
 
+    test('bottom panel artwork widgets receive playback state boundary', () {
+      final widgetsFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_artwork_widgets.dart',
+      );
+      final layerFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_artwork_layer.dart',
+      );
+      final panelFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+      );
+      final widgets = widgetsFile.readAsStringSync();
+      final layer = layerFile.readAsStringSync();
+      final panel = panelFile.readAsStringSync();
+      final violations = <String>[
+        if (widgets.contains('PlayerController.to')) '${_relativePath(widgetsFile)} reads player controller globally',
+        if (!widgets.contains('required this.playerController')) '${_relativePath(widgetsFile)} does not receive player controller',
+        if (!layer.contains('BottomPanelCurrentArtworkImage(')) '${_relativePath(layerFile)} does not compose current artwork image',
+        if (!layer.contains('BottomPanelArtworkPageViewport(')) '${_relativePath(layerFile)} does not compose artwork page viewport',
+        if (!layer.contains('playerController: playerController') && !layer.contains('playerController: widget.playerController')) '${_relativePath(layerFile)} does not inject player controller',
+        if (!panel.contains('BottomPanelArtworkTransitionLayer(')) '${_relativePath(panelFile)} does not compose transition layer',
+        if (!panel.contains('BottomPanelArtworkPageLayer(')) '${_relativePath(panelFile)} does not compose artwork page layer',
+        if (!panel.contains('playerController: playerController')) '${_relativePath(panelFile)} does not inject player controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '封面组件只能展示当前封面和封面队列，当前歌曲、封面队列和歌词计时器操作必须由底部播放面板组合层注入。',
+      );
+    });
+
     test('playback metadata key access stays in queue boundary codecs', () {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',

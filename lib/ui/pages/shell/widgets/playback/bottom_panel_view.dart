@@ -89,8 +89,14 @@ class BottomPanelView extends GetView<ShellController> {
             )
           ],
         ),
-        BottomPanelArtworkTransitionLayer(controller: controller),
-        BottomPanelArtworkPageLayer(controller: controller),
+        BottomPanelArtworkTransitionLayer(
+          controller: controller,
+          playerController: playerController,
+        ),
+        BottomPanelArtworkPageLayer(
+          controller: controller,
+          playerController: playerController,
+        ),
 
         // 页面指示TabBar
         BottomPanelPageIndicator(

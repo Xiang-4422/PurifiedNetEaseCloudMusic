@@ -41,10 +41,20 @@ class CloudPageController {
       _setStateIfCurrent(generation, const PagedState(items: [], hasMore: false));
       return;
     }
-    final cachedSongs = await _repository.loadCachedSongs(
-      userId: _userId,
-      likedSongIds: _likedSongIds,
-    );
+    final List<PlaybackQueueItem> cachedSongs;
+    try {
+      cachedSongs = await _repository.loadCachedSongs(
+        userId: _userId,
+        likedSongIds: _likedSongIds,
+      );
+    } catch (_) {
+      if (!_isCurrentRequest(generation)) {
+        return;
+      }
+      _setStateIfCurrent(generation, PagedState.initialLoading());
+      await _reload(generation);
+      return;
+    }
     if (!_isCurrentRequest(generation)) {
       return;
     }

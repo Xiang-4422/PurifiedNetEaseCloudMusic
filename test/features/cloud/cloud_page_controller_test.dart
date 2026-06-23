@@ -47,6 +47,29 @@ void main() {
       expect(controller.state.value.hasInitialError, isTrue);
     });
 
+    test('falls back to remote page when cached songs load fails', () async {
+      final cacheError = Exception('cache failed');
+      final repository = _FakeCloudRepository(
+        cachedSongsFuture: Future<List<PlaybackQueueItem>>.error(cacheError),
+        fetchCloudSongs: () => Future.value(
+          CloudSongPage(
+            items: [_song('remote')],
+            hasMore: false,
+            nextOffset: 1,
+          ),
+        ),
+      );
+      final controller = _buildController(repository);
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+
+      expect(repository.requestedOffsets, [0]);
+      expect(controller.state.value.items.map((item) => item.id), ['remote']);
+      expect(controller.state.value.initialLoading, isFalse);
+      expect(controller.state.value.error, isNull);
+    });
+
     test('ignores stale load more result after refresh completes', () async {
       final loadMore = Completer<CloudSongPage>();
       final refresh = Completer<CloudSongPage>();
@@ -239,6 +262,7 @@ class _FakeCloudRepository extends CloudRepository {
     required int limit,
     required List<int> likedSongIds,
   })? _fetchCloudSongsWithArgs;
+  final List<int> requestedOffsets = <int>[];
 
   @override
   Future<List<PlaybackQueueItem>> loadCachedSongs({
@@ -259,6 +283,7 @@ class _FakeCloudRepository extends CloudRepository {
     required int limit,
     required List<int> likedSongIds,
   }) {
+    requestedOffsets.add(offset);
     final fetchWithArgs = _fetchCloudSongsWithArgs;
     if (fetchWithArgs != null) {
       return fetchWithArgs(

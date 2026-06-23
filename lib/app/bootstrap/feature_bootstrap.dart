@@ -291,6 +291,7 @@ void registerFeatureControllers() {
     () => UserProfileControllerFactory(
       repository: Get.find<UserRepository>(),
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
+      logoutCurrentUser: () => Get.find<AuthController>().logoutCurrentUser(),
     ),
     fenix: true,
   );

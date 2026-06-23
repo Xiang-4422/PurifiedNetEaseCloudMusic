@@ -7,17 +7,21 @@ class UserProfileControllerFactory {
   const UserProfileControllerFactory({
     required UserRepository repository,
     required String Function() currentUserId,
+    required Future<void> Function() logoutCurrentUser,
   })  : _repository = repository,
-        _currentUserId = currentUserId;
+        _currentUserId = currentUserId,
+        _logoutCurrentUser = logoutCurrentUser;
 
   final UserRepository _repository;
   final String Function() _currentUserId;
+  final Future<void> Function() _logoutCurrentUser;
 
   /// Creates a controller owned and disposed by the user profile page.
   UserProfileController create() {
     return UserProfileController(
       userId: _currentUserId(),
       repository: _repository,
+      logoutCurrentUser: _logoutCurrentUser,
     );
   }
 }

@@ -17,6 +17,7 @@ void main() {
       final controller = UserProfileController(
         userId: '42',
         repository: repository,
+        logoutCurrentUser: () async {},
       );
       addTearDown(controller.dispose);
 
@@ -35,6 +36,7 @@ void main() {
       final controller = UserProfileController(
         userId: '42',
         repository: repository,
+        logoutCurrentUser: () async {},
       );
       addTearDown(controller.dispose);
 
@@ -54,6 +56,7 @@ void main() {
       final controller = UserProfileController(
         userId: '42',
         repository: repository,
+        logoutCurrentUser: () async {},
       );
       addTearDown(controller.dispose);
 
@@ -71,6 +74,7 @@ void main() {
       final controller = UserProfileController(
         userId: '42',
         repository: repository,
+        logoutCurrentUser: () async {},
       );
       addTearDown(controller.dispose);
 
@@ -86,6 +90,7 @@ void main() {
       final controller = UserProfileController(
         userId: '42',
         repository: repository,
+        logoutCurrentUser: () async {},
       );
       addTearDown(controller.dispose);
 
@@ -118,6 +123,7 @@ void main() {
       final controller = UserProfileController(
         userId: '42',
         repository: repository,
+        logoutCurrentUser: () async {},
       );
 
       final refresh = controller.refresh();
@@ -130,6 +136,22 @@ void main() {
       );
 
       await refresh;
+    });
+
+    test('delegates manual logout to injected boundary', () async {
+      var logoutCount = 0;
+      final controller = UserProfileController(
+        userId: '42',
+        repository: _FakeUserRepository(),
+        logoutCurrentUser: () async {
+          logoutCount++;
+        },
+      );
+      addTearDown(controller.dispose);
+
+      await controller.logoutCurrentUser();
+
+      expect(logoutCount, 1);
     });
   });
 }

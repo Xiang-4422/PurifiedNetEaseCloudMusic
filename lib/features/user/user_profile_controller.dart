@@ -11,11 +11,14 @@ class UserProfileController {
   UserProfileController({
     required this.userId,
     required UserRepository repository,
-  }) : _repository = repository;
+    required Future<void> Function() logoutCurrentUser,
+  })  : _repository = repository,
+        _logoutCurrentUser = logoutCurrentUser;
 
   /// 当前资料页对应的用户 id。
   final String userId;
   final UserRepository _repository;
+  final Future<void> Function() _logoutCurrentUser;
   int _loadGeneration = 0;
   bool _disposed = false;
 
@@ -45,6 +48,11 @@ class UserProfileController {
   /// 刷新用户资料。
   Future<void> refresh() async {
     await _refresh(++_loadGeneration);
+  }
+
+  /// 注销当前登录账号。
+  Future<void> logoutCurrentUser() {
+    return _logoutCurrentUser();
   }
 
   Future<void> _refresh(int generation) async {

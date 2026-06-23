@@ -1,4 +1,3 @@
-import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/user/user_profile_controller.dart';
 import 'package:bujuan/features/user/user_profile_controller_factory.dart';
@@ -146,7 +145,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                                   ),
                                 ),
                                 onTap: () async {
-                                  await Get.find<AuthController>().logoutCurrentUser();
+                                  await _controller.logoutCurrentUser();
                                 },
                               )
                             ],

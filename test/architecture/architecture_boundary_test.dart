@@ -1457,18 +1457,23 @@ void main() {
       final violations = <String>[
         if (page.contains('UserRepository')) '${_relativePath(pageFile)} names user repository directly',
         if (page.contains('UserSessionController')) '${_relativePath(pageFile)} reads current user directly',
+        if (page.contains('AuthController')) '${_relativePath(pageFile)} reads auth controller directly',
         if (!page.contains('Get.find<UserProfileControllerFactory>().create()')) '${_relativePath(pageFile)} does not create profile controller through feature factory',
+        if (!page.contains('_controller.logoutCurrentUser()')) '${_relativePath(pageFile)} does not submit logout through profile controller',
         if (!factory.contains('UserProfileController create()')) 'user profile controller factory does not create page-local controllers',
         if (!factory.contains('userId: _currentUserId()')) 'user profile controller factory does not snapshot current user at controller creation',
         if (!factory.contains('repository: _repository')) 'user profile controller factory does not inject user repository',
+        if (!factory.contains('required Future<void> Function() logoutCurrentUser')) 'user profile controller factory does not receive logout boundary',
+        if (!factory.contains('logoutCurrentUser: _logoutCurrentUser')) 'user profile controller factory does not inject logout boundary',
         if (!bootstrap.contains('UserProfileControllerFactory(')) 'feature bootstrap does not register user profile controller factory',
         if (!bootstrap.contains('currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId')) 'feature bootstrap does not inject current user provider',
+        if (!bootstrap.contains('logoutCurrentUser: () => Get.find<AuthController>().logoutCurrentUser()')) 'feature bootstrap does not inject auth logout boundary',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '用户资料页可以拥有页面 controller 生命周期，但不能在 Widget 内直接拼装 UserRepository 或当前账号上下文。',
+        reason: '用户资料页可以拥有页面 controller 生命周期，但不能在 Widget 内直接拼装 UserRepository、当前账号上下文或 AuthController。',
       );
     });
 
@@ -2376,11 +2381,18 @@ void main() {
 
     test('manual logout routes through auth effect boundary', () {
       final authController = File('${projectRoot.path}/lib/features/auth/auth_controller.dart').readAsStringSync();
+      final profileController = File('${projectRoot.path}/lib/features/user/user_profile_controller.dart').readAsStringSync();
+      final profileFactory = File('${projectRoot.path}/lib/features/user/user_profile_controller_factory.dart').readAsStringSync();
+      final featureBootstrap = File('${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart').readAsStringSync();
       final userProfilePage = File('${projectRoot.path}/lib/ui/pages/user/user_setting_view.dart').readAsStringSync();
       final violations = <String>[
         if (!authController.contains('Future<void> logoutCurrentUser()')) 'auth controller does not own manual logout flow',
         if (!authController.contains("AuthUiEffect.loginExpired('已退出登录')")) 'manual logout does not emit login-page effect',
-        if (!userProfilePage.contains('logoutCurrentUser()')) 'user profile page does not use auth logout flow',
+        if (!profileController.contains('Future<void> logoutCurrentUser()')) 'profile controller does not expose logout boundary',
+        if (!profileFactory.contains('logoutCurrentUser: _logoutCurrentUser')) 'profile factory does not inject logout boundary',
+        if (!featureBootstrap.contains('logoutCurrentUser: () => Get.find<AuthController>().logoutCurrentUser()')) 'feature bootstrap does not route logout to auth boundary',
+        if (!userProfilePage.contains('_controller.logoutCurrentUser()')) 'user profile page does not use profile logout boundary',
+        if (userProfilePage.contains('Get.find<AuthController>')) 'user profile page reads auth controller directly',
         if (userProfilePage.contains('AutoRouter.of(context)')) 'user profile page manipulates router after logout',
         if (userProfilePage.contains('UserSessionController.to.clearUser()')) 'user profile page clears session directly',
       ];

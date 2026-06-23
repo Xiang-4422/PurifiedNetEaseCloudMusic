@@ -121,7 +121,12 @@ class PlaybackQueueItemAdapter {
       'localArtworkPath': item.localArtworkPath ?? '',
       'lyricKey': item.lyricKey ?? '',
       'localLyricsPath': item.localLyricsPath ?? '',
-      'cache': item.isCached,
+      'cache': hasUsableCachedAudio(
+        isCached: item.isCached,
+        sourceType: item.sourceType,
+        mediaType: item.mediaType,
+        playbackUrl: item.playbackUrl,
+      ),
     };
   }
 

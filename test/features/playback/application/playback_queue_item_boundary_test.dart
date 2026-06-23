@@ -101,6 +101,42 @@ void main() {
       expect(localItem.isCached, isFalse);
     });
 
+    test('adapter writes cache extra only for existing non-local audio', () {
+      final tempDirectory = Directory.systemTemp.createTempSync(
+        'playback-media-extra-cache-',
+      );
+      addTearDown(() {
+        if (tempDirectory.existsSync()) {
+          tempDirectory.deleteSync(recursive: true);
+        }
+      });
+      final audioFile = File('${tempDirectory.path}/song.mp3')..writeAsBytesSync([1, 2, 3]);
+
+      final cachedMediaItem = PlaybackQueueItemAdapter.toMediaItem(
+        _queueItem(
+          mediaType: MediaType.local,
+          playbackUrl: audioFile.path,
+        ),
+      );
+      final missingMediaItem = PlaybackQueueItemAdapter.toMediaItem(
+        _queueItem(
+          mediaType: MediaType.local,
+          playbackUrl: '${tempDirectory.path}/missing.mp3',
+        ),
+      );
+      final localImportMediaItem = PlaybackQueueItemAdapter.toMediaItem(
+        _queueItem(
+          sourceType: SourceType.local,
+          mediaType: MediaType.local,
+          playbackUrl: audioFile.path,
+        ),
+      );
+
+      expect(cachedMediaItem.extras?['cache'], isTrue);
+      expect(missingMediaItem.extras?['cache'], isFalse);
+      expect(localImportMediaItem.extras?['cache'], isFalse);
+    });
+
     test('adapter owns MediaItem extras without requiring queue item extras getter', () {
       final mediaItem = PlaybackQueueItemAdapter.toMediaItem(
         _queueItem(

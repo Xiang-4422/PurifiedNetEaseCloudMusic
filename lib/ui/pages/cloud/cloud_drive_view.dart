@@ -2,9 +2,8 @@ import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller.dart';
-import 'package:bujuan/features/cloud/cloud_repository.dart';
+import 'package:bujuan/features/cloud/cloud_page_controller_factory.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
@@ -29,10 +28,7 @@ class _CloudDriveViewState extends State<CloudDriveView> {
   @override
   void initState() {
     super.initState();
-    _controller = CloudPageController(
-      repository: Get.find<CloudRepository>(),
-      userId: Get.find<UserSessionController>().userInfo.value.userId,
-    )..loadInitial();
+    _controller = Get.find<CloudPageControllerFactory>().create()..loadInitial();
   }
 
   @override

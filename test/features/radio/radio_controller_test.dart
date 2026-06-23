@@ -215,6 +215,7 @@ void main() {
         radioId: 'radio-1',
         userId: 'user-1',
         repository: repository,
+        likedSongIds: () => const [],
       );
       addTearDown(controller.dispose);
 
@@ -240,6 +241,7 @@ void main() {
         radioId: 'radio-1',
         userId: 'user-1',
         repository: repository,
+        likedSongIds: () => const [],
       );
       addTearDown(controller.dispose);
 
@@ -265,6 +267,7 @@ void main() {
         radioId: 'radio-1',
         userId: 'user-1',
         repository: repository,
+        likedSongIds: () => const [],
       );
       addTearDown(controller.dispose);
 
@@ -323,6 +326,7 @@ void main() {
         radioId: 'radio-1',
         userId: 'user-1',
         repository: repository,
+        likedSongIds: () => const [],
       );
       addTearDown(controller.dispose);
 
@@ -369,6 +373,7 @@ void main() {
         radioId: 'radio-1',
         userId: 'user-1',
         repository: repository,
+        likedSongIds: () => const [],
       );
 
       final refreshFuture = controller.refresh();
@@ -406,6 +411,7 @@ void main() {
         radioId: 'radio-1',
         userId: 'user-1',
         repository: repository,
+        likedSongIds: () => const [],
       );
 
       await controller.loadInitial();

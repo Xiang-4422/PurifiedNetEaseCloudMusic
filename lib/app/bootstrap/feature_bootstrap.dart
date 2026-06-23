@@ -8,6 +8,8 @@ import 'package:bujuan/features/artist/artist_page_controller.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
+import 'package:bujuan/features/cloud/cloud_page_controller_factory.dart';
+import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:bujuan/features/explore/explore_page_controller.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
@@ -33,6 +35,8 @@ import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
+import 'package:bujuan/features/radio/radio_controller_factory.dart';
+import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:bujuan/features/settings/cache_analysis_service.dart';
@@ -183,6 +187,22 @@ void registerFeatureControllers() {
   Get.lazyPut(
     () => ArtistPageController(
       repository: Get.find<ArtistRepository>(),
+      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+    ),
+    fenix: true,
+  );
+  Get.lazyPut(
+    () => CloudPageControllerFactory(
+      repository: Get.find<CloudRepository>(),
+      currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
+      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+    ),
+    fenix: true,
+  );
+  Get.lazyPut(
+    () => RadioControllerFactory(
+      repository: Get.find<RadioRepository>(),
+      currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
       likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
     ),
     fenix: true,

@@ -933,32 +933,69 @@ void main() {
       final cloudControllerFile = File(
         '${projectRoot.path}/lib/features/cloud/cloud_page_controller.dart',
       );
+      final cloudFactoryFile = File(
+        '${projectRoot.path}/lib/features/cloud/cloud_page_controller_factory.dart',
+      );
+      final radioListViewFile = File(
+        '${projectRoot.path}/lib/ui/pages/radio/my_radio_view.dart',
+      );
       final radioViewFile = File(
         '${projectRoot.path}/lib/ui/pages/radio/radio_details_view.dart',
       );
       final radioControllerFile = File(
         '${projectRoot.path}/lib/features/radio/radio_detail_controller.dart',
       );
+      final radioFactoryFile = File(
+        '${projectRoot.path}/lib/features/radio/radio_controller_factory.dart',
+      );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
       final cloudView = cloudViewFile.readAsStringSync();
       final cloudController = cloudControllerFile.readAsStringSync();
+      final cloudFactory = cloudFactoryFile.readAsStringSync();
+      final radioListView = radioListViewFile.readAsStringSync();
       final radioView = radioViewFile.readAsStringSync();
       final radioController = radioControllerFile.readAsStringSync();
+      final radioFactory = radioFactoryFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
         if (cloudView.contains('UserLibraryController')) '${_relativePath(cloudViewFile)} reads user library directly',
+        if (cloudView.contains('CloudRepository')) '${_relativePath(cloudViewFile)} names cloud repository directly',
+        if (cloudView.contains('UserSessionController')) '${_relativePath(cloudViewFile)} reads current user directly',
         if (cloudView.contains('likedSongIds:')) '${_relativePath(cloudViewFile)} passes liked ids from UI',
-        if (!cloudController.contains('List<int> Function()? likedSongIds')) 'cloud controller does not accept a lazy liked ids provider',
+        if (!cloudView.contains('Get.find<CloudPageControllerFactory>().create()')) '${_relativePath(cloudViewFile)} does not create controller through feature factory',
+        if (cloudController.contains('UserLibraryController')) '${_relativePath(cloudControllerFile)} reads user library directly',
+        if (!cloudController.contains('required List<int> Function() likedSongIds')) 'cloud controller does not require a lazy liked ids provider',
         if (!cloudController.contains('likedSongIds: _likedSongIds()')) 'cloud controller does not read liked ids at request time',
+        if (!cloudFactory.contains('CloudPageController create({int pageSize = 30})')) 'cloud controller factory does not create page-local controllers',
+        if (!cloudFactory.contains('userId: _currentUserId()')) 'cloud controller factory does not snapshot current user at controller creation',
+        if (!cloudFactory.contains('likedSongIds: _likedSongIds')) 'cloud controller factory does not inject liked ids provider',
+        if (radioListView.contains('RadioRepository')) '${_relativePath(radioListViewFile)} names radio repository directly',
+        if (radioListView.contains('UserSessionController')) '${_relativePath(radioListViewFile)} reads current user directly',
+        if (!radioListView.contains('Get.find<RadioControllerFactory>().createList()')) '${_relativePath(radioListViewFile)} does not create list controller through feature factory',
         if (radioView.contains('UserLibraryController')) '${_relativePath(radioViewFile)} reads user library directly',
+        if (radioView.contains('RadioRepository')) '${_relativePath(radioViewFile)} names radio repository directly',
+        if (radioView.contains('UserSessionController')) '${_relativePath(radioViewFile)} reads current user directly',
+        if (!radioView.contains('Get.find<RadioControllerFactory>().createDetail(radioId: _radioId)')) '${_relativePath(radioViewFile)} does not create detail controller through feature factory',
         if (radioView.contains('RadioPlaybackQueueItemMapper.fromPrograms')) '${_relativePath(radioViewFile)} maps radio queue items in UI',
         if (!radioView.contains('final queueItems = _controller.queueItems')) '${_relativePath(radioViewFile)} does not read queue items from controller',
+        if (radioController.contains('UserLibraryController')) '${_relativePath(radioControllerFile)} reads user library directly',
         if (!radioController.contains('List<PlaybackQueueItem> get queueItems')) 'radio detail controller does not expose queue items',
+        if (!radioController.contains('required List<int> Function() likedSongIds')) 'radio detail controller does not require a lazy liked ids provider',
         if (!radioController.contains('likedSongIds: _likedSongIds()')) 'radio detail controller does not derive liked state from lazy provider',
+        if (!radioFactory.contains('RadioListController createList({int pageSize = 30})')) 'radio controller factory does not create list controllers',
+        if (!radioFactory.contains('RadioDetailController createDetail({')) 'radio controller factory does not create detail controllers',
+        if (!radioFactory.contains('userId: _currentUserId()')) 'radio controller factory does not snapshot current user at controller creation',
+        if (!radioFactory.contains('likedSongIds: _likedSongIds')) 'radio controller factory does not inject liked ids provider',
+        if (!bootstrap.contains('CloudPageControllerFactory(')) 'feature bootstrap does not register cloud controller factory',
+        if (!bootstrap.contains('RadioControllerFactory(')) 'feature bootstrap does not register radio controller factory',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '云盘页和播客详情页不能在 Widget 内直接读取用户喜欢歌曲 id；喜欢态应由页面控制器按当前用户库状态派生。',
+        reason: '云盘页和播客页不能在 Widget 内直接拼账号、repository 或喜欢列表；页面本地 controller 应由 feature factory 注入当前账号和喜欢列表 provider。',
       );
     });
 

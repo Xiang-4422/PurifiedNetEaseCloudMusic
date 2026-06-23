@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:flutter/foundation.dart';
 
 /// 云盘歌曲分页页面控制器。
@@ -12,11 +11,11 @@ class CloudPageController {
   CloudPageController({
     required CloudRepository repository,
     required String userId,
-    List<int> Function()? likedSongIds,
+    required List<int> Function() likedSongIds,
     this.pageSize = 30,
   })  : _repository = repository,
         _userId = userId,
-        _likedSongIds = likedSongIds ?? _currentLikedSongIds;
+        _likedSongIds = likedSongIds;
 
   final CloudRepository _repository;
   final String _userId;
@@ -210,9 +209,5 @@ class CloudPageController {
     if (_isCurrentRequest(generation)) {
       state.value = nextState;
     }
-  }
-
-  static List<int> _currentLikedSongIds() {
-    return UserLibraryController.to.likedSongIds.toList();
   }
 }

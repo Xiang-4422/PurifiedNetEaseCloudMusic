@@ -184,7 +184,7 @@ class SearchPanelController {
     await Future.wait<void>([
       _loadSongs(
         normalizedKeyword,
-        likedSongIds: likedSongIds,
+        likedIdsSnapshot: likedSongIds,
         previousItems: previousSongs,
       ).then((state) {
         applyIfCurrent(
@@ -196,7 +196,7 @@ class SearchPanelController {
       }),
       _loadPlaylists(
         normalizedKeyword,
-        currentUserId: currentUserId,
+        userIdSnapshot: currentUserId,
         previousItems: previousPlaylists,
       ).then((state) {
         applyIfCurrent(
@@ -266,13 +266,13 @@ class SearchPanelController {
 
   Future<LoadState<List<PlaybackQueueItem>>> _loadSongs(
     String keyword, {
-    required List<int> likedSongIds,
+    required List<int> likedIdsSnapshot,
     required List<PlaybackQueueItem>? previousItems,
   }) async {
     try {
       final songs = await _repository.searchTrackQueueItems(
         keyword,
-        likedSongIds: likedSongIds,
+        likedSongIds: likedIdsSnapshot,
       );
       return songs.isEmpty ? const LoadState.empty() : LoadState.data(songs);
     } catch (error, stackTrace) {
@@ -282,13 +282,13 @@ class SearchPanelController {
 
   Future<LoadState<List<PlaylistEntity>>> _loadPlaylists(
     String keyword, {
-    required String currentUserId,
+    required String userIdSnapshot,
     required List<PlaylistEntity>? previousItems,
   }) async {
     try {
       final playlists = await _repository.searchPlaylists(
         keyword,
-        currentUserId: currentUserId,
+        currentUserId: userIdSnapshot,
       );
       return playlists.isEmpty ? const LoadState.empty() : LoadState.data(playlists);
     } catch (error, stackTrace) {

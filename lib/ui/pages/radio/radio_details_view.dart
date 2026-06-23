@@ -2,9 +2,8 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/radio/radio_controller_factory.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
-import 'package:bujuan/features/radio/radio_repository.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
@@ -33,11 +32,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
     super.initState();
     _radioId = context.routeData.queryParams.get('radioId');
     _radioName = context.routeData.queryParams.get('radioName');
-    _controller = RadioDetailController(
-      radioId: _radioId,
-      userId: Get.find<UserSessionController>().userInfo.value.userId,
-      repository: Get.find<RadioRepository>(),
-    )..loadInitial();
+    _controller = Get.find<RadioControllerFactory>().createDetail(radioId: _radioId)..loadInitial();
   }
 
   @override

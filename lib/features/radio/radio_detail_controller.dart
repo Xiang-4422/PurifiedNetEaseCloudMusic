@@ -5,7 +5,6 @@ import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
 import 'package:bujuan/features/radio/radio_playback_queue_item_mapper.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:flutter/foundation.dart';
 
 /// 电台节目分页控制器。
@@ -15,12 +14,12 @@ class RadioDetailController {
     required this.radioId,
     required String userId,
     required RadioRepository repository,
-    List<int> Function()? likedSongIds,
+    required List<int> Function() likedSongIds,
     this.pageSize = 30,
     this.asc = true,
   })  : _userId = userId,
         _repository = repository,
-        _likedSongIds = likedSongIds ?? _currentLikedSongIds;
+        _likedSongIds = likedSongIds;
 
   /// 电台 id。
   final String radioId;
@@ -203,9 +202,5 @@ class RadioDetailController {
 
   bool _isCurrentRequest(int generation) {
     return !_disposed && generation == _requestGeneration;
-  }
-
-  static List<int> _currentLikedSongIds() {
-    return UserLibraryController.to.likedSongIds.toList();
   }
 }

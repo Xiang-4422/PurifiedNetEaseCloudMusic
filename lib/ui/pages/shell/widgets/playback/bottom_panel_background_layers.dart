@@ -9,12 +9,16 @@ import 'package:get/get.dart';
 class BottomPanelBackgroundLayer extends StatelessWidget {
   /// 创建底部播放面板背景层。
   const BottomPanelBackgroundLayer({
-    super.key,
     required this.controller,
+    required this.settingsController,
+    super.key,
   });
 
   /// 壳层控制器，提供底部面板展开动画。
   final ShellController controller;
+
+  /// 设置控制器，提供播放面板取色。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +35,7 @@ class BottomPanelBackgroundLayer extends StatelessWidget {
                 AppDimensions.phoneCornerRadius * (1 - panelOpenDegree),
               ),
             ),
-            color: SettingsController.to.albumColor.value.withValues(
+            color: settingsController.albumColor.value.withValues(
               alpha: 0.5 + 0.5 * panelOpenDegree,
             ),
             child: Container(),
@@ -45,7 +49,13 @@ class BottomPanelBackgroundLayer extends StatelessWidget {
 /// 底部播放面板 PageView 的上下边缘渐隐遮罩。
 class BottomPanelContentFadeMask extends GetView<ShellController> {
   /// 创建内容渐隐遮罩。
-  const BottomPanelContentFadeMask({super.key});
+  const BottomPanelContentFadeMask({
+    required this.settingsController,
+    super.key,
+  });
+
+  /// 设置控制器，提供播放面板取色。
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -56,15 +66,15 @@ class BottomPanelContentFadeMask extends GetView<ShellController> {
           children: [
             _FadeBand(
               colors: [
-                SettingsController.to.albumColor.value,
-                SettingsController.to.albumColor.value.withValues(alpha: 0),
+                settingsController.albumColor.value,
+                settingsController.albumColor.value.withValues(alpha: 0),
               ],
             ),
             Expanded(child: Container()),
             _FadeBand(
               colors: [
-                SettingsController.to.albumColor.value.withValues(alpha: 0),
-                SettingsController.to.albumColor.value,
+                settingsController.albumColor.value.withValues(alpha: 0),
+                settingsController.albumColor.value,
               ],
             ),
           ],

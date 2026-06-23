@@ -27,7 +27,10 @@ class BottomPanelView extends GetView<ShellController> {
       alignment: Alignment.topCenter,
       children: [
         // 背景层
-        BottomPanelBackgroundLayer(controller: controller),
+        BottomPanelBackgroundLayer(
+          controller: controller,
+          settingsController: settingsController,
+        ),
         // 内容
         Column(
           children: [
@@ -71,7 +74,9 @@ class BottomPanelView extends GetView<ShellController> {
                       ),
                     ],
                   ),
-                  const BottomPanelContentFadeMask(),
+                  BottomPanelContentFadeMask(
+                    settingsController: settingsController,
+                  ),
                 ],
               ),
             ),

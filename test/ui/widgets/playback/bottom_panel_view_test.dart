@@ -110,16 +110,19 @@ void main() {
     ).readAsStringSync();
 
     expect(panelSource, contains('BottomPanelBackgroundLayer('));
-    expect(panelSource, contains('BottomPanelContentFadeMask()'));
+    expect(panelSource, contains('BottomPanelContentFadeMask('));
+    expect(panelSource, contains('settingsController: settingsController'));
     expect(panelSource, isNot(contains('BlurryContainer(')));
     expect(panelSource, isNot(contains('LinearGradient(')));
     expect(panelSource, isNot(contains('bottomPanelAnimationController.value')));
 
     expect(backgroundSource, contains('class BottomPanelBackgroundLayer'));
     expect(backgroundSource, contains('class BottomPanelContentFadeMask'));
+    expect(backgroundSource, contains('required this.settingsController'));
     expect(backgroundSource, contains('BlurryContainer('));
     expect(backgroundSource, contains('LinearGradient('));
     expect(backgroundSource, contains('bottomPanelAnimationController.value'));
+    expect(backgroundSource, isNot(contains('SettingsController.to')));
   });
 
   test('bottom panel delegates artwork layer details to local widgets', () {

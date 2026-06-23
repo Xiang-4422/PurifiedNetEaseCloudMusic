@@ -812,6 +812,30 @@ void main() {
       );
     });
 
+    test('bottom panel background receives visual state boundary', () {
+      final backgroundFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_background_layers.dart',
+      );
+      final panelFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
+      );
+      final background = backgroundFile.readAsStringSync();
+      final panel = panelFile.readAsStringSync();
+      final violations = <String>[
+        if (background.contains('SettingsController.to')) '${_relativePath(backgroundFile)} reads settings controller globally',
+        if (!background.contains('required this.settingsController')) '${_relativePath(backgroundFile)} does not receive settings controller',
+        if (!panel.contains('BottomPanelBackgroundLayer(')) '${_relativePath(panelFile)} does not compose background layer',
+        if (!panel.contains('BottomPanelContentFadeMask(')) '${_relativePath(panelFile)} does not compose content fade mask',
+        if (!panel.contains('settingsController: settingsController')) '${_relativePath(panelFile)} does not inject settings controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '底部背景和渐隐遮罩只消费播放面板视觉状态，专辑取色必须由底部播放面板组合层注入。',
+      );
+    });
+
     test('playback metadata key access stays in queue boundary codecs', () {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',

@@ -1219,13 +1219,22 @@ void main() {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/explore/explore_page_controller.dart',
       );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
       final page = pageFile.readAsStringSync();
       final controller = controllerFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
         if (page.contains('UserLibraryController')) '${_relativePath(pageFile)} reads liked ids directly',
         if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} resolves playlist data directly',
         if (page.contains('fetchPlaylistIndex(')) '${_relativePath(pageFile)} fetches playlist index directly',
         if (page.contains('fetchPlaylistSongs(')) '${_relativePath(pageFile)} fetches playlist songs directly',
+        if (controller.contains("package:bujuan/features/shell/home_shell_controller.dart")) 'explore controller imports shell controller',
+        if (controller.contains('HomeShellController.to')) 'explore controller reads global shell controller',
+        if (!controller.contains('required ExplorePageVisibility pageVisibility')) 'explore controller does not accept visibility boundary',
+        if (!bootstrap.contains('pageVisibility: ExplorePageVisibility(')) 'feature bootstrap does not inject explore visibility boundary',
+        if (!bootstrap.contains('shellController.isExplorePageIndex')) 'feature bootstrap does not bind explore visibility to shell page kind',
         if (!page.contains('controller.resolvePlaylistPlayback(playlist)')) '${_relativePath(pageFile)} does not resolve playlist playback through controller',
         if (!controller.contains('Future<ExplorePlaylistPlaybackPlan> resolvePlaylistPlayback')) 'explore controller does not expose playlist playback resolution',
         if (!controller.contains('final likedSongIds = List<int>.of(_likedSongIds())')) 'explore controller does not resolve playback with liked ids provider',

@@ -221,6 +221,26 @@ void main() {
         'Remote Playlist',
       ]);
     });
+
+    test('waits for explore page visibility before bootstrap', () async {
+      final visibility = _ManualExplorePageVisibility(isVisible: false);
+      final exploreRepository = _FakeExploreRepository();
+      final controller = _buildController(
+        exploreRepository: exploreRepository,
+        pageVisibility: visibility.boundary,
+      );
+      addTearDown(controller.onClose);
+
+      controller.onReady();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(exploreRepository.fetchPlaylistCatalogueCount, 0);
+
+      visibility.show();
+      await _waitUntil(() => exploreRepository.fetchPlaylistCatalogueCount == 1);
+
+      expect(controller.loading.value, isFalse);
+    });
   });
 }
 
@@ -228,12 +248,18 @@ ExplorePageController _buildController({
   _FakeExploreRepository? exploreRepository,
   _FakePlaylistRepository? playlistRepository,
   List<int> Function()? likedSongIds,
+  ExplorePageVisibility? pageVisibility,
 }) {
   return ExplorePageController(
     exploreRepository: exploreRepository ?? _FakeExploreRepository(),
     playlistRepository: playlistRepository ?? _FakePlaylistRepository(),
     likedSongIds: likedSongIds ?? () => const [],
     currentUserId: () => 'user-1',
+    pageVisibility: pageVisibility ??
+        ExplorePageVisibility(
+          isVisible: () => true,
+          watchVisible: (_) => () {},
+        ),
   );
 }
 
@@ -270,6 +296,7 @@ class _FakeExploreRepository implements ExploreRepository {
   final Object? categoryPlaylistsFreshError;
   final Object? fetchPlaylistCatalogueError;
   final Future<List<PlaylistSummaryData>> Function(String category)? fetchCategoryPlaylistsHandler;
+  int fetchPlaylistCatalogueCount = 0;
 
   @override
   Future<ExplorePlaylistCatalogueData?> loadCachedPlaylistCatalogue() async {
@@ -283,6 +310,7 @@ class _FakeExploreRepository implements ExploreRepository {
 
   @override
   Future<ExplorePlaylistCatalogueData> fetchPlaylistCatalogue() async {
+    fetchPlaylistCatalogueCount++;
     final error = fetchPlaylistCatalogueError;
     if (error != null) {
       throw error;
@@ -325,6 +353,40 @@ class _FakeExploreRepository implements ExploreRepository {
       return handler(category);
     }
     return const [];
+  }
+}
+
+Future<void> _waitUntil(bool Function() condition) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 1));
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('condition was not met before timeout');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+}
+
+class _ManualExplorePageVisibility {
+  _ManualExplorePageVisibility({required bool isVisible}) : _isVisible = isVisible;
+
+  bool _isVisible;
+  void Function()? _onVisible;
+
+  ExplorePageVisibility get boundary => ExplorePageVisibility(
+        isVisible: () => _isVisible,
+        watchVisible: (onVisible) {
+          _onVisible = onVisible;
+          return () {
+            if (identical(_onVisible, onVisible)) {
+              _onVisible = null;
+            }
+          };
+        },
+      );
+
+  void show() {
+    _isVisible = true;
+    _onVisible?.call();
   }
 }
 

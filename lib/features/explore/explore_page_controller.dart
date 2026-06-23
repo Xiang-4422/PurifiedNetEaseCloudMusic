@@ -7,9 +7,23 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playlist/playlist_detail_data.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
-import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+
+/// 探索页可见性边界，避免探索控制器直接知道壳层分页结构。
+class ExplorePageVisibility {
+  /// 创建探索页可见性边界。
+  const ExplorePageVisibility({
+    required this.isVisible,
+    required this.watchVisible,
+  });
+
+  /// 当前探索页是否可见。
+  final bool Function() isVisible;
+
+  /// 监听探索页进入可见状态，返回取消监听函数。
+  final void Function() Function(void Function() onVisible) watchVisible;
+}
 
 /// 探索页歌单播放前解析出的队列计划。
 class ExplorePlaylistPlaybackPlan {
@@ -39,15 +53,18 @@ class ExplorePageController extends GetxController {
     required PlaylistRepository playlistRepository,
     required List<int> Function() likedSongIds,
     required String Function() currentUserId,
+    required ExplorePageVisibility pageVisibility,
   })  : _exploreRepository = exploreRepository,
         _playlistRepository = playlistRepository,
         _likedSongIds = likedSongIds,
-        _currentUserId = currentUserId;
+        _currentUserId = currentUserId,
+        _pageVisibility = pageVisibility;
 
   final ExploreRepository _exploreRepository;
   final PlaylistRepository _playlistRepository;
   final List<int> Function() _likedSongIds;
   final String Function() _currentUserId;
+  final ExplorePageVisibility _pageVisibility;
 
   /// 榜单分类和榜单基础数据。
   final Map<String, List<RankingPlaylistData>> topPlayListCategory = {
@@ -142,7 +159,7 @@ class ExplorePageController extends GetxController {
 
   /// 探索页刷新控制器。
   RefreshController refreshController = RefreshController();
-  Worker? _pageVisibilityWorker;
+  void Function()? _cancelPageVisibilityWatch;
   bool _bootstrapped = false;
   int _playlistRequestGeneration = 0;
   int _rankingSongsRequestGeneration = 0;
@@ -152,18 +169,13 @@ class ExplorePageController extends GetxController {
   void onReady() {
     super.onReady();
     _initStaticState();
-    if (HomeShellController.to.isExplorePageIndex(
-      HomeShellController.to.curHomePageIndex.value,
-    )) {
+    if (_pageVisibility.isVisible()) {
       unawaited(_ensureBootstrapped());
       return;
     }
-    _pageVisibilityWorker = ever<int>(HomeShellController.to.curHomePageIndex, (pageIndex) {
-      if (!HomeShellController.to.isExplorePageIndex(pageIndex)) {
-        return;
-      }
-      _pageVisibilityWorker?.dispose();
-      _pageVisibilityWorker = null;
+    _cancelPageVisibilityWatch = _pageVisibility.watchVisible(() {
+      _cancelPageVisibilityWatch?.call();
+      _cancelPageVisibilityWatch = null;
       unawaited(_ensureBootstrapped());
     });
   }
@@ -209,7 +221,8 @@ class ExplorePageController extends GetxController {
     _disposed = true;
     _playlistRequestGeneration++;
     _rankingSongsRequestGeneration++;
-    _pageVisibilityWorker?.dispose();
+    _cancelPageVisibilityWatch?.call();
+    _cancelPageVisibilityWatch = null;
     super.onClose();
   }
 

@@ -197,6 +197,21 @@ void registerFeatureControllers() {
       playlistRepository: Get.find<PlaylistRepository>(),
       likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
+      pageVisibility: ExplorePageVisibility(
+        isVisible: () {
+          final shellController = Get.find<HomeShellController>();
+          return shellController.isExplorePageIndex(shellController.curHomePageIndex.value);
+        },
+        watchVisible: (onVisible) {
+          final shellController = Get.find<HomeShellController>();
+          final worker = ever<int>(shellController.curHomePageIndex, (pageIndex) {
+            if (shellController.isExplorePageIndex(pageIndex)) {
+              onVisible();
+            }
+          });
+          return worker.dispose;
+        },
+      ),
     ),
     fenix: true,
   );

@@ -156,7 +156,12 @@ class PlaybackRepository {
     while (_pendingRestoreState != null) {
       final state = _pendingRestoreState!;
       _pendingRestoreState = null;
-      await _playbackRestoreDataSource.saveRestoreState(state);
+      try {
+        await _playbackRestoreDataSource.saveRestoreState(state);
+      } catch (_) {
+        _pendingRestoreState ??= state;
+        rethrow;
+      }
     }
   }
 
@@ -187,11 +192,18 @@ class PlaybackRepository {
     final fullStateWrite = _restoreWriteFuture;
     if (fullStateWrite != null) {
       await fullStateWrite;
+    } else if (_pendingRestoreState != null) {
+      await _flushPendingRestoreState();
     }
     while (_pendingRestorePosition != null) {
       final position = _pendingRestorePosition!;
       _pendingRestorePosition = null;
-      await _playbackRestoreDataSource.saveRestorePosition(position);
+      try {
+        await _playbackRestoreDataSource.saveRestorePosition(position);
+      } catch (_) {
+        _pendingRestorePosition ??= position;
+        rethrow;
+      }
     }
   }
 

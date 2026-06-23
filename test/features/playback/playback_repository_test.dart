@@ -56,6 +56,52 @@ void main() {
       expect(dataSource.loadCount, 1);
     });
 
+    test('position update retries pending full restore state after write failure', () async {
+      final dataSource = _FakePlaybackRestoreDataSource(
+        failStateSaveCount: 1,
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: dataSource,
+        playbackHistoryDataSource: _FakePlaybackHistoryDataSource(),
+      );
+
+      await expectLater(
+        repository.updateRestoreState(
+          queue: const ['netease:1', 'netease:2'],
+          currentSongId: 'netease:2',
+        ),
+        throwsA(isA<StateError>()),
+      );
+
+      await repository.updateRestorePosition(const Duration(seconds: 42));
+
+      expect(dataSource.savedStates, hasLength(1));
+      expect(dataSource.savedStates.single.queue, ['netease:1', 'netease:2']);
+      expect(dataSource.savedStates.single.currentSongId, 'netease:2');
+      expect(dataSource.savedPositions, [const Duration(seconds: 42)]);
+    });
+
+    test('failed position write is retried by the next position update', () async {
+      final dataSource = _FakePlaybackRestoreDataSource(
+        failPositionSaveCount: 1,
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: dataSource,
+        playbackHistoryDataSource: _FakePlaybackHistoryDataSource(),
+      );
+
+      await expectLater(
+        repository.updateRestorePosition(const Duration(seconds: 12)),
+        throwsA(isA<StateError>()),
+      );
+
+      await repository.updateRestorePosition(const Duration(seconds: 18));
+
+      expect(dataSource.savedPositions, [const Duration(seconds: 18)]);
+    });
+
     test('forwards quality and force refresh when fetching playback url', () async {
       final musicDataRepository = _FakeMusicDataRepository();
       final repository = PlaybackRepository(
@@ -143,9 +189,13 @@ void main() {
 class _FakePlaybackRestoreDataSource implements PlaybackRestoreDataSource {
   _FakePlaybackRestoreDataSource({
     this.saveDelay = Duration.zero,
+    this.failStateSaveCount = 0,
+    this.failPositionSaveCount = 0,
   });
 
   final Duration saveDelay;
+  int failStateSaveCount;
+  int failPositionSaveCount;
   final List<PlaybackRestoreState> savedStates = <PlaybackRestoreState>[];
   final List<Duration> savedPositions = <Duration>[];
   int loadCount = 0;
@@ -161,6 +211,10 @@ class _FakePlaybackRestoreDataSource implements PlaybackRestoreDataSource {
     if (saveDelay > Duration.zero) {
       await Future<void>.delayed(saveDelay);
     }
+    if (failStateSaveCount > 0) {
+      failStateSaveCount--;
+      throw StateError('restore state write failed');
+    }
     savedStates.add(state);
   }
 
@@ -168,6 +222,10 @@ class _FakePlaybackRestoreDataSource implements PlaybackRestoreDataSource {
   Future<void> saveRestorePosition(Duration position) async {
     if (saveDelay > Duration.zero) {
       await Future<void>.delayed(saveDelay);
+    }
+    if (failPositionSaveCount > 0) {
+      failPositionSaveCount--;
+      throw StateError('restore position write failed');
     }
     savedPositions.add(position);
   }

@@ -48,8 +48,9 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumId = context.routeData.queryParams.get('albumId');
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final localDetail = await _controller.loadLocalDetail(albumId);
-      if (localDetail != null) {
+      final initialDetail = await _controller.loadInitialDetail(albumId);
+      final localDetail = initialDetail.localDetail;
+      if (initialDetail.hasLocalDetail && localDetail != null) {
         album = localDetail.album;
         albumSongs
           ..clear()
@@ -63,7 +64,9 @@ class _AlbumPageViewState extends State<AlbumPageView> {
           hasLoadedDetail = true;
         });
         unawaited(_updateAlbumColor(_resolvedArtworkUrl));
-        unawaited(_refreshAlbumDetail(showLoadingState: false));
+        if (initialDetail.shouldRefreshInBackground) {
+          unawaited(_refreshAlbumDetail(showLoadingState: false));
+        }
         return;
       }
       await _refreshAlbumDetail(showLoadingState: true);

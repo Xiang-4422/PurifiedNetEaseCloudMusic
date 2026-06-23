@@ -17,6 +17,34 @@ void main() {
       await expectLater(controller.loadLocalDetail('album-1'), completion(isNull));
     });
 
+    test('loads initial detail as local first and marks background refresh', () async {
+      final controller = AlbumPageController(
+        repository: _FakeAlbumRepository(),
+        likedSongIds: () => const [1],
+      );
+
+      final initialData = await controller.loadInitialDetail('album-1');
+
+      expect(initialData.localDetail?.album.sourceId, 'album-1');
+      expect(initialData.hasLocalDetail, isTrue);
+      expect(initialData.shouldRefreshInBackground, isTrue);
+    });
+
+    test('loads initial detail as empty when local cache read fails', () async {
+      final controller = AlbumPageController(
+        repository: _FakeAlbumRepository(
+          loadLocalAlbumDetailError: StateError('broken album cache'),
+        ),
+        likedSongIds: () => const [1],
+      );
+
+      final initialData = await controller.loadInitialDetail('album-1');
+
+      expect(initialData.localDetail, isNull);
+      expect(initialData.hasLocalDetail, isFalse);
+      expect(initialData.shouldRefreshInBackground, isFalse);
+    });
+
     test('passes liked song ids to album repository calls', () async {
       final repository = _FakeAlbumRepository();
       final controller = AlbumPageController(

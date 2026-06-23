@@ -54,8 +54,9 @@ class _ArtistPageViewState extends State<ArtistPageView> {
 
     artistId = context.routeData.queryParams.get("artistId");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final localDetail = await _controller.loadLocalDetail(artistId);
-      if (localDetail != null) {
+      final initialDetail = await _controller.loadInitialDetail(artistId);
+      final localDetail = initialDetail.localDetail;
+      if (initialDetail.hasLocalDetail && localDetail != null) {
         artist = localDetail.artist;
         topSongs
           ..clear()
@@ -72,7 +73,9 @@ class _ArtistPageViewState extends State<ArtistPageView> {
           hasLoadedDetail = true;
         });
         unawaited(_updateArtistColor(_resolvedArtworkUrl));
-        unawaited(_refreshArtistDetail(showLoadingState: false));
+        if (initialDetail.shouldRefreshInBackground) {
+          unawaited(_refreshArtistDetail(showLoadingState: false));
+        }
         return;
       }
       await _refreshArtistDetail(showLoadingState: true);

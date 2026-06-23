@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/routing/router.gr.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
@@ -5,6 +7,7 @@ import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/data/app_storage/local_image_cache_repository.dart';
 import 'package:bujuan/features/album/album_page_controller_factory.dart';
 import 'package:bujuan/features/album/album_repository.dart';
 import 'package:bujuan/features/artist/artist_page_controller_factory.dart';
@@ -13,18 +16,35 @@ import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/pages/album/album_page_view.dart';
 import 'package:bujuan/ui/pages/artist/artist_page_view.dart';
+import 'package:bujuan/ui/services/local_image_cache_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
 void main() {
+  late Directory imageCacheDirectory;
+
   setUp(() {
     Get.testMode = true;
+    imageCacheDirectory = Directory.systemTemp.createTempSync('album_artist_image_cache_test_');
+    LocalImageCacheService.configure(
+      repository: LocalImageCacheRepository(
+        cacheDirectoryProvider: () async => imageCacheDirectory,
+        downloader: (imageUrl, savePath, options) async {
+          await File(savePath).writeAsBytes(const <int>[]);
+        },
+      ),
+    );
     Get.put<UserLibraryController>(_FakeUserLibraryController());
     Get.put<PlayerController>(_FakePlayerController());
   });
 
-  tearDown(Get.reset);
+  tearDown(() {
+    Get.reset();
+    if (imageCacheDirectory.existsSync()) {
+      imageCacheDirectory.deleteSync(recursive: true);
+    }
+  });
 
   testWidgets('AlbumPageView keeps cached detail when background refresh fails', (tester) async {
     Get.put<AlbumRepository>(

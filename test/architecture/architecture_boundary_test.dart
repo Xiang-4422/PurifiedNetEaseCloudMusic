@@ -2863,6 +2863,14 @@ void main() {
         );
       }
       final appRoot = File('${projectRoot.path}/lib/app.dart').readAsStringSync();
+      final appRootImportViolations = RegExp(r"^import '([^']+)';", multiLine: true)
+          .allMatches(appRoot)
+          .map((match) => match.group(1)!)
+          .where(
+            (uri) =>
+                !uri.startsWith('package:bujuan/app/bootstrap/') && !uri.startsWith('package:bujuan/ui/theme/') && !uri.startsWith('package:bujuan/ui/widgets/') && uri != 'package:flutter/material.dart' && uri != 'package:get/get.dart',
+          )
+          .toList();
       final appBootstrap = File('${projectRoot.path}/lib/app/bootstrap/app_bootstrap.dart').readAsStringSync();
       final dataBootstrap = File('${projectRoot.path}/lib/app/bootstrap/data_bootstrap.dart').readAsStringSync();
       final dataSourceBootstrap = File('${projectRoot.path}/lib/app/bootstrap/data_source_bootstrap.dart').readAsStringSync();
@@ -2944,6 +2952,11 @@ void main() {
         missingEntrypoints,
         isEmpty,
         reason: '每个 bootstrap 文件必须保留清晰入口，避免装配职责重新混到单个大文件。',
+      );
+      expect(
+        appRootImportViolations,
+        isEmpty,
+        reason: 'App 根组件只能依赖 bootstrap、主题、UI widgets、Flutter 和 GetX，不能直接导入 feature、data 或展示服务细节。',
       );
       expect(
         appBootstrapImportViolations,

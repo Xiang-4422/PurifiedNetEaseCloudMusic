@@ -1,7 +1,7 @@
 import 'package:bujuan/ui/services/dialog_service.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/features/settings/cache_analysis_service.dart';
+import 'package:bujuan/features/settings/cache_analysis_controller.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -17,14 +17,14 @@ class CacheAnalysisPageView extends StatefulWidget {
 }
 
 class _CacheAnalysisPageViewState extends State<CacheAnalysisPageView> {
-  late final CacheAnalysisService _service;
+  late final CacheAnalysisController _controller;
   late Future<CacheAnalysisResult> _analysisFuture;
 
   @override
   void initState() {
     super.initState();
-    _service = Get.find<CacheAnalysisService>();
-    _analysisFuture = _service.analyze();
+    _controller = Get.find<CacheAnalysisControllerFactory>().create();
+    _analysisFuture = _controller.analyze();
   }
 
   @override
@@ -62,12 +62,12 @@ class _CacheAnalysisPageViewState extends State<CacheAnalysisPageView> {
 
   void _reload() {
     setState(() {
-      _analysisFuture = _service.analyze();
+      _analysisFuture = _controller.analyze();
     });
   }
 
   Future<void> _clearCategory(CacheCategory category) async {
-    final confirmed = await _confirmClear('清理${_titleFor(category)}？');
+    final confirmed = await _confirmClear('清理${_controller.titleFor(category)}？');
     if (!confirmed) {
       return;
     }
@@ -76,7 +76,7 @@ class _CacheAnalysisPageViewState extends State<CacheAnalysisPageView> {
     }
     DialogService.showLoading(context);
     try {
-      await _service.clear(category);
+      await _controller.clear(category);
       if (!mounted) {
         return;
       }
@@ -102,7 +102,7 @@ class _CacheAnalysisPageViewState extends State<CacheAnalysisPageView> {
     }
     DialogService.showLoading(context);
     try {
-      await _service.clearAll();
+      await _controller.clearAll();
       if (!mounted) {
         return;
       }
@@ -142,19 +142,6 @@ class _CacheAnalysisPageViewState extends State<CacheAnalysisPageView> {
           },
         ) ??
         false;
-  }
-
-  String _titleFor(CacheCategory category) {
-    switch (category) {
-      case CacheCategory.image:
-        return '图片展示缓存';
-      case CacheCategory.artwork:
-        return '曲目封面缓存';
-      case CacheCategory.playback:
-        return '播放音频缓存';
-      case CacheCategory.temporary:
-        return '临时文件';
-    }
   }
 }
 

@@ -45,6 +45,7 @@ import 'package:bujuan/features/radio/radio_controller_factory.dart';
 import 'package:bujuan/features/radio/radio_repository.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/search/search_repository.dart';
+import 'package:bujuan/features/settings/cache_analysis_controller.dart';
 import 'package:bujuan/features/settings/cache_analysis_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/settings/settings_repository.dart';
@@ -154,6 +155,12 @@ void registerFeatureApplications() {
     CacheAnalysisService(
       musicDataRepository: Get.find<MusicDataRepository>(),
       resourceIndexRepository: Get.find<LocalResourceIndexRepository>(),
+    ),
+    permanent: true,
+  );
+  Get.put<CacheAnalysisControllerFactory>(
+    CacheAnalysisControllerFactory(
+      service: Get.find<CacheAnalysisService>(),
     ),
     permanent: true,
   );

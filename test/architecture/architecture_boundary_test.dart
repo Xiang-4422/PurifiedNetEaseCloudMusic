@@ -1441,6 +1441,35 @@ void main() {
       );
     });
 
+    test('cache analysis page receives service through feature controller factory', () {
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/settings/cache_analysis_page.dart',
+      );
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/settings/cache_analysis_controller.dart',
+      );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
+      final page = pageFile.readAsStringSync();
+      final controller = controllerFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
+      final violations = <String>[
+        if (page.contains('Get.find<CacheAnalysisService>')) '${_relativePath(pageFile)} reads cache service directly',
+        if (page.contains('CacheAnalysisService')) '${_relativePath(pageFile)} names cache service directly',
+        if (!page.contains('Get.find<CacheAnalysisControllerFactory>().create()')) '${_relativePath(pageFile)} does not create controller through feature factory',
+        if (!controller.contains('class CacheAnalysisControllerFactory')) '${_relativePath(controllerFile)} does not define cache analysis controller factory',
+        if (!controller.contains('required CacheAnalysisService service')) '${_relativePath(controllerFile)} does not receive cache analysis service through constructor',
+        if (!bootstrap.contains('CacheAnalysisControllerFactory(')) 'feature bootstrap does not register cache analysis controller factory',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '缓存分析页可以处理确认弹窗和 Toast，但分析/清理服务必须由 feature controller factory 注入。',
+      );
+    });
+
     test('coverflow debug page receives playback boundary from settings page', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

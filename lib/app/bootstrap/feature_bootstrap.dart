@@ -39,6 +39,7 @@ import 'package:bujuan/features/playback/playback_selection_ui_effect_coordinato
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
+import 'package:bujuan/features/playlist/playlist_artwork_color_service.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller_factory.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/radio/radio_controller_factory.dart';
@@ -164,6 +165,10 @@ void registerFeatureApplications() {
     ),
     permanent: true,
   );
+  Get.put<PlaylistArtworkColorService>(
+    PlaylistArtworkColorService(),
+    permanent: true,
+  );
   Get.put<LocalMediaScanRepository>(
     LocalMediaScanRepository(
       localMediaRepository: Get.find<LocalMediaRepository>(),
@@ -283,6 +288,7 @@ void registerFeatureControllers() {
   Get.lazyPut(
     () => PlaylistPageControllerFactory(
       repository: Get.find<PlaylistRepository>(),
+      artworkColorService: Get.find<PlaylistArtworkColorService>(),
       likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
     ),

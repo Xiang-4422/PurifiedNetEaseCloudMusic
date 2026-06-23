@@ -56,6 +56,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   final PlayerController _playerController = Get.find<PlayerController>();
   final ShellController _shellController = Get.find<ShellController>();
   final Random _random = Random();
+  late final PlaylistArtworkColorService _artworkColorService;
 
   String playlistName = '';
   String? coverUrl;
@@ -69,7 +70,6 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   bool _animateArtworkColor = true;
 
   PlaylistPageLoadState loadState = PlaylistPageLoadState.loadingInitial;
-  final PlaylistArtworkColorService _artworkColorService = PlaylistArtworkColorService();
 
   Color albumColor = Colors.black;
   Color widgetColor = Colors.white;
@@ -77,7 +77,9 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<PlaylistPageControllerFactory>().create();
+    final controllerFactory = Get.find<PlaylistPageControllerFactory>();
+    _controller = controllerFactory.create();
+    _artworkColorService = controllerFactory.createArtworkColorService();
     playlistName = widget.playlistName;
     coverUrl = widget.coverUrl;
     trackCount = widget.trackCount;

@@ -1555,18 +1555,24 @@ void main() {
         if (page.contains('UserSessionController')) '${_relativePath(pageFile)} reads current user directly',
         if (page.contains('likedSongIds:')) '${_relativePath(pageFile)} passes liked ids from UI',
         if (page.contains('currentUserId:')) '${_relativePath(pageFile)} passes current user from UI',
-        if (!page.contains('Get.find<PlaylistPageControllerFactory>().create()')) '${_relativePath(pageFile)} does not create playlist controller through feature factory',
+        if (page.contains('PlaylistArtworkColorService()')) '${_relativePath(pageFile)} creates artwork color service directly',
+        if (!page.contains('final controllerFactory = Get.find<PlaylistPageControllerFactory>()')) '${_relativePath(pageFile)} does not resolve playlist factory at page boundary',
+        if (!page.contains('_controller = controllerFactory.create()')) '${_relativePath(pageFile)} does not create playlist controller through feature factory',
+        if (!page.contains('_artworkColorService = controllerFactory.createArtworkColorService()')) '${_relativePath(pageFile)} does not receive artwork color service through feature factory',
         if (!factory.contains('PlaylistPageController create()')) 'playlist page controller factory does not create page controllers',
+        if (!factory.contains('PlaylistArtworkColorService createArtworkColorService()')) 'playlist page controller factory does not expose artwork color service',
+        if (!factory.contains('required PlaylistArtworkColorService artworkColorService')) 'playlist page controller factory does not receive artwork color service',
         if (!factory.contains('likedSongIds: _likedSongIds')) 'playlist page controller factory does not inject liked ids provider',
         if (!factory.contains('currentUserId: _currentUserId')) 'playlist page controller factory does not inject current user provider',
         if (!factory.contains('repository: _repository')) 'playlist page controller factory does not inject playlist repository',
+        if (!bootstrap.contains('Get.put<PlaylistArtworkColorService>')) 'feature bootstrap does not register playlist artwork color service',
         if (!bootstrap.contains('PlaylistPageControllerFactory(')) 'feature bootstrap does not register playlist page controller factory',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '歌单页可以拥有加载和播放 UI 状态，但不能在 Widget 内直接拼装 PlaylistRepository、喜欢列表或当前账号上下文。',
+        reason: '歌单页可以拥有加载、播放和取色 UI 状态，但不能在 Widget 内直接拼装 PlaylistRepository、喜欢列表、当前账号上下文或本地图片缓存服务。',
       );
     });
 

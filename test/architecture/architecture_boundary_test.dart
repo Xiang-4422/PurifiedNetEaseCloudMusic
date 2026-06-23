@@ -875,6 +875,8 @@ void main() {
         if (!coordinatorContent.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) 'coordinator does not normalize track ids before lookup',
         if (!coordinatorContent.contains('_cacheKey(normalizedTrackId, qualityLevel)')) 'coordinator cache key does not use normalized track id',
         if (!coordinatorContent.contains('_resolveLocalResourceUrlOrNull(normalizedTrackId)')) 'coordinator local lookup does not use normalized track id',
+        if (!coordinatorContent.contains('_dropRemoteState(cacheKey);')) 'coordinator keeps stale remote state after local resource hit',
+        if (!coordinatorContent.contains('_loads.remove(cacheKey);')) 'coordinator does not clear in-flight remote loads after local resource hit',
       ];
 
       expect(

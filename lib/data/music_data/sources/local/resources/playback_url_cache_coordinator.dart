@@ -35,6 +35,7 @@ class PlaybackUrlCacheCoordinator {
     final cacheKey = _cacheKey(normalizedTrackId, qualityLevel);
     final localUrl = await _resolveLocalResourceUrlOrNull(normalizedTrackId);
     if (localUrl != null) {
+      _dropRemoteState(cacheKey);
       return localUrl;
     }
     if (forceRefresh) {
@@ -93,6 +94,11 @@ class PlaybackUrlCacheCoordinator {
     _cache
       ..remove(cacheKey)
       ..[cacheKey] = cachedUrl;
+  }
+
+  void _dropRemoteState(String cacheKey) {
+    _cache.remove(cacheKey);
+    _loads.remove(cacheKey);
   }
 
   void _trim() {

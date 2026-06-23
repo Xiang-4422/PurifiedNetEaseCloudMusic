@@ -305,6 +305,92 @@ void main() {
       expect(loadCount, 2);
     });
 
+    test('drops stale remote state when local resource becomes available', () async {
+      String? localUrl;
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => localUrl,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        return 'https://audio.test/1-$loadCount.mp3';
+      }
+
+      final remote = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+      localUrl = '/music/downloaded.mp3';
+      final local = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+      localUrl = null;
+      final refreshedRemote = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+
+      expect(remote, 'https://audio.test/1-1.mp3');
+      expect(local, '/music/downloaded.mp3');
+      expect(refreshedRemote, 'https://audio.test/1-2.mp3');
+      expect(loadCount, 2);
+    });
+
+    test('drops in-flight remote state when local resource becomes available', () async {
+      String? localUrl;
+      var loadCount = 0;
+      final completer = Completer<String?>();
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => localUrl,
+      );
+
+      final staleRemote = coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () {
+          loadCount++;
+          return completer.future;
+        },
+      );
+      await _waitUntil(() => loadCount == 1);
+      localUrl = '/music/downloading.mp3';
+      final local = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async {
+          loadCount++;
+          return 'https://audio.test/1-unexpected.mp3';
+        },
+      );
+      completer.complete('https://audio.test/1-stale.mp3');
+      expect(await staleRemote, 'https://audio.test/1-stale.mp3');
+
+      localUrl = null;
+      final refreshedRemote = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async {
+          loadCount++;
+          return 'https://audio.test/1-fresh.mp3';
+        },
+      );
+
+      expect(local, '/music/downloading.mp3');
+      expect(refreshedRemote, 'https://audio.test/1-fresh.mp3');
+      expect(loadCount, 2);
+    });
+
     test('prefers local resource even when remote url is force refreshed', () async {
       var loadCount = 0;
       final coordinator = PlaybackUrlCacheCoordinator(

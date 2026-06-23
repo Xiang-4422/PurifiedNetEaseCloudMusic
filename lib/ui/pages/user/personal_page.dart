@@ -1,8 +1,7 @@
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
-import 'package:bujuan/features/playlist/playlist_repository.dart';
+import 'package:bujuan/ui/pages/user/widgets/frequent_playlist_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/library_shortcut_bar.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
 import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
@@ -18,31 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import 'package:get/get.dart';
-
-Future<void> _playPlaylistSummary(PlaylistSummaryData playlist) async {
-  final playerController = Get.find<PlayerController>();
-  if (playerController.sessionState.value.playlistName == playlist.title) {
-    await playerController.playOrPause();
-    return;
-  }
-  final likedSongIds = UserLibraryController.to.likedSongIds.toList();
-  final repository = Get.find<PlaylistRepository>();
-  final index = await repository.fetchPlaylistIndex(
-    playlist.id,
-    likedSongIds: likedSongIds,
-  );
-  final songs = await repository.fetchPlaylistSongs(
-    playlistId: playlist.id,
-    likedSongIds: likedSongIds,
-    playlistIndex: index,
-  );
-  await playerController.playPlaylist(
-    songs,
-    0,
-    playListName: index.name,
-    playListNameHeader: '歌单',
-  );
-}
 
 /// 个人首页，展示快速播放、推荐歌单和用户歌单入口。
 class PersonalPageView extends GetView<ShellController> {
@@ -89,7 +63,7 @@ class PersonalPageView extends GetView<ShellController> {
             ),
           ),
 
-          // 我的歌单 Header
+          // 马上开始 Header
           SliverToBoxAdapter(
             child: const Header('马上开始', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
           ),
@@ -123,22 +97,12 @@ class PersonalPageView extends GetView<ShellController> {
             ),
           ),
 
-          // 常用歌单 Header
           SliverToBoxAdapter(
-            child: const Header('常用歌单', padding: AppDimensions.paddingSmall).marginOnly(top: AppDimensions.paddingSmall),
-          ),
-          // 常用歌单
-          SliverToBoxAdapter(
-            child: Obx(
-              () => PlayListWidget(
-                playLists: libraryController.homeFrequentPlaylists,
-                albumCountInWidget: 3.2,
-                albumMargin: AppDimensions.paddingSmall,
-                showSongCount: false,
-                isPlaying: playbackAction.isPlaying.value,
-                playingPlaylistName: playbackAction.sessionState.value.playlistName,
-                onPlayPlaylist: _playPlaylistSummary,
-              ),
+            child: FrequentPlaylistSection(
+              libraryController: libraryController,
+              playbackAction: playbackAction,
+              albumCountInWidget: albumCountInScreen,
+              headerTopMargin: AppDimensions.paddingSmall,
             ),
           ),
           SliverToBoxAdapter(
@@ -280,23 +244,11 @@ class _SquarePersonalPageViewState extends State<_SquarePersonalPageView> {
             ),
           ),
           SliverToBoxAdapter(
-            child: Header(
-              '常用歌单',
-              padding: AppDimensions.paddingSmall,
-              height: widget.metrics.squareHeaderHeight,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Obx(
-              () => PlayListWidget(
-                playLists: widget.libraryController.homeFrequentPlaylists,
-                albumCountInWidget: widget.metrics.squarePlaylistCardCount,
-                albumMargin: AppDimensions.paddingSmall,
-                showSongCount: false,
-                isPlaying: widget.playbackAction.isPlaying.value,
-                playingPlaylistName: widget.playbackAction.sessionState.value.playlistName,
-                onPlayPlaylist: _playPlaylistSummary,
-              ),
+            child: FrequentPlaylistSection(
+              libraryController: widget.libraryController,
+              playbackAction: widget.playbackAction,
+              albumCountInWidget: widget.metrics.squarePlaylistCardCount,
+              headerHeight: widget.metrics.squareHeaderHeight,
             ),
           ),
           const SliverToBoxAdapter(

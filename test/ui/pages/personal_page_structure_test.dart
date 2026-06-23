@@ -70,12 +70,15 @@ void main() {
     final recentPlaybackSource = File(
       'lib/ui/pages/user/widgets/recent_playback_strip.dart',
     ).readAsStringSync();
+    final frequentPlaylistSource = File(
+      'lib/ui/pages/user/widgets/frequent_playlist_section.dart',
+    ).readAsStringSync();
     final recentControllerIndex = source.indexOf('final recentPlaybackController = RecentPlaybackController.to;');
     final recentStripIndex = source.indexOf('child: RecentPlaybackStrip(');
     final squareRecentStripIndex = source.indexOf('child: RecentPlaybackStrip(', recentStripIndex + 1);
     final recentHeaderIndex = recentPlaybackSource.indexOf("'最近播放'");
-    final playlistHeaderIndex = source.indexOf("'常用歌单'");
-    final squarePlaylistHeaderIndex = source.indexOf("'常用歌单'", playlistHeaderIndex + 1);
+    final playlistHeaderIndex = source.indexOf('FrequentPlaylistSection(');
+    final squarePlaylistHeaderIndex = source.indexOf('FrequentPlaylistSection(', playlistHeaderIndex + 1);
     final libraryHeaderIndex = source.indexOf("'资料库'");
 
     expect(recentControllerIndex, isNonNegative);
@@ -89,7 +92,12 @@ void main() {
     expect(squareRecentStripIndex, lessThan(squarePlaylistHeaderIndex));
     expect(playlistHeaderIndex, lessThan(libraryHeaderIndex));
     expect(recentPlaybackSource, contains("playListName: '最近播放'"));
-    expect(source, contains('homeFrequentPlaylists'));
+    expect(source, contains('frequent_playlist_section.dart'));
+    expect(source, isNot(contains('homeFrequentPlaylists')));
+    expect(source, isNot(contains('PlaylistRepository')));
+    expect(frequentPlaylistSource, contains("'常用歌单'"));
+    expect(frequentPlaylistSource, contains('homeFrequentPlaylists'));
+    expect(frequentPlaylistSource, contains('onPlayPlaylist: _playPlaylistSummary'));
     expect(source, isNot(contains('watchCurrentSong')));
   });
 

@@ -941,6 +941,7 @@ void main() {
     test('documented SDK differences match coverage report', () async {
       final repoRoot = _findRepoRoot();
       final docs = File('${repoRoot.path}/docs/网易云接口开发包.md').readAsStringSync();
+      final roadmap = File('${repoRoot.path}/docs/重构路线.md').readAsStringSync();
       final result = await Process.run(
         'node',
         [
@@ -967,7 +968,10 @@ void main() {
         expect(difference['reason'], isA<String>(), reason: difference['module'].toString());
         expect((difference['reason'] as String).trim(), isNotEmpty, reason: difference['module'].toString());
         expect(documentedDifferences[difference['module']], difference['reason'], reason: difference['module'].toString());
+        expect(roadmap, contains('`${difference['module']}`'), reason: difference['module'].toString());
       }
+      expect(roadmap, contains('`sdkDifferences` 当前只包含'));
+      expect(roadmap, contains('${sdkDifferences.length} 个 limited 差异'));
     });
 
     test('normal modules build request metadata', () {

@@ -1,8 +1,7 @@
 import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/user/user_profile_controller.dart';
-import 'package:bujuan/features/user/user_repository.dart';
-import 'package:bujuan/features/user/user_session_controller.dart';
+import 'package:bujuan/features/user/user_profile_controller_factory.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/load_state_view.dart';
 import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';
@@ -25,10 +24,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
   @override
   void initState() {
     super.initState();
-    _controller = UserProfileController(
-      userId: Get.find<UserSessionController>().userInfo.value.userId,
-      repository: Get.find<UserRepository>(),
-    )..loadInitial();
+    _controller = Get.find<UserProfileControllerFactory>().create()..loadInitial();
   }
 
   @override

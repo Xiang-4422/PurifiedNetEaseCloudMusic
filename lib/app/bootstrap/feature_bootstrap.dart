@@ -48,6 +48,7 @@ import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/features/user/user_profile_controller_factory.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:bujuan/features/user/user_session_store.dart';
@@ -213,6 +214,13 @@ void registerFeatureControllers() {
     () => LocalSongListControllerFactory(
       musicDataRepository: Get.find<MusicDataRepository>(),
       downloadRepository: Get.find<DownloadRepository>(),
+    ),
+    fenix: true,
+  );
+  Get.lazyPut(
+    () => UserProfileControllerFactory(
+      repository: Get.find<UserRepository>(),
+      currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
     ),
     fenix: true,
   );

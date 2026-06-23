@@ -1029,6 +1029,37 @@ void main() {
       );
     });
 
+    test('user profile page creates controller through feature factory', () {
+      final pageFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/user_setting_view.dart',
+      );
+      final factoryFile = File(
+        '${projectRoot.path}/lib/features/user/user_profile_controller_factory.dart',
+      );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
+      final page = pageFile.readAsStringSync();
+      final factory = factoryFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
+      final violations = <String>[
+        if (page.contains('UserRepository')) '${_relativePath(pageFile)} names user repository directly',
+        if (page.contains('UserSessionController')) '${_relativePath(pageFile)} reads current user directly',
+        if (!page.contains('Get.find<UserProfileControllerFactory>().create()')) '${_relativePath(pageFile)} does not create profile controller through feature factory',
+        if (!factory.contains('UserProfileController create()')) 'user profile controller factory does not create page-local controllers',
+        if (!factory.contains('userId: _currentUserId()')) 'user profile controller factory does not snapshot current user at controller creation',
+        if (!factory.contains('repository: _repository')) 'user profile controller factory does not inject user repository',
+        if (!bootstrap.contains('UserProfileControllerFactory(')) 'feature bootstrap does not register user profile controller factory',
+        if (!bootstrap.contains('currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId')) 'feature bootstrap does not inject current user provider',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '用户资料页可以拥有页面 controller 生命周期，但不能在 Widget 内直接拼装 UserRepository 或当前账号上下文。',
+      );
+    });
+
     test('top search panel keeps search context behind controller boundary', () {
       final topPanelFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/search/top_panel_view.dart',

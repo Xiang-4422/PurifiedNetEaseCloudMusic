@@ -26,6 +26,8 @@ class UserSessionController extends GetxController {
   final Future<void> Function(bool value) _saveLoginFlag;
   final bool Function() _canRestoreCachedSession;
   Future<void>? _cacheBootstrapFuture;
+  Future<void> _sessionPersistenceQueue = Future<void>.value();
+  int _sessionPersistenceGeneration = 0;
 
   /// 当前登录用户快照。
   final Rx<UserSessionData> userInfo = const UserSessionData.empty().obs;
@@ -72,6 +74,29 @@ class UserSessionController extends GetxController {
   }
 
   Future<void> _persistSession(UserSessionData info) async {
+    try {
+      await _queueSessionPersistence(info);
+    } catch (_) {
+      // 后台 session 持久化失败不能泄漏到全局异步错误通道；下一次 userInfo 变化会重新排队。
+    }
+  }
+
+  Future<void> _queueSessionPersistence(UserSessionData info) {
+    final generation = ++_sessionPersistenceGeneration;
+    final operation = _sessionPersistenceQueue.then(
+      (_) => _persistSessionIfCurrent(info, generation),
+    );
+    _sessionPersistenceQueue = operation.catchError((_) {});
+    return operation;
+  }
+
+  Future<void> _persistSessionIfCurrent(
+    UserSessionData info,
+    int generation,
+  ) async {
+    if (generation != _sessionPersistenceGeneration) {
+      return;
+    }
     if (info.isLoggedIn) {
       await _sessionStore.saveSession(info);
     } else {
@@ -81,6 +106,6 @@ class UserSessionController extends GetxController {
 
   Future<void> _clearLocalSession() async {
     userInfo.value = const UserSessionData.empty();
-    await _sessionStore.clearSession();
+    await _queueSessionPersistence(const UserSessionData.empty());
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/data/app_storage/app_key_value_store.dart';
@@ -76,6 +78,70 @@ void main() {
       expect(sessionStore.loadSession(), isNull);
       expect(savedLoginFlags, [false]);
     });
+
+    test('clear user waits for stale session save before clearing cache', () async {
+      final keyValueStore = _DelayedPutKeyValueStore();
+      final sessionStore = UserSessionStore(keyValueStore: keyValueStore);
+      final savedLoginFlags = <bool>[];
+      final controller = UserSessionController(
+        repository: _FakeUserRepository(),
+        sessionStore: sessionStore,
+        saveLoginFlag: (value) async => savedLoginFlags.add(value),
+        canRestoreCachedSession: () => true,
+      )..onInit();
+
+      controller.userInfo.value = const UserSessionData(
+        userId: 'slow-user',
+        nickname: 'Slow',
+        avatarUrl: '',
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(keyValueStore.pendingPutCount, 1);
+
+      var clearCompleted = false;
+      final clearFuture = controller.clearUser().then((_) {
+        clearCompleted = true;
+      });
+      await Future<void>.delayed(Duration.zero);
+
+      expect(clearCompleted, isFalse);
+
+      keyValueStore.completeNextPut();
+      await clearFuture;
+
+      expect(clearCompleted, isTrue);
+      expect(controller.userInfo.value.isLoggedIn, isFalse);
+      expect(sessionStore.loadSession(), isNull);
+      expect(savedLoginFlags, [false]);
+    });
+
+    test('background session persistence failure is consumed', () async {
+      final keyValueStore = _FailingPutKeyValueStore();
+      final sessionStore = UserSessionStore(keyValueStore: keyValueStore);
+      final unhandledErrors = <Object>[];
+      final controller = UserSessionController(
+        repository: _FakeUserRepository(),
+        sessionStore: sessionStore,
+        saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
+      )..onInit();
+
+      await runZonedGuarded(
+        () async {
+          controller.userInfo.value = const UserSessionData(
+            userId: 'user-1',
+            nickname: 'User',
+            avatarUrl: '',
+          );
+          await Future<void>.delayed(Duration.zero);
+          await Future<void>.delayed(Duration.zero);
+        },
+        (error, stackTrace) => unhandledErrors.add(error),
+      );
+
+      expect(keyValueStore.putCount, 1);
+      expect(unhandledErrors, isEmpty);
+    });
   });
 }
 
@@ -132,5 +198,41 @@ class _MemoryKeyValueStore implements AppKeyValueStore {
   @override
   Future<void> delete(String key) async {
     values.remove(key);
+  }
+}
+
+class _DelayedPutKeyValueStore extends _MemoryKeyValueStore {
+  final List<_PendingPut> _pendingPuts = <_PendingPut>[];
+
+  int get pendingPutCount => _pendingPuts.length;
+
+  @override
+  Future<void> put(String key, Object? value) async {
+    final pendingPut = _PendingPut(key, value);
+    _pendingPuts.add(pendingPut);
+    await pendingPut.completer.future;
+    values[key] = value;
+  }
+
+  void completeNextPut() {
+    _pendingPuts.removeAt(0).completer.complete();
+  }
+}
+
+class _PendingPut {
+  _PendingPut(this.key, this.value);
+
+  final String key;
+  final Object? value;
+  final Completer<void> completer = Completer<void>();
+}
+
+class _FailingPutKeyValueStore extends _MemoryKeyValueStore {
+  int putCount = 0;
+
+  @override
+  Future<void> put(String key, Object? value) async {
+    putCount++;
+    throw StateError('session save failed');
   }
 }

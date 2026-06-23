@@ -1821,27 +1821,32 @@ void main() {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/user/personal_page.dart',
       );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
       final body = bodyFile.readAsStringSync();
       final page = pageFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
         if (page.contains('RecommendationController.to')) '${_relativePath(pageFile)} reads recommendation controller globally',
         if (page.contains('UserLibraryController.to')) '${_relativePath(pageFile)} reads user library controller globally',
         if (page.contains('RecentPlaybackController.to')) '${_relativePath(pageFile)} reads recent playback controller globally',
         if (page.contains('Get.find<PlayerController>')) '${_relativePath(pageFile)} reads player controller globally',
+        if (body.contains('Get.find<UserLibraryController>')) '${_relativePath(bodyFile)} reads user library controller directly',
         if (!page.contains('required this.recommendationController')) '${_relativePath(pageFile)} does not receive recommendation controller',
         if (!page.contains('required this.userLibraryController')) '${_relativePath(pageFile)} does not receive user library controller',
         if (!page.contains('required this.recentPlaybackController')) '${_relativePath(pageFile)} does not receive recent playback controller',
         if (!page.contains('required this.playerController')) '${_relativePath(pageFile)} does not receive player controller',
         if (!page.contains('required this.shellController')) '${_relativePath(pageFile)} does not receive shell controller',
-        if (!body.contains('final recommendationController = Get.find<RecommendationController>()')) '${_relativePath(bodyFile)} does not resolve recommendation controller at shell body boundary',
-        if (!body.contains('final userLibraryController = Get.find<UserLibraryController>()')) '${_relativePath(bodyFile)} does not resolve user library controller at shell body boundary',
-        if (!body.contains('final recentPlaybackController = Get.find<RecentPlaybackController>()')) '${_relativePath(bodyFile)} does not resolve recent playback controller at shell body boundary',
-        if (!body.contains('final playerController = Get.find<PlayerController>()')) '${_relativePath(bodyFile)} does not resolve player controller at shell body boundary',
+        if (!body.contains('final personalHomeControllers = Get.find<PersonalHomeControllerBundle>()')) '${_relativePath(bodyFile)} does not resolve personal home controller bundle at shell body boundary',
+        if (!body.contains('personalHomeControllers: personalHomeControllers')) '${_relativePath(bodyFile)} does not inject personal home controller bundle',
+        if (!bootstrap.contains('Get.put<PersonalHomeControllerBundle>')) 'feature bootstrap does not register personal home controller bundle',
+        if (!bootstrap.contains('userLibraryController: Get.find<UserLibraryController>()')) 'feature bootstrap does not inject user library controller into personal home bundle',
         if (!body.contains('PersonalPageView(')) '${_relativePath(bodyFile)} does not compose personal page',
-        if (!body.contains('recommendationController: recommendationController')) '${_relativePath(bodyFile)} does not inject recommendation controller',
-        if (!body.contains('userLibraryController: userLibraryController')) '${_relativePath(bodyFile)} does not inject user library controller',
-        if (!body.contains('recentPlaybackController: recentPlaybackController')) '${_relativePath(bodyFile)} does not inject recent playback controller',
-        if (!body.contains('playerController: playerController')) '${_relativePath(bodyFile)} does not inject player controller',
+        if (!body.contains('recommendationController: personalHomeControllers.recommendationController')) '${_relativePath(bodyFile)} does not inject recommendation controller',
+        if (!body.contains('userLibraryController: personalHomeControllers.userLibraryController')) '${_relativePath(bodyFile)} does not inject user library controller',
+        if (!body.contains('recentPlaybackController: personalHomeControllers.recentPlaybackController')) '${_relativePath(bodyFile)} does not inject recent playback controller',
+        if (!body.contains('playerController: personalHomeControllers.playerController')) '${_relativePath(bodyFile)} does not inject player controller',
       ];
 
       expect(

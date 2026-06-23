@@ -52,6 +52,7 @@ import 'package:bujuan/features/settings/cache_analysis_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/settings/settings_repository.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
+import 'package:bujuan/features/shell/personal_home_controller_bundle.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
@@ -212,6 +213,15 @@ void registerFeatureControllers() {
       likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
     ),
     fenix: true,
+  );
+  Get.put<PersonalHomeControllerBundle>(
+    PersonalHomeControllerBundle(
+      playerController: Get.find<PlayerController>(),
+      recentPlaybackController: Get.find<RecentPlaybackController>(),
+      recommendationController: Get.find<RecommendationController>(),
+      userLibraryController: Get.find<UserLibraryController>(),
+    ),
+    permanent: true,
   );
   Get.lazyPut(
     () => AuthController(

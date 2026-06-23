@@ -365,6 +365,50 @@ void main() {
 
       expect(cached, 'https://audio.test/1-fresh.mp3');
     });
+
+    test('force refresh evicts stale cache before refresh load completes', () async {
+      var loadCount = 0;
+      final refreshCompleter = Completer<String?>();
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      final cached = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async {
+          loadCount++;
+          return 'https://audio.test/1-stale.mp3';
+        },
+      );
+      final refresh = coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: true,
+        load: () {
+          loadCount++;
+          return refreshCompleter.future;
+        },
+      );
+      await _waitUntil(() => loadCount == 2);
+      final joinedRefresh = coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: () async {
+          loadCount++;
+          return 'https://audio.test/1-still-stale.mp3';
+        },
+      );
+
+      refreshCompleter.complete('https://audio.test/1-fresh.mp3');
+
+      expect(cached, 'https://audio.test/1-stale.mp3');
+      expect(await refresh, 'https://audio.test/1-fresh.mp3');
+      expect(await joinedRefresh, 'https://audio.test/1-fresh.mp3');
+      expect(loadCount, 2);
+    });
   });
 }
 

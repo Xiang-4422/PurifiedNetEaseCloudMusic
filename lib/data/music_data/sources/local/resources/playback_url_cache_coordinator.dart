@@ -33,6 +33,9 @@ class PlaybackUrlCacheCoordinator {
     if (localUrl != null) {
       return localUrl;
     }
+    if (forceRefresh) {
+      _cache.remove(cacheKey);
+    }
     final cachedUrl = _cache[cacheKey];
     final now = _now();
     if (!forceRefresh && cachedUrl != null) {

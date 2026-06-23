@@ -47,6 +47,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
   bool hasLoadedDetail = false;
   Color albumColor = Get.theme.colorScheme.primary;
   Color onAlbumColor = Get.theme.colorScheme.onPrimary;
+  int _detailRefreshGeneration = 0;
 
   @override
   void initState() {
@@ -287,6 +288,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
   }
 
   Future<void> _refreshArtistDetail({required bool showLoadingState}) async {
+    final generation = ++_detailRefreshGeneration;
     if (showLoadingState && mounted) {
       setState(() {
         loading = true;
@@ -295,7 +297,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     }
     try {
       final artistDetail = await _controller.fetchDetail(artistId);
-      if (!mounted) {
+      if (!mounted || generation != _detailRefreshGeneration) {
         return;
       }
       setState(() {
@@ -312,7 +314,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
       });
       unawaited(_updateArtistColor(_resolvedArtworkUrl));
     } catch (_) {
-      if (!mounted) {
+      if (!mounted || generation != _detailRefreshGeneration) {
         return;
       }
       setState(() {

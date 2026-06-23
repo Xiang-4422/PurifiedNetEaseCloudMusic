@@ -2088,6 +2088,8 @@ void main() {
         if (artistPage.contains('_controller.loadLocalDetail(')) '${_relativePath(artistPageFile)} directly runs artist local detail loading',
         if (!albumPage.contains('_controller.loadInitialDetail(albumId)')) '${_relativePath(albumPageFile)} does not load album initial detail through controller boundary',
         if (!artistPage.contains('_controller.loadInitialDetail(artistId)')) '${_relativePath(artistPageFile)} does not load artist initial detail through controller boundary',
+        if (!albumPage.contains('generation != _detailRefreshGeneration')) '${_relativePath(albumPageFile)} does not ignore stale album refresh results',
+        if (!artistPage.contains('generation != _detailRefreshGeneration')) '${_relativePath(artistPageFile)} does not ignore stale artist refresh results',
         if (!albumController.contains('class AlbumInitialDetailData')) '${_relativePath(albumControllerFile)} does not define album initial detail boundary',
         if (!artistController.contains('class ArtistInitialDetailData')) '${_relativePath(artistControllerFile)} does not define artist initial detail boundary',
         if (albumController.contains('UserLibraryController')) '${_relativePath(albumControllerFile)} reads user library directly',

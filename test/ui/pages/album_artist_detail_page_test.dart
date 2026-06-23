@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/routing/router.gr.dart';
@@ -75,6 +76,62 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('AlbumPageView ignores stale background refresh after newer refresh', (tester) async {
+    final repository = _FakeAlbumRepository(
+      localDetail: AlbumDetailData(
+        album: _album('album-1', title: 'Cached Album'),
+        albumSongs: [_song('song-1', title: 'Cached Album Song')],
+      ),
+      controlledFetches: true,
+    );
+    Get.put<AlbumRepository>(repository);
+    _putAlbumPageControllerFactory();
+
+    await tester.pumpWidget(
+      _routedPage(
+        const AlbumPageView(),
+        routeName: AlbumRouteView.name,
+        path: 'albumDetails',
+        queryParams: const {'albumId': 'album-1'},
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(repository.fetchCallCount, 1);
+
+    final refresh = tester.state<RefreshIndicatorState>(find.byType(RefreshIndicator)).show();
+    await _pumpUntil(tester, () => repository.fetchCallCount == 2);
+    expect(repository.fetchCallCount, 2);
+
+    repository.completeFetch(
+      1,
+      AlbumDetailData(
+        album: _album('album-1', title: 'Fresh Album'),
+        albumSongs: [_song('song-2', title: 'Fresh Album Song')],
+      ),
+    );
+    await refresh;
+    await tester.pump();
+
+    expect(find.textContaining('Fresh Album'), findsWidgets);
+    expect(find.text('Fresh Album Song'), findsOneWidget);
+
+    repository.completeFetch(
+      0,
+      AlbumDetailData(
+        album: _album('album-1', title: 'Stale Album'),
+        albumSongs: [_song('song-stale', title: 'Stale Album Song')],
+      ),
+    );
+    await tester.pump();
+
+    expect(find.textContaining('Fresh Album'), findsWidgets);
+    expect(find.text('Fresh Album Song'), findsOneWidget);
+    expect(find.textContaining('Stale Album'), findsNothing);
+    expect(find.text('Stale Album Song'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('AlbumPageView shows retry state when first remote load fails', (tester) async {
     Get.put<AlbumRepository>(
       _FakeAlbumRepository(fetchError: StateError('offline')),
@@ -127,6 +184,65 @@ void main() {
     await tester.pump();
     expect(find.text('Cached Artist Song'), findsOneWidget);
     expect(find.text('歌手加载失败'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('ArtistPageView ignores stale background refresh after newer refresh', (tester) async {
+    final repository = _FakeArtistRepository(
+      localDetail: ArtistDetailData(
+        artist: _artist('artist-1', name: 'Cached Artist'),
+        topSongs: [_song('song-1', title: 'Cached Artist Song')],
+        hotAlbums: [_album('album-1', title: 'Cached Artist Album')],
+      ),
+      controlledFetches: true,
+    );
+    Get.put<ArtistRepository>(repository);
+    _putArtistPageControllerFactory();
+
+    await tester.pumpWidget(
+      _routedPage(
+        const ArtistPageView(),
+        routeName: ArtistRouteView.name,
+        path: 'artists',
+        queryParams: const {'artistId': 'artist-1'},
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(repository.fetchCallCount, 1);
+
+    final refresh = tester.state<RefreshIndicatorState>(find.byType(RefreshIndicator)).show();
+    await _pumpUntil(tester, () => repository.fetchCallCount == 2);
+    expect(repository.fetchCallCount, 2);
+
+    repository.completeFetch(
+      1,
+      ArtistDetailData(
+        artist: _artist('artist-1', name: 'Fresh Artist'),
+        topSongs: [_song('song-2', title: 'Fresh Artist Song')],
+        hotAlbums: [_album('album-2', title: 'Fresh Artist Album')],
+      ),
+    );
+    await refresh;
+    await tester.pump();
+
+    expect(find.textContaining('Fresh Artist'), findsWidgets);
+    expect(find.text('Fresh Artist Album'), findsOneWidget);
+
+    repository.completeFetch(
+      0,
+      ArtistDetailData(
+        artist: _artist('artist-1', name: 'Stale Artist'),
+        topSongs: [_song('song-stale', title: 'Stale Artist Song')],
+        hotAlbums: [_album('album-stale', title: 'Stale Artist Album')],
+      ),
+    );
+    await tester.pump();
+
+    expect(find.textContaining('Fresh Artist'), findsWidgets);
+    expect(find.text('Fresh Artist Album'), findsOneWidget);
+    expect(find.textContaining('Stale Artist'), findsNothing);
+    expect(find.text('Stale Artist Album'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -200,6 +316,19 @@ Widget _routedPage(
   );
 }
 
+Future<void> _pumpUntil(
+  WidgetTester tester,
+  bool Function() condition,
+) async {
+  for (var attempt = 0; attempt < 20; attempt++) {
+    if (condition()) {
+      return;
+    }
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+  fail('Condition was not met before pump timeout.');
+}
+
 AlbumEntity _album(String id, {required String title}) {
   return AlbumEntity(
     id: 'netease:$id',
@@ -244,10 +373,19 @@ class _FakeAlbumRepository implements AlbumRepository {
   _FakeAlbumRepository({
     this.localDetail,
     this.fetchError,
+    this.controlledFetches = false,
   });
 
   final AlbumDetailData? localDetail;
   final Object? fetchError;
+  final bool controlledFetches;
+  final List<Completer<AlbumDetailData>> _fetches = [];
+
+  int get fetchCallCount => _fetches.length;
+
+  void completeFetch(int index, AlbumDetailData detail) {
+    _fetches[index].complete(detail);
+  }
 
   @override
   Future<AlbumDetailData?> loadLocalAlbumDetail({
@@ -266,6 +404,11 @@ class _FakeAlbumRepository implements AlbumRepository {
     if (error != null) {
       throw error;
     }
+    if (controlledFetches) {
+      final completer = Completer<AlbumDetailData>();
+      _fetches.add(completer);
+      return completer.future;
+    }
     throw StateError('remote detail not configured');
   }
 
@@ -277,10 +420,19 @@ class _FakeArtistRepository implements ArtistRepository {
   _FakeArtistRepository({
     this.localDetail,
     this.fetchError,
+    this.controlledFetches = false,
   });
 
   final ArtistDetailData? localDetail;
   final Object? fetchError;
+  final bool controlledFetches;
+  final List<Completer<ArtistDetailData>> _fetches = [];
+
+  int get fetchCallCount => _fetches.length;
+
+  void completeFetch(int index, ArtistDetailData detail) {
+    _fetches[index].complete(detail);
+  }
 
   @override
   Future<ArtistDetailData?> loadLocalArtistDetail({
@@ -298,6 +450,11 @@ class _FakeArtistRepository implements ArtistRepository {
     final error = fetchError;
     if (error != null) {
       throw error;
+    }
+    if (controlledFetches) {
+      final completer = Completer<ArtistDetailData>();
+      _fetches.add(completer);
+      return completer.future;
     }
     throw StateError('remote detail not configured');
   }

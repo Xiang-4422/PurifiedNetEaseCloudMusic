@@ -2688,6 +2688,27 @@ void main() {
       );
     });
 
+    test('auth account and qr flows stay generation guarded', () {
+      final authController = File('${projectRoot.path}/lib/features/auth/auth_controller.dart').readAsStringSync();
+      final violations = <String>[
+        if (!authController.contains('int _accountLoadGeneration')) 'auth controller does not track account load generation',
+        if (!authController.contains('int _qrFlowGeneration')) 'auth controller does not track qr flow generation',
+        if (!authController.contains('final accountLoadGeneration = _startAccountLoad()')) 'auth controller does not scope account loading by generation',
+        if (!authController.contains('final qrFlowGeneration = _startQrFlow()')) 'auth controller does not scope qr refresh by generation',
+        if (!authController.contains('_invalidateAccountLoad()')) 'auth controller does not invalidate account loading on flow changes',
+        if (!authController.contains('_stopQrPolling()')) 'auth controller does not stop qr polling on logout or dispose',
+        if (!authController.contains('!_isCurrentAccountLoad(accountLoadGeneration)')) 'auth controller does not guard stale account loads',
+        if (!authController.contains('!_isCurrentQrFlow(qrFlowGeneration)')) 'auth controller does not guard stale qr flow responses',
+        if (!authController.contains('_sessionAccess.currentSession().userId != validatingUserId')) 'background account validation does not recheck the active user',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '缓存恢复、二维码轮询和后台校验都可能跨账号返回，AuthController 必须用流程代次和当前用户复核来阻断旧结果落状态。',
+      );
+    });
+
     test('manual logout routes through auth effect boundary', () {
       final authController = File('${projectRoot.path}/lib/features/auth/auth_controller.dart').readAsStringSync();
       final profileController = File('${projectRoot.path}/lib/features/user/user_profile_controller.dart').readAsStringSync();

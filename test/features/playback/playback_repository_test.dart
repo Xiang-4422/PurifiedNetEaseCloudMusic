@@ -102,6 +102,21 @@ void main() {
       expect(dataSource.savedPositions, [const Duration(seconds: 18)]);
     });
 
+    test('ignores negative restore position updates before touching storage', () async {
+      final dataSource = _FakePlaybackRestoreDataSource();
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: dataSource,
+        playbackHistoryDataSource: _FakePlaybackHistoryDataSource(),
+      );
+
+      await repository.updateRestorePosition(const Duration(seconds: -3));
+
+      expect(dataSource.loadCount, 0);
+      expect(dataSource.savedStates, isEmpty);
+      expect(dataSource.savedPositions, isEmpty);
+    });
+
     test('falls back to empty restore state when restore read fails', () async {
       final dataSource = _FakePlaybackRestoreDataSource(
         failLoadCount: 1,

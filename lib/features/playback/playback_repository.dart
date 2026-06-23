@@ -190,6 +190,9 @@ class PlaybackRepository {
 
   /// 高频播放进度保存只更新进度字段，不重写完整恢复状态。
   Future<void> updateRestorePosition(Duration position) async {
+    if (position < Duration.zero) {
+      return;
+    }
     final nextState = (await getRestoreState()).copyWith(position: position);
     _restoreStateCache = nextState;
     _pendingRestorePosition = position;

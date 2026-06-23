@@ -718,6 +718,23 @@ void main() {
       );
     });
 
+    test('playback repository rejects negative restore positions', () {
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/features/playback/playback_repository.dart',
+      );
+      final content = repositoryFile.readAsStringSync();
+      final violations = <String>[
+        if (!content.contains('Future<void> updateRestorePosition(Duration position)')) 'restore position boundary is missing',
+        if (!content.contains('if (position < Duration.zero)')) 'restore position boundary does not reject negative positions',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放进度进入恢复持久化前必须过滤异常负值，避免损坏的运行态污染 restore/session 状态。',
+      );
+    });
+
     test('music data repository delegates playback url cache coordination', () {
       final repositoryFile = File(
         '${projectRoot.path}/lib/data/music_data/music_data_repository.dart',

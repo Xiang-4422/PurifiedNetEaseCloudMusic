@@ -73,12 +73,13 @@ class PlaybackRepository {
     String trackId, {
     DateTime? playedAt,
   }) async {
-    if (trackId.isEmpty) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return;
     }
     try {
       await _playbackHistoryDataSource.recordPlayedTrack(
-        trackId,
+        normalizedTrackId,
         playedAt: playedAt,
       );
     } catch (_) {
@@ -244,5 +245,13 @@ class PlaybackRepository {
       qualityLevel: preferHighQuality ? 'lossless' : 'exhigh',
       forceRefresh: forceRefresh,
     );
+  }
+
+  bool _isBlankTrackId(String trackId) {
+    return _normalizedTrackId(trackId).isEmpty;
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
   }
 }

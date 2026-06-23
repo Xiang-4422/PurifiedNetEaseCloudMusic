@@ -15,13 +15,14 @@ class DriftPlaybackHistoryDataSource implements PlaybackHistoryDataSource {
     String trackId, {
     DateTime? playedAt,
   }) {
-    if (trackId.isEmpty) {
+    final normalizedTrackId = trackId.trim();
+    if (normalizedTrackId.isEmpty) {
       return Future<void>.value();
     }
     final timestamp = (playedAt ?? DateTime.now()).millisecondsSinceEpoch;
     return _database.into(_database.playbackHistoryEntries).insertOnConflictUpdate(
           PlaybackHistoryEntriesCompanion(
-            trackId: drift.Value(trackId),
+            trackId: drift.Value(normalizedTrackId),
             playedAtMs: drift.Value(timestamp),
           ),
         );

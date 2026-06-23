@@ -195,7 +195,7 @@ void main() {
       expect(musicDataRepository.forceRefreshValues, [true]);
     });
 
-    test('records non-empty recently played tracks', () async {
+    test('records normalized non-blank recently played tracks', () async {
       final historyDataSource = _FakePlaybackHistoryDataSource();
       final repository = PlaybackRepository(
         musicDataRepository: _FakeMusicDataRepository(),
@@ -204,10 +204,11 @@ void main() {
       );
 
       await repository.recordPlayedTrack(
-        'netease:1',
+        '  netease:1  ',
         playedAt: DateTime.fromMillisecondsSinceEpoch(1234),
       );
       await repository.recordPlayedTrack('');
+      await repository.recordPlayedTrack('   ');
 
       expect(historyDataSource.recordedTrackIds, ['netease:1']);
       expect(historyDataSource.recordedPlayedAt.single?.millisecondsSinceEpoch, 1234);
@@ -228,6 +229,7 @@ void main() {
 
       await repository.recordPlayedTrack('netease:1');
       await repository.recordPlayedTrack('');
+      await repository.recordPlayedTrack('   ');
       await Future<void>.delayed(Duration.zero);
 
       expect(updateCount, 1);

@@ -55,6 +55,21 @@ void main() {
       expect(trackIds, ['netease:1', 'netease:2']);
     });
 
+    test('normalizes track ids before writing history rows', () async {
+      await dataSource.recordPlayedTrack(
+        '  netease:1  ',
+        playedAt: DateTime.fromMillisecondsSinceEpoch(1000),
+      );
+      await dataSource.recordPlayedTrack(
+        '   ',
+        playedAt: DateTime.fromMillisecondsSinceEpoch(2000),
+      );
+
+      final trackIds = await dataSource.loadRecentTrackIds(limit: 10);
+
+      expect(trackIds, ['netease:1']);
+    });
+
     test('prunes older history entries', () async {
       await dataSource.recordPlayedTrack(
         'netease:1',

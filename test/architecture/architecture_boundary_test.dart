@@ -2444,6 +2444,12 @@ void main() {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/playback/recent_playback_controller.dart',
       );
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/features/playback/playback_repository.dart',
+      );
+      final dataSourceFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/data_sources/drift_playback_history_data_source.dart',
+      );
       final queueStoreFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_queue_store.dart',
       );
@@ -2451,11 +2457,18 @@ void main() {
         '${projectRoot.path}/lib/ui/pages/user/widgets/recent_playback_strip.dart',
       );
       final controller = controllerFile.readAsStringSync();
+      final repository = repositoryFile.readAsStringSync();
+      final dataSource = dataSourceFile.readAsStringSync();
       final queueStore = queueStoreFile.readAsStringSync();
       final strip = stripFile.readAsStringSync();
       final violations = <String>[
         if (!controller.contains('loadRecentPlayedTracks(limit: limit)')) 'recent controller does not read playback history',
         if (!controller.contains('recentPlaybackUpdates.listen')) 'recent controller does not listen to history update notifications',
+        if (!repository.contains('String _normalizedTrackId(String trackId)')) 'playback repository does not normalize recent history track ids',
+        if (!repository.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) 'playback repository records raw recent history track ids',
+        if (!repository.contains('if (_isBlankTrackId(normalizedTrackId))')) 'playback repository does not reject blank recent history track ids',
+        if (!dataSource.contains('final normalizedTrackId = trackId.trim();')) 'drift playback history data source does not normalize track ids',
+        if (!dataSource.contains('trackId: drift.Value(normalizedTrackId)')) 'drift playback history data source can write raw track ids',
         if (_containsAny(controllerFile, const [
           'PlayerController',
           'PlaybackQueueService',

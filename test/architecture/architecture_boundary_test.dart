@@ -1141,6 +1141,40 @@ void main() {
       );
     });
 
+    test('UI does not assemble repositories or account scoped request context', () {
+      final violations = <String>[];
+      final repositoryLookupPattern = RegExp(r'Get\.find<[^>]*Repository>');
+      final uiFiles = [
+        ..._dartFiles(Directory('${projectRoot.path}/lib/ui/pages')),
+        ..._dartFiles(Directory('${projectRoot.path}/lib/ui/widgets')),
+      ];
+      for (final file in uiFiles) {
+        final content = file.readAsStringSync();
+        final path = _relativePath(file);
+        if (repositoryLookupPattern.hasMatch(content)) {
+          violations.add('$path looks up a repository from UI');
+        }
+        if (content.contains('Get.find<UserSessionController>')) {
+          violations.add('$path reads current user from UI');
+        }
+        if (content.contains('Get.find<UserLibraryController>')) {
+          violations.add('$path reads user library from UI');
+        }
+        if (content.contains('likedSongIds:')) {
+          violations.add('$path passes liked song ids from UI');
+        }
+        if (content.contains('currentUserId:')) {
+          violations.add('$path passes current user id from UI');
+        }
+      }
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'UI 只能表达用户意图和展示状态，repository、当前账号和喜欢歌曲上下文必须由 controller、feature factory 或 bootstrap 注入。',
+      );
+    });
+
     test('top search panel keeps search context behind controller boundary', () {
       final topPanelFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/search/top_panel_view.dart',

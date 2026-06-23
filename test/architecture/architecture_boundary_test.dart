@@ -776,6 +776,8 @@ void main() {
         if (!content.contains('bool _isBlankTrackId(String trackId)')) 'blank track id helper is missing',
         if (!content.contains('String _normalizedTrackId(String trackId)')) 'normalized track id helper is missing',
         if (!content.contains('List<String> _candidateTrackIds(Iterable<String> trackIds)')) 'batch track id candidate helper is missing',
+        if (!content.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) 'single-track entry points do not normalize track ids',
+        if (!content.contains('if (_isBlankTrackId(normalizedTrackId) || !seen.add(normalizedTrackId))')) 'batch track candidates are not normalized before de-duplication',
         if (RegExp(r'Future<List<Track>> getTracksByIds[\s\S]*?final ids = _candidateTrackIds\(trackIds\);').firstMatch(content) == null) 'batch track loading does not filter blank ids before local lookup',
         if (RegExp(r'Future<List<TrackWithResources>> getTracksWithResources[\s\S]*?final ids = _candidateTrackIds\(trackIds\);').firstMatch(content) == null) 'batch track resource loading does not filter blank ids before resource lookup',
         if (!content.contains('getTrackResourceBundles(\n      ids,\n    )')) 'batch track resource lookup does not preserve candidate id order',

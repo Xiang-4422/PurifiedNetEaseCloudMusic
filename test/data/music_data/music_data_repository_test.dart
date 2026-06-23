@@ -103,6 +103,77 @@ void main() {
       expect(neteaseSource.playbackUrlTrackIds, ['1']);
     });
 
+    test('normalizes single track ids before local data and resource access', () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'music-data-single-track-id-',
+      );
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final audioFile = await _writeFile(directory, 'audio.mp3');
+      final artworkFile = await _writeFile(directory, 'artwork.jpg');
+      final lyricsFile = await _writeFile(directory, 'lyrics.lrc', contents: 'line');
+      final localDataSource = _FakeLocalLibraryDataSource(
+        tracks: {
+          '1': _track('1', artworkUrl: 'https://image.test/1.jpg'),
+        },
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.audio,
+            path: audioFile.path,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.artwork,
+            path: artworkFile.path,
+            origin: TrackResourceOrigin.artworkCache,
+          ),
+          _resource(
+            trackId: '1',
+            kind: LocalResourceKind.lyrics,
+            path: lyricsFile.path,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      final repository = _buildRepository(
+        localDataSource: localDataSource,
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final track = await repository.getTrack(' 1 ');
+      final trackWithResources = await repository.getTrackWithResources(' 1 ');
+      final bundle = await repository.getTrackResourceBundle(' 1 ');
+      final artworkSource = await repository.getArtworkSource(' 1 ');
+      final lyrics = await repository.getLyrics(' 1 ');
+      await repository.saveLyrics(' 1 ', const TrackLyrics(main: 'cached'));
+
+      expect(track?.id, '1');
+      expect(trackWithResources?.track.id, '1');
+      expect(bundle.hasAnyResource, isTrue);
+      expect(artworkSource, artworkFile.path);
+      expect(lyrics?.main, 'line');
+      expect(localDataSource.requestedTrackIds, everyElement('1'));
+      expect(localDataSource.savedLyrics.keys, contains('1'));
+      expect(localDataSource.savedLyrics.keys, isNot(contains(' 1 ')));
+      expect(resourceIndexRepository.requestedBundleTrackIds, everyElement('1'));
+      expect(resourceIndexRepository.touchedResources, containsAll(['1|artwork', '1|lyrics']));
+
+      await repository.removeLocalTrackResources(
+        ' 1 ',
+        deleteSourceFiles: false,
+      );
+
+      expect(resourceIndexRepository.removedTrackResourceIds, ['1']);
+      expect(localDataSource.removedLyrics, ['1']);
+    });
+
     test('coalesces concurrent playback url loads and reuses fresh remote url', () async {
       final neteaseSource = _FakeNeteaseMusicSource(
         playbackUrlDelay: const Duration(milliseconds: 20),
@@ -615,12 +686,13 @@ void main() {
       );
 
       final tracks = await repository.getTracksWithResources([
-        '3',
+        ' 3 ',
         '   ',
         '1',
         '3',
+        ' 1 ',
         '',
-        '2',
+        ' 2 ',
       ]);
 
       expect(tracks.map((item) => item.track.id), ['3', '1', '2']);
@@ -1062,6 +1134,7 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
   final Map<String, LocalResourceEntry> _resources;
   final List<String> touchedResources = <String>[];
   final List<String> requestedBundleTrackIds = <String>[];
+  final List<String> removedTrackResourceIds = <String>[];
 
   @override
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) async {
@@ -1097,6 +1170,7 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
 
   @override
   Future<void> removeTrackResources(String trackId) async {
+    removedTrackResourceIds.add(trackId);
     _resources.removeWhere((key, resource) => resource.trackId == trackId);
   }
 

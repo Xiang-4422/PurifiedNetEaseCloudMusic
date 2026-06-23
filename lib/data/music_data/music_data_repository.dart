@@ -140,14 +140,15 @@ class MusicDataRepository {
 
   /// 读取曲目；本地没有时回源远程或本地扫描来源。
   Future<Track?> getTrack(String trackId) async {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return null;
     }
-    final localTrack = await _localDataSource.getTrack(trackId);
+    final localTrack = await _localDataSource.getTrack(normalizedTrackId);
     if (localTrack != null) {
       return localTrack;
     }
-    final track = _isLocalTrackId(trackId) ? await _localMusicSource.getTrack(trackId) : await _neteaseSource.getTrack(trackId);
+    final track = _isLocalTrackId(normalizedTrackId) ? await _localMusicSource.getTrack(normalizedTrackId) : await _neteaseSource.getTrack(normalizedTrackId);
     if (track != null) {
       await _localDataSource.saveTracks([track]);
     }
@@ -156,13 +157,14 @@ class MusicDataRepository {
 
   /// 读取曲目及其本地音频、封面和歌词资源索引。
   Future<TrackWithResources?> getTrackWithResources(String trackId) async {
-    final track = await getTrack(trackId);
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    final track = await getTrack(normalizedTrackId);
     if (track == null) {
       return null;
     }
     return TrackWithResources(
       track: track,
-      resources: await _resourceIndexRepository.getTrackResourceBundle(trackId),
+      resources: await _resourceIndexRepository.getTrackResourceBundle(normalizedTrackId),
     );
   }
 
@@ -286,10 +288,11 @@ class MusicDataRepository {
 
   /// 解析封面来源，优先返回仍存在的本地封面资源。
   Future<String> getArtworkSource(String trackId) async {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return '';
     }
-    final trackWithResources = await getTrackWithResources(trackId);
+    final trackWithResources = await getTrackWithResources(normalizedTrackId);
     if (trackWithResources == null) {
       return '';
     }
@@ -303,19 +306,20 @@ class MusicDataRepository {
 
   /// 读取歌词，优先使用本地歌词资源和缓存。
   Future<TrackLyrics?> getLyrics(String trackId) async {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return null;
     }
-    final loadingLyrics = _lyricsLoads[trackId];
+    final loadingLyrics = _lyricsLoads[normalizedTrackId];
     if (loadingLyrics != null) {
       return loadingLyrics;
     }
-    final loadFuture = _loadLyrics(trackId);
-    _lyricsLoads[trackId] = loadFuture;
+    final loadFuture = _loadLyrics(normalizedTrackId);
+    _lyricsLoads[normalizedTrackId] = loadFuture;
     try {
       return await loadFuture;
     } finally {
-      _lyricsLoads.remove(trackId);
+      _lyricsLoads.remove(normalizedTrackId);
     }
   }
 
@@ -358,7 +362,11 @@ class MusicDataRepository {
 
   /// 保存曲目歌词缓存。
   Future<void> saveLyrics(String trackId, TrackLyrics lyrics) async {
-    await _localDataSource.saveLyrics(trackId, lyrics);
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return;
+    }
+    await _localDataSource.saveLyrics(normalizedTrackId, lyrics);
   }
 
   /// 读取歌单；本地没有时回源远程或本地扫描来源。
@@ -396,10 +404,11 @@ class MusicDataRepository {
 
   /// 读取曲目的本地资源索引。
   Future<TrackResourceBundle> getTrackResourceBundle(String trackId) {
-    if (_isBlankTrackId(trackId)) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
       return Future.value(const TrackResourceBundle());
     }
-    return _resourceIndexRepository.getTrackResourceBundle(trackId);
+    return _resourceIndexRepository.getTrackResourceBundle(normalizedTrackId);
   }
 
   /// 删除曲目的本地资源索引，并按需删除真实文件。
@@ -407,17 +416,21 @@ class MusicDataRepository {
     String trackId, {
     required bool deleteSourceFiles,
   }) async {
-    final trackWithResources = await getTrackWithResources(trackId);
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return;
+    }
+    final trackWithResources = await getTrackWithResources(normalizedTrackId);
     if (trackWithResources == null) {
-      await _resourceIndexRepository.removeTrackResources(trackId);
-      await _localDataSource.removeLyrics(trackId);
+      await _resourceIndexRepository.removeTrackResources(normalizedTrackId);
+      await _localDataSource.removeLyrics(normalizedTrackId);
       return;
     }
     final track = trackWithResources.track;
     final resources = trackWithResources.resources;
     final retainedPaths = _retainedResourcePathsAfterRemoving(
       await _resourceIndexRepository.listResources(),
-      shouldRemove: (resource) => resource.trackId == trackId,
+      shouldRemove: (resource) => resource.trackId == normalizedTrackId,
     );
     await _deleteResourceFile(
       resources.audio,
@@ -443,10 +456,10 @@ class MusicDataRepository {
         deleteSourceFiles: deleteSourceFiles,
       ),
     );
-    await _resourceIndexRepository.removeTrackResources(trackId);
-    await _localDataSource.removeLyrics(trackId);
+    await _resourceIndexRepository.removeTrackResources(normalizedTrackId);
+    await _localDataSource.removeLyrics(normalizedTrackId);
     if (track.sourceType == SourceType.local) {
-      await _localDataSource.removeTrack(trackId);
+      await _localDataSource.removeTrack(normalizedTrackId);
     }
   }
 
@@ -556,10 +569,11 @@ class MusicDataRepository {
     final ids = <String>[];
     final seen = <String>{};
     for (final trackId in trackIds) {
-      if (_isBlankTrackId(trackId) || !seen.add(trackId)) {
+      final normalizedTrackId = _normalizedTrackId(trackId);
+      if (_isBlankTrackId(normalizedTrackId) || !seen.add(normalizedTrackId)) {
         continue;
       }
-      ids.add(trackId);
+      ids.add(normalizedTrackId);
     }
     return ids;
   }

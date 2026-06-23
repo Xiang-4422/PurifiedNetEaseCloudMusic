@@ -90,7 +90,11 @@ class PlaybackRepository {
     }
     final loadingState = _restoreStateLoad;
     if (loadingState != null) {
-      return loadingState;
+      try {
+        return await loadingState;
+      } catch (_) {
+        return const PlaybackRestoreState();
+      }
     }
     final loadFuture = _loadRestoreState();
     _restoreStateLoad = loadFuture;
@@ -98,6 +102,8 @@ class PlaybackRepository {
       final state = await loadFuture;
       _restoreStateCache = state;
       return state;
+    } catch (_) {
+      return const PlaybackRestoreState();
     } finally {
       if (identical(_restoreStateLoad, loadFuture)) {
         _restoreStateLoad = null;

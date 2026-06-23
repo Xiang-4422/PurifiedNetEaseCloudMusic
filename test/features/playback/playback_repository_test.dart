@@ -102,6 +102,65 @@ void main() {
       expect(dataSource.savedPositions, [const Duration(seconds: 18)]);
     });
 
+    test('falls back to empty restore state when restore read fails', () async {
+      final dataSource = _FakePlaybackRestoreDataSource(
+        failLoadCount: 1,
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: dataSource,
+        playbackHistoryDataSource: _FakePlaybackHistoryDataSource(),
+      );
+
+      final state = await repository.getRestoreState();
+
+      expect(state.hasRestoreData, isFalse);
+      expect(dataSource.loadCount, 1);
+    });
+
+    test('failed restore state read is not cached', () async {
+      final dataSource = _FakePlaybackRestoreDataSource(
+        failLoadCount: 1,
+        restoreState: const PlaybackRestoreState(
+          queue: ['netease:1'],
+          currentSongId: 'netease:1',
+        ),
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: dataSource,
+        playbackHistoryDataSource: _FakePlaybackHistoryDataSource(),
+      );
+
+      final failedState = await repository.getRestoreState();
+      final retriedState = await repository.getRestoreState();
+
+      expect(failedState.hasRestoreData, isFalse);
+      expect(retriedState.queue, ['netease:1']);
+      expect(retriedState.currentSongId, 'netease:1');
+      expect(dataSource.loadCount, 2);
+    });
+
+    test('coalesced restore state read failure falls back for all callers', () async {
+      final dataSource = _FakePlaybackRestoreDataSource(
+        loadDelay: const Duration(milliseconds: 10),
+        failLoadCount: 1,
+      );
+      final repository = PlaybackRepository(
+        musicDataRepository: _FakeMusicDataRepository(),
+        playbackRestoreDataSource: dataSource,
+        playbackHistoryDataSource: _FakePlaybackHistoryDataSource(),
+      );
+
+      final states = await Future.wait([
+        repository.getRestoreState(),
+        repository.getRestoreState(),
+      ]);
+
+      expect(states.every((state) => !state.hasRestoreData), isTrue);
+      expect(dataSource.loadCount, 1);
+    });
+
     test('forwards quality and force refresh when fetching playback url', () async {
       final musicDataRepository = _FakeMusicDataRepository();
       final repository = PlaybackRepository(
@@ -189,11 +248,17 @@ void main() {
 class _FakePlaybackRestoreDataSource implements PlaybackRestoreDataSource {
   _FakePlaybackRestoreDataSource({
     this.saveDelay = Duration.zero,
+    this.loadDelay = Duration.zero,
+    this.restoreState = const PlaybackRestoreState(),
+    this.failLoadCount = 0,
     this.failStateSaveCount = 0,
     this.failPositionSaveCount = 0,
   });
 
   final Duration saveDelay;
+  final Duration loadDelay;
+  final PlaybackRestoreState? restoreState;
+  int failLoadCount;
   int failStateSaveCount;
   int failPositionSaveCount;
   final List<PlaybackRestoreState> savedStates = <PlaybackRestoreState>[];
@@ -203,7 +268,14 @@ class _FakePlaybackRestoreDataSource implements PlaybackRestoreDataSource {
   @override
   Future<PlaybackRestoreState?> getRestoreState() async {
     loadCount++;
-    return const PlaybackRestoreState();
+    if (loadDelay > Duration.zero) {
+      await Future<void>.delayed(loadDelay);
+    }
+    if (failLoadCount > 0) {
+      failLoadCount--;
+      throw StateError('restore state read failed');
+    }
+    return restoreState;
   }
 
   @override

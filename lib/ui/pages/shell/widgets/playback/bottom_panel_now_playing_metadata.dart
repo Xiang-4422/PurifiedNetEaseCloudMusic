@@ -28,12 +28,14 @@ class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
   Widget build(BuildContext context) {
     const albumPadding = AppDimensions.paddingLarge;
     final remainWidth = (context.width - albumPadding * 2).clamp(0.0, double.infinity);
-    final textWidth = _measureTextWidth(
-          '歌手：',
-          TextStyle(color: settingsController.panelWidgetColor.value),
-        ) +
-        albumPadding +
-        4;
+    final labelWidth = bottomPanelMetadataLabelWidth(
+      '歌手：',
+      TextStyle(color: settingsController.panelWidgetColor.value),
+    );
+    final valueMaxWidth = bottomPanelMetadataValueMaxWidth(
+      remainWidth: remainWidth,
+      labelWidth: labelWidth,
+    );
     return Obx(
       () => Visibility(
         maintainSize: true,
@@ -50,14 +52,14 @@ class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
               _AlbumInfoChip(
                 playerController: playerController,
                 settingsController: settingsController,
-                remainWidth: remainWidth,
-                textWidth: textWidth,
+                labelWidth: labelWidth,
+                valueMaxWidth: valueMaxWidth,
               ).marginOnly(top: albumPadding),
               _ArtistInfoChip(
                 playerController: playerController,
                 settingsController: settingsController,
-                remainWidth: remainWidth,
-                textWidth: textWidth,
+                labelWidth: labelWidth,
+                valueMaxWidth: valueMaxWidth,
               ).marginOnly(top: albumPadding),
               BottomPanelProgressBar(
                 playerController: playerController,
@@ -77,14 +79,14 @@ class _AlbumInfoChip extends GetView<ShellController> {
   const _AlbumInfoChip({
     required this.playerController,
     required this.settingsController,
-    required this.remainWidth,
-    required this.textWidth,
+    required this.labelWidth,
+    required this.valueMaxWidth,
   });
 
   final PlayerController playerController;
   final SettingsController settingsController;
-  final double remainWidth;
-  final double textWidth;
+  final double labelWidth;
+  final double valueMaxWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -101,13 +103,17 @@ class _AlbumInfoChip extends GetView<ShellController> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IntrinsicWidth(
-                  child: Container(
+                SizedBox(
+                  width: labelWidth,
+                  child: Padding(
                     padding: const EdgeInsets.only(left: albumPadding / 2),
-                    child: Text(
-                      '专辑：',
-                      style: TextStyle(
-                        color: settingsController.panelWidgetColor.value,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '专辑：',
+                        style: TextStyle(
+                          color: settingsController.panelWidgetColor.value,
+                        ),
                       ),
                     ),
                   ),
@@ -135,7 +141,7 @@ class _AlbumInfoChip extends GetView<ShellController> {
                     ),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: remainWidth - textWidth,
+                        maxWidth: valueMaxWidth,
                       ),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -169,14 +175,14 @@ class _ArtistInfoChip extends GetView<ShellController> {
   const _ArtistInfoChip({
     required this.playerController,
     required this.settingsController,
-    required this.remainWidth,
-    required this.textWidth,
+    required this.labelWidth,
+    required this.valueMaxWidth,
   });
 
   final PlayerController playerController;
   final SettingsController settingsController;
-  final double remainWidth;
-  final double textWidth;
+  final double labelWidth;
+  final double valueMaxWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -194,20 +200,24 @@ class _ArtistInfoChip extends GetView<ShellController> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IntrinsicWidth(
-                  child: Container(
+                SizedBox(
+                  width: labelWidth,
+                  child: Padding(
                     padding: const EdgeInsets.only(left: albumPadding / 2),
-                    child: Text(
-                      '歌手：',
-                      style: TextStyle(
-                        color: settingsController.panelWidgetColor.value,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '歌手：',
+                        style: TextStyle(
+                          color: settingsController.panelWidgetColor.value,
+                        ),
                       ),
                     ),
                   ),
                 ),
                 ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: remainWidth - textWidth,
+                    maxWidth: valueMaxWidth,
                   ),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
@@ -301,6 +311,25 @@ List<_ArtistChipData> _artistEntries(PlaybackQueueItem item) {
       id: index < artistIds.length ? artistIds[index] : '',
     ),
   );
+}
+
+/// 生成正在播放元信息标签的稳定宽度。
+@visibleForTesting
+double bottomPanelMetadataLabelWidth(
+  String label,
+  TextStyle style, {
+  double horizontalReserve = AppDimensions.paddingLarge + 4,
+}) {
+  return _measureTextWidth(label, style) + horizontalReserve;
+}
+
+/// 生成正在播放元信息值区域的稳定最大宽度。
+@visibleForTesting
+double bottomPanelMetadataValueMaxWidth({
+  required double remainWidth,
+  required double labelWidth,
+}) {
+  return (remainWidth - labelWidth).clamp(0.0, double.infinity).toDouble();
 }
 
 double _measureTextWidth(

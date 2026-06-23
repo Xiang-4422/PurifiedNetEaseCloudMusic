@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart';
+import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_now_playing_metadata.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -102,6 +104,35 @@ void main() {
     });
   });
 
+  group('bottom panel metadata helpers', () {
+    test('builds stable label width without intrinsic layout', () {
+      final width = bottomPanelMetadataLabelWidth(
+        '歌手：',
+        const TextStyle(fontSize: 14),
+        horizontalReserve: 28,
+      );
+
+      expect(width, greaterThan(28));
+    });
+
+    test('clamps metadata value width for narrow panels', () {
+      expect(
+        bottomPanelMetadataValueMaxWidth(
+          remainWidth: 40,
+          labelWidth: 64,
+        ),
+        0,
+      );
+      expect(
+        bottomPanelMetadataValueMaxWidth(
+          remainWidth: 120,
+          labelWidth: 64,
+        ),
+        56,
+      );
+    });
+  });
+
   test('bottom panel keeps mini player in a dedicated local widget file', () {
     final panelSource = File(
       'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
@@ -189,6 +220,9 @@ void main() {
     expect(metadataSource, contains('AlbumRouteView'));
     expect(metadataSource, contains('ArtistRouteView'));
     expect(metadataSource, contains('_artistEntries'));
+    expect(metadataSource, contains('bottomPanelMetadataLabelWidth('));
+    expect(metadataSource, contains('bottomPanelMetadataValueMaxWidth('));
+    expect(metadataSource, isNot(contains('IntrinsicWidth(')));
     expect(metadataSource, isNot(contains('PlayerController.to')));
     expect(metadataSource, isNot(contains('SettingsController.to')));
 

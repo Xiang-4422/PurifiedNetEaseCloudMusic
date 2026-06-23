@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/download_task_data_source.dart';
 import 'package:bujuan/core/entities/download_task.dart';
+import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/features/download/application/download_background_error_handler.dart';
 
@@ -56,7 +59,7 @@ class DownloadQueuePlanner {
       }
       final track = trackWithResources.track;
       final audioResource = trackWithResources.resources.audio;
-      if (track.sourceType == SourceType.local || audioResource?.origin == TrackResourceOrigin.managedDownload) {
+      if (track.sourceType == SourceType.local || _isAvailableManagedDownload(audioResource)) {
         continue;
       }
       unawaited(
@@ -87,5 +90,13 @@ class DownloadQueuePlanner {
         _onQueuedDownloadError?.call(trackId, error, stackTrace);
       } catch (_) {}
     }
+  }
+
+  bool _isAvailableManagedDownload(LocalResourceEntry? resource) {
+    if (resource?.origin != TrackResourceOrigin.managedDownload) {
+      return false;
+    }
+    final path = LocalFilePathNormalizer.normalize(resource?.path);
+    return path.isNotEmpty && File(path).existsSync();
   }
 }

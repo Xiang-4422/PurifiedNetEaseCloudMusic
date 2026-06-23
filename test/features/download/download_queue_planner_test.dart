@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bujuan/core/entities/download_task.dart';
 import 'package:bujuan/core/entities/local_resource_entry.dart';
@@ -14,6 +15,15 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('DownloadQueuePlanner', () {
     test('loads active tasks once and filters queued downloads in memory', () async {
+      final tempDirectory = Directory.systemTemp.createTempSync(
+        'download-queue-planner-',
+      );
+      addTearDown(() {
+        if (tempDirectory.existsSync()) {
+          tempDirectory.deleteSync(recursive: true);
+        }
+      });
+      final managedAudio = File('${tempDirectory.path}/managed.mp3')..writeAsBytesSync([1, 2, 3]);
       final taskDataSource = _FakeDownloadTaskDataSource(
         tasks: [
           _task('queued', DownloadTaskStatus.queued),
@@ -26,7 +36,10 @@ void main() {
           'queued': _trackWithResources('queued'),
           'downloading': _trackWithResources('downloading'),
           'failed': _trackWithResources('failed'),
-          'managed': _trackWithResources('managed', managedDownload: true),
+          'managed': _trackWithResources(
+            'managed',
+            managedDownloadPath: managedAudio.path,
+          ),
           'local': _trackWithResources('local', sourceType: SourceType.local),
           'new': _trackWithResources('new'),
         }),
@@ -53,6 +66,42 @@ void main() {
         DownloadTaskStatus.downloading,
       });
       expect(downloadedTrackIds, ['failed', 'new']);
+    });
+
+    test('queues managed download again when indexed file is missing', () async {
+      final tempDirectory = Directory.systemTemp.createTempSync(
+        'download-queue-planner-missing-',
+      );
+      addTearDown(() {
+        if (tempDirectory.existsSync()) {
+          tempDirectory.deleteSync(recursive: true);
+        }
+      });
+      final missingAudio = '${tempDirectory.path}/missing-managed.mp3';
+      final planner = DownloadQueuePlanner(
+        musicDataRepository: _FakeMusicDataRepository({
+          'managed': _trackWithResources(
+            'managed',
+            managedDownloadPath: missingAudio,
+          ),
+        }),
+        taskDataSource: _FakeDownloadTaskDataSource(tasks: const []),
+      );
+      final downloadedTrackIds = <String>[];
+
+      await planner.queueTracks(
+        ['managed'],
+        downloadTrack: (
+          trackId, {
+          bool preferHighQuality = true,
+        }) async {
+          downloadedTrackIds.add(trackId);
+          return null;
+        },
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(downloadedTrackIds, ['managed']);
     });
 
     test('reports background download failure without leaking it', () async {
@@ -109,7 +158,7 @@ DownloadTask _task(String trackId, DownloadTaskStatus status) {
 TrackWithResources _trackWithResources(
   String id, {
   SourceType sourceType = SourceType.netease,
-  bool managedDownload = false,
+  String? managedDownloadPath,
 }) {
   return TrackWithResources(
     track: Track(
@@ -119,11 +168,11 @@ TrackWithResources _trackWithResources(
       title: 'Track $id',
     ),
     resources: TrackResourceBundle(
-      audio: managedDownload
+      audio: managedDownloadPath != null
           ? LocalResourceEntry(
               trackId: id,
               kind: LocalResourceKind.audio,
-              path: '/tmp/$id.mp3',
+              path: managedDownloadPath,
               origin: TrackResourceOrigin.managedDownload,
               sizeBytes: 1,
               createdAt: DateTime(2026),

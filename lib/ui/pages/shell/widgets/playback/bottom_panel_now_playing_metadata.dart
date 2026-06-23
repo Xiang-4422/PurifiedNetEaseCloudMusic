@@ -30,7 +30,7 @@ class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
     final remainWidth = (context.width - albumPadding * 2).clamp(0.0, double.infinity);
     final textWidth = _measureTextWidth(
           '歌手：',
-          TextStyle(color: SettingsController.to.panelWidgetColor.value),
+          TextStyle(color: settingsController.panelWidgetColor.value),
         ) +
         albumPadding +
         4;
@@ -48,10 +48,14 @@ class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _AlbumInfoChip(
+                playerController: playerController,
+                settingsController: settingsController,
                 remainWidth: remainWidth,
                 textWidth: textWidth,
               ).marginOnly(top: albumPadding),
               _ArtistInfoChip(
+                playerController: playerController,
+                settingsController: settingsController,
                 remainWidth: remainWidth,
                 textWidth: textWidth,
               ).marginOnly(top: albumPadding),
@@ -71,10 +75,14 @@ class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
 
 class _AlbumInfoChip extends GetView<ShellController> {
   const _AlbumInfoChip({
+    required this.playerController,
+    required this.settingsController,
     required this.remainWidth,
     required this.textWidth,
   });
 
+  final PlayerController playerController;
+  final SettingsController settingsController;
   final double remainWidth;
   final double textWidth;
 
@@ -87,7 +95,7 @@ class _AlbumInfoChip extends GetView<ShellController> {
         children: [
           Container(
             decoration: BoxDecoration(
-              color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.1),
+              color: settingsController.panelWidgetColor.value.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(albumPadding),
             ),
             child: Row(
@@ -99,14 +107,14 @@ class _AlbumInfoChip extends GetView<ShellController> {
                     child: Text(
                       '专辑：',
                       style: TextStyle(
-                        color: SettingsController.to.panelWidgetColor.value,
+                        color: settingsController.panelWidgetColor.value,
                       ),
                     ),
                   ),
                 ),
                 GestureDetector(
                   onTap: () async {
-                    final currentSong = PlayerController.to.currentSongState.value;
+                    final currentSong = playerController.currentSongState.value;
                     final albumId = currentSong.albumId;
                     if (albumId?.isNotEmpty != true) {
                       return;
@@ -122,7 +130,7 @@ class _AlbumInfoChip extends GetView<ShellController> {
                   child: Container(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.1),
+                      color: settingsController.panelWidgetColor.value.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(albumPadding),
                     ),
                     child: ConstrainedBox(
@@ -135,10 +143,10 @@ class _AlbumInfoChip extends GetView<ShellController> {
                         ),
                         child: Obx(
                           () => Text(
-                            PlayerController.to.currentSongState.value.albumTitle ?? '未知专辑',
+                            playerController.currentSongState.value.albumTitle ?? '未知专辑',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: SettingsController.to.panelWidgetColor.value,
+                              color: settingsController.panelWidgetColor.value,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -159,10 +167,14 @@ class _AlbumInfoChip extends GetView<ShellController> {
 
 class _ArtistInfoChip extends GetView<ShellController> {
   const _ArtistInfoChip({
+    required this.playerController,
+    required this.settingsController,
     required this.remainWidth,
     required this.textWidth,
   });
 
+  final PlayerController playerController;
+  final SettingsController settingsController;
   final double remainWidth;
   final double textWidth;
 
@@ -176,7 +188,7 @@ class _ArtistInfoChip extends GetView<ShellController> {
           Container(
             clipBehavior: Clip.hardEdge,
             decoration: BoxDecoration(
-              color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.1),
+              color: settingsController.panelWidgetColor.value.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(albumPadding),
             ),
             child: Row(
@@ -188,7 +200,7 @@ class _ArtistInfoChip extends GetView<ShellController> {
                     child: Text(
                       '歌手：',
                       style: TextStyle(
-                        color: SettingsController.to.panelWidgetColor.value,
+                        color: settingsController.panelWidgetColor.value,
                       ),
                     ),
                   ),
@@ -200,7 +212,7 @@ class _ArtistInfoChip extends GetView<ShellController> {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Obx(() {
-                      final currentSong = PlayerController.to.currentSongState.value;
+                      final currentSong = playerController.currentSongState.value;
                       final artists = _artistEntries(currentSong);
                       return Row(
                         mainAxisSize: MainAxisSize.min,
@@ -209,7 +221,7 @@ class _ArtistInfoChip extends GetView<ShellController> {
                                 Text(
                                   '未知歌手',
                                   style: TextStyle(
-                                    color: SettingsController.to.panelWidgetColor.value,
+                                    color: settingsController.panelWidgetColor.value,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
@@ -219,6 +231,7 @@ class _ArtistInfoChip extends GetView<ShellController> {
                                 for (final artist in artists)
                                   _ArtistRouteChip(
                                     artist: artist,
+                                    settingsController: settingsController,
                                   ),
                               ],
                       );
@@ -238,9 +251,11 @@ class _ArtistInfoChip extends GetView<ShellController> {
 class _ArtistRouteChip extends GetView<ShellController> {
   const _ArtistRouteChip({
     required this.artist,
+    required this.settingsController,
   });
 
   final _ArtistChipData artist;
+  final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +264,7 @@ class _ArtistRouteChip extends GetView<ShellController> {
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: albumPadding / 2),
       decoration: BoxDecoration(
-        color: SettingsController.to.panelWidgetColor.value.withValues(alpha: 0.1),
+        color: settingsController.panelWidgetColor.value.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(albumPadding),
       ),
       child: GestureDetector(
@@ -267,7 +282,7 @@ class _ArtistRouteChip extends GetView<ShellController> {
         },
         child: Text(
           artist.name,
-          style: TextStyle(color: SettingsController.to.panelWidgetColor.value),
+          style: TextStyle(color: settingsController.panelWidgetColor.value),
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
         ),

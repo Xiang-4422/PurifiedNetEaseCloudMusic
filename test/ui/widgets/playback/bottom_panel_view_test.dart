@@ -103,6 +103,8 @@ void main() {
     expect(metadataSource, contains('AlbumRouteView'));
     expect(metadataSource, contains('ArtistRouteView'));
     expect(metadataSource, contains('_artistEntries'));
+    expect(metadataSource, isNot(contains('PlayerController.to')));
+    expect(metadataSource, isNot(contains('SettingsController.to')));
 
     expect(indicatorSource, contains('class BottomPanelPageIndicator'));
     expect(indicatorSource, contains('required this.playerController'));

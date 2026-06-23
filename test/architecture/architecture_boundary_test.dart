@@ -984,6 +984,37 @@ void main() {
       );
     });
 
+    test('bottom panel now playing metadata receives playback state boundaries', () {
+      final metadataFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_metadata.dart',
+      );
+      final nowPlayingFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_page.dart',
+      );
+      final metadata = metadataFile.readAsStringSync();
+      final nowPlaying = nowPlayingFile.readAsStringSync();
+      final violations = <String>[
+        if (metadata.contains('PlayerController.to')) '${_relativePath(metadataFile)} reads player controller globally',
+        if (metadata.contains('SettingsController.to')) '${_relativePath(metadataFile)} reads settings controller globally',
+        if (!metadata.contains('required this.playerController')) '${_relativePath(metadataFile)} does not receive player controller',
+        if (!metadata.contains('required this.settingsController')) '${_relativePath(metadataFile)} does not receive settings controller',
+        if (!metadata.contains('_AlbumInfoChip(')) '${_relativePath(metadataFile)} does not compose album chip',
+        if (!metadata.contains('_ArtistInfoChip(')) '${_relativePath(metadataFile)} does not compose artist chip',
+        if (!metadata.contains('_ArtistRouteChip(')) '${_relativePath(metadataFile)} does not compose artist route chip',
+        if (!metadata.contains('playerController: playerController')) '${_relativePath(metadataFile)} does not inject player controller',
+        if (!metadata.contains('settingsController: settingsController')) '${_relativePath(metadataFile)} does not inject settings controller',
+        if (!nowPlaying.contains('BottomPanelNowPlayingMetadata(')) '${_relativePath(nowPlayingFile)} does not compose metadata area',
+        if (!nowPlaying.contains('playerController: playerController')) '${_relativePath(nowPlayingFile)} does not inject player controller',
+        if (!nowPlaying.contains('settingsController: settingsController')) '${_relativePath(nowPlayingFile)} does not inject settings controller',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '正在播放元信息区只展示专辑、歌手和进度入口，当前歌曲和面板颜色必须由正在播放页注入。',
+      );
+    });
+
     test('playback metadata key access stays in queue boundary codecs', () {
       const allowedPaths = {
         'lib/features/playback/application/playback_queue_item_adapter.dart',

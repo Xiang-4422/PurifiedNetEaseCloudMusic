@@ -38,6 +38,8 @@ class AuthController extends GetxController {
 
   Timer? _qrPollingTimer;
   Future<void>? _bootstrapFuture;
+  int _accountLoadGeneration = 0;
+  int _qrFlowGeneration = 0;
 
   /// 启动登录页状态；有缓存登录时优先校验账号状态，否则刷新二维码。
   Future<void> bootstrap() async {
@@ -77,7 +79,11 @@ class AuthController extends GetxController {
       }
 
       isLoading.value = true;
-      final loaded = await _loadUserData();
+      final accountLoadGeneration = _startAccountLoad();
+      final loaded = await _loadUserData(accountLoadGeneration);
+      if (!_isCurrentAccountLoad(accountLoadGeneration)) {
+        return;
+      }
       if (!loaded) {
         await refreshQrCode();
       }
@@ -92,9 +98,14 @@ class AuthController extends GetxController {
       return;
     }
 
+    _invalidateAccountLoad();
+    final qrFlowGeneration = _startQrFlow();
     isLoading.value = true;
     try {
       final qrCodeLoginKey = await _repository.createQrCodeKey();
+      if (!_isCurrentQrFlow(qrFlowGeneration)) {
+        return;
+      }
       if (!qrCodeLoginKey.success) {
         _handleQrCodeRefreshFailure(qrCodeLoginKey.message ?? '二维码获取失败，请稍后重试');
         return;
@@ -103,11 +114,15 @@ class AuthController extends GetxController {
       qrCodeUrl.value = _repository.buildQrCodeUrl(qrCodeLoginKey.unikey);
       hintText.value = '扫描二维码登录';
       qrCodeNeedRefresh.value = false;
-      _startPolling(qrCodeLoginKey.unikey);
+      _startPolling(qrCodeLoginKey.unikey, qrFlowGeneration);
     } catch (_) {
-      _handleQrCodeRefreshFailure('二维码获取失败，请稍后重试');
+      if (_isCurrentQrFlow(qrFlowGeneration)) {
+        _handleQrCodeRefreshFailure('二维码获取失败，请稍后重试');
+      }
     } finally {
-      isLoading.value = false;
+      if (_isCurrentQrFlow(qrFlowGeneration)) {
+        isLoading.value = false;
+      }
     }
   }
 
@@ -125,19 +140,28 @@ class AuthController extends GetxController {
 
   /// 主动退出当前账号，并交给根部展示副作用回到登录页。
   Future<void> logoutCurrentUser() async {
+    _invalidateAccountLoad();
+    _stopQrPolling();
+    loginCompleted.value = false;
+    isLoading.value = false;
+    qrCodeNeedRefresh.value = true;
     await UserSessionController.to.clearUser();
     uiEffect.value = const AuthUiEffect.loginExpired('已退出登录');
   }
 
   @override
   void onClose() {
-    _qrPollingTimer?.cancel();
+    _invalidateAccountLoad();
+    _stopQrPolling();
     super.onClose();
   }
 
-  Future<bool> _loadUserData() async {
+  Future<bool> _loadUserData(int accountLoadGeneration) async {
     try {
       final accountInfo = await _repository.fetchLoginAccountInfo();
+      if (!_isCurrentAccountLoad(accountLoadGeneration)) {
+        return false;
+      }
       final isLoginStateActive = accountInfo.isLoggedIn;
 
       if (!isLoginStateActive) {
@@ -152,6 +176,9 @@ class AuthController extends GetxController {
       loginCompleted.value = true;
       return true;
     } catch (_) {
+      if (!_isCurrentAccountLoad(accountLoadGeneration)) {
+        return false;
+      }
       if (!UserSessionController.to.userInfo.value.isLoggedIn) {
         await _expireLocalLoginSession();
       }
@@ -159,7 +186,9 @@ class AuthController extends GetxController {
       _prepareQrRetry();
       return false;
     } finally {
-      isLoading.value = false;
+      if (_isCurrentAccountLoad(accountLoadGeneration)) {
+        isLoading.value = false;
+      }
     }
   }
 
@@ -205,14 +234,22 @@ class AuthController extends GetxController {
     }
   }
 
-  void _startPolling(String unikey) {
-    _qrPollingTimer?.cancel();
+  void _startPolling(String unikey, int qrFlowGeneration) {
     _qrPollingTimer = Timer.periodic(_qrPollingInterval, (timer) async {
+      if (!_isCurrentQrFlow(qrFlowGeneration)) {
+        timer.cancel();
+        return;
+      }
       final QrCodeStatusResult serverStatus;
       try {
         serverStatus = await _repository.checkQrCodeStatus(unikey);
       } catch (_) {
-        hintText.value = '网络异常，等待重试';
+        if (_isCurrentQrFlow(qrFlowGeneration)) {
+          hintText.value = '网络异常，等待重试';
+        }
+        return;
+      }
+      if (!_isCurrentQrFlow(qrFlowGeneration)) {
         return;
       }
       switch (serverStatus.code) {
@@ -220,15 +257,26 @@ class AuthController extends GetxController {
           hintText.value = '二维码过期';
           qrCodeNeedRefresh.value = true;
           timer.cancel();
-          _qrPollingTimer = null;
+          if (_isCurrentQrFlow(qrFlowGeneration)) {
+            _qrPollingTimer = null;
+          }
           break;
         case 803:
           hintText.value = '授权成功!';
           timer.cancel();
-          _qrPollingTimer = null;
+          if (_isCurrentQrFlow(qrFlowGeneration)) {
+            _qrPollingTimer = null;
+          }
           await _repository.setLoginFlag(true);
+          if (!_isCurrentQrFlow(qrFlowGeneration)) {
+            return;
+          }
           isLoading.value = true;
-          final loaded = await _loadUserData();
+          final accountLoadGeneration = _startAccountLoad();
+          final loaded = await _loadUserData(accountLoadGeneration);
+          if (!_isCurrentAccountLoad(accountLoadGeneration) || !_isCurrentQrFlow(qrFlowGeneration)) {
+            return;
+          }
           if (!loaded) {
             await refreshQrCode();
           }
@@ -237,5 +285,34 @@ class AuthController extends GetxController {
           break;
       }
     });
+  }
+
+  int _startAccountLoad() {
+    return ++_accountLoadGeneration;
+  }
+
+  void _invalidateAccountLoad() {
+    _accountLoadGeneration++;
+  }
+
+  bool _isCurrentAccountLoad(int generation) {
+    return generation == _accountLoadGeneration;
+  }
+
+  int _startQrFlow() {
+    _qrFlowGeneration++;
+    _qrPollingTimer?.cancel();
+    _qrPollingTimer = null;
+    return _qrFlowGeneration;
+  }
+
+  void _stopQrPolling() {
+    _qrFlowGeneration++;
+    _qrPollingTimer?.cancel();
+    _qrPollingTimer = null;
+  }
+
+  bool _isCurrentQrFlow(int generation) {
+    return generation == _qrFlowGeneration;
   }
 }

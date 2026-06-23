@@ -174,6 +174,36 @@ void main() {
       expect(sessionController.userInfo.value.nickname, 'User');
     });
 
+    test('stale cached session bootstrap does not restore user after logout', () async {
+      final authRepository = _FakeAuthRepository(hasCachedSession: true);
+      final sessionController = _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
+      final controller = AuthController(repository: authRepository);
+
+      final bootstrap = controller.bootstrap();
+      expect(controller.isLoading.value, isTrue);
+      expect(authRepository.fetchRequestCount, 1);
+
+      await controller.logoutCurrentUser();
+      authRepository.completeNextFetch(
+        const UserSessionData(
+          userId: 'user-1',
+          nickname: 'User',
+          avatarUrl: '',
+        ),
+      );
+      await bootstrap;
+
+      expect(controller.isLoading.value, isFalse);
+      expect(controller.loginCompleted.value, isFalse);
+      expect(sessionController.userInfo.value.isLoggedIn, isFalse);
+      expect(controller.qrCodeUrl.value, isEmpty);
+      expect(authRepository.savedLoginFlags, [false]);
+      expect(controller.uiEffect.value?.type, AuthUiEffectType.loginExpired);
+      expect(controller.uiEffect.value?.message, '已退出登录');
+    });
+
     test('cached session bootstrap falls back to qr when account fetch fails', () async {
       final authRepository = _FakeAuthRepository(hasCachedSession: true);
       final sessionController = _putSessionController(
@@ -232,6 +262,38 @@ void main() {
       expect(controller.uiEffect.value?.message, '已退出登录');
     });
 
+    test('stale qr authorized account load does not restore user after logout', () async {
+      final authRepository = _FakeAuthRepository(hasCachedSession: false)..nextQrStatus = const QrCodeStatusResult(code: 803);
+      final sessionController = _putSessionController(
+        saveLoginFlag: authRepository.setLoginFlag,
+      );
+      final controller = AuthController(
+        repository: authRepository,
+        qrPollingInterval: const Duration(milliseconds: 10),
+      );
+
+      await controller.refreshQrCode();
+      await _waitUntil(() => authRepository.fetchRequestCount == 1);
+
+      await controller.logoutCurrentUser();
+      authRepository.completeNextFetch(
+        const UserSessionData(
+          userId: 'qr-user',
+          nickname: 'Qr User',
+          avatarUrl: '',
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.isLoading.value, isFalse);
+      expect(controller.loginCompleted.value, isFalse);
+      expect(sessionController.userInfo.value.isLoggedIn, isFalse);
+      expect(authRepository.savedLoginFlags, [true, false]);
+      expect(controller.uiEffect.value?.type, AuthUiEffectType.loginExpired);
+      expect(controller.uiEffect.value?.message, '已退出登录');
+      controller.onClose();
+    });
+
     test('qr refresh failure exposes retry state without throwing', () async {
       final authRepository = _FakeAuthRepository(hasCachedSession: false)..failNextQrCreation(StateError('network failed'));
       _putSessionController(
@@ -281,6 +343,16 @@ void main() {
       controller.onClose();
     });
   });
+}
+
+Future<void> _waitUntil(bool Function() condition) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 1));
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('condition was not met before timeout');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
 }
 
 UserSessionController _putSessionController({

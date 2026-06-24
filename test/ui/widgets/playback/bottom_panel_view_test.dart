@@ -364,6 +364,9 @@ void main() {
 
     expect(lyricSource, contains('required this.playerController'));
     expect(lyricSource, contains('required this.settingsController'));
+    expect(lyricSource, contains('lyricLineSemanticsLabel('));
+    expect(lyricSource, contains('Tooltip('));
+    expect(lyricSource, contains('Semantics('));
     expect(lyricSource, isNot(contains('PlayerController.to')));
     expect(lyricSource, isNot(contains('SettingsController.to')));
 

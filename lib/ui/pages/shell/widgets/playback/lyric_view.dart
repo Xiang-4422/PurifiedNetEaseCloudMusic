@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:bujuan/core/time/date_time_formatter.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/lyric_scroll_position.dart';
@@ -63,6 +64,7 @@ class LyricView extends GetView<ShellController> {
                   itemBuilder: (BuildContext context, int index) {
                     Widget child;
                     Duration? seekPosition;
+                    String? semanticsLabel;
                     // 首尾占位按歌词区域真实高度计算，保证滚动锚点稳定。
                     if (index == 0 || index == lyricState.lines.length + 1) {
                       child = SizedBox(
@@ -72,6 +74,10 @@ class LyricView extends GetView<ShellController> {
                       index -= LyricScrollPosition.lyricItemIndexOffset;
                       final line = lyricState.lines[index];
                       seekPosition = lyricLineSeekPosition(line);
+                      semanticsLabel = lyricLineSemanticsLabel(
+                        line: line,
+                        seekPosition: seekPosition,
+                      );
                       child = Obx(() {
                         final isActive = playerController.lyricState.value.currentIndex == index;
                         final currentPosition = isActive ? playerController.currentPositionState.value : Duration.zero;
@@ -85,7 +91,7 @@ class LyricView extends GetView<ShellController> {
                       });
                     }
                     // 构建歌词行
-                    return TextButton(
+                    final button = TextButton(
                       style: TextButton.styleFrom(
                         alignment: Alignment.centerLeft,
                         padding: lyricPadding,
@@ -111,6 +117,20 @@ class LyricView extends GetView<ShellController> {
                               );
                             },
                       child: child,
+                    );
+                    if (semanticsLabel == null) {
+                      return button;
+                    }
+                    return Tooltip(
+                      message: semanticsLabel,
+                      excludeFromSemantics: true,
+                      child: Semantics(
+                        button: seekPosition != null,
+                        enabled: seekPosition != null,
+                        label: semanticsLabel,
+                        excludeSemantics: true,
+                        child: button,
+                      ),
                     );
                   },
                 );
@@ -273,6 +293,22 @@ Duration? lyricLineSeekPosition(LyricsLineModel line) {
   return Duration(milliseconds: startTime < 0 ? 0 : startTime);
 }
 
+/// 生成歌词行的辅助语义标签。
+@visibleForTesting
+String lyricLineSemanticsLabel({
+  required LyricsLineModel line,
+  required Duration? seekPosition,
+}) {
+  final text = _lyricLineLabelText(line);
+  if (seekPosition == null) {
+    return '歌词：$text';
+  }
+  final positionLabel = DateTimeFormatter.durationStamp(
+    seekPosition.inMilliseconds,
+  );
+  return '跳转到歌词 $positionLabel：$text';
+}
+
 /// 根据当前播放进度切分逐字歌词中已播放和未播放的片段。
 @visibleForTesting
 LyricLineProgressText lyricLineProgressText(
@@ -302,6 +338,11 @@ LyricLineProgressText lyricLineProgressText(
     playedText: played.toString(),
     upcomingText: upcoming.toString(),
   );
+}
+
+String _lyricLineLabelText(LyricsLineModel line) {
+  final text = lyricLineDisplayText(line).replaceAll(RegExp(r'\s+'), ' ').trim();
+  return text.isEmpty ? '···' : text;
 }
 
 String _spanText(String mainText, LyricSpanInfo span) {

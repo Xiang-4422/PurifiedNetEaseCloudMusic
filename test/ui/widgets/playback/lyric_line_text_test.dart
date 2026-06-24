@@ -29,6 +29,37 @@ void main() {
       expect(lyricLineSeekPosition(normalTime), const Duration(milliseconds: 1234));
     });
 
+    test('builds lyric line semantics label', () {
+      final seekableLine = LyricsLineModel()
+        ..mainText = '  main lyric  '
+        ..extText = '  translated lyric  '
+        ..startTime = 1234;
+      final readonlyLine = LyricsLineModel()..mainText = 'no time';
+      final emptyLine = LyricsLineModel()..mainText = ' ';
+
+      expect(
+        lyricLineSemanticsLabel(
+          line: seekableLine,
+          seekPosition: lyricLineSeekPosition(seekableLine),
+        ),
+        '跳转到歌词 00:01：main lyric translated lyric',
+      );
+      expect(
+        lyricLineSemanticsLabel(
+          line: readonlyLine,
+          seekPosition: lyricLineSeekPosition(readonlyLine),
+        ),
+        '歌词：no time',
+      );
+      expect(
+        lyricLineSemanticsLabel(
+          line: emptyLine,
+          seekPosition: lyricLineSeekPosition(emptyLine),
+        ),
+        '歌词：···',
+      );
+    });
+
     test('splits timed lyric spans by current playback position', () {
       final line = LyricsLineModel()
         ..mainText = '你好世界'

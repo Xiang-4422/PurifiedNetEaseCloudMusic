@@ -503,7 +503,9 @@ void main() {
     expect(source, isNot(contains('currentSong.artworkUrl ??')));
     expect(quickStartSource, isNot(contains('currentSong.artworkUrl ??')));
     expect(source, isNot(contains('todayRecommendSongs[0].artworkUrl')));
-    expect(source, isNot(contains('fmSongs[0].artworkUrl')));
+    expect(source, isNot(contains('fmSongs')));
+    expect(quickStartSource, isNot(contains('fmSongs')));
+    expect(standardSource, isNot(contains('fmSongs')));
     expect(recentPlaybackSource, isNot(contains('song.artworkUrl ?? song.localArtworkPath')));
     expect(todayPageSource, isNot(contains("songs.first.artworkUrl ?? ''")));
   });

@@ -11,27 +11,21 @@ import 'package:bujuan/features/user/user_repository.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-/// 首页用户本地数据，包含日推歌曲和 FM 候选歌曲。
+/// 首页用户本地数据，包含日推歌曲。
 class UserHomeLocalData {
   /// 创建首页用户本地数据。
   const UserHomeLocalData({
     required this.todayRecommendSongs,
-    required this.fmSongs,
   });
 
   /// 创建空首页用户本地数据。
-  const UserHomeLocalData.empty()
-      : todayRecommendSongs = const [],
-        fmSongs = const [];
+  const UserHomeLocalData.empty() : todayRecommendSongs = const [];
 
   /// 每日推荐歌曲数据。
   final List<PlaybackQueueItem> todayRecommendSongs;
 
-  /// 私人 FM 候选歌曲数据。
-  final List<PlaybackQueueItem> fmSongs;
-
   /// 是否包含任何可展示数据。
-  bool get hasData => todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
+  bool get hasData => todayRecommendSongs.isNotEmpty;
 }
 
 /// 首页推荐需要的当前账号 session 能力。
@@ -99,7 +93,7 @@ class RecommendationLibraryAccess {
   final String Function() randomLikedSongAlbumUrl;
 }
 
-/// 持有首页推荐、日推和 FM 候选歌曲状态。
+/// 持有首页推荐和日推歌曲状态。
 class RecommendationController extends GetxController {
   static const Duration _startupDataTtl = Duration(minutes: 10);
   static const String _startupSyncMarker = 'startup_home';
@@ -137,9 +131,6 @@ class RecommendationController extends GetxController {
 
   /// 每日推荐歌曲队列。
   final RxList<PlaybackQueueItem> todayRecommendSongs = <PlaybackQueueItem>[].obs;
-
-  /// 私人 FM 候选歌曲队列。
-  final RxList<PlaybackQueueItem> fmSongs = <PlaybackQueueItem>[].obs;
 
   Future<void>? _cacheBootstrapFuture;
   Timer? _homeImageColorPrewarmTimer;
@@ -241,7 +232,7 @@ class RecommendationController extends GetxController {
     }
   }
 
-  /// 刷新首页推荐、日推和 FM 候选数据。
+  /// 刷新首页推荐和日推数据。
   Future<void> updateData() async {
     if (_disposed) {
       return;
@@ -399,7 +390,6 @@ class RecommendationController extends GetxController {
         ImageColorService.prewarm(
           [
             todayRecommendSongs.isNotEmpty ? todayRecommendSongs.first.artworkUrl : null,
-            fmSongs.isNotEmpty ? fmSongs.first.artworkUrl : null,
             _libraryAccess.randomLikedSongAlbumUrl(),
           ],
         ),
@@ -430,7 +420,6 @@ class RecommendationController extends GetxController {
       return;
     }
     todayRecommendSongs.addAll(localData.todayRecommendSongs);
-    fmSongs.addAll(localData.fmSongs);
     _hasLocalData = localData.hasData;
   }
 
@@ -442,10 +431,6 @@ class RecommendationController extends GetxController {
     todayRecommendSongs
       ..clear()
       ..addAll(localData.todayRecommendSongs);
-
-    fmSongs
-      ..clear()
-      ..addAll(localData.fmSongs);
   }
 
   Future<UserHomeLocalData> _loadLocalData(String userId) async {
@@ -453,21 +438,13 @@ class RecommendationController extends GetxController {
       return const UserHomeLocalData.empty();
     }
     final likedSongIds = _likedSongIdsSnapshot();
-    final results = await Future.wait<Object>([
-      _loadCachedTrackList(
-        userId: userId,
-        kind: UserTrackListKind.dailyRecommend,
-        likedSongIds: likedSongIds,
-      ),
-      _loadCachedTrackList(
-        userId: userId,
-        kind: UserTrackListKind.fm,
-        likedSongIds: likedSongIds,
-      ),
-    ]);
+    final songs = await _loadCachedTrackList(
+      userId: userId,
+      kind: UserTrackListKind.dailyRecommend,
+      likedSongIds: likedSongIds,
+    );
     return UserHomeLocalData(
-      todayRecommendSongs: results[0] as List<PlaybackQueueItem>,
-      fmSongs: results[1] as List<PlaybackQueueItem>,
+      todayRecommendSongs: songs,
     );
   }
 
@@ -476,19 +453,12 @@ class RecommendationController extends GetxController {
       return const UserHomeLocalData.empty();
     }
     final likedSongIds = _likedSongIdsSnapshot();
-    final results = await Future.wait<Object>([
-      _repository.fetchTodayRecommendSongs(
-        userId: userId,
-        likedSongIds: likedSongIds,
-      ),
-      _repository.fetchFmSongs(
-        userId: userId,
-        likedSongIds: likedSongIds,
-      ),
-    ]);
+    final songs = await _repository.fetchTodayRecommendSongs(
+      userId: userId,
+      likedSongIds: likedSongIds,
+    );
     return UserHomeLocalData(
-      todayRecommendSongs: results[0] as List<PlaybackQueueItem>,
-      fmSongs: results[1] as List<PlaybackQueueItem>,
+      todayRecommendSongs: songs,
     );
   }
 
@@ -542,13 +512,12 @@ class RecommendationController extends GetxController {
   }
 
   bool get _hasVisibleHomeData {
-    return todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
+    return todayRecommendSongs.isNotEmpty;
   }
 
   void _clearHomeState() {
     recoPlayLists.clear();
     todayRecommendSongs.clear();
-    fmSongs.clear();
   }
 
   @override

@@ -34,7 +34,6 @@ void main() {
         const PlaylistSummaryData(id: 'playlist-1', title: 'Playlist 1'),
       );
       controller.todayRecommendSongs.add(_song('today-1'));
-      controller.fmSongs.add(_song('fm-1'));
 
       await controller.updateData();
 
@@ -42,15 +41,13 @@ void main() {
       expect(controller.hasLocalData, isTrue);
       expect(controller.recoPlayLists.map((playlist) => playlist.id), ['playlist-1']);
       expect(controller.todayRecommendSongs.map((song) => song.id), ['today-1']);
-      expect(controller.fmSongs.map((song) => song.id), ['fm-1']);
     });
 
-    test('continues local home data load when one cache read fails', () async {
+    test('loads only daily local home cache for home bootstrap', () async {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
       final repository = _FakeUserRepository(
-        loadCachedDailyRecommendSongsError: StateError('broken daily cache'),
-        cachedFmSongs: [_song('cached-fm')],
+        cachedDailyRecommendSongs: [_song('cached-today')],
       );
       final controller = RecommendationController(
         repository: repository,
@@ -64,18 +61,39 @@ void main() {
       await controller.ensureCacheLoaded();
 
       expect(controller.recoPlayLists, isEmpty);
-      expect(controller.todayRecommendSongs, isEmpty);
-      expect(controller.fmSongs.map((song) => song.id), ['cached-fm']);
+      expect(controller.todayRecommendSongs.map((song) => song.id), ['cached-today']);
       expect(controller.hasLocalData, isTrue);
       expect(repository.loadCachedPlaylistListUserIds, isEmpty);
+      expect(repository.loadCachedTrackListUserIds, ['user-1']);
+      expect(repository.loadCachedTrackListKinds, [UserTrackListKind.dailyRecommend]);
+    });
+
+    test('continues home bootstrap when daily cache read fails', () async {
+      final sessionController = _buildSessionController('user-1');
+      final libraryController = _FakeUserLibraryController();
+      final repository = _FakeUserRepository(
+        loadCachedDailyRecommendSongsError: StateError('broken daily cache'),
+      );
+      final controller = RecommendationController(
+        repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
+        sessionAccess: _sessionAccess(sessionController),
+        libraryAccess: _libraryAccess(libraryController),
+      );
+      addTearDown(controller.onClose);
+
+      controller.onInit();
+      await controller.ensureCacheLoaded();
+
+      expect(controller.todayRecommendSongs, isEmpty);
+      expect(controller.hasLocalData, isFalse);
+      expect(repository.loadCachedTrackListKinds, [UserTrackListKind.dailyRecommend]);
     });
 
     test('does not read local home cache for blank user id', () async {
       final sessionController = _buildSessionController('   ');
       final libraryController = _FakeUserLibraryController();
-      final repository = _FakeUserRepository(
-        cachedFmSongs: [_song('cached-fm')],
-      );
+      final repository = _FakeUserRepository();
       final controller = RecommendationController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
@@ -89,7 +107,6 @@ void main() {
 
       expect(controller.recoPlayLists, isEmpty);
       expect(controller.todayRecommendSongs, isEmpty);
-      expect(controller.fmSongs, isEmpty);
       expect(controller.hasLocalData, isFalse);
       expect(repository.loadCachedPlaylistListUserIds, isEmpty);
       expect(repository.loadCachedTrackListUserIds, isEmpty);
@@ -99,7 +116,7 @@ void main() {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
       final repository = _FakeUserRepository(
-        cachedFmSongs: [_song('cached-fm')],
+        cachedDailyRecommendSongs: [_song('cached-today')],
         isSyncMarkerFreshError: StateError('broken marker cache'),
       );
       final controller = RecommendationController(
@@ -222,17 +239,11 @@ void main() {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
       final oldToday = Completer<List<PlaybackQueueItem>>();
-      final oldFm = Completer<List<PlaybackQueueItem>>();
       final newToday = Completer<List<PlaybackQueueItem>>();
-      final newFm = Completer<List<PlaybackQueueItem>>();
       final todayFetches = [oldToday, newToday];
-      final fmFetches = [oldFm, newFm];
       final repository = _FakeUserRepository(
         fetchTodayRecommendSongsWithArgs: ({required userId, required likedSongIds}) {
           return todayFetches.removeAt(0).future;
-        },
-        fetchFmSongsWithArgs: ({required userId, required likedSongIds}) {
-          return fmFetches.removeAt(0).future;
         },
       );
       final controller = RecommendationController(
@@ -249,18 +260,15 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       newToday.complete([_song('new-today')]);
-      newFm.complete([_song('new-fm')]);
       await newRefresh;
 
       expect(controller.todayRecommendSongs.map((song) => song.id), ['new-today']);
-      expect(controller.fmSongs.map((song) => song.id), ['new-fm']);
+      expect(repository.fetchFmSongsUserIds, isEmpty);
 
       oldToday.complete([_song('old-today')]);
-      oldFm.complete([_song('old-fm')]);
       await oldRefresh;
 
       expect(controller.todayRecommendSongs.map((song) => song.id), ['new-today']);
-      expect(controller.fmSongs.map((song) => song.id), ['new-fm']);
     });
 
     test('clears home data and skips refresh for blank user id', () async {
@@ -278,7 +286,6 @@ void main() {
         const PlaylistSummaryData(id: 'old-playlist', title: 'Old Playlist'),
       );
       controller.todayRecommendSongs.add(_song('old-today'));
-      controller.fmSongs.add(_song('old-fm'));
 
       await controller.updateData();
 
@@ -286,7 +293,6 @@ void main() {
       expect(controller.hasLocalData, isFalse);
       expect(controller.recoPlayLists, isEmpty);
       expect(controller.todayRecommendSongs, isEmpty);
-      expect(controller.fmSongs, isEmpty);
       expect(libraryController.refreshCalls, 0);
       expect(repository.fetchRecommendedPlaylistsUserIds, isEmpty);
       expect(repository.fetchTodayRecommendSongsUserIds, isEmpty);
@@ -311,7 +317,7 @@ void main() {
       expect(libraryController.refreshCalls, 1);
       expect(repository.fetchRecommendedPlaylistsUserIds, isEmpty);
       expect(repository.fetchTodayRecommendSongsUserIds, ['user-1']);
-      expect(repository.fetchFmSongsUserIds, ['user-1']);
+      expect(repository.fetchFmSongsUserIds, isEmpty);
       expect(repository.markSyncMarkerUpdatedUserIds, ['user-1']);
       expect(controller.dateLoaded.value, isTrue);
       expect(controller.hasLocalData, isTrue);
@@ -341,14 +347,12 @@ void main() {
 
       expect(repository.loadCachedTrackListLikedSongRequests, [
         [101, 202],
-        [101, 202],
       ]);
       expect(repository.fetchTodayRecommendSongsLikedRequests, [
         [202, 303],
         [202, 303],
       ]);
       expect(repository.fetchFmSongsLikedRequests, [
-        [202, 303],
         [202, 303],
       ]);
     });
@@ -357,13 +361,9 @@ void main() {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
       final todaySongs = Completer<List<PlaybackQueueItem>>();
-      final fmSongs = Completer<List<PlaybackQueueItem>>();
       final repository = _FakeUserRepository(
         fetchTodayRecommendSongsWithArgs: ({required userId, required likedSongIds}) {
           return todaySongs.future;
-        },
-        fetchFmSongsWithArgs: ({required userId, required likedSongIds}) {
-          return fmSongs.future;
         },
       );
       final controller = RecommendationController(
@@ -374,19 +374,16 @@ void main() {
       );
       controller.recoPlayLists.add(const PlaylistSummaryData(id: 'visible-playlist', title: 'Visible'));
       controller.todayRecommendSongs.add(_song('visible-today'));
-      controller.fmSongs.add(_song('visible-fm'));
 
       final refresh = controller.updateData();
       await _flushAsync();
 
       controller.onClose();
       todaySongs.complete([_song('late-today')]);
-      fmSongs.complete([_song('late-fm')]);
 
       await expectLater(refresh, completes);
       expect(controller.recoPlayLists.map((playlist) => playlist.id), ['visible-playlist']);
       expect(controller.todayRecommendSongs.map((song) => song.id), ['visible-today']);
-      expect(controller.fmSongs.map((song) => song.id), ['visible-fm']);
     });
 
     test('resolves frequent playlist playback plan with normalized latest liked ids', () async {
@@ -559,15 +556,14 @@ UserLibrarySessionAccess _userLibrarySessionAccess(UserSessionController control
 
 class _FakeUserRepository implements UserRepository {
   _FakeUserRepository({
-    this.cachedFmSongs = const [],
+    this.cachedDailyRecommendSongs = const [],
     this.loadCachedDailyRecommendSongsError,
     this.isSyncMarkerFreshError,
     this.fetchRecommendedPlaylistsWithArgs,
     this.fetchTodayRecommendSongsWithArgs,
-    this.fetchFmSongsWithArgs,
   });
 
-  final List<PlaybackQueueItem> cachedFmSongs;
+  final List<PlaybackQueueItem> cachedDailyRecommendSongs;
   final Object? loadCachedDailyRecommendSongsError;
   final Object? isSyncMarkerFreshError;
   final Future<List<PlaylistSummaryData>> Function({
@@ -579,10 +575,6 @@ class _FakeUserRepository implements UserRepository {
     required String userId,
     required List<int> likedSongIds,
   })? fetchTodayRecommendSongsWithArgs;
-  final Future<List<PlaybackQueueItem>> Function({
-    required String userId,
-    required List<int> likedSongIds,
-  })? fetchFmSongsWithArgs;
   final List<String> loadCachedPlaylistListUserIds = <String>[];
   final List<String> loadCachedTrackListUserIds = <String>[];
   final List<String> isSyncMarkerFreshUserIds = <String>[];
@@ -590,6 +582,7 @@ class _FakeUserRepository implements UserRepository {
   final List<String> fetchTodayRecommendSongsUserIds = <String>[];
   final List<String> fetchFmSongsUserIds = <String>[];
   final List<String> markSyncMarkerUpdatedUserIds = <String>[];
+  final List<UserTrackListKind> loadCachedTrackListKinds = <UserTrackListKind>[];
   final List<List<int>> loadCachedTrackListLikedSongRequests = <List<int>>[];
   final List<List<int>> fetchTodayRecommendSongsLikedRequests = <List<int>>[];
   final List<List<int>> fetchFmSongsLikedRequests = <List<int>>[];
@@ -615,6 +608,7 @@ class _FakeUserRepository implements UserRepository {
     required List<int> likedSongIds,
   }) async {
     loadCachedTrackListUserIds.add(userId);
+    loadCachedTrackListKinds.add(kind);
     loadCachedTrackListLikedSongRequests.add(List<int>.from(likedSongIds));
     switch (kind) {
       case UserTrackListKind.dailyRecommend:
@@ -622,9 +616,8 @@ class _FakeUserRepository implements UserRepository {
         if (error != null) {
           throw error;
         }
-        return const [];
+        return cachedDailyRecommendSongs;
       case UserTrackListKind.fm:
-        return cachedFmSongs;
       case UserTrackListKind.liked:
       case UserTrackListKind.cloud:
         return const [];
@@ -687,13 +680,6 @@ class _FakeUserRepository implements UserRepository {
   }) {
     fetchFmSongsUserIds.add(userId);
     fetchFmSongsLikedRequests.add(List<int>.from(likedSongIds));
-    final fetchWithArgs = fetchFmSongsWithArgs;
-    if (fetchWithArgs != null) {
-      return fetchWithArgs(
-        userId: userId,
-        likedSongIds: likedSongIds,
-      );
-    }
     return Future.value(const []);
   }
 

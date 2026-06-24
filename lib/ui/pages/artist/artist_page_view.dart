@@ -13,6 +13,7 @@ import 'package:bujuan/features/artist/artist_page_controller.dart';
 import 'package:bujuan/features/artist/artist_page_controller_factory.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
+import 'package:bujuan/ui/pages/music_detail/local_first_detail_page_mixin.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/layout/keep_alive_wrapper.dart';
@@ -69,7 +70,7 @@ class ArtistPageView extends StatefulWidget {
   State<ArtistPageView> createState() => _ArtistPageViewState();
 }
 
-class _ArtistPageViewState extends State<ArtistPageView> {
+class _ArtistPageViewState extends State<ArtistPageView> with LocalFirstDetailPageMixin<ArtistPageView> {
   final ArtistPageController _controller = Get.find<ArtistPageControllerFactory>().create();
   final PlayerController _playerController = Get.find<PlayerController>();
   late String artistId;
@@ -78,12 +79,8 @@ class _ArtistPageViewState extends State<ArtistPageView> {
   final List<PlaybackQueueItem> topSongs = [];
   final List<AlbumEntity> hotAlbums = [];
 
-  bool loading = true;
-  bool loadFailed = false;
-  bool hasLoadedDetail = false;
   Color albumColor = Get.theme.colorScheme.primary;
   Color onAlbumColor = Get.theme.colorScheme.onPrimary;
-  int _detailRefreshGeneration = 0;
 
   @override
   void initState() {
@@ -91,40 +88,21 @@ class _ArtistPageViewState extends State<ArtistPageView> {
 
     artistId = context.routeData.queryParams.get("artistId");
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final initialDetail = await _controller.loadInitialDetail(artistId);
-      final localDetail = initialDetail.localDetail;
-      if (initialDetail.hasLocalDetail && localDetail != null) {
-        artist = localDetail.artist;
-        topSongs
-          ..clear()
-          ..addAll(localDetail.topSongs);
-        hotAlbums
-          ..clear()
-          ..addAll(localDetail.hotAlbums);
-        if (!mounted) {
-          return;
-        }
-        setState(() {
-          loading = false;
-          loadFailed = false;
-          hasLoadedDetail = true;
-        });
-        unawaited(_updateArtistColor(_resolvedArtworkUrl));
-        if (initialDetail.shouldRefreshInBackground) {
-          unawaited(_refreshArtistDetail(showLoadingState: false));
-        }
-        return;
-      }
-      await _refreshArtistDetail(showLoadingState: true);
+      await loadInitialLocalFirstDetail<ArtistDetailData>(
+        loadInitialDetail: () => _controller.loadInitialDetail(artistId),
+        applyDetail: _applyArtistDetail,
+        refreshDetail: _refreshArtistDetail,
+        afterApply: (_) => _updateArtistColor(_resolvedArtworkUrl),
+      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading && !hasLoadedDetail) {
+    if (detailLoading && !hasLoadedDetail) {
       return Container(color: albumColor, child: const LoadingView());
     }
-    if (loadFailed && !hasLoadedDetail) {
+    if (detailLoadFailed && !hasLoadedDetail) {
       return Container(
         color: albumColor,
         child: ErrorView(
@@ -360,40 +338,22 @@ class _ArtistPageViewState extends State<ArtistPageView> {
   }
 
   Future<void> _refreshArtistDetail({required bool showLoadingState}) async {
-    final generation = ++_detailRefreshGeneration;
-    if (showLoadingState && mounted) {
-      setState(() {
-        loading = true;
-        loadFailed = false;
-      });
-    }
-    try {
-      final artistDetail = await _controller.fetchDetail(artistId);
-      if (!mounted || generation != _detailRefreshGeneration) {
-        return;
-      }
-      setState(() {
-        artist = artistDetail.artist;
-        topSongs
-          ..clear()
-          ..addAll(artistDetail.topSongs);
-        hotAlbums
-          ..clear()
-          ..addAll(artistDetail.hotAlbums);
-        loading = false;
-        loadFailed = false;
-        hasLoadedDetail = true;
-      });
-      unawaited(_updateArtistColor(_resolvedArtworkUrl));
-    } catch (_) {
-      if (!mounted || generation != _detailRefreshGeneration) {
-        return;
-      }
-      setState(() {
-        loading = false;
-        loadFailed = !hasLoadedDetail;
-      });
-    }
+    return refreshLocalFirstDetail<ArtistDetailData>(
+      showLoadingState: showLoadingState,
+      fetchDetail: () => _controller.fetchDetail(artistId),
+      applyDetail: _applyArtistDetail,
+      afterApply: (_) => _updateArtistColor(_resolvedArtworkUrl),
+    );
+  }
+
+  void _applyArtistDetail(ArtistDetailData detail) {
+    artist = detail.artist;
+    topSongs
+      ..clear()
+      ..addAll(detail.topSongs);
+    hotAlbums
+      ..clear()
+      ..addAll(detail.hotAlbums);
   }
 
   Future<void> _updateArtistColor(String? artworkPath) async {

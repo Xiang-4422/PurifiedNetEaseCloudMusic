@@ -1,22 +1,10 @@
-import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/features/album/album_repository.dart';
+import 'package:bujuan/features/music_detail/local_first_detail_controller.dart';
+
+export 'package:bujuan/features/album/album_repository.dart' show AlbumDetailData;
 
 /// 专辑详情页初始数据。
-class AlbumInitialDetailData {
-  /// 创建专辑详情页初始数据。
-  const AlbumInitialDetailData({
-    required this.localDetail,
-  });
-
-  /// 本地缓存详情。
-  final AlbumDetailData? localDetail;
-
-  /// 是否已有本地缓存详情。
-  bool get hasLocalDetail => localDetail != null;
-
-  /// 有本地详情时应后台刷新，避免阻塞首屏展示。
-  bool get shouldRefreshInBackground => hasLocalDetail;
-}
+typedef AlbumInitialDetailData = LocalFirstDetailInitialData<AlbumDetailData>;
 
 /// 专辑详情页的应用入口，页面只消费详情结果，不直接拼装 repository 参数。
 class AlbumPageController {
@@ -24,40 +12,36 @@ class AlbumPageController {
   AlbumPageController({
     required AlbumRepository repository,
     required List<int> Function() likedSongIds,
-  })  : _repository = repository,
-        _likedSongIds = likedSongIds;
+  }) : _detailController = LocalFirstDetailController<AlbumDetailData>(
+          loadLocalDetail: ({required id, required likedSongIds}) {
+            return repository.loadLocalAlbumDetail(
+              albumId: id,
+              likedSongIds: likedSongIds,
+            );
+          },
+          fetchRemoteDetail: ({required id, required likedSongIds}) {
+            return repository.fetchAlbumDetail(
+              albumId: id,
+              likedSongIds: likedSongIds,
+            );
+          },
+          likedSongIds: likedSongIds,
+        );
 
-  final AlbumRepository _repository;
-  final List<int> Function() _likedSongIds;
+  final LocalFirstDetailController<AlbumDetailData> _detailController;
 
   /// 加载专辑详情页初始数据。
   Future<AlbumInitialDetailData> loadInitialDetail(String albumId) async {
-    return AlbumInitialDetailData(
-      localDetail: await loadLocalDetail(albumId),
-    );
+    return _detailController.loadInitialDetail(albumId);
   }
 
   /// 从本地缓存加载专辑详情。
-  Future<AlbumDetailData?> loadLocalDetail(String albumId) async {
-    try {
-      return await _repository.loadLocalAlbumDetail(
-        albumId: albumId,
-        likedSongIds: _likedSongIdsSnapshot(),
-      );
-    } catch (_) {
-      return null;
-    }
+  Future<AlbumDetailData?> loadLocalDetail(String albumId) {
+    return _detailController.loadLocalDetail(albumId);
   }
 
   /// 从远端刷新专辑详情。
   Future<AlbumDetailData> fetchDetail(String albumId) {
-    return _repository.fetchAlbumDetail(
-      albumId: albumId,
-      likedSongIds: _likedSongIdsSnapshot(),
-    );
-  }
-
-  List<int> _likedSongIdsSnapshot() {
-    return normalizeLikedSongIds(_likedSongIds());
+    return _detailController.fetchDetail(albumId);
   }
 }

@@ -1,13 +1,10 @@
-import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
-import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/core/entities/track_resource_bundle.dart';
-import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
+import 'package:bujuan/features/playback/application/track_playback_queue_builder.dart';
 
 /// 歌手详情数据。
 class ArtistDetailData {
@@ -35,10 +32,12 @@ class ArtistRepository {
     required MusicDataRepository musicDataRepository,
     required ArtistRemoteDataSource remoteDataSource,
   })  : _musicDataRepository = musicDataRepository,
-        _remoteDataSource = remoteDataSource;
+        _remoteDataSource = remoteDataSource,
+        _queueBuilder = TrackPlaybackQueueBuilder(musicDataRepository);
 
   final MusicDataRepository _musicDataRepository;
   final ArtistRemoteDataSource _remoteDataSource;
+  final TrackPlaybackQueueBuilder _queueBuilder;
 
   /// 加载本地缓存的歌手详情。
   Future<ArtistDetailData?> loadLocalArtistDetail({
@@ -58,7 +57,7 @@ class ArtistRepository {
     final hotAlbums = await _musicDataRepository.searchLocalAlbums(artist.name);
     return ArtistDetailData(
       artist: artist,
-      topSongs: await _mapTracksToPlaybackQueueItems(
+      topSongs: await _queueBuilder.build(
         topTracks,
         likedSongIds: likedSongIds,
       ),
@@ -93,36 +92,11 @@ class ArtistRepository {
 
     return ArtistDetailData(
       artist: artist!,
-      topSongs: await _mapTracksToPlaybackQueueItems(
+      topSongs: await _queueBuilder.build(
         tracks,
         likedSongIds: likedSongIds,
       ),
       hotAlbums: albums,
-    );
-  }
-
-  Future<List<PlaybackQueueItem>> _mapTracksToPlaybackQueueItems(
-    List<Track> tracks, {
-    required List<int> likedSongIds,
-  }) async {
-    if (tracks.isEmpty) {
-      return const [];
-    }
-    final tracksWithResources = await _musicDataRepository.getTracksWithResources(
-      tracks.map((track) => track.id),
-    );
-    final resourcesByTrackId = {
-      for (final item in tracksWithResources) item.track.id: item.resources,
-    };
-    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      [
-        for (final track in tracks)
-          TrackWithResources(
-            track: track,
-            resources: resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
-          ),
-      ],
-      likedSongIds: likedSongIds,
     );
   }
 

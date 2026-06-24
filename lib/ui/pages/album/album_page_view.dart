@@ -11,6 +11,7 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/album/album_page_controller.dart';
 import 'package:bujuan/features/album/album_page_controller_factory.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/ui/pages/music_detail/local_first_detail_page_mixin.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
@@ -41,19 +42,15 @@ class AlbumPageView extends StatefulWidget {
   State<AlbumPageView> createState() => _AlbumPageViewState();
 }
 
-class _AlbumPageViewState extends State<AlbumPageView> {
+class _AlbumPageViewState extends State<AlbumPageView> with LocalFirstDetailPageMixin<AlbumPageView> {
   final AlbumPageController _controller = Get.find<AlbumPageControllerFactory>().create();
   final PlayerController _playerController = Get.find<PlayerController>();
   late String albumId;
   late AlbumEntity album;
   List<PlaybackQueueItem> albumSongs = [];
 
-  bool loading = true;
-  bool loadFailed = false;
-  bool hasLoadedDetail = false;
   Color albumColor = Get.theme.colorScheme.primary;
   Color onAlbumColor = Get.theme.colorScheme.onPrimary;
-  int _detailRefreshGeneration = 0;
 
   @override
   void initState() {
@@ -62,37 +59,21 @@ class _AlbumPageViewState extends State<AlbumPageView> {
     albumId = context.routeData.queryParams.get('albumId');
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      final initialDetail = await _controller.loadInitialDetail(albumId);
-      final localDetail = initialDetail.localDetail;
-      if (initialDetail.hasLocalDetail && localDetail != null) {
-        album = localDetail.album;
-        albumSongs
-          ..clear()
-          ..addAll(localDetail.albumSongs);
-        if (!mounted) {
-          return;
-        }
-        setState(() {
-          loading = false;
-          loadFailed = false;
-          hasLoadedDetail = true;
-        });
-        unawaited(_updateAlbumColor(_resolvedArtworkUrl));
-        if (initialDetail.shouldRefreshInBackground) {
-          unawaited(_refreshAlbumDetail(showLoadingState: false));
-        }
-        return;
-      }
-      await _refreshAlbumDetail(showLoadingState: true);
+      await loadInitialLocalFirstDetail<AlbumDetailData>(
+        loadInitialDetail: () => _controller.loadInitialDetail(albumId),
+        applyDetail: _applyAlbumDetail,
+        refreshDetail: _refreshAlbumDetail,
+        afterApply: (_) => _updateAlbumColor(_resolvedArtworkUrl),
+      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading && !hasLoadedDetail) {
+    if (detailLoading && !hasLoadedDetail) {
       return Container(color: albumColor, child: const LoadingView());
     }
-    if (loadFailed && !hasLoadedDetail) {
+    if (detailLoadFailed && !hasLoadedDetail) {
       return Container(
         color: albumColor,
         child: ErrorView(
@@ -225,37 +206,19 @@ class _AlbumPageViewState extends State<AlbumPageView> {
   }
 
   Future<void> _refreshAlbumDetail({required bool showLoadingState}) async {
-    final generation = ++_detailRefreshGeneration;
-    if (showLoadingState && mounted) {
-      setState(() {
-        loading = true;
-        loadFailed = false;
-      });
-    }
-    try {
-      final albumDetail = await _controller.fetchDetail(albumId);
-      if (!mounted || generation != _detailRefreshGeneration) {
-        return;
-      }
-      setState(() {
-        album = albumDetail.album;
-        albumSongs
-          ..clear()
-          ..addAll(albumDetail.albumSongs);
-        loading = false;
-        loadFailed = false;
-        hasLoadedDetail = true;
-      });
-      unawaited(_updateAlbumColor(_resolvedArtworkUrl));
-    } catch (_) {
-      if (!mounted || generation != _detailRefreshGeneration) {
-        return;
-      }
-      setState(() {
-        loading = false;
-        loadFailed = !hasLoadedDetail;
-      });
-    }
+    return refreshLocalFirstDetail<AlbumDetailData>(
+      showLoadingState: showLoadingState,
+      fetchDetail: () => _controller.fetchDetail(albumId),
+      applyDetail: _applyAlbumDetail,
+      afterApply: (_) => _updateAlbumColor(_resolvedArtworkUrl),
+    );
+  }
+
+  void _applyAlbumDetail(AlbumDetailData detail) {
+    album = detail.album;
+    albumSongs
+      ..clear()
+      ..addAll(detail.albumSongs);
   }
 
   Future<void> _updateAlbumColor(String? artworkPath) async {

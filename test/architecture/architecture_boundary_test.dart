@@ -3571,6 +3571,12 @@ void main() {
       final bootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
+      final localFirstDetailControllerFile = File(
+        '${projectRoot.path}/lib/features/music_detail/local_first_detail_controller.dart',
+      );
+      final localFirstDetailPageMixinFile = File(
+        '${projectRoot.path}/lib/ui/pages/music_detail/local_first_detail_page_mixin.dart',
+      );
       final albumPage = albumPageFile.readAsStringSync();
       final artistPage = artistPageFile.readAsStringSync();
       final albumController = albumControllerFile.readAsStringSync();
@@ -3578,6 +3584,8 @@ void main() {
       final artistController = artistControllerFile.readAsStringSync();
       final artistFactory = artistFactoryFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
+      final localFirstDetailController = localFirstDetailControllerFile.readAsStringSync();
+      final localFirstDetailPageMixin = localFirstDetailPageMixinFile.readAsStringSync();
       final violations = <String>[
         if (albumPage.contains('AlbumRepository')) '${_relativePath(albumPageFile)} names album repository directly',
         if (artistPage.contains('ArtistRepository')) '${_relativePath(artistPageFile)} names artist repository directly',
@@ -3589,21 +3597,25 @@ void main() {
         if (artistPage.contains('_controller.loadLocalDetail(')) '${_relativePath(artistPageFile)} directly runs artist local detail loading',
         if (!albumPage.contains('_controller.loadInitialDetail(albumId)')) '${_relativePath(albumPageFile)} does not load album initial detail through controller boundary',
         if (!artistPage.contains('_controller.loadInitialDetail(artistId)')) '${_relativePath(artistPageFile)} does not load artist initial detail through controller boundary',
-        if (!albumPage.contains('generation != _detailRefreshGeneration')) '${_relativePath(albumPageFile)} does not ignore stale album refresh results',
-        if (!artistPage.contains('generation != _detailRefreshGeneration')) '${_relativePath(artistPageFile)} does not ignore stale artist refresh results',
+        if (!albumPage.contains('with LocalFirstDetailPageMixin<AlbumPageView>')) '${_relativePath(albumPageFile)} does not reuse album local-first page state machine',
+        if (!artistPage.contains('with LocalFirstDetailPageMixin<ArtistPageView>')) '${_relativePath(artistPageFile)} does not reuse artist local-first page state machine',
+        if (!albumPage.contains('loadInitialLocalFirstDetail<AlbumDetailData>')) '${_relativePath(albumPageFile)} does not run album local-first initial detail flow',
+        if (!artistPage.contains('loadInitialLocalFirstDetail<ArtistDetailData>')) '${_relativePath(artistPageFile)} does not run artist local-first initial detail flow',
+        if (!albumPage.contains('refreshLocalFirstDetail<AlbumDetailData>')) '${_relativePath(albumPageFile)} does not run album refresh through shared state machine',
+        if (!artistPage.contains('refreshLocalFirstDetail<ArtistDetailData>')) '${_relativePath(artistPageFile)} does not run artist refresh through shared state machine',
         if (!artistPage.contains('cacheExtent: artistHotAlbumCacheExtent')) '${_relativePath(artistPageFile)} does not bound hot album rail cache extent',
-        if (!albumController.contains('class AlbumInitialDetailData')) '${_relativePath(albumControllerFile)} does not define album initial detail boundary',
-        if (!artistController.contains('class ArtistInitialDetailData')) '${_relativePath(artistControllerFile)} does not define artist initial detail boundary',
+        if (!albumController.contains('typedef AlbumInitialDetailData = LocalFirstDetailInitialData<AlbumDetailData>')) '${_relativePath(albumControllerFile)} does not define album initial detail boundary',
+        if (!artistController.contains('typedef ArtistInitialDetailData = LocalFirstDetailInitialData<ArtistDetailData>')) '${_relativePath(artistControllerFile)} does not define artist initial detail boundary',
         if (albumController.contains('UserLibraryController')) '${_relativePath(albumControllerFile)} reads user library directly',
         if (artistController.contains('UserLibraryController')) '${_relativePath(artistControllerFile)} reads user library directly',
         if (!albumController.contains('required List<int> Function() likedSongIds')) 'album page controller does not require liked ids provider',
         if (!artistController.contains('required List<int> Function() likedSongIds')) 'artist page controller does not require liked ids provider',
-        if (!albumController.contains('List<int> _likedSongIdsSnapshot()')) 'album page controller does not define a liked ids snapshot normalizer',
-        if (!artistController.contains('List<int> _likedSongIdsSnapshot()')) 'artist page controller does not define a liked ids snapshot normalizer',
-        if (!albumController.contains('return normalizeLikedSongIds(_likedSongIds());')) 'album page controller liked ids snapshot does not use shared normalizer',
-        if (!artistController.contains('return normalizeLikedSongIds(_likedSongIds());')) 'artist page controller liked ids snapshot does not use shared normalizer',
-        if (!albumController.contains('likedSongIds: _likedSongIdsSnapshot()')) 'album page controller does not pass normalized liked ids snapshots to repository',
-        if (!artistController.contains('likedSongIds: _likedSongIdsSnapshot()')) 'artist page controller does not pass normalized liked ids snapshots to repository',
+        if (!albumController.contains('LocalFirstDetailController<AlbumDetailData>')) 'album page controller does not reuse local-first detail controller',
+        if (!artistController.contains('LocalFirstDetailController<ArtistDetailData>')) 'artist page controller does not reuse local-first detail controller',
+        if (!localFirstDetailController.contains('normalizeLikedSongIds(_likedSongIds())')) 'local-first detail controller does not normalize liked ids snapshots',
+        if (!localFirstDetailController.contains('catch (_)')) 'local-first detail controller does not tolerate local cache failures',
+        if (!localFirstDetailPageMixin.contains('generation != _detailRefreshGeneration')) 'local-first detail page mixin does not ignore stale refresh results',
+        if (!localFirstDetailPageMixin.contains('detailLoadFailed = !hasLoadedDetail')) 'local-first detail page mixin does not preserve visible detail after refresh failure',
         if (albumController.contains('likedSongIds: _likedSongIds()')) 'album page controller still passes raw liked ids provider output',
         if (artistController.contains('likedSongIds: _likedSongIds()')) 'artist page controller still passes raw liked ids provider output',
         if (!albumFactory.contains('AlbumPageController create()')) 'album page controller factory does not create page controllers',
@@ -4057,10 +4069,14 @@ void main() {
         final imports = _featureImports(file);
         for (final importedFeature in imports) {
           if (importedFeature == 'playback' &&
-              _contains(
-                file,
-                "package:bujuan/features/playback/application/playback_queue_item_mapper.dart",
-              )) {
+              (_contains(
+                    file,
+                    "package:bujuan/features/playback/application/playback_queue_item_mapper.dart",
+                  ) ||
+                  _contains(
+                    file,
+                    "package:bujuan/features/playback/application/track_playback_queue_builder.dart",
+                  ))) {
             continue;
           }
           if (_isAllowedRepositoryFeatureImport(

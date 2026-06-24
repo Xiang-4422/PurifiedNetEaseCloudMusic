@@ -6,6 +6,7 @@ import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/core/util/retained_file_cleaner.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
+import 'package:bujuan/data/music_data/sources/local/resources/local_resource_retention_policy.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// 缓存分类。
@@ -336,17 +337,10 @@ class CacheAnalysisService {
     List<LocalResourceEntry> indexedResources, {
     required bool Function(LocalResourceEntry resource) shouldRemove,
   }) {
-    final retainedPaths = <String>{};
-    for (final resource in indexedResources) {
-      if (shouldRemove(resource)) {
-        continue;
-      }
-      final path = _resourceFilePath(resource);
-      if (path.isNotEmpty) {
-        retainedPaths.add(path);
-      }
-    }
-    return retainedPaths;
+    return LocalResourceRetentionPolicy.retainedPathsAfterRemoving(
+      indexedResources,
+      shouldRemove: shouldRemove,
+    );
   }
 
   Set<String> _retainedResourcePaths(List<LocalResourceEntry> indexedResources) {
@@ -361,7 +355,7 @@ class CacheAnalysisService {
   }
 
   String _resourceFilePath(LocalResourceEntry resource) {
-    return LocalFilePathNormalizer.normalize(resource.path);
+    return LocalResourceRetentionPolicy.normalizedPath(resource);
   }
 
   String _titleFor(CacheCategory category) {

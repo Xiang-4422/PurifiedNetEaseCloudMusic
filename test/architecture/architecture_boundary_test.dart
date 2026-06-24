@@ -2830,10 +2830,13 @@ void main() {
         if (!cleaner.contains('static Future<void> deleteFileUnlessRetained(')) '${_relativePath(cleanerFile)} does not expose single-file cleanup',
         if (!cleaner.contains('static Future<void> deleteUnretainedDirectoryFiles(')) '${_relativePath(cleanerFile)} does not expose orphan directory cleanup',
         if (!settings.contains("import 'package:bujuan/core/util/retained_file_cleaner.dart';")) '${_relativePath(settingsFile)} does not import shared cleaner',
+        if (!settings.contains("import 'package:bujuan/data/music_data/sources/local/resources/local_resource_retention_policy.dart';")) '${_relativePath(settingsFile)} does not import shared resource retention policy',
         if (!download.contains("import 'package:bujuan/core/util/retained_file_cleaner.dart';")) '${_relativePath(downloadFile)} does not import shared cleaner',
         if (!settings.contains('RetainedFileCleaner.clearDirectory(')) '${_relativePath(settingsFile)} does not clear cache directories through shared cleaner',
         if (!settings.contains('RetainedFileCleaner.deleteFileUnlessRetained(')) '${_relativePath(settingsFile)} does not clean indexed files through shared cleaner',
         if (!settings.contains('RetainedFileCleaner.deleteUnretainedDirectoryFiles(')) '${_relativePath(settingsFile)} does not clean orphan files through shared cleaner',
+        if (!settings.contains('LocalResourceRetentionPolicy.retainedPathsAfterRemoving(')) '${_relativePath(settingsFile)} does not calculate retained indexed resources through shared policy',
+        if (!settings.contains('LocalResourceRetentionPolicy.normalizedPath(resource)')) '${_relativePath(settingsFile)} does not normalize indexed resource paths through shared policy',
         if (!download.contains('RetainedFileCleaner.clearDirectory(')) '${_relativePath(downloadFile)} does not clear playback cache files through shared cleaner',
         if (privateCleanupFragments.any(settings.contains)) '${_relativePath(settingsFile)} defines private retained-file cleanup logic',
         if (privateCleanupFragments.any(download.contains)) '${_relativePath(downloadFile)} defines private retained-file cleanup logic',
@@ -2842,7 +2845,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: '设置页和下载页的保留路径缓存清理必须复用 RetainedFileCleaner，避免本地路径归一、孤儿文件和空目录处理再次分叉。',
+        reason: '设置页和下载页的保留路径缓存清理必须复用 RetainedFileCleaner 和 LocalResourceRetentionPolicy，避免本地路径归一、索引保留、孤儿文件和空目录处理再次分叉。',
       );
     });
 

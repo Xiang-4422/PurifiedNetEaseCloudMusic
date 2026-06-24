@@ -85,9 +85,14 @@ class NeteaseUserRemoteDataSource implements UserRemoteDataSource {
     required String randomLikedSongId,
     required bool fromPlayAll,
   }) async {
+    final normalizedStartSongId = normalizeNeteaseSongId(startSongId);
+    final normalizedRandomLikedSongId = normalizeNeteaseSongId(randomLikedSongId);
+    if (normalizedStartSongId.isEmpty || normalizedRandomLikedSongId.isEmpty) {
+      return const [];
+    }
     final wrap = await _api.playmodeIntelligenceList(
-      startSongId,
-      randomLikedSongId,
+      normalizedStartSongId,
+      normalizedRandomLikedSongId,
       fromPlayAll,
       count: 20,
     );
@@ -139,7 +144,14 @@ class NeteaseUserRemoteDataSource implements UserRemoteDataSource {
     String songId,
     bool like,
   ) async {
-    final result = await _api.likeSong(songId, like);
+    final normalizedSongId = normalizeNeteaseSongId(songId);
+    if (normalizedSongId.isEmpty) {
+      return (
+        success: false,
+        message: 'Expected a non-empty netease song id',
+      );
+    }
+    final result = await _api.likeSong(normalizedSongId, like);
     return (
       success: result.code == 200,
       message: result.message,

@@ -756,10 +756,18 @@ void main() {
       final violations = <String>[
         if (!planner.contains('List<List<String>> planNeteaseSongDetailBatches')) '${_relativePath(plannerFile)} does not define song detail batch planning',
         if (!planner.contains('List<String> normalizeNeteaseSongIds(Iterable<String> ids)')) '${_relativePath(plannerFile)} does not expose normalized song id list planning',
+        if (!planner.contains('MusicResourceId.toNeteaseSourceId(id).trim()')) '${_relativePath(plannerFile)} does not strip netease entity prefixes before request planning',
+        if (!planner.contains('sourceSongId.isEmpty || MusicResourceId.hasKnownPrefix(sourceSongId)')) '${_relativePath(plannerFile)} can still pass blank or non-netease song ids to request planning',
         if (!planner.contains('ids.map(normalizeNeteaseSongId).where((id) => id.isNotEmpty).toList()')) '${_relativePath(plannerFile)} does not normalize and filter request ids',
         if (!planner.contains('for (var start = 0; start < resolvedIds.length; start += batchSize)')) '${_relativePath(plannerFile)} does not advance song detail batches by request offset',
         if (!playlist.contains('planNeteaseSongDetailBatches(')) '${_relativePath(playlistFile)} does not use song detail batch planner',
         if (!user.contains('planNeteaseSongDetailBatches(ids: ids)')) '${_relativePath(userFile)} does not use song detail batch planner',
+        if (!user.contains('final normalizedStartSongId = normalizeNeteaseSongId(startSongId);')) '${_relativePath(userFile)} does not normalize heartbeat start song id before SDK request',
+        if (!user.contains('final normalizedRandomLikedSongId = normalizeNeteaseSongId(randomLikedSongId);')) '${_relativePath(userFile)} does not normalize heartbeat context song id before SDK request',
+        if (!user.contains('_api.playmodeIntelligenceList(')) '${_relativePath(userFile)} no longer calls heartbeat SDK through the remote data source',
+        if (!user.contains('normalizedStartSongId,\n      normalizedRandomLikedSongId,')) '${_relativePath(userFile)} can still call heartbeat SDK with raw ids',
+        if (!user.contains('final normalizedSongId = normalizeNeteaseSongId(songId);')) '${_relativePath(userFile)} does not normalize like song id before SDK request',
+        if (!user.contains('_api.likeSong(normalizedSongId, like)')) '${_relativePath(userFile)} can still toggle like with raw song id',
         if (playlist.contains('while (tracks.length')) '${_relativePath(playlistFile)} still advances requests by returned track count',
         if (user.contains('while (tracks.length')) '${_relativePath(userFile)} still advances requests by returned track count',
       ];
@@ -767,7 +775,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: '歌曲详情远端请求必须按规范化后的请求批次推进，不能依赖返回 track 数量，否则远端少返回或 mapper 过滤异常歌曲时会重复请求或卡住。',
+        reason: '歌曲详情和用户歌曲操作的远端请求必须按规范化后的网易云来源 id 推进，不能把应用前缀、本地 id 或空白 id 传给 SDK。',
       );
     });
 

@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:bujuan/core/entities/music_resource_id.dart';
+
 /// 规划网易云歌曲详情批量请求。
 List<List<String>> planNeteaseSongDetailBatches({
   required List<String> ids,
@@ -31,7 +33,11 @@ List<List<String>> planNeteaseSongDetailBatches({
 
 /// 规范化网易云原始歌曲 id。
 String normalizeNeteaseSongId(String id) {
-  return id.trim();
+  final sourceSongId = MusicResourceId.toNeteaseSourceId(id).trim();
+  if (sourceSongId.isEmpty || MusicResourceId.hasKnownPrefix(sourceSongId)) {
+    return '';
+  }
+  return sourceSongId;
 }
 
 /// 规范化网易云原始歌曲 id 列表，过滤空白值并保留顺序。

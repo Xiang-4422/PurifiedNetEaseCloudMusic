@@ -29,14 +29,16 @@ class CommentRepository {
     String? cursor,
     bool forceRefresh = false,
   }) async {
+    final normalizedId = _normalizedText(id);
+    final normalizedType = _normalizedText(type);
     final cacheKey = CommentListCacheKey(
-      id: id,
-      type: type,
+      id: normalizedId,
+      type: normalizedType,
       pageNo: pageNo,
       pageSize: pageSize,
       showInner: showInner,
       sortType: sortType ?? 99,
-      cursor: cursor ?? '0',
+      cursor: _normalizedCursor(cursor),
     );
     final freshCachedPage = forceRefresh ? null : await _loadFreshCommentPage(cacheKey);
     if (freshCachedPage != null) {
@@ -44,8 +46,8 @@ class CommentRepository {
     }
     try {
       final page = await _remoteDataSource.fetchComments(
-        id,
-        type,
+        cacheKey.id,
+        cacheKey.type,
         pageNo: cacheKey.pageNo,
         pageSize: cacheKey.pageSize,
         showInner: cacheKey.showInner,
@@ -105,10 +107,12 @@ class CommentRepository {
     int limit = 20,
     bool forceRefresh = false,
   }) async {
+    final normalizedId = _normalizedText(id);
+    final normalizedType = _normalizedText(type);
     final cacheKey = FloorCommentCacheKey(
-      id: id,
-      type: type,
-      parentCommentId: parentCommentId,
+      id: normalizedId,
+      type: normalizedType,
+      parentCommentId: _normalizedText(parentCommentId),
       time: time,
       limit: limit,
     );
@@ -118,9 +122,9 @@ class CommentRepository {
     }
     try {
       final page = await _remoteDataSource.fetchFloorComments(
-        id,
-        type,
-        parentCommentId,
+        cacheKey.id,
+        cacheKey.type,
+        cacheKey.parentCommentId,
         time: cacheKey.time,
         limit: cacheKey.limit,
       );
@@ -218,6 +222,18 @@ class CommentRepository {
         nextTime: nextTime,
       );
     } catch (_) {}
+  }
+
+  String _normalizedText(String value) {
+    return value.trim();
+  }
+
+  String _normalizedCursor(String? cursor) {
+    final normalized = cursor?.trim();
+    if (normalized == null || normalized.isEmpty) {
+      return '0';
+    }
+    return normalized;
   }
 
   /// 发送、回复或删除评论。

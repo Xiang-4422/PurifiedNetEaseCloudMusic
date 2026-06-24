@@ -22,6 +22,37 @@ void main() {
       expect(remoteDataSource.fetchCommentsCallCount, 1);
     });
 
+    test('normalizes comment cache key and remote parameters', () async {
+      final remoteDataSource = _FakeNeteaseCommentRemoteDataSource(
+        comments: [_comment('1')],
+      );
+      final repository = _buildRepository(remoteDataSource);
+
+      final first = await repository.fetchComments(
+        ' netease:101 ',
+        ' song ',
+        cursor: ' ',
+      );
+      remoteDataSource.comments = [_comment('2')];
+      final second = await repository.fetchComments('netease:101', 'song');
+
+      expect(first.items.map((item) => item.commentId), ['1']);
+      expect(second.items.map((item) => item.commentId), ['1']);
+      expect(remoteDataSource.fetchCommentsCallCount, 1);
+      expect(
+        remoteDataSource.commentRequests.single,
+        (
+          id: 'netease:101',
+          type: 'song',
+          pageNo: 1,
+          pageSize: 20,
+          showInner: false,
+          sortType: 99,
+          cursor: '0',
+        ),
+      );
+    });
+
     test('force refresh bypasses fresh cached comments and updates cache', () async {
       final remoteDataSource = _FakeNeteaseCommentRemoteDataSource(
         comments: [_comment('1')],
@@ -129,6 +160,40 @@ void main() {
       expect(remoteDataSource.fetchFloorCommentsCallCount, 2);
     });
 
+    test('normalizes floor comment cache key and remote parameters', () async {
+      final remoteDataSource = _FakeNeteaseCommentRemoteDataSource(
+        floorComments: [_comment('floor-1')],
+        floorNextTime: 123,
+      );
+      final repository = _buildRepository(remoteDataSource);
+
+      final first = await repository.fetchFloorComments(
+        ' netease:101 ',
+        ' song ',
+        ' parent-1 ',
+      );
+      remoteDataSource.floorComments = [_comment('floor-2')];
+      final second = await repository.fetchFloorComments(
+        'netease:101',
+        'song',
+        'parent-1',
+      );
+
+      expect(first.items.map((item) => item.commentId), ['floor-1']);
+      expect(second.items.map((item) => item.commentId), ['floor-1']);
+      expect(remoteDataSource.fetchFloorCommentsCallCount, 1);
+      expect(
+        remoteDataSource.floorCommentRequests.single,
+        (
+          id: 'netease:101',
+          type: 'song',
+          parentCommentId: 'parent-1',
+          time: -1,
+          limit: 20,
+        ),
+      );
+    });
+
     test('returns remote floor comments when cache save fails', () async {
       final remoteDataSource = _FakeNeteaseCommentRemoteDataSource(
         floorComments: [_comment('floor-remote')],
@@ -193,6 +258,8 @@ class _FakeNeteaseCommentRemoteDataSource implements NeteaseCommentRemoteDataSou
   Object? fetchFloorCommentsError;
   int fetchCommentsCallCount = 0;
   int fetchFloorCommentsCallCount = 0;
+  final commentRequests = <({String id, String type, int pageNo, int pageSize, bool showInner, int sortType, String cursor})>[];
+  final floorCommentRequests = <({String id, String type, String parentCommentId, int time, int limit})>[];
 
   @override
   Future<({bool hasMore, List<CommentData> items, String? nextCursor})> fetchComments(
@@ -205,6 +272,17 @@ class _FakeNeteaseCommentRemoteDataSource implements NeteaseCommentRemoteDataSou
     required String cursor,
   }) async {
     fetchCommentsCallCount++;
+    commentRequests.add(
+      (
+        id: id,
+        type: type,
+        pageNo: pageNo,
+        pageSize: pageSize,
+        showInner: showInner,
+        sortType: sortType,
+        cursor: cursor,
+      ),
+    );
     final error = fetchCommentsError;
     if (error != null) {
       throw error;
@@ -225,6 +303,15 @@ class _FakeNeteaseCommentRemoteDataSource implements NeteaseCommentRemoteDataSou
     required int limit,
   }) async {
     fetchFloorCommentsCallCount++;
+    floorCommentRequests.add(
+      (
+        id: id,
+        type: type,
+        parentCommentId: parentCommentId,
+        time: time,
+        limit: limit,
+      ),
+    );
     final error = fetchFloorCommentsError;
     if (error != null) {
       throw error;

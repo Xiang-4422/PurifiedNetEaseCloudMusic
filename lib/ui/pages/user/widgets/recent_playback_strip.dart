@@ -63,7 +63,10 @@ class RecentPlaybackStrip extends StatelessWidget {
                   padding: const EdgeInsets.only(right: AppDimensions.paddingSmall),
                   child: _RecentPlaybackTile(
                     song: song,
-                    isCurrent: song.id == currentSongId,
+                    isCurrent: isRecentPlaybackCurrentSong(
+                      itemId: song.id,
+                      currentSongId: currentSongId,
+                    ),
                     onTap: () => playbackAction.playPlaylist(
                       recentTracks,
                       index,
@@ -200,6 +203,17 @@ String recentPlaybackTileSemanticsLabel({
   final resolvedArtist = _recentPlaybackValue(artist, fallback: '未知艺人');
   final prefix = isCurrent ? '当前播放' : '播放最近播放';
   return '$prefix：$resolvedTitle - $resolvedArtist';
+}
+
+/// 判断最近播放条目是否是当前播放歌曲。
+@visibleForTesting
+bool isRecentPlaybackCurrentSong({
+  required String itemId,
+  required String currentSongId,
+}) {
+  final normalizedItemId = itemId.trim();
+  final normalizedCurrentSongId = currentSongId.trim();
+  return normalizedItemId.isNotEmpty && normalizedItemId == normalizedCurrentSongId;
 }
 
 String _recentPlaybackValue(String? value, {required String fallback}) {

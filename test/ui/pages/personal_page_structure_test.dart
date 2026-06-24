@@ -60,6 +60,30 @@ void main() {
     );
   });
 
+  test('recent playback current song match normalizes ids', () {
+    expect(
+      isRecentPlaybackCurrentSong(
+        itemId: ' netease:1 ',
+        currentSongId: 'netease:1',
+      ),
+      isTrue,
+    );
+    expect(
+      isRecentPlaybackCurrentSong(
+        itemId: 'netease:1',
+        currentSongId: ' netease:2 ',
+      ),
+      isFalse,
+    );
+    expect(
+      isRecentPlaybackCurrentSong(
+        itemId: '   ',
+        currentSongId: '   ',
+      ),
+      isFalse,
+    );
+  });
+
   test('library shortcuts expose stable semantics labels', () {
     expect(
       libraryShortcutSemanticsLabel(
@@ -402,6 +426,7 @@ void main() {
     expect(recentPlaybackSource, contains('ListView.builder('));
     expect(recentPlaybackSource, isNot(contains('ListView.separated(')));
     expect(recentPlaybackSource, contains('recentPlaybackTileSemanticsLabel('));
+    expect(recentPlaybackSource, contains('isRecentPlaybackCurrentSong('));
     expect(recentPlaybackSource, contains('Semantics('));
     expect(recentPlaybackSource, contains('button: true'));
     expect(recentPlaybackSource, contains('selected: isCurrent'));

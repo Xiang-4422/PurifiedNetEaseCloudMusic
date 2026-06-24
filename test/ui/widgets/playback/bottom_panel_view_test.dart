@@ -37,6 +37,12 @@ void main() {
       expect(miniPlayerPlayPauseControlLabel(isPlaying: true), '暂停');
     });
 
+    test('builds swipe skip labels', () {
+      expect(miniPlayerSwipeControlHint(), '左滑上一首，右滑下一首');
+      expect(miniPlayerSkipActionLabel(skipToNext: false), '上一首');
+      expect(miniPlayerSkipActionLabel(skipToNext: true), '下一首');
+    });
+
     test('calculates collapsed and expanded transition layout', () {
       final collapsed = miniPlayerTransitionLayout(
         panelOpenDegree: 0,
@@ -264,6 +270,10 @@ void main() {
     expect(miniPlayerSource, contains('required this.settingsController'));
     expect(miniPlayerSource, contains('miniPlayerExpandControlLabel'));
     expect(miniPlayerSource, contains('miniPlayerPlayPauseControlLabel'));
+    expect(miniPlayerSource, contains('miniPlayerSwipeControlHint'));
+    expect(miniPlayerSource, contains('miniPlayerSkipActionLabel'));
+    expect(miniPlayerSource, contains('onDecrease'));
+    expect(miniPlayerSource, contains('onIncrease'));
     expect(miniPlayerSource, contains('playbackProgressSemanticsLabel('));
     expect(miniPlayerSource, contains('openBottomPanelFromMiniPlayer'));
     expect(miniPlayerSource, isNot(contains('PlayerController.to')));

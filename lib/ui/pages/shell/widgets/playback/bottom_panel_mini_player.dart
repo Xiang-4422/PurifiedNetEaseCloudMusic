@@ -36,11 +36,17 @@ class BottomPanelHeaderView extends GetView<ShellController> {
         title: currentSong.title,
         artist: currentSong.artist,
       );
+      final swipeHint = miniPlayerSwipeControlHint();
       return Offstage(
         offstage: controller.bottomPanelFullyOpened.isTrue,
         child: Semantics(
           button: true,
           label: expandLabel,
+          hint: swipeHint,
+          decreasedValue: miniPlayerSkipActionLabel(skipToNext: false),
+          increasedValue: miniPlayerSkipActionLabel(skipToNext: true),
+          onDecrease: playerController.skipToPreviousTrack,
+          onIncrease: playerController.skipToNextTrack,
           child: Tooltip(
             message: expandLabel,
             child: GestureDetector(
@@ -332,4 +338,16 @@ String miniPlayerExpandControlLabel({
 @visibleForTesting
 String miniPlayerPlayPauseControlLabel({required bool isPlaying}) {
   return isPlaying ? '暂停' : '播放';
+}
+
+/// 生成 mini player 滑动切歌的辅助提示。
+@visibleForTesting
+String miniPlayerSwipeControlHint() {
+  return '左滑上一首，右滑下一首';
+}
+
+/// 生成 mini player 辅助切歌动作的标签。
+@visibleForTesting
+String miniPlayerSkipActionLabel({required bool skipToNext}) {
+  return skipToNext ? '下一首' : '上一首';
 }

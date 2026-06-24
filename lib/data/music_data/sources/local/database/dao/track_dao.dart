@@ -17,10 +17,11 @@ class TrackDao {
 
   /// 搜索曲目。
   Future<List<Track>> searchTracks(String keyword) async {
-    if (keyword.isEmpty) {
+    final normalizedKeyword = keyword.trim();
+    if (normalizedKeyword.isEmpty) {
       return const [];
     }
-    final likeKeyword = '%$keyword%';
+    final likeKeyword = '%$normalizedKeyword%';
     final rows = await (_database.select(_database.tracks)
           ..where(
             (tbl) => tbl.title.like(likeKeyword) | tbl.artistSearchText.like(likeKeyword) | (tbl.albumTitle.isNotNull() & tbl.albumTitle.like(likeKeyword)),
@@ -31,7 +32,11 @@ class TrackDao {
 
   /// 获取曲目。
   Future<Track?> getTrack(String trackId) async {
-    final row = await (_database.select(_database.tracks)..where((tbl) => tbl.trackId.equals(trackId))).getSingleOrNull();
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return null;
+    }
+    final row = await (_database.select(_database.tracks)..where((tbl) => tbl.trackId.equals(normalizedTrackId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -40,7 +45,7 @@ class TrackDao {
 
   /// 按 id 批量获取曲目。
   Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
-    final ids = trackIds.toSet().toList();
+    final ids = _candidateTrackIds(trackIds);
     if (ids.isEmpty) {
       return const [];
     }
@@ -50,19 +55,27 @@ class TrackDao {
 
   /// 按专辑来源 id 获取曲目。
   Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
-    final rows = await (_database.select(_database.tracks)..where((tbl) => tbl.albumSourceId.equals(albumSourceId))).get();
+    final normalizedAlbumId = _normalizedAlbumId(albumSourceId);
+    if (_isBlankAlbumId(normalizedAlbumId)) {
+      return const [];
+    }
+    final rows = await (_database.select(_database.tracks)..where((tbl) => tbl.albumSourceId.equals(normalizedAlbumId))).get();
     return _mapTrackRows(rows);
   }
 
   /// 按歌手来源 id 获取曲目。
   Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
+    final normalizedArtistId = _normalizedArtistId(artistSourceId);
+    if (_isBlankArtistId(normalizedArtistId)) {
+      return const [];
+    }
     final query = _database.select(_database.tracks).join([
       drift.innerJoin(
         _database.trackArtistRefs,
         _database.trackArtistRefs.trackId.equalsExp(_database.tracks.trackId),
       ),
     ])
-      ..where(_database.trackArtistRefs.artistSourceId.equals(artistSourceId))
+      ..where(_database.trackArtistRefs.artistSourceId.equals(normalizedArtistId))
       ..orderBy([
         drift.OrderingTerm.asc(_database.trackArtistRefs.sortOrder),
       ]);
@@ -75,12 +88,16 @@ class TrackDao {
     if (tracks.isEmpty) {
       return;
     }
-    final trackIds = tracks.map((track) => track.id).toList();
+    final normalizedTracks = tracks.map(_normalizedTrackForSave).where((track) => !_isBlankTrackId(track.id)).toList();
+    if (normalizedTracks.isEmpty) {
+      return;
+    }
+    final trackIds = normalizedTracks.map((track) => track.id).toList();
     await _database.transaction(() async {
       await _database.batch((batch) {
         batch.insertAllOnConflictUpdate(
           _database.tracks,
-          tracks
+          normalizedTracks
               .map(
                 (track) => db.TracksCompanion(
                   trackId: drift.Value(track.id),
@@ -105,7 +122,7 @@ class TrackDao {
       for (final trackIdChunk in _chunks(trackIds, 500)) {
         await (_database.delete(_database.trackArtistRefs)..where((tbl) => tbl.trackId.isIn(trackIdChunk))).go();
       }
-      final artistRefs = tracks.expand((track) {
+      final artistRefs = normalizedTracks.expand((track) {
         return _artistSourceIdsForSave(track).asMap().entries.map(
               (entry) => db.TrackArtistRefsCompanion.insert(
                 trackId: track.id,
@@ -127,7 +144,11 @@ class TrackDao {
 
   /// 获取曲目歌词。
   Future<TrackLyrics?> getLyrics(String trackId) async {
-    final row = await (_database.select(_database.trackLyricsEntries)..where((tbl) => tbl.trackId.equals(trackId))).getSingleOrNull();
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return null;
+    }
+    final row = await (_database.select(_database.trackLyricsEntries)..where((tbl) => tbl.trackId.equals(normalizedTrackId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -135,10 +156,14 @@ class TrackDao {
   }
 
   /// 保存曲目歌词。
-  Future<void> saveLyrics(String trackId, TrackLyrics lyrics) {
-    return _database.into(_database.trackLyricsEntries).insertOnConflictUpdate(
+  Future<void> saveLyrics(String trackId, TrackLyrics lyrics) async {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return;
+    }
+    await _database.into(_database.trackLyricsEntries).insertOnConflictUpdate(
           db.TrackLyricsEntriesCompanion(
-            trackId: drift.Value(trackId),
+            trackId: drift.Value(normalizedTrackId),
             main: drift.Value(lyrics.main),
             translated: drift.Value(lyrics.translated),
           ),
@@ -147,20 +172,29 @@ class TrackDao {
 
   /// 删除曲目。
   Future<void> removeTrack(String trackId) {
-    return (_database.delete(_database.tracks)..where((tbl) => tbl.trackId.equals(trackId))).go();
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return Future.value();
+    }
+    return (_database.delete(_database.tracks)..where((tbl) => tbl.trackId.equals(normalizedTrackId))).go();
   }
 
   /// 删除曲目歌词。
   Future<void> removeLyrics(String trackId) {
-    return (_database.delete(_database.trackLyricsEntries)..where((tbl) => tbl.trackId.equals(trackId))).go();
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return Future.value();
+    }
+    return (_database.delete(_database.trackLyricsEntries)..where((tbl) => tbl.trackId.equals(normalizedTrackId))).go();
   }
 
   /// 搜索专辑。
   Future<List<AlbumEntity>> searchAlbums(String keyword) async {
-    if (keyword.isEmpty) {
+    final normalizedKeyword = keyword.trim();
+    if (normalizedKeyword.isEmpty) {
       return const [];
     }
-    final likeKeyword = '%$keyword%';
+    final likeKeyword = '%$normalizedKeyword%';
     final rows = await (_database.select(_database.albums)
           ..where(
             (tbl) => tbl.title.like(likeKeyword) | tbl.artistSearchText.like(likeKeyword),
@@ -171,7 +205,11 @@ class TrackDao {
 
   /// 获取专辑。
   Future<AlbumEntity?> getAlbum(String albumId) async {
-    final row = await (_database.select(_database.albums)..where((tbl) => tbl.albumId.equals(albumId))).getSingleOrNull();
+    final normalizedAlbumId = _normalizedAlbumId(albumId);
+    if (_isBlankAlbumId(normalizedAlbumId)) {
+      return null;
+    }
+    final row = await (_database.select(_database.albums)..where((tbl) => tbl.albumId.equals(normalizedAlbumId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -180,10 +218,14 @@ class TrackDao {
 
   /// 保存专辑列表。
   Future<void> saveAlbums(List<AlbumEntity> albums) async {
+    final normalizedAlbums = albums.map(_normalizedAlbumForSave).where((album) => !_isBlankAlbumId(album.id)).toList();
+    if (normalizedAlbums.isEmpty) {
+      return;
+    }
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
         _database.albums,
-        albums
+        normalizedAlbums
             .map(
               (album) => db.AlbumsCompanion(
                 albumId: drift.Value(album.id),
@@ -205,16 +247,21 @@ class TrackDao {
 
   /// 搜索歌手。
   Future<List<ArtistEntity>> searchArtists(String keyword) async {
-    if (keyword.isEmpty) {
+    final normalizedKeyword = keyword.trim();
+    if (normalizedKeyword.isEmpty) {
       return const [];
     }
-    final rows = await (_database.select(_database.artists)..where((tbl) => tbl.name.like('%$keyword%'))).get();
+    final rows = await (_database.select(_database.artists)..where((tbl) => tbl.name.like('%$normalizedKeyword%'))).get();
     return rows.map(_mapArtistRow).toList();
   }
 
   /// 获取歌手。
   Future<ArtistEntity?> getArtist(String artistId) async {
-    final row = await (_database.select(_database.artists)..where((tbl) => tbl.artistId.equals(artistId))).getSingleOrNull();
+    final normalizedArtistId = _normalizedArtistId(artistId);
+    if (_isBlankArtistId(normalizedArtistId)) {
+      return null;
+    }
+    final row = await (_database.select(_database.artists)..where((tbl) => tbl.artistId.equals(normalizedArtistId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -223,10 +270,14 @@ class TrackDao {
 
   /// 保存歌手列表。
   Future<void> saveArtists(List<ArtistEntity> artists) async {
+    final normalizedArtists = artists.map(_normalizedArtistForSave).where((artist) => !_isBlankArtistId(artist.id)).toList();
+    if (normalizedArtists.isEmpty) {
+      return;
+    }
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
         _database.artists,
-        artists
+        normalizedArtists
             .map(
               (artist) => db.ArtistsCompanion(
                 artistId: drift.Value(artist.id),
@@ -242,12 +293,77 @@ class TrackDao {
     });
   }
 
+  Track _normalizedTrackForSave(Track track) {
+    return track.copyWith(
+      id: _normalizedTrackId(track.id),
+      albumId: _normalizedOptionalId(track.resolvedAlbumId),
+      artistIds: _normalizedIds(track.resolvedArtistIds),
+    );
+  }
+
+  AlbumEntity _normalizedAlbumForSave(AlbumEntity album) {
+    return album.copyWith(id: _normalizedAlbumId(album.id));
+  }
+
+  ArtistEntity _normalizedArtistForSave(ArtistEntity artist) {
+    return artist.copyWith(id: _normalizedArtistId(artist.id));
+  }
+
+  List<String> _candidateTrackIds(Iterable<String> trackIds) {
+    return _normalizedIds(trackIds);
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
+  }
+
+  bool _isBlankTrackId(String trackId) {
+    return trackId.isEmpty;
+  }
+
+  String _normalizedAlbumId(String albumId) {
+    return albumId.trim();
+  }
+
+  bool _isBlankAlbumId(String albumId) {
+    return albumId.isEmpty;
+  }
+
+  String _normalizedArtistId(String artistId) {
+    return artistId.trim();
+  }
+
+  bool _isBlankArtistId(String artistId) {
+    return artistId.isEmpty;
+  }
+
+  String? _normalizedOptionalId(Object? value) {
+    final normalizedValue = _stringOrNull(value);
+    if (normalizedValue == null || normalizedValue.isEmpty) {
+      return null;
+    }
+    return normalizedValue;
+  }
+
+  List<String> _normalizedIds(Iterable<String> ids) {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final id in ids) {
+      final normalizedId = id.trim();
+      if (normalizedId.isEmpty || !seen.add(normalizedId)) {
+        continue;
+      }
+      result.add(normalizedId);
+    }
+    return result;
+  }
+
   String? _albumSourceId(Track track) {
-    return track.resolvedAlbumId;
+    return _normalizedOptionalId(track.resolvedAlbumId);
   }
 
   List<String> _artistSourceIdsForSave(Track track) {
-    return track.resolvedArtistIds;
+    return _normalizedIds(track.resolvedArtistIds);
   }
 
   Iterable<List<T>> _chunks<T>(List<T> items, int size) sync* {
@@ -332,7 +448,7 @@ class TrackDao {
   }
 
   List<String> _metadataArtistSourceIds(Map<String, Object?> metadata) {
-    return (metadata['artistIds'] as List? ?? const []).map((item) => '$item').where((item) => item.isNotEmpty).toList(growable: false);
+    return _normalizedIds((metadata['artistIds'] as List? ?? const []).map((item) => '$item'));
   }
 
   Map<String, Object?> _customMetadata(Map<String, Object?> metadata) {
@@ -342,10 +458,11 @@ class TrackDao {
   }
 
   String? _stringOrNull(Object? value) {
-    if (value == null || '$value'.isEmpty) {
+    final normalizedValue = '$value'.trim();
+    if (value == null || normalizedValue.isEmpty) {
       return null;
     }
-    return '$value';
+    return normalizedValue;
   }
 
   AlbumEntity _mapAlbumRow(db.Album row) {

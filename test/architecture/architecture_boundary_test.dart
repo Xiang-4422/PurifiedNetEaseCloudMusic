@@ -1902,6 +1902,39 @@ void main() {
       );
     });
 
+    test('track dao normalizes persisted library ids', () {
+      final daoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/track_dao.dart',
+      );
+      final dao = daoFile.readAsStringSync();
+      final violations = <String>[
+        if (!dao.contains('String _normalizedTrackId(String trackId)')) '${_relativePath(daoFile)} does not normalize track ids',
+        if (!dao.contains('bool _isBlankTrackId(String trackId)')) '${_relativePath(daoFile)} does not guard blank track ids',
+        if (!dao.contains('String _normalizedAlbumId(String albumId)')) '${_relativePath(daoFile)} does not normalize album ids',
+        if (!dao.contains('String _normalizedArtistId(String artistId)')) '${_relativePath(daoFile)} does not normalize artist ids',
+        if (!dao.contains('List<String> _candidateTrackIds(Iterable<String> trackIds)')) '${_relativePath(daoFile)} does not normalize batch track lookups',
+        if (!dao.contains('Track _normalizedTrackForSave(Track track)')) '${_relativePath(daoFile)} does not normalize tracks before persistence',
+        if (!dao.contains('AlbumEntity _normalizedAlbumForSave(AlbumEntity album)')) '${_relativePath(daoFile)} does not normalize albums before persistence',
+        if (!dao.contains('ArtistEntity _normalizedArtistForSave(ArtistEntity artist)')) '${_relativePath(daoFile)} does not normalize artists before persistence',
+        if (!dao.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) '${_relativePath(daoFile)} can still query lyrics or tracks by raw track ids',
+        if (!dao.contains('final normalizedTracks = tracks.map(_normalizedTrackForSave).where((track) => !_isBlankTrackId(track.id)).toList();')) '${_relativePath(daoFile)} can still persist blank or raw track ids',
+        if (!dao.contains('final artistRefs = normalizedTracks.expand((track) {')) '${_relativePath(daoFile)} can still write raw track artist refs',
+        if (!dao.contains('trackId: drift.Value(normalizedTrackId)')) '${_relativePath(daoFile)} can still write raw lyric track ids',
+        if (!dao.contains('tbl.trackId.equals(normalizedTrackId)')) '${_relativePath(daoFile)} can still read or delete raw track ids',
+        if (!dao.contains('tbl.albumSourceId.equals(normalizedAlbumId)')) '${_relativePath(daoFile)} can still read raw album ids',
+        if (!dao.contains('artistSourceId.equals(normalizedArtistId)')) '${_relativePath(daoFile)} can still read raw artist ids',
+        if (!dao.contains('return _normalizedIds(track.resolvedArtistIds);')) '${_relativePath(daoFile)} can still write blank or duplicate artist refs',
+        if (!dao.contains('albumId: drift.Value(album.id)')) '${_relativePath(daoFile)} can still write raw album ids',
+        if (!dao.contains('artistId: drift.Value(artist.id)')) '${_relativePath(daoFile)} can still write raw artist ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'tracks、track_lyrics_entries、albums、artists 和 track_artist_refs 都是曲库事实表，DAO 边界必须归一曲目、专辑和歌手 id 并拒绝空白 key。',
+      );
+    });
+
     test('setting sections receive settings controller boundary', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

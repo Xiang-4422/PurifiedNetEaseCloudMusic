@@ -18,9 +18,16 @@ class NeteaseRadioRemoteDataSource implements RadioRemoteDataSource {
     required int offset,
     required int limit,
   }) async {
+    if (!_hasUsableLimit(limit)) {
+      return (
+        items: const <RadioSummaryData>[],
+        itemCount: 0,
+      );
+    }
+    final normalizedOffset = _normalizedOffset(offset);
     final wrap = await _api.djRadioSubList(
       total: total,
-      offset: offset,
+      offset: normalizedOffset,
       limit: limit,
     );
     final radios = wrap.djRadios;
@@ -39,15 +46,16 @@ class NeteaseRadioRemoteDataSource implements RadioRemoteDataSource {
     required bool asc,
   }) async {
     final normalizedRadioId = _normalizedRadioSourceId(radioId);
-    if (normalizedRadioId.isEmpty) {
+    if (normalizedRadioId.isEmpty || !_hasUsableLimit(limit)) {
       return (
         items: const <RadioProgramData>[],
         itemCount: 0,
       );
     }
+    final normalizedOffset = _normalizedOffset(offset);
     final wrap = await _api.djProgramList(
       normalizedRadioId,
-      offset: offset,
+      offset: normalizedOffset,
       limit: limit,
       asc: asc,
     );
@@ -64,5 +72,13 @@ class NeteaseRadioRemoteDataSource implements RadioRemoteDataSource {
       return '';
     }
     return sourceRadioId;
+  }
+
+  int _normalizedOffset(int offset) {
+    return offset < 0 ? 0 : offset;
+  }
+
+  bool _hasUsableLimit(int limit) {
+    return limit > 0;
   }
 }

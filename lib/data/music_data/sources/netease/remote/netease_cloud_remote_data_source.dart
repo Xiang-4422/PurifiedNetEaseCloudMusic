@@ -16,7 +16,11 @@ class NeteaseCloudRemoteDataSource implements CloudRemoteDataSource {
     required int offset,
     required int limit,
   }) {
-    return _api.cloudSong(offset: offset, limit: limit).then((wrap) {
+    if (!_hasUsableLimit(limit)) {
+      return Future.value((tracks: const <Track>[], itemCount: 0));
+    }
+    final normalizedOffset = _normalizedOffset(offset);
+    return _api.cloudSong(offset: normalizedOffset, limit: limit).then((wrap) {
       final songs = wrap.data ?? const [];
       final tracks = NeteaseTrackMapper.fromCloudSongList(songs);
       return (
@@ -24,5 +28,13 @@ class NeteaseCloudRemoteDataSource implements CloudRemoteDataSource {
         itemCount: songs.length,
       );
     });
+  }
+
+  int _normalizedOffset(int offset) {
+    return offset < 0 ? 0 : offset;
+  }
+
+  bool _hasUsableLimit(int limit) {
+    return limit > 0;
   }
 }

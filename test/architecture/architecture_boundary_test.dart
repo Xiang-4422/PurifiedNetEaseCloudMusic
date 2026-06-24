@@ -684,6 +684,44 @@ void main() {
       );
     });
 
+    test('netease paged remote requests normalize pagination before SDK calls', () {
+      final cloudFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_cloud_remote_data_source.dart',
+      );
+      final radioFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_radio_remote_data_source.dart',
+      );
+      final cloud = cloudFile.readAsStringSync();
+      final radio = radioFile.readAsStringSync();
+      final radioOffsetNormalizationCount = RegExp(
+        r'final normalizedOffset = _normalizedOffset\(offset\);',
+      ).allMatches(radio).length;
+      final radioSdkOffsetUsageCount = RegExp(
+        r'offset: normalizedOffset',
+      ).allMatches(radio).length;
+      final radioLimitGuardCount = RegExp(
+        r'!_hasUsableLimit\(limit\)',
+      ).allMatches(radio).length;
+      final violations = <String>[
+        if (!cloud.contains('if (!_hasUsableLimit(limit))')) '${_relativePath(cloudFile)} can still fetch cloud songs with a non-positive limit',
+        if (!cloud.contains('final normalizedOffset = _normalizedOffset(offset);')) '${_relativePath(cloudFile)} does not normalize cloud page offsets',
+        if (!cloud.contains('_api.cloudSong(offset: normalizedOffset, limit: limit)')) '${_relativePath(cloudFile)} can still fetch cloud songs with raw page offset',
+        if (!cloud.contains('int _normalizedOffset(int offset)')) '${_relativePath(cloudFile)} does not define cloud offset normalization',
+        if (!cloud.contains('bool _hasUsableLimit(int limit)')) '${_relativePath(cloudFile)} does not define cloud limit validation',
+        if (radioOffsetNormalizationCount < 2) '${_relativePath(radioFile)} does not normalize subscribed radio and program page offsets',
+        if (radioSdkOffsetUsageCount < 2) '${_relativePath(radioFile)} can still call radio SDK page requests with raw offsets',
+        if (radioLimitGuardCount < 2) '${_relativePath(radioFile)} does not reject invalid subscribed radio and program page limits',
+        if (!radio.contains('int _normalizedOffset(int offset)')) '${_relativePath(radioFile)} does not define radio offset normalization',
+        if (!radio.contains('bool _hasUsableLimit(int limit)')) '${_relativePath(radioFile)} does not define radio limit validation',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '云盘和播客分页请求进入 SDK 前必须归一 offset 并拒绝非正 limit，避免无效翻页条件触发远端请求。',
+      );
+    });
+
     test('netease comment boundary normalizes remote comment ids', () {
       final mapperFile = File(
         '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_comment_mapper.dart',

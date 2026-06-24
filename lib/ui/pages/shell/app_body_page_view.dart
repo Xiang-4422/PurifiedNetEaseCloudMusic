@@ -1,6 +1,5 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/ui/pages/explore/explore_page.dart';
 import 'package:bujuan/ui/pages/settings/setting_page.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/personal_home_controller_bundle.dart';
@@ -102,8 +101,6 @@ class DrawerMainScreenView extends GetView<ShellController> {
         );
       case HomeShellPageKind.recommendedPlaylists:
         return _absorbed(const RecommendedPlaylistsPageView());
-      case HomeShellPageKind.explore:
-        return _absorbed(const ExplorePageView());
       case HomeShellPageKind.settings:
         return _absorbed(const SettingPageView());
       case null:

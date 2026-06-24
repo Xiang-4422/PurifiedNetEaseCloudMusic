@@ -67,13 +67,6 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
       '/home/user',
     ),
     ShellMenuItemData(
-      HomeShellPageKind.explore,
-      '探索',
-      TablerIcons.smart_home,
-      Routes.index,
-      '/home/index',
-    ),
-    ShellMenuItemData(
       HomeShellPageKind.settings,
       '设置',
       TablerIcons.settings,
@@ -96,13 +89,6 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
       TablerIcons.playlist,
       Routes.index,
       '/home/recommended-playlists',
-    ),
-    ShellMenuItemData(
-      HomeShellPageKind.explore,
-      '探索',
-      TablerIcons.smart_home,
-      Routes.index,
-      '/home/index',
     ),
     ShellMenuItemData(
       HomeShellPageKind.settings,
@@ -183,9 +169,6 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
     }
     return menus[index].kind;
   }
-
-  /// 判断指定索引是否为探索页。
-  bool isExplorePageIndex(int index) => pageKindAt(index) == HomeShellPageKind.explore;
 
   /// 切换到指定首页分页。
   bool switchHomePage(int index) {
@@ -287,7 +270,6 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
       case HomeShellPageKind.personal:
         return _defaultHomePageTitle;
       case HomeShellPageKind.recommendedPlaylists:
-      case HomeShellPageKind.explore:
       case HomeShellPageKind.settings:
         return leftMenus[pageIndex].title;
       case null:
@@ -352,9 +334,6 @@ enum HomeShellPageKind {
 
   /// 方屏下独立展示的推荐。
   recommendedPlaylists,
-
-  /// 探索页。
-  explore,
 
   /// 设置页。
   settings,

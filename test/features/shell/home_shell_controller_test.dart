@@ -5,59 +5,52 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('HomeShellController layout menus', () {
-    test('uses focused normal three-page menu by default', () {
+    test('uses focused normal two-page menu by default', () {
       final controller = HomeShellController();
+
+      expect(controller.homePageCount, 2);
+      expect(
+        controller.leftMenus.map((menu) => menu.kind),
+        [
+          HomeShellPageKind.personal,
+          HomeShellPageKind.settings,
+        ],
+      );
+      expect(controller.leftMenus.map((menu) => menu.title), [
+        '我的音乐',
+        '设置',
+      ]);
+    });
+
+    test('adds recommendations before settings on square screens', () {
+      final controller = HomeShellController();
+
+      controller.updateHomeLayoutMode(isSquareLike: true);
 
       expect(controller.homePageCount, 3);
       expect(
         controller.leftMenus.map((menu) => menu.kind),
         [
           HomeShellPageKind.personal,
-          HomeShellPageKind.explore,
-          HomeShellPageKind.settings,
-        ],
-      );
-      expect(controller.leftMenus.map((menu) => menu.title), [
-        '我的音乐',
-        '探索',
-        '设置',
-      ]);
-      expect(controller.isExplorePageIndex(1), isTrue);
-    });
-
-    test('adds recommended playlists before explore on square screens', () {
-      final controller = HomeShellController();
-
-      controller.updateHomeLayoutMode(isSquareLike: true);
-
-      expect(controller.homePageCount, 4);
-      expect(
-        controller.leftMenus.map((menu) => menu.kind),
-        [
-          HomeShellPageKind.personal,
           HomeShellPageKind.recommendedPlaylists,
-          HomeShellPageKind.explore,
           HomeShellPageKind.settings,
         ],
       );
       expect(controller.leftMenus.map((menu) => menu.title), [
         '我的音乐',
         '推荐',
-        '探索',
         '设置',
       ]);
-      expect(controller.isExplorePageIndex(1), isFalse);
-      expect(controller.isExplorePageIndex(2), isTrue);
     });
 
     test('resets page index if a layout change removes the current page', () {
       final controller = HomeShellController();
       controller.updateHomeLayoutMode(isSquareLike: true);
-      controller.curHomePageIndex.value = 3;
+      controller.curHomePageIndex.value = 2;
 
       controller.updateHomeLayoutMode(isSquareLike: false);
 
-      expect(controller.homePageCount, 3);
+      expect(controller.homePageCount, 2);
       expect(controller.curHomePageIndex.value, 0);
     });
 

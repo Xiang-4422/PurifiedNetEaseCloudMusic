@@ -112,10 +112,10 @@ void main() {
     expect(drawerProfileActionLabel(), '打开个人资料');
     expect(
       drawerMenuActionLabel(
-        title: ' 探索 ',
+        title: ' 设置 ',
         isCurrent: false,
       ),
-      '切换到探索',
+      '切换到设置',
     );
     expect(
       drawerMenuActionLabel(

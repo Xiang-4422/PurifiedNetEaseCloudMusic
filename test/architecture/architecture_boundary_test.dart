@@ -3324,15 +3324,17 @@ void main() {
         if (shellController.contains('HomeShellPageKind.coffee')) '${_relativePath(shellControllerFile)} restores coffee as a shell page kind',
         if (shellController.contains("Routes.coffee")) '${_relativePath(shellControllerFile)} restores coffee route in shell menus',
         if (shellController.contains("'捐赠'")) '${_relativePath(shellControllerFile)} restores donation as a main navigation item',
+        if (body.contains('ExplorePageView') || body.contains('explore_page.dart')) '${_relativePath(bodyFile)} restores explore as a shell body page',
+        if (shellController.contains('HomeShellPageKind.explore')) '${_relativePath(shellControllerFile)} restores explore as a shell page kind',
+        if (shellController.contains("'探索'")) '${_relativePath(shellControllerFile)} restores explore as a main navigation item',
         if (!shellController.contains("'我的音乐'")) '${_relativePath(shellControllerFile)} does not expose focused music entry label',
-        if (!shellController.contains("'探索'")) '${_relativePath(shellControllerFile)} does not expose focused explore entry label',
         if (!shellController.contains("'设置'")) '${_relativePath(shellControllerFile)} does not expose focused settings entry label',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '首页壳层负责读取 HomeShellController 并通过局部 scope 传给路由子树；主导航只保留听歌相关路径，不能恢复捐赠/咖啡等非听歌入口。',
+        reason: '首页壳层负责读取 HomeShellController 并通过局部 scope 传给路由子树；主导航只保留听歌相关路径，不能恢复探索、捐赠/咖啡等非核心入口。',
       );
     });
 
@@ -3440,7 +3442,9 @@ void main() {
         if (controller.contains('HomeShellController.to')) 'explore controller reads global shell controller',
         if (!controller.contains('required ExplorePageVisibility pageVisibility')) 'explore controller does not accept visibility boundary',
         if (!bootstrap.contains('pageVisibility: ExplorePageVisibility(')) 'feature bootstrap does not inject explore visibility boundary',
-        if (!bootstrap.contains('shellController.isExplorePageIndex')) 'feature bootstrap does not bind explore visibility to shell page kind',
+        if (bootstrap.contains('shellController.isExplorePageIndex')) 'feature bootstrap still binds explore visibility to shell main navigation',
+        if (!bootstrap.contains('isVisible: () => true')) 'feature bootstrap does not keep explore self-contained for secondary use',
+        if (!bootstrap.contains('watchVisible: (_) => () {}')) 'feature bootstrap still waits for shell page visibility',
         if (!page.contains('controller.resolvePlaylistPlayback(playlist)')) '${_relativePath(pageFile)} does not resolve playlist playback through controller',
         if (!controller.contains('Future<ExplorePlaylistPlaybackPlan> resolvePlaylistPlayback')) 'explore controller does not expose playlist playback resolution',
         if (!controller.contains('final likedSongIds = _likedSongIdsSnapshot();')) 'explore controller does not resolve playback with normalized liked ids snapshot',

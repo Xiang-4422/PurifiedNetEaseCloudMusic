@@ -201,6 +201,31 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
   /// 判断指定索引是否为探索页。
   bool isExplorePageIndex(int index) => pageKindAt(index) == HomeShellPageKind.explore;
 
+  /// 切换到指定首页分页。
+  bool switchHomePage(int index) {
+    if (index < 0 || index >= homePageCount) {
+      return false;
+    }
+    if (!homePageController.hasClients) {
+      return false;
+    }
+    final currentPage = _safeCurrentHomePage();
+    if ((currentPage - index).abs() < 0.01) {
+      return false;
+    }
+    unawaited(
+      homePageController.animateToPage(
+        index,
+        duration: homePageSwitchAnimationDuration(
+          currentPage: currentPage,
+          targetIndex: index,
+        ),
+        curve: Curves.linear,
+      ),
+    );
+    return true;
+  }
+
   /// 初始化抽屉开合监听。
   void initZoomDrawerListener() {
     if (_zoomDrawerListenerInitialized) {
@@ -291,6 +316,14 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
     }
   }
 
+  double _safeCurrentHomePage() {
+    final currentPage = homePageController.page;
+    if (currentPage == null || !currentPage.isFinite) {
+      return curHomePageIndex.value.toDouble();
+    }
+    return currentPage;
+  }
+
   void _updateCloseDrawerTimer(double timeValue) {
     _closeDrawerTimer?.cancel();
     if (timeValue <= 0) {
@@ -314,6 +347,23 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
     searchFocusNode.dispose();
     super.onClose();
   }
+}
+
+/// 计算首页分页切换动画时长。
+@visibleForTesting
+Duration homePageSwitchAnimationDuration({
+  required double currentPage,
+  required int targetIndex,
+  int onePageAnimationMs = 200,
+}) {
+  if (!currentPage.isFinite || onePageAnimationMs <= 0) {
+    return Duration.zero;
+  }
+  final distance = (currentPage - targetIndex).abs();
+  if (distance == 0) {
+    return Duration.zero;
+  }
+  return Duration(milliseconds: onePageAnimationMs * distance.ceil());
 }
 
 /// 首页壳层页面类型。

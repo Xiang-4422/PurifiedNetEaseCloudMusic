@@ -290,6 +290,8 @@ void main() {
     expect(appBodySource, contains('MenuView(homeShellController: homeShellController)'));
     expect(appBodySource, contains('tooltip: drawerProfileActionLabel()'));
     expect(appBodySource, contains('tooltip: drawerMenuActionLabel('));
+    expect(appBodySource, contains('homeShellController.switchHomePage(index)'));
+    expect(appBodySource, isNot(contains('animateToPage(')));
   });
 
   test('user playlist library page lists account playlists without data source access', () {

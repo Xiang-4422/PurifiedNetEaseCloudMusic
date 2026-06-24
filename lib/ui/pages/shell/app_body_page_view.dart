@@ -221,20 +221,7 @@ class MenuView extends GetView<ShellController> {
                             isCurrent: isCurrent,
                           ),
                           onPressed: () {
-                            final pageController = homeShellController.homePageController;
-                            if (!pageController.hasClients) {
-                              return;
-                            }
-                            const onePageAnimationTime = 200;
-                            final currentPage = pageController.page ?? homeShellController.curHomePageIndex.value.toDouble();
-                            final animationTime = Duration(
-                              milliseconds: onePageAnimationTime * (currentPage - index).abs().toInt(),
-                            );
-                            pageController.animateToPage(
-                              index,
-                              duration: animationTime,
-                              curve: Curves.linear,
-                            );
+                            homeShellController.switchHomePage(index);
                           },
                           icon: Icon(
                             menu.icon,

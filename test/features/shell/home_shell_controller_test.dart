@@ -62,5 +62,36 @@ void main() {
       expect(controller.homePageCount, 4);
       expect(controller.curHomePageIndex.value, 0);
     });
+
+    test('calculates stable page switch animation durations', () {
+      expect(
+        homePageSwitchAnimationDuration(
+          currentPage: 0,
+          targetIndex: 0,
+        ),
+        Duration.zero,
+      );
+      expect(
+        homePageSwitchAnimationDuration(
+          currentPage: 0.3,
+          targetIndex: 1,
+        ),
+        const Duration(milliseconds: 200),
+      );
+      expect(
+        homePageSwitchAnimationDuration(
+          currentPage: 0.7,
+          targetIndex: 2,
+        ),
+        const Duration(milliseconds: 400),
+      );
+      expect(
+        homePageSwitchAnimationDuration(
+          currentPage: double.nan,
+          targetIndex: 1,
+        ),
+        Duration.zero,
+      );
+    });
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/state/load_state.dart';
@@ -59,7 +61,9 @@ class _MyRadioViewState extends State<MyRadioView> {
                 return const LoadingView();
               }
               if (state.hasInitialError) {
-                return const ErrorView();
+                return ErrorView(
+                  onRetry: () => unawaited(_controller.loadInitial()),
+                );
               }
               if (state.isEmpty) {
                 return const EmptyView();

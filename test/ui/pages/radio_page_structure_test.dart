@@ -10,6 +10,9 @@ void main() {
     expect(source, contains('ListView.builder('));
     expect(source, contains('itemExtent: myRadioListItemExtent'));
     expect(source, contains('height: myRadioListItemExtent'));
+    expect(source, contains('ErrorView('));
+    expect(source, contains('onRetry: () => unawaited(_controller.loadInitial())'));
+    expect(source, isNot(contains('return const ErrorView();')));
     expect(source, isNot(contains('shrinkWrap: true')));
   });
 
@@ -19,6 +22,9 @@ void main() {
     expect(source, contains('const double radioProgramListCacheExtent = 480;'));
     expect(source, contains('ListView.builder('));
     expect(source, contains('cacheExtent: radioProgramListCacheExtent'));
+    expect(source, contains('ErrorView('));
+    expect(source, contains('onRetry: () => unawaited(_controller.loadInitial())'));
+    expect(source, isNot(contains('return const ErrorView();')));
     expect(source, isNot(contains('shrinkWrap: true')));
   });
 }

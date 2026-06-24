@@ -559,6 +559,12 @@ void main() {
         if (!mapper.contains('id: entityId')) '${_relativePath(mapperFile)} can still write raw netease track entity ids',
         if (!mapper.contains('sourceId: songId')) '${_relativePath(mapperFile)} can still write raw netease source ids',
         if (!mapper.contains('lyricKey: entityId')) '${_relativePath(mapperFile)} can still write raw netease lyric keys',
+        if (!mapper.contains('albumId: _normalizedOptionalId(song.album?.id)')) '${_relativePath(mapperFile)} can still write raw old song album ids',
+        if (!mapper.contains('artistIds: _normalizedIds((song.artists ?? []).map((artist) => artist.id))')) '${_relativePath(mapperFile)} can still write raw old song artist ids',
+        if (!mapper.contains('albumId: _normalizedOptionalId(song.al?.id)')) '${_relativePath(mapperFile)} can still write raw new song album ids',
+        if (!mapper.contains('artistIds: _normalizedIds((song.ar ?? []).map((artist) => artist.id))')) '${_relativePath(mapperFile)} can still write raw new song artist ids',
+        if (!mapper.contains('String? _normalizedOptionalId(Object? value)')) '${_relativePath(mapperFile)} does not define optional album/artist id normalization',
+        if (!mapper.contains('List<String> _normalizedIds(Iterable<Object?> values)')) '${_relativePath(mapperFile)} does not define album/artist id list normalization',
         if (!mapper.contains('songs.where((song) => _normalizedSongId(song.id).isNotEmpty)')) '${_relativePath(mapperFile)} can still batch-map blank remote song ids',
         if (!mapper.contains('songs.where((song) => _normalizedSongId(song.simpleSong.id).isNotEmpty)')) '${_relativePath(mapperFile)} can still batch-map blank cloud simple song ids',
       ];
@@ -566,7 +572,36 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: '网易云远端歌曲进入领域 Track 前必须规范化歌曲 id，并在批量 mapper 边界过滤空白 id，避免脏 API 数据进入播放和缓存链路。',
+        reason: '网易云远端歌曲进入领域 Track 前必须规范化歌曲、专辑和歌手 id，并在批量 mapper 边界过滤空白 id，避免脏 API 数据进入播放和缓存链路。',
+      );
+    });
+
+    test('netease album and artist mappers normalize remote ids', () {
+      final albumMapperFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_album_mapper.dart',
+      );
+      final artistMapperFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_artist_mapper.dart',
+      );
+      final albumMapper = albumMapperFile.readAsStringSync();
+      final artistMapper = artistMapperFile.readAsStringSync();
+      final violations = <String>[
+        if (!albumMapper.contains('final albumId = _normalizedAlbumId(album.id);')) '${_relativePath(albumMapperFile)} still maps album ids without normalization',
+        if (!albumMapper.contains('id: _neteaseAlbumEntityId(albumId)')) '${_relativePath(albumMapperFile)} can still write raw album entity ids',
+        if (!albumMapper.contains('sourceId: albumId')) '${_relativePath(albumMapperFile)} can still write raw album source ids',
+        if (!albumMapper.contains('albums.where((album) => _normalizedAlbumId(album.id).isNotEmpty)')) '${_relativePath(albumMapperFile)} can still batch-map blank album ids',
+        if (!albumMapper.contains('String _normalizedAlbumId(String id)')) '${_relativePath(albumMapperFile)} does not define album id normalization',
+        if (!artistMapper.contains('final artistId = _normalizedArtistId(artist.id);')) '${_relativePath(artistMapperFile)} still maps artist ids without normalization',
+        if (!artistMapper.contains('id: _neteaseArtistEntityId(artistId)')) '${_relativePath(artistMapperFile)} can still write raw artist entity ids',
+        if (!artistMapper.contains('sourceId: artistId')) '${_relativePath(artistMapperFile)} can still write raw artist source ids',
+        if (!artistMapper.contains('artists.where((artist) => _normalizedArtistId(artist.id).isNotEmpty)')) '${_relativePath(artistMapperFile)} can still batch-map blank artist ids',
+        if (!artistMapper.contains('String _normalizedArtistId(String id)')) '${_relativePath(artistMapperFile)} does not define artist id normalization',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '网易云专辑和歌手进入领域实体前必须规范化来源 id，并在批量 mapper 边界过滤空白 id，避免脏 id 写入资料库和页面缓存。',
       );
     });
 

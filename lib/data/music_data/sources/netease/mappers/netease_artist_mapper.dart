@@ -9,10 +9,11 @@ class NeteaseArtistMapper {
 
   /// 将网易云歌手模型转换为领域歌手实体。
   static ArtistEntity fromArtist(Artist artist) {
+    final artistId = _normalizedArtistId(artist.id);
     return ArtistEntity(
-      id: 'netease:${artist.id}',
+      id: _neteaseArtistEntityId(artistId),
       sourceType: SourceType.netease,
-      sourceId: artist.id,
+      sourceId: artistId,
       name: artist.name ?? '',
       artworkUrl: artist.picUrl ?? artist.img1v1Url,
       description: artist.briefDesc,
@@ -21,6 +22,14 @@ class NeteaseArtistMapper {
 
   /// 将网易云歌手列表转换为领域歌手实体列表。
   static List<ArtistEntity> fromArtistList(List<Artist> artists) {
-    return artists.map(fromArtist).toList();
+    return artists.where((artist) => _normalizedArtistId(artist.id).isNotEmpty).map(fromArtist).toList();
+  }
+
+  static String _neteaseArtistEntityId(String artistId) {
+    return artistId.isEmpty ? '' : 'netease:$artistId';
+  }
+
+  static String _normalizedArtistId(String id) {
+    return id.trim();
   }
 }

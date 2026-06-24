@@ -9,10 +9,11 @@ class NeteaseAlbumMapper {
 
   /// 将网易云专辑模型转换为领域专辑实体。
   static AlbumEntity fromAlbum(Album album) {
+    final albumId = _normalizedAlbumId(album.id);
     return AlbumEntity(
-      id: 'netease:${album.id}',
+      id: _neteaseAlbumEntityId(albumId),
       sourceType: SourceType.netease,
-      sourceId: album.id,
+      sourceId: albumId,
       title: album.name ?? '',
       artworkUrl: album.picUrl,
       artistNames: {
@@ -27,6 +28,14 @@ class NeteaseAlbumMapper {
 
   /// 将网易云专辑列表转换为领域专辑实体列表。
   static List<AlbumEntity> fromAlbumList(List<Album> albums) {
-    return albums.map(fromAlbum).toList();
+    return albums.where((album) => _normalizedAlbumId(album.id).isNotEmpty).map(fromAlbum).toList();
+  }
+
+  static String _neteaseAlbumEntityId(String albumId) {
+    return albumId.isEmpty ? '' : 'netease:$albumId';
+  }
+
+  static String _normalizedAlbumId(String id) {
+    return id.trim();
   }
 }

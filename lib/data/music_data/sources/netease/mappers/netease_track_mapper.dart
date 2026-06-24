@@ -18,8 +18,8 @@ class NeteaseTrackMapper {
       title: song.name ?? '',
       artistNames: (song.artists ?? []).map((artist) => artist.name ?? '').toList(),
       albumTitle: song.album?.name,
-      albumId: _stringOrNull(song.album?.id),
-      artistIds: (song.artists ?? []).map((artist) => _stringOrNull(artist.id)).whereType<String>().toList(),
+      albumId: _normalizedOptionalId(song.album?.id),
+      artistIds: _normalizedIds((song.artists ?? []).map((artist) => artist.id)),
       durationMs: song.duration,
       artworkUrl: song.album?.picUrl,
       lyricKey: entityId,
@@ -42,8 +42,8 @@ class NeteaseTrackMapper {
       title: song.name ?? '',
       artistNames: (song.ar ?? []).map((artist) => artist.name ?? '').toList(),
       albumTitle: song.al?.name,
-      albumId: _stringOrNull(song.al?.id),
-      artistIds: (song.ar ?? []).map((artist) => _stringOrNull(artist.id)).whereType<String>().toList(),
+      albumId: _normalizedOptionalId(song.al?.id),
+      artistIds: _normalizedIds((song.ar ?? []).map((artist) => artist.id)),
       durationMs: song.dt,
       artworkUrl: song.al?.picUrl,
       lyricKey: entityId,
@@ -90,6 +90,15 @@ class NeteaseTrackMapper {
 
   static String _normalizedSongId(String id) {
     return id.trim();
+  }
+
+  static String? _normalizedOptionalId(Object? value) {
+    final normalized = _stringOrNull(value)?.trim();
+    return normalized == null || normalized.isEmpty ? null : normalized;
+  }
+
+  static List<String> _normalizedIds(Iterable<Object?> values) {
+    return values.map(_normalizedOptionalId).whereType<String>().toList();
   }
 
   static String? _stringOrNull(Object? value) {

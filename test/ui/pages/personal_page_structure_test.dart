@@ -266,8 +266,12 @@ void main() {
     expect(source, contains('controller.userPlayLists'));
     expect(source, contains('const double _userPlaylistLibraryCacheExtent = 360;'));
     expect(source, contains('cacheExtent: _userPlaylistLibraryCacheExtent'));
-    expect(source, contains('ListView.separated('));
-    expect(source, contains('PlayListItem(playlists[index])'));
+    expect(source, contains('prototypeItem: const Padding('));
+    expect(source, contains('child: PlayListItem(_userPlaylistLibraryPrototypePlaylist)'));
+    expect(source, contains('const PlaylistSummaryData _userPlaylistLibraryPrototypePlaylist'));
+    expect(source, contains('ListView.builder('));
+    expect(source, isNot(contains('ListView.separated(')));
+    expect(source, contains('child: PlayListItem(playlists[index])'));
     expect(source, contains("Text('暂无歌单')"));
     expect(source, isNot(contains('package:bujuan/data/')));
     expect(source, isNot(contains('_data_source.dart')));

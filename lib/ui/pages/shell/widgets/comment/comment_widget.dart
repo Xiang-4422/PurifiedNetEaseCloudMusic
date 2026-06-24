@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/core/state/load_state.dart' show PagedState;
 import 'package:bujuan/core/entities/comment_data.dart';
 import 'package:bujuan/features/comment/comment_controller_factory.dart';
@@ -84,7 +86,9 @@ class _CommentWidgetState extends State<CommentWidget> {
           return const LoadingView();
         }
         if (state.hasInitialError) {
-          return const ErrorView();
+          return ErrorView(
+            onRetry: () => unawaited(_controller.loadInitial()),
+          );
         }
         if (state.isEmpty) {
           return const EmptyView();

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/core/state/load_state.dart';
@@ -145,7 +147,9 @@ class _FoolTalkState extends State<FoolTalk> {
                     return const LoadingView();
                   }
                   if (state.hasInitialError) {
-                    return const ErrorView();
+                    return ErrorView(
+                      onRetry: () => unawaited(_controller.loadInitial(force: true)),
+                    );
                   }
                   if (state.isEmpty) {
                     return const EmptyView();

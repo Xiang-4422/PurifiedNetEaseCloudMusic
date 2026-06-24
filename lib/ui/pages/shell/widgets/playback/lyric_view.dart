@@ -14,10 +14,11 @@ import 'package:get/get.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 /// 底部播放面板中的歌词列表视图。
-class LyricView extends GetView<ShellController> {
+class LyricView extends StatelessWidget {
   /// 创建歌词列表视图。
   const LyricView(
     this.lyricPadding, {
+    required this.shellController,
     required this.playerController,
     required this.settingsController,
     super.key,
@@ -25,6 +26,9 @@ class LyricView extends GetView<ShellController> {
 
   /// 歌词行按钮的内边距。
   final EdgeInsetsGeometry lyricPadding;
+
+  /// 壳层控制器，提供歌词滚动控制和用户滚动状态。
+  final ShellController shellController;
 
   /// 播放控制器，提供歌词状态、进度和 seek 操作。
   final PlayerController playerController;
@@ -39,13 +43,13 @@ class LyricView extends GetView<ShellController> {
       onNotification: (notification) {
         // 判断滚动是否是用户手势触发
         if (notification is ScrollStartNotification) {
-          if (notification.dragDetails != null && !controller.isLyricScrollingByItself) {
-            controller.isLyricScrollingByUser = true;
+          if (notification.dragDetails != null && !shellController.isLyricScrollingByItself) {
+            shellController.isLyricScrollingByUser = true;
           }
           // 滚动结束时重置用户滚动状态 (这里只是一个辅助，主要靠计时器)
         } else if (notification is ScrollEndNotification) {
-          controller.isLyricScrollingByUser = false;
-          controller.isLyricScrollingByItself = false;
+          shellController.isLyricScrollingByUser = false;
+          shellController.isLyricScrollingByItself = false;
         }
         // 返回 false 让通知继续冒泡，以便 itemPositionsNotifier 也能收到
         return false;
@@ -59,7 +63,7 @@ class LyricView extends GetView<ShellController> {
               builder: (context, constraints) {
                 final viewportHeight = constraints.maxHeight.isFinite ? constraints.maxHeight : MediaQuery.sizeOf(context).height;
                 return ScrollablePositionedList.builder(
-                  itemScrollController: controller.lyricScrollController,
+                  itemScrollController: shellController.lyricScrollController,
                   itemCount: lyricState.lines.length + 2,
                   itemBuilder: (BuildContext context, int index) {
                     Widget child;

@@ -11,13 +11,17 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 /// 底部播放面板收起态的迷你播放栏。
-class BottomPanelHeaderView extends GetView<ShellController> {
+class BottomPanelHeaderView extends StatelessWidget {
   /// 创建迷你播放栏。
   const BottomPanelHeaderView({
+    required this.shellController,
     required this.playerController,
     required this.settingsController,
     super.key,
   });
+
+  /// 壳层控制器，提供底部面板展开和封面过渡状态。
+  final ShellController shellController;
 
   /// 播放控制器。
   final PlayerController playerController;
@@ -38,7 +42,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
       );
       final swipeHint = miniPlayerSwipeControlHint();
       return Offstage(
-        offstage: controller.bottomPanelFullyOpened.isTrue,
+        offstage: shellController.bottomPanelFullyOpened.isTrue,
         child: Semantics(
           button: true,
           label: expandLabel,
@@ -50,12 +54,12 @@ class BottomPanelHeaderView extends GetView<ShellController> {
           child: Tooltip(
             message: expandLabel,
             child: GestureDetector(
-              onTap: () => controller.openBottomPanelFromMiniPlayer(),
+              onTap: () => shellController.openBottomPanelFromMiniPlayer(),
               child: AnimatedBuilder(
-                animation: controller.bottomPanelAnimationController,
+                animation: shellController.bottomPanelAnimationController,
                 builder: (context, child) {
                   final layout = miniPlayerTransitionLayout(
-                    panelOpenDegree: controller.bottomPanelAnimationController.value,
+                    panelOpenDegree: shellController.bottomPanelAnimationController.value,
                     availableWidth: context.width,
                     topPadding: context.mediaQueryPadding.top,
                   );
@@ -109,7 +113,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                           maintainState: true,
                           maintainAnimation: true,
                           maintainSize: true,
-                          visible: controller.isBigAlbum.isTrue && controller.bottomPanelFullyOpened.isFalse,
+                          visible: shellController.isBigAlbum.isTrue && shellController.bottomPanelFullyOpened.isFalse,
                           child: Container(
                             margin: EdgeInsets.only(
                               top: layout.albumTopMargin,
@@ -140,7 +144,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                           maintainState: true,
                           maintainAnimation: true,
                           maintainSize: true,
-                          visible: controller.isBigAlbum.isFalse && controller.bottomPanelFullyOpened.isFalse,
+                          visible: shellController.isBigAlbum.isFalse && shellController.bottomPanelFullyOpened.isFalse,
                           child: Container(
                             height: AppDimensions.bottomPanelHeaderHeight,
                             alignment: Alignment.centerLeft,
@@ -164,7 +168,7 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                         // 播放按钮
                         Obx(
                           () => Offstage(
-                            offstage: controller.bottomPanelFullyClosed.isFalse,
+                            offstage: shellController.bottomPanelFullyClosed.isFalse,
                             child: Container(
                               alignment: Alignment.centerRight,
                               margin: const EdgeInsets.all(

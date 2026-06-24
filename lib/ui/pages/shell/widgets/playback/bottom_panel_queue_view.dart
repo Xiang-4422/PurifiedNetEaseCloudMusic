@@ -15,13 +15,17 @@ const _currentQueueItemColor = Colors.red;
 const double _bottomPanelQueueCacheExtent = 480;
 
 /// 底部播放面板中的当前播放队列视图。
-class BottomPanelQueueView extends GetView<ShellController> {
+class BottomPanelQueueView extends StatelessWidget {
   /// 创建当前播放队列视图。
   const BottomPanelQueueView({
     super.key,
+    required this.shellController,
     required this.playerController,
     required this.settingsController,
   });
+
+  /// 壳层控制器，提供队列滚动控制器。
+  final ShellController shellController;
 
   /// 播放控制器。
   final PlayerController playerController;
@@ -42,7 +46,7 @@ class BottomPanelQueueView extends GetView<ShellController> {
           behavior: const NoGlowScrollBehavior(),
           child: Obx(
             () => ListView.builder(
-              controller: controller.playListScrollController,
+              controller: shellController.playListScrollController,
               cacheExtent: _bottomPanelQueueCacheExtent,
               itemExtent: itemExtent,
               physics: const ClampingScrollPhysics(),

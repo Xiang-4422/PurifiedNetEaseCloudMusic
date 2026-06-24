@@ -47,12 +47,16 @@ class BottomPanelBackgroundLayer extends StatelessWidget {
 }
 
 /// 底部播放面板 PageView 的上下边缘渐隐遮罩。
-class BottomPanelContentFadeMask extends GetView<ShellController> {
+class BottomPanelContentFadeMask extends StatelessWidget {
   /// 创建内容渐隐遮罩。
   const BottomPanelContentFadeMask({
+    required this.shellController,
     required this.settingsController,
     super.key,
   });
+
+  /// 壳层控制器，提供底部面板开合状态。
+  final ShellController shellController;
 
   /// 设置控制器，提供播放面板取色。
   final SettingsController settingsController;
@@ -61,7 +65,7 @@ class BottomPanelContentFadeMask extends GetView<ShellController> {
   Widget build(BuildContext context) {
     return Obx(
       () => Offstage(
-        offstage: controller.bottomPanelFullyOpened.isFalse,
+        offstage: shellController.bottomPanelFullyOpened.isFalse,
         child: Column(
           children: [
             _FadeBand(

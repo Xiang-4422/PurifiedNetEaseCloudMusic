@@ -10,13 +10,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// 正在播放页的大封面态元信息区，展示专辑、歌手和播放进度。
-class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
+class BottomPanelNowPlayingMetadata extends StatelessWidget {
   /// 创建正在播放页元信息区。
   const BottomPanelNowPlayingMetadata({
+    required this.shellController,
     required this.playerController,
     required this.settingsController,
     super.key,
   });
+
+  /// 壳层控制器，提供大封面态和底部面板关闭动作。
+  final ShellController shellController;
 
   /// 播放控制器，向子组件提供播放状态。
   final PlayerController playerController;
@@ -41,7 +45,7 @@ class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
         maintainSize: true,
         maintainAnimation: true,
         maintainState: true,
-        visible: controller.isBigAlbum.isTrue,
+        visible: shellController.isBigAlbum.isTrue,
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: albumPadding,
@@ -50,12 +54,14 @@ class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _AlbumInfoChip(
+                shellController: shellController,
                 playerController: playerController,
                 settingsController: settingsController,
                 labelWidth: labelWidth,
                 valueMaxWidth: valueMaxWidth,
               ).marginOnly(top: albumPadding),
               _ArtistInfoChip(
+                shellController: shellController,
                 playerController: playerController,
                 settingsController: settingsController,
                 labelWidth: labelWidth,
@@ -75,14 +81,16 @@ class BottomPanelNowPlayingMetadata extends GetView<ShellController> {
   }
 }
 
-class _AlbumInfoChip extends GetView<ShellController> {
+class _AlbumInfoChip extends StatelessWidget {
   const _AlbumInfoChip({
+    required this.shellController,
     required this.playerController,
     required this.settingsController,
     required this.labelWidth,
     required this.valueMaxWidth,
   });
 
+  final ShellController shellController;
   final PlayerController playerController;
   final SettingsController settingsController;
   final double labelWidth;
@@ -138,7 +146,7 @@ class _AlbumInfoChip extends GetView<ShellController> {
                         onTap: canOpenAlbum
                             ? () async {
                                 final router = context.router;
-                                await controller.bottomPanelController.close();
+                                await shellController.bottomPanelController.close();
                                 router.push(
                                   const gr.AlbumRouteView().copyWith(
                                     queryParams: {'albumId': albumId},
@@ -185,14 +193,16 @@ class _AlbumInfoChip extends GetView<ShellController> {
   }
 }
 
-class _ArtistInfoChip extends GetView<ShellController> {
+class _ArtistInfoChip extends StatelessWidget {
   const _ArtistInfoChip({
+    required this.shellController,
     required this.playerController,
     required this.settingsController,
     required this.labelWidth,
     required this.valueMaxWidth,
   });
 
+  final ShellController shellController;
   final PlayerController playerController;
   final SettingsController settingsController;
   final double labelWidth;
@@ -254,6 +264,7 @@ class _ArtistInfoChip extends GetView<ShellController> {
                             : [
                                 for (final artist in artists)
                                   _ArtistRouteChip(
+                                    shellController: shellController,
                                     artist: artist,
                                     settingsController: settingsController,
                                   ),
@@ -272,12 +283,14 @@ class _ArtistInfoChip extends GetView<ShellController> {
   }
 }
 
-class _ArtistRouteChip extends GetView<ShellController> {
+class _ArtistRouteChip extends StatelessWidget {
   const _ArtistRouteChip({
+    required this.shellController,
     required this.artist,
     required this.settingsController,
   });
 
+  final ShellController shellController;
   final _ArtistChipData artist;
   final SettingsController settingsController;
 
@@ -308,7 +321,7 @@ class _ArtistRouteChip extends GetView<ShellController> {
             onTap: canOpenArtist
                 ? () async {
                     final router = context.router;
-                    await controller.closeBottomPanel();
+                    await shellController.closeBottomPanel();
                     router.push(
                       const gr.ArtistRouteView().copyWith(
                         queryParams: {'artistId': artist.id},

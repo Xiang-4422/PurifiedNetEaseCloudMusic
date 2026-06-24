@@ -68,10 +68,12 @@ class AppHomePageView extends GetView<ShellController> {
                 minHeight: AppDimensions.bottomPanelHeaderHeight + context.mediaQueryPadding.bottom,
                 maxHeight: context.height,
                 header: BottomPanelHeaderView(
+                  shellController: controller,
                   playerController: playerController,
                   settingsController: settingsController,
                 ),
                 panel: BottomPanelView(
+                  shellController: controller,
                   commentControllerFactory: commentControllerFactory,
                   playerController: playerController,
                   settingsController: settingsController,

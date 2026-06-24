@@ -27,13 +27,17 @@ String bottomPanelSessionTitleLabel({
 }
 
 /// 底部播放面板页面指示器，展示队列、正在播放和评论分页。
-class BottomPanelPageIndicator extends GetView<ShellController> {
+class BottomPanelPageIndicator extends StatelessWidget {
   /// 创建页面指示器。
   const BottomPanelPageIndicator({
+    required this.shellController,
     required this.playerController,
     required this.settingsController,
     super.key,
   });
+
+  /// 壳层控制器，提供当前面板分页和 tab 控制器。
+  final ShellController shellController;
 
   /// 播放控制器，提供当前播放会话标题。
   final PlayerController playerController;
@@ -62,11 +66,11 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
               ),
               clipBehavior: Clip.hardEdge,
               decoration: BoxDecoration(
-                color: controller.isBigAlbum.isTrue ? settingsController.panelWidgetColor.value.withValues(alpha: 0.05) : Colors.transparent,
+                color: shellController.isBigAlbum.isTrue ? settingsController.panelWidgetColor.value.withValues(alpha: 0.05) : Colors.transparent,
                 borderRadius: BorderRadius.circular(albumPadding),
               ),
               child: MyTabBarItemAnimatedSwitcher(
-                isTabBarVisible: controller.curPanelPageIndex.value == 0,
+                isTabBarVisible: shellController.curPanelPageIndex.value == 0,
                 replaceItem: Tooltip(
                   message: sessionTitleLabel,
                   excludeFromSemantics: true,
@@ -115,7 +119,7 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
                 tabItem: MyTabBar(
                   height: albumPadding,
                   color: settingsController.panelWidgetColor.value,
-                  controller: controller.bottomPanelTabController,
+                  controller: shellController.bottomPanelTabController,
                   tabs: [
                     Text(
                       '播放列表',
@@ -131,7 +135,7 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
                     ),
                     Obx(
                       () => MyTabBarItemAnimatedSwitcher(
-                        isTabBarVisible: controller.curPanelPageIndex.value > 1,
+                        isTabBarVisible: shellController.curPanelPageIndex.value > 1,
                         tabItem: Text(
                           '歌曲评论',
                           style: context.textTheme.titleMedium?.copyWith(
@@ -140,7 +144,7 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
                         ),
                         replaceItem: MyTabBar(
                           height: albumPadding,
-                          controller: controller.bottomPanelCommentTabController,
+                          controller: shellController.bottomPanelCommentTabController,
                           color: settingsController.panelWidgetColor.value,
                           tabs: [
                             Text(

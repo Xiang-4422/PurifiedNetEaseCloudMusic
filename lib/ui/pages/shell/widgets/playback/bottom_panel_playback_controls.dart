@@ -74,13 +74,17 @@ class BottomPanelProgressBar extends StatelessWidget {
 }
 
 /// 底部播放面板播放控制按钮组。
-class BottomPanelPlaybackControls extends GetView<ShellController> {
+class BottomPanelPlaybackControls extends StatelessWidget {
   /// 创建播放控制按钮组。
   const BottomPanelPlaybackControls({
+    required this.shellController,
     required this.playerController,
     required this.settingsController,
     super.key,
   });
+
+  /// 壳层控制器，提供封面大图状态。
+  final ShellController shellController;
 
   /// 播放控制器，提供播放状态和控制意图。
   final PlayerController playerController;
@@ -110,6 +114,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               semanticsLabel: playbackLikeControlLabel(isLiked: isLiked),
               onTap: () => playerController.toggleLikeFromPlayback(currentSong),
               child: _ButtonBackground(
+                shellController: shellController,
                 settingsController: settingsController,
                 child: Icon(
                   isLiked ? TablerIcons.heart_filled : TablerIcons.heart,
@@ -122,6 +127,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               semanticsLabel: '上一首',
               onTap: playerController.skipToPreviousTrack,
               child: _ButtonBackground(
+                shellController: shellController,
                 settingsController: settingsController,
                 child: Icon(
                   TablerIcons.player_skip_back_filled,
@@ -136,6 +142,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               ),
               onTap: playerController.playOrPause,
               child: _ButtonBackground(
+                shellController: shellController,
                 settingsController: settingsController,
                 child: Icon(
                   isPlaying ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
@@ -148,6 +155,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               semanticsLabel: '下一首',
               onTap: playerController.skipToNextTrack,
               child: _ButtonBackground(
+                shellController: shellController,
                 settingsController: settingsController,
                 child: Icon(
                   TablerIcons.player_skip_forward_filled,
@@ -162,6 +170,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               ),
               onTap: playerController.toggleHighQualityPlaybackPreference,
               child: _ButtonBackground(
+                shellController: shellController,
                 settingsController: settingsController,
                 child: Icon(
                   preferHighQuality ? TablerIcons.diamond : TablerIcons.wave_sine,
@@ -178,6 +187,7 @@ class BottomPanelPlaybackControls extends GetView<ShellController> {
               ),
               onTap: playerController.handleRepeatModeTap,
               child: _ButtonBackground(
+                shellController: shellController,
                 settingsController: settingsController,
                 child: Icon(
                   repeatIcon,
@@ -264,11 +274,14 @@ String playbackModeControlLabel({
   };
 }
 
-class _ButtonBackground extends GetView<ShellController> {
+class _ButtonBackground extends StatelessWidget {
   const _ButtonBackground({
+    required this.shellController,
     required this.settingsController,
     required this.child,
   });
+
+  final ShellController shellController;
 
   final SettingsController settingsController;
 
@@ -278,11 +291,11 @@ class _ButtonBackground extends GetView<ShellController> {
   Widget build(BuildContext context) {
     return Obx(
       () => BlurryContainer(
-        blur: controller.isBigAlbum.isTrue ? 0 : 5,
+        blur: shellController.isBigAlbum.isTrue ? 0 : 5,
         padding: const EdgeInsets.all(_controlButtonPadding),
         borderRadius: BorderRadius.circular(100),
         color: settingsController.panelWidgetColor.value.withValues(
-          alpha: controller.isBigAlbum.isTrue ? 0 : 0.05,
+          alpha: shellController.isBigAlbum.isTrue ? 0 : 0.05,
         ),
         child: child,
       ),

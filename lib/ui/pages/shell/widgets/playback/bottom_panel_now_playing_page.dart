@@ -20,13 +20,17 @@ String bottomPanelLyricAreaControlLabel({
 }
 
 /// 底部播放面板的正在播放页，组合歌词、专辑歌手信息和控制区。
-class BottomPanelNowPlayingPage extends GetView<ShellController> {
+class BottomPanelNowPlayingPage extends StatelessWidget {
   /// 创建正在播放页。
   const BottomPanelNowPlayingPage({
+    required this.shellController,
     required this.playerController,
     required this.settingsController,
     super.key,
   });
+
+  /// 壳层控制器，提供封面、歌词和面板状态。
+  final ShellController shellController;
 
   /// 播放控制器，处理歌词全屏和封面切换交互。
   final PlayerController playerController;
@@ -59,7 +63,7 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
                   fullScreenLyricOpen: playerController.isFullScreenLyricOpen.isTrue,
                 );
                 return Offstage(
-                  offstage: controller.isBigAlbum.value,
+                  offstage: shellController.isBigAlbum.value,
                   child: Tooltip(
                     message: lyricAreaLabel,
                     child: Semantics(
@@ -74,6 +78,7 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
                           ),
                           child: LyricView(
                             const EdgeInsets.symmetric(vertical: 10),
+                            shellController: shellController,
                             playerController: playerController,
                             settingsController: settingsController,
                           ),
@@ -86,21 +91,23 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
             ),
             Obx(
               () => Offstage(
-                offstage: playerController.isFullScreenLyricOpen.isTrue && controller.isBigAlbum.isFalse,
+                offstage: playerController.isFullScreenLyricOpen.isTrue && shellController.isBigAlbum.isFalse,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Obx(
                       () => Container(
-                        height: controller.isBigAlbum.isTrue ? 0 : context.width - albumPadding,
+                        height: shellController.isBigAlbum.isTrue ? 0 : context.width - albumPadding,
                       ),
                     ),
                     BottomPanelNowPlayingMetadata(
+                      shellController: shellController,
                       playerController: playerController,
                       settingsController: settingsController,
                     ),
                     Expanded(
                       child: BottomPanelPlaybackControls(
+                        shellController: shellController,
                         playerController: playerController,
                         settingsController: settingsController,
                       ),
@@ -120,8 +127,8 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
       playerController.isFullScreenLyricOpen.value = false;
       return;
     }
-    controller.isAlbumScaleEnded.value = false;
-    controller.isBigAlbum.value = true;
+    shellController.isAlbumScaleEnded.value = false;
+    shellController.isBigAlbum.value = true;
     playerController.updateFullScreenLyricTimerCounter(
       cancelTimer: true,
     );

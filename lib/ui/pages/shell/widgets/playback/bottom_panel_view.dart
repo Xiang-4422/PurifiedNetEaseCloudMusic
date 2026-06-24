@@ -15,14 +15,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// 底部播放面板主视图，组合队列、歌词、评论和播放控制区域。
-class BottomPanelView extends GetView<ShellController> {
+class BottomPanelView extends StatelessWidget {
   /// 创建底部播放面板主视图。
   const BottomPanelView({
+    required this.shellController,
     required this.commentControllerFactory,
     required this.playerController,
     required this.settingsController,
     Key? key,
   }) : super(key: key);
+
+  /// 壳层控制器。
+  final ShellController shellController;
 
   /// 评论控制器工厂。
   final CommentControllerFactory commentControllerFactory;
@@ -41,25 +45,25 @@ class BottomPanelView extends GetView<ShellController> {
       children: [
         // 背景层
         BottomPanelBackgroundLayer(
-          controller: controller,
+          controller: shellController,
           settingsController: settingsController,
         ),
         // 内容
         Column(
           children: [
             BottomPanelHeader(
-              controller: controller,
+              controller: shellController,
               playerController: playerController,
               settingsController: settingsController,
             ),
             // 专辑占位
             Obx(() => Offstage(
-                  offstage: controller.isBigAlbum.isFalse,
+                  offstage: shellController.isBigAlbum.isFalse,
                   child: Visibility(
                     maintainSize: true,
                     maintainAnimation: true,
                     maintainState: true,
-                    visible: controller.bottomPanelFullyOpened.isTrue && controller.isAlbumScaleEnded.isTrue,
+                    visible: shellController.bottomPanelFullyOpened.isTrue && shellController.isAlbumScaleEnded.isTrue,
                     child: SizedBox(height: context.width - albumPadding),
                   ),
                 )),
@@ -68,13 +72,15 @@ class BottomPanelView extends GetView<ShellController> {
               child: Stack(
                 children: [
                   PageView(
-                    controller: controller.bottomPanelPageController,
+                    controller: shellController.bottomPanelPageController,
                     children: [
                       BottomPanelQueueView(
+                        shellController: shellController,
                         playerController: playerController,
                         settingsController: settingsController,
                       ),
                       BottomPanelNowPlayingPage(
+                        shellController: shellController,
                         playerController: playerController,
                         settingsController: settingsController,
                       ),
@@ -93,6 +99,7 @@ class BottomPanelView extends GetView<ShellController> {
                     ],
                   ),
                   BottomPanelContentFadeMask(
+                    shellController: shellController,
                     settingsController: settingsController,
                   ),
                 ],
@@ -105,16 +112,17 @@ class BottomPanelView extends GetView<ShellController> {
           ],
         ),
         BottomPanelArtworkTransitionLayer(
-          controller: controller,
+          controller: shellController,
           playerController: playerController,
         ),
         BottomPanelArtworkPageLayer(
-          controller: controller,
+          controller: shellController,
           playerController: playerController,
         ),
 
         // 页面指示TabBar
         BottomPanelPageIndicator(
+          shellController: shellController,
           playerController: playerController,
           settingsController: settingsController,
         ),

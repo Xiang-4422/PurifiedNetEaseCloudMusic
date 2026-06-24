@@ -1509,6 +1509,7 @@ void main() {
         if (!panel.contains('required this.playerController')) '${_relativePath(panelFile)} does not receive player controller',
         if (!panel.contains('required this.settingsController')) '${_relativePath(panelFile)} does not receive settings controller',
         if (!panel.contains('required this.commentControllerFactory')) '${_relativePath(panelFile)} does not receive comment controller factory',
+        if (!panel.contains('required this.shellController')) '${_relativePath(panelFile)} does not receive shell controller',
         if (!home.contains('final appHomeControllers = Get.find<AppHomeControllerBundle>()')) '${_relativePath(homeFile)} does not resolve app home controller bundle at shell boundary',
         if (home.contains('Get.find<PlayerController>')) '${_relativePath(homeFile)} reads player controller globally',
         if (home.contains('Get.find<SettingsController>')) '${_relativePath(homeFile)} reads settings controller globally',
@@ -1521,6 +1522,7 @@ void main() {
         if (!bootstrap.contains('playerController: Get.find<PlayerController>()')) 'feature bootstrap does not inject player controller into app home bundle',
         if (!bootstrap.contains('settingsController: Get.find<SettingsController>()')) 'feature bootstrap does not inject settings controller into app home bundle',
         if (!home.contains('panel: BottomPanelView(')) '${_relativePath(homeFile)} does not compose bottom panel',
+        if (!home.contains('shellController: controller')) '${_relativePath(homeFile)} does not inject shell controller into bottom panel',
         if (!home.contains('playerController: playerController')) '${_relativePath(homeFile)} does not inject player controller into bottom panel',
         if (!home.contains('settingsController: settingsController')) '${_relativePath(homeFile)} does not inject settings controller into bottom panel',
         if (!home.contains('commentControllerFactory: commentControllerFactory')) '${_relativePath(homeFile)} does not inject comment controller factory into bottom panel',
@@ -1530,6 +1532,34 @@ void main() {
         violations,
         isEmpty,
         reason: '底部播放主面板只能组合播放页局部 widgets，播放、设置和评论工厂必须由首页壳层组合边界注入。',
+      );
+    });
+
+    test('bottom panel playback widgets receive shell controller explicitly', () {
+      final shellInjectedFiles = [
+        File('${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart'),
+        File('${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart'),
+        File('${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_queue_view.dart'),
+        File('${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_background_layers.dart'),
+        File('${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_page.dart'),
+        File('${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_now_playing_metadata.dart'),
+        File('${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_page_indicator.dart'),
+        File('${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart'),
+        File('${projectRoot.path}/lib/ui/pages/shell/widgets/playback/lyric_view.dart'),
+      ];
+      final violations = <String>[
+        for (final file in shellInjectedFiles)
+          if (file.readAsStringSync().contains('extends GetView<ShellController>')) '${_relativePath(file)} still reads shell through GetView',
+        for (final file in shellInjectedFiles)
+          if (file.readAsStringSync().contains('Get.find<ShellController>')) '${_relativePath(file)} reads shell controller globally',
+        for (final file in shellInjectedFiles)
+          if (!file.readAsStringSync().contains('required this.shellController')) '${_relativePath(file)} does not receive shell controller explicitly',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '底部播放面板子组件必须显式接收 shellController，不能通过 GetView 或 Get.find 隐式读取全局 shell。',
       );
     });
 

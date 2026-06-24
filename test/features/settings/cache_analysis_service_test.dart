@@ -96,7 +96,7 @@ void main() {
     });
 
     test('counts only clearable unique playback cache resource paths', () async {
-      final playbackCacheDirectory = Directory('${supportDirectory.path}/zmusic/playback-cache')..createSync(recursive: true);
+      final playbackCacheDirectory = Directory('${supportDirectory.path}/zmusic/cache/audio')..createSync(recursive: true);
       final sharedPlayback = await _writeFile(
         playbackCacheDirectory,
         'shared.mp3',
@@ -163,6 +163,77 @@ void main() {
 
       expect(playback.sizeBytes, 40);
       expect(playback.fileCount, 2);
+    });
+
+    test('counts and clears playback cache orphan files without deleting retained resources', () async {
+      final playbackCacheDirectory = Directory('${supportDirectory.path}/zmusic/cache/audio')..createSync(recursive: true);
+      final indexedPlayback = await _writeFile(
+        playbackCacheDirectory,
+        'indexed.mp3',
+        size: 10,
+      );
+      final retainedPlayback = await _writeFile(
+        playbackCacheDirectory,
+        'retained.mp3',
+        size: 30,
+      );
+      final orphanPlayback = await _writeFile(
+        playbackCacheDirectory,
+        'orphan.mp3',
+        size: 40,
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: 'netease:1',
+            kind: LocalResourceKind.audio,
+            path: indexedPlayback.path,
+            sizeBytes: 10,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          _resource(
+            trackId: 'netease:2',
+            kind: LocalResourceKind.audio,
+            path: retainedPlayback.path,
+            sizeBytes: 30,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          _resource(
+            trackId: 'netease:3',
+            kind: LocalResourceKind.audio,
+            path: retainedPlayback.path,
+            sizeBytes: 30,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+        ],
+      );
+      late final _FakeMusicDataRepository musicDataRepository;
+      musicDataRepository = _FakeMusicDataRepository(
+        onRemovePlaybackCache: () => resourceIndexRepository.removeResourcesByOrigin(
+          TrackResourceOrigin.playbackCache,
+        ),
+      );
+      final service = CacheAnalysisService(
+        musicDataRepository: musicDataRepository,
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final result = await service.analyze();
+      final playback = result.categories.singleWhere(
+        (category) => category.category == CacheCategory.playback,
+      );
+      await service.clear(CacheCategory.playback);
+
+      expect(playback.sizeBytes, 50);
+      expect(playback.fileCount, 2);
+      expect(musicDataRepository.removePlaybackCacheCount, 1);
+      expect(indexedPlayback.existsSync(), isFalse);
+      expect(orphanPlayback.existsSync(), isFalse);
+      expect(retainedPlayback.existsSync(), isTrue);
+      expect(
+        resourceIndexRepository.resources.map((resource) => resource.origin).toSet(),
+        {TrackResourceOrigin.managedDownload},
+      );
     });
 
     test('keeps indexed resources in image directory while analyzing and clearing image cache', () async {
@@ -603,6 +674,19 @@ class _ThrowingMusicDataRepository implements MusicDataRepository {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeMusicDataRepository extends _ThrowingMusicDataRepository {
+  _FakeMusicDataRepository({this.onRemovePlaybackCache});
+
+  final Future<void> Function()? onRemovePlaybackCache;
+  var removePlaybackCacheCount = 0;
+
+  @override
+  Future<void> removePlaybackCache() async {
+    removePlaybackCacheCount++;
+    await onRemovePlaybackCache?.call();
+  }
 }
 
 class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository {

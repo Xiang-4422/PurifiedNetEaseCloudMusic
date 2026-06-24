@@ -95,10 +95,6 @@ class CacheAnalysisService {
       indexedResources,
       shouldRemove: (resource) => resource.origin == TrackResourceOrigin.playbackCache,
     );
-    final playbackStats = _indexedResourceStats(
-      playbackResources,
-      retainedPaths: playbackRetainedPaths,
-    );
     final categories = [
       await _analyzeDirectory(
         CacheCategory.image,
@@ -110,12 +106,12 @@ class CacheAnalysisService {
         Directory('${supportDirectory.path}/zmusic/artwork-cache'),
         origin: TrackResourceOrigin.artworkCache,
       ),
-      CacheCategoryAnalysis(
-        category: CacheCategory.playback,
-        title: _titleFor(CacheCategory.playback),
-        description: _descriptionFor(CacheCategory.playback),
-        sizeBytes: playbackStats.sizeBytes,
-        fileCount: playbackStats.fileCount,
+      await _analyzeIndexedResourceCacheDirectory(
+        CacheCategory.playback,
+        Directory('${supportDirectory.path}/zmusic/cache'),
+        origin: TrackResourceOrigin.playbackCache,
+        cacheResources: playbackResources,
+        retainedPaths: playbackRetainedPaths,
       ),
       await _analyzeDirectory(
         CacheCategory.temporary,
@@ -144,6 +140,10 @@ class CacheAnalysisService {
         return;
       case CacheCategory.playback:
         await _musicDataRepository.removePlaybackCache();
+        await _clearDirectory(
+          Directory('${supportDirectory.path}/zmusic/cache'),
+          retainedPaths: await _indexedResourcePaths(),
+        );
         return;
       case CacheCategory.temporary:
         await _clearDirectory(
@@ -201,37 +201,53 @@ class CacheAnalysisService {
     CacheCategory category,
     Directory directory, {
     required TrackResourceOrigin origin,
+    List<LocalResourceEntry>? cacheResources,
+    Set<String>? retainedPaths,
   }) async {
-    final cacheResources = await _resourceIndexRepository.listResources(
-      origins: {origin},
+    final resources = cacheResources ??
+        await _resourceIndexRepository.listResources(
+          origins: {origin},
+        );
+    final retained = retainedPaths ??
+        _retainedResourcePathsAfterRemoving(
+          await _resourceIndexRepository.listResources(),
+          shouldRemove: (resource) => resource.origin == origin,
+        );
+    final stats = _indexedResourceStats(
+      resources,
+      retainedPaths: retained,
     );
-    final retainedPaths = _retainedResourcePathsAfterRemoving(
-      await _resourceIndexRepository.listResources(),
-      shouldRemove: (resource) => resource.origin == origin,
+    final countedPaths = _indexedResourcePathsForStats(
+      resources,
+      retainedPaths: retained,
     );
-    final countedPaths = <String>{};
-    var sizeBytes = 0;
-    var fileCount = 0;
-    for (final resource in cacheResources) {
-      final path = _resourceFilePath(resource);
-      if (path.isEmpty || retainedPaths.contains(path) || !countedPaths.add(path)) {
-        continue;
-      }
-      sizeBytes += resource.sizeBytes;
-      fileCount++;
-    }
     final orphanStats = await _unretainedDirectoryStats(
       directory,
-      retainedPaths: retainedPaths,
+      retainedPaths: retained,
       countedPaths: countedPaths,
     );
     return CacheCategoryAnalysis(
       category: category,
       title: _titleFor(category),
       description: _descriptionFor(category),
-      sizeBytes: sizeBytes + orphanStats.sizeBytes,
-      fileCount: fileCount + orphanStats.fileCount,
+      sizeBytes: stats.sizeBytes + orphanStats.sizeBytes,
+      fileCount: stats.fileCount + orphanStats.fileCount,
     );
+  }
+
+  Set<String> _indexedResourcePathsForStats(
+    List<LocalResourceEntry> resources, {
+    required Set<String> retainedPaths,
+  }) {
+    final countedPaths = <String>{};
+    for (final resource in resources) {
+      final path = _resourceFilePath(resource);
+      if (path.isEmpty || retainedPaths.contains(path)) {
+        continue;
+      }
+      countedPaths.add(path);
+    }
+    return countedPaths;
   }
 
   Future<({int sizeBytes, int fileCount})> _directoryStats(

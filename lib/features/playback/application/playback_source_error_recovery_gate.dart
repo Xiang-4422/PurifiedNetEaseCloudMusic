@@ -28,16 +28,18 @@ class PlaybackSourceErrorRecoveryGate {
     required String currentItemId,
     required PlaybackSelectionState selection,
   }) {
-    if (currentItemId.isEmpty) {
+    final normalizedCurrentItemId = _normalizedItemId(currentItemId);
+    if (normalizedCurrentItemId.isEmpty) {
       return null;
     }
-    if (!selection.hasSelection || selection.selectedItem.id != currentItemId) {
+    final normalizedSelectedItemId = _normalizedItemId(selection.selectedItem.id);
+    if (normalizedSelectedItemId.isEmpty || selection.selectedIndex < 0 || normalizedSelectedItemId != normalizedCurrentItemId) {
       return null;
     }
     if (selection.sourceStatus == PlaybackSelectionSourceStatus.loading) {
       return null;
     }
-    final recoveryKey = '${selection.selectionVersion}:$currentItemId';
+    final recoveryKey = '${selection.selectionVersion}:$normalizedCurrentItemId';
     if (_lastRecoveryKey == recoveryKey || _recoveryInFlightKey == recoveryKey) {
       return null;
     }
@@ -51,5 +53,9 @@ class PlaybackSourceErrorRecoveryGate {
     if (recoveryKey == null || _recoveryInFlightKey == recoveryKey) {
       _recoveryInFlightKey = null;
     }
+  }
+
+  String _normalizedItemId(String itemId) {
+    return itemId.trim();
   }
 }

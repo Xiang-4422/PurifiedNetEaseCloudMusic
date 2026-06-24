@@ -2881,6 +2881,26 @@ void main() {
       );
     });
 
+    test('playback source error recovery normalizes item ids', () {
+      final gateFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_source_error_recovery_gate.dart',
+      );
+      final gate = gateFile.readAsStringSync();
+      final violations = <String>[
+        if (!gate.contains('String _normalizedItemId(String itemId)')) '${_relativePath(gateFile)} does not define item id normalization',
+        if (!gate.contains('final normalizedCurrentItemId = _normalizedItemId(currentItemId);')) '${_relativePath(gateFile)} can still branch on raw current item id',
+        if (!gate.contains('final normalizedSelectedItemId = _normalizedItemId(selection.selectedItem.id);')) '${_relativePath(gateFile)} can still compare raw selected item id',
+        if (!gate.contains('normalizedSelectedItemId != normalizedCurrentItemId')) '${_relativePath(gateFile)} does not compare normalized item ids',
+        if (!gate.contains("final recoveryKey = '\${selection.selectionVersion}:\$normalizedCurrentItemId';")) '${_relativePath(gateFile)} can still generate recovery keys from raw item ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放源错误恢复负责远程 URL 失败后的强刷重试，同一首歌的 current/selected id 必须先归一再判断和去重。',
+      );
+    });
+
     test('playback source resolver validates final remote urls', () {
       final resolverFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_source_resolver.dart',

@@ -18,6 +18,13 @@ void main() {
       );
       expect(
         gate.shouldStartRecovery(
+          currentItemId: '   ',
+          selection: _selection('1'),
+        ),
+        isFalse,
+      );
+      expect(
+        gate.shouldStartRecovery(
           currentItemId: '1',
           selection: const PlaybackSelectionState(),
         ),
@@ -33,12 +40,46 @@ void main() {
       expect(
         gate.shouldStartRecovery(
           currentItemId: '1',
+          selection: _selection('   '),
+        ),
+        isFalse,
+      );
+      expect(
+        gate.shouldStartRecovery(
+          currentItemId: '1',
           selection: _selection(
             '1',
             sourceStatus: PlaybackSelectionSourceStatus.loading,
           ),
         ),
         isFalse,
+      );
+    });
+
+    test('normalizes item ids before matching and deduplicating recoveries', () {
+      final gate = PlaybackSourceErrorRecoveryGate();
+
+      final firstRecoveryKey = gate.startRecovery(
+        currentItemId: ' 1 ',
+        selection: _selection('1', version: 3),
+      );
+
+      expect(firstRecoveryKey, '3:1');
+      expect(
+        gate.shouldStartRecovery(
+          currentItemId: '1',
+          selection: _selection(' 1 ', version: 3),
+        ),
+        isFalse,
+      );
+
+      gate.completeRecovery(firstRecoveryKey);
+      expect(
+        gate.shouldStartRecovery(
+          currentItemId: ' 1 ',
+          selection: _selection('1', version: 4),
+        ),
+        isTrue,
       );
     });
 

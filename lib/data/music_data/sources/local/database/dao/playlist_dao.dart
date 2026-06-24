@@ -16,10 +16,11 @@ class PlaylistDao {
 
   /// 搜索歌单。
   Future<List<PlaylistEntity>> searchPlaylists(String keyword) async {
-    if (keyword.isEmpty) {
+    final normalizedKeyword = keyword.trim();
+    if (normalizedKeyword.isEmpty) {
       return const [];
     }
-    final rows = await (_database.select(_database.playlists)..where((tbl) => tbl.title.like('%$keyword%'))).get();
+    final rows = await (_database.select(_database.playlists)..where((tbl) => tbl.title.like('%$normalizedKeyword%'))).get();
     final trackRefsByPlaylistId = await loadTrackRefsByPlaylistIds(
       rows.map((row) => row.playlistId).toList(),
     );
@@ -35,26 +36,34 @@ class PlaylistDao {
 
   /// 获取歌单。
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
-    final row = await (_database.select(_database.playlists)..where((tbl) => tbl.playlistId.equals(playlistId))).getSingleOrNull();
+    final normalizedPlaylistId = _normalizedPlaylistEntityId(playlistId);
+    if (_isBlankPlaylistEntityId(normalizedPlaylistId)) {
+      return null;
+    }
+    final row = await (_database.select(_database.playlists)..where((tbl) => tbl.playlistId.equals(normalizedPlaylistId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
     final trackRefsByPlaylistId = await loadTrackRefsByPlaylistIds([
-      playlistId,
+      normalizedPlaylistId,
     ]);
     return _mapPlaylistRow(
       row,
-      trackRefs: trackRefsByPlaylistId[playlistId] ?? const [],
+      trackRefs: trackRefsByPlaylistId[normalizedPlaylistId] ?? const [],
     );
   }
 
   /// 保存歌单列表。
   Future<void> savePlaylists(List<PlaylistEntity> playlists) async {
+    final normalizedPlaylists = _normalizedPlaylists(playlists);
+    if (normalizedPlaylists.isEmpty) {
+      return;
+    }
     await _database.transaction(() async {
       await _database.batch((batch) {
         batch.insertAllOnConflictUpdate(
           _database.playlists,
-          playlists
+          normalizedPlaylists
               .map(
                 (playlist) => db.PlaylistsCompanion(
                   playlistId: drift.Value(playlist.id),
@@ -69,7 +78,7 @@ class PlaylistDao {
               .toList(),
         );
       });
-      for (final playlist in playlists) {
+      for (final playlist in normalizedPlaylists) {
         await clearPlaylistTrackRefs(playlist.id);
         if (playlist.trackRefs.isEmpty) {
           continue;
@@ -95,18 +104,23 @@ class PlaylistDao {
 
   /// 清空歌单曲目引用。
   Future<void> clearPlaylistTrackRefs(String playlistId) {
-    return (_database.delete(_database.playlistTrackRefs)..where((tbl) => tbl.playlistId.equals(playlistId))).go();
+    final normalizedPlaylistId = _normalizedPlaylistEntityId(playlistId);
+    if (_isBlankPlaylistEntityId(normalizedPlaylistId)) {
+      return Future<void>.value();
+    }
+    return (_database.delete(_database.playlistTrackRefs)..where((tbl) => tbl.playlistId.equals(normalizedPlaylistId))).go();
   }
 
   /// 批量加载歌单曲目引用。
   Future<Map<String, List<PlaylistTrackRef>>> loadTrackRefsByPlaylistIds(
     List<String> playlistIds,
   ) async {
-    if (playlistIds.isEmpty) {
+    final normalizedPlaylistIds = _normalizedPlaylistEntityIds(playlistIds);
+    if (normalizedPlaylistIds.isEmpty) {
       return const {};
     }
     final rows = await (_database.select(_database.playlistTrackRefs)
-          ..where((tbl) => tbl.playlistId.isIn(playlistIds))
+          ..where((tbl) => tbl.playlistId.isIn(normalizedPlaylistIds))
           ..orderBy([
             (tbl) => drift.OrderingTerm.asc(tbl.order),
           ]))
@@ -286,6 +300,41 @@ class PlaylistDao {
         .toList();
   }
 
+  List<PlaylistEntity> _normalizedPlaylists(List<PlaylistEntity> playlists) {
+    return playlists.map(_normalizedPlaylistForSave).where((playlist) => !_isBlankPlaylistEntityId(playlist.id)).toList();
+  }
+
+  PlaylistEntity _normalizedPlaylistForSave(PlaylistEntity playlist) {
+    final normalizedPlaylistId = _normalizedPlaylistEntityId(playlist.id);
+    return playlist.copyWith(
+      id: normalizedPlaylistId,
+      sourceType: MusicResourceId.sourceTypeOf(normalizedPlaylistId),
+      sourceId: MusicResourceId.toSourceId(normalizedPlaylistId),
+      trackRefs: _normalizedPlaylistTrackRefs(playlist.trackRefs),
+    );
+  }
+
+  List<PlaylistTrackRef> _normalizedPlaylistTrackRefs(
+    List<PlaylistTrackRef> refs,
+  ) {
+    final seen = <String>{};
+    final result = <PlaylistTrackRef>[];
+    for (final ref in refs) {
+      final normalizedTrackId = _normalizedTrackId(ref.trackId);
+      if (_isBlankTrackId(normalizedTrackId) || !seen.add(normalizedTrackId)) {
+        continue;
+      }
+      result.add(
+        PlaylistTrackRef(
+          trackId: normalizedTrackId,
+          order: ref.order,
+          addedAt: ref.addedAt,
+        ),
+      );
+    }
+    return result;
+  }
+
   String _normalizedUserId(String userId) {
     return userId.trim();
   }
@@ -300,6 +349,27 @@ class PlaylistDao {
 
   bool _isBlankPlaylistEntityId(String playlistId) {
     return playlistId.isEmpty;
+  }
+
+  List<String> _normalizedPlaylistEntityIds(List<String> playlistIds) {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final playlistId in playlistIds) {
+      final normalizedPlaylistId = _normalizedPlaylistEntityId(playlistId);
+      if (_isBlankPlaylistEntityId(normalizedPlaylistId) || !seen.add(normalizedPlaylistId)) {
+        continue;
+      }
+      result.add(normalizedPlaylistId);
+    }
+    return result;
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return MusicResourceId.toNeteaseEntityId(trackId.trim());
+  }
+
+  bool _isBlankTrackId(String trackId) {
+    return trackId.isEmpty;
   }
 
   List<PlaylistSummaryData> _normalizedPlaylistSummaries(

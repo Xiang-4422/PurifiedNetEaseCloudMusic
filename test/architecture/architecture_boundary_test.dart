@@ -1959,6 +1959,35 @@ void main() {
       );
     });
 
+    test('playlist dao normalizes persisted playlist detail ids', () {
+      final daoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/playlist_dao.dart',
+      );
+      final dao = daoFile.readAsStringSync();
+      final violations = <String>[
+        if (!dao.contains('String _normalizedPlaylistEntityId(String playlistId)')) '${_relativePath(daoFile)} does not normalize playlist ids',
+        if (!dao.contains('bool _isBlankPlaylistEntityId(String playlistId)')) '${_relativePath(daoFile)} does not guard blank playlist ids',
+        if (!dao.contains('List<String> _normalizedPlaylistEntityIds(List<String> playlistIds)')) '${_relativePath(daoFile)} does not normalize batch playlist lookups',
+        if (!dao.contains('String _normalizedTrackId(String trackId)')) '${_relativePath(daoFile)} does not normalize playlist track ids',
+        if (!dao.contains('bool _isBlankTrackId(String trackId)')) '${_relativePath(daoFile)} does not guard blank playlist track ids',
+        if (!dao.contains('PlaylistEntity _normalizedPlaylistForSave(PlaylistEntity playlist)')) '${_relativePath(daoFile)} does not normalize playlist details before persistence',
+        if (!dao.contains('List<PlaylistTrackRef> _normalizedPlaylistTrackRefs(')) '${_relativePath(daoFile)} does not normalize playlist track refs before persistence',
+        if (!dao.contains('final normalizedPlaylistId = _normalizedPlaylistEntityId(playlistId);')) '${_relativePath(daoFile)} can still query or delete playlists by raw playlist ids',
+        if (!dao.contains('final normalizedPlaylists = _normalizedPlaylists(playlists);')) '${_relativePath(daoFile)} can still persist raw playlist details',
+        if (!dao.contains('playlistId: drift.Value(playlist.id)')) '${_relativePath(daoFile)} can still write raw playlist ids',
+        if (!dao.contains('playlistId: playlist.id')) '${_relativePath(daoFile)} can still write raw playlist ref playlist ids',
+        if (!dao.contains('trackId: trackRef.trackId')) '${_relativePath(daoFile)} can still write raw playlist ref track ids',
+        if (!dao.contains('MusicResourceId.sourceTypeOf(normalizedPlaylistId)')) '${_relativePath(daoFile)} does not derive source type from normalized playlist id',
+        if (!dao.contains('MusicResourceId.toSourceId(normalizedPlaylistId)')) '${_relativePath(daoFile)} does not derive source id from normalized playlist id',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'playlists 和 playlist_track_refs 是歌单详情缓存事实表，DAO 边界必须归一歌单 id 和曲目 id，并拒绝空白 key。',
+      );
+    });
+
     test('setting sections receive settings controller boundary', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

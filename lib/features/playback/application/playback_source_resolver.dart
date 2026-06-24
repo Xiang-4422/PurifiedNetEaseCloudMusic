@@ -52,8 +52,14 @@ class PlaybackSourceResolver {
     required bool preferHighQuality,
     bool forceRefresh = false,
   }) async {
+    final itemId = _normalizedQueueItemId(item.id);
+    if (itemId.isEmpty) {
+      return const PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.empty,
+      );
+    }
     final url = (await _repository.fetchPlaybackUrl(
-          item.id,
+          itemId,
           preferHighQuality: preferHighQuality,
           forceRefresh: forceRefresh,
         ))
@@ -140,11 +146,16 @@ class PlaybackSourceResolver {
   }
 
   Future<void> _pruneMissingIndexedAudioResource(PlaybackQueueItem item) async {
-    if (item.id.isEmpty) {
+    final itemId = _normalizedQueueItemId(item.id);
+    if (itemId.isEmpty) {
       return;
     }
     try {
-      await _repository.getTrackWithResources(item.id);
+      await _repository.getTrackWithResources(itemId);
     } catch (_) {}
+  }
+
+  String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 }

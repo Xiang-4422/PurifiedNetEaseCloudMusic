@@ -150,6 +150,7 @@ void main() {
 
       final source = await resolver.resolve(
         _mediaItem(
+          id: ' netease:1 ',
           type: MediaType.local,
           url: '/missing/audio/download.mp3',
         ),
@@ -158,6 +159,7 @@ void main() {
 
       expect(source.kind, PlaybackResolvedSourceKind.url);
       expect(source.url, 'https://example.com/fallback.mp3');
+      expect(repository.fetchPlaybackUrlTrackIds, ['netease:1']);
       expect(repository.preferHighQualityValues, [true]);
       expect(repository.forceRefreshValues, [false]);
       expect(repository.trackResourceLookups, ['netease:1']);
@@ -257,6 +259,47 @@ void main() {
 
       expect(source.kind, PlaybackResolvedSourceKind.url);
       expect(source.url, 'https://example.com/song.mp3?auth=temp');
+    });
+
+    test('normalizes queue item id before resolving remote playback url', () async {
+      final repository = _FakePlaybackRepository(
+        playbackUrl: 'https://example.com/song.mp3',
+      );
+      final resolver = PlaybackSourceResolver(repository: repository);
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          id: ' netease:1 ',
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.url);
+      expect(repository.fetchPlaybackUrlTrackIds, ['netease:1']);
+    });
+
+    test('does not resolve remote playback url for blank queue item id', () async {
+      final repository = _FakePlaybackRepository(
+        playbackUrl: 'https://example.com/song.mp3',
+      );
+      final resolver = PlaybackSourceResolver(repository: repository);
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          id: '   ',
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.empty);
+      expect(source.isEmpty, isTrue);
+      expect(repository.fetchPlaybackUrlTrackIds, isEmpty);
+      expect(repository.preferHighQualityValues, isEmpty);
+      expect(repository.forceRefreshValues, isEmpty);
     });
 
     test('accepts uppercase remote http playback url with authority', () async {
@@ -418,13 +461,14 @@ Future<File> _createTempAudioFile(String name) async {
 }
 
 PlaybackQueueItem _mediaItem({
+  String id = 'netease:1',
   SourceType sourceType = SourceType.netease,
   required MediaType type,
   required String url,
 }) {
   return PlaybackQueueItem(
-    id: 'netease:1',
-    sourceId: 'netease:1',
+    id: id,
+    sourceId: id,
     sourceType: sourceType,
     title: 'Track',
     albumTitle: null,
@@ -447,6 +491,7 @@ class _FakePlaybackRepository implements PlaybackRepository {
   });
 
   final String playbackUrl;
+  final List<String> fetchPlaybackUrlTrackIds = <String>[];
   final List<bool> forceRefreshValues = <bool>[];
   final List<bool> preferHighQualityValues = <bool>[];
   final List<String> trackResourceLookups = <String>[];
@@ -460,6 +505,7 @@ class _FakePlaybackRepository implements PlaybackRepository {
     required bool preferHighQuality,
     bool forceRefresh = false,
   }) async {
+    fetchPlaybackUrlTrackIds.add(trackId);
     preferHighQualityValues.add(preferHighQuality);
     forceRefreshValues.add(forceRefresh);
     return playbackUrl;

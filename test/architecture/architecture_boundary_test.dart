@@ -2870,12 +2870,17 @@ void main() {
         if (!resolver.contains('uri?.host.isNotEmpty == true')) '${_relativePath(resolverFile)} can accept remote playback URLs without authority',
         if (!resolver.contains('if (!_isRemoteHttpUrl(url))')) '${_relativePath(resolverFile)} can return malformed remote playback URLs to the player',
         if (!resolver.contains('LocalFilePathNormalizer.normalize(url)')) '${_relativePath(resolverFile)} does not normalize local playback URLs before final source resolution',
+        if (!resolver.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(resolverFile)} does not define queue item id normalization',
+        if (!resolver.contains('return id.trim();')) '${_relativePath(resolverFile)} does not trim queue item ids before repository calls',
+        if (!resolver.contains('final itemId = _normalizedQueueItemId(item.id);')) '${_relativePath(resolverFile)} can still call repository with raw queue item ids',
+        if (!resolver.contains('_repository.fetchPlaybackUrl(\n          itemId,')) '${_relativePath(resolverFile)} does not resolve remote playback URLs with normalized ids',
+        if (!resolver.contains('_repository.getTrackWithResources(itemId)')) '${_relativePath(resolverFile)} does not prune missing resources with normalized ids',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: 'PlaybackSourceResolver 是进入底层播放器前的最终边界，必须阻断非 HTTP(S) 或缺 authority 的远程播放地址。',
+        reason: 'PlaybackSourceResolver 是进入底层播放器前的最终边界，必须阻断非 HTTP(S) 或缺 authority 的远程播放地址，并且进入 repository 前先归一队列项 id。',
       );
     });
 

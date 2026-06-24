@@ -177,7 +177,8 @@ class PlaybackSwitchCoordinator {
       return result;
     }
 
-    if (item.id.isEmpty || activeIndex < 0) {
+    final itemId = _normalizedQueueItemId(item.id);
+    if (itemId.isEmpty || activeIndex < 0) {
       _emitState(
         _buildState(
           switchId: switchId,
@@ -731,6 +732,10 @@ class PlaybackSwitchCoordinator {
 
   bool _isObsolete(int version) {
     return version != _latestVersion;
+  }
+
+  String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 
   bool _isAutoAdvance(PlaybackSwitchTrigger trigger) {

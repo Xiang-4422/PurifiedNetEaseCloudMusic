@@ -1466,6 +1466,25 @@ void main() {
       );
     });
 
+    test('playback switch coordinator normalizes queue item ids at entry', () {
+      final coordinatorFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_switch_coordinator.dart',
+      );
+      final coordinator = coordinatorFile.readAsStringSync();
+      final violations = <String>[
+        if (!coordinator.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(coordinatorFile)} does not define queue item id normalization',
+        if (!coordinator.contains('return id.trim();')) '${_relativePath(coordinatorFile)} does not trim queue item ids',
+        if (!coordinator.contains('final itemId = _normalizedQueueItemId(item.id);')) '${_relativePath(coordinatorFile)} still branches on raw queue item ids',
+        if (coordinator.contains('if (item.id.isEmpty || activeIndex < 0)')) '${_relativePath(coordinatorFile)} can still let whitespace-only ids enter source resolving',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'PlaybackSwitchCoordinator 是 selection 进入底层切源的入口，必须先归一队列项 id，空白 id 不能进入 resolver、prefetcher 或底层播放器。',
+      );
+    });
+
     test('playback queue ownership does not flow back from audio adapter', () {
       final selectionFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_selection_service.dart',

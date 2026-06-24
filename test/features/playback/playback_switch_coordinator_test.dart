@@ -79,6 +79,34 @@ void main() {
       expect(playbackService.replaceCalls.single.playNow, isFalse);
     });
 
+    test('rejects blank queue item ids before resolving source', () async {
+      final playbackService = _FakePlaybackService();
+      final resolver = _RemoteRefreshSourceResolver();
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+      );
+      final item = _item('   ');
+
+      final result = await coordinator.switchToSelection(
+        queue: [item],
+        item: item,
+        activeIndex: 0,
+        selectionVersion: 1,
+        trigger: PlaybackSwitchTrigger.userSelect,
+        playNow: true,
+      );
+
+      expect(result.success, isFalse);
+      expect(result.message, '没有可播放的歌曲');
+      expect(coordinator.state.phase, PlaybackSwitchPhase.failed);
+      expect(resolver.resolveCalls, 0);
+      expect(resolver.remoteForceRefreshValues, isEmpty);
+      expect(playbackService.replaceCalls, isEmpty);
+    });
+
     test('serializes source replacement and drops stale waiters', () async {
       final playbackService = _FakePlaybackService(holdReplace: true);
       final resolver = _ImmediateSourceResolver();
